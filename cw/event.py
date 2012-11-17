@@ -312,7 +312,7 @@ class Event(object):
         # 発火キーコード(文字列)
         self.keycodes = []
 
-        if event:
+        if event is not None:
             if event.hasfind("Ignitions//Number"):
                 s = event.gettext("Ignitions//Number", "")
                 self.keynums = [int(i) for i in s.split("\\n") if i]
@@ -417,12 +417,12 @@ class Event(object):
 
     def get_nextcontents(self):
         """self.cur_contentの子コンテントのリストを返す。"""
-        if not self.cur_content:
+        if self.cur_content is None:
             return None
         else:
             element = self.cur_content.find("Contents")
 
-            if element:
+            if element is not None:
                 return element.getchildren()
             else:
                 return None

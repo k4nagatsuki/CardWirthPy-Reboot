@@ -420,6 +420,9 @@ class YadoSelect(Select):
         """Yadoにある宿のpathリストと冒険者リストを返す。"""
         yadodirs = []
 
+        if not os.path.exists(u"Yado"):
+            os.makedirs(u"Yado")
+
         for dname in os.listdir(u"Yado"):
             path  = cw.util.join_paths(u"Yado", dname, "Environment.xml")
 

@@ -456,6 +456,9 @@ def remove_temp():
     """
     dpath = u"Data/Temp"
 
+    if not os.path.exists(dpath):
+        os.makedirs(dpath)
+
     for name in os.listdir(dpath):
         if not name == "Scenario":
             path = join_paths(dpath, name)

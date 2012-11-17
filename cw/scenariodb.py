@@ -198,6 +198,9 @@ class Scenariodb(object):
         # データベースに登録されていないシナリオファイルがないかチェック
         dbpaths = set([h.get_fpath() for h in headers])
 
+        if not os.path.exists(dpath):
+            os.makedirs(dpath)
+
         for name in os.listdir(unicode(dpath)):
             path = cw.util.join_paths(dpath, name)
 

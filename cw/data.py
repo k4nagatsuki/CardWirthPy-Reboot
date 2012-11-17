@@ -129,10 +129,10 @@ class SystemData(object):
         """背景のElementのリストを返す。
         e: BgImagesのElement。
         """
-        if not e:
+        if e is None:
             e = self.data.find("BgImages")
 
-        if e:
+        if e is not None:
             return e.getchildren()
         else:
             return []
@@ -141,9 +141,11 @@ class SystemData(object):
         """spreadtypeの値("Custom", "Auto")と
         メニューカードのElementのリストをタプルで返す。
         """
-        e = self.data.find("MenuCards") or self.data.find("EnemyCards")
+        e = self.data.find("MenuCards")
+        if e is None:
+            e = self.data.find("EnemyCards")
 
-        if e:
+        if e is not None:
             stype = e.get("spreadtype", "Auto")
             elements = e.getchildren()
         else:
@@ -1345,7 +1347,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
 
 class CWPyElementTree(ElementTree, _CWPyElementInterface):
     def __init__(self, fpath="", element=None):
-        if not element:
+        if element is None:
             element = xml2element(fpath)
 
         ElementTree.__init__(self, element=element)
@@ -1472,7 +1474,7 @@ def yadoxml2element(path, tag=""):
         raise ValueError("%s is not found." % path)
 
 def xml2etree(path="", tag="", file=None, element=None):
-    if not element:
+    if element is None:
         element = xml2element(path, tag, file)
 
     return CWPyElementTree(element=element)

@@ -20,7 +20,7 @@ class CardHeader(object):
         if data:
             self.fpath = data.fpath
             self.type = os.path.basename(os.path.dirname(self.fpath))
-        elif carddata:
+        elif carddata is not None:
             self.fpath = ""
             self.type = carddata.tag
             data = carddata.getfind("Property")
@@ -71,7 +71,7 @@ class CardHeader(object):
                 data.append(e)
 
         # シナリオ取得フラグ
-        if from_scenario or self.carddata and self.carddata.get("scenariocard"):
+        if from_scenario or (self.carddata is not None and self.carddata.get("scenariocard")):
             self.scenariocard = True
         else:
             self.scenariocard = False
