@@ -150,9 +150,12 @@ class CWBinaryBase(object):
         """XML作成用の辞書を返す。"""
         return {}
 
-    def get_xmltext(self, indent):
+    def get_xmltext(self, indent, image_export=True):
         """XML作成用の文字列を返す。"""
-        imgpath = self.export_image()
+        if image_export:
+            imgpath = self.export_image()
+        else:
+            imgpath = ""
         d = self.get_xmldict(indent)
 
         if not d.get("imgpath"):

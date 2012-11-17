@@ -11,6 +11,7 @@ import threading
 import shutil
 
 import cw
+import cw.binary
 
 
 class ScenariodbUpdatingThread(threading.Thread):
@@ -35,7 +36,7 @@ class Scenariodb(object):
     """シナリオデータベース。ロックのタイムアウトは30秒指定。
     データ種類は、
     dpath(ファイルのあるディレクトリ),
-    fname(wsnファイル名),
+    fname(wsnファイル名、またはフォルダ名),
     name(シナリオ名),
     author(作者),
     desc(解説文),
@@ -80,7 +81,14 @@ class Scenariodb(object):
             path = "/".join((t[0], t[1]))
 
             if not os.path.isfile(path):
-                self.delete(path, False)
+                spath = cw.util.join_paths(path, "Summary.wsm")
+                if os.path.exists(spath):
+                    # クラシックなシナリオ
+                    dbpaths.append(path)
+                    if os.path.getmtime(spath) > t[2]:
+                        self.insert_scenario(path, False)
+                else:
+                    self.delete(path, False)
             else:
                 dbpaths.append(path)
 
@@ -123,7 +131,10 @@ class Scenariodb(object):
 
     def insert_scenario(self, path, commit=True):
         """データベースにシナリオを登録する。"""
-        t = read_summary(path)
+        if path.lower().endswith(".wsn"):
+            t = read_summary(path)
+        else:
+            t = read_summary_classic(path)
 
         if t:
             self.insert(t, commit)
@@ -148,6 +159,16 @@ class Scenariodb(object):
         path = header.get_fpath()
 
         if not os.path.isfile(path):
+            spath = cw.util.join_paths(path, "Summary.wsm")
+            if os.path.exists(spath):
+                # クラシックなシナリオ
+                if os.path.getmtime(spath) > header.mtime:
+                    cs = read_summary_classic(path)
+                    if cs:
+                        self.insert(cs, True)
+                        return header
+                else:
+                    return header
             self.delete(path)
             return None
         elif os.path.getmtime(path) > header.mtime:
@@ -246,7 +267,7 @@ def read_summary(path):
     f.close()
 
     try:
-        imgpath, summaryinfos = parse_summarydata(e)
+        imgpath, summaryinfos = parse_summarydata(e, True)
     except:
         z.close()
         return None
@@ -262,7 +283,28 @@ def read_summary(path):
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
-def parse_summarydata(data):
+def read_summary_classic(path):
+    spath = cw.util.join_paths(path, "Summary.wsm")
+
+    try:
+        cwdata = cw.binary.cwscenario.CWScenario(
+            path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype)
+        summary = cwdata.load_file(spath)
+        xml = summary.get_xmltext(0, False)
+        f = StringIO.StringIO(xml)
+        e = cw.data.xml2element(path, "Property", f)
+        f.close()
+
+        imgpath, summaryinfos = parse_summarydata(e, False)
+        imgbuf = summary.image
+    except Exception, ex:
+        return None
+
+    imgbuf = buffer(imgbuf)
+    summaryinfos.append(imgbuf)
+    return tuple(summaryinfos)
+
+def parse_summarydata(data, archive):
     e = data.find("ImagePath")
     imgpath = e.text or ""
     e = data.find("Name")
@@ -298,6 +340,8 @@ def get_scenariopaths():
             if fname.lower().endswith(".wsn"):
                 fpath = cw.util.join_paths(dpath, fname)
                 yield fpath
+            elif fname == "Summary.wsm":
+                yield dpath
 
 def main():
     db = Scenariodb()

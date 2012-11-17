@@ -26,7 +26,8 @@ class _Singleton(object):
             return cls.__new__(cls, *args, **kwargs)
 
 class CWPy(_Singleton, threading.Thread):
-    def __init__(self, frame=None):
+    def __init__(self, setting, frame=None):
+        self.setting = setting  # 設定
         if frame and not hasattr(self, "frame"):
             threading.Thread.__init__(self)
             self.frame = frame   # 親フレーム
@@ -68,20 +69,12 @@ class CWPy(_Singleton, threading.Thread):
         self.selection = None
         # カード操作用データ(CardHeader)
         self.selectedheader = None
-        # Settingインスタンス
-        self.setting = cw.setting.Setting()
         # デバッグモードかどうか
         self.debug = self.setting.debug
         # 選択中スキンのディレクトリ
         self.skindir = self.setting.skindir
         # シナリオ履歴(起動してから開いたシナリオのデータを管理するクラス)
         self.recenthistory = self.setting.recenthistory
-        # 各種リソース(辞書)
-        self.rsrc = cw.setting.Resource(self.setting)
-        # システム効果音(辞書)
-        self.sounds = self.rsrc.sounds
-        # アクションカードのデータ(CardHeader)
-        self.rsrc.actioncards = self.rsrc.get_actioncards()
         # MusicInterfaceインスタンス
         self.music = cw.util.MusicInterface()
         # EventInterfaceインスタンス
@@ -92,16 +85,6 @@ class CWPy(_Singleton, threading.Thread):
         self.pcardgrp = pygame.sprite.LayeredDirty()
         self.topgrp = pygame.sprite.LayeredDirty()
         self.sbargrp = pygame.sprite.LayeredDirty()
-        # 背景スプライト
-        self.background = cw.sprite.background.BackGround()
-        self.bggrp.set_clip(self.background.rect)
-        self.mcardgrp.set_clip(self.background.rect)
-        self.pcardgrp.set_clip(self.background.rect)
-        self.topgrp.set_clip(self.background.rect)
-        # ステータスバースプライト
-        self.statusbar = cw.sprite.statusbar.StatusBar()
-        self.sbargrp.set_clip(self.statusbar.rect)
-        # ステータスバークリップ
         # エリアID
         self.areaid = 1
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
@@ -123,6 +106,25 @@ class CWPy(_Singleton, threading.Thread):
         self.eventhandler = cw.eventhandler.EventHandler()
         # ゲーム状態を"Title"にセット
         self.exec_func(self.set_title)
+
+    def _init_resources(self):
+        """スキンが関わるリソースの初期化"""
+        # リソース(辞書)
+        self.rsrc = cw.setting.Resource(self.setting)
+        # システム効果音(辞書)
+        self.sounds = self.rsrc.sounds
+        # アクションカードのデータ(CardHeader)
+        self.rsrc.actioncards = self.rsrc.get_actioncards()
+        # 背景スプライト
+        self.background = cw.sprite.background.BackGround()
+        self.bggrp.set_clip(self.background.rect)
+        self.mcardgrp.set_clip(self.background.rect)
+        self.pcardgrp.set_clip(self.background.rect)
+        self.topgrp.set_clip(self.background.rect)
+        # ステータスバースプライト
+        self.statusbar = cw.sprite.statusbar.StatusBar()
+        # ステータスバークリップ
+        self.sbargrp.set_clip(self.statusbar.rect)
 
     def run(self):
         try:
@@ -296,6 +298,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_title(self):
         """タイトル画面へ遷移。"""
+        self._init_resources()
         self.set_status("Title")
         cw.util.remove_temp()
         self.yadodir = ""

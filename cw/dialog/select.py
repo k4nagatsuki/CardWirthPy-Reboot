@@ -1128,13 +1128,18 @@ class ScenarioSelect(Select):
             self._enable_btn()
 
     def get_dpaths(self):
+        """
+        クラシックなシナリオ以外のフォルダの一覧を返す。
+        """
         seq = []
 
         for dname in os.listdir(self.nowdir):
             path = cw.util.join_paths(self.nowdir, dname)
 
             if os.path.isdir(path):
-                seq.append(path)
+                spath = cw.util.join_paths(path, "Summary.wsm")
+                if not os.path.exists(spath):
+                    seq.append(path)
 
         return seq
 

@@ -25,18 +25,20 @@ class Frame(wx.Frame):
             os.environ["SDL_VIDEODRIVER"] = "windib"
 ##            os.environ["SDL_AUDIODRIVER"] = "waveout"
 
-        # データベースファイル更新をサブスレッドで実行
-        dbupdater = cw.scenariodb.ScenariodbUpdatingThread()
-        dbupdater.start()
         # debbuger
         self.debugger = None
         # アイコン
         self.set_icon(self)
         # bind
         self._bind()
+        # 設定
+        setting = cw.setting.Setting()
         # CWPyサブスレッド
-        cw.cwpy = cw.thread.CWPy(self)
+        cw.cwpy = cw.thread.CWPy(setting, self)
         cw.cwpy.start()
+        # データベースファイル更新をサブスレッドで実行
+        dbupdater = cw.scenariodb.ScenariodbUpdatingThread()
+        dbupdater.start()
 
     def set_icon(self, win):
         if sys.platform == "win32":

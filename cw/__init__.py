@@ -29,7 +29,7 @@ import sprite
 
 
 # CWPyThread
-cwpy = thread.CWPy()
+cwpy = None
 
 # アプリケーション情報
 APP_VERSION = (0, 1, 2)

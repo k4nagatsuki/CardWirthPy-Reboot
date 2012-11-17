@@ -8,6 +8,7 @@ syntax: regexp
 ^src\.zip$
 ^Data/.*
 ^Scenario/.*
+^UnregisteredScenario/.*
 ^Yado/.*
 ^Settings\.xml$
 ^Scenario\.db$
