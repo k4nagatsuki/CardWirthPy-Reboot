@@ -1,0 +1,13 @@
+syntax: glob
+
+syntax: regexp
+\.pyc$
+.*\.dll$
+^build/.*
+^CardWirthPy/.*
+^src\.zip$
+^Data/.*
+^Scenario/.*
+^Yado/.*
+^Settings\.xml$
+^Scenario\.db$
