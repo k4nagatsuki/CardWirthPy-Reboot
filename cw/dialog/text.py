@@ -84,7 +84,7 @@ class Text(wx.Dialog):
         else:
             value = ""
 
-        self.textctrl.SetValue(value)
+        self._set_text(value)
         self.combo.SetItems(self.list)
 
         if self.list:
@@ -105,7 +105,7 @@ class Text(wx.Dialog):
         else:
             value = ""
 
-        self.textctrl.SetValue(value)
+        self._set_text(value)
         self.combo.SetItems(self.list)
 
         if self.list:

@@ -649,7 +649,7 @@ class YadoData(object):
         path = cw.util.join_paths(self.yadodir, "Environment.xml")
         self.environment = yadoxml2etree(path)
         # 宿の金庫
-        self.money = int(self.environment.find("/Property/Cashbox").text)
+        self.money = int(self.environment.getroot().find("Property/Cashbox").text)
         # パーティリスト(PartyHeader)
         paths = self.get_partypaths()
         self.partys = [self.create_partyheader(path) for path in paths]
@@ -1263,8 +1263,19 @@ class _CWPyElementInterface(object):
         s = s % (self.fpath, tag, attr)
         raise ValueError(s.encode("utf-8"))
 
+    def find2(self, path):
+        """
+        ElementTreeの仕様変更に対応するためのラッパメソッド。
+        """
+        if path == "":
+            return self
+        elif path.startswith("/"):
+            return self.getroot().find(path[1:])
+        else:
+            return self.find(path)
+
     def hasfind(self, path, attr=""):
-        e = self.find(path)
+        e = self.find2(path)
 
         if attr:
             return bool(e is not None and attr in e.attrib)
@@ -1272,7 +1283,7 @@ class _CWPyElementInterface(object):
             return bool(e is not None)
 
     def getfind(self, path):
-        e = self.find(path)
+        e = self.find2(path)
 
         if e is None:
             self._raiseerror(path)
@@ -1280,7 +1291,7 @@ class _CWPyElementInterface(object):
         return e
 
     def gettext(self, path, default=None):
-        e = self.find(path)
+        e = self.find2(path)
 
         if e is None:
             text = default
@@ -1293,10 +1304,7 @@ class _CWPyElementInterface(object):
         return text
 
     def getattr(self, path, attr, default=None):
-        if path == "":
-            e = self
-        else:
-            e = self.find(path)
+        e = self.find2(path)
 
         if e is None:
             text = default
@@ -1398,28 +1406,28 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                 return
 
         if attrname:
-            self.find(path).set(attrname, value)
+            self.find2(path).set(attrname, value)
         else:
-            self.find(path).text = value
+            self.find2(path).text = value
 
         self.is_edited = True
 
     def append(self, path, element):
-        self.find(path).append(element)
+        self.find2(path).append(element)
         self.is_edited = True
 
     def insert(self, path, element, index):
         """パスのエレメントの指定位置にelementを挿入。
         indexがNoneの場合はappend()の挙動。
         """
-        self.find(path).insert(index, element)
+        self.find2(path).insert(index, element)
         self.is_edited = True
 
     def remove(self, path, element):
         """パスのエレメントからelementを削除した後、
         CWPyElementTreeのインスタンスで返す。
         """
-        self.find(path).remove(element)
+        self.find2(path).remove(element)
         self.is_edited = True
 
     def form_element(self, element, depth=0):
