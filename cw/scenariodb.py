@@ -86,6 +86,7 @@ class Scenariodb(object):
                     # クラシックなシナリオ
                     dbpaths.append(path)
                     if os.path.getmtime(spath) > t[2]:
+                        # 情報を更新
                         self.insert_scenario(path, False)
                 else:
                     self.delete(path, False)
@@ -93,6 +94,7 @@ class Scenariodb(object):
                 dbpaths.append(path)
 
                 if os.path.getmtime(path) > t[2]:
+                    # 情報を更新
                     self.insert_scenario(path, False)
 
         self.con.commit()
@@ -152,6 +154,10 @@ class Scenariodb(object):
             return False
 
     def create_header(self, data):
+        """
+        データベース内のシナリオ情報からヘッダ部分を返す。
+        情報が古くなっている場合は更新する。
+        """
         if not data:
             return None
 
@@ -164,15 +170,18 @@ class Scenariodb(object):
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
                     cs = read_summary_classic(path)
-                    if cs:
-                        self.insert(cs, True)
+                    if cs and self.insert(cs, True):
+                        # 更新後の情報を取得
+                        header = self.search_path(path)
                         return header
                 else:
+                    # 更新は不要
                     return header
             self.delete(path)
             return None
         elif os.path.getmtime(path) > header.mtime:
             if self.insert_scenario(path):
+                # 更新後の情報を取得
                 header = self.search_path(path)
             else:
                 return None
@@ -180,6 +189,10 @@ class Scenariodb(object):
         return header
 
     def create_headers(self, data):
+        """
+        データベース内のシナリオ群のヘッダを返す。
+        その際、情報が古くなっている場合は更新する。
+        """
         headers = []
 
         for t in data:
