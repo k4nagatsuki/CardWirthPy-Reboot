@@ -28,7 +28,8 @@ class Text(wx.Dialog):
         else:
             value = ""
 
-        self.textctrl = wx.TextCtrl(self.toppanel, -1, value, size=(500, 220), style=wx.TE_MULTILINE)
+        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=(500, 220), style=wx.TE_MULTILINE)
+        self._set_text(value)
         self.textctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.textctrl.SetForegroundColour(wx.WHITE)
         self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", 10, weight=wx.NORMAL))
@@ -57,11 +58,7 @@ class Text(wx.Dialog):
         self.Bind(wx.EVT_COMBOBOX, self.OnCombobox)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def OnCombobox(self, event):
-        self.index = self.combo.GetSelection()
-        self.index2 = self.index
-        value = self.list2[self.index2]
-
+    def _set_text(self, value):
         # ZIPアーカイブのファイルエンコーディングと
         # 読み込むテキストファイルのエンコーディングが異なる場合、
         # エラーが出るので
@@ -69,6 +66,11 @@ class Text(wx.Dialog):
             self.textctrl.SetValue(value)
         except:
             self.textctrl.SetValue(cw.util.decode_zipname(value))
+
+    def OnCombobox(self, event):
+        self.index = self.combo.GetSelection()
+        self.index2 = self.index
+        self._set_text(self.list2[self.index2])
 
     def OnClickLeftBtn(self, event):
         self.Parent.OnClickLeftBtn(event)

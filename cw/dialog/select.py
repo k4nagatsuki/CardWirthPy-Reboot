@@ -1148,25 +1148,41 @@ class ScenarioSelect(Select):
         選択中シナリオに同梱されている
         テキストファイルのファイル名とデータのリストを返す。
         """
-        if not isinstance(self.list[self.index], cw.header.ScenarioHeader):
-            seq = []
-            seq2 = []
-        else:
+        seq = []
+        seq2 = []
+        if isinstance(self.list[self.index], cw.header.ScenarioHeader):
             header = self.list[self.index]
             path = cw.util.join_paths(header.dpath, header.fname)
-            z = zipfile.ZipFile(path, "r")
-            names = [name for name in z.namelist() if name.endswith(".txt")]
-            seq = []
-            seq2 = []
+            if os.path.isfile(path):
+                # 圧縮ファイル内から取得
+                z = zipfile.ZipFile(path, "r")
+                names = [name for name in z.namelist() if name.lower().endswith(".txt")]
 
-            for name in names:
-                data = z.read(name)
-                seq2.append(data)
-                name = os.path.basename(name)
-                name = cw.util.decode_zipname(name)
-                seq.append(name)
+                for name in names:
+                    data = z.read(name)
+                    seq2.append(data)
+                    name = os.path.basename(name)
+                    name = cw.util.decode_zipname(name)
+                    seq.append(name)
 
-            z.close()
+                z.close()
+
+            else:
+
+                # フォルダ内から取得
+                names = []
+                for dpath, dnames, fnames in os.walk(path):
+                    for fname in fnames:
+                        if fname.lower().endswith(".txt"):
+                            names.append(fname)
+
+                for name in names:
+                    f = open(cw.util.join_paths(path, name), "r")
+                    data = f.read()
+                    f.close()
+                    seq2.append(data)
+                    name = os.path.basename(name)
+                    seq.append(name)
 
         return seq, seq2
 
