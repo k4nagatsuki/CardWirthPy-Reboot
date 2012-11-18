@@ -1293,7 +1293,10 @@ class _CWPyElementInterface(object):
         return text
 
     def getattr(self, path, attr, default=None):
-        e = self.find(path)
+        if path == "":
+            e = self
+        else:
+            e = self.find(path)
 
         if e is None:
             text = default
