@@ -3,6 +3,7 @@
 
 import sys
 import os
+import time
 import threading
 import wx
 import pygame
@@ -33,6 +34,8 @@ class Frame(wx.Frame):
         self._bind()
         # 設定
         setting = cw.setting.Setting()
+        # 起動直後のスレッド数を記憶
+        self.initialThreadCount = threading.activeCount()
         # CWPyサブスレッド
         cw.cwpy = cw.thread.CWPy(setting, self)
         cw.cwpy.start()
@@ -159,7 +162,7 @@ class Frame(wx.Frame):
     def OnDestroy(self, event):
         cw.cwpy._running = False
 
-        while threading.activeCount() > 1:
+        while threading.activeCount() > self.initialThreadCount:
             pass
 
         sys.exit()
