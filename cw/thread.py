@@ -10,6 +10,7 @@ import pygame
 from pygame.locals import *
 
 import cw
+import cw.binary.image
 
 
 class CWPyRunningError(Exception):
@@ -1179,12 +1180,16 @@ class CWPy(_Singleton, threading.Thread):
 
         for e in data.getiterator():
             if e.tag == "ImagePath" and e.text:
-                if from_scenario:
-                    imgpath = cw.util.join_paths(self.sdata.scedir, e.text)
+                pisc = cw.binary.image.path_is_code(e.text)
+                if pisc:
+                    imgpath = e.text
                 else:
-                    imgpath = cw.util.join_yadodir(e.text)
+                    if from_scenario:
+                        imgpath = cw.util.join_paths(self.sdata.scedir, e.text)
+                    else:
+                        imgpath = cw.util.join_yadodir(e.text)
 
-                if not os.path.isfile(imgpath):
+                if not (pisc or os.path.isfile(imgpath)):
                     e.text = ""
                     continue
 
@@ -1194,7 +1199,12 @@ class CWPy(_Singleton, threading.Thread):
                     e.text = imgpaths[imgpath]
                 else:
                     # 対象画像のコピー先を作成
-                    dname = os.path.basename(e.text)
+                    if pisc:
+                        idata = cw.binary.image.code_to_data(imgpath)
+                        ext = cw.util.get_imageext(idata)
+                        dname = cw.util.repl_dischar(data.gettext("Property/Name", "simage")) + ext
+                    else:
+                        dname = os.path.basename(imgpath)
                     imgdst = cw.util.join_paths(dstdir, dname)
                     imgdst = cw.util.dupcheck_plus(imgdst)
 
@@ -1205,7 +1215,13 @@ class CWPy(_Singleton, threading.Thread):
                     if not os.path.isdir(os.path.dirname(imgdst)):
                         os.makedirs(os.path.dirname(imgdst))
 
-                    shutil.copy2(imgpath, imgdst)
+                    if pisc:
+                        imgdst = cw.util.dupcheck_plus(imgdst, False)
+                        f = open(imgdst, 'wb')
+                        f.write(idata)
+                        f.close()
+                    else:
+                        shutil.copy2(imgpath, imgdst)
                     # ElementTree編集
                     e.text = imgdst.replace(self.tempdir + "/", "", 1)
                     # 重複して処理しないよう辞書に登録

@@ -272,15 +272,15 @@ class ScenarioData(SystemData):
                     self.battles[id] = (name, path)
                 elif dpath.endswith("Package") or fname.startswith("Package"):
                     self.packs[id] = (name, path)
-                elif dpath.endswith("CastCard") or fname.startswith("CastCard"):
+                elif dpath.endswith("CastCard") or fname.startswith("Mate"):
                     self.casts[id] = (name, path)
-                elif dpath.endswith("InfoCard") or fname.startswith("InfoCard"):
+                elif dpath.endswith("InfoCard") or fname.startswith("Info"):
                     self.infos[id] = (name, path)
-                elif dpath.endswith("ItemCard") or fname.startswith("ItemCard"):
+                elif dpath.endswith("ItemCard") or fname.startswith("Item"):
                     self.items[id] = (name, path)
-                elif dpath.endswith("SkillCard") or fname.startswith("SkillCard"):
+                elif dpath.endswith("SkillCard") or fname.startswith("Skill"):
                     self.skills[id] = (name, path)
-                elif dpath.endswith("BeastCard") or fname.startswith("BeastCard"):
+                elif dpath.endswith("BeastCard") or fname.startswith("Beast"):
                     self.beasts[id] = (name, path)
 
         if not self.summary:

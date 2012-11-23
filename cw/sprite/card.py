@@ -423,7 +423,10 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.deck.set(self)
         # カード画像
         path = self.data.gettext("Property/ImagePath", "")
-        self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        if cw.binary.image.path_is_code(path):
+            self.imgpath = path
+        else:
+            self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
         self.cardimg = cw.image.CharacterCardImage(self, pos)
         self.update_image()
         # 空のイメージ

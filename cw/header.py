@@ -91,7 +91,8 @@ class CardHeader(object):
         if self.type == "ActionCard":
             path = cw.util.join_paths(cw.cwpy.skindir, path)
         elif self.scenariocard:
-            path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+            if not cw.binary.image.path_is_code(path):
+                path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
         else:
             path = cw.util.join_yadodir(path)
 
@@ -292,7 +293,7 @@ class CardHeader(object):
         cw.cwpy.ydata.deletedpaths.discard(self.fpath)
 
     def contain_xml(self):
-        if not self.carddata:
+        if self.carddata is None:
             e = cw.data.yadoxml2etree(self.fpath)
             self.carddata = e.getroot()
             # self.fpathを削除予定のfpathリストに追加

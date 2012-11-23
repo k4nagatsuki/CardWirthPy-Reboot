@@ -154,6 +154,23 @@ def load_image(path, mask=False):
 
     return image
 
+def get_imageext(b):
+    """dataが画像であれば対応する拡張子を返す。"""
+    if 22 < len(b) and 'B' == b[0] and 'M' == b[1]:
+        return ".bmp"
+    if 25 <= len(b) and 0x89 == b[0] and 'P' == b[1] and 'N' == b[2] and 'G' == b[3]:
+        return ".png"
+    if 10 <= len(b) and 'G' == b[0] and 'I' == b[1] and 'F' == b[2]:
+        return ".gif"
+    if 6 <= len(b) and 0xFF == b[0] and 0xD8 == b[1]:
+        return ".jpg"
+    if 10 <= len(b):
+        if 'M' == b[0] and 'M' == b[1] and 42 == b[3]:
+            return ".tiff"
+        elif 'I' == b[0] and 'I' == b[1] and 42 == b[2]:
+            return ".tiff"
+    return ""
+
 def load_bgm(path):
     """Pathの音楽ファイルをBGMとして読み込む。
     リピートして鳴らす場合は、cw.audio.MusicInterface参照。
