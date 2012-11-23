@@ -4,10 +4,12 @@
 import os
 import re
 import shutil
+import StringIO
 import xml.parsers.expat
 from xml.etree.ElementTree import ElementTree, _ElementInterface
 
 import cw
+import cw.scenariodb
 
 #-------------------------------------------------------------------------------
 #　システムデータ
@@ -165,15 +167,19 @@ class ScenarioData(SystemData):
         self.name = header.name
         self.author = header.author
         self.startid = cw.cwpy.areaid = header.startid
-        # zip解凍・解凍したディレクトリを登録
-        self.tempdir = cw.cwpy.recenthistory.check(self.fpath)
-
-        if self.tempdir:
-            cw.cwpy.recenthistory.moveend(self.fpath)
-        else:
-            self.tempdir = u"Data/Temp/Scenario"
-            self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir)
-            cw.cwpy.recenthistory.append(self.fpath, self.tempdir)
+        if cw.scenariodb.TYPE_WSN == header.type:
+            # zip解凍・解凍したディレクトリを登録
+            self.tempdir = cw.cwpy.recenthistory.check(self.fpath)
+            if self.tempdir:
+                cw.cwpy.recenthistory.moveend(self.fpath)
+            else:
+                self.tempdir = u"Data/Temp/Scenario"
+                self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir)
+                cw.cwpy.recenthistory.append(self.fpath, self.tempdir)
+        elif cw.scenariodb.TYPE_CLASSIC == header.type:
+            self.tempdir = self.fpath
+            cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
+                self.fpath, "Data/Temp/OldScenario", cw.cwpy.setting.skintype, "")
 
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
@@ -235,36 +241,45 @@ class ScenarioData(SystemData):
                     cw.cwpy.rsrc.specialchars[name] = (image, True)
                     cw.cwpy.rsrc.specialchars_is_changed = True
                     continue
-                # xmlファイル以外はここで処理終わり
-                elif not fname.endswith(".xml"):
-                    continue
+                else:
+                    lf = fname.lower()
+                    if not (lf.endswith(".xml") or lf.endswith(".wsm") or lf.endswith(".wid")):
+                        # シナリオファイル以外はここで処理終わり
+                        continue
 
                 path = cw.util.join_paths(dpath, fname)
 
-                if fname == "Summary.xml" and not self.summary:
+                if (fname == "Summary.xml" or fname == "Summary.wsm") and not self.summary:
                     self.scedir = dpath.replace("\\", "/")
                     self.summary = xml2etree(path)
                     continue
 
-                e = xml2element(path, "Property")
-                id = e.getint("Id")
-                name = e.gettext("Name", "")
+                if lf.endswith(".xml"):
+                    # wsnシナリオの基本要素一覧情報
+                    e = xml2element(path, "Property")
+                    id = e.getint("Id")
+                    name = e.gettext("Name", "")
+                else:
+                    # クラシックなシナリオの基本要素一覧情報
+                    wdata = cw.cwpy.classicdata.load_file(path, nameonly=True)
+                    id = wdata.id
+                    name = wdata.name
 
-                if dpath.endswith("Area"):
+                if dpath.endswith("Area") or fname.startswith("Area"):
                     self.areas[id] = (name, path)
-                elif dpath.endswith("Battle"):
+                elif dpath.endswith("Battle") or fname.startswith("Battle"):
                     self.battles[id] = (name, path)
-                elif dpath.endswith("Package"):
+                elif dpath.endswith("Package") or fname.startswith("Package"):
                     self.packs[id] = (name, path)
-                elif dpath.endswith("CastCard"):
+                elif dpath.endswith("CastCard") or fname.startswith("CastCard"):
                     self.casts[id] = (name, path)
-                elif dpath.endswith("InfoCard"):
+                elif dpath.endswith("InfoCard") or fname.startswith("InfoCard"):
                     self.infos[id] = (name, path)
-                elif dpath.endswith("ItemCard"):
+                elif dpath.endswith("ItemCard") or fname.startswith("ItemCard"):
                     self.items[id] = (name, path)
-                elif dpath.endswith("SkillCard"):
+                elif dpath.endswith("SkillCard") or fname.startswith("SkillCard"):
                     self.skills[id] = (name, path)
-                elif dpath.endswith("BeastCard"):
+                elif dpath.endswith("BeastCard") or fname.startswith("BeastCard"):
                     self.beasts[id] = (name, path)
 
         if not self.summary:
@@ -1491,6 +1506,14 @@ def xml2etree(path="", tag="", file=None, element=None):
     return CWPyElementTree(element=element)
 
 def xml2element(path="", tag="", file=None):
+    if not file and cw.cwpy and cw.cwpy.classicdata:
+        # クラシックなシナリオのファイルだった場合は変換する
+        lpath = path.lower()
+        if lpath.endswith(".wsm") or lpath.endswith(".wid"):
+            cdata = cw.cwpy.classicdata.load_file(path)
+            xml = cdata.get_xmltext(0, False)
+            file = StringIO.StringIO(xml)
+
     parser = SimpleXmlParser(path, tag, file)
     return parser.parse()
 

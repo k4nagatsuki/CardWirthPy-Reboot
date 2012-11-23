@@ -14,6 +14,9 @@ import cw
 import cw.binary
 
 
+TYPE_WSN = 0
+TYPE_CLASSIC = 1
+
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
 
@@ -33,9 +36,11 @@ class ScenariodbUpdatingThread(threading.Thread):
         type(self)._finished = True
 
 class Scenariodb(object):
+
     """シナリオデータベース。ロックのタイムアウトは30秒指定。
     データ種類は、
     dpath(ファイルのあるディレクトリ),
+    type(シナリオのタイプ。0=wsn, 1=クラシック),
     fname(wsnファイル名、またはフォルダ名),
     name(シナリオ名),
     author(作者),
@@ -57,13 +62,26 @@ class Scenariodb(object):
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.cur = self.con.cursor()
+
+            # type列が存在しない場合は作成する(旧バージョンとの互換性維持)
+            cur = self.con.execute("PRAGMA table_info('scenariodb')")
+            res = cur.fetchall()
+            hastype = False
+            for rec in res:
+                if rec[1] == "type":
+                    hastype = True
+                    break
+            if not hastype:
+                self.cur.execute("ALTER TABLE scenariodb ADD COLUMN type INTEGER")
+                self.cur.execute("UPDATE scenariodb SET type=?", [TYPE_WSN])
+                self.con.commit()
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.cur = self.con.cursor()
             # テーブル作成
             s = """CREATE TABLE scenariodb (
-                   dpath TEXT, fname TEXT, name TEXT, author TEXT, desc TEXT,
-                   skintype TEXT, levelmin INTEGER, levelmax INTEGER,
+                   dpath TEXT, type INTEGER, fname TEXT, name TEXT, author TEXT,
+                   desc TEXT, skintype TEXT, levelmin INTEGER, levelmax INTEGER,
                    coupons TEXT, couponsnum INTEGER, startid INTEGER,
                    tags TEXT, ctime INTEGER, mtime INTEGER, image BLOB,
                    PRIMARY KEY (dpath, fname))"""
@@ -125,7 +143,7 @@ class Scenariodb(object):
 
     def insert(self, t, commit=True):
         s = """INSERT OR REPLACE INTO scenariodb
-               VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+               VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         self.cur.execute(s, t)
 
         if commit:
@@ -280,7 +298,7 @@ def read_summary(path):
     f.close()
 
     try:
-        imgpath, summaryinfos = parse_summarydata(e, True)
+        imgpath, summaryinfos = parse_summarydata(e, TYPE_WSN, True)
     except:
         z.close()
         return None
@@ -300,24 +318,21 @@ def read_summary_classic(path):
     spath = cw.util.join_paths(path, "Summary.wsm")
 
     try:
-        cwdata = cw.binary.cwscenario.CWScenario(
+        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
             path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype)
-        summary = cwdata.load_file(spath)
-        xml = summary.get_xmltext(0, False)
-        f = StringIO.StringIO(xml)
-        e = cw.data.xml2element(path, "Property", f)
-        f.close()
-
-        imgpath, summaryinfos = parse_summarydata(e, False)
-        imgbuf = summary.image
+        e = cw.data.xml2element(spath, "Property", None)
+        imgpath, summaryinfos = parse_summarydata(e, TYPE_CLASSIC, False)
+        imgbuf = cw.cwpy.classicdata.imagepool[spath]
+        cw.cwpy.classicdata = None
     except Exception, ex:
+        cw.cwpy.classicdata = None
         return None
 
     imgbuf = buffer(imgbuf)
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
-def parse_summarydata(data, archive):
+def parse_summarydata(data, type, archive):
     e = data.find("ImagePath")
     imgpath = e.text or ""
     e = data.find("Name")
@@ -343,8 +358,11 @@ def parse_summarydata(data, archive):
     tags = tags.replace("\\n", "\n")
     ctime = time.time()
     mtime = os.path.getmtime(data.fpath)
-    dpath, fname = os.path.split(data.fpath)
-    return (imgpath, [dpath, fname, name, author, desc, skintype, levelmin,
+    if archive:
+        dpath, fname = os.path.split(data.fpath)
+    else:
+        dpath, fname = os.path.split(os.path.dirname(data.fpath))
+    return (imgpath, [dpath, type, fname, name, author, desc, skintype, levelmin,
                 levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
 
 def get_scenariopaths():

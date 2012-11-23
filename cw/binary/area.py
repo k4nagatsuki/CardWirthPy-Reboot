@@ -8,12 +8,14 @@ import bgimage
 
 class Area(base.CWBinaryBase):
     """widファイルのエリアデータ。"""
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, nameonly=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = f.byte()
         f.dword() # 不明
         self.name = f.string()
         self.id = f.dword() % 10000
+        if nameonly:
+            return
         events_num = f.dword()
         self.events = [event.Event(self, f) for cnt in xrange(events_num)]
         self.spreadtype = f.byte()

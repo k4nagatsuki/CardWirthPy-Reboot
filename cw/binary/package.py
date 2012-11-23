@@ -9,12 +9,14 @@ class Package(base.CWBinaryBase):
     """widファイルの情報カードのデータ。
     type:InfoCardと区別が付くように、Packageは暫定的に"7"とする。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, nameonly=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 7
         f.dword() # 不明
         self.name = f.string()
         self.id = f.dword()
+        if nameonly:
+            return
         events_num = f.dword()
         self.events = [event.SimpleEvent(self, f) for cnt in xrange(events_num)]
 

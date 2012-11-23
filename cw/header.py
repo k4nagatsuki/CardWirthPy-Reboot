@@ -618,23 +618,24 @@ class Gene(object):
 class ScenarioHeader(object):
     def __init__(self, t):
         self.dpath = t[0]
-        self.fname = t[1]
-        self.name = t[2]
-        self.author = t[3]
-        self.desc = t[4]
-        self.skintype = t[5]
-        self.levelmin = t[6]
-        self.levelmax = t[7]
-        self.coupons = t[8]
-        self.couponsnum = t[9]
-        self.startid = t[10]
-        self.tags = t[11]
-        self.ctime = t[12]
-        self.mtime = t[13]
-        self.image = t[14]
+        self.type = t[1]
+        self.fname = t[2]
+        self.name = t[3]
+        self.author = t[4]
+        self.desc = t[5]
+        self.skintype = t[6]
+        self.levelmin = t[7]
+        self.levelmax = t[8]
+        self.coupons = t[9]
+        self.couponsnum = t[10]
+        self.startid = t[11]
+        self.tags = t[12]
+        self.ctime = t[13]
+        self.mtime = t[14]
+        self.image = t[15]
 
     def header2tuple(self):
-        return (self.dpath, self.fname, self.name, self.author, self.desc,
+        return (self.dpath, self.type, self.fname, self.name, self.author, self.desc,
                 self.skintype, self.levelmin, self.levelmax, self.coupons,
                 self.couponsnum, self.startid, self.tags, self.ctime,
                 self.mtime, self.image)

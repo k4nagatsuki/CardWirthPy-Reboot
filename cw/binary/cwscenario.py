@@ -18,7 +18,7 @@ import beast
 
 
 class CWScenario(object):
-    def __init__(self, path, dstdir, skintype):
+    def __init__(self, path, dstdir, skintype, materialdir="Material"):
         """カードワースのシナリオを読み込み、XMLファイルに変換するクラス。
         path: カードワースシナリオフォルダのパス。
         dstdir: 変換先ディレクトリ。
@@ -29,6 +29,7 @@ class CWScenario(object):
         self.dir = util.join_paths(dstdir, os.path.basename(self.path))
         self.dir = util.check_duplicate(self.dir)
         self.skintype = skintype
+        self.materialdir = materialdir
         # progress dialog data
         self.message = ""
         self.curnum = 0
@@ -46,6 +47,10 @@ class CWScenario(object):
         self.otherfiles = []
         self.otherdirs = []
         self.summarypath = None
+
+        # 格納イメージ。
+        # Key=wsmまたはwidファイルのパス, Value=イメージデータ(エリアのみ配列)
+        self.imagepool = {}
 
         for name in os.listdir(self.path):
             path = util.join_paths(self.path, name)
@@ -103,40 +108,52 @@ class CWScenario(object):
         self.maxnum += len(self.otherfiles)
         self.maxnum += len(self.otherdirs)
 
-    def load_file(self, path):
+    def load_file(self, path, nameonly=False):
         """引数のファイル(wid, wsmファイル)を読み込む。"""
         f = cwfile.CWFile(path, "rb")
 
         if path == self.summarypath:
-            data = summary.Summary(None, f)
+            data = summary.Summary(None, f, nameonly=nameonly)
             data.skintype = self.skintype
+            self.imagepool[path] = data.image
         else:
             filetype = f.byte()
             f.seek(0)
 
             if filetype == 0:
-                data = area.Area(None, f)
+                data = area.Area(None, f, nameonly=nameonly)
+                mimages = []
+                if not nameonly:
+                    for mcard in data.mcards:
+                        mimages.append(mcard.image)
+                self.imagepool[path] = mimages
             elif filetype == 1:
-                data = battle.Battle(None, f)
+                data = battle.Battle(None, f, nameonly=nameonly)
             elif filetype == 2:
-                data = cast.CastCard(None, f)
+                data = cast.CastCard(None, f, nameonly=nameonly)
+                self.imagepool[path] = data.image
             elif filetype == 3:
-                data = item.ItemCard(None, f)
+                data = item.ItemCard(None, f, nameonly=nameonly)
+                self.imagepool[path] = data.image
             elif filetype == 4:
                 if "Package" in os.path.basename(path):
-                    data = package.Package(None, f)
+                    data = package.Package(None, f, nameonly=nameonly)
                 else:
-                    data = info.InfoCard(None, f)
+                    data = info.InfoCard(None, f, nameonly=nameonly)
+                    self.imagepool[path] = data.image
 
             elif filetype == 5:
-                data = skill.SkillCard(None, f)
+                data = skill.SkillCard(None, f, nameonly=nameonly)
+                self.imagepool[path] = data.image
             elif filetype == 6:
-                data = beast.BeastCard(None, f)
+                data = beast.BeastCard(None, f, nameonly=nameonly)
+                self.imagepool[path] = data.image
             else:
                 f.close()
                 raise ValueError(path)
 
         f.close()
+        data.set_materialdir(self.materialdir)
         return data
 
     def convert(self):

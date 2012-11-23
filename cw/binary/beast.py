@@ -12,13 +12,15 @@ class BeastCard(base.CWBinaryBase):
     target_all: 全体攻撃か否か(真偽値)
     limit: 使用回数
     """
-    def __init__(self, parent, f, yadodata=False, summoneffect=False):
+    def __init__(self, parent, f, yadodata=False, nameonly=False, summoneffect=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.summoneffect = summoneffect
         self.type = f.byte()
         self.image = f.image()
         self.name = f.string()
         self.id = f.dword() % 10000
+        if nameonly:
+            return
 
         # 宿データの埋め込みカードのイベントは子コンテント数が+50000されている
         if self.is_yadodata():

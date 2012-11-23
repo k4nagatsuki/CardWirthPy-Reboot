@@ -328,7 +328,7 @@ class Event(object):
                     self.trees[name] = content
 
                 # 一番上にあるツリーをまず最初に実行するツリーに設定
-                if not self.starttree:
+                if self.starttree is None:
                     self.starttree = self.cur_content = content
 
     def start(self):

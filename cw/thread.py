@@ -102,6 +102,8 @@ class CWPy(_Singleton, threading.Thread):
         # list, index(キーボードでのカード選択に使う)
         self.list = []
         self.index = -1
+        # クラシックなシナリオの再生中であればそのデータ
+        self.classicdata = None
         # イベントハンドラ
         self.eventhandler = cw.eventhandler.EventHandler()
         # ゲーム状態を"Title"にセット

@@ -14,6 +14,7 @@ class CWBinaryBase(object):
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
         self.fpath = f.name
+        self.set_materialdir("Material")
 
         if parent:
             self._yadodata = parent._yadodata
@@ -107,20 +108,30 @@ class CWBinaryBase(object):
             if not imgdir:
                 root = self.get_root()
                 name = util.check_filename(root.name)
-                imgdir = util.join_paths(self.get_dir(),
-                                                "Material", root.xmltype, name)
+                mdir = self.get_materialdir()
+                if mdir == "":
+                    imgdir = util.join_paths(self.get_dir(), root.xmltype, name)
+                else:
+                    imgdir = util.join_paths(self.get_dir(), mdir, root.xmltype, name)
                 imgdir = util.check_duplicate(imgdir)
                 self.set_imgdir(imgdir)
 
         elif self.xmltype in ("Adventurer", "SkillCard", "ItemCard",
                                                     "BeastCard", "CastCard"):
             name = util.check_filename(self.name)
-            imgdir = util.join_paths(self.get_dir(), "Material",
-                                                        self.xmltype, name)
+            mdir = self.get_materialdir()
+            if mdir == "":
+                imgdir = util.join_paths(self.get_dir(), self.xmltype, name)
+            else:
+                imgdir = util.join_paths(self.get_dir(), mdir, self.xmltype, name)
             imgdir = util.check_duplicate(imgdir)
             self.set_imgdir(imgdir)
         else:
-            imgdir = util.join_paths(self.get_dir(), "Material", self.xmltype)
+            mdir = self.get_materialdir()
+            if mdir == "":
+                imgdir = util.join_paths(self.get_dir(), self.xmltype)
+            else:
+                imgdir = util.join_paths(self.get_dir(), mdir, self.xmltype)
 
         # 画像保存
         if self.image:
@@ -173,14 +184,34 @@ class CWBinaryBase(object):
         else:
             return ""
 
+    def set_materialdir(self, materialdir):
+        """引数のディレクトリ名を素材ディレクトリとして登録する。
+        デフォルト値は"Material"。
+        materialdir: ディレクトリ名。
+        """
+        self._materialdir = materialdir
+
+    def get_materialdir(self):
+        """素材ディレクトリ名を返す。"""
+        return self._materialdir
+
     def get_materialpath(self, path):
         """引数のパスを素材ディレクトリに関連づける。
         dpath: 素材ファイルのパス。
         """
-        if path and not path == u"（なし）":
-            return util.join_paths("Material", path)
-        else:
+        if path == u"（なし）":
             return ""
+        root = self.get_root()
+        if self is root:
+            mdir = self.get_materialdir()
+            if mdir == "":
+                return path
+            elif path:
+                return util.join_paths(mdir, path)
+            else:
+                return ""
+        else:
+            return root.get_materialpath(path)
 
     def get_indent(self, indent):
         """インデントの文字列を返す。スペース一個分。"""

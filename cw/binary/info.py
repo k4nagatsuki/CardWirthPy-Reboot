@@ -6,12 +6,14 @@ import base
 
 class InfoCard(base.CWBinaryBase):
     """widファイルの情報カードのデータ。"""
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, nameonly=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = f.byte()
         self.image = f.image()
         self.name = f.string()
         self.id = f.dword() % 10000
+        if nameonly:
+            return
         self.description = f.string(True)
 
     def get_xmldict(self, indent):
