@@ -19,6 +19,7 @@ import pygame
 from pygame.locals import *
 
 import cw
+import cw.binary.image
 
 
 #-------------------------------------------------------------------------------
@@ -122,13 +123,15 @@ def load_image(path, mask=False):
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
     """
-    if not os.path.isfile(path):
-        return pygame.Surface((0, 0)).convert()
-
-    encoding = sys.getfilesystemencoding()
-
     try:
-        image = pygame.image.load(path.encode(encoding))
+        if cw.binary.image.path_is_code(path):
+            data = cw.binary.image.code_to_data(path)
+            image = pygame.image.load(StringIO.StringIO(data))
+        else:
+            if not os.path.isfile(path):
+                return pygame.Surface((0, 0)).convert()
+            encoding = sys.getfilesystemencoding()
+            image = pygame.image.load(path.encode(encoding))
     except:
         print u"画像が読み込めません", path
         return pygame.Surface((0, 0)).convert()

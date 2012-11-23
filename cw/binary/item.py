@@ -10,8 +10,8 @@ class ItemCard(base.CWBinaryBase):
     """widファイルのアイテムカードのデータ。
     hold(真偽値):True?だと自動選択されない。
     """
-    def __init__(self, parent, f, yadodata=False, nameonly=False):
-        base.CWBinaryBase.__init__(self, parent, f, yadodata)
+    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+        base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
         self.image = f.image()
         self.name = f.string()

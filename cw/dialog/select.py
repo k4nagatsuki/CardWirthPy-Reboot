@@ -1213,7 +1213,8 @@ class ScenarioSelect(Select):
         dlg.Destroy()
         # シナリオデータ
         cwdata = cw.binary.cwscenario.CWScenario(
-            path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype)
+            path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
+            materialdir="Material", image_export=True)
 
         # 変換可能なデータか確認
         if not cwdata.is_convertible():

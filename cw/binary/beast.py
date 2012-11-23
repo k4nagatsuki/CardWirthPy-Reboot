@@ -12,8 +12,8 @@ class BeastCard(base.CWBinaryBase):
     target_all: 全体攻撃か否か(真偽値)
     limit: 使用回数
     """
-    def __init__(self, parent, f, yadodata=False, nameonly=False, summoneffect=False):
-        base.CWBinaryBase.__init__(self, parent, f, yadodata)
+    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True, summoneffect=False):
+        base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.summoneffect = summoneffect
         self.type = f.byte()
         self.image = f.image()

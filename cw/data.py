@@ -179,7 +179,8 @@ class ScenarioData(SystemData):
         elif cw.scenariodb.TYPE_CLASSIC == header.type:
             self.tempdir = self.fpath
             cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-                self.fpath, "Data/Temp/OldScenario", cw.cwpy.setting.skintype, "")
+                self.fpath, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
+                materialdir="", image_export=False)
 
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
@@ -1511,7 +1512,7 @@ def xml2element(path="", tag="", file=None):
         lpath = path.lower()
         if lpath.endswith(".wsm") or lpath.endswith(".wid"):
             cdata = cw.cwpy.classicdata.load_file(path)
-            xml = cdata.get_xmltext(0, False)
+            xml = cdata.get_xmltext(0)
             file = StringIO.StringIO(xml)
 
     parser = SimpleXmlParser(path, tag, file)

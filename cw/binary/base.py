@@ -8,13 +8,16 @@ import weakref
 import util
 import xmltemplate
 
+import cw.binary.image
+
 
 class CWBinaryBase(object):
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, materialdir="Material", image_export=True):
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
         self.fpath = f.name
-        self.set_materialdir("Material")
+        self.set_materialdir(materialdir)
+        self.set_image_export(image_export)
 
         if parent:
             self._yadodata = parent._yadodata
@@ -58,6 +61,34 @@ class CWBinaryBase(object):
     def is_yadodata(self):
         return self._yadodata
 
+    def set_materialdir(self, materialdir):
+        """materialdirを素材ディレクトリとして登録する。
+        デフォルト値は"Material"。"""
+        self._materialdir = materialdir
+
+    def get_materialdir(self):
+        """素材ディレクトリ名を返す。
+        親要素がある場合、親の設定が優先される。"""
+        root = self.get_root()
+        if root is self:
+            return self._materialdir
+        else:
+            return root.get_materialdir()
+
+    def set_image_export(self, image_export):
+        """XML変換時に格納イメージをエクスポートするか設定する。"""
+        self._image_export = image_export
+
+    def get_image_export(self):
+        """XML変換時に格納イメージをエクスポートする場合はTrue。
+        親要素がある場合、親の設定が優先される。"""
+        root = self.get_root()
+        if root is self:
+            return self._image_export
+        else:
+            return root.get_image_export()
+
+
 #-------------------------------------------------------------------------------
 # XML作成用
 #-------------------------------------------------------------------------------
@@ -99,6 +130,13 @@ class CWBinaryBase(object):
         if not hasattr(self, "image"):
             return ""
 
+        if not self.image:
+            return ""
+
+        if not self.get_image_export():
+            # パスの代わりにバイナリイメージを使用する
+            return cw.binary.image.data_to_code(self.image)
+
         # 画像保存ディレクトリ
         if self.xmltype == "Summary":
             imgdir = self.get_dir()
@@ -134,39 +172,33 @@ class CWBinaryBase(object):
                 imgdir = util.join_paths(self.get_dir(), mdir, self.xmltype)
 
         # 画像保存
-        if self.image:
-            # 画像パス
-            if self.xmltype == "Summary":
-                path = util.join_paths(imgdir, self.xmltype + ".bmp")
-            else:
-                name = util.check_filename(self.name) + ".bmp"
-                path = util.join_paths(imgdir, name)
-
-            # 画像出力
-            path = util.check_duplicate(path)
-
-            if not os.path.isdir(imgdir):
-                os.makedirs(imgdir)
-
-            f = open(path, "wb")
-            f.write(self.image)
-            f.close()
-            # 最後に参照パスを返す
-            path = path.replace(self.get_dir() + "/", "", 1)
-            return util.repl_escapechar(path)
+        # 画像パス
+        if self.xmltype == "Summary":
+            path = util.join_paths(imgdir, self.xmltype + ".bmp")
         else:
-            return ""
+            name = util.check_filename(self.name) + ".bmp"
+            path = util.join_paths(imgdir, name)
+
+        # 画像出力
+        path = util.check_duplicate(path)
+
+        if not os.path.isdir(imgdir):
+            os.makedirs(imgdir)
+
+        f = open(path, "wb")
+        f.write(self.image)
+        f.close()
+        # 最後に参照パスを返す
+        path = path.replace(self.get_dir() + "/", "", 1)
+        return util.repl_escapechar(path)
 
     def get_xmldict(self, indent):
         """XML作成用の辞書を返す。"""
         return {}
 
-    def get_xmltext(self, indent, image_export=True):
+    def get_xmltext(self, indent):
         """XML作成用の文字列を返す。"""
-        if image_export:
-            imgpath = self.export_image()
-        else:
-            imgpath = ""
+        imgpath = self.export_image()
         d = self.get_xmldict(indent)
 
         if not d.get("imgpath"):
@@ -184,34 +216,19 @@ class CWBinaryBase(object):
         else:
             return ""
 
-    def set_materialdir(self, materialdir):
-        """引数のディレクトリ名を素材ディレクトリとして登録する。
-        デフォルト値は"Material"。
-        materialdir: ディレクトリ名。
-        """
-        self._materialdir = materialdir
-
-    def get_materialdir(self):
-        """素材ディレクトリ名を返す。"""
-        return self._materialdir
-
     def get_materialpath(self, path):
         """引数のパスを素材ディレクトリに関連づける。
         dpath: 素材ファイルのパス。
         """
         if path == u"（なし）":
             return ""
-        root = self.get_root()
-        if self is root:
-            mdir = self.get_materialdir()
-            if mdir == "":
-                return path
-            elif path:
-                return util.join_paths(mdir, path)
-            else:
-                return ""
+        mdir = self.get_materialdir()
+        if mdir == "":
+            return path
+        elif path:
+            return util.join_paths(mdir, path)
         else:
-            return root.get_materialpath(path)
+            return ""
 
     def get_indent(self, indent):
         """インデントの文字列を返す。スペース一個分。"""

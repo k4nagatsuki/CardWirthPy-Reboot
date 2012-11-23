@@ -319,10 +319,11 @@ def read_summary_classic(path):
 
     try:
         cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-            path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype)
+            path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
+            materialdir="", image_export=False)
         e = cw.data.xml2element(spath, "Property", None)
         imgpath, summaryinfos = parse_summarydata(e, TYPE_CLASSIC, False)
-        imgbuf = cw.cwpy.classicdata.imagepool[spath]
+        imgbuf = cw.binary.image.code_to_data(imgpath)
         cw.cwpy.classicdata = None
     except Exception, ex:
         cw.cwpy.classicdata = None

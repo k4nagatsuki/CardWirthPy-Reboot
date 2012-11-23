@@ -4,6 +4,7 @@
 import pygame
 
 import cw
+import cw.binary.image
 import base
 from .. import character
 
@@ -551,7 +552,7 @@ class MenuCard(CWPyCard):
         # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成。
         path = data.gettext("Property/ImagePath", "")
 
-        if path:
+        if path and not cw.binary.image.path_is_code(path):
             if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
                 path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
             else:
