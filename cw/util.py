@@ -13,6 +13,7 @@ import operator
 import threading
 import hashlib
 import StringIO
+import io
 
 import wx
 import pygame
@@ -126,7 +127,10 @@ def load_image(path, mask=False):
     try:
         if cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
-            image = pygame.image.load(StringIO.StringIO(data))
+            #return pygame.Surface((0, 0)).convert()
+            f = io.BytesIO(data)
+            image = pygame.image.load(f)
+            f.close()
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
