@@ -297,23 +297,21 @@ class CardHolder(CardControl):
         # タイプ判別
         self.callname = callname
 
+        # タイプ別初期化(キャストの手札の場合はindex復元後)
         if self.callname == "BACKPACK":
             name = u"荷物袋の手札カード"
+            self.selection = None
+            self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 0, 128)
             self.list = cw.cwpy.ydata.party.backpack
             sendto = True
         elif self.callname == "STOREHOUSE":
             name = u"カード置場の手札カード"
+            self.selection = None
+            self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
             sendto = True
-        elif self.callname == "CARDPOCKET":
-            self.selection = cw.cwpy.selection
-            name = self.selection.name + u"の手札カード"
-            self.bgcolour = wx.Colour(0, 0, 128)
-            sendto = not cw.cwpy.is_playingscenario()\
-                        or cw.cwpy.areaid == cw.AREA_CAMP
-            # self.listは後で設定
         elif self.callname == "INFOVIEW":
             name = u"カード操作 - 情報カード"
             self.bgcolour = wx.Colour(0, 0, 128)
@@ -325,31 +323,52 @@ class CardHolder(CardControl):
             pre_info = cw.cwpy.pre_dialogs.pop()
             self.pre_pos = pre_info[2]
             indexs = pre_info[1]
-
-            # カード移動でページ数が減っていたらself.indexを-1
-            if len(self.list) % 10 == 0 and len(self.list) / 10 == indexs[0]:
-                self.index = indexs[0] - 1
-            else:
-                self.index = indexs[0]
-
             self.index2 = indexs[1]
             self.index3 = indexs[2]
+
+            if self.callname == "CARDPOCKET":
+                self.index = 0
+                self.list2 = cw.cwpy.get_pcards("unreversed")
+                self.selection = self.list2[self.index2]
+            else:
+                # カード移動でページ数が減っていたらself.indexを-1
+                if len(self.list) % 10 == 0 and len(self.list) / 10 == indexs[0]:
+                    self.index = indexs[0] - 1
+                else:
+                    self.index = indexs[0]
+
         else:
             self.index = 0
             self.index3 = 0
             if self.callname == "CARDPOCKET":
-                # キャストの手札カード
+                self.selection = cw.cwpy.selection
                 if isinstance(self.selection, cw.character.Player):
+                    # パーティの手札カード(リバースメンバを除く)
                     self.list2 = cw.cwpy.get_pcards("unreversed")
                 else:
+                    # NPCの手札カード
                     self.list2 = cw.cwpy.get_fcards()
                 self.index2 = self.list2.index(self.selection)
             else:
                 self.index2 = 0
 
         if self.callname == "CARDPOCKET":
+            name = self.selection.name + u"の手札カード"
+            self.bgcolour = wx.Colour(0, 0, 128)
+            sendto = (not cw.cwpy.is_playingscenario()\
+                        or cw.cwpy.areaid == cw.AREA_CAMP)\
+                        and isinstance(self.selection, cw.character.Player)
             # self.index3(0:スキル, 1:アイテム, 2:召喚獣)。トグルボタンで切り替える
             self.list = self.selection.cardpocket[self.index3]
+
+        # 左右ボタンでの移動先の有無(情報カードは左右移動無し)
+        if self.callname <> "INFOVIEW":
+            # キャストの手札
+            self._can_open_cardpocket = cw.cwpy.ydata.party and 0 < len(cw.cwpy.ydata.party.members)
+            # 荷物袋
+            self._can_open_backpack = sendto
+            # カード置場
+            self._can_open_storehouse = not cw.cwpy.is_playingscenario()
 
         # ダイアログ作成
         CardControl.__init__(self, parent, name, sendto)
@@ -434,87 +453,90 @@ class CardHolder(CardControl):
 
     def _re_layout(self):
         # レフトバー
-        self.sizer_leftbar.Clear()
+        self._sizer_leftbar.Clear()
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
             margin = (235-150)/2
             margin2 = margin + (235-150)%2
-            self.sizer_leftbar.Add((0, margin), 0, 0, 0)
-            self.sizer_leftbar.Add(self.skillbtn, 0, wx.LEFT, 6)
-            self.sizer_leftbar.Add(self.itembtn, 0, wx.LEFT, 6)
-            self.sizer_leftbar.Add(self.beastbtn, 0, wx.LEFT, 6)
-            self.sizer_leftbar.Add((0, margin2), 0, 0, 0)
+            self._sizer_leftbar.Add((0, margin), 0, 0, 0)
+            self._sizer_leftbar.Add(self.skillbtn, 0, wx.LEFT, 6)
+            self._sizer_leftbar.Add(self.itembtn, 0, wx.LEFT, 6)
+            self._sizer_leftbar.Add(self.beastbtn, 0, wx.LEFT, 6)
+            self._sizer_leftbar.Add((0, margin2), 0, 0, 0)
 
+            self.skillbtn.Show()
+            self.itembtn.Show()
+            self.beastbtn.Show()
             self.upbtn.Hide()
             self.downbtn.Hide()
         else:
             # カード置き場、荷物袋、情報カード
-            self.sizer_leftbar.Add((0, 15), 0, 0, 0)
-            self.sizer_leftbar.Add(self.upbtn, 0, wx.LEFT, 6)
-            self.sizer_leftbar.Add((0, 235-110), 0, 0, 0)
-            self.sizer_leftbar.Add(self.downbtn, 0, wx.LEFT, 6)
-            self.sizer_leftbar.Add((0, 15), 0, 0, 0)
+            self._sizer_leftbar.Add((0, 15), 0, 0, 0)
+            self._sizer_leftbar.Add(self.upbtn, 0, wx.LEFT, 6)
+            self._sizer_leftbar.Add((0, 235-110), 0, 0, 0)
+            self._sizer_leftbar.Add(self.downbtn, 0, wx.LEFT, 6)
+            self._sizer_leftbar.Add((0, 15), 0, 0, 0)
 
+            self.upbtn.Show()
+            self.downbtn.Show()
             if self.callname <> "INFOVIEW":
                 self.skillbtn.Hide()
                 self.itembtn.Hide()
                 self.beastbtn.Hide()
 
+        self._sizer_leftbar.Layout()
+
     def _do_layout(self):
-        self.sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
+        self._sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
 
         self._re_layout()
 
-        CardControl._do_layout(self, self.sizer_leftbar)
+        CardControl._do_layout(self, self._sizer_leftbar)
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds[u"システム・改ページ"].play()
+        old_callname = self.callname
 
         if self.callname == "CARDPOCKET":
-            # キャストの手札カード
             if self.index2 == 0:
-                self.index2 = len(self.list2) -1
+                if self._can_open_backpack:
+                    # 荷物袋 ← 左端
+                    self.index = 0
+                    self.callname = "BACKPACK"
+                    self._change_callname(old_callname)
+                else:
+                    # 右端 ← 左端
+                    self.index2 = len(self.list2) - 1
+                    self.selection = self.list2[self.index2]
+                    self.Parent.change_selection(self.selection)
             else:
+                # 一つ左のメンバ
                 self.index2 -= 1
-
-            self.selection = self.list2[self.index2]
-            self.Parent.change_selection(self.selection)
-            self.draw(True)
+                self.selection = self.list2[self.index2]
+                self.Parent.change_selection(self.selection)
         else:
-            # カード置き場、荷物袋、情報カード
             self.index = 0
-            self.callname = "STOREHOUSE" if self.callname == "BACKPACK" else "BACKPACK"
-
             if self.callname == "BACKPACK":
-                self.SetTitle(u"カード操作 - " + u"荷物袋の手札カード")
-                self.bgcolour = wx.Colour(0, 0, 128)
-                self.toppanel.SetBackgroundColour(self.bgcolour)
-                self.list = cw.cwpy.ydata.party.backpack
-            elif self.callname == "STOREHOUSE":
-                self.SetTitle(u"カード操作 - " + u"カード置場の手札カード")
-                self.bgcolour = wx.Colour(0, 69, 0)
-                self.toppanel.SetBackgroundColour(self.bgcolour)
-                self.list = cw.cwpy.ydata.storehouse
+                # カード置き場 ← 荷物袋
+                self.callname = "STOREHOUSE"
+                self._change_callname(old_callname)
+            else:
+                # パーティの手札 ← カード置き場
+                self.callname = "CARDPOCKET"
+                self.index2 = len(self.list2) - 1
+                self.selection = self.list2[self.index2]
+                self._change_callname(old_callname)
 
         self.draw(True)
 
-    def OnClickRightBtn(self, event):
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+    def _change_callname(self, old_callname):
+        if self.callname == old_callname:
+            return
 
         if self.callname == "CARDPOCKET":
-            # キャストの手札カード
-            if self.index2 == len(self.list2) -1:
-                self.index2 = 0
-            else:
-                self.index2 += 1
-            self.selection = self.list2[self.index2]
-            self.Parent.change_selection(self.selection)
-            self.draw(True)
+            self.bgcolour = wx.Colour(0, 0, 128)
+            self.toppanel.SetBackgroundColour(self.bgcolour)
         else:
-            # カード置き場、荷物袋、情報カード
-            self.index = 0
-            self.callname = "STOREHOUSE" if self.callname == "BACKPACK" else "BACKPACK"
-
             if self.callname == "BACKPACK":
                 self.SetTitle(u"カード操作 - " + u"荷物袋の手札カード")
                 self.bgcolour = wx.Colour(0, 0, 128)
@@ -525,6 +547,49 @@ class CardHolder(CardControl):
                 self.bgcolour = wx.Colour(0, 69, 0)
                 self.toppanel.SetBackgroundColour(self.bgcolour)
                 self.list = cw.cwpy.ydata.storehouse
+            self.selection = None
+
+        self.Parent.change_selection(self.selection)
+        self._re_layout()
+
+    def OnClickRightBtn(self, event):
+        cw.cwpy.sounds[u"システム・改ページ"].play()
+        old_callname = self.callname
+
+        if self.callname == "CARDPOCKET":
+            if self.index2 == len(self.list2) -1:
+                if self._can_open_storehouse:
+                    # 右端 → カード置き場
+                    self.index = 0
+                    self.callname = "STOREHOUSE"
+                    self._change_callname(old_callname)
+                elif self._can_open_backpack:
+                    # 右端 → 荷物袋
+                    self.index = 0
+                    self.callname = "BACKPACK"
+                    self._change_callname(old_callname)
+                else:
+                    # 右端 → 左端
+                    self.index2 = 0
+                    self.selection = self.list2[self.index2]
+                    self.Parent.change_selection(self.selection)
+            else:
+                # 一つ右のメンバ
+                self.index2 += 1
+                self.selection = self.list2[self.index2]
+                self.Parent.change_selection(self.selection)
+        else:
+            self.index = 0
+            if self.callname == "STOREHOUSE":
+                # カード置き場 → 荷物袋
+                self.callname = "BACKPACK"
+                self._change_callname(old_callname)
+            else:
+                # 荷物袋 → パーティの手札
+                self.callname = "CARDPOCKET"
+                self.index2 = 0
+                self.selection = self.list2[self.index2]
+                self._change_callname(old_callname)
 
         self.draw(True)
 

@@ -513,7 +513,10 @@ class Frame(wx.Frame):
         """選択カードを変更し、色反転させる。
         selection: SelectableSprite
         """
-        cw.cwpy.exec_func(cw.cwpy.change_selection, selection)
+        if selection:
+            cw.cwpy.exec_func(cw.cwpy.change_selection, selection)
+        else:
+            cw.cwpy.exec_func(cw.cwpy.clear_selection)
 
     def change_cardcontrolarea(self):
         """カード移動操作を行う特殊エリアに移動。"""
