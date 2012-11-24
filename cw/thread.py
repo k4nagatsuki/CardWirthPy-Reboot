@@ -954,7 +954,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             raise ValueError("Targettype in trade method is incorrect.")
 
-        # CardPocket用のインデックスを取得する
+        # 手札カードダイアログ用のインデックスを取得する
         if header.type == "SkillCard":
             index = 0
         elif header.type == "ItemCard" :
@@ -962,7 +962,7 @@ class CWPy(_Singleton, threading.Thread):
         elif header.type == "BeastCard":
             index = 2
         else:
-            raise ValueError("CardPocketIndex in trade method is incorrect.")
+            raise ValueError("CARDPOCKET Index in trade method is incorrect.")
 
         # もし移動先がPlayerCardだったら、手札の枚数判定を行う
         if targettype == "PLAYERCARD":
@@ -995,7 +995,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 移動元がCharacterだった場合
         if isinstance(owner, cw.character.Character):
-            # 移動元のCardPocketからCardHeaderを削除
+            # 移動元のCardHolderからCardHeaderを削除
             owner.cardpocket[index].remove(header)
             # 移動元からカードのエレメントを削除
             path = "/%ss" % header.type

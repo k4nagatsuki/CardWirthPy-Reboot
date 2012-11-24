@@ -323,7 +323,7 @@ class Frame(wx.Frame):
 
     def OnCARDPOCKET(self, event):
         self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardPocket(self)
+        dlg = cw.dialog.cardcontrol.CardHolder(self, "CARDPOCKET")
         self.move_dlg(dlg, (0, -63))
 
         if dlg.ShowModal() == wx.ID_OK:

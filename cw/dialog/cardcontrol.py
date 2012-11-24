@@ -15,7 +15,7 @@ import message
 #-------------------------------------------------------------------------------
 
 class CardControl(wx.Dialog):
-    def __init__(self, parent, name):
+    def __init__(self, parent, name, sendto):
         # ダイアログ作成
         wx.Dialog.__init__(self, parent, -1, u"カード操作 - " + name,
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
@@ -40,6 +40,10 @@ class CardControl(wx.Dialog):
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, (20, 20), bmp=bmp)
         # choice
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=(140, 20), style=wx.CB_READONLY)
+        if not sendto:
+            self.leftbtn2.Hide()
+            self.rightbtn2.Hide()
+            self.combo.Hide()
         # focus
         self.panel.SetFocusIgnoringChildren()
 
@@ -62,6 +66,7 @@ class CardControl(wx.Dialog):
         sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         # トップバー
+        sizer_topbar.SetMinSize(self.combo.GetSize())
         sizer_topbar.Add((500-140-40, 0), 0, 0, 0)
         sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
         sizer_topbar.Add(self.combo, 0, 0, 0)
@@ -164,11 +169,17 @@ class CardControl(wx.Dialog):
         # 移動モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
-        s = u"移動モード"
+        if self.callname == "INFOVIEW":
+            s = u"閲覧モード"
+        elif cw.cwpy.areaid in cw.AREAS_TRADE:
+            s = u"移動モード"
+        else:
+            s = u"使用モード"
         dc.DrawText(s, 8, 2)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
-        s = u"送り先:"
-        dc.DrawText(s, 270, 3)
+        if self.combo.IsShown():
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
+            s = u"送り先:"
+            dc.DrawText(s, 270, 3)
         return dc
 
     def draw_cards(self, dc, update, mode):
@@ -290,10 +301,24 @@ class CardHolder(CardControl):
             name = u"荷物袋の手札カード"
             self.bgcolour = wx.Colour(0, 0, 128)
             self.list = cw.cwpy.ydata.party.backpack
+            sendto = True
         elif self.callname == "STOREHOUSE":
             name = u"カード置場の手札カード"
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
+            sendto = True
+        elif self.callname == "CARDPOCKET":
+            self.selection = cw.cwpy.selection
+            name = self.selection.name + u"の手札カード"
+            self.bgcolour = wx.Colour(0, 0, 128)
+            sendto = not cw.cwpy.is_playingscenario()\
+                        or cw.cwpy.areaid == cw.AREA_CAMP
+            # self.listは後で設定
+        elif self.callname == "INFOVIEW":
+            name = u"カード操作 - 情報カード"
+            self.bgcolour = wx.Colour(0, 0, 128)
+            self.list = cw.cwpy.sdata.infocards
+            sendto = False
 
         # 前に開いていたときのindex値と位置があったら取得する
         if cw.cwpy.pre_dialogs:
@@ -311,11 +336,50 @@ class CardHolder(CardControl):
             self.index3 = indexs[2]
         else:
             self.index = 0
-            self.index2 = 0
             self.index3 = 0
+            if self.callname == "CARDPOCKET":
+                # キャストの手札カード
+                if isinstance(self.selection, cw.character.Player):
+                    self.list2 = cw.cwpy.get_pcards("unreversed")
+                else:
+                    self.list2 = cw.cwpy.get_fcards()
+                self.index2 = self.list2.index(self.selection)
+            else:
+                self.index2 = 0
+
+        if self.callname == "CARDPOCKET":
+            # self.index3(0:スキル, 1:アイテム, 2:召喚獣)。トグルボタンで切り替える
+            self.list = self.selection.cardpocket[self.index3]
 
         # ダイアログ作成
-        CardControl.__init__(self, parent, name)
+        CardControl.__init__(self, parent, name, sendto)
+
+        # キャストの手札カード用のコントロール
+        # 情報カードダイアログの場合は切り替えが無いため不要
+        if self.callname <> "INFOVIEW":
+            # skill
+            self.skillbtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=(70, 50))
+            bmp = cw.cwpy.rsrc.buttons["SKILL"]
+            self.skillbtn.SetBitmapLabel(bmp, False)
+            self.skillbtn.SetBitmapSelected(bmp)
+            # item
+            self.itembtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=(70, 50))
+            bmp = cw.cwpy.rsrc.buttons["ITEM"]
+            self.itembtn.SetBitmapLabel(bmp, False)
+            self.itembtn.SetBitmapSelected(bmp)
+            # beast
+            self.beastbtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=(70, 50))
+            bmp = cw.cwpy.rsrc.buttons["BEAST"]
+            self.beastbtn.SetBitmapLabel(bmp, False)
+            self.beastbtn.SetBitmapSelected(bmp)
+            # self.index3の値からトグルをセットする
+            for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn)):
+                if self.index3 == index:
+                    btn.SetToggle(True)
+                else:
+                    btn.SetToggle(False)
+
+        # カード置き場、荷物袋、情報カード用のコントロール
         # up
         bmp = cw.cwpy.rsrc.buttons["UP"]
         self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, (70, 40), bmp=bmp)
@@ -323,19 +387,33 @@ class CardHolder(CardControl):
         bmp = cw.cwpy.rsrc.buttons["DOWN"]
         self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, (70, 40), bmp=bmp)
 
-        # リストが空か1ページ分しかなかったらupdownボタンを無効化
+        # リストが空か1ページ分しかなかったら上下ボタンを無効化
         if len(self.list) <= 10:
             self.upbtn.Disable()
             self.downbtn.Disable()
 
-        # シナリオプレイ中か、
-        # パーティがロードされてなかったらrightdownボタンを無効化
-        if not cw.cwpy.ydata.party or cw.cwpy.is_playingscenario():
+        # パーティが組まれていない(カード置き場のみ)か、
+        # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
+        if (self.callname == "INFOVIEW")\
+                or (not cw.cwpy.ydata.party)\
+                or (not sendto and len(cw.cwpy.ydata.party.members) == 1):
             self.rightbtn.Disable()
             self.leftbtn.Disable()
 
-        # 最初に開くページのカードのposを設定
-        self.set_cardpos(1)
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+
+            # 最初に開くページのカードのposを設定
+            self.set_cardpos(2)
+            # 選択中カード色反転
+            self.Parent.change_selection(self.selection)
+
+        else:
+            # カード置き場、荷物袋、情報カード
+
+            # 最初に開くページのカードのposを設定
+            self.set_cardpos(1)
+
         # layout
         self._do_layout()
         # bind
@@ -343,43 +421,124 @@ class CardHolder(CardControl):
 
     def _bind(self):
         CardControl._bind(self)
+
+        if self.callname <> "INFOVIEW":
+            self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.skillbtn)
+            self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.itembtn)
+            self.Bind(wx.EVT_BUTTON, self.OnClickToggleBtn, self.beastbtn)
+
         self.Bind(wx.EVT_BUTTON, self.OnClickUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
+
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+
+    def _re_layout(self):
+        # レフトバー
+        self.sizer_leftbar.Clear()
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            margin = (235-150)/2
+            margin2 = margin + (235-150)%2
+            self.sizer_leftbar.Add((0, margin), 0, 0, 0)
+            self.sizer_leftbar.Add(self.skillbtn, 0, wx.LEFT, 6)
+            self.sizer_leftbar.Add(self.itembtn, 0, wx.LEFT, 6)
+            self.sizer_leftbar.Add(self.beastbtn, 0, wx.LEFT, 6)
+            self.sizer_leftbar.Add((0, margin2), 0, 0, 0)
+
+            self.upbtn.Hide()
+            self.downbtn.Hide()
+        else:
+            # カード置き場、荷物袋、情報カード
+            self.sizer_leftbar.Add((0, 15), 0, 0, 0)
+            self.sizer_leftbar.Add(self.upbtn, 0, wx.LEFT, 6)
+            self.sizer_leftbar.Add((0, 235-110), 0, 0, 0)
+            self.sizer_leftbar.Add(self.downbtn, 0, wx.LEFT, 6)
+            self.sizer_leftbar.Add((0, 15), 0, 0, 0)
+
+            if self.callname <> "INFOVIEW":
+                self.skillbtn.Hide()
+                self.itembtn.Hide()
+                self.beastbtn.Hide()
+
+    def _do_layout(self):
+        self.sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
+
+        self._re_layout()
+
+        CardControl._do_layout(self, self.sizer_leftbar)
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds[u"システム・改ページ"].play()
-        self.index = 0
-        self.callname = "STOREHOUSE" if self.callname == "BACKPACK" else "BACKPACK"
 
-        if self.callname == "BACKPACK":
-       	    self.SetTitle(u"カード操作 - " + u"荷物袋の手札カード")
-       	    self.bgcolour = wx.Colour(0, 0, 128)
-       	    self.toppanel.SetBackgroundColour(self.bgcolour)
-            self.list = cw.cwpy.ydata.party.backpack
-        elif self.callname == "STOREHOUSE":
-            self.SetTitle(u"カード操作 - " + u"カード置場の手札カード")
-            self.bgcolour = wx.Colour(0, 69, 0)
-            self.toppanel.SetBackgroundColour(self.bgcolour)
-            self.list = cw.cwpy.ydata.storehouse
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            if self.index2 == 0:
+                self.index2 = len(self.list2) -1
+            else:
+                self.index2 -= 1
+
+            self.selection = self.list2[self.index2]
+            self.Parent.change_selection(self.selection)
+            self.draw(True)
+        else:
+            # カード置き場、荷物袋、情報カード
+            self.index = 0
+            self.callname = "STOREHOUSE" if self.callname == "BACKPACK" else "BACKPACK"
+
+            if self.callname == "BACKPACK":
+                self.SetTitle(u"カード操作 - " + u"荷物袋の手札カード")
+                self.bgcolour = wx.Colour(0, 0, 128)
+                self.toppanel.SetBackgroundColour(self.bgcolour)
+                self.list = cw.cwpy.ydata.party.backpack
+            elif self.callname == "STOREHOUSE":
+                self.SetTitle(u"カード操作 - " + u"カード置場の手札カード")
+                self.bgcolour = wx.Colour(0, 69, 0)
+                self.toppanel.SetBackgroundColour(self.bgcolour)
+                self.list = cw.cwpy.ydata.storehouse
 
         self.draw(True)
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds[u"システム・改ページ"].play()
-        self.index = 0
-        self.callname = "STOREHOUSE" if self.callname == "BACKPACK" else "BACKPACK"
 
-        if self.callname == "BACKPACK":
-       	    self.SetTitle(u"カード操作 - " + u"荷物袋の手札カード")
-            self.bgcolour = wx.Colour(0, 0, 128)
-       	    self.toppanel.SetBackgroundColour(self.bgcolour)
-            self.list = cw.cwpy.ydata.party.backpack
-        elif self.callname == "STOREHOUSE":
-            self.SetTitle(u"カード操作 - " + u"カード置場の手札カード")
-            self.bgcolour = wx.Colour(0, 69, 0)
-            self.toppanel.SetBackgroundColour(self.bgcolour)
-            self.list = cw.cwpy.ydata.storehouse
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            if self.index2 == len(self.list2) -1:
+                self.index2 = 0
+            else:
+                self.index2 += 1
+            self.selection = self.list2[self.index2]
+            self.Parent.change_selection(self.selection)
+            self.draw(True)
+        else:
+            # カード置き場、荷物袋、情報カード
+            self.index = 0
+            self.callname = "STOREHOUSE" if self.callname == "BACKPACK" else "BACKPACK"
+
+            if self.callname == "BACKPACK":
+                self.SetTitle(u"カード操作 - " + u"荷物袋の手札カード")
+                self.bgcolour = wx.Colour(0, 0, 128)
+                self.toppanel.SetBackgroundColour(self.bgcolour)
+                self.list = cw.cwpy.ydata.party.backpack
+            elif self.callname == "STOREHOUSE":
+                self.SetTitle(u"カード操作 - " + u"カード置場の手札カード")
+                self.bgcolour = wx.Colour(0, 69, 0)
+                self.toppanel.SetBackgroundColour(self.bgcolour)
+                self.list = cw.cwpy.ydata.storehouse
+
+        self.draw(True)
+
+    def OnClickToggleBtn(self, event):
+        cw.cwpy.sounds[u"システム・クリック"].play()
+
+        l = [self.skillbtn, self.itembtn, self.beastbtn]
+
+        for index, btn in enumerate(l):
+            if btn == event.GetEventObject():
+                self.index3 = index
+                btn.SetToggle(True)
+            else:
+                btn.SetToggle(False)
 
         self.draw(True)
 
@@ -430,48 +589,68 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnMouseWheel(self, event):
-        if not self.list or len(self.list) <= 10:
-            return
-
-        if event.GetWheelRotation() > 0:
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
-            self.ProcessEvent(btnevent)
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            # 特殊技能、アイテム、召喚獣を切り替え
+            l = [self.skillbtn, self.itembtn, self.beastbtn]
+            if event.GetWheelRotation() > 0:
+                btn = l[self.index3 - 1] if not self.index3 == 0 else l[len(l) -1]
+            else:
+                btn = l[self.index3 + 1] if not self.index3 == len(l) -1 else l[0]
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+            btnevent.SetEventObject(btn)
         else:
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
+            # カード置き場、荷物袋、情報カード
+            # ページを切り替え
+            if not self.list or len(self.list) <= 10:
+                return
+            if event.GetWheelRotation() > 0:
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+            else:
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
             self.ProcessEvent(btnevent)
-
-    def _do_layout(self):
-        sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
-        # レフトバー
-        sizer_leftbar.Add((0, 15), 0, 0, 0)
-        sizer_leftbar.Add(self.upbtn, 0, wx.LEFT, 6)
-        sizer_leftbar.Add((0, 235-110), 0, 0, 0)
-        sizer_leftbar.Add(self.downbtn, 0, wx.LEFT, 6)
-        sizer_leftbar.Add((0, 15), 0, 0, 0)
-        CardControl._do_layout(self, sizer_leftbar)
 
     def draw(self, update=False):
         dc = CardControl.draw(self, update)
-        # ページ番号
-        s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
-        s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
-        w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, 40-w/2, 180)
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
 
-        # イメージ
-        if self.callname == "BACKPACK":
-            path = "Resource/Image/Card/COMMAND7" + cw.cwpy.rsrc.ext_img
+            # 所持カード数
+            num = len(self.selection.cardpocket[self.index3])
+            maxnum = self.selection.get_cardpocketspace()[self.index3]
+            s = "Cap " + str(num) + "/" + str(maxnum)
+            w = dc.GetTextExtent(s)[0]
+            dc.DrawText(s, 40-w/2, 220)
+
+            # カード描画
+            if update:
+                self.list = self.selection.cardpocket[self.index3]
+                s = self.selection.name + u"の手札カード"
+                self.SetTitle(u"カード操作 - " + s)
+
+            self.draw_cards(dc, update, 2)
+        else:
+            # カード置き場、荷物袋、情報カード
+
+            # ページ番号
+            s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
+            s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
+            w = dc.GetTextExtent(s)[0]
+            dc.DrawText(s, 40-w/2, 180)
+
+            # イメージ
+            if self.callname == "BACKPACK":
+                path = "Resource/Image/Card/COMMAND7" + cw.cwpy.rsrc.ext_img
+            elif self.callname == "STOREHOUSE":
+                path = "Resource/Image/Card/COMMAND5" + cw.cwpy.rsrc.ext_img
+            elif self.callname == "INFOVIEW":
+                path = "Resource/Image/Card/COMMAND8" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
             bmp = cw.util.load_wxbmp(path, True)
             dc.DrawBitmap(bmp, 3, 85, True)
-        elif self.callname == "STOREHOUSE":
-            path = "Resource/Image/Card/COMMAND5" + cw.cwpy.rsrc.ext_img
-            path = cw.util.join_paths(cw.cwpy.skindir, path)
-            bmp = cw.util.load_wxbmp(path, True)
-            dc.DrawBitmap(bmp, 3, 85, True)
 
-        # カード描画
-        self.draw_cards(dc, update, 1)
+            # カード描画
+            self.draw_cards(dc, update, 1)
 
     def get_headers(self):
         return self.list[self.index * 10:self.index * 10 + 10]
@@ -479,7 +658,7 @@ class CardHolder(CardControl):
 #-------------------------------------------------------------------------------
 #　所持カードダイアログ
 #-------------------------------------------------------------------------------
-
+"""
 class CardPocket(CardControl):
     def __init__(self, parent):
         self.callname = "CARDPOCKET"
@@ -511,7 +690,7 @@ class CardPocket(CardControl):
         # ダイアログ作成
         self.bgcolour = wx.Colour(0, 0, 128)
         name = self.selection.name + u"の手札カード"
-        CardControl.__init__(self, parent, name)
+        CardControl.__init__(self, parent, name, True)
         # skill
         self.skillbtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=(70, 50))
         bmp = cw.cwpy.rsrc.buttons["SKILL"]
@@ -634,7 +813,7 @@ class CardPocket(CardControl):
 
     def get_headers(self):
         return self.list
-
+"""
 #-------------------------------------------------------------------------------
 #　戦闘手札カードダイアログ
 #-------------------------------------------------------------------------------
@@ -671,7 +850,7 @@ class HandView(CardControl):
         # ダイアログ作成
         name = self.selection.name + u"の手札カード"
         self.bgcolour = wx.Colour(0, 0, 128)
-        CardControl.__init__(self, parent, name)
+        CardControl.__init__(self, parent, name, False)
         # 最初に開くページのカードのposを設定
         self.set_cardpos(3)
         # 選択中カード色反転
@@ -732,61 +911,8 @@ class HandView(CardControl):
 
 class InfoView(CardHolder):
     def __init__(self, parent):
-        self.callname = "INFOVIEW"
-        # 背景色
-        self.bgcolour = wx.Colour(0, 0, 128)
-        # list, index
-        self.list = cw.cwpy.sdata.infocards
-        self.index = 0
         # ダイアログ作成
-        CardControl.__init__(self, parent, u"カード操作 - 情報カード")
-        # up
-        bmp = cw.cwpy.rsrc.buttons["UP"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, (70, 40), bmp=bmp)
-        # down
-        bmp = cw.cwpy.rsrc.buttons["DOWN"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, (70, 40), bmp=bmp)
-
-        # リストが空か1ページ分しかなかったらupdownボタンを無効化
-        if len(self.list) <= 10:
-            self.upbtn.Disable()
-            self.downbtn.Disable()
-
-        # rightdownボタンを無効化
-        self.rightbtn.Disable()
-        self.leftbtn.Disable()
-        # 最初に開くページのカードのposを設定
-        self.set_cardpos(1)
-        # layout
-        self._do_layout()
-        # bind
-        self._bind()
-
-    def OnLeftUp(self, event):
-        for header in self.get_headers():
-            if header.rect.collidepoint(event.GetPosition()):
-                cw.cwpy.sounds[u"システム・クリック"].play()
-                self.animate_click(header)
-                dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
-                self.Parent.move_dlg(dlg)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-
-    def draw(self, update=False):
-        dc = CardControl.draw(self, update)
-        # ページ番号
-        s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
-        s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
-        w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, 40-w/2, 180)
-        # イメージ
-        path = "Resource/Image/Card/COMMAND8" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path, True)
-        dc.DrawBitmap(bmp, 3, 85, True)
-        # カード描画
-        self.draw_cards(dc, update, 1)
+        CardHolder.__init__(self, parent, "INFOVIEW")
 
 def get_poslist(num, mode=1):
     """

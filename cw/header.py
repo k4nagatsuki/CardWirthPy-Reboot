@@ -417,7 +417,8 @@ class InfoCardHeader(object):
         self.author = cw.cwpy.sdata.author
         # 画像
         path = data.gettext("ImagePath", "")
-        path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        if not cw.binary.image.path_is_code(path):
+            path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
         self.cardimg = cw.image.CardImage(path, "INFO", self.name)
         self.rect = self.cardimg.rect
         # cardcontrolダイアログで使うフラグ
