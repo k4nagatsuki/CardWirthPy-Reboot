@@ -50,6 +50,8 @@ class CardControl(wx.Dialog):
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
+        self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn2, self.rightbtn2)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
@@ -145,6 +147,22 @@ class CardControl(wx.Dialog):
     def OnPaint(self, event):
         self.draw()
 
+    def OnClickLeftBtn2(self, event):
+        count = len(self.combo.GetItems())
+        index = self.combo.GetSelection()
+        if count == 0:
+            self.combo.SetSelection(count - 1)
+        else:
+            self.combo.SetSelection(index - 1)
+
+    def OnClickRightBtn2(self, event):
+        count = len(self.combo.GetItems())
+        index = self.combo.GetSelection()
+        if count <= index + 1:
+            self.combo.SetSelection(0)
+        else:
+            self.combo.SetSelection(index + 1)
+
     def draw(self, update=False):
         if update:
             dc = wx.ClientDC(self.toppanel)
@@ -195,6 +213,13 @@ class CardControl(wx.Dialog):
                 self.draw_card(dc, header)
 
     def draw_card(self, dc, header):
+        mousepos = self.ScreenToClient(wx.GetMousePosition())
+        if header.rect.collidepoint(mousepos):
+            if not header.negaflag:
+                header.negaflag = True
+        elif header.negaflag:
+            header.negaflag = False
+
         pos = header.rect.topleft
         bmp = header.get_cardwxbmp()
 
@@ -228,6 +253,23 @@ class CardControl(wx.Dialog):
 
     def lclick_event(self, header):
         owner = header.get_owner()
+
+        if self.combo.IsShown():
+            index = self.combo.GetSelection()
+            if index <> self._combo_manual:
+                if index == self._combo_storehouse:
+                    cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self)
+                elif index == self._combo_backpack:
+                    cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self)
+                elif index in self._combo_cast:
+                    target = self.list2[self._combo_cast[index]]
+                    cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self)
+                elif index == self._combo_shelf:
+                    cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self)
+                elif index == self._combo_trush:
+                    cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self)
+                self.draw(True)
+                return
 
         # カード所持者がPlayerCardじゃない場合はカード情報を表示
         if isinstance(owner, (cw.character.Enemy, cw.character.Friend)):
@@ -282,7 +324,7 @@ class CardControl(wx.Dialog):
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
         # 開いていたダイアログの情報
-        indexes = (self.index, self.index2, self.index3)
+        indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
         cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition()))
        	# OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -325,6 +367,7 @@ class CardHolder(CardControl):
             indexs = pre_info[1]
             self.index2 = indexs[1]
             self.index3 = indexs[2]
+            self.index_combo = indexs[3]
 
             if self.callname == "CARDPOCKET":
                 self.index = 0
@@ -340,6 +383,7 @@ class CardHolder(CardControl):
         else:
             self.index = 0
             self.index3 = 0
+            self.index_combo = 0
             if self.callname == "CARDPOCKET":
                 self.selection = cw.cwpy.selection
                 if isinstance(self.selection, cw.character.Player):
@@ -410,6 +454,37 @@ class CardHolder(CardControl):
         if len(self.list) <= 10:
             self.upbtn.Disable()
             self.downbtn.Disable()
+
+        # 移動先選択コンボボックス(情報カードの場合は無し)
+        if sendto:
+            bmp = cw.cwpy.rsrc.buttons["ARROW"]
+            self._combo_manual = len(self.combo.GetItems())
+            self.combo.Append(u"手動選択", bmp)
+            if self._can_open_storehouse:
+                bmp = cw.cwpy.rsrc.buttons["DECK"]
+                self._combo_storehouse = len(self.combo.GetItems())
+                self.combo.Append(u"カード置き場", bmp)
+            if self._can_open_backpack:
+                bmp = cw.cwpy.rsrc.buttons["SACK"]
+                self._combo_backpack = len(self.combo.GetItems())
+                self.combo.Append(u"荷物袋", bmp)
+            if self._can_open_cardpocket:
+                bmp = cw.cwpy.rsrc.buttons["CAST"]
+                self._combo_cast = {}
+                index = 0
+                for castdata in self.list2:
+                    self._combo_cast[len(self.combo.GetItems())] = index
+                    self.combo.Append(castdata.name, bmp)
+                    index += 1
+            if not cw.cwpy.is_playingscenario():
+                bmp = cw.cwpy.rsrc.buttons["SHELF"]
+                self._combo_shelf = len(self.combo.GetItems())
+                self.combo.Append(u"売却", bmp)
+            if not cw.cwpy.is_playingscenario() or cw.cwpy.is_debugmode():
+                self._combo_trush = len(self.combo.GetItems())
+                bmp = cw.cwpy.rsrc.buttons["TRUSH"]
+                self.combo.Append(u"ごみ箱", bmp)
+            self.combo.Select(self.index_combo)
 
         # パーティが組まれていない(カード置き場のみ)か、
         # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
@@ -744,12 +819,14 @@ class HandView(CardControl):
             self.index = indexs[0]
             self.index2 = indexs[1]
             self.index3 = indexs[2]
+            self.index_combo = indexs[3]
             self.selection = self.list2[self.index2]
         else:
             self.selection = cw.cwpy.selection
             self.index = 0
             self.index2 = self.list2.index(self.selection)
             self.index3 = 0
+            self.index_combo = 0
 
         # 手札リスト
         self.list = self.selection.deck.hand

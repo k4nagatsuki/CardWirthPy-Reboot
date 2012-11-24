@@ -200,10 +200,12 @@ class CWPy(_Singleton, threading.Thread):
         self.keyevent.clear() # キー入力初期化
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
         event.args = kwargs
-        self.frame.AddPendingEvent(event)
-
-        while self.is_running() and self.frame.IsEnabled():
-            pass
+        if threading.currentThread() == self:
+            self.frame.AddPendingEvent(event)
+            while self.is_running() and self.frame.IsEnabled():
+                pass
+        else:
+            self.frame.ProcessEvent(event)
 
     def call_modaldlg(self, name, **kwargs):
         """ダイアログを開き、閉じるまで待機する。
@@ -211,8 +213,9 @@ class CWPy(_Singleton, threading.Thread):
         """
         self.call_dlg(name, **kwargs)
 
-        while self.is_running() and self.is_showingdlg():
-            pass
+        if threading.currentThread() == self:
+            while self.is_running() and self.is_showingdlg():
+                pass
 
     def call_predlg(self):
         """直前に開いていたダイアログを再び開く。"""
@@ -286,6 +289,10 @@ class CWPy(_Singleton, threading.Thread):
         s: タイトルバーテキスト。
         """
         self.frame.exec_func(self.frame.SetTitle, s)
+
+    def get_yesnoresult(self):
+        """call_yesno()の戻り値を取得する。"""
+        return self._yesnoresult
 
 #-------------------------------------------------------------------------------
 # ゲーム状態遷移用メソッド
@@ -917,7 +924,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -937,16 +944,32 @@ class CWPy(_Singleton, threading.Thread):
         elif targettype == "STOREHOUSE":
             target = self.ydata.storehouse
         elif targettype in ("PAWNSHOP", "TRASHBOX"):
+            if targettype == "PAWNSHOP":
+                if header.type == "SkillCard":
+                    price = 200 + header.level * 100
+                elif header.type == "ItemCard":
+                    price = header.price * header.uselimit
+                    if header.maxuselimit:
+                        price /=  header.maxuselimit
+                elif header.type == "BeastCard":
+                    price = 500
+                s = u"%sを売却します。売り値は%dspです。よろしいですか？" % (header.name, price)
+            else:
+                s = u"%sを捨てます。よろしいですか？" % (header.name)
+            self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
+            if self.get_yesnoresult() <> wx.ID_OK:
+                return
+
             # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
             if header.premium == "Premium" and not from_event:
                 if targettype == "PAWNSHOP":
                     self.sounds[u"システム・エラー"].play()
                     s = u"プレミアカードは売却できません。"
-                    self.call_dlg("MESSAGE", text=s)
+                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
                 elif targettype == "TRASHBOX":
                     self.sounds[u"システム・エラー"].play()
                     s = u"プレミアカードは破棄できません。"
-                    self.call_dlg("MESSAGE", text=s)
+                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
 
                 return
 
@@ -965,7 +988,7 @@ class CWPy(_Singleton, threading.Thread):
             raise ValueError("CARDPOCKET Index in trade method is incorrect.")
 
         # もし移動先がPlayerCardだったら、手札の枚数判定を行う
-        if targettype == "PLAYERCARD":
+        if targettype == "PLAYERCARD" and target <> owner:
             n = len(target.cardpocket[index])
             maxn = target.get_cardpocketspace()[index]
 
@@ -978,7 +1001,7 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     self.sounds[u"システム・エラー"].play()
                     s = u"%sの手札は既に一杯です。" % target.name
-                    self.call_dlg("MESSAGE", text=s)
+                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
 
                 return
 
@@ -986,6 +1009,8 @@ class CWPy(_Singleton, threading.Thread):
         if not from_event:
             if targettype == "TRASHBOX":
                 self.sounds[u"システム・破棄"].play()
+            elif targettype == "PAWNSHOP":
+                self.sounds[u"システム・シグナル"].play()
             else:
                 self.sounds[u"システム・改ページ"].play()
 
@@ -1099,22 +1124,11 @@ class CWPy(_Singleton, threading.Thread):
 
         # 下取りに出した場合
         elif targettype == "PAWNSHOP":
-            if header.type == "SkillCard":
-                n = 200 + header.level * 100
-            elif header.type == "ItemCard":
-                n = header.price * header.uselimit
-
-                if header.maxuselimit:
-                    n /=  header.maxuselimit
-
-            elif header.type == "BeastCard":
-                n = 500
-
             # パーティの所持金または金庫に下取金を追加
             if self.ydata.party:
-                self.ydata.party.set_money(n)
+                self.ydata.party.set_money(price)
             else:
-                self.ydata.set_money(n)
+                self.ydata.set_money(price)
 
         # カード移動操作用データを削除
         self.selectedheader = None
@@ -1138,7 +1152,7 @@ class CWPy(_Singleton, threading.Thread):
             if target.fpath:
                 self.ydata.deletedpaths.add(target.fpath)
 
-            if target.carddata:
+            if target.carddata is not None:
                 data = target.carddata
             else:
                 data = cw.data.yadoxml2etree(target.fpath).getroot()

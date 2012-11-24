@@ -88,6 +88,7 @@ class Frame(wx.Frame):
             "RUNAWAY",   # 逃走確認ダイアログ
             "ERROR",  # エラーダイアログ
             "MESSAGE",   # メッセージダイアログ
+            "YESNO",   # 確認ダイアログ
             "DATACOMP",   # 不足データの補填ダイアログ
             "PARTYEDIT",   # パーティ情報ダイアログ
             "BATTLECOMMAND",  # 行動選択ダイアログ
@@ -477,9 +478,22 @@ class Frame(wx.Frame):
 
     def OnMESSAGE(self, event):
         text = event.args.get("text", "")
-        dlg = cw.dialog.message.Message(self, u"メッセージ", text)
+        parent = event.args.get("parentdialog", None)
+        if not parent:
+            parent = self
+        dlg = cw.dialog.message.Message(parent, u"メッセージ", text)
         self.move_dlg(dlg)
         dlg.ShowModal()
+        self.kill_dlg(dlg)
+
+    def OnYESNO(self, event):
+        text = event.args.get("text", "")
+        parent = event.args.get("parentdialog", None)
+        if not parent:
+            parent = self
+        dlg = cw.dialog.message.YesNoMessage(parent, u"メッセージ", text)
+        self.move_dlg(dlg)
+        cw.cwpy._yesnoresult = dlg.ShowModal()
         self.kill_dlg(dlg)
 
     def move_dlg(self, dlg, point=(0, 0)):
@@ -488,9 +502,10 @@ class Frame(wx.Frame):
         point: 中央以外の位置に移動させたい場合、指定する。
         """
         if hasattr(dlg, "pre_pos") and dlg.pre_pos:
-            x = dlg.pre_pos[0]
-            y = dlg.pre_pos[1]
-        elif self.IsFullScreen() and dlg.Parent == self:
+            dlg.SetPosition(dlg.pre_pos)
+            return
+
+        if self.IsFullScreen() and dlg.Parent == self:
             x = (cw.SIZE_GAME[0] - dlg.GetSize()[0]) / 2
             y = (cw.SIZE_GAME[1] - dlg.GetSize()[1]) / 2
         else:
