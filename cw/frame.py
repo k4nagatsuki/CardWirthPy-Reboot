@@ -487,7 +487,10 @@ class Frame(wx.Frame):
         dlg: wx.Window
         point: 中央以外の位置に移動させたい場合、指定する。
         """
-        if self.IsFullScreen() and dlg.Parent == self:
+        if hasattr(dlg, "pre_pos") and dlg.pre_pos:
+            x = dlg.pre_pos[0]
+            y = dlg.pre_pos[1]
+        elif self.IsFullScreen() and dlg.Parent == self:
             x = (cw.SIZE_GAME[0] - dlg.GetSize()[0]) / 2
             y = (cw.SIZE_GAME[1] - dlg.GetSize()[1]) / 2
         else:

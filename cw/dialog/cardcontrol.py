@@ -272,7 +272,7 @@ class CardControl(wx.Dialog):
         cw.cwpy.selectedheader = header
         # 開いていたダイアログの情報
         indexes = (self.index, self.index2, self.index3)
-        cw.cwpy.pre_dialogs.append((self.callname, indexes))
+        cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition()))
        	# OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
@@ -295,9 +295,11 @@ class CardHolder(CardControl):
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
 
-        # 前に開いていたときのindex値があったら取得する
+        # 前に開いていたときのindex値と位置があったら取得する
         if cw.cwpy.pre_dialogs:
-            indexs = cw.cwpy.pre_dialogs.pop()[1]
+            pre_info = cw.cwpy.pre_dialogs.pop()
+            self.pre_pos = pre_info[2]
+            indexs = pre_info[1]
 
             # カード移動でページ数が減っていたらself.indexを-1
             if len(self.list) % 10 == 0 and len(self.list) / 10 == indexs[0]:
@@ -484,7 +486,9 @@ class CardPocket(CardControl):
 
         # 前に開いていたときのindex値があったら取得する
         if cw.cwpy.pre_dialogs:
-            indexs = cw.cwpy.pre_dialogs.pop()[1]
+            pre_info = cw.cwpy.pre_dialogs.pop()
+            self.pre_pos = pre_info[2]
+            indexs = pre_info[1]
             self.index = indexs[0]
             self.index2 = indexs[1]
             self.index3 = indexs[2]
@@ -649,7 +653,9 @@ class HandView(CardControl):
 
         # 前に開いていたときのindex値があったら取得する
         if cw.cwpy.pre_dialogs:
-            indexs = cw.cwpy.pre_dialogs.pop()[1]
+            pre_info = cw.cwpy.pre_dialogs.pop()
+            self.pre_pos = pre_info[2]
+            indexs = pre_info[1]
             self.index = indexs[0]
             self.index2 = indexs[1]
             self.index3 = indexs[2]

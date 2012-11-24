@@ -273,7 +273,7 @@ class CardHeader(object):
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
     def write(self):
-        if not self.carddata:
+        if self.carddata is None:
             return
 
         if self.fpath:
