@@ -511,17 +511,17 @@ class CardPocket(CardControl):
         # skill
         self.skillbtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=(70, 50))
         bmp = cw.cwpy.rsrc.buttons["SKILL"]
-        self.skillbtn.SetBitmapLabel(bmp)
+        self.skillbtn.SetBitmapLabel(bmp, False)
         self.skillbtn.SetBitmapSelected(bmp)
         # item
         self.itembtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=(70, 50))
         bmp = cw.cwpy.rsrc.buttons["ITEM"]
-        self.itembtn.SetBitmapLabel(bmp)
+        self.itembtn.SetBitmapLabel(bmp, False)
         self.itembtn.SetBitmapSelected(bmp)
         # beast
         self.beastbtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=(70, 50))
         bmp = cw.cwpy.rsrc.buttons["BEAST"]
-        self.beastbtn.SetBitmapLabel(bmp)
+        self.beastbtn.SetBitmapLabel(bmp, False)
         self.beastbtn.SetBitmapSelected(bmp)
 
         # self.index3の値からトグルをセットする
