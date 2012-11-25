@@ -862,7 +862,17 @@ class Character(object):
         n = level * (level + 1)
         return bool(cnt >= n and limit > level)
 
-    def set_level(self, value):
+    def set_level(self, value, regulate=False):
+        """レベルを設定する。
+        regulate: レベルを調節する場合はTrue。
+        """
+        if regulate:
+            # 調節前のレベル
+            coupons = self.get_specialcoupons()
+            limit = self.level
+            if u"＠本来の上限" in coupons:
+                limit = coupons[u"＠本来の上限"]
+
         # レベル
         self.level = value
         self.data.edit("/Property/Level", str(self.level))
@@ -882,15 +892,22 @@ class Character(object):
         self.data.edit("/Property/Life", str(self.maxlife), "max")
         self.set_life(self.maxlife)
 
-        # レベル原点・EPクーポン操作
-        for e in self.data.find("/Property/Coupons"):
-            if not e.text:
-                continue
+        if regulate:
+            # 本来の上限クーポン操作
+            if limit == value:
+                self.remove_coupon(u"＠本来の上限")
+            else:
+                self.set_coupon(u"＠本来の上限", str(limit))
+        else:
+            # レベル原点・EPクーポン操作
+            for e in self.data.find("/Property/Coupons"):
+                if not e.text:
+                    continue
 
-            if e.text == u"＠レベル原点":
-                e.attrib["value"] = str(self.level)
-            elif e.text == u"＠ＥＰ":
-                e.attrib["value"] = str(e.getint("", "value", 0) + 10)
+                if e.text == u"＠レベル原点":
+                    e.attrib["value"] = str(self.level)
+                elif e.text == u"＠ＥＰ":
+                    e.attrib["value"] = str(e.getint("", "value", 0) + 10)
 
     #---------------------------------------------------------------------------
     #　状態変更用

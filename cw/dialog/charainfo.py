@@ -6,6 +6,7 @@ import wx
 import pygame
 
 import cw
+import cw.dialog.edit
 import cardinfo
 
 
@@ -402,8 +403,9 @@ class HistoryPanel(wx.ScrolledWindow):
             self.Refresh()
 
 class EditButton():
-    def __init__(self, name):
+    def __init__(self, name, type):
         self.name = name
+        self.type = type
         self.negaflag = False
 
 class EditPanel(wx.Panel):
@@ -419,9 +421,24 @@ class EditPanel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         self.Bind(wx.EVT_MOTION, self.OnMove)
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        self.headers = {EditButton(u"デザインを変更する"), EditButton(u"レベルを調節する")}
+    def OnLeftUp(self, event):
+        for header in self.headers:
+            if header.subrect.collidepoint(event.GetPosition()):
+                if header.type == 0:
+                    # デザインを変更する
+                    pass # TODO
+                else:
+                    # レベルを調節する
+                    cw.cwpy.sounds[u"システム・クリック"].play()
+                    dlg = cw.dialog.edit.LevelEditor(self.Parent.Parent)
+                    cw.cwpy.frame.move_dlg(dlg)
+                    if wx.ID_OK == dlg.ShowModal():
+                        self.Parent.Parent.toppanel.draw(True)
+                    dlg.Destroy()
+                return
 
     def OnPaint(self, event):
         self.draw()
@@ -468,6 +485,8 @@ class EditPanel(wx.Panel):
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
 
+        self.headers = (EditButton(u"デザインを変更する", 0), EditButton(u"レベルを調節する", 1))
+
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
@@ -512,7 +531,7 @@ class SkillPanel(wx.Panel):
             if header.subrect.collidepoint(event.GetPosition()):
                 # ホールド状態切り替え(召喚獣以外)
                 dc = wx.ClientDC(self)
-                if "ペナルティ" in header.keycodes:
+                if u"ペナルティ" in header.keycodes:
                     cw.cwpy.sounds[u"システム・エラー"].play()
                     return
                 cw.cwpy.sounds[u"システム・クリック"].play()
@@ -621,7 +640,7 @@ class SkillPanel(wx.Panel):
             dc.DrawBitmap(bmp, pos[0]+100, pos[1]-1, True)
 
             # ホールドまたはペナルティ
-            if "ペナルティ" in header.keycodes:
+            if u"ペナルティ" in header.keycodes:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
             elif header.hold:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
@@ -678,7 +697,7 @@ class ItemPanel(SkillPanel):
             header.textpos = pos
             header.subrect = pygame.Rect(pos[0] - 20, pos[1] - 1, size[0] + 20, size[1] + 2)
             # ホールドまたはペナルティ
-            if "ペナルティ" in header.keycodes:
+            if u"ペナルティ" in header.keycodes:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
             elif header.hold:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]

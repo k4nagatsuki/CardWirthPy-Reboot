@@ -224,6 +224,75 @@ class MoneyViewPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
+
+#-------------------------------------------------------------------------------
+#　レベル調節ダイアログ
+#-------------------------------------------------------------------------------
+
+class LevelEditor(wx.Dialog):
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, -1, u"レベル調節",
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.ccard = cw.cwpy.selection
+
+        minvalue = 1
+        maxvalue = self.ccard.level
+        coupons = self.ccard.get_specialcoupons()
+        if u"＠本来の上限" in coupons:
+            maxvalue = coupons[u"＠本来の上限"]
+
+        # レベル調節スライダ
+        self.slider = wx.Slider(self, -1, self.ccard.level, minvalue, maxvalue,
+            size=(165, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
+
+        # btn
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                            (100, 30), u"決定")
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        (100, 30), u"中止")
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+
+        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 20)
+
+        sizer_v1.Add((0, 0), 0, wx.CENTER|wx.TOP, 0)
+        sizer_v1.Add(self.slider, 0, wx.CENTER|wx.TOP, 5)
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
+
+        sizer.Add(sizer_v1, 0, wx.ALL, 15)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnOk(self, event):
+        cw.cwpy.sounds[u"システム・収穫"].play()
+
+        self.ccard.set_level(self.slider.GetValue(), regulate=True)
+        cw.animation.animate_sprite(self.ccard, "hide")
+        self.ccard.cardimg.set_levelimg(self.ccard.level)
+        self.ccard.update_image()
+        cw.animation.animate_sprite(self.ccard, "deal")
+
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds[u"システム・クリック"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+
 def main():
     pass
 
