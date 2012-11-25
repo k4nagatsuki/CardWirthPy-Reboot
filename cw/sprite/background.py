@@ -192,7 +192,7 @@ class BattleCardImage(card.CWPyCard):
         cw.animation.animate_sprite(self, "zoomin", 1.5)
         cw.animation.animate_sprite(self, "hide", 1.5)
         cw.animation.animate_sprite(self, "deal", 1.5)
-        self.zoomsize = (8, 10)
+        self.zoomsize = (8, 12)
         cw.animation.animate_sprite(self, "zoomin", 1.5)
         cw.animation.animate_sprite(self, "hide", 1.5)
         cw.animation.animate_sprite(self, "deal", 1.5)
