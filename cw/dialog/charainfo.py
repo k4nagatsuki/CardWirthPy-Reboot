@@ -331,6 +331,7 @@ class HistoryPanel(wx.ScrolledWindow):
     """
     def __init__(self, parent, ccard):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(10, 10)
         # エレメントオブジェクト
@@ -366,7 +367,7 @@ class HistoryPanel(wx.ScrolledWindow):
         self.SetVirtualSize((-1, maxheight))
 
         # create buffer
-        csize = self.GetClientSize()
+        csize = self.csize
         height = maxheight + 10 if maxheight + 10 > csize[1] else csize[1]
         self.buffer = wx.EmptyBitmap(csize[0], height)
         dc = wx.BufferedDC(None, self.buffer)
@@ -400,6 +401,11 @@ class HistoryPanel(wx.ScrolledWindow):
             self.Scroll(0, 0)
             self.Refresh()
 
+class EditButton():
+    def __init__(self, name):
+        self.name = name
+        self.negaflag = False
+
 class EditPanel(wx.Panel):
     def __init__(self, parent, ccard):
         wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
@@ -411,10 +417,44 @@ class EditPanel(wx.Panel):
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
+        self.Bind(wx.EVT_MOTION, self.OnMove)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
+
+        self.headers = {EditButton(u"デザインを変更する"), EditButton(u"レベルを調節する")}
 
     def OnPaint(self, event):
         self.draw()
+
+    def OnLeave(self, event):
+        if not self.Parent.Parent.IsActive():
+            return
+
+        for header in self.headers:
+            if header.negaflag:
+                header.negaflag = False
+                dc = wx.ClientDC(self)
+                dc.SetTextForeground(wx.WHITE)
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+                s = header.name
+                dc.DrawText(s, header.textpos[0], header.textpos[1])
+
+    def OnMove(self, event):
+        dc = wx.ClientDC(self)
+        dc.SetTextForeground(wx.WHITE)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        mousepos = event.GetPosition()
+
+        for header in self.headers:
+            if header.subrect.collidepoint(mousepos):
+                if not header.negaflag:
+                    header.negaflag = True
+                    dc.SetTextForeground(wx.RED)
+                    dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+                    dc.SetTextForeground(wx.WHITE)
+            elif header.negaflag:
+                header.negaflag = False
+                dc.DrawText(header.name, header.textpos[0], header.textpos[1])
 
     def draw(self, update=False):
         if update:
@@ -427,18 +467,21 @@ class EditPanel(wx.Panel):
         dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
+
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
-        s = u"デザインを変更する"
-        dc.DrawText(s, 32, 8)
-        s = u"レベルを調節する"
-        dc.DrawText(s, 32, 25)
         # 編集アイコン
         bmp = cw.cwpy.rsrc.dialogs["STATUS12"]
-        dc.DrawBitmap(bmp, 12, 7, True)
-        dc.DrawBitmap(bmp, 12, 24, True)
-        dc.EndDrawing()
+        # 編集項目名
+        height = 8
+        for header in self.headers:
+            size = dc.GetTextExtent(header.name)
+            dc.DrawBitmap(bmp, 12, height - 1, True)
+            dc.DrawText(header.name, 32, height)
+            header.textpos = (32, height)
+            header.subrect = pygame.Rect(12, height - 1, 20 + size[0], bmp.Height)
+            height += 17
 
 class SkillPanel(wx.Panel):
     def __init__(self, parent, ccard):
@@ -454,24 +497,47 @@ class SkillPanel(wx.Panel):
         # bind
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_MOTION, self.OnMove)
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
     def OnDestroy(self, event):
         for header in self.headers:
+            del header.textpos
             del header.subrect
 
-    def OnRightUp(self, event):
+    def OnLeftUp(self, event):
         for header in self.headers:
             if header.subrect.collidepoint(event.GetPosition()):
+                # ホールド状態切り替え(召喚獣以外)
+                dc = wx.ClientDC(self)
+                if "ペナルティ" in header.keycodes:
+                    cw.cwpy.sounds[u"システム・エラー"].play()
+                    return
+                cw.cwpy.sounds[u"システム・クリック"].play()
+                header.hold = not header.hold
+                if header.hold:
+                    bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
+                else:
+                    bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
+                dc.DrawBitmap(bmp, header.subrect.left, header.subrect.top, True)
+                return
+
+    def _open_cardinfo(self, mousepos):
+        for header in self.headers:
+            if header.subrect.collidepoint(mousepos):
                 cw.cwpy.sounds[u"システム・クリック"].play()
                 dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-                return
+                return True
+        return False
 
+    def OnRightUp(self, event):
+        if self._open_cardinfo(event.GetPosition()):
+            return
         self.Parent.Parent.OnCancel(event)
 
     def OnLeave(self, event):
@@ -485,7 +551,7 @@ class SkillPanel(wx.Panel):
                 dc.SetTextForeground(wx.WHITE)
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
                 s = header.name
-                dc.DrawText(s, header.subrect.left, header.subrect.top)
+                dc.DrawText(s, header.textpos[0], header.textpos[1])
 
     def OnMove(self, event):
         dc = wx.ClientDC(self)
@@ -498,11 +564,11 @@ class SkillPanel(wx.Panel):
                 if not header.negaflag:
                     header.negaflag = True
                     dc.SetTextForeground(wx.RED)
-                    dc.DrawText(header.name, header.subrect.left, header.subrect.top)
+                    dc.DrawText(header.name, header.textpos[0], header.textpos[1])
                     dc.SetTextForeground(wx.WHITE)
             elif header.negaflag:
                 header.negaflag = False
-                dc.DrawText(header.name, header.subrect.left, header.subrect.top)
+                dc.DrawText(header.name, header.textpos[0], header.textpos[1])
 
     def OnPaint(self, event):
         self.draw()
@@ -543,7 +609,8 @@ class SkillPanel(wx.Panel):
                 dc.DrawText(s, pos[0], pos[1])
 
             # rect
-            header.subrect = pygame.Rect(pos, size)
+            header.textpos = pos
+            header.subrect = pygame.Rect(pos[0] - 20, pos[1] - 1, size[0] + 20, size[1] + 2)
             # 適正値
             key = "HAND%s" % (header.get_vocation_level())
             bmp = cw.cwpy.rsrc.wxstones[key]
@@ -553,13 +620,14 @@ class SkillPanel(wx.Panel):
             bmp = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(bmp, pos[0]+100, pos[1]-1, True)
 
-            # ホールド
-            if header.hold:
+            # ホールドまたはペナルティ
+            if "ペナルティ" in header.keycodes:
+                bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
+            elif header.hold:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
-                dc.DrawBitmap(bmp, pos[0]-20, pos[1]-1, True)
             else:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
-                dc.DrawBitmap(bmp, pos[0]-20, pos[1]-1, True)
+            dc.DrawBitmap(bmp, pos[0]-20, pos[1]-1, True)
 
         # カード枚数
         level = self.ccard.level
@@ -607,14 +675,16 @@ class ItemPanel(SkillPanel):
                 dc.DrawText(s, pos[0], pos[1])
 
             # rect
-            header.subrect = pygame.Rect(pos, size)
-            # ホールド
-            if header.hold:
+            header.textpos = pos
+            header.subrect = pygame.Rect(pos[0] - 20, pos[1] - 1, size[0] + 20, size[1] + 2)
+            # ホールドまたはペナルティ
+            if "ペナルティ" in header.keycodes:
+                bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
+            elif header.hold:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
-                dc.DrawBitmap(bmp, pos[0]-20, pos[1]-1, True)
             else:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
-                dc.DrawBitmap(bmp, pos[0]-20, pos[1]-1, True)
+            dc.DrawBitmap(bmp, pos[0]-20, pos[1]-1, True)
 
         # カード枚数
         level = self.ccard.level
@@ -626,6 +696,10 @@ class ItemPanel(SkillPanel):
         dc.EndDrawing()
 
 class BeastPanel(SkillPanel):
+    def OnLeftUp(self, event):
+        # ホールド不可
+        self._open_cardinfo(event.GetPosition())
+
     def draw(self, update=False):
         if update:
             dc = wx.ClientDC(self)
@@ -663,7 +737,8 @@ class BeastPanel(SkillPanel):
                 dc.DrawText(s, pos[0], pos[1])
 
             # rect
-            header.subrect = pygame.Rect(pos, size)
+            header.textpos = pos
+            header.subrect = pygame.Rect(pos[0] - 20, pos[1] - 1, size[0] + 20, size[1] + 2)
 
             # 召喚獣アイコン
             if header.attachment:
