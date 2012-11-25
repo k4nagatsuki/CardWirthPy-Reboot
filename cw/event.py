@@ -471,7 +471,8 @@ class CardEvent(Event):
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:
-            pygame.time.wait(cw.cwpy.setting.frametime * 12)
+            waitrate = cw.cwpy.setting.dealspeed * 2
+            pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
 
         # InuseCardImage削除
         cw.cwpy.clear_inusecardimg()
@@ -552,7 +553,8 @@ class CardEvent(Event):
         if len(self.targets) == 1:
             self.targets[0].set_cardtarget()
             cw.cwpy.draw()
-            pygame.time.wait(cw.cwpy.setting.frametime * 15)
+            waitrate = cw.cwpy.setting.dealspeed * 2
+            pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
             targets = self.targets
         else:
             path = data.gettext("Property/SoundPath", "")
@@ -563,7 +565,8 @@ class CardEvent(Event):
                     target.set_cardtarget()
                     cw.cwpy.draw()
                     cw.cwpy.play_sound(path)
-                    pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                    waitrate = cw.cwpy.setting.dealspeed
+                    pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
                     targets.append(target)
 
         self.waited = True

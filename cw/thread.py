@@ -953,12 +953,17 @@ class CWPy(_Singleton, threading.Thread):
                         price /=  header.maxuselimit
                 elif header.type == "BeastCard":
                     price = 500
-                s = u"%sを売却します。売り値は%dspです。よろしいですか？" % (header.name, price)
+                if not from_event:
+                    s = u"%sを売却します。売り値は%dspです。よろしいですか？" % (header.name, price)
+                    self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
+                    if self.get_yesnoresult() <> wx.ID_OK:
+                        return
             else:
-                s = u"%sを捨てます。よろしいですか？" % (header.name)
-            self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
-            if self.get_yesnoresult() <> wx.ID_OK:
-                return
+                if not from_event:
+                    s = u"%sを捨てます。よろしいですか？" % (header.name)
+                    self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
+                    if self.get_yesnoresult() <> wx.ID_OK:
+                        return
 
             # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
             if header.premium == "Premium" and not from_event:
