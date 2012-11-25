@@ -7,7 +7,7 @@ from pygame.locals import *
 import cw
 
 
-def animate_sprite(sprite, anitype):
+def animate_sprite(sprite, anitype, speedrate=1):
     if not hasattr(sprite, "update_" + anitype):
         print "Not found " + anitype + " animation."
         return
@@ -17,7 +17,7 @@ def animate_sprite(sprite, anitype):
     while cw.cwpy.is_running() and sprite.status == anitype:
         sprite.update(cw.cwpy.scr)
         cw.cwpy.draw()
-        cw.cwpy.tick_clock()
+        cw.cwpy.tick_clock(speedrate=speedrate)
         pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
 
 def animate_sprites(sprites, anitype):

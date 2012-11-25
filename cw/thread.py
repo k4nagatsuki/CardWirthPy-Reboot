@@ -160,8 +160,8 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.write()
         self.rsrc.clear_systemfonttable()
 
-    def tick_clock(self):
-        self.clock.tick(self.setting.fps)
+    def tick_clock(self, speedrate=1):
+        self.clock.tick(int(self.setting.fps * speedrate))
 
     def input(self, eventclear=False):
         self.mousein = pygame.mouse.get_pressed()
