@@ -188,7 +188,8 @@ class Scenariodb(object):
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
                     cs = read_summary_classic(path)
-                    if cs and self.insert(cs, True):
+                    if cs:
+                        self.insert(cs, True)
                         # 更新後の情報を取得
                         header = self.search_path(path)
                         return header
