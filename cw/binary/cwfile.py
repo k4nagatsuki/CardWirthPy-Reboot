@@ -5,6 +5,8 @@ import struct
 
 import util
 
+import cw.util
+
 
 class CWFile(file):
     """fileクラスを継承し、CardWirthの生成した
