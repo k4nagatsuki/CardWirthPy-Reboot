@@ -641,6 +641,45 @@ def get_elementfromzip(zpath, name, tag=""):
 #　テキスト操作関連
 #-------------------------------------------------------------------------------
 
+def encodewrap(s):
+    """改行コードを\nに置換する。"""
+    r = []
+    for c in s:
+        if c == '\\':
+            r.append("\\\\")
+        elif c == '\n':
+            r.append("\\n")
+        elif c == '\r':
+            pass
+        else:
+            r.append(c)
+    return "".join(r)
+
+def decodewrap(s):
+    """\nを改行コードに戻す。"""
+    r = []
+    bs = False
+    for c in s:
+        if bs:
+            if c == 'n':
+                r.append('\n')
+            elif c == '\\':
+                r.append('\\')
+            else:
+                r.append(c)
+            bs = False
+        elif c == '\\':
+            bs = True
+        else:
+            r.append(c)
+    return "".join(r)
+
+def encodetextlist(arr):
+    return encodewrap("\n".join(arr))
+
+def decodetextlist(s):
+    return decodewrap(s).split("\n")
+
 def txtwrap(s, mode, width=30, wrapschars=""):
     """引数の文字列を任意の文字数で改行する(全角は2文字として数える)。
     mode=1: カード解説。
@@ -659,7 +698,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         width = 42
     elif mode == 4:
         wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
-        width = 39
+        width = 36
 
     # \\nを改行コードに戻す
     s = s.replace("\\n", "\n")

@@ -637,20 +637,20 @@ class AdventurerData(object):
         self.set_coupon(attr, 0)
 
     def set_desc(self, talent, attrs):
-        seq = [u"　" * 8 + talent[1:] + "\\n\\n"]
+        seq = [u"　" * 8 + talent[1:] + "\n\n"]
 
         for index, attr in enumerate(attrs):
             s = attr[1:]
             n = index % 3 if index else 0
 
             if n == 2:
-                s += "\\n"
+                s += "\n"
             else:
                 s += u"　" * (7 - len(s))
 
             seq.append(s)
 
-        self.description = "".join(seq)
+        self.description = cw.util.encodewrap("".join(seq))
 
     def set_specialcoupon(self):
         self.set_coupon(u"＠レベル原点", self.level)
@@ -838,14 +838,14 @@ class AdventurerCreater(wx.Dialog):
         self.fpath = cw.xmlcreater.create_adventurer(data)
 
 class AdventurerCreaterPage(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, size=(460, 280))
+    def __init__(self, parent, size=(460, 280), freeze=True):
+        wx.Panel.__init__(self, parent, size=size)
         self.next = None
         self.prev = None
         # key: name, value: (pygame.Rect, 実行するメソッド)の辞書
         self.clickables = {}
-        self.Freeze()
-        self._bind()
+        if freeze:
+            self.Freeze()
 
     def _bind(self):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -945,6 +945,7 @@ class NamePage(AdventurerCreaterPage):
         self.age = u"＿若者"
         self.imgpath = ""
         self.set_imgpaths()
+        self._bind()
         self._do_layout()
 
     def _bind(self):
@@ -1104,6 +1105,7 @@ class RacePage(AdventurerCreaterPage):
         self.race = choices[0]
         self.choice = wx.Choice(self, choices=choices, size=(125, 18))
         self.choice.SetStringSelection(self.race)
+        self._bind()
         self._do_layout()
 
     def _bind(self):
@@ -1171,6 +1173,7 @@ class RelationPage(AdventurerCreaterPage):
         self.set_parents()
         self.father = None
         self.mother = None
+        self._bind()
 
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
@@ -1365,6 +1368,7 @@ class TalentPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
         self.talent = u"＿標準型"
+        self._bind()
 
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
@@ -1437,6 +1441,7 @@ class AttrPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
         self.couponsdata = {}
+        self._bind()
 
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
@@ -1640,6 +1645,244 @@ class YadoCreater(wx.Dialog):
 
         self.SetSizer(sizer_1)
         self.Layout()
+
+#-------------------------------------------------------------------------------
+# 冒険者のデザインダイアログ
+#-------------------------------------------------------------------------------
+
+class AdventurerDesignDialog(wx.Dialog):
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, -1, u"冒険者のデザイン",
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        # buttonlist
+        self.buttonlist = []
+
+        self.ccard = cw.cwpy.selection
+
+        # toppanel
+        self.toppanel = DesignPanel(self)
+
+        # btn
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                            (100, 30), u"決定")
+        self.buttonlist.append(self.okbtn)
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        (100, 30), u"中止")
+        self.buttonlist.append(self.cnclbtn)
+
+        # layout
+        self._do_layout()
+        # bind
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def _do_layout(self):
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+
+        # button間のマージン値を求める
+        width = 400 - 6
+        btnwidth = self.buttonlist[0].GetSize()[0] * len(self.buttonlist)
+        margin = (width - btnwidth) / (len(self.buttonlist)+1)
+        margin2 = margin + (width - btnwidth) % (len(self.buttonlist)+1)
+
+        # sizer_panelにbuttonを設定
+        for button in self.buttonlist:
+            sizer_btn.Add((margin, 0), 0, 0, 0)
+            sizer_btn.Add(button, 0, wx.TOP|wx.BOTTOM, 3)
+        sizer_btn.Add((margin2, 0), 0, 0, 0)
+
+        sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
+        sizer_1.Add(sizer_btn, 0, wx.EXPAND, 0)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
+    def OnOk(self, event):
+        cw.cwpy.sounds[u"システム・収穫"].play()
+
+        cw.animation.animate_sprite(self.ccard, "hide")
+        self.ccard.set_name(self.toppanel.namectrl.GetValue())
+        self.ccard.cardimg.set_nameimg(self.ccard.get_name())
+        self.ccard.set_description(self.toppanel.descctrl.GetValue())
+        if self.toppanel.imgpath.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Face")):
+            self.ccard.set_image(self.toppanel.imgpath)
+            self.ccard.cardimg.set_faceimg(cw.util.join_yadodir(self.ccard.get_imagepath()))
+        self.ccard.update_image()
+        cw.animation.animate_sprite(self.ccard, "deal")
+
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds[u"システム・クリック"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+class DesignPanel(AdventurerCreaterPage):
+    def __init__(self, parent):
+        AdventurerCreaterPage.__init__(self, parent, size=(400, 370), freeze=False)
+        self.SetMinSize((400, 370))
+
+        self.ccard = cw.cwpy.selection
+
+        self.namectrl = wx.TextCtrl(self, size=(125, 18), style=wx.NO_BORDER)
+        self.namectrl.SetMaxLength(14)
+        self.namectrl.SetFocus()
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=11)
+        self.namectrl.SetFont(font)
+
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=9, weight=wx.NORMAL)
+        self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER|wx.TE_MULTILINE)
+        self.descctrl.SetFont(font)
+
+        dc = wx.ClientDC(self)
+        dc.SetFont(self.descctrl.GetFont())
+        w = dc.GetTextExtent("#")[0] * 40
+        dc.Destroy()
+        self.descctrl.SetClientSize((w, 107))
+        self.descctrl.SetInitialSize(self.descctrl.GetSize())
+
+        self.imgpath = self.ccard.get_imagepath()
+        if self.imgpath <> "":
+            self.imgpath = cw.util.join_yadodir(self.imgpath)
+
+        self.name = self.ccard.get_name()
+        self.desc = self.ccard.get_description()
+        self.sex = self.ccard.get_sex()
+        self.age = self.ccard.get_age()
+
+        self.namectrl.SetValue(self.name)
+        self.namectrl.SetSelection(0, len(self.name))
+        self.descctrl.SetValue(cw.util.decodewrap(self.desc))
+
+        self.set_imgpaths()
+        self._bind()
+        self._do_layout()
+
+    def _bind(self):
+        AdventurerCreaterPage._bind(self)
+        self.namectrl.Bind(wx.EVT_TEXT, self.OnInputName)
+
+    def OnInputName(self, event):
+        self.name = self.namectrl.GetValue()
+
+        if self.name.strip():
+            self.Parent.okbtn.Enable()
+        else:
+            self.Parent.okbtn.Disable()
+
+    def _do_layout(self):
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+
+        sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, 60)
+        sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, 158)
+
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
+    def draw(self, update=False):
+        dc = AdventurerCreaterPage.draw(self, update)
+        cwidth = self.GetClientSize()[0]
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10)
+        dc.SetFont(font)
+
+        # 背景
+        path = "Table/Bill" + cw.cwpy.rsrc.ext_img
+        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        bmp = cw.util.load_wxbmp(path)
+        bmpw = bmp.GetSize()[0]
+        dc.DrawBitmap(bmp, 0, 0, False)
+
+        # Resident Registration
+        dc.SetTextForeground(wx.BLACK)
+        s = "Resident Registration."
+        w = dc.GetTextExtent(s)[0]
+        dc.DrawText(s, (cwidth - w) / 2, 15)
+
+        # Name
+        s = "Name"
+        w = dc.GetTextExtent(s)[0]
+        dc.DrawText(s, (cwidth - w) / 2, 45)
+        # Image
+        s = "Image"
+        w = dc.GetTextExtent(s)[0]
+        dc.DrawText(s, (cwidth - w) / 2, 95)
+        # Comment
+        s = "Comment"
+        w = dc.GetTextExtent(s)[0]
+        dc.DrawText(s, (cwidth - w) / 2, 220)
+
+        # PrevImage
+        bmp = cw.cwpy.rsrc.buttons["LMOVE"]
+        pos = (135, 150)
+        self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg)
+        # NextImage
+        bmp = cw.cwpy.rsrc.buttons["RMOVE"]
+        pos = (260, 150)
+        self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg)
+        # image
+        bmp = cw.util.load_wxbmp(self.imgpath, True)
+        dc.DrawBitmap(bmp, (cwidth - 74) / 2, 116, True)
+
+    def set_nextimg(self, name):
+        if self.imgpaths:
+            cw.cwpy.sounds[u"システム・改ページ"].play()
+            index = self.imgpaths.index(self.imgpath) + 1
+
+            try:
+                self.imgpath = self.imgpaths[index]
+            except:
+                self.imgpath = self.imgpaths[0]
+
+            self.draw(True)
+
+    def set_previmg(self, name):
+        if self.imgpaths:
+            cw.cwpy.sounds[u"システム・改ページ"].play()
+            index = self.imgpaths.index(self.imgpath) - 1
+
+            try:
+                self.imgpath = self.imgpaths[index]
+            except:
+                self.imgpath = self.imgpaths[0]
+
+            self.draw(True)
+
+    def set_imgpaths(self):
+        if self.sex == u"＿♂":
+            sex = "Male"
+        else:
+            sex = "Female"
+
+        if self.age == u"＿子供":
+            age = "CHD"
+        elif self.age == u"＿若者":
+            age = "YNG"
+        elif self.age == u"＿大人":
+            age = "ADT"
+        else:
+            age = "OLD"
+
+        dpath = sex + "-" + age
+        dpath = cw.util.join_paths(cw.cwpy.skindir, u"Face", dpath)
+        if self.imgpath == "":
+            self.imgpaths = []
+        else:
+            self.imgpaths = [self.imgpath]
+
+        for name in os.listdir(dpath):
+            path = cw.util.join_paths(dpath, name)
+
+            if os.path.isfile(path):
+                self.imgpaths.append(path)
+
+        if self.imgpaths:
+            self.imgpath = self.imgpaths[0]
 
 def main():
     pass

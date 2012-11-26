@@ -191,6 +191,18 @@ def create_adventurer(data):
     path = d["imgpath"]
     name = cw.util.repl_dischar(d["name"])
 
+    d["imgpath"] = write_castimagepath(name, path)
+
+    # XML作成
+    path = cw.util.join_paths(cw.cwpy.tempdir, "Adventurer", name + ".xml")
+    path = cw.util.dupcheck_plus(path)
+    _create_xml("Adventurer", path, d)
+    return path
+
+def write_castimagepath(name, path):
+    """
+    キャストの新しい画像を記憶し、記憶後のパスを返す。
+    """
     if os.path.isfile(path):
         dpath = cw.util.join_paths(cw.cwpy.tempdir, "Material/Adventurer", name)
         dpath = cw.util.dupcheck_plus(dpath)
@@ -201,15 +213,10 @@ def create_adventurer(data):
             os.makedirs(dpath)
 
         shutil.copy2(path, dstpath)
-        d["imgpath"] = dstpath.replace(cw.cwpy.tempdir + "/", "")
+        return dstpath.replace(cw.cwpy.tempdir + "/", "")
     else:
-        d["imgpath"] = ""
+        return ""
 
-    # XML作成
-    path = cw.util.join_paths(cw.cwpy.tempdir, "Adventurer", name + ".xml")
-    path = cw.util.dupcheck_plus(path)
-    _create_xml("Adventurer", path, d)
-    return path
 
 def create_scenariolog(sdata):
     """

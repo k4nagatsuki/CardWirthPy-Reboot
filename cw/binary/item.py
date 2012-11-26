@@ -80,7 +80,7 @@ class ItemCard(base.CWBinaryBase):
              "enhance_avoid": self.enhance_avoid,
              "enhance_resist": self.enhance_resist,
              "enhance_defense": self.enhance_defense,
-             "keycodes": "\\n".join(self.keycodes),
+             "keycodes": cw.util.encodetextlist(self.keycodes),
              "premium": self.conv_card_premium(self.premium),
              "uselimit": self.limit,
              "uselimitmax": self.limit_max,

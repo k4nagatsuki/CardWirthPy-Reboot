@@ -182,7 +182,7 @@ class LargeCardImage(CardImage):
 class CharacterCardImage(CardImage):
     def __init__(self, ccard, pos=(0, 0)):
         # カード画像
-        self.cardimg = cw.util.load_image(ccard.imgpath, True)
+        self.set_faceimg(ccard.imgpath)
         # フォント画像(カード名)
         self.set_nameimg(ccard.name)
         # フォント画像(レベル)
@@ -194,6 +194,9 @@ class CharacterCardImage(CardImage):
         self.lifeimg.set_colorkey(self.lifeguage.get_at((0,0)), RLEACCEL)
         # rect
         self.rect = pygame.Rect(pos, (95, 130))
+
+    def set_faceimg(self, path):
+        self.cardimg = cw.util.load_image(path, True)
 
     def set_nameimg(self, name):
         font = cw.cwpy.rsrc.fonts["pcard_name"]

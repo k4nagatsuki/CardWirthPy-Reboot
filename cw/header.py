@@ -31,7 +31,7 @@ class CardHeader(object):
         self.scenario = data.gettext("Scenario", "")
         self.author = data.gettext("Author", "")
         self.keycodes = data.gettext("KeyCodes", "")
-        self.keycodes = self.keycodes.split("\\n") if self.keycodes else []
+        self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
         self.keycodes.append(self.name)
         self.penalty = bool(u"ペナルティ" in self.keycodes)
         self.recycle = bool(u"リサイクル" in self.keycodes)

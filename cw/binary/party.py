@@ -18,7 +18,7 @@ class Party(base.CWBinaryBase):
         f.byte()
         self.yadoname = f.string()
         f.image() # 宿の埋め込み画像は破棄。
-        self.memberslist = f.string().split("\\n")
+        self.memberslist = cw.util.decodetextlist(f.string())
         self.name = f.string()
         self.money = f.dword()
         self.nowadventuring = f.bool()

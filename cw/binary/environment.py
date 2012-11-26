@@ -79,13 +79,13 @@ class Environment(base.CWBinaryBase):
         compstamps = []
         gossips = []
 
-        for compstamp in self.compstamps.split("\\n"):
+        for compstamp in cw.utils.decodetextlist(self.compstamps):
             if compstamp:
                 s = "%s  <CompleteStamp>%s</CompleteStamp>" % (d["indent"],
                                                                     compstamp)
                 compstamps.append(s)
 
-        for gossip in self.gossips.split("\\n"):
+        for gossip in cw.utils.decodetextlist(self.gossips):
             if gossip:
                 s = "%s  <Gossip>%s</Gossip>" % (d["indent"], gossip)
                 gossips.append(s)

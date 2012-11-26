@@ -2021,7 +2021,7 @@ class TalkDialogContent(TalkContent):
 
         for e in self.data.getfind("Dialogs"):
             req_coupons = e.gettext("RequiredCoupons", "")
-            req_coupons = req_coupons.split("\\n") if req_coupons else []
+            req_coupons = cw.util.decodetextlist(req_coupons) if req_coupons else []
             text = e.gettext("Text", "")
             dialogs.append((req_coupons, text))
 

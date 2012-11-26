@@ -18,7 +18,7 @@ class Event(base.CWBinaryBase):
 
     def get_xmldict(self, indent):
         d = {"keycodes": self.keycodes,
-             "ignitions": "\\n".join([str(i) for i in self.ignitions])
+             "ignitions": cw.util.encodetextlist([str(i) for i in self.ignitions])
                                                     if self.ignitions else "",
              "contents": self.get_childrentext(self.contents, indent + 2),
              "indent": self.get_indent(indent)

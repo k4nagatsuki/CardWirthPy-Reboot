@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import copy
 import pygame
 
@@ -90,6 +91,30 @@ class Character(object):
         self.timedcoupons = self.get_timedcoupons()
         # 対象消去されたか否か
         self._vanished = False
+
+    def get_imagepath(self):
+        return self.data.gettext("/Property/ImagePath", "")
+
+    def set_image(self, path):
+        e = self.data.find2("/Property/ImagePath")
+        dpath = cw.util.join_paths(cw.cwpy.yadodir, os.path.dirname(self.get_imagepath()))
+        cw.cwpy.ydata.deletedpaths.add(dpath)
+        e.text = cw.xmlcreater.write_castimagepath(self.get_name(), path)
+
+    def get_name(self):
+        return self.data.gettext("/Property/Name", "")
+
+    def set_name(self, name):
+        e = self.data.find2("/Property/Name")
+        e.text = name
+        self.name = name
+
+    def get_description(self):
+        return cw.util.decodewrap(self.data.gettext("/Property/Description", ""))
+
+    def set_description(self, desc):
+        e = self.data.find2("/Property/Description")
+        e.text = cw.util.encodewrap(desc)
 
     def get_cardpocket(self):
         flag = bool(self.data.getroot().tag == "CastCard")
@@ -343,7 +368,7 @@ class Character(object):
             cw.animation.animate_sprite(self, "zoomin")
 
         # カードイベント開始
-        e = data.find("Events/Event")
+        e = data.find2("Events/Event")
         cw.event.CardEvent(e, header, self, targets).start()
 
     def throwaway_card(self, header, from_event=True):
@@ -572,7 +597,7 @@ class Character(object):
         physical = self.physical.get(physical)
         mental = self.mental.get(mental)
 
-        if vocation[1].find("un") > -1:
+        if vocation[1].find2("un") > -1:
             mental = -mental
 
         return physical + mental
@@ -721,7 +746,7 @@ class Character(object):
         return None
 
     def get_age(self):
-        sets = set([u"＿子供", u"＿若者", u"大人", u"老人"])
+        sets = set([u"＿子供", u"＿若者", u"＿大人", u"＿老人"])
 
         for e in self.data.getfind("/Property/Coupons"):
             if e.text in sets:
@@ -841,6 +866,7 @@ class Character(object):
 
         for name in names:
             self.remove_coupon(name)
+
     #---------------------------------------------------------------------------
     #　レベル変更用
     #---------------------------------------------------------------------------
@@ -900,7 +926,7 @@ class Character(object):
                 self.set_coupon(u"＠本来の上限", str(limit))
         else:
             # レベル原点・EPクーポン操作
-            for e in self.data.find("/Property/Coupons"):
+            for e in self.data.find2("/Property/Coupons"):
                 if not e.text:
                     continue
 

@@ -224,7 +224,6 @@ class MoneyViewPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-
 #-------------------------------------------------------------------------------
 #　レベル調節ダイアログ
 #-------------------------------------------------------------------------------
@@ -266,7 +265,6 @@ class LevelEditor(wx.Dialog):
         sizer_btn.Add(self.okbtn, 0, 0, 0)
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 20)
 
-        sizer_v1.Add((0, 0), 0, wx.CENTER|wx.TOP, 0)
         sizer_v1.Add(self.slider, 0, wx.CENTER|wx.TOP, 5)
         sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
 
@@ -291,7 +289,6 @@ class LevelEditor(wx.Dialog):
         cw.cwpy.sounds[u"システム・クリック"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
-
 
 def main():
     pass

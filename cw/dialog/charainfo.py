@@ -433,7 +433,13 @@ class EditPanel(wx.Panel):
             if header.subrect.collidepoint(event.GetPosition()):
                 if header.type == 0:
                     # デザインを変更する
-                    pass # TODO
+                    cw.cwpy.sounds[u"システム・クリック"].play()
+                    dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent)
+                    cw.cwpy.frame.move_dlg(dlg)
+                    if wx.ID_OK == dlg.ShowModal():
+                        self.Parent.Parent.toppanel.draw(True)
+                        self.Parent.Parent.descpanel.draw(True)
+                    dlg.Destroy()
                 else:
                     # レベルを調節する
                     cw.cwpy.sounds[u"システム・クリック"].play()

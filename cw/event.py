@@ -315,11 +315,11 @@ class Event(object):
         if event is not None:
             if event.hasfind("Ignitions//Number"):
                 s = event.gettext("Ignitions//Number", "")
-                self.keynums = [int(i) for i in s.split("\\n") if i]
+                self.keynums = [int(i) for i in cw.util.decodetextlist(s) if i]
 
             if event.hasfind("Ignitions//KeyCodes"):
                 s = event.gettext("Ignitions//KeyCodes", "")
-                self.keycodes = [i for i in s.split("\\n") if i]
+                self.keycodes = [i for i in cw.util.decodetextlist(s) if i]
 
             for content in event.getfind("Contents"):
                 name = content.get("name")

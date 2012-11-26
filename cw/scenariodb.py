@@ -350,13 +350,13 @@ def parse_summarydata(data, type, archive):
     levelmax = int(e.get("max", 0))
     e = data.find("RequiredCoupons")
     coupons = e.text or ""
-    coupons = coupons.replace("\\n", "\n")
+    coupons = cw.util.decodewrap(coupons)
     couponsnum = int(e.get("number", 0))
     e = data.find("StartAreaId")
     startid = int(e.text) if e.text else 0
     e = data.find("Tags")
     tags = e.text or ""
-    tags = tags.replace("\\n", "\n")
+    tags = cw.util.decodewrap(tags)
     ctime = time.time()
     mtime = os.path.getmtime(data.fpath)
     if archive:

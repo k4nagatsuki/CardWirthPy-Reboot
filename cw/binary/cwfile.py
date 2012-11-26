@@ -32,7 +32,7 @@ class CWFile(file):
             s = util.repl_specialchar(s)
 
         s = util.repl_escapechar(s)
-        return s.replace("\r\n", "\\n")
+        return cw.util.encodewrap(s)
 
     def rawstring(self):
         dword = self.dword()
