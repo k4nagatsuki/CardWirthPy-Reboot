@@ -96,8 +96,8 @@ class Effect(object):
         # アニメーション・画像更新(対象消去されていなかったら)
         if not target.is_vanished():
             # 死亡していたら、ステータスを元に戻す
-            if target.is_dead():
-                target.set_normalstatus()
+            if target.is_unconscious():
+                target.set_unconsciousstatus()
 
             self.animate(target, True)
 

@@ -516,10 +516,11 @@ class EditPanel(wx.Panel):
             header.subrect = pygame.Rect(12, height - 1, 20 + size[0], bmp.Height)
             height += 17
 
-class StatusPanel(wx.Panel):
+class StatusPanel(wx.ScrolledWindow):
     def __init__(self, parent, ccard):
-        wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
+        self.SetScrollRate(10, 10)
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
         self.ccard = ccard
@@ -655,7 +656,10 @@ class StatusPanel(wx.Panel):
         elif -7 >= self.ccard.enhance_def:
             height = self._draw_status(dc, "防御力大ペナルティ (%s)" % (self.ccard.enhance_def_dur), "UP3", height)
 
-        self.SetVirtualSize((-1, height))
+        self.SetVirtualSize((-1, height - 17 + 8))
+        if update:
+            self.Scroll(0, 0)
+            self.Refresh()
 
     def _draw_status(self, dc, msg, imgname, height):
         bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses[imgname])

@@ -939,13 +939,12 @@ class Character(object):
     #　状態変更用
     #---------------------------------------------------------------------------
 
-    def set_normalstatus(self):
+    def set_unconsciousstatus(self):
         """
-        すべての状態回復。状態異常回復。
+        意識不明に伴う状態回復。
         強化値もすべて0、付帯召喚以外の召喚獣カードも消去。
+        毒と麻痺は残る。
         """
-        self.set_paralyze(-40)
-        self.set_poison(-40)
         self.set_mentality("Normal", 0)
         self.set_bind(0)
         self.set_silence(0)
@@ -1261,8 +1260,8 @@ class Character(object):
                 flag = True
 
         # 中毒効果で死亡していたら、ステータスを元に戻す
-        if self.is_dead():
-            self.set_normalstatus()
+        if self.is_unconscious():
+            self.set_unconsciousstatus()
 
         # 敵が中毒効果で死亡していたら、死亡イベント開始
         if isinstance(self, Enemy) and self.is_dead():
