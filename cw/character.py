@@ -597,7 +597,7 @@ class Character(object):
         physical = self.physical.get(physical)
         mental = self.mental.get(mental)
 
-        if vocation[1].find2("un") > -1:
+        if vocation[1].find("un") > -1:
             mental = -mental
 
         return physical + mental
