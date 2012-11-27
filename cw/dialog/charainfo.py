@@ -42,9 +42,13 @@ class CharaInfo(wx.Dialog):
         # 経歴
         self.historypanel = HistoryPanel(self.notebook, self.ccard)
         self.notebook.AddPage(self.historypanel, u"経歴")
-        # 編集
-        self.editpanel = EditPanel(self.notebook, self.ccard)
-        self.notebook.AddPage(self.editpanel, u"編集")
+        # 編集または状態
+        if cw.cwpy.is_playingscenario():
+            self.editpanel = StatusPanel(self.notebook, self.ccard)
+            self.notebook.AddPage(self.editpanel, u"状態")
+        else:
+            self.editpanel = EditPanel(self.notebook, self.ccard)
+            self.notebook.AddPage(self.editpanel, u"編集")
 
         # 各種所持カード
         if self.ccard.data.hasfind("/SkillCards"):
@@ -511,6 +515,153 @@ class EditPanel(wx.Panel):
             header.textpos = (32, height)
             header.subrect = pygame.Rect(12, height - 1, 20 + size[0], bmp.Height)
             height += 17
+
+class StatusPanel(wx.Panel):
+    def __init__(self, parent, ccard):
+        wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        self.SetBackgroundColour(wx.Colour(0, 0, 128))
+        self.csize = self.GetClientSize()
+        # エレメントオブジェクト
+        self.ccard = ccard
+        # bmp
+        self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
+        # bind
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
+
+    def OnPaint(self, event):
+        self.draw()
+
+    def draw(self, update=False):
+        if update:
+            dc = wx.ClientDC(self)
+            self.ClearBackground()
+        else:
+            dc = wx.PaintDC(self)
+
+        self.PrepareDC(dc)
+        dc.BeginDrawing()
+        # 背景の透かし
+        dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
+
+        # 状態
+        dc.SetTextForeground(wx.WHITE)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+
+        height = 8
+
+        # 生命力の割合
+        bmp = cw.cwpy.rsrc.statuses["LIFE"]
+        if self.ccard.is_unconscious():
+            colour = wx.Colour(0, 0, 128)
+            msg = "意識不明"
+        elif self.ccard.is_heavyinjured():
+            colour = wx.Colour(127, 0, 0)
+            msg = "重症"
+        elif self.ccard.is_injured():
+            colour = wx.Colour(0, 153, 187)
+            msg = "負傷"
+        else:
+            colour = wx.Colour(192, 192, 192)
+            msg = "正常"
+
+        dc.SetBrush(wx.Brush(colour, wx.SOLID))
+        dc.DrawRectangle(12, height - 1, bmp.Width, bmp.Height)
+        dc.DrawBitmap(bmp, 12, height - 1, True)
+        dc.DrawText(msg, 32, height)
+        height += 17
+
+        # 肉体状態異常
+        if self.ccard.is_poison():
+            height = self._draw_status(dc, "中毒 (%s)" % (self.ccard.poison), "BODY0", height)
+        if self.ccard.is_paralyze():
+            if self.ccard.is_petrified():
+                height = self._draw_status(dc, "石化 (%s)" % (self.ccard.paralyze), "BODY1", height)
+            else:
+                height = self._draw_status(dc, "麻痺 (%s)" % (self.ccard.paralyze), "BODY1", height)
+
+        # 精神状態異常
+        if self.ccard.is_sleep():
+            height = self._draw_status(dc, "眠り状態 (%s)" % (self.ccard.mentality_dur), "MIND1", height)
+        if self.ccard.is_confuse():
+            height = self._draw_status(dc, "混乱状態 (%s)" % (self.ccard.mentality_dur), "MIND2", height)
+        if self.ccard.is_overheat():
+            height = self._draw_status(dc, "激高状態 (%s)" % (self.ccard.mentality_dur), "MIND3", height)
+        if self.ccard.is_brave():
+            height = self._draw_status(dc, "勇敢状態 (%s)" % (self.ccard.mentality_dur), "MIND4", height)
+        if self.ccard.is_panic():
+            height = self._draw_status(dc, "恐慌状態 (%s)" % (self.ccard.mentality_dur), "MIND5", height)
+
+        # 魔法的状態異常
+        if self.ccard.is_bind():
+            height = self._draw_status(dc, "呪縛状態 (%s)" % (self.ccard.bind), "MAGIC0", height)
+        if self.ccard.is_silence():
+            height = self._draw_status(dc, "沈黙状態 (%s)" % (self.ccard.silence), "MAGIC1", height)
+        if self.ccard.is_faceup():
+            height = self._draw_status(dc, "暴露状態 (%s)" % (self.ccard.faceup), "MAGIC2", height)
+        if self.ccard.is_antimagic():
+            height = self._draw_status(dc, "完全魔法防御状態 (%s)" % (self.ccard.antimagic), "MAGIC3", height)
+
+        # 能力ボーナス・ペナルティ
+        if 7 <= self.ccard.enhance_act:
+            height = self._draw_status(dc, "行動力大ボーナス (%s)" % (self.ccard.enhance_act_dur), "DOWN0", height)
+        elif 4 <= self.ccard.enhance_act:
+            height = self._draw_status(dc, "行動力中ボーナス (%s)" % (self.ccard.enhance_act_dur), "DOWN0", height)
+        elif 1 <= self.ccard.enhance_act:
+            height = self._draw_status(dc, "行動力小ボーナス (%s)" % (self.ccard.enhance_act_dur), "DOWN0", height)
+        elif -1 >= self.ccard.enhance_act:
+            height = self._draw_status(dc, "行動力小ペナルティ (%s)" % (self.ccard.enhance_act_dur), "UP0", height)
+        elif -4 >= self.ccard.enhance_act:
+            height = self._draw_status(dc, "行動力中ペナルティ (%s)" % (self.ccard.enhance_act_dur), "UP0", height)
+        elif -7 >= self.ccard.enhance_act:
+            height = self._draw_status(dc, "行動力大ペナルティ (%s)" % (self.ccard.enhance_act_dur), "UP0", height)
+
+        if 7 <= self.ccard.enhance_avo:
+            height = self._draw_status(dc, "回避力大ボーナス (%s)" % (self.ccard.enhance_avo_dur), "DOWN1", height)
+        elif 4 <= self.ccard.enhance_avo:
+            height = self._draw_status(dc, "回避力中ボーナス (%s)" % (self.ccard.enhance_avo_dur), "DOWN1", height)
+        elif 1 <= self.ccard.enhance_avo:
+            height = self._draw_status(dc, "回避力小ボーナス (%s)" % (self.ccard.enhance_avo_dur), "DOWN1", height)
+        elif -1 >= self.ccard.enhance_avo:
+            height = self._draw_status(dc, "回避力小ペナルティ (%s)" % (self.ccard.enhance_avo_dur), "UP1", height)
+        elif -4 >= self.ccard.enhance_avo:
+            height = self._draw_status(dc, "回避力中ペナルティ (%s)" % (self.ccard.enhance_avo_dur), "UP1", height)
+        elif -7 >= self.ccard.enhance_avo:
+            height = self._draw_status(dc, "回避力大ペナルティ (%s)" % (self.ccard.enhance_avo_dur), "UP1", height)
+
+        if 7 <= self.ccard.enhance_res:
+            height = self._draw_status(dc, "抵抗力大ボーナス (%s)" % (self.ccard.enhance_res_dur), "DOWN2", height)
+        elif 4 <= self.ccard.enhance_res:
+            height = self._draw_status(dc, "抵抗力中ボーナス (%s)" % (self.ccard.enhance_res_dur), "DOWN2", height)
+        elif 1 <= self.ccard.enhance_res:
+            height = self._draw_status(dc, "抵抗力小ボーナス (%s)" % (self.ccard.enhance_res_dur), "DOWN2", height)
+        elif -1 >= self.ccard.enhance_res:
+            height = self._draw_status(dc, "抵抗力小ペナルティ (%s)" % (self.ccard.enhance_res_dur), "UP2", height)
+        elif -4 >= self.ccard.enhance_res:
+            height = self._draw_status(dc, "抵抗力中ペナルティ (%s)" % (self.ccard.enhance_res_dur), "UP2", height)
+        elif -7 >= self.ccard.enhance_res:
+            height = self._draw_status(dc, "抵抗力大ペナルティ (%s)" % (self.ccard.enhance_res_dur), "UP2", height)
+
+        if 7 <= self.ccard.enhance_def:
+            height = self._draw_status(dc, "防御力大ボーナス (%s)" % (self.ccard.enhance_def_dur), "DOWN3", height)
+        elif 4 <= self.ccard.enhance_def:
+            height = self._draw_status(dc, "防御力中ボーナス (%s)" % (self.ccard.enhance_def_dur), "DOWN3", height)
+        elif 1 <= self.ccard.enhance_def:
+            height = self._draw_status(dc, "防御力小ボーナス (%s)" % (self.ccard.enhance_def_dur), "DOWN3", height)
+        elif -1 >= self.ccard.enhance_def:
+            height = self._draw_status(dc, "防御力小ペナルティ (%s)" % (self.ccard.enhance_def_dur), "UP3", height)
+        elif -4 >= self.ccard.enhance_def:
+            height = self._draw_status(dc, "防御力中ペナルティ (%s)" % (self.ccard.enhance_def_dur), "UP3", height)
+        elif -7 >= self.ccard.enhance_def:
+            height = self._draw_status(dc, "防御力大ペナルティ (%s)" % (self.ccard.enhance_def_dur), "UP3", height)
+
+        self.SetVirtualSize((-1, height))
+
+    def _draw_status(self, dc, msg, imgname, height):
+        bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses[imgname])
+        dc.DrawBitmap(bmp, 12, height - 1)
+        dc.DrawText(msg, 32, height)
+        return height + 17
 
 class SkillPanel(wx.Panel):
     def __init__(self, parent, ccard):

@@ -374,6 +374,9 @@ class Resource(object):
             path = cw.util.join_paths(dpath, name + self.ext_img)
             d[name] = cw.util.load_image(path, True)
 
+        path = cw.util.join_paths(dpath, "LIFE" + self.ext_img)
+        d["LIFE"] = cw.util.load_wxbmp(path, mask=True, maskpos=(1, 1))
+
         return d
 
     def get_dialogs(self):

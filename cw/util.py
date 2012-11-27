@@ -119,7 +119,7 @@ def init(size=(640, 480), title=""):
     pygame.event.set_allowed([KEYDOWN, MOUSEBUTTONUP, USEREVENT])
     return scr, clock
 
-def load_image(path, mask=False):
+def load_image(path, mask=False, maskpos=(0, 0)):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -150,7 +150,7 @@ def load_image(path, mask=False):
         # GIFなどアルファチャンネルを持たない透過画像を読み込んだ場合は
         # すでにマスクカラーが指定されているので注意
         if mask and not image.get_colorkey():
-            image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
+            image.set_colorkey(image.get_at(maskpos), RLEACCEL)
 
     return image
 
@@ -777,7 +777,7 @@ def get_char(s, index):
 # wx汎用関数
 #-------------------------------------------------------------------------------
 
-def load_wxbmp(name="", mask=False, image=None):
+def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0)):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if not os.path.isfile(name) and not image:
         return wx.EmptyBitmap(0, 0)
@@ -791,9 +791,9 @@ def load_wxbmp(name="", mask=False, image=None):
                 return wx.EmptyBitmap(0, 0)
 
         if not image.HasAlpha() and not image.HasMask():
-            r = image.GetRed(0, 0)
-            g = image.GetGreen(0, 0)
-            b = image.GetBlue(0, 0)
+            r = image.GetRed(maskpos[0], maskpos[1])
+            g = image.GetGreen(maskpos[0], maskpos[1])
+            b = image.GetBlue(maskpos[0], maskpos[1])
             image.SetMaskColour(r, g, b)
 
         wxbmp = image.ConvertToBitmap()
