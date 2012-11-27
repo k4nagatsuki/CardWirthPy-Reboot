@@ -3,6 +3,8 @@
 
 import base
 
+import cw.util
+
 
 class Environment(base.CWBinaryBase):
     """Environment.wyd(type=-1)

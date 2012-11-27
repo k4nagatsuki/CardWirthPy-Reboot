@@ -4,6 +4,8 @@
 import base
 import adventurer
 
+import cw.util
+
 
 class Party(base.CWBinaryBase):
     """wplファイル(type=2)。パーティの見出しデータ。

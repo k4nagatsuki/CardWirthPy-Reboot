@@ -5,6 +5,8 @@ import base
 import effectmotion
 import event
 
+import cw.util
+
 
 class SkillCard(base.CWBinaryBase):
     """widファイルのスキルカードのデータ。

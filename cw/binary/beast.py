@@ -5,6 +5,8 @@ import base
 import effectmotion
 import event
 
+import cw.util
+
 
 class BeastCard(base.CWBinaryBase):
     """召喚獣カードのデータ。

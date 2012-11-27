@@ -4,6 +4,8 @@
 import base
 import content
 
+import cw.util
+
 
 class Event(base.CWBinaryBase):
     """イベント発火条件付のイベントデータのクラス。"""
