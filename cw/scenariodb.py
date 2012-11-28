@@ -9,6 +9,7 @@ import StringIO
 import sqlite3
 import threading
 import shutil
+import win32com.client
 
 import cw
 import cw.binary
@@ -26,7 +27,7 @@ class ScenariodbUpdatingThread(threading.Thread):
 
     def run(self):
         type(self)._finished = False
-        db = Scenariodb()
+        db = Scenariodb(u"Scenario")
         db.update()
 
         if self._vacuum:
@@ -56,8 +57,9 @@ class Scenariodb(object):
     mtime(ファイル最終更新時間。エポック秒),
     image(見出し画像。バイナリ)
     """
-    def __init__(self):
+    def __init__(self, finddir):
         self.name = "Scenario.db"
+        self.finddir = finddir
 
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
@@ -118,9 +120,20 @@ class Scenariodb(object):
         self.con.commit()
         dbpaths = set(dbpaths)
 
-        for path in get_scenariopaths():
+        if sys.platform == "win32":
+            wsh = win32com.client.Dispatch("WScript.Shell")
+        else:
+            wsh = None
+
+        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
+            "", "", cw.cwpy.setting.skintype,
+            materialdir="", image_export=False)
+
+        for path in get_scenariopaths(self.finddir, wsh):
             if not path in dbpaths:
                 self.insert_scenario(path, False)
+
+        cw.cwpy.classicdata = None
 
         self.con.commit()
 
@@ -159,8 +172,9 @@ class Scenariodb(object):
         if t:
             self.insert(t, commit)
             return True
-        else:
+        elif path.startswith(u"Scenario"):
             # 登録できなかったファイルを移動
+            # (Scenarioフォルダ内のみ)
             dname = "UnregisteredScenario"
 
             if not os.path.isdir(dname):
@@ -214,11 +228,17 @@ class Scenariodb(object):
         """
         headers = []
 
+        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
+            "", "", cw.cwpy.setting.skintype,
+            materialdir="", image_export=False)
+
         for t in data:
             header = self.create_header(t)
 
             if header:
                 headers.append(header)
+
+        cw.cwpy.classicdata = None
 
         return headers
 
@@ -315,25 +335,6 @@ def read_summary(path):
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
-def read_summary_classic(path):
-    spath = cw.util.join_paths(path, "Summary.wsm")
-
-    try:
-        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-            path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
-            materialdir="", image_export=False)
-        e = cw.data.xml2element(spath, "Property", None)
-        imgpath, summaryinfos = parse_summarydata(e, TYPE_CLASSIC, False)
-        imgbuf = cw.binary.image.code_to_data(imgpath)
-        cw.cwpy.classicdata = None
-    except Exception, ex:
-        cw.cwpy.classicdata = None
-        return None
-
-    imgbuf = buffer(imgbuf)
-    summaryinfos.append(imgbuf)
-    return tuple(summaryinfos)
-
 def parse_summarydata(data, type, archive):
     e = data.find("ImagePath")
     imgpath = e.text or ""
@@ -367,17 +368,69 @@ def parse_summarydata(data, type, archive):
     return (imgpath, [dpath, type, fname, name, author, desc, skintype, levelmin,
                 levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
 
-def get_scenariopaths():
-    for dpath, dnames, fnames in os.walk(u"Scenario"):
-        for fname in fnames:
-            if fname.lower().endswith(".wsn"):
-                fpath = cw.util.join_paths(dpath, fname)
-                yield fpath
-            elif fname == "Summary.wsm":
-                yield dpath
+def read_summary_classic(path):
+    spath = cw.util.join_paths(path, "Summary.wsm")
+
+    createdata = False
+    if not cw.cwpy.classicdata:
+        createdata = True
+        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
+            "", "", cw.cwpy.setting.skintype,
+            materialdir="", image_export=False)
+    oldpath = cw.cwpy.classicdata.path
+    oldspath = cw.cwpy.classicdata.summarypath
+
+    cw.cwpy.classicdata.path = path
+    cw.cwpy.classicdata.summarypath = spath
+
+    try:
+        s = cw.cwpy.classicdata.load_file(spath, decodewrap=True)
+        imgbuf = s.image
+        ctime = time.time()
+        mtime = os.path.getmtime(spath)
+    except Exception, ex:
+        if createdata:
+            cw.cwpy.classicdata = None
+        else:
+            cw.cwpy.classicdata.path = oldpath
+            cw.cwpy.classicdata.summarypath = oldspath
+        return None
+
+    if createdata:
+        cw.cwpy.classicdata = None
+    else:
+        cw.cwpy.classicdata.path = oldpath
+        cw.cwpy.classicdata.summarypath = oldspath
+
+    summaryinfos = [os.path.dirname(path), TYPE_CLASSIC,
+            os.path.basename(path), s.name, s.author,
+            s.description, s.skintype, s.level_min, s.level_max,
+            s.required_coupons, s.required_coupons_num,
+            s.area_id, s.tags, ctime, mtime]
+    imgbuf = buffer(imgbuf)
+    summaryinfos.append(imgbuf)
+    return tuple(summaryinfos)
+
+def get_scenariopaths(path, wsh):
+    if not os.path.isdir(path):
+        return
+    for file in os.listdir(path):
+        file = cw.util.join_paths(path, file)
+        lfile = file.lower()
+        if wsh and os.path.isfile(file) and lfile.endswith(".lnk"):
+            shortcut = wsh.CreateShortcut(file)
+            file = cw.util.join_paths(shortcut.TargetPath)
+            lfile = file.lower()
+        if os.path.isdir(file):
+            fpath = cw.util.join_paths(file, u"Summary.wsm")
+            if os.path.isfile(fpath):
+                yield file
+        else:
+            if lfile.endswith(u".wsn"):
+                yield file
 
 def main():
-    db = Scenariodb()
+    db = Scenariodb(u"Scenario")
     db.update()
     db.close()
 

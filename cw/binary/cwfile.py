@@ -15,6 +15,10 @@ class CWFile(file):
     binary.CWFile("test/Area1.wid", "rb")
     とやるとインスタンスオブジェクトが生成できる。
     """
+    def __init__(self, path, mode, decodewrap=False):
+        file.__init__(self, path, mode)
+        self.decodewrap = decodewrap
+
     def bool(self):
         """byteの値を真偽値にして返す。"""
         if self.byte():
@@ -34,7 +38,11 @@ class CWFile(file):
             s = util.repl_specialchar(s)
 
         s = util.repl_escapechar(s)
-        return cw.util.encodewrap(s)
+
+        if not self.decodewrap:
+            s = cw.util.encodewrap(s)
+
+        return s
 
     def rawstring(self):
         dword = self.dword()

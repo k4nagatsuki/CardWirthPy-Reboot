@@ -49,6 +49,8 @@ class CWScenario(object):
         self.otherdirs = []
         self.summarypath = None
 
+        if self.path == "":
+            return
         for name in os.listdir(self.path):
             path = util.join_paths(self.path, name)
 
@@ -105,9 +107,9 @@ class CWScenario(object):
         self.maxnum += len(self.otherfiles)
         self.maxnum += len(self.otherdirs)
 
-    def load_file(self, path, nameonly=False):
+    def load_file(self, path, nameonly=False, decodewrap=False):
         """引数のファイル(wid, wsmファイル)を読み込む。"""
-        f = cwfile.CWFile(path, "rb")
+        f = cwfile.CWFile(path, "rb", decodewrap=decodewrap)
 
         no = nameonly
         md = self.materialdir

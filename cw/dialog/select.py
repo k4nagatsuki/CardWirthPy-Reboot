@@ -1130,6 +1130,7 @@ class ScenarioSelect(Select):
     def get_dpaths(self):
         """
         クラシックなシナリオ以外のフォルダの一覧を返す。
+        (ショートカット類も含む)
         """
         seq = []
 
@@ -1140,6 +1141,10 @@ class ScenarioSelect(Select):
                 spath = cw.util.join_paths(path, "Summary.wsm")
                 if not os.path.exists(spath):
                     seq.append(path)
+            elif os.path.islink(path):
+                seq.append(path)
+            elif sys.platform == "win32" and path.lower().endswith(".lnk"):
+                seq.append(path)
 
         return seq
 
