@@ -857,12 +857,14 @@ class ScenarioSelect(Select):
         self.scedir = u"Scenario"
         # 現在開いているディレクトリ
         self.nowdir = self.scedir
+        # 開いたディレクトリの階層
+        self.dirstack = []
         # シナリオデータベース
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
         headers = self.db.search_dpath(self.nowdir)
         # nowdirにあるディレクトリリスト
-        dpaths = self.get_dpaths()
+        dpaths = self.get_dpaths(self.nowdir)
         # 冒険者情報
         self.list = dpaths + headers
         self.index = 0
@@ -939,9 +941,10 @@ class ScenarioSelect(Select):
     def OnClickYesBtn(self, event):
         if self.yesbtn.GetLabel() == u"見る":
             cw.cwpy.sounds[u"システム・装備"].play()
-            self.nowdir = self.list[self.index]
+            self.dirstack.append(self.nowdir)
+            self.nowdir = cw.scenariodb.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
-            dpaths = self.get_dpaths()
+            dpaths = self.get_dpaths(self.nowdir)
             self.list = dpaths + headers if headers else dpaths
             self.index = 0
             self.nobtn.SetLabel(u"戻る")
@@ -955,9 +958,9 @@ class ScenarioSelect(Select):
     def OnClickNoBtn(self, event):
         if self.nobtn.GetLabel() == u"戻る":
             cw.cwpy.sounds[u"システム・装備"].play()
-            self.nowdir = os.path.dirname(self.nowdir)
+            self.nowdir = self.dirstack.pop()
             headers =  self.db.search_dpath(self.nowdir)
-            dpaths = self.get_dpaths()
+            dpaths = self.get_dpaths(self.nowdir)
             self.list = dpaths + headers if headers else dpaths
             self.index = 0
             self.enable_btn()
@@ -1012,18 +1015,17 @@ class ScenarioSelect(Select):
             dpath = self.list[self.index]
             # ボタンのテキストを変える
             self.yesbtn.SetLabel(u"見る")
+            # dpathの中にあるシナリオをDBに登録
+            self.db.update(dpath)
             # dpathの中にあるシナリオ名のリスト
             headers = self.db.search_dpath(dpath)
             hnames = [header.name for header in headers] if headers else []
             # dpathの中にあるディレクトリ名のリスト
             dnames = []
 
-            for dname in os.listdir(dpath):
-                path = cw.util.join_paths(self.nowdir, dname)
-
-                if os.path.isdir(path):
-                    dname = "[%s]" % dname
-                    dnames.append(dname)
+            for path in self.get_dpaths(dpath):
+                dname = "[%s]" % os.path.basename(path)
+                dnames.append(dname)
 
             # ディレクトリ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
@@ -1127,15 +1129,16 @@ class ScenarioSelect(Select):
         else:
             self._enable_btn()
 
-    def get_dpaths(self):
+    def get_dpaths(self, dpath):
         """
         クラシックなシナリオ以外のフォルダの一覧を返す。
         (ショートカット類も含む)
         """
         seq = []
 
-        for dname in os.listdir(self.nowdir):
-            path = cw.util.join_paths(self.nowdir, dname)
+        dir = cw.scenariodb.get_linktarget(dpath)
+        for dname in os.listdir(dir):
+            path = cw.util.join_paths(dir, dname)
 
             if os.path.isdir(path):
                 spath = cw.util.join_paths(path, "Summary.wsm")
@@ -1271,7 +1274,7 @@ class ScenarioSelect(Select):
         # 更新処理
         self.db.insert_scenario(zpath)
         headers = self.db.search_dpath(self.nowdir)
-        dpaths = self.get_dpaths()
+        dpaths = self.get_dpaths(self.nowdir)
         self.list = dpaths + headers if headers else dpaths
         self.index = 0
 

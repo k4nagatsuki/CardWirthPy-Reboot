@@ -27,7 +27,7 @@ class ScenariodbUpdatingThread(threading.Thread):
 
     def run(self):
         type(self)._finished = False
-        db = Scenariodb(u"Scenario")
+        db = Scenariodb()
         db.update()
 
         if self._vacuum:
@@ -57,9 +57,8 @@ class Scenariodb(object):
     mtime(ファイル最終更新時間。エポック秒),
     image(見出し画像。バイナリ)
     """
-    def __init__(self, finddir):
+    def __init__(self):
         self.name = "Scenario.db"
-        self.finddir = finddir
 
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
@@ -90,7 +89,7 @@ class Scenariodb(object):
 
             self.cur.execute(s)
 
-    def update(self):
+    def update(self, dpath=u"Scenario"):
         """データベースを更新する。"""
         s = "SELECT dpath, fname, mtime FROM scenariodb"
         self.cur.execute(s)
@@ -129,7 +128,7 @@ class Scenariodb(object):
             "", "", cw.cwpy.setting.skintype,
             materialdir="", image_export=False)
 
-        for path in get_scenariopaths(self.finddir, wsh):
+        for path in get_scenariopaths(dpath, wsh):
             if not path in dbpaths:
                 self.insert_scenario(path, False)
 
@@ -263,7 +262,7 @@ class Scenariodb(object):
         return self.create_header(data)
 
     def search_dpath(self, dpath):
-        dpath = dpath.replace("\\", "/")
+        dpath = get_linktarget(dpath).replace("\\", "/")
         s = "SELECT * FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (dpath,))
         data = self.cur.fetchall()
@@ -407,30 +406,39 @@ def read_summary_classic(path):
             s.description, s.skintype, s.level_min, s.level_max,
             s.required_coupons, s.required_coupons_num,
             s.area_id, s.tags, ctime, mtime]
-    imgbuf = buffer(imgbuf)
+    if imgbuf:
+        imgbuf = buffer(imgbuf)
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
 def get_scenariopaths(path, wsh):
+    path = get_linktarget(path, wsh)
     if not os.path.isdir(path):
         return
     for file in os.listdir(path):
-        file = cw.util.join_paths(path, file)
-        lfile = file.lower()
-        if wsh and os.path.isfile(file) and lfile.endswith(".lnk"):
-            shortcut = wsh.CreateShortcut(file)
-            file = cw.util.join_paths(shortcut.TargetPath)
-            lfile = file.lower()
+        file = get_linktarget(cw.util.join_paths(path, file), wsh)
         if os.path.isdir(file):
             fpath = cw.util.join_paths(file, u"Summary.wsm")
             if os.path.isfile(fpath):
                 yield file
         else:
-            if lfile.endswith(u".wsn"):
+            if file.lower().endswith(u".wsn"):
                 yield file
 
+def get_linktarget(file, wsh=None):
+    """fileがショートカットだった場合はリンク先を、
+    そうでない場合はfileを返す。
+    """
+    if not wsh and sys.platform == "win32":
+        wsh = win32com.client.Dispatch("WScript.Shell")
+
+    if wsh and os.path.isfile(file) and file.lower().endswith(".lnk"):
+        shortcut = wsh.CreateShortcut(file)
+        return cw.util.join_paths(shortcut.TargetPath)
+    return file
+
 def main():
-    db = Scenariodb(u"Scenario")
+    db = Scenariodb()
     db.update()
     db.close()
 

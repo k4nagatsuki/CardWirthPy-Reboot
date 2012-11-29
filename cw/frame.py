@@ -279,7 +279,7 @@ class Frame(wx.Frame):
             pass
 
         try:
-            db = cw.scenariodb.Scenariodb(u"Scenario")
+            db = cw.scenariodb.Scenariodb()
         except:
             s = (u"データベースへの接続に失敗しました。\n"
                  u"しばらくしてからもう一度やり直してください。")
