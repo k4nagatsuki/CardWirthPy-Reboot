@@ -268,27 +268,48 @@ class CharacterCardImage(CardImage):
         if ccard.is_antimagic(): # 魔法無効化
             seq.append(cw.cwpy.rsrc.statuses["MAGIC3"])
         if ccard.enhance_act > 0: # 行動力強化
-            seq.append(cw.cwpy.rsrc.statuses["UP0"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP0"], ccard.enhance_act)
         elif ccard.enhance_act < 0: # 行動力弱化
-            seq.append(cw.cwpy.rsrc.statuses["DOWN0"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN0"], ccard.enhance_act)
         if ccard.enhance_avo > 0: # 回避力強化
-            seq.append(cw.cwpy.rsrc.statuses["UP1"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP1"], ccard.enhance_avo)
         elif ccard.enhance_avo < 0: # 回避力弱化
-            seq.append(cw.cwpy.rsrc.statuses["DOWN1"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN1"], ccard.enhance_avo)
         if ccard.enhance_res > 0: # 抵抗力強化
-            seq.append(cw.cwpy.rsrc.statuses["UP2"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP2"], ccard.enhance_res)
         elif ccard.enhance_res < 0: # 抵抗力弱化
-            seq.append(cw.cwpy.rsrc.statuses["DOWN2"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN2"], ccard.enhance_res)
         if ccard.enhance_def > 0: # 防御力強化
-            seq.append(cw.cwpy.rsrc.statuses["UP3"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP3"], ccard.enhance_def)
         elif ccard.enhance_def < 0: # 防御力弱化
-            seq.append(cw.cwpy.rsrc.statuses["DOWN3"])
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def)
 
         x, y = 7, 92
 
-        for index, subimg in enumerate(seq):
+        index = 0
+        for subimg in seq:
             pos = (x + index / 5 * 17, y - index * 17 + index / 5 * 85)
-            self.image.blit(subimg, pos)
+            if type(subimg) is pygame.Surface:
+                self.image.blit(subimg, pos)
+                index += 1
+            else:
+                self.image.fill(subimg[0], pygame.Rect(pos, subimg[1]))
+
+    def _put_enhanceimg(self, seq, bmp, value):
+        size = (bmp.get_width(), bmp.get_height())
+        if value >= 7:
+            seq.append((pygame.Color(175, 0, 0), size))
+        elif value >= 4:
+            seq.append((pygame.Color(127, 0, 0), size))
+        elif value >= 1:
+            seq.append((pygame.Color(79, 0, 0), size))
+        elif value <= -7:
+            seq.append((pygame.Color(0, 0, 85), size))
+        elif value <= -4:
+            seq.append((pygame.Color(0, 0, 160), size))
+        elif value <= -1:
+            seq.append((pygame.Color(0, 0, 187), size))
+        seq.append(bmp)
 
     def get_cardbgname(self, ccard):
         if ccard.is_unconscious():
@@ -321,13 +342,13 @@ class CharacterCardImage(CardImage):
 # 画像変換用関数
 #-------------------------------------------------------------------------------
 
-def conv2wxbmp(image):
+def conv2wxbmp(image, maskpos=(0, 0)):
     """pygame.Surfaceをwx.Bitmapに変換する。
     image: pygame.Surface
     """
     w, h = image.get_size()
 
-    if image.get_flags() & SRCALPHA:
+    if (image.get_flags() & SRCALPHA) or image.get_colorkey():
         buf = pygame.image.tostring(image, "RGBA")
         wxbmp = wx.BitmapFromBufferRGBA(w, h, buf)
     else:
@@ -335,8 +356,8 @@ def conv2wxbmp(image):
         wxbmp = wx.BitmapFromBuffer(w, h, buf)
 
     if image.get_colorkey():
-        r, g, b, a = image.get_at((0, 0))
-        wxbmp.SetMaskColour(r, g, b)
+        r, g, b, a = image.get_at(maskpos)
+        wxbmp.SetMaskColour(wx.Colour(r, g, b))
 
     return wxbmp
 

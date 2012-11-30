@@ -604,57 +604,14 @@ class StatusPanel(wx.ScrolledWindow):
             height = self._draw_status(dc, "完全魔法防御状態 (%s)" % (self.ccard.antimagic), "MAGIC3", height)
 
         # 能力ボーナス・ペナルティ
-        if 7 <= self.ccard.enhance_act:
-            height = self._draw_status(dc, "行動力大ボーナス (%s)" % (self.ccard.enhance_act_dur), "DOWN0", height)
-        elif 4 <= self.ccard.enhance_act:
-            height = self._draw_status(dc, "行動力中ボーナス (%s)" % (self.ccard.enhance_act_dur), "DOWN0", height)
-        elif 1 <= self.ccard.enhance_act:
-            height = self._draw_status(dc, "行動力小ボーナス (%s)" % (self.ccard.enhance_act_dur), "DOWN0", height)
-        elif -1 >= self.ccard.enhance_act:
-            height = self._draw_status(dc, "行動力小ペナルティ (%s)" % (self.ccard.enhance_act_dur), "UP0", height)
-        elif -4 >= self.ccard.enhance_act:
-            height = self._draw_status(dc, "行動力中ペナルティ (%s)" % (self.ccard.enhance_act_dur), "UP0", height)
-        elif -7 >= self.ccard.enhance_act:
-            height = self._draw_status(dc, "行動力大ペナルティ (%s)" % (self.ccard.enhance_act_dur), "UP0", height)
-
-        if 7 <= self.ccard.enhance_avo:
-            height = self._draw_status(dc, "回避力大ボーナス (%s)" % (self.ccard.enhance_avo_dur), "DOWN1", height)
-        elif 4 <= self.ccard.enhance_avo:
-            height = self._draw_status(dc, "回避力中ボーナス (%s)" % (self.ccard.enhance_avo_dur), "DOWN1", height)
-        elif 1 <= self.ccard.enhance_avo:
-            height = self._draw_status(dc, "回避力小ボーナス (%s)" % (self.ccard.enhance_avo_dur), "DOWN1", height)
-        elif -1 >= self.ccard.enhance_avo:
-            height = self._draw_status(dc, "回避力小ペナルティ (%s)" % (self.ccard.enhance_avo_dur), "UP1", height)
-        elif -4 >= self.ccard.enhance_avo:
-            height = self._draw_status(dc, "回避力中ペナルティ (%s)" % (self.ccard.enhance_avo_dur), "UP1", height)
-        elif -7 >= self.ccard.enhance_avo:
-            height = self._draw_status(dc, "回避力大ペナルティ (%s)" % (self.ccard.enhance_avo_dur), "UP1", height)
-
-        if 7 <= self.ccard.enhance_res:
-            height = self._draw_status(dc, "抵抗力大ボーナス (%s)" % (self.ccard.enhance_res_dur), "DOWN2", height)
-        elif 4 <= self.ccard.enhance_res:
-            height = self._draw_status(dc, "抵抗力中ボーナス (%s)" % (self.ccard.enhance_res_dur), "DOWN2", height)
-        elif 1 <= self.ccard.enhance_res:
-            height = self._draw_status(dc, "抵抗力小ボーナス (%s)" % (self.ccard.enhance_res_dur), "DOWN2", height)
-        elif -1 >= self.ccard.enhance_res:
-            height = self._draw_status(dc, "抵抗力小ペナルティ (%s)" % (self.ccard.enhance_res_dur), "UP2", height)
-        elif -4 >= self.ccard.enhance_res:
-            height = self._draw_status(dc, "抵抗力中ペナルティ (%s)" % (self.ccard.enhance_res_dur), "UP2", height)
-        elif -7 >= self.ccard.enhance_res:
-            height = self._draw_status(dc, "抵抗力大ペナルティ (%s)" % (self.ccard.enhance_res_dur), "UP2", height)
-
-        if 7 <= self.ccard.enhance_def:
-            height = self._draw_status(dc, "防御力大ボーナス (%s)" % (self.ccard.enhance_def_dur), "DOWN3", height)
-        elif 4 <= self.ccard.enhance_def:
-            height = self._draw_status(dc, "防御力中ボーナス (%s)" % (self.ccard.enhance_def_dur), "DOWN3", height)
-        elif 1 <= self.ccard.enhance_def:
-            height = self._draw_status(dc, "防御力小ボーナス (%s)" % (self.ccard.enhance_def_dur), "DOWN3", height)
-        elif -1 >= self.ccard.enhance_def:
-            height = self._draw_status(dc, "防御力小ペナルティ (%s)" % (self.ccard.enhance_def_dur), "UP3", height)
-        elif -4 >= self.ccard.enhance_def:
-            height = self._draw_status(dc, "防御力中ペナルティ (%s)" % (self.ccard.enhance_def_dur), "UP3", height)
-        elif -7 >= self.ccard.enhance_def:
-            height = self._draw_status(dc, "防御力大ペナルティ (%s)" % (self.ccard.enhance_def_dur), "UP3", height)
+        height = self._draw_enhance(dc, "行動力", self.ccard.enhance_act,
+                                    self.ccard.enhance_act_dur, "UP0", "DOWN0", height)
+        height = self._draw_enhance(dc, "回避力", self.ccard.enhance_avo,
+                                    self.ccard.enhance_avo_dur, "UP1", "DOWN1", height)
+        height = self._draw_enhance(dc, "抵抗力", self.ccard.enhance_res,
+                                    self.ccard.enhance_res_dur, "UP2", "DOWN2", height)
+        height = self._draw_enhance(dc, "防御力", self.ccard.enhance_def,
+                                    self.ccard.enhance_def_dur, "UP3", "DOWN3", height)
 
         self.SetVirtualSize((-1, height - 17 + 8))
         if update:
@@ -663,6 +620,40 @@ class StatusPanel(wx.ScrolledWindow):
 
     def _draw_status(self, dc, msg, imgname, height):
         bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses[imgname])
+        dc.DrawBitmap(bmp, 12, height - 1)
+        dc.DrawText(msg, 32, height)
+        return height + 17
+
+    def _draw_enhance(self, dc, enhname, value, dur, enhimage, pnlimage, height):
+        if 0 == value:
+            return height
+        if 7 <= value:
+            colour = wx.Colour(175, 0, 0)
+            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            msg = "%s大ボーナス (%d)" % (enhname, dur)
+        elif 4 <= value:
+            colour = wx.Colour(127, 0, 0)
+            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            msg = "%s中ボーナス (%d)" % (enhname, dur)
+        elif 1 <= value:
+            colour = wx.Colour(79, 0, 0)
+            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            msg = "%s小ボーナス (%d)" % (enhname, dur)
+        elif -7 >= value:
+            colour = wx.Colour(0, 0, 85)
+            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            msg = "%s大ペナルティ (%d)" % (enhname, dur)
+        elif -4 >= value:
+            colour = wx.Colour(0, 0, 160)
+            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            msg = "%s中ペナルティ (%d)" % (enhname, dur)
+        elif -1 >= value:
+            colour = wx.Colour(0, 0, 187)
+            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            msg = "%s小ペナルティ (%d)" % (enhname, dur)
+        bmp = cw.image.conv2wxbmp(bmp, maskpos=(1, 1))
+        dc.SetBrush(wx.Brush(colour, wx.SOLID))
+        dc.DrawRectangle(12, height - 1, bmp.Width, bmp.Height)
         dc.DrawBitmap(bmp, 12, height - 1)
         dc.DrawText(msg, 32, height)
         return height + 17
