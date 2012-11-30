@@ -1024,12 +1024,16 @@ class ScenarioSelect(Select):
             dnames = []
 
             for path in self.get_dpaths(dpath):
+                if path.lower().endswith(".lnk"):
+                    path = path[0:-len(".lnk")]
                 dname = "[%s]" % os.path.basename(path)
                 dnames.append(dname)
 
             # ディレクトリ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
             s = os.path.basename(dpath)
+            if s.lower().endswith(".lnk"):
+                s = s[0:-len(".lnk")]
             dc.DrawText(s, 135, 65)
             # フォルダ画像
             bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
