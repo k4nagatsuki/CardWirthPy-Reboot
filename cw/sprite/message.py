@@ -3,6 +3,7 @@
 
 import os
 import re
+import wx
 import pygame
 from pygame.locals import *
 
@@ -14,6 +15,18 @@ class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
                                                 pos=(80, 50), size=(470, 180)):
         base.CWPySprite.__init__(self)
+
+        # クラシックスタイルか
+        self.classicstyletext = cw.cwpy.setting.classicstyletext
+        # クラシックスタイルのテキスト描画用
+        if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
+            self.wxcanvas = wx.EmptyBitmap(22, 22)
+            self.wxdc = wx.MemoryDC(self.wxcanvas)
+            self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
+        else:
+            self.wxcanvas = None
+            self.wxdc = None
+
         # メッセージの選択結果
         self.result = None
         # data
@@ -100,6 +113,10 @@ class MessageWindow(base.CWPySprite):
             self.is_drawing = False
             cw.cwpy.has_inputevent = True
             self.frame = 0
+
+            if self.wxdc:
+                self.wxdc.EndDrawing()
+
             # SelectionBarを描画
             cw.cwpy.list = self.selections
             x, y = self.selection_pos
@@ -120,6 +137,7 @@ class MessageWindow(base.CWPySprite):
             self.text = cw.util.txtwrap(self.text, 3)
             posp = pos
 
+        r_join = re.compile(u"[―～]")          # 左右で接続する文字の集合
         r_halfwidth = re.compile(u"[ -~｡-ﾟ]")    # 半角文字の集合
         r_specialfont = re.compile("#[a-z]")     # 特殊文字(#)の集合
         r_changecolour = re.compile("&[a-z]")    # 文字色変更文字(&)の集合
@@ -179,52 +197,87 @@ class MessageWindow(base.CWPySprite):
                 continue
 
             # 通常文字
-            image = font.render(char, True, colour)
-            image2 = font.render(char, True, (0, 0, 0))
+            if self.wxdc:
+                # クラシック形式
+                self.wxdc.SetPen(wx.BLACK_PEN)
+                self.wxdc.SetBrush(wx.BLACK_BRUSH)
+                self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
+                self.wxdc.SetTextForeground(colour)
+                self.wxdc.DrawText(char, 0, 0)
+                image = cw.image.conv2surface(self.wxcanvas)
+                image.set_colorkey(wx.BLACK, RLEACCEL)
 
-            # u"ー"の場合、左右の線が繋がるように補完する
-            if char == u"―":
-                if index > 0 and self.text[index-1] == u"―":
-                    join_left = True
-                else:
-                    join_left = False
+                self.wxdc.SetPen(wx.WHITE_PEN)
+                self.wxdc.SetBrush(wx.WHITE_BRUSH)
+                self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
+                self.wxdc.SetTextForeground(wx.BLACK)
+                self.wxdc.DrawText(char, 0, 0)
+                image2 = cw.image.conv2surface(self.wxcanvas)
+                image2.set_colorkey(wx.WHITE, RLEACCEL)
 
-                if len(chars) > 1 and self.text[index+1] == u"―":
-                    join_right = True
-                else:
-                    join_right = False
+                # u"―"やu"～"の場合、左右の線が繋がるように補完する
+                join_left = True
+                join_right = True
+                if r_join.match(char):
+                    if index > 0 and r_join.match(self.text[index-1]):
+                        join_left = True
+                    else:
+                        join_left = False
 
-                if join_left or join_right:
-                    rect = image.get_rect()
-                    size = (rect.w + 20, rect.h)
-                    image = pygame.transform.scale(image, size)
-                    image2 = pygame.transform.scale(image2, size)
+                    if len(chars) > 1 and r_join.match(self.text[index+1]):
+                        join_right = True
+                    else:
+                        join_right = False
+                image2 = (image2, (join_left, join_right))
 
-                    if join_left and join_right:
-                        rect.left += 10
-                    elif join_left:
-                        rect.left += 20
+            else:
+                # CardWirthPy形式
+                image = font.render(char, True, colour)
+                image2 = font.render(char, True, (0, 0, 0))
 
-                    image = image.subsurface(rect)
-                    image2 = (image2.subsurface(rect), (join_left, join_right))
+                # u"ー"の場合、左右の線が繋がるように補完する
+                if char == u"―":
+                    if index > 0 and self.text[index-1] == u"―":
+                        join_left = True
+                    else:
+                        join_left = False
 
-            # u"…"の場合、両脇を1ピクセル詰める
-            elif char == u"…":
-                w, h = image.get_size()
-                rect = pygame.Rect((0, 0), (6, h))
-                subimg = image.subsurface(rect).copy()
-                image.fill((0, 0, 0, 0), rect)
-                image.blit(subimg, (1, 0))
-                subimg = image2.subsurface(rect).copy()
-                image2.fill((0, 0, 0, 0), rect)
-                image2.blit(subimg, (1, 0))
-                rect = pygame.Rect((w - 6, 0), (6, h))
-                subimg = image.subsurface(rect).copy()
-                image.fill((0, 0, 0, 0), rect)
-                image.blit(subimg, (w - 7, 0))
-                subimg = image2.subsurface(rect).copy()
-                image2.fill((0, 0, 0, 0), rect)
-                image2.blit(subimg, (w - 7, 0))
+                    if len(chars) > 1 and self.text[index+1] == u"―":
+                        join_right = True
+                    else:
+                        join_right = False
+
+                    if join_left or join_right:
+                        rect = image.get_rect()
+                        size = (rect.w + 20, rect.h)
+                        image = pygame.transform.scale(image, size)
+                        image2 = pygame.transform.scale(image2, size)
+
+                        if join_left and join_right:
+                            rect.left += 10
+                        elif join_left:
+                            rect.left += 20
+
+                        image = image.subsurface(rect)
+                        image2 = (image2.subsurface(rect), (join_left, join_right))
+
+                # u"…"の場合、両脇を1ピクセル詰める
+                elif char == u"…":
+                    w, h = image.get_size()
+                    rect = pygame.Rect((0, 0), (6, h))
+                    subimg = image.subsurface(rect).copy()
+                    image.fill((0, 0, 0, 0), rect)
+                    image.blit(subimg, (1, 0))
+                    subimg = image2.subsurface(rect).copy()
+                    image2.fill((0, 0, 0, 0), rect)
+                    image2.blit(subimg, (1, 0))
+                    rect = pygame.Rect((w - 6, 0), (6, h))
+                    subimg = image.subsurface(rect).copy()
+                    image.fill((0, 0, 0, 0), rect)
+                    image.blit(subimg, (w - 7, 0))
+                    subimg = image2.subsurface(rect).copy()
+                    image2.fill((0, 0, 0, 0), rect)
+                    image2.blit(subimg, (w - 7, 0))
 
             images.append((pos, image, image2))
 

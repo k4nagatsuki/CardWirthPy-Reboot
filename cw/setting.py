@@ -37,6 +37,7 @@ class Setting(object):
             self.transitionspeed = 5
             self.smoothscale_bg = False
             self.skindirname = "Classic"
+            self.classicstyletext = True
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -91,6 +92,7 @@ class Setting(object):
         self.skinname = data.gettext("/Property/Name", "")
         self.skintype = data.gettext("/Property/Type", "")
         self.skinexts = data.getfind("/Property/Extension").attrib
+        self.classicstyletext = data.gettext("/Property/ClassicStyleText", True)
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("/Races")]
         self.races.append(cw.header.UnknownRaceHeader())
@@ -228,13 +230,13 @@ class Resource(object):
             user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
     def get_wxfont(self, name="uigothic", size=10,
-                        family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD):
+                        family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, flag=0):
         if name == "btnfont" and self._msuigothic:
             fontname = "MS UI Gothic"
         else:
             fontname = self.fontnames[name]
 
-        wxfont = wx.Font(size, family, style, weight, 0, fontname)
+        wxfont = wx.Font(size, family, style, weight, 0, fontname, flag)
         return wxfont
 
     def create_fonts(self):
@@ -260,8 +262,14 @@ class Resource(object):
         # メッセージウィンドウのテキスト描画用
         font = pygame.font.Font(self.fontpaths["gothic"], 22)
         fonts["message"] = font
+        if "ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+            # メッセージウィンドウのテキスト描画用(クラシック)
+            # これのみwx.Fontを使用する
+            wxfont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
+            fonts["message_classic"] = wxfont
         # メッセージウィンドウの選択肢描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], 17)
+        font = pygame.font.Font(self.fontpaths["uigothic"], 16)
+        font.set_bold(True)
         fonts["selectionbar"] = font
         # ステータスバーパネル描画用
         fonts["sbarpanel"] = fonts["pcard_name"]
