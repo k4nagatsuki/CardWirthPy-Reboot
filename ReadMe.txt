@@ -1,6 +1,7 @@
-CardWirthPy ver0.12
+CardWirthPy ver0.12.1
   作者: logの中の人
   URL: http://sites.google.com/site/cardwirthpy/
+       https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot (暫定)
 
 ==================================
 
@@ -40,30 +41,34 @@ CardWirthのデータの引継
   CardWirthPyは、CardWirthの宿データ・シナリオデータを
   CardWirthPyであつかえるデータ(XML形式)に変換し、
   引き継いで利用することができます。
+  ※ ver0.12.1からシナリオデータの変換は不要になりました。
+     Scenarioフォルダ内のショートカットにも対応したため、
+     移動させる必要もありません。
 
   宿データは「宿の選択」ダイアログ、
   シナリオデータは「貼紙を見る」ダイアログに
   それぞれデータフォルダをドラッグアンドドロップして
   変換してください。
   
-  CAB形式で圧縮されたシナリオファイルは変換できません。
+  現状、CAB形式で圧縮されたシナリオファイルは読込・変換
+  できません。
 
 
 シナリオエディタ
 --------------------------------------------------------------------------
 
-  有志の方が作ってくださったCWXEditorというエディタで、
-  CardWirthPyのシナリオデータを作成・編集することができます。
+  CWXEditorというエディタで、CardWirthPyのシナリオデータを
+  作成・編集することができます。
 
     CWXEditor
-      URL: http://mo-6.com/up/upfiles/1186.zip
+      URL: https://bitbucket.org/k4nagatsuki/cwxeditor/
 
 
 CardWirthと違うところメモ
 --------------------------------------------------------------------------
 
-  ・シナリオは"wsn"という拡張子の単一ファイル(ZIP形式で圧縮した
-    ファイルの拡張子をリネームしたもの)で管理。
+  ・CWPy形式のシナリオは"wsn"という拡張子の単一ファイル(ZIP形式で
+    圧縮したファイルの拡張子をリネームしたもの)で管理。
   ・マウスホイールの操作に対応。
   ・バリアントの代わりにスキン方式を採用。
   ・冒険者の新規作成時にはスキンで定義した種族を設定できる。
@@ -103,7 +108,7 @@ CardWirthと違うところメモ
   CardWirthPyはプログラミング言語Pythonで書かれました。
   実行ファイルの作成にはpy2exeを使用しています。
 
-    Python ver2.6.4
+    Python ver2.7.3
       License: Python Software Foundation License
       URL: http://www.python.org/
 
@@ -112,13 +117,17 @@ CardWirthと違うところメモ
 
   CardWirthPyは以下のPythonの外部モジュールを使用しています。
 
-    wxPython ver2.8.10.1
+    wxPython ver2.8.12.1
       License: wxWindows Library License
       URL: http://www.wxpython.org/
 
     Pygame ver1.9.1
       License: GNU Lesser General Public License
       URL: http://www.pygame.org/
+
+    Python for Windows extensions Build 218
+      License: Python Software Foundation License
+      URL: http://sourceforge.net/projects/pywin32/
 
   CardWirthPyは以下のMicrosoftのライブラリを同梱しています。
 
@@ -141,7 +150,7 @@ CardWirthと違うところメモ
 
     Resource/Image/Debug にあるすべての画像ファイル
       License: Public Domain
-      URL: http://mo-6.com/up/upfiles/1186.zip
+      URL: https://bitbucket.org/k4nagatsuki/cwxeditor/
 
   "src.zip"に同梱しているプログラミングコードの
   著作権は作者が保持し、以下のライセンスが適用されます。
