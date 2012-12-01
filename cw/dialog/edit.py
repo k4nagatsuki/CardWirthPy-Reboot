@@ -87,7 +87,7 @@ class PartyEditor(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint (self, evt):
+    def OnPaint(self, evt):
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -241,8 +241,10 @@ class LevelEditor(wx.Dialog):
             maxvalue = coupons[u"＠本来の上限"]
 
         # レベル調節スライダ
-        self.slider = wx.Slider(self, -1, self.ccard.level, minvalue, maxvalue,
+        self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
+        self.slider = wx.Slider(self.panel, -1, self.ccard.level, minvalue, maxvalue,
             size=(165, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
+        self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
@@ -254,24 +256,37 @@ class LevelEditor(wx.Dialog):
         self._bind()
 
     def _bind(self):
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer_btn.Add(self.okbtn, 0, 0, 0)
         sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 20)
 
-        sizer_v1.Add(self.slider, 0, wx.CENTER|wx.TOP, 5)
+        sizer_panel.Add(self.slider, 1, wx.EXPAND | wx.ALL, 5)
+        self.panel.SetSizer(sizer_panel)
+        sizer_panel.Fit(self.panel)
+
+        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, 5)
         sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
 
         sizer.Add(sizer_v1, 0, wx.ALL, 15)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
         cw.cwpy.sounds[u"システム・収穫"].play()
