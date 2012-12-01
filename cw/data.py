@@ -377,6 +377,10 @@ class ScenarioData(SystemData):
         シナリオ強制終了。俗に言うファッ○ユー。
         """
         self._playing = False
+        # battle
+        if cw.cwpy.battle and cw.cwpy.battle.is_running:
+            # バトルを強制終了
+            cw.cwpy.exec_func(cw.cwpy.battle.end)
         # party copy
         fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
         path = cw.util.join_paths("Data/Temp/ScenarioLog/Party", fname)
