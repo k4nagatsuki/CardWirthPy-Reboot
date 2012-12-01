@@ -134,6 +134,16 @@ class EventHandler(object):
                 else:
                     cw.cwpy.change_specialarea(-4)
 
+            # パーティの宿滞在時、冒険の中断
+            elif cw.cwpy.status == "Yado" and not cw.cwpy.is_dealing():
+
+                cw.cwpy.has_inputevent = True
+                cw.cwpy.sounds[u"システム・クリック"].play()
+
+                if cw.cwpy.areaid == 2:
+                    func = cw.cwpy.load_party
+                    cw.cwpy.exec_func(func)
+
             # シナリオ戦闘時、戦闘行動選択ダイアログ表示
             elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
                 cw.cwpy.sounds[u"システム・クリック"].play()
