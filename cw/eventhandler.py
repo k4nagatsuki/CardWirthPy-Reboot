@@ -140,9 +140,10 @@ class EventHandler(object):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.sounds[u"システム・クリック"].play()
 
+                if cw.cwpy.areaid == 1:
+                    cw.cwpy.call_dlg("RETURNTITLE")
                 if cw.cwpy.areaid == 2:
-                    func = cw.cwpy.load_party
-                    cw.cwpy.exec_func(func)
+                    cw.cwpy.exec_func(cw.cwpy.load_party, None)
 
             # シナリオ戦闘時、戦闘行動選択ダイアログ表示
             elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
