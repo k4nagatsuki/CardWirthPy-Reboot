@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>4</Id>
+    <Name>フェイント</Name>
+    <ImagePath>Resource/Image/Card/ACTION4.png</ImagePath>
+    <Description>戦闘行動カード（攻撃）。敵一体に対し、隙を生み出す偽装攻撃を仕掛ける。実質的な被害を与えることはないが、目標は動揺し行動の自由を奪われる。使用には器用さと狡猾さが要求される。正常な精神を持つ目標にしか効果がない。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Dex" mental="Trickish" />
+    <Target allrange="False">Enemy</Target>
+    <EffectType spell="False">Physic</EffectType>
+    <ResistType>Avoid</ResistType>
+    <SuccessRate>2</SuccessRate>
+    <VisualEffect>Horizontal</VisualEffect>
+    <Enhance avoid="0" resist="0" defense="0"/>
+    <SoundPath>Material/効果（付与）.wav</SoundPath>
+    <SoundPath2>Material/効果（混乱）.wav</SoundPath2>
+    <KeyCodes>攻撃\n撹乱\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>10</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+    <Motion type="DealConfuseCard" element="Mind" />
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>

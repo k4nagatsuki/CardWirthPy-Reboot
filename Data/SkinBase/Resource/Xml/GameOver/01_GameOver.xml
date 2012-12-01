@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<System>
+  <Property>
+    <Id>1</Id>
+    <Name>GameOver</Name>
+  </Property>
+  <BgImages>
+    <BgImage mask="False">
+      <ImagePath>Table/Black.png</ImagePath>
+      <Flag></Flag>
+      <Location left="0" top="0" />
+      <Size width="632" height="420" />
+    </BgImage>
+    <BgImage mask="False">
+      <ImagePath>Table/GameOver.png</ImagePath>
+      <Flag></Flag>
+      <Location left="116" top="15" />
+      <Size width="400" height="260" />
+    </BgImage>
+  </BgImages>
+  <MenuCards spreadtype="Custom">
+  </MenuCards>
+  <Events>
+    <Event>
+      <Ignitions>
+        <Number>1</Number>
+        <KeyCodes></KeyCodes>
+      </Ignitions>
+      <Contents>
+        <Start name="エリアイベント">
+          <Contents>
+            <Play type="Bgm" path="Bgm/DefOver.mid">
+              <Contents>
+                <Wait value="50">
+                  <Contents>
+                    <Talk type="Message" path="Resource/Image/Card/OVER.png">
+                      <Text>\n\n\nパーティは全滅しました…</Text>
+                      <Contents>
+                        <Post type="Event" name="続ける" command="MoveToYado">
+                          <Contents />
+                        </Post>
+                        <Post type="Event" name="タイトルに戻る" command="MoveToTitle">
+                          <Contents />
+                        </Post>
+                        <Post type="Event" name="終了" command="Exit">
+                          <Contents />
+                        </Post>
+                      </Contents>
+                    </Talk>
+                  </Contents>
+                </Wait>
+              </Contents>
+            </Play>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</System>

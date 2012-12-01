@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<System>
+　<Property>
+    <Id>1</Id>
+    <Name>タイトル</Name>
+  </Property>
+  <BgImages>
+    <BgImage mask="False">
+      <ImagePath>Table/MapOfWirth.png</ImagePath>
+      <Flag></Flag>
+      <Location left="0" top="0" />
+      <Size width="632" height="420" />
+    </BgImage>
+    <BgImage mask="True">
+      <ImagePath>Resource/Image/Other/TITLE.png</ImagePath>
+      <Flag></Flag>
+      <Location left="113" top="161" />
+      <Size width="406" height="99" />
+    </BgImage>
+  </BgImages>
+  <MenuCards spreadtype="Custom">
+    <MenuCard>
+      <Property>
+        <Name>スタート</Name>
+        <ImagePath>Resource/Image/Card/COMMAND0.png</ImagePath>
+        <Description>ゲームを始めます。</Description>
+        <Flag></Flag>
+        <Location left="231" top="156" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="YADOSELECT">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>終了</Name>
+        <ImagePath>Resource/Image/Card/COMMAND1.png</ImagePath>
+        <Description>ゲームを終了します。</Description>
+        <Flag></Flag>
+        <Location left="316" top="156" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="CLOSE">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+  </MenuCards>
+  <Events>
+    <Event>
+      <Ignitions>
+        <Number>1</Number>
+        <KeyCodes></KeyCodes>
+      </Ignitions>
+      <Contents>
+        <Start name="エリアイベント">
+          <Contents>
+            <Play type="Bgm" path="Bgm/DefOpen.mid">
+              <Contents>
+              </Contents>
+            </Play>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</System>

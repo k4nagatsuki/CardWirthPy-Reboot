@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>-1</Id>
+    <Name>混乱</Name>
+    <ImagePath>Resource/Image/Card/ACTION7.png</ImagePath>
+    <Description>戦闘行動カード（特殊）。魔法やフェイントを受けて動揺した者に配布されるペナルティカード。このカードの選択したラウンドは回避、抵抗にペナルティが与えられる。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Int" mental="Untrickish" />
+    <Target allrange="False">None</Target>
+    <EffectType spell="False">Physic</EffectType>
+    <ResistType>Avoid</ResistType>
+    <SuccessRate>0</SuccessRate>
+    <VisualEffect>None</VisualEffect>
+    <Enhance avoid="-5" resist="-5" defense="0"/>
+    <SoundPath></SoundPath>
+    <SoundPath2></SoundPath2>
+    <KeyCodes>ペナルティ\n\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>1</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>

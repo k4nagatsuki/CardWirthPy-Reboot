@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<System>
+  <Property>
+    <Id>1</Id>
+    <Name>冒険者の宿</Name>
+  </Property>
+  <BgImages>
+    <BgImage mask="False">
+      <ImagePath>Table/MapOfWirth.png</ImagePath>
+      <Flag></Flag>
+      <Location left="0" top="0" />
+      <Size width="632" height="420" />
+    </BgImage>
+    <BgImage mask="False">
+      <ImagePath>Table/AdventurersInn.png</ImagePath>
+      <Flag></Flag>
+      <Location left="116" top="15" />
+      <Size width="400" height="260" />
+    </BgImage>
+  </BgImages>
+  <MenuCards spreadtype="Custom">
+    <MenuCard>
+      <Property>
+        <Name>宿帳を開く</Name>
+        <ImagePath>Resource/Image/Card/COMMAND2.png</ImagePath>
+        <Description>冒険者の宿で待機しているキャラクターを表示します。キャラクターの新規登録や削除、パーティーの編成などの作業はここで行います。</Description>
+        <Flag></Flag>
+        <Location left="189" top="27" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="PLAYERSELECT">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>アルバム</Name>
+        <ImagePath>Resource/Image/Card/COMMAND3.png</ImagePath>
+        <Description>過去に死亡した冒険者を表示します。</Description>
+        <Flag></Flag>
+        <Location left="274" top="27" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="ALBUM">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>冒険の再開</Name>
+        <ImagePath>Resource/Image/Card/COMMAND4.png</ImagePath>
+        <Description>現在、冒険中のパーティを表示します。過去に中断したパーティの冒険の再開はここから行います。</Description>
+        <Flag></Flag>
+        <Location left="359" top="27" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="PARTYSELECT">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>カード置場</Name>
+        <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
+        <Description>冒険者の宿に保管されている手札カードの一覧を表示します。手札カードの分配や処分はここで行います。</Description>
+        <Flag></Flag>
+        <Location left="189" top="142" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="STOREHOUSE">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>セーブ</Name>
+        <ImagePath>Resource/Image/Card/COMMAND11.png</ImagePath>
+        <Description>現在の状況を保存します。改めてゲームを始めると、現在の状況からゲームが再開されます。</Description>
+        <Flag></Flag>
+        <Location left="274" top="142" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="SAVE">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>宿を出る</Name>
+        <ImagePath>Resource/Image/Card/COMMAND1.png</ImagePath>
+        <Description>ゲームスタート画面に戻ります。保存されていないデータは消えてしまいます。ご注意ください。</Description>
+        <Flag></Flag>
+        <Location left="359" top="142" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="RETURNTITLE">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+  </MenuCards>
+  <Events>
+    <Event>
+      <Ignitions>
+        <Number>1</Number>
+        <KeyCodes></KeyCodes>
+      </Ignitions>
+      <Contents>
+        <Start name="エリアイベント">
+          <Contents>
+            <Play type="Bgm" path="Bgm/DefInn.mid">
+              <Contents>
+              </Contents>
+            </Play>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</System>

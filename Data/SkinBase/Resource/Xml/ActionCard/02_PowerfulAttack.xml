@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>2</Id>
+    <Name>渾身の一撃</Name>
+    <ImagePath>Resource/Image/Card/ACTION2.png</ImagePath>
+    <Description>戦闘行動カード（攻撃）。全身全霊をこめた一撃を敵一体にぶつける。目標に与える被害は極めて大きいが、命中率が悪いという欠点を持つ。武器による攻撃のため、実体を持たない目標には効果がない。その使用には筋力と闘争心が必要とされる。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Str" mental="Aggressive" />
+    <Target allrange="False">Enemy</Target>
+    <EffectType spell="False">Physic</EffectType>
+    <ResistType>Avoid</ResistType>
+    <SuccessRate>-2</SuccessRate>
+    <VisualEffect>Vertical</VisualEffect>
+    <Enhance avoid="0" resist="0" defense="0"/>
+    <SoundPath>Material/素振り（渾身）.wav</SoundPath>
+    <SoundPath2>Material/効果（渾身）.wav</SoundPath2>
+    <KeyCodes>攻撃\n\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>15</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+    <Motion type="Damage" element="All" damagetype="LevelRatio" value="4" />
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>3</Id>
+    <Name>会心の一撃</Name>
+    <ImagePath>Resource/Image/Card/ACTION3.png</ImagePath>
+    <Description>戦闘行動カード（攻撃）。敵一体に急所を突く致命的な一撃を見舞う。命中率、ダメージともに高く、高レベルの敵に対して有効である。その使用には器用さと勇猛さが必要とされる。実体のない目標には効果を発揮しない。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Dex" mental="Brave" />
+    <Target allrange="False">Enemy</Target>
+    <EffectType spell="False">Physic</EffectType>
+    <ResistType>Avoid</ResistType>
+    <SuccessRate>2</SuccessRate>
+    <VisualEffect>Vertical</VisualEffect>
+    <Enhance avoid="0" resist="0" defense="0"/>
+    <SoundPath>Material/素振り（会心）.wav</SoundPath>
+    <SoundPath2>Material/効果（会心）.wav</SoundPath2>
+    <KeyCodes>攻撃\n\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>5</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+    <Motion type="Damage" element="All" damagetype="LevelRatio" value="3" />
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>

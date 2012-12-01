@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Skin>
+  <Property>
+    <Name>$name</Name>
+    <Type>$type</Type>
+    <Author></Author>
+    <Description>$description</Description>
+    <Extension image=".bmp" bgm=".mid" sound=".wav" />
+    <ClassicStyleText>True</ClassicStyleText>
+  </Property>
+  <Races />
+</Skin>

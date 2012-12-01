@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>0</Id>
+    <Name>カード交換</Name>
+    <ImagePath>Resource/Image/Card/ACTION0.png</ImagePath>
+    <Description>戦闘行動カード（特殊）。アイテムカードを除く全てのカードを捨てて、新しいカードに交換する。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Int" mental="Cautious" />
+    <Target allrange="False">User</Target>
+    <EffectType spell="False">Normal</EffectType>
+    <ResistType>Unfail</ResistType>
+    <SuccessRate>0</SuccessRate>
+    <VisualEffect>Reverse</VisualEffect>
+    <Enhance avoid="0" resist="0" defense="0"/>
+    <SoundPath>Material/使用（魔法）.wav</SoundPath>
+    <SoundPath2>Material/効果（付与）.wav</SoundPath2>
+    <KeyCodes>カード交換\n手札の交換\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>1</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+    <Motion type="VanishCard" element="All" />
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>

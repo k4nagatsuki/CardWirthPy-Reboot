@@ -6,7 +6,8 @@ syntax: regexp
 ^build/.*
 ^CardWirthPy/.*
 ^src\.zip$
-^Data/.*
+^Data/Skin/.*
+^Data/Temp/.*
 ^Scenario/.*
 ^UnregisteredScenario/.*
 ^Yado/.*

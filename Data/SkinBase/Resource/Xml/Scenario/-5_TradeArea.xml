@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<System>
+  <Property>
+    <Id>-5</Id>
+    <Name>カード移動</Name>
+  </Property>
+  <BgImages>
+    <BgImage mask="False">
+      <ImagePath></ImagePath>
+      <Flag></Flag>
+      <Location left="0" top="0" />
+      <Size width="632" height="420" />
+    </BgImage>
+  </BgImages>
+  <MenuCards spreadtype="Custom">
+    <LargeMenuCard>
+      <Property>
+        <Name>荷物袋</Name>
+        <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
+        <Description>荷物袋にカードを移動します。</Description>
+        <Flag></Flag>
+        <Location left="265" top="75" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="MoveCard" arg="BACKPACK">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </LargeMenuCard>
+  </MenuCards>
+  <Events>
+    <Event>
+      <Ignitions>
+        <Number>1</Number>
+        <KeyCodes></KeyCodes>
+      </Ignitions>
+      <Contents>
+        <Start name="エリアイベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</System>

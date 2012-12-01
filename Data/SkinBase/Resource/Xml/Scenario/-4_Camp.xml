@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<System>
+  <Property>
+    <Id>-4</Id>
+    <Name>キャンプ</Name>
+  </Property>
+  <BgImages>
+    <BgImage mask="False">
+      <ImagePath></ImagePath>
+      <Flag></Flag>
+      <Location left="0" top="0" />
+      <Size width="632" height="420" />
+    </BgImage>
+  </BgImages>
+  <MenuCards spreadtype="Auto">
+    <MenuCard>
+      <Property>
+        <Name>荷物袋</Name>
+        <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
+        <Description>パーティが共有する手札カードの一覧を表示します。手札カードの分配や処分はここで行います。</Description>
+        <Flag></Flag>
+        <Location left="0" top="0" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="BACKPACK">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>情報を見る</Name>
+        <ImagePath>Resource/Image/Card/COMMAND8.png</ImagePath>
+        <Description>冒険中に収拾した情報の一覧を表示します。</Description>
+        <Flag></Flag>
+        <Location left="0" top="0" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="INFOVIEW">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>パーティ情報</Name>
+        <ImagePath>Resource/Image/Card/FATHER.png</ImagePath>
+        <Description>パーティの情報を表示します。パーティの所持金の移動やチーム名の変更はここで行います。</Description>
+        <Flag></Flag>
+        <Location left="0" top="0" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="PARTYEDIT">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>セーブ</Name>
+        <ImagePath>Resource/Image/Card/COMMAND11.png</ImagePath>
+        <Description>現在の状況を保存します。改めてゲームを始めると、現在の状況からゲームが再開されます。</Description>
+        <Flag></Flag>
+        <Location left="0" top="0" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="ShowDialog" arg="SAVE">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+    <MenuCard>
+      <Property>
+        <Name>冒険の中断</Name>
+        <ImagePath>Resource/Image/Card/COMMAND9.png</ImagePath>
+        <Description>現在選択中のパーティの冒険を中断します。冒険を再開するには宿屋で『冒険の再開』を選択してください。</Description>
+        <Flag></Flag>
+        <Location left="0" top="0" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="InterruptAdventure">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </MenuCard>
+  </MenuCards>
+  <Events>
+    <Event>
+      <Ignitions>
+        <Number>1</Number>
+        <KeyCodes></KeyCodes>
+      </Ignitions>
+      <Contents>
+        <Start name="エリアイベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</System>

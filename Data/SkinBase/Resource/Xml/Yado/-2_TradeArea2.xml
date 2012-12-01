@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<System>
+  <Property>
+    <Id>-2</Id>
+    <Name>カード移動</Name>
+  </Property>
+  <BgImages>
+    <BgImage mask="False">
+      <ImagePath></ImagePath>
+      <Flag></Flag>
+      <Location left="0" top="0" />
+      <Size width="632" height="420" />
+    </BgImage>
+  </BgImages>
+  <MenuCards spreadtype="Custom">
+    <LargeMenuCard>
+      <Property>
+        <Name>カード置場</Name>
+        <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
+        <Description>カード置場にカードを移動します。</Description>
+        <Flag></Flag>
+        <Location left="120" top="75" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="MoveCard" arg="STOREHOUSE">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </LargeMenuCard>
+    <LargeMenuCard>
+      <Property>
+        <Name>荷物袋</Name>
+        <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
+        <Description>荷物袋にカードを移動します。</Description>
+        <Flag></Flag>
+        <Location left="220" top="75" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="MoveCard" arg="BACKPACK">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </LargeMenuCard>
+    <LargeMenuCard>
+      <Property>
+        <Name>売却</Name>
+        <ImagePath>Resource/Image/Card/SHELF.png</ImagePath>
+        <Description>カードを売却します。</Description>
+        <Flag></Flag>
+        <Location left="320" top="75" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="MoveCard" arg="PAWNSHOP">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </LargeMenuCard>
+    <LargeMenuCard>
+      <Property>
+        <Name>ごみ箱</Name>
+        <ImagePath>Resource/Image/Card/TRUSH.png</ImagePath>
+        <Description>カードを処分します。</Description>
+        <Flag></Flag>
+        <Location left="420" top="75" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="MoveCard" arg="TRASHBOX">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </LargeMenuCard>
+  </MenuCards>
+  <Events>
+    <Event>
+      <Ignitions>
+        <Number>1</Number>
+        <KeyCodes></KeyCodes>
+      </Ignitions>
+      <Contents>
+        <Start name="エリアイベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</System>

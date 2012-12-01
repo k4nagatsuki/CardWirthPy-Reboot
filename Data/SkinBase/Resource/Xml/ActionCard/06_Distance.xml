@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>6</Id>
+    <Name>見切り</Name>
+    <ImagePath>Resource/Image/Card/ACTION6.png</ImagePath>
+    <Description>戦闘行動カード（防御）。敵の攻撃を見切り、紙一重で回避する。このカードを選択しているラウンドは、武器による攻撃に対する回避率が向上する。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Agl" mental="Cautious" />
+    <Target allrange="False">None</Target>
+    <EffectType spell="False">Physic</EffectType>
+    <ResistType>Avoid</ResistType>
+    <SuccessRate>0</SuccessRate>
+    <VisualEffect>None</VisualEffect>
+    <Enhance avoid="5" resist="0" defense="0"/>
+    <SoundPath></SoundPath>
+    <SoundPath2></SoundPath2>
+    <KeyCodes>防御\n\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>15</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>

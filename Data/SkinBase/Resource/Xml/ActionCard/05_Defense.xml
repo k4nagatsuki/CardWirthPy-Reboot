@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>5</Id>
+    <Name>防御</Name>
+    <ImagePath>Resource/Image/Card/ACTION5.png</ImagePath>
+    <Description>戦闘行動カード（防御）。敵の攻撃に対し守りを固める。このカードを選択したラウンドは、防御力と魔法に対する抵抗力が向上する。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Min" mental="Cautious" />
+    <Target allrange="False">None</Target>
+    <EffectType spell="False">Physic</EffectType>
+    <ResistType>Avoid</ResistType>
+    <SuccessRate>0</SuccessRate>
+    <VisualEffect>None</VisualEffect>
+    <Enhance avoid="0" resist="5" defense="5"/>
+    <SoundPath></SoundPath>
+    <SoundPath2></SoundPath2>
+    <KeyCodes>防御\n守備\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>15</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>
