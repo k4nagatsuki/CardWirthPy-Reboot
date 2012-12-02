@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import threading
 import zipfile
 import StringIO
 import wx
@@ -119,12 +120,8 @@ class Select(wx.Dialog):
         self.draw()
 
     def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self.toppanel)
-            dc = wx.BufferedDC(dc, self.toppanel.GetSize())
-        else:
-            dc = wx.PaintDC(self.toppanel)
-
+        dc = wx.ClientDC(self.toppanel)
+        dc = wx.BufferedDC(dc, self.toppanel.GetSize())
         return dc
 
     def _do_layout(self):
@@ -868,6 +865,9 @@ class ScenarioSelect(Select):
         # 冒険者情報
         self.list = dpaths + headers
         self.index = 0
+        # nowdirがディレクトリだった場合の内容リスト
+        self.names = []
+        self.updatenames_thr = None
         # クリアシナリオ名の集合
         self.stamps = cw.cwpy.ydata.get_compstamps()
         # パーティの所持しているクーポンの集合
@@ -909,6 +909,7 @@ class ScenarioSelect(Select):
         self.Bind(wx.EVT_BUTTON, self.OnClickNoBtn, self.nobtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickConvBtn, self.convbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
+        self.draw(True)
 
     def OnDropFiles(self, event):
         paths = event.GetFiles()
@@ -1013,21 +1014,17 @@ class ScenarioSelect(Select):
 
         if not isinstance(self.list[self.index], cw.header.ScenarioHeader):
             dpath = self.list[self.index]
+
+            if update:
+                if self.updatenames_thr:
+                    self.updatenames_thr.quit = True
+                    self.updatenames_thr = None
+                self.names = ["読込中..."]
+                self.updatenames_thr = UpdateNamesThread(self, dpath)
+                self.updatenames_thr.start()
+
             # ボタンのテキストを変える
             self.yesbtn.SetLabel(u"見る")
-            # dpathの中にあるシナリオをDBに登録
-            self.db.update(dpath)
-            # dpathの中にあるシナリオ名のリスト
-            headers = self.db.search_dpath(dpath)
-            hnames = [header.name for header in headers] if headers else []
-            # dpathの中にあるディレクトリ名のリスト
-            dnames = []
-
-            for path in self.get_dpaths(dpath):
-                if path.lower().endswith(".lnk"):
-                    path = path[0:-len(".lnk")]
-                dname = "[%s]" % os.path.basename(path)
-                dnames.append(dname)
 
             # ディレクトリ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
@@ -1045,8 +1042,8 @@ class ScenarioSelect(Select):
             dc.DrawText(s, (bmpw-w)/2, 110)
             # 中身
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-            names = dnames + hnames
 
+            names = self.names
             if len(names) > 13:
                 names = names[0:12]
                 names.append("etc...")
@@ -1293,6 +1290,40 @@ class ScenarioSelect(Select):
         cw.cwpy.sounds[u"システム・改ページ"].play()
         self.draw(True)
         self.enable_btn()
+
+class UpdateNamesThread(threading.Thread):
+
+    def __init__(self, dlg, dpath):
+        threading.Thread.__init__(self)
+        self.dlg = dlg
+        self.dpath = dpath
+        self.dpaths = dlg.get_dpaths(dpath)
+        self.quit = False
+
+    def run(self):
+        """ScenarioSelectで現在表示中のディレクトリ内の
+        シナリオ・ディレクトリのリストを生成する。
+        """
+        # dpathの中にあるシナリオをDBに登録
+        db = cw.scenariodb.Scenariodb()
+        db.update(self.dpath)
+        if self.quit: return
+        # dpathの中にあるシナリオ名のリスト
+        headers = db.search_dpath(self.dpath)
+        hnames = [header.name for header in headers] if headers else []
+        # dpathの中にあるディレクトリ名のリスト
+        dnames = []
+
+        if self.quit: return
+        for path in self.dpaths:
+            if path.lower().endswith(".lnk"):
+                path = path[0:-len(".lnk")]
+            dname = "[%s]" % os.path.basename(path)
+            dnames.append(dname)
+        self.dlg.names = dnames + hnames
+        if self.quit: return
+        wx.CallAfter(self.dlg.draw, False)
+        self.dlg.updatenames_thr = None
 
 def main():
     pass

@@ -7,6 +7,7 @@ import stat
 import shutil
 import re
 import time
+import threading
 import struct
 import zipfile
 import operator
@@ -870,6 +871,28 @@ def get_boxpointlist(pos, size):
     poslist.append((x + width, y, x + width, y + height))
     poslist.append((x, y + height, x + width, y + height))
     return poslist
+
+#-------------------------------------------------------------------------------
+#  スレッド関係
+#-------------------------------------------------------------------------------
+
+"""
+@synclock(_lock)
+def function():
+    ...
+のように、ロックオブジェクトを指定して
+特定関数・メソッドの排他制御を行う。
+"""
+def synclock(l):
+    def synclock(f):
+        def acquire(*args, **kw):
+            l.acquire()
+            try:
+                return f(*args, **kw)
+            finally:
+                l.release()
+        return acquire
+    return synclock
 
 def main():
     pass
