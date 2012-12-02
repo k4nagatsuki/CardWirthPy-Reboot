@@ -3,6 +3,7 @@
 
 import os
 import re
+import time
 import shutil
 import StringIO
 import xml.parsers.expat

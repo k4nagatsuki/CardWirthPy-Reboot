@@ -13,7 +13,10 @@ import win32com.client
 
 import cw
 import cw.binary
+from cw.util import synclock
 
+
+_lock = threading.Lock()
 
 TYPE_WSN = 0
 TYPE_CLASSIC = 1
@@ -57,6 +60,7 @@ class Scenariodb(object):
     mtime(ファイル最終更新時間。エポック秒),
     image(見出し画像。バイナリ)
     """
+    @synclock(_lock)
     def __init__(self):
         self.name = "Scenario.db"
 
@@ -89,10 +93,16 @@ class Scenariodb(object):
 
             self.cur.execute(s)
 
+    @synclock(_lock)
     def update(self, dpath=u"Scenario"):
         """データベースを更新する。"""
-        s = "SELECT dpath, fname, mtime FROM scenariodb"
-        self.cur.execute(s)
+        if sys.platform == "win32":
+            wsh = win32com.client.Dispatch("WScript.Shell")
+        else:
+            wsh = None
+
+        s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
+        self.cur.execute(s, (get_linktarget(dpath, wsh),))
         data = self.cur.fetchall()
         dbpaths = []
 
@@ -106,7 +116,7 @@ class Scenariodb(object):
                     dbpaths.append(path)
                     if os.path.getmtime(spath) > t[2]:
                         # 情報を更新
-                        self.insert_scenario(path, False)
+                        self._insert_scenario(path, False)
                 else:
                     self.delete(path, False)
             else:
@@ -114,15 +124,10 @@ class Scenariodb(object):
 
                 if os.path.getmtime(path) > t[2]:
                     # 情報を更新
-                    self.insert_scenario(path, False)
+                    self._insert_scenario(path, False)
 
         self.con.commit()
         dbpaths = set(dbpaths)
-
-        if sys.platform == "win32":
-            wsh = win32com.client.Dispatch("WScript.Shell")
-        else:
-            wsh = None
 
         cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
             "", "", cw.cwpy.setting.skintype,
@@ -130,7 +135,7 @@ class Scenariodb(object):
 
         for path in get_scenariopaths(dpath, wsh):
             if not path in dbpaths:
-                self.insert_scenario(path, False)
+                self._insert_scenario(path, False)
 
         cw.cwpy.classicdata = None
 
@@ -161,8 +166,12 @@ class Scenariodb(object):
         if commit:
             self.con.commit()
 
+    @synclock(_lock)
     def insert_scenario(self, path, commit=True):
         """データベースにシナリオを登録する。"""
+        self._insert_scenario(path, commit)
+
+    def _insert_scenario(self, path, commit=True):
         if path.lower().endswith(".wsn"):
             t = read_summary(path)
         else:
@@ -204,7 +213,7 @@ class Scenariodb(object):
                     if cs:
                         self.insert(cs, True)
                         # 更新後の情報を取得
-                        header = self.search_path(path)
+                        header = self._search_path(path)
                         return header
                 else:
                     # 更新は不要
@@ -212,9 +221,9 @@ class Scenariodb(object):
             self.delete(path)
             return None
         elif os.path.getmtime(path) > header.mtime:
-            if self.insert_scenario(path):
+            if self._insert_scenario(path):
                 # 更新後の情報を取得
-                header = self.search_path(path)
+                header = self._search_path(path)
             else:
                 return None
 
@@ -247,7 +256,11 @@ class Scenariodb(object):
         cw.util.sort_by_attr(headers, "levelmin")
         return headers
 
+    @synclock(_lock)
     def search_path(self, path):
+        self._search_path(path)
+
+    def _search_path(self, path):
         path = path.replace("\\", "/")
         dpath, fname = os.path.split(path)
         s = "SELECT * FROM scenariodb WHERE dpath=? AND fname=?"
@@ -255,12 +268,13 @@ class Scenariodb(object):
         data = self.cur.fetchone()
 
         if not data and os.path.isfile(path):
-            if self.insert_scenario(path):
+            if self._insert_scenario(path):
                 self.cur.execute(s, (dpath, fname,))
                 data = self.cur.fetchone()
 
         return self.create_header(data)
 
+    @synclock(_lock)
     def search_dpath(self, dpath):
         dpath = get_linktarget(dpath).replace("\\", "/")
         s = "SELECT * FROM scenariodb WHERE dpath=?"
@@ -278,13 +292,14 @@ class Scenariodb(object):
 
             if not path in dbpaths and os.path.isfile(path)\
                                                     and name.endswith(".wsn"):
-                header = self.search_path(path)
+                header = self._search_path(path)
 
                 if header:
                     headers.append(header)
 
         return self.sort_headers(headers)
 
+    @synclock(_lock)
     def search_wildcard(self, q, column):
         q = "%%%s%%" % (q)
         s = "SELECT * FROM scenariodb WHERE %s LIKE ?" % (column)
