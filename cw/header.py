@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import io
 import re
 import copy
 import weakref
@@ -635,6 +636,7 @@ class ScenarioHeader(object):
         self.ctime = t[13]
         self.mtime = t[14]
         self.image = t[15]
+        self._wxbmp = None
 
     def header2tuple(self):
         return (self.dpath, self.type, self.fname, self.name, self.author, self.desc,
@@ -646,13 +648,15 @@ class ScenarioHeader(object):
         return "/".join([self.dpath, self.fname])
 
     def get_wxbmp(self, mask=True):
-        if self.image:
-            f = StringIO.StringIO(self.image)
-            image = wx.ImageFromStream(f)
-            f.close()
-            return cw.util.load_wxbmp(image=image, mask=mask)
-        else:
-            return wx.EmptyBitmap(0, 0)
+        if not self._wxbmp:
+            if self.image:
+                f = io.BytesIO(str(self.image))
+                image = wx.ImageFromStream(f)
+                f.close()
+                self._wxbmp = cw.util.load_wxbmp(image=image, mask=mask)
+            else:
+                self._wxbmp = wx.EmptyBitmap(0, 0)
+        return self._wxbmp
 
 class PartyHeader(object):
     def __init__(self, data):
