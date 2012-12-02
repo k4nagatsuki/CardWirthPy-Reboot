@@ -896,8 +896,8 @@ class Character(object):
             # 調節前のレベル
             coupons = self.get_specialcoupons()
             limit = self.level
-            if u"＠本来の上限" in coupons:
-                limit = coupons[u"＠本来の上限"]
+            if u"＠レベル原点" in coupons:
+                limit = coupons[u"＠レベル原点"]
 
         # レベル
         self.level = value
@@ -918,13 +918,7 @@ class Character(object):
         self.data.edit("/Property/Life", str(self.maxlife), "max")
         self.set_life(self.maxlife)
 
-        if regulate:
-            # 本来の上限クーポン操作
-            if limit == value:
-                self.remove_coupon(u"＠本来の上限")
-            else:
-                self.set_coupon(u"＠本来の上限", str(limit))
-        else:
+        if not regulate:
             # レベル原点・EPクーポン操作
             for e in self.data.find2("/Property/Coupons"):
                 if not e.text:

@@ -275,8 +275,8 @@ class TopPanel(wx.Panel):
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
         coupons = self.ccard.get_specialcoupons()
-        if u"＠本来の上限" in coupons:
-            s = "Level: %d / %d" % (self.ccard.level, coupons[u"＠本来の上限"])
+        if u"＠レベル原点" in coupons and self.ccard.level <> coupons[u"＠レベル原点"]:
+            s = "Level: %d / %d" % (self.ccard.level, coupons[u"＠レベル原点"])
         else:
             s = "Level: %d" % (self.ccard.level)
         dc.DrawText(s, 5, 5)

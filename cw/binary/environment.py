@@ -14,6 +14,11 @@ class Environment(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = -1
         self.dataversion = f.string()
+        if self.dataversion.startswith("DATAVERSION_"):
+            self.dataversion_int = int(self.dataversion[len("DATAVERSION_"):])
+        else:
+            self.dataversion_int = 0
+        self.dataversion_int
         self.yadotype = f.byte()
         self.drawcard_speed = f.dword()
         self.drawbg_speed = f.dword()
@@ -27,6 +32,10 @@ class Environment(base.CWBinaryBase):
         self.effect_getmoney = f.bool()
         self.clickjump = f.bool()
         self.keep_levelmax = f.bool()
+        if 11 <= self.dataversion_int:
+            self.bgeffectatselmode = f.bool()
+        else:
+            self.bgeffectatselmode = True
         self.viewtype_poster = f.byte()
         self.bgcolor_message = f.dword()
         self.use_decofont = f.bool()
@@ -70,6 +79,7 @@ class Environment(base.CWBinaryBase):
              "clickcancel": self.clickcancel,
              "clickjump": self.clickjump,
              "keepmaxlevel": self.keep_levelmax,
+             "bgeffectatselmode": self.bgeffectatselmode,
              "posterview": self.conv_yado_summaryview(self.viewtype_poster),
              "messagebgcolor": self.bgcolor_message,
              "usedecofont": self.use_decofont,
@@ -81,13 +91,13 @@ class Environment(base.CWBinaryBase):
         compstamps = []
         gossips = []
 
-        for compstamp in cw.utils.decodetextlist(self.compstamps):
+        for compstamp in cw.util.decodetextlist(self.compstamps):
             if compstamp:
                 s = "%s  <CompleteStamp>%s</CompleteStamp>" % (d["indent"],
                                                                     compstamp)
                 compstamps.append(s)
 
-        for gossip in cw.utils.decodetextlist(self.gossips):
+        for gossip in cw.util.decodetextlist(self.gossips):
             if gossip:
                 s = "%s  <Gossip>%s</Gossip>" % (d["indent"], gossip)
                 gossips.append(s)

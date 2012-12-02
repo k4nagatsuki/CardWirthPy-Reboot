@@ -359,7 +359,7 @@ class YadoSelect(Select):
 
         # 変換可能なデータかどうか確認
         if not cwdata.is_convertible():
-            s = u"CardWirth ver1.28用の宿しか変換できません。"
+            s = u"CardWirth ver1.28以降の宿しか変換できません。"
             dlg = message.ErrorMessage(self, s)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()

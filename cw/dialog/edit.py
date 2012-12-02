@@ -237,8 +237,8 @@ class LevelEditor(wx.Dialog):
         minvalue = 1
         maxvalue = self.ccard.level
         coupons = self.ccard.get_specialcoupons()
-        if u"＠本来の上限" in coupons:
-            maxvalue = coupons[u"＠本来の上限"]
+        if u"＠レベル原点" in coupons:
+            maxvalue = coupons[u"＠レベル原点"]
 
         # レベル調節スライダ
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)

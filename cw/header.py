@@ -17,7 +17,7 @@ class CardHeader(object):
         self.set_owner(owner)
         self.carddata = carddata
 
-        if data:
+        if data is not None:
             self.fpath = data.fpath
             self.type = os.path.basename(os.path.dirname(self.fpath))
         elif carddata is not None:

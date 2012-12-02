@@ -83,7 +83,7 @@ class CWYado(object):
 
         self.wyd = None
 
-        if data.dataversion == "DATAVERSION_10":
+        if data.dataversion_int in (10, 11):
             return True
         else:
             return False
