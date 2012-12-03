@@ -1286,6 +1286,19 @@ class AlbumPage(object):
         self.name = self.data.gettext("/Property/Name", "")
         self.level = self.data.getint("/Property/Level")
 
+    def get_specialcoupons(self):
+        """
+        "＠"で始まる特殊クーポンの
+        辞書(key=クーポン名, value=クーポン得点)を返す。
+        """
+        d = {}
+
+        for e in self.data.getfind("/Property/Coupons"):
+            if e.text and e.text.startswith(u"＠"):
+                d[e.text] = e.getint("", "value", 0)
+
+        return d
+
 def main():
     pass
 

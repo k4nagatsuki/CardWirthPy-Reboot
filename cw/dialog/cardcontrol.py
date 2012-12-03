@@ -266,6 +266,7 @@ class CardControl(wx.Dialog):
                     cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self)
                 elif index == self._combo_shelf:
                     cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self)
+                    cw.cwpy.draw(True)
                 elif index == self._combo_trush:
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self)
                 self.draw(True)
@@ -410,7 +411,7 @@ class CardHolder(CardControl):
             # キャストの手札
             self._can_open_cardpocket = cw.cwpy.ydata.party and 0 < len(cw.cwpy.ydata.party.members)
             # 荷物袋
-            self._can_open_backpack = sendto
+            self._can_open_backpack = self._can_open_cardpocket and sendto
             # カード置場
             self._can_open_storehouse = not cw.cwpy.is_playingscenario()
 
@@ -456,6 +457,11 @@ class CardHolder(CardControl):
             self.downbtn.Disable()
 
         # 移動先選択コンボボックス(情報カードの場合は無し)
+        self._combo_storehouse = -1
+        self._combo_backpack = -1
+        self._combo_cast = {}
+        self._combo_shelf = -1
+        self._combo_trush = -1
         if sendto:
             bmp = cw.cwpy.rsrc.buttons["ARROW"]
             self._combo_manual = len(self.combo.GetItems())
@@ -470,7 +476,6 @@ class CardHolder(CardControl):
                 self.combo.Append(u"荷物袋", bmp)
             if self._can_open_cardpocket:
                 bmp = cw.cwpy.rsrc.buttons["CAST"]
-                self._combo_cast = {}
                 index = 0
                 for castdata in self.list2:
                     self._combo_cast[len(self.combo.GetItems())] = index
@@ -793,7 +798,21 @@ class CardHolder(CardControl):
             self.draw_cards(dc, update, 1)
 
     def get_headers(self):
-        return self.list[self.index * 10:self.index * 10 + 10]
+        li = self.index * 10
+        list = self.list[li:li + 10]
+
+        # header未生成のカードはここで生成する
+        for index, path in enumerate(list):
+            if not isinstance(path, cw.header.CardHeader):
+                header = cw.cwpy.ydata.create_cardheader(path, owner="STOREHOUSE")
+                if self.callname == "BACKPACK":
+                    cw.cwpy.ydata.party.backpack[li + index] = header
+                elif self.callname == "STOREHOUSE":
+                    cw.cwpy.ydata.storehouse[li + index] = header
+                self.list[li + index] = header
+                list[index] = header
+
+        return list
 
 #-------------------------------------------------------------------------------
 #　戦闘手札カードダイアログ

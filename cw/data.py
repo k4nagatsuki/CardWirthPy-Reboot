@@ -678,22 +678,18 @@ class YadoData(object):
         self.standbys = []
 
         for path in self.get_standbypaths():
-            header = self.create_advheader(path)
-
-            if not header.lost:
-                self.standbys.append(header)
+            self.standbys.append(path)
 
         # アルバム(AdventurerHeader)
-        paths = self.get_albumpaths()
-        self.album = [self.create_advheader(path, True) for path in paths]
+        self.album = []
+        for path in self.get_albumpaths():
+            self.album.append(path)
+
         # カード置場(CardHeader)
         self.storehouse = []
-
         for path in self.get_storehousepaths():
-            header = self.create_cardheader(path, owner="STOREHOUSE")
-            self.storehouse.append(header)
+            self.storehouse.append(path)
 
-        cw.util.sort_by_attr(self.storehouse, "name")
         # 現在選択中のパーティをセット
         self.party = None
         pname = self.environment.gettext("Property/NowSelectingParty", "")

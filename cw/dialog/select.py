@@ -723,6 +723,11 @@ class PlayerSelect(Select):
             return
 
         header = self.list[self.index]
+        if not isinstance(header, cw.header.AdventurerHeader):
+            # まだヘッダが生成されていない場合
+            header = cw.cwpy.ydata.create_advheader(header)
+            self.list[self.index] = header
+            cw.cwpy.ydata.standbys[self.index] = header
         # Level
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
