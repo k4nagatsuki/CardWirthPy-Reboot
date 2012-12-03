@@ -1091,8 +1091,7 @@ class Party(object):
         self.backpack = []
 
         for e in self.data.getfind("Backpack"):
-            header = cw.header.CardHeader(carddata=e, owner="BACKPACK")
-            self.backpack.append(header)
+            self.backpack.append(e)
 
     def is_loading(self):
         """membersのデータを元にPlayerCardインスタンスを

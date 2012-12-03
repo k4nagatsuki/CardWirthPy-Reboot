@@ -802,15 +802,20 @@ class CardHolder(CardControl):
         list = self.list[li:li + 10]
 
         # header未生成のカードはここで生成する
-        for index, path in enumerate(list):
-            if not isinstance(path, cw.header.CardHeader):
-                header = cw.cwpy.ydata.create_cardheader(path, owner="STOREHOUSE")
-                if self.callname == "BACKPACK":
+        if self.callname == "BACKPACK":
+            for index, path in enumerate(list):
+                if not isinstance(path, cw.header.CardHeader):
+                    header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
                     cw.cwpy.ydata.party.backpack[li + index] = header
-                elif self.callname == "STOREHOUSE":
+                    self.list[li + index] = header
+                    list[index] = header
+        elif self.callname == "STOREHOUSE":
+            for index, path in enumerate(list):
+                if not isinstance(path, cw.header.CardHeader):
+                    header = cw.cwpy.ydata.create_cardheader(path, owner="STOREHOUSE")
                     cw.cwpy.ydata.storehouse[li + index] = header
-                self.list[li + index] = header
-                list[index] = header
+                    self.list[li + index] = header
+                    list[index] = header
 
         return list
 
