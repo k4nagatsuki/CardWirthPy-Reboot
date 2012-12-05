@@ -9,6 +9,7 @@ import StringIO
 import sqlite3
 import threading
 import shutil
+from xml.sax.saxutils import unescape
 import win32com.client
 
 import cw
@@ -417,10 +418,10 @@ def read_summary_classic(path):
         cw.cwpy.classicdata.summarypath = oldspath
 
     summaryinfos = [os.path.dirname(path), TYPE_CLASSIC,
-            os.path.basename(path), s.name, s.author,
-            s.description, s.skintype, s.level_min, s.level_max,
-            s.required_coupons, s.required_coupons_num,
-            s.area_id, s.tags, ctime, mtime]
+            os.path.basename(path), unescape(s.name), unescape(s.author),
+            unescape(s.description), unescape(s.skintype), s.level_min, s.level_max,
+            unescape(s.required_coupons), s.required_coupons_num,
+            s.area_id, unescape(s.tags), ctime, mtime]
     if imgbuf:
         imgbuf = buffer(imgbuf)
     summaryinfos.append(imgbuf)
