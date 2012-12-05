@@ -1077,9 +1077,13 @@ class ScenarioSelect(Select):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, 35)
             # 解説文
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=10))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
             s = header.desc
-            dc.DrawLabel(s, wx.Rect(65, 175, 1, 1), wx.ALIGN_LEFT)
+            y = 175
+            for l in s.splitlines():
+                dc.DrawText(l, 65, y)
+#                dc.DrawLabel(s, wx.Rect(65, 175, 1, 1), wx.ALIGN_LEFT)
+                y += 15
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho",
