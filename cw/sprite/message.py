@@ -367,6 +367,18 @@ class MessageWindow(base.CWPySprite):
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos=(80, 50), size=(470, 38)):
         base.CWPySprite.__init__(self)
+
+        # クラシックスタイルか
+        self.classicstyletext = cw.cwpy.setting.classicstyletext
+        # クラシックスタイルのテキスト描画用
+        if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
+            self.wxcanvas = wx.EmptyBitmap(22, 22)
+            self.wxdc = wx.MemoryDC(self.wxcanvas)
+            self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
+        else:
+            self.wxcanvas = None
+            self.wxdc = None
+
         # メッセージの選択結果
         self.result = None
         # data

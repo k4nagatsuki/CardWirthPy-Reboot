@@ -268,7 +268,7 @@ class Resource(object):
             wxfont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
             fonts["message_classic"] = wxfont
         # メッセージウィンドウの選択肢描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], 16)
+        font = pygame.font.Font(self.fontpaths["uigothic"], 15)
         font.set_bold(True)
         fonts["selectionbar"] = font
         # ステータスバーパネル描画用

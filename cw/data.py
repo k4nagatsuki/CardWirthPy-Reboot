@@ -1205,6 +1205,11 @@ class Party(object):
 
     def get_allcardheaders(self):
         seq = []
+        for index, path in enumerate(self.backpack):
+            # ヘッダがまだ生成されていない場合はここで生成する
+            if not isinstance(path, cw.header.CardHeader):
+                header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
+                self.backpack[index] = header
         seq.extend(self.backpack)
 
         for pcard in cw.cwpy.get_pcards():
