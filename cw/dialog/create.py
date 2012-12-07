@@ -453,12 +453,12 @@ class AdventurerCreater(wx.Dialog):
 
     def OnCancel(self, event):
         if not self.page1.name:
-            cw.cwpy.sounds[u"システム・クリック"].play()
+            cw.cwpy.sounds[u"click"].play()
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
             return
 
-        cw.cwpy.sounds[u"システム・シグナル"].play()
+        cw.cwpy.sounds[u"signal"].play()
         s = u"キャラクターを放棄します\nよろしいですか？"
         dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -473,7 +473,7 @@ class AdventurerCreater(wx.Dialog):
         nextpage = self.page.get_next()
 
         if nextpage:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             self.page.Freeze()
             self.page = nextpage
             self.page.Thaw()
@@ -483,14 +483,14 @@ class AdventurerCreater(wx.Dialog):
         prevpage = self.page.get_prev()
 
         if prevpage:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             self.page.Freeze()
             self.page = prevpage
             self.page.Thaw()
             self.enable_btn()
 
     def OnClickPostBtn(self, event):
-        cw.cwpy.sounds[u"システム・シグナル"].play()
+        cw.cwpy.sounds[u"signal"].play()
         s = u"%sを登録します。\nよろしいですか？" % (self.page1.name)
         dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -733,21 +733,21 @@ class NamePage(AdventurerCreaterPage):
 
     def set_sex(self, name):
         if not self.sex == name:
-            cw.cwpy.sounds[u"システム・クリック"].play()
+            cw.cwpy.sounds[u"click"].play()
             self.sex = name
             self.set_imgpaths()
             self.draw(True)
 
     def set_age(self, name):
         if not self.age == name:
-            cw.cwpy.sounds[u"システム・クリック"].play()
+            cw.cwpy.sounds[u"click"].play()
             self.age = name
             self.set_imgpaths()
             self.draw(True)
 
     def set_nextimg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.imgpaths.index(self.imgpath) + 1
 
             try:
@@ -759,7 +759,7 @@ class NamePage(AdventurerCreaterPage):
 
     def set_previmg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.imgpaths.index(self.imgpath) - 1
 
             try:
@@ -980,7 +980,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_nextfather(self, name):
         if self.fathers:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.fathers.index(self.father) + 1
 
             try:
@@ -992,7 +992,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_prevfather(self, name):
         if self.fathers:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.fathers.index(self.father) - 1
 
             try:
@@ -1004,7 +1004,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_nextmother(self, name):
         if self.mothers:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.mothers.index(self.mother) + 1
 
             try:
@@ -1016,7 +1016,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_prevmother(self, name):
         if self.mothers:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.mothers.index(self.mother) - 1
 
             try:
@@ -1110,7 +1110,7 @@ class TalentPage(AdventurerCreaterPage):
 
     def set_talent(self, name):
         if not self.talent == name:
-            cw.cwpy.sounds[u"システム・クリック"].play()
+            cw.cwpy.sounds[u"click"].play()
             self.talent = name
             self.draw(True)
 
@@ -1186,7 +1186,7 @@ class AttrPage(AdventurerCreaterPage):
         else:
             self.couponsdata[coupons] = name
 
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         self.draw(True)
 
     def get_coupons(self):
@@ -1231,7 +1231,7 @@ class YadoCreater(wx.Dialog):
         name = self.textctrl.GetValue().strip()
 
         if not name:
-            cw.cwpy.sounds[u"システム・エラー"].play()
+            cw.cwpy.sounds[u"error"].play()
             s = u"宿名が入力されていません。"
             dlg = cw.dialog.message.Message(self, u"メッセージ", s)
             cw.cwpy.frame.move_dlg(dlg)
@@ -1239,7 +1239,7 @@ class YadoCreater(wx.Dialog):
             dlg.Destroy()
             return
         elif cw.util.check_dischar(name):
-            cw.cwpy.sounds[u"システム・エラー"].play()
+            cw.cwpy.sounds[u"error"].play()
             s = u"名称に不正な文字が使用されています。\n名前を変更してください。"
             dlg = cw.dialog.message.Message(self, u"メッセージ", s)
             cw.cwpy.frame.move_dlg(dlg)
@@ -1247,7 +1247,7 @@ class YadoCreater(wx.Dialog):
             dlg.Destroy()
             return
         elif os.path.isdir(cw.util.join_paths("Yado", name)):
-            cw.cwpy.sounds[u"システム・エラー"].play()
+            cw.cwpy.sounds[u"error"].play()
             s = u"同名の冒険者の宿が既に存在しています。\n名前を変更してください。"
             dlg = cw.dialog.message.Message(self, u"メッセージ", s)
             cw.cwpy.frame.move_dlg(dlg)
@@ -1260,7 +1260,7 @@ class YadoCreater(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -1361,7 +1361,7 @@ class AdventurerDesignDialog(wx.Dialog):
         self.Layout()
 
     def OnOk(self, event):
-        cw.cwpy.sounds[u"システム・収穫"].play()
+        cw.cwpy.sounds[u"harvest"].play()
 
         cw.animation.animate_sprite(self.ccard, "hide")
         self.ccard.set_name(self.toppanel.namectrl.GetValue())
@@ -1377,7 +1377,7 @@ class AdventurerDesignDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -1490,7 +1490,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def set_nextimg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.imgpaths.index(self.imgpath) + 1
 
             try:
@@ -1502,7 +1502,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def set_previmg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             index = self.imgpaths.index(self.imgpath) - 1
 
             try:

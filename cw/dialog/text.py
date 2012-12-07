@@ -119,7 +119,7 @@ class Text(wx.Dialog):
 
     def draw(self, update=False):
         if update:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             dc = wx.ClientDC(self.toppanel)
         else:
             dc = wx.PaintDC(self.toppanel)

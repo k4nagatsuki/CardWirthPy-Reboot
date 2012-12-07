@@ -79,7 +79,7 @@ class CharaInfo(wx.Dialog):
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -105,7 +105,7 @@ class CharaInfo(wx.Dialog):
 
             self.Parent.OnClickLeftBtn(event)
         else:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             self.ccard = self.list[self.index]
             self.Parent.change_selection(self.list[self.index])
 
@@ -135,7 +135,7 @@ class CharaInfo(wx.Dialog):
 
             self.Parent.OnClickRightBtn(event)
         else:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             self.ccard = self.list[self.index]
             self.Parent.change_selection(self.list[self.index])
 
@@ -151,7 +151,7 @@ class CharaInfo(wx.Dialog):
         pass
 
     def OnPageChanging(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
 
     def draw(self, update):
         win = self.notebook.GetCurrentPage()
@@ -437,7 +437,7 @@ class EditPanel(wx.Panel):
             if header.subrect.collidepoint(event.GetPosition()):
                 if header.type == 0:
                     # デザインを変更する
-                    cw.cwpy.sounds[u"システム・クリック"].play()
+                    cw.cwpy.sounds[u"click"].play()
                     dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
@@ -446,7 +446,7 @@ class EditPanel(wx.Panel):
                     dlg.Destroy()
                 else:
                     # レベルを調節する
-                    cw.cwpy.sounds[u"システム・クリック"].play()
+                    cw.cwpy.sounds[u"click"].play()
                     dlg = cw.dialog.edit.LevelEditor(self.Parent.Parent)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
@@ -688,9 +688,9 @@ class SkillPanel(wx.Panel):
                 # ホールド状態切り替え(召喚獣以外)
                 dc = wx.ClientDC(self)
                 if u"ペナルティ" in header.keycodes:
-                    cw.cwpy.sounds[u"システム・エラー"].play()
+                    cw.cwpy.sounds[u"error"].play()
                     return
-                cw.cwpy.sounds[u"システム・クリック"].play()
+                cw.cwpy.sounds[u"click"].play()
                 header.hold = not header.hold
                 if header.hold:
                     bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
@@ -702,7 +702,7 @@ class SkillPanel(wx.Panel):
     def _open_cardinfo(self, mousepos):
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
-                cw.cwpy.sounds[u"システム・クリック"].play()
+                cw.cwpy.sounds[u"click"].play()
                 dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()

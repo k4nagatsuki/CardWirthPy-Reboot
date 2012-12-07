@@ -416,7 +416,7 @@ class Character(object):
                 beasts = self.actiondata[2]
 
             self.actiondata = (target, header, beasts)
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             cw.cwpy.pre_dialogs.pop()
 
     def clear_action(self):
@@ -1144,7 +1144,7 @@ class Character(object):
             if not self.is_poison():
                 flag = True
             else:
-                cw.cwpy.sounds[u"システム・破棄"].play()
+                cw.cwpy.sounds[u"dump"].play()
                 value = 1 * self.poison
                 n = value / 5
                 n2 = value % 5 * 2

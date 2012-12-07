@@ -268,7 +268,7 @@ class CampButton(StatusBarButton):
 
     def lclick_event(self):
         if cw.cwpy.areaid > 0:
-            cw.cwpy.sounds[u"システム・クリック"].play()
+            cw.cwpy.sounds[u"click"].play()
             cw.cwpy.change_specialarea(-4)
 
 class TableButton(StatusBarButton):
@@ -290,7 +290,7 @@ class TableButton(StatusBarButton):
 
     def lclick_event(self):
         if cw.cwpy.areaid == -4:
-            cw.cwpy.sounds[u"システム・クリック"].play()
+            cw.cwpy.sounds[u"click"].play()
             cw.cwpy.clear_specialarea()
 
 class ActionButton(StatusBarButton):

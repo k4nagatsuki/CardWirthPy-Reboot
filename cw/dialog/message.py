@@ -37,7 +37,7 @@ class Message(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -76,7 +76,7 @@ class YesNoMessage(Message):
 
 class ErrorMessage(Message):
     def __init__(self, parent, text):
-        cw.cwpy.sounds[u"システム・エラー"].play()
+        cw.cwpy.sounds[u"error"].play()
         Message.__init__(self, parent, u"エラーメッセージ", text, 2)
 
 def main():

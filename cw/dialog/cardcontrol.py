@@ -98,13 +98,13 @@ class CardControl(wx.Dialog):
     def OnLeftUp(self, event):
         for header in self.get_headers():
             if header.rect.collidepoint(event.GetPosition()):
-                cw.cwpy.sounds[u"システム・クリック"].play()
+                cw.cwpy.sounds[u"click"].play()
                 self.animate_click(header)
                 self.lclick_event(header)
                 return
 
     def OnRightUp(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
 
         for header in self.get_headers():
             if header.rect.collidepoint(event.GetPosition()):
@@ -288,7 +288,7 @@ class CardControl(wx.Dialog):
             self.Parent.move_dlg(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
-                cw.cwpy.sounds[u"システム・破棄"].play()
+                cw.cwpy.sounds[u"dump"].play()
                 owner.throwaway_card(header)
 
             dlg.Destroy()
@@ -307,7 +307,7 @@ class CardControl(wx.Dialog):
             # 使用回数が0以下だったら処理中止
             if header.uselimit <= 0 and not header.type == "BeastCard":
                 if not header.type == "ItemCard" or not header.maxuselimit == 0:
-                    cw.cwpy.sounds[u"システム・エラー"].play()
+                    cw.cwpy.sounds[u"error"].play()
                     return
 
             # 戦闘中にペナルティカードを行動選択していたら処理中止
@@ -574,7 +574,7 @@ class CardHolder(CardControl):
         CardControl._do_layout(self, self._sizer_leftbar)
 
     def OnClickLeftBtn(self, event):
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         old_callname = self.callname
 
         if self.callname == "CARDPOCKET":
@@ -633,7 +633,7 @@ class CardHolder(CardControl):
         self._re_layout()
 
     def OnClickRightBtn(self, event):
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         old_callname = self.callname
 
         if self.callname == "CARDPOCKET":
@@ -674,7 +674,7 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnClickToggleBtn(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
 
         l = [self.skillbtn, self.itembtn, self.beastbtn]
 
@@ -688,7 +688,7 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnClickUpBtn(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         negaindex = -1
 
         for index, header in enumerate(self.get_headers()):
@@ -711,7 +711,7 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnClickDownBtn(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         negaindex = -1
 
         for index, header in enumerate(self.get_headers()):
@@ -871,7 +871,7 @@ class HandView(CardControl):
         CardControl._bind(self)
 
     def OnClickLeftBtn(self, event):
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
 
         if self.index2 == 0:
             self.index2 = len(self.list2) -1
@@ -883,7 +883,7 @@ class HandView(CardControl):
         self.draw(True)
 
     def OnClickRightBtn(self, event):
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
 
         if self.index2 == len(self.list2) -1:
             self.index2 = 0

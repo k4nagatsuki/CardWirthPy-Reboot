@@ -66,7 +66,7 @@ class PartyEditor(wx.Dialog):
         self.Layout()
 
     def OnOk(self, event):
-        cw.cwpy.sounds[u"システム・収穫"].play()
+        cw.cwpy.sounds[u"harvest"].play()
         name = self.textctrl.GetValue()
 
         if not name == self.party.name:
@@ -83,7 +83,7 @@ class PartyEditor(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -289,7 +289,7 @@ class LevelEditor(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        cw.cwpy.sounds[u"システム・収穫"].play()
+        cw.cwpy.sounds[u"harvest"].play()
 
         self.ccard.set_level(self.slider.GetValue(), regulate=True)
         cw.animation.animate_sprite(self.ccard, "hide")
@@ -301,7 +301,7 @@ class LevelEditor(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 

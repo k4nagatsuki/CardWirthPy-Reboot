@@ -270,7 +270,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             def recovery_all():
                 for pcard in cw.cwpy.get_pcards("unreversed"):
-                    cw.cwpy.sounds[u"システム・収穫"].play()
+                    cw.cwpy.sounds[u"harvest"].play()
                     cw.animation.animate_sprite(pcard, "hide")
                     pcard.set_fullrecovery()
                     pcard.update_image()

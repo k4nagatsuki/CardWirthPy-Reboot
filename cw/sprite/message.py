@@ -500,7 +500,7 @@ class SelectionBar(base.SelectableSprite):
         """
         メッセージ選択肢のクリックイベント。
         """
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
 
         # クリックした時だけ、軽く下に押されるアニメーションを行う
         if not skip:

@@ -382,4 +382,18 @@
       <Name>愛に生きる</Name>
     </Making>
   </Makings>
+  <Sounds>
+    <Sound key="error">システム・エラー</Sound>
+    <Sound key="click">システム・クリック</Sound>
+    <Sound key="signal">システム・シグナル</Sound>
+    <Sound key="avoid">システム・回避</Sound>
+    <Sound key="page">システム・改ページ</Sound>
+    <Sound key="harvest">システム・収穫</Sound>
+    <Sound key="initialize">システム・初期化</Sound>
+    <Sound key="battle">システム・戦闘</Sound>
+    <Sound key="equipment">システム・装備</Sound>
+    <Sound key="run">システム・逃走</Sound>
+    <Sound key="dump">システム・破棄</Sound>
+    <Sound key="ineffective">システム・無効</Sound>
+  </Sounds>
 </Skin>

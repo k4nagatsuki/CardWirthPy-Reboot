@@ -113,6 +113,9 @@ class Setting(object):
         self.makingnames = [f.name for f in self.makings]
         self.makingcoupons = [u"＿" + f.name for f in self.makings]
 
+        # 音声
+        self.sounds = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("/Sounds")]
+
     def set_dealspeed(self, value):
         self.dealspeed = value + 1
         self.dealspeed = cw.util.numwrap(self.dealspeed, 1, 11)
@@ -143,8 +146,10 @@ class Resource(object):
         # システムフォントテーブルの設定(wxダイアログ用)
         self.fontpaths = self.get_fontpaths()
         self.fontnames = self.set_systemfonttable()
+        # その他のスキン付属効果音(辞書)
+        self.skinsounds = self.get_skinsounds()
         # システム効果音(辞書)
-        self.sounds = self.get_sounds()
+        self.sounds = self.get_sounds(setting, self.skinsounds)
         # wxダイアログのボタン画像(辞書)
         self.buttons = self.get_buttons()
         # カード背景画像(辞書)
@@ -348,9 +353,20 @@ class Resource(object):
 
         return d
 
-    def get_sounds(self):
+    def get_sounds(self, setting, skinsounds):
         """
-        デフォルト効果音を読み込んで、
+        システム効果音を読み込んで、
+        pygameのsoundインスタンスの辞書で返す。
+        """
+        d = {}
+        for sound in setting.sounds:
+            if sound[1] in skinsounds:
+                d[sound[0]] = skinsounds[sound[1]]
+        return d
+
+    def get_skinsounds(self):
+        """
+        スキン付属の効果音を読み込んで、
         pygameのsoundインスタンスの辞書で返す。
         """
         func = cw.util.load_sound

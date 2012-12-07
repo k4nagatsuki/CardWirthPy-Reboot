@@ -381,7 +381,7 @@ class Frame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             cw.cwpy.ydata.save()
-            cw.cwpy.sounds[u"システム・収穫"].play()
+            cw.cwpy.sounds[u"harvest"].play()
             s = u"セーブしました。"
             dlg = cw.dialog.message.Message(self, u"メッセージ", s)
             self.move_dlg(dlg)

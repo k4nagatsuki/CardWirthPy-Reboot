@@ -47,7 +47,7 @@ class Effect(object):
             target.events.start(keycodes=keycodes)
             return True
         else:
-            cw.cwpy.sounds[u"システム・無効"].play()
+            cw.cwpy.sounds[u"ineffective"].play()
             return False
 
     def apply_charactercard(self, target):
@@ -78,11 +78,11 @@ class Effect(object):
         if not allmissed:
             if noeffect or (success_res and not self.has_motion("damage")\
                                         and not self.has_motion("absorb")):
-                cw.cwpy.sounds[u"システム・無効"].play()
+                cw.cwpy.sounds[u"ineffective"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
                 return False
             elif success_avo:
-                cw.cwpy.sounds[u"システム・回避"].play()
+                cw.cwpy.sounds[u"avoid"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
                 return False
 

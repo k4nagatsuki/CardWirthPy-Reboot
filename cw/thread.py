@@ -116,6 +116,8 @@ class CWPy(_Singleton, threading.Thread):
         self.rsrc = cw.setting.Resource(self.setting)
         # システム効果音(辞書)
         self.sounds = self.rsrc.sounds
+        # その他のスキン付属効果音(辞書)
+        self.skinsounds = self.rsrc.skinsounds
         # アクションカードのデータ(CardHeader)
         self.rsrc.actioncards = self.rsrc.get_actioncards()
         # 背景スプライト
@@ -599,7 +601,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         指定するIDの戦闘を開始する。
         """
-        self.sounds[u"システム・戦闘"].play()
+        self.sounds[u"battle"].play()
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")
@@ -870,7 +872,7 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         if pcard:
-            self.sounds[u"システム・改ページ"].play()
+            self.sounds[u"page"].play()
             cw.animation.animate_sprite(pcard, "delete")
             pcard.data.write_xml()
             self.ydata.add_standbys(pcard.data.fpath)
@@ -917,8 +919,8 @@ class CWPy(_Singleton, threading.Thread):
         else:
             name = os.path.splitext(os.path.basename(path))[0]
 
-            if name in self.sounds:
-                self.sounds[name].play(True)
+            if name in self.skinsounds:
+                self.skinsounds[name].play(True)
 
 #-------------------------------------------------------------------------------
 # データ編集・操作用メソッド。
@@ -968,11 +970,11 @@ class CWPy(_Singleton, threading.Thread):
             # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
             if header.premium == "Premium" and not from_event:
                 if targettype == "PAWNSHOP":
-                    self.sounds[u"システム・エラー"].play()
+                    self.sounds[u"error"].play()
                     s = u"プレミアカードは売却できません。"
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
                 elif targettype == "TRASHBOX":
-                    self.sounds[u"システム・エラー"].play()
+                    self.sounds[u"error"].play()
                     s = u"プレミアカードは破棄できません。"
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
 
@@ -1004,7 +1006,7 @@ class CWPy(_Singleton, threading.Thread):
                         self.trade("BACKPACK", header=header, from_event=True)
 
                 else:
-                    self.sounds[u"システム・エラー"].play()
+                    self.sounds[u"error"].play()
                     s = u"%sの手札は既に一杯です。" % target.name
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
 
@@ -1013,11 +1015,11 @@ class CWPy(_Singleton, threading.Thread):
         # 音を鳴らす
         if not from_event:
             if targettype == "TRASHBOX":
-                self.sounds[u"システム・破棄"].play()
+                self.sounds[u"dump"].play()
             elif targettype == "PAWNSHOP":
-                self.sounds[u"システム・シグナル"].play()
+                self.sounds[u"signal"].play()
             else:
-                self.sounds[u"システム・改ページ"].play()
+                self.sounds[u"page"].play()
 
         #-----------------------------------------------------------------------
         # 移動元からデータを削除

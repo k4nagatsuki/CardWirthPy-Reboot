@@ -1130,7 +1130,7 @@ class EndContent(EventContentBase):
                 cw.animation.animate_sprite(pcard, "levelup")
 
             # 回復処理
-            cw.cwpy.sounds[u"システム・収穫"].play()
+            cw.cwpy.sounds[u"harvest"].play()
             cw.animation.animate_sprite(pcard, "hide")
             pcard.set_fullrecovery()
             pcard.update_image()

@@ -59,7 +59,7 @@ class Select(wx.Dialog):
         else:
             self.index -= 1
 
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         self.draw(True)
 
     def OnClickLeft2Btn(self, evt):
@@ -70,7 +70,7 @@ class Select(wx.Dialog):
         else:
             self.index -= 10
 
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         self.draw(True)
 
     def OnClickRightBtn(self, evt):
@@ -79,7 +79,7 @@ class Select(wx.Dialog):
         else:
             self.index += 1
 
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         self.draw(True)
 
     def OnClickRight2Btn(self, evt):
@@ -90,7 +90,7 @@ class Select(wx.Dialog):
         else:
             self.index += 10
 
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         self.draw(True)
 
     def OnMouseWheel(self, event):
@@ -112,7 +112,7 @@ class Select(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -246,7 +246,7 @@ class YadoSelect(Select):
         """
         宿削除。
         """
-        cw.cwpy.sounds[u"システム・シグナル"].play()
+        cw.cwpy.sounds[u"signal"].play()
         path = self.list[self.index]
         yname = os.path.basename(path)
         s = u"宿「%s」を破棄します。\nよろしいですか？" % (yname)
@@ -344,7 +344,7 @@ class YadoSelect(Select):
             return
 
         # 変換確認ダイアログ
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         s = os.path.basename(path) + u" を変換します。\nよろしいですか？"
         dlg = message.YesNoMessage(self, u"メッセージ", s)
         self.Parent.move_dlg(dlg)
@@ -392,7 +392,7 @@ class YadoSelect(Select):
             dlg.Destroy()
 
         # 変換完了ダイアログ
-        cw.cwpy.sounds[u"システム・収穫"].play()
+        cw.cwpy.sounds[u"harvest"].play()
         s = u"データの変換が完了しました。"
         dlg = message.Message(self, u"メッセージ", s, mode=2)
         self.Parent.move_dlg(dlg)
@@ -413,7 +413,7 @@ class YadoSelect(Select):
         except:
             self.index = 0
 
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         self.draw(True)
         self.enable_btn()
 
@@ -645,12 +645,12 @@ class PlayerSelect(Select):
         self.ProcessEvent(btnevent)
 
     def OnClickNewBtn(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         dlg = cw.dialog.create.AdventurerCreater(self)
         cw.cwpy.frame.move_dlg(dlg, point=(20, 20))
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds[u"システム・改ページ"].play()
+            cw.cwpy.sounds[u"page"].play()
             header = cw.cwpy.ydata.add_standbys(dlg.fpath)
             # リスト更新
             self.list = cw.cwpy.ydata.standbys
@@ -661,14 +661,14 @@ class PlayerSelect(Select):
         dlg.Destroy()
 
     def OnClickDelBtn(self, event):
-        cw.cwpy.sounds[u"システム・シグナル"].play()
+        cw.cwpy.sounds[u"signal"].play()
         header = self.list[self.index]
         s = u"冒険者%sを削除します。\nよろしいですか？" % (header.name)
         dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds[u"システム・破棄"].play()
+            cw.cwpy.sounds[u"dump"].play()
 
             # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
             if header.level >= 3 and not header.leavenoalbum:
@@ -690,7 +690,7 @@ class PlayerSelect(Select):
         elif len(cw.cwpy.get_pcards()) == 5:
             self.addbtn.Disable()
 
-        cw.cwpy.sounds[u"システム・収穫"].play()
+        cw.cwpy.sounds[u"harvest"].play()
         header = self.list[self.index]
         cw.cwpy.ydata.standbys.remove(header)
 
@@ -703,7 +703,7 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickInfoBtn(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         dlg = charainfo.StandbyCharaInfo(self, self.list, self.index)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -815,14 +815,14 @@ class Album(PlayerSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
 
     def OnClickDelBtn(self, event):
-        cw.cwpy.sounds[u"システム・シグナル"].play()
+        cw.cwpy.sounds[u"signal"].play()
         header = self.list[self.index]
         s = u"%sを抹消します。\nよろしいですか？" % (header.name)
         dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds[u"システム・破棄"].play()
+            cw.cwpy.sounds[u"dump"].play()
             cw.cwpy.remove_xml(header)
             cw.cwpy.ydata.album.remove(header)
             self.enable_btn()
@@ -928,7 +928,7 @@ class ScenarioSelect(Select):
             time.sleep(0.3)
 
     def OnClickInfoBtn(self, event):
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         dlg = text.Readme(self, u"解説", self.get_texts())
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -950,7 +950,7 @@ class ScenarioSelect(Select):
 
     def OnClickYesBtn(self, event):
         if self.yesbtn.GetLabel() == u"見る":
-            cw.cwpy.sounds[u"システム・装備"].play()
+            cw.cwpy.sounds[u"equipment"].play()
             self.dirstack.append(self.nowdir)
             self.nowdir = cw.scenariodb.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
@@ -961,13 +961,13 @@ class ScenarioSelect(Select):
             self.enable_btn()
             self.draw(True)
         elif self.yesbtn.GetLabel() == u"決定":
-            cw.cwpy.sounds[u"システム・シグナル"].play()
+            cw.cwpy.sounds[u"signal"].play()
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
             self.ProcessEvent(btnevent)
 
     def OnClickNoBtn(self, event):
         if self.nobtn.GetLabel() == u"戻る":
-            cw.cwpy.sounds[u"システム・装備"].play()
+            cw.cwpy.sounds[u"equipment"].play()
             self.nowdir = self.dirstack.pop()
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
@@ -992,7 +992,7 @@ class ScenarioSelect(Select):
 
     def OnCancel(self, event):
         if self.nobtn.GetLabel() == u"中止":
-            cw.cwpy.sounds[u"システム・クリック"].play()
+            cw.cwpy.sounds[u"click"].play()
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_NO)
         self.ProcessEvent(btnevent)
@@ -1223,7 +1223,7 @@ class ScenarioSelect(Select):
             return
 
         # 変換確認ダイアログ
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         s = os.path.basename(path) + u"　を変換します。\nよろしいですか？"
         dlg = message.YesNoMessage(self, u"メッセージ", s)
         self.Parent.move_dlg(dlg)
@@ -1276,7 +1276,7 @@ class ScenarioSelect(Select):
         zpath = cw.util.join_paths(self.nowdir, zpath)
         zpath = cw.util.dupcheck_plus(zpath, False)
         cw.util.compress_zip(temppath, zpath)
-        cw.cwpy.sounds[u"システム・収穫"].play()
+        cw.cwpy.sounds[u"harvest"].play()
         # 変換完了ダイアログ
         s = u"データの変換が完了しました。"
         dlg = message.Message(self, u"メッセージ", s, mode=2)
@@ -1300,7 +1300,7 @@ class ScenarioSelect(Select):
             if os.path.basename(zpath) == header.fname:
                 self.index = index
 
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
         self.draw(True)
         self.enable_btn()
 

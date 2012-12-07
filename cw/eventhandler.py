@@ -127,7 +127,7 @@ class EventHandler(object):
             # シナリオプレイ時、キャンプモード切替
             if cw.cwpy.status == "Scenario" and not cw.cwpy.is_dealing():
                 cw.cwpy.has_inputevent = True
-                cw.cwpy.sounds[u"システム・クリック"].play()
+                cw.cwpy.sounds[u"click"].play()
 
                 if cw.cwpy.areaid == -4:
                     cw.cwpy.clear_specialarea()
@@ -138,7 +138,7 @@ class EventHandler(object):
             elif cw.cwpy.status == "Yado" and not cw.cwpy.is_dealing():
 
                 cw.cwpy.has_inputevent = True
-                cw.cwpy.sounds[u"システム・クリック"].play()
+                cw.cwpy.sounds[u"click"].play()
 
                 if cw.cwpy.areaid == 1:
                     cw.cwpy.call_dlg("RETURNTITLE")
@@ -147,7 +147,7 @@ class EventHandler(object):
 
             # シナリオ戦闘時、戦闘行動選択ダイアログ表示
             elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
-                cw.cwpy.sounds[u"システム・クリック"].play()
+                cw.cwpy.sounds[u"click"].play()
                 cw.cwpy.call_dlg("BATTLECOMMAND")
 
     def escapekey_event(self):
@@ -155,7 +155,7 @@ class EventHandler(object):
         ESCAPEキーイベント。終了ダイアログ。
         """
         cw.cwpy.has_inputevent = True
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         cw.cwpy.call_dlg("CLOSE")
 
     def f1key_event(self):
@@ -165,7 +165,7 @@ class EventHandler(object):
         cw.cwpy.has_inputevent = True
 
         if cw.cwpy.is_showingdebugger() and not cw.cwpy.is_fullscreen():
-            cw.cwpy.sounds[u"システム・シグナル"].play()
+            cw.cwpy.sounds[u"signal"].play()
             s = u"デバッガ表示中はフルスクリーン化できません。"
             cw.cwpy.call_dlg("MESSAGE", text=s)
         else:
@@ -176,7 +176,7 @@ class EventHandler(object):
         F2キーイベント。設定ダイアログを開く。
         """
         cw.cwpy.has_inputevent = True
-        cw.cwpy.sounds[u"システム・クリック"].play()
+        cw.cwpy.sounds[u"click"].play()
         cw.cwpy.call_dlg("SETTINGS")
 
     def f3key_event(self):
@@ -184,7 +184,7 @@ class EventHandler(object):
         F3キーイベント。デバッガを開閉する。
         """
         cw.cwpy.set_fullscreen(False)
-        cw.cwpy.sounds[u"システム・改ページ"].play()
+        cw.cwpy.sounds[u"page"].play()
 
         if cw.cwpy.frame.debugger:
             cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
@@ -219,7 +219,7 @@ class EventHandler(object):
         """
         if cw.cwpy.is_playingscenario():
             cw.cwpy.has_inputevent = True
-            cw.cwpy.sounds[u"システム・シグナル"].play()
+            cw.cwpy.sounds[u"signal"].play()
             cw.cwpy.call_dlg("F9")
 
     def returnkey_event(self):

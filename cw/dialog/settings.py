@@ -54,7 +54,7 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.statusbar.change()
 
             if cw.cwpy.is_showingdebugger():
-                cw.cwpy.sounds[u"システム・改ページ"].play()
+                cw.cwpy.sounds[u"page"].play()
                 cw.cwpy.frame.debugger.Close()
 
         # 描画
@@ -100,7 +100,7 @@ class SettingsDialog(wx.Dialog):
                 u"CardWirthPyを終了してもよろしいですか？")
             dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
             cw.cwpy.frame.move_dlg(dlg)
-            cw.cwpy.sounds[u"システム・シグナル"].play()
+            cw.cwpy.sounds[u"signal"].play()
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.setting.skindirname = skin
@@ -171,7 +171,7 @@ class GeneralSettingPanel(wx.Panel):
                 self.Parent.Parent, u"メッセージ",
                 u"シナリオプレイ中はデバッグモードの切替はできません。")
             cw.cwpy.frame.move_dlg(dlg)
-            cw.cwpy.sounds[u"システム・エラー"].play()
+            cw.cwpy.sounds[u"error"].play()
             dlg.ShowModal()
 
     def OnSkinChoice(self, event):
