@@ -585,6 +585,7 @@ class PlayerSelect(Select):
         Select.__init__(self, parent, u"宿帳を開く")
         # 冒険者情報
         self.list = cw.cwpy.ydata.standbys
+        self.isalbum = False
         self.index = 0
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
@@ -676,6 +677,7 @@ class PlayerSelect(Select):
                 cw.cwpy.ydata.add_album(path)
 
             cw.cwpy.remove_xml(header)
+            cw.cwpy.ydata.stopstandbysthread()
             cw.cwpy.ydata.standbys.remove(header)
             self.enable_btn()
             self.draw(True)
@@ -692,6 +694,7 @@ class PlayerSelect(Select):
 
         cw.cwpy.sounds[u"harvest"].play()
         header = self.list[self.index]
+        cw.cwpy.ydata.stopstandbysthread()
         cw.cwpy.ydata.standbys.remove(header)
 
         if cw.cwpy.ydata.party:
@@ -723,11 +726,15 @@ class PlayerSelect(Select):
             return
 
         header = self.list[self.index]
+        cw.cwpy.ydata.stopstandbysthread()
         if not isinstance(header, cw.header.AdventurerHeader):
             # まだヘッダが生成されていない場合
-            header = cw.cwpy.ydata.create_advheader(header)
+            header = cw.cwpy.ydata.create_advheader(header, self.isalbum)
             self.list[self.index] = header
-            cw.cwpy.ydata.standbys[self.index] = header
+            if self.isalbum:
+                cw.cwpy.ydata.album[self.index] = header
+            else:
+                cw.cwpy.ydata.standbys[self.index] = header
         # Level
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
@@ -793,6 +800,7 @@ class Album(PlayerSelect):
         Select.__init__(self, parent, u"アルバム")
         # 冒険者情報
         self.list = cw.cwpy.ydata.album
+        self.isalbum = True
         self.index = 0
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
@@ -824,6 +832,7 @@ class Album(PlayerSelect):
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.sounds[u"dump"].play()
             cw.cwpy.remove_xml(header)
+            cw.cwpy.ydata.stopalbumthread()
             cw.cwpy.ydata.album.remove(header)
             self.enable_btn()
             self.draw(True)

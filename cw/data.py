@@ -5,6 +5,7 @@ import os
 import re
 import time
 import shutil
+import threading
 import StringIO
 import xml.parsers.expat
 from xml.etree.ElementTree import ElementTree, _ElementInterface
@@ -654,6 +655,52 @@ class YadoDeletedPathSet(set):
         if path in self:
             self.remove(path)
 
+"""バックグラウンドでカードのパスからヘッダを生成する。"""
+class LoadSubThread(threading.Thread):
+
+    def __init__(self, ydata, mode):
+        """宿データと生成対象。
+        mode=0: 冒険者(現役)。
+        mode=1: 冒険者(アルバム)。
+        mode=2: 手札(カード置き場)。
+        mode=3: 手札(荷物袋)。
+        """
+        threading.Thread.__init__(self)
+        self.ydata = ydata
+        self.mode = mode
+        self.quit = False
+
+    def run(self):
+        if self.mode == 0:
+            # 冒険者(アルバム)
+            for index, path in enumerate(self.ydata.album):
+                if self.quit: return
+                if not isinstance(path, cw.header.AdventurerHeader):
+                    header = self.ydata.create_advheader(path, True)
+                    self.ydata.album[index] = header
+        elif self.mode == 1:
+            # 荷物袋
+            if self.ydata.party:
+                for index, path in enumerate(self.ydata.party.backpack):
+                    if self.quit: return
+                    if not isinstance(path, cw.header.CardHeader):
+                        header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
+                        self.ydata.party.backpack[index] = header
+        elif self.mode == 2:
+            # カード置き場
+            for index, path in enumerate(self.ydata.storehouse):
+                if self.quit: return
+                if not isinstance(path, cw.header.CardHeader):
+                    header = self.ydata.create_cardheader(path, owner="STOREHOUSE")
+                    self.ydata.storehouse[index] = header
+        elif self.mode == 3:
+            # 待機中の冒険者(現役)
+            for index, path in enumerate(self.ydata.standbys):
+                if self.quit: return
+                if not isinstance(path, cw.header.AdventurerHeader):
+                    header = self.ydata.create_advheader(path)
+                    self.ydata.standbys[index] = header
+
 class YadoData(object):
     def __init__(self):
         # 宿データのあるディレクトリ
@@ -706,6 +753,36 @@ class YadoData(object):
         else:
             self.load_party(None)
 
+        self._standbysthread = LoadSubThread(self, 0)
+        self._standbysthread.start()
+        self._albumthread = LoadSubThread(self, 1)
+        self._albumthread.start()
+        self._storehousethread = LoadSubThread(self, 2)
+        self._storehousethread.start()
+        self._backpackthread = LoadSubThread(self, 3)
+        self._backpackthread.start()
+
+    def _stopsubthread(self, thread):
+        if thread:
+            thread.quit = True
+            thread.join()
+
+    def stopstandbysthread(self):
+        self._stopsubthread(self._standbysthread)
+        self._standbysthread= None
+
+    def stopalbumthread(self):
+        self._stopsubthread(self._albumthread)
+        self._albumthread= None
+
+    def stopstorehousethread(self):
+        self._stopsubthread(self._storehousethread)
+        self._storehousethread= None
+
+    def stopbackpackthread(self):
+        self._stopsubthread(self._backpackthread)
+        self._backpackthread= None
+
     def load_party(self, header=None):
         """
         header: PartyHeader
@@ -731,12 +808,14 @@ class YadoData(object):
             self.environment.edit("/Property/NowSelectingParty", "")
 
     def add_standbys(self, path):
+        self.stopstandbysthread()
         header = self.create_advheader(path)
         self.standbys.append(header)
         cw.util.sort_by_attr(self.standbys, "name")
         return header
 
     def add_album(self, path):
+        self.stopalbumthread()
         header = self.create_advheader(path, True)
         self.album.append(header)
         cw.util.sort_by_attr(self.album, "name")
@@ -1087,8 +1166,9 @@ class Party(object):
         paths = self.get_memberpaths()
         self.members = [yadoxml2etree(path) for path in paths]
         # 選択中のパーティの荷物袋(CardHeader)
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.stopbackpackthread()
         self.backpack = []
-
         for e in self.data.getfind("Backpack"):
             self.backpack.append(e)
 
@@ -1204,6 +1284,7 @@ class Party(object):
 
     def get_allcardheaders(self):
         seq = []
+        cw.cwpy.ydata.stopbackpackthread()
         for index, path in enumerate(self.backpack):
             # ヘッダがまだ生成されていない場合はここで生成する
             if not isinstance(path, cw.header.CardHeader):

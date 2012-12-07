@@ -896,8 +896,10 @@ class CWPy(_Singleton, threading.Thread):
                 header = self.ydata.create_advheader(path)
                 self.ydata.standbys.append(header)
 
+            self.ydata.stopstandbysthread()
             cw.util.sort_by_attr(self.ydata.standbys, "name")
 
+            cw.cwpy.ydata.stopstorehousethread()
             for header in p_backpack:
                 header.set_owner("STOREHOUSE")
                 self.ydata.storehouse.insert(0, header)
@@ -942,8 +944,10 @@ class CWPy(_Singleton, threading.Thread):
         if targettype == "PLAYERCARD":
             target = target
         elif targettype == "BACKPACK":
+            cw.cwpy.ydata.stopbackpackthread()
             target = self.ydata.party.backpack
         elif targettype == "STOREHOUSE":
+            cw.cwpy.ydata.stopstorehousethread()
             target = self.ydata.storehouse
         elif targettype in ("PAWNSHOP", "TRASHBOX"):
             if targettype == "PAWNSHOP":

@@ -803,6 +803,7 @@ class CardHolder(CardControl):
 
         # header未生成のカードはここで生成する
         if self.callname == "BACKPACK":
+            cw.cwpy.ydata.stopbackpackthread()
             for index, path in enumerate(list):
                 if not isinstance(path, cw.header.CardHeader):
                     header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
@@ -810,6 +811,7 @@ class CardHolder(CardControl):
                     self.list[li + index] = header
                     list[index] = header
         elif self.callname == "STOREHOUSE":
+            cw.cwpy.ydata.stopstorehousethread()
             for index, path in enumerate(list):
                 if not isinstance(path, cw.header.CardHeader):
                     header = cw.cwpy.ydata.create_cardheader(path, owner="STOREHOUSE")
