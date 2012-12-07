@@ -9,6 +9,7 @@ import effectmotion
 import event
 import eventhandler
 import eventrelay
+import features
 import scenariodb
 import setting
 import animation

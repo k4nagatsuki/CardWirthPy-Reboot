@@ -16,8 +16,8 @@ class AdventurerDataComp(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, u"不足データの補填",
                             style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU)
         self.ccard = ccard
-        self.sex = u"＿♂"
-        self.age = u"＿子供"
+        self.sex = cw.cwpy.setting.sexcoupons[0]
+        self.age = cw.cwpy.setting.periodcoupons[0]
         # 画像
         bmp = cw.util.load_wxbmp(ccard.imgpath, True)
         self.bmp = wx.StaticBitmap(self, -1, bmp)
@@ -34,10 +34,10 @@ class AdventurerDataComp(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont(size=14, style=wx.ITALIC)
         self.text_caution.SetFont(font)
         # ラジオボックス
-        seq = (u"男性", u"女性")
+        seq = cw.cwpy.setting.sexnames
         self.rb_sex = wx.RadioBox(self, -1, u"性別",
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
-        seq = (u"子供", u"若者", u"大人", u"老人")
+        seq = cw.cwpy.setting.periodnames
         self.rb_age = wx.RadioBox(self, -1, u"年齢",
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
         # OKボタン
@@ -89,22 +89,16 @@ class AdventurerDataComp(wx.Dialog):
     def OnClickRbSex(self, event):
         s = event.GetString()
 
-        if s == u"男性":
-            self.sex = u"＿♂"
-        else:
-            self.sex = u"＿♀"
+        for index, name in enumerate(cw.cwpy.setting.sexnames):
+            self.sex = cw.cwpy.setting.sexcoupons[index]
+            break
 
     def OnClickRbAge(self, event):
         s = event.GetString()
 
-        if s == u"子供":
-            self.age = u"＿子供"
-        elif s == u"若者":
-            self.age = u"＿若者"
-        elif s == u"大人":
-            self.age = u"＿大人"
-        else:
-            self.age = u"＿老人"
+        for index, name in enumerate(cw.cwpy.setting.periodnames):
+            self.age = cw.cwpy.setting.periodcoupons[index]
+            break
 
 #-------------------------------------------------------------------------------
 # 冒険者の登録ダイアログ
@@ -205,49 +199,21 @@ class AdventurerData(object):
         self.imgpath = path
 
     def set_sex(self, sex):
-        if sex == u"＿♂":
-            self.set_coupon(sex, 0)
-            self.str += 1
-            self.aggressive += 0.5
-        elif sex == u"＿♀":
-            self.set_coupon(sex, 0)
-            self.dex += 1
-            self.cautious += 0.5
+        for f in cw.cwpy.setting.sexes:
+            if sex == u"＿" + f.name:
+                self.set_coupon(sex, 0)
+                f.modulate(self)
+                break
 
     def set_age(self, age):
-        if age == u"＿子供":
-            self.set_coupon(u"＿子供", 0)
-            self.level = 1
-            self.dex += 1
-            self.agl += 1
-            self.str -= 1
-            self.vit -= 1
-            self.cheerful += 0.5
-            self.cautious -= 0.5
-        elif age == u"＿若者":
-            self.set_coupon(age, 0)
-            self.level = 1
-        elif age == u"＿大人":
-            self.set_coupon(age, 0)
-            self.set_coupon(u"熟練", 2)
-            self.level = 2
-            self.vit -= 1
-            self.aggressive -= 0.5
-            self.cautious += 0.5
-        elif age == u"＿老人":
-            self.set_coupon(age, 0)
-            self.set_coupon(u"老獪", 4)
-            self.level = 2
-            self.dex -= 1
-            self.agl -= 1
-            self.int += 1
-            self.str -= 1
-            self.vit -= 1
-            self.min += 1
-            self.aggressive -= 0.5
-            self.brave -= 0.5
-            self.cautious += 0.5
-            self.trickish += 0.5
+        for f in cw.cwpy.setting.periods:
+            if age == u"＿" + f.name:
+                self.level = f.level
+                self.set_coupon(age, 0)
+                for coupon in f.coupons:
+                    self.set_coupon(coupon[0], coupon[1])
+                f.modulate(self)
+                break
 
     def set_race(self, race):
         self.undead |= race.undead
@@ -318,321 +284,45 @@ class AdventurerData(object):
         oldtalent = talent
         n = self.gene.count_bits()
 
-        if n == 10:
-            talent = u"＿神仙型"
-            self.gene.reverse()
-        elif n >= 8:
-            talent = u"＿英雄型"
-            self.gene.reverse()
-        elif n >= 6:
-            if talent in (u"＿標準型", u"＿万能型"):
-                talent = u"＿英明型"
-            elif talent in (u"＿勇将型", u"＿豪傑型"):
-                talent = u"＿無双型"
-            else:
-                talent = u"＿天才型"
+        # 親がいる場合は特殊型に変化する可能性がある
+        if self.has_parents:
+            # 特殊型の集合
+            sp = []
+            for nature in cw.cwpy.setting.natures:
+                if nature.special:
+                    sp.append(nature)
+            sp.sort(cmp=cmp(lambda x, y: y.genecount - x.genecount))
 
-            self.gene.reverse()
-        elif n == 0 and self.has_parents:
-            talent = u"＿凡庸型"
+            for nature in sp:
+                if nature.genecount == 0:
+                    # 遺伝子の1が0個の場合。例えば凡庸型
+                    if n == 0:
+                        talent = u"＿" + nature.name
+                elif n >= nature and (0 == len(nature.basenatures)
+                                    or talent[len(u"＿"):] in nature.basenatures):
+                    # 遺伝子の1が素質の条件個数以上の場合
+                    # 特定の素質のみから派生する素質も存在する
+                    talent = u"＿" + nature.name
+                    self.gene.reverse()
 
         self.set_coupon(talent, 0)
         self.gene.set_talentbit(talent, oldtalent)
 
-        if talent == u"＿標準型":
-            self.min += 1
-            self.aggressive -= 0.5
-            self.cautious += 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿万能型":
-            self.dex += 1
-            self.agl += 1
-            self.min -= 1
-            self.cheerful += 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿勇将型":
-            self.dex -= 1
-            self.int -= 1
-            self.str += 2
-            self.brave += 1
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿豪傑型":
-            self.dex -= 2
-            self.agl -= 1
-            self.int -= 2
-            self.str += 3
-            self.vit += 1
-            self.min -= 1
-            self.aggressive += 0.5
-            self.brave += 0.5
-            self.cautious -= 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿知将型":
-            self.int += 2
-            self.str -= 1
-            self.vit -= 1
-            self.cautious += 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿策士型":
-            self.agl -= 1
-            self.int += 3
-            self.str -= 2
-            self.vit -= 2
-            self.cautious += 0.5
-            self.trickish += 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿英明型":
-            self.dex += 1
-            self.agl += 1
-            self.int += 1
-            self.str += 1
-            self.vit += 1
-            self.min += 1
-            self.cautious += 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿無双型":
-            self.agl += 1
-            self.str += 3
-            self.vit += 2
-            self.aggressive += 0.5
-            self.brave += 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿天才型":
-            self.dex += 1
-            self.int += 3
-            self.min += 2
-            self.cautious += 0.5
-            self.trickish += 0.5
-            self.set_coupon(u"＠レベル上限", 10)
-        elif talent == u"＿凡庸型":
-            self.dex -= 2
-            self.agl -= 2
-            self.int -= 2
-            self.str -= 2
-            self.vit -= 2
-            self.min -= 2
-            self.brave -= 0.5
-            self.cautious += 0.5
-            self.set_coupon(u"＠レベル上限", 12)
-        elif talent == u"＿英雄型":
-            self.dex += 1
-            self.agl += 1
-            self.int += 2
-            self.str += 2
-            self.vit += 1
-            self.min += 2
-            self.cheerful += 0.5
-            self.brave += 0.5
-            self.trickish -= 0.5
-            self.set_coupon(u"＠レベル上限", 12)
-        elif talent == u"＿神仙型":
-            self.dex += 2
-            self.agl += 2
-            self.int += 2
-            self.str += 2
-            self.vit += 2
-            self.min += 2
-            self.set_coupon(u"＠レベル上限", 15)
+        for nature in cw.cwpy.setting.natures:
+            if u"＿" + nature.name == talent:
+                nature.modulate(self)
+                self.set_coupon(u"＠レベル上限", nature.levelmax)
+                break
 
     def set_attrbutes(self, attrs):
         for attr in attrs:
             self.set_attribute(attr)
 
     def set_attribute(self, attr):
-        if attr == u"＿秀麗":
-            self.vit -= 1
-            self.cheerful += 0.5
-        elif attr == u"＿醜悪":
-            self.vit += 1
-            self.cheerful -= 0.5
-        elif attr == u"＿高貴の出":
-            self.aggressive -= 0.5
-            self.brave += 0.5
-        elif attr == u"＿下賎の出":
-            self.cautious -= 0.5
-            self.trickish += 0.5
-        elif attr == u"＿都会育ち":
-            self.int += 1
-            self.vit -= 1
-            self.cheerful -= 0.5
-            self.trickish += 0.5
-        elif attr == u"＿田舎育ち":
-            self.agl -= 1
-            self.vit += 1
-            self.trickish -= 0.5
-        elif attr == u"＿裕福":
-            self.min -= 1
-            self.aggressive -= 0.5
-            self.trickish -= 0.5
-        elif attr == u"＿貧乏":
-            self.min += 1
-            self.aggressive += 0.5
-            self.brave -= 0.5
-        elif attr == u"＿厚き信仰":
-            self.int -= 1
-            self.min += 1
-            self.brave += 0.5
-            self.trickish -= 0.5
-        elif attr == u"＿不心得者":
-            self.cautious += 0.5
-            self.trickish += 0.5
-        elif attr == u"＿誠実":
-            self.brave += 0.5
-            self.trickish -= 0.5
-        elif attr == u"＿不実":
-            self.brave -= 0.5
-            self.trickish += 0.5
-        elif attr == u"＿冷静沈着":
-            self.agl -= 1
-            self.int += 1
-            self.cautious += 0.5
-            self.trickish += 0.5
-        elif attr == u"＿猪突猛進":
-            self.agl += 1
-            self.min -= 1
-            self.cautious -= 0.5
-        elif attr == u"＿貪欲":
-            self.vit += 1
-            self.min -= 1
-            self.aggressive += 0.5
-            self.brave -= 0.5
-            self.cautious -= 0.5
-        elif attr == u"＿無欲":
-            self.aggressive -= 0.5
-        elif attr == u"＿献身的":
-            self.vit -= 1
-            self.min += 1
-            self.aggressive -= 0.5
-        elif attr == u"＿利己的":
-            self.dex -= 1
-            self.agl += 1
-            self.aggressive += 0.5
-            self.cheerful -= 0.5
-            self.trickish += 0.5
-        elif attr == u"＿秩序派":
-            self.aggressive += 0.5
-            self.trickish -= 0.5
-        elif attr == u"＿混沌派":
-            self.str += 1
-            self.min -= 1
-            self.aggressive += 0.5
-            self.trickish += 0.5
-        elif attr == u"＿進取派":
-            self.agl += 1
-            self.vit -= 1
-            self.brave += 0.5
-            self.cautious -= 0.5
-        elif attr == u"＿保守派":
-            self.str -= 1
-            self.min += 1
-            self.aggressive -= 0.5
-            self.cautious += 0.5
-        elif attr == u"＿神経質":
-            self.agl += 1
-            self.str -= 1
-            self.cheerful -= 0.5
-            self.cautious += 0.5
-        elif attr == u"＿鈍感":
-            self.int -= 1
-            self.vit += 1
-        elif attr == u"＿好奇心旺盛":
-            self.dex += 1
-            self.vit -= 1
-        elif attr == u"＿無頓着":
-            self.agl -= 1
-            self.min += 1
-            self.cheerful -= 0.5
-        elif attr == u"＿過激":
-            self.str += 1
-            self.vit -= 1
-            self.aggressive += 0.5
-            self.cautious -= 0.5
-        elif attr == u"＿穏健":
-            self.aggressive -= 0.5
-            self.cautious += 0.5
-        elif attr == u"＿楽観的":
-            self.dex += 1
-            self.agl -= 1
-            self.brave += 0.5
-            self.cautious -= 0.5
-        elif attr == u"＿悲観的":
-            self.int += 1
-            self.min -= 1
-            self.brave -= 0.5
-            self.cautious += 0.5
-        elif attr == u"＿勤勉":
-            self.dex -= 1
-            self.vit += 1
-        elif attr == u"＿遊び人":
-            self.dex += 1
-            self.int -= 1
-            self.cheerful += 0.5
-            self.trickish += 0.5
-        elif attr == u"＿陽気":
-            self.cheerful += 0.5
-        elif attr == u"＿内気":
-            self.brave -= 0.5
-        elif attr == u"＿派手":
-            self.agl += 1
-            self.int -= 1
-            self.cheerful += 0.5
-            self.cautious -= 0.5
-        elif attr == u"＿地味":
-            self.str -= 1
-            self.vit += 1
-            self.brave -= 0.5
-        elif attr == u"＿高慢":
-            self.dex -= 1
-            self.min += 1
-            self.aggressive += 0.5
-            self.cheerful -= 0.5
-        elif attr == u"＿謙虚":
-            self.dex -= 1
-            self.int += 1
-            self.cautious += 0.5
-        elif attr == u"＿上品":
-            self.int += 1
-            self.str -= 1
-            self.aggressive -= 0.5
-            self.cheerful += 0.5
-        elif attr == u"＿粗野":
-            self.int -= 1
-            self.str += 1
-            self.aggressive += 0.5
-            self.cheerful -= 0.5
-        elif attr == u"＿武骨":
-            self.dex -= 1
-            self.str += 1
-            self.cheerful -= 0.5
-            self.brave += 0.5
-        elif attr == u"＿繊細":
-            self.dex += 1
-            self.str -= 1
-            self.brave -= 0.5
-            self.cautious += 0.5
-        elif attr == u"＿硬派":
-            self.agl -= 1
-            self.str += 1
-            self.brave += 0.5
-            self.trickish -= 0.5
-        elif attr == u"＿軟派":
-            self.dex += 1
-            self.min -= 1
-            self.cheerful += 0.5
-            self.brave -= 0.5
-        elif attr == u"＿お人好し":
-            self.cheerful += 0.5
-            self.trickish -= 0.5
-        elif attr == u"＿ひねくれ者":
-            self.cheerful -= 0.5
-        elif attr == u"＿名誉こそ命":
-            self.brave += 0.5
-            self.cautious -= 0.5
-            self.trickish -= 0.5
-        elif attr == u"＿愛に生きる":
-            self.aggressive -= 0.5
-        else:
-            return
+        for making in cw.cwpy.setting.makings:
+            if u"＿" + making.name == attr:
+                making.modulate(self)
+                break
 
         self.set_coupon(attr, 0)
 
@@ -941,8 +631,12 @@ class NamePage(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=11)
         self.textctrl.SetFont(font)
         self.name = ""
-        self.sex = u"＿♂"
-        self.age = u"＿若者"
+        self.sex = cw.cwpy.setting.sexcoupons[0]
+        self.age = cw.cwpy.setting.periodcoupons[0]
+        for period in cw.cwpy.setting.periods:
+            if period.firstselect:
+                self.age = u"＿" + period.name
+                break
         self.imgpath = ""
         self.set_imgpaths()
         self._bind()
@@ -994,32 +688,37 @@ class NamePage(AdventurerCreaterPage):
         # Age
         s = "Age"
         dc.DrawText(s, 85, 175)
-        # Male
+
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=9)
         dc.SetFont(font)
-        s = "Male"
-        pos = (90, 145)
-        self.draw_clickabletext(dc, s, pos, u"＿♂", self.set_sex, self.sex)
-        # Female
-        s = "Female"
-        pos = (155, 145)
-        self.draw_clickabletext(dc, s, pos, u"＿♀", self.set_sex, self.sex)
-        # Child
-        s = "Child"
-        pos = (90, 195)
-        self.draw_clickabletext(dc, s, pos, u"＿子供", self.set_age, self.age)
-        # Adult
-        s = "Adult"
-        pos = (90, 215)
-        self.draw_clickabletext(dc, s, pos, u"＿大人", self.set_age, self.age)
-        # Young
-        s = "Young"
-        pos = (155, 195)
-        self.draw_clickabletext(dc, s, pos, u"＿若者", self.set_age, self.age)
-        # Old
-        s = "Old"
-        pos = (155, 215)
-        self.draw_clickabletext(dc, s, pos, u"＿老人", self.set_age, self.age)
+        xx = [90, 155]
+
+        # 性別
+        x = xx[0]
+        y = 145
+        for sex in cw.cwpy.setting.sexes:
+            s = sex.subname
+            pos = (x, y)
+            self.draw_clickabletext(dc, s, pos, u"＿" + sex.name, self.set_sex, self.sex)
+            if xx[1] == x:
+                x = xx[0]
+                y += 20
+            else:
+                x = xx[1]
+
+        # 年代
+        x = xx[0]
+        y = 195
+        for period in cw.cwpy.setting.periods:
+            s = period.subname
+            pos = (x, y)
+            self.draw_clickabletext(dc, s, pos, u"＿" + period.name, self.set_age, self.age)
+            if xx[1] == x:
+                x = xx[0]
+                y += 20
+            else:
+                x = xx[1]
+
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         pos = (250, 170)
@@ -1071,19 +770,15 @@ class NamePage(AdventurerCreaterPage):
             self.draw(True)
 
     def set_imgpaths(self):
-        if self.sex == u"＿♂":
-            sex = "Male"
-        else:
-            sex = "Female"
+        sex = cw.cwpy.setting.sexes[0].subname
+        for f in cw.cwpy.setting.sexes:
+            if self.sex == u"＿" + f.name:
+                sex = f.subname
 
-        if self.age == u"＿子供":
-            age = "CHD"
-        elif self.age == u"＿若者":
-            age = "YNG"
-        elif self.age == u"＿大人":
-            age = "ADT"
-        else:
-            age = "OLD"
+        age = cw.cwpy.setting.periods[0].abbr
+        for f in cw.cwpy.setting.periods:
+            if self.age == u"＿" + f.name:
+                age = f.abbr
 
         dpath = sex + "-" + age
         dpath = cw.util.join_paths(cw.cwpy.skindir, u"Face", dpath)
@@ -1261,12 +956,11 @@ class RelationPage(AdventurerCreaterPage):
         if self.father:
             if self.father.album:
                 ep = 10
-            elif self.father.age == u"＿若者":
-                ep = 40
-            elif self.father.age == u"＿大人":
-                ep = 30
-            elif self.father.age == u"＿老人":
-                ep = 20
+            else:
+                for period in cw.cwpy.setting.periods:
+                    if self.father.age == u"＿" + period.name:
+                        ep = period.spendep
+                        break
 
             s = u"消費EP:%d (残%d)" % (ep, self.father.ep - ep)
             cw.util.draw_center(dc, s, (140, 240))
@@ -1275,12 +969,11 @@ class RelationPage(AdventurerCreaterPage):
         if self.mother:
             if self.mother.album:
                 ep = 10
-            elif self.mother.age == u"＿若者":
-                ep = 40
-            elif self.mother.age == u"＿大人":
-                ep = 30
-            elif self.mother.age == u"＿老人":
-                ep = 20
+            else:
+                for period in cw.cwpy.setting.periods:
+                    if self.mother.age == u"＿" + period.name:
+                        ep = period.spendep
+                        break
 
             s = u"消費EP:%d (残%d)" % (ep, self.mother.ep - ep)
             cw.util.draw_center(dc, s, (315, 240))
@@ -1335,10 +1028,13 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_parents(self):
         def append_header(self, header):
-            if header.sex == u"＿♂":
-                self.fathers.append(header)
-            else:
-                self.mothers.append(header)
+            for sex in cw.cwpy.setting.sexes:
+                if header.sex == u"＿" + sex.name:
+                    if sex.father:
+                        self.fathers.append(header)
+                    if sex.mother:
+                        self.mothers.append(header)
+                    break
 
         self.fathers = [None]
         self.mothers = [None]
@@ -1346,15 +1042,21 @@ class RelationPage(AdventurerCreaterPage):
         if not cw.cwpy.ydata:
             return
 
-        for header in cw.cwpy.ydata.standbys:
-            if header.age == u"＿若者" and header.ep >= 40:
-                append_header(self, header)
-            elif header.age == u"＿大人" and header.ep >= 30:
-                append_header(self, header)
-            elif header.age == u"＿老人" and header.ep >= 20:
-                append_header(self, header)
+        for index, header in enumerate(cw.cwpy.ydata.standbys):
+            if not isinstance(header, cw.header.AdventurerHeader):
+                # まだヘッダが生成されていない場合
+                header = cw.cwpy.ydata.create_advheader(header)
+                cw.cwpy.ydata.standbys[index] = header
+            for period in cw.cwpy.setting.periods:
+                if period.spendep > 0 and header.age == u"＿" + period.name and header.ep >= period.spendep:
+                    append_header(self, header)
+                    break
 
-        for header in cw.cwpy.ydata.album:
+        for index, header in enumerate(cw.cwpy.ydata.album):
+            if not isinstance(header, cw.header.AdventurerHeader):
+                # まだヘッダが生成されていない場合
+                header = cw.cwpy.ydata.create_advheader(header)
+                cw.cwpy.ydata.album[index] = header
             if header.ep >= 10:
                 append_header(self, header)
 
@@ -1367,7 +1069,7 @@ class RelationPage(AdventurerCreaterPage):
 class TalentPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
-        self.talent = u"＿標準型"
+        self.talent = u"＿" + cw.cwpy.setting.natures[0].name
         self._bind()
 
     def draw(self, update=False):
@@ -1381,55 +1083,30 @@ class TalentPage(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 35)
         # 新規冒険者の傾向を選択して下さい。
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10, weight=wx.NORMAL)
-        dc.SetFont(font)
+        font1 = cw.cwpy.rsrc.get_wxfont("uigothic", size=10, weight=wx.NORMAL)
+        font2 = cw.cwpy.rsrc.get_wxfont("uigothic", size=10)
+        dc.SetFont(font1)
         s = u"新規冒険者の傾向を選択して下さい。"
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 60)
-        # 標準型解説
-        s = u"凡庸なる暮らしの中で培わ\nれた強い意志"
-        dc.DrawLabel(s, (68, 110, 145, 35))
-        # 勇将型解説
-        s = u"攻守のバランスに優れる"
-        dc.DrawLabel(s, (68, 165, 145, 35))
-        # 知将型解説
-        s = u"智に裏付けされた実力"
-        dc.DrawLabel(s, (68, 220, 145, 35))
-        # 万能型解説
-        s = u"あらゆる分野をそつなくこな\nす機敏さ"
-        dc.DrawLabel(s, (258, 110, 145, 35))
-        # 豪傑型解説
-        s = u"腕力、耐久力に優れた生ま\nれながらの戦士"
-        dc.DrawLabel(s, (258, 165, 145, 35))
-        # 策士型解説
-        s = u"類希な知性を持つ天才型"
-        dc.DrawLabel(s, (258, 220, 145, 35))
-        # 標準型
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10)
-        dc.SetFont(font)
-        s = u"標準型"
-        pos = (65, 92)
-        self.draw_clickabletext(dc, s, pos, u"＿標準型", self.set_talent, self.talent)
-        # 勇将型
-        s = u"勇将型"
-        pos = (65, 147)
-        self.draw_clickabletext(dc, s, pos, u"＿勇将型", self.set_talent, self.talent)
-        # 知将型
-        s = u"知将型"
-        pos = (65, 202)
-        self.draw_clickabletext(dc, s, pos, u"＿知将型", self.set_talent, self.talent)
-        # 万能型
-        s = u"万能型"
-        pos = (255, 92)
-        self.draw_clickabletext(dc, s, pos, u"＿万能型", self.set_talent, self.talent)
-        # 豪傑型
-        s = u"豪傑型"
-        pos = (255, 147)
-        self.draw_clickabletext(dc, s, pos, u"＿豪傑型", self.set_talent, self.talent)
-        # 策士型
-        s = u"策士型"
-        pos = (255, 202)
-        self.draw_clickabletext(dc, s, pos, u"＿策士型", self.set_talent, self.talent)
+        xx = [65, 255]
+        x = xx[0]
+        y = 92
+        for nature in cw.cwpy.setting.natures:
+            if not nature.special:
+                s = cw.util.txtwrap(nature.description, mode=5)
+                dc.SetFont(font1)
+                dc.DrawLabel(s, (x + 3, y + 18, 145, 35))
+                dc.SetFont(font2)
+                s = nature.name
+                pos = (x, y)
+                self.draw_clickabletext(dc, s, pos, u"＿" + nature.name, self.set_talent, self.talent)
+
+                if x == xx[1]:
+                    x = xx[0]
+                    y += 55
+                else:
+                    x = xx[1]
 
     def set_talent(self, name):
         if not self.talent == name:
@@ -1465,41 +1142,23 @@ class AttrPage(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10)
         dc.SetFont(font)
 
-        seq =  ((u"秀麗", u"醜悪"),
-                (u"高貴の出", u"下賎の出"),
-                (u"都会育ち", u"田舎育ち"),
-                (u"裕福", u"貧乏"),
-                (u"厚き信仰", u"不心得者"),
-                (u"誠実", u"不実"),
-                (u"冷静沈着", u"猪突猛進"),
-                (u"貪欲", u"無欲"),
-                (u"献身的", u"利己的"),
-                (u"秩序派", u"混沌派"),
-                (u"進取派", u"保守派"),
-                (u"神経質", u"鈍感"),
-                (u"好奇心旺盛", u"無頓着"),
-                (u"過激", u"穏健"),
-                (u"楽観的", u"悲観的"),
-                (u"勤勉", u"遊び人"),
-                (u"陽気", u"内気"),
-                (u"派手", u"地味"),
-                (u"高慢", u"謙虚"),
-                (u"上品", u"粗野"),
-                (u"武骨", u"繊細"),
-                (u"硬派", u"軟派"),
-                (u"お人好し", u"ひねくれ者"),
-                (u"名誉こそ命", u"愛に生きる"))
-
-        for index, coupons in enumerate(seq):
-            column = index / 12 if index else 0
-            pos = (67 + column * 172, 64 + (index - column * 12) * 16)
-            s = coupons[0]
+        for index in range(0, len(cw.cwpy.setting.makings), 2):
+            column = index % 4
+            pos = (67 + column * 86, 64 + (index / 4) * 16)
+            m1 = cw.cwpy.setting.makings[index]
+            s = m1.name
+            if index + 1 < len(cw.cwpy.setting.makings):
+                m2 = cw.cwpy.setting.makings[index + 1]
+                coupons = (m1.name, m2.name)
+            else:
+                coupons = (m1.name)
             name = (u"＿" + s, coupons)
             self.draw_clickabletext(dc, s, pos, name, self.set_coupon)
-            pos = pos[0] + 86, pos[1]
-            s = coupons[1]
-            name = (u"＿" + s, coupons)
-            self.draw_clickabletext(dc, s, pos, name, self.set_coupon)
+            if index + 1 < len(cw.cwpy.setting.makings):
+                pos = pos[0] + 86, pos[1]
+                s = m2.name
+                name = (u"＿" + s, coupons)
+                self.draw_clickabletext(dc, s, pos, name, self.set_coupon)
 
     def draw_clickabletext(self, dc, s, pos, name, method, setname=None):
         size = dc.GetTextExtent(s)
@@ -1854,19 +1513,15 @@ class DesignPanel(AdventurerCreaterPage):
             self.draw(True)
 
     def set_imgpaths(self):
-        if self.sex == u"＿♂":
-            sex = "Male"
-        else:
-            sex = "Female"
+        sex = cw.cwpy.setting.sexes[0].subname
+        for f in cw.cwpy.setting.sexes:
+            if self.sex == u"＿" + f.name:
+                sex = f.subname
 
-        if self.age == u"＿子供":
-            age = "CHD"
-        elif self.age == u"＿若者":
-            age = "YNG"
-        elif self.age == u"＿大人":
-            age = "ADT"
-        else:
-            age = "OLD"
+        age = cw.cwpy.setting.periods[0].abbr
+        for f in cw.cwpy.setting.periods:
+            if self.age == u"＿" + f.name:
+                age = f.abbr
 
         dpath = sex + "-" + age
         dpath = cw.util.join_paths(cw.cwpy.skindir, u"Face", dpath)

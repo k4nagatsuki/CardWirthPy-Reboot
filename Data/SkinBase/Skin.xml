@@ -9,4 +9,377 @@
     <ClassicStyleText>True</ClassicStyleText>
   </Property>
   <Races />
+  <Sexes>
+    <Sex subName="Male" father="True" mother="False">
+      <Physical dex="0" agl="0" int="0" str="1" vit="0" min="0" />
+      <Mental aggressive="0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>♂</Name>
+    </Sex>
+    <Sex subName="Female" father="False" mother="True">
+      <Physical dex="1" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0" />
+      <Name>♀</Name>
+    </Sex>
+  </Sexes>
+  <Periods>
+    <Period subName="Child" abbr="CHD" level="1" spendEP="0" firstSelect="False">
+      <Physical dex="1" agl="1" int="0" str="-1" vit="-1" min="0" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="-0.5" trickish="0" />
+      <Name>子供</Name>
+      <Coupons />
+    </Period>
+    <Period subName="Young" abbr="YNG" level="1" spendEP="40" firstSelect="True">
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>若者</Name>
+      <Coupons />
+    </Period>
+    <Period subName="Adult" abbr="ADT" level="2" spendEP="30" firstSelect="False">
+      <Physical dex="0" agl="0" int="0" str="0" vit="-1" min="0" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
+      <Name>大人</Name>
+      <Coupons>
+        <Coupon value="2">熟練</Coupon>
+      </Coupons>
+    </Period>
+    <Period subName="Old" abbr="OLD" level="2" spendEP="20" firstSelect="False">
+      <Physical dex="-1" agl="-1" int="1" str="-1" vit="-1" min="1" />
+      <Mental aggressive="-0.5" cheerful="0" brave="-0.5" cautious="0.5" trickish="0.5" />
+      <Name>老人</Name>
+      <Coupons>
+        <Coupon value="4">老獪</Coupon>
+      </Coupons>
+    </Period>
+  </Periods>
+  <Natures>
+    <Nature special="False" geneCount="0" genePattern="1000000000" levelMax="10">
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="1" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
+      <Name>標準型</Name>
+      <Description>凡庸なる暮らしの中で培われた強い意志</Description>
+      <BaseNatures />
+    </Nature>
+    <Nature special="False" geneCount="0" genePattern="0100000000" levelMax="10">
+      <Physical dex="-1" agl="0" int="-1" str="2" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="1" cautious="0" trickish="0" />
+      <Name>万能型</Name>
+      <Description>あらゆる分野をそつなくこなす機敏さ</Description>
+      <BaseNatures />
+    </Nature>
+    <Nature special="False" geneCount="0" genePattern="0010000000" levelMax="10">
+      <Physical dex="0" agl="0" int="2" str="-1" vit="-1" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0" />
+      <Name>勇将型</Name>
+      <Description>攻守のバランスに優れる</Description>
+      <BaseNatures />
+    </Nature>
+    <Nature special="False" geneCount="0" genePattern="0001000000" levelMax="10">
+      <Physical dex="0" agl="-1" int="3" str="-2" vit="-2" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
+      <Name>豪傑型</Name>
+      <Description>腕力、耐久力に優れた生まれながらの戦士</Description>
+      <BaseNatures />
+    </Nature>
+    <Nature special="False" geneCount="0" genePattern="0000100000" levelMax="10">
+      <Physical dex="1" agl="1" int="0" str="0" vit="0" min="-1" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0" />
+      <Name>知将型</Name>
+      <Description>智に裏付けされた実力</Description>
+      <BaseNatures />
+    </Nature>
+    <Nature special="False" geneCount="0" genePattern="0000010000" levelMax="10">
+      <Physical dex="-2" agl="-1" int="-2" str="3" vit="1" min="-1" />
+      <Mental aggressive="0.5" cheerful="0" brave="0.5" cautious="-0.5" trickish="0" />
+      <Name>策士型</Name>
+      <Description>類希な知性を持つ天才型</Description>
+      <BaseNatures />
+    </Nature>
+    <Nature special="True" geneCount="6" genePattern="0000000100" levelMax="10">
+      <Physical dex="-2" agl="-2" int="-2" str="-2" vit="-2" min="-2" />
+      <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0.5" trickish="0" />
+      <Name>英明型</Name>
+      <BaseNatures>
+        <BaseNature>標準型</BaseNature>
+        <BaseNature>万能型</BaseNature>
+      </BaseNatures>
+    </Nature>
+    <Nature special="True" geneCount="6" genePattern="0000000010" levelMax="10">
+      <Physical dex="1" agl="1" int="1" str="1" vit="1" min="1" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0.5" trickish="0" />
+      <Name>無双型</Name>
+      <BaseNatures>
+        <BaseNature>勇将型</BaseNature>
+        <BaseNature>豪傑型</BaseNature>
+      </BaseNatures>
+    </Nature>
+    <Nature special="True" geneCount="6" genePattern="0000000001" levelMax="10">
+      <Physical dex="0" agl="1" int="0" str="3" vit="2" min="0" />
+      <Mental aggressive="0.5" cheerful="0" brave="0.5" cautious="0" trickish="0" />
+      <Name>天才型</Name>
+      <BaseNatures>
+        <BaseNature>知将型</BaseNature>
+        <BaseNature>策士型</BaseNature>
+      </BaseNatures>
+    </Nature>
+    <Nature special="True" geneCount="0" genePattern="0000001111" levelMax="12">
+      <Physical dex="1" agl="0" int="3" str="0" vit="0" min="2" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
+      <Name>凡庸型</Name>
+      <BaseNatures />
+    </Nature>
+    <Nature special="True" geneCount="8" genePattern="0000000000" levelMax="12">
+      <Physical dex="1" agl="1" int="2" str="2" vit="1" min="2" />
+      <Mental aggressive="0" cheerful="0.5" brave="0.5" cautious="0" trickish="-0.5" />
+      <Name>英雄型</Name>
+      <BaseNatures />
+    </Nature>
+    <Nature special="True" geneCount="10" genePattern="0000000000" levelMax="15">
+      <Physical dex="2" agl="2" int="2" str="2" vit="2" min="2" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>神仙型</Name>
+      <BaseNatures />
+    </Nature>
+  </Natures>
+  <Makings>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="-1" min="0" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0" />
+      <Name>秀麗</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="1" min="0" />
+      <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
+      <Name>醜悪</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0.5" cautious="0" trickish="0" />
+      <Name>高貴の出</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="-0.5" trickish="0.5" />
+      <Name>下賎の出</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="1" str="0" vit="-1" min="0" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0.5" />
+      <Name>都会育ち</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="-1" int="0" str="0" vit="1" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="-0.5" />
+      <Name>田舎育ち</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="-1" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="-0.5" />
+      <Name>裕福</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="1" />
+      <Mental aggressive="0.5" cheerful="0" brave="-0.5" cautious="0" trickish="0" />
+      <Name>貧乏</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="-1" str="0" vit="0" min="1" />
+      <Mental aggressive="0" cheerful="0" brave="0.5" cautious="0" trickish="-0.5" />
+      <Name>厚き信仰</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
+      <Name>不心得者</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0.5" cautious="0" trickish="-0.5" />
+      <Name>誠実</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0" trickish="0.5" />
+      <Name>不実</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="-1" int="1" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
+      <Name>冷静沈着</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="1" int="0" str="0" vit="0" min="-1" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="-0.5" trickish="0" />
+      <Name>猪突猛進</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="1" min="-1" />
+      <Mental aggressive="0.5" cheerful="0" brave="-0.5" cautious="-0.5" trickish="0" />
+      <Name>貪欲</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>無欲</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="-1" min="1" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>献身的</Name>
+    </Making>
+    <Making>
+      <Physical dex="-1" agl="1" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0.5" cheerful="-0.5" brave="0" cautious="0" trickish="0.5" />
+      <Name>利己的</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0.5" cheerful="0" brave="0" cautious="0" trickish="-0.5" />
+      <Name>秩序派</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="1" vit="0" min="-1" />
+      <Mental aggressive="0.5" cheerful="0" brave="0" cautious="0" trickish="0.5" />
+      <Name>混沌派</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="1" int="0" str="0" vit="-1" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0.5" cautious="-0.5" trickish="0" />
+      <Name>進取派</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="-1" vit="0" min="1" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
+      <Name>保守派</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="1" int="0" str="-1" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0.5" trickish="0" />
+      <Name>神経質</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="-1" str="0" vit="1" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>鈍感</Name>
+    </Making>
+    <Making>
+      <Physical dex="1" agl="0" int="0" str="0" vit="-1" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>好奇心旺盛</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="-1" int="0" str="0" vit="0" min="1" />
+      <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
+      <Name>無頓着</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="1" vit="-1" min="0" />
+      <Mental aggressive="0.5" cheerful="0" brave="0" cautious="-0.5" trickish="0" />
+      <Name>過激</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
+      <Name>穏健</Name>
+    </Making>
+    <Making>
+      <Physical dex="1" agl="-1" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0.5" cautious="-0.5" trickish="0" />
+      <Name>楽観的</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="1" str="0" vit="0" min="-1" />
+      <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0.5" trickish="0" />
+      <Name>悲観的</Name>
+    </Making>
+    <Making>
+      <Physical dex="-1" agl="0" int="0" str="0" vit="1" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>勤勉</Name>
+    </Making>
+    <Making>
+      <Physical dex="1" agl="0" int="-1" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0.5" />
+      <Name>遊び人</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0" />
+      <Name>陽気</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0" trickish="0" />
+      <Name>内気</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="1" int="-1" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="-0.5" trickish="0" />
+      <Name>派手</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="-1" vit="1" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0" trickish="0" />
+      <Name>地味</Name>
+    </Making>
+    <Making>
+      <Physical dex="-1" agl="0" int="0" str="0" vit="0" min="1" />
+      <Mental aggressive="0.5" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
+      <Name>高慢</Name>
+    </Making>
+    <Making>
+      <Physical dex="-1" agl="0" int="1" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0" />
+      <Name>謙虚</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="1" str="-1" vit="0" min="0" />
+      <Mental aggressive="-0.5" cheerful="0.5" brave="0" cautious="0" trickish="0" />
+      <Name>上品</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="-1" str="1" vit="0" min="0" />
+      <Mental aggressive="0.5" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
+      <Name>粗野</Name>
+    </Making>
+    <Making>
+      <Physical dex="-1" agl="0" int="0" str="1" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="-0.5" brave="0.5" cautious="0" trickish="0" />
+      <Name>武骨</Name>
+    </Making>
+    <Making>
+      <Physical dex="1" agl="0" int="0" str="-1" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0.5" trickish="0" />
+      <Name>繊細</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="-1" int="0" str="1" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0.5" cautious="0" trickish="-0.5" />
+      <Name>硬派</Name>
+    </Making>
+    <Making>
+      <Physical dex="1" agl="0" int="0" str="0" vit="0" min="-1" />
+      <Mental aggressive="0" cheerful="0.5" brave="-0.5" cautious="0" trickish="0" />
+      <Name>軟派</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="-0.5" />
+      <Name>お人好し</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
+      <Name>ひねくれ者</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="0" cheerful="0" brave="0.5" cautious="-0.5" trickish="-0.5" />
+      <Name>名誉こそ命</Name>
+    </Making>
+    <Making>
+      <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
+      <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
+      <Name>愛に生きる</Name>
+    </Making>
+  </Makings>
 </Skin>

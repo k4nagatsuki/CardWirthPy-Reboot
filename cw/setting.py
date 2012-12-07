@@ -97,6 +97,22 @@ class Setting(object):
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("/Races")]
         self.races.append(cw.header.UnknownRaceHeader())
 
+        # 特性
+        self.sexes = [cw.features.Sex(e) for e in data.getfind("/Sexes")]
+        self.sexnames = [f.name for f in self.sexes]
+        self.sexsubnames = [f.subname for f in self.sexes]
+        self.sexcoupons = [u"＿" + f.name for f in self.sexes]
+        self.periods = [cw.features.Period(e) for e in data.getfind("/Periods")]
+        self.periodnames = [f.name for f in self.periods]
+        self.periodsubnames = [f.subname for f in self.periods]
+        self.periodcoupons = [u"＿" + f.name for f in self.periods]
+        self.natures = [cw.features.Nature(e) for e in data.getfind("/Natures")]
+        self.naturenames = [f.name for f in self.natures]
+        self.naturecoupons = [u"＿" + f.name for f in self.natures]
+        self.makings = [cw.features.Making(e) for e in data.getfind("/Makings")]
+        self.makingnames = [f.name for f in self.makings]
+        self.makingcoupons = [u"＿" + f.name for f in self.makings]
+
     def set_dealspeed(self, value):
         self.dealspeed = value + 1
         self.dealspeed = cw.util.numwrap(self.dealspeed, 1, 11)

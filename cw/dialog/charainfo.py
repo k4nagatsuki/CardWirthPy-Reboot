@@ -236,10 +236,10 @@ class TopPanel(wx.Panel):
 
     def draw(self, update=False):
         # クーポンにある各種変数取得
-        ages = set((u"＿老人", u"＿大人", u"＿若者", u"＿子供"))
-        sexs = set((u"＿♀", u"＿♂"))
-        self.sex = u"♂"
-        self.age = u"若者"
+        ages = set(cw.cwpy.setting.periodcoupons)
+        sexs = set(cw.cwpy.setting.sexcoupons)
+        self.sex = cw.cwpy.setting.sexes[0].name
+        self.age = cw.cwpy.setting.periods[0].name
         self.ep = "0"
 
         for coupon in self.ccard.data.getfind("/Property/Coupons"):

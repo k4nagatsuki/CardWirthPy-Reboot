@@ -457,12 +457,12 @@ class AdventurerHeader(object):
             self.lost = False
 
         # クーポンにある各種変数取得
-        ages = set([u"＿老人", u"＿大人", u"＿若者", u"＿子供"])
-        sexs = set([u"＿♀", u"＿♂"])
+        ages = set(cw.cwpy.setting.periodcoupons)
+        sexs = set(cw.cwpy.setting.sexcoupons)
         hiddens = set([u"＿", u"＠"])
         r_gene = re.compile(u"＠Ｇ\d{10}$")
-        self.sex = u"＿♂"
-        self.age = u"＿若者"
+        self.sex = cw.cwpy.setting.sexcoupons[0]
+        self.age = cw.cwpy.setting.periodcoupons[0]
         self.ep = 0
         self.leavenoalbum = False
         self.gene = Gene()
@@ -494,14 +494,14 @@ class AdventurerHeader(object):
         """
         if self.album:
             n = 10
-        elif self.age == u"＿老人":
-            n = 20
-        elif self.age == u"＿大人":
-            n = 30
-        elif self.age == u"＿若者":
-            n = 40
         else:
-            return
+            n = 0
+            for period in cw.cwpy.setting.periods:
+                if self.age == u"＿" + period.name:
+                    n = period.spendep
+                    break
+            if n == 0:
+                return
 
         self.ep -= n
         data = cw.data.yadoxml2etree(self.fpath)
@@ -524,24 +524,16 @@ class AdventurerHeader(object):
         return cw.util.join_yadodir(self.imgpath)
 
     def get_age(self):
-        if self.age == u"＿老人":
-            return "Old"
-        elif self.age == u"＿大人":
-            return "Adult"
-        elif self.age == u"＿若者":
-            return "Young"
-        elif self.age == u"＿子供":
-            return "Child"
-        else:
-            return ""
+        for period in cw.cwpy.setting.periods:
+            if self.age == u"＿" + period.name:
+                return period.subname
+        return ""
 
     def get_sex(self):
-        if self.sex == u"＿♀":
-            return "Female"
-        elif self.sex == u"＿♂":
-            return "Male"
-        else:
-            return ""
+        for sex in cw.cwpy.setting.sexes:
+            if self.sex == u"＿" + sex.name:
+                return sex.subname
+        return ""
 
 class Gene(object):
     def __init__(self, bits=[]):
@@ -568,30 +560,14 @@ class Gene(object):
         self.bits[n - 1] = 1
 
     def set_talentbit(self, talent, oldtalent=""):
-        if talent == u"＿標準型":
-            self.set_bit(0)
-        elif talent == u"＿万能型":
-            self.set_bit(1)
-        elif talent == u"＿勇将型":
-            self.set_bit(2)
-        elif talent == u"＿豪傑型":
-            self.set_bit(3)
-        elif talent == u"＿知将型":
-            self.set_bit(4)
-        elif talent == u"＿策士型":
-            self.set_bit(5)
-        elif talent == u"＿英明型":
-            self.set_bit(7)
-        elif talent == u"＿無双型":
-            self.set_bit(8)
-        elif talent == u"＿天才型":
-            self.set_bit(9)
-        elif talent == u"＿凡庸型":
-            self.set_bit(6)
-            self.set_bit(7)
-            self.set_bit(8)
-            self.set_bit(9)
-            self.set_talentbit(oldtalent)
+        for nature in cw.cwpy.setting.natures:
+            if u"＿" + nature.name == talent:
+                for index in range(len(nature.genepattern)):
+                    if nature.genepattern[index] == '1':
+                        self.set_bit(index)
+                if nature.genecount == 0:
+                    self.set_talentbit(oldtalent)
+                break
 
     def count_bits(self):
         return len([bit for bit in self.bits if bit])

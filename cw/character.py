@@ -737,7 +737,7 @@ class Character(object):
         return d
 
     def get_sex(self):
-        sets = set([u"＿♂", u"＿♀"])
+        sets = set(cw.cwpy.setting.sexcoupons)
 
         for e in self.data.getfind("/Property/Coupons"):
             if e.text in sets:
@@ -746,7 +746,7 @@ class Character(object):
         return None
 
     def get_age(self):
-        sets = set([u"＿子供", u"＿若者", u"＿大人", u"＿老人"])
+        sets = set(cw.cwpy.setting.periodcoupons)
 
         for e in self.data.getfind("/Property/Coupons"):
             if e.text in sets:
@@ -755,9 +755,7 @@ class Character(object):
         return None
 
     def get_talent(self):
-        sets = set([u"＿標準型", u"＿万能型", u"＿勇将型", u"＿豪傑型",
-                    u"＿知将型", u"＿策士型", u"＿英明型", u"＿無双型",
-                    u"＿天才型", u"＿凡庸型"])
+        sets = set(cw.cwpy.settings.naturecoupons)
 
         for e in self.data.getfind("/Property/Coupons"):
             if e.text in sets:

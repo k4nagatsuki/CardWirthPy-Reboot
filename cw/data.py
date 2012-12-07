@@ -948,12 +948,11 @@ class YadoData(object):
             fcard.set_coupon(u"＠ＥＰ", 0)
             talent = fcard.get_talent()
 
-            if talent == u"＿神仙型":
-                value = 15
-            elif talent in (u"＿英雄型", u"凡庸型"):
-                value = 12
-            else:
-                value = 10
+            value = 10
+            for nature in cw.cwpy.settings.nature:
+                if u"＿" + nature.name == talent:
+                    value = nature.levelmax
+                    break
 
             fcard.set_coupon(u"＠本来の上限", value)
             gene = cw.header.Gene()
@@ -1364,6 +1363,21 @@ class _CWPyElementInterface(object):
 
         try:
             return int(s)
+        except:
+            self._raiseerror(path, attr)
+
+    def getfloat(self, path, attr=None, default=None):
+        if isinstance(attr, float):
+            default = attr
+            attr = ""
+            s = self.gettext(path, default)
+        elif attr:
+            s = self.getattr(path, attr, default)
+        else:
+            s = self.gettext(path, default)
+
+        try:
+            return float(s)
         except:
             self._raiseerror(path, attr)
 
