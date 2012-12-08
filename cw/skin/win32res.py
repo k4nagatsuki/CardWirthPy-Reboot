@@ -18,7 +18,19 @@ def get_bitmap(exe, resname):
     int32 = struct.Struct("<i") # int32(little endian)
 
     # ヘッダを生成する
-    headersize = int16.unpack(data[:2])[0]
+    headersize = int32.unpack(data[:4])[0]
+    width = int32.unpack(data[4:8])[0]
+    height = int32.unpack(data[8:12])[0]
+    plans = int16.unpack(data[12:14])[0]
+    bitcount = int16.unpack(data[14:16])[0]
+    compression = int32.unpack(data[16:20])[0]
+    imagesize = int32.unpack(data[20:24])[0]
+    if bitcount == 1:
+        headersize += 4 * (0x01 << 1);
+    elif bitcount == 4:
+        headersize += 4 * (0x01 << 4);
+    elif bitcount == 8:
+        headersize += 4 * (0x01 << 8);
     arr = bytearray()
     arr += chr(0x42)
     arr += chr(0x4d)
@@ -38,9 +50,10 @@ def get_rcdata(exe, resname):
         return None
     data = buffer(data)
     table = {}
-    stack = []
+    stack = [table]
     int8 = struct.Struct("b") # int8
     uint16 = struct.Struct("<H") # uint16(little endian)
+    uint32 = struct.Struct("<I") # uint32(little endian)
 
     if data[0:4] == "TPF0":
         data = data[4:]
@@ -48,21 +61,15 @@ def get_rcdata(exe, resname):
             length = ord(data[0])
             if length == 0:
                 data = data[1:]
-                if len(stack):
-                    stack.pop()
-                    continue
-                else:
-                    break
+                stack.pop()
+                continue
             classname = data[1:1+length]
             data = data[1+length:]
             length = ord(data[0])
             name = data[1:1+length]
             data = data[1+length:]
-            c = RCData(name, classname)
-            if len(stack):
-                stack[-1].table[name] = c
-            else:
-                table[name] = c
+            c = {}
+            stack[-1][name] = c
             stack.append(c)
             while True:
                 length = ord(data[0])
@@ -91,6 +98,10 @@ def get_rcdata(exe, resname):
                     value = False
                 elif type == 0x09: # True
                     value = True
+                elif type == 0x0a: # binary
+                    length = uint32.unpack(data[0:4])[0]
+                    value = data[4:4+length]
+                    data = data[4+length:]
                 elif type == 0x0b: # array
                     value = []
                     while 0 < ord(data[0]):
@@ -100,14 +111,8 @@ def get_rcdata(exe, resname):
                     data = data[1:]
                 else:
                     raise Exception("value type: %s (%s, %s)" % (name, key, type))
-                stack[-1].table[key] = value
-    return data
-
-class RCData:
-    def __init__(self, name, classname):
-        self.name = name
-        self.classname = classname
-        self.table = {}
+                stack[-1][key] = value
+    return table
 
 def get_resource(exe, resname, type):
     """exeから特定型のリソースを取得する。"""

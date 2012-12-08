@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Skin>
   <Property>
-    <Name>$name</Name>
-    <Type>$type</Type>
+    <Name></Name>
+    <Type></Type>
     <Author></Author>
-    <Description>$description</Description>
+    <Description></Description>
     <Extension image=".bmp" bgm=".mid" sound=".wav" />
     <ClassicStyleText>True</ClassicStyleText>
   </Property>
@@ -13,41 +13,41 @@
     <Sex subName="Male" father="True" mother="False">
       <Physical dex="0" agl="0" int="0" str="1" vit="0" min="0" />
       <Mental aggressive="0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>‰</Name>
+      <Name>â™‚</Name>
     </Sex>
     <Sex subName="Female" father="False" mother="True">
       <Physical dex="1" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0" />
-      <Name>Š</Name>
+      <Name>â™€</Name>
     </Sex>
   </Sexes>
   <Periods>
     <Period subName="Child" abbr="CHD" level="1" spendEP="0" firstSelect="False">
       <Physical dex="1" agl="1" int="0" str="-1" vit="-1" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="-0.5" trickish="0" />
-      <Name>Žq‹Ÿ</Name>
+      <Name>å­ä¾›</Name>
       <Coupons />
     </Period>
     <Period subName="Young" abbr="YNG" level="1" spendEP="40" firstSelect="True">
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>ŽáŽÒ</Name>
+      <Name>è‹¥è€…</Name>
       <Coupons />
     </Period>
     <Period subName="Adult" abbr="ADT" level="2" spendEP="30" firstSelect="False">
       <Physical dex="0" agl="0" int="0" str="0" vit="-1" min="0" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
-      <Name>‘ål</Name>
+      <Name>å¤§äºº</Name>
       <Coupons>
-        <Coupon value="2">n—û</Coupon>
+        <Coupon value="2">ç†Ÿç·´</Coupon>
       </Coupons>
     </Period>
     <Period subName="Old" abbr="OLD" level="2" spendEP="20" firstSelect="False">
       <Physical dex="-1" agl="-1" int="1" str="-1" vit="-1" min="1" />
       <Mental aggressive="-0.5" cheerful="0" brave="-0.5" cautious="0.5" trickish="0.5" />
-      <Name>˜Vl</Name>
+      <Name>è€äºº</Name>
       <Coupons>
-        <Coupon value="4">˜VàÔ</Coupon>
+        <Coupon value="4">è€çª</Coupon>
       </Coupons>
     </Period>
   </Periods>
@@ -55,88 +55,88 @@
     <Nature special="False" geneCount="0" genePattern="1000000000" levelMax="10">
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="1" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
-      <Name>•W€Œ^</Name>
-      <Description>–}—f‚È‚é•é‚ç‚µ‚Ì’†‚Å”|‚í‚ê‚½‹­‚¢ˆÓŽu</Description>
+      <Name>æ¨™æº–åž‹</Name>
+      <Description>å‡¡åº¸ãªã‚‹æš®ã‚‰ã—ã®ä¸­ã§åŸ¹ã‚ã‚ŒãŸå¼·ã„æ„å¿—</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0100000000" levelMax="10">
       <Physical dex="-1" agl="0" int="-1" str="2" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="1" cautious="0" trickish="0" />
-      <Name>–œ”\Œ^</Name>
-      <Description>‚ ‚ç‚ä‚é•ª–ì‚ð‚»‚Â‚È‚­‚±‚È‚·‹@•q‚³</Description>
+      <Name>ä¸‡èƒ½åž‹</Name>
+      <Description>ã‚ã‚‰ã‚†ã‚‹åˆ†é‡Žã‚’ãã¤ãªãã“ãªã™æ©Ÿæ•ã•</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0010000000" levelMax="10">
       <Physical dex="0" agl="0" int="2" str="-1" vit="-1" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0" />
-      <Name>—E«Œ^</Name>
-      <Description>UŽç‚Ìƒoƒ‰ƒ“ƒX‚É—D‚ê‚é</Description>
+      <Name>å‹‡å°†åž‹</Name>
+      <Description>æ”»å®ˆã®ãƒãƒ©ãƒ³ã‚¹ã«å„ªã‚Œã‚‹</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0001000000" levelMax="10">
       <Physical dex="0" agl="-1" int="3" str="-2" vit="-2" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
-      <Name>‹Œ†Œ^</Name>
-      <Description>˜r—ÍA‘Ï‹v—Í‚É—D‚ê‚½¶‚Ü‚ê‚È‚ª‚ç‚ÌíŽm</Description>
+      <Name>è±ªå‚‘åž‹</Name>
+      <Description>è…•åŠ›ã€è€ä¹…åŠ›ã«å„ªã‚ŒãŸç”Ÿã¾ã‚ŒãªãŒã‚‰ã®æˆ¦å£«</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0000100000" levelMax="10">
       <Physical dex="1" agl="1" int="0" str="0" vit="0" min="-1" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0" />
-      <Name>’m«Œ^</Name>
-      <Description>’q‚É— •t‚¯‚³‚ê‚½ŽÀ—Í</Description>
+      <Name>çŸ¥å°†åž‹</Name>
+      <Description>æ™ºã«è£ä»˜ã‘ã•ã‚ŒãŸå®ŸåŠ›</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0000010000" levelMax="10">
       <Physical dex="-2" agl="-1" int="-2" str="3" vit="1" min="-1" />
       <Mental aggressive="0.5" cheerful="0" brave="0.5" cautious="-0.5" trickish="0" />
-      <Name>ôŽmŒ^</Name>
-      <Description>—ÞŠó‚È’m«‚ðŽ‚Â“VËŒ^</Description>
+      <Name>ç­–å£«åž‹</Name>
+      <Description>é¡žå¸ŒãªçŸ¥æ€§ã‚’æŒã¤å¤©æ‰åž‹</Description>
       <BaseNatures />
     </Nature>
     <Nature special="True" geneCount="6" genePattern="0000000100" levelMax="10">
       <Physical dex="-2" agl="-2" int="-2" str="-2" vit="-2" min="-2" />
       <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0.5" trickish="0" />
-      <Name>‰p–¾Œ^</Name>
+      <Name>è‹±æ˜Žåž‹</Name>
       <BaseNatures>
-        <BaseNature>•W€Œ^</BaseNature>
-        <BaseNature>–œ”\Œ^</BaseNature>
+        <BaseNature>æ¨™æº–åž‹</BaseNature>
+        <BaseNature>ä¸‡èƒ½åž‹</BaseNature>
       </BaseNatures>
     </Nature>
     <Nature special="True" geneCount="6" genePattern="0000000010" levelMax="10">
       <Physical dex="1" agl="1" int="1" str="1" vit="1" min="1" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0.5" trickish="0" />
-      <Name>–³‘oŒ^</Name>
+      <Name>ç„¡åŒåž‹</Name>
       <BaseNatures>
-        <BaseNature>—E«Œ^</BaseNature>
-        <BaseNature>‹Œ†Œ^</BaseNature>
+        <BaseNature>å‹‡å°†åž‹</BaseNature>
+        <BaseNature>è±ªå‚‘åž‹</BaseNature>
       </BaseNatures>
     </Nature>
     <Nature special="True" geneCount="6" genePattern="0000000001" levelMax="10">
       <Physical dex="0" agl="1" int="0" str="3" vit="2" min="0" />
       <Mental aggressive="0.5" cheerful="0" brave="0.5" cautious="0" trickish="0" />
-      <Name>“VËŒ^</Name>
+      <Name>å¤©æ‰åž‹</Name>
       <BaseNatures>
-        <BaseNature>’m«Œ^</BaseNature>
-        <BaseNature>ôŽmŒ^</BaseNature>
+        <BaseNature>çŸ¥å°†åž‹</BaseNature>
+        <BaseNature>ç­–å£«åž‹</BaseNature>
       </BaseNatures>
     </Nature>
     <Nature special="True" geneCount="0" genePattern="0000001111" levelMax="12">
       <Physical dex="1" agl="0" int="3" str="0" vit="0" min="2" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
-      <Name>–}—fŒ^</Name>
+      <Name>å‡¡åº¸åž‹</Name>
       <BaseNatures />
     </Nature>
     <Nature special="True" geneCount="8" genePattern="0000000000" levelMax="12">
       <Physical dex="1" agl="1" int="2" str="2" vit="1" min="2" />
       <Mental aggressive="0" cheerful="0.5" brave="0.5" cautious="0" trickish="-0.5" />
-      <Name>‰p—YŒ^</Name>
+      <Name>è‹±é›„åž‹</Name>
       <BaseNatures />
     </Nature>
     <Nature special="True" geneCount="10" genePattern="0000000000" levelMax="15">
       <Physical dex="2" agl="2" int="2" str="2" vit="2" min="2" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>_åŒ^</Name>
+      <Name>ç¥žä»™åž‹</Name>
       <BaseNatures />
     </Nature>
   </Natures>
@@ -144,256 +144,256 @@
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="-1" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0" />
-      <Name>G—í</Name>
+      <Name>ç§€éº—</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="1" min="0" />
       <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
-      <Name>Xˆ«</Name>
+      <Name>é†œæ‚ª</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="-0.5" cheerful="0" brave="0.5" cautious="0" trickish="0" />
-      <Name>‚‹M‚Ìo</Name>
+      <Name>é«˜è²´ã®å‡º</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="-0.5" trickish="0.5" />
-      <Name>‰º‘G‚Ìo</Name>
+      <Name>ä¸‹è³Žã®å‡º</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="1" str="0" vit="-1" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0.5" />
-      <Name>“s‰ïˆç‚¿</Name>
+      <Name>éƒ½ä¼šè‚²ã¡</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="-1" int="0" str="0" vit="1" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="-0.5" />
-      <Name>“cŽÉˆç‚¿</Name>
+      <Name>ç”°èˆŽè‚²ã¡</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="-1" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="-0.5" />
-      <Name>—T•Ÿ</Name>
+      <Name>è£•ç¦</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="1" />
       <Mental aggressive="0.5" cheerful="0" brave="-0.5" cautious="0" trickish="0" />
-      <Name>•n–R</Name>
+      <Name>è²§ä¹</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="-1" str="0" vit="0" min="1" />
       <Mental aggressive="0" cheerful="0" brave="0.5" cautious="0" trickish="-0.5" />
-      <Name>Œú‚«M‹Â</Name>
+      <Name>åŽšãä¿¡ä»°</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
-      <Name>•sS“¾ŽÒ</Name>
+      <Name>ä¸å¿ƒå¾—è€…</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0.5" cautious="0" trickish="-0.5" />
-      <Name>½ŽÀ</Name>
+      <Name>èª å®Ÿ</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0" trickish="0.5" />
-      <Name>•sŽÀ</Name>
+      <Name>ä¸å®Ÿ</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="-1" int="1" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
-      <Name>—âÃ’¾’…</Name>
+      <Name>å†·é™æ²ˆç€</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="1" int="0" str="0" vit="0" min="-1" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="-0.5" trickish="0" />
-      <Name>’–“Ë–Òi</Name>
+      <Name>çŒªçªçŒ›é€²</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="1" min="-1" />
       <Mental aggressive="0.5" cheerful="0" brave="-0.5" cautious="-0.5" trickish="0" />
-      <Name>æÃ—~</Name>
+      <Name>è²ªæ¬²</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>–³—~</Name>
+      <Name>ç„¡æ¬²</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="-1" min="1" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>Œ£g“I</Name>
+      <Name>çŒ®èº«çš„</Name>
     </Making>
     <Making>
       <Physical dex="-1" agl="1" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0.5" cheerful="-0.5" brave="0" cautious="0" trickish="0.5" />
-      <Name>—˜ŒÈ“I</Name>
+      <Name>åˆ©å·±çš„</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0.5" cheerful="0" brave="0" cautious="0" trickish="-0.5" />
-      <Name>’˜”h</Name>
+      <Name>ç§©åºæ´¾</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="1" vit="0" min="-1" />
       <Mental aggressive="0.5" cheerful="0" brave="0" cautious="0" trickish="0.5" />
-      <Name>¬“×”h</Name>
+      <Name>æ··æ²Œæ´¾</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="1" int="0" str="0" vit="-1" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0.5" cautious="-0.5" trickish="0" />
-      <Name>iŽæ”h</Name>
+      <Name>é€²å–æ´¾</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="-1" vit="0" min="1" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
-      <Name>•ÛŽç”h</Name>
+      <Name>ä¿å®ˆæ´¾</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="1" int="0" str="-1" vit="0" min="0" />
       <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0.5" trickish="0" />
-      <Name>_ŒoŽ¿</Name>
+      <Name>ç¥žçµŒè³ª</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="-1" str="0" vit="1" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>“ÝŠ´</Name>
+      <Name>éˆæ„Ÿ</Name>
     </Making>
     <Making>
       <Physical dex="1" agl="0" int="0" str="0" vit="-1" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>DŠïS‰ ·</Name>
+      <Name>å¥½å¥‡å¿ƒæ—ºç››</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="-1" int="0" str="0" vit="0" min="1" />
       <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
-      <Name>–³“Ú’…</Name>
+      <Name>ç„¡é “ç€</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="1" vit="-1" min="0" />
       <Mental aggressive="0.5" cheerful="0" brave="0" cautious="-0.5" trickish="0" />
-      <Name>‰ßŒƒ</Name>
+      <Name>éŽæ¿€</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
-      <Name>‰¸Œ’</Name>
+      <Name>ç©å¥</Name>
     </Making>
     <Making>
       <Physical dex="1" agl="-1" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0.5" cautious="-0.5" trickish="0" />
-      <Name>ŠyŠÏ“I</Name>
+      <Name>æ¥½è¦³çš„</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="1" str="0" vit="0" min="-1" />
       <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0.5" trickish="0" />
-      <Name>”ßŠÏ“I</Name>
+      <Name>æ‚²è¦³çš„</Name>
     </Making>
     <Making>
       <Physical dex="-1" agl="0" int="0" str="0" vit="1" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>‹Î•×</Name>
+      <Name>å‹¤å‹‰</Name>
     </Making>
     <Making>
       <Physical dex="1" agl="0" int="-1" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0.5" />
-      <Name>—V‚Ñl</Name>
+      <Name>éŠã³äºº</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0" />
-      <Name>—z‹C</Name>
+      <Name>é™½æ°—</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0" trickish="0" />
-      <Name>“à‹C</Name>
+      <Name>å†…æ°—</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="1" int="-1" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="-0.5" trickish="0" />
-      <Name>”hŽè</Name>
+      <Name>æ´¾æ‰‹</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="-1" vit="1" min="0" />
       <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0" trickish="0" />
-      <Name>’n–¡</Name>
+      <Name>åœ°å‘³</Name>
     </Making>
     <Making>
       <Physical dex="-1" agl="0" int="0" str="0" vit="0" min="1" />
       <Mental aggressive="0.5" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
-      <Name>‚–</Name>
+      <Name>é«˜æ…¢</Name>
     </Making>
     <Making>
       <Physical dex="-1" agl="0" int="1" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0" />
-      <Name>Œª‹•</Name>
+      <Name>è¬™è™š</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="1" str="-1" vit="0" min="0" />
       <Mental aggressive="-0.5" cheerful="0.5" brave="0" cautious="0" trickish="0" />
-      <Name>ã•i</Name>
+      <Name>ä¸Šå“</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="-1" str="1" vit="0" min="0" />
       <Mental aggressive="0.5" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
-      <Name>‘e–ì</Name>
+      <Name>ç²—é‡Ž</Name>
     </Making>
     <Making>
       <Physical dex="-1" agl="0" int="0" str="1" vit="0" min="0" />
       <Mental aggressive="0" cheerful="-0.5" brave="0.5" cautious="0" trickish="0" />
-      <Name>•œ</Name>
+      <Name>æ­¦éª¨</Name>
     </Making>
     <Making>
       <Physical dex="1" agl="0" int="0" str="-1" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="-0.5" cautious="0.5" trickish="0" />
-      <Name>‘@×</Name>
+      <Name>ç¹Šç´°</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="-1" int="0" str="1" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0.5" cautious="0" trickish="-0.5" />
-      <Name>d”h</Name>
+      <Name>ç¡¬æ´¾</Name>
     </Making>
     <Making>
       <Physical dex="1" agl="0" int="0" str="0" vit="0" min="-1" />
       <Mental aggressive="0" cheerful="0.5" brave="-0.5" cautious="0" trickish="0" />
-      <Name>“î”h</Name>
+      <Name>è»Ÿæ´¾</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="-0.5" />
-      <Name>‚¨lD‚µ</Name>
+      <Name>ãŠäººå¥½ã—</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="-0.5" brave="0" cautious="0" trickish="0" />
-      <Name>‚Ð‚Ë‚­‚êŽÒ</Name>
+      <Name>ã²ã­ãã‚Œè€…</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0.5" cautious="-0.5" trickish="-0.5" />
-      <Name>–¼—_‚±‚»–½</Name>
+      <Name>åèª‰ã“ãå‘½</Name>
     </Making>
     <Making>
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="0" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0" trickish="0" />
-      <Name>ˆ¤‚É¶‚«‚é</Name>
+      <Name>æ„›ã«ç”Ÿãã‚‹</Name>
     </Making>
   </Makings>
   <Sounds>
-    <Sound key="error">ƒVƒXƒeƒ€EƒGƒ‰[</Sound>
-    <Sound key="click">ƒVƒXƒeƒ€EƒNƒŠƒbƒN</Sound>
-    <Sound key="signal">ƒVƒXƒeƒ€EƒVƒOƒiƒ‹</Sound>
-    <Sound key="avoid">ƒVƒXƒeƒ€E‰ñ”ð</Sound>
-    <Sound key="page">ƒVƒXƒeƒ€E‰üƒy[ƒW</Sound>
-    <Sound key="harvest">ƒVƒXƒeƒ€EŽûŠn</Sound>
-    <Sound key="initialize">ƒVƒXƒeƒ€E‰Šú‰»</Sound>
-    <Sound key="battle">ƒVƒXƒeƒ€Eí“¬</Sound>
-    <Sound key="equipment">ƒVƒXƒeƒ€E‘•”õ</Sound>
-    <Sound key="run">ƒVƒXƒeƒ€E“¦‘–</Sound>
-    <Sound key="dump">ƒVƒXƒeƒ€E”jŠü</Sound>
-    <Sound key="ineffective">ƒVƒXƒeƒ€E–³Œø</Sound>
+    <Sound key="error">ã‚·ã‚¹ãƒ†ãƒ ãƒ»ã‚¨ãƒ©ãƒ¼</Sound>
+    <Sound key="click">ã‚·ã‚¹ãƒ†ãƒ ãƒ»ã‚¯ãƒªãƒƒã‚¯</Sound>
+    <Sound key="signal">ã‚·ã‚¹ãƒ†ãƒ ãƒ»ã‚·ã‚°ãƒŠãƒ«</Sound>
+    <Sound key="avoid">ã‚·ã‚¹ãƒ†ãƒ ãƒ»å›žé¿</Sound>
+    <Sound key="page">ã‚·ã‚¹ãƒ†ãƒ ãƒ»æ”¹ãƒšãƒ¼ã‚¸</Sound>
+    <Sound key="harvest">ã‚·ã‚¹ãƒ†ãƒ ãƒ»åŽç©«</Sound>
+    <Sound key="initialize">ã‚·ã‚¹ãƒ†ãƒ ãƒ»åˆæœŸåŒ–</Sound>
+    <Sound key="battle">ã‚·ã‚¹ãƒ†ãƒ ãƒ»æˆ¦é—˜</Sound>
+    <Sound key="equipment">ã‚·ã‚¹ãƒ†ãƒ ãƒ»è£…å‚™</Sound>
+    <Sound key="run">ã‚·ã‚¹ãƒ†ãƒ ãƒ»é€ƒèµ°</Sound>
+    <Sound key="dump">ã‚·ã‚¹ãƒ†ãƒ ãƒ»ç ´æ£„</Sound>
+    <Sound key="ineffective">ã‚·ã‚¹ãƒ†ãƒ ãƒ»ç„¡åŠ¹</Sound>
   </Sounds>
 </Skin>

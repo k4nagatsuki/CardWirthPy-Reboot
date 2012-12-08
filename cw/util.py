@@ -120,13 +120,15 @@ def init(size=(640, 480), title=""):
     pygame.event.set_allowed([KEYDOWN, MOUSEBUTTONUP, USEREVENT])
     return scr, clock
 
-def load_image(path, mask=False, maskpos=(0, 0)):
+def load_image(path, mask=False, maskpos=(0, 0), f=None):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
     """
     try:
-        if cw.binary.image.path_is_code(path):
+        if f:
+            image = pygame.image.load(f, path)
+        elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
             #return pygame.Surface((0, 0)).convert()
             f = io.BytesIO(data)
@@ -782,15 +784,18 @@ def get_char(s, index):
 # wx汎用関数
 #-------------------------------------------------------------------------------
 
-def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0)):
+def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
-    if not os.path.isfile(name) and not image:
+    if not f and not os.path.isfile(name) and not image:
         return wx.EmptyBitmap(0, 0)
 
     if mask:
         if not image:
             try:
-                image = wx.Image(name, wx.BITMAP_TYPE_ANY, -1)
+                if f:
+                    image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
+                else:
+                    image = wx.Image(name, wx.BITMAP_TYPE_ANY, -1)
             except:
                 print u"画像が読み込めません。", name
                 return wx.EmptyBitmap(0, 0)
