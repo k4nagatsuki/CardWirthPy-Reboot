@@ -23,7 +23,7 @@
       <Property>
         <Name>スタート</Name>
         <ImagePath>Resource/Image/Card/COMMAND0.png</ImagePath>
-        <Description>ゲームを始めます。</Description>
+        <Description>ゲームを開始します。</Description>
         <Flag></Flag>
         <Location left="231" top="156" />
         <Size scale="100%" />

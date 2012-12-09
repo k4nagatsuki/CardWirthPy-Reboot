@@ -19,12 +19,7 @@ def get_bitmap(exe, resname):
 
     # ヘッダを生成する
     headersize = int32.unpack(data[:4])[0]
-    width = int32.unpack(data[4:8])[0]
-    height = int32.unpack(data[8:12])[0]
-    plans = int16.unpack(data[12:14])[0]
     bitcount = int16.unpack(data[14:16])[0]
-    compression = int32.unpack(data[16:20])[0]
-    imagesize = int32.unpack(data[20:24])[0]
     if bitcount == 1:
         headersize += 4 * (0x01 << 1);
     elif bitcount == 4:

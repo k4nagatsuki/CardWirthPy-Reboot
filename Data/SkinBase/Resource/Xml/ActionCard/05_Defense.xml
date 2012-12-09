@@ -4,7 +4,7 @@
     <Id>5</Id>
     <Name>防御</Name>
     <ImagePath>Resource/Image/Card/ACTION5.png</ImagePath>
-    <Description>戦闘行動カード（防御）。敵の攻撃に対し守りを固める。このカードを選択したラウンドは、防御力と魔法に対する抵抗力が向上する。</Description>
+    <Description>戦闘行動カード（防御）。防御体制をとって敵の攻撃に備える。このカードを選択している間は、攻撃を受けてもダメージが半減し、抵抗にも成功しやすくなる。慎重で動揺しにくい精神を持つ者ほどこの行動を選択しやすい。</Description>
     <Scenario></Scenario>
     <Author></Author>
     <Level>0</Level>

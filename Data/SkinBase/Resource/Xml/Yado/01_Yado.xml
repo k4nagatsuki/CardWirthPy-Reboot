@@ -23,7 +23,7 @@
       <Property>
         <Name>宿帳を開く</Name>
         <ImagePath>Resource/Image/Card/COMMAND2.png</ImagePath>
-        <Description>冒険者の宿で待機しているキャラクターを表示します。キャラクターの新規登録や削除、パーティーの編成などの作業はここで行います。</Description>
+        <Description>待機中のメンバーを閲覧し、パーティの編成を行います。新規登録や引退もここから行います。</Description>
         <Flag></Flag>
         <Location left="189" top="27" />
         <Size scale="100%" />
@@ -51,7 +51,7 @@
       <Property>
         <Name>アルバム</Name>
         <ImagePath>Resource/Image/Card/COMMAND3.png</ImagePath>
-        <Description>過去に死亡した冒険者を表示します。</Description>
+        <Description>冒険の中で死亡したり、天寿を全うしたメンバーを閲覧します。</Description>
         <Flag></Flag>
         <Location left="274" top="27" />
         <Size scale="100%" />
@@ -79,7 +79,7 @@
       <Property>
         <Name>冒険の再開</Name>
         <ImagePath>Resource/Image/Card/COMMAND4.png</ImagePath>
-        <Description>現在、冒険中のパーティを表示します。過去に中断したパーティの冒険の再開はここから行います。</Description>
+        <Description>冒険を中断したパーティを閲覧し、冒険を再開します。</Description>
         <Flag></Flag>
         <Location left="359" top="27" />
         <Size scale="100%" />
@@ -107,7 +107,7 @@
       <Property>
         <Name>カード置場</Name>
         <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
-        <Description>冒険者の宿に保管されている手札カードの一覧を表示します。手札カードの分配や処分はここで行います。</Description>
+        <Description>宿に置かれているカードを閲覧し、配付や売却、破棄などを行います。</Description>
         <Flag></Flag>
         <Location left="189" top="142" />
         <Size scale="100%" />
@@ -135,7 +135,7 @@
       <Property>
         <Name>セーブ</Name>
         <ImagePath>Resource/Image/Card/COMMAND11.png</ImagePath>
-        <Description>現在の状況を保存します。改めてゲームを始めると、現在の状況からゲームが再開されます。</Description>
+        <Description>ゲームの進行状況を保存します。</Description>
         <Flag></Flag>
         <Location left="274" top="142" />
         <Size scale="100%" />
@@ -163,7 +163,7 @@
       <Property>
         <Name>宿を出る</Name>
         <ImagePath>Resource/Image/Card/COMMAND1.png</ImagePath>
-        <Description>ゲームスタート画面に戻ります。保存されていないデータは消えてしまいます。ご注意ください。</Description>
+        <Description>ゲームを終了し、タイトル画面へ戻ります。</Description>
         <Flag></Flag>
         <Location left="359" top="142" />
         <Size scale="100%" />

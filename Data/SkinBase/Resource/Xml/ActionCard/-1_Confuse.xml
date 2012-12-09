@@ -4,7 +4,7 @@
     <Id>-1</Id>
     <Name>混乱</Name>
     <ImagePath>Resource/Image/Card/ACTION7.png</ImagePath>
-    <Description>戦闘行動カード（特殊）。魔法やフェイントを受けて動揺した者に配布されるペナルティカード。このカードの選択したラウンドは回避、抵抗にペナルティが与えられる。</Description>
+    <Description>戦闘行動カード（特殊）。一時的な混乱状態。このカードを自動選択した者は他の行動を取ることができず、回避や抵抗に大きなペナルティを受ける。知能が高い者ほどこの行動を選択してしまいやすい。</Description>
     <Scenario></Scenario>
     <Author></Author>
     <Level>0</Level>
@@ -24,14 +24,5 @@
   </Property>
   <Motions>
   </Motions>
-  <Events>
-    <Event>
-      <Contents>
-        <Start name="使用時イベント">
-          <Contents>
-          </Contents>
-        </Start>
-      </Contents>
-    </Event>
-  </Events>
+  <Events />
 </ActionCard>

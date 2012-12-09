@@ -17,7 +17,7 @@
       <Property>
         <Name>カード置場</Name>
         <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
-        <Description>カード置場にカードを移動します。</Description>
+        <Description>カードを宿に置きます。</Description>
         <Flag></Flag>
         <Location left="170" top="75" />
         <Size scale="100%" />
@@ -73,7 +73,7 @@
       <Property>
         <Name>ごみ箱</Name>
         <ImagePath>Resource/Image/Card/TRUSH.png</ImagePath>
-        <Description>カードを処分します。</Description>
+        <Description>カードを破棄します。</Description>
         <Flag></Flag>
         <Location left="370" top="75" />
         <Size scale="100%" />

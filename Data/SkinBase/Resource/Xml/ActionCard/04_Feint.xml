@@ -4,7 +4,7 @@
     <Id>4</Id>
     <Name>フェイント</Name>
     <ImagePath>Resource/Image/Card/ACTION4.png</ImagePath>
-    <Description>戦闘行動カード（攻撃）。敵一体に対し、隙を生み出す偽装攻撃を仕掛ける。実質的な被害を与えることはないが、目標は動揺し行動の自由を奪われる。使用には器用さと狡猾さが要求される。正常な精神を持つ目標にしか効果がない。</Description>
+    <Description>戦闘行動カード（特殊）。敵一体に近接攻撃を行うと見せかけ、一時的に混乱させる。決まれば対象は隙だらけになりうるが、正常な精神を持たない相手には効果がない。器用で狡猾な者ほどこの行動を得意とする。</Description>
     <Scenario></Scenario>
     <Author></Author>
     <Level>0</Level>

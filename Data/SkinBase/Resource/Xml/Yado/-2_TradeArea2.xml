@@ -17,7 +17,7 @@
       <Property>
         <Name>カード置場</Name>
         <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
-        <Description>カード置場にカードを移動します。</Description>
+        <Description>カードを宿に置きます。</Description>
         <Flag></Flag>
         <Location left="120" top="75" />
         <Size scale="100%" />
@@ -45,7 +45,7 @@
       <Property>
         <Name>荷物袋</Name>
         <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
-        <Description>荷物袋にカードを移動します。</Description>
+        <Description>カードを荷物袋へ入れます。</Description>
         <Flag></Flag>
         <Location left="220" top="75" />
         <Size scale="100%" />
@@ -101,7 +101,7 @@
       <Property>
         <Name>ごみ箱</Name>
         <ImagePath>Resource/Image/Card/TRUSH.png</ImagePath>
-        <Description>カードを処分します。</Description>
+        <Description>カードを破棄します。</Description>
         <Flag></Flag>
         <Location left="420" top="75" />
         <Size scale="100%" />

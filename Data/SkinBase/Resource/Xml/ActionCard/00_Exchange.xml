@@ -4,7 +4,7 @@
     <Id>0</Id>
     <Name>カード交換</Name>
     <ImagePath>Resource/Image/Card/ACTION0.png</ImagePath>
-    <Description>戦闘行動カード（特殊）。アイテムカードを除く全てのカードを捨てて、新しいカードに交換する。</Description>
+    <Description>戦闘行動カード（特殊）。山札からカードを引き、このカードとアイテムを除く全てのカードを交換する。知能の高い者ほどこの行動を選択しやすい。</Description>
     <Scenario></Scenario>
     <Author></Author>
     <Level>0</Level>
@@ -25,14 +25,5 @@
   <Motions>
     <Motion type="VanishCard" element="All" />
   </Motions>
-  <Events>
-    <Event>
-      <Contents>
-        <Start name="使用時イベント">
-          <Contents>
-          </Contents>
-        </Start>
-      </Contents>
-    </Event>
-  </Events>
+  <Events />
 </ActionCard>

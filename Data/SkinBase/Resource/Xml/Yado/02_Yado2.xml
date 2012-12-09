@@ -23,7 +23,7 @@
       <Property>
         <Name>宿帳を開く</Name>
         <ImagePath>Resource/Image/Card/COMMAND2.png</ImagePath>
-        <Description>冒険者の宿で待機しているキャラクターを表示します。キャラクターの新規登録や削除、パーティーの編成などの作業はここで行います。</Description>
+        <Description>待機中のメンバーを閲覧し、パーティの編成を行います。新規登録や引退もここから行います。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -51,7 +51,7 @@
       <Property>
         <Name>アルバム</Name>
         <ImagePath>Resource/Image/Card/COMMAND3.png</ImagePath>
-        <Description>過去に死亡した冒険者を表示します。</Description>
+        <Description>冒険の中で死亡したり、天寿を全うしたメンバーを閲覧します。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -79,7 +79,7 @@
       <Property>
         <Name>冒険の再開</Name>
         <ImagePath>Resource/Image/Card/COMMAND4.png</ImagePath>
-        <Description>現在、冒険中のパーティを表示します。過去に中断したパーティの冒険の再開はここから行います。</Description>
+        <Description>冒険を中断したパーティを閲覧し、冒険を再開します。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -107,7 +107,7 @@
       <Property>
         <Name>仲間を外す</Name>
         <ImagePath>Resource/Image/Card/COMMAND10.png</ImagePath>
-        <Description>パーティからメンバーを外します。パーティを空にすると、荷物袋の手札カードはカード置場に、所持金は金庫に移されます。</Description>
+        <Description>パーティのメンバーを外し、待機メンバーに加えます。パーティの解散もここから行います。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -135,7 +135,7 @@
       <Property>
         <Name>貼紙を見る</Name>
         <ImagePath>Resource/Image/Card/COMMAND6.png</ImagePath>
-        <Description>宿の掲示板に掲示されている貼紙を表示します。冒険への出発はここから行います。</Description>
+        <Description>依頼の貼り紙を閲覧し、冒険を開始します。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -163,7 +163,7 @@
       <Property>
         <Name>カード置場</Name>
         <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
-        <Description>冒険者の宿に保管されている手札カードの一覧を表示します。手札カードの分配や処分はここで行います。</Description>
+        <Description>宿に置かれているカードを閲覧し、配付や売却、破棄を行います。</Description>
         <Flag></Flag>
         <Location left="189" top="142" />
         <Size scale="100%" />
@@ -191,7 +191,7 @@
       <Property>
         <Name>荷物袋</Name>
         <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
-        <Description>パーティが共有する手札カードの一覧を表示します。手札カードの分配や処分はここで行います。</Description>
+        <Description>荷物袋に入っているカードを閲覧し、配付や売却、破棄などを行います。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -219,7 +219,7 @@
       <Property>
         <Name>パーティ情報</Name>
         <ImagePath>Resource/Image/Card/FATHER.png</ImagePath>
-        <Description>パーティの情報を表示します。パーティの所持金の移動やチーム名の変更はここで行います。</Description>
+        <Description>パーティの呼称を設定したり、所持金の配付を行います。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -247,7 +247,7 @@
       <Property>
         <Name>セーブ</Name>
         <ImagePath>Resource/Image/Card/COMMAND11.png</ImagePath>
-        <Description>現在の状況を保存します。改めてゲームを始めると、現在の状況からゲームが再開されます。</Description>
+        <Description>ゲームの進行状況を保存します。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />
@@ -275,7 +275,7 @@
       <Property>
         <Name>冒険の中断</Name>
         <ImagePath>Resource/Image/Card/COMMAND9.png</ImagePath>
-        <Description>現在選択中のパーティの冒険を中断します。冒険を再開するには宿屋で『冒険の再開』を選択してください。</Description>
+        <Description>一旦このパーティの操作を離れます。パーティは解散されず、冒険の再開を行うことで再度操作できるようになります。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
         <Size scale="100%" />

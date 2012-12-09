@@ -4,7 +4,7 @@
     <Id>3</Id>
     <Name>会心の一撃</Name>
     <ImagePath>Resource/Image/Card/ACTION3.png</ImagePath>
-    <Description>戦闘行動カード（攻撃）。敵一体に急所を突く致命的な一撃を見舞う。命中率、ダメージともに高く、高レベルの敵に対して有効である。その使用には器用さと勇猛さが必要とされる。実体のない目標には効果を発揮しない。</Description>
+    <Description>戦闘行動カード（攻撃）。敵一体の動きや弱点を見極めて近接攻撃を行う。最適化された攻撃は命中率・破壊力共に高いが、実体を持たない対象には命中しない。相手の肉体や心の動きを読む抜け目の無さと勇気を併せ持つ者ほどこの行動を得意とする。</Description>
     <Scenario></Scenario>
     <Author></Author>
     <Level>0</Level>

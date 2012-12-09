@@ -4,7 +4,7 @@
     <Id>2</Id>
     <Name>渾身の一撃</Name>
     <ImagePath>Resource/Image/Card/ACTION2.png</ImagePath>
-    <Description>戦闘行動カード（攻撃）。全身全霊をこめた一撃を敵一体にぶつける。目標に与える被害は極めて大きいが、命中率が悪いという欠点を持つ。武器による攻撃のため、実体を持たない目標には効果がない。その使用には筋力と闘争心が必要とされる。</Description>
+    <Description>戦闘行動カード（攻撃）。渾身の力を込めて敵一体へ近接攻撃を行う。破壊力は高いが回避されやすく、実体を持たない対象には命中しない。力を持ち、振るうことに躊躇しない者ほどこの行動を得意とする。</Description>
     <Scenario></Scenario>
     <Author></Author>
     <Level>0</Level>
@@ -25,14 +25,5 @@
   <Motions>
     <Motion type="Damage" element="All" damagetype="LevelRatio" value="4" />
   </Motions>
-  <Events>
-    <Event>
-      <Contents>
-        <Start name="使用時イベント">
-          <Contents>
-          </Contents>
-        </Start>
-      </Contents>
-    </Event>
-  </Events>
+  <Events />
 </ActionCard>
