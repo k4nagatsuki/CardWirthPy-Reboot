@@ -16,7 +16,7 @@
     <LargeMenuCard>
       <Property>
         <Name>解散</Name>
-        <ImagePath>Resource/Image/Card/COMMAND10.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND10.bmp</ImagePath>
         <Description>パーティを解散します。</Description>
         <Flag></Flag>
         <Location left="269" top="75" />

@@ -3,7 +3,7 @@
   <Property>
     <Id>3</Id>
     <Name>会心の一撃</Name>
-    <ImagePath>Resource/Image/Card/ACTION3.png</ImagePath>
+    <ImagePath>Resource/Image/Card/ACTION3.bmp</ImagePath>
     <Description>戦闘行動カード（攻撃）。敵一体の動きや弱点を見極めて近接攻撃を行う。最適化された攻撃は命中率・破壊力共に高いが、実体を持たない対象には命中しない。相手の肉体や心の動きを読む抜け目の無さと勇気を併せ持つ者ほどこの行動を得意とする。</Description>
     <Scenario></Scenario>
     <Author></Author>

@@ -403,21 +403,19 @@ class Resource(object):
     def get_statuses(self):
         """
         ステータス表示に使う画像を読み込んで、
-        ("LIFEGUAGE", "TARGET"はマスクする)
+        ("LIFEGUAGE", "TARGET", "LIFE", "UP*", "DOWN*"はマスクする)
         pygameのサーフェスの辞書で返す。
         """
         func = cw.util.load_image
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
         d = self.get_resources(func, dpath, self.ext_img)
 
-        for name in ("LIFEGUAGE", "TARGET"):
+        for img in (("LIFEGUAGE", "center"), ("TARGET", "right")):
+            name = img[0]
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.util.load_image(path, True)
+            d[name] = cw.util.load_image(path, mask=True, maskpos=img[1])
 
-        path = cw.util.join_paths(dpath, "LIFE" + self.ext_img)
-        d["LIFE"] = cw.util.load_wxbmp(path, mask=True, maskpos=(1, 1))
-
-        for name in ("UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
+        for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
             path = cw.util.join_paths(dpath, name + self.ext_img)
             d[name] = cw.util.load_image(path, mask=True, maskpos=(1, 1))
 
@@ -455,9 +453,10 @@ class Resource(object):
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
         d = self.get_resources(func, dpath, self.ext_img)
 
-        for name in ("HOLD", "PENALTY", "PREMIER", "RARE"):
+        for img in (("HOLD", "center"), ("PENALTY", "center"), ("PREMIER", "right"), ("RARE", "right")):
+            name = img[0]
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.util.load_image(path, True)
+            d[name] = cw.util.load_image(path, True, maskpos = img[1])
 
         return d
 

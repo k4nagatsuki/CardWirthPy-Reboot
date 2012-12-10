@@ -120,6 +120,19 @@ def init(size=(640, 480), title=""):
     pygame.event.set_allowed([KEYDOWN, MOUSEBUTTONUP, USEREVENT])
     return scr, clock
 
+def convert_maskpos(maskpos, width, height):
+    """maskposが座標ではなくキーワード'center'または'right'
+    であった場合、それぞれ画像の中央、右上の座標を返す。
+    """
+    if isinstance(maskpos, str):
+        if maskpos == "center":
+            maskpos = (width / 2, height / 2)
+        elif maskpos == "right":
+            maskpos = (width - 1, 0)
+        else:
+            raise Exception("Invalid maskpos: %s" % (maskpos))
+    return maskpos
+
 def load_image(path, mask=False, maskpos=(0, 0), f=None):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
@@ -153,6 +166,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None):
         # GIFなどアルファチャンネルを持たない透過画像を読み込んだ場合は
         # すでにマスクカラーが指定されているので注意
         if mask and not image.get_colorkey():
+            maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), RLEACCEL)
 
     return image
@@ -801,6 +815,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
                 return wx.EmptyBitmap(0, 0)
 
         if not image.HasAlpha() and not image.HasMask():
+            maskpos = convert_maskpos(maskpos, image.Width, image.Height)
             r = image.GetRed(maskpos[0], maskpos[1])
             g = image.GetGreen(maskpos[0], maskpos[1])
             b = image.GetBlue(maskpos[0], maskpos[1])

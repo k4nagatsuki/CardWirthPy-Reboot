@@ -3,7 +3,7 @@
   <Property>
     <Id>0</Id>
     <Name>カード交換</Name>
-    <ImagePath>Resource/Image/Card/ACTION0.png</ImagePath>
+    <ImagePath>Resource/Image/Card/ACTION0.bmp</ImagePath>
     <Description>戦闘行動カード（特殊）。山札からカードを引き、このカードとアイテムを除く全てのカードを交換する。知能の高い者ほどこの行動を選択しやすい。</Description>
     <Scenario></Scenario>
     <Author></Author>

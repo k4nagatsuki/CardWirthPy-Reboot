@@ -16,7 +16,7 @@
     <LargeMenuCard>
       <Property>
         <Name>カード置場</Name>
-        <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND5.bmp</ImagePath>
         <Description>カードを宿に置きます。</Description>
         <Flag></Flag>
         <Location left="120" top="75" />
@@ -44,7 +44,7 @@
     <LargeMenuCard>
       <Property>
         <Name>荷物袋</Name>
-        <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND7.bmp</ImagePath>
         <Description>カードを荷物袋へ入れます。</Description>
         <Flag></Flag>
         <Location left="220" top="75" />
@@ -72,7 +72,7 @@
     <LargeMenuCard>
       <Property>
         <Name>売却</Name>
-        <ImagePath>Resource/Image/Card/SHELF.png</ImagePath>
+        <ImagePath>Resource/Image/Card/SHELF.bmp</ImagePath>
         <Description>カードを売却します。</Description>
         <Flag></Flag>
         <Location left="320" top="75" />
@@ -100,7 +100,7 @@
     <LargeMenuCard>
       <Property>
         <Name>ごみ箱</Name>
-        <ImagePath>Resource/Image/Card/TRUSH.png</ImagePath>
+        <ImagePath>Resource/Image/Card/TRUSH.bmp</ImagePath>
         <Description>カードを破棄します。</Description>
         <Flag></Flag>
         <Location left="420" top="75" />

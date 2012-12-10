@@ -3,7 +3,7 @@
   <Property>
     <Id>2</Id>
     <Name>渾身の一撃</Name>
-    <ImagePath>Resource/Image/Card/ACTION2.png</ImagePath>
+    <ImagePath>Resource/Image/Card/ACTION2.bmp</ImagePath>
     <Description>戦闘行動カード（攻撃）。渾身の力を込めて敵一体へ近接攻撃を行う。破壊力は高いが回避されやすく、実体を持たない対象には命中しない。力を持ち、振るうことに躊躇しない者ほどこの行動を得意とする。</Description>
     <Scenario></Scenario>
     <Author></Author>

@@ -16,7 +16,7 @@
     <MenuCard>
       <Property>
         <Name>荷物袋</Name>
-        <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND7.bmp</ImagePath>
         <Description>荷物袋に入っているカードを閲覧し、パーティメンバーへの配付を行います。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
@@ -44,7 +44,7 @@
     <MenuCard>
       <Property>
         <Name>情報を見る</Name>
-        <ImagePath>Resource/Image/Card/COMMAND8.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND8.bmp</ImagePath>
         <Description>これまで入手した情報カードを閲覧します。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
@@ -72,7 +72,7 @@
     <MenuCard>
       <Property>
         <Name>パーティ情報</Name>
-        <ImagePath>Resource/Image/Card/FATHER.png</ImagePath>
+        <ImagePath>Resource/Image/Card/FATHER.bmp</ImagePath>
         <Description>パーティの呼称を設定したり、所持金の確認を行います。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
@@ -100,7 +100,7 @@
     <MenuCard>
       <Property>
         <Name>セーブ</Name>
-        <ImagePath>Resource/Image/Card/COMMAND11.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND11.bmp</ImagePath>
         <Description>ゲームの進行状況を保存します。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />
@@ -128,7 +128,7 @@
     <MenuCard>
       <Property>
         <Name>冒険の中断</Name>
-        <ImagePath>Resource/Image/Card/COMMAND9.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND9.bmp</ImagePath>
         <Description>冒険を中断します。中止されるわけではなく、冒険中のメンバーはそのままシナリオ内に留まります。</Description>
         <Flag></Flag>
         <Location left="0" top="0" />

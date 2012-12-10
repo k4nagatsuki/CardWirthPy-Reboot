@@ -3,7 +3,7 @@
   <Property>
     <Id>-1</Id>
     <Name>混乱</Name>
-    <ImagePath>Resource/Image/Card/ACTION7.png</ImagePath>
+    <ImagePath>Resource/Image/Card/ACTION7.bmp</ImagePath>
     <Description>戦闘行動カード（特殊）。一時的な混乱状態。このカードを自動選択した者は他の行動を取ることができず、回避や抵抗に大きなペナルティを受ける。知能が高い者ほどこの行動を選択してしまいやすい。</Description>
     <Scenario></Scenario>
     <Author></Author>

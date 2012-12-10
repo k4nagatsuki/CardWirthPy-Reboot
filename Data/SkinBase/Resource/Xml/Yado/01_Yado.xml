@@ -6,13 +6,13 @@
   </Property>
   <BgImages>
     <BgImage mask="False">
-      <ImagePath>Table/MapOfWirth.png</ImagePath>
+      <ImagePath>Table/MapOfWirth.bmp</ImagePath>
       <Flag></Flag>
       <Location left="0" top="0" />
       <Size width="632" height="420" />
     </BgImage>
     <BgImage mask="False">
-      <ImagePath>Table/AdventurersInn.png</ImagePath>
+      <ImagePath>Table/AdventurersInn.bmp</ImagePath>
       <Flag></Flag>
       <Location left="116" top="15" />
       <Size width="400" height="260" />
@@ -22,7 +22,7 @@
     <MenuCard>
       <Property>
         <Name>宿帳を開く</Name>
-        <ImagePath>Resource/Image/Card/COMMAND2.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND2.bmp</ImagePath>
         <Description>待機中のメンバーを閲覧し、パーティの編成を行います。新規登録や引退もここから行います。</Description>
         <Flag></Flag>
         <Location left="189" top="27" />
@@ -50,7 +50,7 @@
     <MenuCard>
       <Property>
         <Name>アルバム</Name>
-        <ImagePath>Resource/Image/Card/COMMAND3.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND3.bmp</ImagePath>
         <Description>冒険の中で死亡したり、天寿を全うしたメンバーを閲覧します。</Description>
         <Flag></Flag>
         <Location left="274" top="27" />
@@ -78,7 +78,7 @@
     <MenuCard>
       <Property>
         <Name>冒険の再開</Name>
-        <ImagePath>Resource/Image/Card/COMMAND4.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND4.bmp</ImagePath>
         <Description>冒険を中断したパーティを閲覧し、冒険を再開します。</Description>
         <Flag></Flag>
         <Location left="359" top="27" />
@@ -106,7 +106,7 @@
     <MenuCard>
       <Property>
         <Name>カード置場</Name>
-        <ImagePath>Resource/Image/Card/COMMAND5.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND5.bmp</ImagePath>
         <Description>宿に置かれているカードを閲覧し、配付や売却、破棄などを行います。</Description>
         <Flag></Flag>
         <Location left="189" top="142" />
@@ -134,7 +134,7 @@
     <MenuCard>
       <Property>
         <Name>セーブ</Name>
-        <ImagePath>Resource/Image/Card/COMMAND11.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND11.bmp</ImagePath>
         <Description>ゲームの進行状況を保存します。</Description>
         <Flag></Flag>
         <Location left="274" top="142" />
@@ -162,7 +162,7 @@
     <MenuCard>
       <Property>
         <Name>宿を出る</Name>
-        <ImagePath>Resource/Image/Card/COMMAND1.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND1.bmp</ImagePath>
         <Description>ゲームを終了し、タイトル画面へ戻ります。</Description>
         <Flag></Flag>
         <Location left="359" top="142" />

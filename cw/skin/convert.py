@@ -4,7 +4,6 @@
 import os
 import io
 import shutil
-import wx
 
 import cw
 
@@ -191,10 +190,6 @@ def convert_skin(exe, datadir, name, type, author, description):
             f.write(res)
             f.close()
             f = None
-            if resname == "TITLE_CELL3":
-                titlecell3 = res
-            elif resname == "TITLE_SHADOW":
-                titleshadow = res
         for respath, target in glyphtbl.items():
             respaths = respath.split("/")
             resname = respaths[0]
@@ -218,27 +213,6 @@ def convert_skin(exe, datadir, name, type, author, description):
         # TODO 各種カード名・テキスト
         # TODO サウンド
         # TODO 特性名・解説・能力値
-
-        # タイトルイメージの作成
-        f = io.BytesIO(titlecell3)
-        titlecell3 = cw.util.load_wxbmp(mask=True, f=f)
-        f.close()
-        f = io.BytesIO(titleshadow)
-        titleshadow = cw.util.load_wxbmp(mask=True, f=f)
-        f.close()
-
-        w = titleshadow.Width
-        h = titleshadow.Height
-        titleback = wx.EmptyBitmap(w, h)
-        dc = wx.MemoryDC(titleback)
-        colour = wx.Colour(0xFF, 0x00, 0xFF)
-        dc.SetPen(wx.Pen(colour))
-        dc.SetBrush(wx.Brush(colour))
-        dc.DrawRectangle(0, 0, w, h)
-        dc.DrawBitmap(titleshadow, 0, 0, True)
-        dc.DrawBitmap(titlecell3, 0, 0, True)
-        dc.EndDrawing()
-        titleback.SaveFile(cw.util.join_paths(dir, "Resource/Image/Other/TITLE.bmp"), wx.BITMAP_TYPE_BMP)
 
         if not os.path.isabs(datadir):
             datadir = cw.util.join_paths(os.path.dirname(exe), datadir)

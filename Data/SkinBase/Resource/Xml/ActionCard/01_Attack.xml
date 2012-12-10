@@ -3,7 +3,7 @@
   <Property>
     <Id>1</Id>
     <Name>攻撃</Name>
-    <ImagePath>Resource/Image/Card/ACTION1.png</ImagePath>
+    <ImagePath>Resource/Image/Card/ACTION1.bmp</ImagePath>
     <Description>戦闘行動カード（攻撃）。各々の得物によって敵一体へ近接攻撃を行う。実体を持たない対象には命中しない。筋力と勇敢さがある者ほどこの行動を得意とする。</Description>
     <Scenario></Scenario>
     <Author></Author>

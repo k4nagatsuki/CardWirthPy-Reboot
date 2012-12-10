@@ -6,13 +6,13 @@
   </Property>
   <BgImages>
     <BgImage mask="False">
-      <ImagePath>Table/Black.png</ImagePath>
+      <ImagePath>Table/Black.bmp</ImagePath>
       <Flag></Flag>
       <Location left="0" top="0" />
       <Size width="632" height="420" />
     </BgImage>
     <BgImage mask="False">
-      <ImagePath>Table/GameOver.png</ImagePath>
+      <ImagePath>Table/GameOver.bmp</ImagePath>
       <Flag></Flag>
       <Location left="116" top="15" />
       <Size width="400" height="260" />
@@ -33,7 +33,7 @@
               <Contents>
                 <Wait value="50">
                   <Contents>
-                    <Talk type="Message" path="Resource/Image/Card/OVER.png">
+                    <Talk type="Message" path="Resource/Image/Card/OVER.bmp">
                       <Text>\n\n\nパーティは全滅しました…</Text>
                       <Contents>
                         <Post type="Event" name="続ける" command="MoveToYado">

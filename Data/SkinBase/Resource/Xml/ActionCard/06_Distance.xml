@@ -3,7 +3,7 @@
   <Property>
     <Id>6</Id>
     <Name>見切り</Name>
-    <ImagePath>Resource/Image/Card/ACTION6.png</ImagePath>
+    <ImagePath>Resource/Image/Card/ACTION6.bmp</ImagePath>
     <Description>戦闘行動カード（防御）。敵の行動を見極めて回避に専念する。このカードを選択している間は回避率が倍増するが、必ず命中する攻撃には効果がない。機敏さと慎重さを兼ね備えた者ほどこの行動を選択しやすい。</Description>
     <Scenario></Scenario>
     <Author></Author>
