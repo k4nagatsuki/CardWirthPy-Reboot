@@ -224,10 +224,6 @@ class MessageWindow(base.CWPySprite):
                     else:
                         join_left = False
 
-                    if len(chars) > 1 and r_join.match(self.text[index+1]):
-                        join_right = True
-                    else:
-                        join_right = False
                 image2 = (image2, (join_left, join_right))
 
             else:
