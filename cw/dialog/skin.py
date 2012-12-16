@@ -29,8 +29,10 @@ class SkinConversionDialog(wx.Dialog):
         #self.note.AddPage(self.pane_sound, u"サウンド")
         #self.note.AddPage(self.pane_message, u"メッセージ")
         #self.note.AddPage(self.pane_card, u"カード")
+
         self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"中止")
+
         self._do_layout()
         self._bind()
 
@@ -93,6 +95,7 @@ class SkinConversionDialog(wx.Dialog):
 class SkinBasePanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
+        self.conv = conv
 
         # スキンタイプ一覧
         self.types = set([
@@ -122,7 +125,8 @@ class SkinBasePanel(wx.Panel):
             target=self.exectrl,
             message=u"スキン生成元となるカードワース本体の選択",
             wildcard=u"カードワース本体 (*.exe)|*.exe|全てのファイル (*.*)|*.*",
-            dir=False)
+            dir=False,
+            callback=self._selected_exe)
         # Dataディレクトリの名前
         self.datalabel = wx.StaticText(self, -1, u"データ")
         self.datactrl = wx.TextCtrl(self)
@@ -212,6 +216,17 @@ class SkinBasePanel(wx.Panel):
 
     def _get_basedir(self):
         return os.path.dirname(self.exectrl.GetValue())
+
+    def _selected_exe(self, exe):
+        self.conv.init(exe)
+
+        self.datactrl.SetValue(self.conv.datadir)
+        self.scenarioctrl.SetValue(self.conv.scenariodir)
+
+        self.typectrl.SetValue(self.conv.type)
+        self.namectrl.SetValue(self.conv.skinname)
+        self.authorctrl.SetValue(self.conv.author)
+        self.descctrl.SetValue(self.conv.description)
 
     def OnInput(self, event):
         exe = self.exectrl.GetValue().strip()

@@ -574,7 +574,7 @@ class MyApp(wx.App):
         self.SetVendorName("")
         wx.InitAllImageHandlers()
         skincount = self.get_skincount()
-        exe = None
+        exe = u""
         if len(sys.argv) > 1 and sys.argv[1].lower().endswith(".exe"):
             exe = sys.argv[1]
         if skincount == 0 or exe:

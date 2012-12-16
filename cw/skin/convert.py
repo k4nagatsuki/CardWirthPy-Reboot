@@ -14,27 +14,61 @@ class Converter(threading.Thread):
     def __init__(self, exe):
         threading.Thread.__init__(self)
 
-        if exe:
-            exebasename = os.path.basename(exe)
-            skinname = os.path.splitext(exebasename)[0]
-            self.exe = exe
-            self.skinname = skinname
-            self.description = (u"%sをベースに自動生成したスキン。") % exebasename
-        else:
-            self.exe = u""
-            self.skinname = "Default"
-            self.description = u""
-
-        self.datadir = u"Data"
-        self.scenariodir = u"Scenario"
-        self.type = u"MedievalFantasy"
-        self.author = ""
         self.maximum = 60
         self.curnum = 0
         self.message = u"変換を開始しています..."
         self.failure = False
         self.complete = False
         self.errormessage = ""
+
+        self.init(exe)
+
+    def init(self, exe):
+        self.exe = exe
+        self.skinname = self.find_skinname()
+        self.description = self.find_description()
+        self.datadir = self.find_datadir()
+        self.scenariodir = self.find_scenariodir()
+        self.type = self.find_type()
+        self.author = self.find_author()
+
+    def find_skinname(self):
+        if self.exe:
+            exebasename = os.path.basename(self.exe)
+            return os.path.splitext(exebasename)[0]
+        else:
+            return "Default"
+
+    def find_description(self):
+        if self.exe:
+            exebasename = os.path.basename(self.exe)
+            return (u"%sをベースに自動生成したスキン。") % exebasename
+        else:
+            return u""
+
+    def find_datadir(self):
+        if self.exe:
+            # TODO
+            return u"Data"
+        else:
+            return u"Data"
+
+    def find_scenariodir(self):
+        if self.exe:
+            # TODO
+            return u"Scenario"
+        else:
+            return u"Scenario"
+
+    def find_type(self):
+        if self.exe:
+            # TODO
+            return u"MedievalFantasy"
+        else:
+            return u"MedievalFantasy"
+
+    def find_author(self):
+        return u""
 
     def run(self):
         """クラシックなエンジンからリソースを取り出し、新規スキンを生成する。"""

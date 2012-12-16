@@ -896,7 +896,7 @@ def get_boxpointlist(pos, size):
     poslist.append((x, y + height, x + width, y + height))
     return poslist
 
-def create_fileselection(parent, target, message, wildcard="*.*", dir=False, getbasedir=None):
+def create_fileselection(parent, target, message, wildcard="*.*", dir=False, getbasedir=None, callback=None):
     """ファイルまたはディレクトリを選択する
     ダイアログを表示するボタンを生成する。
     parent: ボタンの親パネル。
@@ -919,6 +919,8 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
                     base = getbasedir()
                     dpath = os.path.relpath(dpath, base)
                 target.SetValue(dpath)
+                if callback:
+                    callback(dpath)
         else:
             dpath = os.path.dirname(fpath)
             fpath = os.path.basename(fpath)
@@ -929,6 +931,8 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
                     base = getbasedir()
                     fpath = os.path.relpath(fpath, base)
                 target.SetValue(fpath)
+                if callback:
+                    callback(fpath)
 
     button = wx.Button(parent, size=(25, -1), label=u"...")
     parent.Bind(wx.EVT_BUTTON, OnOpen, button)
