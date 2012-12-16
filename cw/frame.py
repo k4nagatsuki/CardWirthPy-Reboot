@@ -573,9 +573,13 @@ class MyApp(wx.App):
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
         wx.InitAllImageHandlers()
+        skincount = self.get_skincount()
+        exe = None
         if len(sys.argv) > 1 and sys.argv[1].lower().endswith(".exe"):
+            exe = sys.argv[1]
+        if skincount == 0 or exe:
             # スキンの自動生成
-            self.skindlg = cw.dialog.skin.SkinConversionDialog(None, sys.argv[1])
+            self.skindlg = cw.dialog.skin.SkinConversionDialog(None, exe)
             self.SetTopWindow(self.skindlg)
             self.skindlg.Bind(wx.EVT_CLOSE, self.OnCloseSkinDialog, self.skindlg)
             self.skindlg.Show()
@@ -589,12 +593,7 @@ class MyApp(wx.App):
     def OnCloseSkinDialog(self, event):
         # スキンが1つでもあればそのまま起動する
         self.skindlg.Destroy()
-        skincount = 0
-        for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-            if os.path.exists(skinpath):
-                skincount += 1
+        skincount = self.get_skincount()
 
         if 0 < skincount:
 
@@ -603,6 +602,15 @@ class MyApp(wx.App):
             frame = Frame()
             self.SetTopWindow(frame)
             frame.Show()
+
+    def get_skincount(self):
+        skincount = 0
+        for name in os.listdir(u"Data/Skin"):
+            path = cw.util.join_paths(u"Data/Skin", name)
+            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+            if os.path.exists(skinpath):
+                skincount += 1
+        return skincount
 
 def main():
     pass

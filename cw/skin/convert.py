@@ -14,16 +14,21 @@ class Converter(threading.Thread):
     def __init__(self, exe):
         threading.Thread.__init__(self)
 
-        exebasename = os.path.basename(exe)
-        skinname = os.path.splitext(exebasename)[0]
+        if exe:
+            exebasename = os.path.basename(exe)
+            skinname = os.path.splitext(exebasename)[0]
+            self.exe = exe
+            self.skinname = skinname
+            self.description = (u"%sをベースに自動生成したスキン。") % exebasename
+        else:
+            self.exe = u""
+            self.skinname = "Default"
+            self.description = u""
 
-        self.exe = exe
         self.datadir = u"Data"
         self.scenariodir = u"Scenario"
-        self.skinname = skinname
         self.type = u"MedievalFantasy"
         self.author = ""
-        self.description = (u"%sをベースに自動生成したスキン。") % exebasename
         self.maximum = 60
         self.curnum = 0
         self.message = u"変換を開始しています..."
