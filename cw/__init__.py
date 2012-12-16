@@ -12,6 +12,7 @@ import eventrelay
 import features
 import scenariodb
 import setting
+import skin
 import animation
 import thread
 import header

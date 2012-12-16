@@ -896,6 +896,44 @@ def get_boxpointlist(pos, size):
     poslist.append((x, y + height, x + width, y + height))
     return poslist
 
+def create_fileselection(parent, target, message, wildcard="*.*", dir=False, getbasedir=None):
+    """ファイルまたはディレクトリを選択する
+    ダイアログを表示するボタンを生成する。
+    parent: ボタンの親パネル。
+    target: 選択結果を格納するコントロール。
+    message: 選択時に表示されるメッセージ。
+    wildcard: 選択対象の定義。
+    dir: Trueの場合はディレクトリの選択を行う。
+    getbasedir: 相対パスを扱う場合は基準となるパスを返す関数。
+    """
+    def OnOpen(event):
+        fpath = target.GetValue()
+        dpath = fpath
+        if getbasedir and not os.path.isabs(dpath):
+            dpath = os.path.join(getbasedir(), dpath)
+        if dir:
+            dlg = wx.DirDialog(parent.TopLevelParent, message, dpath, wx.DD_DIR_MUST_EXIST)
+            if dlg.ShowModal() == wx.ID_OK:
+                dpath = dlg.GetPath()
+                if getbasedir:
+                    base = getbasedir()
+                    dpath = os.path.relpath(dpath, base)
+                target.SetValue(dpath)
+        else:
+            dpath = os.path.dirname(fpath)
+            fpath = os.path.basename(fpath)
+            dlg = wx.FileDialog(parent.TopLevelParent, message, dpath, fpath, wildcard, wx.FD_OPEN)
+            if dlg.ShowModal() == wx.ID_OK:
+                fpath = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+                if getbasedir:
+                    base = getbasedir()
+                    fpath = os.path.relpath(fpath, base)
+                target.SetValue(fpath)
+
+    button = wx.Button(parent, size=(25, -1), label=u"...")
+    parent.Bind(wx.EVT_BUTTON, OnOpen, button)
+    return button
+
 #-------------------------------------------------------------------------------
 #  スレッド関係
 #-------------------------------------------------------------------------------

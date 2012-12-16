@@ -11,6 +11,7 @@ import create
 import edit
 import etc
 import settings
+import skin
 
 
 def main():

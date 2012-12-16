@@ -43,6 +43,9 @@ class Frame(wx.Frame):
         dbupdater = cw.scenariodb.ScenariodbUpdatingThread()
         dbupdater.start()
 
+        # スキン自動生成のためのドロップ受付
+        self.DragAcceptFiles(True)
+
     def set_icon(self, win):
         if sys.platform == "win32":
             icon = wx.Icon(sys.executable, wx.BITMAP_TYPE_ICO)
@@ -55,6 +58,7 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
         self.panel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         self._bind_customevent()
 
@@ -159,6 +163,21 @@ class Frame(wx.Frame):
             evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=5)
 
         pygame.event.post(evt)
+
+    def OnDropFiles(self, event):
+        paths = event.GetFiles()
+
+        for path in paths:
+            if path.lower().endswith(".exe"):
+                # スキンの自動生成
+                dlg = cw.dialog.skin.SkinConversionDialog(self, path)
+                self.move_dlg(dlg)
+                def OnClose(event):
+                    dlg.Destroy()
+                dlg.Bind(wx.EVT_CLOSE, OnClose, dlg)
+                dlg.ShowModal()
+                # TODO 今生成したスキンを選択するか確認する
+                break
 
     def OnDestroy(self, event):
         cw.cwpy._running = False
@@ -554,10 +573,36 @@ class MyApp(wx.App):
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
         wx.InitAllImageHandlers()
-        frame = Frame()
-        self.SetTopWindow(frame)
-        frame.Show()
+        if len(sys.argv) > 1 and sys.argv[1].lower().endswith(".exe"):
+            # スキンの自動生成
+            self.skindlg = cw.dialog.skin.SkinConversionDialog(None, sys.argv[1])
+            self.SetTopWindow(self.skindlg)
+            self.skindlg.Bind(wx.EVT_CLOSE, self.OnCloseSkinDialog, self.skindlg)
+            self.skindlg.Show()
+        else:
+            # 通常起動
+            frame = Frame()
+            self.SetTopWindow(frame)
+            frame.Show()
         return True
+
+    def OnCloseSkinDialog(self, event):
+        # スキンが1つでもあればそのまま起動する
+        self.skindlg.Destroy()
+        skincount = 0
+        for name in os.listdir(u"Data/Skin"):
+            path = cw.util.join_paths(u"Data/Skin", name)
+            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+            if os.path.exists(skinpath):
+                skincount += 1
+
+        if 0 < skincount:
+
+            # TODO 今生成したスキンを選択するか確認する
+
+            frame = Frame()
+            self.SetTopWindow(frame)
+            frame.Show()
 
 def main():
     pass
