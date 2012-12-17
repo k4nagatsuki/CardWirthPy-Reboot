@@ -313,6 +313,10 @@ class EffectMotion(object):
             if n:
                 value += cw.cwpy.dice.roll(1, n)
 
+        # 最低でも1ダメージとする
+        if value <= 0:
+            value = 1
+
         return value
 
     def calc_durationvalue(self):
