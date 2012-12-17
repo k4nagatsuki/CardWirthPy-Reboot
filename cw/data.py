@@ -327,7 +327,7 @@ class ScenarioData(SystemData):
 
     def reset_variables(self):
         """すべての状態変数を初期化する。"""
-        for e in self.summary.find("/Steps"):
+        for e in self.summary.find2("/Steps"):
             value = e.getint("", "default")
             name = e.gettext("Name", "")
             self.steps[name].set(value)

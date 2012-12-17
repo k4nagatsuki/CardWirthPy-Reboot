@@ -740,7 +740,7 @@ class EventTreeCtrl(wx.TreeCtrl):
         self.items[content] = item
         element = content.find("Contents")
 
-        if element:
+        if element is not None:
             for e in element:
                 self.set_content(item, e, self.get_contentname(content, e))
 

@@ -633,9 +633,11 @@ class CWPy(_Singleton, threading.Thread):
 
             if self.music.path == battlebgmpath:
                 if areachange:
-                    self.music.stop()
+                    if self.music.path <> bgmpath:
+                        self.music.stop()
                     self.change_area(areaid, False, ttype=("None", "Default"))
-                    self.music._play(bgmpath)
+                    if self.music.path <> bgmpath:
+                        self.music._play(bgmpath)
                 else:
                     self.music._play(bgmpath)
 
