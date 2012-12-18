@@ -20,12 +20,16 @@ def get_bitmap(exe, resname):
     # ヘッダを生成する
     headersize = int32.unpack(data[:4])[0]
     bitcount = int16.unpack(data[14:16])[0]
-    if bitcount == 1:
-        headersize += 4 * (0x01 << 1);
-    elif bitcount == 4:
-        headersize += 4 * (0x01 << 4);
-    elif bitcount == 8:
-        headersize += 4 * (0x01 << 8);
+    clrused = int32.unpack(data[32:36])[0]
+    if clrused == 0:
+        if bitcount == 1:
+            headersize += 4 * (0x01 << 1);
+        elif bitcount == 4:
+            headersize += 4 * (0x01 << 4);
+        elif bitcount == 8:
+            headersize += 4 * (0x01 << 8);
+    else:
+        headersize += 4 * clrused
     arr = bytearray()
     arr += chr(0x42)
     arr += chr(0x4d)

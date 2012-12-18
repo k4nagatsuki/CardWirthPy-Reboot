@@ -48,10 +48,15 @@ class SkinConversionDialog(wx.Dialog):
 
         self.conv.exe = self.pane_base.exectrl.GetValue()
         self.conv.datadir = self.pane_base.datactrl.GetValue()
-        self.conv.skinname = self.pane_base.namectrl.GetValue()
-        self.conv.type = self.pane_base.typectrl.GetValue()
-        self.conv.author = self.pane_base.authorctrl.GetValue()
-        self.conv.description = self.pane_base.descctrl.GetValue()
+        self.conv.scenariodir = self.pane_base.scenarioctrl.GetValue()
+        e = self.conv.data.find2("Property/Name")
+        e.text = self.pane_base.namectrl.GetValue()
+        e = self.conv.data.find2("Property/Type")
+        e.text = self.pane_base.typectrl.GetValue()
+        e = self.conv.data.find2("Property/Author")
+        e.text = self.pane_base.authorctrl.GetValue()
+        e = self.conv.data.find2("Property/Description")
+        e.text = self.pane_base.descctrl.GetValue()
 
         # プログレスダイアログ表示
         dlg = wx.ProgressDialog(
@@ -151,19 +156,19 @@ class SkinBasePanel(wx.Panel):
         # 種別
         self.typelabel = wx.StaticText(self, -1, u"種別")
         self.typectrl = wx.ComboBox(self, choices=self.types, style=wx.CB_DROPDOWN)
-        self.typectrl.SetValue(conv.type)
+        self.typectrl.SetValue(conv.data.gettext("Property/Type", ""))
         # 名前
         self.namelabel = wx.StaticText(self, -1, u"名前")
         self.namectrl = wx.TextCtrl(self)
-        self.namectrl.SetValue(conv.skinname)
+        self.namectrl.SetValue(conv.data.gettext("Property/Name", ""))
         # 作者
         self.authorlabel = wx.StaticText(self, -1, u"作者")
         self.authorctrl = wx.TextCtrl(self)
-        self.authorctrl.SetValue(conv.author)
+        self.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
         # 解説
         self.desclabel = wx.StaticText(self, -1, u"解説")
         self.descctrl = wx.TextCtrl(self, size=(300, 100), style=wx.TE_MULTILINE)
-        self.descctrl.SetValue(conv.description)
+        self.descctrl.SetValue(conv.data.gettext("Property/Description", ""))
 
         self._do_layout()
         self._bind()

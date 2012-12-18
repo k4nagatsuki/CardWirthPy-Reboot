@@ -25,12 +25,40 @@ class Converter(threading.Thread):
 
     def init(self, exe):
         self.exe = exe
-        self.skinname = self.find_skinname()
-        self.description = self.find_description()
+        if self.exe:
+            f = open(self.exe, "rb")
+            self.exebinary = f.read()
+            f.close()
+
         self.datadir = self.find_datadir()
         self.scenariodir = self.find_scenariodir()
-        self.type = self.find_type()
-        self.author = self.find_author()
+
+        self.data = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        self.data.find2("Property/Name").text = self.find_skinname()
+        self.data.find2("Property/Type").text = self.find_type()
+        self.data.find2("Property/Author").text = self.find_author()
+        self.data.find2("Property/Description").text = cw.util.encodewrap(self.find_description())
+
+        self.actioncard = self._get_resources(u"ActionCard")
+        self.gameover = self._get_resources(u"GameOver")
+        self.scenario = self._get_resources(u"Scenario")
+        self.title = self._get_resources(u"Title")
+        self.yado = self._get_resources(u"Yado")
+
+    def _get_resources(self, dir):
+        dir = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dir)
+        rsrc = {}
+        for path in os.listdir(dir):
+            if path.lower().endswith(".xml"):
+                name = os.path.splitext(path)[0]
+                path = cw.util.join_paths(dir, path)
+                rsrc[name] = cw.data.xml2etree(path)
+        return rsrc
+
+    def _write_data(self, dir, table):
+        for data in table.values():
+            data.fpath = cw.util.join_paths(dir, os.path.relpath(data.fpath, u"Data/SkinBase/"))
+            data.write()
 
     def find_skinname(self):
         if self.exe:
@@ -48,17 +76,24 @@ class Converter(threading.Thread):
 
     def find_datadir(self):
         if self.exe:
-            # TODO
-            return u"Data"
-        else:
-            return u"Data"
+            key = "\\Midi\\DefReset.mid"
+            index = self.exebinary.find(key)
+            try:
+                return unicode(self.exebinary[index-4:index], "ms932")
+            except:
+                pass
+        return u"Data"
 
     def find_scenariodir(self):
         if self.exe:
-            # TODO
-            return u"Scenario"
-        else:
-            return u"Scenario"
+            key = "\0\\\0\\\0\\Summary.wsm\0\\\0\\\0.wid\0"
+            index = self.exebinary.find(key)
+            try:
+                index = index + len(key)
+                return unicode(self.exebinary[index:index+8], "ms932")
+            except:
+                pass
+        return u"Scenario"
 
     def find_type(self):
         if self.exe:
@@ -75,7 +110,9 @@ class Converter(threading.Thread):
         self.curnum = 0
         self.message = u"スキンのベースをコピー中..."
 
-        dir = cw.util.join_paths(u"Data/Skin", cw.binary.util.check_filename(self.skinname))
+        dir = self.data.gettext("Property/Name", "")
+        dir = cw.binary.util.check_filename(dir)
+        dir = cw.util.join_paths(u"Data/Skin", dir)
         dir = cw.binary.util.check_duplicate(dir)
         shutil.copytree(u"Data/SkinBase", dir)
         f = None
@@ -84,12 +121,14 @@ class Converter(threading.Thread):
             self.curnum = 10
             self.message = u"リソースを抽出中..."
 
-            data = cw.data.xml2etree(cw.util.join_paths(dir, u"Skin.xml"))
-            data.find2("Property/Name").text = self.skinname
-            data.find2("Property/Type").text = self.type
-            data.find2("Property/Author").text = self.author
-            data.find2("Property/Description").text = cw.util.encodewrap(self.description)
-            data.write()
+            self.data.fpath = cw.util.join_paths(dir, u"Skin.xml")
+            self.data.write()
+
+            self._write_data(dir, self.actioncard)
+            self._write_data(dir, self.gameover)
+            self._write_data(dir, self.scenario)
+            self._write_data(dir, self.title)
+            self._write_data(dir, self.yado)
 
             imgtbl = {
                 "BUTTON_ARROW":"Button/ARROW",
