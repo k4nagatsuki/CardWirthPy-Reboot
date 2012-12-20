@@ -4,6 +4,7 @@
 import os
 import io
 import shutil
+import struct
 import threading
 
 import cw
@@ -44,6 +45,8 @@ class Converter(threading.Thread):
         self.scenario = self._get_resources(u"Scenario")
         self.title = self._get_resources(u"Title")
         self.yado = self._get_resources(u"Yado")
+
+        self._get_features()
 
     def _get_resources(self, dir):
         dir = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dir)
@@ -104,6 +107,77 @@ class Converter(threading.Thread):
 
     def find_author(self):
         return u""
+
+    def _get_features(self):
+        if not self.exe:
+            return
+        key = "TStatusItem\x81\x89" # "TStatusItem♂"を探す
+        index = self.exebinary.find(key) + len(key) - len("\x81\x89")
+
+        physical = struct.Struct("< hhhhhh")
+        mental = struct.Struct("< hhhhh")
+
+        def set_params(data, index):
+            # 特性名
+            n = self.exebinary[index:index+20]
+            index += 20
+            i = n.find("\0")
+            if 0 <= i:
+                name = n[:i]
+            else:
+                name = n
+            data.find("./Name").text = unicode(name, "ms932")
+
+            # 身体能力
+            p = physical.unpack(self.exebinary[index:index+2*6])
+            index += 2*6
+            e = data.find("./Physical")
+            e.set("dex", str(p[0]))
+            e.set("agl", str(p[1]))
+            e.set("int", str(p[2]))
+            e.set("str", str(p[3]))
+            e.set("vit", str(p[4]))
+            e.set("min", str(p[5]))
+
+            # 精神能力
+            p = mental.unpack(self.exebinary[index:index+2*5])
+            index += 2*5
+            e = data.find("./Mental")
+            e.set("aggressive", str(p[0]))
+            e.set("cheerful", str(p[1]))
+            e.set("brave", str(p[2]))
+            e.set("cautious", str(p[3]))
+            e.set("trickish", str(p[4]))
+
+            return index
+
+        for e in self.data.getfind("Sexes"):
+            index = set_params(e, index)
+        for e in self.data.getfind("Periods"):
+            index = set_params(e, index)
+        # 使用されていない年代「古老」を飛ばす
+        index += 20 + 2*6 + 2*5
+        for e in self.data.getfind("Natures"):
+            index = set_params(e, index)
+        for e in self.data.getfind("Makings"):
+            index = set_params(e, index)
+
+        # 型の派生元を設定
+        # 英明型 <- 標準型,万能型
+        e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[1]")
+        e.text = self.data.find("Natures/Nature[1]/Name").text
+        e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[2]")
+        e.text = self.data.find("Natures/Nature[2]/Name").text
+        # 無双型 <- 勇将型,豪傑型
+        e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[1]")
+        e.text = self.data.find("Natures/Nature[3]/Name").text
+        e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[2]")
+        e.text = self.data.find("Natures/Nature[4]/Name").text
+        # 天才型 <- 知将型,策士型
+        e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[1]")
+        e.text = self.data.find("Natures/Nature[5]/Name").text
+        e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[2]")
+        e.text = self.data.find("Natures/Nature[6]/Name").text
 
     def run(self):
         """クラシックなエンジンからリソースを取り出し、新規スキンを生成する。"""
