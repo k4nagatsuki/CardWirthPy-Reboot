@@ -47,6 +47,7 @@ class Converter(threading.Thread):
         self.yado = self._get_resources(u"Yado")
 
         self._get_features()
+        self._get_sounds()
 
     def _get_resources(self, dir):
         dir = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dir)
@@ -109,75 +110,163 @@ class Converter(threading.Thread):
         return u""
 
     def _get_features(self):
+        # バイナリ断片を手がかりにして特性値を探す。
         if not self.exe:
             return
-        key = "TStatusItem\x81\x89" # "TStatusItem♂"を探す
+        key = "TStatusItem\x81\x89" # "TStatusItem♂"
         index = self.exebinary.find(key) + len(key) - len("\x81\x89")
 
-        physical = struct.Struct("< hhhhhh")
-        mental = struct.Struct("< hhhhh")
+        physical = struct.Struct("<hhhhhh")
+        mental = struct.Struct("<hhhhh")
 
-        def set_params(data, index):
-            # 特性名
-            n = self.exebinary[index:index+20]
-            index += 20
-            i = n.find("\0")
-            if 0 <= i:
-                name = n[:i]
-            else:
-                name = n
-            data.find("./Name").text = unicode(name, "ms932")
+        try:
+            def set_params(data, index):
+                # 特性名
+                n = self.exebinary[index:index+20]
+                index += 20
+                i = n.find("\0")
+                if 0 <= i:
+                    name = n[:i]
+                else:
+                    name = n
+                data.find("./Name").text = unicode(name, "ms932")
 
-            # 身体能力
-            p = physical.unpack(self.exebinary[index:index+2*6])
-            index += 2*6
-            e = data.find("./Physical")
-            e.set("dex", str(p[0]))
-            e.set("agl", str(p[1]))
-            e.set("int", str(p[2]))
-            e.set("str", str(p[3]))
-            e.set("vit", str(p[4]))
-            e.set("min", str(p[5]))
+                # 身体能力
+                p = physical.unpack(self.exebinary[index:index+2*6])
+                index += 2*6
+                e = data.find("./Physical")
+                e.set("dex", str(p[0]))
+                e.set("agl", str(p[1]))
+                e.set("int", str(p[2]))
+                e.set("str", str(p[3]))
+                e.set("vit", str(p[4]))
+                e.set("min", str(p[5]))
 
-            # 精神能力
-            p = mental.unpack(self.exebinary[index:index+2*5])
-            index += 2*5
-            e = data.find("./Mental")
-            e.set("aggressive", str(p[0]))
-            e.set("cheerful", str(p[1]))
-            e.set("brave", str(p[2]))
-            e.set("cautious", str(p[3]))
-            e.set("trickish", str(p[4]))
+                # 精神能力
+                p = mental.unpack(self.exebinary[index:index+2*5])
+                index += 2*5
+                e = data.find("./Mental")
+                e.set("aggressive", str(p[0]))
+                e.set("cheerful", str(p[1]))
+                e.set("brave", str(p[2]))
+                e.set("cautious", str(p[3]))
+                e.set("trickish", str(p[4]))
 
-            return index
+                return index
 
-        for e in self.data.getfind("Sexes"):
-            index = set_params(e, index)
-        for e in self.data.getfind("Periods"):
-            index = set_params(e, index)
-        # 使用されていない年代「古老」を飛ばす
-        index += 20 + 2*6 + 2*5
-        for e in self.data.getfind("Natures"):
-            index = set_params(e, index)
-        for e in self.data.getfind("Makings"):
-            index = set_params(e, index)
+            for e in self.data.getfind("Sexes"):
+                index = set_params(e, index)
+            for e in self.data.getfind("Periods"):
+                index = set_params(e, index)
+            # 使用されていない年代「古老」を飛ばす
+            index += 20 + 2*6 + 2*5
+            for e in self.data.getfind("Natures"):
+                index = set_params(e, index)
+            for e in self.data.getfind("Makings"):
+                index = set_params(e, index)
 
-        # 型の派生元を設定
-        # 英明型 <- 標準型,万能型
-        e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[1]")
-        e.text = self.data.find("Natures/Nature[1]/Name").text
-        e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[2]")
-        e.text = self.data.find("Natures/Nature[2]/Name").text
-        # 無双型 <- 勇将型,豪傑型
-        e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[1]")
-        e.text = self.data.find("Natures/Nature[3]/Name").text
-        e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[2]")
-        e.text = self.data.find("Natures/Nature[4]/Name").text
-        # 天才型 <- 知将型,策士型
-        e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[1]")
-        e.text = self.data.find("Natures/Nature[5]/Name").text
-        e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[2]")
-        e.text = self.data.find("Natures/Nature[6]/Name").text
+            # 型の派生元を設定
+            # 英明型 <- 標準型,万能型
+            e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[1]")
+            e.text = self.data.find("Natures/Nature[1]/Name").text
+            e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[2]")
+            e.text = self.data.find("Natures/Nature[2]/Name").text
+            # 無双型 <- 勇将型,豪傑型
+            e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[1]")
+            e.text = self.data.find("Natures/Nature[3]/Name").text
+            e = self.data.find("Natures/Nature[9]/BaseNatures/BaseNature[2]")
+            e.text = self.data.find("Natures/Nature[4]/Name").text
+            # 天才型 <- 知将型,策士型
+            e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[1]")
+            e.text = self.data.find("Natures/Nature[5]/Name").text
+            e = self.data.find("Natures/Nature[10]/BaseNatures/BaseNature[2]")
+            e.text = self.data.find("Natures/Nature[6]/Name").text
+
+            # 解説文
+            entrydlg = cw.skin.win32res.get_rcdata(self.exe, "TENTRYDLG")
+            if entrydlg:
+                typesheet = entrydlg["EntryDlg"]["PageControl"]["TypeSheet"]
+                # 標準型
+                e = self.data.find("Natures/Nature[1]/Description")
+                e.text = typesheet["Type3Label"]["Caption"]
+                # 万能型
+                e = self.data.find("Natures/Nature[2]/Description")
+                e.text = typesheet["Type2Label"]["Caption"]
+                # 勇将型
+                e = self.data.find("Natures/Nature[3]/Description")
+                e.text = typesheet["Type1Label"]["Caption"]
+                # 豪傑型
+                e = self.data.find("Natures/Nature[4]/Description")
+                e.text = typesheet["Type0Label"]["Caption"]
+                # 知将型
+                e = self.data.find("Natures/Nature[5]/Description")
+                e.text = typesheet["Type4Label"]["Caption"]
+                # 策士型
+                e = self.data.find("Natures/Nature[6]/Description")
+                e.text = typesheet["Type5Label"]["Caption"]
+
+        except:
+            pass
+
+    def _get_sounds(self):
+        # バイナリ断片を手がかりにして音声ファイル名を探す。
+        if not self.exe:
+            return
+        try:
+            sounds = self.data.getfind("Sounds")
+            def get_keybefore(e, key, length, less=0):
+                index = self.exebinary.find(key)
+                if 0 <= index:
+                    index -= less
+                    e.text = unicode(self.exebinary[index-length:index], "ms932")
+            def get_keyafter(e, key, length, than=0):
+                index = self.exebinary.find(key)
+                if 0 <= index:
+                    index += len(key)
+                    index += than
+                    e.text = unicode(self.exebinary[index:index+length], "ms932")
+
+            # システム・エラー
+            # ".wav\0は、行動不能です。"
+            key = ".wav\0\x82\xCD\x81\x41\x8D\x73\x93\xAE\x95\x73\x94\x5C\x82\xC5\x82\xB7\x81\x42\x00"
+            get_keybefore(sounds[0], key, 16)
+            # システム・クリック
+            get_keybefore(sounds[1], key, 18, less=16+5)
+            # システム・シグナル
+            # ".wav\0本アプリケーションは『小さいフォント』に対応しています。"
+            key = ".wav\0\x96\x7B\x83\x41\x83\x76\x83\x8A\x83\x50\x81\x5B\x83\x56\x83\x87\x83\x93\x82\xCD\x81\x77\x8F\xAC\x82\xB3\x82\xA2\x83\x74\x83\x48\x83\x93\x83\x67\x81\x78\x82\xC9\x91\xCE\x89\x9E\x82\xB5\x82\xC4\x82\xA2\x82\xDC\x82\xB7\x81\x42"
+            get_keybefore(sounds[2], key, 18)
+            # システム・初期化
+            get_keybefore(sounds[6], key, 16, less=18+8)
+            # システム・回避
+            # "死者有効\0抵抗有効\0"
+            key = "\x8E\x80\x8E\xD2\x97\x4C\x8C\xF8\x00\x92\xEF\x8D\x52\x97\x4C\x8C\xF8\x00"
+            get_keyafter(sounds[3], key, 14)
+            # システム・無効
+            get_keyafter(sounds[11], key, 14, than=14+5)
+            # システム・改ページ
+            key = ".wav\0CHECK_FIXED\0CHECK_TARGET\0"
+            get_keybefore(sounds[4], key, 18)
+            # システム・収穫
+            # "TMainWindow\0TBookDlg\0状態\0"
+            key = ".wav\0TMainWindow\0TBookDlg\0\x8F\xF3\x91\xD4\x00"
+            get_keybefore(sounds[5], key, 14)
+            # システム・戦闘
+            key = ".wav\0Encounter\0\x30\0\0Round\x20\0"
+            get_keybefore(sounds[7], key, 14)
+            # システム・装備
+            # "\0＿２\0＿３\0＿４\0＿５\0＿６\0異常発生\0"
+            key = "\x00\x81\x51\x82\x51\x00\x81\x51\x82\x52\x00\x81\x51\x82\x53\x00\x81\x51\x82\x54\x00\x81\x51\x82\x55\x00\x88\xD9\x8F\xED\x94\xAD\x90\xB6\x00"
+            get_keyafter(sounds[8], key, 14)
+            # システム・逃走
+            key = ".wav\0TITLE_CARD1\0TITLE_CARD1\0TITLE_CARD2\0"
+            get_keybefore(sounds[9], key, 14, less=16+5)
+            # システム・破棄
+            # "\0を捨てます。よろしいですか？\0"
+            key = "\x00\x82\xF0\x8E\xCC\x82\xC4\x82\xDC\x82\xB7\x81\x42\x82\xE6\x82\xEB\x82\xB5\x82\xA2\x82\xC5\x82\xB7\x82\xA9\x81\x48\x00"
+            get_keyafter(sounds[10], key, 14)
+        except:
+            pass
 
     def run(self):
         """クラシックなエンジンからリソースを取り出し、新規スキンを生成する。"""
