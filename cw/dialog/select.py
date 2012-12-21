@@ -1052,11 +1052,17 @@ class ScenarioSelect(Select):
             dc.DrawText(s, 135, 65)
             # フォルダ画像
             bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
-            dc.DrawBitmap(bmp, 60, 32, True)
+            dc.DrawBitmap(bmp, 65, 30, True)
+
+            if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
+                # リンクシンボル
+                bmp = cw.cwpy.rsrc.dialogs["LINK"]
+                dc.DrawBitmap(bmp, 63, 65, False)
+
             # contents
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=9))
             s = "Contents"
-            w = bmp.GetSize()[0]
+            w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, 110)
             # 中身
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))

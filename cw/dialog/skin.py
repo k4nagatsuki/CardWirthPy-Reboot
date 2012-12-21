@@ -41,7 +41,7 @@ class SkinConversionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
     def OnOk(self, event):
-        # TODO 基本
+        # TODO 特性
         # TODO サウンド
         # TODO メッセージ
         # TODO カード
