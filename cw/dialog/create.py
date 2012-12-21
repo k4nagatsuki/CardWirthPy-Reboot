@@ -1042,7 +1042,6 @@ class RelationPage(AdventurerCreaterPage):
         if not cw.cwpy.ydata:
             return
 
-        cw.cwpy.ydata.stopstandbysthread()
         for index, header in enumerate(cw.cwpy.ydata.standbys):
             if not isinstance(header, cw.header.AdventurerHeader):
                 # まだヘッダが生成されていない場合
@@ -1053,7 +1052,6 @@ class RelationPage(AdventurerCreaterPage):
                     append_header(self, header)
                     break
 
-        cw.cwpy.ydata.stopalbumthread()
         for index, header in enumerate(cw.cwpy.ydata.album):
             if not isinstance(header, cw.header.AdventurerHeader):
                 # まだヘッダが生成されていない場合

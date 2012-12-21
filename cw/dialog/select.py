@@ -726,7 +726,6 @@ class PlayerSelect(Select):
             return
 
         header = self.list[self.index]
-        cw.cwpy.ydata.stopstandbysthread()
         if not isinstance(header, cw.header.AdventurerHeader):
             # まだヘッダが生成されていない場合
             header = cw.cwpy.ydata.create_advheader(header, self.isalbum)
