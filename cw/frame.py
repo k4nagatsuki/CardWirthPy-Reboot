@@ -306,6 +306,8 @@ class Frame(wx.Frame):
             self.OnERROR(event)
             return
 
+        if not os.path.exists(u"Scenario"):
+            os.makedirs(u"Scenario")
         dlg = cw.dialog.select.ScenarioSelect(self, db)
         self.move_dlg(dlg)
 

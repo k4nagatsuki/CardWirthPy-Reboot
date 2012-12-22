@@ -15,6 +15,8 @@ import threading
 import hashlib
 import StringIO
 import io
+if sys.platform == "win32":
+    import win32com.client
 
 import wx
 import pygame
@@ -959,6 +961,31 @@ def synclock(l):
                 l.release()
         return acquire
     return synclock
+
+#-------------------------------------------------------------------------------
+#  ショートカット関係
+#-------------------------------------------------------------------------------
+
+def get_linktarget(file):
+    """fileがショートカットだった場合はリンク先を、
+    そうでない場合はfileを返す。
+    """
+    if sys.platform == "win32" and file.lower().endswith(".lnk"):
+        wsh = win32com.client.Dispatch("WScript.Shell")
+        if wsh and os.path.isfile(file) and file.lower().endswith(".lnk"):
+            shortcut = wsh.CreateShortcut(file)
+            return join_paths(shortcut.TargetPath)
+    return file
+
+def create_link(path, target):
+    if sys.platform == "win32":
+        wsh = win32com.client.Dispatch("WScript.Shell")
+        dpath = os.path.dirname(path)
+        if not os.path.exists(dpath):
+            os.makedirs(dpath)
+        shortcut = wsh.CreateShortcut(path)
+        shortcut.TargetPath = target
+        shortcut.save()
 
 def main():
     pass

@@ -10,7 +10,6 @@ import sqlite3
 import threading
 import shutil
 from xml.sax.saxutils import unescape
-import win32com.client
 
 import cw
 import cw.binary
@@ -97,13 +96,8 @@ class Scenariodb(object):
     @synclock(_lock)
     def update(self, dpath=u"Scenario"):
         """データベースを更新する。"""
-        if sys.platform == "win32":
-            wsh = win32com.client.Dispatch("WScript.Shell")
-        else:
-            wsh = None
-
         s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
-        self.cur.execute(s, (get_linktarget(dpath, wsh),))
+        self.cur.execute(s, (cw.util.get_linktarget(dpath),))
         data = self.cur.fetchall()
         dbpaths = []
 
@@ -134,7 +128,7 @@ class Scenariodb(object):
             "", "", cw.cwpy.setting.skintype,
             materialdir="", image_export=False)
 
-        for path in get_scenariopaths(dpath, wsh):
+        for path in get_scenariopaths(dpath):
             if not path in dbpaths:
                 self._insert_scenario(path, False)
 
@@ -277,7 +271,7 @@ class Scenariodb(object):
 
     @synclock(_lock)
     def search_dpath(self, dpath):
-        dpath = get_linktarget(dpath).replace("\\", "/")
+        dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
         s = "SELECT * FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (dpath,))
         data = self.cur.fetchall()
@@ -427,12 +421,12 @@ def read_summary_classic(path):
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
-def get_scenariopaths(path, wsh):
-    path = get_linktarget(path, wsh)
+def get_scenariopaths(path):
+    path = cw.util.get_linktarget(path)
     if not os.path.isdir(path):
         return
     for file in os.listdir(path):
-        file = get_linktarget(cw.util.join_paths(path, file), wsh)
+        file = cw.util.get_linktarget(cw.util.join_paths(path, file))
         if os.path.isdir(file):
             fpath = cw.util.join_paths(file, u"Summary.wsm")
             if os.path.isfile(fpath):
@@ -440,18 +434,6 @@ def get_scenariopaths(path, wsh):
         else:
             if file.lower().endswith(u".wsn"):
                 yield file
-
-def get_linktarget(file, wsh=None):
-    """fileがショートカットだった場合はリンク先を、
-    そうでない場合はfileを返す。
-    """
-    if not wsh and sys.platform == "win32":
-        wsh = win32com.client.Dispatch("WScript.Shell")
-
-    if wsh and os.path.isfile(file) and file.lower().endswith(".lnk"):
-        shortcut = wsh.CreateShortcut(file)
-        return cw.util.join_paths(shortcut.TargetPath)
-    return file
 
 def main():
     db = Scenariodb()

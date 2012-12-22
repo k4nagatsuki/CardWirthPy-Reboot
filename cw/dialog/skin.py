@@ -68,8 +68,21 @@ class SkinConversionDialog(wx.Dialog):
         while not self.conv.complete:
             dlg.Update(self.conv.curnum, self.conv.message)
             wx.MilliSleep(1)
-
         dlg.Destroy()
+
+        if self.conv.scenariodir:
+            try:
+                if os.path.isabs(self.conv.scenariodir):
+                    targ = self.conv.scenariodir
+                else:
+                    targ = os.path.join(os.path.dirname(self.conv.exe), self.conv.scenariodir)
+                link = os.path.basename(self.conv.scenariodir)
+                link = cw.util.join_paths(u"Scenario", link + ".lnk")
+                link = cw.binary.util.check_duplicate(link)
+                cw.util.create_link(link, targ)
+            except:
+                pass
+
         if self.conv.failure:
             s = self.conv.errormessage
             wx.MessageBox(s, u"メッセージ", wx.OK | wx.ICON_EXCLAMATION, self)

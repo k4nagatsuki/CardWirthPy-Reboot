@@ -960,7 +960,7 @@ class ScenarioSelect(Select):
         if self.yesbtn.GetLabel() == u"見る":
             cw.cwpy.sounds[u"equipment"].play()
             self.dirstack.append(self.nowdir)
-            self.nowdir = cw.scenariodb.get_linktarget(self.list[self.index])
+            self.nowdir = cw.util.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
             self.list = dpaths + headers if headers else dpaths
@@ -1164,7 +1164,7 @@ class ScenarioSelect(Select):
         """
         seq = []
 
-        dir = cw.scenariodb.get_linktarget(dpath)
+        dir = cw.util.get_linktarget(dpath)
         for dname in os.listdir(dir):
             path = cw.util.join_paths(dir, dname)
 
