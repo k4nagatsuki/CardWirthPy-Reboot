@@ -7,7 +7,8 @@ import ctypes
 
 import cw
 
-sys.setdefaultencoding('utf-8')
+if hasattr(sys, "setdefaultencoding"):
+    sys.setdefaultencoding("utf-8")
 
 
 def create_mutex():

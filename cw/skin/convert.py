@@ -111,7 +111,7 @@ class Converter(threading.Thread):
                 return "Monsters"
             elif file == "oedowirth":
                 return "Oedo"
-            elif os.path.dirname(self.exe).lower().find("sfv"):
+            elif 0 <= os.path.dirname(self.exe).lower().find("sfv"):
                 return "ScienceFiction"
         return u"MedievalFantasy"
 
