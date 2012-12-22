@@ -1914,7 +1914,7 @@ class TalkContent(EventContentBase):
             if name:
                 # フラグ判定コンテントの場合、対応フラグがTrueだったら選択肢追加
                 if e.tag == "Check" and e.get("type") == "Flag":
-                    if cw.check.CheckFlagContent(e).action() == 0:
+                    if CheckFlagContent(e).action() == 0:
                         seq.append((index, name))
 
                 else:

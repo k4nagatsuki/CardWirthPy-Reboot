@@ -159,7 +159,13 @@ class BuildExe(object):
 
     def run(self):
         if os.path.isdir(self.dist_dir): #Erase previous destination dir
-            shutil.rmtree(self.dist_dir)
+            try:
+                shutil.rmtree(self.dist_dir)
+            except Exception, ex:
+                if sys.platform == "win32":
+                    os.system("rmdir /S /Q %s" % (self.dist_dir))
+                else:
+                    raise ex
 
         #Create source archive file
         compress_src(self.srcfile_name)

@@ -249,6 +249,9 @@ class ScenarioData(SystemData):
                     if not (lf.endswith(".xml") or lf.endswith(".wsm") or lf.endswith(".wid")):
                         # シナリオファイル以外はここで処理終わり
                         continue
+                    if (lf.endswith(".wsm") or lf.endswith(".wid")) and dpath <> self.tempdir:
+                        # クラシックなシナリオはディレクトリ直下のみ読み込む
+                        continue
 
                 path = cw.util.join_paths(dpath, fname)
 
