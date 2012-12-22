@@ -101,10 +101,19 @@ class Converter(threading.Thread):
 
     def find_type(self):
         if self.exe:
-            # TODO
-            return u"MedievalFantasy"
-        else:
-            return u"MedievalFantasy"
+            file = os.path.basename(self.exe).lower()
+            file = os.path.splitext(file)[0]
+            if file == "s_c_wirth":
+                return "School"
+            elif file == "modernwirth":
+                return "Modern"
+            elif file == "darkwirth":
+                return "Monsters"
+            elif file == "oedowirth":
+                return "Oedo"
+            elif os.path.dirname(self.exe).lower().find("sfv"):
+                return "ScienceFiction"
+        return u"MedievalFantasy"
 
     def find_author(self):
         return u""

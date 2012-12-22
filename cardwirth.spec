@@ -34,7 +34,7 @@ a = Analysis(['cardwirth.py'],
              hookspath=None)
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
-          a.scripts,
+          a.scripts + [('O','','OPTION')],
           a.binaries,
           a.zipfiles,
           a.datas,

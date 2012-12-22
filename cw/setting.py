@@ -90,6 +90,7 @@ class Setting(object):
                     dpath = cw.util.join_paths(u"Data/Skin", path)
                     fpath = cw.util.join_paths(dpath, "Skin.xml")
                     if os.path.isfile(fpath):
+                        self.skindirname = path
                         self.skindir = dpath
                         break
 
