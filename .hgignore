@@ -3,6 +3,7 @@ syntax: glob
 syntax: regexp
 \.pyc$
 .*\.dll$
+.*\.log$
 ^build/.*
 ^CardWirthPy/.*
 ^src\.zip$
