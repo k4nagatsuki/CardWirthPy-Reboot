@@ -605,11 +605,12 @@ class MyApp(wx.App):
 
     def get_skincount(self):
         skincount = 0
-        for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-            if os.path.exists(skinpath):
-                skincount += 1
+        if os.path.exists(u"Data/Skin"):
+            for name in os.listdir(u"Data/Skin"):
+                path = cw.util.join_paths(u"Data/Skin", name)
+                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+                if os.path.exists(skinpath):
+                    skincount += 1
         return skincount
 
 def main():
