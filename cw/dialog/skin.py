@@ -111,12 +111,13 @@ class SkinBasePanel(wx.Panel):
             "School",
             "ScienceFiction",
         ])
-        for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-            if os.path.isdir(path) and os.path.isfile(skinpath):
-                e = cw.data.xml2element(skinpath, "Property")
-                self.types.add(e.gettext("Type", ""))
+        if os.path.exists(u"Data/Skin"):
+            for name in os.listdir(u"Data/Skin"):
+                path = cw.util.join_paths(u"Data/Skin", name)
+                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+                if os.path.isdir(path) and os.path.isfile(skinpath):
+                    e = cw.data.xml2element(skinpath, "Property")
+                    self.types.add(e.gettext("Type", ""))
         self.types = list(self.types)
         self.types.sort(lambda x, y: cmp(x.lower(), y.lower()))
 
@@ -228,10 +229,10 @@ class SkinBasePanel(wx.Panel):
         self.datactrl.SetValue(self.conv.datadir)
         self.scenarioctrl.SetValue(self.conv.scenariodir)
 
-        self.typectrl.SetValue(self.conv.type)
-        self.namectrl.SetValue(self.conv.skinname)
-        self.authorctrl.SetValue(self.conv.author)
-        self.descctrl.SetValue(self.conv.description)
+        self.typectrl.SetValue(self.conv.data.gettext("Property/Type", ""))
+        self.namectrl.SetValue(self.conv.data.gettext("Property/Name", ""))
+        self.authorctrl.SetValue(self.conv.data.gettext("Property/Author", ""))
+        self.descctrl.SetValue(self.conv.data.gettext("Property/Description", ""))
 
     def OnInput(self, event):
         exe = self.exectrl.GetValue().strip()

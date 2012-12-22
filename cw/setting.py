@@ -85,6 +85,14 @@ class Setting(object):
             self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
 
             if not os.path.isdir(self.skindir):
+                # Classicが無いので手当たり次第にスキンを探す
+                for path in os.listdir(u"Data/Skin"):
+                    dpath = cw.util.join_paths(u"Data/Skin", path)
+                    fpath = cw.util.join_paths(dpath, "Skin.xml")
+                    if os.path.isfile(fpath):
+                        self.skindir = dpath
+
+            if not os.path.isdir(self.skindir):
                 raise ValueError("Not found CardWirthPy skins!")
 
         path = cw.util.join_paths(self.skindir, "Skin.xml")
