@@ -32,7 +32,7 @@ class BuildExe(object):
         self.project_url = "http://sites.google.com/site/cardwirthpy/"
 
         #Version of program
-        self.project_version = "0.12"
+        self.project_version = "0.12.1"
 
         #License of the program
         self.license = "LGPL"
@@ -55,7 +55,7 @@ class BuildExe(object):
         self.srcfile_name = "src.zip"
 
         #Extra files/dirs copied to game
-        self.extra_datas = ["Data/Font", "Data/Skin", "Data/Debugger",
+        self.extra_datas = ["Data/Font", "Data/SkinBase", "Data/Debugger",
             "License.txt", "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
             "ChangeLog.txt", "Microsoft.VC90.CRT.manifest",
             "ReadMe.txt", self.srcfile_name]
@@ -76,6 +76,52 @@ class BuildExe(object):
         #Extra new dirs
         self.extra_dirs = ["Scenario", "Yado", "Data/Temp",
             "Data/EffectBooster"]
+
+        #Additional modules
+        self.includes = ["win32com.client"]
+
+        self.dllincludes_ex = [
+            "jpeg.dll",
+            "libfreetype-6.dll",
+            "libogg-0.dll",
+            "libpng12-0.dll",
+            "libtiff.dll",
+            "libvorbis-0.dll",
+            "libvorbisfile-3.dll",
+            "pythoncom27.dll",
+            "pywintypes27.dll",
+            "sdl.dll",
+            "sdl_image.dll",
+            "sdl_mixer.dll",
+            "sdl_ttf.dll",
+            "smpeg.dll",
+            "sqlite3.dll",
+            "wxbase28uh_net_vc.dll",
+            "wxbase28uh_vc.dll",
+            "wxmsw28uh_adv_vc.dll",
+            "wxmsw28uh_aui_vc.dll",
+            "wxmsw28uh_core_vc.dll",
+            "wxmsw28uh_html_vc.dll",
+            "zlib1.dll",
+        ]
+        self.dllexcludes_ex = [
+            "oleaut32.dll",
+            "user32.dll",
+            "comctl32.dll",
+            "shell32.dll",
+            "kernel32.dll",
+            "winmm.dll",
+            "wsock32.dll",
+            "comdlg32.dll",
+            "advapi32.dll",
+            "ws2_32.dll",
+            "winspool.drv",
+            "gdi32.dll",
+            "ole32.dll",
+            "rpcrt4.dll",
+            "gdiplus.dll",
+            "msvcp90.dll",
+        ]
 
     ## Code from DistUtils tutorial at http://wiki.python.org/moin/Distutils/Tutorial
     ## Originally borrowed from wxPython's setup and config files
@@ -139,6 +185,16 @@ class BuildExe(object):
             else:
                 extra_datas.append(('.', [data]))
 
+        issystemdll = py2exe.build_exe.isSystemDLL
+        def myissystemdll(path):
+            fpath = os.path.basename(path).lower()
+            if fpath in self.dllincludes_ex:
+                return False
+            if fpath in self.dllexcludes_ex:
+                return True
+            return issystemdll(path)
+        py2exe.build_exe.isSystemDLL = myissystemdll
+
         setup(
             version = self.project_version,
             description = self.project_description,
@@ -165,10 +221,13 @@ class BuildExe(object):
                                   'excludes': self.exclude_modules,
                                   'packages': self.extra_modules,
                                   'dll_excludes': self.exclude_dll,
-                                  'dist_dir': self.dist_dir,} },
+                                  'dist_dir': self.dist_dir,
+                                  'includes': self.includes} },
             zipfile = self.zipfile_name,
             data_files = extra_datas,
             )
+
+        py2exe.build_exe.isSystemDLL = issystemdll
 
         #Create new directory
         print "\n*** creating new directory ***"
