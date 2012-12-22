@@ -56,42 +56,42 @@
       <Physical dex="0" agl="0" int="0" str="0" vit="0" min="1" />
       <Mental aggressive="-0.5" cheerful="0" brave="0" cautious="0.5" trickish="0" />
       <Name>標準型</Name>
-      <Description>凡庸なる暮らしの中で培われた強い意志</Description>
+      <Description>バランスのよい肉体を意志力が支える</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0100000000" levelMax="10">
-      <Physical dex="-1" agl="0" int="-1" str="2" vit="0" min="0" />
+      <Physical dex="1" agl="1" int="0" str="0" vit="0" min="-1" />
       <Mental aggressive="0" cheerful="0" brave="1" cautious="0" trickish="0" />
       <Name>万能型</Name>
-      <Description>あらゆる分野をそつなくこなす機敏さ</Description>
+      <Description>抜け目のなさであらゆる局面に対応</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0010000000" levelMax="10">
-      <Physical dex="0" agl="0" int="2" str="-1" vit="-1" min="0" />
+      <Physical dex="-1" agl="0" int="-1" str="2" vit="0" min="0" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0" />
       <Name>勇将型</Name>
-      <Description>攻守のバランスに優れる</Description>
+      <Description>力強く隙のない能力の持ち主</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0001000000" levelMax="10">
-      <Physical dex="0" agl="-1" int="3" str="-2" vit="-2" min="0" />
+      <Physical dex="-2" agl="-1" int="-2" str="3" vit="1" min="-1" />
       <Mental aggressive="0" cheerful="0" brave="0" cautious="0.5" trickish="0.5" />
       <Name>豪傑型</Name>
-      <Description>腕力、耐久力に優れた生まれながらの戦士</Description>
+      <Description>全てを正面突破する戦車の如き勇者</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0000100000" levelMax="10">
-      <Physical dex="1" agl="1" int="0" str="0" vit="0" min="-1" />
+      <Physical dex="0" agl="0" int="2" str="-1" vit="-1" min="0" />
       <Mental aggressive="0" cheerful="0.5" brave="0" cautious="0" trickish="0" />
       <Name>知将型</Name>
-      <Description>智に裏付けされた実力</Description>
+      <Description>理性と智力に裏打ちされた実力</Description>
       <BaseNatures />
     </Nature>
     <Nature special="False" geneCount="0" genePattern="0000010000" levelMax="10">
-      <Physical dex="-2" agl="-1" int="-2" str="3" vit="1" min="-1" />
+      <Physical dex="0" agl="-1" int="3" str="-2" vit="-2" min="0" />
       <Mental aggressive="0.5" cheerful="0" brave="0.5" cautious="-0.5" trickish="0" />
       <Name>策士型</Name>
-      <Description>類希な知性を持つ天才型</Description>
+      <Description>知性一つを武器にあらゆる存在と渡り合う</Description>
       <BaseNatures />
     </Nature>
     <Nature special="True" geneCount="0" genePattern="0000001111" levelMax="12">

@@ -111,12 +111,13 @@ class SkinBasePanel(wx.Panel):
             "School",
             "ScienceFiction",
         ])
-        for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-            if os.path.isdir(path) and os.path.isfile(skinpath):
-                e = cw.data.xml2element(skinpath, "Property")
-                self.types.add(e.gettext("Type", ""))
+        if os.path.exists(u"Data/Skin"):
+            for name in os.listdir(u"Data/Skin"):
+                path = cw.util.join_paths(u"Data/Skin", name)
+                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+                if os.path.isdir(path) and os.path.isfile(skinpath):
+                    e = cw.data.xml2element(skinpath, "Property")
+                    self.types.add(e.gettext("Type", ""))
         self.types = list(self.types)
         self.types.sort(lambda x, y: cmp(x.lower(), y.lower()))
 
