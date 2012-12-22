@@ -1036,7 +1036,7 @@ class ScenarioSelect(Select):
                 if self.updatenames_thr:
                     self.updatenames_thr.quit = True
                     self.updatenames_thr = None
-                self.names = ["読込中..."]
+                self.names = [u"読込中..."]
                 self.updatenames_thr = UpdateNamesThread(self, dpath)
                 self.updatenames_thr.start()
 

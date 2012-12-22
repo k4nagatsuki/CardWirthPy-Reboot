@@ -48,7 +48,7 @@ class CWFile(file):
         dword = self.dword()
 
         if dword:
-            return self.read(dword).decode("mbcs").strip("\x00")
+            return unicode(self.read(dword), "ms932").strip("\x00")
         else:
             return ""
 

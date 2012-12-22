@@ -7,6 +7,8 @@ import ctypes
 
 import cw
 
+sys.setdefaultencoding('utf-8')
+
 
 def create_mutex():
     handle = True
