@@ -91,6 +91,7 @@ class Setting(object):
                     fpath = cw.util.join_paths(dpath, "Skin.xml")
                     if os.path.isfile(fpath):
                         self.skindir = dpath
+                        break
 
             if not os.path.isdir(self.skindir):
                 raise ValueError("Not found CardWirthPy skins!")
@@ -291,7 +292,7 @@ class Resource(object):
         # メッセージウィンドウのテキスト描画用
         font = pygame.font.Font(self.fontpaths["gothic"], 22)
         fonts["message"] = font
-        if "ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             # メッセージウィンドウのテキスト描画用(クラシック)
             # これのみwx.Fontを使用する
             wxfont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
