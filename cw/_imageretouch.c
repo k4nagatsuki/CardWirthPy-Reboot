@@ -18,11 +18,13 @@ static PyObject *
 add_mosaic(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, x2, y2, val;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
     unsigned long idx;
 
+    if (!self)
+        return NULL;
     if (!PyArg_ParseTuple(args, "s#(ii)i", &data, &len, &w, &h, &val))
         return NULL;
 
@@ -56,10 +58,12 @@ static PyObject *
 to_binaryformat(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, val;
-    unsigned char *data, *outdata, r, g, b;
+    char *data, *outdata, r, g, b;
 
+    if (!self)
+        return NULL;
     if (!PyArg_ParseTuple(args, "s#(ii)i", &data, &len, &w, &h, &val))
         return NULL;
 
@@ -104,10 +108,12 @@ static PyObject *
 add_noise(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int r, g, b, w, h, x, y, val, randmax, i, colornoise = 0;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
 
+    if (!self)
+        return NULL;
     if (!PyArg_ParseTuple(args, "s#(ii)i|i", &data, &len, &w, &h, &val,
                 &colornoise))
         return NULL;
@@ -158,10 +164,12 @@ static PyObject *
 exchange_rgbcolor(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y;
-    unsigned char *data, *outdata, *colormodel, r, g, b;
+    char *data, *outdata, *colormodel, r, g, b;
 
+    if (!self)
+        return NULL;
     if (!PyArg_ParseTuple(args, "s#(ii)s", &data, &len, &w, &h, &colormodel))
         return NULL;
 
@@ -221,10 +229,12 @@ static PyObject *
 to_sepiatone(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, r, g, b, tone_r, tone_g, tone_b, bright;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
 
+    if (!self)
+        return NULL;
     if (!PyArg_ParseTuple(args, "s#(ii)(iii)", &data, &len, &w, &h,
                 &tone_r, &tone_g, &tone_b))
         return NULL;
@@ -262,11 +272,13 @@ static PyObject *
 spread_pixels(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, x2, y2;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
     unsigned long idx;
 
+    if (!self)
+        return NULL;
     if (!PyArg_ParseTuple(args, "s#(ii)", &data, &len, &w, &h))
         return NULL;
 
@@ -299,11 +311,13 @@ static PyObject *
 filter(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int r, g, b, w, h, x, y, wt[3][3], offset, div, i, i2, x2, y2;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
     unsigned long idx;
 
+    if (!self)
+        return NULL;
     if (!PyArg_ParseTuple(args, "s#(ii)((iii)(iii)(iii))ii",
                 &data, &len, &w, &h,
                 &wt[0][0], &wt[0][1], &wt[0][2], &wt[1][0], &wt[1][1],

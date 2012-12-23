@@ -7,12 +7,12 @@ import pygame
 from pygame.locals import *
 
 import cw
-"""
+
 try:
     import _imageretouch
-except ImportError:
-    print "failed to load _imageretouch module."
-"""
+except ImportError, ex:
+    print "failed to load _imageretouch module. %s" % (ex)
+
 
 def _retouch(func, image, *args):
     """_imageretouchの関数のラッパ。
