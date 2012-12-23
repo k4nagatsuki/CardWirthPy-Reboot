@@ -641,6 +641,7 @@ class CWPy(_Singleton, threading.Thread):
                         self.music._play(bgmpath)
                 else:
                     self.music._play(bgmpath)
+                self.elapse_time()
 
             elif areachange:
                 self.change_area(areaid, False, ttype=("None", "Default"))
