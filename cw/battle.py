@@ -117,6 +117,7 @@ class BattleEngine(object):
         self.set_actionorder()
         self.set_action()
         self._ready = True
+        cw.cwpy.statusbar.change()
 
     def runaway(self):
         """逃走処理。逃走イベントが存在する場合は、
