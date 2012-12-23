@@ -802,7 +802,7 @@ def get_char(s, index):
 
 def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
-    if not f and not os.path.isfile(name) and not image:
+    if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
         return wx.EmptyBitmap(0, 0)
 
     if mask:
@@ -810,6 +810,11 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
             try:
                 if f:
                     image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
+                elif cw.binary.image.path_is_code(name):
+                    data = cw.binary.image.code_to_data(name)
+                    f = io.BytesIO(data)
+                    image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
+                    f.close()
                 else:
                     image = wx.Image(name, wx.BITMAP_TYPE_ANY, -1)
             except:

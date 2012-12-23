@@ -262,12 +262,12 @@ class TopPanel(wx.Panel):
         cw.util.draw_height(dc, self.wing, 25)
         # カード画像
         path = self.ccard.data.gettext("/Property/ImagePath", "")
-
-        if isinstance(cw.cwpy.selection, (cw.character.Enemy,
-                                            cw.character.Friend)):
-            path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-        else:
-            path = cw.util.join_yadodir(path)
+        if not cw.binary.image.path_is_code(path):
+            if isinstance(cw.cwpy.selection, (cw.character.Enemy,
+                                                cw.character.Friend)):
+                path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+            else:
+                path = cw.util.join_yadodir(path)
 
         bmp = cw.util.load_wxbmp(path, True)
         cw.util.draw_height(dc, bmp, 5)
