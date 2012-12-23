@@ -11,7 +11,7 @@ import cw
 try:
     import _imageretouch
 except ImportError, ex:
-    print "failed to load _imageretouch module. %s" % (ex)
+    print "failed to load _imageretouch module. %s" % (ex.message)
 
 
 def _retouch(func, image, *args):
