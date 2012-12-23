@@ -382,6 +382,33 @@
       <Name>愛に生きる</Name>
     </Making>
   </Makings>
+  <SampleTypes>
+    <SampleType>
+      <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.0" trickish="0.0" />
+      <Name>バランス</Name>
+    </SampleType>
+    <SampleType>
+      <Physical agl="0" dex="-3" int="-3" min="0" str="4" vit="2" />
+      <Mental aggressive="0.5" brave="0.5" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Name>ファイター</Name>
+    </SampleType>
+    <SampleType>
+      <Physical agl="3" dex="3" int="-1" min="-3" str="0" vit="-2" />
+      <Mental aggressive="0.0" brave="-0.5" cautious="0.5" cheerful="0.0" trickish="0.5" />
+      <Name>シーフ</Name>
+    </SampleType>
+    <SampleType>
+      <Physical agl="-3" dex="-3" int="2" min="4" str="0" vit="0" />
+      <Mental aggressive="-0.5" brave="0.0" cautious="0.0" cheerful="0.5" trickish="-0.5" />
+      <Name>プリースト</Name>
+    </SampleType>
+    <SampleType>
+      <Physical agl="0" dex="0" int="4" min="2" str="-3" vit="-3" />
+      <Mental aggressive="0.5" brave="0.0" cautious="0.5" cheerful="-0.5" trickish="0.0" />
+      <Name>メイジ</Name>
+    </SampleType>
+  </SampleTypes>
   <Sounds>
     <Sound key="error">システム・エラー</Sound>
     <Sound key="click">システム・クリック</Sound>

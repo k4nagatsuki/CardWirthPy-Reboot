@@ -182,6 +182,10 @@ class Converter(threading.Thread):
             for e in self.data.getfind("Makings"):
                 index = set_params(e, index, False)
 
+            # デバグ宿で簡易生成を行う際の能力型
+            for e in self.data.getfind("SampleTypes"):
+                index = set_params(e, index, True)
+
             # 型の派生元を設定
             # 英明型 <- 標準型,万能型
             e = self.data.find("Natures/Nature[8]/BaseNatures/BaseNature[1]")
