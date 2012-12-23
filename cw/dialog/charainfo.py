@@ -552,7 +552,7 @@ class StatusPanel(wx.ScrolledWindow):
         height = 8
 
         # 生命力の割合
-        bmp = cw.cwpy.rsrc.statuses["LIFE"]
+        bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["LIFE"], maskpos=(1, 1))
         if self.ccard.is_unconscious():
             colour = wx.Colour(0, 0, 128)
             msg = "意識不明"
