@@ -18,6 +18,14 @@ class SkinConversionDialog(wx.Dialog):
 
         self.conv = cw.skin.convert.Converter(exe)
 
+        if cw.frame.get_skincount() == 0:
+            self.warning = wx.StaticText(self, -1, u"スキンがインストールされていません。\n入手してインストールするか、自動生成を行なってください。")
+            font = self.warning.GetFont()
+            font = wx.Font(font.GetPointSize(), font.GetFamily(), font.GetStyle(), wx.BOLD)
+            self.warning.SetFont(font)
+        else:
+            self.warning = None
+
         self.note = wx.Notebook(self)
         self.pane_base = SkinBasePanel(self.note, self.conv)
         #self.pane_feature = SkinFeaturePanel(self.note, self.conv)
@@ -100,6 +108,8 @@ class SkinConversionDialog(wx.Dialog):
         sizer_btn.Add(self.btn_ok, 0, 0, 0)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
 
+        if self.warning:
+            sizer.Add(self.warning, 0, wx.ALL, 5)
         sizer.Add(self.note, 0, 0, 0)
         sizer.Add(sizer_btn, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
         self.SetSizer(sizer)

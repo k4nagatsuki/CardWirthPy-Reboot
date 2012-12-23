@@ -575,7 +575,7 @@ class MyApp(wx.App):
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
         wx.InitAllImageHandlers()
-        skincount = self.get_skincount()
+        skincount = get_skincount()
         exe = u""
         if len(sys.argv) > 1 and sys.argv[1].lower().endswith(".exe"):
             exe = sys.argv[1]
@@ -595,7 +595,7 @@ class MyApp(wx.App):
     def OnCloseSkinDialog(self, event):
         # スキンが1つでもあればそのまま起動する
         self.skindlg.Destroy()
-        skincount = self.get_skincount()
+        skincount = get_skincount()
 
         if 0 < skincount:
 
@@ -605,15 +605,15 @@ class MyApp(wx.App):
             self.SetTopWindow(frame)
             frame.Show()
 
-    def get_skincount(self):
-        skincount = 0
-        if os.path.exists(u"Data/Skin"):
-            for name in os.listdir(u"Data/Skin"):
-                path = cw.util.join_paths(u"Data/Skin", name)
-                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-                if os.path.exists(skinpath):
-                    skincount += 1
-        return skincount
+def get_skincount():
+    skincount = 0
+    if os.path.exists(u"Data/Skin"):
+        for name in os.listdir(u"Data/Skin"):
+            path = cw.util.join_paths(u"Data/Skin", name)
+            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+            if os.path.exists(skinpath):
+                skincount += 1
+    return skincount
 
 def main():
     pass
