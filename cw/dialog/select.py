@@ -594,22 +594,25 @@ class PlayerSelect(Select):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # add
-        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (50, 24), u"編入")
+        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (46, 24), u"編入")
         self.buttonlist.append(self.addbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"情報")
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"情報")
         self.buttonlist.append(self.infobtn)
-        # extend
-        self.extbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"拡張")
-        self.buttonlist.append(self.extbtn)
+        # edit
+        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"編集")
+        self.buttonlist.append(self.editbtn)
+        # grow
+        self.growbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"成長")
+        self.buttonlist.append(self.growbtn)
         # delete
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"削除")
+        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"削除")
         self.buttonlist.append(self.delbtn)
         # new
-        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"新規")
+        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"新規")
         self.buttonlist.append(self.newbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (50, 24), u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (46, 24), u"閉じる")
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -619,6 +622,8 @@ class PlayerSelect(Select):
         self._bind()
         self.Bind(wx.EVT_BUTTON, self.OnClickAddBtn, self.addbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
+        self.Bind(wx.EVT_BUTTON, self.OnClickEditBtn, self.editbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnClickGrowBtn, self.growbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
 
@@ -708,6 +713,23 @@ class PlayerSelect(Select):
 
         self.enable_btn()
         self.draw(True)
+
+    def OnClickEditBtn(self, event):
+        cw.cwpy.sounds[u"click"].play()
+        header = self.list[self.index]
+        ccard = cw.character.Player(cw.data.yadoxml2etree(header.fpath))
+        dlg = cw.dialog.create.AdventurerDesignDialog(self, ccard)
+        self.Parent.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            header = cw.header.AdventurerHeader(ccard.data.find("Property"))
+            self.list[self.index] = header
+            cw.cwpy.ydata.standbys[self.index] = header
+            self.draw(True)
+        dlg.Destroy()
+
+    def OnClickGrowBtn(self, event):
+        # TODO
+        pass
 
     def OnClickInfoBtn(self, event):
         cw.cwpy.sounds[u"click"].play()

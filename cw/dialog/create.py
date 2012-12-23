@@ -1316,16 +1316,16 @@ class YadoCreater(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class AdventurerDesignDialog(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, u"冒険者のデザイン",
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         # buttonlist
         self.buttonlist = []
 
-        self.ccard = cw.cwpy.selection
+        self.ccard = ccard
 
         # toppanel
-        self.toppanel = DesignPanel(self)
+        self.toppanel = DesignPanel(self, self.ccard)
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
@@ -1369,15 +1369,22 @@ class AdventurerDesignDialog(wx.Dialog):
     def OnOk(self, event):
         cw.cwpy.sounds[u"harvest"].play()
 
-        cw.animation.animate_sprite(self.ccard, "hide")
+        if hasattr(self.ccard, "update_image"):
+            cw.animation.animate_sprite(self.ccard, "hide")
         self.ccard.set_name(self.toppanel.namectrl.GetValue())
-        self.ccard.cardimg.set_nameimg(self.ccard.get_name())
+        if hasattr(self.ccard, "cardimg"):
+            self.ccard.cardimg.set_nameimg(self.ccard.get_name())
         self.ccard.set_description(self.toppanel.descctrl.GetValue())
         if self.toppanel.imgpath.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Face")):
             self.ccard.set_image(self.toppanel.imgpath)
-            self.ccard.cardimg.set_faceimg(cw.util.join_yadodir(self.ccard.get_imagepath()))
-        self.ccard.update_image()
-        cw.animation.animate_sprite(self.ccard, "deal")
+            if hasattr(self.ccard, "cardimg"):
+                self.ccard.cardimg.set_faceimg(cw.util.join_yadodir(self.ccard.get_imagepath()))
+        if hasattr(self.ccard, "update_image"):
+            self.ccard.update_image()
+            cw.animation.animate_sprite(self.ccard, "deal")
+
+        self.ccard.data.is_edited = True
+        self.ccard.data.write_xml()
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
@@ -1388,11 +1395,11 @@ class AdventurerDesignDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
 class DesignPanel(AdventurerCreaterPage):
-    def __init__(self, parent):
+    def __init__(self, parent, ccard):
         AdventurerCreaterPage.__init__(self, parent, size=(400, 370), freeze=False)
         self.SetMinSize((400, 370))
 
-        self.ccard = cw.cwpy.selection
+        self.ccard = ccard
 
         self.namectrl = wx.TextCtrl(self, size=(125, 18), style=wx.NO_BORDER)
         self.namectrl.SetMaxLength(14)

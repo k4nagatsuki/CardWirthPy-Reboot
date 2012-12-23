@@ -438,7 +438,7 @@ class EditPanel(wx.Panel):
                 if header.type == 0:
                     # デザインを変更する
                     cw.cwpy.sounds[u"click"].play()
-                    dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent)
+                    dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, cw.cwpy.selection)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
                         self.Parent.Parent.toppanel.draw(True)

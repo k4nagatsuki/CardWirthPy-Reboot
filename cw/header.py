@@ -486,7 +486,7 @@ class AdventurerHeader(object):
                 self.history.append(e.text)
 
                 if len(self.history) == 6:
-                    self.history.append("etc...")
+                    self.history.append(u"etc...")
 
     def made_baby(self):
         """
