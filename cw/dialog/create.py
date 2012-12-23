@@ -862,6 +862,12 @@ class RacePage(AdventurerCreaterPage):
         index = self.choice.GetStrings().index(s)
         return cw.cwpy.setting.races[index]
 
+    def is_skip(self):
+        if len(cw.cwpy.setting.races) > 1:
+            return False
+        else:
+            return True
+
 class RelationPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)

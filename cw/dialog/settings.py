@@ -96,20 +96,30 @@ class SettingsDialog(wx.Dialog):
         if cw.cwpy.setting.skindirname == skin:
             self.Close()
         else:
-            s = (u"スキンの変更にはCardWirthPyの再起動が必要です。\n"
-                u"CardWirthPyを終了してもよろしいですか？")
-            dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
-            cw.cwpy.frame.move_dlg(dlg)
-            cw.cwpy.sounds[u"signal"].play()
-
-            if dlg.ShowModal() == wx.ID_OK:
-                cw.cwpy.setting.skindirname = skin
+            if cw.cwpy.status == "Title":
                 self.Close()
-                cw.cwpy.frame.Destroy()
+                cw.cwpy.setting.skindirname = skin
+                cw.cwpy.setting.write()
+                cw.cwpy.setting.init_settings()
+                cw.cwpy.init_pygame(cw.cwpy.setting)
             else:
-                n = self.pane_gene.skins.index(cw.cwpy.setting.skindirname)
-                self.pane_gene.ch_skin.SetSelection(n)
-                self.pane_gene.OnSkinChoice(None)
+                s = (u"スキンの変更にはゲームの中断が必要です。\n"
+                    u"保存されていないデータは全て消えてしまいます。\n"
+                    u"タイトル画面へ戻ってよろしいですか？")
+                dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+                cw.cwpy.frame.move_dlg(dlg)
+                cw.cwpy.sounds[u"signal"].play()
+
+                if dlg.ShowModal() == wx.ID_OK:
+                    self.Close()
+                    cw.cwpy.setting.skindirname = skin
+                    cw.cwpy.setting.write()
+                    cw.cwpy.setting.init_settings()
+                    cw.cwpy.init_pygame(cw.cwpy.setting)
+                else:
+                    n = self.pane_gene.skins.index(cw.cwpy.setting.skindirname)
+                    self.pane_gene.ch_skin.SetSelection(n)
+                    self.pane_gene.OnSkinChoice(None)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)

@@ -129,7 +129,7 @@ class Converter(threading.Thread):
         mental = struct.Struct("<hhhhh")
 
         try:
-            def set_params(data, index):
+            def set_params(data, index, isnature):
                 # 特性名
                 n = self.exebinary[index:index+20]
                 index += 20
@@ -144,35 +144,43 @@ class Converter(threading.Thread):
                 p = physical.unpack(self.exebinary[index:index+2*6])
                 index += 2*6
                 e = data.find("./Physical")
-                e.set("dex", str(p[0]))
-                e.set("agl", str(p[1]))
-                e.set("int", str(p[2]))
-                e.set("str", str(p[3]))
-                e.set("vit", str(p[4]))
-                e.set("min", str(p[5]))
+                if isnature:
+                    e.set("dex", str(p[0] - 6))
+                    e.set("agl", str(p[1] - 6))
+                    e.set("int", str(p[2] - 6))
+                    e.set("str", str(p[3] - 6))
+                    e.set("vit", str(p[4] - 6))
+                    e.set("min", str(p[5] - 6))
+                else:
+                    e.set("dex", str(p[0]))
+                    e.set("agl", str(p[1]))
+                    e.set("int", str(p[2]))
+                    e.set("str", str(p[3]))
+                    e.set("vit", str(p[4]))
+                    e.set("min", str(p[5]))
 
                 # 精神能力
                 p = mental.unpack(self.exebinary[index:index+2*5])
                 index += 2*5
                 e = data.find("./Mental")
-                e.set("aggressive", str(p[0]))
-                e.set("cheerful", str(p[1]))
-                e.set("brave", str(p[2]))
-                e.set("cautious", str(p[3]))
-                e.set("trickish", str(p[4]))
+                e.set("aggressive", str(p[0] / 2.0))
+                e.set("cheerful", str(p[1] / 2.0))
+                e.set("brave", str(p[2] / 2.0))
+                e.set("cautious", str(p[3] / 2.0))
+                e.set("trickish", str(p[4] / 2.0))
 
                 return index
 
             for e in self.data.getfind("Sexes"):
-                index = set_params(e, index)
+                index = set_params(e, index, False)
             for e in self.data.getfind("Periods"):
-                index = set_params(e, index)
+                index = set_params(e, index, False)
             # 使用されていない年代「古老」を飛ばす
             index += 20 + 2*6 + 2*5
             for e in self.data.getfind("Natures"):
-                index = set_params(e, index)
+                index = set_params(e, index, True)
             for e in self.data.getfind("Makings"):
-                index = set_params(e, index)
+                index = set_params(e, index, False)
 
             # 型の派生元を設定
             # 英明型 <- 標準型,万能型

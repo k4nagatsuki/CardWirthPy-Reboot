@@ -28,15 +28,16 @@ class _Singleton(object):
 
 class CWPy(_Singleton, threading.Thread):
     def __init__(self, setting, frame=None):
-        self.setting = setting  # 設定
         if frame and not hasattr(self, "frame"):
             threading.Thread.__init__(self)
             self.frame = frame   # 親フレーム
             self._running = False
-            self._init_pygame()
+            self.init_pygame(setting)
 
-    def _init_pygame(self):
+    def init_pygame(self, setting):
         """使用変数等はここ参照。"""
+        self.setting = setting  # 設定
+
         # pygame初期化
         self.scr, self.clock = cw.util.init(cw.SIZE_SCR)
         # キー入力捕捉用インスタンス(キー入力は全てwx側で捕捉)

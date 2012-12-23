@@ -15,6 +15,10 @@ import message
 import charainfo
 import text
 
+from cw.util import synclock
+
+_lockupdatescenario = threading.Lock()
+
 #-------------------------------------------------------------------------------
 #　選択ダイアログ スーパークラス
 #-------------------------------------------------------------------------------
@@ -1331,6 +1335,11 @@ class UpdateNamesThread(threading.Thread):
         """ScenarioSelectで現在表示中のディレクトリ内の
         シナリオ・ディレクトリのリストを生成する。
         """
+        self._start()
+
+    @synclock(_lockupdatescenario)
+    def _start(self):
+        if self.quit: return
         # dpathの中にあるシナリオをDBに登録
         db = cw.scenariodb.Scenariodb()
         db.update(self.dpath)

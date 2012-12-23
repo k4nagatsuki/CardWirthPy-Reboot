@@ -18,11 +18,11 @@ class Setting(object):
         # 1frame分のmillseconds
         self.frametime = 1000 / self.fps
         # Settings
-        self._init_settings()
+        self.init_settings()
         # シナリオ履歴
         self.recenthistory = RecentHistory(self.data)
 
-    def _init_settings(self):
+    def init_settings(self):
         # "Settings.xml"がなかったら新しく作る
         if not os.path.isfile("Settings.xml"):
             self.debug = False
