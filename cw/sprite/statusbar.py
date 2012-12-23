@@ -22,7 +22,7 @@ class StatusBar(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
 
-    def change(self):
+    def change(self, showbuttons=True):
         self.clear()
 
         if cw.cwpy.is_debugmode():
@@ -37,12 +37,14 @@ class StatusBar(base.CWPySprite):
             YadoMoneyPanel(self, (10, 6))
             PartyMoneyPanel(self, (474 - rmargin, 6))
         elif cw.cwpy.status == "Scenario":
-            CampButton(self, (10, 6))
-            TableButton(self, (133, 6))
+            if showbuttons:
+                CampButton(self, (10, 6))
+                TableButton(self, (133, 6))
             PartyMoneyPanel(self, (474 - rmargin, 6))
         elif cw.cwpy.is_battlestatus():
-            ActionButton(self, (10, 6))
-            RunAwayButton(self, (133, 6))
+            if showbuttons:
+                ActionButton(self, (10, 6))
+                RunAwayButton(self, (133, 6))
             RoundCounterPanel(self, (474 - rmargin, 6))
 
         # デバッガのツールが使用可能かどうかを更新

@@ -109,7 +109,10 @@ class SystemData(object):
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
 
     def start_event(self, keynum=None, keycodes=[]):
+        cw.cwpy.statusbar.change(False)
         self.events.start(keynum=keynum, keycodes=keycodes)
+        if not cw.cwpy.is_dealing():
+            cw.cwpy.statusbar.change()
 
     def check_bginhrt(self, elements=[]):
         """
