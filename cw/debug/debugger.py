@@ -30,6 +30,7 @@ ID_SAVE = wx.NewId()
 ID_LOAD = wx.NewId()
 ID_RESET = wx.NewId()
 ID_PLAY = wx.NewId()
+ID_STEP = wx.NewId()
 ID_PAUSE = wx.NewId()
 ID_STOP = wx.NewId()
 
@@ -132,6 +133,9 @@ class Debugger(wx.Frame):
         # create event control bar
         self.tb_event = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_event.SetToolBitmapSize(wx.Size(20, 20))
+        self.tl_step = self.tb_event.AddLabelTool(
+            ID_STEP, u"1コンテント実行", rsrc["EVTCTRL_STEP"],
+            shortHelp=u"イベントを1コンテントだけ実行します。")
         self.tl_pause = self.tb_event.AddCheckLabelTool(
             ID_PAUSE, u"イベント一時停止", rsrc["EVTCTRL_PAUSE"],
             shortHelp=u"イベントを一時停止します。")
@@ -229,6 +233,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_TOOL, self.OnAreaTool, id=ID_AREA)
         self.Bind(wx.EVT_TOOL, self.OnSelectionTool, id=ID_SELECTION)
+        self.Bind(wx.EVT_TOOL, self.OnStepTool, id=ID_STEP)
         self.Bind(wx.EVT_TOOL, self.OnPauseTool, id=ID_PAUSE)
         self.Bind(wx.EVT_TOOL, self.OnStopTool, id=ID_STOP)
         self.Bind(wx.EVT_TOOL, self.OnRecoveryTool, id=ID_RECOVERY)
@@ -454,20 +459,24 @@ class Debugger(wx.Frame):
 
             dlg.Destroy()
 
+    def OnStepTool(self, event):
+        if cw.cwpy.is_showingmessage():
+            # メッセージウィンドウ表示中の場合で処理を分ける
+            cw.cwpy.keyevent.keydown(wx.WXK_RETURN)
+        else:
+            cw.cwpy.event._step = True
+            cw.cwpy.event._paused = False
+
     def OnPauseTool(self, event):
         # メッセージウィンドウ表示中の場合は一時停止できない
-        if cw.cwpy.is_playingscenario() and cw.cwpy.is_runningevent():
-            if self.tl_pause.IsToggled():
-                cw.cwpy.event._paused = True
-            else:
-                cw.cwpy.event._paused = False
+        cw.cwpy.event._paused = self.tl_pause.IsToggled()
+        cw.cwpy.event._step = False
 
-        else:
-            # SetToggleが効かないため
-            if self.tl_pause.IsToggled():
-                self.tl_pause.Toggle()
+        self.tl_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
+        self.tb_event.Realize()
 
     def OnStopTool(self, event):
+        cw.cwpy.event._step = False
         if cw.cwpy.is_playingscenario() and cw.cwpy.is_runningevent():
             # メッセージウィンドウ表示中の場合で処理を分ける
             if cw.cwpy.is_showingmessage():
@@ -480,7 +489,8 @@ class Debugger(wx.Frame):
             if self.tl_pause.IsToggled():
                 self.tl_pause.Toggle()
 
-            self.tb_event.Realize()
+        self.tl_step.Enable(False)
+        self.tb_event.Realize()
 
     def refresh_areaname(self):
         self.st_area.SetLabel(cw.cwpy.sdata.get_areaname())
@@ -523,6 +533,7 @@ class Debugger(wx.Frame):
         self.tl_save.Enable(False)
         self.tl_load.Enable(False)
         self.tl_reset.Enable(False)
+        self.tl_step.Enable(False)
         self.tl_pause.Enable(False)
         self.tl_stop.Enable(False)
         self.tl_select.Enable(False)
@@ -537,10 +548,10 @@ class Debugger(wx.Frame):
             self.tl_coupon.Enable(True)
 
         if cw.cwpy.is_playingscenario():
+            self.tl_pause.Enable(True)
             if cw.cwpy.is_runningevent():
                 self.tl_select.Enable(True)
                 self.tl_stop.Enable(True)
-                self.tl_pause.Enable(True)
             else:
                 if not cw.cwpy.is_battlestatus():
                     self.tl_break.Enable(True)
@@ -557,6 +568,10 @@ class Debugger(wx.Frame):
                     self.tl_info.Enable(True)
                     self.tl_reset.Enable(True)
                     self.tl_area.Enable(True)
+        else:
+            self.tl_pause.Enable(True)
+
+        self.tl_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
 
         self.tb1.Realize()
         self.tb2.Realize()

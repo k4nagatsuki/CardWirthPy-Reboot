@@ -21,6 +21,7 @@ class EventInterface(object):
         # デバッガのイベントコントロールバー用変数
         self._paused = False
         self._stoped = False
+        self._step = False
 
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
@@ -64,7 +65,6 @@ class EventInterface(object):
         self.set_inusecard(None)
         self.clear_events()
         self.nowrunningpacks = {}
-        self._paused = False
         self._stoped = False
         self.refresh_tools()
 
@@ -228,8 +228,12 @@ class EventInterface(object):
         """デバッガのイベントコントロールバーで指定した分だけ、
         イベントの実行を待機する。
         """
-        if cw.cwpy.is_showingdebugger():
+        if cw.cwpy.is_showingdebugger() and\
+                 cw.cwpy.is_playingscenario() and 0 < cw.cwpy.areaid:
             cnt = 0
+
+            if self._step:
+                self._paused = True
 
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                         cnt < cw.cwpy.frame.debugger.sc_waittime.GetValue():
