@@ -98,6 +98,8 @@ class Scenariodb(object):
         """データベースを更新する。"""
         s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (cw.util.get_linktarget(dpath),))
+        s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
+        self.cur.execute(s, (dpath,))
         data = self.cur.fetchall()
         dbpaths = []
 

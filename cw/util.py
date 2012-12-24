@@ -992,6 +992,28 @@ def create_link(path, target):
         shortcut.TargetPath = target
         shortcut.save()
 
+#-------------------------------------------------------------------------------
+#  スレッド関係
+#-------------------------------------------------------------------------------
+
+"""
+@synclock(_lock)
+def function():
+    ...
+のように、ロックオブジェクトを指定して
+特定関数・メソッドの排他制御を行う。
+"""
+def synclock(l):
+    def synclock(f):
+        def acquire(*args, **kw):
+            l.acquire()
+            try:
+                return f(*args, **kw)
+            finally:
+                l.release()
+        return acquire
+    return synclock
+
 def main():
     pass
 
