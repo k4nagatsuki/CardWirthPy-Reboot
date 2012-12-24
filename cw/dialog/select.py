@@ -124,12 +124,8 @@ class Select(wx.Dialog):
         self.draw()
 
     def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self.toppanel)
-            dc = wx.BufferedDC(dc, self.toppanel.GetSize())
-        else:
-            dc = wx.PaintDC(self.toppanel)
-
+        dc = wx.ClientDC(self.toppanel)
+        dc = wx.BufferedDC(dc, self.toppanel.GetSize())
         return dc
 
     def _do_layout(self):

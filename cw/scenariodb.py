@@ -100,6 +100,13 @@ class Scenariodb(object):
         self.cur.execute(s, (cw.util.get_linktarget(dpath),))
         s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (dpath,))
+        if sys.platform == "win32":
+            wsh = win32com.client.Dispatch("WScript.Shell")
+        else:
+            wsh = None
+
+        s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
+        self.cur.execute(s, (get_linktarget(dpath, wsh),))
         data = self.cur.fetchall()
         dbpaths = []
 
