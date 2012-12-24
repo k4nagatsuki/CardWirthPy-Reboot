@@ -728,8 +728,51 @@ class PlayerSelect(Select):
         dlg.Destroy()
 
     def OnClickGrowBtn(self, event):
-        # TODO
-        pass
+        cw.cwpy.sounds[u"click"].play()
+        header = self.list[self.index]
+        age = header.age
+        index = cw.cwpy.setting.periodcoupons.index(age)
+
+        if index < 0:
+            # 年代が不正。スキンが違う場合は発生しうる
+            cw.cwpy.sounds[u"error"].play()
+            return
+
+        if index == len(cw.cwpy.setting.periodcoupons) - 1:
+            nextage= None
+            s = u"%sを永眠させます。よろしいですか？"
+            s = s % (header.name)
+        else:
+            nextage= cw.cwpy.setting.periodcoupons[index + 1]
+            s = u"%sを%sから%sへ成長させます。よろしいですか？"
+            s = s % (header.name, age[1:], nextage[1:])
+
+        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        cw.cwpy.frame.move_dlg(dlg)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
+            cw.cwpy.sounds[u"harvest"].play()
+            if nextage:
+                header.grow()
+            else:
+                s = u"%sは、永遠の眠りに就きました…" % (header.name)
+                dlg = cw.dialog.message.Message(self, u"メッセージ", s, 2)
+                cw.cwpy.frame.move_dlg(dlg)
+                dlg.ShowModal()
+
+                if not header.leavenoalbum:
+                    path = cw.xmlcreater.create_albumpage(header.fpath)
+                    cw.cwpy.ydata.add_album(path)
+                cw.cwpy.remove_xml(header)
+                cw.cwpy.ydata.stopstandbysthread()
+                cw.cwpy.ydata.standbys.remove(header)
+                self.enable_btn()
+
+            self.draw(True)
+        else:
+            dlg.Destroy()
+
 
     def OnClickInfoBtn(self, event):
         cw.cwpy.sounds[u"click"].play()

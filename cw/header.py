@@ -520,6 +520,63 @@ class AdventurerHeader(object):
 
         data.write_xml(True)
 
+    def grow(self):
+        """
+        年代変更後のXMLを書き出す。
+        このメソッドでは永眠処理は行わない。
+        """
+        if self.album:
+            return
+
+        index = cw.cwpy.setting.periodcoupons.index(self.age)
+        if index < 0:
+            return
+
+        if index == len(cw.cwpy.setting.periodcoupons) - 1:
+            return
+
+        nextage= cw.cwpy.setting.periodcoupons[index + 1]
+        data = cw.data.yadoxml2etree(self.fpath)
+
+        # 能力値を再調整
+        p = data.find("Property/Ability/Physical")
+        m = data.find("Property/Ability/Mental")
+        data.dex = p.getint("", "dex", 0)
+        data.agl = p.getint("", "agl", 0)
+        data.int = p.getint("", "int", 0)
+        data.str = p.getint("", "str", 0)
+        data.vit = p.getint("", "vit", 0)
+        data.min = p.getint("", "min", 0)
+        data.aggressive = m.getfloat("", "aggressive", 0)
+        data.cheerful   = m.getfloat("", "cheerful",   0)
+        data.brave      = m.getfloat("", "brave",      0)
+        data.cautious   = m.getfloat("", "cautious",   0)
+        data.trickish   = m.getfloat("", "trickish",   0)
+
+        cw.cwpy.setting.periods[index].demodulate(data)
+        cw.cwpy.setting.periods[index + 1].modulate(data)
+
+        p.set("dex", str(int(data.dex)))
+        p.set("agl", str(int(data.agl)))
+        p.set("int", str(int(data.int)))
+        p.set("str", str(int(data.str)))
+        p.set("vit", str(int(data.vit)))
+        p.set("min", str(int(data.min)))
+        m.set("aggressive", str(data.aggressive))
+        m.set("cheerful",   str(data.cheerful))
+        m.set("brave",      str(data.brave))
+        m.set("cautious",   str(data.cautious))
+        m.set("trickish",   str(data.trickish))
+
+        self.age = nextage
+        for e in data.getfind("/Property/Coupons"):
+            if e.text <> self.age:
+                continue
+            # 年代クーポンを上書き
+            e.text = nextage
+
+        data.write_xml(True)
+
     def get_imgpath(self):
         return cw.util.join_yadodir(self.imgpath)
 

@@ -47,6 +47,20 @@ class Feature(object):
         data.cautious   += self.cautious
         data.trickish   += self.trickish
 
+    def demodulate(self, data):
+        """modulate()と逆の調整を行う。"""
+        data.dex -= self.dexbonus
+        data.agl -= self.aglbonus
+        data.int -= self.intbonus
+        data.str -= self.strbonus
+        data.vit -= self.vitbonus
+        data.min -= self.minbonus
+        data.aggressive -= self.aggressive
+        data.cheerful   -= self.cheerful
+        data.brave      -= self.brave
+        data.cautious   -= self.cautious
+        data.trickish   -= self.trickish
+
 """性別の定義。"""
 class Sex(Feature):
     def __init__(self, data):
