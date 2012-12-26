@@ -275,7 +275,7 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = {}
         # 所持カードの使用回数描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], 16)
+        font = pygame.font.Font(self.fontpaths["mincho"], 16)
         font.set_bold(True)
         fonts["card_uselimit"] = font
         # メニューカードの名前描画用

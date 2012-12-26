@@ -253,7 +253,7 @@ class Scenariodb(object):
 
     @synclock(_lock)
     def search_path(self, path):
-        self._search_path(path)
+        return self._search_path(path)
 
     def _search_path(self, path):
         path = path.replace("\\", "/")
@@ -262,7 +262,7 @@ class Scenariodb(object):
         self.cur.execute(s, (dpath, fname,))
         data = self.cur.fetchone()
 
-        if not data and os.path.isfile(path):
+        if not data and os.path.exists(path):
             if self._insert_scenario(path):
                 self.cur.execute(s, (dpath, fname,))
                 data = self.cur.fetchone()

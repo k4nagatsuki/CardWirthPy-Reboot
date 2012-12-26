@@ -242,7 +242,6 @@ class Frame(wx.Frame):
                     self.move_dlg(mdlg)
 
                     if mdlg.ShowModal() == wx.ID_OK:
-                        header.remove_adventuring()
                         cw.cwpy.exec_func(cw.cwpy.set_yado)
                     else:
                         cw.cwpy.exec_func(cw.cwpy.ydata.load_party, None)

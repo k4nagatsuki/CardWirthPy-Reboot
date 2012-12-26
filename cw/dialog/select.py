@@ -945,6 +945,7 @@ class ScenarioSelect(Select):
         # シナリオデータベース
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
+        self.db.update()
         headers = self.db.search_dpath(self.nowdir)
         # nowdirにあるディレクトリリスト
         dpaths = self.get_dpaths(self.nowdir)

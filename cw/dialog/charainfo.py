@@ -164,10 +164,10 @@ class CharaInfo(wx.Dialog):
 
             if header.negaflag:
                 dc.SetTextForeground(wx.RED)
-                dc.DrawText(s, header.subrect.left, header.subrect.top)
+                dc.DrawText(s, header.textpos[0], header.textpos[1])
                 dc.SetTextForeground(wx.WHITE)
             else:
-                dc.DrawText(s, header.subrect.left, header.subrect.top)
+                dc.DrawText(s, header.textpos[0], header.textpos[1])
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)

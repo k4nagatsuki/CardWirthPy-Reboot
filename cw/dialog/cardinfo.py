@@ -74,7 +74,10 @@ class CardInfo(wx.Dialog):
             dc = wx.PaintDC(self.toppanel)
 
         # カード画像
-        bmp = self.selection.cardimg.get_wxbmp()
+        negaflag = self.selection
+        self.selection.negaflag = False
+        bmp = self.selection.cardimg.get_cardwxbmp(self.selection)
+        self.selection.negaflag = negaflag
 
         if isinstance(self.selection.cardimg, cw.image.LargeCardImage):
             dc.DrawBitmap(bmp, 7, 4, False)

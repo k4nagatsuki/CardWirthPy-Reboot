@@ -433,8 +433,6 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.clear_image()
         # 精神力回復
         self.set_skillpower()
-        # 付帯以外の召喚獣消去
-        self.set_beast(vanish=True)
         # spritegroupに追加
         cw.cwpy.mcardgrp.add(self)
 
