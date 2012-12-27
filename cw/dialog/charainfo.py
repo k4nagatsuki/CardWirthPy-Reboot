@@ -841,6 +841,8 @@ class ItemPanel(SkillPanel):
             # カード名
             s = header.name
             size = dc.GetTextExtent(s)
+            if header.uselimit:
+                s += "(%d)" % header.uselimit
 
             if header.negaflag:
                 dc.SetTextForeground(wx.RED)
@@ -903,6 +905,8 @@ class BeastPanel(SkillPanel):
             # カード名
             s = header.name
             size = dc.GetTextExtent(s)
+            if header.uselimit:
+                s += "(%d)" % header.uselimit
 
             if header.negaflag:
                 dc.SetTextForeground(wx.RED)

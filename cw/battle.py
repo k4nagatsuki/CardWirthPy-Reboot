@@ -69,7 +69,13 @@ class BattleEngine(object):
 
             # 勝利チェック
             if self.check_win():
+                for member in self.members:
+                    member.clear_action()
                 raise BattleWinError()
+
+        # 行動内容のクリア
+        for member in self.members:
+            member.clear_action()
 
         # 時間経過
         cw.cwpy.elapse_time()

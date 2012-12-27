@@ -51,19 +51,36 @@ class CardHeader(object):
         self.enhance_avo = 0
         self.enhance_res = 0
         self.enhance_def = 0
+        self.enhance_avo_used = 0
+        self.enhance_res_used = 0
+        self.enhance_def_used = 0
         self.attachment = False
 
-        if self.type == "SkillCard":
+        if self.type == "ActionCard":
+            self.enhance_avo_used = data.getint("Enhance", "avoid")
+            self.enhance_res_used = data.getint("Enhance", "resist")
+            self.enhance_def_used = data.getint("Enhance", "defense")
+        elif self.type == "SkillCard":
             self.level = data.getint("Level")
             self.hold = data.getbool("Hold")
+            self.enhance_avo_used = data.getint("Enhance", "avoid")
+            self.enhance_res_used = data.getint("Enhance", "resist")
+            self.enhance_def_used = data.getint("Enhance", "defense")
         elif self.type == "ItemCard":
             self.maxuselimit = data.getint("UseLimit", "max")
             self.enhance_avo = data.getint("EnhanceOwner", "avoid")
             self.enhance_res = data.getint("EnhanceOwner", "resist")
             self.enhance_def = data.getint("EnhanceOwner", "defense")
+            self.enhance_avo_used = data.getint("Enhance", "avoid")
+            self.enhance_res_used = data.getint("Enhance", "resist")
+            self.enhance_def_used = data.getint("Enhance", "defense")
             self.hold = data.getbool("Hold")
             self.price = data.getint("Price")
         elif self.type == "BeastCard":
+            self.maxuselimit = data.getint("UseLimit")
+            self.enhance_avo = data.getint("Enhance", "avoid")
+            self.enhance_res = data.getint("Enhance", "resist")
+            self.enhance_def = data.getint("Enhance", "defense")
             if data.hasfind("Attachment"):
                 self.attachment = data.getbool("Attachment")
             elif self.is_ccardheader():
@@ -212,12 +229,22 @@ class CardHeader(object):
 
         return self.uselimit, self.maxuselimit
 
+    def get_enhance_val_used(self):
+        """
+        カード使用時に設定されている強化値を、
+        (回避値, 抵抗値, 防御値)の順のタプルで返す。
+        """
+        if self.type in ("ActionCard", "SkillCard", "ItemCard"):
+            return self.enhance_avo_used, self.enhance_res_used, self.enhance_def_used
+        else:
+            return 0, 0, 0
+
     def get_enhance_val(self):
         """
         カード所持時に設定されている強化値を、
         (回避値, 抵抗値, 防御値)の順のタプルで返す。
         """
-        if self.type == "ItemCard":
+        if self.type in ("ItemCard", "BeastCard"):
             return self.enhance_avo, self.enhance_res, self.enhance_def
         else:
             return 0, 0, 0

@@ -387,7 +387,6 @@ class Character(object):
         """
         if self.actiondata:
             targets, header, beasts = self.actiondata
-            self.clear_action()
 
             # 召喚獣カードの使用
             for targets_b, header_b in beasts:
@@ -611,17 +610,18 @@ class Character(object):
     def get_enhance_def(self):
         """
         現在かけられている全ての防御力強化値の合計を返す。
-        デフォルト強化値 + 効果コンテント強化値 + アイテム所持強化値。
+        デフォルト強化値 + 効果コンテント強化値 + カード所持強化値 + カード使用強化値。
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
         val1 = self.enhance.get("defense")
         val1 = cw.util.numwrap(val1, -10, 10)
         val2 = self.enhance_def
         val2 = cw.util.numwrap(val2, -10, 10)
+
         val3 = 0
         b = False
 
-        for header in self.cardpocket[cw.POCKET_ITEM]:
+        for header in self.cardpocket[cw.POCKET_ITEM] + self.cardpocket[cw.POCKET_BEAST]:
             avoid, resist, defense = header.get_enhance_val()
 
             if defense >= 10:
@@ -634,10 +634,17 @@ class Character(object):
         else:
             val3 = cw.util.numwrap(val3, -10, 9)
 
+        val4 = 0
+        if self.actiondata and self.actiondata[1]:
+            header = self.actiondata[1]
+            avoid, resist, defense = header.get_enhance_val_used()
+            val4 += defense
+        val4 = cw.util.numwrap(val4, -10, 10)
+
         value = 0
         b = False
 
-        for n in (val1, val2, val3):
+        for n in (val1, val2, val3, val4):
             if n == 10:
                 b = True
 
@@ -653,40 +660,54 @@ class Character(object):
     def get_enhance_res(self):
         """
         現在かけられている全ての抵抗力強化値の合計を返す。
-        デフォルト強化値 + 効果コンテント強化値 + アイテム所持強化値。
+        デフォルト強化値 + 効果コンテント強化値 + カード所持強化値 + カード使用強化値。
         """
         val1 = self.enhance.get("resist")
         val1 = cw.util.numwrap(val1, -10, 10)
         val2 = self.enhance_res
         val2 = cw.util.numwrap(val2, -10, 10)
-        val3 = 0
 
-        for header in self.cardpocket[cw.POCKET_ITEM]:
+        val3 = 0
+        for header in self.cardpocket[cw.POCKET_ITEM] + self.cardpocket[cw.POCKET_BEAST]:
             avoid, resist, defense = header.get_enhance_val()
             val3 += resist
-
         val3 = cw.util.numwrap(val3, -10, 10)
-        value = val1 + val2 + val3
+
+        val4 = 0
+        if self.actiondata and self.actiondata[1]:
+            header = self.actiondata[1]
+            avoid, resist, defense = header.get_enhance_val_used()
+            val4 += resist
+        val4 = cw.util.numwrap(val4, -10, 10)
+
+        value = val1 + val2 + val3 + val4
         value = cw.util.numwrap(value, -10, 10)
         return value
 
     def get_enhance_avo(self):
         """
         現在かけられている全ての回避力強化値の合計を返す。
-        デフォルト強化値 + 効果コンテント強化値 + アイテム所持強化値。
+        デフォルト強化値 + 効果コンテント強化値 + カード所持強化値 + カード使用強化値。
         """
         val1 = self.enhance.get("avoid")
         val1 = cw.util.numwrap(val1, -10, 10)
         val2 = self.enhance_avo
         val2 = cw.util.numwrap(val2, -10, 10)
-        val3 = 0
 
-        for header in self.cardpocket[cw.POCKET_ITEM]:
+        val3 = 0
+        for header in self.cardpocket[cw.POCKET_ITEM] + self.cardpocket[cw.POCKET_BEAST]:
             avoid, resist, defense = header.get_enhance_val()
             val3 += avoid
-
         val3 = cw.util.numwrap(val3, -10, 10)
-        value = val1 + val2 + val3
+
+        val4 = 0
+        if self.actiondata and self.actiondata[1]:
+            header = self.actiondata[1]
+            avoid, resist, defense = header.get_enhance_val_used()
+            val4 += avoid
+        val4 = cw.util.numwrap(val4, -10, 10)
+
+        value = val1 + val2 + val3 + val4
         value = cw.util.numwrap(value, -10, 10)
         return value
 

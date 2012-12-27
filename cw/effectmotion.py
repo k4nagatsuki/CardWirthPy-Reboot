@@ -55,35 +55,72 @@ class Effect(object):
         Characterインスタンスに効果モーションを適用する。
         """
         # 各種判定処理
-        if self.successrate <= -5:
+        allmissed = self.successrate <= -5
+        allsuccess = self.successrate >= 5
+        if allmissed:
             # 完全失敗
-            allmissed = True
             noeffect = False
             success_res = False
             success_avo = False
-        elif self.successrate >= 5:
+        elif allsuccess:
             # 完全成功(無効だけは判定)
-            allmissed = False
             noeffect = self.check_noeffect(target)
             success_res = False
             success_avo = False
         else:
             # 無効・回避・抵抗判定
-            allmissed = False
             noeffect = self.check_noeffect(target)
             success_res = self.check_resist(target)
             success_avo = self.check_avoid(target)
 
+        # ダメージ効果の有無
+        hasdamage = self.has_motion("damage") or self.has_motion("absorb")
+
+        # 回避または抵抗で消耗するカード
+        # 成功・不成功に関係なく消耗する
+        # 絶対成功の場合のみは消耗無し
+        consume = set()
+        defensecard = None # 一時表示するカード
+
+        # 使用カードは消耗しない(表示のみ)
+        if target.actiondata and target.actiondata[1]:
+            header = target.actiondata[1]
+            avoid, resist, defense = header.get_enhance_val_used()
+            if 0 <> avoid and self.resisttype == "Avoid":
+                defensecard = header
+            elif 0 <> resist and self.resisttype == "Resist":
+                defensecard = header
+        # 所有ボーナス
+        cards = target.cardpocket[cw.POCKET_ITEM] + target.cardpocket[cw.POCKET_BEAST]
+        if not allsuccess:
+            for header in cards:
+                avoid, resist, defense = header.get_enhance_val()
+                if 0 <> avoid and self.resisttype == "Avoid":
+                    if not defensecard:
+                        defensecard = header
+                    consume.add(header)
+                elif 0 <> resist and self.resisttype == "Resist":
+                    if not defensecard:
+                        defensecard = header
+                    consume.add(header)
+
+        # ボーナス・ペナルティの発動したカードを一時表示する
+        if defensecard:
+            cw.cwpy.sounds[u"equipment"].play()
+            # TODO
+            pygame.time.wait(cw.cwpy.setting.frametime * 12)
+
         # 音鳴らす
         if not allmissed:
-            if noeffect or (success_res and not self.has_motion("damage")\
-                                        and not self.has_motion("absorb")):
+            if noeffect or (success_res and not hasdamage):
                 cw.cwpy.sounds[u"ineffective"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                for header in consume: header.set_uselimit(-1)
                 return False
             elif success_avo:
                 cw.cwpy.sounds[u"avoid"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                for header in consume: header.set_uselimit(-1)
                 return False
 
         cw.cwpy.play_sound(self.soundpath)
@@ -92,6 +129,17 @@ class Effect(object):
         if not allmissed:
             for motion in self.motions:
                 motion.apply(target, success_res)
+
+        # ダメージ軽減によるカード消耗
+        if hasdamage:
+            for header in cards:
+                avoid, resist, defense = header.get_enhance_val()
+                if 0 <> defense:
+                    consume.add(header)
+
+        # 消耗したカードの使用回数を減らす
+        for header in consume:
+            header.set_uselimit(-1)
 
         # アニメーション・画像更新(対象消去されていなかったら)
         if not target.is_vanished():
