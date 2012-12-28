@@ -212,7 +212,7 @@ class BattleCardImage(card.CWPyCard):
         pass
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False):
+    def __init__(self, user, header, status="normal", center=False, layer="inusecard"):
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
@@ -239,7 +239,7 @@ class InuseCardImage(card.CWPyCard):
             self.clear_image()
 
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self, layer="inusecard")
+        cw.cwpy.pcardgrp.add(self, layer=layer)
 
     def update_image(self):
         pass

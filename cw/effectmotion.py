@@ -80,47 +80,53 @@ class Effect(object):
         # 成功・不成功に関係なく消耗する
         # 絶対成功の場合のみは消耗無し
         consume = set()
-        defensecard = None # 一時表示するカード
+        guardcard = None # 一時表示するカード
 
         # 使用カードは消耗しない(表示のみ)
         if target.actiondata and target.actiondata[1]:
             header = target.actiondata[1]
             avoid, resist, defense = header.get_enhance_val_used()
-            if 0 <> avoid and self.resisttype == "Avoid":
-                defensecard = header
-            elif 0 <> resist and self.resisttype == "Resist":
-                defensecard = header
-        # 所有ボーナス
-        cards = target.cardpocket[cw.POCKET_ITEM] + target.cardpocket[cw.POCKET_BEAST]
-        if not allsuccess:
-            for header in cards:
-                avoid, resist, defense = header.get_enhance_val()
-                if 0 <> avoid and self.resisttype == "Avoid":
-                    if not defensecard:
-                        defensecard = header
-                    consume.add(header)
-                elif 0 <> resist and self.resisttype == "Resist":
-                    if not defensecard:
-                        defensecard = header
+            if (0 <> avoid and self.resisttype == "Avoid") or\
+               (0 <> resist and self.resisttype == "Resist"):
+                guardcard = header
+        # 所有ボーナス(アイテムは消耗しない)
+        cards = target.cardpocket[cw.POCKET_BEAST]
+        for header in cards:
+            avoid, resist, defense = header.get_enhance_val()
+            if (0 <> avoid and self.resisttype == "Avoid") or\
+               (0 <> resist and self.resisttype == "Resist"):
+                if not guardcard:
+                    guardcard = header
+                if not allsuccess:
                     consume.add(header)
 
         # ボーナス・ペナルティの発動したカードを一時表示する
-        if defensecard:
+        guardcardimg = None
+        if guardcard:
             cw.cwpy.sounds[u"equipment"].play()
-            # TODO
+            cw.cwpy.set_guardcardimg(target, guardcard)
+            cw.cwpy.draw()
             pygame.time.wait(cw.cwpy.setting.frametime * 12)
+
+        def clear_guardcard():
+            if guardcard:
+                cw.cwpy.clear_guardcardimg()
+                cw.cwpy.draw()
+            # 消耗したカードの使用回数を減らす
+            for header in consume:
+                header.set_uselimit(-1)
 
         # 音鳴らす
         if not allmissed:
             if noeffect or (success_res and not hasdamage):
                 cw.cwpy.sounds[u"ineffective"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
-                for header in consume: header.set_uselimit(-1)
+                clear_guardcard()
                 return False
             elif success_avo:
                 cw.cwpy.sounds[u"avoid"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
-                for header in consume: header.set_uselimit(-1)
+                clear_guardcard()
                 return False
 
         cw.cwpy.play_sound(self.soundpath)
@@ -137,10 +143,6 @@ class Effect(object):
                 if 0 <> defense:
                     consume.add(header)
 
-        # 消耗したカードの使用回数を減らす
-        for header in consume:
-            header.set_uselimit(-1)
-
         # アニメーション・画像更新(対象消去されていなかったら)
         if not target.is_vanished():
             # 死亡していたら、ステータスを元に戻す
@@ -148,6 +150,8 @@ class Effect(object):
                 target.set_unconsciousstatus()
 
             self.animate(target, True)
+
+        clear_guardcard();
 
         if allmissed:
             return False

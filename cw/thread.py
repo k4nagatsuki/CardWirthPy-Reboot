@@ -782,6 +782,15 @@ class CWPy(_Singleton, threading.Thread):
         """PlayerCardの前の使用中カードの画像を削除。"""
         self.pcardgrp.remove_sprites_of_layer("inusecard")
 
+    def set_guardcardimg(self, owner, header):
+        """PlayerCardの前に回避・抵抗ボーナスカードの画像を表示。"""
+        if not self.get_guardcardimg():
+            cw.sprite.background.InuseCardImage(owner, header, status="normal", center=False, layer="guardcard")
+
+    def clear_guardcardimg(self):
+        """PlayerCardの前の回避・抵抗ボーナスカードの画像を削除。"""
+        self.pcardgrp.remove_sprites_of_layer("guardcard")
+
     def set_targetarrow(self, targets):
         """targets(PlayerCard, MenuCard, CastCard)の前に
         対象選択の指矢印の画像を表示。
@@ -1319,9 +1328,16 @@ class CWPy(_Singleton, threading.Thread):
 #-------------------------------------------------------------------------------
 
     def get_inusecardimg(self):
-        """InuseCardImageインスタンスを返す。"""
+        """InuseCardImageインスタンスを返す(仕様カード)。"""
         try:
             return self.pcardgrp.get_sprites_from_layer("inusecard")[0]
+        except:
+            return None
+
+    def get_guardcardimg(self):
+        """InuseCardImageインスタンスを返す(防御・回避ボーナスカード)。"""
+        try:
+            return self.pcardgrp.get_sprites_from_layer("guardcard")[0]
         except:
             return None
 
