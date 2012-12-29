@@ -48,6 +48,8 @@ class Converter(threading.Thread):
 
         self._get_features()
         self._get_sounds()
+        self._get_messages()
+        self._get_cards()
 
     def _get_resources(self, dir):
         dir = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dir)
@@ -288,6 +290,157 @@ class Converter(threading.Thread):
             get_keyafter(sounds[10], key, 14)
         except:
             pass
+
+    def _get_cards(self):
+        if not self.exe:
+            return
+        try:
+            key = "\0CARD_SKILL\0CARD_ACTION\0IMAGE_ACTION\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                # アクションカード
+                # 名前・解説・音声1・音声2・標準キーコード
+                # の順で文字列を取得する
+                def get_actioncard(cardkey, index, keycodenum):
+                    name, index = self._get_text(index, True)
+                    desc, index = self._get_text(index, True)
+                    sound1, index = self._get_text(index)
+                    sound2, index = self._get_text(index)
+                    keycodes = []
+                    for i in range(0, keycodenum):
+                        keycode, index = self._get_text(index)
+                        keycodes.append(keycode)
+                    data = self.actioncard[cardkey]
+                    data.find("Property/Name").text = name
+                    data.find("Property/Description").text = desc
+                    data.find("Property/SoundPath").text = sound1
+                    data.find("Property/SoundPath2").text = sound2
+                    data.find("Property/KeyCodes").text = cw.util.encodewrap("\n".join(keycodes))
+                    return index
+                # カード交換
+                index = get_actioncard("00_Exchange", index, 1)
+                # 攻撃
+                index = get_actioncard("01_Attack", index, 1)
+                # 渾身の一撃
+                index = get_actioncard("02_PowerfulAttack", index, 1)
+                # 会心の一撃
+                index = get_actioncard("03_CriticalAttack", index, 1)
+                # フェイント
+                index = get_actioncard("04_Feint", index, 2)
+                # 防御
+                index = get_actioncard("05_Defense", index, 1)
+                # 見切り
+                index = get_actioncard("06_Distance", index, 1)
+                # 混乱
+                index = get_actioncard("-1_Confuse", index, 1)
+                # 逃走 TODO
+                #index = get_actioncard("00_Exchange", index, 1)
+
+            key = ".wav\0Encounter\0\x30\0\0Round\x20\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                # 特殊エリアのメニューカード
+                # 名前、解説、イメージのリソース名
+                # の順で文字列を取得する
+                index += len(key)
+                def get_menucard(area, index):
+                    name, index = self._get_text(index, True)
+                    desc, index = self._get_text(index, True)
+                    image, index = self._get_text(index)
+                    for data in area:
+                        e = data[0].find("MenuCards/*[%s]" % (data[1]))
+                        e.find("Property/Name").text = name
+                        e.find("Property/Description").text = desc
+                    return index
+
+                # スタート
+                index = get_menucard([(self.title["01_Title"], 1)], index)
+                # 終了
+                index = get_menucard([(self.title["01_Title"], 2)], index)
+                # 宿帳を開く
+                index = get_menucard([(self.yado["01_Yado"], 1),
+                                      (self.yado["02_Yado2"], 1)], index)
+                # 冒険の再開
+                index = get_menucard([(self.yado["01_Yado"], 3),
+                                      (self.yado["02_Yado2"], 3)], index)
+                # 貼紙を見る
+                index = get_menucard([(self.yado["02_Yado2"], 5)], index)
+                # カード置き場
+                index = get_menucard([(self.yado["01_Yado"], 4),
+                                      (self.yado["02_Yado2"], 6)], index)
+                # 荷物袋
+                index = get_menucard([(self.scenario["-4_Camp"], 1),
+                                      (self.yado["02_Yado2"], 7)], index)
+                # 情報を見る
+                index = get_menucard([(self.scenario["-4_Camp"], 2)], index)
+                # 冒険の中断
+                index = get_menucard([(self.scenario["-4_Camp"], 5),
+                                      (self.yado["02_Yado2"], 10)], index)
+                # 宿を出る
+                index = get_menucard([(self.yado["01_Yado"], 6)], index)
+                # 仲間を外す
+                index = get_menucard([(self.yado["02_Yado2"], 4)], index)
+                # セーブ
+                index = get_menucard([(self.scenario["-4_Camp"], 4),
+                                      (self.yado["01_Yado"], 5),
+                                      (self.yado["02_Yado2"], 9)], index)
+                # アルバム
+                index = get_menucard([(self.yado["01_Yado"], 2),
+                                      (self.yado["02_Yado2"], 2)], index)
+                # パーティ情報
+                index = get_menucard([(self.scenario["-4_Camp"], 3),
+                                      (self.yado["02_Yado2"], 8)], index)
+                # 荷物袋(カード移動時)
+                index = get_menucard([(self.scenario["-5_TradeArea"], 1),
+                                      (self.yado["-2_TradeArea2"], 2)], index)
+                # カード置場(カード移動時)
+                index = get_menucard([(self.yado["-1_TradeArea"], 1),
+                                      (self.yado["-2_TradeArea2"], 1)], index)
+                # ごみ箱(カード移動時)
+                index = get_menucard([(self.yado["-1_TradeArea"], 3),
+                                      (self.yado["-2_TradeArea2"], 4)], index)
+                # 売却(カード移動時)
+                index = get_menucard([(self.yado["-1_TradeArea"], 2),
+                                      (self.yado["-2_TradeArea2"], 3)], index)
+                # 解散
+                index = get_menucard([(self.yado["-3_PartyBreakup"], 1)], index)
+        except:
+            pass
+
+    def _get_messages(self):
+        if not self.exe:
+            return
+        try:
+            # ゲームオーバー
+            key = "\0IMAGE_OVER\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                msg, index = self._get_text(index)
+                goyado, index = self._get_text(index)
+                load, index = self._get_text(index)
+                end, index = self._get_text(index)
+
+                data = self.gameover["01_GameOver"]
+                # ゲームオーバー時のメッセージコンテント
+                e = data.find("Events/Event//Talk")
+                e.find("Text").text = cw.util.encodewrap("\n\n\n" + msg)
+                e.find("Contents/Post[1]").set("name", goyado)
+                e.find("Contents/Post[2]").set("name", load)
+                e.find("Contents/Post[4]").set("name", end)
+            pass
+        except:
+            pass
+
+    def _get_text(self, index, cutzero=False):
+        end = self.exebinary.find('\0', index)
+        s = unicode(self.exebinary[index:end], "ms932")
+        index = end + 1
+        if cutzero:
+            while self.exebinary[index] == '\0':
+                index += 1
+        return s, index
 
     def run(self):
         """クラシックなエンジンからリソースを取り出し、新規スキンを生成する。"""
