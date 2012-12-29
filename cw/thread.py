@@ -385,6 +385,48 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change()
         self.change_area(1)
 
+    def load_data(self):
+        """現在の宿をロード。"""
+        self._init_resources()
+        self.set_status("Title")
+        cw.util.remove_temp()
+        self.load_from(self.yadodir)
+
+    def load_from(self, yadodir):
+        """指定されたディレクトリの宿をロード。"""
+        self.yadodir = yadodir.replace("\\", "/")
+        self.tempdir = self.yadodir.replace("Yado",
+                                                    "Data/Temp/Yado", 1)
+        self.music.stop()
+        self.ydata = cw.data.YadoData()
+
+        if self.ydata.party:
+            header = self.ydata.party.get_sceheader()
+
+            # シナリオプレイ途中から再開
+            if header:
+                self.exec_func(self.set_scenario, header)
+            # シナリオロードに失敗
+            elif self.ydata.party.is_adventuring():
+                s = (u"シナリオのロードに失敗しました。\n"
+                     u"パーティを宿に帰還させますか？")
+                mdlg = cw.dialog.message.YesNoMessage(self,
+                                                        u"メッセージ", s)
+                self.move_dlg(mdlg)
+
+                if mdlg.ShowModal() == wx.ID_OK:
+                    self.exec_func(self.set_yado)
+                else:
+                    self.exec_func(self.ydata.load_party, None)
+                    self.exec_func(self.set_yado)
+
+                mdlg.Destroy()
+            else:
+                self.exec_func(self.set_yado)
+
+        else:
+            self.exec_func(self.set_yado)
+
 #-------------------------------------------------------------------------------
 # エリアチェンジ関係メソッド
 #-------------------------------------------------------------------------------

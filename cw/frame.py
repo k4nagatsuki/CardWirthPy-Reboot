@@ -221,38 +221,7 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.yadodir = dlg.list[dlg.index].replace("\\", "/")
-            cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado",
-                                                        "Data/Temp/Yado", 1)
-            cw.cwpy.music.stop()
-            cw.cwpy.ydata = cw.data.YadoData()
-
-            if cw.cwpy.ydata.party:
-                header = cw.cwpy.ydata.party.get_sceheader()
-
-                # シナリオプレイ途中から再開
-                if header:
-                    cw.cwpy.exec_func(cw.cwpy.set_scenario, header)
-                # シナリオロードに失敗
-                elif cw.cwpy.ydata.party.is_adventuring():
-                    s = (u"シナリオのロードに失敗しました。\n"
-                         u"パーティを宿に帰還させますか？")
-                    mdlg = cw.dialog.message.YesNoMessage(self,
-                                                            u"メッセージ", s)
-                    self.move_dlg(mdlg)
-
-                    if mdlg.ShowModal() == wx.ID_OK:
-                        cw.cwpy.exec_func(cw.cwpy.set_yado)
-                    else:
-                        cw.cwpy.exec_func(cw.cwpy.ydata.load_party, None)
-                        cw.cwpy.exec_func(cw.cwpy.set_yado)
-
-                    mdlg.Destroy()
-                else:
-                    cw.cwpy.exec_func(cw.cwpy.set_yado)
-
-            else:
-                cw.cwpy.exec_func(cw.cwpy.set_yado)
+            cw.cwpy.load_from(dlg.list[dlg.index])
 
         self.kill_dlg(dlg)
 

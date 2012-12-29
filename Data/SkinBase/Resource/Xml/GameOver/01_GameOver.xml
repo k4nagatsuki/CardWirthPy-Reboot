@@ -39,6 +39,9 @@
                         <Post type="Event" name="続ける" command="MoveToYado">
                           <Contents />
                         </Post>
+                        <Post type="Event" name="ロード" command="Load">
+                          <Contents />
+                        </Post>
                         <Post type="Event" name="タイトルに戻る" command="MoveToTitle">
                           <Contents />
                         </Post>

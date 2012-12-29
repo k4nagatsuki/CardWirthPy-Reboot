@@ -2105,7 +2105,8 @@ class PostEventContent(EventContentBase):
         "ChangeToSpecialArea": "change_specialarea",
         "LoadParty": "load_party",
         "InterruptAdventure": "interrupt_adventure",
-        "DissolveParty": "dissolve_party"}
+        "DissolveParty": "dissolve_party",
+        "Load": "load_data"}
 
     def action(self):
         """CWPyのメソッド実行用コンテント。
