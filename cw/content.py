@@ -2106,7 +2106,7 @@ class PostEventContent(EventContentBase):
         "LoadParty": "load_party",
         "InterruptAdventure": "interrupt_adventure",
         "DissolveParty": "dissolve_party",
-        "Load": "load_data"}
+        "Load": "reload_yado"}
 
     def action(self):
         """CWPyのメソッド実行用コンテント。

@@ -385,14 +385,14 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change()
         self.change_area(1)
 
-    def load_data(self):
+    def reload_yado(self):
         """現在の宿をロード。"""
         self._init_resources()
         self.set_status("Title")
         cw.util.remove_temp()
-        self.load_from(self.yadodir)
+        self.load_yado(self.yadodir)
 
-    def load_from(self, yadodir):
+    def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""
         self.yadodir = yadodir.replace("\\", "/")
         self.tempdir = self.yadodir.replace("Yado",

@@ -221,7 +221,7 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.load_from(dlg.list[dlg.index])
+            cw.cwpy.load_yado(dlg.list[dlg.index])
 
         self.kill_dlg(dlg)
 
