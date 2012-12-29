@@ -15,14 +15,14 @@ class CardInfo(wx.Dialog):
     """
     def __init__(self, parent):
         # ダイアログボックス
-        wx.Dialog.__init__(self, parent, -1, u"カード情報", size=(380, 200),
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=(380, 200),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
         # panel
         self.toppanel = wx.Panel(self, -1, size=(380, 138))
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, (30, 30), bmp=bmp)
@@ -58,7 +58,7 @@ class CardInfo(wx.Dialog):
             self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -67,7 +67,7 @@ class CardInfo(wx.Dialog):
 
     def draw(self, update=False):
         if update:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             dc = wx.ClientDC(self.toppanel)
             self.selection = self.list[self.index]
         else:

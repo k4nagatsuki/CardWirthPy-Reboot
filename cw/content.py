@@ -1130,7 +1130,7 @@ class EndContent(EventContentBase):
                 cw.animation.animate_sprite(pcard, "levelup")
 
             # 回復処理
-            cw.cwpy.sounds[u"harvest"].play()
+            cw.cwpy.sounds["harvest"].play()
             cw.animation.animate_sprite(pcard, "hide")
             pcard.set_fullrecovery()
             pcard.update_image()
@@ -1138,8 +1138,8 @@ class EndContent(EventContentBase):
 
             # レベルアップメッセージ
             if levelup:
-                text = u"\\n\\n\\n#iはレベルアップした！"
-                names = [(0, u"ＯＫ")]
+                text = cw.cwpy.msgs["level_up"]
+                names = [(0, cw.cwpy.msgs["ok"])]
                 mwin = cw.sprite.message.MessageWindow(text, names, pcard.imgpath, pcard)
                 cw.cwpy.show_message(mwin)
 

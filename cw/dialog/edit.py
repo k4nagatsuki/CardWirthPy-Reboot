@@ -12,7 +12,7 @@ import cw
 
 class PartyEditor(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, u"パーティ情報",
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.party = cw.cwpy.ydata.party
 
@@ -31,9 +31,9 @@ class PartyEditor(wx.Dialog):
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                            (100, 30), u"決定")
+                                                            (100, 30), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        (100, 30), u"中止")
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
         if cw.cwpy.is_playingscenario():
             self.okbtn.Disable()
 
@@ -66,7 +66,7 @@ class PartyEditor(wx.Dialog):
         self.Layout()
 
     def OnOk(self, event):
-        cw.cwpy.sounds[u"harvest"].play()
+        cw.cwpy.sounds["harvest"].play()
         name = self.textctrl.GetValue()
 
         if not name == self.party.name:
@@ -83,7 +83,7 @@ class PartyEditor(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -96,10 +96,10 @@ class PartyEditor(wx.Dialog):
         # text
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic"))
-        s = u"パーティの呼称"
+        s = cw.cwpy.msgs["party_name"]
         left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) / 2
         dc.DrawText(s, left, 15)
-        s = u"パーティの所持金"
+        s = cw.cwpy.msgs["party_money"]
         left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) / 2
         dc.DrawText(s, left, 73)
 
@@ -129,10 +129,10 @@ class MoneyEditPanel(wx.Panel):
         bmp = cw.cwpy.rsrc.dialogs["MONEYY"]
         self.bmp_ymoney = wx.StaticBitmap(self, -1, bmp)
         # text
-        self.text_party = wx.StaticText(self, -1, u"パーティの所持金")
+        self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
         font = cw.cwpy.rsrc.get_wxfont(size=8, weight=wx.NORMAL)
         self.text_party.SetFont(font)
-        self.text_yado = wx.StaticText(self, -1, u"宿の金庫")
+        self.text_yado = wx.StaticText(self, -1, cw.cwpy.msgs["base_money"])
         self.text_yado.SetFont(font)
         self._do_layout()
         self._bind()
@@ -203,7 +203,7 @@ class MoneyViewPanel(wx.Panel):
         self.text_pmoney = wx.StaticText(self, -1, str(self.value),
                                         size=(88, -1), style=wx.SUNKEN_BORDER)
         self.text_pmoney.SetBackgroundColour(wx.WHITE)
-        self.text_party = wx.StaticText(self, -1, u"パーティの所持金")
+        self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
         font = cw.cwpy.rsrc.get_wxfont(size=8, weight=wx.NORMAL)
         self.text_party.SetFont(font)
         self._do_layout()
@@ -230,7 +230,7 @@ class MoneyViewPanel(wx.Panel):
 
 class LevelEditor(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, u"レベル調節",
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.ccard = cw.cwpy.selection
 
@@ -248,9 +248,9 @@ class LevelEditor(wx.Dialog):
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                            (100, 30), u"決定")
+                                                            (100, 30), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        (100, 30), u"中止")
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
 
         self._do_layout()
         self._bind()
@@ -289,7 +289,7 @@ class LevelEditor(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        cw.cwpy.sounds[u"harvest"].play()
+        cw.cwpy.sounds["harvest"].play()
 
         self.ccard.set_level(self.slider.GetValue(), regulate=True)
         cw.animation.animate_sprite(self.ccard, "hide")
@@ -301,7 +301,7 @@ class LevelEditor(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 

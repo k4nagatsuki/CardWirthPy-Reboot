@@ -253,7 +253,7 @@ class StatusBarButton(base.SelectableSprite):
 
 class CampButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, u"キャンプ", pos, toggle=True)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True)
         self.is_pushed = False
 
     def update(self, scr):
@@ -270,12 +270,12 @@ class CampButton(StatusBarButton):
 
     def lclick_event(self):
         if cw.cwpy.areaid > 0:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             cw.cwpy.change_specialarea(-4)
 
 class TableButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, u"テーブル", pos, toggle=True)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True)
         self.is_pushed = True
 
     def update(self, scr):
@@ -292,12 +292,12 @@ class TableButton(StatusBarButton):
 
     def lclick_event(self):
         if cw.cwpy.areaid == -4:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             cw.cwpy.clear_specialarea()
 
 class ActionButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, u"行動開始", pos)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["start_action"], pos)
 
     def update(self, scr):
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid <= 0:
@@ -313,7 +313,7 @@ class ActionButton(StatusBarButton):
 
 class RunAwayButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, u"逃げる", pos)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["runaway"], pos)
 
     def update(self, scr):
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid <= 0:

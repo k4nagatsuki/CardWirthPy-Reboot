@@ -25,7 +25,7 @@ def create_party(header):
     新しくパーティを作る。
     header: AdventurerHeader
     """
-    pname = header.name + u"一行"
+    pname = cw.cwpy.msgs["default_party_name"] % (header.name)
 
     d = {"name" : pname,
          "money" : "0",
@@ -155,9 +155,9 @@ def create_albumpage(path, lost=False):
 
     # クーポン
     if lost:
-        s = u"旅の中、帰らぬ人となる…"
+        s = cw.cwpy.msgs["lost_coupon_1"]
     else:
-        s = u"安らかに永眠す…"
+        s = cw.cwpy.msgs["lost_coupon_2"]
 
     element = etree.make_element("Coupon", s, {"value": "0"})
     etree.append("/Property/Coupons", element)

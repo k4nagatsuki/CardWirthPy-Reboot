@@ -35,7 +35,7 @@ class Text(wx.Dialog):
         self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", 10, weight=wx.NORMAL))
         self.textctrl.SetEditable(False)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, (30, 30), bmp=bmp)
@@ -119,7 +119,7 @@ class Text(wx.Dialog):
 
     def draw(self, update=False):
         if update:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             dc = wx.ClientDC(self.toppanel)
         else:
             dc = wx.PaintDC(self.toppanel)
@@ -127,9 +127,9 @@ class Text(wx.Dialog):
         self.toppanel.PrepareDC(dc)
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
-        s = u"添付テキスト"
+        s = cw.cwpy.msgs["instructions"]
         dc.DrawText(s, 10, 2)
-        s = u"参照ファイル"
+        s = cw.cwpy.msgs["referencing_file"]
         w = dc.GetTextExtent(s)[0]
         w = w + 5 + self.combo.GetSize()[0]
         dc.DrawText(s, self.csize[0] - w, 2)

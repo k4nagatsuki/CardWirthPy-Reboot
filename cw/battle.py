@@ -160,10 +160,10 @@ class BattleEngine(object):
 
             # 逃走成功・失敗時の処理
             if pcards and len(successes) > len(pcards) / 2:
-                cw.cwpy.sounds[u"run"].play()
+                cw.cwpy.sounds["run"].play()
                 self.end(False)
             else:
-                cw.cwpy.sounds[u"error"].play()
+                cw.cwpy.sounds["error"].play()
                 self.start()
 
     def win(self):

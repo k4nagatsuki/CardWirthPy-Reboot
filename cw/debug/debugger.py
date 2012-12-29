@@ -275,7 +275,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             def recovery_all():
                 for pcard in cw.cwpy.get_pcards("unreversed"):
-                    cw.cwpy.sounds[u"harvest"].play()
+                    cw.cwpy.sounds["harvest"].play()
                     cw.animation.animate_sprite(pcard, "hide")
                     pcard.set_fullrecovery()
                     pcard.update_image()
@@ -348,7 +348,7 @@ class Debugger(wx.Frame):
             if dlg.ShowModal() == wx.ID_OK:
                 if len(dlg.GetSelections()) > 6:
                     s = u"キャストは6名までしか加入させられません。"
-                    mdlg = cw.dialog.message.Message(self, u"メッセージ", s)
+                    mdlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
                     mdlg.ShowModal()
                     mdlg.Destroy()
                 else:

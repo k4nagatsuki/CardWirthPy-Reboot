@@ -13,7 +13,7 @@ import cw
 
 class AdventurerDataComp(wx.Dialog):
     def __init__(self, parent, ccard):
-        wx.Dialog.__init__(self, parent, -1, u"不足データの補填",
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["insufficiency_title"],
                             style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU)
         self.ccard = ccard
         self.sex = cw.cwpy.setting.sexcoupons[0]
@@ -22,26 +22,25 @@ class AdventurerDataComp(wx.Dialog):
         bmp = cw.util.load_wxbmp(ccard.imgpath, True)
         self.bmp = wx.StaticBitmap(self, -1, bmp)
         # 各種テキスト
-        s = u"次の冒険者には必要なデータが不足しています。次の項目\n"
-        s += u"を入力し、決定ボタンを押してください。"
+        s = cw.cwpy.msgs["insufficiency_message"]
         self.text_message = wx.StaticText(self, -1, s)
         self.box = wx.StaticBox(self, -1)
         self.text_name = wx.StaticText(self, -1, ccard.name)
         font = cw.cwpy.rsrc.get_wxfont()
         self.text_name.SetFont(font)
-        self.text_caution = wx.StaticText(self, -1, "Caution!")
+        self.text_caution = wx.StaticText(self, -1, cw.cwpy.msgs["coution"])
         self.text_caution.SetForegroundColour(wx.RED)
         font = cw.cwpy.rsrc.get_wxfont(size=14, style=wx.ITALIC)
         self.text_caution.SetFont(font)
         # ラジオボックス
         seq = cw.cwpy.setting.sexnames
-        self.rb_sex = wx.RadioBox(self, -1, u"性別",
+        self.rb_sex = wx.RadioBox(self, -1, cw.cwpy.msgs["sex"],
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
         seq = cw.cwpy.setting.periodnames
-        self.rb_age = wx.RadioBox(self, -1, u"年齢",
+        self.rb_age = wx.RadioBox(self, -1, cw.cwpy.msgs["age"],
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
         # OKボタン
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (120, 30), u"決定")
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (120, 30), cw.cwpy.msgs["decide"])
         self._do_layout()
         self._bind()
 
@@ -260,7 +259,7 @@ class AdventurerData(object):
             father.made_baby()
             fgene = father.gene
             fgene = fgene.rotate_right()
-            self.set_coupon(u"父：" + father.name, 0)
+            self.set_coupon(cw.cwpy.msgs["father_coupon"] % (father.name), 0)
         else:
             fgene = cw.header.Gene()
             fgene.set_randombit()
@@ -270,7 +269,7 @@ class AdventurerData(object):
             mother.made_baby()
             mgene = mother.gene
             mgene = mgene.rotate_right()
-            self.set_coupon(u"母：" + mother.name, 0)
+            self.set_coupon(cw.cwpy.msgs["mother_coupon"] % (mother.name), 0)
         else:
             mgene = cw.header.Gene()
             mgene.set_randombit()
@@ -372,18 +371,18 @@ class AdventurerData(object):
 
 class AdventurerCreater(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, u"冒険者の登録",
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["entry_title"],
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.header = None
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            (85, 24), u"中止")
+                                                            (85, 24), cw.cwpy.msgs["entry_cancel"])
         self.postbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            (85, 24), u"登録")
+                                                            (85, 24), cw.cwpy.msgs["entry_decide"])
         self.nextbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            (85, 24), u"次へ>>")
+                                                            (85, 24), cw.cwpy.msgs["entry_next"])
         self.prevbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            (85, 24), u"<<戻る")
+                                                            (85, 24), cw.cwpy.msgs["entry_previous"])
         self._init_pages()
         self.enable_btn()
         self.nextbtn.Disable()
@@ -453,14 +452,14 @@ class AdventurerCreater(wx.Dialog):
 
     def OnCancel(self, event):
         if not self.page1.name:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
             return
 
-        cw.cwpy.sounds[u"signal"].play()
-        s = u"キャラクターを放棄します\nよろしいですか？"
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        cw.cwpy.sounds["signal"].play()
+        s = cw.cwpy.msgs["entry_cancel_message"]
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -473,7 +472,7 @@ class AdventurerCreater(wx.Dialog):
         nextpage = self.page.get_next()
 
         if nextpage:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             self.page.Freeze()
             self.page = nextpage
             self.page.Thaw()
@@ -483,16 +482,16 @@ class AdventurerCreater(wx.Dialog):
         prevpage = self.page.get_prev()
 
         if prevpage:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             self.page.Freeze()
             self.page = prevpage
             self.page.Thaw()
             self.enable_btn()
 
     def OnClickPostBtn(self, event):
-        cw.cwpy.sounds[u"signal"].play()
-        s = u"%sを登録します。\nよろしいですか？" % (self.page1.name)
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        cw.cwpy.sounds["signal"].play()
+        s = cw.cwpy.msgs["entry_decide_message"] % (self.page1.name)
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -673,20 +672,20 @@ class NamePage(AdventurerCreaterPage):
         # welcome to the adventurers inn
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=14, style=wx.ITALIC))
-        s = "Welcome to Adventurer's Inn."
+        s = cw.cwpy.msgs["entry_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 35)
         # Name
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10)
         font.SetUnderlined(True)
         dc.SetFont(font)
-        s = "Name"
+        s = cw.cwpy.msgs["entry_name"]
         dc.DrawText(s, 160, 72)
         # Sex
-        s = "Sex"
+        s = cw.cwpy.msgs["entry_sex"]
         dc.DrawText(s, 85, 125)
         # Age
-        s = "Age"
+        s = cw.cwpy.msgs["entry_age"]
         dc.DrawText(s, 85, 175)
 
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=9)
@@ -733,21 +732,21 @@ class NamePage(AdventurerCreaterPage):
 
     def set_sex(self, name):
         if not self.sex == name:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             self.sex = name
             self.set_imgpaths()
             self.draw(True)
 
     def set_age(self, name):
         if not self.age == name:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             self.age = name
             self.set_imgpaths()
             self.draw(True)
 
     def set_nextimg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.imgpaths.index(self.imgpath) + 1
 
             try:
@@ -759,7 +758,7 @@ class NamePage(AdventurerCreaterPage):
 
     def set_previmg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.imgpaths.index(self.imgpath) - 1
 
             try:
@@ -834,13 +833,13 @@ class RacePage(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=14, style=wx.ITALIC)
         dc.SetFont(font)
-        s = s = u"種 族"
+        s = cw.cwpy.msgs["race_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 35)
         # 新規冒険者の種族を決定します。
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10, weight=wx.NORMAL)
         dc.SetFont(font)
-        s = u"新規冒険者の種族を決定します。"
+        s = cw.cwpy.msgs["race_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 60)
         # 説明
@@ -883,23 +882,23 @@ class RelationPage(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=14, style=wx.ITALIC)
         dc.SetFont(font)
-        s = s = u"血 縁"
+        s = s = cw.cwpy.msgs["relation_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 35)
         # 親となる条件を満たしている冒険者が宿にいます。
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10, weight=wx.NORMAL)
         dc.SetFont(font)
-        s = u"親となる条件を満たしている冒険者が宿にいます。"
+        s = cw.cwpy.msgs["relation_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 60)
         # Father
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10, style=wx.ITALIC)
         font.SetUnderlined(True)
         dc.SetFont(font)
-        s = "Father"
+        s = cw.cwpy.msgs["father"]
         dc.DrawText(s, 110, 92)
         # Mother
-        s = "Mother"
+        s = cw.cwpy.msgs["mother"]
         dc.DrawText(s, 285, 92)
         # PrevFather
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
@@ -944,7 +943,7 @@ class RelationPage(AdventurerCreaterPage):
         if self.father:
             s = self.father.name
         else:
-            s = u"一般男性"
+            s = cw.cwpy.msgs["general_father"]
 
         cw.util.draw_center(dc, s, (140, 220))
 
@@ -952,7 +951,7 @@ class RelationPage(AdventurerCreaterPage):
         if self.mother:
             s = self.mother.name
         else:
-            s = u"一般女性"
+            s = cw.cwpy.msgs["general_mother"]
 
         cw.util.draw_center(dc, s, (315, 220))
         # 父親消費EP
@@ -968,7 +967,7 @@ class RelationPage(AdventurerCreaterPage):
                         ep = period.spendep
                         break
 
-            s = u"消費EP:%d (残%d)" % (ep, self.father.ep - ep)
+            s = cw.cwpy.msgs["consumption_ep"] % (ep, self.father.ep - ep)
             cw.util.draw_center(dc, s, (140, 240))
 
         # 母親消費EP
@@ -981,12 +980,12 @@ class RelationPage(AdventurerCreaterPage):
                         ep = period.spendep
                         break
 
-            s = u"消費EP:%d (残%d)" % (ep, self.mother.ep - ep)
+            s = cw.cwpy.msgs["consumption_ep"] % (ep, self.mother.ep - ep)
             cw.util.draw_center(dc, s, (315, 240))
 
     def set_nextfather(self, name):
         if self.fathers:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.fathers.index(self.father) + 1
 
             try:
@@ -998,7 +997,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_prevfather(self, name):
         if self.fathers:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.fathers.index(self.father) - 1
 
             try:
@@ -1010,7 +1009,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_nextmother(self, name):
         if self.mothers:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.mothers.index(self.mother) + 1
 
             try:
@@ -1022,7 +1021,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_prevmother(self, name):
         if self.mothers:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.mothers.index(self.mother) - 1
 
             try:
@@ -1085,14 +1084,14 @@ class TalentPage(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=14, style=wx.ITALIC)
         dc.SetFont(font)
-        s = s = u"素 質"
+        s = s = cw.cwpy.msgs["nature_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 35)
         # 新規冒険者の傾向を選択して下さい。
         font1 = cw.cwpy.rsrc.get_wxfont("uigothic", size=10, weight=wx.NORMAL)
         font2 = cw.cwpy.rsrc.get_wxfont("uigothic", size=10)
         dc.SetFont(font1)
-        s = u"新規冒険者の傾向を選択して下さい。"
+        s = cw.cwpy.msgs["nature_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 60)
         xx = [65, 255]
@@ -1116,7 +1115,7 @@ class TalentPage(AdventurerCreaterPage):
 
     def set_talent(self, name):
         if not self.talent == name:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             self.talent = name
             self.draw(True)
 
@@ -1133,13 +1132,13 @@ class AttrPage(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=14, style=wx.ITALIC)
         dc.SetFont(font)
-        s = s = u"特 性"
+        s = cw.cwpy.msgs["making_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 20)
         # 新規冒険者の生まれや性格などの個性を決定します。
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10, weight=wx.NORMAL)
         dc.SetFont(font)
-        s = u"新規冒険者の生まれや性格などの個性を決定します。"
+        s = cw.cwpy.msgs["making_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 45)
         # 特性
@@ -1192,7 +1191,7 @@ class AttrPage(AdventurerCreaterPage):
         else:
             self.couponsdata[coupons] = name
 
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         self.draw(True)
 
     def get_coupons(self):
@@ -1206,18 +1205,18 @@ class AttrPage(AdventurerCreaterPage):
 
 class YadoCreater(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, u"宿の登録", size=(318, 180),
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["create_base_title"], size=(318, 180),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetClientSize((312, 156))
         self.textctrl = wx.TextCtrl(self, size=(175, 24))
         self.textctrl.SetMaxLength(18)
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=12)
         self.textctrl.SetFont(font)
-        self.textctrl.SetValue(u"新規宿")
+        self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                            (100, 30), u"登録")
+                                                            (100, 30), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        (100, 30), u"中止")
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
         self._do_layout()
         self._bind()
 
@@ -1237,25 +1236,25 @@ class YadoCreater(wx.Dialog):
         name = self.textctrl.GetValue().strip()
 
         if not name:
-            cw.cwpy.sounds[u"error"].play()
-            s = u"宿名が入力されていません。"
-            dlg = cw.dialog.message.Message(self, u"メッセージ", s)
+            cw.cwpy.sounds["error"].play()
+            s = cw.cwpy.msgs["base_error_no_name"]
+            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
             cw.cwpy.frame.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
             return
         elif cw.util.check_dischar(name):
-            cw.cwpy.sounds[u"error"].play()
-            s = u"名称に不正な文字が使用されています。\n名前を変更してください。"
-            dlg = cw.dialog.message.Message(self, u"メッセージ", s)
+            cw.cwpy.sounds["error"].play()
+            s = cw.cwpy.msgs["base_error_invalid_name"]
+            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
             cw.cwpy.frame.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
             return
         elif os.path.isdir(cw.util.join_paths("Yado", name)):
-            cw.cwpy.sounds[u"error"].play()
-            s = u"同名の冒険者の宿が既に存在しています。\n名前を変更してください。"
-            dlg = cw.dialog.message.Message(self, u"メッセージ", s)
+            cw.cwpy.sounds["error"].play()
+            s = cw.cwpy.msgs["base_error_duplicate_name"]
+            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
             cw.cwpy.frame.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
@@ -1266,7 +1265,7 @@ class YadoCreater(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -1280,12 +1279,12 @@ class YadoCreater(wx.Dialog):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("uigothic")
         dc.SetFont(font)
-        s = u"新しい冒険者の宿を登録します。"
+        s = cw.cwpy.msgs["create_base_message_1"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (csize[0]-w)/2, 10)
         font = cw.cwpy.rsrc.get_wxfont("uigothic", weight=wx.NORMAL)
         dc.SetFont(font)
-        s = u"登録する冒険者の宿の名称を入力して下さい。"
+        s = cw.cwpy.msgs["create_base_message_2"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (csize[0]-w)/2, 30)
 
@@ -1317,7 +1316,7 @@ class YadoCreater(wx.Dialog):
 
 class AdventurerDesignDialog(wx.Dialog):
     def __init__(self, parent, ccard):
-        wx.Dialog.__init__(self, parent, -1, u"冒険者のデザイン",
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["design_title"],
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         # buttonlist
         self.buttonlist = []
@@ -1329,10 +1328,10 @@ class AdventurerDesignDialog(wx.Dialog):
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                            (100, 30), u"決定")
+                                                            (100, 30), cw.cwpy.msgs["entry_decide"])
         self.buttonlist.append(self.okbtn)
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        (100, 30), u"中止")
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.cnclbtn)
 
         # layout
@@ -1367,7 +1366,7 @@ class AdventurerDesignDialog(wx.Dialog):
         self.Layout()
 
     def OnOk(self, event):
-        cw.cwpy.sounds[u"harvest"].play()
+        cw.cwpy.sounds["harvest"].play()
 
         if hasattr(self.ccard, "update_image"):
             cw.animation.animate_sprite(self.ccard, "hide")
@@ -1390,7 +1389,7 @@ class AdventurerDesignDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -1472,20 +1471,20 @@ class DesignPanel(AdventurerCreaterPage):
 
         # Resident Registration
         dc.SetTextForeground(wx.BLACK)
-        s = "Resident Registration."
+        s = cw.cwpy.msgs["edit_character_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 15)
 
         # Name
-        s = "Name"
+        s = cw.cwpy.msgs["entry_name"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 45)
         # Image
-        s = "Image"
+        s = cw.cwpy.msgs["entry_image"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 95)
         # Comment
-        s = "Comment"
+        s = cw.cwpy.msgs["entry_comment"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, 220)
 
@@ -1503,7 +1502,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def set_nextimg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.imgpaths.index(self.imgpath) + 1
 
             try:
@@ -1515,7 +1514,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def set_previmg(self, name):
         if self.imgpaths:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             index = self.imgpaths.index(self.imgpath) - 1
 
             try:

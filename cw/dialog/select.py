@@ -63,7 +63,7 @@ class Select(wx.Dialog):
         else:
             self.index -= 1
 
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         self.draw(True)
 
     def OnClickLeft2Btn(self, evt):
@@ -74,7 +74,7 @@ class Select(wx.Dialog):
         else:
             self.index -= 10
 
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         self.draw(True)
 
     def OnClickRightBtn(self, evt):
@@ -83,7 +83,7 @@ class Select(wx.Dialog):
         else:
             self.index += 1
 
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         self.draw(True)
 
     def OnClickRight2Btn(self, evt):
@@ -94,7 +94,7 @@ class Select(wx.Dialog):
         else:
             self.index += 10
 
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         self.draw(True)
 
     def OnMouseWheel(self, event):
@@ -116,7 +116,7 @@ class Select(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -189,26 +189,26 @@ class YadoSelect(Select):
     """
     def __init__(self, parent):
         # ダイアログボックス作成
-        Select.__init__(self, parent, u"宿の選択")
+        Select.__init__(self, parent, cw.cwpy.msgs["select_base_title"])
         # 宿情報
         self.list, self.list2 = self.get_yadolist()
         self.index = 0
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(400, 370))
         # ok
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (50, 24), u"決定")
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (50, 24), cw.cwpy.msgs["entry_decide"])
         self.buttonlist.append(self.okbtn)
         # extend
         self.extbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"変換")
         self.buttonlist.append(self.extbtn)
         # delete
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"削除")
+        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["delete"])
         self.buttonlist.append(self.delbtn)
         # new
-        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"新規")
+        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["new"])
         self.buttonlist.append(self.newbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (50, 24), u"中止")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (50, 24), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
         # enable bottun
         self.enable_btn()
@@ -250,11 +250,11 @@ class YadoSelect(Select):
         """
         宿削除。
         """
-        cw.cwpy.sounds[u"signal"].play()
+        cw.cwpy.sounds["signal"].play()
         path = self.list[self.index]
         yname = os.path.basename(path)
-        s = u"宿「%s」を破棄します。\nよろしいですか？" % (yname)
-        dlg = message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["delete_base"] % (yname)
+        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -348,9 +348,9 @@ class YadoSelect(Select):
             return
 
         # 変換確認ダイアログ
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         s = os.path.basename(path) + u" を変換します。\nよろしいですか？"
-        dlg = message.YesNoMessage(self, u"メッセージ", s)
+        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
 
         if not dlg.ShowModal() == wx.ID_OK:
@@ -396,9 +396,9 @@ class YadoSelect(Select):
             dlg.Destroy()
 
         # 変換完了ダイアログ
-        cw.cwpy.sounds[u"harvest"].play()
+        cw.cwpy.sounds["harvest"].play()
         s = u"データの変換が完了しました。"
-        dlg = message.Message(self, u"メッセージ", s, mode=2)
+        dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
@@ -417,7 +417,7 @@ class YadoSelect(Select):
         except:
             self.index = 0
 
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         self.draw(True)
         self.enable_btn()
 
@@ -447,7 +447,7 @@ class YadoSelect(Select):
                         name = os.path.splitext(fname)[0].replace("(2)", "")
                         seq.append(name)
                     elif idx == 23:
-                        seq.append(u"その他．．．")
+                        seq.append(cw.cwpy.msgs["etc"])
                         break
 
             advnames.append(seq)
@@ -464,23 +464,23 @@ class PartySelect(Select):
     """
     def __init__(self, parent):
         # ダイアログボックス作成
-        Select.__init__(self, parent, u"冒険の再開")
+        Select.__init__(self, parent, cw.cwpy.msgs["resume_adventure"])
         # パーティ情報
         self.list = cw.cwpy.ydata.partys
         self.index = 0
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # ok
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (75, 24), u"決定")
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (75, 24), cw.cwpy.msgs["entry_decide"])
         self.buttonlist.append(self.okbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (75, 24), u"情報")
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (75, 24), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # edit
-        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (75, 24), u"構成")
+        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (75, 24), cw.cwpy.msgs["members"])
         self.buttonlist.append(self.editbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (75, 24), u"中止")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (75, 24), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -586,7 +586,7 @@ class PlayerSelect(Select):
     """
     def __init__(self, parent):
         # ダイアログボックス作成
-        Select.__init__(self, parent, u"宿帳を開く")
+        Select.__init__(self, parent, cw.cwpy.msgs["select_member_title"])
         # 冒険者情報
         self.list = cw.cwpy.ydata.standbys
         self.isalbum = False
@@ -594,25 +594,25 @@ class PlayerSelect(Select):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # add
-        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (46, 24), u"編入")
+        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (46, 24), cw.cwpy.msgs["add_member"])
         self.buttonlist.append(self.addbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"情報")
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # edit
-        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"編集")
+        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), cw.cwpy.msgs["edit"])
         self.buttonlist.append(self.editbtn)
         # grow
-        self.growbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"成長")
+        self.growbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), cw.cwpy.msgs["grow"])
         self.buttonlist.append(self.growbtn)
         # delete
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"削除")
+        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), cw.cwpy.msgs["delete"])
         self.buttonlist.append(self.delbtn)
         # new
-        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), u"新規")
+        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (46, 24), cw.cwpy.msgs["new"])
         self.buttonlist.append(self.newbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (46, 24), u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (46, 24), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -655,12 +655,12 @@ class PlayerSelect(Select):
         self.ProcessEvent(btnevent)
 
     def OnClickNewBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         dlg = cw.dialog.create.AdventurerCreater(self)
         cw.cwpy.frame.move_dlg(dlg, point=(20, 20))
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             header = cw.cwpy.ydata.add_standbys(dlg.fpath)
             # リスト更新
             self.list = cw.cwpy.ydata.standbys
@@ -671,14 +671,14 @@ class PlayerSelect(Select):
         dlg.Destroy()
 
     def OnClickDelBtn(self, event):
-        cw.cwpy.sounds[u"signal"].play()
+        cw.cwpy.sounds["signal"].play()
         header = self.list[self.index]
-        s = u"冒険者%sを削除します。\nよろしいですか？" % (header.name)
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["confirm_delete_character"] % (header.name)
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds[u"dump"].play()
+            cw.cwpy.sounds["dump"].play()
 
             # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
             if header.level >= 3 and not header.leavenoalbum:
@@ -701,7 +701,7 @@ class PlayerSelect(Select):
         elif len(cw.cwpy.get_pcards()) == 5:
             self.addbtn.Disable()
 
-        cw.cwpy.sounds[u"harvest"].play()
+        cw.cwpy.sounds["harvest"].play()
         header = self.list[self.index]
         cw.cwpy.ydata.stopstandbysthread()
         cw.cwpy.ydata.standbys.remove(header)
@@ -715,7 +715,7 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickEditBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         header = self.list[self.index]
         ccard = cw.character.Player(cw.data.yadoxml2etree(header.fpath))
         dlg = cw.dialog.create.AdventurerDesignDialog(self, ccard)
@@ -728,36 +728,34 @@ class PlayerSelect(Select):
         dlg.Destroy()
 
     def OnClickGrowBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         header = self.list[self.index]
         age = header.age
         index = cw.cwpy.setting.periodcoupons.index(age)
 
         if index < 0:
             # 年代が不正。スキンが違う場合は発生しうる
-            cw.cwpy.sounds[u"error"].play()
+            cw.cwpy.sounds["error"].play()
             return
 
         if index == len(cw.cwpy.setting.periodcoupons) - 1:
             nextage= None
-            s = u"%sを永眠させます。よろしいですか？"
-            s = s % (header.name)
+            s = cw.cwpy.msgs["confirm_die"] % (header.name)
         else:
             nextage= cw.cwpy.setting.periodcoupons[index + 1]
-            s = u"%sを%sから%sへ成長させます。よろしいですか？"
-            s = s % (header.name, age[1:], nextage[1:])
+            s = cw.cwpy.msgs["confirm_grow"] % (header.name, age[1:], nextage[1:])
 
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
-            cw.cwpy.sounds[u"harvest"].play()
+            cw.cwpy.sounds["harvest"].play()
             if nextage:
                 header.grow()
             else:
-                s = u"%sは、永遠の眠りに就きました…" % (header.name)
-                dlg = cw.dialog.message.Message(self, u"メッセージ", s, 2)
+                s = cw.cwpy.msgs["die_message"] % (header.name)
+                dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s, 2)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
 
@@ -775,7 +773,7 @@ class PlayerSelect(Select):
 
 
     def OnClickInfoBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         dlg = charainfo.StandbyCharaInfo(self, self.list, self.index)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -806,7 +804,7 @@ class PlayerSelect(Select):
         # Level
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
-        s = "Level"
+        s = cw.cwpy.msgs["character_level"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, 65, 45)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=22))
@@ -815,7 +813,7 @@ class PlayerSelect(Select):
         dc.DrawText(s, 102, 31)
         # Name
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
-        s = "Adventurer"
+        s = cw.cwpy.msgs["character_class"]
         dc.DrawText(s, 102 + w + 5, 45)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=18))
         s = header.name
@@ -827,19 +825,19 @@ class PlayerSelect(Select):
         dc.DrawBitmap(bmp, 88, 90, True)
         # Age
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-        s = "Age:" + header.get_age()
+        s = cw.cwpy.msgs["character_age"] % (header.get_age())
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, 127 - w / 2, 195)
         # Sex
-        s = "Sex:" + header.get_sex()
+        s = cw.cwpy.msgs["character_sex"] % (header.get_sex())
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, 127 - w / 2, 210)
         # EP
-        s = "EP:" + str(header.ep)
+        s = cw.cwpy.msgs["character_ep"] % (header.ep)
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, 127 - w / 2, 225)
         # クーポン(新しい順から7つ)
-        s = u"【History】"
+        s = cw.cwpy.msgs["character_history"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, 320 - w / 2, 65)
 
@@ -865,7 +863,7 @@ class Album(PlayerSelect):
     """
     def __init__(self, parent):
         # ダイアログボックス作成
-        Select.__init__(self, parent, u"アルバム")
+        Select.__init__(self, parent, cw.cwpy.msgs["album"])
         # 冒険者情報
         self.list = cw.cwpy.ydata.album
         self.isalbum = True
@@ -873,13 +871,13 @@ class Album(PlayerSelect):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_PROPERTIES, (90, 24), u"情報")
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_PROPERTIES, (90, 24), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # delete
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DELETE, (90, 24), u"削除")
+        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DELETE, (90, 24), cw.cwpy.msgs["delete"])
         self.buttonlist.append(self.delbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (90, 24), u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (90, 24), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -891,14 +889,14 @@ class Album(PlayerSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
 
     def OnClickDelBtn(self, event):
-        cw.cwpy.sounds[u"signal"].play()
+        cw.cwpy.sounds["signal"].play()
         header = self.list[self.index]
-        s = u"%sを抹消します。\nよろしいですか？" % (header.name)
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["confirm_delete_character_in_album"] % (header.name)
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds[u"dump"].play()
+            cw.cwpy.sounds["dump"].play()
             cw.cwpy.remove_xml(header)
             cw.cwpy.ydata.stopalbumthread()
             cw.cwpy.ydata.album.remove(header)
@@ -935,7 +933,7 @@ class ScenarioSelect(Select):
     """
     def __init__(self, parent, db):
         # ダイアログボックス作成
-        Select.__init__(self, parent, u"貼紙を見る")
+        Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
         # シナリオディレクトリ
         self.scedir = u"Scenario"
         # 現在開いているディレクトリ
@@ -965,22 +963,22 @@ class ScenarioSelect(Select):
         self.toppanel = wx.Panel(self, -1, size=(400, 370))
         # ok
         if not self.list:
-            s = u"決定"
+            s = cw.cwpy.msgs["entry_decide"]
         elif isinstance(self.list[self.index], cw.header.ScenarioHeader):
-            s = u"決定"
+            s = cw.cwpy.msgs["entry_decide"]
         else:
-            s = u"見る"
+            s = cw.cwpy.msgs["see"]
 
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, (55, 24), s)
         self.buttonlist.append(self.yesbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), u"解説")
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), cw.cwpy.msgs["description"])
         self.buttonlist.append(self.infobtn)
         # convert
         self.convbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), u"変換")
         self.buttonlist.append(self.convbtn)
         # close
-        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_NO, (55, 24), u"中止")
+        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_NO, (55, 24), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.nobtn)
         # ドロップファイル機能ON
         self.DragAcceptFiles(True)
@@ -1006,8 +1004,8 @@ class ScenarioSelect(Select):
             time.sleep(0.3)
 
     def OnClickInfoBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
-        dlg = text.Readme(self, u"解説", self.get_texts())
+        cw.cwpy.sounds["click"].play()
+        dlg = text.Readme(self, cw.cwpy.msgs["description"], self.get_texts())
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
@@ -1027,25 +1025,25 @@ class ScenarioSelect(Select):
             dlg.Destroy()
 
     def OnClickYesBtn(self, event):
-        if self.yesbtn.GetLabel() == u"見る":
-            cw.cwpy.sounds[u"equipment"].play()
+        if self.yesbtn.GetLabel() == cw.cwpy.msgs["see"]:
+            cw.cwpy.sounds["equipment"].play()
             self.dirstack.append(self.nowdir)
             self.nowdir = cw.util.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
             self.list = dpaths + headers if headers else dpaths
             self.index = 0
-            self.nobtn.SetLabel(u"戻る")
+            self.nobtn.SetLabel(cw.cwpy.msgs["return"])
             self.enable_btn()
             self.draw(True)
-        elif self.yesbtn.GetLabel() == u"決定":
-            cw.cwpy.sounds[u"signal"].play()
+        elif self.yesbtn.GetLabel() == cw.cwpy.msgs["entry_decide"]:
+            cw.cwpy.sounds["signal"].play()
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
             self.ProcessEvent(btnevent)
 
     def OnClickNoBtn(self, event):
-        if self.nobtn.GetLabel() == u"戻る":
-            cw.cwpy.sounds[u"equipment"].play()
+        if self.nobtn.GetLabel() == cw.cwpy.msgs["return"]:
+            cw.cwpy.sounds["equipment"].play()
             self.nowdir = self.dirstack.pop()
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
@@ -1054,10 +1052,10 @@ class ScenarioSelect(Select):
             self.enable_btn()
 
             if self.nowdir == self.scedir:
-                self.nobtn.SetLabel(u"中止")
+                self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
 
             self.draw(True)
-        elif self.nobtn.GetLabel() == u"中止":
+        elif self.nobtn.GetLabel() == cw.cwpy.msgs["entry_cancel"]:
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
 
@@ -1069,8 +1067,8 @@ class ScenarioSelect(Select):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        if self.nobtn.GetLabel() == u"中止":
-            cw.cwpy.sounds[u"click"].play()
+        if self.nobtn.GetLabel() == cw.cwpy.msgs["entry_cancel"]:
+            cw.cwpy.sounds["click"].play()
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_NO)
         self.ProcessEvent(btnevent)
@@ -1111,7 +1109,7 @@ class ScenarioSelect(Select):
                 self.updatenames_thr.start()
 
             # ボタンのテキストを変える
-            self.yesbtn.SetLabel(u"見る")
+            self.yesbtn.SetLabel(cw.cwpy.msgs["see"])
 
             # ディレクトリ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
@@ -1147,7 +1145,7 @@ class ScenarioSelect(Select):
         else:
             header = self.list[self.index]
             # ボタンのテキストを変える
-            self.yesbtn.SetLabel(u"決定")
+            self.yesbtn.SetLabel(cw.cwpy.msgs["entry_decide"])
 
             # 見出し画像
             if header.image:
@@ -1177,9 +1175,9 @@ class ScenarioSelect(Select):
 
             if levelmax or levelmin:
                 if levelmin == levelmax:
-                    s = u"対象レベル %s" % (levelmin)
+                    s = cw.cwpy.msgs["target_level_1"] % (levelmin)
                 else:
-                    s = u"対象レベル %s～%s" % (levelmin, levelmax)
+                    s = cw.cwpy.msgs["target_level_2"] % (levelmin, levelmax)
 
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, (bmpw-w)/2, 15)
@@ -1307,9 +1305,9 @@ class ScenarioSelect(Select):
             return
 
         # 変換確認ダイアログ
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         s = os.path.basename(path) + u"　を変換します。\nよろしいですか？"
-        dlg = message.YesNoMessage(self, u"メッセージ", s)
+        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
 
         if not dlg.ShowModal() == wx.ID_OK:
@@ -1360,10 +1358,10 @@ class ScenarioSelect(Select):
         zpath = cw.util.join_paths(self.nowdir, zpath)
         zpath = cw.util.dupcheck_plus(zpath, False)
         cw.util.compress_zip(temppath, zpath)
-        cw.cwpy.sounds[u"harvest"].play()
+        cw.cwpy.sounds["harvest"].play()
         # 変換完了ダイアログ
         s = u"データの変換が完了しました。"
-        dlg = message.Message(self, u"メッセージ", s, mode=2)
+        dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
@@ -1384,7 +1382,7 @@ class ScenarioSelect(Select):
             if os.path.basename(zpath) == header.fname:
                 self.index = index
 
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         self.draw(True)
         self.enable_btn()
 

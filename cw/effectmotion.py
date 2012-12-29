@@ -47,7 +47,7 @@ class Effect(object):
             target.events.start(keycodes=keycodes)
             return True
         else:
-            cw.cwpy.sounds[u"ineffective"].play()
+            cw.cwpy.sounds["ineffective"].play()
             return False
 
     def apply_charactercard(self, target):
@@ -103,7 +103,7 @@ class Effect(object):
         # ボーナス・ペナルティの発動したカードを一時表示する
         guardcardimg = None
         if guardcard:
-            cw.cwpy.sounds[u"equipment"].play()
+            cw.cwpy.sounds["equipment"].play()
             cw.cwpy.set_guardcardimg(target, guardcard)
             cw.cwpy.draw()
             pygame.time.wait(cw.cwpy.setting.frametime * 12)
@@ -119,12 +119,12 @@ class Effect(object):
         # 音鳴らす
         if not allmissed:
             if noeffect or (success_res and not hasdamage):
-                cw.cwpy.sounds[u"ineffective"].play()
+                cw.cwpy.sounds["ineffective"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
                 clear_guardcard()
                 return False
             elif success_avo:
-                cw.cwpy.sounds[u"avoid"].play()
+                cw.cwpy.sounds["avoid"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
                 clear_guardcard()
                 return False

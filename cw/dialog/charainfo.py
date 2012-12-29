@@ -20,13 +20,13 @@ class CharaInfo(wx.Dialog):
     """
     def __init__(self, parent):
         # ダイアログボックス
-        wx.Dialog.__init__(self, parent, -1, u"キャラクター情報", size=(300, 355),
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(300, 355),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, (30, 30), bmp=bmp)
@@ -38,29 +38,29 @@ class CharaInfo(wx.Dialog):
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("btnfont"))
         # 解説
         self.descpanel = DescPanel(self.notebook, self.ccard)
-        self.notebook.AddPage(self.descpanel, u"解説")
+        self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["character_description"])
         # 経歴
         self.historypanel = HistoryPanel(self.notebook, self.ccard)
-        self.notebook.AddPage(self.historypanel, u"経歴")
+        self.notebook.AddPage(self.historypanel, cw.cwpy.msgs["character_history"])
         # 編集または状態
         if cw.cwpy.is_playingscenario():
             self.editpanel = StatusPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.editpanel, u"状態")
+            self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["character_status"])
         else:
             self.editpanel = EditPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.editpanel, u"編集")
+            self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
         # 各種所持カード
-        if self.ccard.data.hasfind("/SkillCards"):
+        if self.ccard.data.hasfind("SkillCards"):
             # 技能
             self.skillpanel = SkillPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.skillpanel, u"技能")
+            self.notebook.AddPage(self.skillpanel, cw.cwpy.msgs["character_skills"])
             # アイテム
             self.itempanel = ItemPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.itempanel, u"ｱｲﾃﾑ")
+            self.notebook.AddPage(self.itempanel, cw.cwpy.msgs["character_items"])
             # 召喚獣
             self.beastpanel = BeastPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.beastpanel, u"召喚")
+            self.notebook.AddPage(self.beastpanel, cw.cwpy.msgs["character_beasts"])
 
         # toppanel
         self.toppanel = TopPanel(self, self.ccard)
@@ -79,7 +79,7 @@ class CharaInfo(wx.Dialog):
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -105,7 +105,7 @@ class CharaInfo(wx.Dialog):
 
             self.Parent.OnClickLeftBtn(event)
         else:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             self.ccard = self.list[self.index]
             self.Parent.change_selection(self.list[self.index])
 
@@ -135,7 +135,7 @@ class CharaInfo(wx.Dialog):
 
             self.Parent.OnClickRightBtn(event)
         else:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             self.ccard = self.list[self.index]
             self.Parent.change_selection(self.list[self.index])
 
@@ -151,7 +151,7 @@ class CharaInfo(wx.Dialog):
         pass
 
     def OnPageChanging(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
 
     def draw(self, update):
         win = self.notebook.GetCurrentPage()
@@ -437,7 +437,7 @@ class EditPanel(wx.Panel):
             if header.subrect.collidepoint(event.GetPosition()):
                 if header.type == 0:
                     # デザインを変更する
-                    cw.cwpy.sounds[u"click"].play()
+                    cw.cwpy.sounds["click"].play()
                     dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, cw.cwpy.selection)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
@@ -446,7 +446,7 @@ class EditPanel(wx.Panel):
                     dlg.Destroy()
                 else:
                     # レベルを調節する
-                    cw.cwpy.sounds[u"click"].play()
+                    cw.cwpy.sounds["click"].play()
                     dlg = cw.dialog.edit.LevelEditor(self.Parent.Parent)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
@@ -499,7 +499,7 @@ class EditPanel(wx.Panel):
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
 
-        self.headers = (EditButton(u"デザインを変更する", 0), EditButton(u"レベルを調節する", 1))
+        self.headers = (EditButton(cw.cwpy.msgs["edit_design"], 0), EditButton(cw.cwpy.msgs["regulate_level"], 1))
 
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
@@ -688,9 +688,9 @@ class SkillPanel(wx.Panel):
                 # ホールド状態切り替え(召喚獣以外)
                 dc = wx.ClientDC(self)
                 if u"ペナルティ" in header.keycodes:
-                    cw.cwpy.sounds[u"error"].play()
+                    cw.cwpy.sounds["error"].play()
                     return
-                cw.cwpy.sounds[u"click"].play()
+                cw.cwpy.sounds["click"].play()
                 header.hold = not header.hold
                 if header.hold:
                     bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
@@ -702,7 +702,7 @@ class SkillPanel(wx.Panel):
     def _open_cardinfo(self, mousepos):
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
-                cw.cwpy.sounds[u"click"].play()
+                cw.cwpy.sounds["click"].play()
                 dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
@@ -809,7 +809,7 @@ class SkillPanel(wx.Panel):
         n = len(self.headers)
         maxn= level / 2 + 2 if level % 2 == 0 else level / 2 + 3
         maxn = maxn if maxn <= 10 else 10
-        s = u"カード枚数 " + str(n) + " / " + str(maxn)
+        s = cw.cwpy.msgs["card_number"] % (n, maxn)
         dc.DrawText(s, 10, 10)
         dc.EndDrawing()
 
@@ -868,7 +868,7 @@ class ItemPanel(SkillPanel):
         n = len(self.headers)
         maxn= level / 2 + 2 if level % 2 == 0 else level / 2 + 3
         maxn = maxn if maxn <= 10 else 10
-        s = u"カード枚数 " + str(n) + " / " + str(maxn)
+        s = cw.cwpy.msgs["card_number"] % (n, maxn)
         dc.DrawText(s, 10, 10)
         dc.EndDrawing()
 
@@ -932,7 +932,7 @@ class BeastPanel(SkillPanel):
         n = len(self.headers)
         maxn= (level + 2) / 4 if (level + 2) % 4 == 0 else (level + 2) / 4 + 1
         maxn = maxn if maxn <= 10 else 10
-        s = u"カード枚数 " + str(n) + " / " + str(maxn)
+        s = cw.cwpy.msgs["card_number"] % (n, maxn)
         dc.DrawText(s, 10, 10)
         dc.EndDrawing()
 

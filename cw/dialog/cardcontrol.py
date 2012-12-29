@@ -17,12 +17,12 @@ import message
 class CardControl(wx.Dialog):
     def __init__(self, parent, name, sendto):
         # ダイアログ作成
-        wx.Dialog.__init__(self, parent, -1, u"カード操作 - " + name,
+        wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (90, 24), u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (90, 24), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (30, 30), bmp=bmp)
@@ -98,13 +98,13 @@ class CardControl(wx.Dialog):
     def OnLeftUp(self, event):
         for header in self.get_headers():
             if header.rect.collidepoint(event.GetPosition()):
-                cw.cwpy.sounds[u"click"].play()
+                cw.cwpy.sounds["click"].play()
                 self.animate_click(header)
                 self.lclick_event(header)
                 return
 
     def OnRightUp(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
 
         for header in self.get_headers():
             if header.rect.collidepoint(event.GetPosition()):
@@ -188,15 +188,15 @@ class CardControl(wx.Dialog):
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
         if self.callname == "INFOVIEW":
-            s = u"閲覧モード"
+            s = cw.cwpy.msgs["mode_show"]
         elif cw.cwpy.areaid in cw.AREAS_TRADE:
-            s = u"移動モード"
+            s = cw.cwpy.msgs["mode_move"]
         else:
-            s = u"使用モード"
+            s = cw.cwpy.msgs["mode_use"]
         dc.DrawText(s, 8, 2)
         if self.combo.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
-            s = u"送り先:"
+            s = cw.cwpy.msgs["send_to"]
             dc.DrawText(s, 270, 3)
         return dc
 
@@ -283,12 +283,12 @@ class CardControl(wx.Dialog):
         # 付帯召喚じゃない召喚獣の破棄確認
         if cw.cwpy.areaid in cw.AREAS_TRADE and\
                         header.type == "BeastCard" and not header.attachment:
-            s = u"%sを破棄します。よろしいですか？" % (header.name)
-            dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+            s = cw.cwpy.msgs["confirm_dump"] % (header.name)
+            dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
             self.Parent.move_dlg(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
-                cw.cwpy.sounds[u"dump"].play()
+                cw.cwpy.sounds["dump"].play()
                 owner.throwaway_card(header)
 
             dlg.Destroy()
@@ -297,7 +297,7 @@ class CardControl(wx.Dialog):
         elif isinstance(owner, cw.character.Character):
             # 行動不能だったら処理中止
             if owner.is_inactive():
-                s = u"%s は行動不能です。" % owner.name
+                s = cw.cwpy.msgs["inactive"] % owner.name
                 dlg = message.ErrorMessage(self, s)
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
@@ -307,7 +307,7 @@ class CardControl(wx.Dialog):
             # 使用回数が0以下だったら処理中止
             if header.uselimit <= 0 and not header.type == "BeastCard":
                 if not header.type == "ItemCard" or not header.maxuselimit == 0:
-                    cw.cwpy.sounds[u"error"].play()
+                    cw.cwpy.sounds["error"].play()
                     return
 
             # 戦闘中にペナルティカードを行動選択していたら処理中止
@@ -315,7 +315,7 @@ class CardControl(wx.Dialog):
                 headerp = owner.actiondata[1]
 
                 if headerp.penalty:
-                    s = u"ペナルティカードを自動選択したキャラクターは\n行動を選択することが出来ません"
+                    s = cw.cwpy.msgs["selected_penalty"]
                     dlg = message.ErrorMessage(self, s)
                     self.Parent.move_dlg(dlg)
                     dlg.ShowModal()
@@ -342,21 +342,21 @@ class CardHolder(CardControl):
 
         # タイプ別初期化(キャストの手札の場合はindex復元後)
         if self.callname == "BACKPACK":
-            name = u"荷物袋の手札カード"
+            name = cw.cwpy.msgs["cards_backpack"]
             self.selection = None
             self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 0, 128)
             self.list = cw.cwpy.ydata.party.backpack
             sendto = True
         elif self.callname == "STOREHOUSE":
-            name = u"カード置場の手札カード"
+            name = cw.cwpy.msgs["cards_storehouse"]
             self.selection = None
             self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
             sendto = True
         elif self.callname == "INFOVIEW":
-            name = u"カード操作 - 情報カード"
+            name = cw.cwpy.msgs["info_card"]
             self.bgcolour = wx.Colour(0, 0, 128)
             self.list = cw.cwpy.sdata.infocards
             sendto = False
@@ -398,7 +398,7 @@ class CardHolder(CardControl):
                 self.index2 = 0
 
         if self.callname == "CARDPOCKET":
-            name = self.selection.name + u"の手札カード"
+            name =  cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.bgcolour = wx.Colour(0, 0, 128)
             sendto = (not cw.cwpy.is_playingscenario()\
                         or cw.cwpy.areaid == cw.AREA_CAMP)\
@@ -465,15 +465,15 @@ class CardHolder(CardControl):
         if sendto:
             bmp = cw.cwpy.rsrc.buttons["ARROW"]
             self._combo_manual = len(self.combo.GetItems())
-            self.combo.Append(u"手動選択", bmp)
+            self.combo.Append(cw.cwpy.msgs["send_to_manual"], bmp)
             if self._can_open_storehouse:
                 bmp = cw.cwpy.rsrc.buttons["DECK"]
                 self._combo_storehouse = len(self.combo.GetItems())
-                self.combo.Append(u"カード置き場", bmp)
+                self.combo.Append(cw.cwpy.msgs["send_to_storehouse"], bmp)
             if self._can_open_backpack:
                 bmp = cw.cwpy.rsrc.buttons["SACK"]
                 self._combo_backpack = len(self.combo.GetItems())
-                self.combo.Append(u"荷物袋", bmp)
+                self.combo.Append(cw.cwpy.msgs["send_to_backpack"], bmp)
             if self._can_open_cardpocket:
                 bmp = cw.cwpy.rsrc.buttons["CAST"]
                 index = 0
@@ -484,11 +484,11 @@ class CardHolder(CardControl):
             if not cw.cwpy.is_playingscenario():
                 bmp = cw.cwpy.rsrc.buttons["SHELF"]
                 self._combo_shelf = len(self.combo.GetItems())
-                self.combo.Append(u"売却", bmp)
+                self.combo.Append(cw.cwpy.msgs["send_to_shelf"], bmp)
             if not cw.cwpy.is_playingscenario() or cw.cwpy.is_debugmode():
                 self._combo_trush = len(self.combo.GetItems())
                 bmp = cw.cwpy.rsrc.buttons["TRUSH"]
-                self.combo.Append(u"ごみ箱", bmp)
+                self.combo.Append(cw.cwpy.msgs["send_to_trush"], bmp)
             self.combo.Select(self.index_combo)
 
         # パーティが組まれていない(カード置き場のみ)か、
@@ -574,7 +574,7 @@ class CardHolder(CardControl):
         CardControl._do_layout(self, self._sizer_leftbar)
 
     def OnClickLeftBtn(self, event):
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         old_callname = self.callname
 
         if self.callname == "CARDPOCKET":
@@ -618,12 +618,12 @@ class CardHolder(CardControl):
             self.toppanel.SetBackgroundColour(self.bgcolour)
         else:
             if self.callname == "BACKPACK":
-                self.SetTitle(u"カード操作 - " + u"荷物袋の手札カード")
+                self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_backpack"]))
                 self.bgcolour = wx.Colour(0, 0, 128)
                 self.toppanel.SetBackgroundColour(self.bgcolour)
                 self.list = cw.cwpy.ydata.party.backpack
             elif self.callname == "STOREHOUSE":
-                self.SetTitle(u"カード操作 - " + u"カード置場の手札カード")
+                self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_storehouse"]))
                 self.bgcolour = wx.Colour(0, 69, 0)
                 self.toppanel.SetBackgroundColour(self.bgcolour)
                 self.list = cw.cwpy.ydata.storehouse
@@ -633,7 +633,7 @@ class CardHolder(CardControl):
         self._re_layout()
 
     def OnClickRightBtn(self, event):
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
         old_callname = self.callname
 
         if self.callname == "CARDPOCKET":
@@ -674,7 +674,7 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnClickToggleBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
 
         l = [self.skillbtn, self.itembtn, self.beastbtn]
 
@@ -688,7 +688,7 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnClickUpBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         negaindex = -1
 
         for index, header in enumerate(self.get_headers()):
@@ -711,7 +711,7 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnClickDownBtn(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         negaindex = -1
 
         for index, header in enumerate(self.get_headers()):
@@ -770,8 +770,8 @@ class CardHolder(CardControl):
             # カード描画
             if update:
                 self.list = self.selection.cardpocket[self.index3]
-                s = self.selection.name + u"の手札カード"
-                self.SetTitle(u"カード操作 - " + s)
+                s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
+                self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
 
             self.draw_cards(dc, update, 2)
         else:
@@ -855,7 +855,7 @@ class HandView(CardControl):
         # 手札リスト
         self.list = self.selection.deck.hand
         # ダイアログ作成
-        name = self.selection.name + u"の手札カード"
+        name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
         self.bgcolour = wx.Colour(0, 0, 128)
         CardControl.__init__(self, parent, name, False)
         # 最初に開くページのカードのposを設定
@@ -871,7 +871,7 @@ class HandView(CardControl):
         CardControl._bind(self)
 
     def OnClickLeftBtn(self, event):
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
 
         if self.index2 == 0:
             self.index2 = len(self.list2) -1
@@ -883,7 +883,7 @@ class HandView(CardControl):
         self.draw(True)
 
     def OnClickRightBtn(self, event):
-        cw.cwpy.sounds[u"page"].play()
+        cw.cwpy.sounds["page"].play()
 
         if self.index2 == len(self.list2) -1:
             self.index2 = 0
@@ -900,8 +900,8 @@ class HandView(CardControl):
         # カード描画
         if update:
             self.list = self.selection.deck.hand
-            s = self.selection.name + u"の手札カード"
-            self.SetTitle(u"カード操作 - " + s)
+            s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
+            self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
 
         self.draw_cards(dc, update, 3)
 

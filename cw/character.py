@@ -415,7 +415,7 @@ class Character(object):
                 beasts = self.actiondata[2]
 
             self.actiondata = (target, header, beasts)
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             cw.cwpy.pre_dialogs.pop()
 
     def clear_action(self):
@@ -881,7 +881,7 @@ class Character(object):
         """
         "＿１"等の番号クーポンを削除。
         """
-        names = [u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
+        names = [cw.cwpy.msgs["number_1_coupon"], u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
 
         for name in names:
             self.remove_coupon(name)
@@ -1165,7 +1165,7 @@ class Character(object):
             if not self.is_poison():
                 flag = True
             else:
-                cw.cwpy.sounds[u"dump"].play()
+                cw.cwpy.sounds["dump"].play()
                 value = 1 * self.poison
                 n = value / 5
                 n2 = value % 5 * 2

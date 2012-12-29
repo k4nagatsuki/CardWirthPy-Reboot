@@ -160,7 +160,7 @@ class Curtain(base.SelectableSprite):
         spritegrp.add(self, layer="curtain")
 
     def rclick_event(self):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
 
         # カード移動選択エリアだったら、事前に開いていたダイアログを開く
         if cw.cwpy.areaid in cw.AREAS_TRADE:

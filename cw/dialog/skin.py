@@ -35,11 +35,11 @@ class SkinConversionDialog(wx.Dialog):
         self.note.AddPage(self.pane_base, u"基本")
         #self.note.AddPage(self.pane_feature, u"特性")
         #self.note.AddPage(self.pane_sound, u"サウンド")
-        #self.note.AddPage(self.pane_message, u"メッセージ")
+        #self.note.AddPage(self.pane_message, cw.cwpy.msgs["message"])
         #self.note.AddPage(self.pane_card, u"カード")
 
-        self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
-        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"中止")
+        self.btn_ok = wx.Button(self, wx.ID_OK, cw.cwpy.msgs["entry_decide"])
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, cw.cwpy.msgs["entry_cancel"])
 
         self._do_layout()
         self._bind()
@@ -104,7 +104,7 @@ class SkinConversionDialog(wx.Dialog):
 
         if self.conv.failure:
             s = self.conv.errormessage
-            wx.MessageBox(s, u"メッセージ", wx.OK | wx.ICON_EXCLAMATION, self)
+            wx.MessageBox(s, cw.cwpy.msgs["message"], wx.OK | wx.ICON_EXCLAMATION, self)
         else:
             self.successful = True
             self.Close()

@@ -380,7 +380,7 @@ class SelectWindow(MessageWindow):
         # data
         self.names = names
         self.path = ""
-        self.text = u"どれか一つを選択してください。" if not text else text
+        self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.talker = None
         # image
         colour = cw.cwpy.setting.mwincolour
@@ -415,8 +415,8 @@ class MemberSelectWindow(SelectWindow):
         self.selectmembers = pcards
         names = [(index, pcard.name)
                         for index, pcard in enumerate(self.selectmembers)]
-        names.append((len(names), u"キャンセル"))
-        text = u"メンバーを選択してください。"
+        names.append((len(names), cw.cwpy.msgs["cancel"]))
+        text = cw.cwpy.msgs["select_member_message"]
         SelectWindow.__init__(self, names, text, pos, size)
 
 class SelectionBar(base.SelectableSprite):
@@ -496,7 +496,7 @@ class SelectionBar(base.SelectableSprite):
         """
         メッセージ選択肢のクリックイベント。
         """
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
 
         # クリックした時だけ、軽く下に押されるアニメーションを行う
         if not skip:

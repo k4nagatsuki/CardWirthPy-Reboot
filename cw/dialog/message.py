@@ -24,11 +24,11 @@ class Message(wx.Dialog):
 
         if self.mode == 1:
             # yes and no
-            self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, (120, 30), u"はい")
-            self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (120, 30), u"いいえ")
+            self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, (120, 30), cw.cwpy.msgs["yes"])
+            self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (120, 30), cw.cwpy.msgs["no"])
         elif self.mode == 2:
             # close
-            self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (120, 30), u"閉じる")
+            self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (120, 30), cw.cwpy.msgs["close"])
 
         # layout
         self.__do_layout()
@@ -37,7 +37,7 @@ class Message(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -76,8 +76,8 @@ class YesNoMessage(Message):
 
 class ErrorMessage(Message):
     def __init__(self, parent, text):
-        cw.cwpy.sounds[u"error"].play()
-        Message.__init__(self, parent, u"エラーメッセージ", text, 2)
+        cw.cwpy.sounds["error"].play()
+        Message.__init__(self, parent, cw.cwpy.msgs["error_message"], text, 2)
 
 def main():
     pass

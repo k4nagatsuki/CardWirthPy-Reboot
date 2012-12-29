@@ -358,7 +358,7 @@ class PlayerCard(CWPyCard, character.Player):
         """左クリックイベント。"""
         # CARDPOCKETダイアログを開く(通常)
         if not cw.cwpy.is_curtained():
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
 
             if cw.cwpy.is_battlestatus():
@@ -368,7 +368,7 @@ class PlayerCard(CWPyCard, character.Player):
 
         # カード使用。USECARDダイアログを開く
         elif cw.cwpy.areaid == 0 and cw.cwpy.selectedheader:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
 
             # USECARDダイアログを開く
@@ -391,7 +391,7 @@ class PlayerCard(CWPyCard, character.Player):
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
         cw.cwpy.call_dlg("CHARAINFO")
 
@@ -444,7 +444,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
 
         # CARDPOCKETダイアログを開く(通常)
@@ -461,7 +461,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
 
         if self.is_analyzable():
@@ -510,7 +510,7 @@ class FriendCard(CWPyCard, character.Friend):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
 
         if not cw.cwpy.is_curtained() and self.is_analyzable():
@@ -519,7 +519,7 @@ class FriendCard(CWPyCard, character.Friend):
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
 
         if self.is_analyzable():
@@ -579,12 +579,12 @@ class MenuCard(CWPyCard):
         """左クリックイベント。"""
         # 通常のクリックイベント
         if not cw.cwpy.is_curtained():
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
             self.events.start(keynum=1)
         # カード使用イベント
         elif cw.cwpy.areaid == 0 and cw.cwpy.selectedheader:
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
 
             # USECARDダイアログを開く
@@ -602,14 +602,14 @@ class MenuCard(CWPyCard):
             self.events.start(keynum=1)
         # パーティ解散
         elif cw.cwpy.areaid == -3:
-            cw.cwpy.sounds[u"page"].play()
+            cw.cwpy.sounds["page"].play()
             cw.animation.animate_sprite(self, "click")
             self.events.start(keynum=1)
 
     def rclick_event(self):
         """右クリックイベント。"""
         if not cw.cwpy.is_showingdlg():
-            cw.cwpy.sounds[u"click"].play()
+            cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
             cw.cwpy.call_dlg("MENUCARDINFO")
 

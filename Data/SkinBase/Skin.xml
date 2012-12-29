@@ -423,4 +423,162 @@
     <Sound key="dump">システム・破棄</Sound>
     <Sound key="ineffective">システム・無効</Sound>
   </Sounds>
+  <Messages>
+    <Message key="card_control">カード操作</Message>
+    <Message key="close">閉じる</Message>
+    <Message key="mode_show">閲覧モード</Message>
+    <Message key="mode_move">移動モード</Message>
+    <Message key="mode_use">使用モード</Message>
+    <Message key="send_to">送り先:</Message>
+    <Message key="message">メッセージ</Message>
+    <Message key="confirm_dump">%sを破棄します。よろしいですか？</Message>
+    <Message key="inactive">%s は行動不能です。</Message>
+    <Message key="selected_penalty">ペナルティカードを自動選択したキャラクターは
+行動を選択することが出来ません。</Message>
+    <Message key="cards_backpack">荷物袋の手札カード</Message>
+    <Message key="cards_storehouse">カード置場の手札カード</Message>
+    <Message key="info_card">情報カード</Message>
+    <Message key="cards_hand">%sの手札カード</Message>
+    <Message key="send_to_manual">手動選択</Message>
+    <Message key="send_to_storehouse">カード置き場</Message>
+    <Message key="send_to_backpack">荷物袋</Message>
+    <Message key="send_to_shelf">売却</Message>
+    <Message key="send_to_trush">ごみ箱</Message>
+    <Message key="card_information">カード情報</Message>
+    <Message key="character_information">キャラクター情報</Message>
+    <Message key="character_description">解説</Message>
+    <Message key="character_history">経歴</Message>
+    <Message key="character_status">状態</Message>
+    <Message key="edit">編集</Message>
+    <Message key="character_skills">技能</Message>
+    <Message key="character_items">道具</Message>
+    <Message key="character_beasts">召喚</Message>
+    <Message key="edit_design">デザインを変更する</Message>
+    <Message key="regulate_level">レベルを調節する</Message>
+    <Message key="card_number">カード枚数 %s / %s</Message>
+    <Message key="insufficiency_title">不足データの補填</Message>
+    <Message key="insufficiency_message">次の冒険者には必要なデータが不足しています。次の項目
+を入力し、決定ボタンを押してください。</Message>
+    <Message key="coution">Caution!</Message>
+    <Message key="sex">性別</Message>
+    <Message key="age">年齢</Message>
+    <Message key="decide">決定</Message>
+    <Message key="father_coupon">父：%s</Message>
+    <Message key="mother_coupon">母：%s</Message>
+    <Message key="entry_title">冒険者の登録</Message>
+    <Message key="entry_message">Welcome to Adventurer's Inn.</Message>
+    <Message key="entry_name">Name</Message>
+    <Message key="entry_image">Image</Message>
+    <Message key="entry_comment">Commment</Message>
+    <Message key="entry_sex">Sex</Message>
+    <Message key="entry_age">Age</Message>
+    <Message key="entry_cancel">中止</Message>
+    <Message key="entry_decide">登録</Message>
+    <Message key="entry_next">次へ&gt;&gt;</Message>
+    <Message key="entry_previous">&lt;&lt;戻る</Message>
+    <Message key="entry_cancel_message">キャラクターを放棄します。
+よろしいですか？</Message>
+    <Message key="entry_decide_message">%sを登録します。
+よろしいですか？</Message>
+    <Message key="edit_character_message">Resident Registration.</Message>
+    <Message key="race_title">種 族</Message>
+    <Message key="race_message">新規冒険者の種族を決定します。</Message>
+    <Message key="relation_title">血 縁</Message>
+    <Message key="relation_message">親となる条件を満たしている冒険者が宿にいます。</Message>
+    <Message key="father">Father</Message>
+    <Message key="mother">Mother</Message>
+    <Message key="general_father">一般男性</Message>
+    <Message key="general_mother">一般女性</Message>
+    <Message key="consumption_ep">消費EP:%s (残%s)</Message>
+    <Message key="nature_title">素 質</Message>
+    <Message key="nature_message">新規冒険者の傾向を選択して下さい。</Message>
+    <Message key="making_title">特 性</Message>
+    <Message key="making_message">新規冒険者の生まれや性格などの個性を決定します。</Message>
+    <Message key="create_base_title">宿の登録</Message>
+    <Message key="new_base">新規宿</Message>
+    <Message key="base_error_no_name">宿名が入力されていません。</Message>
+    <Message key="base_error_invalid_name">名称に不正な文字が使用されています。
+名前を変更してください。</Message>
+    <Message key="base_error_duplicate_name">同名の冒険者の宿が既に存在しています。
+名前を変更してください。</Message>
+    <Message key="create_base_message_1">新しい冒険者の宿を登録します。</Message>
+    <Message key="create_base_message_2">登録する冒険者の宿の名称を入力して下さい。</Message>
+    <Message key="design_title">冒険者のデザイン</Message>
+    <Message key="default_party_name">%s一行</Message>
+    <Message key="lost_coupon_1">旅の中、帰らぬ人となる…</Message>
+    <Message key="lost_coupon_2">安らかに永眠す…</Message>
+    <Message key="load_scenario_failure">シナリオのロードに失敗しました。
+パーティを宿に帰還させますか？</Message>
+    <Message key="confirm_sell">%sを売却します。売り値は%sspです。よろしいですか？</Message>
+    <Message key="error_sell_premier_card">プレミアカードは売却できません。</Message>
+    <Message key="error_dump_premier_card">プレミアカードは破棄できません。</Message>
+    <Message key="error_hand_be_full">%sの手札は既に一杯です。</Message>
+    <Message key="unknown_race_name">―未指定―</Message>
+    <Message key="unknown_race_description">種族を指定せず、キャラクターを作成する。
+初期能力値や特性は標準のものを採用する。</Message>
+    <Message key="f9_message">緊急非難コマンドが発令されました。
+シナリオを強制終了してもよろしいですか？</Message>
+    <Message key="use_item">%sを使用します。よろしいですか？</Message>
+    <Message key="confirm_runaway">逃走します。よろしいですか？</Message>
+    <Message key="saved">セーブしました。</Message>
+    <Message key="confirm_save">現在の状況を保存します。よろしいですか？</Message>
+    <Message key="confirm_go_title">タイトル画面に戻ります。保存されていないデータは
+全て消えてしまいます。よろしいですか？</Message>
+    <Message key="connect_database_failure">データベースへの接続に失敗しました。
+しばらくしてからもう一度やり直してください。</Message>
+    <Message key="confirm_quit">カードワースを終了します。よろしいですか？</Message>
+    <Message key="error_debugger_in_fullscreen">デバッガ表示中はフルスクリーン化できません。</Message>
+    <Message key="level_up">\\n\\n\\n#Iはレベルアップした！</Message>
+    <Message key="ok">ＯＫ</Message>
+    <Message key="number_1_coupon">＿１</Message>
+    <Message key="runaway">逃げる</Message>
+    <Message key="start_action">行動開始</Message>
+    <Message key="table">テーブル</Message>
+    <Message key="camp">キャンプ</Message>
+    <Message key="select_member_message">メンバーを選択してください。</Message>
+    <Message key="cancel">キャンセル</Message>
+    <Message key="select_message">どれか一つを選択してください。</Message>
+    <Message key="instructions">添付テキスト</Message>
+    <Message key="referencing_file">参照ファイル</Message>
+    <Message key="target_level_1">対象レベル %s</Message>
+    <Message key="target_level_2">対象レベル %s～%s</Message>
+    <Message key="see">見る</Message>
+    <Message key="return">戻る</Message>
+    <Message key="description">解説</Message>
+    <Message key="select_scenario_title">貼紙を見る</Message>
+    <Message key="confirm_delete_character_in_album">%sを抹消します。
+よろしいですか？</Message>
+    <Message key="delete">削除</Message>
+    <Message key="information">情報</Message>
+    <Message key="album">アルバム</Message>
+    <Message key="character_level">Level</Message>
+    <Message key="character_class">Adventurer</Message>
+    <Message key="character_age">Age:%s</Message>
+    <Message key="character_sex">Sex:%s</Message>
+    <Message key="character_ep">EP:%s</Message>
+    <Message key="character_history">【History】</Message>
+    <Message key="die_message">%sは、永遠の眠りに就きました…</Message>
+    <Message key="confirm_die">%sを永眠させます。よろしいですか？</Message>
+    <Message key="confirm_grow">%sを%sから%sへ成長させます。よろしいですか？</Message>
+    <Message key="confirm_delete_character">冒険者%sを削除します。
+よろしいですか？</Message>
+    <Message key="new">新規</Message>
+    <Message key="grow">成長</Message>
+    <Message key="add_member">編入</Message>
+    <Message key="select_member_title">宿帳を開く</Message>
+    <Message key="members">構成</Message>
+    <Message key="resume_adventure">冒険の再開</Message>
+    <Message key="etc">その他...</Message>
+    <Message key="delete_base">宿「%s」を破棄します。\nよろしいですか？</Message>
+    <Message key="select_base_title">宿の選択</Message>
+    <Message key="error_message">エラーメッセージ</Message>
+    <Message key="yes">はい</Message>
+    <Message key="no">いいえ</Message>
+    <Message key="select_battle_action">戦闘行動選択</Message>
+    <Message key="regulate_level_title">レベル調節</Message>
+    <Message key="party_money">パーティの所持金</Message>
+    <Message key="base_money">宿の金庫</Message>
+    <Message key="party_name">パーティの呼称</Message>
+    <Message key="party_information">パーティ情報</Message>
+  </Messages>
 </Skin>

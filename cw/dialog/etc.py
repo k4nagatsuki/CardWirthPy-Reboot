@@ -8,23 +8,23 @@ import cw
 
 class BattleCommand(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, u"戦闘行動選択")
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"])
         # 行動開始
         path = "Resource/Image/Card/BATTLE" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.image.CardImage(path, "NORMAL", u"行動開始").get_wxbmp()
+        bmp = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"]).get_wxbmp()
         self.btn_start = wx.BitmapButton(self, -1, bitmap=bmp,
                                             style=wx.NO_BORDER|wx.BU_AUTODRAW)
         # 逃げる
         path = "Resource/Image/Card/ACTION9" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.image.CardImage(path, "NORMAL", u"逃げる").get_wxbmp()
+        bmp = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"]).get_wxbmp()
         self.btn_runaway = wx.BitmapButton(self, -1, bitmap=bmp,
                                             style=wx.NO_BORDER|wx.BU_AUTODRAW)
         # キャンセル
         path = "Resource/Image/Card/COMMAND1" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.image.CardImage(path, "NORMAL", u"キャンセル").get_wxbmp()
+        bmp = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"]).get_wxbmp()
         self.btn_cancel = wx.BitmapButton(self, wx.ID_CANCEL, bitmap=bmp,
                                             style=wx.NO_BORDER|wx.BU_AUTODRAW)
         self._do_layout()
@@ -60,8 +60,8 @@ class BattleCommand(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnRunaway(self, event):
-        s = u"逃走します。よろしいですか？"
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["confirm_runaway"]
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -74,7 +74,7 @@ class BattleCommand(wx.Dialog):
         dlg.Destroy()
 
     def OnCancel(self, event):
-        cw.cwpy.sounds[u"click"].play()
+        cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 

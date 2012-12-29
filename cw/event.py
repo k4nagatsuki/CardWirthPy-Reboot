@@ -545,7 +545,7 @@ class CardEvent(Event):
         flag |= bool(d["level"] and not self.user.decide_misfire(d["level"]))
 
         if flag:
-            cw.cwpy.sounds[u"効果（咆哮）"].play()
+            cw.cwpy.sounds[u"効果（混乱）"].play()
             cw.animation.animate_sprite(self.user, "lateralvibe")
             return
 

@@ -195,8 +195,8 @@ class Frame(wx.Frame):
             cw.cwpy.music.set_volume()
 
     def OnCLOSE(self, event):
-        s = u"カードワースを終了します。よろしいですか？"
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["confirm_quit"]
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -239,9 +239,8 @@ class Frame(wx.Frame):
                 cw.cwpy.exec_func(cw.cwpy.set_scenario, sceheader)
             # シナリオロードに失敗
             elif header.is_adventuring():
-                s = (u"シナリオのロードに失敗しました。\n"
-                     u"パーティを宿に帰還させますか？")
-                mdlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+                s = (cw.cwpy.msgs["load_scenario_failure"])
+                mdlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
                 self.move_dlg(mdlg)
 
                 if mdlg.ShowModal() == wx.ID_OK:
@@ -268,8 +267,7 @@ class Frame(wx.Frame):
         try:
             db = cw.scenariodb.Scenariodb()
         except:
-            s = (u"データベースへの接続に失敗しました。\n"
-                 u"しばらくしてからもう一度やり直してください。")
+            s = (cw.cwpy.msgs["connect_database_failure"])
             event.args = {"text":s, "shutdown":False}
             self.OnERROR(event)
             return
@@ -352,9 +350,8 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnRETURNTITLE(self, event):
-        s = (u"タイトル画面に戻ります。保存されていないデータは\n"
-             u"全て消えてしまいます。よろしいですか？")
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = (cw.cwpy.msgs["confirm_go_title"])
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -363,24 +360,24 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnSAVE(self, event):
-        s = u"現在の状況を保存します。よろしいですか？"
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["confirm_save"]
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             cw.cwpy.ydata.save()
-            cw.cwpy.sounds[u"harvest"].play()
-            s = u"セーブしました。"
-            dlg = cw.dialog.message.Message(self, u"メッセージ", s)
+            cw.cwpy.sounds["harvest"].play()
+            s = cw.cwpy.msgs["saved"]
+            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
             self.move_dlg(dlg)
             dlg.ShowModal()
 
         self.kill_dlg(dlg)
 
     def OnRUNAWAY(self, event):
-        s = u"逃走します。よろしいですか？"
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["confirm_runaway"]
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -402,8 +399,8 @@ class Frame(wx.Frame):
         cw.cwpy.exec_func(cw.cwpy.clear_curtain)
         cw.cwpy.exec_func(cw.cwpy.set_inusecardimg, owner, header)
         cw.cwpy.exec_func(cw.cwpy.set_targetarrow, targets)
-        s = u"%sを使用します。よろしいですか？" % header.name
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = cw.cwpy.msgs["use_item"] % header.name
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -439,9 +436,8 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnF9(self, event):
-        s = (u"緊急非難コマンドが発令されました。\n"
-             u"シナリオを強制終了してもよろしいですか？")
-        dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+        s = (cw.cwpy.msgs["f9_message"])
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -470,7 +466,7 @@ class Frame(wx.Frame):
         parent = event.args.get("parentdialog", None)
         if not parent:
             parent = self
-        dlg = cw.dialog.message.Message(parent, u"メッセージ", text)
+        dlg = cw.dialog.message.Message(parent, cw.cwpy.msgs["message"], text)
         self.move_dlg(dlg)
         dlg.ShowModal()
         self.kill_dlg(dlg)
@@ -480,7 +476,7 @@ class Frame(wx.Frame):
         parent = event.args.get("parentdialog", None)
         if not parent:
             parent = self
-        dlg = cw.dialog.message.YesNoMessage(parent, u"メッセージ", text)
+        dlg = cw.dialog.message.YesNoMessage(parent, cw.cwpy.msgs["message"], text)
         self.move_dlg(dlg)
         cw.cwpy._yesnoresult = dlg.ShowModal()
         self.kill_dlg(dlg)

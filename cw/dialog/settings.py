@@ -54,7 +54,7 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.statusbar.change()
 
             if cw.cwpy.is_showingdebugger():
-                cw.cwpy.sounds[u"page"].play()
+                cw.cwpy.sounds["page"].play()
                 cw.cwpy.frame.debugger.Close()
 
         # 描画
@@ -106,9 +106,9 @@ class SettingsDialog(wx.Dialog):
                 s = (u"スキンの変更にはゲームの中断が必要です。\n"
                     u"保存されていないデータは全て消えてしまいます。\n"
                     u"タイトル画面へ戻ってよろしいですか？")
-                dlg = cw.dialog.message.YesNoMessage(self, u"メッセージ", s)
+                dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
                 cw.cwpy.frame.move_dlg(dlg)
-                cw.cwpy.sounds[u"signal"].play()
+                cw.cwpy.sounds["signal"].play()
 
                 if dlg.ShowModal() == wx.ID_OK:
                     self.Close()
@@ -178,10 +178,10 @@ class GeneralSettingPanel(wx.Panel):
         if cw.cwpy.is_playingscenario():
             self.cb_debug.SetValue(not self.cb_debug.GetValue())
             dlg = cw.dialog.message.Message(
-                self.Parent.Parent, u"メッセージ",
+                self.Parent.Parent, cw.cwpy.msgs["message"],
                 u"シナリオプレイ中はデバッグモードの切替はできません。")
             cw.cwpy.frame.move_dlg(dlg)
-            cw.cwpy.sounds[u"error"].play()
+            cw.cwpy.sounds["error"].play()
             dlg.ShowModal()
 
     def OnSkinChoice(self, event):

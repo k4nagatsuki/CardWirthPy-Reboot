@@ -119,6 +119,8 @@ class CWPy(_Singleton, threading.Thread):
         self.sounds = self.rsrc.sounds
         # その他のスキン付属効果音(辞書)
         self.skinsounds = self.rsrc.skinsounds
+        # システムメッセージ(辞書)
+        self.msgs = self.rsrc.msgs
         # アクションカードのデータ(CardHeader)
         self.rsrc.actioncards = self.rsrc.get_actioncards()
         # 背景スプライト
@@ -408,10 +410,9 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(self.set_scenario, header)
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
-                s = (u"シナリオのロードに失敗しました。\n"
-                     u"パーティを宿に帰還させますか？")
+                s = (cw.cwpy.msgs["load_scenario_failure"])
                 mdlg = cw.dialog.message.YesNoMessage(self,
-                                                        u"メッセージ", s)
+                                                        cw.cwpy.msgs["message"], s)
                 self.move_dlg(mdlg)
 
                 if mdlg.ShowModal() == wx.ID_OK:
@@ -644,7 +645,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         指定するIDの戦闘を開始する。
         """
-        self.sounds[u"battle"].play()
+        self.sounds["battle"].play()
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")
@@ -927,7 +928,7 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         if pcard:
-            self.sounds[u"page"].play()
+            self.sounds["page"].play()
             cw.animation.animate_sprite(pcard, "delete")
             pcard.data.write_xml()
             self.ydata.add_standbys(pcard.data.fpath)
@@ -1015,13 +1016,13 @@ class CWPy(_Singleton, threading.Thread):
                 elif header.type == "BeastCard":
                     price = 500
                 if not from_event:
-                    s = u"%sを売却します。売り値は%dspです。よろしいですか？" % (header.name, price)
+                    s = cw.cwpy.msgs["confirm_sell"] % (header.name, price)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
                         return
             else:
                 if not from_event:
-                    s = u"%sを捨てます。よろしいですか？" % (header.name)
+                    s = cw.cwpy.msgs["confirm_dump"] % (header.name)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
                         return
@@ -1029,12 +1030,12 @@ class CWPy(_Singleton, threading.Thread):
             # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
             if header.premium == "Premium" and not from_event:
                 if targettype == "PAWNSHOP":
-                    self.sounds[u"error"].play()
-                    s = u"プレミアカードは売却できません。"
+                    self.sounds["error"].play()
+                    s = cw.cwpy.msgs["error_sell_premier_card"]
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
                 elif targettype == "TRASHBOX":
-                    self.sounds[u"error"].play()
-                    s = u"プレミアカードは破棄できません。"
+                    self.sounds["error"].play()
+                    s = cw.cwpy.msgs["error_dump_premier_card"]
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
 
                 return
@@ -1065,8 +1066,8 @@ class CWPy(_Singleton, threading.Thread):
                         self.trade("BACKPACK", header=header, from_event=True)
 
                 else:
-                    self.sounds[u"error"].play()
-                    s = u"%sの手札は既に一杯です。" % target.name
+                    self.sounds["error"].play()
+                    s = cw.cwpy.msgs["error_hand_be_full"] % target.name
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
 
                 return
@@ -1074,11 +1075,11 @@ class CWPy(_Singleton, threading.Thread):
         # 音を鳴らす
         if not from_event:
             if targettype == "TRASHBOX":
-                self.sounds[u"dump"].play()
+                self.sounds["dump"].play()
             elif targettype == "PAWNSHOP":
-                self.sounds[u"signal"].play()
+                self.sounds["signal"].play()
             else:
-                self.sounds[u"page"].play()
+                self.sounds["page"].play()
 
         #-----------------------------------------------------------------------
         # 移動元からデータを削除

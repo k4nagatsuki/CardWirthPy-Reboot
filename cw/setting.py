@@ -105,7 +105,6 @@ class Setting(object):
         self.classicstyletext = data.gettext("/Property/ClassicStyleText", True)
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("/Races")]
-        self.races.append(cw.header.UnknownRaceHeader())
 
         # 特性
         self.sexes = [cw.features.Sex(e) for e in data.getfind("/Sexes")]
@@ -124,7 +123,11 @@ class Setting(object):
         self.makingcoupons = [u"＿" + f.name for f in self.makings]
 
         # 音声
-        self.sounds = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("/Sounds")]
+        self.sounds = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("Sounds")]
+        # メッセージ
+        self.msgs = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("Messages")]
+
+        self.races.append(cw.header.UnknownRaceHeader(self))
 
     def set_dealspeed(self, value):
         self.dealspeed = value + 1
@@ -160,6 +163,8 @@ class Resource(object):
         self.skinsounds = self.get_skinsounds()
         # システム効果音(辞書)
         self.sounds = self.get_sounds(setting, self.skinsounds)
+        # システムメッセージ(辞書)
+        self.msgs = self.get_msgs(setting)
         # wxダイアログのボタン画像(辞書)
         self.buttons = self.get_buttons()
         # カード背景画像(辞書)
@@ -382,6 +387,15 @@ class Resource(object):
         func = cw.util.load_sound
         dpath = cw.util.join_paths(self.skindir, "Sound")
         return self.get_resources(func, dpath, self.ext_snd)
+
+    def get_msgs(self, setting):
+        """
+        システムメッセージを読み込んで辞書で返す。
+        """
+        d = {}
+        for msg in setting.msgs:
+            d[msg[0]] = msg[1]
+        return d
 
     def get_buttons(self):
         """

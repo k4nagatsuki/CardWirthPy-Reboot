@@ -1005,7 +1005,7 @@ class YadoData(object):
         for fcard in cw.cwpy.get_fcards():
             # 必須クーポンを所持していなかったら補填
             if not fcard.get_age() or not fcard.get_sex():
-                cw.cwpy.sounds[u"signal"].play()
+                cw.cwpy.sounds["signal"].play()
                 cw.cwpy.call_modaldlg("DATACOMP", ccard=fcard)
 
             # システムクーポン

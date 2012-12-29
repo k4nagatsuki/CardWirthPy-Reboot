@@ -799,10 +799,12 @@ class RaceHeader(object):
             self.coupons.append((name, value))
 
 class UnknownRaceHeader(RaceHeader):
-    def __init__(self):
-        self.name = u"―未指定―"
-        self.desc = (u"種族を指定せず、キャラクターを作成する。\n" +
-                     u"初期能力値や特性は標準のものを採用する。")
+    def __init__(self, setting):
+        for msg in setting.msgs:
+            if msg[0] == "unknown_race_name":
+                self.name = msg[1]
+            elif msg[0] == "unknown_race_description":
+                self.desc = msg[1]
         self.automaton = False
         self.constructure = False
         self.undead = False
