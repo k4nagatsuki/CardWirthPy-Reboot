@@ -27,6 +27,8 @@ class CWPyCard(base.SelectableSprite):
         self.flag = flag
         # スケール
         self.scale = 100
+        # 逃走の有無
+        self.escape = False
 
     def get_unselectedimage(self):
         return self._image
@@ -404,6 +406,8 @@ class EnemyCard(CWPyCard, character.Enemy):
         CWPyCard.__init__(self, status)
         # フラグ
         self.flag = mcarddata.gettext("Property/Flag", "")
+        # 逃走の有無
+        self.escape = mcarddata.getattr(".", "escape")
 
         # スケール
         if cw.cwpy.is_autospread():

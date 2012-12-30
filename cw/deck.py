@@ -18,6 +18,8 @@ class Deck(object):
         seq = []
 
         for id, header in cw.cwpy.rsrc.actioncards.iteritems():
+            if id == 7 and not ccard.escape:
+                continue # 逃走しない
             if id > 0:
                 for cnt in xrange(header.uselimit):
                     seq.append(header)
@@ -183,7 +185,10 @@ class Deck(object):
         特殊な精神状態の場合、次にドローするカードを変更。
         """
         if ccard.is_panic():
-            n = cw.cwpy.dice.roll(1, 3) + 3
+            if ccard.escape:
+                n = cw.cwpy.dice.roll(1, 4) + 3
+            else:
+                n = cw.cwpy.dice.roll(1, 3) + 3
             self.set_nextcard(n)
         elif ccard.is_brave():
             n = cw.cwpy.dice.roll(1, 3)

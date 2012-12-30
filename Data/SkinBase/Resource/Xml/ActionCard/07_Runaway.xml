@@ -19,7 +19,7 @@
     <SoundPath2>Material/効果（付与）.wav</SoundPath2>
     <KeyCodes>逃走\n\n\n\n</KeyCodes>
     <Premium>Normal</Premium>
-    <UseLimit>0</UseLimit>
+    <UseLimit>10</UseLimit>
     <Hold>False</Hold>
   </Property>
   <Motions>
