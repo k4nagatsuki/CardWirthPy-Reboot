@@ -267,7 +267,8 @@ class Frame(wx.Frame):
         try:
             db = cw.scenariodb.Scenariodb()
         except:
-            s = (cw.cwpy.msgs["connect_database_failure"])
+            s = (u"データベースへの接続に失敗しました。\n"
+                 u"しばらくしてからもう一度やり直してください。")
             event.args = {"text":s, "shutdown":False}
             self.OnERROR(event)
             return
@@ -399,7 +400,7 @@ class Frame(wx.Frame):
         cw.cwpy.exec_func(cw.cwpy.clear_curtain)
         cw.cwpy.exec_func(cw.cwpy.set_inusecardimg, owner, header)
         cw.cwpy.exec_func(cw.cwpy.set_targetarrow, targets)
-        s = cw.cwpy.msgs["use_item"] % header.name
+        s = cw.cwpy.msgs["confirm_use_card"] % header.name
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 

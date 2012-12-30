@@ -187,10 +187,13 @@ class CardControl(wx.Dialog):
         # 移動モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
-        if self.callname == "INFOVIEW":
+        if self.callname == "INFOVIEW" or\
+            (self.callname == "HANDVIEW" and isinstance(self.owner, (cw.character.Enemy, cw.character.Friend))):
             s = cw.cwpy.msgs["mode_show"]
         elif cw.cwpy.areaid in cw.AREAS_TRADE:
             s = cw.cwpy.msgs["mode_move"]
+        elif self.callname == "HANDVIEW":
+            s = cw.cwpy.msgs["mode_battle"]
         else:
             s = cw.cwpy.msgs["mode_use"]
         dc.DrawText(s, 8, 2)
@@ -826,6 +829,7 @@ class CardHolder(CardControl):
 class HandView(CardControl):
     def __init__(self, parent):
         self.callname = "HANDVIEW"
+        self.owner = cw.cwpy.selection
 
         # カードリスト
         if cw.cwpy.pre_dialogs:

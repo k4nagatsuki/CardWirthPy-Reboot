@@ -140,7 +140,7 @@ class Converter(threading.Thread):
                     name = n[:i]
                 else:
                     name = n
-                data.find("./Name").text = unicode(name, "ms932")
+                data.find("./Name").text = unicode(name, "ms932").strip(" 　")
 
                 # 身体能力
                 p = physical.unpack(self.exebinary[index:index+2*6])
@@ -228,8 +228,8 @@ class Converter(threading.Thread):
                 e = self.data.find("Natures/Nature[6]/Description")
                 e.text = typesheet["Type5Label"]["Caption"]
 
-        except:
-            pass
+        except Exception, ex:
+            print ex
 
     def _get_sounds(self):
         # バイナリ断片を手がかりにして音声ファイル名を探す。
@@ -288,8 +288,8 @@ class Converter(threading.Thread):
             # "\0を捨てます。よろしいですか？\0"
             key = "\x00\x82\xF0\x8E\xCC\x82\xC4\x82\xDC\x82\xB7\x81\x42\x82\xE6\x82\xEB\x82\xB5\x82\xA2\x82\xC5\x82\xB7\x82\xA9\x81\x48\x00"
             get_keyafter(sounds[10], key, 14)
-        except:
-            pass
+        except Exception, ex:
+            print exs
 
     def _get_cards(self):
         if not self.exe:
@@ -405,8 +405,8 @@ class Converter(threading.Thread):
                                       (self.yado["-2_TradeArea2"], 3)], index)
                 # 解散
                 index = get_menucard([(self.yado["-3_PartyBreakup"], 1)], index)
-        except:
-            pass
+        except Exception, ex:
+            print ex
 
     def _get_messages(self):
         if not self.exe:
@@ -429,10 +429,273 @@ class Converter(threading.Thread):
                 e.find("Contents/Post[1]").set("name", goyado)
                 e.find("Contents/Post[2]").set("name", load)
                 e.find("Contents/Post[4]").set("name", end)
-            # TODO
-            pass
-        except:
-            pass
+
+            msgtable = {}
+
+            # リソースからメッセージを取得
+            rsrcmsgs = {
+                "message": "TCAUTIONDLG/CautionDlg/Caption",
+                "error_message": "TCAUTIONDLG/CautionDlg/Caption",
+                "decide": "TBILLDLG/BillDlg/yadoPanel/yado_EnterBtn/Caption",
+                "yes": "TCAUTIONDLG/CautionDlg/YesBtn/Caption",
+                "no": "TCAUTIONDLG/CautionDlg/NoBtn/Caption",
+                "close": "TCAUTIONDLG/CautionDlg/OkBtn/Caption",
+                "cancel": "TACTIONDLG/ActionDlg/CancelBtn/Caption",
+                "coution": "TREPAIRDLG/RepairDlg/RepairBTitle/Caption",
+                "sex": "TREPAIRDLG/RepairDlg/SexGroup/Caption",
+                "age": "TREPAIRDLG/RepairDlg/AgeGroup/Caption",
+                "description": "TBILLDLG/BillDlg/WorkPanel/Work_MemoBtn/Caption",
+                "history": "TSTATUSDLG/StatusDlg/ChannelPanel/CareerBtn/Caption",
+                "status": "TSTATUSDLG/StatusDlg/ChannelPanel/MultiBtn/Caption",
+                "skills": "TSTATUSDLG/StatusDlg/ChannelPanel/SkillBtn/Caption",
+                "items": "TSTATUSDLG/StatusDlg/ChannelPanel/ItemBtn/Caption",
+                "beasts": "TSTATUSDLG/StatusDlg/ChannelPanel/BeastBtn/Caption",
+                "delete": "TBILLDLG/BillDlg/yadoPanel/yado_DeleteBtn/Caption",
+                "information": "TBOOKDLG/BookDlg/MemberPanel/Member_InfoBtn/Caption",
+                "new": "TBILLDLG/BillDlg/yadoPanel/yado_EntryBtn/Caption",
+                "add_member": "TBOOKDLG/BookDlg/MemberPanel/Member_JoinBtn/Caption",
+                "members": "TBOOKDLG/BookDlg/PartyPanel/Party_MemberBtn/Caption",
+                "create_base_title": "TSTARTDLG/StartDlg/Caption",
+                "create_base_message_1": "TSTARTDLG/StartDlg/TitleLabel/Caption",
+                "create_base_message_2": "TSTARTDLG/StartDlg/NameLabel/Caption",
+                "card_control": "TCARDDLG/CardDlg/Caption",
+                "send_to": "TCARDDLG/CardDlg/TargetPanel/TargetLabel/Caption",
+                "card_information": "TCAPTIONDLG/CaptionDlg/Caption",
+                "entry_title": "TENTRYDLG/EntryDlg/Caption",
+                "entry_message": "TENTRYDLG/EntryDlg/PageControl/DefaultSheet/DefaultTitle/Caption",
+                "design_title": "TDESIGNDLG/DesignDlg/Caption",
+                "edit_character_message": "TDESIGNDLG/DesignDlg/TitleLabel/Caption",
+                "entry_name": "TDESIGNDLG/DesignDlg/NameLabel/Caption",
+                "entry_image": "TDESIGNDLG/DesignDlg/ImageLabel/Caption",
+                "entry_comment": "TDESIGNDLG/DesignDlg/CommentLabel/Caption",
+                "entry_sex": "TENTRYDLG/EntryDlg/PageControl/DefaultSheet/SexTitle/Caption",
+                "entry_age": "TENTRYDLG/EntryDlg/PageControl/DefaultSheet/AgeTitle/Caption",
+                "entry_cancel": "TENTRYDLG/EntryDlg/ButtonPanel/CancelBtn/Caption",
+                "entry_decide": "TENTRYDLG/EntryDlg/ButtonPanel/SaveBtn/Caption",
+                "entry_next": "TENTRYDLG/EntryDlg/ButtonPanel/ForeBtn/Caption",
+                "entry_previous": "TENTRYDLG/EntryDlg/ButtonPanel/BackBtn/Caption",
+                "relation_title": "TENTRYDLG/EntryDlg/PageControl/ParentSheet/ParentTitle/Caption",
+                "relation_message": "TENTRYDLG/EntryDlg/PageControl/ParentSheet/ParentLabel/Caption",
+                "father": "TENTRYDLG/EntryDlg/PageControl/ParentSheet/FatherTitle/Caption",
+                "mother": "TENTRYDLG/EntryDlg/PageControl/ParentSheet/MotherTitle/Caption",
+                "consumption_ep": ("TENTRYDLG/EntryDlg/PageControl/ParentSheet/FatherExtra/Caption", ("60", "%s"), ("120", "%s")),
+                "nature_title": "TENTRYDLG/EntryDlg/PageControl/TypeSheet/TypeTitle/Caption",
+                "nature_message": "TENTRYDLG/EntryDlg/PageControl/TypeSheet/TypeComment/Caption",
+                "making_title": "TENTRYDLG/EntryDlg/PageControl/MarkSheet/MarkTitle/Caption",
+                "making_message": "TENTRYDLG/EntryDlg/PageControl/MarkSheet/MarkLabel/Caption",
+                "character_information": "TSTATUSDLG/StatusDlg/Caption",
+                "insufficiency_title": "TREPAIRDLG/RepairDlg/Caption",
+                "insufficiency_message": "TREPAIRDLG/RepairDlg/CommentLabel/Caption",
+                "instructions": "TMEMODLG/MemoDlg/TargetPanel/Caption",
+                "referencing_file": "TMEMODLG/MemoDlg/TargetPanel/TargetLabel/Caption",
+                "party_information": "TPARTYDLG/PartyDlg/Caption",
+                "party_money": "TPARTYDLG/PartyDlg/MoneyLabel/Caption",
+                "party_name": "TPARTYDLG/PartyDlg/NameLabel/Caption",
+                "table": "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/TableBtn/Caption",
+                "camp": "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/CampBtn/Caption",
+                "start_action": "TMAINWINDOW/MainWindow/ButtonControl/BattleSheet/BattleBtn/Caption",
+                "runaway": "TMAINWINDOW/MainWindow/ButtonControl/BattleSheet/EscapeBtn/Caption",
+                "round": ("TMAINWINDOW/MainWindow/ButtonControl/BattleSheet/RoundPanel/Caption", ("00", "%s")),
+                "currency": ("TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/Caption", (" ", ""), ("0", "%s ")),
+            }
+            rcdata = {}
+            for key, path in rsrcmsgs.iteritems():
+                repls = []
+                if not isinstance(path, str):
+                    repls = path[1:]
+                    path = path[0]
+                rsrcmsgs[key] = None
+                path = path.split("/")
+                if path[0] in rcdata:
+                    table = rcdata[path[0]]
+                else:
+                    table = cw.skin.win32res.get_rcdata(self.exe, path[0])
+                    rcdata[path[0]] = table
+                if table:
+                    for i in range(1, len(path)):
+                        if path[i] in table:
+                            table = table[path[i]]
+                        else:
+                            table = None
+                            break
+                    if table:
+                        for repl in repls:
+                            table = table.replace(repl[0], repl[1])
+                        msgtable[key] = table.strip(" 　")
+
+            # バイナリ断片を手がかりにメッセージを取得
+            # (key, 0=keyの前方を探す/1=後方を探す, index移動量, Prefix)
+            cribs = {
+                "select_base_title": ("\0IMAGE_COMMAND0\0IMAGE_DEBUG\0", 0, -8),
+                "cards_hand": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -104, "%s"),
+                "cards_backpack": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -80),
+                "cards_storehouse": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -46),
+                "info_card": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -12),
+                "mode_show": ("\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -57),
+                "mode_move": ("\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -44),
+                "mode_use": ("\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -31),
+                "mode_battle": ("\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -18),
+                "send_to_manual": ("\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 0),
+                "send_to_storehouse": ("\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 9),
+                "send_to_backpack": ("\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 20),
+                "send_to_shelf": ("\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 27),
+                "send_to_trush": ("\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_UP\0BUTTON_DOWN\0BUTTON_RSMALL\0BUTTON_LSMALL\0", 1, 32),
+                "select_battle_action": ("\x00\x8D\x73\x93\xAE\x8A\x4A\x8E\x6E\x00\x49\x4D\x41\x47\x45\x5F\x42\x41\x54\x54\x4C\x45\x00\x93\xA6\x82\xB0\x82\xE9\x00", 0, -12),
+                "lost_coupon_1": ("\x81\x46\x83\x8C\x83\x78\x83\x8B\x95\xE2\x90\xB3\x92\x86\x00\x81\x51\x8F\xC1\x96\xC5\x97\x5C\x96\xF1\x00\x81\x51\x8E\x80\x96\x53\x00", 1, 0),
+            }
+            for key, data in cribs.iteritems():
+                cribs[key] = None
+                index = self.exebinary.find(data[0])
+                if 0 <= index:
+                    if data[1] == 1:
+                        # 後方
+                        index += len(data[0])
+                    # 位置調整
+                    index += data[2]
+                    s, index = self._get_text(index)
+                    if len(data) >= 4:
+                        s = data[3] + s
+                    msgtable[key] = s.strip(" 　")
+
+            # まとまったテキストを探す
+            msglist1 = []
+            key = "\\Midi\\DefReset.mid\0\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(71):
+                    s, index = self._get_text(index, True)
+                    msglist1.append(s)
+
+            msglist2 = []
+            key = "\0Male\0Female\0Child\0Young\0Adult\0Old\0BUTTON_LMOVE\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_RMOVE\0BUTTON_LMOVE\0BUTTON_RMOVE\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(50):
+                    s, index = self._get_text(index, True)
+                    msglist2.append(s)
+
+            msglist3 = []
+            key = "\0IMAGE_COMMAND0\0IMAGE_DEBUG\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(62):
+                    s, index = self._get_text(index, True)
+                    msglist3.append(s)
+
+            msglist4 = []
+            key = "\x00\x81\x69\x00\x81\x6A\x00\x8D\x73\x93\xAE\x97\xCD\x00\x89\xF1\x94\xF0\x97\xCD\x00\x92\xEF\x8D\x52\x97\xCD\x00\x96\x68\x8C\xE4\x97\xCD\x00\x8F\xAC\x00\x92\x86\x00\x91\xE5\x00\x8D\xC5\x91\xE5\x00\x83\x7B\x81\x5B\x83\x69\x83\x58\x00"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(30):
+                    s, index = self._get_text(index, True)
+                    msglist4.append(s)
+
+            msglist5 = []
+            key = "\\Table\\Book.bmp\0 / \0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(100):
+                    s, index = self._get_text(index, True)
+                    msglist5.append(s)
+
+            msglist6 = []
+            key = "\0CARD_REVERSE\0\x81\x4F\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(86):
+                    s, index = self._get_text(index, True)
+                    msglist6.append(s)
+
+            msglist7 = []
+            key = "\0IMAGE_DEBUG\0IMAGE_COMMAND0\0Party\0.wpt\0.wpt\0.wpl\0.wpt\0.wpt\0.wpl"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(8):
+                    s, index = self._get_text(index, True)
+                    msglist7.append(s)
+
+            msglist8 = []
+            key = "\0\x81\x46\x82\x71\0\0\0\0\0\0Default\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in range(8):
+                    s, index = self._get_text(index, True)
+                    msglist8.append(s)
+
+            cribs2 = {
+                "new_base": msglist3[3],
+                "confirm_sell": "%s" + msglist1[62] + "%s" + msglist1[63],
+                "confirm_dump": "%s" + msglist1[67],
+                "error_hand_be_full": "%s" + msglist1[59],
+                "error_sell_premier_card": msglist1[61],
+                "error_dump_premier_card": "%s" + msglist1[66],
+                "confirm_use_card": "%s" + msglist1[57],
+                "inactive": "%s" + msglist1[28],
+                "selected_penalty": msglist1[30],
+                "general_father": msglist2[21],
+                "general_mother": msglist2[30],
+                "entry_cancel_message": msglist2[7],
+                "entry_decide_message": "%s" + msglist2[5],
+                "edit_design": msglist4[21],
+                "regulate_level": msglist4[22],
+                "regulate_level_title": msglist4[29],
+                "card_number": msglist4[6] + " %s / %s",
+                "select_member_title": msglist5[0],
+                "album": msglist5[72],
+                "confirm_delete_character": msglist5[50] + "%s" + msglist5[51],
+                "confirm_delete_character_in_album": "%s" + msglist5[98],
+                "character_level": msglist5[2],
+                "character_class": msglist5[3],
+                "character_age": msglist5[9] + ":%s",
+                "character_sex": msglist5[14] + ":%s",
+                "character_ep": msglist5[16] + ":%s",
+                "character_history": "【" + msglist5[21] + "】",
+                "history_etc": msglist5[20],
+                "confirm_grow": msglist5[32] + "%s" + msglist5[33] + msglist5[34].replace(msglist6[2][1:], "%s").replace(msglist6[3][1:], "%s") + msglist5[38],
+                "confirm_die": msglist5[32] + "%s" + msglist5[33] + msglist5[37] + msglist5[38],
+                "die_message": "%s" + msglist5[44],
+                "default_party_name": "%s" + msglist5[24],
+                "resume_adventure": msglist5[64],
+                "select_scenario_title": msglist3[20],
+                "target_level_1": msglist3[49] + " %s",
+                "target_level_2": msglist3[49] + " %s～%s",
+                "contents": msglist3[61],
+                "confirm_save": msglist1[52],
+                "saved": msglist1[54],
+                "confirm_go_title": msglist1[51],
+                "confirm_quit": msglist1[50],
+                "load_scenario_failure": msglist1[45],
+                "f9_message": msglist1[40],
+                "confirm_runaway": msglist1[13],
+                "ok": msglist1[70],
+                "adventurers_team": msglist5[66],
+                "adventurers_money": msglist5[68] + " %s " + msglist5[69],
+                "select_member_message": msglist8[0],
+                "select_message": msglist8[3],
+                "number_1_coupon": msglist6[17],
+                "father_coupon": msglist7[2] + "%s",
+                "mother_coupon": msglist7[3] + "%s",
+                "lost_coupon_2": msglist5[41],
+                "level_up": "\n\n\n#I" + msglist1[69],
+            }
+            for key, msg in cribs2.iteritems():
+                msgtable[key] = msg.strip(" 　")
+
+            for e in self.data.getfind("Messages"):
+                key = e.get("key")
+                if key in msgtable:
+                    e.text = msgtable[key]
+
+        except Exception, ex:
+            print ex
 
     def _get_text(self, index, cutzero=False):
         end = self.exebinary.find('\0', index)

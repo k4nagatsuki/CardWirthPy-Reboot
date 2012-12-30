@@ -92,7 +92,7 @@ class YadoMoneyPanel(StatusBarPanel):
             self.update_image()
 
     def update_image(self):
-        s = str(self.text) + "sp"
+        s = cw.cwpy.msgs["currency"] % (self.text)
 
         if len(s) > 9:
             s = s[-9::]
@@ -138,7 +138,7 @@ class RoundCounterPanel(YadoMoneyPanel):
             self.text = None
 
     def update_image(self):
-        s = "Round " + self.text
+        s = cw.cwpy.msgs["round"] % (self.text)
 
         if len(s) > 9:
             s = s[:9]

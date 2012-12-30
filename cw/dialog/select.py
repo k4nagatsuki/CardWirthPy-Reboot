@@ -447,7 +447,7 @@ class YadoSelect(Select):
                         name = os.path.splitext(fname)[0].replace("(2)", "")
                         seq.append(name)
                     elif idx == 23:
-                        seq.append(cw.cwpy.msgs["etc"])
+                        seq.append(cw.cwpy.msgs["scenario_etc"])
                         break
 
             advnames.append(seq)
@@ -520,11 +520,11 @@ class PartySelect(Select):
         # 見出し
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-        s = "Adventurer's Team"
+        s = cw.cwpy.msgs["adventurers_team"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, 25)
         # 所持金
-        s = "Money " + str(header.money) + " sp"
+        s = cw.cwpy.msgs["adventurers_money"] % (header.money)
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, 60)
 
@@ -1128,7 +1128,7 @@ class ScenarioSelect(Select):
 
             # contents
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=9))
-            s = "Contents"
+            s = cw.cwpy.msgs["contents"]
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, 110)
             # 中身
@@ -1137,7 +1137,7 @@ class ScenarioSelect(Select):
             names = self.names
             if len(names) > 13:
                 names = names[0:12]
-                names.append("etc...")
+                names.append(cw.cwpy.msgs["history_etc"])
 
             s = "\n".join(names)
             dc.DrawLabel(s, wx.Rect(bmpw/2, 130, 1, 1), wx.ALIGN_CENTER_HORIZONTAL)

@@ -38,8 +38,8 @@ class SkinConversionDialog(wx.Dialog):
         #self.note.AddPage(self.pane_message, cw.cwpy.msgs["message"])
         #self.note.AddPage(self.pane_card, u"カード")
 
-        self.btn_ok = wx.Button(self, wx.ID_OK, cw.cwpy.msgs["entry_decide"])
-        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, cw.cwpy.msgs["entry_cancel"])
+        self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"中止")
 
         self._do_layout()
         self._bind()

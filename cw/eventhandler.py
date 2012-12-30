@@ -166,7 +166,7 @@ class EventHandler(object):
 
         if cw.cwpy.is_showingdebugger() and not cw.cwpy.is_fullscreen():
             cw.cwpy.sounds["signal"].play()
-            s = cw.cwpy.msgs["error_debugger_in_fullscreen"]
+            s = u"デバッガ表示中はフルスクリーン化できません。"
             cw.cwpy.call_dlg("MESSAGE", text=s)
         else:
             cw.cwpy.set_fullscreen(not cw.cwpy.is_fullscreen())

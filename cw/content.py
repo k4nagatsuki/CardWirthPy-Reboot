@@ -1138,7 +1138,7 @@ class EndContent(EventContentBase):
 
             # レベルアップメッセージ
             if levelup:
-                text = cw.cwpy.msgs["level_up"]
+                text = cw.util.encodewrap(cw.cwpy.msgs["level_up"])
                 names = [(0, cw.cwpy.msgs["ok"])]
                 mwin = cw.sprite.message.MessageWindow(text, names, pcard.imgpath, pcard)
                 cw.cwpy.show_message(mwin)
@@ -1921,7 +1921,7 @@ class TalkContent(EventContentBase):
                     seq.append((index, name))
 
         if not seq:
-            seq = [(0, u"ＯＫ")]
+            seq = [(0, cw.cwpy.msgs["ok"])]
 
         return seq
 

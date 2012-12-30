@@ -1239,7 +1239,7 @@ class Party(object):
         """
         番号クーポンを配布する。
         """
-        names = [u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
+        names = [cw.cwpy.msgs["number_1_coupon"], u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
 
         for index, pcard in enumerate(cw.cwpy.get_pcards()):
             pcard.remove_numbercoupon()

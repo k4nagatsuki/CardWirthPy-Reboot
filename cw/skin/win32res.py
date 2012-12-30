@@ -79,7 +79,14 @@ def get_rcdata(exe, resname):
                 data = data[1+length:]
                 type = ord(data[0])
                 data = data[1:]
-                if type == 0x02: # signed byte
+                if type == 0x01: # strings?
+                    value = []
+                    while ord(data[0]) == 6:
+                        length = ord(data[1])
+                        value.append(unicode(data[2:2+length], 'ms932'))
+                        data = data[2+length:]
+                    data = data[1:]
+                elif type == 0x02: # signed byte
                     value = int8.unpack(data[0])[0]
                     data = data[1:]
                 elif type == 0x03: # unsigned short

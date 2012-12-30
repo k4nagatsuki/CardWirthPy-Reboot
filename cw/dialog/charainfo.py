@@ -38,14 +38,14 @@ class CharaInfo(wx.Dialog):
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("btnfont"))
         # 解説
         self.descpanel = DescPanel(self.notebook, self.ccard)
-        self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["character_description"])
+        self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["description"])
         # 経歴
         self.historypanel = HistoryPanel(self.notebook, self.ccard)
-        self.notebook.AddPage(self.historypanel, cw.cwpy.msgs["character_history"])
+        self.notebook.AddPage(self.historypanel, cw.cwpy.msgs["history"])
         # 編集または状態
         if cw.cwpy.is_playingscenario():
             self.editpanel = StatusPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["character_status"])
+            self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         else:
             self.editpanel = EditPanel(self.notebook, self.ccard)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
@@ -54,13 +54,13 @@ class CharaInfo(wx.Dialog):
         if self.ccard.data.hasfind("SkillCards"):
             # 技能
             self.skillpanel = SkillPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.skillpanel, cw.cwpy.msgs["character_skills"])
+            self.notebook.AddPage(self.skillpanel, cw.cwpy.msgs["skills"])
             # アイテム
             self.itempanel = ItemPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.itempanel, cw.cwpy.msgs["character_items"])
+            self.notebook.AddPage(self.itempanel, cw.cwpy.msgs["items"])
             # 召喚獣
             self.beastpanel = BeastPanel(self.notebook, self.ccard)
-            self.notebook.AddPage(self.beastpanel, cw.cwpy.msgs["character_beasts"])
+            self.notebook.AddPage(self.beastpanel, cw.cwpy.msgs["beasts"])
 
         # toppanel
         self.toppanel = TopPanel(self, self.ccard)

@@ -1035,7 +1035,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
                 elif targettype == "TRASHBOX":
                     self.sounds["error"].play()
-                    s = cw.cwpy.msgs["error_dump_premier_card"]
+                    s = cw.cwpy.msgs["error_dump_premier_card"] % (header.name)
                     self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
 
                 return
