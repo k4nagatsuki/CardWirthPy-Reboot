@@ -13,8 +13,7 @@ class Deck(object):
         # 定められた次のドローカード
         self.nextcards = []
 
-    @classmethod
-    def get_actioncards(cls, ccard):
+    def get_actioncards(self, ccard):
         seq = []
 
         for id, header in cw.cwpy.rsrc.actioncards.iteritems():
@@ -24,7 +23,6 @@ class Deck(object):
                 for cnt in xrange(header.uselimit):
                     seq.append(header)
 
-        cls.get_actioncards = classmethod(lambda cls, ccard: seq)
         return seq
 
     def get_skillcards(self, ccard):
