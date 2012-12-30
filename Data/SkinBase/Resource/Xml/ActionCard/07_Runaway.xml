@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCard>
+  <Property>
+    <Id>7</Id>
+    <Name>逃走</Name>
+    <ImagePath>Resource/Image/Card/ACTION9.bmp</ImagePath>
+    <Description>戦闘行動カード（特殊）。逃走し、場から離脱する。敵に背を向けるため、一時的に回避や抵抗が難しい状態となる。素早く臆病な者ほどこのカードを選択しやすい。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="Agl" mental="Unbrave" />
+    <Target allrange="False">User</Target>
+    <EffectType spell="False">Normal</EffectType>
+    <ResistType>Unfail</ResistType>
+    <SuccessRate>0</SuccessRate>
+    <VisualEffect>Reverse</VisualEffect>
+    <Enhance avoid="-5" resist="-5" defense="0"/>
+    <SoundPath>Material/システム・逃走.wav</SoundPath>
+    <SoundPath2>Material/効果（付与）.wav</SoundPath2>
+    <KeyCodes>逃走\n\n\n\n</KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>0</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions>
+    <Motion type="VanishTarget" element="All" />
+  </Motions>
+  <Events>
+    <Event>
+      <Contents>
+        <Start name="使用時イベント">
+          <Contents>
+          </Contents>
+        </Start>
+      </Contents>
+    </Event>
+  </Events>
+</ActionCard>
