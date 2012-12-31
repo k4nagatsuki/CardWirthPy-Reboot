@@ -527,9 +527,9 @@ class Converter(threading.Thread):
             cribs = {
                 "select_base_title": ("\0IMAGE_COMMAND0\0IMAGE_DEBUG\0", 0, -8),
                 "cards_hand": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -104, "%s"),
-                "cards_backpack": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -80),
-                "cards_storehouse": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -46),
-                "info_card": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -12),
+                "cards_backpack": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -91),
+                "cards_storehouse": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -59),
+                "info_card": ("\0TABLE_PAD\0\0Cap \0/\0IMAGE_COMMAND7\0IMAGE_COMMAND5\0IMAGE_COMMAND8\0/\0", 0, -23),
                 "mode_show": ("\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -57),
                 "mode_move": ("\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -44),
                 "mode_use": ("\x00\x92\x86\x8E\x7E\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00\x95\xC2\x82\xB6\x82\xE9\x00", 0, -31),
@@ -555,6 +555,15 @@ class Converter(threading.Thread):
                     if len(data) >= 4:
                         s = data[3] + s
                     msgtable[key] = s.strip(" 　")
+
+            # 一分テキストの調整
+            for key in ("cards_backpack", "cards_storehouse", "info_card"):
+                if key in msgtable:
+                    s = msgtable[key]
+                    index = s.find(" - ")
+                    if 0 <= index:
+                        index += len(" - ")
+                        msgtable[key] = s[index:]
 
             # まとまったテキストを探す
             msglist1 = []
