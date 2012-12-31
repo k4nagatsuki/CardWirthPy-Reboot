@@ -292,7 +292,7 @@ class Resource(object):
         font.set_bold(True)
         fonts["pcard_name"] = font
         # プレイヤカードのレベル描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], 30)
+        font = pygame.font.Font(self.fontpaths["mincho"], 36)
         font.set_italic(True)
         fonts["pcard_level"] = font
         # メッセージウィンドウのテキスト描画用
