@@ -15,7 +15,7 @@ class Converter(threading.Thread):
     def __init__(self, exe):
         threading.Thread.__init__(self)
 
-        self.maximum = 60
+        self.maximum = 70
         self.curnum = 0
         self.message = u"変換を開始しています..."
         self.failure = False
@@ -946,7 +946,17 @@ class Converter(threading.Thread):
             self.message = u"背景画像フォルダをコピー中..."
             shutil.copytree(cw.util.join_paths(datadir, u"Table"), cw.util.join_paths(dir, u"Table"))
 
+            # リソースオーバーライド
             self.curnum = 60
+            self.message = u"オーバーライドされたリソースをコピー中..."
+            resdir = cw.util.join_paths(datadir, u"Resource")
+            for key, target in imgtbl.iteritems():
+                fpath = cw.util.join_paths(resdir, key + ".bmp")
+                if os.path.isfile(fpath):
+                    dist = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
+                    shutil.copyfile(fpath, dist)
+
+            self.curnum = 70
             self.message = u"スキンの生成が完了しました。"
 
             self.complete = True
