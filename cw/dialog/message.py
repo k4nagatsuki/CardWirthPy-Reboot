@@ -19,7 +19,7 @@ class Message(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, name, size=(355, 120),
                             style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetClientSize((349, 96))
-        self.text = text
+        self.text = cw.util.txtwrap(text, mode=6)
         self.mode = mode
 
         if self.mode == 1:

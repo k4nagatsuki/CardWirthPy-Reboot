@@ -706,6 +706,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     mode=3: 画像なしメッセージ用。
     mode=4: キャラクタ情報ダイアログの解説文・張り紙説明用。
     mode=5: 素質解説文用。
+    mode=6: メッセージダイアログ用。
     """
     if mode == 1:
         wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
@@ -722,6 +723,9 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     elif mode == 5:
         wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
         width = 24
+    elif mode == 6:
+        wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
+        width = 48
 
     # \\nを改行コードに戻す
     s = s.replace("\\n", "\n")
