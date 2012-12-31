@@ -618,18 +618,35 @@ class AdventurerCreaterPage(wx.Panel):
             if self.age == u"＿" + f.name:
                 age = f.abbr
 
+        dpaths = []
+        facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
+
+        # 性別・年代限定
         dpath = sex + "-" + age
-        dpath = cw.util.join_paths(cw.cwpy.skindir, u"Face", dpath)
+        dpaths.append(cw.util.join_paths(facedir, dpath))
+        # 性別限定
+        dpath = sex
+        dpaths.append(cw.util.join_paths(facedir, dpath))
+        # 年代限定
+        dpath = "Common-" + age
+        dpaths.append(cw.util.join_paths(facedir, dpath))
+        # 汎用
+        dpath = "Common"
+        dpaths.append(cw.util.join_paths(facedir, dpath))
+
         if reset or self.imgpath == "":
             self.imgpaths = []
         else:
             self.imgpaths = [self.imgpath]
 
-        for name in os.listdir(dpath):
-            path = cw.util.join_paths(dpath, name)
+        for dpath in dpaths:
+            if not os.path.isdir(dpath):
+                continue
+            for name in os.listdir(dpath):
+                path = cw.util.join_paths(dpath, name)
 
-            if os.path.isfile(path):
-                self.imgpaths.append(path)
+                if os.path.isfile(path):
+                    self.imgpaths.append(path)
 
         if self.imgpaths:
             self.imgpath = self.imgpaths[0]
