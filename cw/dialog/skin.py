@@ -446,7 +446,7 @@ class SkinSoundPanel(wx.Panel):
             self.grid.SetCellValue(row, 0, e.text)
 
     def get_values(self, conv):
-        for row, e in enumrate(conv.data.find("Sounds")):
+        for row, e in enumerate(conv.data.find("Sounds")):
             e.text = self.grid.GetCellValue(row, 0)
 
     def _do_layout(self):

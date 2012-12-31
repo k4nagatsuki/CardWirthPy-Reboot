@@ -435,7 +435,7 @@ class Converter(threading.Thread):
             # リソースからメッセージを取得
             rsrcmsgs = {
                 "message": "TCAUTIONDLG/CautionDlg/Caption",
-                "decide": "TBILLDLG/BillDlg/yadoPanel/yado_EnterBtn/Caption",
+                "decide": "TBOOKDLG/BookDlg/PartyPanel/Party_OpenBtn/Caption",
                 "yes": "TCAUTIONDLG/CautionDlg/YesBtn/Caption",
                 "no": "TCAUTIONDLG/CautionDlg/NoBtn/Caption",
                 "close": "TCAUTIONDLG/CautionDlg/OkBtn/Caption",
@@ -449,9 +449,9 @@ class Converter(threading.Thread):
                 "skills": "TSTATUSDLG/StatusDlg/ChannelPanel/SkillBtn/Caption",
                 "items": "TSTATUSDLG/StatusDlg/ChannelPanel/ItemBtn/Caption",
                 "beasts": "TSTATUSDLG/StatusDlg/ChannelPanel/BeastBtn/Caption",
-                "delete": "TBILLDLG/BillDlg/yadoPanel/yado_DeleteBtn/Caption",
+                "delete": "TBOOKDLG/BookDlg/MemberPanel/Member_DeleteBtn/Caption",
                 "information": "TBOOKDLG/BookDlg/MemberPanel/Member_InfoBtn/Caption",
-                "new": "TBILLDLG/BillDlg/yadoPanel/yado_EntryBtn/Caption",
+                "new": "TBOOKDLG/BookDlg/MemberPanel/Member_EntryBtn/Caption",
                 "add_member": "TBOOKDLG/BookDlg/MemberPanel/Member_JoinBtn/Caption",
                 "members": "TBOOKDLG/BookDlg/PartyPanel/Party_MemberBtn/Caption",
                 "create_base_title": "TSTARTDLG/StartDlg/Caption",
