@@ -435,7 +435,6 @@ class Converter(threading.Thread):
             # リソースからメッセージを取得
             rsrcmsgs = {
                 "message": "TCAUTIONDLG/CautionDlg/Caption",
-                "error_message": "TCAUTIONDLG/CautionDlg/Caption",
                 "decide": "TBILLDLG/BillDlg/yadoPanel/yado_EnterBtn/Caption",
                 "yes": "TCAUTIONDLG/CautionDlg/YesBtn/Caption",
                 "no": "TCAUTIONDLG/CautionDlg/NoBtn/Caption",

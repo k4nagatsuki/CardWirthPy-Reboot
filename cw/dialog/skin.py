@@ -3,6 +3,7 @@
 
 import os
 import wx
+import wx.grid
 
 import cw
 
@@ -28,15 +29,15 @@ class SkinConversionDialog(wx.Dialog):
 
         self.note = wx.Notebook(self)
         self.pane_base = SkinBasePanel(self.note, self.conv)
-        #self.pane_feature = SkinFeaturePanel(self.note, self.conv)
-        #self.pane_sound = SkinSoundPanel(self.note, self.conv)
-        #self.pane_message = SkinMessagePanel(self.note, self.conv)
-        #self.pane_card = SkinCardPanel(self.note, self.conv)
+        self.pane_feature = SkinFeaturePanel(self.note, self.conv)
+        self.pane_sound = SkinSoundPanel(self.note, self.conv)
+        self.pane_message = SkinMessagePanel(self.note, self.conv)
+        self.pane_card = SkinCardPanel(self.note, self.conv)
         self.note.AddPage(self.pane_base, u"基本")
-        #self.note.AddPage(self.pane_feature, u"特性")
-        #self.note.AddPage(self.pane_sound, u"サウンド")
-        #self.note.AddPage(self.pane_message, cw.cwpy.msgs["message"])
-        #self.note.AddPage(self.pane_card, u"カード")
+        self.note.AddPage(self.pane_feature, u"特性")
+        self.note.AddPage(self.pane_sound, u"サウンド")
+        self.note.AddPage(self.pane_message, u"メッセージ")
+        self.note.AddPage(self.pane_card, u"カード")
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"中止")
@@ -49,10 +50,10 @@ class SkinConversionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
     def OnOk(self, event):
-        # TODO 特性
-        # TODO サウンド
-        # TODO メッセージ
-        # TODO カード
+        self.pane_feature.get_values(self.conv)
+        self.pane_sound.get_values(self.conv)
+        self.pane_message.get_values(self.conv)
+        self.pane_card.get_values(self.conv)
 
         self.conv.exe = self.pane_base.exectrl.GetValue()
         self.conv.datadir = self.pane_base.datactrl.GetValue()
@@ -202,7 +203,7 @@ class SkinBasePanel(wx.Panel):
         self.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
         # 解説
         self.desclabel = wx.StaticText(self, -1, u"解説")
-        self.descctrl = wx.TextCtrl(self, size=(300, 100), style=wx.TE_MULTILINE)
+        self.descctrl = wx.TextCtrl(self, size=(400, 100), style=wx.TE_MULTILINE)
         self.descctrl.SetValue(conv.data.gettext("Property/Description", ""))
 
         self._do_layout()
@@ -268,6 +269,11 @@ class SkinBasePanel(wx.Panel):
         self.authorctrl.SetValue(self.conv.data.gettext("Property/Author", ""))
         self.descctrl.SetValue(self.conv.data.gettext("Property/Description", ""))
 
+        self.Parent.Parent.pane_feature.set_values(self.conv)
+        self.Parent.Parent.pane_sound.set_values(self.conv)
+        self.Parent.Parent.pane_message.set_values(self.conv)
+        self.Parent.Parent.pane_card.set_values(self.conv)
+
     def OnInput(self, event):
         exe = self.exectrl.GetValue().strip()
         data = self.datactrl.GetValue().strip()
@@ -280,33 +286,376 @@ class SkinBasePanel(wx.Panel):
             self.TopLevelParent.btn_ok.Disable()
 
 #-------------------------------------------------------------------------------
-# TODO 特性情報
+# 特性情報
 #-------------------------------------------------------------------------------
 
 class SkinFeaturePanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
 
+        base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        basesexes = base.getfind("Sexes")
+        baseperiods = base.getfind("Periods")
+        basenatures = base.getfind("Natures")
+        basemakings = base.getfind("Makings")
+
+        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid.CreateGrid(len(basesexes) + len(baseperiods) +\
+                             len(basenatures) + len(basemakings), 12)
+        self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
+
+        nedit = wx.grid.GridCellNumberEditor(-99, 99)
+        fedit = wx.grid.GridCellFloatEditor(4, 1)
+
+        self.grid.SetColLabelValue(0, "名称");
+        self.grid.SetColLabelValue(1, "器用");
+        self.grid.SetColLabelValue(2, "敏捷");
+        self.grid.SetColLabelValue(3, "知力");
+        self.grid.SetColLabelValue(4, "筋力");
+        self.grid.SetColLabelValue(5, "生命");
+        self.grid.SetColLabelValue(6, "精神");
+        self.grid.SetColLabelValue(7, "好戦");
+        self.grid.SetColLabelValue(8, "社交");
+        self.grid.SetColLabelValue(9, "勇猛");
+        self.grid.SetColLabelValue(10, "慎重");
+        self.grid.SetColLabelValue(11, "狡猾");
+
+        self.grid.SetColSize(0, 80)
+        for col in range(1, 7):
+            self.grid.SetColFormatNumber(col)
+            self.grid.SetColSize(col, 40)
+            for row in range(0, self.grid.GetNumberRows()):
+                self.grid.SetCellEditor(row, col, nedit)
+        for col in range(7, 12):
+            self.grid.SetColFormatFloat(col, 2, 1)
+            self.grid.SetColSize(col, 40)
+            for row in range(0, self.grid.GetNumberRows()):
+                self.grid.SetCellEditor(row, col, fedit)
+
+        row = 0
+        for data in basesexes:
+            self.grid.SetRowLabelValue(row, data.gettext("Name", ""))
+            row += 1
+        for data in baseperiods:
+            self.grid.SetRowLabelValue(row, data.gettext("Name", ""))
+            row += 1
+        for data in basenatures:
+            self.grid.SetRowLabelValue(row, data.gettext("Name", ""))
+            row += 1
+        for data in basemakings:
+            self.grid.SetRowLabelValue(row, data.gettext("Name", ""))
+            row += 1
+
+        self.set_values(conv)
+
+        self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
+
+        self._do_layout()
+
+    def set_values(self, conv):
+        def set_rowdata(data, row):
+            self.grid.SetCellValue(row, 0, data.gettext("Name", ""))
+            e = data.find("Physical")
+            self.grid.SetCellValue(row, 1, e.get("dex", "0"))
+            self.grid.SetCellValue(row, 2, e.get("agl", "0"))
+            self.grid.SetCellValue(row, 3, e.get("int", "0"))
+            self.grid.SetCellValue(row, 4, e.get("str", "0"))
+            self.grid.SetCellValue(row, 5, e.get("vit", "0"))
+            self.grid.SetCellValue(row, 6, e.get("min", "0"))
+            e = data.find("Mental")
+            self.grid.SetCellValue(row, 7, e.get("aggressive", "0"))
+            self.grid.SetCellValue(row, 8, e.get("cheerful", "0"))
+            self.grid.SetCellValue(row, 9, e.get("brave", "0"))
+            self.grid.SetCellValue(row, 10, e.get("cautious", "0"))
+            self.grid.SetCellValue(row, 11, e.get("trickish", "0"))
+            return row + 1
+
+        row = 0
+        for data in conv.data.getfind("Sexes"):
+            row = set_rowdata(data, row)
+        for data in conv.data.getfind("Periods"):
+            row = set_rowdata(data, row)
+        for data in conv.data.getfind("Natures"):
+            row = set_rowdata(data, row)
+        for data in conv.data.getfind("Makings"):
+            row = set_rowdata(data, row)
+
+    def get_values(self, conv):
+        row = 0
+        def get_rowdata(data, row):
+            data.find("Name").text = self.grid.GetCellValue(row, 0)
+            e = data.find("Physical")
+            e.set("dex", self.grid.GetCellValue(row, 1))
+            e.set("agl", self.grid.GetCellValue(row, 2))
+            e.set("int", self.grid.GetCellValue(row, 3))
+            e.set("str", self.grid.GetCellValue(row, 4))
+            e.set("vit", self.grid.GetCellValue(row, 5))
+            e.set("min", self.grid.GetCellValue(row, 6))
+            e = data.find("Mental")
+            e.set("aggressive", self.grid.GetCellValue(row, 7))
+            e.set("cheerful", self.grid.GetCellValue(row, 8))
+            e.set("brave", self.grid.GetCellValue(row, 9))
+            e.set("cautious", self.grid.GetCellValue(row, 10))
+            e.set("trickish", self.grid.GetCellValue(row, 11))
+            return row + 1
+        for data in conv.data.getfind("Sexes"):
+            row = get_rowdata(data, row)
+        for data in conv.data.getfind("Periods"):
+            row = get_rowdata(data, row)
+        for data in conv.data.getfind("Natures"):
+            row = get_rowdata(data, row)
+        for data in conv.data.getfind("Makings"):
+            row = get_rowdata(data, row)
+
+    def _do_layout(self):
+        sizer = wx.GridSizer(1, 1)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
 #-------------------------------------------------------------------------------
-# TODO サウンド情報
+# サウンド情報
 #-------------------------------------------------------------------------------
 
 class SkinSoundPanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
 
+        base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        basesounds = base.find("Sounds")
+
+        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid.CreateGrid(len(basesounds), 1)
+        self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
+
+        self.grid.SetColLabelValue(0, "ファイル名(拡張子を除く)");
+        self.grid.SetColSize(0, 170)
+
+        for row, e in enumerate(basesounds):
+            self.grid.SetRowLabelValue(row, e.text)
+
+        self.set_values(conv)
+
+        self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
+
+        self._do_layout()
+
+    def set_values(self, conv):
+        for row, e in enumerate(conv.data.find("Sounds")):
+            self.grid.SetCellValue(row, 0, e.text)
+
+    def get_values(self, conv):
+        for row, e in enumrate(conv.data.find("Sounds")):
+            e.text = self.grid.GetCellValue(row, 0)
+
+    def _do_layout(self):
+        sizer = wx.GridSizer(1, 1)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
 #-------------------------------------------------------------------------------
-# TODO メッセージ情報
+# メッセージ情報
 #-------------------------------------------------------------------------------
 
 class SkinMessagePanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
 
+        base = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
+        basemsgs = base.find("Messages")
+
+        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid.CreateGrid(len(basemsgs) + 4, 1)
+        self.grid.SetRowLabelSize(150)
+        self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
+
+        self.grid.SetColLabelValue(0, "メッセージ(\\n=改行, \\\\=\\)");
+        self.grid.SetColSize(0, 380)
+
+        row = 0
+        for e in basemsgs:
+            s = cw.util.encodewrap(e.text)
+            self.grid.SetRowLabelValue(row, s)
+            row += 1
+
+        basegameover = cw.data.xml2etree(u"Data/SkinBase/Resource/Xml/GameOver/01_GameOver.xml")
+        e = basegameover.find("Events/Event//Talk")
+        self.grid.SetRowLabelValue(row, e.find("Text").text)
+        row += 1
+        self.grid.SetRowLabelValue(row, e.find("Contents/Post[1]").get("name"))
+        row += 1
+        self.grid.SetRowLabelValue(row, e.find("Contents/Post[2]").get("name"))
+        row += 1
+        self.grid.SetRowLabelValue(row, e.find("Contents/Post[4]").get("name"))
+        row += 1
+
+        self.set_values(conv)
+
+        self._do_layout()
+
+    def set_values(self, conv):
+        row = 0
+        for e in conv.data.find("Messages"):
+            s = cw.util.encodewrap(e.text)
+            self.grid.SetCellValue(row, 0, s)
+            row += 1
+
+        data = conv.gameover["01_GameOver"]
+        e = data.find("Events/Event//Talk")
+        self.grid.SetCellValue(row, 0, e.find("Text").text)
+        row += 1
+        self.grid.SetCellValue(row, 0, e.find("Contents/Post[1]").get("name"))
+        row += 1
+        self.grid.SetCellValue(row, 0, e.find("Contents/Post[2]").get("name"))
+        row += 1
+        self.grid.SetCellValue(row, 0, e.find("Contents/Post[4]").get("name"))
+        row += 1
+
+    def get_values(self, conv):
+        row = 0
+        for e in conv.data.find("Messages"):
+            e.text = cw.util.decodewrap(self.grid.GetCellValue(row, 0))
+            row += 1
+
+        data = conv.gameover["01_GameOver"]
+        e = data.find("Events/Event//Talk")
+        e.find("Text").text = self.grid.GetCellValue(row, 0)
+        row += 1
+        e.find("Contents/Post[1]").set("name", self.grid.GetCellValue(row, 0))
+        row += 1
+        e.find("Contents/Post[2]").set("name", self.grid.GetCellValue(row, 0))
+        row += 1
+        e.find("Contents/Post[4]").get("name", self.grid.GetCellValue(row, 0))
+        row += 1
+
+    def _do_layout(self):
+        sizer = wx.GridSizer(1, 1)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
 #-------------------------------------------------------------------------------
-# TODO カード情報
+# カード情報
 #-------------------------------------------------------------------------------
 
 class SkinCardPanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
+        baseconv = cw.skin.convert.Converter("")
+
+        self.grid = wx.grid.Grid(self, -1, size=(200, 200))
+        self.grid.CreateGrid(0, 2)
+        self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
+
+        self.grid.SetColLabelValue(0, "名称");
+        self.grid.SetColLabelValue(1, "解説(\\n=改行, \\\\=\\)");
+        self.grid.SetColSize(0, 80)
+        self.grid.SetColSize(1, 300)
+
+        row = 0
+        self.grid.InsertRows(row, len(baseconv.actioncard), False)
+        keys = baseconv.actioncard.keys()
+        keys.sort()
+        for key in keys:
+            e = baseconv.actioncard[key]
+            name = e.gettext("Property/Name", "")
+            self.grid.SetRowLabelValue(row, "アクション:" + name)
+            row += 1
+
+        def put_areacards(table, row):
+            keys = table.keys()
+            keys.sort()
+            for key in keys:
+                data = table[key]
+                areaname = data.gettext("Property/Name", "")
+                cards = data.getfind("MenuCards")
+                self.grid.InsertRows(row, len(cards), False)
+                for e in cards:
+                    name = e.gettext("Property/Name", "")
+                    self.grid.SetRowLabelValue(row, areaname + ": " + name)
+                    row += 1
+            return row
+
+        row = put_areacards(baseconv.title, row)
+        row = put_areacards(baseconv.yado, row)
+        row = put_areacards(baseconv.scenario, row)
+        row = put_areacards(baseconv.gameover, row)
+
+        self.set_values(conv)
+
+        self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
+
+        self._do_layout()
+
+    def set_values(self, conv):
+        row = 0
+        keys = conv.actioncard.keys()
+        keys.sort()
+        for key in keys:
+            e = conv.actioncard[key]
+            name = e.gettext("Property/Name", "")
+            desc = e.gettext("Property/Description", "")
+            self.grid.SetCellValue(row, 0, name)
+            self.grid.SetCellValue(row, 1, desc)
+            row += 1
+
+        def put_areacards(table, row):
+            keys = table.keys()
+            keys.sort()
+            for key in keys:
+                data = table[key]
+                cards = data.getfind("MenuCards")
+                for e in cards:
+                    name = e.gettext("Property/Name", "")
+                    desc = e.gettext("Property/Description", "")
+                    self.grid.SetCellValue(row, 0, name)
+                    self.grid.SetCellValue(row, 1, desc)
+                    row += 1
+            return row
+
+        row = put_areacards(conv.title, row)
+        row = put_areacards(conv.yado, row)
+        row = put_areacards(conv.scenario, row)
+        row = put_areacards(conv.gameover, row)
+
+    def get_values(self, conv):
+        row = 0
+        keys = conv.actioncard.keys()
+        keys.sort()
+        for key in keys:
+            e = conv.actioncard[key]
+            name = self.grid.GetCellValue(row, 0)
+            desc = self.grid.GetCellValue(row, 1)
+            name = e.find("Property/Name").text = name
+            desc = e.find("Property/Description").text = desc
+            row += 1
+
+        def get_areacards(table, row):
+            keys = table.keys()
+            keys.sort()
+            for key in keys:
+                data = table[key]
+                cards = data.getfind("MenuCards")
+                for e in cards:
+                    name = self.grid.GetCellValue(row, 0)
+                    desc = self.grid.GetCellValue(row, 1)
+                    e.find("Property/Name").text = name
+                    e.find("Property/Description").text = desc
+                    row += 1
+            return row
+
+        row = get_areacards(conv.title, row)
+        row = get_areacards(conv.yado, row)
+        row = get_areacards(conv.scenario, row)
+        row = get_areacards(conv.gameover, row)
+
+    def _do_layout(self):
+        sizer = wx.GridSizer(1, 1)
+        sizer.Add(self.grid, 0, wx.EXPAND|wx.ALL, 5)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
