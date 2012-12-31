@@ -332,10 +332,10 @@ class Converter(threading.Thread):
                 index = get_actioncard("05_Defense", index, 1)
                 # 見切り
                 index = get_actioncard("06_Distance", index, 1)
-                # 逃走
-                index = get_actioncard("07_Runaway", index, 1)
                 # 混乱
                 index = get_actioncard("-1_Confuse", index, 1)
+                # 逃走
+                index = get_actioncard("07_Runaway", index, 1)
 
             key = ".wav\0Encounter\0\x30\0\0Round\x20\0"
             index = self.exebinary.find(key)
