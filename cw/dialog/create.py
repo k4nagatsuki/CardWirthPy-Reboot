@@ -607,6 +607,33 @@ class AdventurerCreaterPage(wx.Panel):
     def is_skip(self):
         return False
 
+    def set_imgpaths(self, reset=True):
+        sex = cw.cwpy.setting.sexes[0].subname
+        for f in cw.cwpy.setting.sexes:
+            if self.sex == u"＿" + f.name:
+                sex = f.subname
+
+        age = cw.cwpy.setting.periods[0].abbr
+        for f in cw.cwpy.setting.periods:
+            if self.age == u"＿" + f.name:
+                age = f.abbr
+
+        dpath = sex + "-" + age
+        dpath = cw.util.join_paths(cw.cwpy.skindir, u"Face", dpath)
+        if reset or self.imgpath == "":
+            self.imgpaths = []
+        else:
+            self.imgpaths = [self.imgpath]
+
+        for name in os.listdir(dpath):
+            path = cw.util.join_paths(dpath, name)
+
+            if os.path.isfile(path):
+                self.imgpaths.append(path)
+
+        if self.imgpaths:
+            self.imgpath = self.imgpaths[0]
+
     def draw(self, update=False):
         if update:
             dc = wx.ClientDC(self)
@@ -637,7 +664,7 @@ class NamePage(AdventurerCreaterPage):
                 self.age = u"＿" + period.name
                 break
         self.imgpath = ""
-        self.set_imgpaths()
+        self.set_imgpaths(True)
         self._bind()
         self._do_layout()
 
@@ -734,14 +761,14 @@ class NamePage(AdventurerCreaterPage):
         if not self.sex == name:
             cw.cwpy.sounds["click"].play()
             self.sex = name
-            self.set_imgpaths()
+            self.set_imgpaths(True)
             self.draw(True)
 
     def set_age(self, name):
         if not self.age == name:
             cw.cwpy.sounds["click"].play()
             self.age = name
-            self.set_imgpaths()
+            self.set_imgpaths(True)
             self.draw(True)
 
     def set_nextimg(self, name):
@@ -767,30 +794,6 @@ class NamePage(AdventurerCreaterPage):
                 self.imgpath = self.imgpaths[0]
 
             self.draw(True)
-
-    def set_imgpaths(self):
-        sex = cw.cwpy.setting.sexes[0].subname
-        for f in cw.cwpy.setting.sexes:
-            if self.sex == u"＿" + f.name:
-                sex = f.subname
-
-        age = cw.cwpy.setting.periods[0].abbr
-        for f in cw.cwpy.setting.periods:
-            if self.age == u"＿" + f.name:
-                age = f.abbr
-
-        dpath = sex + "-" + age
-        dpath = cw.util.join_paths(cw.cwpy.skindir, u"Face", dpath)
-        self.imgpaths = []
-
-        for name in os.listdir(dpath):
-            path = cw.util.join_paths(dpath, name)
-
-            if os.path.isfile(path):
-                self.imgpaths.append(path)
-
-        if self.imgpaths:
-            self.imgpath = self.imgpaths[0]
 
 class RacePage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -1430,7 +1433,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.namectrl.SetSelection(0, len(self.name))
         self.descctrl.SetValue(cw.util.decodewrap(self.desc))
 
-        self.set_imgpaths()
+        self.set_imgpaths(False)
         self._bind()
         self._do_layout()
 
@@ -1523,33 +1526,6 @@ class DesignPanel(AdventurerCreaterPage):
                 self.imgpath = self.imgpaths[0]
 
             self.draw(True)
-
-    def set_imgpaths(self):
-        sex = cw.cwpy.setting.sexes[0].subname
-        for f in cw.cwpy.setting.sexes:
-            if self.sex == u"＿" + f.name:
-                sex = f.subname
-
-        age = cw.cwpy.setting.periods[0].abbr
-        for f in cw.cwpy.setting.periods:
-            if self.age == u"＿" + f.name:
-                age = f.abbr
-
-        dpath = sex + "-" + age
-        dpath = cw.util.join_paths(cw.cwpy.skindir, u"Face", dpath)
-        if self.imgpath == "":
-            self.imgpaths = []
-        else:
-            self.imgpaths = [self.imgpath]
-
-        for name in os.listdir(dpath):
-            path = cw.util.join_paths(dpath, name)
-
-            if os.path.isfile(path):
-                self.imgpaths.append(path)
-
-        if self.imgpaths:
-            self.imgpath = self.imgpaths[0]
 
 def main():
     pass
