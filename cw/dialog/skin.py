@@ -484,7 +484,7 @@ class SkinMessagePanel(wx.Panel):
         basemsgs = base.find("Messages")
 
         self.grid = wx.grid.Grid(self, -1, size=(200, 200))
-        self.grid.CreateGrid(len(basemsgs) + 4, 1)
+        self.grid.CreateGrid(len(basemsgs) + 6 + 4, 1)
         self.grid.SetRowLabelSize(150)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
@@ -493,6 +493,12 @@ class SkinMessagePanel(wx.Panel):
 
         row = 0
         for e in basemsgs:
+            s = cw.util.encodewrap(e.text)
+            self.grid.SetRowLabelValue(row, s)
+            row += 1
+
+        for e in base.getfind("Natures")[:6]:
+            e = e.find("Description")
             s = cw.util.encodewrap(e.text)
             self.grid.SetRowLabelValue(row, s)
             row += 1
@@ -519,6 +525,12 @@ class SkinMessagePanel(wx.Panel):
             self.grid.SetCellValue(row, 0, s)
             row += 1
 
+        for e in conv.data.getfind("Natures")[:6]:
+            e = e.find("Description")
+            s = cw.util.encodewrap(e.text)
+            self.grid.SetCellValue(row, 0, s)
+            row += 1
+
         data = conv.gameover["01_GameOver"]
         e = data.find("Events/Event//Talk")
         self.grid.SetCellValue(row, 0, e.find("Text").text)
@@ -533,6 +545,11 @@ class SkinMessagePanel(wx.Panel):
     def get_values(self, conv):
         row = 0
         for e in conv.data.find("Messages"):
+            e.text = cw.util.decodewrap(self.grid.GetCellValue(row, 0))
+            row += 1
+
+        for e in conv.data.getfind("Natures")[:6]:
+            e = e.find("Description")
             e.text = cw.util.decodewrap(self.grid.GetCellValue(row, 0))
             row += 1
 
