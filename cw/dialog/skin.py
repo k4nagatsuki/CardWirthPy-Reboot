@@ -17,6 +17,8 @@ class SkinConversionDialog(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 
         self.successful = False
+        self.select_skin = False
+        self.skindirname = ""
 
         self.conv = cw.skin.convert.Converter(exe)
 
@@ -106,9 +108,16 @@ class SkinConversionDialog(wx.Dialog):
 
         if self.conv.failure:
             s = self.conv.errormessage
-            wx.MessageBox(s, cw.cwpy.msgs["message"], wx.OK | wx.ICON_EXCLAMATION, self)
+            wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_EXCLAMATION, self)
         else:
             self.successful = True
+            if cw.cwpy and cw.cwpy.ydata:
+                s = u"スキンの自動生成に成功しました。再起動して生成したスキンに切り替えますか？\n再起動の際、保存されていないデータは全て消えてしまいます。"
+            else:
+                s = u"スキンの自動生成に成功しました。生成したスキンに切り替えますか？"
+            if wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self) == wx.YES:
+                self.select_skin = True
+                self.skindirname = self.conv.skindirname
             self.Close()
 
     def OnCancel(self, event):

@@ -12,7 +12,7 @@ import cw
 
 
 class Frame(wx.Frame):
-    def __init__(self):
+    def __init__(self, skindirname=""):
         # トップフレーム
         self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU\
                                                             |wx.SIMPLE_BORDER
@@ -34,6 +34,10 @@ class Frame(wx.Frame):
         self._bind()
         # 設定
         setting = cw.setting.Setting()
+        if skindirname:
+            setting.skindirname = skindirname
+            setting.write()
+            setting.init_settings()
         # 起動直後のスレッド数を記憶
         self.initialThreadCount = threading.activeCount()
         # CWPyサブスレッド
@@ -176,7 +180,11 @@ class Frame(wx.Frame):
                     dlg.Destroy()
                 dlg.Bind(wx.EVT_CLOSE, OnClose, dlg)
                 dlg.ShowModal()
-                # TODO 今生成したスキンを選択するか確認する
+                if dlg.select_skin:
+                    cw.cwpy.setting.skindirname = dlg.skindirname
+                    cw.cwpy.setting.write()
+                    cw.cwpy.setting.init_settings()
+                    cw.cwpy.init_pygame(cw.cwpy.setting)
                 break
 
     def OnDestroy(self, event):
@@ -563,10 +571,10 @@ class MyApp(wx.App):
         skincount = get_skincount()
 
         if 0 < skincount:
-
-            # TODO 今生成したスキンを選択するか確認する
-
-            frame = Frame()
+            if self.skindlg.select_skin:
+                frame = Frame(self.skindlg.skindirname)
+            else:
+                frame = Frame()
             self.SetTopWindow(frame)
             frame.Show()
 

@@ -714,6 +714,7 @@ class Converter(threading.Thread):
         dir = cw.binary.util.check_filename(dir)
         dir = cw.util.join_paths(u"Data/Skin", dir)
         dir = cw.binary.util.check_duplicate(dir)
+        self.skindirname = os.path.basename(dir)
         if not os.path.exists(u"Data/Skin"):
             os.makedirs(u"Data/Skin")
         shutil.copytree(u"Data/SkinBase", dir)
