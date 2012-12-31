@@ -13,7 +13,8 @@ import cw
 
 class SkinConversionDialog(wx.Dialog):
     def __init__(self, parent, exe):
-        wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成")
+        wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成",
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 
         self.successful = False
 
@@ -114,16 +115,22 @@ class SkinConversionDialog(wx.Dialog):
         self.Close()
 
     def _do_layout(self):
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer = wx.GridBagSizer()
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer_btn.Add(self.btn_ok, 0, 0, 0)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
 
+        row = 0
         if self.warning:
-            sizer.Add(self.warning, 0, wx.ALL, 5)
-        sizer.Add(self.note, 0, 0, 0)
-        sizer.Add(sizer_btn, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+            sizer.Add(self.warning, pos=(row, 0), flag=wx.ALL, border=5)
+            row += 1
+        sizer.Add(self.note, pos=(row, 0), flag=wx.EXPAND)
+        sizer.AddGrowableRow(row)
+        sizer.AddGrowableCol(0)
+        row += 1
+        sizer.Add(sizer_btn, pos=(row, 0), flag=wx.ALL|wx.ALIGN_RIGHT, border=5)
+        row += 1
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -216,8 +223,7 @@ class SkinBasePanel(wx.Panel):
         self.namectrl.Bind(wx.EVT_TEXT, self.OnInput)
 
     def _do_layout(self):
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer = wx.GridBagSizer()
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
         gbsizer_base = wx.GridBagSizer()
@@ -241,16 +247,17 @@ class SkinBasePanel(wx.Panel):
         gbsizer_info.Add(self.authorlabel, pos=(2, 0), flag=wx.ALL, border=3)
         gbsizer_info.Add(self.authorctrl, pos=(2, 1), flag=wx.ALL|wx.EXPAND, border=3)
         gbsizer_info.Add(self.desclabel, pos=(3, 0), flag=wx.ALL, border=3)
-        gbsizer_info.Add(self.descctrl, pos=(3, 1), flag=wx.ALL|wx.EXPAND, border=3)
+        gbsizer_info.Add(self.descctrl, pos=(3, 1), flag=wx.ALL|wx.GROW, border=3)
         gbsizer_info.AddGrowableCol(1)
         gbsizer_info.AddGrowableRow(3)
 
         bsizer_base.Add(gbsizer_base, 0, wx.EXPAND, 5)
-        bsizer_info.Add(gbsizer_info, 0, wx.EXPAND, 5)
+        bsizer_info.Add(gbsizer_info, 1, wx.EXPAND, 5)
 
-        sizer_v1.Add(bsizer_base, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_info, 0, wx.EXPAND, 0)
-        sizer.Add(sizer_v1, 0, wx.ALL, 10)
+        sizer.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM|wx.EXPAND, border=5)
+        sizer.Add(bsizer_info, pos=(1, 0), flag=wx.EXPAND, border=0)
+        sizer.AddGrowableRow(1)
+        sizer.AddGrowableCol(0)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
