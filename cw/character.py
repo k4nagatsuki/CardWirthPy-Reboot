@@ -65,7 +65,7 @@ class Character(object):
 
         for d in (self.physical, self.mental, self.enhance):
             for key, value in d.iteritems():
-                d[key] = int(value)
+                d[key] = float(value)
 
         # 特性
         e = self.data.getfind("/Property/Feature/Type")

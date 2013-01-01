@@ -495,6 +495,7 @@ class AdventurerHeader(object):
         self.gene = Gene()
         self.gene.set_randombit()
         self.history = []
+        self.race = ""
 
         for e in reversed(data.getfind("Coupons").getchildren()):
             if not e.text:
@@ -509,6 +510,8 @@ class AdventurerHeader(object):
                 self.leavenoalbum = True
             elif r_gene.match(e.text):
                 self.gene.set_str(e.text[2:], int(e.get("value", 0)))
+            elif e.text.startswith(u"＠Ｒ"):
+                self.race = e.text[2:]
             elif len(self.history) < 7 and not e.text[0] in hiddens:
                 self.history.append(e.text)
 
@@ -579,9 +582,25 @@ class AdventurerHeader(object):
         data.brave      = m.getfloat("", "brave",      0)
         data.cautious   = m.getfloat("", "cautious",   0)
         data.trickish   = m.getfloat("", "trickish",   0)
+        race = self.get_race()
+        if race:
+            data.maxdex = race.dex + 6
+            data.maxagl = race.agl + 6
+            data.maxint = race.int + 6
+            data.maxstr = race.str + 6
+            data.maxvit = race.vit + 6
+            data.maxmin = race.min + 6
+        else:
+            data.maxdex = 12
+            data.maxagl = 12
+            data.maxint = 12
+            data.maxstr = 12
+            data.maxvit = 12
+            data.maxmin = 12
 
         cw.cwpy.setting.periods[index].demodulate(data)
         cw.cwpy.setting.periods[index + 1].modulate(data)
+        cw.features.wrap_ability(data)
 
         p.set("dex", str(int(data.dex)))
         p.set("agl", str(int(data.agl)))
@@ -618,6 +637,13 @@ class AdventurerHeader(object):
             if self.sex == u"＿" + sex.name:
                 return sex.subname
         return ""
+
+    def get_race(self):
+        if self.race:
+            for race in cw.cwpy.setting.races:
+                if race.name == self.race:
+                    return race
+        return None
 
 class Gene(object):
     def __init__(self, bits=[]):

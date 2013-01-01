@@ -350,25 +350,6 @@ class AdventurerData(object):
         self.life = (self.vit / 2 + 4) * (self.level + 1) + self.min / 2
         self.maxlife = self.life
 
-    def set_wrapability(self):
-        """
-        能力値の切り上げ・切り捨て。
-        """
-        self.dex = cw.util.numwrap(self.dex, 1, self.maxdex)
-        self.agl = cw.util.numwrap(self.agl, 1, self.maxagl)
-        self.int = cw.util.numwrap(self.int, 1, self.maxint)
-        self.str = cw.util.numwrap(self.str, 1, self.maxstr)
-        self.vit = cw.util.numwrap(self.vit, 1, self.maxvit)
-        self.min = cw.util.numwrap(self.min, 1, self.maxmin)
-        self.aggressive = cw.util.numwrap(self.aggressive, -5, 5)
-        self.cheerful = cw.util.numwrap(self.cheerful, -5, 5)
-        self.brave = cw.util.numwrap(self.brave, -5, 5)
-        self.cautious = cw.util.numwrap(self.cautious, -5, 5)
-        self.trickish = cw.util.numwrap(self.trickish, -5, 5)
-        self.avoid = cw.util.numwrap(self.avoid, -10, 10)
-        self.resist = cw.util.numwrap(self.resist, -10, 10)
-        self.defense = cw.util.numwrap(self.defense, -10, 10)
-
 class AdventurerCreater(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["entry_title"],
@@ -523,7 +504,10 @@ class AdventurerCreater(wx.Dialog):
         data.set_desc(s, seq)
         data.set_specialcoupon()
         data.set_life()
-        data.set_wrapability()
+        cw.features.wrap_ability(data)
+        data.avoid = cw.util.numwrap(data.avoid, -10, 10)
+        data.resist = cw.util.numwrap(data.resist, -10, 10)
+        data.defense = cw.util.numwrap(data.defense, -10, 10)
         self.fpath = cw.xmlcreater.create_adventurer(data)
 
 class AdventurerCreaterPage(wx.Panel):

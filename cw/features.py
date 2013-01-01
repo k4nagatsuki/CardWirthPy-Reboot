@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import cw
+
 
 """特性の定義。性別、年代、素質、特徴に派生する。"""
 class Feature(object):
@@ -115,3 +117,19 @@ class Nature(Feature):
 class Making(Feature):
     def __init__(self, data):
         Feature.__init__(self, data)
+
+def wrap_ability(data):
+    """
+    能力値の切り上げ・切り捨て。
+    """
+    data.dex = cw.util.numwrap(data.dex, 1, data.maxdex)
+    data.agl = cw.util.numwrap(data.agl, 1, data.maxagl)
+    data.int = cw.util.numwrap(data.int, 1, data.maxint)
+    data.str = cw.util.numwrap(data.str, 1, data.maxstr)
+    data.vit = cw.util.numwrap(data.vit, 1, data.maxvit)
+    data.min = cw.util.numwrap(data.min, 1, data.maxmin)
+    data.aggressive = cw.util.numwrap(data.aggressive, -5, 5)
+    data.cheerful = cw.util.numwrap(data.cheerful, -5, 5)
+    data.brave = cw.util.numwrap(data.brave, -5, 5)
+    data.cautious = cw.util.numwrap(data.cautious, -5, 5)
+    data.trickish = cw.util.numwrap(data.trickish, -5, 5)
