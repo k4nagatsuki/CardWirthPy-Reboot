@@ -3,20 +3,26 @@
 
 import struct
 
+import io
 import util
 
 import cw.util
 
 
-class CWFile(file):
+class CWFile(io.BufferedReader):
     """fileクラスを継承し、CardWirthの生成した
     バイナリファイルを読み込むためのメソッドを追加したクラス。
     import binary
     binary.CWFile("test/Area1.wid", "rb")
     とやるとインスタンスオブジェクトが生成できる。
     """
-    def __init__(self, path, mode, decodewrap=False):
-        file.__init__(self, path, mode)
+    def __init__(self, path, mode, decodewrap=False, f=None):
+        if f:
+            io.BufferedReader.__init__(self, f)
+        else:
+            f = io.FileIO(path, mode)
+            io.BufferedReader.__init__(self, f)
+        f.name = path
         self.decodewrap = decodewrap
 
     def bool(self):

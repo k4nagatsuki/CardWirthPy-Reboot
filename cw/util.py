@@ -578,7 +578,7 @@ def compress_zip(path, zpath):
     z.close()
     return zpath
 
-def decompress_zip(path, dstdir, dname=""):
+def decompress_zip(path, dstdir, dname="", avoiddup=False):
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
@@ -616,6 +616,19 @@ def decompress_zip(path, dstdir, dname=""):
             f.close()
 
     z.close()
+
+    if avoiddup:
+        # 内部にディレクトリが一つしかない場合は
+        # 最上位のディレクトリに格上げする
+        list = os.listdir(dstdir)
+        if 1 == len(list):
+            dpath = os.path.join(dstdir, list[0])
+            if os.path.isdir(dpath):
+                dstdir2 = dupcheck_plus(dstdir, False)
+                os.rename(dstdir, dstdir2)
+                os.rename(os.path.join(dstdir2, list[0]), dstdir)
+                shutil.rmtree(dstdir2)
+
     return dstdir
 
 def decode_zipname(name):
@@ -995,6 +1008,28 @@ def create_link(path, target):
         shortcut = wsh.CreateShortcut(path)
         shortcut.TargetPath = target
         shortcut.save()
+
+#-------------------------------------------------------------------------------
+#  パフォーマンスカウンタ
+#-------------------------------------------------------------------------------
+
+times = [0.0] * 1024
+timer = 0.0
+
+def t_start():
+    global timer
+    timer = time.time()
+
+def t_end(index):
+    global times, timer
+    times[index] += time.time() - timer
+    timer = time.time()
+
+def t_print():
+    global times
+    for i, t in enumerate(times):
+        if 0 < t:
+            print "time[%s] = %s" % (i, t)
 
 def main():
     pass

@@ -172,19 +172,22 @@ class ScenarioData(SystemData):
         self.name = header.name
         self.author = header.author
         self.startid = cw.cwpy.areaid = header.startid
-        if cw.scenariodb.TYPE_WSN == header.type:
+        if os.path.isfile(self.fpath):
             # zip解凍・解凍したディレクトリを登録
             self.tempdir = cw.cwpy.recenthistory.check(self.fpath)
             if self.tempdir:
                 cw.cwpy.recenthistory.moveend(self.fpath)
             else:
                 self.tempdir = u"Data/Temp/Scenario"
-                self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir)
+                self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir, avoiddup=True)
                 cw.cwpy.recenthistory.append(self.fpath, self.tempdir)
-        elif cw.scenariodb.TYPE_CLASSIC == header.type:
+        else:
+            # 展開済みシナリオ
             self.tempdir = self.fpath
+
+        if cw.scenariodb.TYPE_CLASSIC == header.type:
             cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-                self.fpath, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
+                self.tempdir, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
                 materialdir="", image_export=False)
 
         # 各種xmlファイルのパスを設定

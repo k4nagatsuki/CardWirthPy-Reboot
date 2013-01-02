@@ -115,7 +115,7 @@ class CWScenario(object):
         md = self.materialdir
         ie = self.image_export
 
-        if path == self.summarypath:
+        if path.lower().endswith(".wsm"):
             data = summary.Summary(None, f, nameonly=no, materialdir=md, image_export=ie)
             data.skintype = self.skintype
         else:

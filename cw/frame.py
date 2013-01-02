@@ -193,6 +193,7 @@ class Frame(wx.Frame):
         while threading.activeCount() > self.initialThreadCount:
             pass
 
+        cw.util.t_print()
         sys.exit()
 
     def OnIconize(self, event):

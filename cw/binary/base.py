@@ -15,7 +15,10 @@ class CWBinaryBase(object):
     def __init__(self, parent, f, yadodata=False, materialdir="Material", image_export=True):
         self.set_root(parent)
         self.xmltype = self.__class__.__name__
-        self.fpath = f.name
+        if hasattr(f, "name"):
+            self.fpath = f.name
+        else:
+            self.fpath = ""
         self.set_materialdir(materialdir)
         self.set_image_export(image_export)
 

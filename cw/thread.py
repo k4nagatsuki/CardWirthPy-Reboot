@@ -411,9 +411,9 @@ class CWPy(_Singleton, threading.Thread):
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
                 s = (cw.cwpy.msgs["load_scenario_failure"])
-                mdlg = cw.dialog.message.YesNoMessage(self,
+                mdlg = cw.dialog.message.YesNoMessage(self.frame,
                                                         cw.cwpy.msgs["message"], s)
-                self.move_dlg(mdlg)
+                self.frame.move_dlg(mdlg)
 
                 if mdlg.ShowModal() == wx.ID_OK:
                     self.exec_func(self.set_yado)

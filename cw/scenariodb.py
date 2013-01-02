@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import io
 import sys
 import time
 import zipfile
@@ -124,15 +125,9 @@ class Scenariodb(object):
         self.con.commit()
         dbpaths = set(dbpaths)
 
-        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-            "", "", cw.cwpy.setting.skintype,
-            materialdir="", image_export=False)
-
         for path in get_scenariopaths(dpath):
             if not path in dbpaths:
                 self._insert_scenario(path, False)
-
-        cw.cwpy.classicdata = None
 
         self.con.commit()
 
@@ -167,10 +162,8 @@ class Scenariodb(object):
         self._insert_scenario(path, commit)
 
     def _insert_scenario(self, path, commit=True):
-        if path.lower().endswith(".wsn"):
-            t = read_summary(path)
-        else:
-            t = read_summary_classic(path)
+        lpath = path.lower()
+        t = read_summary(path)
 
         if t:
             self.insert(t, commit)
@@ -204,7 +197,7 @@ class Scenariodb(object):
             if os.path.exists(spath):
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
-                    cs = read_summary_classic(path)
+                    cs = read_summary(path)
                     if cs:
                         self.insert(cs, True)
                         # 更新後の情報を取得
@@ -231,17 +224,11 @@ class Scenariodb(object):
         """
         headers = []
 
-        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-            "", "", cw.cwpy.setting.skintype,
-            materialdir="", image_export=False)
-
         for t in data:
             header = self.create_header(t)
 
             if header:
                 headers.append(header)
-
-        cw.cwpy.classicdata = None
 
         return headers
 
@@ -285,8 +272,9 @@ class Scenariodb(object):
         for name in os.listdir(unicode(dpath)):
             path = cw.util.join_paths(dpath, name)
 
+            lname = name.lower()
             if not path in dbpaths and os.path.isfile(path)\
-                                                    and name.endswith(".wsn"):
+                    and (lname.endswith(".wsn") or lname.endswith(".zip")):
                 header = self._search_path(path)
 
                 if header:
@@ -307,19 +295,32 @@ class Scenariodb(object):
         self.con.close()
 
 def read_summary(path):
+    if os.path.isdir(path):
+        try:
+            spath = os.path.join(path, "Summary.wsm")
+            f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
+            return read_summary_classic(path, spath, f)
+        except:
+            return None
+
     try:
         z = zipfile.ZipFile(path, "r")
     except:
         return None
 
     names = z.namelist()
-    seq = [name for name in names if name.endswith("Summary.xml")]
+    seq = [name for name in names if name.endswith("Summary.xml") or name.endswith("Summary.wsm")]
 
     if not seq:
         z.close()
         return None
 
     name = seq[0]
+    if name.lower().endswith(".wsm"):
+        fdata = z.read(name)
+        f = cw.binary.cwfile.CWFile("", "rb", decodewrap=True, f=io.BytesIO(fdata))
+        return read_summary_classic(path, path, f)
+
     scedir = os.path.dirname(name)
     scedir = cw.util.decode_zipname(scedir)
     fdata = z.read(name)
@@ -377,39 +378,17 @@ def parse_summarydata(data, type, archive):
     return (imgpath, [dpath, type, fname, name, author, desc, skintype, levelmin,
                 levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
 
-def read_summary_classic(path):
-    spath = cw.util.join_paths(path, "Summary.wsm")
-
-    createdata = False
-    if not cw.cwpy.classicdata:
-        createdata = True
-        cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-            "", "", cw.cwpy.setting.skintype,
-            materialdir="", image_export=False)
-    oldpath = cw.cwpy.classicdata.path
-    oldspath = cw.cwpy.classicdata.summarypath
-
-    cw.cwpy.classicdata.path = path
-    cw.cwpy.classicdata.summarypath = spath
-
+def read_summary_classic(path, spath, f=None):
     try:
-        s = cw.cwpy.classicdata.load_file(spath, decodewrap=True)
+        if not f:
+            f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
+        s = cw.binary.summary.Summary(None, f, nameonly=False, materialdir="", image_export=False)
+        s.skintype = cw.cwpy.setting.skintype
         imgbuf = s.image
         ctime = time.time()
         mtime = os.path.getmtime(spath)
     except Exception, ex:
-        if createdata:
-            cw.cwpy.classicdata = None
-        else:
-            cw.cwpy.classicdata.path = oldpath
-            cw.cwpy.classicdata.summarypath = oldspath
         return None
-
-    if createdata:
-        cw.cwpy.classicdata = None
-    else:
-        cw.cwpy.classicdata.path = oldpath
-        cw.cwpy.classicdata.summarypath = oldspath
 
     summaryinfos = [os.path.dirname(path), TYPE_CLASSIC,
             os.path.basename(path), unescape(s.name), unescape(s.author),
@@ -428,11 +407,12 @@ def get_scenariopaths(path):
     for file in os.listdir(path):
         file = cw.util.get_linktarget(cw.util.join_paths(path, file))
         if os.path.isdir(file):
-            fpath = cw.util.join_paths(file, u"Summary.wsm")
+            fpath = cw.util.join_paths(file, "Summary.wsm")
             if os.path.isfile(fpath):
                 yield file
         else:
-            if file.lower().endswith(u".wsn"):
+            lfile = file.lower()
+            if lfile.endswith(".wsn") or lfile.endswith(".zip"):
                 yield file
 
 def main():

@@ -547,7 +547,7 @@ class Resource(object):
 class RecentHistory(object):
     def __init__(self, data):
         """起動してから開いたシナリオの情報を
-        (wsnファイルのパス, 最終更新日, "Data/Temp"に展開したフォルダパス)の
+        (wsn・zipファイルのパス, 最終更新日, "Data/Temp"に展開したフォルダパス)の
         形式で保存し、管理するクラス。
         古い順から"Data/Temp"のフォルダを削除していく。
         data: Settings.xmlのElementTree。
@@ -603,7 +603,7 @@ class RecentHistory(object):
 
     def append(self, path, temppath, md5=None):
         """
-        path: wsnファイルのパス。
+        path: wsn・zipファイルのパス。
         temppath: "Data/Temp"に展開したフォルダパス。
         設定数以上になったら、古いデータから削除。
         """
@@ -621,7 +621,7 @@ class RecentHistory(object):
 
     def remove(self, path=""):
         """
-        path: 登録削除するwsnファイルのパス。
+        path: 登録削除するwsn・zipファイルのパス。
         空の場合は一番先頭にあるデータの登録を削除する。
         """
         if not path:
@@ -637,8 +637,8 @@ class RecentHistory(object):
 
     def check(self, path, md5=None):
         """
-        path: チェックするwsnファイルのパス
-        "Data/Temp"フォルダに展開済みのwsnファイルかどうかチェックし、
+        path: チェックするwsn・zipファイルのパス
+        "Data/Temp"フォルダに展開済みのwsn・zipファイルかどうかチェックし、
         展開済みだった場合は、展開先のフォルダのパスを返す。
         """
         path = path.replace("\\", "/")
