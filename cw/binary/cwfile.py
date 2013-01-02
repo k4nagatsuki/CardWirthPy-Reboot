@@ -70,6 +70,12 @@ class CWFile(io.BufferedReader):
         data = struct.unpack("<l", raw_data)
         return data[0]
 
+    def word(self):
+        """wordの値(2byte)を符号付きで返す。リトルエンディアン。"""
+        raw_data = self.read(2)
+        data = struct.unpack("<h", raw_data)
+        return data[0]
+
     def image(self):
         """dwordの値で読み込んだ画像のバイナリデータを返す。
         dwordの値が"0"だったらNoneを返す。
