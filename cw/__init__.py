@@ -3,6 +3,7 @@
 
 import util
 import battle
+import carddb
 import data
 import dice
 import effectmotion

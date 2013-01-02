@@ -729,6 +729,9 @@ class YadoData(object):
         # 待機中冒険者(AdventurerHeader)
         self.standbys = []
 
+        self.carddb = cw.carddb.CardDB(self.yadodir)
+        self.carddb.update()
+
         for path in self.get_standbypaths():
             self.standbys.append(path)
 
@@ -738,9 +741,7 @@ class YadoData(object):
             self.album.append(path)
 
         # カード置場(CardHeader)
-        self.storehouse = []
-        for path in self.get_storehousepaths():
-            self.storehouse.append(path)
+        self.storehouse = self.carddb.get_cards()
 
         # 現在選択中のパーティをセット
         self.party = None
@@ -757,6 +758,8 @@ class YadoData(object):
 
         else:
             self.load_party(None)
+
+        self.carddb.close()
 
         self._loadsubthread = LoadSubThread(self)
         self._loadsubthread.start()
@@ -1693,17 +1696,8 @@ class SimpleXmlParser(object):
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.char_data
 
-        while True:
-            data = file.read(16384)
-
-            if not data:
-                break
-            elif self._persed:
-                return
-
-            parser.Parse(data, 0)
-
-        parser.Parse("", 1)
+        fdata = file.read()
+        parser.Parse(fdata, 1)
 
     def get_currentpath(self):
         if len(self.currenttags) > 1:

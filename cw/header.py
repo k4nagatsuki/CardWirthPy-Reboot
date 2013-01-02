@@ -13,93 +13,128 @@ import cw
 
 
 class CardHeader(object):
-    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False):
+    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, put_db=False, dbrec=None):
         self.ref_original = weakref.ref(self)
-        self.set_owner(owner)
-        self.carddata = carddata
+        if dbrec:
+            self.set_owner("STOREHOUSE")
+            self.carddata = None
+            self.fpath = dbrec[0]
+            self.type = dbrec[1]
+            self.id = dbrec[2]
+            self.name = dbrec[3]
+            self.desc = dbrec[4]
+            self.scenario = dbrec[5]
+            self.author = dbrec[6]
+            self.keycodes = dbrec[7].split("\n")
+            self.uselimit = dbrec[8]
+            self.target = dbrec[9]
+            self.allrange = bool(dbrec[10])
+            self.premium = dbrec[11]
+            self.physical = dbrec[12]
+            self.mental = dbrec[13]
+            self.level = dbrec[14]
+            self.maxuselimit = dbrec[15]
+            self.price = dbrec[16]
+            self.hold = bool(dbrec[17])
+            self.enhance_avo = dbrec[18]
+            self.enhance_res = dbrec[19]
+            self.enhance_def = dbrec[20]
+            self.enhance_avo_used = dbrec[21]
+            self.enhance_res_used = dbrec[22]
+            self.enhance_def_used = dbrec[23]
+            self.attachment = bool(dbrec[24])
+            self.imagepath = dbrec[25]
+        else:
+            self.set_owner(owner)
+            self.carddata = carddata
 
-        if data is not None:
-            self.fpath = data.fpath
-            self.type = os.path.basename(os.path.dirname(self.fpath))
-        elif carddata is not None:
-            self.fpath = ""
-            self.type = carddata.tag
-            data = carddata.getfind("Property")
+            if data is not None:
+                self.fpath = data.fpath
+                self.type = os.path.basename(os.path.dirname(self.fpath))
+            elif carddata is not None:
+                self.fpath = ""
+                self.type = carddata.tag
+                data = carddata.getfind("Property")
 
-        self.id = data.getint("Id", 0)
-        self.name = data.gettext("Name", "")
-        self.desc = data.gettext("Description", "")
-        self.scenario = data.gettext("Scenario", "")
-        self.author = data.gettext("Author", "")
-        self.keycodes = data.gettext("KeyCodes", "")
-        self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
-        self.keycodes.append(self.name)
-        self.penalty = bool(u"ペナルティ" in self.keycodes)
-        self.recycle = bool(u"リサイクル" in self.keycodes)
-        self.uselimit = data.getint("UseLimit")
-        self.target = data.gettext("Target")
-        self.allrange = data.getbool("Target", "allrange")
-        self.premium = data.gettext("Premium")
-        physical = data.getattr("Ability", "physical").lower()
-        mental = data.getattr("Ability", "mental").lower()
-        self.vocation = (physical, mental)
-        # カードの種類ごとに違う処理
-        self.level = 0
-        self.maxuselimit = 0
-        self.price = 0
-        self.hold = False
-        self.enhance_avo = 0
-        self.enhance_res = 0
-        self.enhance_def = 0
-        self.enhance_avo_used = 0
-        self.enhance_res_used = 0
-        self.enhance_def_used = 0
-        self.attachment = False
+            self.id = data.getint("Id", 0)
+            self.name = data.gettext("Name", "")
+            self.desc = data.gettext("Description", "")
+            self.scenario = data.gettext("Scenario", "")
+            self.author = data.gettext("Author", "")
+            self.keycodes = data.gettext("KeyCodes", "")
+            self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
+            self.uselimit = data.getint("UseLimit")
+            self.target = data.gettext("Target")
+            self.allrange = data.getbool("Target", "allrange")
+            self.premium = data.gettext("Premium")
+            self.physical = data.getattr("Ability", "physical").lower()
+            self.mental = data.getattr("Ability", "mental").lower()
+            # カードの種類ごとに違う処理
+            self.level = 0
+            self.maxuselimit = 0
+            self.price = 0
+            self.hold = False
+            self.enhance_avo = 0
+            self.enhance_res = 0
+            self.enhance_def = 0
+            self.enhance_avo_used = 0
+            self.enhance_res_used = 0
+            self.enhance_def_used = 0
+            self.attachment = False
 
-        if self.type == "ActionCard":
-            self.enhance_avo_used = data.getint("Enhance", "avoid")
-            self.enhance_res_used = data.getint("Enhance", "resist")
-            self.enhance_def_used = data.getint("Enhance", "defense")
-        elif self.type == "SkillCard":
-            self.level = data.getint("Level")
-            self.hold = data.getbool("Hold")
-            self.enhance_avo_used = data.getint("Enhance", "avoid")
-            self.enhance_res_used = data.getint("Enhance", "resist")
-            self.enhance_def_used = data.getint("Enhance", "defense")
-        elif self.type == "ItemCard":
-            self.maxuselimit = data.getint("UseLimit", "max")
-            self.enhance_avo = data.getint("EnhanceOwner", "avoid")
-            self.enhance_res = data.getint("EnhanceOwner", "resist")
-            self.enhance_def = data.getint("EnhanceOwner", "defense")
-            self.enhance_avo_used = data.getint("Enhance", "avoid")
-            self.enhance_res_used = data.getint("Enhance", "resist")
-            self.enhance_def_used = data.getint("Enhance", "defense")
-            self.hold = data.getbool("Hold")
-            self.price = data.getint("Price")
-        elif self.type == "BeastCard":
-            self.maxuselimit = data.getint("UseLimit")
-            self.enhance_avo = data.getint("Enhance", "avoid")
-            self.enhance_res = data.getint("Enhance", "resist")
-            self.enhance_def = data.getint("Enhance", "defense")
-            if data.hasfind("Attachment"):
-                self.attachment = data.getbool("Attachment")
-            elif self.is_ccardheader():
-                self.attachment = True if self.uselimit == 0 else False
-                e = cw.data.make_element("Attachment", str(self.attachment))
-                data.append(e)
+            if self.type == "ActionCard":
+                self.enhance_avo_used = data.getint("Enhance", "avoid")
+                self.enhance_res_used = data.getint("Enhance", "resist")
+                self.enhance_def_used = data.getint("Enhance", "defense")
+            elif self.type == "SkillCard":
+                self.level = data.getint("Level")
+                self.hold = data.getbool("Hold")
+                self.enhance_avo_used = data.getint("Enhance", "avoid")
+                self.enhance_res_used = data.getint("Enhance", "resist")
+                self.enhance_def_used = data.getint("Enhance", "defense")
+            elif self.type == "ItemCard":
+                self.maxuselimit = data.getint("UseLimit", "max")
+                self.enhance_avo = data.getint("EnhanceOwner", "avoid")
+                self.enhance_res = data.getint("EnhanceOwner", "resist")
+                self.enhance_def = data.getint("EnhanceOwner", "defense")
+                self.enhance_avo_used = data.getint("Enhance", "avoid")
+                self.enhance_res_used = data.getint("Enhance", "resist")
+                self.enhance_def_used = data.getint("Enhance", "defense")
+                self.hold = data.getbool("Hold")
+                self.price = data.getint("Price")
+            elif self.type == "BeastCard":
+                self.maxuselimit = data.getint("UseLimit")
+                self.enhance_avo = data.getint("Enhance", "avoid")
+                self.enhance_res = data.getint("Enhance", "resist")
+                self.enhance_def = data.getint("Enhance", "defense")
+                if data.hasfind("Attachment"):
+                    self.attachment = data.getbool("Attachment")
+                elif self.is_ccardheader():
+                    self.attachment = True if self.uselimit == 0 else False
+                    e = cw.data.make_element("Attachment", str(self.attachment))
+                    data.append(e)
+
+            # Image
+            self.imagepath = data.gettext("ImagePath", "")
+
+        self.vocation = (self.physical, self.mental)
 
         # シナリオ取得フラグ
         if from_scenario or (self.carddata is not None and self.carddata.get("scenariocard")):
             self.scenariocard = True
         else:
             self.scenariocard = False
-
-        # Image
-        path = data.gettext("ImagePath", "")
-        self.set_cardimg(path)
+        # 画像設定
+        if not put_db:
+            self.set_cardimg(self.imagepath)
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
+
+        # 特殊なキーコード
+        self.keycodes.append(self.name)
+        self.penalty = bool(u"ペナルティ" in self.keycodes)
+        self.recycle = bool(u"リサイクル" in self.keycodes)
 
         # 所持スキルカードだった場合は使用回数を設定
         if self.is_ccardheader() and self.type == "SkillCard":
