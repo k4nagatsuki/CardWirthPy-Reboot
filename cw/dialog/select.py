@@ -686,7 +686,6 @@ class PlayerSelect(Select):
                 cw.cwpy.ydata.add_album(path)
 
             cw.cwpy.remove_xml(header)
-            cw.cwpy.ydata.stopstandbysthread()
             cw.cwpy.ydata.standbys.remove(header)
             self.enable_btn()
             self.draw(True)
@@ -703,7 +702,6 @@ class PlayerSelect(Select):
 
         cw.cwpy.sounds["harvest"].play()
         header = self.list[self.index]
-        cw.cwpy.ydata.stopstandbysthread()
         cw.cwpy.ydata.standbys.remove(header)
 
         if cw.cwpy.ydata.party:
@@ -763,7 +761,6 @@ class PlayerSelect(Select):
                     path = cw.xmlcreater.create_albumpage(header.fpath)
                     cw.cwpy.ydata.add_album(path)
                 cw.cwpy.remove_xml(header)
-                cw.cwpy.ydata.stopstandbysthread()
                 cw.cwpy.ydata.standbys.remove(header)
                 self.enable_btn()
 
@@ -898,7 +895,6 @@ class Album(PlayerSelect):
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.sounds["dump"].play()
             cw.cwpy.remove_xml(header)
-            cw.cwpy.ydata.stopalbumthread()
             cw.cwpy.ydata.album.remove(header)
             self.enable_btn()
             self.draw(True)

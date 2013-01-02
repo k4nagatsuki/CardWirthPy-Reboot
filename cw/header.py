@@ -43,7 +43,7 @@ class CardHeader(object):
             self.enhance_res_used = dbrec[22]
             self.enhance_def_used = dbrec[23]
             self.attachment = bool(dbrec[24])
-            self.imagepath = dbrec[25]
+            self.imgpath = dbrec[25]
         else:
             self.set_owner(owner)
             self.carddata = carddata
@@ -115,7 +115,7 @@ class CardHeader(object):
                     data.append(e)
 
             # Image
-            self.imagepath = data.gettext("ImagePath", "")
+            self.imgpath = data.gettext("ImagePath", "")
 
         self.vocation = (self.physical, self.mental)
 
@@ -126,7 +126,7 @@ class CardHeader(object):
             self.scenariocard = False
         # 画像設定
         if not put_db:
-            self.set_cardimg(self.imagepath)
+            self.set_cardimg(self.imgpath)
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
@@ -501,57 +501,74 @@ class InfoCardHeader(object):
             return self.cardimg.get_image()
 
 class AdventurerHeader(object):
-    def __init__(self, data, album=False):
+    def __init__(self, data=None, album=False, dbrec=None):
         """
         album: アルバム用の場合はTrueにする。
+        dbrec: データベースから生成する場合は対象レコード。
         冒険者のヘッダ。引数のdataはPropertyElement。
         """
-        self.fpath = data.fpath
-        self.level = data.getint("Level", 0)
-        self.name = data.gettext("Name", "")
-        self.imgpath = data.gettext("ImagePath", "")
-        self.album = album
-
-        # シナリオプレイ中にロストしたかどうかのフラグ
-        if data.hasfind("", "lost"):
-            self.lost = True
+        if dbrec:
+            self.fpath = dbrec[0]
+            self.level = dbrec[1]
+            self.name = dbrec[2]
+            self.imgpath = dbrec[3]
+            self.album = bool(dbrec[4])
+            self.lost = bool(dbrec[5])
+            self.sex = dbrec[6]
+            self.age = dbrec[7]
+            self.ep = dbrec[8]
+            self.leavenoalbum = bool(dbrec[9])
+            self.gene = Gene()
+            self.gene.set_str(dbrec[10])
+            self.history = dbrec[11].split("\n")
+            self.race = dbrec[12]
         else:
-            self.lost = False
+            self.fpath = data.fpath
+            self.level = data.getint("Level", 0)
+            self.name = data.gettext("Name", "")
+            self.imgpath = data.gettext("ImagePath", "")
+            self.album = album
 
-        # クーポンにある各種変数取得
-        ages = set(cw.cwpy.setting.periodcoupons)
-        sexs = set(cw.cwpy.setting.sexcoupons)
-        hiddens = set([u"＿", u"＠"])
-        r_gene = re.compile(u"＠Ｇ\d{10}$")
-        self.sex = cw.cwpy.setting.sexcoupons[0]
-        self.age = cw.cwpy.setting.periodcoupons[0]
-        self.ep = 0
-        self.leavenoalbum = False
-        self.gene = Gene()
-        self.gene.set_randombit()
-        self.history = []
-        self.race = ""
+            # シナリオプレイ中にロストしたかどうかのフラグ
+            if data.hasfind("", "lost"):
+                self.lost = True
+            else:
+                self.lost = False
 
-        for e in reversed(data.getfind("Coupons").getchildren()):
-            if not e.text:
-                continue
-            elif e.text in ages:
-                self.age = e.text
-            elif e.text in sexs:
-                self.sex = e.text
-            elif e.text == u"＠ＥＰ":
-                self.ep = int(e.get("value", 0))
-            elif e.text == u"＿消滅予約":
-                self.leavenoalbum = True
-            elif r_gene.match(e.text):
-                self.gene.set_str(e.text[2:], int(e.get("value", 0)))
-            elif e.text.startswith(u"＠Ｒ"):
-                self.race = e.text[2:]
-            elif len(self.history) < 7 and not e.text[0] in hiddens:
-                self.history.append(e.text)
+            # クーポンにある各種変数取得
+            ages = set(cw.cwpy.setting.periodcoupons)
+            sexs = set(cw.cwpy.setting.sexcoupons)
+            hiddens = set([u"＿", u"＠"])
+            r_gene = re.compile(u"＠Ｇ\d{10}$")
+            self.sex = cw.cwpy.setting.sexcoupons[0]
+            self.age = cw.cwpy.setting.periodcoupons[0]
+            self.ep = 0
+            self.leavenoalbum = False
+            self.gene = Gene()
+            self.gene.set_randombit()
+            self.history = []
+            self.race = ""
 
-                if len(self.history) == 6:
-                    self.history.append(u"etc...")
+            for e in reversed(data.getfind("Coupons").getchildren()):
+                if not e.text:
+                    continue
+                elif e.text in ages:
+                    self.age = e.text
+                elif e.text in sexs:
+                    self.sex = e.text
+                elif e.text == u"＠ＥＰ":
+                    self.ep = int(e.get("value", 0))
+                elif e.text == u"＿消滅予約":
+                    self.leavenoalbum = True
+                elif r_gene.match(e.text):
+                    self.gene.set_str(e.text[2:], int(e.get("value", 0)))
+                elif e.text.startswith(u"＠Ｒ"):
+                    self.race = e.text[2:]
+                elif len(self.history) < 7 and not e.text[0] in hiddens:
+                    self.history.append(e.text)
+
+                    if len(self.history) == 6:
+                        self.history.append(u"etc...")
 
     def made_baby(self):
         """

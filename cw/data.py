@@ -670,10 +670,7 @@ class LoadSubThread(threading.Thread):
     def __init__(self, ydata):
         threading.Thread.__init__(self)
         self.ydata = ydata
-        self.quitalbum = False
         self.quitbackpack = False
-        self.quitstorehouse = False
-        self.quitstandbys = False
 
     def run(self):
         if not self.quitbackpack:
@@ -684,27 +681,6 @@ class LoadSubThread(threading.Thread):
                     if not isinstance(path, cw.header.CardHeader):
                         header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
                         self.ydata.party.backpack[index] = header
-        if not self.quitstorehouse:
-            # カード置き場
-            for index, path in enumerate(self.ydata.storehouse[:]):
-                if self.quitstorehouse: break
-                if not isinstance(path, cw.header.CardHeader):
-                    header = self.ydata.create_cardheader(path, owner="STOREHOUSE")
-                    self.ydata.storehouse[index] = header
-        if not self.quitstandbys:
-            # 待機中の冒険者(現役)
-            for index, path in enumerate(self.ydata.standbys[:]):
-                if self.quitstandbys: break
-                if not isinstance(path, cw.header.AdventurerHeader):
-                    header = self.ydata.create_advheader(path)
-                    self.ydata.standbys[index] = header
-        if not self.quitalbum:
-            # 冒険者(アルバム)
-            for index, path in enumerate(self.ydata.album[:]):
-                if self.quitalbum: break
-                if not isinstance(path, cw.header.AdventurerHeader):
-                    header = self.ydata.create_advheader(path, True)
-                    self.ydata.album[index] = header
 
 class YadoData(object):
     def __init__(self):
@@ -726,22 +702,20 @@ class YadoData(object):
         # パーティリスト(PartyHeader)
         paths = self.get_partypaths()
         self.partys = [self.create_partyheader(path) for path in paths]
-        # 待機中冒険者(AdventurerHeader)
-        self.standbys = []
 
         self.carddb = cw.carddb.CardDB(self.yadodir)
         self.carddb.update()
 
-        for path in self.get_standbypaths():
-            self.standbys.append(path)
+        # 待機中冒険者(AdventurerHeader)
+        self.standbys = self.carddb.get_standbys()
 
         # アルバム(AdventurerHeader)
-        self.album = []
-        for path in self.get_albumpaths():
-            self.album.append(path)
+        self.album = self.carddb.get_album()
 
         # カード置場(CardHeader)
         self.storehouse = self.carddb.get_cards()
+
+        self.carddb.close()
 
         # 現在選択中のパーティをセット
         self.party = None
@@ -759,19 +733,8 @@ class YadoData(object):
         else:
             self.load_party(None)
 
-        self.carddb.close()
-
         self._loadsubthread = LoadSubThread(self)
         self._loadsubthread.start()
-
-    def stopstandbysthread(self):
-        self._loadsubthread.quitstandbys = True
-
-    def stopalbumthread(self):
-        self._loadsubthread.quitalbum = True
-
-    def stopstorehousethread(self):
-        self._loadsubthread.quitstorehouse = True
 
     def stopbackpackthread(self):
         self._loadsubthread.quitbackpack = True
@@ -1159,9 +1122,9 @@ class Party(object):
         paths = self.get_memberpaths()
         self.members = [yadoxml2etree(path) for path in paths]
         # 選択中のパーティの荷物袋(CardHeader)
+        self.backpack = []
         if cw.cwpy.ydata:
             cw.cwpy.ydata.stopbackpackthread()
-        self.backpack = []
         for e in self.data.getfind("Backpack"):
             self.backpack.append(e)
 
