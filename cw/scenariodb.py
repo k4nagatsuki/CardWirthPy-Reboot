@@ -411,7 +411,7 @@ def read_summary_classic(path, spath, f=None):
         if not f:
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
         s = cw.binary.summary.Summary(None, f, nameonly=False, materialdir="", image_export=False)
-        s.skintype = cw.cwpy.setting.skintype
+        s.skintype = ""
         imgbuf = s.image
         ctime = time.time()
         mtime = os.path.getmtime(spath)

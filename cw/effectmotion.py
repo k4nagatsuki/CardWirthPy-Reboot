@@ -107,26 +107,22 @@ class Effect(object):
             cw.cwpy.set_guardcardimg(target, guardcard)
             cw.cwpy.draw()
             pygame.time.wait(cw.cwpy.setting.frametime * 12)
-
-        def clear_guardcard():
-            if guardcard:
-                cw.cwpy.clear_guardcardimg()
-                cw.cwpy.draw()
-            # 消耗したカードの使用回数を減らす
-            for header in consume:
-                header.set_uselimit(-1)
+            cw.cwpy.clear_guardcardimg()
+            cw.cwpy.draw()
 
         # 音鳴らす
         if not allmissed:
             if noeffect or (success_res and not hasdamage):
                 cw.cwpy.sounds["ineffective"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
-                clear_guardcard()
+                for header in consume:
+                    header.set_uselimit(-1)
                 return False
             elif success_avo:
                 cw.cwpy.sounds["avoid"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
-                clear_guardcard()
+                for header in consume:
+                    header.set_uselimit(-1)
                 return False
 
         cw.cwpy.play_sound(self.soundpath)
@@ -143,6 +139,9 @@ class Effect(object):
                 if 0 <> defense:
                     consume.add(header)
 
+        for header in consume:
+            header.set_uselimit(-1)
+
         # アニメーション・画像更新(対象消去されていなかったら)
         if not target.is_vanished():
             # 死亡していたら、ステータスを元に戻す
@@ -150,8 +149,6 @@ class Effect(object):
                 target.set_unconsciousstatus()
 
             self.animate(target, True)
-
-        clear_guardcard();
 
         if allmissed:
             return False

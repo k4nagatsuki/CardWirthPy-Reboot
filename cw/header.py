@@ -411,9 +411,7 @@ class CardHeader(object):
         CardImageインスタンスを新しく生成して返す。
         """
         header = copy.copy(self)
-        header.cardimg = cw.image.CardImage(self.imgpath, self.get_bgtype(),
-                                                    self.name, self.premium)
-        header.rect = header.cardimg.rect
+        header.set_cardimg(self.imgpath)
         return header
 
     def is_ccardheader(self):
