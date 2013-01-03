@@ -8,6 +8,7 @@ import copy
 import weakref
 import StringIO
 import wx
+import pygame
 
 import cw
 
@@ -125,8 +126,8 @@ class CardHeader(object):
         else:
             self.scenariocard = False
         # 画像設定
-        if not put_db:
-            self.set_cardimg(self.imgpath)
+        self._cardimg = None
+        self.rect = pygame.Rect(0, 0, 80, 110)
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
@@ -150,9 +151,9 @@ class CardHeader(object):
             path = cw.util.join_yadodir(path)
 
         imgpath = path
-        self.cardimg = cw.image.CardImage(imgpath, self.get_bgtype(),
+        self._cardimg = cw.image.CardImage(imgpath, self.get_bgtype(),
                                                     self.name, self.premium)
-        self.rect = self.cardimg.rect
+        self.rect = self._cardimg.rect
 
     def get_owner(self):
         if self._owner == "BACKPACK":
@@ -172,6 +173,12 @@ class CardHeader(object):
 
     def get_bgtype(self):
         return self.type.upper().replace("CARD", "")
+
+    @property
+    def cardimg(self):
+        if not self._cardimg:
+            self.set_cardimg(self.imgpath)
+        return self._cardimg
 
     def get_cardwxbmp(self):
         return self.cardimg.get_cardwxbmp(self)
