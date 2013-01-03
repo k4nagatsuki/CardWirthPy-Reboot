@@ -10,6 +10,7 @@ import StringIO
 import sqlite3
 import threading
 import shutil
+import subprocess
 from xml.sax.saxutils import unescape
 
 import cw
@@ -171,14 +172,14 @@ class Scenariodb(object):
         elif path.startswith(u"Scenario"):
             # 登録できなかったファイルを移動
             # (Scenarioフォルダ内のみ)
-            dname = "UnregisteredScenario"
+            ##dname = "UnregisteredScenario"
 
-            if not os.path.isdir(dname):
-                os.makedirs(dname)
+            ##if not os.path.isdir(dname):
+            ##    os.makedirs(dname)
 
-            dst = cw.util.join_paths(dname, os.path.basename(path))
-            dst = cw.util.dupcheck_plus(dst, False)
-            shutil.move(path, dst)
+            ##dst = cw.util.join_paths(dname, os.path.basename(path))
+            ##dst = cw.util.dupcheck_plus(dst, False)
+            ##shutil.move(path, dst)
             return False
 
     def create_header(self, data):
@@ -274,7 +275,7 @@ class Scenariodb(object):
 
             lname = name.lower()
             if not path in dbpaths and os.path.isfile(path)\
-                    and (lname.endswith(".wsn") or lname.endswith(".zip")):
+                    and (lname.endswith(".wsn") or lname.endswith(".zip") or lname.endswith(".cab")):
                 header = self._search_path(path)
 
                 if header:
@@ -296,11 +297,38 @@ class Scenariodb(object):
 
 def read_summary(path):
     if os.path.isdir(path):
+        f = None
         try:
             spath = os.path.join(path, "Summary.wsm")
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
             return read_summary_classic(path, spath, f)
         except:
+            if f: f.close()
+            return None
+
+    if path.lower().endswith(".cab"):
+        try:
+            if cw.util.cab_hasfile(path, "Summary.wsm"):
+                dpath = "Data/Temp/Cab"
+                if not os.path.isdir(dpath):
+                    os.makedirs(dpath)
+                s = "expand %s -I -f:%s %s" % (path, "Summary.wsm", dpath)
+                encoding = sys.getfilesystemencoding()
+                ret = subprocess.call(s.encode(encoding), shell=True)
+                if ret == 0:
+                    spath = cw.util.join_paths(dpath, os.listdir(dpath)[0])
+                    f = None
+                    try:
+                        f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
+                        return read_summary_classic(path, path, f)
+                    finally:
+                        if f: f.close()
+                        os.remove(spath)
+                else:
+                    return None
+            else:
+                return None
+        except Exception, ex:
             return None
 
     try:
@@ -412,7 +440,7 @@ def get_scenariopaths(path):
                 yield file
         else:
             lfile = file.lower()
-            if lfile.endswith(".wsn") or lfile.endswith(".zip"):
+            if lfile.endswith(".wsn") or lfile.endswith(".zip") or lfile.endswith(".cab"):
                 yield file
 
 def main():

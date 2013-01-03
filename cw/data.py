@@ -179,7 +179,10 @@ class ScenarioData(SystemData):
                 cw.cwpy.recenthistory.moveend(self.fpath)
             else:
                 self.tempdir = u"Data/Temp/Scenario"
-                self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir, avoiddup=True)
+                if self.fpath.lower().endswith(".cab"):
+                    self.tempdir = cw.util.decompress_cab(self.fpath, self.tempdir, avoiddup=True)
+                else:
+                    self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir, avoiddup=True)
                 cw.cwpy.recenthistory.append(self.fpath, self.tempdir)
         else:
             # 展開済みシナリオ

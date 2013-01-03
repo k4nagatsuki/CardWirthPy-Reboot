@@ -7,6 +7,8 @@ import time
 import threading
 import zipfile
 import StringIO
+import shutil
+import subprocess
 import wx
 
 import cw
@@ -1248,17 +1250,41 @@ class ScenarioSelect(Select):
             path = cw.util.join_paths(header.dpath, header.fname)
             if os.path.isfile(path):
                 # 圧縮ファイル内から取得
-                z = zipfile.ZipFile(path, "r")
-                names = [name for name in z.namelist() if name.lower().endswith(".txt")]
+                if path.lower().endswith(".cab"):
+                    dpath = "Data/Temp/Cab"
+                    if not os.path.isdir(dpath):
+                        os.makedirs(dpath)
+                    s = "expand %s -f:%s %s" % (path, "*.txt", dpath)
+                    try:
+                        encoding = sys.getfilesystemencoding()
+                        if subprocess.call(s.encode(encoding), shell=True) == 0:
+                            for dpath2, dnames, fnames in os.walk(dpath):
+                                for fname in fnames:
+                                    if fname.lower().endswith(".txt"):
+                                        f = open(cw.util.join_paths(dpath2, fname), "r")
+                                        seq2.append(f.read())
+                                        f.close()
+                                        seq.append(fname)
+                    finally:
+                        for file in os.listdir(dpath):
+                            file = cw.util.join_paths(dpath, file)
+                            if os.path.isdir(file):
+                                shutil.rmtree(file)
+                            else:
+                                os.remove(file)
 
-                for name in names:
-                    data = z.read(name)
-                    seq2.append(data)
-                    name = os.path.basename(name)
-                    name = cw.util.decode_zipname(name)
-                    seq.append(name)
+                else:
+                    z = zipfile.ZipFile(path, "r")
+                    names = [name for name in z.namelist() if name.lower().endswith(".txt")]
 
-                z.close()
+                    for name in names:
+                        data = z.read(name)
+                        seq2.append(data)
+                        name = os.path.basename(name)
+                        name = cw.util.decode_zipname(name)
+                        seq.append(name)
+
+                    z.close()
 
             else:
 

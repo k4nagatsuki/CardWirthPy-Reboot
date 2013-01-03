@@ -13,6 +13,7 @@ import zipfile
 import operator
 import threading
 import hashlib
+import subprocess
 import StringIO
 import io
 if sys.platform == "win32":
@@ -668,6 +669,85 @@ def get_elementfromzip(zpath, name, tag=""):
     element = cw.data.xml2element(name, tag, file=f)
     f.close()
     return element
+
+def decompress_cab(path, dstdir, dname="", avoiddup=False):
+    """cabファイルをdstdirに解凍する。
+    解凍したディレクトリのpathを返す。
+    """
+
+    if not dname:
+        dname = os.path.splitext(os.path.basename(path))[0]
+
+    dstdir = join_paths(dstdir, dname)
+    dstdir = dupcheck_plus(dstdir, False)
+
+    try:
+        if not os.path.isdir(dstdir):
+            os.makedirs(dstdir)
+        s = "expand %s -f:* %s" % (path, dstdir)
+        encoding = sys.getfilesystemencoding()
+        if subprocess.call(s.encode(encoding), shell=True) <> 0:
+            return None
+    except Exception, ex:
+        print ex
+        return None
+
+    if avoiddup:
+        # 内部にディレクトリが一つしかない場合は
+        # 最上位のディレクトリに格上げする
+        list = os.listdir(dstdir)
+        if 1 == len(list):
+            dpath = os.path.join(dstdir, list[0])
+            if os.path.isdir(dpath):
+                dstdir2 = dupcheck_plus(dstdir, False)
+                os.rename(dstdir, dstdir2)
+                os.rename(os.path.join(dstdir2, list[0]), dstdir)
+                shutil.rmtree(dstdir2)
+
+    return dstdir
+
+
+def cab_hasfile(cab, file):
+    """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""
+    if not os.path.isfile(cab):
+        return False
+
+    dword = struct.Struct("<l")
+    word = struct.Struct("<h")
+    file = os.path.normcase(file)
+    encoding = sys.getfilesystemencoding()
+    try:
+        f = io.BufferedReader(io.FileIO(cab, "rb"))
+        try:
+            # ヘッダ
+            buf = f.read(36)
+            if buf[:4] <> "MSCF":
+                return False
+
+            cofffiles = dword.unpack(buf[16:20])[0]
+            cfiles = dword.unpack(buf[28:32])[0]
+            f.seek(cofffiles)
+
+            for i in range(cfiles):
+                buf = f.read(16)
+                attribs = word.unpack(buf[14:16])[0]
+                name = []
+                while True:
+                    c = str(f.read(1))
+                    if c == '\0':
+                        break
+                    name.append(c)
+                name = "".join(name)
+                _A_NAME_IS_UTF = 0x80
+                if not (attribs & _A_NAME_IS_UTF):
+                    name = unicode(name, encoding);
+                if file == os.path.normcase(os.path.basename(name)):
+                    return True
+        finally:
+            f.close()
+    except Exception, ex:
+        print ex
+    return False
 
 #-------------------------------------------------------------------------------
 #　テキスト操作関連
