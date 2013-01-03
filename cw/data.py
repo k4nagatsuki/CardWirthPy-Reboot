@@ -687,7 +687,6 @@ class LoadSubThread(threading.Thread):
 
 class YadoData(object):
     def __init__(self):
-        cw.util.t_start()
         # 宿データのあるディレクトリ
         self.yadodir = cw.cwpy.yadodir
         self.tempdir = cw.cwpy.tempdir
