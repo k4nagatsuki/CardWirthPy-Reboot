@@ -324,7 +324,7 @@ class YadoSelect(Select):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, 340)
         # Adventurers
-        s = "Adventurers"
+        s = cw.cwpy.msgs["adventurers"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, 175)
 

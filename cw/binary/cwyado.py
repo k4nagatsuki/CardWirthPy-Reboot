@@ -6,6 +6,7 @@ import stat
 import shutil
 
 import util
+import cw
 import cwfile
 import environment
 import adventurer
@@ -95,7 +96,11 @@ class CWYado(object):
         self.curnum = 0
 
         # 宿データをxmlに変換
+        if not os.path.isdir(self.dir):
+            os.makedirs(self.dir)
+        carddb = cw.carddb.CardDB(self.dir)
         for data in self.datalist:
+            data.carddb = carddb
             self.message = u"%s を変換中" % (os.path.basename(data.fpath))
             self.curnum += 1
 
@@ -105,6 +110,9 @@ class CWYado(object):
                 s = os.path.basename(data.fpath)
                 s = u"%s は変換できませんでした。\n" % (s)
                 self.write_errorlog(s)
+
+        carddb.commit()
+        carddb.close()
 
         # その他のファイルを宿ディレクトリにコピー
         for path in self.otherfiles:

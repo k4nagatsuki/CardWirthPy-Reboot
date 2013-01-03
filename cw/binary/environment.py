@@ -129,7 +129,11 @@ class UnusedCard(base.CWBinaryBase):
     def create_xml(self, dpath):
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
-        return self.data.create_xml(dpath)
+        path = self.data.create_xml(dpath)
+        carddb = self.get_root().carddb
+        if carddb:
+            carddb.insert_card(path, commit=False)
+        return path
 
 class YadoCard(base.CWBinaryBase):
     """カード置き場のカードと荷物袋のカードのデータ。

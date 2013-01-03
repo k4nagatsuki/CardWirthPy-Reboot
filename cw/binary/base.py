@@ -21,6 +21,7 @@ class CWBinaryBase(object):
             self.fpath = ""
         self.set_materialdir(materialdir)
         self.set_image_export(image_export)
+        self.carddb = None
 
         if parent:
             self._yadodata = parent._yadodata
@@ -127,6 +128,7 @@ class CWBinaryBase(object):
         f = open(path, "wb")
         f.write(xmltext.encode("utf-8"))
         f.close()
+        return path
 
     def export_image(self):
         """内部画像を出力する"""

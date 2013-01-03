@@ -453,6 +453,7 @@
     <Message key="delete_base">「%s」を破棄します。
 よろしいですか？</Message>
     <Message key="create_base_title">宿の登録</Message>
+    <Message key="adventurers">Adventurers</Message>
     <Message key="new_base">新規宿</Message>
     <Message key="base_error_no_name">名称が入力されていません。</Message>
     <Message key="base_error_invalid_name">名称に不正な文字が使用されています。

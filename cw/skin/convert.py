@@ -640,6 +640,7 @@ class Converter(threading.Thread):
 
             cribs2 = {
                 "new_base": msglist3[3],
+                "adventurers": msglist3[1],
                 "confirm_sell": "%s" + msglist1[62] + "%s" + msglist1[63],
                 "confirm_dump": "%s" + msglist1[67],
                 "error_hand_be_full": "%s" + msglist1[59],

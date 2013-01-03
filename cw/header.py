@@ -18,32 +18,32 @@ class CardHeader(object):
         if dbrec:
             self.set_owner("STOREHOUSE")
             self.carddata = None
-            self.fpath = dbrec[0]
-            self.type = dbrec[1]
-            self.id = dbrec[2]
-            self.name = dbrec[3]
-            self.desc = dbrec[4]
-            self.scenario = dbrec[5]
-            self.author = dbrec[6]
-            self.keycodes = dbrec[7].split("\n")
-            self.uselimit = dbrec[8]
-            self.target = dbrec[9]
-            self.allrange = bool(dbrec[10])
-            self.premium = dbrec[11]
-            self.physical = dbrec[12]
-            self.mental = dbrec[13]
-            self.level = dbrec[14]
-            self.maxuselimit = dbrec[15]
-            self.price = dbrec[16]
-            self.hold = bool(dbrec[17])
-            self.enhance_avo = dbrec[18]
-            self.enhance_res = dbrec[19]
-            self.enhance_def = dbrec[20]
-            self.enhance_avo_used = dbrec[21]
-            self.enhance_res_used = dbrec[22]
-            self.enhance_def_used = dbrec[23]
-            self.attachment = bool(dbrec[24])
-            self.imgpath = dbrec[25]
+            self.fpath = dbrec["fpath"]
+            self.type = dbrec["type"]
+            self.id = dbrec["id"]
+            self.name = dbrec["name"]
+            self.imgpath = dbrec["imgpath"]
+            self.desc = dbrec["desc"]
+            self.scenario = dbrec["scenario"]
+            self.author = dbrec["author"]
+            self.keycodes = dbrec["keycodes"].split("\n")
+            self.uselimit = dbrec["uselimit"]
+            self.target = dbrec["target"]
+            self.allrange = bool(dbrec["allrange"])
+            self.premium = dbrec["premium"]
+            self.physical = dbrec["physical"]
+            self.mental = dbrec["mental"]
+            self.level = dbrec["level"]
+            self.maxuselimit = dbrec["maxuselimit"]
+            self.price = dbrec["price"]
+            self.hold = bool(dbrec["hold"])
+            self.enhance_avo = dbrec["enhance_avo"]
+            self.enhance_res = dbrec["enhance_res"]
+            self.enhance_def = dbrec["enhance_def"]
+            self.enhance_avo_used = dbrec["enhance_avo_used"]
+            self.enhance_res_used = dbrec["enhance_res_used"]
+            self.enhance_def_used = dbrec["enhance_def_used"]
+            self.attachment = bool(dbrec["attachment"])
         else:
             self.set_owner(owner)
             self.carddata = carddata
@@ -508,20 +508,20 @@ class AdventurerHeader(object):
         冒険者のヘッダ。引数のdataはPropertyElement。
         """
         if dbrec:
-            self.fpath = dbrec[0]
-            self.level = dbrec[1]
-            self.name = dbrec[2]
-            self.imgpath = dbrec[3]
-            self.album = bool(dbrec[4])
-            self.lost = bool(dbrec[5])
-            self.sex = dbrec[6]
-            self.age = dbrec[7]
-            self.ep = dbrec[8]
-            self.leavenoalbum = bool(dbrec[9])
+            self.fpath = dbrec["fpath"]
+            self.level = dbrec["level"]
+            self.name = dbrec["name"]
+            self.imgpath = dbrec["imgpath"]
+            self.album = bool(dbrec["album"])
+            self.lost = bool(dbrec["lost"])
+            self.sex = dbrec["sex"]
+            self.age = dbrec["age"]
+            self.ep = dbrec["ep"]
+            self.leavenoalbum = bool(dbrec["leavenoalbum"])
             self.gene = Gene()
-            self.gene.set_str(dbrec[10])
-            self.history = dbrec[11].split("\n")
-            self.race = dbrec[12]
+            self.gene.set_str(dbrec["gene"])
+            self.history = dbrec["history"].split("\n")
+            self.race = dbrec["race"]
         else:
             self.fpath = data.fpath
             self.level = data.getint("Level", 0)

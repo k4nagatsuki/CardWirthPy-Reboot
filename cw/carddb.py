@@ -23,9 +23,11 @@ class CardDB(object):
 
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
+            self.con.row_factory = sqlite3.Row
             self.cur = self.con.cursor()
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)
+            self.con.row_factory = sqlite3.Row
             self.cur = self.con.cursor()
             # テーブル作成
 
@@ -36,6 +38,7 @@ class CardDB(object):
                     type INTEGER,
                     id INTEGER,
                     name TEXT,
+                    imgpath TEXT,
                     desc TEXT,
                     scenario TEXT,
                     author TEXT,
@@ -57,7 +60,6 @@ class CardDB(object):
                     enhance_res_used INTEGER,
                     enhance_def_used INTEGER,
                     attachment INTEGER,
-                    imgpath TEXT,
                     ctime INTEGER,
                     mtime INTEGER,
                     PRIMARY KEY (fpath)
@@ -202,6 +204,7 @@ class CardDB(object):
             header.type,
             header.id,
             header.name,
+            header.imgpath,
             header.desc,
             header.scenario,
             header.author,
@@ -223,7 +226,6 @@ class CardDB(object):
             header.enhance_res_used,
             header.enhance_def_used,
             header.attachment,
-            os.path.relpath(header.imgpath, self.ypath),
             ctime,
             mtime,
         ))
@@ -247,9 +249,8 @@ class CardDB(object):
     def get_cards(self):
         s = "SELECT * FROM card ORDER BY name"
         self.cur.execute(s)
-        data = self.cur.fetchall()
         headers = []
-        for rec in data:
+        for rec in self.cur:
             headers.append(cw.header.CardHeader(dbrec=rec))
         return headers
 
@@ -327,9 +328,8 @@ class CardDB(object):
         else:
             album = 0
         self.cur.execute(s, (album,))
-        data = self.cur.fetchall()
         headers = []
-        for rec in data:
+        for rec in self.cur:
             headers.append(cw.header.AdventurerHeader(dbrec=rec))
         return headers
 
@@ -338,6 +338,10 @@ class CardDB(object):
 
     def get_album(self):
         return self.get_adventurers(True)
+
+    @synclock(_lock)
+    def commit(self):
+        self.con.commit()
 
     @synclock(_lock)
     def close(self):
