@@ -149,8 +149,8 @@ class CardHeader(object):
         else:
             path = cw.util.join_yadodir(path)
 
-        self.imgpath = path
-        self.cardimg = cw.image.CardImage(self.imgpath, self.get_bgtype(),
+        imgpath = path
+        self.cardimg = cw.image.CardImage(imgpath, self.get_bgtype(),
                                                     self.name, self.premium)
         self.rect = self.cardimg.rect
 
@@ -797,14 +797,21 @@ class ScenarioHeader(object):
         return self._wxbmp
 
 class PartyHeader(object):
-    def __init__(self, data):
+    def __init__(self, data=None, dbrec=None):
         """
-        data: PartyのPropetyElement
+        data: PartyのPropetyElement。
+        dbrec: データベースから生成する場合は対象レコード。
         """
-        self.fpath = data.fpath
-        self.name = data.gettext("Name")
-        self.money = data.getint("Money", 0)
-        self.members = [e.text for e in data.getfind("Members") if e.text]
+        if dbrec:
+            self.fpath = dbrec["fpath"]
+            self.name = dbrec["name"]
+            self.money = dbrec["money"]
+            self.members = dbrec["members"].split("\n")
+        else:
+            self.fpath = data.fpath
+            self.name = data.gettext("Name")
+            self.money = data.getint("Money", 0)
+            self.members = [e.text for e in data.getfind("Members") if e.text]
 
     def is_adventuring(self):
         path = os.path.splitext(self.fpath)[0] + ".wsl"

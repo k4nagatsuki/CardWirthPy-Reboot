@@ -130,9 +130,9 @@ class UnusedCard(base.CWBinaryBase):
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
         path = self.data.create_xml(dpath)
-        carddb = self.get_root().carddb
-        if carddb:
-            carddb.insert_card(path, commit=False)
+        yadodb = self.get_root().yadodb
+        if yadodb:
+            yadodb.insert_card(path, commit=False)
         return path
 
 class YadoCard(base.CWBinaryBase):

@@ -21,7 +21,7 @@ class CWBinaryBase(object):
             self.fpath = ""
         self.set_materialdir(materialdir)
         self.set_image_export(image_export)
-        self.carddb = None
+        self.yadodb = None
 
         if parent:
             self._yadodata = parent._yadodata

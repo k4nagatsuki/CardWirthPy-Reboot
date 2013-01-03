@@ -82,9 +82,9 @@ class Album(base.CWBinaryBase):
 
     def create_xml(self, dpath):
         path = base.CWBinaryBase.create_xml(self, dpath)
-        carddb = self.get_root().carddb
-        if carddb:
-            carddb.insert_adventurer(path, album=True, commit=False)
+        yadodb = self.get_root().yadodb
+        if yadodb:
+            yadodb.insert_adventurer(path, album=True, commit=False)
         return path
 
 def main():

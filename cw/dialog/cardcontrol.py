@@ -812,13 +812,6 @@ class CardHolder(CardControl):
                     cw.cwpy.ydata.party.backpack[li + index] = header
                     self.list[li + index] = header
                     list[index] = header
-        elif self.callname == "STOREHOUSE":
-            for index, path in enumerate(list):
-                if not isinstance(path, cw.header.CardHeader):
-                    header = cw.cwpy.ydata.create_cardheader(path, owner="STOREHOUSE")
-                    cw.cwpy.ydata.storehouse[li + index] = header
-                    self.list[li + index] = header
-                    list[index] = header
 
         return list
 

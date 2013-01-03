@@ -3,7 +3,7 @@
 
 import util
 import battle
-import carddb
+import yadodb
 import data
 import dice
 import effectmotion

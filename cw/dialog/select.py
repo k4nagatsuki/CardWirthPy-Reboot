@@ -318,7 +318,7 @@ class YadoSelect(Select):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, 40)
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
@@ -329,6 +329,7 @@ class YadoSelect(Select):
         dc.DrawText(s, (bmpw-w)/2, 175)
 
         # 所属冒険者
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
         for idx, name in enumerate(self.list2[self.index]):
             x = (bmpw - 250) / 2 + ((idx % 3) * 95)
             y = 200 + (idx / 3) * 16
@@ -570,7 +571,7 @@ class PartySelect(Select):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, 225)
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
@@ -790,14 +791,6 @@ class PlayerSelect(Select):
             return
 
         header = self.list[self.index]
-        if not isinstance(header, cw.header.AdventurerHeader):
-            # まだヘッダが生成されていない場合
-            header = cw.cwpy.ydata.create_advheader(header, self.isalbum)
-            self.list[self.index] = header
-            if self.isalbum:
-                cw.cwpy.ydata.album[self.index] = header
-            else:
-                cw.cwpy.ydata.standbys[self.index] = header
         # Level
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
@@ -843,7 +836,7 @@ class PlayerSelect(Select):
             dc.DrawText(s, 320 - w / 2, 95 + 15 * index)
 
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
@@ -1087,7 +1080,7 @@ class ScenarioSelect(Select):
 
         # ページ番号
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]

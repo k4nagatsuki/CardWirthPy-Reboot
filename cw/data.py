@@ -684,6 +684,7 @@ class LoadSubThread(threading.Thread):
 
 class YadoData(object):
     def __init__(self):
+        cw.util.t_start()
         # 宿データのあるディレクトリ
         self.yadodir = cw.cwpy.yadodir
         self.tempdir = cw.cwpy.tempdir
@@ -699,23 +700,23 @@ class YadoData(object):
         self.environment = yadoxml2etree(path)
         # 宿の金庫
         self.money = int(self.environment.getroot().find("Property/Cashbox").text)
-        # パーティリスト(PartyHeader)
-        paths = self.get_partypaths()
-        self.partys = [self.create_partyheader(path) for path in paths]
 
-        self.carddb = cw.carddb.CardDB(self.yadodir)
-        self.carddb.update()
+        self.yadodb = cw.yadodb.YadoDB(self.yadodir)
+        self.yadodb.update()
+
+        # パーティリスト(PartyHeader)
+        self.partys = self.yadodb.get_parties()
 
         # 待機中冒険者(AdventurerHeader)
-        self.standbys = self.carddb.get_standbys()
+        self.standbys = self.yadodb.get_standbys()
 
         # アルバム(AdventurerHeader)
-        self.album = self.carddb.get_album()
+        self.album = self.yadodb.get_album()
 
         # カード置場(CardHeader)
-        self.storehouse = self.carddb.get_cards()
+        self.storehouse = self.yadodb.get_cards()
 
-        self.carddb.close()
+        self.yadodb.close()
 
         # 現在選択中のパーティをセット
         self.party = None
@@ -861,6 +862,11 @@ class YadoData(object):
         self.deletedpaths.clear()
         # 宿のtempフォルダを空にする
         cw.util.remove(self.tempdir)
+
+        # カードデータベースを更新
+        yadodb = cw.yadodb.YadoDB(self.yadodir)
+        yadodb.update()
+        yadodb.close()
 
     #---------------------------------------------------------------------------
     # ゴシップ・シナリオ終了印用メソッド

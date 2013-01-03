@@ -1052,20 +1052,12 @@ class RelationPage(AdventurerCreaterPage):
             return
 
         for index, header in enumerate(cw.cwpy.ydata.standbys):
-            if not isinstance(header, cw.header.AdventurerHeader):
-                # まだヘッダが生成されていない場合
-                header = cw.cwpy.ydata.create_advheader(header)
-                cw.cwpy.ydata.standbys[index] = header
             for period in cw.cwpy.setting.periods:
                 if period.spendep > 0 and header.age == u"＿" + period.name and header.ep >= period.spendep:
                     append_header(self, header)
                     break
 
         for index, header in enumerate(cw.cwpy.ydata.album):
-            if not isinstance(header, cw.header.AdventurerHeader):
-                # まだヘッダが生成されていない場合
-                header = cw.cwpy.ydata.create_advheader(header, True)
-                cw.cwpy.ydata.album[index] = header
             if header.ep >= 10:
                 append_header(self, header)
 

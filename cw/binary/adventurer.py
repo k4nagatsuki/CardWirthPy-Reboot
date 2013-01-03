@@ -172,9 +172,9 @@ class AdventurerCard(base.CWBinaryBase):
     def create_xml(self, dpath):
         """adventurerのデータだけxml化する。"""
         path = self.adventurer.create_xml(dpath)
-        carddb = self.get_root().carddb
-        if carddb:
-            carddb.insert_adventurer(path, album=False, commit=False)
+        yadodb = self.get_root().yadodb
+        if yadodb:
+            yadodb.insert_adventurer(path, album=False, commit=False)
         return path
 
 class AdventurerWithImage(base.CWBinaryBase):

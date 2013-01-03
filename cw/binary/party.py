@@ -55,6 +55,13 @@ class Party(base.CWBinaryBase):
         d["members"] = "\n".join(seq)
         return d
 
+    def create_xml(self, dpath):
+        path = base.CWBinaryBase.create_xml(self, dpath)
+        yadodb = self.get_root().yadodb
+        if yadodb:
+            yadodb.insert_party(path, commit=False)
+        return path
+
 class PartyMembers(base.CWBinaryBase):
     """wptファイル(type=3)。パーティメンバと
     荷物袋に入っているカードリストを格納している。

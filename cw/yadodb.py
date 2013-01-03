@@ -13,13 +13,13 @@ from cw.util import synclock
 
 _lock = threading.Lock()
 
-class CardDB(object):
+class YadoDB(object):
 
     """カードのデータベース。ロックのタイムアウトは30秒指定。"""
     @synclock(_lock)
     def __init__(self, ypath):
         self.ypath = ypath
-        self.name = os.path.join(ypath, "Card.db")
+        self.name = os.path.join(ypath, "Yado.db")
 
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
@@ -90,16 +90,30 @@ class CardDB(object):
             """
             self.cur.execute(s)
 
+            # パーティ
+            s = """
+                CREATE TABLE party (
+                    fpath TEXT,
+                    name TEXT,
+                    money INTEGER,
+                    members TEXT,
+                    ctime INTEGER,
+                    mtime INTEGER,
+                    PRIMARY KEY (fpath)
+                )
+            """
+            self.cur.execute(s)
+
     @synclock(_lock)
     def update(self):
         """データベースを更新する。"""
         def walk(dpath, insert, *args):
-            dpath = cw.util.join_paths(self.ypath, dpath)
-            if os.path.isdir(dpath):
-                for file in os.listdir(dpath):
+            dir = cw.util.join_paths(self.ypath, dpath)
+            if os.path.isdir(dir):
+                for file in os.listdir(dir):
                     path = cw.util.join_paths(dpath, file)
                     if not path in dbpaths:
-                        insert(path, *args)
+                        insert(cw.util.join_paths(self.ypath, path), *args)
 
         s = "SELECT fpath, mtime FROM card"
         self.cur.execute(s)
@@ -110,7 +124,7 @@ class CardDB(object):
             if not os.path.isfile(path):
                 self._delete_card(t[0], False)
             else:
-                dbpaths.add(path)
+                dbpaths.add(t[0])
                 if os.path.getmtime(path) > t[1]:
                     # 情報を更新
                     self._insert_card(path, False)
@@ -127,12 +141,27 @@ class CardDB(object):
             if not os.path.isfile(path):
                 self._delete_adventurer(t[0], False)
             else:
-                dbpaths.add(path)
+                dbpaths.add(t[0])
                 if os.path.getmtime(path) > t[1]:
                     # 情報を更新
                     self._insert_adventurer(path, bool(t[2]), False)
         walk("Adventurer", self._insert_adventurer, False, False)
         walk("Album", self._insert_adventurer, True, False)
+
+        s = "SELECT fpath, mtime FROM party"
+        self.cur.execute(s)
+        data = self.cur.fetchall()
+        dbpaths = set()
+        for t in data:
+            path = cw.util.join_paths(self.ypath, t[0])
+            if not os.path.isfile(path):
+                self._delete_party(t[0], False)
+            else:
+                dbpaths.add(t[0])
+                if os.path.getmtime(path) > t[1]:
+                    # 情報を更新
+                    self._insert_party(path, False)
+        walk("Party", self._insert_party, False)
 
         self.con.commit()
 
@@ -141,6 +170,8 @@ class CardDB(object):
         s = "VACUUM card"
         self.cur.execute(s)
         s = "VACUUM adventurer"
+        self.cur.execute(s)
+        s = "VACUUM party"
         self.cur.execute(s)
 
         if commit:
@@ -154,6 +185,12 @@ class CardDB(object):
 
     def _delete_adventurer(self, path, commit=True):
         s = "DELETE FROM adventurer WHERE fpath=?"
+        self.cur.execute(s, (path,))
+        if commit:
+            self.con.commit()
+
+    def _delete_party(self, path, commit=True):
+        s = "DELETE FROM party WHERE fpath=?"
         self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
@@ -196,7 +233,8 @@ class CardDB(object):
             ?
         )
         """
-        fpath = cw.util.join_paths(os.path.relpath(header.fpath, self.ypath))
+        fpath = os.path.relpath(header.fpath, self.ypath)
+        fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
         self.cur.execute(s, (
@@ -244,14 +282,16 @@ class CardDB(object):
             header.fpath = path
             return self._insert_cardheader(header, commit)
         except Exception, ex:
-            pass
+            print ex
 
     def get_cards(self):
         s = "SELECT * FROM card ORDER BY name"
         self.cur.execute(s)
         headers = []
         for rec in self.cur:
-            headers.append(cw.header.CardHeader(dbrec=rec))
+            header = cw.header.CardHeader(dbrec=rec)
+            header.fpath = cw.util.join_paths(self.ypath, header.fpath)
+            headers.append(header)
         return headers
 
     @synclock(_lock)
@@ -259,7 +299,7 @@ class CardDB(object):
         return self._insert_adventurerheader(header, commit)
 
     def _insert_adventurerheader(self, header, commit=True):
-        """データベースにカードを登録する。"""
+        """データベースに冒険者を登録する。"""
         s = """
         INSERT OR REPLACE INTO adventurer VALUES(
             ?,
@@ -279,7 +319,8 @@ class CardDB(object):
             ?
         )
         """
-        fpath = cw.util.join_paths(os.path.relpath(header.fpath, self.ypath))
+        fpath = os.path.relpath(header.fpath, self.ypath)
+        fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
         if header.album:
@@ -319,7 +360,7 @@ class CardDB(object):
             header.fpath = path
             return self._insert_adventurerheader(header, commit)
         except Exception, ex:
-            pass
+            print ex
 
     def get_adventurers(self, album):
         s = "SELECT * FROM adventurer WHERE album=? ORDER BY name"
@@ -330,7 +371,9 @@ class CardDB(object):
         self.cur.execute(s, (album,))
         headers = []
         for rec in self.cur:
-            headers.append(cw.header.AdventurerHeader(dbrec=rec))
+            header = cw.header.AdventurerHeader(dbrec=rec)
+            header.fpath = cw.util.join_paths(self.ypath, header.fpath)
+            headers.append(header)
         return headers
 
     def get_standbys(self):
@@ -338,6 +381,62 @@ class CardDB(object):
 
     def get_album(self):
         return self.get_adventurers(True)
+
+    @synclock(_lock)
+    def insert_partyheader(self, header, commit=True):
+        return self._insert_partyheader(header, commit)
+
+    def _insert_partyheader(self, header, commit=True):
+        """データベースにパーティを登録する。"""
+        s = """
+        INSERT OR REPLACE INTO party VALUES(
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+        """
+        fpath = os.path.relpath(header.fpath, self.ypath)
+        fpath = cw.util.join_paths(fpath)
+        ctime = time.time()
+        mtime = os.path.getmtime(header.fpath)
+        self.cur.execute(s, (
+            fpath,
+            header.name,
+            header.money,
+            "\n".join(header.members),
+            ctime,
+            mtime,
+        ))
+
+        if commit:
+            self.con.commit()
+
+    @synclock(_lock)
+    def insert_party(self, path, commit=True):
+        return self._insert_party(path, commit)
+
+    def _insert_party(self, path, commit=True):
+        try:
+            data = cw.data.xml2etree(path)
+            e = data.find("Property")
+            header = cw.header.PartyHeader(e)
+            header.fpath = path
+            return self._insert_partyheader(header, commit)
+        except Exception, ex:
+            print ex
+
+    def get_parties(self):
+        s = "SELECT * FROM party ORDER BY name"
+        self.cur.execute(s)
+        headers = []
+        for rec in self.cur:
+            header = cw.header.PartyHeader(dbrec=rec)
+            header.fpath = cw.util.join_paths(self.ypath, header.fpath)
+            headers.append(header)
+        return headers
 
     @synclock(_lock)
     def commit(self):
