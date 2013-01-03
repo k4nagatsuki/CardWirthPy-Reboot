@@ -54,7 +54,7 @@ class CWFile(io.BufferedReader):
         dword = self.dword()
 
         if dword:
-            return unicode(self.read(dword), "ms932").strip("\x00")
+            return unicode(self.read(dword), "mbcs").strip("\x00")
         else:
             return ""
 

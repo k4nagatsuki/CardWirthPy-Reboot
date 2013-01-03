@@ -83,7 +83,7 @@ def get_rcdata(exe, resname):
                     value = []
                     while ord(data[0]) == 6:
                         length = ord(data[1])
-                        value.append(unicode(data[2:2+length], 'ms932'))
+                        value.append(unicode(data[2:2+length], 'mbcs'))
                         data = data[2+length:]
                     data = data[1:]
                 elif type == 0x02: # signed byte
@@ -94,7 +94,7 @@ def get_rcdata(exe, resname):
                     data = data[2:]
                 elif type == 0x06: # string
                     length = ord(data[0])
-                    value = unicode(data[1:1+length], 'ms932')
+                    value = unicode(data[1:1+length], 'mbcs')
                     data = data[1+length:]
                 elif type == 0x07: # name
                     length = ord(data[0])

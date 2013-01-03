@@ -85,7 +85,7 @@ class Converter(threading.Thread):
             key = "\\Midi\\DefReset.mid"
             index = self.exebinary.find(key)
             try:
-                return unicode(self.exebinary[index-4:index], "ms932")
+                return unicode(self.exebinary[index-4:index], "mbcs")
             except:
                 pass
         return u"Data"
@@ -96,7 +96,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             try:
                 index = index + len(key)
-                return unicode(self.exebinary[index:index+8], "ms932")
+                return unicode(self.exebinary[index:index+8], "mbcs")
             except:
                 pass
         return u"Scenario"
@@ -140,7 +140,7 @@ class Converter(threading.Thread):
                     name = n[:i]
                 else:
                     name = n
-                data.find("./Name").text = unicode(name, "ms932").strip(" 　")
+                data.find("./Name").text = unicode(name, "mbcs").strip(" 　")
 
                 # 身体能力
                 p = physical.unpack(self.exebinary[index:index+2*6])
@@ -241,13 +241,13 @@ class Converter(threading.Thread):
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index -= less
-                    e.text = unicode(self.exebinary[index-length:index], "ms932")
+                    e.text = unicode(self.exebinary[index-length:index], "mbcs")
             def get_keyafter(e, key, length, than=0):
                 index = self.exebinary.find(key)
                 if 0 <= index:
                     index += len(key)
                     index += than
-                    e.text = unicode(self.exebinary[index:index+length], "ms932")
+                    e.text = unicode(self.exebinary[index:index+length], "mbcs")
 
             # システム・エラー
             # ".wav\0は、行動不能です。"
@@ -708,7 +708,7 @@ class Converter(threading.Thread):
 
     def _get_text(self, index, cutzero=False):
         end = self.exebinary.find('\0', index)
-        s = unicode(self.exebinary[index:end], "ms932")
+        s = unicode(self.exebinary[index:end], "mbcs")
         index = end + 1
         if cutzero:
             while self.exebinary[index] == '\0':
