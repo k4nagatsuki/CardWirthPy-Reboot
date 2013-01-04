@@ -50,21 +50,124 @@ class Debugger(wx.Frame):
         # create status bar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
         self.statusbar.SetStatusWidths([0, -1])
+
+        rsrc = cw.cwpy.rsrc.debugs
+
         # create menu
         mb = wx.MenuBar()
         file_menu = wx.Menu()
-        view_menu = wx.Menu()
-        yado_menu = wx.Menu()
-        advr_menu = wx.Menu()
-        scen_menu = wx.Menu()
-        mb.Append(file_menu, u"ファイル")
-        mb.Append(view_menu, u"表示")
-        mb.Append(yado_menu, u"宿")
-        mb.Append(advr_menu, u"冒険者")
-        mb.Append(scen_menu, u"シナリオ")
+        edit_menu = wx.Menu()
+        scenario_menu = wx.Menu()
+        run_menu = wx.Menu()
+        mb.Append(file_menu, u"ファイル(&F)")
+        mb.Append(edit_menu, u"編集(&E)")
+        mb.Append(scenario_menu, u"シナリオ(&S)")
+        mb.Append(run_menu, u"実行(&R)")
+
+        self.mi_save = wx.MenuItem(file_menu, ID_SAVE, u"セーブ(&S)\tCtrl+S",
+                         u"状況を記録します。")
+        self.mi_save.SetBitmap(rsrc["SAVE"])
+        file_menu.AppendItem(self.mi_save)
+        self.mi_load = wx.MenuItem(file_menu, ID_LOAD, u"ロード(&L)\tCtrl+O",
+                         u"状況を再現します。")
+        self.mi_load.SetBitmap(rsrc["LOAD"])
+        file_menu.AppendItem(self.mi_load)
+        file_menu.AppendSeparator()
+        self.mi_reset = wx.MenuItem(file_menu, ID_RESET, u"リセット(&R)",
+                         u"初期状態に戻します。")
+        self.mi_reset.SetBitmap(rsrc["RESET"])
+        file_menu.AppendItem(self.mi_reset)
+        file_menu.AppendSeparator()
+        self.mi_break = wx.MenuItem(file_menu, ID_BREAK, u"シナリオ中断(&E)\tCtrl+X",
+                         u"シナリオを中断して、冒険者の宿に戻ります。")
+        self.mi_break.SetBitmap(rsrc["BREAK"])
+        file_menu.AppendItem(self.mi_break)
+
+        self.mi_comp = wx.MenuItem(edit_menu, ID_COMPSTAMP, u"終了印(&O)",
+                         u"終了印リストを編集します。")
+        self.mi_comp.SetBitmap(rsrc["COMPSTAMP"])
+        edit_menu.AppendItem(self.mi_comp)
+        self.mi_gossip = wx.MenuItem(edit_menu, ID_GOSSIP, u"ゴシップ(&G)",
+                         u"ゴシップリストを編集します。")
+        self.mi_gossip.SetBitmap(rsrc["GOSSIP"])
+        edit_menu.AppendItem(self.mi_gossip)
+        self.mi_money = wx.MenuItem(edit_menu, ID_MONEY, u"所持金(&M)",
+                         u"所持金を変更します。")
+        self.mi_money.SetBitmap(rsrc["MONEY"])
+        edit_menu.AppendItem(self.mi_money)
+        self.mi_card = wx.MenuItem(edit_menu, ID_CARD, u"手札配布(&D)",
+                         u"手札カードを配布します。")
+        self.mi_card.SetBitmap(rsrc["CARD"])
+        edit_menu.AppendItem(self.mi_card)
+        edit_menu.AppendSeparator()
+        self.mi_member = wx.MenuItem(edit_menu, ID_MEMBER, u"冒険者(&A)",
+                         u"冒険者の情報を編集します。")
+        self.mi_member.SetBitmap(rsrc["MEMBER"])
+        edit_menu.AppendItem(self.mi_member)
+        self.mi_coupon = wx.MenuItem(edit_menu, ID_COUPON, u"経歴(&C)",
+                         u"冒険者の経歴を編集します。")
+        self.mi_coupon.SetBitmap(rsrc["COUPON"])
+        edit_menu.AppendItem(self.mi_coupon)
+        self.mi_status = wx.MenuItem(edit_menu, ID_STATUS, u"状態(&S)",
+                         u"冒険者の状態を編集します。")
+        self.mi_status.SetBitmap(rsrc["STATUS"])
+        edit_menu.AppendItem(self.mi_status)
+        self.mi_recovery = wx.MenuItem(edit_menu, ID_RECOVERY, u"全回復(&L)\tCtrl+R",
+                         u"全冒険者を全回復させます。")
+        self.mi_recovery.SetBitmap(rsrc["RECOVERY"])
+        edit_menu.AppendItem(self.mi_recovery)
+
+        self.mi_update = wx.MenuItem(scenario_menu, ID_UPDATE, u"場面更新(&R)\tF5",
+                         u"最新の情報に更新します。")
+        self.mi_update.SetBitmap(rsrc["UPDATE"])
+        scenario_menu.AppendItem(self.mi_update)
+        scenario_menu.AppendSeparator()
+        self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"エリア(&A)",
+                         u"エリアを選択して場面を変更します。")
+        self.mi_area.SetBitmap(rsrc["AREA"])
+        if cw.cwpy.is_battlestatus():
+            self.mi_area.SetBitmap(rsrc["BATTLECANCEL"])
+            self.mi_area.SetShortHelp(u"戦闘を中断します。")
+        scenario_menu.AppendItem(self.mi_area)
+        self.mi_battle = wx.MenuItem(scenario_menu, ID_BATTLE, u"戦闘(&B)",
+                         u"バトルを選択して戦闘を開始します。")
+        self.mi_battle.SetBitmap(rsrc["BATTLE"])
+        scenario_menu.AppendItem(self.mi_battle)
+        self.mi_pack = wx.MenuItem(scenario_menu, ID_PACK, u"パッケージ(&P)",
+                         u"パッケージを選択してイベントを開始します。")
+        self.mi_pack.SetBitmap(rsrc["PACK"])
+        scenario_menu.AppendItem(self.mi_pack)
+        scenario_menu.AppendSeparator()
+        self.mi_friend = wx.MenuItem(scenario_menu, ID_FRIEND, u"同行者(&F)",
+                         u"同行者カードの取得・破棄を行います。")
+        self.mi_friend.SetBitmap(rsrc["FRIEND"])
+        scenario_menu.AppendItem(self.mi_friend)
+        self.mi_info = wx.MenuItem(scenario_menu, ID_INFO, u"情報(&I)",
+                         u"情報カードの取得・破棄を行います。")
+        self.mi_info.SetBitmap(rsrc["INFO"])
+        scenario_menu.AppendItem(self.mi_info)
+
+        self.mi_step = wx.MenuItem(run_menu, ID_STEP, u"1コンテント実行(&I)\tF11",
+                         u"イベントを1コンテントだけ実行します。")
+        self.mi_step.SetBitmap(rsrc["EVTCTRL_STEP"])
+        run_menu.AppendItem(self.mi_step)
+        self.mi_pause = wx.MenuItem(run_menu, ID_PAUSE, u"イベント一時停止(&P)\tF10",
+                         u"イベントを一時停止します。", kind=wx.ITEM_CHECK)
+        self.mi_pause.SetBitmap(rsrc["EVTCTRL_PAUSE"])
+        run_menu.AppendItem(self.mi_pause)
+        self.mi_stop = wx.MenuItem(run_menu, ID_STOP, u"イベント強制終了(&E)\tF12",
+                         u"イベントを強制終了します。")
+        self.mi_stop.SetBitmap(rsrc["EVTCTRL_STOP"])
+        run_menu.AppendItem(self.mi_stop)
+        run_menu.AppendSeparator()
+        self.mi_select = wx.MenuItem(run_menu, ID_SELECTION, u"選択メンバ(&S)",
+                         u"選択中のキャラクターを変更します。")
+        self.mi_select.SetBitmap(rsrc["SELECTION"])
+        run_menu.AppendItem(self.mi_select)
+
         self.SetMenuBar(mb)
+
         # create main toolbar
-        rsrc = cw.cwpy.rsrc.debugs
         self.tb1 = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb1.SetToolBitmapSize(wx.Size(20, 20))
         self.tl_comp = self.tb1.AddLabelTool(
@@ -98,9 +201,6 @@ class Debugger(wx.Frame):
         # create scenario toolbar
         self.tb2 = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb2.SetToolBitmapSize(wx.Size(20, 20))
-        self.tl_break = self.tb2.AddLabelTool(
-            ID_BREAK, u"シナリオ中断", rsrc["BREAK"],
-            shortHelp=u"シナリオを中断して、冒険者の宿に戻ります。")
         self.tl_update = self.tb2.AddLabelTool(
             ID_UPDATE, "場面更新", rsrc["UPDATE"],
             shortHelp=u"最新の情報に更新します。")
@@ -125,9 +225,14 @@ class Debugger(wx.Frame):
         self.tl_load = self.tb2.AddLabelTool(
             ID_LOAD, u"ロード", rsrc["LOAD"],
             shortHelp=u"状況を再現します。")
+        self.tb2.AddSeparator()
         self.tl_reset = self.tb2.AddLabelTool(
             ID_RESET, u"リセット", rsrc["RESET"],
             shortHelp=u"初期状態に戻します。")
+        self.tb2.AddSeparator()
+        self.tl_break = self.tb2.AddLabelTool(
+            ID_BREAK, u"シナリオ中断", rsrc["BREAK"],
+            shortHelp=u"シナリオを中断して、冒険者の宿に戻ります。")
         self.tb2.Realize()
 
         # create event control bar
@@ -155,7 +260,7 @@ class Debugger(wx.Frame):
         self.tb_area = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_area.SetToolBitmapSize(wx.Size(20, 20))
         self.tl_area = self.tb_area.AddLabelTool(
-            ID_AREA, "", rsrc["AREA"],
+            ID_AREA, u"エリア", rsrc["AREA"],
             shortHelp=u"エリアを選択して場面を変更します。")
 
         # _battletoolでボタンの切り替えを判別
@@ -176,7 +281,7 @@ class Debugger(wx.Frame):
         self.tb_select = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_select.SetToolBitmapSize(wx.Size(20, 20))
         self.tl_select = self.tb_select.AddLabelTool(
-            ID_SELECTION, "",
+            ID_SELECTION, u"選択メンバ",
             rsrc["SELECTION"], shortHelp=u"選択中のキャラクターを変更します。")
         self.tb_select.AddSeparator()
         self.st_select = wx.StaticText(
@@ -231,19 +336,19 @@ class Debugger(wx.Frame):
     def _bind(self):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
-        self.Bind(wx.EVT_TOOL, self.OnAreaTool, id=ID_AREA)
-        self.Bind(wx.EVT_TOOL, self.OnSelectionTool, id=ID_SELECTION)
-        self.Bind(wx.EVT_TOOL, self.OnStepTool, id=ID_STEP)
-        self.Bind(wx.EVT_TOOL, self.OnPauseTool, id=ID_PAUSE)
-        self.Bind(wx.EVT_TOOL, self.OnStopTool, id=ID_STOP)
-        self.Bind(wx.EVT_TOOL, self.OnRecoveryTool, id=ID_RECOVERY)
-        self.Bind(wx.EVT_TOOL, self.OnPackageTool, id=ID_PACK)
-        self.Bind(wx.EVT_TOOL, self.OnBattleTool, id=ID_BATTLE)
-        self.Bind(wx.EVT_TOOL, self.OnFriendTool, id=ID_FRIEND)
-        self.Bind(wx.EVT_TOOL, self.OnInfoTool, id=ID_INFO)
-        self.Bind(wx.EVT_TOOL, self.OnUpdateTool, id=ID_UPDATE)
-        self.Bind(wx.EVT_TOOL, self.OnBreakTool, id=ID_BREAK)
-        self.Bind(wx.EVT_TOOL, self.OnResetTool, id=ID_RESET)
+        self.Bind(wx.EVT_MENU, self.OnAreaTool, id=ID_AREA)
+        self.Bind(wx.EVT_MENU, self.OnSelectionTool, id=ID_SELECTION)
+        self.Bind(wx.EVT_MENU, self.OnStepTool, id=ID_STEP)
+        self.Bind(wx.EVT_MENU, self.OnPauseTool, id=ID_PAUSE)
+        self.Bind(wx.EVT_MENU, self.OnStopTool, id=ID_STOP)
+        self.Bind(wx.EVT_MENU, self.OnRecoveryTool, id=ID_RECOVERY)
+        self.Bind(wx.EVT_MENU, self.OnPackageTool, id=ID_PACK)
+        self.Bind(wx.EVT_MENU, self.OnBattleTool, id=ID_BATTLE)
+        self.Bind(wx.EVT_MENU, self.OnFriendTool, id=ID_FRIEND)
+        self.Bind(wx.EVT_MENU, self.OnInfoTool, id=ID_INFO)
+        self.Bind(wx.EVT_MENU, self.OnUpdateTool, id=ID_UPDATE)
+        self.Bind(wx.EVT_MENU, self.OnBreakTool, id=ID_BREAK)
+        self.Bind(wx.EVT_MENU, self.OnResetTool, id=ID_RESET)
 
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
@@ -469,10 +574,17 @@ class Debugger(wx.Frame):
 
     def OnPauseTool(self, event):
         # メッセージウィンドウ表示中の場合は一時停止できない
-        cw.cwpy.event._paused = self.tl_pause.IsToggled()
+        cw.cwpy.event._paused = not cw.cwpy.event._paused
         cw.cwpy.event._step = False
 
+        self.mi_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
         self.tl_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
+
+        self.mi_pause.Check(cw.cwpy.event._paused)
+        # SetToggleが効かないため
+        if self.tl_pause.IsToggled() <> cw.cwpy.event._paused:
+            self.tl_pause.Toggle()
+
         self.tb_event.Realize()
 
     def OnStopTool(self, event):
@@ -485,10 +597,12 @@ class Debugger(wx.Frame):
             else:
                 cw.cwpy.event._stoped = True
 
+            self.mi_pause.Check(False)
             # SetToggleが効かないため
             if self.tl_pause.IsToggled():
                 self.tl_pause.Toggle()
 
+        self.mi_step.Enable(False)
         self.tl_step.Enable(False)
         self.tb_event.Realize()
 
@@ -500,10 +614,14 @@ class Debugger(wx.Frame):
             self.tb_area.Refresh()
         else:
             if cw.cwpy.is_battlestatus():
+                self.mi_area.SetBitmap(cw.cwpy.rsrc.debugs["BATTLECANCEL"])
+                self.mi_area.SetShortHelp(u"戦闘を中断します。")
                 self.tl_area.SetBitmap1(cw.cwpy.rsrc.debugs["BATTLECANCEL"])
                 self.tl_area.SetShortHelp(u"戦闘を中断します。")
                 self.tl_area._battletool = True
             else:
+                self.mi_area.SetBitmap(cw.cwpy.rsrc.debugs["AREA"])
+                self.mi_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area.SetBitmap1(cw.cwpy.rsrc.debugs["AREA"])
                 self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area._battletool = False
@@ -516,61 +634,106 @@ class Debugger(wx.Frame):
         self.tb_select.Refresh()
 
     def refresh_tools(self):
+        self.mi_comp.Enable(False)
         self.tl_comp.Enable(False)
+        self.mi_gossip.Enable(False)
         self.tl_gossip.Enable(False)
+        self.mi_money.Enable(False)
         self.tl_money.Enable(False)
+        self.mi_card.Enable(False)
         self.tl_card.Enable(False)
+        self.mi_member.Enable(False)
         self.tl_member.Enable(False)
+        self.mi_coupon.Enable(False)
         self.tl_coupon.Enable(False)
+        self.mi_status.Enable(False)
         self.tl_status.Enable(False)
+        self.mi_recovery.Enable(False)
         self.tl_recovery.Enable(False)
+        self.mi_break.Enable(False)
         self.tl_break.Enable(False)
+        self.mi_update.Enable(False)
         self.tl_update.Enable(False)
+        self.mi_battle.Enable(False)
         self.tl_battle.Enable(False)
+        self.mi_pack.Enable(False)
         self.tl_pack.Enable(False)
+        self.mi_friend.Enable(False)
         self.tl_friend.Enable(False)
+        self.mi_info.Enable(False)
         self.tl_info.Enable(False)
+        self.mi_save.Enable(False)
         self.tl_save.Enable(False)
+        self.mi_load.Enable(False)
         self.tl_load.Enable(False)
+        self.mi_reset.Enable(False)
         self.tl_reset.Enable(False)
+        self.mi_step.Enable(False)
         self.tl_step.Enable(False)
+        self.mi_pause.Enable(False)
         self.tl_pause.Enable(False)
+        self.mi_stop.Enable(False)
         self.tl_stop.Enable(False)
+        self.mi_select.Enable(False)
         self.tl_select.Enable(False)
+        self.mi_area.Enable(False)
         self.tl_area.Enable(False)
 
         if cw.cwpy.ydata:
+            self.mi_comp.Enable(True)
             self.tl_comp.Enable(True)
+            self.mi_gossip.Enable(True)
             self.tl_gossip.Enable(True)
+            self.mi_money.Enable(True)
             self.tl_money.Enable(True)
+            self.mi_card.Enable(True)
             self.tl_card.Enable(True)
+            self.mi_member.Enable(True)
             self.tl_member.Enable(True)
+            self.mi_coupon.Enable(True)
             self.tl_coupon.Enable(True)
 
         if cw.cwpy.is_playingscenario():
+            self.mi_pause.Enable(True)
             self.tl_pause.Enable(True)
             if cw.cwpy.is_runningevent():
+                self.mi_select.Enable(True)
                 self.tl_select.Enable(True)
+                self.mi_stop.Enable(True)
                 self.tl_stop.Enable(True)
             else:
                 if not cw.cwpy.is_battlestatus():
+                    self.mi_break.Enable(True)
                     self.tl_break.Enable(True)
+                    self.mi_save.Enable(True)
                     self.tl_save.Enable(True)
+                    self.mi_load.Enable(True)
                     self.tl_load.Enable(True)
 
                 if not cw.cwpy.battle or not cw.cwpy.battle.is_running():
+                    self.mi_status.Enable(True)
                     self.tl_status.Enable(True)
+                    self.mi_recovery.Enable(True)
                     self.tl_recovery.Enable(True)
+                    self.mi_update.Enable(True)
                     self.tl_update.Enable(True)
+                    self.mi_battle.Enable(True)
                     self.tl_battle.Enable(True)
+                    self.mi_pack.Enable(True)
                     self.tl_pack.Enable(True)
+                    self.mi_friend.Enable(True)
                     self.tl_friend.Enable(True)
+                    self.mi_info.Enable(True)
                     self.tl_info.Enable(True)
+                    self.mi_reset.Enable(True)
                     self.tl_reset.Enable(True)
+                    self.mi_area.Enable(True)
                     self.tl_area.Enable(True)
         else:
+            self.mi_pause.Enable(True)
             self.tl_pause.Enable(True)
 
+        self.mi_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
         self.tl_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
 
         self.tb1.Realize()
