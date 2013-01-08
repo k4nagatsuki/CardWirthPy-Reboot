@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import debugger
+import edit
 
 
 def main():

@@ -127,7 +127,6 @@ class Debugger(wx.Frame):
         self.mi_area.SetBitmap(rsrc["AREA"])
         if cw.cwpy.is_battlestatus():
             self.mi_area.SetBitmap(rsrc["BATTLECANCEL"])
-            self.mi_area.SetShortHelp(u"戦闘を中断します。")
         scenario_menu.AppendItem(self.mi_area)
         self.mi_battle = wx.MenuItem(scenario_menu, ID_BATTLE, u"戦闘(&B)",
                          u"バトルを選択して戦闘を開始します。")
@@ -349,6 +348,17 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnUpdateTool, id=ID_UPDATE)
         self.Bind(wx.EVT_MENU, self.OnBreakTool, id=ID_BREAK)
         self.Bind(wx.EVT_MENU, self.OnResetTool, id=ID_RESET)
+        # TODO
+        #ID_SAVE
+        #ID_LOAD
+        #ID_PLAY
+        #ID_COMPSTAMP
+        #ID_GOSSIP
+        #ID_MONEY
+        #ID_CARD
+        #ID_MEMBER
+        self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
+        #ID_STATUS
 
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
@@ -375,6 +385,11 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             func = cw.cwpy.change_area
             cw.cwpy.exec_func(func, cw.cwpy.areaid, False, True)
+
+    def OnCouponTool(self, event):
+        dlg = cw.debug.edit.CouponEditDialog(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
 
     def OnRecoveryTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
@@ -615,13 +630,11 @@ class Debugger(wx.Frame):
         else:
             if cw.cwpy.is_battlestatus():
                 self.mi_area.SetBitmap(cw.cwpy.rsrc.debugs["BATTLECANCEL"])
-                self.mi_area.SetShortHelp(u"戦闘を中断します。")
                 self.tl_area.SetBitmap1(cw.cwpy.rsrc.debugs["BATTLECANCEL"])
                 self.tl_area.SetShortHelp(u"戦闘を中断します。")
                 self.tl_area._battletool = True
             else:
                 self.mi_area.SetBitmap(cw.cwpy.rsrc.debugs["AREA"])
-                self.mi_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area.SetBitmap1(cw.cwpy.rsrc.debugs["AREA"])
                 self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area._battletool = False
