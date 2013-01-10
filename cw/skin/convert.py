@@ -9,7 +9,7 @@ import threading
 
 import cw
 
-from win32res import get_bitmap, get_rcdata
+import win32res
 
 class Converter(threading.Thread):
     def __init__(self, exe):
@@ -22,14 +22,28 @@ class Converter(threading.Thread):
         self.complete = False
         self.errormessage = ""
 
+        self.res = None
         self.init(exe)
 
+    def __del__(self):
+        self.dispose()
+
+    def dispose(self):
+        if self.res:
+            self.res.dispose()
+
     def init(self, exe):
+        if self.res:
+            self.res.dispose()
+            self.res = None
+
         self.exe = exe
         if self.exe:
             f = open(self.exe, "rb")
             self.exebinary = f.read()
             f.close()
+
+            self.res = cw.skin.win32res.Win32Res(self.exe)
 
         self.datadir = self.find_datadir()
         self.scenariodir = self.find_scenariodir()
@@ -206,7 +220,7 @@ class Converter(threading.Thread):
             e.text = self.data.find("Natures/Nature[6]/Name").text
 
             # 解説文
-            entrydlg = cw.skin.win32res.get_rcdata(self.exe, "TENTRYDLG")
+            entrydlg = self.res.get_tpf0form("TENTRYDLG")
             if entrydlg:
                 typesheet = entrydlg["EntryDlg"]["PageControl"]["TypeSheet"]
                 # 標準型
@@ -508,7 +522,7 @@ class Converter(threading.Thread):
                 if path[0] in rcdata:
                     table = rcdata[path[0]]
                 else:
-                    table = cw.skin.win32res.get_rcdata(self.exe, path[0])
+                    table = self.res.get_tpf0form(path[0])
                     rcdata[path[0]] = table
                 if table:
                     for i in range(1, len(path)):
@@ -904,7 +918,7 @@ class Converter(threading.Thread):
 
             # Resource/Image/*
             for resname, target in imgtbl.items():
-                res = get_bitmap(self.exe, resname)
+                res = self.res.get_bitmap(resname)
                 fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
                 resdir = os.path.dirname(fpath)
                 if not os.path.isdir(resdir):
@@ -916,7 +930,7 @@ class Converter(threading.Thread):
             for respath, target in glyphtbl.items():
                 respaths = respath.split("/")
                 resname = respaths[0]
-                res = get_rcdata(self.exe, resname)
+                res = self.res.get_tpf0form(resname)
 
                 for name in respaths[1:]:
                     res = res[name]

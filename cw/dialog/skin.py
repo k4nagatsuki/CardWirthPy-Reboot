@@ -122,9 +122,12 @@ class SkinConversionDialog(wx.Dialog):
             else:
                 self.select_skin = True
                 self.skindirname = self.conv.skindirname
+            self.conv.dispose()
             self.Close()
 
     def OnCancel(self, event):
+        if self.conv:
+            self.conv.dispose()
         self.Close()
 
     def _do_layout(self):
@@ -627,6 +630,8 @@ class SkinCardPanel(wx.Panel):
         self.grid.SetRowLabelSize(wx.grid.GRID_AUTOSIZE)
 
         self._do_layout()
+
+        baseconv.dispose()
 
     def set_values(self, conv):
         row = 0
