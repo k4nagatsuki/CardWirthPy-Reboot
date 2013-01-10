@@ -74,7 +74,8 @@ class Effect(object):
             success_avo = self.check_avoid(target)
 
         # ダメージ効果の有無
-        hasdamage = self.has_motion("damage") or self.has_motion("absorb")
+        countdamage = self.count_motion("damage") + self.count_motion("absorb")
+        hasdamage = 0 < countdamage
 
         # 回避または抵抗で消耗するカード
         # 成功・不成功に関係なく消耗する
@@ -110,19 +111,20 @@ class Effect(object):
             cw.cwpy.clear_guardcardimg()
             cw.cwpy.draw()
 
+        # 回避・抵抗段階での消耗
+        for header in consume:
+            header.set_uselimit(-1)
+        consume.clear()
+
         # 音鳴らす
         if not allmissed:
             if noeffect or (success_res and not hasdamage):
                 cw.cwpy.sounds["ineffective"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
-                for header in consume:
-                    header.set_uselimit(-1)
                 return False
             elif success_avo:
                 cw.cwpy.sounds["avoid"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
-                for header in consume:
-                    header.set_uselimit(-1)
                 return False
 
         cw.cwpy.play_sound(self.soundpath)
@@ -140,7 +142,7 @@ class Effect(object):
                     consume.add(header)
 
         for header in consume:
-            header.set_uselimit(-1)
+            header.set_uselimit(-countdamage)
 
         # アニメーション・画像更新(対象消去されていなかったら)
         if not target.is_vanished():
@@ -280,6 +282,19 @@ class Effect(object):
                 return True
 
         return False
+
+    def count_motion(self, motiontype):
+        """
+        motiontypeで指定したEffectMotionインスタンスｎ所持数。
+        """
+        motiontype = motiontype.lower()
+
+        count = 0
+        for motion in self.motions:
+            if motion.type.lower() == motiontype:
+                count += 1
+
+        return count
 
 #-------------------------------------------------------------------------------
 # 効果モーションクラス
