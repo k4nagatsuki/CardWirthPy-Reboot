@@ -45,7 +45,7 @@ class CouponEditDialog(wx.Dialog):
             self.coupons.append(list)
 
         # リスト
-        self.values = CouponListCtrl(self, -1, size=(250, -1))
+        self.values = EditableListCtrl(self, -1, size=(250, -1), style=wx.LC_REPORT|wx.MULTIPLE)
         self.values.imglist = wx.ImageList(14, 14)
         self.values.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3"])
         self.values.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2"])
@@ -56,6 +56,7 @@ class CouponEditDialog(wx.Dialog):
         self.values.InsertColumn(1, u"得点")
         self.values.SetColumnWidth(0, 170)
         self.values.SetColumnWidth(1, 50)
+        self.values.setResizeColumn(0)
 
         # 対象者
         self.targets = [u"全員"]
@@ -193,16 +194,17 @@ class CouponEditDialog(wx.Dialog):
         self.values.InsertStringItem(0, name)
         self.values.SetStringItem(0, 1, str(0))
         self.values.SetItemImage(0, self._get_valueimage(0))
+        self._item_selected()
 
-#        self.values.OpenEditor(0, 0)
+        self.values.OpenEditor(0, 0)
 
     def OnRemoveBtn(self, event):
-        index = -1
         while True:
-            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= -1:
                 break
             self._remove_coupon(index)
+        self._item_selected()
 
     def _remove_coupon(self, index):
         name = self.values.GetItem(index, 0).GetText()
@@ -247,6 +249,7 @@ class CouponEditDialog(wx.Dialog):
             if index <= 0:
                 break
             self._swap(index, index-1)
+        self._item_selected()
 
     def OnDownBtn(self, event):
         if self.target.GetSelection() == 0:
@@ -259,6 +262,7 @@ class CouponEditDialog(wx.Dialog):
         indexes.reverse()
         for index in indexes:
             self._swap(index, index+1)
+        self._item_selected()
 
     def _swap(self, index1, index2):
         cindex = self.target.GetSelection()
@@ -416,12 +420,210 @@ class CouponEditDialog(wx.Dialog):
             # 誰か一人
             self.coupons[cindex-1][index] = (name, value)
 
-class CouponListCtrl(wx.ListCtrl, listmix.TextEditMixin):
-    def __init__(self, parent, id, size):
-        wx.ListCtrl.__init__(self, parent, id, size=size, style=wx.LC_REPORT|wx.MULTIPLE)
-        listmix.TextEditMixin.__init__(self)
-
 
 #-------------------------------------------------------------------------------
 #  ゴシップ・終了印情報編集ダイアログ
 #-------------------------------------------------------------------------------
+
+class ListEditDialog(wx.Dialog):
+
+    def __init__(self, parent, title, list, image):
+        wx.Dialog.__init__(self, parent, -1, title,
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+        self.list = list
+
+        # リスト
+        self.values = EditableListCtrl(self, -1, size=(250, -1), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
+        self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
+        self.values.imgidx = self.values.imglist.Add(image)
+        self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
+        self.values.InsertColumn(0, u"")
+        self.values.SetColumnWidth(0, 170)
+        self.values.setResizeColumn(0)
+
+        # 追加
+        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_ADD, (-1, -1), name=u"追加")
+        # 削除
+        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
+        # 上へ
+        bmp = cw.cwpy.rsrc.buttons["UP"]
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_UP, (-1, -1), bmp=bmp)
+        # 下へ
+        bmp = cw.cwpy.rsrc.buttons["DOWN"]
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
+
+        # 決定
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        # 中止
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+
+        self._bind()
+        self._do_layout()
+
+        for name in self.list:
+            index = self.values.GetItemCount()
+            self.values.InsertStringItem(index, name)
+            self.values.SetItemImage(index, self.values.imgidx)
+
+        self._item_selected()
+
+    def _bind(self):
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_BUTTON, self.OnAddBtn, self.addbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDownBtn, self.downbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+        self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
+
+    def _do_layout(self):
+        sizer = wx.GridBagSizer()
+
+        sizer.Add(self.values, pos=(0, 0), span=(7, 1), flag=wx.EXPAND|wx.ALL, border=5)
+        sizer.AddGrowableCol(0)
+        sizer.AddGrowableRow(4)
+
+        sizer.Add(self.addbtn, pos=(0, 1), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(self.rmvbtn, pos=(1, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(self.upbtn, pos=(2, 1), flag=wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
+        sizer.Add(self.downbtn, pos=(3, 1), flag=wx.RIGHT|wx.EXPAND, border=5)
+        sizer.SetEmptyCellSize((0, 150))
+        sizer.Add(self.okbtn, pos=(5, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(self.cnclbtn, pos=(6, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnAddBtn(self, event):
+        names = set()
+        for name in self.list:
+            names.add(name)
+        num = 1
+        name = ""
+        while True:
+            name = u"新規項目 (%s)" % (num)
+            if not name in names:
+                break
+            num += 1
+
+        self.list.insert(0, name)
+        self.values.InsertStringItem(0, name)
+        self.values.SetItemImage(0, self.values.imgidx)
+        self._item_selected()
+
+        self.values.OpenEditor(0, 0)
+
+    def OnRemoveBtn(self, event):
+        while True:
+            index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            self.list.pop(index)
+            self.values.DeleteItem(index)
+        self._item_selected()
+
+    def OnUpBtn(self, event):
+        index = -1
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= 0:
+                break
+            self._swap(index, index-1)
+        self._item_selected()
+
+    def OnDownBtn(self, event):
+        indexes = self.get_selectedindexes()
+        if not indexes or self.values.GetItemCount() <= indexes[-1] + 1:
+            return
+
+        indexes.reverse()
+        for index in indexes:
+            self._swap(index, index+1)
+        self._item_selected()
+
+    def _swap(self, index1, index2):
+        self.list[index1], self.list[index2] = self.list[index2], self.list[index1]
+
+        mask = wx.LIST_STATE_SELECTED
+        temp = self.values.GetItemState(index1, mask)
+        self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
+        self.values.SetItemState(index2, temp, mask)
+        self.values.SetStringItem(index1, 0, self.list[index1])
+        self.values.SetStringItem(index2, 0, self.list[index2])
+
+    def OnEndLabelEdit(self, event):
+        index = event.GetIndex()
+        newname = event.GetText()
+        if newname and -1 >= self.values.FindItem(-1, newname):
+            self.values.SetStringItem(index, 0, newname)
+            self.list[index] = newname
+        else:
+            event.Veto()
+
+    def OnOkBtn(self, event):
+        pass
+
+    def OnItemSelected(self, event):
+        self._item_selected()
+
+    def get_selectedindexes(self):
+        index = -1
+        indexes = []
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            indexes.append(index)
+        return indexes
+
+    def _item_selected(self):
+        indexes = self.get_selectedindexes()
+        if not indexes:
+            self.rmvbtn.Enable(False)
+            self.upbtn.Enable(False)
+            self.downbtn.Enable(False)
+        else:
+            self.rmvbtn.Enable(True)
+            self.upbtn.Enable(0 < indexes[0])
+            self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
+
+class GossipEditDialog(ListEditDialog):
+    def __init__(self, parent):
+        ListEditDialog.__init__(self, parent, u"ゴシップの編集",
+            cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP"])
+
+    def OnOkBtn(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.ydata.clear_gossips()
+        for name in self.list:
+            cw.cwpy.ydata.set_gossip(name)
+        self.Destroy()
+
+class CompStampEditDialog(ListEditDialog):
+    def __init__(self, parent):
+        ListEditDialog.__init__(self, parent, u"終了印の編集",
+            cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP"])
+
+    def OnOkBtn(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.ydata.clear_compstamps()
+        for name in self.list:
+            cw.cwpy.ydata.set_compstamp(name)
+        self.Destroy()
+
+
+class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
+    def __init__(self, parent, id, size, style):
+        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
+        listmix.TextEditMixin.__init__(self)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
+
+    def OpenEditor(self, row, col):
+        # FIXME: 直接呼び出すとcol_locsが生成されないバグ
+        self.col_locs = [0]
+        loc = 0
+        for n in range(self.GetColumnCount()):
+            loc = loc + self.GetColumnWidth(n)
+            self.col_locs.append(loc)
+        listmix.TextEditMixin.OpenEditor(self, row, col)

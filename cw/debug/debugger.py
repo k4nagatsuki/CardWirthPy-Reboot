@@ -352,8 +352,8 @@ class Debugger(wx.Frame):
         #ID_SAVE
         #ID_LOAD
         #ID_PLAY
-        #ID_COMPSTAMP
-        #ID_GOSSIP
+        self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
+        self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         #ID_MONEY
         #ID_CARD
         #ID_MEMBER
@@ -388,6 +388,16 @@ class Debugger(wx.Frame):
 
     def OnCouponTool(self, event):
         dlg = cw.debug.edit.CouponEditDialog(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+
+    def OnGossipTool(self, event):
+        dlg = cw.debug.edit.GossipEditDialog(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+
+    def OnCompStampTool(self, event):
+        dlg = cw.debug.edit.CompStampEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
 

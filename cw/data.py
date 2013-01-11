@@ -874,9 +874,21 @@ class YadoData(object):
     # ゴシップ・シナリオ終了印用メソッド
     #---------------------------------------------------------------------------
 
+    def get_gossips(self):
+        """ゴシップ名をset型で返す。"""
+        return set([e.text for e in self.environment.getfind("Gossips")])
+
     def get_compstamps(self):
         """冒険済みシナリオ名をset型で返す。"""
         return set([e.text for e in self.environment.getfind("CompleteStamps")])
+
+    def get_gossiplist(self):
+        """ゴシップ名をlist型で返す。"""
+        return [e.text for e in self.environment.getfind("Gossips")]
+
+    def get_compstamplist(self):
+        """冒険済みシナリオ名をlist型で返す。"""
+        return [e.text for e in self.environment.getfind("CompleteStamps")]
 
     def has_compstamp(self, name):
         """冒険済みシナリオかどうかbool値で返す。
@@ -961,6 +973,32 @@ class YadoData(object):
                 cw.cwpy.sdata.gossips.pop(name)
             else:
                 cw.cwpy.sdata.gossips[name] = False
+
+    def clear_compstamps(self):
+        """冒険済みシナリオ印を全て削除する。"""
+
+        for e in self.environment.getfind("/CompleteStamps"):
+            self.environment.remove("/CompleteStamps", e)
+
+            if cw.cwpy.is_playingscenario():
+                name = e.text
+                if cw.cwpy.sdata.compstamps.get(name) is True:
+                    cw.cwpy.sdata.compstamps.pop(name)
+                else:
+                    cw.cwpy.sdata.compstamps[name] = False
+
+    def clear_gossips(self):
+        """ゴシップを全て削除する。"""
+
+        for e in self.environment.getfind("/Gossips"):
+            self.environment.remove("/Gossips", e)
+
+            if cw.cwpy.is_playingscenario():
+                name = e.text
+                if cw.cwpy.sdata.gossips.get(name) is True:
+                    cw.cwpy.sdata.gossips.pop(name)
+                else:
+                    cw.cwpy.sdata.gossips[name] = False
 
     def set_money(self, value):
         """金庫に入っている金額を変更する。
