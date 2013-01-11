@@ -16,7 +16,6 @@ class CouponEditDialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの経歴の編集",
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
-        self.list = cw.cwpy.get_pcards()
 
         # システムクーポンは除外する
         self.syscoupons = set()
@@ -31,14 +30,28 @@ class CouponEditDialog(wx.Dialog):
         for coupon in [cw.cwpy.msgs["number_1_coupon"], u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]:
             self.syscoupons.add(coupon)
 
+        # クーポン一覧
+        self.pcards = cw.cwpy.get_pcards()
+        self.coupons = []
+        for pcard in self.pcards:
+            list = []
+            for e in pcard.data.getfind("Property/Coupons"):
+                name = e.text
+                if name.startswith(u"＠") or name in self.syscoupons:
+                    continue
+                value = e.get("value")
+                list.append((name, int(value)))
+            list.reverse()
+            self.coupons.append(list)
+
         # リスト
-        self.values = wx.ListCtrl(self, -1, size=(250, -1), style=wx.LC_REPORT|wx.MULTIPLE)
-#        self.values.imglist = wx.ImageList(16, 16)
-#        self.values.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3"])
-#        self.values.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2"])
-#        self.values.imgidx_0 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS1"])
-#        self.values.imgidx_m1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS0"])
-#        self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
+        self.values = CouponListCtrl(self, -1, size=(250, -1))
+        self.values.imglist = wx.ImageList(14, 14)
+        self.values.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3"])
+        self.values.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2"])
+        self.values.imgidx_0 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS1"])
+        self.values.imgidx_m1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS0"])
+        self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
         self.values.InsertColumn(0, u"名称")
         self.values.InsertColumn(1, u"得点")
         self.values.SetColumnWidth(0, 170)
@@ -46,11 +59,10 @@ class CouponEditDialog(wx.Dialog):
 
         # 対象者
         self.targets = [u"全員"]
-        for pcard in self.list:
+        for pcard in self.pcards:
             self.targets.append(pcard.get_name())
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
         self.target.Select(0)
-        self._select_target()
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
@@ -77,14 +89,25 @@ class CouponEditDialog(wx.Dialog):
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
 
         # 合計得点
-        # TODO
+        self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT)
+
+        self._select_target()
 
         self._bind()
         self._do_layout()
 
     def _bind(self):
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
-        # TODO
+        self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_BUTTON, self.OnAddBtn, self.addbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnValueBtn, self.valbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDownBtn, self.downbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+        self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
 
     def _do_layout(self):
         sizer = wx.GridBagSizer()
@@ -96,6 +119,7 @@ class CouponEditDialog(wx.Dialog):
         sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
         sizer_values.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
         sizer_values.Add(self.values, 1, flag=wx.EXPAND)
+        sizer_values.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=5)
 
         sizer.Add(sizer_values, pos=(0, 0), span=(8, 1), flag=wx.EXPAND|wx.ALL, border=5)
         sizer.AddGrowableCol(0)
@@ -106,7 +130,7 @@ class CouponEditDialog(wx.Dialog):
         sizer.Add(self.valbtn, pos=(2, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
         sizer.Add(self.upbtn, pos=(3, 1), flag=wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
         sizer.Add(self.downbtn, pos=(4, 1), flag=wx.RIGHT|wx.EXPAND, border=5)
-        sizer.SetEmptyCellSize((0, 100))
+        sizer.SetEmptyCellSize((0, 150))
         sizer.Add(self.okbtn, pos=(6, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
         sizer.Add(self.cnclbtn, pos=(7, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
 
@@ -117,38 +141,285 @@ class CouponEditDialog(wx.Dialog):
     def OnSelectTarget(self, event):
         self._select_target()
 
-    def _add_coupon(self, name, value):
-        if name.startswith(u"＠"):
+    def OnLeftBtn(self, event):
+        index = self.target.GetSelection()
+        if index <= 0:
+            self.target.SetSelection(len(self.pcards))
+        else:
+            self.target.SetSelection(index - 1)
+        self._select_target()
+
+    def OnRightBtn(self, event):
+        index = self.target.GetSelection()
+        if len(self.pcards) <= index:
+            self.target.SetSelection(0)
+        else:
+            self.target.SetSelection(index + 1)
+        self._select_target()
+
+    def OnItemSelected(self, event):
+        index = -1
+        total = 0
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            total += int(self.values.GetItem(index, 1).GetText())
+
+        self.total.SetLabel(u"選択中の合計: %s点" % (total))
+        self.Layout()
+        self._item_selected()
+
+    def OnAddBtn(self, event):
+        names = set()
+        for i in range(self.values.GetItemCount()):
+            names.add(self.values.GetItem(i, 0).GetText())
+        num = 1
+        name = ""
+        while True:
+            name = u"新規項目 (%s)" % (num)
+            if not name in names:
+                break
+            num += 1
+
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            # 全員
+            for list in self.coupons:
+                list.insert(0, (name, 0))
+        else:
+            # 誰か一人
+            self.coupons[cindex-1].insert(0, (name, 0))
+        self.values.InsertStringItem(0, name)
+        self.values.SetStringItem(0, 1, str(0))
+        self.values.SetItemImage(0, self._get_valueimage(0))
+
+#        self.values.OpenEditor(0, 0)
+
+    def OnRemoveBtn(self, event):
+        index = -1
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            self._remove_coupon(index)
+
+    def _remove_coupon(self, index):
+        name = self.values.GetItem(index, 0).GetText()
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            # 全員
+            for list in self.coupons:
+                for i, coupon in enumerate(list):
+                    if coupon[0] == name:
+                        list.pop(i)
+                        break
+        else:
+            # 誰か一人
+            self.coupons[cindex-1].pop(index)
+        self.values.DeleteItem(index)
+
+    def OnValueBtn(self, event):
+        value = None
+        index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+        if index <= -1:
             return
-        if name in self.syscoupons:
+        value = int(self.values.GetItem(index, 1).GetText())
+
+        dlg = cw.dialog.edit.NumberEditor(self, u"得点の設定", value, -9, 9)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            index = -1
+            while True:
+                index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+                if index <= -1:
+                    break
+                self._set_value(index, dlg.value)
+
+    def OnUpBtn(self, event):
+        if self.target.GetSelection() == 0:
+            # 全員を選択中
             return
+
+        index = -1
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= 0:
+                break
+            self._swap(index, index-1)
+
+    def OnDownBtn(self, event):
+        if self.target.GetSelection() == 0:
+            # 全員を選択中
+            return
+        indexes = self.get_selectedindexes()
+        if not indexes or self.values.GetItemCount() <= indexes[-1] + 1:
+            return
+
+        indexes.reverse()
+        for index in indexes:
+            self._swap(index, index+1)
+
+    def _swap(self, index1, index2):
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            # 全員を選択中
+            return
+        list = self.coupons[cindex-1]
+        list[index1], list[index2] = list[index2], list[index1]
+
+        mask = wx.LIST_STATE_SELECTED
+        temp = self.values.GetItemState(index1, mask)
+        self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
+        self.values.SetItemState(index2, temp, mask)
+        def set_item(index):
+            self.values.SetStringItem(index, 0, list[index][0])
+            self.values.SetStringItem(index, 1, str(list[index][1]))
+            self.values.SetItemImage(index, self._get_valueimage(list[index][1]))
+        set_item(index1)
+        set_item(index2)
+
+    def OnEndLabelEdit(self, event):
+        index = event.GetIndex()
+        col = event.GetColumn()
+        if col == 0:
+            # 名称
+            oldname = self.values.GetItem(index, col).GetText()
+            newname = event.GetText()
+            if newname and -1 >= self.values.FindItem(-1, newname):
+                self._set_name(index, oldname, newname)
+            else:
+                event.Veto()
+        elif col == 1:
+            # 得点
+            value = event.GetText()
+            try:
+                value = int(value)
+            except:
+                event.Veto()
+                return
+            self._set_value(index, value)
+
+    def OnOkBtn(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        for i, pcard in enumerate(self.pcards):
+            list = self.coupons[i]
+            # システムクーポン以外を一旦除去
+            for name in pcard.get_coupons():
+                if not (name.startswith(u"＠") or name in self.syscoupons):
+                    cdata.remove_coupon(name)
+            # クーポン追加
+            list.reverse()
+            for coupon in list:
+                pcard.set_coupon(coupon[0], coupon[1])
+        self.Destroy()
+
+    def get_selectedindexes(self):
+        index = -1
+        indexes = []
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            indexes.append(index)
+        return indexes
+
+    def _get_valueimage(self, value):
+        if 2 <= value:
+            return self.values.imgidx_2
+        elif 1 <= value:
+            return self.values.imgidx_1
+        elif 0 <= value:
+            return self.values.imgidx_0
+        else:
+            return self.values.imgidx_m1
+
+    def _append_couponlist(self, name, value):
+        # リストに称号を追加する
         index = self.values.GetItemCount()
         self.values.InsertStringItem(index, name)
-        self.values.SetStringItem(index, 1, value)
+        self.values.SetStringItem(index, 1, str(value))
+        self.values.SetItemImage(index, self._get_valueimage(value))
 
     def _select_target(self):
+        # 選択されたキャラクターの称号一覧を表示する
         self.values.DeleteAllItems()
         index = self.target.GetSelection()
+        total = 0
         if index == 0:
             coupons = set()
-            for pcard in self.list:
-                for e in pcard.data.getfind("Property/Coupons"):
-                    name = e.text
+            for list in self.coupons:
+                for coupon in list:
+                    name = coupon[0]
                     if name in coupons:
                         continue
                     coupons.add(name)
-                    value = e.get("value")
-                    self._add_coupon(name, value)
+                    value = coupon[1]
+                    self._append_couponlist(name, value)
+                    total += value
 
         else:
-            pcard = self.list[index-1]
-            for e in pcard.data.getfind("Property/Coupons"):
-                name = e.text
-                value = e.get("value")
-                self._add_coupon(name, value)
+            for coupon in self.coupons[index-1]:
+                self._append_couponlist(coupon[0], coupon[1])
+                total += coupon[1]
+
+        self.total.SetLabel(u"合計: %s点" % (total))
+        self.Layout()
+        self._item_selected()
+
+    def _item_selected(self):
+        indexes = self.get_selectedindexes()
+        if not indexes:
+            self.rmvbtn.Enable(False)
+            self.valbtn.Enable(False)
+            self.upbtn.Enable(False)
+            self.downbtn.Enable(False)
+        else:
+            self.rmvbtn.Enable(True)
+            self.valbtn.Enable(True)
+            self.upbtn.Enable(0 < indexes[0])
+            self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
+
+        if self.target.GetSelection() == 0:
+            # 全員を選択中
+            self.upbtn.Enable(False)
+            self.downbtn.Enable(False)
+
+    def _set_name(self, index, oldname, newname):
+        self.values.SetStringItem(index, 0, newname)
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            # 全員
+            for list in self.coupons:
+                for i, coupon in enumerate(list):
+                    if coupon[0] == oldname:
+                        list = (newname, coupon[1])
+                        break
+        else:
+            # 誰か一人
+            list = self.coupons[cindex-1]
+            list[index] = (newname, list[index][1])
+
+    def _set_value(self, index, value):
+        self.values.SetStringItem(index, 1, str(value))
+        self.values.SetItemImage(index, self._get_valueimage(value))
+        cindex = self.target.GetSelection()
+        name = self.values.GetItem(index, 0).GetText()
+        if cindex == 0:
+            # 全員
+            for list in self.coupons:
+                for i, coupon in enumerate(list):
+                    if coupon[0] == name:
+                        list[i] = (name, value)
+                        break
+        else:
+            # 誰か一人
+            self.coupons[cindex-1][index] = (name, value)
 
 class CouponListCtrl(wx.ListCtrl, listmix.TextEditMixin):
-    pass
+    def __init__(self, parent, id, size):
+        wx.ListCtrl.__init__(self, parent, id, size=size, style=wx.LC_REPORT|wx.MULTIPLE)
+        listmix.TextEditMixin.__init__(self)
 
 
 #-------------------------------------------------------------------------------

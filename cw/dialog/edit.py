@@ -225,30 +225,24 @@ class MoneyViewPanel(wx.Panel):
         self.Layout()
 
 #-------------------------------------------------------------------------------
-#　レベル調節ダイアログ
+#  数値変更ダイアログ
 #-------------------------------------------------------------------------------
 
-class LevelEditor(wx.Dialog):
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
+class NumberEditor(wx.Dialog):
+    def __init__(self, parent, title, value, minvalue, maxvalue):
+        wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.ccard = cw.cwpy.selection
+        self.value = value
 
-        minvalue = 1
-        maxvalue = self.ccard.level
-        coupons = self.ccard.get_specialcoupons()
-        if u"＠レベル原点" in coupons:
-            maxvalue = coupons[u"＠レベル原点"]
-
-        # レベル調節スライダ
+        # スライダ
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
-        self.slider = wx.Slider(self.panel, -1, self.ccard.level, minvalue, maxvalue,
+        self.slider = wx.Slider(self.panel, -1, value, minvalue, maxvalue,
             size=(165, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                            (100, 30), cw.cwpy.msgs["entry_decide"])
+                                                      (100, 30), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
                                                         (100, 30), cw.cwpy.msgs["entry_cancel"])
 
@@ -290,6 +284,34 @@ class LevelEditor(wx.Dialog):
 
     def OnOk(self, event):
         cw.cwpy.sounds["harvest"].play()
+        self.value = self.slider.GetValue()
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+#-------------------------------------------------------------------------------
+#  レベル調節ダイアログ
+#-------------------------------------------------------------------------------
+
+class LevelEditor(NumberEditor):
+    def __init__(self, parent):
+        self.ccard = cw.cwpy.selection
+
+        minvalue = 1
+        maxvalue = self.ccard.level
+        coupons = self.ccard.get_specialcoupons()
+        if u"＠レベル原点" in coupons:
+            maxvalue = coupons[u"＠レベル原点"]
+
+        NumberEditor.__init__(self, parent, cw.cwpy.msgs["regulate_level_title"],
+                self.ccard.level, minvalue, maxvalue)
+
+    def OnOk(self, event):
+        cw.cwpy.sounds["harvest"].play()
 
         self.ccard.set_level(self.slider.GetValue(), regulate=True)
         cw.animation.animate_sprite(self.ccard, "hide")
@@ -297,13 +319,8 @@ class LevelEditor(wx.Dialog):
         self.ccard.update_image()
         cw.animation.animate_sprite(self.ccard, "deal")
 
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-        self.ProcessEvent(btnevent)
-
-    def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
-        self.ProcessEvent(btnevent)
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
 
 def main():
     pass
