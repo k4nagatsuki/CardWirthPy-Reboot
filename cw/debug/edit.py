@@ -6,6 +6,433 @@ import wx.lib.mixins.listctrl as listmix
 
 import cw
 
+#-------------------------------------------------------------------------------
+#  状態編集ダイアログ
+#-------------------------------------------------------------------------------
+
+class StatusEditDialog(wx.Dialog):
+
+    def __init__(self, parent, selected=-1):
+        wx.Dialog.__init__(self, parent, -1, u"キャラクターの状態の編集",
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+
+        self.pcards = cw.cwpy.get_pcards()
+
+        self.statuses = []
+        for pcard in self.pcards:
+            self.statuses.append(Status(pcard))
+
+        self.life      = StatusButton(self, 0, self._is_dead, size=(45, 45))
+        self.poison    = StatusButton(self, 1, self._is_dead, size=(45, 45))
+        self.paralyze  = StatusButton(self, 2, self._is_dead, size=(45, 45))
+        self.mentality = StatusButton(self, 3, self._is_dead, size=(45, 60))
+        self.bind      = StatusButton(self, 4, self._is_dead, size=(45, 45))
+        self.silence   = StatusButton(self, 5, self._is_dead, size=(45, 45))
+        self.faceup    = StatusButton(self, 6, self._is_dead, size=(45, 45))
+        self.antimagic = StatusButton(self, 7, self._is_dead, size=(45, 45))
+        self.action    = StatusButton(self, 8, self._is_dead, size=(45, 60))
+        self.avoid     = StatusButton(self, 9, self._is_dead, size=(45, 60))
+        self.resist    = StatusButton(self, 10, self._is_dead, size=(45, 60))
+        self.defense   = StatusButton(self, 11, self._is_dead, size=(45, 60))
+        self.statusbtns = [self.life, self.poison, self.paralyze,
+                           self.mentality, self.bind, self.silence,
+                           self.faceup, self.antimagic, self.action,
+                           self.avoid, self.resist, self.defense]
+
+        # 対象者
+        self.targets = [u"全員"]
+        for pcard in self.pcards:
+            self.targets.append(pcard.get_name())
+        self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
+        self.target.Select(max(selected, -1) + 1)
+        # smallleft
+        bmp = cw.cwpy.rsrc.buttons["LSMALL"]
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        # smallright
+        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+
+        # 全快
+        self.rcvbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"全快")
+        # 復旧
+        self.revbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"復旧")
+
+        # 決定
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        # 中止
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+
+        self._bind()
+        self._do_layout()
+
+        self._select_target()
+
+    def _bind(self):
+        self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
+        # TODO
+
+    def _do_layout(self):
+        sizer = wx.GridBagSizer()
+
+        sizer_status = wx.GridBagSizer()
+        sizer_status.Add(self.life, pos=(0, 0), flag=wx.ALL, border=5)
+        sizer_status.Add(self.poison, pos=(0, 1), flag=wx.ALL, border=5)
+        sizer_status.Add(self.paralyze, pos=(0, 2), flag=wx.ALL, border=5)
+        sizer_status.Add(self.mentality, pos=(1, 0), flag=wx.ALL, border=5)
+        sizer_status.Add(self.bind, pos=(2, 0), flag=wx.ALL, border=5)
+        sizer_status.Add(self.silence, pos=(2, 1), flag=wx.ALL, border=5)
+        sizer_status.Add(self.faceup, pos=(2, 2), flag=wx.ALL, border=5)
+        sizer_status.Add(self.antimagic, pos=(2, 3), flag=wx.ALL, border=5)
+        sizer_status.Add(self.action, pos=(3, 0), flag=wx.ALL, border=5)
+        sizer_status.Add(self.avoid, pos=(3, 1), flag=wx.ALL, border=5)
+        sizer_status.Add(self.resist, pos=(3, 2), flag=wx.ALL, border=5)
+        sizer_status.Add(self.defense, pos=(3, 3), flag=wx.ALL, border=5)
+
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
+        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
+        sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
+        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
+        sizer_left.Add(sizer_status, 1, flag=wx.EXPAND)
+
+        sizer.Add(sizer_left, pos=(0, 0), span=(5, 1), flag=wx.EXPAND|wx.ALL, border=5)
+        sizer.AddGrowableCol(0)
+        sizer.AddGrowableRow(2)
+
+        sizer.Add(self.rcvbtn, pos=(0, 1), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(self.revbtn, pos=(1, 1), flag=wx.RIGHT, border=5)
+        sizer.SetEmptyCellSize((0, 170))
+        sizer.Add(self.okbtn, pos=(3, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(self.cnclbtn, pos=(4, 1), flag=wx.RIGHT|wx.BOTTOM, border=5)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnSelectTarget(self, event):
+        self._select_target()
+
+    def _select_target(self):
+        self._update_status()
+
+    def _is_dead(self):
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            for status in self.statuses:
+                if not status.is_dead():
+                    return False
+            return True
+        else:
+            return self.statuses[cindex-1].is_dead()
+
+    def _update_status(self):
+        cindex = self.target.GetSelection()
+        def value(oldvalue, newvalue, force=True):
+            if not force and oldvalue <> newvalue:
+                return None
+            return newvalue
+
+        if cindex == 0:
+            # 全員
+            statuses = self.statuses
+        else:
+            # 誰か一人
+            statuses = [self.statuses[cindex-1]]
+
+        for i, status in enumerate(statuses):
+            force = (i == 0)
+            self.life.value         = value(self.life.value, status.get_lifeper(), force)
+            self.poison.value       = value(self.poison.value, status.poison, force)
+            self.paralyze.value     = value(self.paralyze.value, status.paralyze, force)
+            self.mentality.value    = value(self.mentality.value, status.mentality, force)
+            self.mentality.duration = value(self.mentality.duration, status.mentality_dur, force)
+            self.bind.duration      = value(self.bind.duration, status.bind, force)
+            self.silence.duration   = value(self.silence.duration, status.silence, force)
+            self.faceup.duration    = value(self.faceup.duration, status.faceup, force)
+            self.antimagic.duration = value(self.antimagic.duration, status.antimagic, force)
+            self.action.value       = value(self.action.value, status.enhance_act, force)
+            self.action.duration    = value(self.action.duration, status.enhance_act_dur, force)
+            self.avoid.value        = value(self.avoid.value, status.enhance_avo, force)
+            self.avoid.duration     = value(self.avoid.duration, status.enhance_avo_dur, force)
+            self.resist.value       = value(self.resist.value, status.enhance_res, force)
+            self.resist.duration    = value(self.resist.duration, status.enhance_res_dur, force)
+            self.defense.value      = value(self.defense.value, status.enhance_def, force)
+            self.defense.duration   = value(self.defense.duration, status.enhance_def_dur, force)
+
+        for btn in self.statusbtns:
+            btn.draw(True)
+
+class Status(object):
+    def __init__(self, pcard):
+        # 現在ライフ・最大ライフ
+        self.life = pcard.life
+        self.maxlife = pcard.maxlife
+        # 精神状態
+        self.mentality = pcard.mentality
+        self.mentality_dur = pcard.mentality_dur
+        # 麻痺値
+        self.paralyze = pcard.paralyze
+        # 中毒値
+        self.poison = pcard.poison
+        # 束縛時間値
+        self.bind = pcard.bind
+        # 沈黙時間値
+        self.silence = pcard.silence
+        # 暴露時間値
+        self.faceup = pcard.faceup
+        # 魔法無効時間値
+        self.antimagic = pcard.antimagic
+        # 行動力強化値
+        self.enhance_act = pcard.enhance_act
+        self.enhance_act_dur = pcard.enhance_act_dur
+        # 回避力強化値
+        self.enhance_avo = pcard.enhance_avo
+        self.enhance_avo_dur = pcard.enhance_avo_dur
+        # 抵抗力強化値
+        self.enhance_res = pcard.enhance_res
+        self.enhance_res_dur = pcard.enhance_res_dur
+        # 防御力強化値
+        self.enhance_def = pcard.enhance_def
+        self.enhance_def_dur = pcard.enhance_def_dur
+
+    def get_lifeper(self):
+        return 100 * self.life / self.maxlife
+
+    def is_dead(self):
+        return self.get_lifeper() == 0 or 0 < self.paralyze
+
+class StatusButton(wx.BitmapButton):
+
+    def __init__(self, parent, mode, is_dead, size):
+        """
+        mode: 0=ライフ, 1=中毒, 2=麻痺, 3=精神状態,
+              4=呪縛, 5=沈黙, 6=暴露, 7=魔法無効,
+              8=行動力, 9=回避力, 10=抵抗力, 11=防御力
+        is_dead: 死亡状態かを返す関数
+        """
+        wx.BitmapButton.__init__(self, parent, -1, size=size)
+
+        self.mode = mode
+        self.is_dead = is_dead
+
+        self.value = 0
+        self.duration = 0
+
+        self.draw(True)
+
+    def draw(self, update=False):
+
+        if not update:
+            return
+
+        self.text1 = ""
+        self.text2 = ""
+        colour = None
+        enable = False
+        if self.mode == 0:
+            # ライフ
+            image = cw.cwpy.rsrc.statuses["LIFE"]
+            if self.value:
+                self.text1 = "%s%%" % (self.value)
+                if 0 >= self.value:
+                    colour = wx.Colour(0, 0, 128)
+                elif 20 > self.value:
+                    colour = wx.Colour(127, 0, 0)
+                elif 100 > self.value:
+                    colour = wx.Colour(0, 153, 187)
+                else:
+                    colour = wx.Colour(192, 192, 192)
+            else:
+                colour = wx.Colour(192, 192, 192)
+            enable = True
+
+        elif self.mode == 1:
+            # 中毒
+            image = cw.cwpy.rsrc.statuses["BODY0"]
+        elif self.mode == 2:
+            # 麻痺
+            image = cw.cwpy.rsrc.statuses["BODY1"]
+        elif self.mode == 3:
+            # 精神状態
+            if not self.value or self.value == "Normal":
+                # 正常
+                image = cw.cwpy.rsrc.statuses["MIND0"]
+            elif self.value == "Sleep":
+                # 眠り
+                image = cw.cwpy.rsrc.statuses["MIND1"]
+                self.text1 = u"眠り"
+            elif self.value == "Confuse":
+                # 混乱
+                image = cw.cwpy.rsrc.statuses["MIND2"]
+                self.text1 = u"混乱"
+            elif self.value == "Overheat":
+                # 激高
+                image = cw.cwpy.rsrc.statuses["MIND3"]
+                self.text1 = u"激高"
+            elif self.value == "Brave":
+                # 勇猛
+                image = cw.cwpy.rsrc.statuses["MIND4"]
+                self.text1 = u"勇猛"
+            elif self.value == "Panic":
+                # 恐慌
+                image = cw.cwpy.rsrc.statuses["MIND5"]
+                self.text1 = u"恐慌"
+
+            if self.duration and 0 < self.duration:
+                self.text2 = "%sr"
+                if self.value and not self.is_dead():
+                    enable = True
+        elif self.mode == 4:
+            # 呪縛
+            image = cw.cwpy.rsrc.statuses["MAGIC0"]
+        elif self.mode == 5:
+            # 沈黙
+            image = cw.cwpy.rsrc.statuses["MAGIC1"]
+        elif self.mode == 6:
+            # 暴露
+            image = cw.cwpy.rsrc.statuses["MAGIC2"]
+        elif self.mode == 7:
+            # 魔法無効
+            image = cw.cwpy.rsrc.statuses["MAGIC3"]
+        elif self.mode == 8:
+            # 行動力
+            if self.value >= 0:
+                image = cw.cwpy.rsrc.statuses["UP0"]
+            else:
+                image = cw.cwpy.rsrc.statuses["DOWN0"]
+        elif self.mode == 9:
+            # 回避力
+            if self.value >= 0:
+                image = cw.cwpy.rsrc.statuses["UP1"]
+            else:
+                image = cw.cwpy.rsrc.statuses["DOWN1"]
+        elif self.mode == 10:
+            # 抵抗力
+            if self.value >= 0:
+                image = cw.cwpy.rsrc.statuses["UP2"]
+            else:
+                image = cw.cwpy.rsrc.statuses["DOWN2"]
+        elif self.mode == 11:
+            # 防御力
+            if self.value >= 0:
+                image = cw.cwpy.rsrc.statuses["UP3"]
+            else:
+                image = cw.cwpy.rsrc.statuses["DOWN3"]
+
+        if self.mode == 1 or self.mode == 2:
+            # 肉体ステータス
+            if self.value and 0 < self.value:
+                self.text1 = "Lv%s" % (self.value)
+                enable = True
+
+        if self.mode == 4 or self.mode == 5 or self.mode == 6 or self.mode == 7:
+            # 魔法効果
+            if self.duration:
+                self.text1 = "%sr" % (self.duration)
+                if 0 < self.duration and not self.is_dead():
+                    enable = True
+
+        elif self.mode == 8 or self.mode == 9 or self.mode == 10 or self.mode == 11:
+            # 能力ボーナス・ペナルティ
+            if self.value:
+                if self.value >= 0:
+                    self.text1 = "+%s" % (self.value)
+                else:
+                    self.text1 = "%s" % (self.value)
+
+            if self.duration and 0 < self.duration:
+                self.text2 = "%sr" % (self.duration)
+
+            if self.value and self.duration:
+                if 0 < self.value and 0 < self.duration and not self.is_dead():
+                    enable = True
+
+            colour = wx.Colour(192, 192, 192)
+            if self.value:
+                if 7 <= self.value:
+                    colour = wx.Colour(175, 0, 0)
+                elif 4 <= self.value:
+                    colour = wx.Colour(127, 0, 0)
+                elif 1 <= self.value:
+                    colour = wx.Colour(79, 0, 0)
+                elif -7 >= self.value:
+                    colour = wx.Colour(0, 0, 85)
+                elif -4 >= self.value:
+                    colour = wx.Colour(0, 0, 160)
+                elif -1 >= self.value:
+                    colour = wx.Colour(0, 0, 187)
+
+        self.image = cw.image.conv2wxbmp(image)
+
+        if colour:
+            # 背景色の変更
+            w = self.image.GetWidth()
+            h = self.image.GetHeight()
+            canvas = wx.EmptyBitmapRGBA(w, h)
+            bdc = wx.MemoryDC(canvas)
+            bdc.BeginDrawing()
+            bdc.SetPen(wx.Pen(colour))
+            bdc.SetBrush(wx.Brush(colour))
+            bdc.DrawRectangle(0, 0, w, h)
+            bdc.DrawBitmap(self.image, 0, 0)
+            bdc.EndDrawing()
+            self.image = canvas
+
+        # 半透明化
+        # FIXME: ここでSetAlphaData()を呼ばなければ
+        #        色がおかしくなるため、enable=Trueの
+        #        時も設定を行なっている
+        w = self.image.GetWidth()
+        h = self.image.GetHeight()
+        image = self.image.ConvertToImage()
+        if not enable:
+            image.SetAlphaData(chr(128) * (w*h))
+        else:
+            image.SetAlphaData(chr(255) * (w*h))
+        self.image = image.ConvertToBitmap()
+
+        csize = self.GetClientSize()
+
+        canvas = wx.EmptyBitmap(csize[0], csize[1])
+
+        dc = wx.MemoryDC(canvas)
+        dc.BeginDrawing()
+        colour = self.GetBackgroundColour()
+        dc.SetPen(wx.Pen(colour))
+        dc.SetBrush(wx.Brush(colour))
+        dc.DrawRectangle(0, 0, canvas.GetWidth(), canvas.GetHeight())
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=8))
+
+        height = self.image.GetHeight()
+        if self.text1:
+            size1 = dc.GetTextExtent(self.text1)
+            height += 2 + size1[1]
+        if self.text2:
+            size2 = dc.GetTextExtent(self.text2)
+            height += 2 + size2[1]
+
+        y = (csize[1] - height) / 2
+
+        x = (csize[0] - self.image.GetWidth()) / 2
+        dc.DrawBitmap(self.image, x, y)
+        y += self.image.GetHeight() + 2
+
+        if self.text1:
+            x = (csize[0] - size1[0]) / 2
+            dc.DrawText(self.text1, x, y)
+            y += size1[1] + 2
+        if self.text2:
+            x = (csize[0] - size2[0]) / 2
+            dc.DrawText(self.text2, x, y)
+            y += size2[1] + 2
+
+        dc.EndDrawing()
+
+        canvas = canvas.ConvertToImage()
+        canvas.SetMaskColour(colour[0], colour[1], colour[2])
+
+        self.SetBitmapLabel(canvas.ConvertToBitmap())
 
 #-------------------------------------------------------------------------------
 #  クーポン情報編集ダイアログ
@@ -422,7 +849,6 @@ class CouponEditDialog(wx.Dialog):
         else:
             # 誰か一人
             self.coupons[cindex-1][index] = (name, value)
-
 
 #-------------------------------------------------------------------------------
 #  ゴシップ・終了印情報編集ダイアログ

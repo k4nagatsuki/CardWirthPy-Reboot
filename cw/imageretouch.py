@@ -7,12 +7,14 @@ import pygame
 from pygame.locals import *
 
 import cw
-
+"""
+FIXME: 正常に動作しないので暫定的に無効化。
+       _imageretouch.cを修正する必要がある。
 try:
     import _imageretouch
 except ImportError, ex:
     print "failed to load _imageretouch module. %s" % (ex.message)
-
+"""
 
 def _retouch(func, image, *args):
     """_imageretouchの関数のラッパ。
@@ -294,6 +296,25 @@ def _to_sepiatone(image, color=(30, 0, -30)):
             r = cw.util.numwrap(y + tone_r, 0, 255)
             g = cw.util.numwrap(y + tone_g, 0, 255)
             b = cw.util.numwrap(y + tone_b, 0, 255)
+            seq.append((r, g, b))
+
+        pxarray[x] = seq
+
+    return image
+
+def retouch_grayscale(image):
+    image = image.copy()
+    pxarray = pygame.PixelArray(image)
+
+    for x, pxs in enumerate(pxarray):
+        seq = []
+
+        for px in pxs:
+            r, g, b = hex2color(px)
+            y = (r * 306 + g * 601 + b * 117) >> 10
+            r = cw.util.numwrap(y, 0, 255)
+            g = cw.util.numwrap(y, 0, 255)
+            b = cw.util.numwrap(y, 0, 255)
             seq.append((r, g, b))
 
         pxarray[x] = seq
