@@ -357,6 +357,18 @@ class HistoryPanel(wx.ScrolledWindow):
         # create buffer
         self.draw()
 
+        if cw.cwpy.setting.debug:
+            self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+
+    def OnLeftUp(self, event):
+        parent = self.GetTopLevelParent()
+        selected = self.Parent.Parent.index
+        dlg = cw.debug.edit.CouponEditDialog(parent, selected=selected)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.draw(True)
+
     def OnPaint(self, event):
         dc = wx.BufferedPaintDC(self, self.buffer, wx.BUFFER_VIRTUAL_AREA)
 

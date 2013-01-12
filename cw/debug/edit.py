@@ -13,7 +13,7 @@ import cw
 
 class CouponEditDialog(wx.Dialog):
 
-    def __init__(self, parent):
+    def __init__(self, parent, selected=-1):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの経歴の編集",
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
 
@@ -63,7 +63,7 @@ class CouponEditDialog(wx.Dialog):
         for pcard in self.pcards:
             self.targets.append(pcard.get_name())
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
-        self.target.Select(0)
+        self.target.Select(max(selected, -1) + 1)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
@@ -102,6 +102,7 @@ class CouponEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_BUTTON, self.OnAddBtn, self.addbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnValueBtn, self.valbtn)
@@ -159,16 +160,6 @@ class CouponEditDialog(wx.Dialog):
         self._select_target()
 
     def OnItemSelected(self, event):
-        index = -1
-        total = 0
-        while True:
-            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-            if index <= -1:
-                break
-            total += int(self.values.GetItem(index, 1).GetText())
-
-        self.total.SetLabel(u"選択中の合計: %s点" % (total))
-        self.Layout()
         self._item_selected()
 
     def OnAddBtn(self, event):
@@ -237,6 +228,7 @@ class CouponEditDialog(wx.Dialog):
                 if index <= -1:
                     break
                 self._set_value(index, dlg.value)
+            self._item_selected()
 
     def OnUpBtn(self, event):
         if self.target.GetSelection() == 0:
@@ -303,6 +295,7 @@ class CouponEditDialog(wx.Dialog):
                 event.Veto()
                 return
             self._set_value(index, value)
+        self._item_selected()
 
     def OnOkBtn(self, event):
         cw.cwpy.sounds["harvest"].play()
@@ -316,6 +309,7 @@ class CouponEditDialog(wx.Dialog):
             list.reverse()
             for coupon in list:
                 pcard.set_coupon(coupon[0], coupon[1])
+        self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
     def get_selectedindexes(self):
@@ -360,15 +354,10 @@ class CouponEditDialog(wx.Dialog):
                     coupons.add(name)
                     value = coupon[1]
                     self._append_couponlist(name, value)
-                    total += value
-
         else:
             for coupon in self.coupons[index-1]:
                 self._append_couponlist(coupon[0], coupon[1])
-                total += coupon[1]
 
-        self.total.SetLabel(u"合計: %s点" % (total))
-        self.Layout()
         self._item_selected()
 
     def _item_selected(self):
@@ -388,6 +377,20 @@ class CouponEditDialog(wx.Dialog):
             # 全員を選択中
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
+
+        index = -1
+        total = 0
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            total += int(self.values.GetItem(index, 1).GetText())
+
+        if indexes:
+            self.total.SetLabel(u"選択中の合計: %s点" % (total))
+        else:
+            self.total.SetLabel(u"合計: %s点" % (total))
+        self.Layout()
 
     def _set_name(self, index, oldname, newname):
         self.values.SetStringItem(index, 0, newname)
@@ -469,6 +472,7 @@ class ListEditDialog(wx.Dialog):
 
     def _bind(self):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
         self.Bind(wx.EVT_BUTTON, self.OnAddBtn, self.addbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
@@ -598,6 +602,7 @@ class GossipEditDialog(ListEditDialog):
         cw.cwpy.ydata.clear_gossips()
         for name in self.list:
             cw.cwpy.ydata.set_gossip(name)
+        self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
 class CompStampEditDialog(ListEditDialog):
@@ -610,6 +615,7 @@ class CompStampEditDialog(ListEditDialog):
         cw.cwpy.ydata.clear_compstamps()
         for name in self.list:
             cw.cwpy.ydata.set_compstamp(name)
+        self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
 
