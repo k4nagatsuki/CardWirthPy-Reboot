@@ -354,7 +354,7 @@ class Debugger(wx.Frame):
         #ID_PLAY
         self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
-        #ID_MONEY
+        self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
         #ID_CARD
         #ID_MEMBER
         self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
@@ -390,6 +390,18 @@ class Debugger(wx.Frame):
         dlg = cw.debug.edit.GossipEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+
+    def OnMoneyTool(self, event):
+        if not cw.cwpy.ydata.party:
+            return
+        dlg = cw.dialog.edit.NumberEditDialog(self, u"所持金の変更",
+                                              cw.cwpy.ydata.party.money, 0, 999999)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            def func(value):
+                cw.cwpy.ydata.party.set_money(value - cw.cwpy.ydata.party.money)
+                cw.cwpy.draw()
+            cw.cwpy.exec_func(func, dlg.value)
 
     def OnCompStampTool(self, event):
         dlg = cw.debug.edit.CompStampEditDialog(self)
