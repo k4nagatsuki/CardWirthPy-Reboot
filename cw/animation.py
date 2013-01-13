@@ -14,7 +14,9 @@ def animate_sprite(sprite, anitype, speedrate=1):
 
     sprite.status = anitype
 
+    framecount = 0
     while cw.cwpy.is_running() and sprite.status == anitype:
+        framecount += 1
         sprite.update(cw.cwpy.scr)
         cw.cwpy.draw()
         cw.cwpy.tick_clock(speedrate=speedrate)

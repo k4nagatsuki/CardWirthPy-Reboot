@@ -1362,24 +1362,28 @@ class AdventurerDesignDialog(wx.Dialog):
         self.Layout()
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        def func(ccard, imgpath, name, desc):
+            cw.cwpy.sounds["harvest"].play()
+            if hasattr(ccard, "update_image"):
+                cw.animation.animate_sprite(ccard, "hide")
+            ccard.set_name(name)
+            if hasattr(ccard, "cardimg"):
+                ccard.cardimg.set_nameimg(ccard.get_name())
+            ccard.set_description(desc)
+            if imgpath.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Face")):
+                ccard.set_image(imgpath)
+                if hasattr(ccard, "cardimg"):
+                    ccard.cardimg.set_faceimg(cw.util.join_yadodir(ccard.get_imagepath()))
+            if hasattr(ccard, "update_image"):
+                ccard.update_image()
+                cw.animation.animate_sprite(ccard, "deal")
 
-        if hasattr(self.ccard, "update_image"):
-            cw.animation.animate_sprite(self.ccard, "hide")
-        self.ccard.set_name(self.toppanel.namectrl.GetValue())
-        if hasattr(self.ccard, "cardimg"):
-            self.ccard.cardimg.set_nameimg(self.ccard.get_name())
-        self.ccard.set_description(self.toppanel.descctrl.GetValue())
-        if self.toppanel.imgpath.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Face")):
-            self.ccard.set_image(self.toppanel.imgpath)
-            if hasattr(self.ccard, "cardimg"):
-                self.ccard.cardimg.set_faceimg(cw.util.join_yadodir(self.ccard.get_imagepath()))
-        if hasattr(self.ccard, "update_image"):
-            self.ccard.update_image()
-            cw.animation.animate_sprite(self.ccard, "deal")
+            ccard.data.is_edited = True
+            ccard.data.write_xml()
 
-        self.ccard.data.is_edited = True
-        self.ccard.data.write_xml()
+        name = self.toppanel.namectrl.GetValue()
+        desc = self.toppanel.descctrl.GetValue()
+        cw.cwpy.exec_func(func, self.ccard, self.toppanel.imgpath, name, desc)
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)

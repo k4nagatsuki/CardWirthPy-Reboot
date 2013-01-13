@@ -460,7 +460,7 @@ class EditPanel(wx.Panel):
                 else:
                     # レベルを調節する
                     cw.cwpy.sounds["click"].play()
-                    dlg = cw.dialog.edit.LevelEditor(self.Parent.Parent)
+                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
                         self.Parent.Parent.toppanel.draw(True)

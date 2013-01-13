@@ -228,7 +228,8 @@ class MoneyViewPanel(wx.Panel):
 #  数値変更ダイアログ
 #-------------------------------------------------------------------------------
 
-class NumberEditor(wx.Dialog):
+class NumberEditDialog(wx.Dialog):
+
     def __init__(self, parent, title, value, minvalue, maxvalue):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
@@ -236,9 +237,7 @@ class NumberEditor(wx.Dialog):
 
         # スライダ
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
-        self.slider = wx.Slider(self.panel, -1, value, minvalue, maxvalue,
-            size=(200, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
+        self.slider = NumberEditor(self.panel, value, minvalue, maxvalue)
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
@@ -255,21 +254,18 @@ class NumberEditor(wx.Dialog):
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def _do_layout(self):
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_panel.Add(self.panel, 1, wx.EXPAND|wx.ALL, 5)
+
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
-
         sizer_btn.Add(self.okbtn, 0, 0, 0)
-        sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 20)
+        sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 30)
 
-        sizer_panel.Add(self.slider, 1, wx.EXPAND | wx.ALL, 5)
-        self.panel.SetSizer(sizer_panel)
-        sizer_panel.Fit(self.panel)
-
-        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, 5)
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1.Add(sizer_panel, 0, wx.CENTER|wx.TOP, 5)
         sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
 
+        sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_v1, 0, wx.ALL, 15)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -284,7 +280,7 @@ class NumberEditor(wx.Dialog):
 
     def OnOk(self, event):
         cw.cwpy.sounds["harvest"].play()
-        self.value = self.slider.GetValue()
+        self.value = self.slider.slider.GetValue()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
@@ -293,11 +289,215 @@ class NumberEditor(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+class Number2EditDialog(wx.Dialog):
+
+    def __init__(self, parent, title,
+                 label1, value1, minvalue1, maxvalue1,
+                 label2, value2, minvalue2, maxvalue2):
+        wx.Dialog.__init__(self, parent, -1, title,
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.value1 = value1
+        self.value2 = value2
+
+        # スライダ
+        self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
+        self.box1 = wx.StaticBox(self.panel, -1, label1)
+        self.box2 = wx.StaticBox(self.panel, -1, label2)
+
+        self.slider1 = NumberEditor(self.panel, value1, minvalue1, maxvalue1)
+        self.slider2 = NumberEditor(self.panel, value2, minvalue2, maxvalue2)
+
+        # btn
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                      (100, 30), cw.cwpy.msgs["entry_decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def _do_layout(self):
+        sizer_box1 = wx.StaticBoxSizer(self.box1, wx.HORIZONTAL)
+        sizer_box2 = wx.StaticBoxSizer(self.box2, wx.HORIZONTAL)
+
+        sizer_box1.Add(self.slider1, 1, wx.EXPAND|wx.ALL, 5)
+        sizer_box2.Add(self.slider2, 1, wx.EXPAND|wx.ALL, 5)
+
+        sizer_panel = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel.Add(sizer_box1, 1, wx.EXPAND|wx.ALL, 5)
+        sizer_panel.Add(sizer_box2, 1, wx.EXPAND|wx.BOTTOM|wx.ALL, 5)
+        self.panel.SetSizer(sizer_panel)
+
+        sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 30)
+
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, 5)
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_v1, 0, wx.ALL, 15)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+
+    def OnOk(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        self.value1 = self.slider1.slider.GetValue()
+        self.value2 = self.slider2.slider.GetValue()
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+class NumberComboEditDialog(wx.Dialog):
+
+    def __init__(self, parent, title,
+                 label1, list, selected,
+                 label2, value, minvalue, maxvalue):
+        wx.Dialog.__init__(self, parent, -1, title,
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.selected = value
+        self.value = value
+
+        self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
+        self.box1 = wx.StaticBox(self.panel, -1, label1)
+        self.box2 = wx.StaticBox(self.panel, -1, label2)
+
+        # コンボボックス
+        self.combo = wx.combo.BitmapComboBox(self.panel, -1, style=wx.CB_READONLY)
+        for li in list:
+            if isinstance(li, (str, unicode)):
+                self.combo.Append(li)
+            else:
+                self.combo.Append(li[0], li[1])
+        self.combo.Select(selected)
+
+        # スライダ
+        self.slider = NumberEditor(self.panel, value, minvalue, maxvalue)
+
+        # btn
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                      (100, 30), cw.cwpy.msgs["entry_decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def _do_layout(self):
+        sizer_box1 = wx.StaticBoxSizer(self.box1, wx.HORIZONTAL)
+        sizer_box2 = wx.StaticBoxSizer(self.box2, wx.HORIZONTAL)
+
+        sizer_box1.Add(self.combo, 1, wx.EXPAND|wx.ALL, 5)
+        sizer_box2.Add(self.slider, 1, wx.EXPAND|wx.ALL, 5)
+
+        sizer_panel = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel.Add(sizer_box1, 0, wx.EXPAND|wx.ALL, 5)
+        sizer_panel.Add(sizer_box2, 1, wx.BOTTOM|wx.ALL, 5)
+        self.panel.SetSizer(sizer_panel)
+
+        sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 30)
+
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, 5)
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_v1, 0, wx.ALL, 15)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+
+    def OnOk(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        self.selected = self.combo.GetSelection()
+        self.value = self.slider.slider.GetValue()
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+class NumberEditor(wx.Panel):
+    def __init__(self, parent, value, minvalue, maxvalue):
+        wx.Panel.__init__(self, parent, -1)
+
+        # スライダ
+        self.slider = wx.Slider(self, -1, value, minvalue, maxvalue,
+            size=(200, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
+        self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
+        # smallleft
+        bmp = cw.cwpy.rsrc.buttons["LMOVE"]
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 40), bmp=bmp)
+        # smallright
+        bmp = cw.cwpy.rsrc.buttons["RMOVE"]
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 40), bmp=bmp)
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        sizer.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
+        sizer.Add(self.slider, 1, wx.LEFT|wx.RIGHT|wx.ALL, 5)
+        sizer.Add(self.rightbtn, 0, wx.ALIGN_CENTER)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnLeftBtn(self, evt):
+        value = self.slider.GetValue()
+        if self.slider.GetMin() < value:
+            self.slider.SetValue(value-1)
+
+    def OnRightBtn(self, evt):
+        value = self.slider.GetValue()
+        if value < self.slider.GetMax():
+            self.slider.SetValue(value+1)
+
 #-------------------------------------------------------------------------------
 #  レベル調節ダイアログ
 #-------------------------------------------------------------------------------
 
-class LevelEditor(NumberEditor):
+class LevelEditDialog(NumberEditDialog):
     def __init__(self, parent):
         self.ccard = cw.cwpy.selection
 
@@ -307,17 +507,19 @@ class LevelEditor(NumberEditor):
         if u"＠レベル原点" in coupons:
             maxvalue = coupons[u"＠レベル原点"]
 
-        NumberEditor.__init__(self, parent, cw.cwpy.msgs["regulate_level_title"],
+        NumberEditDialog.__init__(self, parent, cw.cwpy.msgs["regulate_level_title"],
                 self.ccard.level, minvalue, maxvalue)
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        def func(ccard, level):
+            cw.cwpy.sounds["harvest"].play()
+            ccard.set_level(level, regulate=True)
+            cw.animation.animate_sprite(ccard, "hide")
+            ccard.cardimg.set_levelimg(ccard.level)
+            ccard.update_image()
+            cw.animation.animate_sprite(ccard, "deal")
 
-        self.ccard.set_level(self.slider.GetValue(), regulate=True)
-        cw.animation.animate_sprite(self.ccard, "hide")
-        self.ccard.cardimg.set_levelimg(self.ccard.level)
-        self.ccard.update_image()
-        cw.animation.animate_sprite(self.ccard, "deal")
+        cw.cwpy.exec_func(func, self.ccard, self.slider.slider.GetValue())
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
