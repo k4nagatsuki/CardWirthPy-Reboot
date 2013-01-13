@@ -217,8 +217,15 @@ class CharacterCardImage(CardImage):
         self.levelimg = pygame.Surface(size, SRCALPHA).convert_alpha()
 
         for index, char in enumerate(s):
-            subimg = font.render(char, True, (92, 92, 92))
+            subimg = font.render(char, True, (0, 0, 0))
             self.levelimg.blit(subimg, (15 * index, 0))
+
+        for x in range(size[0]):
+            for y in range(size[1]):
+                color = self.levelimg.get_at((x, y))
+                if color[3] <> 0:
+                    color[3] = color[3] / 2
+                    self.levelimg.set_at((x, y), color)
 
     def update(self, ccard):
         # 画像合成
