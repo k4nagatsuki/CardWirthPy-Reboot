@@ -237,7 +237,7 @@ class NumberEditor(wx.Dialog):
         # スライダ
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         self.slider = wx.Slider(self.panel, -1, value, minvalue, maxvalue,
-            size=(165, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
+            size=(200, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
 
         # btn

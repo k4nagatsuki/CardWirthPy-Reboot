@@ -362,6 +362,7 @@ class HistoryPanel(wx.ScrolledWindow):
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def OnLeftUp(self, event):
+        cw.cwpy.sounds["click"].play()
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
         dlg = cw.debug.edit.CouponEditDialog(parent, selected=selected)
@@ -547,6 +548,7 @@ class StatusPanel(wx.ScrolledWindow):
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def OnLeftUp(self, event):
+        cw.cwpy.sounds["click"].play()
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
         dlg = cw.debug.edit.StatusEditDialog(parent, selected=selected)

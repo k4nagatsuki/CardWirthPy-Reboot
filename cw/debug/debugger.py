@@ -358,7 +358,7 @@ class Debugger(wx.Frame):
         #ID_CARD
         #ID_MEMBER
         self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
-        #ID_STATUS
+        self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
 
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
@@ -386,11 +386,6 @@ class Debugger(wx.Frame):
             func = cw.cwpy.change_area
             cw.cwpy.exec_func(func, cw.cwpy.areaid, False, True)
 
-    def OnCouponTool(self, event):
-        dlg = cw.debug.edit.CouponEditDialog(self)
-        cw.cwpy.frame.move_dlg(dlg)
-        dlg.ShowModal()
-
     def OnGossipTool(self, event):
         dlg = cw.debug.edit.GossipEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
@@ -398,6 +393,16 @@ class Debugger(wx.Frame):
 
     def OnCompStampTool(self, event):
         dlg = cw.debug.edit.CompStampEditDialog(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+
+    def OnCouponTool(self, event):
+        dlg = cw.debug.edit.CouponEditDialog(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+
+    def OnStatusTool(self, event):
+        dlg = cw.debug.edit.StatusEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
 
