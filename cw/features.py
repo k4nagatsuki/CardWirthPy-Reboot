@@ -118,6 +118,11 @@ class Making(Feature):
     def __init__(self, data):
         Feature.__init__(self, data)
 
+"""デバグ宿で簡易生成を行う際の能力型。"""
+class SampleType(Feature):
+    def __init__(self, data):
+        Feature.__init__(self, data)
+
 def wrap_ability(data):
     """
     能力値の切り上げ・切り捨て。

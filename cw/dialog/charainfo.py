@@ -551,7 +551,7 @@ class StatusPanel(wx.ScrolledWindow):
         cw.cwpy.sounds["click"].play()
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
-        dlg = cw.debug.edit.StatusEditDialog(parent, selected=selected)
+        dlg = cw.debug.statusedit.StatusEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             self.draw(True)

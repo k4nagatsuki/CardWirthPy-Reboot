@@ -122,6 +122,9 @@ class Setting(object):
         self.makingnames = [f.name for f in self.makings]
         self.makingcoupons = [u"＿" + f.name for f in self.makings]
 
+        # デバグ宿で簡易生成を行う際の能力型
+        self.sampletypes = [cw.features.SampleType(e) for e in data.getfind("SampleTypes")]
+
         # 音声
         self.sounds = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("Sounds")]
         # メッセージ

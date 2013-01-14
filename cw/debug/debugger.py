@@ -356,7 +356,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
         #ID_CARD
-        #ID_MEMBER
+        self.Bind(wx.EVT_MENU, self.OnMemberTool, id=ID_MEMBER)
         self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
 
@@ -408,13 +408,18 @@ class Debugger(wx.Frame):
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
 
+    def OnMemberTool(self, event):
+        dlg = cw.debug.charaedit.CharacterEditDialog(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+
     def OnCouponTool(self, event):
         dlg = cw.debug.edit.CouponEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
 
     def OnStatusTool(self, event):
-        dlg = cw.debug.edit.StatusEditDialog(self)
+        dlg = cw.debug.statusedit.StatusEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
 

@@ -3,6 +3,8 @@
 
 import debugger
 import edit
+import charaedit
+import statusedit
 
 
 def main():
