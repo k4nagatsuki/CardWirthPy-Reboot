@@ -228,6 +228,7 @@ class CharaSelectablePanel(wx.Panel):
             self.makings.append(check)
 
         self.autobtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), u"自動選択")
+        self.clearbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), u"クリア")
 
         self._bind()
         self._do_layout()
@@ -252,10 +253,14 @@ class CharaSelectablePanel(wx.Panel):
         sizer_box = wx.StaticBoxSizer(self.mkgbox, wx.HORIZONTAL)
         sizer_box.Add(sizer_checks, 1, wx.EXPAND|wx.ALL, 5)
 
+        sizer_buttons = wx.GridSizer(1, 2, 5, 5)
+        sizer_buttons.Add(self.autobtn)
+        sizer_buttons.Add(self.clearbtn)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(sizer_box, 1, wx.EXPAND|wx.ALL, 5)
         sizer.AddStretchSpacer(0)
-        sizer.Add(self.autobtn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 5)
+        sizer.Add(sizer_buttons, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 5)
 
         self.SetSizer(sizer)
         sizer.Fit(self)
