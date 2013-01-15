@@ -310,6 +310,19 @@ class DescPanel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
+        if cw.cwpy.setting.debug:
+            self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+
+    def OnLeftUp(self, event):
+        cw.cwpy.sounds["click"].play()
+        parent = self.GetTopLevelParent()
+        selected = self.Parent.Parent.index
+        dlg = cw.debug.charaedit.CharacterEditDialog(parent, selected=selected)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.draw(True)
+
     def OnPaint(self, event):
         self.draw()
 

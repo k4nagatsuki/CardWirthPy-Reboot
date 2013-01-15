@@ -225,7 +225,7 @@ class MoneyViewPanel(wx.Panel):
         self.Layout()
 
 #-------------------------------------------------------------------------------
-#  数値変更ダイアログ
+#  汎用ダイアログ
 #-------------------------------------------------------------------------------
 
 class NumberEditDialog(wx.Dialog):
@@ -492,6 +492,80 @@ class NumberEditor(wx.Panel):
         value = self.slider.GetValue()
         if value < self.slider.GetMax():
             self.slider.SetValue(value+1)
+
+class ComboEditDialog(wx.Dialog):
+
+    def __init__(self, parent, title, label, list, selected):
+        wx.Dialog.__init__(self, parent, -1, title,
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.selected = selected
+
+        self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
+        self.box = wx.StaticBox(self.panel, -1, label)
+
+        # コンボボックス
+        self.combo = wx.combo.BitmapComboBox(self.panel, -1, style=wx.CB_READONLY)
+        for li in list:
+            if isinstance(li, (str, unicode)):
+                self.combo.Append(li)
+            else:
+                self.combo.Append(li[0], li[1])
+        self.combo.Select(selected)
+
+        # btn
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                      (100, 30), cw.cwpy.msgs["entry_decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def _do_layout(self):
+        sizer_box = wx.StaticBoxSizer(self.box, wx.HORIZONTAL)
+
+        sizer_box.Add(self.combo, 1, wx.EXPAND|wx.ALL, 5)
+
+        sizer_panel = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel.Add(sizer_box, 0, wx.EXPAND|wx.ALL, 5)
+        self.panel.SetSizer(sizer_panel)
+
+        sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 20)
+
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, 5)
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_v1, 0, wx.ALL, 15)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+
+    def OnOk(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        self.selected = self.combo.GetSelection()
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
 
 #-------------------------------------------------------------------------------
 #  レベル調節ダイアログ

@@ -106,7 +106,27 @@ class CharacterEditDialog(wx.Dialog):
         self._select_target()
 
     def OnStandardType(self, event):
-        pass # TODO
+        list = [u"カスタム"]
+        for sample in cw.cwpy.setting.sampletypes:
+            list.append(sample.name)
+        selected = list.index(self.pane_req.type.GetLabel())
+        if selected <= -1:
+            selected = 0
+        dlg = cw.dialog.edit.ComboEditDialog(self.TopLevelParent, u"能力型",
+                                             u"能力型", list, selected)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            cindex = self.target.GetSelection()
+            if 0 < dlg.selected:
+                type = list[dlg.selected]
+            else:
+                type = ""
+            if cindex == 0:
+                for info in self.infos:
+                    info.type = type
+            else:
+                self.infos[cindex-1].type = type
+            self.pane_req._select_target(cindex)
 
     def OnAutoBtn(self, event):
         self.pane_req._set_random()
@@ -131,6 +151,7 @@ class CharaInfo(object):
         self.age = pcard.get_age()
         self.talent = pcard.get_talent()
         self.makings = pcard.get_makings()
+        self.type = ""
         self.physical = pcard.physical
         self.mental = pcard.mental
 
@@ -179,6 +200,8 @@ class CharaRequirementPanel(wx.Panel):
         self._do_layout()
 
     def _get_paramtype(self, info):
+        if info.type:
+            return info.type
         for type in cw.cwpy.setting.sampletypes:
             if type.aglbonus + 6 == info.physical["agl"] and\
                type.dexbonus + 6 == info.physical["dex"] and\
