@@ -90,7 +90,7 @@ class CouponEditDialog(wx.Dialog):
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
 
         # 合計得点
-        self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT)
+        self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT|wx.ST_NO_AUTORESIZE)
 
         self._select_target()
 
@@ -391,7 +391,6 @@ class CouponEditDialog(wx.Dialog):
             self.total.SetLabel(u"選択中の合計: %s点" % (total))
         else:
             self.total.SetLabel(u"合計: %s点" % (total))
-        self.Layout()
 
     def _set_name(self, index, oldname, newname):
         self.values.SetStringItem(index, 0, newname)

@@ -177,7 +177,7 @@ class CharaRequirementPanel(wx.Panel):
         self.levelbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"Lv ―")
 
         self.typbox = wx.StaticBox(self, -1, u"能力型")
-        self.type = wx.StaticText(self, -1, u"―――", size=(125, -1), style=wx.ALIGN_CENTRE)
+        self.type = wx.StaticText(self, -1, u"―――", size=(125, -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
 
         array = [f.name for f in cw.cwpy.setting.sexes]
         self.sexes = wx.RadioBox(self, -1, u"性別", choices=array,
@@ -421,8 +421,6 @@ class CharaRequirementPanel(wx.Panel):
             path = cw.util.join_paths(facedir, img)
             self.img.SetBitmap(cw.util.load_wxbmp(path, mask=True))
 
-        self.Layout()
-
     def _select_target(self, cindex):
         self.cindex = cindex
         name = ""
@@ -514,7 +512,7 @@ class CharaRequirementPanel(wx.Panel):
             infos = self.infos
         else:
             # 誰か一人
-            infos = [self.infos[cindex-1]]
+            infos = [self.infos[self.cindex-1]]
 
         for info in infos:
             arr = cw.cwpy.setting.sexcoupons
