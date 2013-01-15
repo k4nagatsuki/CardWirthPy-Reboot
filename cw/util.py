@@ -191,6 +191,53 @@ def get_imageext(b):
             return ".tiff"
     return ""
 
+def get_facepaths(sexcoupon, agecoupon):
+    """sexとageに対応したFaceディレクトリ内の画像パスをlistで返す。
+    sexcoupon: 性別クーポン。
+    agecoupon: 年代クーポン。
+    """
+    sex = ""
+    for f in cw.cwpy.setting.sexes:
+        if sexcoupon == u"＿" + f.name:
+            sex = f.subname
+
+    age = ""
+    for f in cw.cwpy.setting.periods:
+        if agecoupon == u"＿" + f.name:
+            age = f.abbr
+
+    dpaths = []
+    facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
+
+    # 性別・年代限定
+    if sex and age:
+        dpath = sex + "-" + age
+        dpaths.append(cw.util.join_paths(facedir, dpath))
+    # 性別限定
+    if sex:
+        dpath = sex
+        dpaths.append(cw.util.join_paths(facedir, dpath))
+    # 年代限定
+    if age:
+        dpath = "Common-" + age
+        dpaths.append(cw.util.join_paths(facedir, dpath))
+    # 汎用
+    dpath = "Common"
+    dpaths.append(cw.util.join_paths(facedir, dpath))
+
+    imgpaths = []
+
+    for dpath in dpaths:
+        if not os.path.isdir(dpath):
+            continue
+        for name in os.listdir(dpath):
+            path = cw.util.join_paths(dpath, name)
+
+            if os.path.isfile(path):
+                imgpaths.append(path)
+
+    return imgpaths
+
 def load_bgm(path):
     """Pathの音楽ファイルをBGMとして読み込む。
     リピートして鳴らす場合は、cw.audio.MusicInterface参照。

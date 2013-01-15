@@ -592,45 +592,11 @@ class AdventurerCreaterPage(wx.Panel):
         return False
 
     def set_imgpaths(self, reset=True):
-        sex = cw.cwpy.setting.sexes[0].subname
-        for f in cw.cwpy.setting.sexes:
-            if self.sex == u"＿" + f.name:
-                sex = f.subname
-
-        age = cw.cwpy.setting.periods[0].abbr
-        for f in cw.cwpy.setting.periods:
-            if self.age == u"＿" + f.name:
-                age = f.abbr
-
-        dpaths = []
-        facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
-
-        # 性別・年代限定
-        dpath = sex + "-" + age
-        dpaths.append(cw.util.join_paths(facedir, dpath))
-        # 性別限定
-        dpath = sex
-        dpaths.append(cw.util.join_paths(facedir, dpath))
-        # 年代限定
-        dpath = "Common-" + age
-        dpaths.append(cw.util.join_paths(facedir, dpath))
-        # 汎用
-        dpath = "Common"
-        dpaths.append(cw.util.join_paths(facedir, dpath))
-
         if reset or self.imgpath == "":
             self.imgpaths = []
         else:
             self.imgpaths = [self.imgpath]
-
-        for dpath in dpaths:
-            if not os.path.isdir(dpath):
-                continue
-            for name in os.listdir(dpath):
-                path = cw.util.join_paths(dpath, name)
-
-                if os.path.isfile(path):
-                    self.imgpaths.append(path)
+        self.imgpaths.append(cw.util.get_facepaths(self.sex, self.age))
 
         if self.imgpaths:
             self.imgpath = self.imgpaths[0]

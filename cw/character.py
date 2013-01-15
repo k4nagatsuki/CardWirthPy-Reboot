@@ -776,13 +776,24 @@ class Character(object):
         return None
 
     def get_talent(self):
-        sets = set(cw.cwpy.settings.naturecoupons)
+        sets = set(cw.cwpy.setting.naturecoupons)
 
         for e in self.data.getfind("/Property/Coupons"):
             if e.text in sets:
                 return e.text
 
         return None
+
+    def get_makings(self):
+        """
+        所持する特徴クーポンをセット型で返す。
+        """
+        coupons = self.get_coupons()
+        makings = set()
+        for making in cw.cwpy.setting.makingcoupons:
+            if making in coupons:
+                makings.add(making)
+        return makings
 
     def count_timedcoupon(self, value=-1):
         """

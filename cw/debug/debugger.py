@@ -29,7 +29,6 @@ ID_INFO = wx.NewId()
 ID_SAVE = wx.NewId()
 ID_LOAD = wx.NewId()
 ID_RESET = wx.NewId()
-ID_PLAY = wx.NewId()
 ID_STEP = wx.NewId()
 ID_PAUSE = wx.NewId()
 ID_STOP = wx.NewId()
@@ -351,7 +350,6 @@ class Debugger(wx.Frame):
         # TODO
         #ID_SAVE
         #ID_LOAD
-        #ID_PLAY
         self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
