@@ -796,7 +796,7 @@ class PlayerSelect(Select):
         if not self.list:
             return
 
-        header = self.list[self.index]
+        header = self.list[self.index % len(self.list)]
         # Level
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))

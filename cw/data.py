@@ -769,14 +769,12 @@ class YadoData(object):
     def add_standbys(self, path):
         header = self.create_advheader(path)
         self.standbys.append(header)
-        self.stopstandbysthread()
         cw.util.sort_by_attr(self.standbys, "name")
         return header
 
     def add_album(self, path):
         header = self.create_advheader(path, True)
         self.album.append(header)
-        self.stopalbumthread()
         cw.util.sort_by_attr(self.album, "name")
         return header
 

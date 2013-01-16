@@ -309,7 +309,7 @@ class CharaInfo(object):
     def create_adventurer(self):
         makings = self.get_makingslist()
 
-        data = AdventurerData()
+        data = cw.dialog.create.AdventurerData()
         data.set_name(self.name)
         data.set_age(self.age)
         data.set_sex(self.sex)
