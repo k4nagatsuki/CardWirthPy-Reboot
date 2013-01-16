@@ -116,6 +116,16 @@ class Character(object):
         e = self.data.find2("/Property/Description")
         e.text = cw.util.encodewrap(desc)
 
+    def set_physical(self, name, value):
+        e = self.data.find("Property/Ability/Physical")
+        e.set(name, str(int(value)))
+        self.physical[name] = float(value)
+
+    def set_mental(self, name, value):
+        e = self.data.find("Property/Ability/Mental")
+        e.set(name, str(value))
+        self.mental[name] = float(value)
+
     def get_cardpocket(self):
         flag = bool(self.data.getroot().tag == "CastCard")
         maxnums = self.get_cardpocketspace()
@@ -766,6 +776,11 @@ class Character(object):
 
         return None
 
+    def set_sex(self, sex):
+        for coupon in cw.cwpy.setting.sexcoupons:
+            self.remove_coupon(coupon)
+        self.set_coupon(sex, 0)
+
     def get_age(self):
         sets = set(cw.cwpy.setting.periodcoupons)
 
@@ -775,6 +790,11 @@ class Character(object):
 
         return None
 
+    def set_age(self, age):
+        for coupon in cw.cwpy.setting.periodcoupons:
+            self.remove_coupon(coupon)
+        self.set_coupon(age, 0)
+
     def get_talent(self):
         sets = set(cw.cwpy.setting.naturecoupons)
 
@@ -783,6 +803,11 @@ class Character(object):
                 return e.text
 
         return None
+
+    def set_talent(self, talent):
+        for coupon in cw.cwpy.setting.naturecoupons:
+            self.remove_coupon(coupon)
+        self.set_coupon(talent, 0)
 
     def get_makings(self):
         """
@@ -794,6 +819,18 @@ class Character(object):
             if making in coupons:
                 makings.add(making)
         return makings
+
+    def set_makings(self, makings):
+        for coupon in cw.cwpy.setting.makingcoupons:
+            self.remove_coupon(coupon)
+        for coupon in makings:
+            self.set_coupon(coupon, 0)
+
+    def get_race(self):
+        for race in cw.cwpy.setting.races:
+            if self.has_coupon(u"＠Ｒ" + race.name):
+                return race
+        return cw.cwpy.setting.unknown_race
 
     def count_timedcoupon(self, value=-1):
         """

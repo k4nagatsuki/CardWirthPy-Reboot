@@ -130,7 +130,8 @@ class Setting(object):
         # メッセージ
         self.msgs = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("Messages")]
 
-        self.races.append(cw.header.UnknownRaceHeader(self))
+        self.unknown_race = cw.header.UnknownRaceHeader(self)
+        self.races.append(self.unknown_race)
 
     def set_dealspeed(self, value):
         self.dealspeed = value + 1

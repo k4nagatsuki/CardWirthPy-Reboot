@@ -302,6 +302,14 @@ class PlayerCard(CWPyCard, character.Player):
         # spritegroupに追加
         cw.cwpy.pcardgrp.add(self)
 
+    def set_name(self, name):
+        character.Player.set_name(self, name)
+        self.cardimg.set_nameimg(self.get_name())
+
+    def set_image(self, path):
+        character.Player.set_image(self, path)
+        self.cardimg.set_faceimg(cw.util.join_yadodir(self.get_imagepath()))
+
     def update_levelup(self):
         """レベルアップ処理。"""
         if self.frame % 5:

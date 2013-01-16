@@ -321,6 +321,7 @@ class DescPanel(wx.Panel):
         dlg = cw.debug.charaedit.CharacterEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
+            self.Parent.Parent.toppanel.draw(True)
             self.draw(True)
 
     def OnPaint(self, event):

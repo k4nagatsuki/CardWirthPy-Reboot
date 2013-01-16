@@ -640,20 +640,12 @@ class AdventurerHeader(object):
         data.cautious   = m.getfloat("", "cautious",   0)
         data.trickish   = m.getfloat("", "trickish",   0)
         race = self.get_race()
-        if race:
-            data.maxdex = race.dex + 6
-            data.maxagl = race.agl + 6
-            data.maxint = race.int + 6
-            data.maxstr = race.str + 6
-            data.maxvit = race.vit + 6
-            data.maxmin = race.min + 6
-        else:
-            data.maxdex = 12
-            data.maxagl = 12
-            data.maxint = 12
-            data.maxstr = 12
-            data.maxvit = 12
-            data.maxmin = 12
+        data.maxdex = race.dex + 6
+        data.maxagl = race.agl + 6
+        data.maxint = race.int + 6
+        data.maxstr = race.str + 6
+        data.maxvit = race.vit + 6
+        data.maxmin = race.min + 6
 
         cw.cwpy.setting.periods[index].demodulate(data)
         cw.cwpy.setting.periods[index + 1].modulate(data)
@@ -700,7 +692,7 @@ class AdventurerHeader(object):
             for race in cw.cwpy.setting.races:
                 if race.name == self.race:
                     return race
-        return None
+        return cw.cwpy.setting.unknown_race
 
 class Gene(object):
     def __init__(self, bits=[]):

@@ -326,20 +326,8 @@ class AdventurerData(object):
         self.set_coupon(attr, 0)
 
     def set_desc(self, talent, attrs):
-        seq = [u"　" * 8 + talent[1:] + "\n\n"]
-
-        for index, attr in enumerate(attrs):
-            s = attr[1:]
-            n = index % 3 if index else 0
-
-            if n == 2:
-                s += "\n"
-            else:
-                s += u"　" * (7 - len(s))
-
-            seq.append(s)
-
-        self.description = cw.util.encodewrap("".join(seq))
+        desc = create_description(talent, attrs)
+        self.description = cw.util.encodewrap(desc)
 
     def set_specialcoupon(self):
         self.set_coupon(u"＠レベル原点", self.level)
@@ -349,6 +337,22 @@ class AdventurerData(object):
     def set_life(self):
         self.life = (self.vit / 2 + 4) * (self.level + 1) + self.min / 2
         self.maxlife = self.life
+
+def create_description(talent, attrs):
+    seq = [u"　" * 8 + talent[1:] + "\n\n"]
+
+    for index, attr in enumerate(attrs):
+        s = attr[1:]
+        n = index % 3 if index else 0
+
+        if n == 2:
+            s += "\n"
+        else:
+            s += u"　" * (7 - len(s))
+
+        seq.append(s)
+
+    return "".join(seq)
 
 class AdventurerCreater(wx.Dialog):
     def __init__(self, parent):
@@ -596,7 +600,7 @@ class AdventurerCreaterPage(wx.Panel):
             self.imgpaths = []
         else:
             self.imgpaths = [self.imgpath]
-        self.imgpaths.append(cw.util.get_facepaths(self.sex, self.age))
+        self.imgpaths += cw.util.get_facepaths(self.sex, self.age)
 
         if self.imgpaths:
             self.imgpath = self.imgpaths[0]
@@ -1328,28 +1332,22 @@ class AdventurerDesignDialog(wx.Dialog):
         self.Layout()
 
     def OnOk(self, event):
-        def func(ccard, imgpath, name, desc):
-            cw.cwpy.sounds["harvest"].play()
-            if hasattr(ccard, "update_image"):
-                cw.animation.animate_sprite(ccard, "hide")
-            ccard.set_name(name)
-            if hasattr(ccard, "cardimg"):
-                ccard.cardimg.set_nameimg(ccard.get_name())
-            ccard.set_description(desc)
-            if imgpath.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Face")):
-                ccard.set_image(imgpath)
-                if hasattr(ccard, "cardimg"):
-                    ccard.cardimg.set_faceimg(cw.util.join_yadodir(ccard.get_imagepath()))
-            if hasattr(ccard, "update_image"):
-                ccard.update_image()
-                cw.animation.animate_sprite(ccard, "deal")
-
-            ccard.data.is_edited = True
-            ccard.data.write_xml()
-
         name = self.toppanel.namectrl.GetValue()
         desc = self.toppanel.descctrl.GetValue()
-        cw.cwpy.exec_func(func, self.ccard, self.toppanel.imgpath, name, desc)
+        self.ccard.set_name(name)
+        self.ccard.set_description(desc)
+        if self.toppanel.imgpath.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Face")):
+            self.ccard.set_image(self.toppanel.imgpath)
+        self.ccard.data.is_edited = True
+        self.ccard.data.write_xml()
+
+        def func(ccard):
+            cw.cwpy.sounds["harvest"].play()
+            if isinstance(self.ccard, cw.sprite.card.CWPyCard):
+                cw.animation.animate_sprite(ccard, "hide")
+                ccard.update_image()
+                cw.animation.animate_sprite(ccard, "deal")
+        cw.cwpy.exec_func(func, self.ccard)
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)

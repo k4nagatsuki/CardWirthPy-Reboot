@@ -659,8 +659,12 @@ class PlayerSelect(Select):
 
     def OnClickNewBtn(self, event):
         cw.cwpy.sounds["click"].play()
-        dlg = cw.dialog.create.AdventurerCreater(self)
-        cw.cwpy.frame.move_dlg(dlg, point=(20, 20))
+        if cw.cwpy.setting.debug:
+            dlg = cw.debug.charaedit.CharacterEditDialog(self, create=True)
+            cw.cwpy.frame.move_dlg(dlg)
+        else:
+            dlg = cw.dialog.create.AdventurerCreater(self)
+            cw.cwpy.frame.move_dlg(dlg, point=(20, 20))
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.sounds["page"].play()

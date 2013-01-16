@@ -13,18 +13,23 @@ import cw
 
 class CharacterEditDialog(wx.Dialog):
 
-    def __init__(self, parent, selected=-1):
+    def __init__(self, parent, selected=-1, create=False):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの情報の編集",
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetDoubleBuffered(True)
+        self.create = create
 
-        self.pcards = cw.cwpy.get_pcards()
-        self.infos = [CharaInfo(pcard) for pcard in self.pcards]
+        if self.create:
+            self.infos = [CharaInfo(None)]
+            selected = 0
+        else:
+            self.pcards = cw.cwpy.get_pcards()
+            self.infos = [CharaInfo(pcard) for pcard in self.pcards]
 
         # 対象者
         self.targets = [u"全員"]
-        for pcard in self.pcards:
-            self.targets.append(pcard.get_name())
+        for info in self.infos:
+            self.targets.append(info.name)
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
         self.target.Select(max(selected, -1) + 1)
         # smallleft
@@ -33,6 +38,10 @@ class CharacterEditDialog(wx.Dialog):
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        if self.create:
+            self.target.Hide()
+            self.leftbtn.Hide()
+            self.rightbtn.Hide()
 
         self.note = wx.Notebook(self)
         self.pane_req = CharaRequirementPanel(self.note, self.infos)
@@ -65,11 +74,12 @@ class CharacterEditDialog(wx.Dialog):
 
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
-        sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
-        sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
+        if not self.create:
+            sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
+            sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
+            sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
+            sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
+            sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
         sizer_left.Add(self.note, 1, flag=wx.EXPAND)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
@@ -89,14 +99,14 @@ class CharacterEditDialog(wx.Dialog):
     def OnLeftBtn(self, event):
         index = self.target.GetSelection()
         if index <= 0:
-            self.target.SetSelection(len(self.pcards))
+            self.target.SetSelection(len(self.infos))
         else:
             self.target.SetSelection(index - 1)
         self._select_target()
 
     def OnRightBtn(self, event):
         index = self.target.GetSelection()
-        if len(self.pcards) <= index:
+        if len(self.infos) <= index:
             self.target.SetSelection(0)
         else:
             self.target.SetSelection(index + 1)
@@ -133,7 +143,27 @@ class CharacterEditDialog(wx.Dialog):
         self.pane_sel._set_random()
 
     def OnOkBtn(self, event):
-        pass # TODO
+        if self.create:
+            self.fpath = self.infos[0].create_adventurer()
+        else:
+            def func(updates):
+                for i in updates:
+                    pcard = self.pcards[i]
+                    cw.cwpy.sounds["harvest"].play()
+                    cw.animation.animate_sprite(pcard, "hide")
+                    pcard.update_image()
+                    cw.animation.animate_sprite(pcard, "deal")
+                if not updates:
+                    cw.cwpy.sounds["harvest"].play()
+
+            updates = []
+            for i, info in enumerate(self.infos):
+                if info.put_params(self.pcards[i]):
+                    updates.append(i)
+            cw.cwpy.exec_func(func, updates)
+
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
 
     def _select_target(self):
         cindex = self.target.GetSelection()
@@ -143,17 +173,167 @@ class CharacterEditDialog(wx.Dialog):
 class CharaInfo(object):
 
     def __init__(self, pcard):
-        self.name = pcard.name
-        self.imgpath = cw.util.join_yadodir(pcard.get_imagepath())
-        self.imgpath_base = self.imgpath
-        self.level = pcard.level
-        self.sex = pcard.get_sex()
-        self.age = pcard.get_age()
-        self.talent = pcard.get_talent()
-        self.makings = pcard.get_makings()
-        self.type = ""
-        self.physical = pcard.physical
-        self.mental = pcard.mental
+        if pcard:
+            self.name = pcard.name
+            self.imgpath = pcard.get_imagepath()
+            if self.imgpath:
+                self.imgpath = cw.util.join_yadodir(self.imgpath)
+            self.imgpath_base = self.imgpath
+            self.level = pcard.level
+            self.sex = pcard.get_sex()
+            self.age = pcard.get_age()
+            self.talent = pcard.get_talent()
+            self.makings = pcard.get_makings()
+            self.type = self.get_paramtype(pcard)
+            self.physical = pcard.physical
+            self.mental = pcard.mental
+        else:
+            self.name = ""
+            self.imgpath = ""
+            self.imgpath_base = ""
+            self.level = 1
+            self.sex = cw.cwpy.setting.sexcoupons[0]
+            self.age = cw.cwpy.setting.periodcoupons[0]
+            self.talent = cw.cwpy.setting.naturecoupons[0]
+            self.makings = set()
+            self.type = ""
+            self.physical = {
+                "agl":6.0,
+                "dex":6.0,
+                "int":6.0,
+                "min":6.0,
+                "str":6.0,
+                "vit":6.0
+            }
+            self.mental = {
+                "aggressive":0.0,
+                "brave":0.0,
+                "cautious":0.0,
+                "cheerful":0.0,
+                "trickish":0.0
+            }
+
+    def get_paramtype(self, info):
+        for type in cw.cwpy.setting.sampletypes:
+            if type.aglbonus == info.physical["agl"] and\
+               type.dexbonus == info.physical["dex"] and\
+               type.intbonus == info.physical["int"] and\
+               type.minbonus == info.physical["min"] and\
+               type.strbonus == info.physical["str"] and\
+               type.vitbonus == info.physical["vit"] and\
+               type.aggressive == info.mental["aggressive"] and\
+               type.brave      == info.mental["brave"] and\
+               type.cautious   == info.mental["cautious"] and\
+               type.cheerful   == info.mental["cheerful"] and\
+               type.trickish   == info.mental["trickish"]:
+                return type.name
+        return ""
+
+    def put_params(self, pcard):
+        updatebase = self.sex <> pcard.get_sex() or\
+                     self.age <> pcard.get_age() or\
+                     self.talent <> pcard.get_talent() or\
+                     self.makings <> pcard.get_makings() or\
+                     self.type <> self.get_paramtype(pcard)
+        updateetc  = self.name <> pcard.name or\
+                     self.imgpath <> self.imgpath_base or\
+                     self.level <> pcard.level
+
+        if updatebase:
+            makings = self.get_makingslist()
+
+            pcard.set_age(self.age)
+            pcard.set_sex(self.sex)
+            pcard.set_talent(self.talent)
+            pcard.set_makings(makings)
+            desc = cw.dialog.create.create_description(self.talent, makings)
+            pcard.set_description(desc)
+
+            # 能力値の再計算
+            race = pcard.get_race()
+            self.maxdex = race.dex + 6
+            self.maxagl = race.agl + 6
+            self.maxint = race.int + 6
+            self.maxstr = race.str + 6
+            self.maxvit = race.vit + 6
+            self.maxmin = race.min + 6
+            self.agl = self.physical["agl"]
+            self.dex = self.physical["dex"]
+            self.int = self.physical["int"]
+            self.min = self.physical["min"]
+            self.str = self.physical["str"]
+            self.vit = self.physical["vit"]
+            self.aggressive = self.mental["aggressive"]
+            self.brave      = self.mental["brave"]
+            self.cautious   = self.mental["cautious"]
+            self.cheerful   = self.mental["cheerful"]
+            self.trickish   = self.mental["trickish"]
+            for f in cw.cwpy.setting.sexes:
+                if self.sex == u"＿" + f.name:
+                    break
+            for f in cw.cwpy.setting.periods:
+                if self.age == u"＿" + f.name:
+                    f.modulate(self)
+                    break
+            for f in cw.cwpy.setting.natures:
+                if self.talent == u"＿" + f.name:
+                    f.modulate(self)
+                    break
+            for f in cw.cwpy.setting.makings:
+                if u"＿" + f.name in self.makings:
+                    f.modulate(self)
+            cw.features.wrap_ability(self)
+            pcard.set_physical("agl", self.agl)
+            pcard.set_physical("dex", self.dex)
+            pcard.set_physical("int", self.int)
+            pcard.set_physical("min", self.min)
+            pcard.set_physical("str", self.str)
+            pcard.set_physical("vit", self.vit)
+            pcard.set_mental("aggressive", self.aggressive)
+            pcard.set_mental("brave",      self.brave)
+            pcard.set_mental("cautious",   self.cautious)
+            pcard.set_mental("cheerful",   self.cheerful)
+            pcard.set_mental("trickish",   self.trickish)
+
+        if self.name <> pcard.name:
+            pcard.set_name(self.name)
+
+        if self.imgpath <> self.imgpath_base:
+            pcard.set_image(self.imgpath)
+
+        if updatebase or self.level <> pcard.level:
+            pcard.set_level(self.level)
+
+        return updatebase or updateetc
+
+    def create_adventurer(self):
+        makings = self.get_makingslist()
+
+        data = AdventurerData()
+        data.set_name(self.name)
+        data.set_age(self.age)
+        data.set_sex(self.sex)
+        data.set_image(self.imgpath)
+        data.set_race(cw.cwpy.setting.unknown_race)
+        data.set_parents(None, None)
+        data.set_talent(self.talent)
+        data.set_attrbutes(makings)
+        data.set_desc(self.talent, makings)
+        data.set_specialcoupon()
+        data.set_life()
+        cw.features.wrap_ability(data)
+        data.avoid = cw.util.numwrap(data.avoid, -10, 10)
+        data.resist = cw.util.numwrap(data.resist, -10, 10)
+        data.defense = cw.util.numwrap(data.defense, -10, 10)
+        return cw.xmlcreater.create_adventurer(data)
+
+    def get_makingslist(self):
+        # 特徴の順序が不定になっているため、定義順にする
+        makings = []
+        for making in cw.cwpy.setting.makingcoupons:
+            if making in self.makings:
+                makings.append(making)
+        return makings
 
 class CharaRequirementPanel(wx.Panel):
 
@@ -198,24 +378,6 @@ class CharaRequirementPanel(wx.Panel):
 
         self._bind()
         self._do_layout()
-
-    def _get_paramtype(self, info):
-        if info.type:
-            return info.type
-        for type in cw.cwpy.setting.sampletypes:
-            if type.aglbonus + 6 == info.physical["agl"] and\
-               type.dexbonus + 6 == info.physical["dex"] and\
-               type.intbonus + 6 == info.physical["int"] and\
-               type.minbonus + 6 == info.physical["min"] and\
-               type.strbonus + 6 == info.physical["str"] and\
-               type.vitbonus + 6 == info.physical["vit"] and\
-               type.aggressive == info.mental["aggressive"] and\
-               type.brave      == info.mental["brave"] and\
-               type.cautious   == info.mental["cautious"] and\
-               type.cheerful   == info.mental["cheerful"] and\
-               type.trickish   == info.mental["trickish"]:
-                return type.name
-        return u"カスタム"
 
     def _bind(self):
         self.Bind(wx.EVT_TEXT, self.OnName, self.name)
@@ -266,22 +428,13 @@ class CharaRequirementPanel(wx.Panel):
         self.Layout()
 
     def OnName(self, event):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
-        for info in infos:
+        self.Parent.Parent.okbtn.Enable(False)
+        for info in self._get_infos():
             info.name = self.name.GetValue()
+            self.Parent.Parent.okbtn.Enable(0 < len(info.name))
 
     def OnLevelBtn(self, event):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
+        infos = self._get_infos()
 
         level = 1
         for i, info in enumerate(infos):
@@ -301,12 +454,7 @@ class CharaRequirementPanel(wx.Panel):
             self.levelbtn.SetLabel("Lv %s" % (dlg.value))
 
     def OnSelectImage(self, event):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
+        infos = self._get_infos()
 
         if self.imgcombo.GetSelection() == 0:
             for info in infos:
@@ -321,35 +469,17 @@ class CharaRequirementPanel(wx.Panel):
         self._select_image()
 
     def OnSelectSex(self, event):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
-        for info in infos:
+        for info in self._get_infos():
             info.sex = u"＿" + self.sexes.GetStringSelection()
         self._update_images()
 
     def OnSelectAge(self, event):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
-        for info in infos:
+        for info in self._get_infos():
             info.age = u"＿" + self.periods.GetStringSelection()
         self._update_images()
 
     def OnSelectTalent(self, event):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
-        for info in infos:
+        for info in self._get_infos():
             info.talent = u"＿" + self.natures.GetStringSelection()
         self._update_images()
 
@@ -363,12 +493,7 @@ class CharaRequirementPanel(wx.Panel):
         else:
             img = self.imgcombo.GetValue()
 
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
+        infos = self._get_infos()
 
         # 使用可能なイメージの一覧を取得
         facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
@@ -391,12 +516,7 @@ class CharaRequirementPanel(wx.Panel):
         self._select_image()
 
     def _select_image(self):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
+        infos = self._get_infos()
 
         if self.imgcombo.GetSelection() == 0:
             # [変更しない]
@@ -421,6 +541,14 @@ class CharaRequirementPanel(wx.Panel):
             path = cw.util.join_paths(facedir, img)
             self.img.SetBitmap(cw.util.load_wxbmp(path, mask=True))
 
+    def _get_infos(self):
+        if self.cindex == 0:
+            # 全員
+            return self.infos
+        else:
+            # 誰か一人
+            return [self.infos[self.cindex-1]]
+
     def _select_target(self, cindex):
         self.cindex = cindex
         name = ""
@@ -431,16 +559,11 @@ class CharaRequirementPanel(wx.Panel):
         age = ""
         talent = ""
 
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[cindex-1]]
+        infos = self._get_infos()
 
         for i, info in enumerate(infos):
             force = (i == 0)
-            infotype = self._get_paramtype(info)
+            infotype = info.get_paramtype(info)
             if force:
                 name = info.name
                 level = str(info.level)
@@ -477,7 +600,10 @@ class CharaRequirementPanel(wx.Panel):
             self.imgcombo.SetValue(fpath)
         else:
             self.imgcombo.SetSelection(0)
-        self.type.SetLabel(type)
+        if type:
+            self.type.SetLabel(type)
+        else:
+            self.type.SetLabel(u"カスタム")
 
         if sex:
             index = self.sexes.FindString(sex[1:])
@@ -507,12 +633,7 @@ class CharaRequirementPanel(wx.Panel):
         self.Layout()
 
     def _set_random(self):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
+        infos = self._get_infos()
 
         for info in infos:
             arr = cw.cwpy.setting.sexcoupons
@@ -590,12 +711,7 @@ class CharaSelectablePanel(wx.Panel):
         check = event.GetEventObject()
         value = event.IsChecked()
 
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
+        infos = self._get_infos()
 
         making = u"＿" + check.GetLabel()
         for info in infos:
@@ -608,14 +724,17 @@ class CharaSelectablePanel(wx.Panel):
         self._set_random()
 
     def OnClearBtn(self, event):
+        for info in self._get_infos():
+            info.makings.clear()
+        self._select_target(self.cindex)
+
+    def _get_infos(self):
         if self.cindex == 0:
             # 全員
-            for info in self.infos:
-                info.makings.clear()
+            return self.infos
         else:
             # 誰か一人
-            self.infos[self.index-1].makings.clear()
-        self._select_target(self.cindex)
+            return [self.infos[self.cindex-1]]
 
     def _select_target(self, cindex):
         self.cindex = cindex
@@ -638,15 +757,8 @@ class CharaSelectablePanel(wx.Panel):
                 check.SetValue(making in self.infos[cindex-1].makings)
 
     def _set_random(self):
-        if self.cindex == 0:
-            # 全員
-            infos = self.infos
-        else:
-            # 誰か一人
-            infos = [self.infos[self.cindex-1]]
-
         # 特徴をランダムに設定する
-        for info in infos:
+        for info in self._get_infos():
             info.makings.clear()
             mlen = len(cw.cwpy.setting.makingcoupons)
             for i in range(0, mlen, 2):

@@ -187,19 +187,22 @@ class StatusEditDialog(wx.Dialog):
         self._update_status()
 
     def OnOkBtn(self, event):
-        def func():
-            update = False
-            for i, status in enumerate(self.statuses):
+        def func(updates):
+            for i in updates:
                 pcard = self.pcards[i]
-                if status.put_status(pcard) or True:
-                    update = True
-                    cw.cwpy.sounds["harvest"].play()
-                    cw.animation.animate_sprite(pcard, "hide")
-                    pcard.update_image()
-                    cw.animation.animate_sprite(pcard, "deal")
-            if not update:
                 cw.cwpy.sounds["harvest"].play()
-        cw.cwpy.exec_func(func)
+                cw.animation.animate_sprite(pcard, "hide")
+                pcard.update_image()
+                cw.animation.animate_sprite(pcard, "deal")
+            if not updates:
+                cw.cwpy.sounds["harvest"].play()
+        updates = []
+        for i, status in enumerate(self.statuses):
+            pcard = self.pcards[i]
+            if status.put_status(pcard):
+                updates.append(i)
+        cw.cwpy.exec_func(func, updates)
+
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
