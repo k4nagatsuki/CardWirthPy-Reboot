@@ -353,7 +353,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
-        #ID_CARD
+        self.Bind(wx.EVT_MENU, self.OnCardTool, id=ID_CARD)
         self.Bind(wx.EVT_MENU, self.OnMemberTool, id=ID_MEMBER)
         self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
@@ -400,6 +400,11 @@ class Debugger(wx.Frame):
                 cw.cwpy.ydata.party.set_money(value - cw.cwpy.ydata.party.money)
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func, dlg.value)
+
+    def OnCardTool(self, event):
+        dlg = cw.debug.cardedit.CardEditDialog(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
 
     def OnCompStampTool(self, event):
         dlg = cw.debug.edit.CompStampEditDialog(self)

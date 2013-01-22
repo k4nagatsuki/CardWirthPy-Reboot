@@ -3,6 +3,7 @@
 
 import debugger
 import edit
+import cardedit
 import charaedit
 import statusedit
 
