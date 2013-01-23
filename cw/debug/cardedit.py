@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import wx
+import wx.lib.mixins.listctrl
 import wx.lib.agw.customtreectrl
 
 import cw
@@ -18,40 +20,36 @@ class CardEditDialog(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 
         self.party = cw.cwpy.ydata.party
+        self.scdata = cw.cwpy.sdata
+        if self.scdata:
+            self.scpath = ""
+        else:
+            self.scpath = self.scdata.fpath
+            if os.path.isdir(self.scpath):
+                self.scpath = cw.util.join_paths(self.scpath, "Summary.wsm")
 
-        self.scenariobox = wx.StaticBox(self, -1, u"シナリオの選択")
+        self.list = []
+
         self.cardsbox = wx.StaticBox(self, -1, u"カードの選択")
-        self.selcardsbox = wx.StaticBox(self, -1, u"選択済みカード")
         self.methodbox = wx.StaticBox(self, -1, u"照合方法")
         self.targetsbox = wx.StaticBox(self, -1, u"処理対象")
 
-        self.scenario = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"(未選択)")
+        self.scenario = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"(シナリオ未選択)")
 
         self.imglist = wx.ImageList(14, 14)
         self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS8"])
         self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS9"])
         self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS10"])
 
-        self.cards = wx.ListCtrl(self, -1, size=(200, 200),
-            style=wx.LC_REPORT|wx.LC_VIRTUAL)
+        self.cards = CheckableListCtrl(self, -1, size=(200, 250),
+            style=wx.LC_REPORT)
         self.cards.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
         self.cards.InsertColumn(0, "ID")
         self.cards.InsertColumn(1, u"カード名")
         self.cards.InsertColumn(2, u"解説")
-        self.cards.SetColumnWidth(0, 30)
+        self.cards.SetColumnWidth(0, 40)
         self.cards.SetColumnWidth(1, 80)
-        self.cards.SetColumnWidth(2, 150)
-
-        self.selcards = wx.ListCtrl(self, -1, size=(200, -1),
-            style=wx.LC_REPORT|wx.LC_VIRTUAL)
-        self.selcards.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
-        self.selcards.InsertColumn(0, u"カード名")
-        self.selcards.InsertColumn(1, u"所属シナリオ")
-        self.selcards.SetColumnWidth(0, 80)
-        self.selcards.SetColumnWidth(1, 120)
-
-        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"追加")
-        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"除去")
+        self.cards.SetColumnWidth(2, 110)
 
         self.dtlbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"情報")
         self.findbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"検索")
@@ -61,7 +59,6 @@ class CardEditDialog(wx.Dialog):
 
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), name=u"閉じる")
 
-        self.mkind = wx.CheckBox(self, -1, u"種別")
         self.mname = wx.CheckBox(self, -1, u"カード名")
         self.mdesc = wx.CheckBox(self, -1, u"解説")
         self.mscenario = wx.CheckBox(self, -1, u"シナリオ")
@@ -89,43 +86,41 @@ class CardEditDialog(wx.Dialog):
         self.root_storehouse = self.targets.AppendItem(rid, u"カード置場", 1, image=self.timgidx_storehouse)
         self.root_yado = self.targets.AppendItem(rid, u"待機中のメンバ", 1, image=self.timgidx_yado)
 
+        self.mname.SetValue(True)
+        self.mdesc.SetValue(True)
+
         self._bind()
         self._do_layout()
 
+        self._update_cards()
+
     def _bind(self):
-        pass
+        self.Bind(wx.EVT_BUTTON, self.OnScenario, self.scenario);
+        self.Bind(wx.EVT_BUTTON, self.OnDetailBtn, self.dtlbtn);
+        self.Bind(wx.EVT_BUTTON, self.OnFindBtn, self.findbtn);
+        self.Bind(wx.EVT_BUTTON, self.OnDealBtn, self.dealbtn);
+        self.Bind(wx.EVT_BUTTON, self.OnUpdateBtn, self.updbtn);
+        self.Bind(wx.EVT_BUTTON, self.OnDeleteBtn, self.delbtn);
 
     def _do_layout(self):
-        sizer_scenario = wx.StaticBoxSizer(self.scenariobox, wx.HORIZONTAL)
-        sizer_scenario.Add(self.scenario, 1, wx.ALL, 5)
-
-        sizer_cards = wx.StaticBoxSizer(self.cardsbox, wx.VERTICAL)
-        sizer_cards.Add(self.cards, 1, wx.EXPAND|wx.ALL, 5)
-        sizer_cards.Add(self.addbtn, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
-
-        sizer_left = wx.BoxSizer(wx.VERTICAL)
-        sizer_left.Add(sizer_scenario, 0, wx.EXPAND|wx.BOTTOM, 5)
-        sizer_left.Add(sizer_cards, 1, wx.EXPAND)
-
-        sizer_selcards = wx.StaticBoxSizer(self.selcardsbox, wx.VERTICAL)
-        sizer_selcards.Add(self.selcards, 1, wx.EXPAND|wx.ALL, 5)
-        sizer_selcards.Add(self.rmvbtn, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
+        sizer_left = wx.StaticBoxSizer(self.cardsbox, wx.VERTICAL)
+        sizer_left.Add(self.scenario, 0, wx.EXPAND|wx.ALL, 5)
+        sizer_left.Add(self.cards, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
 
         sizer_method = wx.StaticBoxSizer(self.methodbox, wx.HORIZONTAL)
-        sizer_checks = wx.GridSizer(2, 3)
-        sizer_checks.Add(self.mkind, 1, wx.RIGHT|wx.BOTTOM, 5)
-        sizer_checks.Add(self.mname, 1, wx.RIGHT|wx.BOTTOM, 5)
-        sizer_checks.Add(self.mdesc, 1, wx.BOTTOM, 5)
+        sizer_checks = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_checks.Add(self.mname, 1, wx.RIGHT, 5)
+        sizer_checks.Add(self.mdesc, 1, wx.RIGHT, 5)
         sizer_checks.Add(self.mscenario, 1, wx.RIGHT, 5)
-        sizer_checks.Add(self.mauthor, 1, wx.RIGHT, 5)
+        sizer_checks.Add(self.mauthor, 1)
         sizer_method.Add(sizer_checks, 1, wx.EXPAND|wx.ALL, 5)
 
-        sizer_middle = wx.BoxSizer(wx.VERTICAL)
-        sizer_middle.Add(sizer_selcards, 1, wx.EXPAND|wx.BOTTOM, 5)
-        sizer_middle.Add(sizer_method, 0, wx.EXPAND)
+        sizer_targets = wx.StaticBoxSizer(self.targetsbox, wx.VERTICAL)
+        sizer_targets.Add(self.targets, 1, wx.EXPAND|wx.ALL, 5)
 
-        sizer_middle2 = wx.StaticBoxSizer(self.targetsbox, wx.VERTICAL)
-        sizer_middle2.Add(self.targets, 1, wx.EXPAND|wx.ALL, 5)
+        sizer_middle = wx.BoxSizer(wx.VERTICAL)
+        sizer_middle.Add(sizer_targets, 1, wx.EXPAND|wx.BOTTOM, 5)
+        sizer_middle.Add(sizer_method, 0, wx.EXPAND)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.dtlbtn, 0, wx.EXPAND)
@@ -139,8 +134,91 @@ class CardEditDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer_middle, 1, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
-        sizer.Add(sizer_middle2, 1, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
         sizer.Add(sizer_right, 0, wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def OnScenario(self, event):
+        if self.scpath:
+            dpath = os.path.dirname(self.scpath)
+            fpath = os.path.basename(self.scpath)
+        else:
+            dpath = ""
+            fpath = ""
+        dlg = wx.FileDialog(self, u"シナリオの選択", dpath, fpath,
+                            "シナリオファイル (*.wsn; *.wsm; *.zip; *.cab)|*.wsn;*.wsm;*.zip;*.cab",
+                            wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            fpath = dlg.GetPath()
+
+            scdata = get_scenario(fpath)
+            if not scdata:
+                return
+
+            self.scpath = fpath
+            self.scdata = scdata
+            self._update_cards()
+
+    def _update_cards(self):
+        self.cards.DeleteAllItems()
+        self.list = []
+
+        if not self.scdata:
+            self.scenario.SetLabel(u"(シナリオ未選択)")
+            return
+
+        self.scenario.SetLabel(self.scdata.name)
+
+        def append_cards(table, image):
+            for id in table.keys():
+                index = self.cards.GetItemCount()
+                data = cw.data.xml2element(table[id][1])
+                header = cw.header.CardHeader(carddata=data)
+                self.cards.InsertStringItem(index, str(header.id))
+                self.cards.SetStringItem(index, 1, header.name)
+                self.cards.SetStringItem(index, 2, header.desc.replace("\\n", ""))
+                self.cards.SetItemImage(index, image)
+                self.list.append(header)
+
+        append_cards(self.scdata.skills, self.imgidx_skill)
+        append_cards(self.scdata.items, self.imgidx_item)
+        append_cards(self.scdata.beasts, self.imgidx_beast)
+
+    def OnAddBtn(self, event):
+        pass # TODO
+
+    def OnRemoveBtn(self, event):
+        pass # TODO
+
+    def OnDetailBtn(self, event):
+        pass # TODO
+
+    def OnFindBtn(self, event):
+        pass # TODO
+
+    def OnDealBtn(self, event):
+        pass # TODO
+
+    def OnUpdateBtn(self, event):
+        pass # TODO
+
+    def OnDeleteBtn(self, event):
+        pass # TODO
+
+def get_scenario(fpath):
+    lfpath = fpath.lower()
+    if lfpath.endswith(".wsm"):
+        t = cw.scenariodb.read_summary(os.path.dirname(fpath))
+    else:
+        t = cw.scenariodb.read_summary(fpath)
+    if not t:
+        return None
+
+    header = cw.header.ScenarioHeader(t)
+    return cw.data.ScenarioData(header)
+
+class CheckableListCtrl(wx.ListCtrl, wx.lib.mixins.listctrl.CheckListCtrlMixin):
+    def __init__(self, parent, id, size, style):
+        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
+        wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)

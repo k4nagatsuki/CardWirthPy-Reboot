@@ -616,7 +616,6 @@ class CompStampEditDialog(ListEditDialog):
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
-
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, id, size, style):
         wx.ListCtrl.__init__(self, parent, id, size=size, style=style)

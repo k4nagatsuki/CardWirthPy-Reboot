@@ -457,6 +457,11 @@ class Resource(object):
         func = cw.util.load_wxbmp
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         d = self.get_resources(func, dpath, self.ext_img, True)
+
+        name = "STATUS8"
+        path = cw.util.join_paths(dpath, name + self.ext_img)
+        d[name] = cw.util.load_wxbmp(path, mask=True, maskpos="right")
+
         path = cw.util.join_paths(dpath, "CAUTION" + self.ext_img)
         d["CAUTION"] = cw.util.load_wxbmp(path)
         return d
