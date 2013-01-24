@@ -667,24 +667,6 @@ class YadoDeletedPathSet(set):
         if path in self:
             self.remove(path)
 
-"""バックグラウンドでカードのパスからヘッダを生成する。"""
-class LoadSubThread(threading.Thread):
-
-    def __init__(self, ydata):
-        threading.Thread.__init__(self)
-        self.ydata = ydata
-        self.quitbackpack = False
-
-    def run(self):
-        if not self.quitbackpack:
-            # 荷物袋
-            if self.ydata.party:
-                for index, path in enumerate(self.ydata.party.backpack[:]):
-                    if self.quitbackpack: break
-                    if not isinstance(path, cw.header.CardHeader):
-                        header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
-                        self.ydata.party.backpack[index] = header
-
 class YadoData(object):
     def __init__(self):
         # 宿データのあるディレクトリ
@@ -735,12 +717,6 @@ class YadoData(object):
 
         else:
             self.load_party(None)
-
-        self._loadsubthread = LoadSubThread(self)
-        self._loadsubthread.start()
-
-    def stopbackpackthread(self):
-        self._loadsubthread.quitbackpack = True
 
     def load_party(self, header=None):
         """
@@ -1167,8 +1143,6 @@ class Party(object):
         self.members = [yadoxml2etree(path) for path in paths]
         # 選択中のパーティの荷物袋(CardHeader)
         self.backpack = []
-        if cw.cwpy.ydata:
-            cw.cwpy.ydata.stopbackpackthread()
         for e in self.data.getfind("Backpack"):
             self.backpack.append(e)
 

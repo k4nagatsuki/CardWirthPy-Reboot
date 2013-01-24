@@ -1209,49 +1209,49 @@ class GetContent(EventContentBase):
                 etree = cw.data.xml2etree(path)
                 self.get_card(etree, target)
 
-    def get_card(self, etree, target, summon=False):
-        """対象インスタンスにカードを配布する。cwpy.trade()参照。
-        etree: ElementTree or Element
-        target: Character or list(Backpack, Storehouse)
-        summon: 召喚かどうか。付帯召喚設定は強制的にクリアされる。
-        """
-        # 対象カード名取得
-        name = etree.gettext("Property/Name", "noname")
-        name = cw.util.repl_dischar(name)
+def get_card(etree, target, summon=False):
+    """対象インスタンスにカードを配布する。cwpy.trade()参照。
+    etree: ElementTree or Element
+    target: Character or list(Backpack, Storehouse)
+    summon: 召喚かどうか。付帯召喚設定は強制的にクリアされる。
+    """
+    # 対象カード名取得
+    name = etree.gettext("Property/Name", "noname")
+    name = cw.util.repl_dischar(name)
 
-        # シナリオ取得フラグ
+    # シナリオ取得フラグ
+    if summon:
+        from_scenario = False
+    else:
+        from_scenario = True
+        etree.getroot().attrib["scenariocard"] = "True"
+
+    # 召喚獣カードの場合、付帯属性を操作する
+    if etree.getroot().tag == "BeastCard":
         if summon:
-            from_scenario = False
+            if etree.gettext("Property/UseLimit") == "0":
+                etree.edit("Property/UseLimit", "1")
+
+            s = "False"
         else:
-            from_scenario = True
-            etree.getroot().attrib["scenariocard"] = "True"
+            etree.edit("Property/UseLimit", "0")
+            s = "True"
 
-        # 召喚獣カードの場合、付帯属性を操作する
-        if etree.getroot().tag == "BeastCard":
-            if summon:
-                if etree.gettext("Property/UseLimit") == "0":
-                    etree.edit("Property/UseLimit", "1")
-
-                s = "False"
-            else:
-                etree.edit("Property/UseLimit", "0")
-                s = "True"
-
-            if etree.hasfind("Property/Attachment"):
-                etree.edit("Property/Attachment", s)
-            else:
-                e = etree.make_element("Attachment", s)
-                etree.append("Property", e)
-
-        # カード移動操作
-        if isinstance(target, list):
-            targettype = "BACKPACK"
+        if etree.hasfind("Property/Attachment"):
+            etree.edit("Property/Attachment", s)
         else:
-            targettype = "PLAYERCARD"
+            e = etree.make_element("Attachment", s)
+            etree.append("Property", e)
 
-        header = cw.header.CardHeader(carddata=etree.getroot(),
-                                        owner=None, from_scenario=from_scenario)
-        cw.cwpy.trade(targettype, target, header=header, from_event=True)
+    # カード移動操作
+    if isinstance(target, list):
+        targettype = "BACKPACK"
+    else:
+        targettype = "PLAYERCARD"
+
+    header = cw.header.CardHeader(carddata=etree.getroot(),
+                                    owner=None, from_scenario=from_scenario)
+    cw.cwpy.trade(targettype, target, header=header, from_event=True)
 
 class GetSkillContent(GetContent):
     def action(self):

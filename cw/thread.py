@@ -998,7 +998,6 @@ class CWPy(_Singleton, threading.Thread):
         if targettype == "PLAYERCARD":
             target = target
         elif targettype == "BACKPACK":
-            cw.cwpy.ydata.stopbackpackthread()
             target = self.ydata.party.backpack
         elif targettype == "STOREHOUSE":
             target = self.ydata.storehouse
