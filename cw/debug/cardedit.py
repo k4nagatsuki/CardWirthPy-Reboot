@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import threading
 import wx
 import wx.lib.mixins.listctrl
 import wx.lib.agw.customtreectrl
@@ -28,6 +29,7 @@ class CardEditDialog(wx.Dialog):
             if os.path.isdir(self.scpath):
                 self.scpath = cw.util.join_paths(self.scpath, "Summary.wsm")
 
+        self._find = False
         self.list = []
         self.datalist = []
         self.target_table = {}
@@ -65,6 +67,7 @@ class CardEditDialog(wx.Dialog):
         self.dtlbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"情報")
         self.dealbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"配付")
         self.findbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"検索")
+        self.stopbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"中断")
         self.updbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"更新")
         self.delbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"除去")
 
@@ -106,8 +109,10 @@ class CardEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnDetailBtn, self.dtlbtn);
         self.Bind(wx.EVT_BUTTON, self.OnDealBtn, self.dealbtn);
         self.Bind(wx.EVT_BUTTON, self.OnFindBtn, self.findbtn);
+        self.Bind(wx.EVT_BUTTON, self.OnStopBtn, self.stopbtn);
         self.Bind(wx.EVT_BUTTON, self.OnUpdateBtn, self.updbtn);
         self.Bind(wx.EVT_BUTTON, self.OnDeleteBtn, self.delbtn);
+        self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnCardSelected, self.cards)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnCardSelected, self.cards)
 
@@ -142,8 +147,8 @@ class CardEditDialog(wx.Dialog):
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.dtlbtn, 0, wx.EXPAND)
         sizer_right.Add(self.dealbtn, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_right.AddStretchSpacer(1)
-        sizer_right.Add(self.findbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.findbtn, 0, wx.EXPAND|wx.TOP, border=20)
+        sizer_right.Add(self.stopbtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.Add(self.updbtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.Add(self.delbtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.AddStretchSpacer(1)
@@ -203,7 +208,7 @@ class CardEditDialog(wx.Dialog):
         if cindex == 0:
             target = self.party.backpack
         else:
-            target = self.party.members[cindex-1]
+            target = cw.cwpy.get_pcards()[cindex-1]
 
         index = -1
         count = 0
@@ -219,136 +224,194 @@ class CardEditDialog(wx.Dialog):
 
     def OnFindBtn(self, event):
         self.targets.DeleteChildren(self.root)
-        roots = {}
-        items = {}
-        self.target_table = {}
+        self._find = True
 
-        cards = self._selected_cards()
+        def func():
+            roots = {}
+            items = {}
+            self.target_table = {}
 
-        def get_item(table, key, parent, name, image):
-            if key in table:
-                return table[key]
-            else:
-                item = self.targets.AppendItem(parent, name, 1, image=image)
+            cards = self._selected_cards()
+
+            def set_status(text):
+                def func(text):
+                    if not self._find:
+                        return
+                    self.status.SetLabel(text)
+                wx.CallAfter(func, text)
+
+            def get_item(table, key, parent, name, image):
+                if key in table:
+                    return table[key]
+                else:
+                    item = self.targets.AppendItem(parent, name, 1, image=image)
+                    item.Check(True)
+                    table[key] = item
+                    if not parent is self.root:
+                        self.targets.Expand(parent)
+                    return item
+
+            def add_target(item, matcher, owner, data):
                 item.Check(True)
-                table[key] = item
-                if not parent is self.root:
-                    self.targets.Expand(parent)
-                return item
+                self.targets.Expand(item.GetParent())
+                if matcher in self.target_table:
+                    self.target_table[matcher].append((item, owner, data))
+                else:
+                    list = [(item, owner, data)]
+                    self.target_table[matcher] = list
 
-        def add_target(item, matcher, owner, data):
-            item.Check(True)
-            self.targets.Expand(item.GetParent())
-            if matcher in self.target_table:
-                self.target_table[matcher].append((item, owner, data))
-            else:
-                list = [(item, owner, data)]
-                self.target_table[matcher] = list
+            if cw.cwpy.ydata.party:
+                for member in cw.cwpy.get_pcards():
+                    if not self._find:
+                        break
+                    set_status(u"%sの手札カードを検索中..." % (member.name))
+                    for elements in [member.data.getfind("SkillCards"), member.data.getfind("ItemCards"), member.data.getfind("BeastCards")]:
+                        for data in elements:
+                            matcher = self._get_matcher(data)
+                            if matcher in cards:
+                                def func(roots, items, matcher, member, data):
+                                    if not self._find:
+                                        return
+                                    image = self.timgidx_party
+                                    name = cw.cwpy.ydata.party.name
+                                    root = get_item(roots, cw.cwpy.ydata.party, self.root, name, image)
 
-        if cw.cwpy.ydata.party:
-            for member in cw.cwpy.get_pcards():
-                self.status.SetLabel(u"%sの手札カードを検索中..." % (member.name))
-                for elements in [member.data.getfind("SkillCards"), member.data.getfind("ItemCards"), member.data.getfind("BeastCards")]:
-                    for data in elements:
-                        matcher = self._get_matcher(data)
-                        if matcher in cards:
-                            image = self.timgidx_party
-                            name = cw.cwpy.ydata.party.name
-                            root = get_item(roots, cw.cwpy.ydata.party, self.root, name, image)
+                                    image = self.timgidx_member
+                                    name = member.name
+                                    item = get_item(items, member, root, name, image)
 
-                            image = self.timgidx_member
-                            name = member.name
-                            item = get_item(items, member, root, name, image)
+                                    image = self._get_imgidx(data)
+                                    name = data.gettext("Property/Name")
+                                    item = self.targets.AppendItem(item, name, 1, image=image)
+                                    add_target(item, matcher, member, data)
+                                wx.CallAfter(func, roots, items, matcher, member, data)
 
-                            image = self._get_imgidx(data)
-                            name = data.gettext("Property/Name")
-                            item = self.targets.AppendItem(item, name, 1, image=image)
-                            add_target(item, matcher, member, data)
+                set_status(u"荷物袋を検索中...")
+                for header in cw.cwpy.ydata.party.backpack:
+                    if not self._find:
+                        break
+                    matcher = self._get_matcher(header)
+                    if matcher in cards:
+                        def func(roots, items, matcher, header):
+                            if not self._find:
+                                return
+                            image = self.timgidx_backpack
+                            name = u"荷物袋"
+                            root = get_item(roots, "BACKPACK", self.root, name, image)
 
-            for header in cw.cwpy.ydata.party.backpack:
-                self.status.SetLabel(u"荷物袋を検索中...")
+                            image = self._get_imgidx(header)
+                            item = self.targets.AppendItem(root, header.name, 1, image=image)
+                            add_target(item, matcher, cw.cwpy.ydata.party.backpack, header)
+                        wx.CallAfter(func, roots, items, matcher, header)
+
+            set_status(u"カード置場を検索中...")
+            for header in cw.cwpy.ydata.storehouse:
+                if not self._find:
+                    break
                 matcher = self._get_matcher(header)
                 if matcher in cards:
-                    image = self.timgidx_backpack
-                    name = u"荷物袋"
-                    root = get_item(roots, "BACKPACK", self.root, name, image)
+                    def func(roots, items, matcher, header):
+                        if not self._find:
+                            return
+                        image = self.timgidx_storehouse
+                        name = u"カード置場"
+                        root = get_item(roots, "STOREHOUSE", self.root, name, image)
 
-                    image = self._get_imgidx(header)
-                    item = self.targets.AppendItem(root, header.name, 1, image=image)
-                    add_target(item, matcher, cw.cwpy.ydata.party.backpack, header)
+                        image = self._get_imgidx(header)
+                        item = self.targets.AppendItem(root, header.name, 1, image=image)
+                        add_target(item, matcher, cw.cwpy.ydata.storehouse, header)
+                    wx.CallAfter(func, roots, items, matcher, header)
 
-        for header in cw.cwpy.ydata.storehouse:
-            self.status.SetLabel(u"カード置場を検索中...")
-            matcher = self._get_matcher(header)
-            if matcher in cards:
-                image = self.timgidx_storehouse
-                name = u"カード置場"
-                root = get_item(roots, "STOREHOUSE", self.root, name, image)
-
-                image = self._get_imgidx(header)
-                item = self.targets.AppendItem(root, header.name, 1, image=image)
-                add_target(item, matcher, cw.cwpy.ydata.storehouse, header)
-
-        for header in cw.cwpy.ydata.standbys:
-            member = cw.data.yadoxml2etree(header.fpath)
-            self.status.SetLabel(u"%sの手札カードを検索中..." % (header.name))
-            for elements in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
-                for data in elements:
-                    matcher = self._get_matcher(data)
-                    if matcher in cards:
-                        image = self.timgidx_yado
-                        name = u"待機中のメンバー"
-                        root = get_item(roots, "STANDBYS", self.root, name, image)
-
-                        image = self.timgidx_member
-                        name = header.name
-                        item = get_item(items, header, root, name, image)
-
-                        image = self._get_imgidx(data)
-                        name = data.gettext("Property/Name")
-                        item = self.targets.AppendItem(item, name, 1, image=image)
-                        add_target(item, matcher, member, data)
-
-        for partyheader in cw.cwpy.ydata.partys:
-            party = cw.data.Party(partyheader.fpath)
-            self.status.SetLabel(u"%sの手札カードを検索中..." % (party.name))
-            for index, member in enumerate(party.members):
+            for header in cw.cwpy.ydata.standbys:
+                if not self._find:
+                    break
+                member = cw.data.yadoxml2etree(header.fpath)
+                set_status(u"%sの手札カードを検索中..." % (header.name))
                 for elements in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
                     for data in elements:
                         matcher = self._get_matcher(data)
                         if matcher in cards:
-                            image = self.timgidx_party
-                            name = partyheader.name
-                            root = get_item(roots, (partyheader, 0), self.root, name, image)
+                            def func(roots, items, matcher, member, data):
+                                if not self._find:
+                                    return
+                                image = self.timgidx_yado
+                                name = u"待機中のメンバー"
+                                root = get_item(roots, "STANDBYS", self.root, name, image)
 
-                            image = self.timgidx_member
-                            name = member.gettext("Property/Name")
-                            item = get_item(items, (partyheader, index), root, name, image)
+                                image = self.timgidx_member
+                                name = header.name
+                                item = get_item(items, header, root, name, image)
+
+                                image = self._get_imgidx(data)
+                                name = data.gettext("Property/Name")
+                                item = self.targets.AppendItem(item, name, 1, image=image)
+                                add_target(item, matcher, member, data)
+                            wx.CallAfter(func, roots, items, matcher, member, data)
+
+            for partyheader in cw.cwpy.ydata.partys:
+                if not self._find:
+                    break
+                party = cw.data.Party(partyheader.fpath)
+                set_status(u"%sの手札カードを検索中..." % (party.name))
+                for index, member in enumerate(party.members):
+                    if not self._find:
+                        break
+                    for elements in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
+                        for data in elements:
+                            matcher = self._get_matcher(data)
+                            if matcher in cards:
+                                def func(roots, items, matcher, member, data):
+                                    if not self._find:
+                                        return
+                                    image = self.timgidx_party
+                                    name = partyheader.name
+                                    root = get_item(roots, (partyheader, 0), self.root, name, image)
+
+                                    image = self.timgidx_member
+                                    name = member.gettext("Property/Name")
+                                    item = get_item(items, (partyheader, index), root, name, image)
+
+                                    image = self._get_imgidx(data)
+                                    name = data.gettext("Property/Name")
+                                    item = self.targets.AppendItem(item, name, 1, image=image)
+                                    add_target(item, matcher, member, data)
+                                wx.CallAfter(func, roots, items, matcher, member, data)
+
+                set_status(u"%sの荷物袋を検索中..." % (party.name))
+                for data in party.backpack:
+                    if not self._find:
+                        break
+                    matcher = self._get_matcher(data)
+                    if matcher in cards:
+                        def func(roots, items, matcher, backpack, data):
+                            if not self._find:
+                                return
+                            image = self.timgidx_backpack
+                            name = u"%sの荷物袋" % (partyheader.name)
+                            item = get_item(roots, (partyheader, -1), self.root, name, image)
 
                             image = self._get_imgidx(data)
                             name = data.gettext("Property/Name")
                             item = self.targets.AppendItem(item, name, 1, image=image)
-                            add_target(item, matcher, member, data)
+                            add_target(item, matcher, backpack, data)
+                        wx.CallAfter(func, roots, items, matcher, backpack, data)
 
-            self.status.SetLabel(u"%sの荷物袋を検索中..." % (party.name))
-            for data in party.backpack:
-                matcher = self._get_matcher(data)
-                if matcher in cards:
-                    image = self.timgidx_backpack
-                    name = u"%sの荷物袋" % (partyheader.name)
-                    item = get_item(roots, (partyheader, -1), self.root, name, image)
+            count = 0
+            for array in self.target_table.values():
+                count += len(array)
+            set_status(u"%s件のカードが見つかりました。" % (count))
 
-                    image = self._get_imgidx(data)
-                    name = data.gettext("Property/Name")
-                    item = self.targets.AppendItem(item, name, 1, image=image)
-                    add_target(item, matcher, backpack, data)
+            cw.cwpy.sounds["signal"].play()
+            def update_enable():
+                self._find = False
+                self._update_enable()
+            wx.CallAfter(update_enable)
 
-        count = 0
-        for array in self.target_table.values():
-            count += len(array)
-        self.status.SetLabel(u"%s件のカードが見つかりました。" % (count))
+        threading.Thread(target=func).start()
+        self._update_enable()
 
-        cw.cwpy.sounds["signal"].play()
+    def OnStopBtn(self):
+        self._find = False
 
     def OnUpdateBtn(self, event):
         pass # TODO
@@ -358,6 +421,10 @@ class CardEditDialog(wx.Dialog):
 
     def OnCardSelected(self, event):
         self._update_enable()
+
+    def OnClose(self, event):
+        self._find = False
+        self.Destroy()
 
     def _get_matcher(self, data):
         name = ""
@@ -431,7 +498,7 @@ class CardEditDialog(wx.Dialog):
             for id in table.keys():
                 index = self.cards.GetItemCount()
                 data = cw.data.xml2etree(table[id][1])
-                header = cw.header.CardHeader(data=data.find("Property"))
+                header = cw.header.CardHeader(carddata=data.getroot(), data=data.find("Property"))
                 header.negaflag = False
                 self.cards.InsertStringItem(index, str(header.id))
                 self.cards.SetStringItem(index, 1, header.name)
@@ -449,10 +516,12 @@ class CardEditDialog(wx.Dialog):
         hascard = self.root.HasChildren()
 
         self.dtlbtn.Enable(0 < len(self.list))
-        self.findbtn.Enable(selected)
-        self.updbtn.Enable(hascard)
-        self.delbtn.Enable(hascard)
         self.dealbtn.Enable(selected)
+
+        self.findbtn.Enable(selected and not self._find)
+        self.stopbtn.Enable(self._find)
+        self.updbtn.Enable(hascard and not self._find)
+        self.delbtn.Enable(hascard and not self._find)
 
 def get_scenario(fpath):
     lfpath = fpath.lower()
