@@ -982,7 +982,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -1157,12 +1157,16 @@ class CWPy(_Singleton, threading.Thread):
         if targettype == "PLAYERCARD":
             # cardpocketにCardHeaderを追加
             header.set_owner(target)
-            target.cardpocket[index].append(header)
             # 使用回数を設定
             header.get_uselimit()
             # カードのエレメントを追加
-            path = "/%ss" % header.type
-            target.data.append(path, header.carddata)
+            path = "%ss" % header.type
+            if toindex == -1:
+                target.cardpocket[index].append(header)
+                target.data.append(path, header.carddata)
+            else:
+                target.cardpocket[index].insert(toindex, header)
+                target.data.find(path).insert(toindex, header.carddata)
 
             # 戦闘中の場合、Deckの手札・山札に追加
             if self.battle:
@@ -1175,13 +1179,19 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.party.data.insert("/Backpack", header.carddata, 0)
 
             # 移動先のリストにCardHeaderを追加
-            target.insert(0, header)
+            if toindex == -1:
+                target.insert(0, header)
+            else:
+                target.insert(toindex, header)
             header.set_owner("BACKPACK")
 
         # 移動先がカード置場だった場合
         elif targettype in ("BACKPACK", "STOREHOUSE"):
             # 移動先のリストにCardHeaderを追加
-            target.insert(0, header)
+            if toindex == -1:
+                target.insert(0, header)
+            else:
+                target.insert(toindex, header)
             header.set_owner("STOREHOUSE")
             header.carddata = None
 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import copy
 import threading
 import wx
 import wx.lib.mixins.listctrl
@@ -22,16 +23,18 @@ class CardEditDialog(wx.Dialog):
 
         self.party = cw.cwpy.ydata.party
         self.scdata = cw.cwpy.sdata
-        if self.scdata:
-            self.scpath = ""
-        else:
+        if isinstance(self.scdata, cw.data.ScenarioData):
             self.scpath = self.scdata.fpath
             if os.path.isdir(self.scpath):
                 self.scpath = cw.util.join_paths(self.scpath, "Summary.wsm")
+        else:
+            self.scdata = None
+            self.scpath = ""
 
         self._find = False
         self.list = []
         self.datalist = []
+        self.target_cards = {}
         self.target_table = {}
 
         self.cardsbox = wx.StaticBox(self, -1, u"カードの選択")
@@ -41,10 +44,10 @@ class CardEditDialog(wx.Dialog):
 
         self.scenario = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"(シナリオ未選択)")
 
-        self.imglist = wx.ImageList(14, 14)
-        self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS8"])
-        self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS9"])
-        self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS10"])
+        self.imglist = wx.ImageList(16, 16)
+        self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
+        self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
+        self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
 
         self.cards = wx.ListCtrl(self, -1, size=(200, 250),
             style=wx.LC_REPORT)
@@ -84,6 +87,9 @@ class CardEditDialog(wx.Dialog):
         self.timgidx_party = self.timglist.Add(cw.cwpy.rsrc.debugs["MEMBER"])
         self.timgidx_yado = self.timglist.Add(cw.cwpy.rsrc.debugs["YADO"])
         self.timgidx_member = self.timglist.Add(cw.cwpy.rsrc.buttons["CAST"])
+        self.timgidx_skill = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
+        self.timgidx_item = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
+        self.timgidx_beast = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
 
         self.targets = wx.lib.agw.customtreectrl.CustomTreeCtrl(self, -1, size=(200, -1),
             style=wx.BORDER,
@@ -102,7 +108,6 @@ class CardEditDialog(wx.Dialog):
         self._do_layout()
 
         self._update_cards()
-        self._update_enable()
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnScenario, self.scenario);
@@ -225,13 +230,12 @@ class CardEditDialog(wx.Dialog):
     def OnFindBtn(self, event):
         self.targets.DeleteChildren(self.root)
         self._find = True
-
-        def func():
+        self.target_cards = self._get_cards(True)
+        self.target_table = {}
+        cards = set(self.target_cards.keys())
+        def func(cards):
             roots = {}
             items = {}
-            self.target_table = {}
-
-            cards = self._selected_cards()
 
             def set_status(text):
                 def func(text):
@@ -251,25 +255,26 @@ class CardEditDialog(wx.Dialog):
                         self.targets.Expand(parent)
                     return item
 
-            def add_target(item, matcher, owner, data):
+            def add_target(item, matcher, toplevel, owner, data):
                 item.Check(True)
                 self.targets.Expand(item.GetParent())
                 if matcher in self.target_table:
-                    self.target_table[matcher].append((item, owner, data))
+                    self.target_table[matcher][item] = (toplevel, owner, data)
                 else:
-                    list = [(item, owner, data)]
-                    self.target_table[matcher] = list
+                    t = {}
+                    t[item] = (toplevel, owner, data)
+                    self.target_table[matcher] = t
 
             if cw.cwpy.ydata.party:
                 for member in cw.cwpy.get_pcards():
                     if not self._find:
                         break
                     set_status(u"%sの手札カードを検索中..." % (member.name))
-                    for elements in [member.data.getfind("SkillCards"), member.data.getfind("ItemCards"), member.data.getfind("BeastCards")]:
-                        for data in elements:
-                            matcher = self._get_matcher(data)
+                    for cardpocket in [member.cardpocket[0], member.cardpocket[1], member.cardpocket[2]]:
+                        for header in cardpocket:
+                            matcher = self._get_matcher(header)
                             if matcher in cards:
-                                def func(roots, items, matcher, member, data):
+                                def func(roots, items, matcher, member, cardpocket, header):
                                     if not self._find:
                                         return
                                     image = self.timgidx_party
@@ -280,11 +285,11 @@ class CardEditDialog(wx.Dialog):
                                     name = member.name
                                     item = get_item(items, member, root, name, image)
 
-                                    image = self._get_imgidx(data)
-                                    name = data.gettext("Property/Name")
+                                    image = self._get_imgidx(header)
+                                    name = header.name
                                     item = self.targets.AppendItem(item, name, 1, image=image)
-                                    add_target(item, matcher, member, data)
-                                wx.CallAfter(func, roots, items, matcher, member, data)
+                                    add_target(item, matcher, member, cardpocket, header)
+                                wx.CallAfter(func, roots, items, matcher, member, cardpocket, header)
 
                 set_status(u"荷物袋を検索中...")
                 for header in cw.cwpy.ydata.party.backpack:
@@ -301,7 +306,7 @@ class CardEditDialog(wx.Dialog):
 
                             image = self._get_imgidx(header)
                             item = self.targets.AppendItem(root, header.name, 1, image=image)
-                            add_target(item, matcher, cw.cwpy.ydata.party.backpack, header)
+                            add_target(item, matcher, None, cw.cwpy.ydata.party.backpack, header)
                         wx.CallAfter(func, roots, items, matcher, header)
 
             set_status(u"カード置場を検索中...")
@@ -319,7 +324,7 @@ class CardEditDialog(wx.Dialog):
 
                         image = self._get_imgidx(header)
                         item = self.targets.AppendItem(root, header.name, 1, image=image)
-                        add_target(item, matcher, cw.cwpy.ydata.storehouse, header)
+                        add_target(item, matcher, None, cw.cwpy.ydata.storehouse, header)
                     wx.CallAfter(func, roots, items, matcher, header)
 
             for header in cw.cwpy.ydata.standbys:
@@ -327,11 +332,11 @@ class CardEditDialog(wx.Dialog):
                     break
                 member = cw.data.yadoxml2etree(header.fpath)
                 set_status(u"%sの手札カードを検索中..." % (header.name))
-                for elements in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
-                    for data in elements:
+                for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
+                    for data in cardpocket:
                         matcher = self._get_matcher(data)
                         if matcher in cards:
-                            def func(roots, items, matcher, member, data):
+                            def func(roots, items, matcher, member, cardpocket, data):
                                 if not self._find:
                                     return
                                 image = self.timgidx_yado
@@ -345,8 +350,8 @@ class CardEditDialog(wx.Dialog):
                                 image = self._get_imgidx(data)
                                 name = data.gettext("Property/Name")
                                 item = self.targets.AppendItem(item, name, 1, image=image)
-                                add_target(item, matcher, member, data)
-                            wx.CallAfter(func, roots, items, matcher, member, data)
+                                add_target(item, matcher, member, cardpocket, data)
+                            wx.CallAfter(func, roots, items, matcher, member, cardpocket, data)
 
             for partyheader in cw.cwpy.ydata.partys:
                 if not self._find:
@@ -356,11 +361,11 @@ class CardEditDialog(wx.Dialog):
                 for index, member in enumerate(party.members):
                     if not self._find:
                         break
-                    for elements in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
-                        for data in elements:
+                    for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
+                        for data in cardpocket:
                             matcher = self._get_matcher(data)
                             if matcher in cards:
-                                def func(roots, items, matcher, member, data):
+                                def func(roots, items, matcher, party, member, cardpocket, data):
                                     if not self._find:
                                         return
                                     image = self.timgidx_party
@@ -374,16 +379,17 @@ class CardEditDialog(wx.Dialog):
                                     image = self._get_imgidx(data)
                                     name = data.gettext("Property/Name")
                                     item = self.targets.AppendItem(item, name, 1, image=image)
-                                    add_target(item, matcher, member, data)
-                                wx.CallAfter(func, roots, items, matcher, member, data)
+                                    add_target(item, matcher, party, cardpocket, data)
+                                wx.CallAfter(func, roots, items, matcher, party.data, member, cardpocket, data)
 
                 set_status(u"%sの荷物袋を検索中..." % (party.name))
+                backpackdata = party.data.find("Backpack")
                 for data in party.backpack:
                     if not self._find:
                         break
                     matcher = self._get_matcher(data)
                     if matcher in cards:
-                        def func(roots, items, matcher, backpack, data):
+                        def func(roots, items, matcher, party, backpackdata, data):
                             if not self._find:
                                 return
                             image = self.timgidx_backpack
@@ -393,8 +399,8 @@ class CardEditDialog(wx.Dialog):
                             image = self._get_imgidx(data)
                             name = data.gettext("Property/Name")
                             item = self.targets.AppendItem(item, name, 1, image=image)
-                            add_target(item, matcher, backpack, data)
-                        wx.CallAfter(func, roots, items, matcher, backpack, data)
+                            add_target(item, matcher, party, backpackdata, data)
+                        wx.CallAfter(func, roots, items, matcher, party.data, backpackdata, data)
 
             count = 0
             for array in self.target_table.values():
@@ -407,17 +413,94 @@ class CardEditDialog(wx.Dialog):
                 self._update_enable()
             wx.CallAfter(update_enable)
 
-        threading.Thread(target=func).start()
+        threading.Thread(target=func, kwargs={"cards":cards}).start()
         self._update_enable()
 
-    def OnStopBtn(self):
+    def OnStopBtn(self, event):
         self._find = False
 
     def OnUpdateBtn(self, event):
-        pass # TODO
+        writes = set()
+        count = 0
+        for matcher, infos in self.target_table.items():
+            for item, info in infos.items():
+                toplevel = info[0]
+                owner = info[1]
+                data = info[2]
+                if not item.IsChecked():
+                    continue
+                del infos[item]
+
+                index = list(owner).index(data)
+                self._remove(owner, data, index)
+
+                data = copy.deepcopy(self.target_cards[matcher])
+                name = data.gettext("Property/Name", "")
+                if cw.cwpy.ydata.storehouse is owner:
+                    cw.content.get_card(data, owner, summon=False, toindex=index)
+                elif cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack is owner:
+                    cw.content.get_card(data, owner, summon=False, toindex=index)
+                elif isinstance(toplevel, cw.character.Character):
+                    cw.content.get_card(data, toplevel, summon=False, toindex=index)
+                else:
+                    dstdir = cw.util.join_paths(cw.cwpy.tempdir, "Material", data.getroot().tag, name)
+                    cw.cwpy.copy_materials(data, dstdir)
+                    owner.insert(index, data.getroot())
+
+                self.targets.SetItemText(item, u"%s[更新]" % (name))
+                data = data.getroot()
+
+                if toplevel and not isinstance(toplevel, cw.character.Character):
+                    writes.add(toplevel)
+                infos[item] = (toplevel, owner, data)
+                count += 1
+
+        for data in writes:
+            data.write_xml(True)
+
+        self.status.SetLabel(u"%s件のカードを更新しました。" % (count))
+
+        self._update_enable()
+        cw.cwpy.sounds["harvest"].play()
 
     def OnDeleteBtn(self, event):
-        pass # TODO
+        writes = set()
+        count = 0
+        for matcher, infos in self.target_table.items():
+            for item, info in infos.items():
+                toplevel = info[0]
+                owner = info[1]
+                data = info[2]
+                if not item.IsChecked():
+                    continue
+                del infos[item]
+                if isinstance(data, cw.header.CardHeader):
+                    name = data.name
+                else:
+                    name = data.gettext("Property/Name", "")
+                self.targets.SetItemText(item, u"%s[削除済み]" % (name))
+
+                index = list(owner).index(data)
+                self._remove(owner, data, index)
+                if toplevel and not isinstance(toplevel, cw.character.Character):
+                    writes.add(toplevel)
+                count += 1
+
+        for data in writes:
+            data.write_xml(True)
+
+        self.status.SetLabel(u"%s件のカードを除去しました。" % (count))
+
+        self._update_enable()
+        cw.cwpy.sounds["harvest"].play()
+
+    def _remove(self, owner, data, index):
+        if isinstance(owner, list):
+            header = owner[index]
+            cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True)
+        else:
+            cw.cwpy.remove_materials(data)
+            owner.remove(data)
 
     def OnCardSelected(self, event):
         self._update_enable()
@@ -427,6 +510,7 @@ class CardEditDialog(wx.Dialog):
         self.Destroy()
 
     def _get_matcher(self, data):
+        type = ""
         name = ""
         desc = ""
         scenario = ""
@@ -434,6 +518,7 @@ class CardEditDialog(wx.Dialog):
 
         if isinstance(data, cw.header.CardHeader):
             header = data
+            type = header.type
             if self.mname.GetValue():
                 name = header.name
             if self.mdesc.GetValue():
@@ -443,6 +528,7 @@ class CardEditDialog(wx.Dialog):
             if self.mauthor.GetValue():
                 author = header.author
         else:
+            type = data.tag
             e = data.find("Property")
             if self.mname.GetValue():
                 name = e.gettext("Name", "")
@@ -453,7 +539,7 @@ class CardEditDialog(wx.Dialog):
             if self.mauthor.GetValue():
                 author = e.gettext("Author", "")
 
-        return (name, desc, scenario, author)
+        return (type, name, desc, scenario, author)
 
     def _get_imgidx(self, data):
         type = ""
@@ -464,32 +550,38 @@ class CardEditDialog(wx.Dialog):
             type = data.tag
 
         if type == "SkillCard":
-            return self.imgidx_skill
+            return self.timgidx_skill
         elif type == "ItemCard":
-            return self.imgidx_item
+            return self.timgidx_item
         elif type == "BeastCard":
-            return self.imgidx_beast
+            return self.timgidx_beast
 
         return None
 
-    def _selected_cards(self):
-        cards = set()
+    def _get_cards(self, selected):
+        cards = {}
         index = -1
+        if selected:
+            state = wx.LIST_STATE_SELECTED
+        else:
+            state = wx.LIST_STATE_DONTCARE
         while (True):
-            index = self.cards.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            index = self.cards.GetNextItem(index, wx.LIST_NEXT_ALL, state)
             if index <= -1:
                 break
-            cards.add(self._get_matcher(self.list[index]))
+            cards[self._get_matcher(self.list[index])] = self.datalist[index]
 
         return cards
 
     def _update_cards(self):
         self.cards.DeleteAllItems()
+        self.targets.DeleteChildren(self.root)
         self.list = []
         self.datalist = []
 
         if not self.scdata:
             self.scenario.SetLabel(u"(シナリオ未選択)")
+            self._update_enable()
             return
 
         self.scenario.SetLabel(self.scdata.name)
@@ -498,7 +590,8 @@ class CardEditDialog(wx.Dialog):
             for id in table.keys():
                 index = self.cards.GetItemCount()
                 data = cw.data.xml2etree(table[id][1])
-                header = cw.header.CardHeader(carddata=data.getroot(), data=data.find("Property"))
+
+                header = cw.header.CardHeader(carddata=data.getroot(), from_scenario=True, scedir=self.scdata.scedir)
                 header.negaflag = False
                 self.cards.InsertStringItem(index, str(header.id))
                 self.cards.SetStringItem(index, 1, header.name)
@@ -511,12 +604,19 @@ class CardEditDialog(wx.Dialog):
         append_cards(self.scdata.items, self.imgidx_item)
         append_cards(self.scdata.beasts, self.imgidx_beast)
 
+        self._update_enable()
+
     def _update_enable(self):
         selected = -1 < self.cards.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
-        hascard = self.root.HasChildren()
 
         self.dtlbtn.Enable(0 < len(self.list))
         self.dealbtn.Enable(selected)
+
+        hascard = False
+        for array in self.target_table.values():
+            if 0 < len(array):
+                hascard = True
+                break
 
         self.findbtn.Enable(selected and not self._find)
         self.stopbtn.Enable(self._find)
@@ -533,7 +633,7 @@ def get_scenario(fpath):
         return None
 
     header = cw.header.ScenarioHeader(t)
-    return cw.data.ScenarioData(header)
+    return cw.data.ScenarioData(header, cardonly=True)
 
 class CheckableListCtrl(wx.ListCtrl, wx.lib.mixins.listctrl.CheckListCtrlMixin):
     def __init__(self, parent, id, size, style):

@@ -1209,7 +1209,7 @@ class GetContent(EventContentBase):
                 etree = cw.data.xml2etree(path)
                 self.get_card(etree, target)
 
-def get_card(etree, target, summon=False):
+def get_card(etree, target, summon=False, toindex=-1):
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
     etree: ElementTree or Element
     target: Character or list(Backpack, Storehouse)
@@ -1244,14 +1244,16 @@ def get_card(etree, target, summon=False):
             etree.append("Property", e)
 
     # カード移動操作
-    if isinstance(target, list):
+    if cw.cwpy.ydata.storehouse is target:
+        targettype = "STOREHOUSE"
+    elif isinstance(target, list):
         targettype = "BACKPACK"
     else:
         targettype = "PLAYERCARD"
 
     header = cw.header.CardHeader(carddata=etree.getroot(),
                                     owner=None, from_scenario=from_scenario)
-    cw.cwpy.trade(targettype, target, header=header, from_event=True)
+    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex)
 
 class GetSkillContent(GetContent):
     def action(self):

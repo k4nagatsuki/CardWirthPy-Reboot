@@ -14,7 +14,7 @@ import cw
 
 
 class CardHeader(object):
-    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, put_db=False, dbrec=None):
+    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None):
         self.ref_original = weakref.ref(self)
         if dbrec:
             self.set_owner("STOREHOUSE")
@@ -123,8 +123,13 @@ class CardHeader(object):
         # シナリオ取得フラグ
         if from_scenario or (self.carddata is not None and self.carddata.get("scenariocard")):
             self.scenariocard = True
+            if scedir:
+                self.scedir = scedir
+            else:
+                self.scedir = cw.cwpy.sdata.scedir
         else:
             self.scenariocard = False
+            self.scedir = ""
         # 画像設定
         self._cardimg = None
         self.rect = pygame.Rect(0, 0, 80, 110)
@@ -142,13 +147,14 @@ class CardHeader(object):
             self.get_uselimit()
 
     def set_cardimg(self, path):
-        if self.type == "ActionCard":
-            path = cw.util.join_paths(cw.cwpy.skindir, path)
-        elif self.scenariocard:
-            if not cw.binary.image.path_is_code(path):
-                path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-        else:
-            path = cw.util.join_yadodir(path)
+        if not cw.binary.image.path_is_code(path):
+            if self.type == "ActionCard":
+                path = cw.util.join_paths(cw.cwpy.skindir, path)
+            elif self.scenariocard:
+                if not cw.binary.image.path_is_code(path):
+                    path = cw.util.join_paths(self.scedir, path)
+            else:
+                path = cw.util.join_yadodir(path)
 
         imgpath = path
         self._cardimg = cw.image.CardImage(imgpath, self.get_bgtype(),

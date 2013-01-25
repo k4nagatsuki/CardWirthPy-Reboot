@@ -166,12 +166,14 @@ class SystemData(object):
 #-------------------------------------------------------------------------------
 
 class ScenarioData(SystemData):
-    def __init__(self, header):
+    def __init__(self, header, cardonly=False):
         self._playing = True
         self.fpath = header.get_fpath()
         self.name = header.name
         self.author = header.author
-        self.startid = cw.cwpy.areaid = header.startid
+        self.startid = header.startid
+        if not cardonly:
+            cw.cwpy.areaid = self.startid
         if os.path.isfile(self.fpath):
             # zip解凍・解凍したディレクトリを登録
             self.tempdir = cw.cwpy.recenthistory.check(self.fpath)
@@ -195,6 +197,10 @@ class ScenarioData(SystemData):
 
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
+
+        if cardonly:
+            return
+
         # 特殊エリアのメニューカードを作成
         self._init_sparea_mcards()
         # エリアデータ初期化
@@ -690,9 +696,16 @@ class YadoData(object):
 
         # パーティリスト(PartyHeader)
         self.partys = self.yadodb.get_parties()
+        partypaths = set()
+        for party in self.partys:
+            for fpath in party.get_memberpaths():
+                partypaths.add(fpath)
 
         # 待機中冒険者(AdventurerHeader)
-        self.standbys = self.yadodb.get_standbys()
+        self.standbys = []
+        for standby in self.yadodb.get_standbys():
+            if not standby.fpath in partypaths:
+                self.standbys.append(standby)
 
         # アルバム(AdventurerHeader)
         self.album = self.yadodb.get_album()
