@@ -310,7 +310,7 @@ class DescPanel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.setting.debug:
+        if cw.cwpy.setting.debug and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
@@ -371,7 +371,7 @@ class HistoryPanel(wx.ScrolledWindow):
         # create buffer
         self.draw()
 
-        if cw.cwpy.setting.debug:
+        if cw.cwpy.setting.debug and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
@@ -557,7 +557,7 @@ class StatusPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.setting.debug:
+        if cw.cwpy.setting.debug and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
