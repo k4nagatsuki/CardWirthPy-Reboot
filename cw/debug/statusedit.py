@@ -12,12 +12,12 @@ import cw
 
 class StatusEditDialog(wx.Dialog):
 
-    def __init__(self, parent, selected=-1):
+    def __init__(self, parent, list, selected=-1):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの状態の編集",
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetDoubleBuffered(True)
 
-        self.pcards = cw.cwpy.get_pcards()
+        self.pcards = list
 
         self.statuses = []
         self.statuses_backup = []

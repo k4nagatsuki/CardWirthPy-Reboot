@@ -449,7 +449,7 @@ class Debugger(wx.Frame):
         dlg.ShowModal()
 
     def OnStatusTool(self, event):
-        dlg = cw.debug.statusedit.StatusEditDialog(self)
+        dlg = cw.debug.statusedit.StatusEditDialog(self, cw.cwpy.get_pcards())
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
 

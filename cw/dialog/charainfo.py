@@ -44,7 +44,7 @@ class CharaInfo(wx.Dialog):
         self.notebook.AddPage(self.historypanel, cw.cwpy.msgs["history"])
         # 編集または状態
         if cw.cwpy.is_playingscenario():
-            self.editpanel = StatusPanel(self.notebook, self.ccard)
+            self.editpanel = StatusPanel(self.notebook, self.list, self.ccard)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         else:
             self.editpanel = EditPanel(self.notebook, self.ccard)
@@ -544,11 +544,12 @@ class EditPanel(wx.Panel):
             height += 17
 
 class StatusPanel(wx.ScrolledWindow):
-    def __init__(self, parent, ccard):
+    def __init__(self, parent, list, ccard):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(10, 10)
         self.csize = self.GetClientSize()
+        self.list = list
         # エレメントオブジェクト
         self.ccard = ccard
         # bmp
@@ -557,7 +558,7 @@ class StatusPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.setting.debug and isinstance(ccard, cw.sprite.card.PlayerCard):
+        if cw.cwpy.setting.debug:
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
@@ -565,7 +566,7 @@ class StatusPanel(wx.ScrolledWindow):
         cw.cwpy.sounds["click"].play()
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
-        dlg = cw.debug.statusedit.StatusEditDialog(parent, selected=selected)
+        dlg = cw.debug.statusedit.StatusEditDialog(parent, list=self.list, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             self.draw(True)
