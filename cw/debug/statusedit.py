@@ -767,3 +767,9 @@ class StatusButton(wx.BitmapButton):
         canvas.SetMaskColour(colour[0], colour[1], colour[2])
 
         self.SetBitmapLabel(canvas.ConvertToBitmap())
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()

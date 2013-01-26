@@ -347,9 +347,8 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnUpdateTool, id=ID_UPDATE)
         self.Bind(wx.EVT_MENU, self.OnBreakTool, id=ID_BREAK)
         self.Bind(wx.EVT_MENU, self.OnResetTool, id=ID_RESET)
-        # TODO
-        #ID_SAVE
-        #ID_LOAD
+        self.Bind(wx.EVT_MENU, self.OnSaveTool, id=ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.OnLoadTool, id=ID_LOAD)
         self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
@@ -405,6 +404,33 @@ class Debugger(wx.Frame):
         dlg = cw.debug.cardedit.CardEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+
+    def OnSaveTool(self, event):
+        if not cw.cwpy.is_playingscenario():
+            return
+
+        fpath = cw.binary.util.check_filename(cw.cwpy.sdata.name)
+        fpath += ".wstx"
+        dlg = wx.FileDialog(self, u"状態の保存", "", fpath,
+                        "CardWirthPyシナリオ状態ファイル (*.wstx)|*.wstx|すべてのファイル (*.*)|*.*",
+                        wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            cw.debug.recording.save(path)
+
+    def OnLoadTool(self, event):
+        if not cw.cwpy.is_playingscenario():
+            return
+
+        fpath = cw.binary.util.check_filename(cw.cwpy.sdata.name)
+        fpath += ".wstx"
+        dlg = wx.FileDialog(self, u"状態の復元", "", fpath,
+                        "CardWirthPyシナリオ状態ファイル (*.wstx)|*.wstx|すべてのファイル (*.*)|*.*",
+                        wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            cw.debug.recording.load(path)
+            self.view_var.refresh_variablelist()
 
     def OnCompStampTool(self, event):
         dlg = cw.debug.edit.CompStampEditDialog(self)

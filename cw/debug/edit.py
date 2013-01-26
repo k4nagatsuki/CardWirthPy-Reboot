@@ -630,3 +630,9 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
             loc = loc + self.GetColumnWidth(n)
             self.col_locs.append(loc)
         listmix.TextEditMixin.OpenEditor(self, row, col)
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()

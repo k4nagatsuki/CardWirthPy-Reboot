@@ -771,3 +771,9 @@ class CharaSelectablePanel(wx.Panel):
                     info.makings.add(pair[n])
 
         self._select_target(self.cindex)
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()

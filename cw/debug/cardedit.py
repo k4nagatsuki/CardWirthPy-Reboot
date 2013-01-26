@@ -22,8 +22,8 @@ class CardEditDialog(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 
         self.party = cw.cwpy.ydata.party
-        self.scdata = cw.cwpy.sdata
-        if isinstance(self.scdata, cw.data.ScenarioData):
+        if cw.cwpy.is_playingscenario():
+            self.scdata = cw.cwpy.sdata
             self.scpath = self.scdata.fpath
             if os.path.isdir(self.scpath):
                 self.scpath = cw.util.join_paths(self.scpath, "Summary.wsm")
@@ -639,3 +639,9 @@ class CheckableListCtrl(wx.ListCtrl, wx.lib.mixins.listctrl.CheckListCtrlMixin):
     def __init__(self, parent, id, size, style):
         wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
         wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()

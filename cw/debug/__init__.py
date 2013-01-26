@@ -6,6 +6,7 @@ import edit
 import cardedit
 import charaedit
 import statusedit
+import recording
 
 
 def main():
