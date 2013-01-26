@@ -236,7 +236,6 @@ class ScenarioData(SystemData):
         self._init_xmlpaths()
         self._init_flags()
         self._init_steps()
-        self._init_debugger()
 
         for name, value in flagvals.items():
             if name in self.flags:
@@ -247,6 +246,8 @@ class ScenarioData(SystemData):
         for name, value in stepvals.items():
             if name in self.steps:
                 self.steps[name].value = value
+
+        self._init_debugger()
 
     def _init_xmlpaths(self):
         """
