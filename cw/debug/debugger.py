@@ -380,6 +380,7 @@ class Debugger(wx.Frame):
 
     def OnUpdateTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
+            cw.cwpy.sdata.reload()
             func = cw.cwpy.change_area
             cw.cwpy.exec_func(func, cw.cwpy.areaid, False, True)
 

@@ -226,6 +226,28 @@ class ScenarioData(SystemData):
         # refresh debugger
         self._init_debugger()
 
+    def reload(self):
+        flagvals = {}
+        stepvals = {}
+        for name, flag in self.flags.items():
+            flagvals[name] = flag.value
+        for name, step in self.steps.items():
+            stepvals[name] = step.value
+        self._init_xmlpaths()
+        self._init_flags()
+        self._init_steps()
+        self._init_debugger()
+
+        for name, value in flagvals.items():
+            if name in self.flags:
+                flag = self.flags[name]
+                if flag.value <> value:
+                    flag.value = value
+                    flag.redraw_cards()
+        for name, value in stepvals.items():
+            if name in self.steps:
+                self.steps[name].value = value
+
     def _init_xmlpaths(self):
         """
         シナリオで使用されるXMLファイルのパスを辞書登録。
