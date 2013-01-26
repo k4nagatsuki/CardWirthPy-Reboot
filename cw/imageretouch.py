@@ -7,14 +7,12 @@ import pygame
 from pygame.locals import *
 
 import cw
-"""
-FIXME: 正常に動作しないので暫定的に無効化。
-       _imageretouch.cを修正する必要がある。
+
 try:
     import _imageretouch
 except ImportError, ex:
     print "failed to load _imageretouch module. %s" % (ex.message)
-"""
+
 
 def _retouch(func, image, *args):
     """_imageretouchの関数のラッパ。
