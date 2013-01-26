@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import math
 import xml.etree.ElementTree
 import pygame
 from pygame.locals import BLEND_MIN, BLEND_ADD
@@ -166,7 +167,7 @@ class BackGround(base.CWPySprite):
             e2.text = flag
         return data
 
-class Curtain(base.SelectableSprite):
+class Curtain(base.CWPySprite):
     def __init__(self, spritegrp, size=(632, 420), pos=(0, 0), alpha=128):
         """半透明のブルーバックスプライト。右クリックで解除。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
@@ -174,7 +175,6 @@ class Curtain(base.SelectableSprite):
         pos: 表示位置。
         alpha: 透明度。
         """
-        # 半透明のブルーバック
         base.SelectableSprite.__init__(self)
         self.image = pygame.Surface(size).convert()
         self.image.fill((0, 0, 80))
@@ -303,6 +303,148 @@ class Jpy1TemporalSprite(base.CWPySprite):
 
         # spritegroupに追加
         cw.cwpy.topgrp.add(self, layer="jpytemporal")
+
+class TitleCell(base.CWPySprite):
+    def __init__(self, path, layer, y, iscard):
+        """起動画面のアニメーションに使用するスプライト。
+        path: 表示するイメージのパス。
+        y: Y座標。X位置は常に画面中央となる。
+        """
+        base.CWPySprite.__init__(self)
+        self.layer = layer
+        if path == "white":
+            self._image = pygame.surface.Surface(cw.SIZE_AREA).convert()
+            self._image.fill((255, 255, 255))
+        else:
+            self._image = cw.util.load_image(path, True)
+        self._rect = self._image.get_rect()
+        x = (cw.SIZE_AREA[0] - self._rect.width) / 2
+        self._rect.topleft = (x, y)
+
+        if iscard:
+            self.clear_image()
+        else:
+            self.image = self._image
+            self.image.set_alpha(0)
+            self.rect = self._rect
+
+        self.status = "hidden"
+        self.frame = 0
+
+        self.animespeed = cw.cwpy.setting.fps / 3
+        self.dealing_scales = [
+            int(math.cos(math.radians(90.0 * i / self.animespeed)) * 100)
+            for i in xrange(self.animespeed + 1)
+                if i
+        ]
+
+        n = 255 / self.animespeed
+        self.fade_params = [255 - n * i for i in xrange(self.animespeed + 1) if i]
+
+    def lclick_event(self):
+        cw.cwpy.cut_animation = True
+
+    def rclick_event(self):
+        cw.cwpy.cut_animation = True
+
+    def update(self, scr):
+        method = getattr(self, "update_" + self.status, None)
+
+        if method:
+            method()
+
+    def update_deal(self):
+        """
+        カード表示時のアニメーションを呼び出すメソッド。
+        """
+        if self.frame == self.animespeed:
+            self.status = "normal"
+            self.image = self._image
+            self.rect = self._rect
+            self.frame = 0
+            return
+
+        n = self.dealing_scales[::-1][self.frame]
+        size = self._rect.w * n / 100, self._rect.h
+        self.image = pygame.transform.scale(self._image, size)
+        self.rect = self.image.get_rect(center=self._rect.center)
+        self.frame += 1
+
+    def update_hide(self):
+        """
+        カード非表示時のアニメーションを呼び出すメソッド。
+        """
+        if self.frame == self.animespeed:
+            self.status = "hidden"
+            self.clear_image()
+            self.frame = 0
+            return
+
+        n = self.dealing_scales[self.frame]
+        size = self._rect.w * n / 100, self._rect.h
+        self.image = pygame.transform.scale(self._image, size)
+        self.rect = self.image.get_rect(center=self.rect.center)
+        self.frame += 1
+
+    def update_fadein(self):
+        """
+        フェードインのアニメーションを呼び出すメソッド。
+        """
+        if self.frame == self.animespeed:
+            self.status = "normal"
+            self.image.set_alpha(255)
+            self.frame = 0
+            return
+
+        alpha = self.fade_params[::-1][self.frame]
+        self.image.set_alpha(alpha)
+        self.frame += 1
+
+    def update_fadein2(self):
+        """
+        倍速でフェードインする。
+        """
+        if self.frame >= self.animespeed:
+            self.status = "normal"
+            self.image.set_alpha(255)
+            self.frame = 0
+            return
+
+        alpha = self.fade_params[::-1][self.frame]
+        self.image.set_alpha(alpha)
+        self.frame += 2
+
+    def update_fadeout(self):
+        """
+        フェードアウトのアニメーションを呼び出すメソッド。
+        """
+        if self.frame == self.animespeed:
+            self.status = "hidden"
+            self.image.set_alpha(0)
+            self.frame = 0
+            return
+
+        alpha = self.fade_params[self.frame]
+        self.image.set_alpha(alpha)
+        self.frame += 1
+
+    def update_show(self):
+        """
+        ウェイト無しで表示する。
+        """
+        self.status = "normal"
+        self.image.set_alpha(255)
+
+    def update_vanish(self):
+        """
+        ウェイト無しで消去する。
+        """
+        self.status = "hidden"
+        self.image.set_alpha(0)
+
+    def clear_image(self):
+        self.image = pygame.Surface((0, 0)).convert()
+        self.rect = self.image.get_rect(center=self._rect.center)
 
 def main():
     pass

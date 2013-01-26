@@ -4,6 +4,7 @@
 import os
 import sys
 import ctypes
+import math
 import wx
 import pygame
 from pygame.locals import *
@@ -136,8 +137,11 @@ class Setting(object):
     def set_dealspeed(self, value):
         self.dealspeed = value + 1
         self.dealspeed = cw.util.numwrap(self.dealspeed, 1, 11)
-        n = 100 / self.dealspeed
-        self.dealing_scales = [100 - n * i for i in xrange(self.dealspeed) if i]
+        self.dealing_scales = [
+            int(math.cos(math.radians(90.0 * i / self.dealspeed)) * 100)
+            for i in xrange(self.dealspeed)
+                if i
+        ]
 
     def write(self):
         cw.xmlcreater.create_settings(self)

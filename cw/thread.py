@@ -55,6 +55,8 @@ class CWPy(_Singleton, threading.Thread):
         self.battle = None
         # メインループ中に各種入力イベントがあったかどうかフラグ
         self.has_inputevent = False
+        # アニメーションカットフラグ
+        self.cut_animation = False
         # ダイアログ表示中フラグ
         self._showingdlg = False
         # フルスクリーンフラグ
@@ -109,7 +111,7 @@ class CWPy(_Singleton, threading.Thread):
         # イベントハンドラ
         self.eventhandler = cw.eventhandler.EventHandler()
         # ゲーム状態を"Title"にセット
-        self.exec_func(self.set_title)
+        self.exec_func(self.startup)
 
     def _init_resources(self):
         """スキンが関わるリソースの初期化"""
@@ -311,9 +313,76 @@ class CWPy(_Singleton, threading.Thread):
         self.pre_dialogs = []
         self.pre_mcards = []
 
-    def set_title(self):
-        """タイトル画面へ遷移。"""
+    def startup(self):
+        """起動時のアニメーションを表示してから
+        タイトル画面へ遷移する。"""
+        resdir = cw.util.join_paths(cw.cwpy.skindir, u"Resource/Image/Other")
+        self.events = []
+
+        # 必要なスプライトの読み込み
         self._init_resources()
+        self.music.stop()
+        ext = self.rsrc.ext_img
+        path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
+        card1 = cw.sprite.background.TitleCell(path, 1, 120, True)
+        path = cw.util.join_paths(resdir, "TITLE_CARD2") + ext
+        card2 = cw.sprite.background.TitleCell(path, 1, 120, True)
+        path = cw.util.join_paths(resdir, "TITLE_CELL1") + ext
+        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False)
+        path = cw.util.join_paths(resdir, "TITLE_CELL2") + ext
+        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False)
+        path = cw.util.join_paths(resdir, "TITLE_CELL3") + ext
+        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False)
+        white = cw.sprite.background.TitleCell("white", 3, 0, False)
+        self.selection = white
+
+        cw.cwpy.bggrp.add(card1, layer="title")
+        cw.cwpy.bggrp.add(card2, layer="title")
+        cw.cwpy.bggrp.add(cell1, layer="title")
+        cw.cwpy.bggrp.add(cell2, layer="title")
+        cw.cwpy.bggrp.add(cell3, layer="title")
+        cw.cwpy.bggrp.add(white, layer="title")
+
+        cw.animation.animate_sprite(card2, "deal", clearevent=False)
+        cw.animation.animate_sprite(card2, "hide", clearevent=False)
+        cw.animation.animate_sprite(card1, "deal", clearevent=False)
+        cw.animation.animate_sprite(card1, "hide", clearevent=False)
+        cw.animation.animate_sprites2([(card2, "deal"), (cell1, "fadein")], clearevent=False)
+        cw.animation.animate_sprite(card2, "hide", clearevent=False)
+        cw.animation.animate_sprite(card1, "deal", clearevent=False)
+        cw.animation.animate_sprites2([(card1, "hide"), (cell1, "vanish"), (cell2, "show")], clearevent=False)
+        cw.animation.animate_sprite(card2, "deal", clearevent=False)
+        cw.animation.animate_sprite(card2, "hide", clearevent=False)
+        cw.animation.animate_sprite(card1, "deal", clearevent=False)
+        cw.animation.animate_sprites2([(card1, "hide"), (cell2, "fadeout")], clearevent=False)
+        cw.animation.animate_sprite(card2, "deal", clearevent=False)
+        cw.animation.animate_sprite(card2, "hide", clearevent=False)
+        cw.animation.animate_sprite(card1, "deal", clearevent=False)
+        cw.animation.animate_sprite(card1, "hide", clearevent=False)
+        cw.animation.animate_sprites2([(card2, "deal"), (cell3, "fadein")], clearevent=False)
+        cw.animation.animate_sprite(card2, "hide", clearevent=False)
+        cw.animation.animate_sprite(card1, "deal", clearevent=False)
+        cw.animation.animate_sprite(card1, "hide", clearevent=False)
+        cw.animation.animate_sprite(card2, "deal", clearevent=False)
+        cw.animation.animate_sprites2([(card2, "hide"), (white, "fadein2")], clearevent=False)
+        for i in xrange(self.setting.fps / 2):
+            if self.cut_animation:
+                break
+            self.tick_clock()
+        self.selection = None
+
+        # スプライトを解除する
+        self.bggrp.remove_sprites_of_layer("title")
+
+        if self.cut_animation:
+            ttype = ("Default", "Default")
+            self.cut_animation = False
+        else:
+            ttype = ("None", "None")
+        self.set_title(ttype=ttype)
+
+    def set_title(self, init=True, ttype=("Default", "Default")):
+        """タイトル画面へ遷移。"""
         self.set_status("Title")
         cw.util.remove_temp()
         self.yadodir = ""
@@ -323,7 +392,7 @@ class CWPy(_Singleton, threading.Thread):
         s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
         self.set_titlebar(s)
         self.statusbar.change()
-        self.change_area(1)
+        self.change_area(1, ttype=ttype)
 
     def set_yado(self):
         """宿画面へ遷移。"""

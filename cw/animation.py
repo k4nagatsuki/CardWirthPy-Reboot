@@ -7,22 +7,24 @@ from pygame.locals import *
 import cw
 
 
-def animate_sprite(sprite, anitype, speedrate=1):
+def animate_sprite(sprite, anitype, speedrate=1, clearevent=True):
     if not hasattr(sprite, "update_" + anitype):
         print "Not found " + anitype + " animation."
         return
 
     sprite.status = anitype
 
-    framecount = 0
-    while cw.cwpy.is_running() and sprite.status == anitype:
-        framecount += 1
+    while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         sprite.update(cw.cwpy.scr)
         cw.cwpy.draw()
         cw.cwpy.tick_clock(speedrate=speedrate)
-        pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+        if clearevent:
+            pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+        else:
+            cw.cwpy.events = pygame.event.get()
+            cw.cwpy.eventhandler.run()
 
-def animate_sprites(sprites, anitype):
+def animate_sprites(sprites, anitype, clearevent=True):
     if [spr for spr in sprites if not hasattr(spr, "update_" + anitype)]:
         print "Not found " + anitype + " animation."
         return
@@ -32,16 +34,49 @@ def animate_sprites(sprites, anitype):
 
     animating = True
 
-    while cw.cwpy.is_running() and animating:
+    while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
         for sprite in sprites:
             sprite.update(cw.cwpy.scr)
 
         cw.cwpy.draw()
         cw.cwpy.tick_clock()
-        pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+        if clearevent:
+            pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+        else:
+            cw.cwpy.events = pygame.event.get()
+            cw.cwpy.eventhandler.run()
         animating = False
 
         for sprite in sprites:
+            if sprite.status == anitype:
+                animating = True
+                break
+
+def animate_sprites2(sprandanimes, clearevent=True):
+    for spr, anitype in sprandanimes:
+        if not hasattr(spr, "update_" + anitype):
+            print "Not found " + anitype + " animation."
+            return
+
+    for sprite, anitype in sprandanimes:
+        sprite.status = anitype
+
+    animating = True
+
+    while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
+        for sprite, anitype in sprandanimes:
+            sprite.update(cw.cwpy.scr)
+
+        cw.cwpy.draw()
+        cw.cwpy.tick_clock()
+        if clearevent:
+            pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+        else:
+            cw.cwpy.events = pygame.event.get()
+            cw.cwpy.eventhandler.run()
+        animating = False
+
+        for sprite, anitype in sprandanimes:
             if sprite.status == anitype:
                 animating = True
                 break
