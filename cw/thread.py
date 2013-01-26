@@ -57,6 +57,8 @@ class CWPy(_Singleton, threading.Thread):
         self.has_inputevent = False
         # アニメーションカットフラグ
         self.cut_animation = False
+        # 入力があるまでメニューカード表示を待つ
+        self.wait_showcards = False
         # ダイアログ表示中フラグ
         self._showingdlg = False
         # フルスクリーンフラグ
@@ -379,6 +381,7 @@ class CWPy(_Singleton, threading.Thread):
             self.cut_animation = False
         else:
             ttype = ("None", "None")
+            self.wait_showcards = True
         self.set_title(ttype=ttype)
 
     def set_title(self, init=True, ttype=("Default", "Default")):
@@ -700,12 +703,27 @@ class CWPy(_Singleton, threading.Thread):
 
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
-            self.deal_cards()
+            if not self.wait_showcards:
+                self.deal_cards()
+            else:
+                self.draw()
 
             if self.areaid > 0 and self.status == "Scenario":
                 self.elapse_time()
 
             self.sdata.start_event(keynum=1)
+
+            if self.wait_showcards:
+                sel = self.selection
+                self.selection = ShowMenuCards(self)
+                while self.is_running() and self.wait_showcards:
+                    self.events = pygame.event.get()
+                    self.eventhandler.run()
+                    self.tick_clock()
+                    self.draw()
+                self.selection = sel
+                self.deal_cards()
+                self.wait_showcards = False
         else:
             self.deal_cards()
             self.show_party()
@@ -1524,6 +1542,17 @@ class CWPy(_Singleton, threading.Thread):
             return self.sdata.friendcards
         else:
             return []
+
+class ShowMenuCards(object):
+    def __init__(self, cwpy):
+        self.cwpy = cwpy
+        self.rect = pygame.Rect((0, 0), cw.SIZE_AREA)
+
+    def lclick_event(self):
+        cw.cwpy.wait_showcards = False
+
+    def rclick_event(self):
+        cw.cwpy.wait_showcards = False
 
 def main():
     pass
