@@ -204,16 +204,11 @@ class CardControl(wx.Dialog):
         return dc
 
     def draw_cards(self, dc, update, mode):
-        if not update:
-            for header in self.get_headers():
-                self.draw_card(dc, header)
+        poslist = get_poslist(len(self.get_headers()), mode)
 
-        else:
-            poslist = get_poslist(len(self.get_headers()), mode)
-
-            for pos, header in zip(poslist, self.get_headers()):
-                header.rect.topleft = pos
-                self.draw_card(dc, header)
+        for pos, header in zip(poslist, self.get_headers()):
+            header.rect.topleft = pos
+            self.draw_card(dc, header)
 
     def draw_card(self, dc, header):
         mousepos = self.ScreenToClient(wx.GetMousePosition())
