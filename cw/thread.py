@@ -702,6 +702,12 @@ class CWPy(_Singleton, threading.Thread):
         cw.cwpy.hide_cards(True)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype)
 
+        if not self.is_playingscenario():
+            # 宿にいる場合は常に全回復状態にする
+            for pcard in self.get_pcards():
+                pcard.set_fullrecovery()
+                pcard.update_image()
+
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
             if not self.wait_showcards:
