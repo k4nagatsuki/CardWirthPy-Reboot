@@ -115,6 +115,10 @@ class EventHandler(object):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.lclick_event()
 
+        elif cw.cwpy.wait_showcards:
+            # メニューカードの表示を待っている場合は表示
+            cw.cwpy.deal_cards()
+
     def rclick_event(self):
         """
         右クリックイベント。
@@ -150,13 +154,21 @@ class EventHandler(object):
                 cw.cwpy.sounds["click"].play()
                 cw.cwpy.call_dlg("BATTLECOMMAND")
 
+        elif cw.cwpy.wait_showcards:
+            # メニューカードの表示を待っている場合は表示
+            cw.cwpy.deal_cards()
+
     def escapekey_event(self):
         """
         ESCAPEキーイベント。終了ダイアログ。
         """
-        cw.cwpy.has_inputevent = True
-        cw.cwpy.sounds["click"].play()
-        cw.cwpy.call_dlg("CLOSE")
+        # メニューカードの表示を待っている場合は表示
+        if cw.cwpy.wait_showcards:
+            cw.cwpy.deal_cards()
+        else:
+            cw.cwpy.has_inputevent = True
+            cw.cwpy.sounds["click"].play()
+            cw.cwpy.call_dlg("CLOSE")
 
     def f1key_event(self):
         """
@@ -229,6 +241,10 @@ class EventHandler(object):
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
+
+        elif cw.cwpy.wait_showcards:
+            # メニューカードの表示を待っている場合は表示
+            cw.cwpy.deal_cards()
 
     def executing_event(self, event):
         """

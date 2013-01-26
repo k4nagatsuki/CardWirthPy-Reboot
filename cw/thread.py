@@ -527,6 +527,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.input(True)
         self._dealing = False
+        self.wait_showcards = False
 
     def hide_cards(self, hideall=False):
         """
@@ -712,18 +713,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.elapse_time()
 
             self.sdata.start_event(keynum=1)
-
-            if self.wait_showcards:
-                sel = self.selection
-                self.selection = ShowMenuCards(self)
-                while self.is_running() and self.wait_showcards:
-                    self.events = pygame.event.get()
-                    self.eventhandler.run()
-                    self.tick_clock()
-                    self.draw()
-                self.selection = sel
-                self.deal_cards()
-                self.wait_showcards = False
         else:
             self.deal_cards()
             self.show_party()
