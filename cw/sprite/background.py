@@ -167,7 +167,7 @@ class BackGround(base.CWPySprite):
             e2.text = flag
         return data
 
-class Curtain(base.CWPySprite):
+class Curtain(base.SelectableSprite):
     def __init__(self, spritegrp, size=(632, 420), pos=(0, 0), alpha=128):
         """半透明のブルーバックスプライト。右クリックで解除。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
