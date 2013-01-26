@@ -73,6 +73,8 @@ class CWPy(_Singleton, threading.Thread):
         self._gameover = False
         # 現在選択中スプライト(SelectableSprite)
         self.selection = None
+        # パーティカード表示中フラグ
+        self.is_showparty = False
         # カード操作用データ(CardHeader)
         self.selectedheader = None
         # デバッグモードかどうか
@@ -459,6 +461,19 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change()
         self.change_area(1)
 
+    def f9(self):
+        """cw.data.ScenarioDataのf9()から呼び出され、
+        緊急非難処理の続きを行う。
+        """
+        for pcard in self.get_pcards():
+            self.sounds["harvest"].play()
+            cw.animation.animate_sprite(pcard, "hide")
+            pcard.set_fullrecovery()
+            pcard.update_image()
+            cw.animation.animate_sprite(pcard, "deal")
+        self.ydata.party._loading = False
+        self.set_yado()
+
     def reload_yado(self):
         """現在の宿をロード。"""
         self._init_resources()
@@ -482,6 +497,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(self.set_scenario, header)
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
+                self.sounds["error"].play()
                 s = (cw.cwpy.msgs["load_scenario_failure"])
                 mdlg = cw.dialog.message.YesNoMessage(self.frame,
                                                         cw.cwpy.msgs["message"], s)
@@ -564,6 +580,7 @@ class CWPy(_Singleton, threading.Thread):
         if pcards:
             cw.animation.animate_sprites(pcards, "shiftup")
 
+        self.is_showparty = True
         self.input(True)
 
     def hide_party(self):
@@ -573,6 +590,7 @@ class CWPy(_Singleton, threading.Thread):
         if pcards:
             cw.animation.animate_sprites(pcards, "shiftdown")
 
+        self.is_showparty = False
         self.input(True)
 
     def set_sprites(self, dealanime=True,
@@ -702,7 +720,7 @@ class CWPy(_Singleton, threading.Thread):
         cw.cwpy.hide_cards(True)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype)
 
-        if not self.is_playingscenario():
+        if not self.is_playingscenario() and not self.is_showparty:
             # 宿にいる場合は常に全回復状態にする
             for pcard in self.get_pcards():
                 pcard.set_fullrecovery()

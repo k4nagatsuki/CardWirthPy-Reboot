@@ -472,7 +472,7 @@ class ScenarioData(SystemData):
             cw.cwpy.areaid = cw.cwpy.pre_areaids[0]
 
         cw.cwpy.music.stop()
-        cw.cwpy.exec_func(cw.cwpy.set_yado)
+        cw.cwpy.exec_func(cw.cwpy.f9)
 
     def set_log(self):
         """
