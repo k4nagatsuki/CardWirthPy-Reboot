@@ -161,7 +161,7 @@ class BattleEngine(object):
             # 逃走成功・失敗時の処理
             if pcards and len(successes) > len(pcards) / 2:
                 cw.cwpy.sounds["run"].play()
-                self.end(False)
+                self.end()
             else:
                 cw.cwpy.sounds["error"].play()
                 self.start()
@@ -173,6 +173,10 @@ class BattleEngine(object):
         cw.cwpy.hide_cards(True)
         cw.cwpy.mcardgrp.empty()
 
+        areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
+        if cw.cwpy.music.path <> bgmpath:
+            cw.cwpy.music._play(bgmpath)
+
         # 勝利イベント開始
         try:
             cw.cwpy.sdata.start_event(keynum=1)
@@ -181,9 +185,9 @@ class BattleEngine(object):
         except BattleDefeatError:
             self.defeat()
         except BattleError:
-            self.end(False)
+            self.end()
         else:
-            self.end(False)
+            self.end()
 
     def defeat(self):
         """敗北処理。敗北イベント後、
@@ -205,9 +209,9 @@ class BattleEngine(object):
             except BattleDefeatError:
                 cw.cwpy.set_gameover()
             except BattleError:
-                self.end(False)
+                self.end()
             else:
-                self.end(False)
+                self.end()
 
         else:
             cw.cwpy.set_gameover()

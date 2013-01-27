@@ -789,10 +789,9 @@ class CWPy(_Singleton, threading.Thread):
                         self.music._play(bgmpath)
                 else:
                     self.music._play(bgmpath)
-                self.elapse_time()
 
             elif areachange:
-                self.change_area(areaid, False, ttype=("None", "Default"))
+                self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
 
     def change_specialarea(self, areaid):
         """特殊エリア(エリアIDが負の数)に移動する。"""
