@@ -27,7 +27,7 @@ class Summary(base.CWBinaryBase):
             self.area_id = self.area_id - 20000
         else:
             self.version = 4
-            self.area_id = area - 40000
+            self.area_id = self.area_id - 40000
         steps_num = f.dword()
         self.steps = [Step(self, f) for cnt in xrange(steps_num)]
         flags_num = f.dword()
