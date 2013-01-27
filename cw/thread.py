@@ -192,8 +192,7 @@ class CWPy(_Singleton, threading.Thread):
         self.pcardgrp.update(self.scr)
         self.sbargrp.update(self.scr)
         if not self.statusbar.showbuttons and not self.is_runningevent():
-            if not pygame.event.peek(pygame.locals.USEREVENT):
-                self.statusbar.change()
+            self.statusbar.change()
 
     def draw(self, mainloop=False):
         if self.has_inputevent or not mainloop:

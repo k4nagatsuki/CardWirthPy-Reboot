@@ -25,6 +25,9 @@ class StatusBar(base.CWPySprite):
 
     def change(self, showbuttons=True):
         self.clear()
+        if showbuttons and pygame.event.peek(pygame.locals.USEREVENT):
+            showbuttons = False
+
         self.showbuttons = showbuttons
 
         if cw.cwpy.is_debugmode():
