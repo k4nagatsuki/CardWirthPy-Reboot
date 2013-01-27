@@ -126,7 +126,7 @@ class EffectContent(ContentBase):
         self.properties["sound"] = self.get_materialpath(f.string())
         self.properties["visual"] = self.conv_card_visualeffect(f.byte())
         motions_num = f.dword()
-        self.motions = [effectmotion.EffectMotion(self, f)
+        self.motions = [effectmotion.EffectMotion(self, f, dataversion=self.version)
                                         for cnt in xrange(motions_num)]
 
     def get_xmldict(self, indent):
