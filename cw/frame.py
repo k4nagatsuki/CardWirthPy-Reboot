@@ -248,6 +248,7 @@ class Frame(wx.Frame):
                 cw.cwpy.exec_func(cw.cwpy.set_scenario, sceheader)
             # シナリオロードに失敗
             elif header.is_adventuring():
+                self.sounds["error"].play()
                 s = (cw.cwpy.msgs["load_scenario_failure"])
                 mdlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
                 self.move_dlg(mdlg)
@@ -259,6 +260,10 @@ class Frame(wx.Frame):
                 mdlg.Destroy()
             else:
                 cw.cwpy.exec_func(cw.cwpy.load_party, header)
+
+            if cw.cwpy.is_showingdebugger():
+                func = cw.cwpy.frame.debugger.refresh_tools
+                cw.cwpy.exec_func(func)
 
         self.kill_dlg(dlg)
 

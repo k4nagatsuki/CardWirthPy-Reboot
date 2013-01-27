@@ -513,6 +513,10 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.exec_func(self.set_yado)
 
+            if self.is_showingdebugger():
+                func = self.frame.debugger.refresh_tools
+                self.exec_func(func)
+
         else:
             self.exec_func(self.set_yado)
 

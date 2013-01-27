@@ -116,7 +116,7 @@ class Debugger(wx.Frame):
         self.mi_recovery.SetBitmap(rsrc["RECOVERY"])
         edit_menu.AppendItem(self.mi_recovery)
 
-        self.mi_update = wx.MenuItem(scenario_menu, ID_UPDATE, u"場面更新(&R)\tF5",
+        self.mi_update = wx.MenuItem(scenario_menu, ID_UPDATE, u"再読込(&R)\tF5",
                          u"最新の情報に更新します。")
         self.mi_update.SetBitmap(rsrc["UPDATE"])
         scenario_menu.AppendItem(self.mi_update)
@@ -124,8 +124,6 @@ class Debugger(wx.Frame):
         self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"エリア(&A)",
                          u"エリアを選択して場面を変更します。")
         self.mi_area.SetBitmap(rsrc["AREA"])
-        if cw.cwpy.is_battlestatus():
-            self.mi_area.SetBitmap(rsrc["BATTLECANCEL"])
         scenario_menu.AppendItem(self.mi_area)
         self.mi_battle = wx.MenuItem(scenario_menu, ID_BATTLE, u"戦闘(&B)",
                          u"バトルを選択して戦闘を開始します。")
@@ -151,7 +149,9 @@ class Debugger(wx.Frame):
         run_menu.AppendItem(self.mi_step)
         self.mi_pause = wx.MenuItem(run_menu, ID_PAUSE, u"イベント一時停止(&P)\tF10",
                          u"イベントを一時停止します。", kind=wx.ITEM_CHECK)
-        self.mi_pause.SetBitmap(rsrc["EVTCTRL_PAUSE"])
+        bmp1 = rsrc["EVTCTRL_PLAY"]
+        bmp2 = rsrc["EVTCTRL_PAUSE"]
+        self.mi_pause.SetBitmaps(bmp1, bmp2)
         run_menu.AppendItem(self.mi_pause)
         self.mi_stop = wx.MenuItem(run_menu, ID_STOP, u"イベント強制終了(&E)\tF12",
                          u"イベントを強制終了します。")
@@ -200,7 +200,7 @@ class Debugger(wx.Frame):
         self.tb2 = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb2.SetToolBitmapSize(wx.Size(20, 20))
         self.tl_update = self.tb2.AddLabelTool(
-            ID_UPDATE, "場面更新", rsrc["UPDATE"],
+            ID_UPDATE, u"再読込", rsrc["UPDATE"],
             shortHelp=u"最新の情報に更新します。")
         self.tb2.AddSeparator()
         self.tl_battle = self.tb2.AddLabelTool(
@@ -262,12 +262,7 @@ class Debugger(wx.Frame):
             shortHelp=u"エリアを選択して場面を変更します。")
 
         # _battletoolでボタンの切り替えを判別
-        if cw.cwpy.is_battlestatus():
-            self.tl_area.SetBitmap1(rsrc["BATTLECANCEL"])
-            self.tl_area.SetShortHelp(u"戦闘を中断します。")
-            self.tl_area._battletool = True
-        else:
-            self.tl_area._battletool = False
+        self.tl_area._battletool = cw.cwpy.is_battlestatus()
 
         self.tb_area.AddSeparator()
         self.st_area = wx.StaticText(
@@ -328,6 +323,8 @@ class Debugger(wx.Frame):
         self._mgr.Update()
         # ボタン更新
         self.refresh_tools()
+        self.refresh_areaname()
+        self.refresh_pausetool()
         # bind
         self._bind()
 
@@ -662,6 +659,21 @@ class Debugger(wx.Frame):
         if self.tl_pause.IsToggled() <> cw.cwpy.event._paused:
             self.tl_pause.Toggle()
 
+        self.refresh_pausetool()
+
+    def refresh_pausetool(self):
+        if cw.cwpy.event._paused:
+            bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PLAY"]
+            text = u"イベント実行再開(&P)\tF10"
+            help = u"イベント実行を再開します。"
+        else:
+            bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PAUSE"]
+            text = u"イベント一時停止(&P)\tF10"
+            help = u"イベントを一時停止します。"
+        self.mi_pause.SetText(text)
+        self.tl_pause.SetBitmap1(bmp)
+        self.tl_pause.SetShortHelp(help)
+
         self.tb_event.Realize()
 
     def OnStopTool(self, event):
@@ -691,16 +703,21 @@ class Debugger(wx.Frame):
             self.tb_area.Refresh()
         else:
             if cw.cwpy.is_battlestatus():
-                self.mi_area.SetBitmap(cw.cwpy.rsrc.debugs["BATTLECANCEL"])
-                self.tl_area.SetBitmap1(cw.cwpy.rsrc.debugs["BATTLECANCEL"])
+                bmp = cw.cwpy.rsrc.debugs["BATTLECANCEL"]
+                self.mi_area.SetBitmap(bmp)
+                self.mi_area.SetText("戦闘中断(&A)")
+                self.tl_area.SetBitmap1(bmp)
                 self.tl_area.SetShortHelp(u"戦闘を中断します。")
                 self.tl_area._battletool = True
             else:
-                self.mi_area.SetBitmap(cw.cwpy.rsrc.debugs["AREA"])
-                self.tl_area.SetBitmap1(cw.cwpy.rsrc.debugs["AREA"])
+                bmp = cw.cwpy.rsrc.debugs["AREA"]
+                self.mi_area.SetBitmap(bmp)
+                self.mi_area.SetText("エリア(&A)")
+                self.tl_area.SetBitmap1(bmp)
                 self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area._battletool = False
 
+            self.mi_area.GetMenu().UpdateUI()
             self.tb_area.Realize()
             self._mgr.Update()
 
