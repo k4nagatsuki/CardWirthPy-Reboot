@@ -20,15 +20,25 @@ class Summary(base.CWBinaryBase):
         self.required_coupons = f.string()
         self.required_coupons_num = f.dword()
         self.area_id = f.dword()
-        self.version = self.area_id / 10000
-        self.area_id %= 10000
+        if self.area_id < 19999:
+            self.version = 0
+        elif self.area_id < 39999:
+            self.version = 2
+            self.area_id = self.area_id - 20000
+        else:
+            self.version = 4
+            self.area_id = area - 40000
         steps_num = f.dword()
         self.steps = [Step(self, f) for cnt in xrange(steps_num)]
         flags_num = f.dword()
         self.flags = [Flag(self, f) for cnt in xrange(flags_num)]
         f.dword() # 不明
-        self.level_min = f.dword()
-        self.level_max = f.dword()
+        if 0 < self.version:
+            self.level_min = f.dword()
+            self.level_max = f.dword()
+        else:
+            self.level_min = 0
+            self.level_max = 0
         # タグとスキンタイプ。読み込みが終わった後から操作する
         self.skintype = ""
         self.tags = ""

@@ -10,12 +10,21 @@ class BgImage(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.left = f.dword()
         self.top = f.dword()
-        self.width = f.dword() % 10000
+        self.width = f.dword()
+        if self.width <= 39999:
+            dataversion = 2
+        else:
+            dataversion = 4
+            self.width -= 40000
         self.height = f.dword()
         self.imgpath = f.string()
         self.mask = f.bool()
-        self.flag = f.string()
-        self.unknown = f.byte()
+        if 2 < dataversion:
+            self.flag = f.string()
+            self.unknown = f.byte()
+        else:
+            self.flag = ""
+            self.unknown = 0
 
     def get_xmldict(self, indent):
         d = {"mask": self.mask,

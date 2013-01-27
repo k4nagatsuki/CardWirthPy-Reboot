@@ -9,13 +9,14 @@ class EffectMotion(base.CWBinaryBase):
     """効果モーションのデータ。
     効果コンテントやスキル・アイテム・召喚獣カード等で使う。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, dataversion=4):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.tabtype = f.byte()
 
-        # 不明なバイト列。読み飛ばし。
-        for cnt in xrange(5):
-            f.byte()
+        if 2 < dataversion:
+            # 不明なバイト列。読み飛ばし。
+            for cnt in xrange(5):
+                f.byte()
 
         self.element = f.byte()
 
@@ -36,11 +37,17 @@ class EffectMotion(base.CWBinaryBase):
             self.properties["value"] = f.dword()
         # 精神, 魔法
         elif self.tabtype in (3, 4):
-            self.properties["duration"] = f.dword()
+            if 2 < dataversion:
+                self.properties["duration"] = f.dword()
+            else:
+                self.properties["duration"] = 10
         # 能力
         elif self.tabtype == 5:
             self.properties["value"] = f.dword()
-            self.properties["duration"] = f.dword()
+            if 2 < dataversion:
+                self.properties["duration"] = f.dword()
+            else:
+                self.properties["duration"] = 10
         # 技能, 消滅, カード
         elif self.tabtype in (2, 6, 7):
             pass

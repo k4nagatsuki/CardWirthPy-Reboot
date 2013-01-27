@@ -15,7 +15,13 @@ class ContentBase(base.CWBinaryBase):
         self.tag = tag
         self.type = type
         self.name = f.string()
-        children_num = f.dword() % 10000
+        children_num = f.dword()
+        if children_num <= 39999:
+            self.version = 2
+        else:
+            self.version = 4
+            children_num -= 40000
+
         self.children = [Content(self, f) for cnt in xrange(children_num)]
 
         # 宿データの埋め込みカードのコンテントは
@@ -180,15 +186,23 @@ class BranchItemContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class BranchSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class BranchInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -199,8 +213,12 @@ class BranchBeastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class BranchMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -223,15 +241,23 @@ class GetItemContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class GetSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class GetInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -242,8 +268,12 @@ class GetBeastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class GetMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -266,15 +296,23 @@ class LoseItemContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class LoseSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class LoseInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -285,8 +323,12 @@ class LoseBeastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
-        self.properties["number"] = f.dword()
-        self.properties["targets"] = self.conv_target_scope(f.byte())
+        if self.version <= 2:
+            self.properties["number"] = 1
+            self.properties["targets"] = self.conv_target_scope(4)
+        else:
+            self.properties["number"] = f.dword()
+            self.properties["targets"] = self.conv_target_scope(f.byte())
 
 class LoseMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):

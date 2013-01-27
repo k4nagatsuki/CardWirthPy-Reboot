@@ -10,17 +10,39 @@ class Battle(base.CWBinaryBase):
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
-        f.dword() # 不明
-        self.name = f.string()
-        self.id = f.dword() % 10000
+
+        # データバージョンによって処理を分岐する
+        b = f.byte()
+        if b == ord('B'):
+            f.read(69) # 不明
+            self.name = f.string()
+            idl = f.dword()
+            if idl < 19999:
+                dataversion = 0
+                self.id = idl
+            else:
+                dataversion = 2
+                self.id = idl - 20000
+        else:
+            dataversion = 4
+            f.byte() # 不明
+            f.byte() # 不明
+            f.byte() # 不明
+            self.name = f.string()
+            self.id = f.dword() - 40000
+
         if nameonly:
             return
+
         events_num = f.dword()
         self.events = [event.Event(self, f) for cnt in xrange(events_num)]
         self.spreadtype = f.byte()
         ecards_num = f.dword()
         self.ecards = [EnemyCard(self, f) for cnt in xrange(ecards_num)]
-        self.bgm = f.string()
+        if 0 < dataversion:
+            self.bgm = f.string()
+        else:
+            self.bgm = ""
 
     def get_xmldict(self, indent):
         d = {"id": self.id,

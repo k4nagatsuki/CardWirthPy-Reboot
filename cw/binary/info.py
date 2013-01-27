@@ -11,9 +11,21 @@ class InfoCard(base.CWBinaryBase):
         self.type = f.byte()
         self.image = f.image()
         self.name = f.string()
-        self.id = f.dword() % 10000
+        idl = f.dword()
+
+        if idl < 19999:
+            dataversion = 0
+            self.id = idl
+        elif idl < 39999:
+            dataversion = 2
+            self.id = idl - 20000
+        else:
+            dataversion = 4
+            self.id = idl - 40000
+
         if nameonly:
             return
+
         self.description = f.string(True)
 
     def get_xmldict(self, indent):

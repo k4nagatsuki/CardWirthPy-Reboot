@@ -11,16 +11,35 @@ class Area(base.CWBinaryBase):
     def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
-        f.dword() # 不明
-        self.name = f.string()
-        self.id = f.dword() % 10000
+
+        # データバージョンによって処理を分岐する
+        b = f.byte()
+        if b == ord('B'):
+            f.read(69) # 不明
+            self.name = f.string()
+            idl = f.dword()
+            if idl < 19999:
+                dataversion = 0
+                self.id = idl
+            else:
+                dataversion = 2
+                self.id = idl - 20000
+        else:
+            dataversion = 4
+            f.byte() # 不明
+            f.byte() # 不明
+            f.byte() # 不明
+            self.name = f.string()
+            self.id = f.dword() - 40000
+
         if nameonly:
             return
+
         events_num = f.dword()
         self.events = [event.Event(self, f) for cnt in xrange(events_num)]
         self.spreadtype = f.byte()
         mcards_num = f.dword()
-        self.mcards = [MenuCard(self, f) for cnt in xrange(mcards_num)]
+        self.mcards = [MenuCard(self, f, dataversion=dataversion) for cnt in xrange(mcards_num)]
         bgimgs_num = f.dword()
         self.bgimgs = [bgimage.BgImage(self, f) for cnt in xrange(bgimgs_num)]
 
@@ -37,7 +56,7 @@ class Area(base.CWBinaryBase):
 
 class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, dataversion=4):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         f.byte() # 不明
         self.image = f.image()
@@ -50,7 +69,10 @@ class MenuCard(base.CWBinaryBase):
         self.scale = f.dword()
         self.left = f.dword()
         self.top = f.dword()
-        self.imgpath = f.string()
+        if dataversion <= 2:
+            self.imgpath = ""
+        else:
+            self.imgpath = f.string()
 
     def get_xmldict(self, indent):
         d = {"name": self.name,

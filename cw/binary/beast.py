@@ -20,7 +20,18 @@ class BeastCard(base.CWBinaryBase):
         self.type = f.byte()
         self.image = f.image()
         self.name = f.string()
-        self.id = f.dword() % 10000
+        idl = f.dword()
+
+        if idl < 19999:
+            dataversion = 0
+            self.id = idl
+        elif idl < 39999:
+            dataversion = 2
+            self.id = idl - 20000
+        else:
+            dataversion = 4
+            self.id = idl - 40000
+
         if nameonly:
             return
 
@@ -39,7 +50,7 @@ class BeastCard(base.CWBinaryBase):
         self.success_rate = f.dword()
         self.visual_effect = f.byte()
         motions_num = f.dword()
-        self.motions = [effectmotion.EffectMotion(self, f)
+        self.motions = [effectmotion.EffectMotion(self, f, dataversion=dataversion)
                                           for cnt in xrange(motions_num)]
         self.enhance_avoid = f.dword()
         self.enhance_resist = f.dword()
@@ -47,12 +58,19 @@ class BeastCard(base.CWBinaryBase):
         self.sound_effect = f.string()
         self.sound_effect2 = f.string()
         self.keycodes = [f.string() for cnt in range(5)]
-        self.premium = f.byte()
-        self.scenario_name = f.string()
-        self.scenario_author = f.string()
-        events_num = f.dword()
-        self.events = [event.SimpleEvent(self, f) for cnt in xrange(events_num)]
-        self.hold = f.bool()
+        if 2 < dataversion:
+            self.premium = f.byte()
+            self.scenario_name = f.string()
+            self.scenario_author = f.string()
+            events_num = f.dword()
+            self.events = [event.SimpleEvent(self, f) for cnt in xrange(events_num)]
+            self.hold = f.bool()
+        else:
+            self.premium = 0
+            self.scenario_name = ""
+            self.scenario_author = ""
+            self.events = []
+            self.hold = False
 
         # 宿データだとここに不明なデータ(4)が付加されている
         if self.is_yadodata():
