@@ -1028,7 +1028,7 @@ class ScenarioSelect(Select):
     def OnClickYesBtn(self, event):
         if self.yesbtn.GetLabel() == cw.cwpy.msgs["see"]:
             cw.cwpy.sounds["equipment"].play()
-            self.dirstack.append(self.nowdir)
+            self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
             self.nowdir = cw.util.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
@@ -1045,11 +1045,18 @@ class ScenarioSelect(Select):
     def OnClickNoBtn(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["return"]:
             cw.cwpy.sounds["equipment"].play()
-            self.nowdir = self.dirstack.pop()
+            self.nowdir, selname = self.dirstack.pop()
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
             self.list = dpaths + headers if headers else dpaths
             self.index = 0
+            selname = os.path.normcase(selname)
+            for index, name in enumerate(self.list):
+                if not isinstance(name, cw.header.ScenarioHeader):
+                    name = os.path.normcase(os.path.basename(name))
+                    if selname == name:
+                        self.index = index
+
             self.enable_btn()
 
             if self.nowdir == self.scedir:
