@@ -67,7 +67,10 @@ class ItemCard(base.CWBinaryBase):
             self.scenario_name = ""
             self.scenario_author = ""
             self.events = []
-            self.hold = False
+            if 0 < dataversion:
+                self.hold = f.bool()
+            else:
+                self.hold = False
 
         # 宿データだとここに不明なデータ(4)が付加されている
         if self.is_yadodata():

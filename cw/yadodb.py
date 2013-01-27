@@ -111,6 +111,8 @@ class YadoDB(object):
             dir = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dir):
                 for file in os.listdir(dir):
+                    if not file.lower().endswith(".xml"):
+                        continue
                     path = cw.util.join_paths(dpath, file)
                     if not path in dbpaths:
                         insert(cw.util.join_paths(self.ypath, path), *args)
