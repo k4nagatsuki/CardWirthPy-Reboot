@@ -555,11 +555,14 @@ class CardEvent(Event):
 
         # ターゲット色反転＆ウェイト
         if len(self.targets) == 1:
-            self.targets[0].set_cardtarget()
-            cw.cwpy.draw()
-            waitrate = cw.cwpy.setting.dealspeed * 2
-            pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
-            targets = self.targets
+            if eff.check_enabledtarget(self.targets[0]):
+                self.targets[0].set_cardtarget()
+                cw.cwpy.draw()
+                waitrate = cw.cwpy.setting.dealspeed * 2
+                pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
+                targets = self.targets
+            else:
+                targets = []
         else:
             path = data.gettext("Property/SoundPath", "")
             targets = []

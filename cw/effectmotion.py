@@ -260,11 +260,13 @@ class Effect(object):
 
     def check_enabledtarget(self, target):
         """
-        対象消去されているかもしくは
-        意識不明で回復モーションが入ってない場合は
+        表示されていないか、対象消去されているか、
+        もしくは意識不明で回復モーションが入ってない場合は
         有効なターゲットではない。
         """
-        if isinstance(target, Character):
+        if target.status == "hidden":
+            return False
+        elif isinstance(target, Character):
             flag  = bool(not target.is_vanished())
             flag &= bool(not target.is_unconscious() or self.has_motion("Heal"))
             return flag
