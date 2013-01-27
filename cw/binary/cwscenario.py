@@ -134,9 +134,10 @@ class CWScenario(object):
             elif filetype == 3:
                 data = item.ItemCard(None, f, nameonly=no, materialdir=md, image_export=ie)
             elif filetype == 4:
-                if os.path.basename(path).lower().startswith("package"):
+                lpath = os.path.basename(path).lower()
+                if lpath.startswith("package"):
                     data = package.Package(None, f, nameonly=no, materialdir=md, image_export=ie)
-                if os.path.basename(path).lower().startswith("mate"):
+                elif lpath.startswith("mate"):
                     data = cast.CastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
                 else:
                     data = info.InfoCard(None, f, nameonly=no, materialdir=md, image_export=ie)
