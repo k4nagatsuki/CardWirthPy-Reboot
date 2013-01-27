@@ -62,7 +62,7 @@ POCKET_BEAST = 2
 IDX_TREEEND = -1
 
 # 対応拡張子
-EXTS_IMG = (".bmp", ".jpg", ".jpeg", ".png", ".gif", "pcx", ".tif", ".xpm")
+EXTS_IMG = (".bmp", ".jpg", ".jpeg", ".png", ".gif", ".pcx", ".tif", ".xpm")
 EXTS_MSC = (".mid", ".midi", ".mp3", ".ogg")
 EXTS_SND = (".wav", ".wave", ".ogg")
 

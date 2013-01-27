@@ -233,8 +233,12 @@ def get_facepaths(sexcoupon, agecoupon):
         for name in os.listdir(dpath):
             path = cw.util.join_paths(dpath, name)
 
+            lpath = path.lower()
             if os.path.isfile(path):
-                imgpaths.append(path)
+                for ext in cw.EXTS_IMG:
+                    if lpath.endswith(ext):
+                        imgpaths.append(path)
+                    break
 
     return imgpaths
 
