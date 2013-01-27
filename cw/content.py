@@ -1207,7 +1207,7 @@ class GetContent(EventContentBase):
         for cnt in xrange(num):
             for target in cw.cwpy.event.get_targetscope(scope):
                 etree = cw.data.xml2etree(path)
-                self.get_card(etree, target)
+                get_card(etree, target)
 
 def get_card(etree, target, summon=False, toindex=-1):
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
