@@ -269,6 +269,7 @@ class CWPy(_Singleton, threading.Thread):
         mwin: MessageWindowインスタンス。
         """
         eventhandler = cw.eventhandler.EventHandlerForMessageWindow(mwin)
+        self.clear_selection()
 
         while self.is_running() and mwin.result is None:
             self.update()
@@ -283,7 +284,6 @@ class CWPy(_Singleton, threading.Thread):
         # cwpylist, index 初期化
         self.list = self.get_mcards("visible")
         self.index = -1
-        self.clear_selection()
         # スプライト削除
         self.pcardgrp.remove_sprites_of_layer("selectionbar")
         self.pcardgrp.remove_sprites_of_layer("message")
