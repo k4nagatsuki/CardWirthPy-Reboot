@@ -1043,7 +1043,7 @@ class Character(object):
         """
         self.life += value
         self.life = cw.util.numwrap(self.life, 0, self.maxlife)
-        self.data.edit("/Property/Life", str(self.life))
+        self.data.edit("/Property/Life", str(int(self.life)))
 
     def set_paralyze(self, value):
         """

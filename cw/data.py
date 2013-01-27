@@ -1452,7 +1452,7 @@ class _CWPyElementInterface(object):
             s = self.gettext(path, default)
 
         try:
-            return int(s)
+            return int(float(s))
         except:
             self._raiseerror(path, attr)
 
