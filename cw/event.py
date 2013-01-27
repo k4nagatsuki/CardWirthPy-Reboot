@@ -337,6 +337,7 @@ class Event(object):
 
     def start(self):
         try:
+            cw.cwpy.statusbar.change(False)
             self.run()
         except EventError, err:
             self.error = err

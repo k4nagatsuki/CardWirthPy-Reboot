@@ -21,9 +21,11 @@ class StatusBar(base.CWPySprite):
         self.rect.topleft = (0, 420)
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
+        self.showbuttons = False
 
     def change(self, showbuttons=True):
         self.clear()
+        self.showbuttons = showbuttons
 
         if cw.cwpy.is_debugmode():
             DebuggerButton(self, (574, 3))
