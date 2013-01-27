@@ -238,7 +238,7 @@ def get_facepaths(sexcoupon, agecoupon):
                 for ext in cw.EXTS_IMG:
                     if lpath.endswith(ext):
                         imgpaths.append(path)
-                    break
+                        break
 
     return imgpaths
 
