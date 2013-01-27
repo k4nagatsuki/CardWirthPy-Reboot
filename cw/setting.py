@@ -26,6 +26,7 @@ class Setting(object):
     def init_settings(self):
         # "Settings.xml"がなかったら新しく作る
         if not os.path.isfile("Settings.xml"):
+            self.lastyado = ""
             self.debug = False
             self.vol_bgm = 1.0
             self.vol_midi = 0.2
@@ -43,6 +44,8 @@ class Setting(object):
 
         self.data = cw.data.xml2etree("Settings.xml")
         data = self.data
+        # 最後に選択した宿
+        self.lastyado = data.gettext("LastYado", "")
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", False)
         # 音楽のボリューム(0～1.0)

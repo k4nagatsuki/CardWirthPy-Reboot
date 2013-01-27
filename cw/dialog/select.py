@@ -193,12 +193,16 @@ class YadoSelect(Select):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_base_title"])
         # 宿情報
-        self.list, self.list2 = self.get_yadolist()
+        names, self.list, self.list2 = self.get_yadolist()
         self.index = 0
+        for index, name in enumerate(names):
+            if cw.cwpy.setting.lastyado == name:
+                self.index = index
+                break
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(400, 370))
         # ok
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (50, 24), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (50, 24), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.okbtn)
         # extend
         self.extbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"変換")
@@ -412,7 +416,7 @@ class YadoSelect(Select):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        self.list, self.list2 = self.get_yadolist()
+        names, self.list, self.list2 = self.get_yadolist()
         path = cw.util.join_paths("Yado", name)
 
         try:
@@ -426,6 +430,7 @@ class YadoSelect(Select):
 
     def get_yadolist(self):
         """Yadoにある宿のpathリストと冒険者リストを返す。"""
+        names = []
         yadodirs = []
 
         if not os.path.exists(u"Yado"):
@@ -436,6 +441,7 @@ class YadoSelect(Select):
 
             if os.path.isfile(path):
                 path  = cw.util.join_paths(u"Yado", dname)
+                names.append(dname)
                 yadodirs.append(path)
 
         advnames = []
@@ -455,7 +461,7 @@ class YadoSelect(Select):
 
             advnames.append(seq)
 
-        return yadodirs, advnames
+        return names, yadodirs, advnames
 
 #-------------------------------------------------------------------------------
 #　パーティ選択ダイアログ

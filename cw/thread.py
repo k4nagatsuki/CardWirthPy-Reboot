@@ -488,6 +488,7 @@ class CWPy(_Singleton, threading.Thread):
                                                     "Data/Temp/Yado", 1)
         self.music.stop()
         self.ydata = cw.data.YadoData()
+        self.setting.lastyado = self.ydata.name
 
         if self.ydata.party:
             header = self.ydata.party.get_sceheader()
