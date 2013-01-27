@@ -139,7 +139,10 @@ class CWScenario(object):
             elif filetype == 5:
                 data = skill.SkillCard(None, f, nameonly=no, materialdir=md, image_export=ie)
             elif filetype == 6:
-                data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                if os.path.basename(path).lower().startswith("info"):
+                    data = info.InfoCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                else:
+                    data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
             else:
                 f.close()
                 raise ValueError(path)
