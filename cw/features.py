@@ -12,17 +12,17 @@ class Feature(object):
         self.name = self.data.gettext("Name", "")
 
         # 器用度修正
-        self.dexbonus = self.data.getfloat("Pysical", "dex", 0.0)
+        self.dexbonus = self.data.getfloat("Physical", "dex", 0.0)
         # 敏捷度修正
-        self.aglbonus = self.data.getfloat("Pysical", "agl", 0.0)
+        self.aglbonus = self.data.getfloat("Physical", "agl", 0.0)
         # 知力修正
-        self.intbonus = self.data.getfloat("Pysical", "int", 0.0)
+        self.intbonus = self.data.getfloat("Physical", "int", 0.0)
         # 筋力修正
-        self.strbonus = self.data.getfloat("Pysical", "str", 0.0)
+        self.strbonus = self.data.getfloat("Physical", "str", 0.0)
         # 生命力修正
-        self.vitbonus = self.data.getfloat("Pysical", "vit", 0.0)
+        self.vitbonus = self.data.getfloat("Physical", "vit", 0.0)
         # 精神力修正
-        self.minbonus = self.data.getfloat("Pysical", "min", 0.0)
+        self.minbonus = self.data.getfloat("Physical", "min", 0.0)
 
         # 好戦-平和
         self.aggressive = self.data.getfloat("Mental", "aggressive", 0.0)

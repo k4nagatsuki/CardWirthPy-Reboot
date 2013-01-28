@@ -139,6 +139,7 @@ class Text(wx.Dialog):
     def draw_notextfile(self):
         if not self.list2:
             dc = wx.ClientDC(self.textctrl)
+            self.textctrl.Enable(False)
             dc.SetTextForeground(wx.LIGHT_GREY)
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=14))
             # 文字
@@ -151,6 +152,8 @@ class Text(wx.Dialog):
             size = size[0] + 60, size[1] + 20
             pos = pos[0] - 30, pos[1] - 10
             cw.util.draw_box(dc, pos, size)
+        else:
+            self.textctrl.Enable(True)
 
     def __do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)

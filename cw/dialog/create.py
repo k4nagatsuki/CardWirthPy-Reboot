@@ -341,16 +341,19 @@ class AdventurerData(object):
 def create_description(talent, attrs):
     seq = [u"　" * 8 + talent[1:] + "\n\n"]
 
-    for index, attr in enumerate(attrs):
-        s = attr[1:]
-        n = index % 3 if index else 0
+    index = 0
+    for making in cw.cwpy.setting.makingcoupons:
+        if making in attrs:
+            s = making[1:]
+            n = index % 3 if index else 0
 
-        if n == 2:
-            s += "\n"
-        else:
-            s += u"　" * (7 - len(s))
+            if n == 2:
+                s += "\n"
+            else:
+                s += u"　" * (7 - len(s))
 
-        seq.append(s)
+            seq.append(s)
+            index += 1
 
     return "".join(seq)
 
@@ -488,6 +491,8 @@ class AdventurerCreater(wx.Dialog):
 
     def create_adventurer(self):
         data = AdventurerData()
+        race = self.page2.get_race()
+        data.set_race(race)
         s = self.page1.name
         data.set_name(s)
         s = self.page1.age
@@ -496,8 +501,6 @@ class AdventurerCreater(wx.Dialog):
         data.set_sex(s)
         s = self.page1.imgpath
         data.set_image(s)
-        race = self.page2.get_race()
-        data.set_race(race)
         father = self.page3.father
         mother = self.page3.mother
         data.set_parents(father, mother)

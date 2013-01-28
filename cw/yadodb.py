@@ -105,7 +105,7 @@ class YadoDB(object):
             self.cur.execute(s)
 
     @synclock(_lock)
-    def update(self):
+    def update(self, cards=True, adventurers=True, parties=True):
         """データベースを更新する。"""
         def walk(dpath, insert, *args):
             dir = cw.util.join_paths(self.ypath, dpath)
@@ -117,53 +117,56 @@ class YadoDB(object):
                     if not path in dbpaths:
                         insert(cw.util.join_paths(self.ypath, path), *args)
 
-        s = "SELECT fpath, mtime FROM card"
-        self.cur.execute(s)
-        data = self.cur.fetchall()
-        dbpaths = set()
-        for t in data:
-            path = cw.util.join_paths(self.ypath, t[0])
-            if not os.path.isfile(path):
-                self._delete_card(t[0], False)
-            else:
-                dbpaths.add(t[0])
-                if os.path.getmtime(path) > t[1]:
-                    # 情報を更新
-                    self._insert_card(path, False)
-        walk("SkillCard", self._insert_card, False)
-        walk("ItemCard", self._insert_card, False)
-        walk("BeastCard", self._insert_card, False)
+        if cards:
+            s = "SELECT fpath, mtime FROM card"
+            self.cur.execute(s)
+            data = self.cur.fetchall()
+            dbpaths = set()
+            for t in data:
+                path = cw.util.join_paths(self.ypath, t[0])
+                if not os.path.isfile(path):
+                    self._delete_card(t[0], False)
+                else:
+                    dbpaths.add(t[0])
+                    if os.path.getmtime(path) > t[1]:
+                        # 情報を更新
+                        self._insert_card(path, False)
+            walk("SkillCard", self._insert_card, False)
+            walk("ItemCard", self._insert_card, False)
+            walk("BeastCard", self._insert_card, False)
 
-        s = "SELECT fpath, mtime, album FROM adventurer"
-        self.cur.execute(s)
-        data = self.cur.fetchall()
-        dbpaths = set()
-        for t in data:
-            path = cw.util.join_paths(self.ypath, t[0])
-            if not os.path.isfile(path):
-                self._delete_adventurer(t[0], False)
-            else:
-                dbpaths.add(t[0])
-                if os.path.getmtime(path) > t[1]:
-                    # 情報を更新
-                    self._insert_adventurer(path, bool(t[2]), False)
-        walk("Adventurer", self._insert_adventurer, False, False)
-        walk("Album", self._insert_adventurer, True, False)
+        if adventurers:
+            s = "SELECT fpath, mtime, album FROM adventurer"
+            self.cur.execute(s)
+            data = self.cur.fetchall()
+            dbpaths = set()
+            for t in data:
+                path = cw.util.join_paths(self.ypath, t[0])
+                if not os.path.isfile(path):
+                    self._delete_adventurer(t[0], False)
+                else:
+                    dbpaths.add(t[0])
+                    if os.path.getmtime(path) > t[1]:
+                        # 情報を更新
+                        self._insert_adventurer(path, bool(t[2]), False)
+            walk("Adventurer", self._insert_adventurer, False, False)
+            walk("Album", self._insert_adventurer, True, False)
 
-        s = "SELECT fpath, mtime FROM party"
-        self.cur.execute(s)
-        data = self.cur.fetchall()
-        dbpaths = set()
-        for t in data:
-            path = cw.util.join_paths(self.ypath, t[0])
-            if not os.path.isfile(path):
-                self._delete_party(t[0], False)
-            else:
-                dbpaths.add(t[0])
-                if os.path.getmtime(path) > t[1]:
-                    # 情報を更新
-                    self._insert_party(path, False)
-        walk("Party", self._insert_party, False)
+        if parties:
+            s = "SELECT fpath, mtime FROM party"
+            self.cur.execute(s)
+            data = self.cur.fetchall()
+            dbpaths = set()
+            for t in data:
+                path = cw.util.join_paths(self.ypath, t[0])
+                if not os.path.isfile(path):
+                    self._delete_party(t[0], False)
+                else:
+                    dbpaths.add(t[0])
+                    if os.path.getmtime(path) > t[1]:
+                        # 情報を更新
+                        self._insert_party(path, False)
+            walk("Party", self._insert_party, False)
 
         self.con.commit()
 
@@ -380,6 +383,18 @@ class YadoDB(object):
 
     def get_standbys(self):
         return self.get_adventurers(False)
+
+    def get_standbynames(self, maxcount=0):
+        if 0 < maxcount:
+            s = "SELECT name FROM adventurer WHERE album=? ORDER BY name"
+            self.cur.execute(s, (0,))
+        else:
+            s = "SELECT name FROM adventurer WHERE album=? ORDER BY name LIMIT=?"
+            self.cur.execute(s, (0, maxcount,))
+        names = []
+        for rec in self.cur:
+            names.append(rec[0])
+        return names
 
     def get_album(self):
         return self.get_adventurers(True)

@@ -18,6 +18,7 @@ import charainfo
 import text
 
 from cw.util import synclock
+from wx._controls import EVT_TREE_ITEM_EXPANDED
 
 _lockupdatescenario = threading.Lock()
 
@@ -126,11 +127,14 @@ class Select(wx.Dialog):
         self.draw()
 
     def draw(self, update=False):
+        if not self.toppanel.IsShown():
+            return None
+
         if update:
             dc = wx.ClientDC(self.toppanel)
             dc = wx.BufferedDC(dc, self.toppanel.GetSize())
         else:
-            dc = wx.PaintDC(self.toppanel)
+            dc = wx.BufferedPaintDC(self.toppanel)
 
         return dc
 
@@ -157,7 +161,10 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.right2btn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
 
-        sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
+        self.topsizer = wx.BoxSizer(wx.VERTICAL)
+        self.topsizer.Add(self.toppanel, 1, wx.EXPAND, 0)
+
+        sizer_1.Add(self.topsizer, 1, wx.EXPAND, 0)
         sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
@@ -446,19 +453,22 @@ class YadoSelect(Select):
 
         advnames = []
 
-        for path in yadodirs:
-            dpath = cw.util.join_paths(path, u"Adventurer")
+        for yadodir in yadodirs:
             seq = []
 
-            for idx, fname in enumerate(os.listdir(dpath)):
-                if fname.endswith(".xml"):
-                    if idx < 23:
-                        name = os.path.splitext(fname)[0].replace("(2)", "")
-                        seq.append(name)
-                    elif idx == 23:
-                        seq.append(cw.cwpy.msgs["scenario_etc"])
-                        break
+            yadodb = cw.yadodb.YadoDB(yadodir)
+            standbys = yadodb.get_standbynames(25)
+            if len(standbys) == 0:
+                yadodb.update(cards=False, adventurers=True, parties=False)
+                standbys = yadodb.get_standbynames(25)
 
+            if 25 <= len(standbys):
+                seq = standbys[:23]
+                seq.append(cw.cwpy.msgs["scenario_etc"])
+            else:
+                seq = standbys
+
+            yadodb.close()
             advnames.append(seq)
 
         return names, yadodirs, advnames
@@ -480,7 +490,7 @@ class PartySelect(Select):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # ok
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (75, 24), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (75, 24), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.okbtn)
         # info
         self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (75, 24), cw.cwpy.msgs["information"])
@@ -948,7 +958,7 @@ class ScenarioSelect(Select):
         headers = self.db.search_dpath(self.nowdir)
         # nowdirにあるディレクトリリスト
         dpaths = self.get_dpaths(self.nowdir)
-        # 冒険者情報
+        # 選択リスト
         self.list = dpaths + headers
         self.index = 0
         # nowdirがディレクトリだった場合の内容リスト
@@ -962,11 +972,27 @@ class ScenarioSelect(Select):
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(400, 370))
+
+        # ツリー表示用のビュー
+        self.tree = wx.TreeCtrl(self, -1, size=(400, 370),
+            style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
+        self.tree.Hide()
+        self.tree.imglist = wx.ImageList(16, 16)
+        self.tree.imgidx_summary = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY"])
+        self.tree.imgidx_complele = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"])
+        self.tree.imgidx_playing = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"])
+        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"])
+        self.tree.imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["DIRECTORY"])
+        self.tree.root = self.tree.AddRoot(self.scedir)
+        self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
+        self.tree.SetImageList(self.tree.imglist)
+        self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
         # ok
         if not self.list:
-            s = cw.cwpy.msgs["entry_decide"]
+            s = cw.cwpy.msgs["decide"]
         elif isinstance(self.list[self.index], cw.header.ScenarioHeader):
-            s = cw.cwpy.msgs["entry_decide"]
+            s = cw.cwpy.msgs["decide"]
         else:
             s = cw.cwpy.msgs["see"]
 
@@ -975,9 +1001,12 @@ class ScenarioSelect(Select):
         # info
         self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), cw.cwpy.msgs["description"])
         self.buttonlist.append(self.infobtn)
+        # view
+        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), u"一覧")
+        self.buttonlist.append(self.viewbtn)
         # convert
-        self.convbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), u"変換")
-        self.buttonlist.append(self.convbtn)
+        ##self.convbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), u"変換")
+        ##self.buttonlist.append(self.convbtn)
         # close
         self.nobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_NO, (55, 24), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.nobtn)
@@ -987,14 +1016,18 @@ class ScenarioSelect(Select):
         self.enable_btn()
         # layout
         self._do_layout()
+        self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
         # bind
         self._bind()
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
         self.Bind(wx.EVT_BUTTON, self.OnClickYesBtn, self.yesbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickNoBtn, self.nobtn)
-        self.Bind(wx.EVT_BUTTON, self.OnClickConvBtn, self.convbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
+        ##self.Bind(wx.EVT_BUTTON, self.OnClickConvBtn, self.convbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
+        self.tree.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnTreeItemExpanded)
+        self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
         self.draw(True)
 
     def OnDropFiles(self, event):
@@ -1027,6 +1060,7 @@ class ScenarioSelect(Select):
 
     def OnClickYesBtn(self, event):
         if self.yesbtn.GetLabel() == cw.cwpy.msgs["see"]:
+            assert not self.tree.IsShown()
             cw.cwpy.sounds["equipment"].play()
             self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
             self.nowdir = cw.util.get_linktarget(self.list[self.index])
@@ -1037,13 +1071,14 @@ class ScenarioSelect(Select):
             self.nobtn.SetLabel(cw.cwpy.msgs["return"])
             self.enable_btn()
             self.draw(True)
-        elif self.yesbtn.GetLabel() == cw.cwpy.msgs["entry_decide"]:
+        elif self.yesbtn.GetLabel() == cw.cwpy.msgs["decide"]:
             cw.cwpy.sounds["signal"].play()
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
             self.ProcessEvent(btnevent)
 
     def OnClickNoBtn(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["return"]:
+            assert not self.tree.IsShown()
             cw.cwpy.sounds["equipment"].play()
             self.nowdir, selname = self.dirstack.pop()
             headers =  self.db.search_dpath(self.nowdir)
@@ -1067,6 +1102,29 @@ class ScenarioSelect(Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
 
+    def OnClickViewBtn(self, event):
+        cw.cwpy.sounds["equipment"].play()
+        if self.tree.IsShown():
+            self.tree.Hide()
+            self.toppanel.Show()
+            self.viewbtn.SetLabel(u"一覧")
+            self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
+        else:
+            self.show_tree()
+            self.toppanel.Hide()
+            self.tree.Show()
+            self.viewbtn.SetLabel(u"貼紙")
+
+        if isinstance(self.list[self.index], cw.header.ScenarioHeader):
+            self.yesbtn.SetLabel(cw.cwpy.msgs["decide"])
+        else:
+            self.yesbtn.SetLabel(cw.cwpy.msgs["see"])
+
+        if self.dirstack and not self.tree.IsShown():
+            self.nobtn.SetLabel(cw.cwpy.msgs["return"])
+        else:
+            self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
+
     def OnSelect(self, event):
         if not self.list or not self.yesbtn.Enabled:
             return
@@ -1085,7 +1143,12 @@ class ScenarioSelect(Select):
         self.db.close()
 
     def draw(self, update=False):
+        if self.tree.IsShown():
+            self.select_treeitem(self.index)
+            return
+
         dc = Select.draw(self, update)
+
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
@@ -1113,7 +1176,7 @@ class ScenarioSelect(Select):
                     self.updatenames_thr.quit = True
                     self.updatenames_thr = None
                 self.names = [u"読込中..."]
-                self.updatenames_thr = UpdateNamesThread(self, dpath)
+                self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:])
                 self.updatenames_thr.start()
 
             # ボタンのテキストを変える
@@ -1153,7 +1216,7 @@ class ScenarioSelect(Select):
         else:
             header = self.list[self.index]
             # ボタンのテキストを変える
-            self.yesbtn.SetLabel(cw.cwpy.msgs["entry_decide"])
+            self.yesbtn.SetLabel(cw.cwpy.msgs["decide"])
 
             # 見出し画像
             if header.image:
@@ -1193,30 +1256,216 @@ class ScenarioSelect(Select):
             self.yesbtn.Enable()
 
             # 進行中チェック
-            if header.get_fpath() in self.nowplayingpaths:
+            if self.is_playing(header):
                 bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
                 w = bmp.GetSize()[0]
                 dc.DrawBitmap(bmp, (bmpw-w)/2, 152, True)
-                self.yesbtn.Disable()
+                if not cw.cwpy.debug:
+                    self.yesbtn.Disable()
             # 済み印存在チェック
-            elif not cw.cwpy.debug and header.name in self.stamps:
+            elif self.is_complete(header):
                 bmp = cw.cwpy.rsrc.dialogs["COMPLETE"]
                 w = bmp.GetSize()[0]
                 dc.DrawBitmap(bmp, (bmpw-w)/2, 175, True)
-                self.yesbtn.Disable()
-            # クーポン存在チェック
-            elif not cw.cwpy.debug:
-                num = 0
-
-                for coupon in header.coupons.split("\n"):
-                    if coupon and coupon in self.coupons:
-                        num += 1
-
-                if num < header.couponsnum:
-                    bmp = cw.cwpy.rsrc.dialogs["INVISIBLE"]
-                    w = bmp.GetSize()[0]
-                    dc.DrawBitmap(bmp, (bmpw-w)/2, 100, True)
+                if not cw.cwpy.debug:
                     self.yesbtn.Disable()
+            # クーポン存在チェック
+            elif self.is_invisible(header):
+                bmp = cw.cwpy.rsrc.dialogs["INVISIBLE"]
+                w = bmp.GetSize()[0]
+                dc.DrawBitmap(bmp, (bmpw-w)/2, 100, True)
+                if not cw.cwpy.debug:
+                    self.yesbtn.Disable()
+
+    def is_playing(self, header):
+        return header.get_fpath() in self.nowplayingpaths
+
+    def is_complete(self, header):
+        return header.name in self.stamps
+
+    def is_invisible(self, header):
+        num = 0
+
+        for coupon in header.coupons.split("\n"):
+            if coupon and coupon in self.coupons:
+                num += 1
+
+        return num < header.couponsnum
+
+    def create_treeitems(self, treeitem):
+        self.tree.DeleteChildren(treeitem)
+        i, nowdir = self.tree.GetItemPyData(treeitem)
+        itemlist = []
+        dpaths = self.get_dpaths(nowdir)
+        index = 0
+        for dpath in dpaths:
+            name = os.path.basename(dpath)
+            image = self.tree.imgidx_dir
+            if sys.platform == "win32" and name.lower().endswith(".lnk"):
+                name = os.path.splitext(name)[0]
+            item = self.tree.AppendItem(treeitem, name, image)
+            self.tree.SetItemPyData(item, (index, dpath))
+            child = self.tree.AppendItem(item, u"読込中...")
+            self.tree.SetItemPyData(child, None)
+            self.tree.Collapse(item)
+            itemlist.append(item)
+            index += 1
+
+        for header in self.db.search_dpath(nowdir):
+            name = header.name
+            image = self.tree.imgidx_summary
+            if self.is_playing(header):
+                image = self.tree.imgidx_playing
+            elif self.is_complete(header):
+                image = self.tree.imgidx_complete
+            elif self.is_invisible(header):
+                image = self.tree.imgidx_invisible
+            item = self.tree.AppendItem(treeitem, name, image)
+            self.tree.SetItemPyData(item, (index, header))
+            itemlist.append(item)
+            index += 1
+
+        if not treeitem is self.tree.root:
+            self.tree.Expand(treeitem)
+
+        return itemlist, dpaths
+
+    def show_tree(self):
+        # ツリーを初期化する
+        self.tree.DeleteChildren(self.tree.root)
+
+        nowdir = self.scedir
+        treeitem = self.tree.root
+        itemlist = []
+        dirstack = self.dirstack[:]
+        while True:
+            itemlist, dpaths = self.create_treeitems(treeitem)
+
+            if dirstack:
+                pardir, selname = dirstack.pop(0)
+                index = -1
+                for i, dpath in enumerate(dpaths):
+                    if os.path.normcase(selname) == os.path.normcase(os.path.basename(dpath)):
+                        index = i
+                        break
+                if index == -1:
+                    break
+                nowdir = cw.util.join_paths(pardir, selname)
+                treeitem = itemlist[index]
+                self.tree.DeleteChildren(treeitem)
+            else:
+                self.tree.SelectItem(itemlist[self.index])
+                break
+
+    def OnTreeItemExpanded(self, event):
+        if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
+            return
+        selitem = event.GetItem()
+        item, cookie = self.tree.GetFirstChild(selitem)
+        data = self.tree.GetItemPyData(item)
+        if not data is None:
+            # 読込済み
+            return
+
+        if self.updatenames_thr:
+            self.updatenames_thr.quit = True
+            self.updatenames_thr = None
+        self.names = [u"読込中..."]
+        index, dpath = self.tree.GetItemPyData(selitem)
+        paritem = self.tree.GetItemParent(selitem)
+        dirstack = self.get_dirstack(paritem)
+        self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack)
+        self.updatenames_thr.start()
+
+    def OnTreeSelChanged(self, event):
+        if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
+            return
+        selitem = self.tree.GetSelection()
+        paritem = self.tree.GetItemParent(selitem)
+
+        if self.tree.GetItemPyData(selitem) is None:
+            # "読込中..."なので一つ上の階層を選択
+            selitem = paritem
+            paritem = self.tree.GetItemParent(selitem)
+
+        index, self.nowdir = self.tree.GetItemPyData(paritem)
+        self.index, pathorheader = self.tree.GetItemPyData(selitem)
+
+        dpaths = self.get_dpaths(self.nowdir)
+        headers = self.db.search_dpath(self.nowdir)
+        self.list = dpaths + headers
+
+        self.dirstack = self.get_dirstack(paritem)
+
+        if isinstance(self.list[self.index], cw.header.ScenarioHeader):
+            self.yesbtn.SetLabel(cw.cwpy.msgs["decide"])
+        else:
+            self.yesbtn.SetLabel(cw.cwpy.msgs["see"])
+
+        self.enable_btn()
+
+    def get_dirstack(self, paritem):
+        dirstack = []
+        while paritem:
+            i, parpath = self.tree.GetItemPyData(paritem)
+            i, selpath = self.tree.GetItemPyData(paritem)
+            parpath = os.path.dirname(parpath)
+            selpath = os.path.basename(selpath)
+            dirstack.insert(0, (parpath, selpath))
+
+            selitem = paritem
+            paritem = self.tree.GetItemParent(paritem)
+        return dirstack[1:]
+
+    def select_treeitem(self, index):
+        item = self.tree.GetSelection()
+        item = self.tree.GetItemParent(item)
+        item, cookie = self.tree.GetFirstChild(item)
+        i = 0
+        while item.IsOk():
+            if i == index:
+                self.tree.SelectItem(item)
+                self.index = index
+                break
+            item, cookie = self.tree.GetNextChild(item, cookie)
+            i += 1
+
+    def updated_names(self, dpath, dirstack):
+        if not self.tree.IsShown():
+            self.Refresh()
+            return
+
+        if not self.tree.IsShownOnScreen():
+            return
+
+        # dpathからツリーアイテムを検索
+        parent = self.tree.root
+        item = None
+        dirstack.append(("", dpath))
+        while dirstack:
+            item, cookie = self.tree.GetFirstChild(parent)
+            if not item.IsOk():
+                break
+
+            parent = None
+            while item.IsOk():
+                i, data = self.tree.GetItemPyData(item)
+                if not data:
+                    break
+                if not isinstance(data, cw.header.ScenarioHeader):
+                    name = os.path.normcase(os.path.basename(data))
+                    if name == os.path.normcase(os.path.basename(dirstack[0][1])):
+                        parent = item
+                        dirstack.pop(0)
+                        break
+                item, cookie = self.tree.GetNextChild(item, cookie)
+
+            if not parent:
+                break
+
+        if item and item.IsOk():
+            # ディレクトリの内容を表示
+            self.create_treeitems(item)
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -1243,17 +1492,29 @@ class ScenarioSelect(Select):
         dir = cw.util.get_linktarget(dpath)
         for dname in os.listdir(dir):
             path = cw.util.join_paths(dir, dname)
-
-            if os.path.isdir(path):
-                spath = cw.util.join_paths(path, "Summary.wsm")
-                if not os.path.exists(spath):
-                    seq.append(path)
-            elif os.path.islink(path):
-                seq.append(path)
-            elif sys.platform == "win32" and path.lower().endswith(".lnk"):
+            if self.is_listitem(path) and not self.is_scenario(path):
                 seq.append(path)
 
         return seq
+
+    def is_listitem(self, path):
+        """
+        指定されたパスが選択可能ならTrueを返す。
+        """
+        return os.path.isdir(path) or\
+            (sys.platform == "win32" and path.lower().endswith(".lnk")) or\
+            self.is_scenario(path)
+
+    def is_scenario(self, path):
+        """
+        指定されたパスがシナリオならTrueを返す。
+        """
+        if os.path.isdir(path):
+            spath = cw.util.join_paths(path, "Summary.wsm")
+            return os.path.exists(spath)
+        else:
+            lpath = path.lower()
+            return lpath.endswith(".wsn") or lpath.endswith(".zip") or lpath.endswith(".cab")
 
     def get_texts(self):
         """
@@ -1420,10 +1681,11 @@ class ScenarioSelect(Select):
 
 class UpdateNamesThread(threading.Thread):
 
-    def __init__(self, dlg, dpath):
+    def __init__(self, dlg, dpath, dirstack):
         threading.Thread.__init__(self)
         self.dlg = dlg
         self.dpath = dpath
+        self.dirstack = dirstack
         self.dpaths = dlg.get_dpaths(dpath)
         self.quit = False
 
@@ -1454,7 +1716,7 @@ class UpdateNamesThread(threading.Thread):
             dnames.append(dname)
         self.dlg.names = dnames + hnames
         if self.quit: return
-        wx.CallAfter(self.dlg.Refresh)
+        wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack)
         self.dlg.updatenames_thr = None
 
 def main():
