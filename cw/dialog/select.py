@@ -979,7 +979,7 @@ class ScenarioSelect(Select):
         self.tree.Hide()
         self.tree.imglist = wx.ImageList(16, 16)
         self.tree.imgidx_summary = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY"])
-        self.tree.imgidx_complele = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"])
+        self.tree.imgidx_complete = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"])
         self.tree.imgidx_playing = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"])
         self.tree.imgidx_invisible = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"])
         self.tree.imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["DIRECTORY"])
