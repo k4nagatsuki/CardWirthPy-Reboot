@@ -172,7 +172,8 @@ class CWScenario(object):
 
             try:
                 data.create_xml(self.dir)
-            except:
+            except Exception, ex:
+                print ex
                 s = os.path.basename(data.fpath)
                 s = u"%s は変換できませんでした。\n" % (s)
                 self.write_errorlog(s)

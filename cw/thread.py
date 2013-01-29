@@ -1112,18 +1112,24 @@ class CWPy(_Singleton, threading.Thread):
                 if header.type == "SkillCard":
                     price = 200 + header.level * 100
                 elif header.type == "ItemCard":
-                    price = header.price * header.uselimit
-                    if header.maxuselimit:
-                        price /=  header.maxuselimit
+                    if header.maxuselimit == 0:
+                        price = header.price / 2
+                    else:
+                        # 使用回数がある場合は使うほど売値が減る
+                        price = header.price / 2 * header.uselimit
+                        if header.maxuselimit:
+                            price /=  header.maxuselimit
                 elif header.type == "BeastCard":
                     price = 500
                 if not from_event:
+                    cw.cwpy.sounds["page"].play()
                     s = cw.cwpy.msgs["confirm_sell"] % (header.name, price)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
                         return
             else:
                 if not from_event:
+                    cw.cwpy.sounds["page"].play()
                     s = cw.cwpy.msgs["confirm_dump"] % (header.name)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:

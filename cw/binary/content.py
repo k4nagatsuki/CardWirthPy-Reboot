@@ -18,9 +18,12 @@ class ContentBase(base.CWBinaryBase):
         children_num = f.dword()
         if children_num <= 39999:
             self.version = 2
-        else:
+        elif children_num <= 49999:
             self.version = 4
             children_num -= 40000
+        else:
+            self.version = 5
+            children_num -= 50000
 
         self.children = [Content(self, f) for cnt in xrange(children_num)]
 

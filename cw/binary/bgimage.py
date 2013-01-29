@@ -13,9 +13,11 @@ class BgImage(base.CWBinaryBase):
         self.width = f.dword()
         if self.width <= 39999:
             dataversion = 2
-        else:
+        elif self.width <= 49999:
             dataversion = 4
-            self.width -= 40000
+        else:
+            dataversion = 5
+            self.width -= 50000
         self.height = f.dword()
         self.imgpath = f.string()
         self.mask = f.bool()

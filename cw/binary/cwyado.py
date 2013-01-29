@@ -106,7 +106,8 @@ class CWYado(object):
 
             try:
                 data.create_xml(self.dir)
-            except:
+            except Exception, ex:
+                print ex
                 s = os.path.basename(data.fpath)
                 s = u"%s は変換できませんでした。\n" % (s)
                 self.write_errorlog(s)
@@ -164,7 +165,8 @@ class CWYado(object):
         for path in self.yadofiles:
             try:
                 data = self.load_yadofile(path)
-            except:
+            except Exception, ex:
+                print ex
                 s = os.path.basename(path)
                 s = u"%s は読込できませんでした。\n" % (s)
                 self.write_errorlog(s)

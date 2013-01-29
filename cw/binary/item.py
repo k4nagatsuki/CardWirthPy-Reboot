@@ -25,9 +25,12 @@ class ItemCard(base.CWBinaryBase):
         elif idl < 39999:
             dataversion = 2
             self.id = idl - 20000
-        else:
+        elif idl < 49999:
             dataversion = 4
             self.id = idl - 40000
+        else:
+            dataversion = 5
+            self.id = idl - 50000
 
         if nameonly:
             return
