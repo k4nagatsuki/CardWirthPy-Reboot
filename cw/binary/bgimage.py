@@ -15,6 +15,7 @@ class BgImage(base.CWBinaryBase):
             dataversion = 2
         elif self.width <= 49999:
             dataversion = 4
+            self.width -= 40000
         else:
             dataversion = 5
             self.width -= 50000

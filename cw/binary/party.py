@@ -31,7 +31,7 @@ class Party(base.CWBinaryBase):
         cards = []
 
         for card in self.cards:
-            if card.mine:
+            if card.mine and card.data:
                 cards.append(card)
                 # rootが違うデータのためディレクトリを設定しておく
                 card.data.set_dir(self.get_dir())

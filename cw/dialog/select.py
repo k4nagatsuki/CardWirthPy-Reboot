@@ -1167,6 +1167,9 @@ class ScenarioSelect(Select):
         self.db.close()
 
     def draw(self, update=False):
+        if update:
+            self.enable_btn()
+
         if self.tree.IsShown():
             self.select_treeitem(self.index)
             return
