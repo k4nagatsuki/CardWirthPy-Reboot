@@ -290,11 +290,16 @@ class Frame(wx.Frame):
         if not os.path.exists(u"Scenario"):
             os.makedirs(u"Scenario")
         dlg = cw.dialog.select.ScenarioSelect(self, db)
+        if cw.cwpy.setting.lastscenario:
+            dlg.set_selected(cw.cwpy.setting.lastscenario)
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             header = dlg.list[dlg.index]
             cw.cwpy.exec_func(cw.cwpy.set_scenario, header)
+
+        # キャンセルしても最後の選択は記憶する
+        cw.cwpy.setting.lastscenario = dlg.get_selected()
 
         self.kill_dlg(dlg)
 

@@ -414,7 +414,9 @@ class Debugger(wx.Frame):
                         wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            cw.debug.recording.save(path)
+            def func(path):
+                cw.debug.recording.save(path)
+            cw.cwpy.exec_func(func, path)
 
     def OnLoadTool(self, event):
         if not cw.cwpy.is_playingscenario():
@@ -427,8 +429,12 @@ class Debugger(wx.Frame):
                         wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            cw.debug.recording.load(path)
-            self.view_var.refresh_variablelist()
+            def func(path):
+                cw.debug.recording.load(path)
+                def func():
+                    self.view_var.refresh_variablelist()
+                cw.cwpy.frame.exec_func(func)
+            cw.cwpy.exec_func(func, path)
 
     def OnCompStampTool(self, event):
         dlg = cw.debug.edit.CompStampEditDialog(self)

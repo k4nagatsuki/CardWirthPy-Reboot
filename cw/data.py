@@ -1392,11 +1392,13 @@ class _CWPyElementInterface(object):
         else:
             return bool(e is not None)
 
-    def getfind(self, path):
+    def getfind(self, path, raiseerror=True):
         e = self.find2(path)
 
         if e is None:
-            self._raiseerror(path)
+            if raiseerror:
+                self._raiseerror(path)
+            return []
 
         return e
 

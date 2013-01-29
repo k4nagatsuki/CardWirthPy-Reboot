@@ -572,8 +572,11 @@ class ComboEditDialog(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class LevelEditDialog(NumberEditDialog):
-    def __init__(self, parent):
-        self.ccard = cw.cwpy.selection
+    def __init__(self, parent, ccard):
+        if ccard:
+            self.ccard = ccard
+        else:
+            self.ccard = cw.cwpy.selection
 
         minvalue = 1
         maxvalue = self.ccard.level
@@ -587,11 +590,14 @@ class LevelEditDialog(NumberEditDialog):
     def OnOk(self, event):
         def func(ccard, level):
             cw.cwpy.sounds["harvest"].play()
-            ccard.set_level(level, regulate=True)
-            cw.animation.animate_sprite(ccard, "hide")
-            ccard.cardimg.set_levelimg(ccard.level)
-            ccard.update_image()
-            cw.animation.animate_sprite(ccard, "deal")
+            if ccard.level <> level:
+                ccard.set_level(level, regulate=True)
+                ccard.is_edited = True
+            if hasattr(ccard, "cardimg"):
+                cw.animation.animate_sprite(ccard, "hide")
+                ccard.cardimg.set_levelimg(ccard.level)
+                ccard.update_image()
+                cw.animation.animate_sprite(ccard, "deal")
 
         cw.cwpy.exec_func(func, self.ccard, self.slider.slider.GetValue())
 

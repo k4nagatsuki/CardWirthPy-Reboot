@@ -175,7 +175,7 @@ class BattleEngine(object):
 
         areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
         if cw.cwpy.music.path <> bgmpath:
-            cw.cwpy.music._play(bgmpath)
+            cw.cwpy.music.play(bgmpath)
 
         # 勝利イベント開始
         try:

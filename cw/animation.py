@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import threading
 import pygame
 from pygame.locals import *
 
@@ -8,6 +9,9 @@ import cw
 
 
 def animate_sprite(sprite, anitype, speedrate=1, clearevent=True):
+    if threading.currentThread() <> cw.cwpy:
+        raise Exception()
+
     if not hasattr(sprite, "update_" + anitype):
         print "Not found " + anitype + " animation."
         return
@@ -26,6 +30,9 @@ def animate_sprite(sprite, anitype, speedrate=1, clearevent=True):
             cw.cwpy.eventhandler.run()
 
 def animate_sprites(sprites, anitype, clearevent=True):
+    if threading.currentThread() <> cw.cwpy:
+        raise Exception()
+
     if [spr for spr in sprites if not hasattr(spr, "update_" + anitype)]:
         print "Not found " + anitype + " animation."
         return
@@ -55,6 +62,9 @@ def animate_sprites(sprites, anitype, clearevent=True):
                 break
 
 def animate_sprites2(sprandanimes, clearevent=True):
+    if threading.currentThread() <> cw.cwpy:
+        raise Exception()
+
     for spr, anitype in sprandanimes:
         if not hasattr(spr, "update_" + anitype):
             print "Not found " + anitype + " animation."

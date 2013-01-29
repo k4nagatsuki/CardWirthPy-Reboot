@@ -27,6 +27,7 @@ class Setting(object):
         # "Settings.xml"がなかったら新しく作る
         if not os.path.isfile("Settings.xml"):
             self.lastyado = ""
+            self.lastscenario = []
             self.debug = False
             self.vol_bgm = 1.0
             self.vol_midi = 0.2
@@ -46,6 +47,8 @@ class Setting(object):
         data = self.data
         # 最後に選択した宿
         self.lastyado = data.gettext("LastYado", "")
+        # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)
+        self.lastscenario = []
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", False)
         # 音楽のボリューム(0～1.0)
@@ -101,6 +104,8 @@ class Setting(object):
             if not os.path.isdir(self.skindir):
                 raise ValueError("Not found CardWirthPy skins!")
 
+        path = cw.util.join_paths("Data/SkinBase/Skin.xml")
+        basedata = cw.data.xml2etree(path)
         path = cw.util.join_paths(self.skindir, "Skin.xml")
         data = cw.data.xml2etree(path)
         self.skinname = data.gettext("/Property/Name", "")
@@ -129,11 +134,23 @@ class Setting(object):
         # デバグ宿で簡易生成を行う際の能力型
         self.sampletypes = [cw.features.SampleType(e) for e in data.getfind("SampleTypes")]
 
-        # 音声
-        self.sounds = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("Sounds")]
-        # メッセージ
-        self.msgs = [(e.getattr(".", "key", ""), e.gettext(".", "")) for e in data.getfind("Messages")]
+        # 音声とメッセージは、選択中のスキンに
+        # 定義されていなければスキンベースのもので代替する
 
+        # 音声
+        self.sounds = {}
+        for e in basedata.getfind("Sounds"):
+            self.sounds[e.getattr(".", "key", "")] = e.gettext(".", "")
+        for e in data.getfind("Sounds"):
+            self.sounds[e.getattr(".", "key", "")] = e.gettext(".", "")
+        # メッセージ
+        self.msgs = {}
+        for e in basedata.getfind("Messages"):
+            self.msgs[e.getattr(".", "key", "")] = e.gettext(".", "")
+        for e in data.getfind("Messages"):
+            self.msgs[e.getattr(".", "key", "")] = e.gettext(".", "")
+
+        # 未指定種族
         self.unknown_race = cw.header.UnknownRaceHeader(self)
         self.races.append(self.unknown_race)
 
@@ -385,9 +402,9 @@ class Resource(object):
         pygameのsoundインスタンスの辞書で返す。
         """
         d = {}
-        for sound in setting.sounds:
-            if sound[1] in skinsounds:
-                d[sound[0]] = skinsounds[sound[1]]
+        for key, sound in setting.sounds.items():
+            if sound in skinsounds:
+                d[key] = skinsounds[sound]
         return d
 
     def get_skinsounds(self):
@@ -401,12 +418,9 @@ class Resource(object):
 
     def get_msgs(self, setting):
         """
-        システムメッセージを読み込んで辞書で返す。
+        システムメッセージを辞書で返す。
         """
-        d = {}
-        for msg in setting.msgs:
-            d[msg[0]] = msg[1]
-        return d
+        return setting.msgs
 
     def get_buttons(self):
         """
@@ -469,8 +483,9 @@ class Resource(object):
         path = cw.util.join_paths(dpath, name + self.ext_img)
         d[name] = cw.util.load_wxbmp(path, mask=True, maskpos="right")
 
-        path = cw.util.join_paths(dpath, "CAUTION" + self.ext_img)
-        d["CAUTION"] = cw.util.load_wxbmp(path)
+        for key in ["CAUTION", "INVISIBLE"]:
+            path = cw.util.join_paths(dpath, key + self.ext_img)
+            d[key] = cw.util.load_wxbmp(path)
         return d
 
     def get_debugs(self):

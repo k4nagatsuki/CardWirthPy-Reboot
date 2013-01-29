@@ -40,41 +40,59 @@ class MusicInterface(object):
         self._play(path)
 
     def _play(self, path):
-        if not pygame.mixer or self.path == path:
-            return
+        def func(path):
+            if not pygame.mixer or self.path == path:
+                return
 
-        if not os.path.isfile(path):
-            self.stop()
+            if not os.path.isfile(path):
+                self.stop()
+            else:
+                self.path = path
+                self.set_volume()
+                load_bgm(path)
+                pygame.mixer.music.play(-1)
+
+        if threading.currentThread() == cw.cwpy:
+            func(path)
         else:
-            self.path = path
-            self.set_volume()
-            load_bgm(path)
-            pygame.mixer.music.play(-1)
+            cw.cwpy.exec_func(func, path)
 
     def stop(self):
-        if not pygame.mixer:
-            return
+        def func():
+            if not pygame.mixer:
+                return
 
-        pygame.mixer.music.stop()
-        self.path = ""
-        # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
-        path = "DefReset" + cw.cwpy.rsrc.ext_bgm
-        path = join_paths(cw.cwpy.setting.skindir, "Bgm", path)
-        load_bgm(path)
+            pygame.mixer.music.stop()
+            self.path = ""
+            # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
+            path = "DefReset" + cw.cwpy.rsrc.ext_bgm
+            path = join_paths(cw.cwpy.setting.skindir, "Bgm", path)
+            load_bgm(path)
+
+        if threading.currentThread() == cw.cwpy:
+            func()
+        else:
+            cw.cwpy.exec_func(func)
 
     def set_volume(self, volume=None):
-        if not pygame.mixer:
-            return
+        def func(volume):
+            if not pygame.mixer:
+                return
 
-        if volume is None:
-            ext = os.path.splitext(self.path)[1].lower()
+            if volume is None:
+                ext = os.path.splitext(self.path)[1].lower()
 
-            if ext == ".mid" or ext == ".midi":
-                volume = cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
-            else:
-                volume = cw.cwpy.setting.vol_bgm
+                if ext == ".mid" or ext == ".midi":
+                    volume = cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
+                else:
+                    volume = cw.cwpy.setting.vol_bgm
 
-        pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.set_volume(volume)
+
+        if threading.currentThread() == cw.cwpy:
+            func(volume)
+        else:
+            cw.cwpy.exec_func(func, volume)
 
     def get_path(self, path):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
@@ -94,15 +112,21 @@ class SoundInterface(object):
         self._sound = sound
 
     def play(self, from_scenario=False):
-        if self._sound:
-            if from_scenario:
-                chan = pygame.mixer.Channel(0)
-            else:
-                chan = pygame.mixer.Channel(1)
+        def func(from_scenario):
+            if self._sound:
+                if from_scenario:
+                    chan = pygame.mixer.Channel(0)
+                else:
+                    chan = pygame.mixer.Channel(1)
 
-            self._sound.set_volume(cw.cwpy.setting.vol_sound)
-            chan.stop()
-            chan.play(self._sound)
+                self._sound.set_volume(cw.cwpy.setting.vol_sound)
+                chan.stop()
+                chan.play(self._sound)
+
+        if threading.currentThread() == cw.cwpy:
+            func(from_scenario)
+        else:
+            cw.cwpy.exec_func(func, from_scenario)
 
 #-------------------------------------------------------------------------------
 #　汎用関数

@@ -92,7 +92,7 @@ class CardEditDialog(wx.Dialog):
         self.timgidx_beast = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
 
         self.targets = wx.lib.agw.customtreectrl.CustomTreeCtrl(self, -1, size=(200, -1),
-            style=wx.BORDER,
+            style=wx.BORDER|wx.TR_DEFAULT_STYLE,
             agwStyle=wx.TR_NO_BUTTONS|wx.TR_SINGLE|wx.TR_HIDE_ROOT|\
             wx.lib.agw.customtreectrl.TR_AUTO_CHECK_CHILD|\
             wx.lib.agw.customtreectrl.TR_AUTO_CHECK_PARENT)

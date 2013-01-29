@@ -554,6 +554,8 @@
     <Message key="referencing_file">参照ファイル</Message>
     <Message key="contents">Contents</Message>
     <Message key="scenario_etc">その他...</Message>
+    <Message key="scenario_tree">一覧</Message>
+    <Message key="scenario_one">貼紙</Message>
     <Message key="party_information">パーティ情報</Message>
     <Message key="party_money">パーティの所持金</Message>
     <Message key="base_money">共有資金</Message>

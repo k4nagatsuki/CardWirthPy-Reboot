@@ -888,11 +888,8 @@ class RaceHeader(object):
 
 class UnknownRaceHeader(RaceHeader):
     def __init__(self, setting):
-        for msg in setting.msgs:
-            if msg[0] == "unknown_race_name":
-                self.name = msg[1]
-            elif msg[0] == "unknown_race_description":
-                self.desc = msg[1]
+        self.name = setting.msgs["unknown_race_name"]
+        self.desc = setting.msgs["unknown_race_description"]
         self.automaton = False
         self.constructure = False
         self.undead = False

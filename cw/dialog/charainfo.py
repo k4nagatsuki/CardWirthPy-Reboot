@@ -18,7 +18,7 @@ class CharaInfo(wx.Dialog):
     """
     キャラクター情報ダイアログ
     """
-    def __init__(self, parent):
+    def __init__(self, parent, redrawfunc, editable):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(300, 355),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
@@ -37,16 +37,16 @@ class CharaInfo(wx.Dialog):
         self.notebook = wx.Notebook(self, -1, size=(300, 220), style=wx.BK_BOTTOM)
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("btnfont"))
         # 解説
-        self.descpanel = DescPanel(self.notebook, self.ccard)
+        self.descpanel = DescPanel(self.notebook, self.ccard, editable)
         self.notebook.AddPage(self.descpanel, cw.cwpy.msgs["description"])
         # 経歴
-        self.historypanel = HistoryPanel(self.notebook, self.ccard)
+        self.historypanel = HistoryPanel(self.notebook, self.ccard, editable)
         self.notebook.AddPage(self.historypanel, cw.cwpy.msgs["history"])
         # 編集または状態
         if cw.cwpy.is_playingscenario():
-            self.editpanel = StatusPanel(self.notebook, self.list, self.ccard)
+            self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
-        else:
+        elif editable:
             self.editpanel = EditPanel(self.notebook, self.ccard)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
@@ -63,7 +63,7 @@ class CharaInfo(wx.Dialog):
             self.notebook.AddPage(self.beastpanel, cw.cwpy.msgs["beasts"])
 
         # toppanel
-        self.toppanel = TopPanel(self, self.ccard)
+        self.toppanel = TopPanel(self, self.ccard, redrawfunc)
         # layout
         self._do_layout()
         # bind
@@ -190,7 +190,7 @@ class CharaInfo(wx.Dialog):
         self.Layout()
 
 class StandbyCharaInfo(CharaInfo):
-    def __init__(self, parent, headers, index):
+    def __init__(self, parent, headers, index, redrawfunc):
         self.list = headers
         self.index = index
         header = self.list[self.index]
@@ -198,10 +198,12 @@ class StandbyCharaInfo(CharaInfo):
 
         if data.getroot().tag == "Album":
             self.ccard = cw.character.AlbumPage(data)
+            editable = False
         else:
             self.ccard = cw.character.Character(data)
+            editable = True
 
-        CharaInfo.__init__(self, parent)
+        CharaInfo.__init__(self, parent, redrawfunc, editable)
 
 class ActiveCharaInfo(CharaInfo):
     def __init__(self, parent):
@@ -215,16 +217,17 @@ class ActiveCharaInfo(CharaInfo):
             self.list = cw.cwpy.get_fcards()
 
         self.index = self.list.index(cw.cwpy.selection)
-        CharaInfo.__init__(self, parent)
+        CharaInfo.__init__(self, parent, None, True)
 
 class TopPanel(wx.Panel):
     """
     顔画像などを描画するパネル
     """
-    def __init__(self, parent, ccard):
+    def __init__(self, parent, ccard, redrawfunc):
         wx.Panel.__init__(self, parent, -1, size=(300, 100))
         self.csize = self.GetClientSize()
         self.ccard = ccard
+        self.redrawfunc = redrawfunc
         self.yadodir = cw.cwpy.yadodir
         # bmp
         self.wing = cw.cwpy.rsrc.dialogs["STATUS"]
@@ -294,11 +297,15 @@ class TopPanel(wx.Panel):
         dc.DrawText(s, 295 - w, 80)
         dc.EndDrawing()
 
+        # 親ウィンドウの再描画を行える場合は呼び出し
+        if self.redrawfunc:
+            self.redrawfunc()
+
 class DescPanel(wx.Panel):
     """
     解説文を描画するパネル。
     """
-    def __init__(self, parent, ccard):
+    def __init__(self, parent, ccard, editable):
         wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
@@ -310,7 +317,7 @@ class DescPanel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.setting.debug and isinstance(ccard, cw.sprite.card.PlayerCard):
+        if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
@@ -352,7 +359,7 @@ class HistoryPanel(wx.ScrolledWindow):
     """
     クーポンを描画するスクロールウィンドウ。
     """
-    def __init__(self, parent, ccard):
+    def __init__(self, parent, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
@@ -371,7 +378,7 @@ class HistoryPanel(wx.ScrolledWindow):
         # create buffer
         self.draw()
 
-        if cw.cwpy.setting.debug and isinstance(ccard, cw.sprite.card.PlayerCard):
+        if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
@@ -383,6 +390,7 @@ class HistoryPanel(wx.ScrolledWindow):
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             self.draw(True)
+            self.Parent.Parent.toppanel.draw(True)
 
     def OnPaint(self, event):
         dc = wx.BufferedPaintDC(self, self.buffer, wx.BUFFER_VIRTUAL_AREA)
@@ -465,7 +473,7 @@ class EditPanel(wx.Panel):
                 if header.type == 0:
                     # デザインを変更する
                     cw.cwpy.sounds["click"].play()
-                    dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, cw.cwpy.selection)
+                    dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
                         self.Parent.Parent.toppanel.draw(True)
@@ -474,9 +482,10 @@ class EditPanel(wx.Panel):
                 else:
                     # レベルを調節する
                     cw.cwpy.sounds["click"].play()
-                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent)
+                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
+                        self.ccard.data.write_xml()
                         self.Parent.Parent.toppanel.draw(True)
                     dlg.Destroy()
                 return
@@ -544,7 +553,7 @@ class EditPanel(wx.Panel):
             height += 17
 
 class StatusPanel(wx.ScrolledWindow):
-    def __init__(self, parent, list, ccard):
+    def __init__(self, parent, list, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(10, 10)
@@ -558,7 +567,7 @@ class StatusPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.setting.debug:
+        if cw.cwpy.debug and editable:
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
