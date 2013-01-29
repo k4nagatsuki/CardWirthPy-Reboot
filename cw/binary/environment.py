@@ -107,7 +107,8 @@ class Environment(base.CWBinaryBase):
 
         # 保管庫のカードのxml出力
         for unusedcard in self.unusedcards:
-            unusedcard.create_xml(self.get_dir())
+            if unusedcard.data:
+                unusedcard.create_xml(self.get_dir())
 
         return d
 
