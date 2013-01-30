@@ -18,7 +18,6 @@ import subprocess
 import StringIO
 import io
 
-coinitialized = False
 if sys.platform == "win32":
     import win32com.client
 
@@ -1147,10 +1146,7 @@ def get_linktarget(file):
     そうでない場合はfileを返す。
     """
     if sys.platform == "win32" and file.lower().endswith(".lnk"):
-        global coinitialized
-        if not coinitialized:
-            pythoncom.CoInitialize()
-            coinitialized = True
+        pythoncom.CoInitialize()
         wsh = win32com.client.Dispatch("WScript.Shell")
         if wsh and os.path.isfile(file) and file.lower().endswith(".lnk"):
             shortcut = wsh.CreateShortcut(file)
@@ -1159,10 +1155,7 @@ def get_linktarget(file):
 
 def create_link(path, target):
     if sys.platform == "win32":
-        global coinitialized
-        if not coinitialized:
-            pythoncom.CoInitialize()
-            coinitialized = True
+        pythoncom.CoInitialize()
         wsh = win32com.client.Dispatch("WScript.Shell")
         dpath = os.path.dirname(path)
         if not os.path.exists(dpath):

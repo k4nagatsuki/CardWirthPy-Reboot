@@ -442,7 +442,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         self.set_status("Scenario")
         self.battle = None
-        self.statusbar.change()
+        self.statusbar.change(False)
 
         if header and not isinstance(self.sdata, cw.data.ScenarioData):
             self.sdata = cw.data.ScenarioData(header)
