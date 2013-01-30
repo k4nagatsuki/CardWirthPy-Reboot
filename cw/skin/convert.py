@@ -949,6 +949,8 @@ class Converter(threading.Thread):
 
             if not os.path.isabs(self.datadir):
                 datadir = cw.util.join_paths(os.path.dirname(self.exe), self.datadir)
+            else:
+                datadir = self.datadir
 
             # Bgm
             self.curnum = 20
