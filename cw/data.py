@@ -1342,6 +1342,11 @@ class Party(object):
             if e.text:
                 path = cw.util.join_paths(cw.cwpy.yadodir, "Adventurer",
                                                                 e.text + ".xml")
+                if not os.path.isfile(path):
+                    # Windowsがファイル名を変えるため前後のスペースを除く
+                    path = cw.util.join_paths(cw.cwpy.yadodir, "Adventurer",
+                                                e.text.strip() + ".xml")
+
                 seq.append(path)
 
         return seq
