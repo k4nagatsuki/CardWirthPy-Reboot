@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import shutil
 import zipfile
 import operator
 import datetime
@@ -33,6 +34,9 @@ if __name__ == '__main__':
         sys.argv.append('py2exe')
     exe = build_exe.BuildExe()
     exe.run()
+
+    # フォントは別配布するため削除
+    shutil.rmtree("CardWirthPy/Data/Font")
 
     fpath = datetime.datetime.today().strftime("cardwirthpy_%Y%m%d.zip")
     compress_all(fpath, exe.dist_dir)

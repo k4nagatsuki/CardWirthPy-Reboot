@@ -241,12 +241,9 @@ class CWPy(_Singleton, threading.Thread):
         """CWPyスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
-        if threading.currentThread() == self:
-            func(*args, **kwargs)
-        else:
-            event = pygame.event.Event(pygame.USEREVENT, func=func, args=args,
-                                                                    kwargs=kwargs)
-            pygame.event.post(event)
+        event = pygame.event.Event(pygame.USEREVENT, func=func, args=args,
+                                                                kwargs=kwargs)
+        pygame.event.post(event)
 
     def sync_exec(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行し、
