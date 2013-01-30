@@ -159,6 +159,7 @@ class SkinBasePanel(wx.Panel):
     def __init__(self, parent, conv):
         wx.Panel.__init__(self, parent)
         self.conv = conv
+        self.exe = self.conv.exe
 
         # スキンタイプ一覧
         self.types = set([
@@ -234,6 +235,7 @@ class SkinBasePanel(wx.Panel):
 
     def _bind(self):
         self.exectrl.Bind(wx.EVT_TEXT, self.OnInput)
+        self.exectrl.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveExeCtrl)
         self.datactrl.Bind(wx.EVT_TEXT, self.OnInput)
         self.typectrl.Bind(wx.EVT_TEXT, self.OnInput)
         self.namectrl.Bind(wx.EVT_TEXT, self.OnInput)
@@ -278,10 +280,24 @@ class SkinBasePanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
+    def OnLeaveExeCtrl(self, event):
+        exe = self.exectrl.GetValue()
+        if exe:
+            self._selected_exe(exe)
+
     def _get_basedir(self):
         return os.path.dirname(self.exectrl.GetValue())
 
     def _selected_exe(self, exe):
+        if not os.path.isfile(exe) or exe == self.exe:
+            self.exe = exe
+            return
+        self.exe = exe
+
+        s = "%sの情報を自動抽出しますか？" % (os.path.basename(exe))
+        if wx.ID_YES <> wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self):
+            return
+
         self.conv.init(exe)
 
         self.datactrl.SetValue(self.conv.datadir)
