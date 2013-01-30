@@ -1023,6 +1023,9 @@ class ScenarioSelect(Select):
         (ディレクトリ・ファイル名の配列)で返す。
         """
         seq = []
+        if not self.list:
+            return seq
+
         for dpath, selname in self.dirstack:
             seq.append(selname)
         sel = self.list[self.index]
@@ -1499,7 +1502,7 @@ class ScenarioSelect(Select):
         # リストが空だったらボタンを無効化
         if not self.list:
             self._disable_btn()
-            self.convbtn.Enable()
+            ##self.convbtn.Enable()
             self.nobtn.Enable()
         elif len(self.list) == 1:
             self._enable_btn()

@@ -295,7 +295,7 @@ class SkinBasePanel(wx.Panel):
         self.exe = exe
 
         s = "%sの情報を自動抽出しますか？" % (os.path.basename(exe))
-        if wx.ID_YES <> wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self):
+        if wx.YES <> wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self):
             return
 
         self.conv.init(exe)
