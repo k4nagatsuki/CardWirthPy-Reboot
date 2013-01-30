@@ -17,6 +17,7 @@ class Frame(wx.Frame):
         self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU\
                                                             |wx.SIMPLE_BORDER
         wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
+        self.thread = threading.currentThread()
         self.SetClientSize(cw.SIZE_GAME)
         # SDLを描画するパネル
         self.panel = wx.Panel(self, -1, size=cw.SIZE_GAME, style=wx.NO_BORDER)
@@ -130,11 +131,30 @@ class Frame(wx.Frame):
             self.debugger.Close()
 
     def exec_func(self, func, *args, **kwargs):
-        event = wx.PyCommandEvent(self._EVTTYPE_EXECFUNC)
-        event.func = func
-        event.args = args
-        event.kwargs = kwargs
-        self.AddPendingEvent(event)
+        """wxPythonスレッドで指定したファンクションを実行する。
+        func: 実行したいファンクションオブジェクト。
+        """
+        if self.thread == threading.currentThread():
+            func(*args, **kwargs)
+        else:
+            event = wx.PyCommandEvent(self._EVTTYPE_EXECFUNC)
+            event.func = func
+            event.args = args
+            event.kwargs = kwargs
+            self.AddPendingEvent(event)
+
+    def sync_exec(self, func, *args, **kwargs):
+        """wxPythonスレッドで指定したファンクションを実行し、
+        終了を待ち合わせる。ファンクションの戻り値を返す。
+        func: 実行したいファンクションオブジェクト。
+        """
+        if self.thread == threading.currentThread():
+            return func(*args, **kwargs)
+        else:
+            cl = wx.CallLater(0, func, args, kwargs)
+            while cl.IsRunning() and cw.cwpy.is_running() and self.IsEnabled():
+                time.sleep(0.001)
+            return cl.GetResult()
 
     def OnEXECFUNC(self, event):
         try:

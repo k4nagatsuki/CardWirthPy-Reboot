@@ -3,6 +3,7 @@
 
 import sys
 import os
+import time
 import threading
 import shutil
 import wx
@@ -240,9 +241,30 @@ class CWPy(_Singleton, threading.Thread):
         """CWPyスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
-        event = pygame.event.Event(pygame.USEREVENT, func=func, args=args,
-                                                                kwargs=kwargs)
-        pygame.event.post(event)
+        if threading.currentThread() == self:
+            func(*args, **kwargs)
+        else:
+            event = pygame.event.Event(pygame.USEREVENT, func=func, args=args,
+                                                                    kwargs=kwargs)
+            pygame.event.post(event)
+
+    def sync_exec(self, func, *args, **kwargs):
+        """CWPyスレッドで指定したファンクションを実行し、
+        終了を待ち合わせる。ファンクションの戻り値を返す。
+        func: 実行したいファンクションオブジェクト。
+        """
+        if threading.currentThread() == self:
+            return func(*args, **kwargs)
+        else:
+            result = [None]
+            isrun = True
+            def func2(result, func, *args, **kwargs):
+                result[0] = func(*args, **kwargs)
+                isrun = False
+            self.exec_func(func2, result, func, args, kwargs)
+            while isrun and self.frame.IsEnabled() and self.is_running():
+                time.sleep(0.001)
+            return result[0]
 
     def set_fullscreen(self, flag):
         """フルスクリーン化したり解除したり。

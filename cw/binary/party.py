@@ -26,15 +26,20 @@ class Party(base.CWBinaryBase):
         self.nowadventuring = f.bool()
         # 読み込み後に操作
         self.cards = []
+        # データの取得に失敗したカード。変換時に追加する
+        self.errorcards = []
 
     def get_xmldict(self, indent):
         cards = []
-
+        self.errorcards = []
         for card in self.cards:
-            if card.mine and card.data:
-                cards.append(card)
-                # rootが違うデータのためディレクトリを設定しておく
-                card.data.set_dir(self.get_dir())
+            if card.mine:
+                if card.data:
+                    cards.append(card)
+                    # rootが違うデータのためディレクトリを設定しておく
+                    card.data.set_dir(self.get_dir())
+                else:
+                    self.errorcards.append(card)
 
         d = {"yadoname": self.yadoname,
              "name": self.name,

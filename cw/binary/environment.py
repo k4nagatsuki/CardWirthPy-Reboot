@@ -52,6 +52,8 @@ class Environment(base.CWBinaryBase):
         self.partyname = f.string()
         # スキンタイプ。読み込み後に操作する
         self.skintype = ""
+        # データの取得に失敗したカード。変換時に追加する
+        self.errorcards = []
 
     def get_cardtypedict(self):
         d = {}
@@ -106,9 +108,12 @@ class Environment(base.CWBinaryBase):
         d["gossips"] = "\n".join(gossips)
 
         # 保管庫のカードのxml出力
+        self.errorcards = []
         for unusedcard in self.unusedcards:
             if unusedcard.data:
                 unusedcard.create_xml(self.get_dir())
+            else:
+                self.errorcards.append(unusedcard)
 
         return d
 

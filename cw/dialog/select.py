@@ -1013,6 +1013,7 @@ class ScenarioSelect(Select):
         ##self.Bind(wx.EVT_BUTTON, self.OnClickConvBtn, self.convbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
         self.tree.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnTreeItemExpanded)
+        self.tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnTreeItemCollapsed)
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
         self.draw(True)
 
@@ -1399,6 +1400,16 @@ class ScenarioSelect(Select):
         self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack)
         self.updatenames_thr.start()
 
+    def OnTreeItemCollapsed(self, event):
+        if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
+            return
+        # 一旦リストをクリアして次に開いた時に再読込を行う
+        item = event.GetItem()
+        self.tree.DeleteChildren(item)
+        child = self.tree.AppendItem(item, u"読込中...")
+        self.tree.SetItemPyData(child, None)
+        self.tree.Collapse(item)
+
     def OnTreeSelChanged(self, event):
         if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
             return
@@ -1499,13 +1510,18 @@ class ScenarioSelect(Select):
         else:
             self._enable_btn()
 
+        # ツリー表示中かつディレクトリ選択中なら決定ボタン無効化
+        if self.list and self.tree.IsShown() and\
+                not isinstance(self.list[self.index], cw.header.ScenarioHeader):
+            self.yesbtn.Disable()
+
         # 状況によってボタンのテキストを更新
         if self.tree.IsShown():
             self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_one"])
         else:
             self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_tree"])
 
-        if isinstance(self.list[self.index], cw.header.ScenarioHeader):
+        if not self.list or isinstance(self.list[self.index], cw.header.ScenarioHeader) or self.tree.IsShown():
             self.yesbtn.SetLabel(cw.cwpy.msgs["decide"])
         else:
             self.yesbtn.SetLabel(cw.cwpy.msgs["see"])

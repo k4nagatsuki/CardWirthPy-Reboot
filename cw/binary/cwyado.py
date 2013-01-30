@@ -106,6 +106,11 @@ class CWYado(object):
 
             try:
                 data.create_xml(self.dir)
+                if hasattr(data, "errorcards"):
+                    for errcard in data.errorcards:
+                        s = errcard.fname
+                        s = u"%s は読込できませんでした。\n" % (s)
+                        self.write_errorlog(s)
             except Exception, ex:
                 print ex
                 s = os.path.basename(data.fpath)

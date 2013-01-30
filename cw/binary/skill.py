@@ -35,8 +35,7 @@ class SkillCard(base.CWBinaryBase):
         if nameonly:
             return
 
-        # 宿データの埋め込みカードのイベントは子コンテント数が+50000されている
-        if self.is_yadodata():
+        if 5 <= dataversion:
             self.fname = self.get_fname()
 
         self.description = f.string(True)
@@ -76,7 +75,7 @@ class SkillCard(base.CWBinaryBase):
                 self.hold = False
 
         # 宿データだとここに不明なデータ(4)が付加されている
-        if self.is_yadodata():
+        if 5 <= dataversion:
             f.dword()
 
         self.level = f.dword()

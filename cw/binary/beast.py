@@ -38,8 +38,7 @@ class BeastCard(base.CWBinaryBase):
         if nameonly:
             return
 
-        # 宿データの埋め込みカードのイベントは子コンテント数が+50000されている
-        if self.is_yadodata():
+        if 5 <= dataversion:
             self.fname = self.get_fname()
 
         self.description = f.string(True)
@@ -79,13 +78,13 @@ class BeastCard(base.CWBinaryBase):
                 self.hold = False
 
         # 宿データだとここに不明なデータ(4)が付加されている
-        if self.is_yadodata():
+        if 5 <= dataversion:
             f.dword()
 
         self.limit = f.dword()
 
         # 宿データだとここに付帯召喚のデータ
-        if self.is_yadodata():
+        if 5 <= dataversion:
             self.attachment = f.bool()
 
     def get_xmldict(self, indent):

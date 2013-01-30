@@ -29,7 +29,7 @@ class ContentBase(base.CWBinaryBase):
 
         # 宿データの埋め込みカードのコンテントは
         # 子コンテントデータの後ろに"dword()"(5)が埋め込まれている。
-        if self.is_yadodata():
+        if 5 <= self.version:
             f.dword()
 
         self.properties = {}
