@@ -153,13 +153,17 @@ class GeneralSettingPanel(wx.Panel):
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 self.skins.append(name)
-                e = cw.data.xml2element(skinpath, "Property")
-                skintype = e.gettext("Type", "")
-                skinname = e.gettext("Name", "")
-                author = e.gettext("Author", "")
-                desc = e.gettext("Description", "")
-                desc = cw.util.txtwrap(desc, 1)
-                self.skin_summarys[name] = (skintype, skinname, author, desc)
+                try:
+                    e = cw.data.xml2element(skinpath, "Property")
+                    skintype = e.gettext("Type", "")
+                    skinname = e.gettext("Name", "")
+                    author = e.gettext("Author", "")
+                    desc = e.gettext("Description", "")
+                    desc = cw.util.txtwrap(desc, 1)
+                    self.skin_summarys[name] = (skintype, skinname, author, desc)
+                except Exception, ex:
+                    # エラーのあるスキンは無視
+                    print ex
 
         self.ch_skin = wx.Choice(self, -1, size=(120, -1), choices=self.skins)
         n = self.skins.index(cw.cwpy.setting.skindirname)
