@@ -134,14 +134,11 @@ class Frame(wx.Frame):
         """wxPythonスレッドで指定したファンクションを実行する。
         func: 実行したいファンクションオブジェクト。
         """
-        if self.thread == threading.currentThread():
-            func(*args, **kwargs)
-        else:
-            event = wx.PyCommandEvent(self._EVTTYPE_EXECFUNC)
-            event.func = func
-            event.args = args
-            event.kwargs = kwargs
-            self.AddPendingEvent(event)
+        event = wx.PyCommandEvent(self._EVTTYPE_EXECFUNC)
+        event.func = func
+        event.args = args
+        event.kwargs = kwargs
+        self.AddPendingEvent(event)
 
     def sync_exec(self, func, *args, **kwargs):
         """wxPythonスレッドで指定したファンクションを実行し、

@@ -4,6 +4,7 @@ syntax: regexp
 \.pyc$
 .*\.dll$
 .*\.log$
+^cardwirthpy_.*\.zip$
 ^build/.*
 ^CardWirthPy/.*
 ^src\.zip$
