@@ -777,16 +777,18 @@ class PlayerSelect(Select):
             self.ProcessEvent(btnevent)
         else:
             # 複数表示中はマウスポインタ直下を選択
-            cw.cwpy.sounds["click"].play()
             mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
             size = self.toppanel.GetSize()
             rw = size[0] / (self.views / 2)
             rh = size[1] / 2
             sindex = (mousepos[0] / rw) + ((mousepos[1] / rh) * (self.views / 2))
             page = self.get_page()
-            self.index = page * self.views + sindex
-            self.enable_btn()
-            self.draw(True)
+            index = page * self.views + sindex
+            if self.index <> index:
+                cw.cwpy.sounds["click"].play()
+                self.index = index
+                self.enable_btn()
+                self.draw(True)
 
     def OnClickNewBtn(self, event):
         cw.cwpy.sounds["click"].play()

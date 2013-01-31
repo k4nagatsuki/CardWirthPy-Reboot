@@ -10,6 +10,7 @@ import cw
 if hasattr(sys, "setdefaultencoding"):
     sys.setdefaultencoding("utf-8")
 
+sys.setrecursionlimit(1073741824)
 
 def create_mutex():
     handle = True
