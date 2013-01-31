@@ -812,7 +812,7 @@ class YadoData(object):
         path: xmlのパス。
         element: PropertyタグのElement。
         """
-        if not element:
+        if element is None:
             element = yadoxml2element(path, "Property")
 
         return cw.header.CardHeader(element, owner=owner)
@@ -822,7 +822,7 @@ class YadoData(object):
         path: xmlのパス。
         element: PropertyタグのElement。
         """
-        if not element:
+        if element is None:
             element = yadoxml2element(path, "Property")
 
         return cw.header.PartyHeader(element)
@@ -1165,7 +1165,7 @@ class YadoData(object):
         return seq
 
 class Party(object):
-    def __init__(self, path):
+    def __init__(self, path, partyinfoonly=True):
         # True時は、エリア移動中にPlayerCardスプライトを新規作成する
         self._loading = True
         # パーティデータ(CWPyElementTree)
@@ -1174,13 +1174,20 @@ class Party(object):
         self.name = self.data.gettext("Property/Name")
         # パーティ所持金
         self.money = self.data.getint("Property/Money", 0)
-        # 選択中パーティのメンバー(CWPyElementTree)
-        paths = self.get_memberpaths()
-        self.members = [yadoxml2etree(path) for path in paths]
-        # 選択中のパーティの荷物袋(CardHeader)
-        self.backpack = []
-        for e in self.data.getfind("Backpack"):
-            self.backpack.append(e)
+
+        self.partyinfoonly = partyinfoonly
+        if not partyinfoonly:
+            self.members = []
+            self.backpack = []
+        else:
+            # 選択中パーティのメンバー(CWPyElementTree)
+            paths = self.get_memberpaths()
+            self.members = [yadoxml2etree(path) for path in paths]
+            # 選択中のパーティの荷物袋(CardHeader)
+            self.backpack = []
+            for e in self.data.getfind("Backpack"):
+                header = cw.header.CardHeader(carddata=e, owner="BACKPACK")
+                self.backpack.append(header)
 
     def is_loading(self):
         """membersのデータを元にPlayerCardインスタンスを
@@ -1244,10 +1251,11 @@ class Party(object):
             path = cw.util.join_paths(cw.cwpy.ydata.tempdir, "Party", fname)
             path = cw.util.dupcheck_plus(path)
             self.data.write(path)
-            self.data = yadoxml2etree(path)
-            pname = os.path.basename(path)
-            pname = os.path.splitext(pname)[0]
-            cw.cwpy.ydata.environment.edit("/Property/NowSelectingParty", pname)
+            if self is cw.cwpy.ydata.party:
+                self.data = yadoxml2etree(path)
+                pname = os.path.basename(path)
+                pname = os.path.splitext(pname)[0]
+                cw.cwpy.ydata.environment.edit("/Property/NowSelectingParty", pname)
 
     def set_money(self, value):
         """
@@ -1294,11 +1302,6 @@ class Party(object):
 
     def get_allcardheaders(self):
         seq = []
-        for index, path in enumerate(self.backpack):
-            # ヘッダがまだ生成されていない場合はここで生成する
-            if not isinstance(path, cw.header.CardHeader):
-                header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
-                self.backpack[index] = header
         seq.extend(self.backpack)
 
         for pcard in cw.cwpy.get_pcards():
@@ -1340,12 +1343,10 @@ class Party(object):
 
         for e in self.data.getfind("/Property/Members"):
             if e.text:
-                path = cw.util.join_paths(cw.cwpy.yadodir, "Adventurer",
-                                                                e.text + ".xml")
+                path = cw.util.join_yadodir(cw.util.join_paths("Adventurer",  e.text + ".xml"))
                 if not os.path.isfile(path):
                     # Windowsがファイル名を変えるため前後のスペースを除く
-                    path = cw.util.join_paths(cw.cwpy.yadodir, "Adventurer",
-                                                e.text.strip() + ".xml")
+                    path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", e.text.strip() + ".xml"))
 
                 seq.append(path)
 

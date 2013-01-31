@@ -1197,8 +1197,7 @@ class Character(object):
 
         elif len(self.cardpocket[idx]) < self.get_cardpocketspace()[idx]:
             etree = cw.data.xml2etree(element=element)
-            content = cw.content.GetContent(None)
-            content.get_card(etree, self, True)
+            cw.content.get_card(etree, self, True)
 
     def set_timeelapse(self, time=1):
         """時間経過。"""

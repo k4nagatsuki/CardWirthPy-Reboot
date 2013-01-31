@@ -150,7 +150,7 @@ class CardControl(wx.Dialog):
     def OnClickLeftBtn2(self, event):
         count = len(self.combo.GetItems())
         index = self.combo.GetSelection()
-        if count == 0:
+        if index == 0:
             self.combo.SetSelection(count - 1)
         else:
             self.combo.SetSelection(index - 1)
@@ -798,16 +798,6 @@ class CardHolder(CardControl):
     def get_headers(self):
         li = self.index * 10
         list = self.list[li:li + 10]
-
-        # header未生成のカードはここで生成する
-        if self.callname == "BACKPACK":
-            for index, path in enumerate(list):
-                if not isinstance(path, cw.header.CardHeader):
-                    header = cw.header.CardHeader(carddata=path, owner="BACKPACK")
-                    cw.cwpy.ydata.party.backpack[li + index] = header
-                    self.list[li + index] = header
-                    list[index] = header
-
         return list
 
 #-------------------------------------------------------------------------------

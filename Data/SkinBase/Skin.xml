@@ -544,6 +544,8 @@
     <Message key="confirm_grow">%sを%sから%sへ成長させます。よろしいですか？</Message>
     <Message key="confirm_die">%sを永眠させます。よろしいですか？</Message>
     <Message key="die_message">%sは、永遠の眠りに就きました…</Message>
+    <Message key="member_list">一覧</Message>
+    <Message key="member_one">個別</Message>
     <Message key="resume_adventure">冒険の再開</Message>
     <Message key="adventurers_team">Adventurer's Team</Message>
     <Message key="adventurers_money">Money %s sp</Message>

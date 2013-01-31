@@ -9,6 +9,7 @@ import weakref
 import StringIO
 import wx
 import pygame
+import xml.parsers.expat
 
 import cw
 
@@ -845,11 +846,53 @@ class PartyHeader(object):
         seq = []
 
         for fname in self.members:
-            fname = fname + ".xml"
-            path = cw.util.join_paths(cw.cwpy.yadodir, "Adventurer", fname)
+            fname2 = fname + ".xml"
+            path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
+            if not os.path.isfile(path):
+                # Windowsがファイル名を変えるため前後のスペースを除く
+                fname2 = fname.strip() + ".xml"
+                path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
             seq.append(path)
 
         return seq
+
+    def get_membernames(self):
+        seq = []
+
+        for fpath in self.get_memberpaths():
+            seq.append(GetName(fpath).name)
+
+        return seq
+
+class GetName(object):
+    """XMLファイル中のProperty/Nameの内容を読む。"""
+    def __init__(self, fpath):
+        self.name = ""
+        self.stack = []
+
+        parser = xml.parsers.expat.ParserCreate()
+        parser.StartElementHandler = self.start_element
+        parser.EndElementHandler = self.end_element
+        parser.CharacterDataHandler = self.character_data
+
+        f = open(fpath)
+        try:
+            parser.ParseFile(f)
+        except Exception, ex:
+            pass
+        finally:
+            f.close()
+
+    def start_element(self, name, attrs):
+        self.stack.append(name)
+
+    def end_element(self, name):
+        self.stack.pop()
+
+    def character_data(self, data):
+        if self.stack[1:] == ["Property", "Name"]:
+            self.name = data
+            raise Exception()
 
 class RaceHeader(object):
     def __init__(self, data):

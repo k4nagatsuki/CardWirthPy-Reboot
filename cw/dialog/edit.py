@@ -11,10 +11,13 @@ import cw
 #-------------------------------------------------------------------------------
 
 class PartyEditor(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.party = cw.cwpy.ydata.party
+        if party:
+            self.party = party
+        else:
+            self.party = cw.cwpy.ydata.party
 
         # パーティ名入力ボックス
         self.textctrl = wx.TextCtrl(self, size=(240, 24))
@@ -24,18 +27,16 @@ class PartyEditor(wx.Dialog):
         self.textctrl.SetFont(font)
 
         # 所持金パネル。
-        if cw.cwpy.is_playingscenario():
-            self.panel = MoneyViewPanel(self)
+        if self.party.is_adventuring():
+            self.panel = MoneyViewPanel(self, self.party)
         else:
-            self.panel = MoneyEditPanel(self)
+            self.panel = MoneyEditPanel(self, self.party)
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
                                                             (100, 30), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
                                                         (100, 30), cw.cwpy.msgs["entry_cancel"])
-        if cw.cwpy.is_playingscenario():
-            self.okbtn.Disable()
 
         self._do_layout()
         self._bind()
@@ -70,13 +71,13 @@ class PartyEditor(wx.Dialog):
         name = self.textctrl.GetValue()
 
         if not name == self.party.name:
-            cw.cwpy.ydata.party.set_name(name)
+            self.party.set_name(name)
 
         if not self.panel.value == self.party.money:
             pmoney = self.panel.value - self.party.money
             ymoney = self.party.money - self.panel.value
             cw.cwpy.ydata.set_money(ymoney)
-            cw.cwpy.ydata.party.set_money(pmoney)
+            self.party.set_money(pmoney)
             cw.cwpy.exec_func(cw.cwpy.draw, True)
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -104,9 +105,9 @@ class PartyEditor(wx.Dialog):
         dc.DrawText(s, left, 73)
 
 class MoneyEditPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, party):
         wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
-        self.party = cw.cwpy.ydata.party
+        self.party = party
         self.value = self.party.money
         maxvalue = self.party.money + cw.cwpy.ydata.money
         minvalue = 0
@@ -193,9 +194,9 @@ class MoneyEditPanel(wx.Panel):
         self.Layout()
 
 class MoneyViewPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, party):
         wx.Panel.__init__(self, parent, style=wx.RAISED_BORDER)
-        self.value = cw.cwpy.ydata.party.money
+        self.value = party.money
         # bmp
         bmp = cw.cwpy.rsrc.dialogs["MONEYP"]
         self.bmp_pmoney = wx.StaticBitmap(self, -1, bmp)

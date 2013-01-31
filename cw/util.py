@@ -462,6 +462,20 @@ def change_cursor(name="arrow"):
         cursor = pygame.cursors.compile(s, ".", "#", "o")
         pygame.mouse.set_cursor((24, 24), (7, 7), *cursor)
 
+def number_normalization(value, fromvalue, tovalue):
+    """数値を範囲内の値に正規化する。
+    value: 正規化対象の数値。
+    fromvalue: 範囲の最小値。
+    tovalue: 範囲の最大値+1。
+    """
+    if 0 == tovalue:
+        return value;
+    if tovalue <= value or value < fromvalue:
+        value -= (value / tovalue) * tovalue;
+    if value < fromvalue:
+        value += tovalue;
+    return value;
+
 #-------------------------------------------------------------------------------
 #　ファイル操作関連
 #-------------------------------------------------------------------------------
