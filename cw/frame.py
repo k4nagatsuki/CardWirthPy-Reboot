@@ -404,7 +404,7 @@ class Frame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             cw.cwpy.ydata.save()
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.sounds["signal"].play()
             s = cw.cwpy.msgs["saved"]
             dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
             self.move_dlg(dlg)

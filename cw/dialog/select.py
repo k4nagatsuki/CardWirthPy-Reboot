@@ -684,6 +684,7 @@ class PlayerSelect(Select):
         self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
+        self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -705,6 +706,13 @@ class PlayerSelect(Select):
         # 冒険者が6人だったら追加ボタン無効化
         if len(cw.cwpy.get_pcards()) == 6:
             self.addbtn.Disable()
+
+    def OnLeftDClick(self, event):
+        # 一覧表示の場合はダブルクリックで編入
+        if not self.list or len(cw.cwpy.get_pcards()) == 6:
+            return
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_ADD)
+        self.ProcessEvent(btnevent)
 
     def OnMouseWheel(self, event):
         if not self.list or len(self.list) == 1:
