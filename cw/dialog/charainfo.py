@@ -605,16 +605,16 @@ class StatusPanel(wx.ScrolledWindow):
         bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["LIFE"], maskpos=(1, 1))
         if self.ccard.is_unconscious():
             colour = wx.Colour(0, 0, 128)
-            msg = "意識不明"
+            msg = u"意識不明"
         elif self.ccard.is_heavyinjured():
             colour = wx.Colour(127, 0, 0)
-            msg = "重症"
+            msg = u"重症"
         elif self.ccard.is_injured():
             colour = wx.Colour(0, 153, 187)
-            msg = "負傷"
+            msg = u"負傷"
         else:
             colour = wx.Colour(192, 192, 192)
-            msg = "正常"
+            msg = u"正常"
 
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         dc.DrawRectangle(12, height - 1, bmp.Width, bmp.Height)
@@ -624,43 +624,43 @@ class StatusPanel(wx.ScrolledWindow):
 
         # 肉体状態異常
         if self.ccard.is_poison():
-            height = self._draw_status(dc, "中毒 (%s)" % (self.ccard.poison), "BODY0", height)
+            height = self._draw_status(dc, u"中毒 (%s)" % (self.ccard.poison), "BODY0", height)
         if self.ccard.is_paralyze():
             if self.ccard.is_petrified():
-                height = self._draw_status(dc, "石化 (%s)" % (self.ccard.paralyze), "BODY1", height)
+                height = self._draw_status(dc, u"石化 (%s)" % (self.ccard.paralyze), "BODY1", height)
             else:
-                height = self._draw_status(dc, "麻痺 (%s)" % (self.ccard.paralyze), "BODY1", height)
+                height = self._draw_status(dc, u"麻痺 (%s)" % (self.ccard.paralyze), "BODY1", height)
 
         # 精神状態異常
         if self.ccard.is_sleep():
-            height = self._draw_status(dc, "眠り状態 (%s)" % (self.ccard.mentality_dur), "MIND1", height)
+            height = self._draw_status(dc, u"眠り状態 (%s)" % (self.ccard.mentality_dur), "MIND1", height)
         if self.ccard.is_confuse():
-            height = self._draw_status(dc, "混乱状態 (%s)" % (self.ccard.mentality_dur), "MIND2", height)
+            height = self._draw_status(dc, u"混乱状態 (%s)" % (self.ccard.mentality_dur), "MIND2", height)
         if self.ccard.is_overheat():
-            height = self._draw_status(dc, "激高状態 (%s)" % (self.ccard.mentality_dur), "MIND3", height)
+            height = self._draw_status(dc, u"激高状態 (%s)" % (self.ccard.mentality_dur), "MIND3", height)
         if self.ccard.is_brave():
-            height = self._draw_status(dc, "勇敢状態 (%s)" % (self.ccard.mentality_dur), "MIND4", height)
+            height = self._draw_status(dc, u"勇敢状態 (%s)" % (self.ccard.mentality_dur), "MIND4", height)
         if self.ccard.is_panic():
-            height = self._draw_status(dc, "恐慌状態 (%s)" % (self.ccard.mentality_dur), "MIND5", height)
+            height = self._draw_status(dc, u"恐慌状態 (%s)" % (self.ccard.mentality_dur), "MIND5", height)
 
         # 魔法的状態異常
         if self.ccard.is_bind():
-            height = self._draw_status(dc, "呪縛状態 (%s)" % (self.ccard.bind), "MAGIC0", height)
+            height = self._draw_status(dc, u"呪縛状態 (%s)" % (self.ccard.bind), "MAGIC0", height)
         if self.ccard.is_silence():
-            height = self._draw_status(dc, "沈黙状態 (%s)" % (self.ccard.silence), "MAGIC1", height)
+            height = self._draw_status(dc, u"沈黙状態 (%s)" % (self.ccard.silence), "MAGIC1", height)
         if self.ccard.is_faceup():
-            height = self._draw_status(dc, "暴露状態 (%s)" % (self.ccard.faceup), "MAGIC2", height)
+            height = self._draw_status(dc, u"暴露状態 (%s)" % (self.ccard.faceup), "MAGIC2", height)
         if self.ccard.is_antimagic():
-            height = self._draw_status(dc, "完全魔法防御状態 (%s)" % (self.ccard.antimagic), "MAGIC3", height)
+            height = self._draw_status(dc, u"完全魔法防御状態 (%s)" % (self.ccard.antimagic), "MAGIC3", height)
 
         # 能力ボーナス・ペナルティ
-        height = self._draw_enhance(dc, "行動力", self.ccard.enhance_act,
+        height = self._draw_enhance(dc, u"行動力", self.ccard.enhance_act,
                                     self.ccard.enhance_act_dur, "UP0", "DOWN0", height)
-        height = self._draw_enhance(dc, "回避力", self.ccard.enhance_avo,
+        height = self._draw_enhance(dc, u"回避力", self.ccard.enhance_avo,
                                     self.ccard.enhance_avo_dur, "UP1", "DOWN1", height)
-        height = self._draw_enhance(dc, "抵抗力", self.ccard.enhance_res,
+        height = self._draw_enhance(dc, u"抵抗力", self.ccard.enhance_res,
                                     self.ccard.enhance_res_dur, "UP2", "DOWN2", height)
-        height = self._draw_enhance(dc, "防御力", self.ccard.enhance_def,
+        height = self._draw_enhance(dc, u"防御力", self.ccard.enhance_def,
                                     self.ccard.enhance_def_dur, "UP3", "DOWN3", height)
 
         self.SetVirtualSize((-1, height - 17 + 8))
@@ -680,27 +680,27 @@ class StatusPanel(wx.ScrolledWindow):
         if 7 <= value:
             colour = wx.Colour(175, 0, 0)
             bmp = cw.cwpy.rsrc.statuses[enhimage]
-            msg = "%s大ボーナス (%d)" % (enhname, dur)
+            msg = u"%s大ボーナス (%d)" % (enhname, dur)
         elif 4 <= value:
             colour = wx.Colour(127, 0, 0)
             bmp = cw.cwpy.rsrc.statuses[enhimage]
-            msg = "%s中ボーナス (%d)" % (enhname, dur)
+            msg = u"%s中ボーナス (%d)" % (enhname, dur)
         elif 1 <= value:
             colour = wx.Colour(79, 0, 0)
             bmp = cw.cwpy.rsrc.statuses[enhimage]
-            msg = "%s小ボーナス (%d)" % (enhname, dur)
+            msg = u"%s小ボーナス (%d)" % (enhname, dur)
         elif -7 >= value:
             colour = wx.Colour(0, 0, 85)
             bmp = cw.cwpy.rsrc.statuses[pnlimage]
-            msg = "%s大ペナルティ (%d)" % (enhname, dur)
+            msg = u"%s大ペナルティ (%d)" % (enhname, dur)
         elif -4 >= value:
             colour = wx.Colour(0, 0, 160)
             bmp = cw.cwpy.rsrc.statuses[pnlimage]
-            msg = "%s中ペナルティ (%d)" % (enhname, dur)
+            msg = u"%s中ペナルティ (%d)" % (enhname, dur)
         elif -1 >= value:
             colour = wx.Colour(0, 0, 187)
             bmp = cw.cwpy.rsrc.statuses[pnlimage]
-            msg = "%s小ペナルティ (%d)" % (enhname, dur)
+            msg = u"%s小ペナルティ (%d)" % (enhname, dur)
         bmp = cw.image.conv2wxbmp(bmp, maskpos=(1, 1))
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         dc.DrawRectangle(12, height - 1, bmp.Width, bmp.Height)
