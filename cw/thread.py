@@ -487,13 +487,22 @@ class CWPy(_Singleton, threading.Thread):
         """cw.data.ScenarioDataのf9()から呼び出され、
         緊急非難処理の続きを行う。
         """
-        for pcard in self.get_pcards():
+        # スプライトを作り直す
+        for idx, pcard in enumerate(self.get_pcards()):
             self.sounds["harvest"].play()
             cw.animation.animate_sprite(pcard, "hide")
             pcard.set_fullrecovery()
-            pcard.update_image()
+            self.pcardgrp.remove(pcard)
+            pos = (95 * idx + 9 * (idx + 1), 285)
+            data = cw.data.yadoxml2etree(pcard.data.fpath)
+            pcard = cw.sprite.card.PlayerCard(data, pos)
+            pcard.rect.topleft = pos
             cw.animation.animate_sprite(pcard, "deal")
+
+        # 番号クーポン設定
+        self.ydata.party.set_numbercoupon()
         self.ydata.party._loading = False
+
         self.set_yado()
 
     def reload_yado(self):
