@@ -38,7 +38,24 @@ if __name__ == '__main__':
     # フォントは別配布するため削除
     shutil.rmtree("CardWirthPy/Data/Font")
 
-    fpath = datetime.datetime.today().strftime("cardwirthpy_%Y%m%d.zip")
+    fpath = datetime.datetime.today().strftime("%Y%m%d")
+
+    mark = "a"
+    if os.path.isfile("dailybuild.log"):
+        f = open("dailybuild.log", "r")
+        lines = f.readlines()
+        f.close()
+        if lines[0] == fpath:
+            mark = lines[1][0]
+            mark = ord(mark) + 1
+
+    f = open("dailybuild.log", "w")
+    f.write(fpath + "\n" + mark + "\n")
+    f.close()
+
+    if mark == "a":
+        mark = ""
+    fpath = "cardwirthpy_%s%s.zip" % (fpath, mark)
     compress_all(fpath, exe.dist_dir)
 
     print ""
