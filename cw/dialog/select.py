@@ -1074,6 +1074,7 @@ class Album(PlayerSelect):
         self.list = cw.cwpy.ydata.album
         self.isalbum = True
         self.index = 0
+        self.views = 1
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # info
