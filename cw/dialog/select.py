@@ -840,6 +840,7 @@ class PlayerSelect(Select):
             return
         # 冒険者が6人だったら追加ボタン無効化
         elif len(cw.cwpy.get_pcards()) == 5:
+            self.enable_btn()
             self.addbtn.Disable()
 
         cw.cwpy.sounds["harvest"].play()
@@ -855,7 +856,6 @@ class PlayerSelect(Select):
         else:
             cw.cwpy.exec_func(cw.cwpy.ydata.create_party, header)
 
-        self.enable_btn()
         self.draw(True)
 
     def OnClickGrowBtn(self, event):
