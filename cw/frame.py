@@ -290,6 +290,16 @@ class Frame(wx.Frame):
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
+        def func():
+            if cw.cwpy.ydata.party:
+                areaid = 2
+            else:
+                areaid = 1
+            if areaid <> cw.cwpy.areaid:
+                cw.cwpy.ydata.party._loading = False
+                cw.cwpy.change_area(areaid)
+        cw.cwpy.exec_func(func)
+
     def OnSCENARIOSELECT(self, event):
         # Scenariodb更新用のサブスレッドの処理が終わるまで待機
         while not cw.scenariodb.ScenariodbUpdatingThread._finished:

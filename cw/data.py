@@ -831,13 +831,13 @@ class YadoData(object):
 
         return cw.header.PartyHeader(element)
 
-    def create_party(self, header):
+    def create_party(self, header, chgarea=True):
         """新しくパーティを作る。
         header: AdventurerHeader
         """
         path = cw.xmlcreater.create_party(header)
         header = self.create_partyheader(path)
-        cw.cwpy.load_party(header)
+        cw.cwpy.load_party(header, chgarea=chgarea)
 
     def save(self):
         """宿データをセーブする。"""

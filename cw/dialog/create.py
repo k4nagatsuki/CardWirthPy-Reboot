@@ -290,7 +290,7 @@ class AdventurerData(object):
             for nature in cw.cwpy.setting.natures:
                 if nature.special:
                     sp.append(nature)
-            sp.sort(cmp=cmp(lambda x, y: y.genecount - x.genecount))
+            sp.sort(cmp=lambda x, y: y.genecount - x.genecount)
 
             for nature in sp:
                 if nature.genecount == 0:

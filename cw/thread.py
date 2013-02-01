@@ -497,6 +497,7 @@ class CWPy(_Singleton, threading.Thread):
             pos = (95 * idx + 9 * (idx + 1), 285)
             pcard = cw.sprite.card.PlayerCard(data, pos)
             pcard.rect.topleft = pos
+            pcard._rect.topleft = pos
 
             cw.animation.animate_sprite(pcard, "deal")
 
@@ -1050,18 +1051,26 @@ class CWPy(_Singleton, threading.Thread):
 
             self.set_yado()
 
-    def load_party(self, header=None):
+    def load_party(self, header=None, chgarea=True):
         """パーティデータをロードする。
         header: PartyHeader。指定しない場合はパーティデータを空にする。
         """
         self.ydata.load_party(header)
 
-        if header:
-            areaid = 2
+        if chgarea:
+            if header:
+                areaid = 2
+            else:
+                areaid = 1
+            self.change_area(areaid, bginhrt=False)
         else:
-            areaid = 1
-
-        self.change_area(areaid)
+            e = self.ydata.party.members[0]
+            pcardsnum = len(self.ydata.party.members) - 1
+            pos = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
+            pcard = cw.sprite.card.PlayerCard(e, pos)
+            pcard.rect.topleft = pos
+            pcard._rect.topleft = pos
+            cw.animation.animate_sprite(pcard, "deal")
 
     def dissolve_party(self, pcard=None):
         """現在選択中のパーティからpcardを削除する。

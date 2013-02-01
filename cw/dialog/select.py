@@ -838,25 +838,30 @@ class PlayerSelect(Select):
         # カード表示中の場合は処理中止
         if cw.cwpy.is_dealing():
             return
-        # 冒険者が6人だったら追加ボタン無効化
-        elif len(cw.cwpy.get_pcards()) == 5:
-            self.enable_btn()
-            self.addbtn.Disable()
 
         cw.cwpy.sounds["harvest"].play()
         header = self.list[self.index]
         cw.cwpy.ydata.standbys.remove(header)
-        if len(self.list):
-            self.index %= len(self.list)
-        else:
-            self.index = 0
 
-        if cw.cwpy.ydata.party:
-            cw.cwpy.exec_func(cw.cwpy.ydata.party.add, header)
-        else:
-            cw.cwpy.exec_func(cw.cwpy.ydata.create_party, header)
-
-        self.draw(True)
+        def func(header):
+            if cw.cwpy.ydata.party:
+                if len(cw.cwpy.ydata.party.members) < 6:
+                    cw.cwpy.ydata.party.add(header)
+                else:
+                    # 追加できなかった
+                    cw.cwpy.ydata.standbys.insert(self.index, header)
+                    return
+            else:
+                cw.cwpy.ydata.create_party(header, chgarea=False)
+            if len(self.list):
+                self.index %= len(self.list)
+            else:
+                self.index = 0
+            def func():
+                self.enable_btn()
+                self.draw(True)
+            cw.cwpy.frame.exec_func(func)
+        cw.cwpy.exec_func(func, header)
 
     def OnClickGrowBtn(self, event):
         cw.cwpy.sounds["click"].play()
