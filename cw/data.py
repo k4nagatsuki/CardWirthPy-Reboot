@@ -1243,9 +1243,6 @@ class Party(object):
         self.data.getfind("/Property/Members").clear()
 
         for index, pcard in enumerate(cw.cwpy.get_pcards()):
-            pos = (9 + 95 * index + 9 * index, 285)
-            pcard.rect.topleft = pos
-            pcard._rect.topleft = pos
             s = os.path.basename(pcard.data.fpath)
             s = os.path.splitext(s)[0]
             e = self.data.make_element("Member", s)

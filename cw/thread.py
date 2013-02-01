@@ -763,6 +763,13 @@ class CWPy(_Singleton, threading.Thread):
                 pcard.set_fullrecovery()
                 pcard.update_image()
 
+        if self.is_showparty:
+            for index, pcard in enumerate(self.get_pcards()):
+                # 解散直後などは位置が揃っていないので再設定
+                pos = (9 + 95 * index + 9 * index, 285)
+                pcard.rect.topleft = pos
+                pcard._rect.topleft = pos
+
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
             if not self.wait_showcards:
@@ -1075,6 +1082,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             for pcard in self.get_pcards():
                 pcard.remove_numbercoupon()
+                cw.animation.animate_sprite(pcard, "hide")
 
             p_money = int(self.ydata.party.data.find("Property/Money").text)
             p_members = [member.fpath for member in self.ydata.party.members]
