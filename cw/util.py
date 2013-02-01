@@ -368,7 +368,7 @@ def get_truetypefontname(path):
     #font directory
     stable= struct.Struct( '>4sIII' )
     ftable= f.read( stable.size* dhead[ 1 ] )
-    for i in range( dhead[1] ): #directory records
+    for i in xrange( dhead[1] ): #directory records
         dtable= stable.unpack_from(
                 ftable, i* stable.size )
         if dtable[0]== 'name': break
@@ -383,7 +383,7 @@ def get_truetypefontname(path):
     sname= struct.Struct( '>HHHHHH' )
     fontname = ""
 
-    for i in range( dnamehead[1] ): #name table records
+    for i in xrange( dnamehead[1] ): #name table records
         dname= sname.unpack_from(fnametable, snamehead.size+ i* sname.size )
 
         if dname[3]== 4: #key == 4: "full name of font"
@@ -815,7 +815,7 @@ def cab_hasfile(cab, file):
             cfiles = dword.unpack(buf[28:32])[0]
             f.seek(cofffiles)
 
-            for i in range(cfiles):
+            for i in xrange(cfiles):
                 buf = f.read(16)
                 attribs = word.unpack(buf[14:16])[0]
                 name = []

@@ -25,6 +25,20 @@ class YadoDB(object):
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.con.row_factory = sqlite3.Row
             self.cur = self.con.cursor()
+
+            # cardorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
+            cur = self.con.execute("PRAGMA table_info('cardorder')")
+            res = cur.fetchall()
+            hastype = False
+            if not res:
+                s = """
+                    CREATE TABLE cardorder (
+                        fpath TEXT,
+                        numorder INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.con.row_factory = sqlite3.Row
@@ -62,6 +76,16 @@ class YadoDB(object):
                     attachment INTEGER,
                     ctime INTEGER,
                     mtime INTEGER,
+                    PRIMARY KEY (fpath)
+                )
+            """
+            self.cur.execute(s)
+
+            # カードの並び順
+            s = """
+                CREATE TABLE cardorder (
+                    fpath TEXT,
+                    numorder INTEGER,
                     PRIMARY KEY (fpath)
                 )
             """
@@ -105,7 +129,7 @@ class YadoDB(object):
             self.cur.execute(s)
 
     @synclock(_lock)
-    def update(self, cards=True, adventurers=True, parties=True):
+    def update(self, cards=True, adventurers=True, parties=True, cardorder={}):
         """データベースを更新する。"""
         def walk(dpath, insert, *args):
             dir = cw.util.join_paths(self.ypath, dpath)
@@ -134,6 +158,21 @@ class YadoDB(object):
             walk("SkillCard", self._insert_card, False)
             walk("ItemCard", self._insert_card, False)
             walk("BeastCard", self._insert_card, False)
+            if cardorder:
+                # カードの並び順を登録する
+                s = "DELETE FROM cardorder"
+                self.cur.execute(s)
+                for fpath, orderc in cardorder.items():
+                    s = """
+                        INSERT OR REPLACE INTO cardorder VALUES(
+                            ?,
+                            ?
+                        )
+                    """
+                    self.cur.execute(s, (
+                        fpath,
+                        orderc,
+                    ))
 
         if adventurers:
             s = "SELECT fpath, mtime, album FROM adventurer"
@@ -201,10 +240,10 @@ class YadoDB(object):
             self.con.commit()
 
     @synclock(_lock)
-    def insert_cardheader(self, header, commit=True):
-        return self._insert_cardheader(header, commit)
+    def insert_cardheader(self, header, commit=True, cardorder=-1):
+        return self._insert_cardheader(header, commit, cardorder)
 
-    def _insert_cardheader(self, header, commit=True):
+    def _insert_cardheader(self, header, commit=True, cardorder=-1):
         """データベースにカードを登録する。"""
         s = """
         INSERT OR REPLACE INTO card VALUES(
@@ -272,26 +311,78 @@ class YadoDB(object):
             ctime,
             mtime,
         ))
+        if -1 < cardorder:
+            s = """
+            INSERT OR REPLACE INTO cardorder VALUES(
+                ?,
+                ?
+            )
+            """
+            self.cur.execute(s, (
+                fpath,
+                cardorder,
+            ))
 
         if commit:
             self.con.commit()
 
     @synclock(_lock)
-    def insert_card(self, path, commit=True):
-        return self._insert_card(path, commit)
+    def insert_card(self, path, commit=True, cardorder=-1):
+        return self._insert_card(path, commit, cardorder)
 
-    def _insert_card(self, path, commit=True):
+    def _insert_card(self, path, commit=True, cardorder=-1):
         try:
             data = cw.data.xml2element(path)
             header = cw.header.CardHeader(carddata=data)
             header.fpath = path
-            return self._insert_cardheader(header, commit)
+            return self._insert_cardheader(header, commit, cardorder)
         except Exception, ex:
             print ex
 
     def get_cards(self):
-        s = "SELECT * FROM card ORDER BY name"
+        s = """
+            SELECT
+                card.fpath,
+                type,
+                id,
+                name,
+                imgpath,
+                desc,
+                scenario,
+                author,
+                keycodes,
+                uselimit,
+                target,
+                allrange,
+                premium,
+                physical,
+                mental,
+                level,
+                maxuselimit,
+                price,
+                hold,
+                enhance_avo,
+                enhance_res,
+                enhance_def,
+                enhance_avo_used,
+                enhance_res_used,
+                enhance_def_used,
+                attachment,
+                ctime,
+                mtime,
+                numorder
+            FROM
+                card
+                LEFT OUTER JOIN
+                    cardorder
+                ON
+                    card.fpath = cardorder.fpath
+            ORDER BY
+                numorder,
+                name
+        """
         self.cur.execute(s)
+
         headers = []
         for rec in self.cur:
             header = cw.header.CardHeader(dbrec=rec)

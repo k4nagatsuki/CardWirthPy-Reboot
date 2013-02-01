@@ -837,6 +837,16 @@ class YadoData(object):
 
     def save(self):
         """宿データをセーブする。"""
+        # カード置場の順序を記憶しておく
+        cardorder = {}
+        for i, header in enumerate(self.storehouse):
+            if header.fpath.startswith(self.tempdir):
+                fpath = os.path.relpath(header.fpath, self.tempdir)
+            else:
+                fpath = os.path.relpath(header.fpath, self.yadodir)
+            fpath = cw.util.join_paths(fpath)
+            cardorder[fpath] = i
+
         # ScenarioLog更新
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.update_log()
@@ -877,7 +887,7 @@ class YadoData(object):
 
         # カードデータベースを更新
         yadodb = cw.yadodb.YadoDB(self.yadodir)
-        yadodb.update()
+        yadodb.update(cardorder=cardorder)
         yadodb.close()
 
     #---------------------------------------------------------------------------

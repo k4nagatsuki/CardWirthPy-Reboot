@@ -160,7 +160,7 @@ class AdventurerCard(base.CWBinaryBase):
         self.type = 1
         self.fname = self.get_fname()
 
-        for cnt in range(5):
+        for cnt in xrange(5):
             f.byte()
 
         self.adventurer = Adventurer(self, f)

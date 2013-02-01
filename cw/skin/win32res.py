@@ -90,7 +90,7 @@ class Win32Res(object):
         data = data[size_of_option_header:]
         res_size = 0
         res_addr = 0
-        for i in range(number_of_section):
+        for i in xrange(number_of_section):
             rva = uint32.unpack(data[12:16])[0]
             if ".rsrc" == data[:5] or res_addr_rva == rva:
                 res_addr_rva == rva
@@ -106,7 +106,7 @@ class Win32Res(object):
         num_name = uint16.unpack(data[12:14])[0]
         num_id = uint16.unpack(data[14:16])[0]
         data = data[16:]
-        for i in range(num_name + num_id):
+        for i in xrange(num_name + num_id):
             # IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 1)
             w1 = uint32.unpack(data[:4])[0]
             w2 = uint32.unpack(data[4:8])[0]
@@ -120,7 +120,7 @@ class Win32Res(object):
             num_name = uint16.unpack(data2[12:14])[0]
             num_id = uint16.unpack(data2[14:16])[0]
             data2 = data2[16:]
-            for j in range(num_name + num_id):
+            for j in xrange(num_name + num_id):
                 # IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 2)
                 w1 = uint32.unpack(data2[:4])[0]
                 w2 = uint32.unpack(data2[4:8])[0]

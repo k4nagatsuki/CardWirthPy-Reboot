@@ -322,7 +322,7 @@ class Converter(threading.Thread):
                     sound1, index = self._get_text(index)
                     sound2, index = self._get_text(index)
                     keycodes = []
-                    for i in range(0, keycodenum):
+                    for i in xrange(0, keycodenum):
                         keycode, index = self._get_text(index)
                         keycodes.append(keycode)
                     data = self.actioncard[cardkey]
@@ -525,7 +525,7 @@ class Converter(threading.Thread):
                     table = self.res.get_tpf0form(path[0])
                     rcdata[path[0]] = table
                 if table:
-                    for i in range(1, len(path)):
+                    for i in xrange(1, len(path)):
                         if path[i] in table:
                             table = table[path[i]]
                         else:
@@ -585,7 +585,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(71):
+                for i in xrange(71):
                     s, index = self._get_text(index, True)
                     msglist1.append(s)
 
@@ -594,7 +594,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(50):
+                for i in xrange(50):
                     s, index = self._get_text(index, True)
                     msglist2.append(s)
 
@@ -603,7 +603,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(62):
+                for i in xrange(62):
                     s, index = self._get_text(index, True)
                     msglist3.append(s)
 
@@ -612,7 +612,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(30):
+                for i in xrange(30):
                     s, index = self._get_text(index, True)
                     msglist4.append(s)
 
@@ -621,7 +621,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(100):
+                for i in xrange(100):
                     s, index = self._get_text(index, True)
                     msglist5.append(s)
 
@@ -630,7 +630,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(86):
+                for i in xrange(86):
                     s, index = self._get_text(index, True)
                     msglist6.append(s)
 
@@ -639,7 +639,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(8):
+                for i in xrange(8):
                     s, index = self._get_text(index, True)
                     msglist7.append(s)
 
@@ -648,7 +648,7 @@ class Converter(threading.Thread):
             index = self.exebinary.find(key)
             if 0 <= index:
                 index += len(key)
-                for i in range(8):
+                for i in xrange(8):
                     s, index = self._get_text(index, True)
                     msglist8.append(s)
 

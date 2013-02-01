@@ -80,7 +80,7 @@ class Scenariodb(object):
                     break
             if not hastype:
                 self.cur.execute("ALTER TABLE scenariodb ADD COLUMN type INTEGER")
-                self.cur.execute("UPDATE scenariodb SET type=?", [TYPE_WSN])
+                self.cur.execute("UPDATE scenariodb SET type=?", (TYPE_WSN,))
                 self.con.commit()
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)

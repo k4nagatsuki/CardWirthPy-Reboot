@@ -220,8 +220,8 @@ class CharacterCardImage(CardImage):
             subimg = font.render(char, True, (0, 0, 0))
             self.levelimg.blit(subimg, (15 * index, 0))
 
-        for x in range(size[0]):
-            for y in range(size[1]):
+        for x in xrange(size[0]):
+            for y in xrange(size[1]):
                 color = self.levelimg.get_at((x, y))
                 if color[3] <> 0:
                     color[3] = color[3] / 2

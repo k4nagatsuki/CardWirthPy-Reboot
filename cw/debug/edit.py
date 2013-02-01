@@ -165,7 +165,7 @@ class CouponEditDialog(wx.Dialog):
 
     def OnAddBtn(self, event):
         names = set()
-        for i in range(self.values.GetItemCount()):
+        for i in xrange(self.values.GetItemCount()):
             names.add(self.values.GetItem(i, 0).GetText())
         num = 1
         name = ""
@@ -626,7 +626,7 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoW
         # FIXME: 直接呼び出すとcol_locsが生成されないバグ
         self.col_locs = [0]
         loc = 0
-        for n in range(self.GetColumnCount()):
+        for n in xrange(self.GetColumnCount()):
             loc = loc + self.GetColumnWidth(n)
             self.col_locs.append(loc)
         listmix.TextEditMixin.OpenEditor(self, row, col)

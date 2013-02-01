@@ -16,7 +16,7 @@
     <LargeMenuCard>
       <Property>
         <Name>荷物袋</Name>
-        <ImagePath>Resource/Image/Card/COMMAND7.png</ImagePath>
+        <ImagePath>Resource/Image/Card/COMMAND7.bmp</ImagePath>
         <Description>カードを荷物袋へ入れます。</Description>
         <Flag></Flag>
         <Location left="265" top="75" />

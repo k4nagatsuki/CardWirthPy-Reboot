@@ -90,10 +90,12 @@ class CWYado(object):
             return False
 
     def convert(self):
+
         if not self.datalist:
             self.load()
 
-        self.curnum = 0
+        self.curnum_n = 0
+        self.curnum = 50
 
         # 宿データをxmlに変換
         if not os.path.isdir(self.dir):
@@ -102,7 +104,8 @@ class CWYado(object):
         for data in self.datalist:
             data.yadodb = yadodb
             self.message = u"%s を変換中" % (os.path.basename(data.fpath))
-            self.curnum += 1
+            self.curnum_n += 1
+            self.curnum = 50 + self.curnum_n * 50 / self.maxnum
 
             try:
                 data.create_xml(self.dir)
@@ -123,7 +126,8 @@ class CWYado(object):
         # その他のファイルを宿ディレクトリにコピー
         for path in self.otherfiles:
             self.message = u"%s をコピー中" % (os.path.basename(path))
-            self.curnum += 1
+            self.curnum_n += 1
+            self.curnum = 50 + self.curnum_n * 50 / self.maxnum
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)
             shutil.copy2(path, dst)
@@ -134,7 +138,8 @@ class CWYado(object):
         # ディレクトリを宿ディレクトリにコピー
         for path in self.otherdirs:
             self.message = u"%s をコピー中" % (os.path.basename(path))
-            self.curnum += 1
+            self.curnum_n += 1
+            self.curnum = 50 + self.curnum_n * 50 / self.maxnum
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)
             shutil.copytree(path, dst)
@@ -167,7 +172,14 @@ class CWYado(object):
         self.wpls = []
         self.wpts = []
 
+        self.curnum_n = 0
+        self.curnum = 0
+        self.maxnum = len(self.yadofiles) + len(self.cardfiles) + 1
+
         for path in self.yadofiles:
+            self.message = u"%s を読込中" % (os.path.basename(path))
+            self.curnum_n += 1
+            self.curnum = self.curnum_n * 50 / self.maxnum
             try:
                 data = self.load_yadofile(path)
             except Exception, ex:
@@ -182,6 +194,9 @@ class CWYado(object):
         carddatadict = {}
 
         for path in self.cardfiles:
+            self.message = u"%s を読込中" % (os.path.basename(path))
+            self.curnum_n += 1
+            self.curnum = self.curnum_n * 50 / self.maxnum
             try:
                 data = self.load_cardfile(path, cardtypes)
                 carddatadict[data.fname] = data
@@ -193,6 +208,10 @@ class CWYado(object):
     #---------------------------------------------------------------------------
     # ここからxml変換するためのもろもろのデータ加工
     #---------------------------------------------------------------------------
+
+        self.message = u"データリストを作成中"
+        self.curnum_n += 1
+        self.curnum = self.curnum_n * 50 / self.maxnum
 
         # wchの埋め込み画像をwcpに格納する。
         for wch in self.wchs:

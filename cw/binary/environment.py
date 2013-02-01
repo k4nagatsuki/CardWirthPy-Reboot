@@ -47,7 +47,7 @@ class Environment(base.CWBinaryBase):
         self.unusedcards = [UnusedCard(self, f)
                                     for cnt in xrange(unusedcards_num)]
         yadocards_num = f.dword()
-        self.yadocards = [YadoCard(self, f) for cnt in range(yadocards_num)]
+        self.yadocards = [YadoCard(self, f) for cnt in xrange(yadocards_num)]
         self.money = f.dword()
         self.partyname = f.string()
         # スキンタイプ。読み込み後に操作する
@@ -109,9 +109,9 @@ class Environment(base.CWBinaryBase):
 
         # 保管庫のカードのxml出力
         self.errorcards = []
-        for unusedcard in self.unusedcards:
+        for i, unusedcard in enumerate(self.unusedcards):
             if unusedcard.data:
-                unusedcard.create_xml(self.get_dir())
+                unusedcard.create_xml2(self.get_dir(), cardorder=i)
             else:
                 self.errorcards.append(unusedcard)
 
@@ -133,12 +133,15 @@ class UnusedCard(base.CWBinaryBase):
         self.data = data
 
     def create_xml(self, dpath):
+        return self.create_xml2(dpath, -1)
+
+    def create_xml2(self, dpath, cardorder):
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
         path = self.data.create_xml(dpath)
         yadodb = self.get_root().yadodb
         if yadodb:
-            yadodb.insert_card(path, commit=False)
+            yadodb.insert_card(path, commit=False, cardorder=cardorder)
         return path
 
 class YadoCard(base.CWBinaryBase):

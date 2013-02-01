@@ -385,11 +385,9 @@ class YadoSelect(Select):
             dlg.Destroy()
             return
 
-        # 宿データ読み込み
-        cwdata.load()
         # プログレスダイアログ表示
         dlg = wx.ProgressDialog(
-            cwdata.name + u" 変換", "", maximum=cwdata.maxnum,
+            cwdata.name + u" 変換", "", maximum=100,
             parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
             wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
         thread = cw.binary.ConvertingThread(cwdata)
@@ -1020,19 +1018,30 @@ class PlayerSelect(Select):
                 ix = x + (rw - 72) / 2
                 iy = y + 5
                 dc.DrawBitmap(bmp, ix, iy, True)
+
+                # 縁取りしながら描画
+                def drawwitharound(dc, s, x, y):
+                    for xv in xrange(x-1, x+2):
+                        for yv in xrange(y-1, y+2):
+                            if x == xv and y == yv:
+                                dc.SetTextForeground(wx.BLACK)
+                            else:
+                                dc.SetTextForeground(wx.WHITE)
+                            dc.DrawText(s, xv, yv)
+
                 # Name
                 s = header.name
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, x + (rw - w) / 2, y + 105)
+                drawwitharound(dc, s, x + (rw - w) / 2, y + 105)
                 # Level
                 s1 = cw.cwpy.msgs["character_level"]
                 w1 = dc.GetTextExtent(s1)[0]
                 s2 = str(header.level)
                 w2 = dc.GetTextExtent(s2)[0]
-                sx = x + (rw - (w1+5+w2)) / 2
+                sx1 = x + (rw - (w1+5+w2)) / 2
                 sy = y + 120
-                dc.DrawText(s1, sx, sy)
-                dc.DrawText(s2, sx + w1 + 5, sy)
+                drawwitharound(dc, s1, sx, sy)
+                drawwitharound(dc, s2, sx + w1 + 5, sy)
                 # Selected
                 if sindex + i == self.index:
                     bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["TARGET"])

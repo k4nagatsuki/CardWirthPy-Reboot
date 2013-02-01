@@ -56,7 +56,7 @@ class ItemCard(base.CWBinaryBase):
         self.enhance_defense = f.dword()
         self.sound_effect = f.string()
         self.sound_effect2 = f.string()
-        self.keycodes = [f.string() for cnt in range(5)]
+        self.keycodes = [f.string() for cnt in xrange(5)]
         if 2 < dataversion:
             self.premium = f.byte()
             self.scenario_name = f.string()

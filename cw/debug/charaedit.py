@@ -761,7 +761,7 @@ class CharaSelectablePanel(wx.Panel):
         for info in self._get_infos():
             info.makings.clear()
             mlen = len(cw.cwpy.setting.makingcoupons)
-            for i in range(0, mlen, 2):
+            for i in xrange(0, mlen, 2):
                 if i + 1 < mlen:
                     pair = cw.cwpy.setting.makingcoupons[i:i+2]
                 else:

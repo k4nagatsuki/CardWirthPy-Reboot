@@ -360,15 +360,15 @@ class SkinFeaturePanel(wx.Panel):
         self.grid.SetColLabelValue(11, u"狡猾");
 
         self.grid.SetColSize(0, 80)
-        for col in range(1, 7):
+        for col in xrange(1, 7):
             self.grid.SetColFormatNumber(col)
             self.grid.SetColSize(col, 40)
-            for row in range(0, self.grid.GetNumberRows()):
+            for row in xrange(0, self.grid.GetNumberRows()):
                 self.grid.SetCellEditor(row, col, nedit)
-        for col in range(7, 12):
+        for col in xrange(7, 12):
             self.grid.SetColFormatFloat(col, 2, 1)
             self.grid.SetColSize(col, 40)
-            for row in range(0, self.grid.GetNumberRows()):
+            for row in xrange(0, self.grid.GetNumberRows()):
                 self.grid.SetCellEditor(row, col, fedit)
 
         row = 0

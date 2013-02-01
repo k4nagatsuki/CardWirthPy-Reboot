@@ -1116,7 +1116,7 @@ class AttrPage(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("uigothic", size=10)
         dc.SetFont(font)
 
-        for index in range(0, len(cw.cwpy.setting.makings), 2):
+        for index in xrange(0, len(cw.cwpy.setting.makings), 2):
             column = index % 4
             pos = (67 + column * 86, 64 + (index / 4) * 16)
             m1 = cw.cwpy.setting.makings[index]

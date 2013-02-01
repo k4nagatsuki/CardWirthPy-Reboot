@@ -728,7 +728,7 @@ class Gene(object):
     def set_talentbit(self, talent, oldtalent=""):
         for nature in cw.cwpy.setting.natures:
             if u"＿" + nature.name == talent:
-                for index in range(len(nature.genepattern)):
+                for index in xrange(len(nature.genepattern)):
                     if nature.genepattern[index] == '1':
                         self.set_bit(index)
                 if nature.genecount == 0:
