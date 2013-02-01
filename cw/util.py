@@ -722,12 +722,15 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
 def decode_zipname(name):
     if not isinstance(name, unicode):
         try:
-            name = name.decode("cp932")
+            name = name.decode("mbcs")
         except UnicodeDecodeError:
             try:
                 name = name.decode("euc-jp")
             except UnicodeDecodeError:
-                name = name.decode("utf-8")
+                try:
+                    name = name.decode("utf-8")
+                except UnicodeDecodeError:
+                    name = name
 
     return name
 
@@ -736,7 +739,7 @@ def read_zipdata(zfile, name):
         data = zfile.read(name)
     except KeyError:
         try:
-            data = zfile.read(name.encode("cp932"))
+            data = zfile.read(name.encode("mbcs"))
         except KeyError:
             try:
                 data = zfile.read(name.encode("euc-jp"))
