@@ -89,20 +89,21 @@ class MessageWindow(base.CWPySprite):
             pos, txtimg, txtimg2 = self.charimgs[self.frame/self.speed]
 
             # 通常のテキスト描画。
-            if isinstance(txtimg2, pygame.Surface):
-                self.image.blit(txtimg2, (pos[0] + 1, pos[1]))
-                self.image.blit(txtimg2, (pos[0] - 1, pos[1]))
-                self.image.blit(txtimg2, (pos[0], pos[1] + 1))
-                self.image.blit(txtimg2, (pos[0], pos[1] - 1))
+            if isinstance(txtimg2, pygame.Surface) or txtimg2[1] == (True, True):
+                for x in xrange(pos[0]-1, pos[0]+2):
+                    for y in xrange(pos[1]-1, pos[1]+2):
+                        self.image.blit(txtimg2[0], (x, y))
             # u"―"描画時の処理。両脇の影を描画するかどうか。
             elif isinstance(txtimg2, tuple):
                 txtimg2, join_flags = txtimg2
 
                 if not join_flags[1]:
-                    self.image.blit(txtimg2, (pos[0] + 1, pos[1]))
+                    for y in xrange(pos[1]-1, pos[1]+2):
+                        self.image.blit(txtimg2, (pos[0] + 1, y))
 
                 if not join_flags[0]:
-                    self.image.blit(txtimg2, (pos[0] - 1, pos[1]))
+                    for y in xrange(pos[1]-1, pos[1]+2):
+                        self.image.blit(txtimg2, (pos[0] - 1, y))
 
                 self.image.blit(txtimg2, (pos[0], pos[1] + 1))
                 self.image.blit(txtimg2, (pos[0], pos[1] - 1))
@@ -223,6 +224,11 @@ class MessageWindow(base.CWPySprite):
                         join_left = True
                     else:
                         join_left = False
+
+                    if len(chars) > 1 and r_join.match(self.text[index+1]):
+                        join_right = True
+                    else:
+                        join_right = False
 
                 image2 = (image2, (join_left, join_right))
 
