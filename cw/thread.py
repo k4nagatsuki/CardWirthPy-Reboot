@@ -492,10 +492,12 @@ class CWPy(_Singleton, threading.Thread):
             self.sounds["harvest"].play()
             cw.animation.animate_sprite(pcard, "hide")
             self.pcardgrp.remove(pcard)
+
+            data = self.ydata.party.members[idx]
             pos = (95 * idx + 9 * (idx + 1), 285)
-            data = cw.data.yadoxml2etree(pcard.data.fpath)
             pcard = cw.sprite.card.PlayerCard(data, pos)
             pcard.rect.topleft = pos
+
             cw.animation.animate_sprite(pcard, "deal")
 
         # 番号クーポン設定

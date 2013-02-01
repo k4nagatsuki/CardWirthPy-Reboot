@@ -503,6 +503,8 @@ class SelectionBar(base.SelectableSprite):
             cw.animation.animate_sprite(self, "click")
 
         mwin = cw.cwpy.get_messagewindow()
+        if not mwin:
+            return
 
         # イベント再開(次コンテントへのIndexを渡す)
         if isinstance(mwin, MemberSelectWindow):

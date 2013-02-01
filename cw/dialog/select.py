@@ -1023,11 +1023,11 @@ class PlayerSelect(Select):
                 def drawwitharound(dc, s, x, y):
                     for xv in xrange(x-1, x+2):
                         for yv in xrange(y-1, y+2):
-                            if x == xv and y == yv:
-                                dc.SetTextForeground(wx.BLACK)
-                            else:
+                            if x <> xv or y <> yv:
                                 dc.SetTextForeground(wx.WHITE)
-                            dc.DrawText(s, xv, yv)
+                                dc.DrawText(s, xv, yv)
+                    dc.SetTextForeground(wx.BLACK)
+                    dc.DrawText(s, x, y)
 
                 # Name
                 s = header.name
@@ -1038,7 +1038,7 @@ class PlayerSelect(Select):
                 w1 = dc.GetTextExtent(s1)[0]
                 s2 = str(header.level)
                 w2 = dc.GetTextExtent(s2)[0]
-                sx1 = x + (rw - (w1+5+w2)) / 2
+                sx = x + (rw - (w1+5+w2)) / 2
                 sy = y + 120
                 drawwitharound(dc, s1, sx, sy)
                 drawwitharound(dc, s2, sx + w1 + 5, sy)

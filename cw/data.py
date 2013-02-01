@@ -1208,7 +1208,7 @@ class Party(object):
     def reload(self):
         self.__init__(self.data.fpath)
 
-    def add(self, header):
+    def add(self, header, data=None):
         """
         メンバーを追加する。引数はAdventurerHeader。
         """
@@ -1222,7 +1222,8 @@ class Party(object):
         s = os.path.splitext(s)[0]
         e = self.data.make_element("Member", s)
         self.data.append("/Property/Members", e)
-        data = yadoxml2etree(header.fpath)
+        if not data:
+            data = yadoxml2etree(header.fpath)
         self.members.append(data)
         pos = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
         pcard = cw.sprite.card.PlayerCard(data, pos, status="deal")
