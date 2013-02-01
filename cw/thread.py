@@ -1088,6 +1088,7 @@ class CWPy(_Singleton, threading.Thread):
             p_members = [member.fpath for member in self.ydata.party.members]
             p_backpack = self.ydata.party.backpack
             self.ydata.deletedpaths.add(self.ydata.party.data.fpath)
+            self.ydata.party.members = []
             self.ydata.load_party(None)
             self.ydata.environment.edit("/Property/NowSelectingParty", "")
             self.ydata.set_money(p_money)

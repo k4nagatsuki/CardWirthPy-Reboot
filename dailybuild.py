@@ -45,9 +45,9 @@ if __name__ == '__main__':
         f = open("dailybuild.log", "r")
         lines = f.readlines()
         f.close()
-        if lines[0] == fpath:
+        if lines[0].strip() == fpath:
             mark = lines[1][0]
-            mark = ord(mark) + 1
+            mark = chr(ord(mark) + 1)
 
     f = open("dailybuild.log", "w")
     f.write(fpath + "\n" + mark + "\n")

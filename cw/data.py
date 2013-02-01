@@ -766,7 +766,8 @@ class YadoData(object):
         # パーティデータが変更されている場合はxmlをTempに吐き出す
         if self.party:
             self.party.write()
-            self.add_party(self.party.data.fpath)
+            if self.party.members:
+                self.add_party(self.party.data.fpath)
 
         if header:
             self.party = Party(header.fpath)
