@@ -491,7 +491,6 @@ class CWPy(_Singleton, threading.Thread):
         for idx, pcard in enumerate(self.get_pcards()):
             self.sounds["harvest"].play()
             cw.animation.animate_sprite(pcard, "hide")
-            pcard.set_fullrecovery()
             self.pcardgrp.remove(pcard)
             pos = (95 * idx + 9 * (idx + 1), 285)
             data = cw.data.yadoxml2etree(pcard.data.fpath)

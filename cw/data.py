@@ -1050,7 +1050,7 @@ class YadoData(object):
             talent = fcard.get_talent()
 
             value = 10
-            for nature in cw.cwpy.settings.nature:
+            for nature in cw.cwpy.setting.nature:
                 if u"＿" + nature.name == talent:
                     value = nature.levelmax
                     break
