@@ -157,7 +157,7 @@ class CWYado(object):
             if not os.path.isdir(path):
                 os.makedirs(path)
 
-        self.curnum = self.maxnum
+        self.curnum = 100
         return self.dir
 
     def load(self):

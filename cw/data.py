@@ -226,6 +226,9 @@ class ScenarioData(SystemData):
         # refresh debugger
         self._init_debugger()
 
+        # ロードしたデータファイルのキャッシュ
+        self.cache = {}
+
     def reload(self):
         flagvals = {}
         stepvals = {}
@@ -1635,6 +1638,16 @@ def xml2etree(path="", tag="", file=None, element=None):
     return CWPyElementTree(element=element)
 
 def xml2element(path="", tag="", file=None):
+    usecache = path and cw.cwpy and cw.cwpy.sdata and\
+               isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
+               path.startswith(cw.cwpy.sdata.tempdir)
+    if usecache:
+        mtime = os.path.getmtime(path)
+    if usecache and path in cw.cwpy.sdata.cache:
+        cachedata = cw.cwpy.sdata.cache[path]
+        if cachedata.mtime <= mtime:
+            return cachedata.data
+
     if not file and cw.cwpy and cw.cwpy.classicdata:
         # クラシックなシナリオのファイルだった場合は変換する
         lpath = path.lower()
@@ -1644,7 +1657,16 @@ def xml2element(path="", tag="", file=None):
             file = StringIO.StringIO(xml)
 
     parser = SimpleXmlParser(path, tag, file)
-    return parser.parse()
+    data = parser.parse()
+    if usecache:
+        cachedata = CacheData(data, mtime)
+        cw.cwpy.sdata.cache[path] = cachedata
+    return data
+
+class CacheData(object):
+    def __init__(self, data, mtime):
+        self.data = data
+        self.mtime = mtime
 
 class SimpleXmlParser(object):
     def __init__(self, fpath, targettag="", file=None):
