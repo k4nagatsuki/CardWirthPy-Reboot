@@ -652,6 +652,8 @@ class JptxImage(cw.image.Image):
         shiftx = 0
         shifty = 0
         tag = ""
+        nolinedata = True
+        tagonly = True
         strike = False
         face_def = fontface
         pixels_def = fontpixels
@@ -661,11 +663,16 @@ class JptxImage(cw.image.Image):
             if char == "\n":
                 w = x if x > w else w
                 x = 0 + shiftx
-                y += get_height(wxdc, font) * lineheight / 100 - 2 + shifty
+                if nolinedata or not tagonly:
+                    y += get_height(wxdc, font) * lineheight / 100 - 2 + shifty
                 h = y
+                nolinedata = True
+                tagonly = True
             elif char == "<":
+                nolinedata = False
                 tag += char
             elif char == ">":
+                nolinedata = False
                 tag += char
                 tag = tag.lower()
                 start, name, attrs = self.parse_tag(tag)
@@ -711,6 +718,8 @@ class JptxImage(cw.image.Image):
             elif tag:
                 tag += char
             else:
+                nolinedata = False
+                tagonly = False
                 subimg, width = font_render(wxdc, wxcanvas, font, char, antialias, fontcolor)
 
                 # 取消線
