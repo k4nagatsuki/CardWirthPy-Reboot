@@ -349,7 +349,8 @@ class EventHandlerForMessageWindow(EventHandler):
             if cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 sbar = cw.cwpy.list[cw.cwpy.index]
-                sbar.lclick_event(skip=True)
+                if isinstance(sbar, cw.sprite.message.SelectionBar):
+                    sbar.lclick_event(skip=True)
 
     def mclick_event(self):
         """
