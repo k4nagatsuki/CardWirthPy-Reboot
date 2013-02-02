@@ -1631,13 +1631,13 @@ def yadoxml2element(path, tag=""):
     else:
         raise ValueError("%s is not found." % path)
 
-def xml2etree(path="", tag="", file=None, element=None):
+def xml2etree(path="", tag="", file=None, element=None, nocache=False):
     if element is None:
-        element = xml2element(path, tag, file)
+        element = xml2element(path, tag, file, nocache=nocache)
 
     return CWPyElementTree(element=element)
 
-def xml2element(path="", tag="", file=None):
+def xml2element(path="", tag="", file=None, nocache=False):
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
                path.startswith(cw.cwpy.sdata.tempdir)
@@ -1646,6 +1646,8 @@ def xml2element(path="", tag="", file=None):
     if usecache and path in cw.cwpy.sdata.cache:
         cachedata = cw.cwpy.sdata.cache[path]
         if cachedata.mtime <= mtime:
+            if nocache:
+                return copy.deepcopy(cachedata.data)
             return cachedata.data
 
     if not file and cw.cwpy and cw.cwpy.classicdata:
@@ -1661,6 +1663,8 @@ def xml2element(path="", tag="", file=None):
     if usecache:
         cachedata = CacheData(data, mtime)
         cw.cwpy.sdata.cache[path] = cachedata
+        if nocache:
+            data = copy.deepcopy(data)
     return data
 
 class CacheData(object):

@@ -1206,7 +1206,7 @@ class GetContent(EventContentBase):
 
         for cnt in xrange(num):
             for target in cw.cwpy.event.get_targetscope(scope):
-                etree = cw.data.xml2etree(path)
+                etree = cw.data.xml2etree(path, nocache=True)
                 get_card(etree, target)
 
 def get_card(etree, target, summon=False, toindex=-1):

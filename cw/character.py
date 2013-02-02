@@ -1201,7 +1201,7 @@ class Character(object):
                     self.throwaway_card(header)
 
         elif len(self.cardpocket[idx]) < self.get_cardpocketspace()[idx]:
-            etree = cw.data.xml2etree(element=element)
+            etree = cw.data.xml2etree(element=element, nocache=True)
             cw.content.get_card(etree, self, True)
 
     def set_timeelapse(self, time=1):
