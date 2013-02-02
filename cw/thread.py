@@ -1515,7 +1515,12 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_gameover(self):
         if self.is_playingscenario():
-            self._gameover |= not bool(self.get_pcards("unreversed"))
+            pcards = self.get_pcards("unreversed")
+            for pcard in pcards:
+                if pcard.is_alive():
+                    self._gameover = False
+                    break
+            self._gameover |= not bool(pcards)
 
         return self._gameover
 

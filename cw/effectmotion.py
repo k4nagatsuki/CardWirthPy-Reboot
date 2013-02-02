@@ -804,6 +804,13 @@ def get_effectivetargets(header, targets):
     motions = header.carddata.getfind("Motions").getchildren()
     sets = set()
 
+    def narrow(targets):
+        targets2 = []
+        for target in targets:
+            if not header.is_noeffect(target):
+                targets2.append(target)
+        return targets2
+
     for motion in motions:
         s = motion.get("type", "").lower()
 
@@ -811,9 +818,9 @@ def get_effectivetargets(header, targets):
             method, flag = checkingmethod_dict[s]
             sets.update([t for t in targets if getattr(t, method)() == flag])
         else:
-            return targets
+            return narrow(targets)
 
-    return list(sets)
+    return narrow(sets)
 
 # key: モーション名, value: チェック用メソッド名の辞書
 checkingmethod_dict = {"heal" : ("is_injured", True),

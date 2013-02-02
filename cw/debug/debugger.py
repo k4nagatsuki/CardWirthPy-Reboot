@@ -377,9 +377,11 @@ class Debugger(wx.Frame):
 
     def OnUpdateTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
-            cw.cwpy.sdata.reload()
-            func = cw.cwpy.change_area
-            cw.cwpy.exec_func(func, cw.cwpy.areaid, False, True)
+            def func():
+                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.sdata.reload()
+                cw.cwpy.change_area(cw.cwpy.areaid, False, True)
+            cw.cwpy.exec_func(func)
 
     def OnGossipTool(self, event):
         dlg = cw.debug.edit.GossipEditDialog(self)

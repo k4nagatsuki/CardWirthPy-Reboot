@@ -3,6 +3,7 @@
 
 import os
 import re
+import copy
 import time
 import shutil
 import threading
@@ -236,6 +237,7 @@ class ScenarioData(SystemData):
             flagvals[name] = flag.value
         for name, step in self.steps.items():
             stepvals[name] = step.value
+        self.cache = {}
         self._init_xmlpaths()
         self._init_flags()
         self._init_steps()
