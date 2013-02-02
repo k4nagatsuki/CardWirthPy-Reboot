@@ -525,10 +525,14 @@ class Character(object):
         for header in self.deck.hand:
             if header.is_autoselectable():
                 targets, effectivetargets = header.get_targets()
+                effectivetargets2 = []
+                for target in targets:
+                    if not header.is_noeffect(target):
+                        effectivetargets2.append(target)
 
-                if effectivetargets or header.target == "None":
+                if effectivetargets2 or header.target == "None":
                     if not header.allrange:
-                        targets = effectivetargets
+                        targets = effectivetargets2
 
                     headers.append((targets, header))
 

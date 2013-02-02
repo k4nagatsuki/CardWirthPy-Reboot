@@ -187,21 +187,34 @@ class StatusEditDialog(wx.Dialog):
         self._update_status()
 
     def OnOkBtn(self, event):
-        def func(updates):
-            for i in updates:
-                pcard = self.pcards[i]
-                cw.cwpy.sounds["harvest"].play()
-                cw.animation.animate_sprite(pcard, "hide")
-                pcard.update_image()
-                cw.animation.animate_sprite(pcard, "deal")
+        def func(pcards, statuses):
+            updates = []
+            for i, status in enumerate(statuses):
+                pcard = pcards[i]
+                oldactive = pcard.is_active()
+
+                if status.put_status(pcard):
+                    updates.append(i)
+
+                    cw.cwpy.sounds["harvest"].play()
+                    cw.animation.animate_sprite(pcard, "hide")
+                    pcard.update_image()
+                    cw.animation.animate_sprite(pcard, "deal")
+
+                    if cw.cwpy.is_battlestatus() and oldactive <> pcard.is_active():
+                        # アクティブ状態が変わったので
+                        # 行動の再選択か、キャンセルを行う
+                        if pcard.is_active():
+                            pcard.deck.set(pcard)
+                            pcard.decide_action()
+                        else:
+                            pcard.clear_action()
+                            cw.cwpy.clear_inusecardimg()
+
             if not updates:
                 cw.cwpy.sounds["harvest"].play()
-        updates = []
-        for i, status in enumerate(self.statuses):
-            pcard = self.pcards[i]
-            if status.put_status(pcard):
-                updates.append(i)
-        cw.cwpy.exec_func(func, updates)
+
+        cw.cwpy.exec_func(func, self.pcards, self.statuses)
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
@@ -443,7 +456,10 @@ class Status(object):
             self.life = pcard.life
         # 精神状態
         self.mentality = pcard.mentality
-        self.mentality_dur = pcard.mentality_dur
+        if self.mentality <> "Normal":
+            self.mentality_dur = pcard.mentality_dur
+        else:
+            self.mentality_dur = 0
         # 麻痺値
         self.paralyze = pcard.paralyze
         # 中毒値
@@ -458,16 +474,28 @@ class Status(object):
         self.antimagic = pcard.antimagic
         # 行動力強化値
         self.enhance_act = pcard.enhance_act
-        self.enhance_act_dur = pcard.enhance_act_dur
+        if self.enhance_act <> 0:
+            self.enhance_act_dur = pcard.enhance_act_dur
+        else:
+            self.enhance_act_dur = 0
         # 回避力強化値
         self.enhance_avo = pcard.enhance_avo
-        self.enhance_avo_dur = pcard.enhance_avo_dur
+        if self.enhance_avo <> 0:
+            self.enhance_avo_dur = pcard.enhance_avo_dur
+        else:
+            self.enhance_avo_dur = 0
         # 抵抗力強化値
         self.enhance_res = pcard.enhance_res
-        self.enhance_res_dur = pcard.enhance_res_dur
+        if self.enhance_res <> 0:
+            self.enhance_res_dur = pcard.enhance_res_dur
+        else:
+            self.enhance_res_dur = 0
         # 防御力強化値
         self.enhance_def = pcard.enhance_def
-        self.enhance_def_dur = pcard.enhance_def_dur
+        if self.enhance_def <> 0:
+            self.enhance_def_dur = pcard.enhance_def_dur
+        else:
+            self.enhance_def_dur = 0
 
     def is_dead(self):
         return self.life == 0 or 0 < self.paralyze

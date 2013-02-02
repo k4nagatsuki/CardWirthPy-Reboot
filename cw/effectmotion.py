@@ -7,6 +7,60 @@ import cw
 from cw.character import Character
 
 
+def is_noeffect(element, target):
+    """
+    属性の相性が無効ならTrueを返す。
+    """
+    if element == "Health" and target.feature.get("undead"):
+        return True
+    elif element == "Mind" and target.feature.get("automaton"):
+        return True
+    elif element == "Miracle":
+        if target.feature.get("unholy"):
+            return False
+        else:
+            return True
+
+    elif element == "Magic":
+        if target.feature.get("constructure"):
+            return False
+        else:
+            return True
+
+    elif element == "Fire" and target.resist.get("fire"):
+        return True
+    elif element == "Ice" and target.resist.get("ice"):
+        return True
+    else:
+        return False
+
+def check_noeffect(effecttype, target):
+    noeffect_wpn = target.noeffect.get("weapon")
+    noeffect_mgc = target.noeffect.get("magic")
+    antimagic = target.is_antimagic()
+
+    # 物理属性
+    if effecttype == "Physic":
+        if noeffect_wpn:
+            return True
+
+    # 魔法属性
+    elif effecttype == "Magic":
+        if noeffect_mgc or antimagic:
+            return True
+
+    # 魔法的物理属性
+    elif effecttype == 'MagicalPhysic':
+        if noeffect_wpn and noeffect_mgc or antimagic:
+            return True
+
+    # 物理的魔法属性
+    elif effecttype == 'PhysicalMagic':
+        if noeffect_wpn or noeffect_mgc or antimagic:
+            return True
+
+    return False
+
 class Effect(object):
     def __init__(self, motions, d):
         self.user = d.get("user", None)
@@ -158,31 +212,7 @@ class Effect(object):
             return True
 
     def check_noeffect(self, target):
-        noeffect_wpn = target.noeffect.get("weapon")
-        noeffect_mgc = target.noeffect.get("magic")
-        antimagic = target.is_antimagic()
-
-        # 物理属性
-        if self.effecttype == "Physic":
-            if noeffect_wpn:
-                return True
-
-        # 魔法属性
-        elif self.effecttype == "Magic":
-            if noeffect_mgc or antimagic:
-                return True
-
-        # 魔法的物理属性
-        elif self.effecttype == 'MagicalPhysic':
-            if noeffect_wpn and noeffect_mgc or antimagic:
-                return True
-
-        # 物理的魔法属性
-        elif self.effecttype == 'PhysicalMagic':
-            if noeffect_wpn or noeffect_mgc or antimagic:
-                return True
-
-        return False
+        return check_noeffect(self.effecttype, target)
 
     def check_avoid(self, target):
         if self.resisttype == "Avoid" and target.is_avoidable():
@@ -416,28 +446,7 @@ class EffectMotion(object):
         """
         属性の相性が無効ならTrueを返す。
         """
-        if self.element == "Health" and target.feature.get("undead"):
-            return True
-        elif self.element == "Mind" and target.feature.get("automaton"):
-            return True
-        elif self.element == "Miracle":
-            if target.feature.get("unholy"):
-                return False
-            else:
-                return True
-
-        elif self.element == "Magic":
-            if target.feature.get("constructure"):
-                return False
-            else:
-                return True
-
-        elif self.element == "Fire" and target.resist.get("fire"):
-            return True
-        elif self.element == "Ice" and target.resist.get("ice"):
-            return True
-        else:
-            return False
+        return is_noeffect(self.element, target)
 
     def is_weakness(self, target):
         """

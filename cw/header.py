@@ -479,6 +479,16 @@ class CardHeader(object):
 
         return targets, cw.effectmotion.get_effectivetargets(self, targets)
 
+    def is_noeffect(self, target):
+        effecttype = self.carddata.gettext("Property/EffectType", "")
+        if cw.effectmotion.check_noeffect(effecttype, target):
+            return True
+        for e in self.carddata.getfind("Motions"):
+            element = e.getattr(".", "element", "")
+            if not cw.effectmotion.is_noeffect(element, target):
+                return False
+        return True
+
 class InfoCardHeader(object):
     def __init__(self, data):
         """
