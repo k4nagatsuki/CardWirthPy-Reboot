@@ -65,6 +65,10 @@ class BattleEngine(object):
 
         # 戦闘行動ループ
         for member in self.members:
+            if member.status == "hidden":
+                # イベント中に隠された
+                continue
+
             member.action()
 
             # 勝利チェック

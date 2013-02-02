@@ -46,6 +46,7 @@ class MusicInterface(object):
             cw.cwpy.exec_func(self._play, path)
             return
 
+        assert threading.currentThread() == cw.cwpy
         if not pygame.mixer or self.path == path:
             return
 
@@ -55,6 +56,7 @@ class MusicInterface(object):
             self.path = path
             self.set_volume()
             load_bgm(path)
+            assert threading.currentThread() == cw.cwpy
             pygame.mixer.music.play(-1)
 
     def stop(self):
@@ -65,6 +67,7 @@ class MusicInterface(object):
         if not pygame.mixer:
             return
 
+        assert threading.currentThread() == cw.cwpy
         pygame.mixer.music.stop()
         self.path = ""
         # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
@@ -88,6 +91,7 @@ class MusicInterface(object):
             else:
                 volume = cw.cwpy.setting.vol_bgm
 
+        assert threading.currentThread() == cw.cwpy
         pygame.mixer.music.set_volume(volume)
 
     def get_path(self, path):
@@ -113,6 +117,7 @@ class SoundInterface(object):
             return
 
         if self._sound:
+            assert threading.currentThread() == cw.cwpy
             if from_scenario:
                 chan = pygame.mixer.Channel(0)
             else:
@@ -273,6 +278,7 @@ def load_bgm(path):
     encoding = sys.getfilesystemencoding()
 
     try:
+        assert threading.currentThread() == cw.cwpy
         pygame.mixer.music.load(path.encode(encoding))
     except:
         print u"BGMが読み込めません", path
@@ -291,6 +297,7 @@ def load_sound(path):
     encoding = sys.getfilesystemencoding()
 
     try:
+        assert threading.currentThread() == cw.cwpy
         sound = pygame.mixer.Sound(path.encode(encoding))
         sound = SoundInterface(sound)
     except:
@@ -896,7 +903,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         width = 37
     elif mode == 2:
         wrapschars = ""
-        width = 32
+        width = 33
     elif mode == 3:
         wrapschars = ""
         width = 43
@@ -915,7 +922,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     # 半角文字集合
     r_hwchar = re.compile(u"[ -~]|[｡-ﾟ]")
     # 行頭禁止文字集合
-    r_wchar = re.compile(wrapschars) if mode <> 3 and wrapschars else None
+    r_wchar = re.compile(wrapschars) if not mode in (2, 3) and wrapschars else None
     # 特殊文字記号集合
     r_spchar = re.compile("#[a-z]|&[a-z]") if mode in (2, 3) else None
     cnt = 0
@@ -953,7 +960,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             seq.append(char)
             cnt += 1
 
-            if mode == 3 or char == " ":
+            if mode in (2, 3) or char == " ":
                 asciicnt = 0
             else:
                 asciicnt += 1
