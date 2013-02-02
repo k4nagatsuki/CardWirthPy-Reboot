@@ -57,7 +57,14 @@ class MusicInterface(object):
             self.set_volume()
             load_bgm(path)
             assert threading.currentThread() == cw.cwpy
-            pygame.mixer.music.play(-1)
+
+            rpath = "DefReset" + cw.cwpy.rsrc.ext_bgm
+            rpath = join_paths(cw.cwpy.setting.skindir, "Bgm", rpath)
+            if os.path.normcase(path) == os.path.normcase(rpath):
+                # DefReset.midを繰り返し流すとシステムが不安定になる
+                pygame.mixer.music.play(0)
+            else:
+                pygame.mixer.music.play(-1)
 
     def stop(self):
         if threading.currentThread() <> cw.cwpy:

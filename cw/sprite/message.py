@@ -218,8 +218,8 @@ class MessageWindow(base.CWPySprite):
                 image2.set_colorkey(colour, RLEACCEL)
 
                 # u"―"やu"～"の場合、左右の線が繋がるように補完する
-                join_left = True
-                join_right = True
+                join_left = False
+                join_right = False
                 if r_join.match(char):
                     if index > 0 and r_join.match(self.text[index-1]):
                         join_left = True
