@@ -149,14 +149,13 @@ class Select(wx.Dialog):
         width = self.toppanel.GetClientSize()[0] - 6
         btnwidth = 120 + self.buttonlist[0].GetSize()[0] * len(self.buttonlist)
         margin = (width - btnwidth) / (len(self.buttonlist)+1)
-        margin2 = margin + (width - btnwidth) % (len(self.buttonlist)+1)
 
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_panel.Add((margin, 0), 0, 0, 0)
             sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, 3)
 
-        sizer_panel.Add((margin2, 0), 0, 0, 0)
+        sizer_panel.Add((margin, 0), 0, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         sizer_panel.Add(self.right2btn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
@@ -957,7 +956,7 @@ class PlayerSelect(Select):
             header = self.list[self.index % len(self.list)]
             # Level
             dc.SetTextForeground(wx.BLACK)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
             s = cw.cwpy.msgs["character_level"]
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, 65, 45)
@@ -966,7 +965,7 @@ class PlayerSelect(Select):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, 102, 31)
             # Name
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
             s = cw.cwpy.msgs["character_class"]
             dc.DrawText(s, 102 + w + 5, 45)
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=18))
@@ -1015,7 +1014,7 @@ class PlayerSelect(Select):
             rw = size[0] / (self.views / 2)
             rh = size[1] / 2
             dc.SetTextForeground(wx.BLACK)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
             for i, header in enumerate(list):
                 # Image
                 path = cw.util.join_yadodir(header.imgpath)
