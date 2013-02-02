@@ -42,7 +42,7 @@ class Battle(base.CWBinaryBase):
         if 0 < dataversion:
             self.bgm = f.string()
         else:
-            self.bgm = ""
+            self.bgm = "DefBattle.mid"
 
     def get_xmldict(self, indent):
         d = {"id": self.id,

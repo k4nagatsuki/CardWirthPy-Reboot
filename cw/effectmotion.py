@@ -25,9 +25,9 @@ class Effect(object):
             self.motions = [EffectMotion(e, targetlevel=self.level)
                                                             for e in motions]
 
-    def apply(self, target):
+    def apply(self, target, event=False):
         if isinstance(target, Character) and self.check_enabledtarget(target):
-            return self.apply_charactercard(target)
+            return self.apply_charactercard(target, event=event)
         elif isinstance(target, cw.sprite.card.MenuCard):
             return self.apply_menucard(target)
         else:
@@ -50,7 +50,7 @@ class Effect(object):
             cw.cwpy.sounds["ineffective"].play()
             return False
 
-    def apply_charactercard(self, target):
+    def apply_charactercard(self, target, event=False):
         """
         Characterインスタンスに効果モーションを適用する。
         """
@@ -103,7 +103,7 @@ class Effect(object):
 
         # ボーナス・ペナルティの発動したカードを一時表示する
         guardcardimg = None
-        if guardcard:
+        if not event and guardcard:
             cw.cwpy.sounds["equipment"].play()
             cw.cwpy.set_guardcardimg(target, guardcard)
             cw.cwpy.draw()

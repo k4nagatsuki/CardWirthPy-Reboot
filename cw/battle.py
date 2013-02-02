@@ -100,6 +100,10 @@ class BattleEngine(object):
 
     def end(self, areachange=True):
         """戦闘終了処理。戦闘エリアを解除する。"""
+        # 行動内容のクリア
+        for member in self.members:
+            member.clear_action()
+
         self._running = False
 
         for pcard in cw.cwpy.get_pcards():
@@ -137,6 +141,9 @@ class BattleEngine(object):
         event = cw.cwpy.sdata.events.check_keynum(2)
 
         if event:
+            # 行動内容のクリア
+            for member in self.members:
+                member.clear_action()
             # 逃走イベント開始
             try:
                 cw.cwpy.sdata.start_event(keynum=2)
@@ -164,6 +171,9 @@ class BattleEngine(object):
 
             # 逃走成功・失敗時の処理
             if pcards and len(successes) > len(pcards) / 2:
+                # 行動内容のクリア
+                for member in self.members:
+                    member.clear_action()
                 cw.cwpy.sounds["run"].play()
                 self.end()
             else:
@@ -174,6 +184,10 @@ class BattleEngine(object):
         """勝利処理。勝利イベント終了後も戦闘が続行していたら、
         強制的に戦闘エリアから離脱する。
         """
+        # 行動内容のクリア
+        for member in self.members:
+            member.clear_action()
+
         cw.cwpy.hide_cards(True)
         cw.cwpy.mcardgrp.empty()
 
@@ -197,6 +211,10 @@ class BattleEngine(object):
         """敗北処理。敗北イベント後、
         パーティが全滅状態だったら、ゲームオーバ画面に遷移。
         """
+        # 行動内容のクリア
+        for member in self.members:
+            member.clear_action()
+
         self._running = False
         event = cw.cwpy.sdata.events.check_keynum(3)
 

@@ -1048,10 +1048,10 @@ class EffectContent(EventContentBase):
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
             for member in target:
-                eff.apply(member)
+                eff.apply(member, event=True)
 
         else:
-            eff.apply(target)
+            eff.apply(target, event=True)
 
         return 0
 
