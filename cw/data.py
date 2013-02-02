@@ -272,7 +272,7 @@ class ScenarioData(SystemData):
         self.beasts = {}
 
         # 特殊文字の画像パスの集合(正規表現)
-        r_specialchar = re.compile(r"font_([a-z])[.].*$")
+        r_specialchar = re.compile(r"font_(.)[.].*$")
 
         for dpath, dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:

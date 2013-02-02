@@ -88,25 +88,26 @@ class MessageWindow(base.CWPySprite):
         try:
             pos, txtimg, txtimg2 = self.charimgs[self.frame/self.speed]
 
-            # 通常のテキスト描画。
-            if isinstance(txtimg2, pygame.Surface) or txtimg2[1] == (False, False):
-                for x in xrange(pos[0]-1, pos[0]+2):
-                    for y in xrange(pos[1]-1, pos[1]+2):
-                        self.image.blit(txtimg2[0], (x, y))
-            # u"―"描画時の処理。両脇の影を描画するかどうか。
-            elif isinstance(txtimg2, tuple):
-                txtimg2, join_flags = txtimg2
+            if isinstance(txtimg2, tuple):
+                # 通常のテキスト描画。
+                if isinstance(txtimg2, pygame.Surface) or txtimg2[1] == (False, False):
+                    for x in xrange(pos[0]-1, pos[0]+2):
+                        for y in xrange(pos[1]-1, pos[1]+2):
+                            self.image.blit(txtimg2[0], (x, y))
+                # u"―"描画時の処理。両脇の影を描画するかどうか。
+                else:
+                    txtimg2, join_flags = txtimg2
 
-                if not join_flags[0]:
-                    for y in xrange(pos[1]-1, pos[1]+2):
-                        self.image.blit(txtimg2, (pos[0] - 1, y))
+                    if not join_flags[0]:
+                        for y in xrange(pos[1]-1, pos[1]+2):
+                            self.image.blit(txtimg2, (pos[0] - 1, y))
 
-                if not join_flags[1]:
-                    for y in xrange(pos[1]-1, pos[1]+2):
-                        self.image.blit(txtimg2, (pos[0] + 1, y))
+                    if not join_flags[1]:
+                        for y in xrange(pos[1]-1, pos[1]+2):
+                            self.image.blit(txtimg2, (pos[0] + 1, y))
 
-                self.image.blit(txtimg2, (pos[0], pos[1] + 1))
-                self.image.blit(txtimg2, (pos[0], pos[1] - 1))
+                    self.image.blit(txtimg2, (pos[0], pos[1] + 1))
+                    self.image.blit(txtimg2, (pos[0], pos[1] - 1))
 
             self.image.blit(txtimg, pos)
             self.frame += 1
@@ -140,7 +141,7 @@ class MessageWindow(base.CWPySprite):
 
         r_join = re.compile(u"[―～]")          # 左右で接続する文字の集合
         r_halfwidth = re.compile(u"[ -~｡-ﾟ]")    # 半角文字の集合
-        r_specialfont = re.compile("#[a-z]")     # 特殊文字(#)の集合
+        r_specialfont = re.compile("#.")     # 特殊文字(#)の集合
         r_changecolour = re.compile("&[a-z]")    # 文字色変更文字(&)の集合
         # フォントデータ
         font = cw.cwpy.rsrc.fonts["message"]
