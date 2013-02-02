@@ -394,7 +394,10 @@ class _JpySubImage(cw.image.Image):
         elif self.dirtype == 3:
             dpath = "Data/EffectBooster"
         elif self.dirtype == 4:
-            dpath = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material")
+            if cw.cwpy.classicdata:
+                dpath = cw.util.join_paths(cw.cwpy.sdata.scedir)
+            else:
+                dpath = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material")
         elif self.dirtype == 5:
             dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
             filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
