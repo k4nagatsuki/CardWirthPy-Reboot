@@ -858,15 +858,22 @@ class CWPy(_Singleton, threading.Thread):
             self.areaid = areaid
             header = self.selectedheader
             owner = header.get_owner()
+            cardtarget = header.target
+            if isinstance(owner, cw.sprite.card.EnemyCard):
+                # 敵の行動を選択する時はターゲットの敵味方を入れ替える
+                if cardtarget == "Enemy":
+                    cardtarget = "Party"
+                elif cardtarget == "Party":
+                    cardtarget = "Enemy"
 
-            if header.target in ("Both", "Enemy", "Party"):
+            if cardtarget in ("Both", "Enemy", "Party"):
                 if self.status == "Scenario":
-                    self.set_curtain(target=header.target)
+                    self.set_curtain(target=cardtarget)
                 elif self.is_battlestatus():
                     if header.allrange:
-                        if header.target == "Party":
+                        if cardtarget == "Party":
                             targets = self.get_pcards("unreversed")
-                        elif header.target == "Enemy":
+                        elif cardtarget == "Enemy":
                             targets = self.get_ecards("unreversed")
                         else:
                             targets = self.get_pcards("unreversed")
@@ -875,9 +882,9 @@ class CWPy(_Singleton, threading.Thread):
                         owner.set_action(targets, header)
                         self.clear_specialarea()
                     else:
-                        self.set_curtain(target=header.target)
+                        self.set_curtain(target=cardtarget)
 
-            elif header.target == "User":
+            elif cardtarget == "User":
                 if self.status == "Scenario":
                     self.change_selection(owner)
                     self.call_dlg("USECARD")
@@ -885,7 +892,7 @@ class CWPy(_Singleton, threading.Thread):
                     owner.set_action(owner, header)
                     self.clear_specialarea()
 
-            elif header.target == "None":
+            elif cardtarget == "None":
                 if self.is_battlestatus():
                     owner.set_action(owner, header)
                     self.clear_specialarea()
