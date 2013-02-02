@@ -415,7 +415,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         # フラグ
         self.flag = mcarddata.gettext("Property/Flag", "")
         # 逃走の有無
-        self.escape = mcarddata.getattr(".", "escape")
+        self.escape = mcarddata.getbool(".", "escape", False)
 
         # スケール
         if cw.cwpy.is_autospread():
