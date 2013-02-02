@@ -206,15 +206,16 @@ class MessageWindow(base.CWPySprite):
                 self.wxdc.SetTextForeground(colour)
                 self.wxdc.DrawText(char, 0, 0)
                 image = cw.image.conv2surface(self.wxcanvas)
+                black = pygame.Color(0, 0, 0)
                 image.set_colorkey(wx.BLACK, RLEACCEL)
 
-                self.wxdc.SetPen(wx.WHITE_PEN)
-                self.wxdc.SetBrush(wx.WHITE_BRUSH)
+                self.wxdc.SetPen(wx.Pen(colour))
+                self.wxdc.SetBrush(wx.Brush(colour))
                 self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
                 self.wxdc.SetTextForeground(wx.BLACK)
                 self.wxdc.DrawText(char, 0, 0)
                 image2 = cw.image.conv2surface(self.wxcanvas)
-                image2.set_colorkey(wx.WHITE, RLEACCEL)
+                image2.set_colorkey(colour, RLEACCEL)
 
                 # u"―"やu"～"の場合、左右の線が繋がるように補完する
                 join_left = True
