@@ -128,7 +128,7 @@ class SoundInterface(object):
 
 def init(size=(640, 480), title=""):
     """pygame初期化。"""
-    pygame.mixer.pre_init(44100, -16, 2, 1024)
+    pygame.mixer.pre_init(22050, -16, 2, 1024)
     pygame.init()
     scr = pygame.display.set_mode(size)
     clock = pygame.time.Clock()
@@ -899,7 +899,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         width = 32
     elif mode == 3:
         wrapschars = ""
-        width = 42
+        width = 43
     elif mode == 4:
         wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
         width = 36
@@ -915,7 +915,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     # 半角文字集合
     r_hwchar = re.compile(u"[ -~]|[｡-ﾟ]")
     # 行頭禁止文字集合
-    r_wchar = re.compile(wrapschars) if wrapschars else None
+    r_wchar = re.compile(wrapschars) if mode <> 3 and wrapschars else None
     # 特殊文字記号集合
     r_spchar = re.compile("#[a-z]|&[a-z]") if mode in (2, 3) else None
     cnt = 0
@@ -953,7 +953,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             seq.append(char)
             cnt += 1
 
-            if char == " ":
+            if mode == 3 or char == " ":
                 asciicnt = 0
             else:
                 asciicnt += 1
