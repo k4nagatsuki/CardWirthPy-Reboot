@@ -66,11 +66,12 @@ class CardImage(Image):
         subimg = font.render(self.name, True, (0, 0, 0))
         w, h = subimg.get_size()
 
-        if w + 3 > self.rect.w:
-            size = (self.rect.w - 6, h)
+        left = 5
+        if w + left > self.rect.w:
+            size = (self.rect.w - left*2, h)
             subimg = pygame.transform.scale(subimg, size)
 
-        image.blit(subimg, (3, 4))
+        image.blit(subimg, (left, 5))
         return image
 
     def get_cardimg(self, header):
