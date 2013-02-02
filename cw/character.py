@@ -1041,6 +1041,11 @@ class Character(object):
         self.set_skillpower(True)
         self.set_beast(vanish=True)
 
+        # 行動を再選択する
+        if cw.cwpy.is_battlestatus():
+            self.deck.set(self)
+            self.decide_action()
+
     def set_life(self, value):
         """
         現在ライフに引数nの値を足す(nが負だと引き算でダメージ)。

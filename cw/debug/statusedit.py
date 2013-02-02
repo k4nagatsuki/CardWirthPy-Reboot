@@ -502,59 +502,59 @@ class Status(object):
 
     def put_status(self, pcard):
         update = False
+        s = Status(pcard)
 
-        life = pcard.get_lifeper()
-        if life <> self.life:
+        if s.life <> self.life:
             life = int(pcard.maxlife / 100.0 * self.life) - pcard.life
             pcard.set_life(life)
             update = True
 
-        if self.mentality <> pcard.mentality or\
-                self.mentality_dur <> pcard.mentality_dur:
+        if self.mentality <> s.mentality or\
+                self.mentality_dur <> s.mentality_dur:
             pcard.set_mentality(self.mentality, pcard.mentality_dur)
             update = True
 
-        if self.paralyze <> pcard.paralyze:
+        if self.paralyze <> s.paralyze:
             pcard.set_paralyze(self.paralyze - pcard.paralyze)
             update = True
 
-        if self.poison <> pcard.poison:
+        if self.poison <> s.poison:
             pcard.set_poison(self.poison - pcard.poison)
             update = True
 
-        if self.bind <> pcard.bind:
+        if self.bind <> s.bind:
             pcard.set_bind(self.bind - pcard.bind)
             update = True
 
-        if self.silence <> pcard.silence:
+        if self.silence <> s.silence:
             pcard.set_silence(self.silence - pcard.silence)
             update = True
 
-        if self.faceup <> pcard.faceup:
+        if self.faceup <> s.faceup:
             pcard.set_faceup(self.faceup - pcard.faceup)
             update = True
 
-        if self.antimagic <> pcard.antimagic:
+        if self.antimagic <> s.antimagic:
             pcard.set_antimagic(self.antimagic - pcard.antimagic)
             update = True
 
-        if self.enhance_act <> pcard.enhance_act or\
-                self.enhance_act_dur <> pcard.enhance_act_dur:
+        if self.enhance_act <> s.enhance_act or\
+                self.enhance_act_dur <> s.enhance_act_dur:
             pcard.set_enhance_act(self.enhance_act, self.enhance_act_dur)
             update = True
 
-        if self.enhance_avo <> pcard.enhance_avo or\
-                self.enhance_avo_dur <> pcard.enhance_avo_dur:
+        if self.enhance_avo <> s.enhance_avo or\
+                self.enhance_avo_dur <> s.enhance_avo_dur:
             pcard.set_enhance_avo(self.enhance_avo, self.enhance_avo_dur)
             update = True
 
-        if self.enhance_res <> pcard.enhance_res or\
-                self.enhance_res_dur <> pcard.enhance_res_dur:
+        if self.enhance_res <> s.enhance_res or\
+                self.enhance_res_dur <> s.enhance_res_dur:
             pcard.set_enhance_res(self.enhance_res, self.enhance_res_dur)
             update = True
 
-        if self.enhance_def <> pcard.enhance_def or\
-                self.enhance_def_dur <> pcard.enhance_def_dur:
+        if self.enhance_def <> s.enhance_def or\
+                self.enhance_def_dur <> s.enhance_def_dur:
             pcard.set_enhance_def(self.enhance_def, self.enhance_def_dur)
             update = True
 
