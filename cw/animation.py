@@ -16,6 +16,7 @@ def animate_sprite(sprite, anitype, speedrate=1, clearevent=True):
         print "Not found " + anitype + " animation."
         return
 
+    sprite.old_status = sprite.status
     sprite.status = anitype
 
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
@@ -38,6 +39,7 @@ def animate_sprites(sprites, anitype, clearevent=True):
         return
 
     for sprite in sprites:
+        sprite.old_status = sprite.status
         sprite.status = anitype
 
     animating = True
@@ -71,6 +73,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
             return
 
     for sprite, anitype in sprandanimes:
+        sprite.old_status = sprite.status
         sprite.status = anitype
 
     animating = True

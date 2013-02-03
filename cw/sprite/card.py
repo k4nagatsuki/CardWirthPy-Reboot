@@ -14,6 +14,7 @@ class CWPyCard(base.SelectableSprite):
         base.SelectableSprite.__init__(self)
         # 状態
         self.status = status
+        self.old_status = status
         # アニメ用フレーム数
         self.frame = 0
         # ズーム画像のリスト。(Surfaice, Rect)のタプル。
@@ -201,20 +202,25 @@ class CWPyCard(base.SelectableSprite):
         if (w, h) == (maxw, maxh):
             self._image = self.image
             self._rect = self.rect
-            self.status = "normal"
+            self.status = self.old_status
             self.frame = 0
 
     def update_zoomout(self):
         """
         カードを縮小する。
         """
-        self.image, self.rect = self.zoomimgs.pop()
-        self.frame += 1
+        if self.old_status == "hidden":
+            self.image, self.rect = self.zoomimgs[0]
+            self.zoomimgs = []
+            self.frame += 1
+        else:
+            self.image, self.rect = self.zoomimgs.pop()
+            self.frame += 1
 
         if not self.zoomimgs:
             self._image = self.image
             self._rect = self.rect
-            self.status = "normal"
+            self.status = self.old_status
             self.frame = 0
 
     def update_image(self):
@@ -351,6 +357,9 @@ class PlayerCard(CWPyCard, character.Player):
             return
 
         self.rect.move_ip(0, -10)
+        for image, rect in self.zoomimgs:
+            if not rect is self.rect:
+                rect.move_ip(0, -10)
         self.frame += 1
 
     def update_shiftdown(self):
@@ -362,6 +371,9 @@ class PlayerCard(CWPyCard, character.Player):
             return
 
         self.rect.move_ip(0, +10)
+        for image, rect in self.zoomimgs:
+            if not rect is self.rect:
+                rect.move_ip(0, +10)
         self.frame += 1
 
     def lclick_event(self):
