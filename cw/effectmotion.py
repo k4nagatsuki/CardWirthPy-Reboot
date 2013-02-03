@@ -496,7 +496,8 @@ class EffectMotion(object):
 
         # 抵抗に成功したらダメージ値半減
         if success_res:
-            value = value / 2
+            # 切り上げ
+            value = int(value / 2.0 + 0.5)
 
         # 防御修正
         self.calc_defensedvalue(value, target)
@@ -514,7 +515,8 @@ class EffectMotion(object):
 
         # 抵抗に成功したらダメージ値半減
         if success_res:
-            value = value / 2
+            # 切り上げ
+            value = int(value / 2.0 + 0.5)
 
         # 防御修正
         self.calc_defensedvalue(value, target)
