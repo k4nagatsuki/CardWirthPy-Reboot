@@ -426,7 +426,7 @@ class CWPy(_Singleton, threading.Thread):
         self.set_status("Yado")
         self.sdata = cw.data.SystemData()
         s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-        s += os.path.basename(self.yadodir)
+        s += self.ydata.name
         self.set_titlebar(s)
         self.statusbar.change()
 
@@ -450,7 +450,7 @@ class CWPy(_Singleton, threading.Thread):
             loaded, musicpath = self.sdata.set_log()
             self.sdata.start()
             s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-            s += "%s %s" % (os.path.basename(self.yadodir), self.sdata.name)
+            s += "%s %s" % (self.ydata.name, self.sdata.name)
             self.set_titlebar(s)
             areaid = self.sdata.startid
 

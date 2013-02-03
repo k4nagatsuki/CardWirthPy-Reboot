@@ -981,11 +981,11 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         # 行折り返し処理
         if cnt > width:
             if width >= asciicnt > 0:
-                if seq[asciicnt] == "\n":
+                if seq[-asciicnt] <> "\n":
                     seq.insert(-asciicnt, "\n")
                 cnt = asciicnt
             elif not get_char(s, index + 1) == "\n":
-                if seq[:-1] == "\n":
+                if not get_char(s, index + 2) == "\n":
                     seq.append("\n")
                 cnt = 0
                 asciicnt = 0

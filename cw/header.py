@@ -897,6 +897,8 @@ class GetName(object):
         self.stack.append(name)
 
     def end_element(self, name):
+        if self.stack[1:] == ["Property"]:
+            raise Exception()
         self.stack.pop()
 
     def character_data(self, data):

@@ -456,10 +456,6 @@
     <Message key="adventurers">Adventurers</Message>
     <Message key="new_base">新規宿</Message>
     <Message key="base_error_no_name">名称が入力されていません。</Message>
-    <Message key="base_error_invalid_name">名称に不正な文字が使用されています。
-名前を変更してください。</Message>
-    <Message key="base_error_duplicate_name">同名の拠点が既に存在しています。
-名前を変更してください。</Message>
     <Message key="create_base_message_1">新しい冒険者の宿を登録します。</Message>
     <Message key="create_base_message_2">登録する冒険者の宿の名称を入力して下さい。</Message>
     <Message key="card_control">カード操作</Message>

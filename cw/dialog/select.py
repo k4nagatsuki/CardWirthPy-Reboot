@@ -199,9 +199,9 @@ class YadoSelect(Select):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_base_title"])
         # 宿情報
-        names, self.list, self.list2 = self.get_yadolist()
+        self.names, self.list, self.list2 = self.get_yadolist()
         self.index = 0
-        for index, name in enumerate(names):
+        for index, name in enumerate(self.names):
             if cw.cwpy.setting.lastyado == name:
                 self.index = index
                 break
@@ -264,7 +264,7 @@ class YadoSelect(Select):
         """
         cw.cwpy.sounds["signal"].play()
         path = self.list[self.index]
-        yname = os.path.basename(path)
+        yname = self.names[self.index]
         s = cw.cwpy.msgs["delete_base"] % (yname)
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -326,7 +326,7 @@ class YadoSelect(Select):
         # 宿名前
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
-        s = os.path.split(self.list[self.index])[1]
+        s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, 40)
         # ページ番号
@@ -420,11 +420,11 @@ class YadoSelect(Select):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        names, self.list, self.list2 = self.get_yadolist()
+        self.names, self.list, self.list2 = self.get_yadolist()
         path = cw.util.join_paths("Yado", name)
 
         try:
-            self.index = self.list.index(path)
+            self.index = self.names.index(name)
         except:
             self.index = 0
 
@@ -444,8 +444,11 @@ class YadoSelect(Select):
             path  = cw.util.join_paths(u"Yado", dname, "Environment.xml")
 
             if os.path.isfile(path):
+                name = cw.header.GetName(path).name
+                if not name:
+                    name = os.path.basename(dname)
+                names.append(name)
                 path  = cw.util.join_paths(u"Yado", dname)
-                names.append(dname)
                 yadodirs.append(path)
 
         advnames = []

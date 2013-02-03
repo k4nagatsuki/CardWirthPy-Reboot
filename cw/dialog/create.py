@@ -1190,7 +1190,9 @@ class YadoCreater(wx.Dialog):
         self._bind()
 
     def create_yado(self):
-        yadodir = cw.util.join_paths("Yado", self.textctrl.GetValue())
+        name = self.textctrl.GetValue().strip()
+        yadodir = cw.util.join_paths("Yado", cw.binary.util.check_filename(name))
+        yadodir = cw.binary.util.check_duplicate(yadodir)
         os.makedirs(yadodir)
         dnames = ("Adventurer", "Album", "BeastCard", "ItemCard",
                                             "Material", "Party", "SkillCard")
@@ -1199,7 +1201,7 @@ class YadoCreater(wx.Dialog):
             path = cw.util.join_paths(yadodir, dname)
             os.makedirs(path)
 
-        cw.xmlcreater.create_environment(yadodir)
+        cw.xmlcreater.create_environment(name, yadodir)
 
     def OnOk(self, event):
         name = self.textctrl.GetValue().strip()
@@ -1207,22 +1209,6 @@ class YadoCreater(wx.Dialog):
         if not name:
             cw.cwpy.sounds["error"].play()
             s = cw.cwpy.msgs["base_error_no_name"]
-            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
-            cw.cwpy.frame.move_dlg(dlg)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        elif cw.util.check_dischar(name):
-            cw.cwpy.sounds["error"].play()
-            s = cw.cwpy.msgs["base_error_invalid_name"]
-            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
-            cw.cwpy.frame.move_dlg(dlg)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-        elif os.path.isdir(cw.util.join_paths("Yado", name)):
-            cw.cwpy.sounds["error"].play()
-            s = cw.cwpy.msgs["base_error_duplicate_name"]
             dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
             cw.cwpy.frame.move_dlg(dlg)
             dlg.ShowModal()

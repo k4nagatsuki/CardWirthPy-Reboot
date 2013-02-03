@@ -706,7 +706,6 @@ class YadoData(object):
         # 宿データのあるディレクトリ
         self.yadodir = cw.cwpy.yadodir
         self.tempdir = cw.cwpy.tempdir
-        self.name = os.path.basename(self.yadodir)
 
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
@@ -716,6 +715,14 @@ class YadoData(object):
         # Environment(CWPyElementTree)
         path = cw.util.join_paths(self.yadodir, "Environment.xml")
         self.environment = yadoxml2etree(path)
+        e = self.environment.find("Property/Name")
+        if not e is None:
+            self.name = e.text
+        else:
+            # データのバージョンが古い場合はProperty/Nameが無い
+            self.name = os.path.basename(self.yadodir)
+            e = make_element("Name", self.name)
+            self.environment.insert("Property", e, 0)
         # 宿の金庫
         self.money = int(self.environment.getroot().find("Property/Cashbox").text)
 

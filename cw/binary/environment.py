@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import base
 
 import cw.util
@@ -12,6 +13,7 @@ class Environment(base.CWBinaryBase):
     """
     def __init__(self, parent, f, yadodata=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
+        self.name = os.path.basename(os.path.dirname(self.fpath))
         self.type = -1
         self.dataversion = f.string()
         if self.dataversion.startswith("DATAVERSION_"):
@@ -64,7 +66,8 @@ class Environment(base.CWBinaryBase):
         return d
 
     def get_xmldict(self, indent):
-        d = {"yadotype": self.conv_yadotype(self.yadotype),
+        d = {"name": self.name,
+             "yadotype": self.conv_yadotype(self.yadotype),
              "skintype": self.skintype,
              "cashbox": self.money,
              "selectingparty": self.partyname,

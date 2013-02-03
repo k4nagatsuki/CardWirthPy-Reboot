@@ -42,12 +42,13 @@ def create_party(header):
     _create_xml("Party", path, d)
     return path
 
-def create_environment(dpath):
+def create_environment(name, dpath):
     """
     dpath: "Environment.xml"を作成する宿のディレクトリパス。
     宿のデータを納める"Environment.xml"を作る。
     """
-    d = {"skintype" : cw.cwpy.setting.skintype,
+    d = {"name" : name,
+         "skintype" : cw.cwpy.setting.skintype,
          "cashbox" : "4000",
          "selectingparty" : "",
          "nowadventuring" : "False",
