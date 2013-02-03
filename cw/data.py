@@ -1650,10 +1650,13 @@ def xml2element(path="", tag="", file=None, nocache=False):
                path.startswith(cw.cwpy.sdata.tempdir)
     if usecache:
         mtime = os.path.getmtime(path)
+
+    # キャッシュからデータを取得
     if usecache and (path, tag) in cw.cwpy.sdata.cache:
         cachedata = cw.cwpy.sdata.cache[(path, tag)]
         if cachedata.mtime <= mtime:
             if nocache:
+                # 変更されてもよいデータを返す
                 return copy.deepcopy(cachedata.data)
             return cachedata.data
 
@@ -1661,13 +1664,21 @@ def xml2element(path="", tag="", file=None, nocache=False):
         # クラシックなシナリオのファイルだった場合は変換する
         lpath = path.lower()
         if lpath.endswith(".wsm") or lpath.endswith(".wid"):
-            cdata = cw.cwpy.classicdata.load_file(path)
-            xml = cdata.get_xmltext(0)
+            xml = None
+            if usecache and path in cw.cwpy.sdata.cache:
+                # クラシックデータは別にキャッシュする
+                cachedata = cw.cwpy.sdata.cache[path]
+                if cachedata.mtime <= mtime:
+                    xml = cachedata.data
+            if not xml:
+                cdata = cw.cwpy.classicdata.load_file(path)
+                xml = cdata.get_xmltext(0)
             file = StringIO.StringIO(xml)
 
     parser = SimpleXmlParser(path, tag, file)
     data = parser.parse()
     if usecache:
+        # キャッシュにデータを保存
         cachedata = CacheData(data, mtime)
         cw.cwpy.sdata.cache[(path, tag)] = cachedata
         if nocache:
