@@ -1652,7 +1652,7 @@ def xml2element(path="", tag="", file=None, nocache=False):
         mtime = os.path.getmtime(path)
     if usecache and path in cw.cwpy.sdata.cache:
         cachedata = cw.cwpy.sdata.cache[path]
-        if cachedata.mtime <= mtime:
+        if cachedata.mtime <= mtime and cachedata.tag == tag:
             if nocache:
                 return copy.deepcopy(cachedata.data)
             return cachedata.data
@@ -1668,15 +1668,16 @@ def xml2element(path="", tag="", file=None, nocache=False):
     parser = SimpleXmlParser(path, tag, file)
     data = parser.parse()
     if usecache:
-        cachedata = CacheData(data, mtime)
+        cachedata = CacheData(data, tag, mtime)
         cw.cwpy.sdata.cache[path] = cachedata
         if nocache:
             data = copy.deepcopy(data)
     return data
 
 class CacheData(object):
-    def __init__(self, data, mtime):
+    def __init__(self, data, tag, mtime):
         self.data = data
+        self.tag = tag
         self.mtime = mtime
 
 class SimpleXmlParser(object):
