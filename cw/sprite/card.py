@@ -428,7 +428,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.events = cw.event.EventEngine(mcarddata.getfind("Events"))
         # CWPyElementTreeインスタンス
         path = cw.cwpy.sdata.casts[mcarddata.getint("Property/Id")][1]
-        self.data = cw.data.xml2etree(path)
+        self.data = cw.data.xml2etree(path, nocache=True)
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Enemy.__init__(self)
@@ -493,7 +493,7 @@ class FriendCard(CWPyCard, character.Friend):
             self.id = castid
             # CWPyElementTreeインスタンス
             path = cw.cwpy.sdata.casts[self.id][1]
-            self.data = cw.data.xml2etree(path)
+            self.data = cw.data.xml2etree(path, nocache=True)
         elif data:
             self.data = data
             self.id = self.data.getint("/Property/Id", 1)

@@ -626,8 +626,7 @@ class CWPy(_Singleton, threading.Thread):
         pcards = [i for i in self.get_pcards() if not i.status == "hidden"]
 
         if pcards:
-            for pcard in pcards:
-                pcard.status = "normal"
+            self.clear_inusecardimg()
             cw.animation.animate_sprites(pcards, "shiftdown")
 
         self.is_showparty = False
