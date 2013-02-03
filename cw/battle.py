@@ -141,9 +141,6 @@ class BattleEngine(object):
         event = cw.cwpy.sdata.events.check_keynum(2)
 
         if event:
-            # 行動内容のクリア
-            for member in self.members:
-                member.clear_action()
             # 逃走イベント開始
             try:
                 cw.cwpy.sdata.start_event(keynum=2)
