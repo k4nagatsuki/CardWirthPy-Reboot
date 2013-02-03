@@ -390,7 +390,11 @@ def parse_summarydata(data, type, archive):
     levelmax = int(e.get("max", 0))
     e = data.find("RequiredCoupons")
     coupons = e.text or ""
-    coupons = cw.util.decodewrap(coupons)
+    clist = cw.util.decodewrap(coupons)
+    coupons = []
+    for coupon in clist:
+        if coupon:
+            coupons.append(coupon)
     couponsnum = int(e.get("number", 0))
     e = data.find("StartAreaId")
     startid = int(e.text) if e.text else 0
