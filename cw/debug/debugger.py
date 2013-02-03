@@ -647,12 +647,13 @@ class Debugger(wx.Frame):
             dlg.Destroy()
 
     def OnStepTool(self, event):
-        if cw.cwpy.is_showingmessage():
+        mwin = cw.cwpy.get_messagewindow()
+        if mwin:
             # メッセージウィンドウ表示中の場合で処理を分ける
-            cw.cwpy.keyevent.keydown(wx.WXK_RETURN)
-        else:
-            cw.cwpy.event._step = True
-            cw.cwpy.event._paused = False
+            cw.cwpy.sounds["click"].play()
+            mwin.result = 0
+        cw.cwpy.event._step = True
+        cw.cwpy.event._paused = False
 
     def OnPauseTool(self, event):
         # メッセージウィンドウ表示中の場合は一時停止できない
@@ -968,8 +969,20 @@ class EventTreeCtrl(wx.TreeCtrl):
     def OnDClick(self, event):
         item = self.GetSelection()
 
-        if item:
-            print self.GetItemPyData(item)
+        if not item:
+            return
+        data = self.GetItemPyData(item)
+        if data is None:
+            return
+
+        # スタートコンテントの場合は次のコンテントへ遷移
+        if data.tag == "Start":
+            item, cookie = self.GetFirstChild(item)
+            if not item.IsOk():
+                return
+            data = self.GetItemPyData(item)
+        if not data is None:
+            cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data)
 
     def refresh_activeitem(self):
         self.UnselectAll()

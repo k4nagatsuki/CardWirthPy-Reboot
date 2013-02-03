@@ -249,6 +249,17 @@ class EventInterface(object):
             if self._stoped:
                 raise EffectBreakError()
 
+    def set_curcontent(self, content):
+        if not self._nowrunningevents:
+            return
+        self._nowrunningevents[-1].force_nextcontent = content
+        mwin = cw.cwpy.get_messagewindow()
+        if mwin:
+            mwin.result = 0
+        else:
+            self.refresh_activeitem()
+        self._stoped = False
+
 class EventEngine(object):
     def __init__(self, data):
         """引数のEventsElementからEventインスタンスのリストを生成。
@@ -334,6 +345,9 @@ class Event(object):
                 # 一番上にあるツリーをまず最初に実行するツリーに設定
                 if self.starttree is None:
                     self.starttree = self.cur_content = content
+
+        # 強制的に実行する次コンテント
+        self.force_nextcontent = None
 
     def start(self):
         try:
@@ -422,7 +436,11 @@ class Event(object):
 
     def get_nextcontents(self):
         """self.cur_contentの子コンテントのリストを返す。"""
-        if self.cur_content is None:
+        if not self.force_nextcontent is None:
+            content = self.force_nextcontent
+            self.force_nextcontent = None
+            return [content]
+        elif self.cur_content is None:
             return None
         else:
             element = self.cur_content.find("Contents")
