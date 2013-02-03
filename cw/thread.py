@@ -531,19 +531,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(self.set_scenario, header)
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
-                self.sounds["error"].play()
-                s = (cw.cwpy.msgs["load_scenario_failure"])
-                mdlg = cw.dialog.message.YesNoMessage(self.frame,
-                                                        cw.cwpy.msgs["message"], s)
-                self.frame.move_dlg(mdlg)
-
-                if mdlg.ShowModal() == wx.ID_OK:
-                    self.exec_func(self.set_yado)
-                else:
-                    self.exec_func(self.ydata.load_party, None)
-                    self.exec_func(self.set_yado)
-
-                mdlg.Destroy()
+                self.exec_func(self.ydata.load_party, None)
+                self.exec_func(self.set_yado)
             else:
                 self.exec_func(self.set_yado)
 

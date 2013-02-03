@@ -995,7 +995,9 @@ def txtwrap(s, mode, width=30, wrapschars=""):
 
 def get_char(s, index):
     try:
-        return s[index]
+        if 0 <= index and index < len(s):
+            return s[index]
+        return ""
     except:
         return ""
 
