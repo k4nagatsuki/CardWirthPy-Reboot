@@ -228,6 +228,14 @@ class EventInterface(object):
         """デバッガのイベントコントロールバーで指定した分だけ、
         イベントの実行を待機する。
         """
+        if not self._nowrunningevents:
+            return
+        cur_content= self._nowrunningevents[-1].cur_content
+        if cur_content.tag == "Talk":
+            # メッセージの場合は表示後に待機するので
+            # ここでは待ち合わせない
+            return
+
         if cw.cwpy.is_showingdebugger() and\
                  cw.cwpy.is_playingscenario() and 0 < cw.cwpy.areaid:
             cnt = 0
@@ -243,7 +251,11 @@ class EventInterface(object):
 
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                                             self._paused and not self._stoped:
+                if not self._nowrunningevents[-1].force_nextcontent is None:
+                    break
                 pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+                cw.cwpy.input()
+                cw.cwpy.eventhandler.run()
                 pygame.time.wait(10)
 
             if self._stoped:
@@ -257,8 +269,8 @@ class EventInterface(object):
         if mwin:
             mwin.result = 0
         else:
+            self._nowrunningevents[-1].skip_action = True
             self.refresh_activeitem()
-        self._stoped = False
 
 class EventEngine(object):
     def __init__(self, data):
@@ -348,6 +360,7 @@ class Event(object):
 
         # 強制的に実行する次コンテント
         self.force_nextcontent = None
+        self.skip_action = False
 
     def start(self):
         try:
@@ -426,6 +439,9 @@ class Event(object):
         self.nowrunningcontents = []
 
     def action(self):
+        if self.skip_action:
+            self.skip_action = False
+            return
         """self.cur_contentを実行。"""
         content = cw.content.get_content(self.cur_content)
 

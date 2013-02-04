@@ -15,6 +15,9 @@ class EventContentBase(object):
     def action(self):
         return 0
 
+    def can_action(self):
+        return True
+
     def get_status(self):
         return self.data.tag + self.data.get("type", "")
 
@@ -1947,9 +1950,9 @@ class TalkMessageContent(TalkContent):
         elif imgpath.endswith("??Unselected"):
             talker = cw.cwpy.event.get_targetmember("Unselected")
 
-            # 選択外メンバがいなかったらランダム
+            # 選択外メンバがいなかったらスキップ
             if not talker:
-                talker = cw.cwpy.event.get_targetmember("Random")
+                return 0
 
         # 使用中カード
         elif imgpath.endswith("??Card"):
@@ -1985,6 +1988,37 @@ class TalkMessageContent(TalkContent):
 
         return index
 
+    def can_action(self):
+        """メッセージや選択肢を表示可能であればTrueを返す。
+        Falseが返される状況の場合、メッセージは飛ばされる。
+        """
+        # 画像パス取得
+        imgpath = self.data.get("path", "")
+
+        # 選択外メンバ
+        if imgpath.endswith("??Unselected"):
+            talker = cw.cwpy.event.get_targetmember("Unselected")
+            # 選択外メンバがいなかったらスキップ
+            if not talker:
+                return False
+        # 使用中カード
+        elif imgpath.endswith("??Card"):
+            talker = cw.cwpy.event.get_targetmember("Inusecard")
+            # 使用中カードがなかったらスキップ
+            if not talker:
+                return False
+
+        # テキスト取得
+        text = self.data.gettext("Text", "")
+        # 選択肢取得
+        names = self.get_selections_and_indexes()
+
+        # テキストが存在せず、選択肢も無い場合はスキップ
+        if not text and len(names) <= 1:
+            return False
+
+        return True
+
     def get_status(self):
         imgpath = self.data.get("path", "")
 
@@ -2019,33 +2053,11 @@ class TalkDialogContent(TalkContent):
         # 対象メンバの所持クーポンの集合
         coupons = talker.get_coupons()
         # ダイアログリスト
-        dialogs = []
-
-        for e in self.data.getfind("Dialogs"):
-            rcs = e.gettext("RequiredCoupons", "")
-            rclist = cw.util.decodetextlist(rcs) if rcs else []
-            req_coupons = []
-            for rc in rclist:
-                if rc:
-                    req_coupons.append(rc)
-            text = e.gettext("Text", "")
-            dialogs.append((req_coupons, text))
+        dialogs = self.get_dialogs()
 
         # 対象メンバが必須クーポンを所持していたら、
         # その必須クーポンに対応するテキストを優先して表示させる
-        dialogtext = ""
-
-        for req_coupons, text in dialogs:
-            for req_coupon in req_coupons:
-                if req_coupon in coupons:
-                    dialogtext = text
-                    break
-
-            if not req_coupons:
-                dialogtext = text
-
-            if dialogtext:
-                break
+        dialogtext = self.get_dialogtext(dialogs, coupons)
 
         # MessageWindow表示
         if dialogtext:
@@ -2059,6 +2071,63 @@ class TalkDialogContent(TalkContent):
             index = 0
 
         return index
+
+    def can_action(self):
+        """台詞を表示可能であればTrueを返す。
+        Falseが返される状況の場合、台詞は飛ばされる。
+        """
+        # 対象メンバ取得
+        targetm = self.data.get("targetm", "")
+        talker = cw.cwpy.event.get_targetmember(targetm)
+
+        # 対象メンバが存在しなかったらスキップ
+        if not talker or isinstance(talker, list):
+            return False
+
+        # 選択肢取得
+        names = self.get_selections_and_indexes()
+        # 対象メンバの所持クーポンの集合
+        coupons = talker.get_coupons()
+        # ダイアログリスト
+        dialogs = self.get_dialogs()
+
+        # 対象メンバが必須クーポンを所持していたら、
+        # その必須クーポンに対応するテキストを優先して表示させる
+        dialogtext = self.get_dialogtext(dialogs, coupons)
+
+        # テキストが存在せず、選択肢も無い場合はスキップ
+        if not dialogtext and len(names) <= 1:
+            return False
+
+        return True
+
+    def get_dialogs(self):
+        dialogs = []
+        for e in self.data.getfind("Dialogs"):
+            rcs = e.gettext("RequiredCoupons", "")
+            rclist = cw.util.decodetextlist(rcs) if rcs else []
+            req_coupons = []
+            for rc in rclist:
+                if rc:
+                    req_coupons.append(rc)
+            text = e.gettext("Text", "")
+            dialogs.append((req_coupons, text))
+        return dialogs
+
+    def get_dialogtext(self, dialogs, coupons):
+        dialogtext = ""
+        for req_coupons, text in dialogs:
+            for req_coupon in req_coupons:
+                if req_coupon in coupons:
+                    dialogtext = text
+                    break
+
+            if not req_coupons:
+                dialogtext = text
+
+            if dialogtext:
+                break
+        return dialogtext
 
     def get_status(self):
         try:
