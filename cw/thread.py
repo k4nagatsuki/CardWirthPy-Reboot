@@ -872,16 +872,11 @@ class CWPy(_Singleton, threading.Thread):
                     else:
                         self.set_curtain(target=cardtarget)
 
-            elif cardtarget == "User":
+            elif cardtarget == "User" or cardtarget == "None":
                 if self.status == "Scenario":
                     self.change_selection(owner)
                     self.call_dlg("USECARD")
                 elif self.is_battlestatus():
-                    owner.set_action(owner, header)
-                    self.clear_specialarea()
-
-            elif cardtarget == "None":
-                if self.is_battlestatus():
                     owner.set_action(owner, header)
                     self.clear_specialarea()
 
