@@ -111,6 +111,8 @@ class CWPy(_Singleton, threading.Thread):
         # list, index(キーボードでのカード選択に使う)
         self.list = []
         self.index = -1
+        # カード選択ダイアログで選択中のカード種別
+        self.lastcardpocket = 0
         # クラシックなシナリオの再生中であればそのデータ
         self.classicdata = None
         # イベントハンドラ

@@ -381,7 +381,7 @@ class CardHolder(CardControl):
 
         else:
             self.index = 0
-            self.index3 = 0
+            self.index3 = cw.cwpy.lastcardpocket
             self.index_combo = 0
             if self.callname == "CARDPOCKET":
                 self.selection = cw.cwpy.selection
@@ -393,7 +393,7 @@ class CardHolder(CardControl):
                     self.list2 = cw.cwpy.get_fcards()
                 self.index2 = self.list2.index(self.selection)
             else:
-                self.index2 = 0
+                self.index2 = cw.cwpy.lastcardpocket
 
         if self.callname == "CARDPOCKET":
             name =  cw.cwpy.msgs["cards_hand"] % (self.selection.name)
@@ -528,6 +528,7 @@ class CardHolder(CardControl):
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
 
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
     def _re_layout(self):
         # レフトバー
@@ -570,6 +571,10 @@ class CardHolder(CardControl):
         self._re_layout()
 
         CardControl._do_layout(self, self._sizer_leftbar)
+
+    def OnDestroy(self, event):
+        if self.callname == "CARDPOCKET" or self.callname == "BACKPACK" or self.callname == "STOREHOUSE":
+            cw.cwpy.lastcardpocket = self.index3
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
