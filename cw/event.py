@@ -245,7 +245,11 @@ class EventInterface(object):
 
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                         cnt < cw.cwpy.frame.debugger.sc_waittime.GetValue():
+                if not self._nowrunningevents[-1].force_nextcontent is None:
+                    break
                 pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+                cw.cwpy.input()
+                cw.cwpy.eventhandler.run()
                 pygame.time.wait(100)
                 cnt += 1
 
