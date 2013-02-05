@@ -1073,6 +1073,8 @@ class Character(object):
         精神状態とその継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
+        if name == "Normal":
+            value = 0
         self.mentality = name
         self.mentality_dur = value
         self.mentality_dur = cw.util.numwrap(self.mentality_dur, 0, 999)
@@ -1130,6 +1132,8 @@ class Character(object):
         行動力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if value == 0:
+            duration = 0
         self.enhance_act = value
         self.enhance_act = cw.util.numwrap(self.enhance_act, -10, 10)
         self.enhance_act_dur = duration
@@ -1143,6 +1147,8 @@ class Character(object):
         回避力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if value == 0:
+            duration = 0
         self.enhance_avo = value
         self.enhance_avo = cw.util.numwrap(self.enhance_avo, -10, 10)
         self.enhance_avo_dur = duration
@@ -1156,6 +1162,8 @@ class Character(object):
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if value == 0:
+            duration = 0
         self.enhance_res = value
         self.enhance_res = cw.util.numwrap(self.enhance_res, -10, 10)
         self.enhance_res_dur = duration
@@ -1169,6 +1177,8 @@ class Character(object):
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if value == 0:
+            duration = 0
         self.enhance_def = value
         self.enhance_def = cw.util.numwrap(self.enhance_def, -10, 10)
         self.enhance_def_dur = duration
