@@ -171,22 +171,27 @@ class Effect(object):
         consume.clear()
 
         # 音鳴らす
+        cw.cwpy.play_sound(self.soundpath)
+
         if not allmissed:
             if noeffect or (success_res and not hasdamage):
                 cw.cwpy.sounds["ineffective"].play()
-                pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                self.animate(target, True)
                 return False
             elif success_avo:
                 cw.cwpy.sounds["avoid"].play()
                 pygame.time.wait(cw.cwpy.setting.frametime * 12)
                 return False
 
-        cw.cwpy.play_sound(self.soundpath)
-
         # 効果モーションを発動
+        effectual = False
         if not allmissed:
             for motion in self.motions:
-                motion.apply(target, success_res)
+                effectual |= motion.apply(target, success_res)
+
+        if not effectual:
+            # 効果無し
+            cw.cwpy.sounds["ineffective"].play()
 
         # ダメージ軽減によるカード消耗
         if hasdamage:
@@ -466,17 +471,28 @@ class EffectMotion(object):
         """
         # 無効属性だったら処理中止
         if self.is_noeffect(target):
-            return
+            return False
 
-        # 意識不明だったら回復以外の処理中止
-        if target.is_unconscious() and not self.type == "Heal":
-            return
+        # 意識不明だったら一部効果の処理中止
+        list = (
+            "Heal",
+            "Paralyze",
+            "DisParalyze",
+            "Poison",
+            "DisPoison",
+            "GetSkillPower",
+            "LoseSkillPower",
+            "VanishTarget"
+        )
+        if target.is_unconscious() and not self.type in list:
+            return False
 
         methodname = self.type.lower() + "_motion"
         method = getattr(self, methodname, None)
 
         if method:
-            method(target, success_res)
+            return method(target, success_res)
+        return False
 
     #-----------------------------------------------------------------------
     #「生命力」関連効果
@@ -487,6 +503,7 @@ class EffectMotion(object):
         """
         value = self.calc_effectvalue(target)
         target.set_life(value)
+        return 0 < value
 
     def damage_motion(self, target, success_res):
         """
@@ -506,6 +523,7 @@ class EffectMotion(object):
         # 睡眠解除
         if target.is_sleep():
             target.set_mentality("Normal", 0)
+        return value <> 0
 
     def absorb_motion(self, target, success_res):
         """
@@ -525,6 +543,7 @@ class EffectMotion(object):
         # 与えたダメージ分、使用者回復
         if self.user:
             self.user.set_life(value)
+        return 0 < value
 
     #-----------------------------------------------------------------------
     #「肉体」関連効果
@@ -539,6 +558,7 @@ class EffectMotion(object):
             value = 40
 
         target.set_paralyze(value)
+        return 0 < value
 
     def disparalyze_motion(self, target, success_res):
         """
@@ -550,6 +570,7 @@ class EffectMotion(object):
             value = 40
 
         target.set_paralyze(-value)
+        return 0 < value
 
     def poison_motion(self, target, success_res):
         """
@@ -561,7 +582,7 @@ class EffectMotion(object):
             value = 40
 
         target.set_poison(value)
-        return True
+        return 0 < value
 
     def dispoison_motion(self, target, success_res):
         """
@@ -573,6 +594,7 @@ class EffectMotion(object):
             value = 40
 
         target.set_poison(-value)
+        return 0 < value
 
     #-----------------------------------------------------------------------
     #「技能」関連効果
@@ -582,12 +604,14 @@ class EffectMotion(object):
         精神力回復。抵抗成功で無効化。
         """
         target.set_skillpower(True)
+        return True
 
     def loseskillpower_motion(self, target, success_res):
         """
         精神力不能。抵抗成功で無効化。
         """
         target.set_skillpower(False)
+        return True
 
     #-----------------------------------------------------------------------
     #「精神」関連効果
@@ -596,26 +620,31 @@ class EffectMotion(object):
         """
         精神状態変更(睡眠・混乱・激昂・勇敢・恐慌・正常)。
         """
-        duration = self.calc_durationvalue()
+        if self.type.title() == "Normal":
+            duration = 0
+        else:
+            duration = self.calc_durationvalue()
+        eff = target.mentality <> self.type.title() and duration <> target.mentality_dur
         target.set_mentality(self.type.title(), duration)
+        return eff
 
     def sleep_motion(self, *args, **kwargs):
-        self.mentality(*args, **kwargs)
+        return self.mentality(*args, **kwargs)
 
     def confuse_motion(self, *args, **kwargs):
-        self.mentality(*args, **kwargs)
+        return self.mentality(*args, **kwargs)
 
     def overheat_motion(self, *args, **kwargs):
-        self.mentality(*args, **kwargs)
+        return self.mentality(*args, **kwargs)
 
     def brave_motion(self, *args, **kwargs):
-        self.mentality(*args, **kwargs)
+        return self.mentality(*args, **kwargs)
 
     def panic_motion(self, *args, **kwargs):
-        self.mentality(*args, **kwargs)
+        return self.mentality(*args, **kwargs)
 
     def normal_motion(self, *args, **kwargs):
-        self.mentality(*args, **kwargs)
+        return self.mentality(*args, **kwargs)
 
     #-----------------------------------------------------------------------
     #「魔法」関連効果
@@ -626,12 +655,15 @@ class EffectMotion(object):
         """
         duration = self.calc_durationvalue()
         target.set_bind(duration)
+        return 0 < duration
 
     def disbind_motion(self, target, success_res):
         """
         束縛解除。
         """
+        duration = target.get_bind()
         target.set_bind(0)
+        return 0 < duration
 
     def silence_motion(self, target, success_res):
         """
@@ -639,12 +671,15 @@ class EffectMotion(object):
         """
         duration = self.calc_durationvalue()
         target.set_silence(duration)
+        return 0 < duration
 
     def dissilence_motion(self, target, success_res):
         """
         沈黙解除。
         """
+        duration = target.get_silence()
         target.set_silence(0)
+        return 0 < duration
 
     def faceup_motion(self, target, success_res):
         """
@@ -652,12 +687,15 @@ class EffectMotion(object):
         """
         duration = self.calc_durationvalue()
         target.set_faceup(duration)
+        return 0 < duration
 
     def facedown_motion(self, target, success_res):
         """
         暴露解除。
         """
+        duration = target.get_faceup()
         target.set_faceup(0)
+        return 0 < duration
 
     def antimagic_motion(self, target, success_res):
         """
@@ -665,12 +703,15 @@ class EffectMotion(object):
         """
         duration = self.calc_durationvalue()
         target.set_antimagic(duration)
+        return 0 < duration
 
     def disantimagic_motion(self, target, success_res):
         """
         魔法無効化解除。
         """
+        duration = target.get_antimagic()
         target.set_antimagic(0)
+        return 0 < duration
 
     #-----------------------------------------------------------------------
     #「能力」関連効果
@@ -679,29 +720,49 @@ class EffectMotion(object):
         """
         行動力変化。
         """
-        duration = self.calc_durationvalue()
+        if self.value <> 0:
+            duration = self.calc_durationvalue()
+        else:
+            duration = 0
+        eff = target.enhance_act <> self.value and target.enhance_act_dur <> duration
         target.set_enhance_act(self.value, duration)
+        return eff
 
     def enhanceavoid_motion(self, target, success_res):
         """
         回避力変化。
         """
-        duration = self.calc_durationvalue()
+        if self.value <> 0:
+            duration = self.calc_durationvalue()
+        else:
+            duration = 0
+        eff = target.enhance_avo <> self.value and target.enhance_avo_dur <> duration
         target.set_enhance_avo(self.value, duration)
+        return eff
 
     def enhanceresist_motion(self, target, success_res):
         """
         抵抗力変化。
         """
-        duration = self.calc_durationvalue()
+        if self.value <> 0:
+            duration = self.calc_durationvalue()
+        else:
+            duration = 0
+        eff = target.enhance_res <> self.value and target.enhance_res_dur <> duration
         target.set_enhance_res(self.value, duration)
+        return eff
 
     def enhancedefense_motion(self, target, success_res):
         """
         防御力変化。
         """
-        duration = self.calc_durationvalue()
+        if self.value <> 0:
+            duration = self.calc_durationvalue()
+        else:
+            duration = 0
+        eff = target.enhance_def <> self.value and target.enhance_def_dur <> duration
         target.set_enhance_def(self.value, duration)
+        return eff
 
     #-----------------------------------------------------------------------
     #「消滅」関連効果
@@ -711,6 +772,7 @@ class EffectMotion(object):
         対象消去。
         """
         target.set_vanish()
+        return True
 
     def vanishcard_motion(self, target, success_res):
         """
@@ -718,12 +780,14 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.throwaway(target)
+            return True
+        return False
 
     def vanishbeast_motion(self, target, success_res):
         """
         召喚獣消去。
         """
-        target.set_beast(vanish=True)
+        return target.set_beast(vanish=True)
 
     #-----------------------------------------------------------------------
     #「カード」関連効果
@@ -734,6 +798,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard(1)
+            return True
+        return False
 
     def dealpowerfulattackcard_motion(self, target, success_res):
         """
@@ -741,6 +807,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard(2)
+            return True
+        return False
 
     def dealcriticalattackcard_motion(self, target, success_res):
         """
@@ -748,6 +816,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard(3)
+            return True
+        return False
 
     def dealfeintcard_motion(self, target, success_res):
         """
@@ -755,6 +825,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard(4)
+            return True
+        return False
 
     def dealdefensecard_motion(self, target, success_res):
         """
@@ -762,6 +834,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard(5)
+            return True
+        return False
 
     def dealdistancecard_motion(self, target, success_res):
         """
@@ -769,6 +843,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard(6)
+            return True
+        return False
 
     def dealconfusecard_motion(self, target, success_res):
         """
@@ -776,6 +852,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard(-1)
+            return True
+        return False
 
     def dealskillcard_motion(self, target, success_res):
         """
@@ -783,6 +861,8 @@ class EffectMotion(object):
         """
         if cw.cwpy.battle:
             target.deck.set_nextcard()
+            return True
+        return False
 
     #-----------------------------------------------------------------------
     #「召喚」関連効果
@@ -791,8 +871,10 @@ class EffectMotion(object):
         """
         召喚獣召喚。
         """
+        eff = False
         for e in self.beasts:
-            target.set_beast(e)
+            eff |= target.set_beast(e)
+        return eff
 
 #-------------------------------------------------------------------------------
 # 有効な効果モーションのチェック用関数

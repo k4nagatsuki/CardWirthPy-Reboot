@@ -1205,14 +1205,18 @@ class Character(object):
         """
         idx = cw.POCKET_BEAST
 
+        eff = False
         if vanish:
             for header in self.cardpocket[idx][::-1]:
                 if not header.attachment:
                     self.throwaway_card(header)
+                    eff = True
 
         elif len(self.cardpocket[idx]) < self.get_cardpocketspace()[idx]:
             etree = cw.data.xml2etree(element=element, nocache=True)
             cw.content.get_card(etree, self, True)
+            eff = True
+        return eff
 
     def set_timeelapse(self, time=1):
         """時間経過。"""
