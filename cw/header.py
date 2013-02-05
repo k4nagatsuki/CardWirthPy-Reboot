@@ -439,7 +439,7 @@ class CardHeader(object):
 
     def is_autoselectable(self):
         flag = not bool(self.target == "None")
-        if self.carddata:
+        if not self.carddata is None:
             flag &= not self.carddata.find("Motions/Motion") is None
 
         if self.type <> "BeastCard":

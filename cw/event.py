@@ -595,26 +595,7 @@ class CardEvent(Event):
         d["resisttype"] = data.gettext("Property/ResistType", "Avoid")
         d["soundpath"] = data.gettext("Property/SoundPath2", "")
         d["visualeffect"] = data.gettext("Property/VisualEffect", "None")
-
-        if self.inusecard.type == "SkillCard":
-            d["level"] = data.getint("Property/Level", 0)
-        else:
-            d["level"] = 0
-
-        # 沈黙時のスペルカード発動キャンセル・魔法無効判定・カード不発判定
-        spellcard = data.getbool("Property/EffectType", "spell", False)
-        magiccard = data.gettext("Property/EffectType", "None") in ("Magic", "PhysicalMagic")
-        flag = bool(spellcard and self.user.is_silence())
-        flag |= bool(magiccard and self.user.is_antimagic())
-        flag |= bool(d["level"] and not self.user.decide_misfire(d["level"]))
-
-        if flag:
-            cw.cwpy.sounds["confuse"].play(True)
-            cw.animation.animate_sprite(self.user, "axialvibe")
-            cw.animation.animate_sprite(self.user, "hide")
-            cw.cwpy.clear_inusecardimg()
-            cw.animation.animate_sprite(self.user, "deal")
-            return
+        d["target"] = data.gettext("Property/Target", "None")
 
         # Effectインスタンス作成
         motions = data.getfind("Motions").getchildren()
@@ -661,8 +642,9 @@ class CardEvent(Event):
             else:
                 target.clear_cardtarget()
 
-                if not eff.apply(target):
-                    cw.cwpy.draw()
+                if d["target"] <> "None" or isinstance(target, cw.sprite.card.MenuCard):
+                    eff.apply(target)
+                cw.cwpy.draw()
 
         self.check_gameover()
 
