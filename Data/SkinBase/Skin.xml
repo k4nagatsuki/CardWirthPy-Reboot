@@ -422,6 +422,7 @@
     <Sound key="run">システム・逃走</Sound>
     <Sound key="dump">システム・破棄</Sound>
     <Sound key="ineffective">システム・無効</Sound>
+    <Sound key="confuse">効果（混乱）</Sound>
   </Sounds>
   <Messages>
     <Message key="message">メッセージ</Message>

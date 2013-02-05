@@ -578,14 +578,14 @@ class CardEvent(Event):
         else:
             d["level"] = 0
 
-        # 沈黙時のスペルカード発動キャンセル・カード不発判定
+        # 沈黙時のスペルカード発動キャンセル・魔法無効判定・カード不発判定
         spellcard = data.getbool("Property/EffectType", "spell", False)
         flag = bool(spellcard and self.user.is_silence())
         flag |= bool(d["level"] and not self.user.decide_misfire(d["level"]))
 
         if flag:
-            cw.cwpy.sounds[u"効果（混乱）"].play()
-            cw.animation.animate_sprite(self.user, "lateralvibe")
+            cw.cwpy.sounds["confuse"].play()
+            cw.animation.animate_sprite(self.user, "axialvibe")
             return
 
         # Effectインスタンス作成

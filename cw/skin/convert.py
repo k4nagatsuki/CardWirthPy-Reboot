@@ -295,6 +295,8 @@ class Converter(threading.Thread):
             # "\0＿２\0＿３\0＿４\0＿５\0＿６\0異常発生\0"
             key = "\x00\x81\x51\x82\x51\x00\x81\x51\x82\x52\x00\x81\x51\x82\x53\x00\x81\x51\x82\x54\x00\x81\x51\x82\x55\x00\x88\xD9\x8F\xED\x94\xAD\x90\xB6\x00"
             get_keyafter(sounds[8], key, 14)
+            # 効果（混乱）
+            get_keyafter(sounds[12], key, 12, than=41)
             # システム・逃走
             key = ".wav\0TITLE_CARD1\0TITLE_CARD1\0TITLE_CARD2\0"
             get_keybefore(sounds[9], key, 14, less=16+5)
