@@ -438,10 +438,10 @@ class CardHeader(object):
         return bool(self._owner == "STOREHOUSE")
 
     def is_autoselectable(self):
-        if self.type == "BeastCard":
-            flag = not bool(self.target == "None")
-        else:
-            flag = not self.hold
+        flag = not bool(self.target == "None")
+
+        if self.type <> "BeastCard":
+            flag &= not self.hold
 
             if self.type == "ItemCard":
                 flag &= not bool(self.recycle and self.uselimit <= 0)
