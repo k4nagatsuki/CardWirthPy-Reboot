@@ -580,12 +580,17 @@ class CardEvent(Event):
 
         # 沈黙時のスペルカード発動キャンセル・魔法無効判定・カード不発判定
         spellcard = data.getbool("Property/EffectType", "spell", False)
+        magiccard = data.gettext("Property/EffectType", "None") in ("Magic", "PhysicalMagic")
         flag = bool(spellcard and self.user.is_silence())
+        flag |= bool(magiccard and self.user.is_antimagic())
         flag |= bool(d["level"] and not self.user.decide_misfire(d["level"]))
 
         if flag:
-            cw.cwpy.sounds["confuse"].play()
+            cw.cwpy.sounds["confuse"].play(True)
             cw.animation.animate_sprite(self.user, "axialvibe")
+            cw.animation.animate_sprite(self.user, "hide")
+            cw.cwpy.clear_inusecardimg()
+            cw.animation.animate_sprite(self.user, "deal")
             return
 
         # Effectインスタンス作成

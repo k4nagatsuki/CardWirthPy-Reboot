@@ -650,7 +650,7 @@ class Debugger(wx.Frame):
         mwin = cw.cwpy.get_messagewindow()
         if mwin:
             # メッセージウィンドウ表示中の場合で処理を分ける
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.sounds["click"].play(True)
             mwin.result = 0
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
