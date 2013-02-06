@@ -661,7 +661,7 @@ class EffectMotion(object):
         """
         束縛解除。
         """
-        duration = target.get_bind()
+        duration = target.bind
         target.set_bind(0)
         return 0 < duration
 
@@ -677,7 +677,7 @@ class EffectMotion(object):
         """
         沈黙解除。
         """
-        duration = target.get_silence()
+        duration = target.silence
         target.set_silence(0)
         return 0 < duration
 
@@ -693,7 +693,7 @@ class EffectMotion(object):
         """
         暴露解除。
         """
-        duration = target.get_faceup()
+        duration = target.faceup
         target.set_faceup(0)
         return 0 < duration
 
@@ -709,7 +709,7 @@ class EffectMotion(object):
         """
         魔法無効化解除。
         """
-        duration = target.get_antimagic()
+        duration = target.antimagic
         target.set_antimagic(0)
         return 0 < duration
 
