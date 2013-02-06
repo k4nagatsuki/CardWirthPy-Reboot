@@ -528,6 +528,21 @@ class SelectionBar(base.SelectableSprite):
         else:
             mwin.result = self.index
 
+class BacklogData:
+    def __init__(self, base):
+        """バックログ表示用のデータ。
+        """
+        if isinstance(base, MessageWindow):
+            self.type = 0
+        else:
+            self.type = 1
+        self.text = base.text
+        self.names = base.names
+        self.path = base.path
+        self.talker = base.talker
+        self.rect = base.rect
+        self.result = base.result
+
 def draw_frame(image, size, pos=(0, 0)):
     """
     引数のサーフェスにメッセージウィンドウの外枠を描画。

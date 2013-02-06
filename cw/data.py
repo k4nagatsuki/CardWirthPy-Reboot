@@ -229,6 +229,8 @@ class ScenarioData(SystemData):
 
         # ロードしたデータファイルのキャッシュ
         self.cache = {}
+        # メッセージのバックログ
+        self.backlog = []
 
     def reload(self):
         flagvals = {}

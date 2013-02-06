@@ -41,6 +41,7 @@ class Setting(object):
             self.smoothscale_bg = False
             self.skindirname = "Classic"
             self.classicstyletext = True
+            self.backlog_max = 100
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -112,6 +113,7 @@ class Setting(object):
         self.skintype = data.gettext("/Property/Type", "")
         self.skinexts = data.getfind("/Property/Extension").attrib
         self.classicstyletext = data.gettext("/Property/ClassicStyleText", True)
+        self.backlogmax = data.getint("Property/BackLogMax", 100)
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("/Races")]
 

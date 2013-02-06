@@ -307,6 +307,13 @@ class CWPy(_Singleton, threading.Thread):
             self.input()
             eventhandler.run()
 
+        # バックログの保存
+        if isinstance(self.sdata, cw.data.ScenarioData) and\
+                not isinstance(mwin, cw.sprite.message.MemberSelectWindow):
+            if self.setting.backlogmax <= len(self.sdata.backlog):
+                self.sdata.backlog.pop(0)
+            self.sdata.backlog.append(cw.sprite.message.BacklogData(mwin))
+
         # cwpylist, index 初期化
         self.list = self.get_mcards("visible")
         self.index = -1
