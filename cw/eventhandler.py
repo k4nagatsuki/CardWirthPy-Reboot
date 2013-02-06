@@ -63,6 +63,14 @@ class EventHandler(object):
                 elif event.button == 3:
                     self.rclick_event()
 
+                # マウスホイール上移動
+                elif event.button == 4:
+                    self.wheel_event(y=-1)
+
+                # マウスホイール下移動
+                elif event.button == 5:
+                    self.wheel_event(y=1)
+
             # ユーザイベント
             elif event.type == USEREVENT and hasattr(event, "func"):
                 self.executing_event(event)
@@ -81,11 +89,19 @@ class EventHandler(object):
 
         return index
 
-    def dirkey_event(self, x=0, y=0, pushing=False):
+    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
         """
         方向キーイベント。カードのフォーカスを変更する。
         """
         cw.cwpy.has_inputevent = True
+
+        if sidechange:
+            if x < 0 and cw.cwpy.index == 0:
+                x = 0
+                y = -1
+            elif 0 < x and cw.cwpy.index + 1 == len(cw.cwpy.list):
+                x = 0
+                y = 1
 
         if x:
             cw.cwpy.index = self.calc_index(x)
@@ -95,25 +111,31 @@ class EventHandler(object):
                 cw.cwpy.change_selection(sprite)
 
         elif y:
-            if y > 0:
-                seq = cw.cwpy.get_pcards("unreversed")
-            else:
+            if isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
                 seq = cw.cwpy.get_mcards("visible")
+            else:
+                seq = cw.cwpy.get_pcards("unreversed")
 
             if seq:
                 cw.cwpy.list = seq
 
-            cw.cwpy.index = -1
-            self.dirkey_event(x=1)
+                if sidechange:
+                    if y < 0:
+                        cw.cwpy.index = len(cw.cwpy.list) - 1
+                    else:
+                        cw.cwpy.index = 0
+                else:
+                    cw.cwpy.index = 0
+                sprite = cw.cwpy.list[cw.cwpy.index]
+                cw.cwpy.change_selection(sprite)
 
     def lclick_event(self):
         """
         左クリックイベント。
         """
         if cw.cwpy.selection:
-            if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
-                cw.cwpy.has_inputevent = True
-                cw.cwpy.selection.lclick_event()
+            cw.cwpy.has_inputevent = True
+            cw.cwpy.selection.lclick_event()
 
         elif cw.cwpy.wait_showcards:
             # メニューカードの表示を待っている場合は表示
@@ -124,9 +146,8 @@ class EventHandler(object):
         右クリックイベント。
         """
         if cw.cwpy.selection:
-            if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
-                cw.cwpy.has_inputevent = True
-                cw.cwpy.selection.rclick_event()
+            cw.cwpy.has_inputevent = True
+            cw.cwpy.selection.rclick_event()
         elif cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
             # シナリオプレイ時、キャンプモード切替
             if cw.cwpy.status == "Scenario" and not cw.cwpy.is_dealing():
@@ -246,6 +267,12 @@ class EventHandler(object):
             # メニューカードの表示を待っている場合は表示
             cw.cwpy.deal_cards()
 
+    def wheel_event(self, y=0):
+        """
+        ホイールイベント。
+        """
+        self.dirkey_event(x=y, sidechange=True)
+
     def executing_event(self, event):
         """
         cwpy.exec_func()でポストされたユーザイベント。
@@ -341,7 +368,8 @@ class EventHandlerForMessageWindow(EventHandler):
         左クリックイベント。
         """
         if cw.cwpy.selection:
-            if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
+            if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos) or\
+                    isinstance(cw.cwpy.selection, cw.sprite.message.SelectionBar):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.lclick_event()
 
