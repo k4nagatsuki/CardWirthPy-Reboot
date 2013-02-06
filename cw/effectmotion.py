@@ -7,6 +7,18 @@ import cw
 from cw.character import Character
 
 
+# 意識不明の対象に有効な効果。
+CAN_UNCONSCIOUS = (
+    "Heal",
+    "Paralyze",
+    "DisParalyze",
+    "Poison",
+    "DisPoison",
+    "GetSkillPower",
+    "LoseSkillPower",
+    "VanishTarget"
+)
+
 def is_noeffect(element, target):
     """
     属性の相性が無効ならTrueを返す。
@@ -303,10 +315,16 @@ class Effect(object):
             return False
         elif isinstance(target, Character):
             flag  = bool(not target.is_vanished())
-            flag &= bool(not target.is_unconscious() or self.has_motion("Heal"))
+            flag &= bool(not target.is_unconscious() or self.has_motions(CAN_UNCONSCIOUS))
             return flag
         else:
             return True
+
+    def has_motions(self, motiontypes):
+        for motiontype in motiontypes:
+            if self.has_motion(motiontype):
+                return True
+        return False
 
     def has_motion(self, motiontype):
         """
@@ -474,17 +492,7 @@ class EffectMotion(object):
             return False
 
         # 意識不明だったら一部効果の処理中止
-        list = (
-            "Heal",
-            "Paralyze",
-            "DisParalyze",
-            "Poison",
-            "DisPoison",
-            "GetSkillPower",
-            "LoseSkillPower",
-            "VanishTarget"
-        )
-        if target.is_unconscious() and not self.type in list:
+        if target.is_unconscious() and not self.type in CAN_UNCONSCIOUS:
             return False
 
         methodname = self.type.lower() + "_motion"
