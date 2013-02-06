@@ -183,7 +183,8 @@ class Effect(object):
         consume.clear()
 
         # 音鳴らす
-        cw.cwpy.play_sound(self.soundpath)
+        if not success_avo:
+            cw.cwpy.play_sound(self.soundpath)
 
         if not allmissed:
             if noeffect or (success_res and not hasdamage):
@@ -462,8 +463,10 @@ class EffectMotion(object):
         """
         効果実数値に防御修正を加える。
         """
+        if value == 0:
+            return 0
         enhance_def = target.get_enhance_def()
-        return (value * (10 - enhance_def)) / 10
+        return max(1, (value * (10 - enhance_def)) / 10)
 
     def is_noeffect(self, target):
         """
@@ -531,7 +534,7 @@ class EffectMotion(object):
         # 睡眠解除
         if target.is_sleep():
             target.set_mentality("Normal", 0)
-        return value <> 0
+        return 0 < value
 
     def absorb_motion(self, target, success_res):
         """
