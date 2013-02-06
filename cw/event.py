@@ -567,7 +567,7 @@ class CardEvent(Event):
             target.events.start(keycodes=keycodes)
 
     def run_deadevent(self, target):
-        if isinstance(target, Enemy) and target.is_dead():
+        if isinstance(target, Enemy) and (target.is_dead() or target.is_vanished()):
             target.events.start(1)
 
     def run_successevent(self, target, successflag):
