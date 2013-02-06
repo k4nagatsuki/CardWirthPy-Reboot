@@ -52,6 +52,7 @@ class CardControl(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn2, self.rightbtn2)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
@@ -94,6 +95,14 @@ class CardControl(wx.Dialog):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def OnMouseWheel(self, event):
+        if event.GetWheelRotation() > 0:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
+            self.ProcessEvent(btnevent)
+        else:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
+            self.ProcessEvent(btnevent)
 
     def OnLeftUp(self, event):
         for header in self.get_headers():
@@ -527,7 +536,6 @@ class CardHolder(CardControl):
         self.Bind(wx.EVT_BUTTON, self.OnClickUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
 
-        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
     def _re_layout(self):
@@ -737,26 +745,34 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnMouseWheel(self, event):
-        if self.callname == "CARDPOCKET":
-            # キャストの手札カード
-            # 特殊技能、アイテム、召喚獣を切り替え
-            l = [self.skillbtn, self.itembtn, self.beastbtn]
-            if event.GetWheelRotation() > 0:
-                btn = l[self.index3 - 1] if not self.index3 == 0 else l[len(l) -1]
-            else:
-                btn = l[self.index3 + 1] if not self.index3 == len(l) -1 else l[0]
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
-            btnevent.SetEventObject(btn)
-        else:
-            # カード置き場、荷物袋、情報カード
-            # ページを切り替え
-            if not self.list or len(self.list) <= 10:
+        lpos = self._sizer_leftbar.GetPosition()
+        lsize = self._sizer_leftbar.GetSize()
+        lwidth = lsize[0] + lpos[0] * 2;
+        if event.GetPosition()[0] < lwidth or self.callname == "INFOVIEW":
+            if self.callname == "CARDPOCKET":
+                # キャストの手札カード
+                # 特殊技能、アイテム、召喚獣を切り替え
+                l = [self.skillbtn, self.itembtn, self.beastbtn]
+                if event.GetWheelRotation() > 0:
+                    btn = l[self.index3 - 1] if not self.index3 == 0 else l[len(l) -1]
+                else:
+                    btn = l[self.index3 + 1] if not self.index3 == len(l) -1 else l[0]
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+                btnevent.SetEventObject(btn)
+                self.ProcessEvent(btnevent)
                 return
-            if event.GetWheelRotation() > 0:
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
             else:
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
-            self.ProcessEvent(btnevent)
+                # カード置き場、荷物袋、情報カード
+                # ページを切り替え
+                if self.list and len(self.list) > 10:
+                    if event.GetWheelRotation() > 0:
+                        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+                    else:
+                        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
+                    self.ProcessEvent(btnevent)
+                    return
+
+        CardControl.OnMouseWheel(self, event)
 
     def draw(self, update=False):
         dc = CardControl.draw(self, update)
