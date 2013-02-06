@@ -179,7 +179,10 @@ class CWPy(_Singleton, threading.Thread):
 
     def input(self, eventclear=False):
         self.mousein = pygame.mouse.get_pressed()
-        mousepos = pygame.mouse.get_pos()
+        if pygame.mouse.get_focused():
+            mousepos = pygame.mouse.get_pos()
+        else:
+            mousepos = (-1, -1)
         self.mousemotion = False if self.mousepos == mousepos else True
         self.mousepos = mousepos
         self.keyin = self.keyevent.get_pressed()
