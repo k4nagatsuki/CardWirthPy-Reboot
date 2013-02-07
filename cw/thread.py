@@ -74,6 +74,8 @@ class CWPy(_Singleton, threading.Thread):
         self._gameover = False
         # 現在選択中スプライト(SelectableSprite)
         self.selection = None
+        # Trueの間は選択中のスプライトのクリックを行えない
+        self.lock_menucards = False
         # パーティカード表示中フラグ
         self.is_showparty = False
         # カード操作用データ(CardHeader)
@@ -218,6 +220,7 @@ class CWPy(_Singleton, threading.Thread):
         """ダイアログを開く。
         name: ダイアログ名。cw.frame参照。
         """
+        self.lock_menucards = True
         self._showingdlg = True
         self.keyevent.clear() # キー入力初期化
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
@@ -228,6 +231,7 @@ class CWPy(_Singleton, threading.Thread):
                 pass
         else:
             self.frame.ProcessEvent(event)
+        self.lock_menucards = False
 
     def call_modaldlg(self, name, **kwargs):
         """ダイアログを開き、閉じるまで待機する。

@@ -137,6 +137,8 @@ class EventHandler(object):
         左クリックイベント。
         """
         if cw.cwpy.selection:
+            if cw.cwpy.lock_menucards:
+                return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
 
@@ -149,6 +151,8 @@ class EventHandler(object):
         右クリックイベント。
         """
         if cw.cwpy.selection:
+            if cw.cwpy.lock_menucards:
+                return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.rclick_event()
         elif cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
@@ -275,6 +279,8 @@ class EventHandler(object):
         リターンキーイベント。
         """
         if cw.cwpy.selection:
+            if cw.cwpy.lock_menucards:
+                return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
 
