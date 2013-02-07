@@ -55,6 +55,9 @@ class Select(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRight2Btn, self.right2btn)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        def empty(event):
+            pass
+        self.toppanel.Bind(wx.EVT_ERASE_BACKGROUND, empty)
         self.toppanel.Bind(wx.EVT_MIDDLE_UP, self.OnSelect)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnSelect)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
