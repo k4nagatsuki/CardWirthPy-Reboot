@@ -96,10 +96,11 @@ class Character(object):
         return self.data.gettext("/Property/ImagePath", "")
 
     def set_image(self, path):
-        e = self.data.find2("/Property/ImagePath")
+        e = self.data.find("Property/ImagePath")
         dpath = cw.util.join_paths(cw.cwpy.yadodir, os.path.dirname(self.get_imagepath()))
         cw.cwpy.ydata.deletedpaths.add(dpath)
-        e.text = cw.xmlcreater.write_castimagepath(self.get_name(), path)
+        newpath = cw.xmlcreater.write_castimagepath(self.get_name(), path)
+        self.data.edit("Property/ImagePath", newpath)
 
     def get_name(self):
         return self.data.gettext("/Property/Name", "")

@@ -314,7 +314,8 @@ class PlayerCard(CWPyCard, character.Player):
 
     def set_image(self, path):
         character.Player.set_image(self, path)
-        self.cardimg.set_faceimg(cw.util.join_yadodir(self.get_imagepath()))
+        self.imgpath = cw.util.join_yadodir(self.get_imagepath())
+        self.cardimg.set_faceimg(self.imgpath)
 
     def update_levelup(self):
         """レベルアップ処理。"""
