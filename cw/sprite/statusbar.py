@@ -30,13 +30,19 @@ class StatusBar(base.CWPySprite):
 
         self.showbuttons = showbuttons
 
-        if cw.cwpy.is_debugmode():
-            DebuggerButton(self, (574, 3))
-            rmargin = 27
-        else:
-            rmargin = 0
+        left = 602
+        rmargin = 0
+        SettingsButton(self, (left, 3))
 
-        SettingsButton(self, (602, 3))
+        left -= 28
+        rmargin += 27
+        hasbacklog = cw.cwpy.is_playingscenario()
+        BacklogButton(self, (left, 3), hasbacklog)
+
+        if cw.cwpy.is_debugmode():
+            left -= 28
+            rmargin += 27
+            DebuggerButton(self, (left, 3))
 
         if cw.cwpy.status == "Yado":
             YadoMoneyPanel(self, (10, 6))
@@ -157,7 +163,7 @@ class RoundCounterPanel(YadoMoneyPanel):
 
 class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, size=(120, 22),
-                                                    toggle=False, icon=None):
+                 toggle=False, icon=None, enabled=True):
         base.SelectableSprite.__init__(self)
         # 各種データ
         self.name = name
@@ -168,10 +174,14 @@ class StatusBarButton(base.SelectableSprite):
         w, h = size
         wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h)
         self.btnimg = cw.image.conv2surface(wxbmp)
-        wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h, wx.CONTROL_PRESSED)
-        self.btnimg2 = cw.image.conv2surface(wxbmp)
-        wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h, wx.CONTROL_CURRENT)
-        self.btnimg3 = cw.image.conv2surface(wxbmp)
+        if enabled:
+            wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h, wx.CONTROL_PRESSED)
+            self.btnimg2 = cw.image.conv2surface(wxbmp)
+            wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h, wx.CONTROL_CURRENT)
+            self.btnimg3 = cw.image.conv2surface(wxbmp)
+        else:
+            self.btnimg2 = self.btnimg
+            self.btnimg3 = self.btnimg
         # rect
         self.rect = self.btnimg.get_rect()
         self.rect.top = parent.rect.top + pos[1]
@@ -353,6 +363,22 @@ class DebuggerButton(StatusBarButton):
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
         cw.cwpy.eventhandler.f3key_event()
+
+class BacklogButton(StatusBarButton):
+    def __init__(self, parent, pos, enabled):
+        self.enabled = enabled
+        image = cw.image.conv2surface(cw.cwpy.rsrc.debugs["BACKLOG"])
+        if not self.enabled:
+            image = cw.imageretouch.to_binaryformat(image, 0)
+        name = u"バックログ"
+        StatusBarButton.__init__(self, parent, name, pos, (27, 27), icon=image, enabled=enabled)
+        self._selectable_on_event = enabled
+
+    def lclick_event(self):
+        if not self.enabled:
+            return
+        StatusBarButton.lclick_event(self)
+        cw.cwpy.eventhandler.f4key_event()
 
 def main():
     pass

@@ -35,6 +35,9 @@ class EventHandler(object):
                 # F4キー
                 elif event.key == K_F4:
                     self.f4key_event()
+                # F5キー
+                elif event.key == K_F5:
+                    self.f5key_event()
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
@@ -226,7 +229,19 @@ class EventHandler(object):
 
     def f4key_event(self):
         """
-        F4キーイベント。
+        F4キーイベント。バックログを開く。
+        すでに開いている場合は遡る。
+        """
+        cw.cwpy.sounds["page"].play()
+        if cw.cwpy.is_showingbacklog():
+            event = pygame.event.Event(KEYDOWN, key=K_UP)
+            pygame.event.post(event)
+        else:
+            cw.cwpy.show_backlog()
+
+    def f5key_event(self):
+        """
+        F5キーイベント。
         """
         pass
 ##        for ecard in cw.cwpy.get_ecards():
@@ -316,6 +331,12 @@ class EventHandlerForMessageWindow(EventHandler):
                 # F3キー
                 elif event.key == K_F3:
                     self.f3key_event()
+                # F4キー
+                elif event.key == K_F4:
+                    self.f4key_event()
+                # F5キー
+                elif event.key == K_F5:
+                    self.f5key_event()
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
@@ -441,6 +462,185 @@ class EventHandlerForMessageWindow(EventHandler):
         elif cw.cwpy.list:
             cw.cwpy.has_inputevent = True
             self.dirkey_event(y=y)
+
+class EventHandlerForBacklog(EventHandler):
+    def __init__(self, backlog, index):
+        """バックログ表示中のイベントハンドラ。
+        """
+        self.backlog = backlog
+        self.index = index
+        self.mwin = self.backlog[self.index].create_message()
+
+    def run(self):
+        cw.cwpy.has_inputevent = False
+
+        # リターンキー押しっぱなし
+        if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+            self.returnkey_event(True)
+        # 上方向キー押しっぱなし
+        elif cw.cwpy.keyin[K_UP] > cw.cwpy.keyevent.threshold:
+            self.dirkey_event(y=-1)
+        # 下方向キー押しっぱなし
+        elif cw.cwpy.keyin[K_DOWN] > cw.cwpy.keyevent.threshold:
+            self.dirkey_event(y=1)
+
+        for event in cw.cwpy.events:
+            if event.type == KEYDOWN:
+                # ESCAPEキー
+                if event.key == K_ESCAPE:
+                    self.escapekey_event()
+                # F1キー
+                elif event.key == K_F1:
+                    self.f1key_event()
+                # F2キー
+                elif event.key == K_F2:
+                    self.f2key_event()
+                # F3キー
+                elif event.key == K_F3:
+                    self.f3key_event()
+                # F4キー
+                elif event.key == K_F4:
+                    self.f4key_event()
+                # F5キー
+                elif event.key == K_F5:
+                    self.f5key_event()
+                # F9キー
+                elif event.key == K_F9:
+                    self.f9key_event()
+                # リターンキー
+                elif event.key == K_RETURN:
+                    self.returnkey_event()
+                # 上方向キー
+                elif event.key == K_UP:
+                    self.dirkey_event(y=-1)
+                # 下方向キー
+                elif event.key == K_DOWN:
+                    self.dirkey_event(y=1)
+
+            elif event.type == MOUSEBUTTONUP:
+                # 左クリック
+                if event.button == 1:
+                    self.lclick_event()
+                # ミドルクリック
+                elif event.button == 2:
+                    self.mclick_event()
+                # 右クリック
+                elif event.button == 3:
+                    self.rclick_event()
+                # マウスホイール上移動
+                elif event.button == 4:
+                    self.wheel_event(y=-1)
+                # マウスホイール下移動
+                elif event.button == 5:
+                    self.wheel_event(y=1)
+
+            # ユーザイベント
+            elif event.type == USEREVENT and hasattr(event, "func"):
+                self.executing_event(event)
+
+    def f9key_event(self):
+        """
+        F9キーイベント。緊急非難。
+        """
+        self.mwin = None
+        EventHandler.f9key_event()
+
+    def lclick_event(self):
+        """
+        左クリックイベント。
+        バックログを進める。
+        """
+        self.returnkey_event()
+
+    def mclick_event(self):
+        """
+        ミドルクリックイベント。
+        バックログを進める。
+        """
+        self.lclick_event()
+
+    def rclick_event(self):
+        """
+        右クリックイベント。
+        バックログ終了。
+        """
+        if cw.cwpy.selection:
+            cw.cwpy.has_inputevent = True
+            cw.cwpy.selection.rclick_event()
+            return
+        self.exit_backlog()
+
+    def returnkey_event(self, pushing=False):
+        """
+        リターンキーイベント。
+        バックログを進める。
+        """
+        if cw.cwpy.selection:
+            cw.cwpy.has_inputevent = True
+            cw.cwpy.selection.lclick_event()
+            return
+        self.wheel_event(y=1)
+
+    def dirkey_event(self, x=0, y=0, pushing=False):
+        """
+        方向キーイベント。
+        バックログを進めたり戻したりする。
+        """
+        # 縦方向の操作を優先
+        if 0 < y:
+            # バックログを進める
+            self.wheel_event(y=y)
+        elif y < 0:
+            # バックログを遡る
+            self.wheel_event(y=y)
+        elif 0 < x:
+            # バックログを進める
+            self.wheel_event(y=x)
+        elif x < 0:
+            # バックログを遡る
+            self.wheel_event(y=x)
+
+    def wheel_event(self, y=0):
+        """
+        ホイールイベント。
+        バックログを進めたり戻したりする。
+        """
+        if cw.cwpy.has_inputevent:
+            return
+
+        if 0 < y:
+            # バックログを進める
+            if len(self.backlog) <= self.index + 1:
+                # バックログ終了
+                self.exit_backlog()
+                return
+
+            cw.cwpy.sounds["page"].play()
+            self.index += 1
+
+            self.update_sprites()
+        else:
+            # バックログを遡る
+            cw.cwpy.sounds["page"].play()
+            if self.index <= 0:
+                return
+            self.index -= 1
+
+            self.update_sprites()
+
+    def exit_backlog(self):
+        cw.cwpy.sounds["click"].play()
+        # バックログ終了
+        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+        cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")
+        self.mwin = None
+
+    def update_sprites(self):
+        # スプライト削除
+        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+        cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")
+        # 次のバックログ
+        self.mwin = self.backlog[self.index].create_message()
 
 def main():
     pass

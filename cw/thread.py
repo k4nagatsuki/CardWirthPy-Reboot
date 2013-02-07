@@ -93,6 +93,7 @@ class CWPy(_Singleton, threading.Thread):
         self.mcardgrp = pygame.sprite.LayeredDirty()
         self.pcardgrp = pygame.sprite.LayeredDirty()
         self.topgrp = pygame.sprite.LayeredDirty()
+        self.backloggrp = pygame.sprite.LayeredDirty()
         self.sbargrp = pygame.sprite.LayeredDirty()
         # エリアID
         self.areaid = 1
@@ -138,6 +139,7 @@ class CWPy(_Singleton, threading.Thread):
         self.mcardgrp.set_clip(self.background.rect)
         self.pcardgrp.set_clip(self.background.rect)
         self.topgrp.set_clip(self.background.rect)
+        self.backloggrp.set_clip(self.background.rect)
         # ステータスバースプライト
         self.statusbar = cw.sprite.statusbar.StatusBar()
         # ステータスバークリップ
@@ -207,6 +209,7 @@ class CWPy(_Singleton, threading.Thread):
             dirty_rects.extend(self.mcardgrp.draw(self.scr))
             dirty_rects.extend(self.pcardgrp.draw(self.scr))
             dirty_rects.extend(self.topgrp.draw(self.scr))
+            dirty_rects.extend(self.backloggrp.draw(self.scr))
             dirty_rects.extend(self.sbargrp.draw(self.scr))
             # 画面更新
             pygame.display.update(dirty_rects)
@@ -308,7 +311,8 @@ class CWPy(_Singleton, threading.Thread):
             eventhandler.run()
 
         # バックログの保存
-        if isinstance(self.sdata, cw.data.ScenarioData) and\
+        if isinstance(mwin.result, int) and\
+                isinstance(self.sdata, cw.data.ScenarioData) and\
                 not isinstance(mwin, cw.sprite.message.MemberSelectWindow):
             if self.setting.backlogmax <= len(self.sdata.backlog):
                 self.sdata.backlog.pop(0)
@@ -327,6 +331,36 @@ class CWPy(_Singleton, threading.Thread):
             raise mwin.result
         else:
             return mwin.result
+
+    def show_backlog(self, n=0):
+        """直近から過去に遡ってn回目のメッセージを表示する。
+        n: 遡る量。0なら最後に閉じたメッセージ。
+        もっとも古いメッセージよりも大きな値の場合は
+        もっとも古いメッセージを表示する。
+        """
+        if not (isinstance(self.sdata, cw.data.ScenarioData) and self.sdata.backlog):
+            return
+
+        if len(self.sdata.backlog) <= n:
+            n = len(self.sdata.backlog) - 1
+        index = len(self.sdata.backlog) - 1 - n
+
+        self.topgrp.add(cw.sprite.message.BacklogCurtain(self.topgrp))
+        eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
+        self.clear_selection()
+        self.statusbar.change(False)
+
+        while self.is_running() and eventhandler.mwin:
+            self.topgrp.update(self.scr)
+            self.sbargrp.update(self.scr)
+            self.draw()
+            self.tick_clock()
+            self.input()
+            eventhandler.run()
+
+        # 背景スプライト削除
+        self.topgrp.remove_sprites_of_layer("curtain")
+        self.draw()
 
     def set_titlebar(self, s):
         """タイトルバーテキストを設定する。
@@ -1531,6 +1565,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_showingdebugger(self):
         return bool(self.frame.debugger)
+
+    def is_showingbacklog(self):
+        return self.backloggrp.get_sprites_from_layer("backlog")
 
     def is_debugmode(self):
         return self.debug

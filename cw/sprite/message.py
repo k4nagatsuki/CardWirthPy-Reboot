@@ -13,8 +13,11 @@ import base
 
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
-                                                pos=(80, 50), size=(470, 180)):
+                 pos=(80, 50), size=(470, 180), talkerimage=None,
+                 nametable={}, flagtable={}, steptable={},
+                 backlog=False, result=None):
         base.CWPySprite.__init__(self)
+        self.backlog = backlog
 
         # クラシックスタイルか
         self.classicstyletext = cw.cwpy.setting.classicstyletext
@@ -27,8 +30,12 @@ class MessageWindow(base.CWPySprite):
             self.wxcanvas = None
             self.wxdc = None
 
+        self.name_table = nametable
+        self.flag_table = flagtable
+        self.step_table = steptable
+
         # メッセージの選択結果
-        self.result = None
+        self.result = result
         # data
         self.names = names
         self.path = path
@@ -42,12 +49,21 @@ class MessageWindow(base.CWPySprite):
         # 外枠描画
         draw_frame(self.image, size, (0, 0))
         # 話者(CardHeader or Character)
+        # 名前のみ使用
         self.talker = talker
 
+        self._init_nametable()
+
         # 話者画像
-        if self.path:
-            image = cw.util.load_image(self.path, True)
-            self.image.blit(image, (18, 38))
+        if talkerimage:
+            self.talker_image = talkerimage
+        elif self.path:
+            self.talker_image = cw.util.load_image(self.path, True)
+        else:
+            self.talker_image = None
+
+        if self.talker_image:
+            self.image.blit(self.talker_image, (18, 38))
 
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs()
@@ -60,17 +76,21 @@ class MessageWindow(base.CWPySprite):
         self.selection_pos = (80, 230)
         # frame
         self.frame = 0
-        # cwpylist, indexクリア
-        cw.cwpy.list = []
-        cw.cwpy.index = -1
+        if not self.backlog:
+            # cwpylist, indexクリア
+            cw.cwpy.list = []
+            cw.cwpy.index = -1
 
-        # スピードが0の場合、最初から全て描画
-        if self.speed == 0:
+        # スピードが0かバックログの場合、最初から全て描画
+        if self.speed == 0 or self.backlog:
             self.speed = 1
             self.draw_all()
 
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self, layer="message")
+        if self.backlog:
+            cw.cwpy.backloggrp.add(self, layer="backlog")
+        else:
+            cw.cwpy.pcardgrp.add(self, layer="message")
 
     def update(self, scr):
         if self.is_drawing:
@@ -85,8 +105,9 @@ class MessageWindow(base.CWPySprite):
             self.frame += 1
             return
 
-        try:
-            pos, txtimg, txtimg2 = self.charimgs[self.frame/self.speed]
+        chridx = self.frame / self.speed
+        if chridx < len(self.charimgs):
+            pos, txtimg, txtimg2 = self.charimgs[chridx]
 
             if isinstance(txtimg2, tuple):
                 # 通常のテキスト描画。
@@ -111,7 +132,7 @@ class MessageWindow(base.CWPySprite):
 
             self.image.blit(txtimg, pos)
             self.frame += 1
-        except:
+        else:
             self.is_drawing = False
             cw.cwpy.has_inputevent = True
             self.frame = 0
@@ -120,12 +141,14 @@ class MessageWindow(base.CWPySprite):
                 self.wxdc.EndDrawing()
 
             # SelectionBarを描画
-            cw.cwpy.list = self.selections
+            if not self.backlog:
+                cw.cwpy.list = self.selections
             x, y = self.selection_pos
 
             for index, name in enumerate(self.names):
                 pos = (x, 25 * index + y)
-                sbar = SelectionBar(name, pos)
+                selected = 1 < len(self.names) and self.backlog and self.result == index
+                sbar = SelectionBar(name, pos, backlog=self.backlog, selected=selected)
                 self.selections.append(sbar)
                 sbar.update()
 
@@ -293,10 +316,10 @@ class MessageWindow(base.CWPySprite):
 
         return images
 
-    def rpl_specialstr(self, s):
-        """
-        特殊文字列(#, $)を置換した文字列を返す
-        """
+    def _init_nametable(self):
+        if self.name_table:
+            return
+
         random = cw.cwpy.event.get_targetmember("Random")
         random = random.name if random else ""
         selected = cw.cwpy.event.get_targetmember("Selected")
@@ -309,16 +332,21 @@ class MessageWindow(base.CWPySprite):
         party = cw.cwpy.ydata.party.name if cw.cwpy.ydata.party else ""
         yado = cw.cwpy.ydata.name
 
-        d = {"#c" : inusecard,  # 使用カード名（カード使用イベント時のみ）
-             "#i" : talker,     # 話者の名前（表示イメージのキャラやカード名）
-             "#m" : selected,   # 選択中のキャラ名（#i=#m というわけではない）
+        self.name_table = {
+             "#c" : inusecard,  # 使用カード名(カード使用イベント時のみ)
+             "#i" : talker,     # 話者の名前(表示イメージのキャラやカード名)
+             "#m" : selected,   # 選択中のキャラ名(#i=#m というわけではない)
              "#r" : random,     # ランダム選択キャラ名
              "#u" : unselected, # 非選択中キャラ名
              "#y" : yado,       # 宿の名前
              "#t" : party       # パーティの名前
         }
 
-        for key, value in d.iteritems():
+    def rpl_specialstr(self, s):
+        """
+        特殊文字列(#, $)を置換した文字列を返す
+        """
+        for key, value in self.name_table.iteritems():
             if not value or key in cw.cwpy.rsrc.specialchars:
                 continue
 
@@ -335,22 +363,28 @@ class MessageWindow(base.CWPySprite):
 
     def rpl_stepvalue(self, m):
         key = m.group(1)
+        if key in self.step_table:
+            return self.step_table[key]
 
         if key in cw.cwpy.sdata.steps:
             s = cw.cwpy.sdata.steps[key].get_valuename()
         else:
             s = ""
 
+        self.step_table[key] = s
         return s
 
     def rpl_flagvalue(self, m):
         key = m.group(1)
+        if key in self.flag_table:
+            return self.flag_table[key]
 
         if key in cw.cwpy.sdata.flags:
             s = cw.cwpy.sdata.flags[key].get_valuename()
         else:
             s = ""
 
+        self.flag_table[key] = s
         return s
 
     def get_fontcolour(self, s):
@@ -369,8 +403,13 @@ class MessageWindow(base.CWPySprite):
             return (255, 255, 255)
 
 class SelectWindow(MessageWindow):
-    def __init__(self, names, text="", pos=(80, 50), size=(470, 38)):
+    def __init__(self, names, text="", pos=(80, 50), size=(470, 38), backlog=False, result=None):
         base.CWPySprite.__init__(self)
+        self.backlog = backlog
+        self.result = result
+        self.name_table = {}
+        self.flag_table = {}
+        self.step_table = {}
 
         # クラシックスタイルか
         self.classicstyletext = cw.cwpy.setting.classicstyletext
@@ -413,7 +452,10 @@ class SelectWindow(MessageWindow):
         # メッセージ全て表示
         self.draw_all()
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self, layer="message")
+        if self.backlog:
+            cw.cwpy.backloggrp.add(self, layer="backlog")
+        else:
+            cw.cwpy.pcardgrp.add(self, layer="message")
 
     def update(self, scr):
         pass
@@ -428,10 +470,12 @@ class MemberSelectWindow(SelectWindow):
         SelectWindow.__init__(self, names, text, pos, size)
 
 class SelectionBar(base.SelectableSprite):
-    def __init__(self, name, pos, size=(470, 25)):
+    def __init__(self, name, pos, size=(470, 25), backlog=False, selected=False):
         base.SelectableSprite.__init__(self)
         self._selectable_on_event = True
         # 各種データ
+        self.backlog = backlog
+        self.selected = selected
         self.index = name[0]
         self.name = name[1]
         # 通常画像
@@ -446,7 +490,10 @@ class SelectionBar(base.SelectableSprite):
         # frame
         self.frame = 0
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self, layer="selectionbar")
+        if self.backlog:
+            cw.cwpy.backloggrp.add(self, layer="backlogbar")
+        else:
+            cw.cwpy.pcardgrp.add(self, layer="selectionbar")
 
     def get_unselectedimage(self):
         return self._image
@@ -455,6 +502,9 @@ class SelectionBar(base.SelectableSprite):
         return cw.imageretouch.to_negative(self._image)
 
     def update(self, scr=None):
+        if self.backlog:
+            return
+
         if self.status == "normal":       # 通常表示
             self.update_selection()
 
@@ -498,12 +548,17 @@ class SelectionBar(base.SelectableSprite):
         image.blit(nameimg2, (pos[0], pos[1]+1))
         image.blit(nameimg2, (pos[0], pos[1]-1))
         image.blit(nameimg, pos)
+        if self.selected:
+            image = cw.imageretouch.to_negative(image)
         return image
 
     def lclick_event(self, skip=False):
         """
         メッセージ選択肢のクリックイベント。
         """
+        if self.backlog:
+            return
+
         cw.cwpy.sounds["click"].play(True)
 
         # クリックした時だけ、軽く下に押されるアニメーションを行う
@@ -532,16 +587,51 @@ class BacklogData:
     def __init__(self, base):
         """バックログ表示用のデータ。
         """
-        if isinstance(base, MessageWindow):
-            self.type = 0
-        else:
+        if isinstance(base, SelectWindow):
             self.type = 1
+        else:
+            self.type = 0
         self.text = base.text
         self.names = base.names
         self.path = base.path
-        self.talker = base.talker
+        lpath = self.path.lower()
+        if lpath.startswith("yado") or lpath.startswith("data/temp"):
+            self.talker_image = base.talker_image
+        else:
+            self.talker_image = None
         self.rect = base.rect
+        self.name_table = base.name_table
+        self.flag_table = base.flag_table
+        self.step_table = base.step_table
         self.result = base.result
+
+    def create_message(self):
+        if self.type == 0:
+            return MessageWindow(self.text, self.names, self.path, None,
+                                 self.rect.topleft, self.rect.size,
+                                 self.talker_image,
+                                 self.name_table, self.flag_table, self.step_table,
+                                 True, self.result)
+        else:
+            return SelectWindow(self.names, self.text, self.rect.topleft, self.rect.size,
+                                True, self.result)
+
+class BacklogCurtain(base.CWPySprite):
+    def __init__(self, spritegrp, size=(632, 420), pos=(0, 0), alpha=192):
+        """バックログ用の半透明黒背景スプライト。
+        spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
+        size: スプライトのサイズ。
+        pos: 表示位置。
+        alpha: 透明度。
+        """
+        base.CWPySprite.__init__(self)
+        self.image = pygame.Surface(size).convert()
+        self.image.fill((0, 0, 0))
+        self.image.set_alpha(alpha)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+        # spritegroupに追加
+        spritegrp.add(self, layer="curtain")
 
 def draw_frame(image, size, pos=(0, 0)):
     """
