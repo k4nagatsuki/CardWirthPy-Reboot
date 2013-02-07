@@ -1137,7 +1137,11 @@ class CWPy(_Singleton, threading.Thread):
 
             p_money = int(self.ydata.party.data.find("Property/Money").text)
             p_members = [member.fpath for member in self.ydata.party.members]
-            p_backpack = self.ydata.party.backpack
+            p_backpack = self.ydata.party.backpack[:]
+            p_backpack.reverse()
+            for header in p_backpack:
+                self.trade("STOREHOUSE", header=header, from_event=True)
+
             self.ydata.deletedpaths.add(self.ydata.party.data.fpath)
             self.ydata.party.members = []
             self.ydata.load_party(None)
@@ -1149,10 +1153,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.standbys.append(header)
 
             cw.util.sort_by_attr(self.ydata.standbys, "name")
-
-            for header in p_backpack:
-                header.set_owner("STOREHOUSE")
-                self.ydata.storehouse.insert(0, header)
 
             self.pre_areaids[-1] = 1
             self.clear_specialarea()

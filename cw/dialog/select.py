@@ -789,7 +789,7 @@ class PlayerSelect(Select):
             index = page * self.views + sindex
             if self.index <> index:
                 cw.cwpy.sounds["click"].play()
-                self.index = index
+                self.index = min(index, len(self.list)-1)
                 self.enable_btn()
                 self.draw(True)
 
