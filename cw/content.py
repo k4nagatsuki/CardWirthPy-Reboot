@@ -969,6 +969,9 @@ class ChangeBgImageContent(EventContentBase):
         bginhrt = cw.cwpy.sdata.check_bginhrt(elements)
         ttype = self.get_transitiontype()
         cw.cwpy.background.load(elements, bginhrt, ttype)
+        # フレームを進める
+        cw.cwpy.draw()
+        cw.cwpy.tick_clock()
         return 0
 
     def get_status(self):
@@ -1746,7 +1749,9 @@ class RedisplayContent(EventContentBase):
         """画面再構築コンテント。"""
         ttype = self.get_transitiontype()
         cw.cwpy.background.reload(ttype)
+        # フレームを進める
         cw.cwpy.draw()
+        cw.cwpy.tick_clock()
         return 0
 
     def get_status(self):

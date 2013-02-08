@@ -576,6 +576,13 @@ class EventHandlerForBacklog(EventHandler):
             return
         self.exit_backlog()
 
+    def escapekey_event(self):
+        """
+        ESCAPEキーイベント。
+        バックログ終了。
+        """
+        self.exit_backlog()
+
     def returnkey_event(self, pushing=False):
         """
         リターンキーイベント。
