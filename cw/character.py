@@ -346,6 +346,8 @@ class Character(object):
             targets = [targets]
 
         data = header.carddata
+        # 他の使用中カード削除
+        cw.cwpy.clear_inusecardimg()
         # TargetArrow削除
         cw.cwpy.clear_targetarrow()
         # 効果音鳴らす
