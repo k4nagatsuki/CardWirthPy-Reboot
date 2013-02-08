@@ -225,6 +225,7 @@ class TopPanel(wx.Panel):
     """
     def __init__(self, parent, ccard, redrawfunc):
         wx.Panel.__init__(self, parent, -1, size=(300, 100))
+        self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.ccard = ccard
         self.redrawfunc = redrawfunc
@@ -307,6 +308,7 @@ class DescPanel(wx.Panel):
     """
     def __init__(self, parent, ccard, editable):
         wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
@@ -361,6 +363,7 @@ class HistoryPanel(wx.ScrolledWindow):
     """
     def __init__(self, parent, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(10, 10)
@@ -454,6 +457,7 @@ class EditButton():
 class EditPanel(wx.Panel):
     def __init__(self, parent, ccard):
         wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
@@ -556,6 +560,7 @@ class EditPanel(wx.Panel):
 class StatusPanel(wx.ScrolledWindow):
     def __init__(self, parent, list, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(10, 10)
         self.csize = self.GetClientSize()
@@ -712,6 +717,7 @@ class StatusPanel(wx.ScrolledWindow):
 class SkillPanel(wx.Panel):
     def __init__(self, parent, ccard):
         wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
+        self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
