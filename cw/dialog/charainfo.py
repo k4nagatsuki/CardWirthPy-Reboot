@@ -470,6 +470,7 @@ class EditPanel(wx.Panel):
     def OnLeftUp(self, event):
         for header in self.headers:
             if header.subrect.collidepoint(event.GetPosition()):
+                header.negaflag = False
                 if header.type == 0:
                     # デザインを変更する
                     cw.cwpy.sounds["click"].play()
@@ -752,6 +753,7 @@ class SkillPanel(wx.Panel):
     def _open_cardinfo(self, mousepos):
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
+                header.negaflag = False
                 cw.cwpy.sounds["click"].play()
                 dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)

@@ -433,6 +433,7 @@
     <Message key="close">閉じる</Message>
     <Message key="cancel">キャンセル</Message>
     <Message key="coution">Caution!</Message>
+    <Message key="extension">拡張</Message>
     <Message key="sex">性別</Message>
     <Message key="age">年齢</Message>
     <Message key="description">解説</Message>
@@ -450,15 +451,24 @@
     <Message key="grow">成長</Message>
     <Message key="add_member">編入</Message>
     <Message key="members">構成</Message>
+    <Message key="extension_title">拡張機能 - %sの編集</Message>
     <Message key="select_base_title">宿の選択</Message>
     <Message key="delete_base">「%s」を破棄します。
 よろしいですか？</Message>
     <Message key="create_base_title">宿の登録</Message>
     <Message key="adventurers">Adventurers</Message>
     <Message key="new_base">新規宿</Message>
-    <Message key="base_error_no_name">名称が入力されていません。</Message>
     <Message key="create_base_message_1">新しい冒険者の宿を登録します。</Message>
     <Message key="create_base_message_2">登録する冒険者の宿の名称を入力して下さい。</Message>
+    <Message key="rename">改名</Message>
+    <Message key="copy">複製</Message>
+    <Message key="rename_base_description">この拠点の名称を変更します。</Message>
+    <Message key="copy_base_description">この拠点の複製を生成します。</Message>
+    <Message key="delete_base_description">この拠点を破棄し、すべての情報を削除します。</Message>
+    <Message key="rename_base_title">名称の変更</Message>
+    <Message key="rename_base_message">新しい名称を入力して下さい。</Message>
+    <Message key="copy_base">%sを複製します。
+よろしいですか？</Message>
     <Message key="card_control">カード操作</Message>
     <Message key="cards_hand">%sの手札カード</Message>
     <Message key="cards_backpack">荷物袋の手札カード</Message>
@@ -538,6 +548,10 @@
     <Message key="character_ep">EP:%s</Message>
     <Message key="character_history">【History】</Message>
     <Message key="history_etc">etc...</Message>
+    <Message key="grow_adventurer_description">キャラクターを成長させ、年代を進めます。成長によって能力値が変化する場合があります。
+現在以上に成長できない場合は、永眠させるか選択できます。</Message>
+    <Message key="delete_adventurer_description">キャラクターの登録を抹消します。手持ちのカードはカード置場に移ります。
+一定の条件を満たしている場合は、アルバムに残ります。</Message>
     <Message key="confirm_grow">%sを%sから%sへ成長させます。よろしいですか？</Message>
     <Message key="confirm_die">%sを永眠させます。よろしいですか？</Message>
     <Message key="die_message">%sは、永遠の眠りに就きました…</Message>

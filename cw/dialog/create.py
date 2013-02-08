@@ -1176,6 +1176,7 @@ class YadoCreater(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["create_base_title"], size=(318, 180),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.yadodir = ""
         self.SetClientSize((312, 156))
         self.textctrl = wx.TextCtrl(self, size=(175, 24))
         self.textctrl.SetMaxLength(18)
@@ -1191,29 +1192,28 @@ class YadoCreater(wx.Dialog):
 
     def create_yado(self):
         name = self.textctrl.GetValue().strip()
-        yadodir = cw.util.join_paths("Yado", cw.binary.util.check_filename(name))
-        yadodir = cw.binary.util.check_duplicate(yadodir)
-        os.makedirs(yadodir)
+        self.yadodir = cw.util.join_paths("Yado", cw.binary.util.check_filename(name))
+        self.yadodir = cw.binary.util.check_duplicate(self.yadodir)
+        os.makedirs(self.yadodir)
         dnames = ("Adventurer", "Album", "BeastCard", "ItemCard",
                                             "Material", "Party", "SkillCard")
 
         for dname in dnames:
-            path = cw.util.join_paths(yadodir, dname)
+            path = cw.util.join_paths(self.yadodir, dname)
             os.makedirs(path)
 
-        cw.xmlcreater.create_environment(name, yadodir)
+        cw.xmlcreater.create_environment(name, self.yadodir)
+
+    def OnInput(self, event):
+        name = self.textctrl.GetValue().strip()
+
+        if name:
+            self.okbtn.Enable()
+        else:
+            self.okbtn.Disable()
 
     def OnOk(self, event):
         name = self.textctrl.GetValue().strip()
-
-        if not name:
-            cw.cwpy.sounds["error"].play()
-            s = cw.cwpy.msgs["base_error_no_name"]
-            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
-            cw.cwpy.frame.move_dlg(dlg)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
 
         self.create_yado()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -1244,6 +1244,7 @@ class YadoCreater(wx.Dialog):
         dc.DrawText(s, (csize[0]-w)/2, 30)
 
     def _bind(self):
+        self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)

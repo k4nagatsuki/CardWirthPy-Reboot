@@ -213,15 +213,15 @@ class YadoSelect(Select):
         # ok
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (50, 24), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.okbtn)
-        # extend
-        self.extbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"変換")
-        self.buttonlist.append(self.extbtn)
-        # delete
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["delete"])
-        self.buttonlist.append(self.delbtn)
         # new
         self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["new"])
         self.buttonlist.append(self.newbtn)
+        # extend
+        self.extbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"変換")
+        self.buttonlist.append(self.extbtn)
+        # extension
+        self.exbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["extension"])
+        self.buttonlist.append(self.exbtn)
         # close
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (50, 24), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
@@ -233,9 +233,9 @@ class YadoSelect(Select):
         self._do_layout()
         # bind
         self._bind()
-        self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickExtBtn, self.extbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
 
     def enable_btn(self):
@@ -261,7 +261,72 @@ class YadoSelect(Select):
             self.conv_yado(path)
             time.sleep(0.3)
 
-    def OnClickDelBtn(self, event):
+    def OnClickExBtn(self, event):
+        """
+        拡張。
+        """
+        cw.cwpy.sounds["click"].play()
+        yname = self.names[self.index]
+        title = cw.cwpy.msgs["extension_title"] % (yname)
+        items = [
+            (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado),
+            (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado)
+        ]
+        dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    def rename_yado(self):
+        """
+        宿改名。
+        """
+        cw.cwpy.sounds["click"].play()
+        path = self.list[self.index]
+        dlg = cw.dialog.edit.YadoEditDialog(self, path)
+        cw.cwpy.frame.move_dlg(dlg)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            cw.cwpy.sounds["harvest"].play()
+            self.update_list(dlg.yadodir)
+
+        dlg.Destroy()
+
+    def copy_yado(self):
+        """
+        宿複製。
+        """
+        cw.cwpy.sounds["signal"].play()
+        path = self.list[self.index]
+        yname = self.names[self.index]
+        s = cw.cwpy.msgs["copy_base"] % (yname)
+        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        cw.cwpy.frame.move_dlg(dlg)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            env = cw.util.join_paths(path, "Environment.xml")
+            data = cw.data.xml2etree(env)
+            name = data.gettext("Property/Name", os.path.basename(path))
+            name = u"コピー - %s" % (name)
+            if not data.find("Property/Name") is None:
+                data.edit("Property/Name", name)
+            else:
+                e = data.make_element("Name", name)
+                data.insert("Property", e, 0)
+
+            newpath = cw.binary.util.check_filename(name)
+            newpath = cw.util.join_paths(os.path.dirname(path), newpath)
+            newpath = cw.binary.util.check_duplicate(newpath)
+            shutil.copytree(path, newpath)
+            env = cw.util.join_paths(newpath, "Environment.xml")
+            data.write(env)
+            cw.cwpy.sounds["harvest"].play()
+            self.update_list(newpath)
+
+        dlg.Destroy()
+
+    def delete_yado(self):
         """
         宿削除。
         """
@@ -274,6 +339,7 @@ class YadoSelect(Select):
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.util.remove(path)
+            cw.cwpy.sounds["dump"].play()
             self.update_list()
 
         dlg.Destroy()
@@ -286,8 +352,8 @@ class YadoSelect(Select):
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            yname = dlg.textctrl.GetValue()
-            self.update_list(yname)
+            cw.cwpy.sounds["harvest"].play()
+            self.update_list(dlg.yadodir)
 
         dlg.Destroy()
 
@@ -400,7 +466,7 @@ class YadoSelect(Select):
             wx.MilliSleep(1)
 
         dlg.Destroy()
-        yname = os.path.basename(thread.path)
+        yadodir = thread.path
 
         # エラーログ表示
         if cwdata.errorlog:
@@ -416,22 +482,21 @@ class YadoSelect(Select):
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
-        self.update_list(yname)
+        cw.cwpy.sounds["page"].play()
+        self.update_list(yadodir)
 
-    def update_list(self, name=""):
+    def update_list(self, yadodir=""):
         """
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
         self.names, self.list, self.list2 = self.get_yadolist()
-        path = cw.util.join_paths("Yado", name)
 
         try:
-            self.index = self.names.index(name)
+            self.index = self.list.index(yadodir)
         except:
             self.index = 0
 
-        cw.cwpy.sounds["page"].play()
         self.draw(True)
         self.enable_btn()
 
@@ -655,25 +720,22 @@ class PlayerSelect(Select):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # add
-        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (47, 24), cw.cwpy.msgs["add_member"])
+        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (50, 24), cw.cwpy.msgs["add_member"])
         self.buttonlist.append(self.addbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (47, 24), cw.cwpy.msgs["information"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
-        # grow
-        self.growbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (47, 24), cw.cwpy.msgs["grow"])
-        self.buttonlist.append(self.growbtn)
-        # delete
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (47, 24), cw.cwpy.msgs["delete"])
-        self.buttonlist.append(self.delbtn)
         # new
-        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (47, 24), cw.cwpy.msgs["new"])
+        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["new"])
         self.buttonlist.append(self.newbtn)
+        # extension
+        self.exbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["extension"])
+        self.buttonlist.append(self.exbtn)
         # view
-        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (47, 24), cw.cwpy.msgs["member_list"])
+        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["member_list"])
         self.buttonlist.append(self.viewbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (47, 24), cw.cwpy.msgs["close"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (50, 24), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -683,9 +745,8 @@ class PlayerSelect(Select):
         self._bind()
         self.Bind(wx.EVT_BUTTON, self.OnClickAddBtn, self.addbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
-        self.Bind(wx.EVT_BUTTON, self.OnClickGrowBtn, self.growbtn)
-        self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
@@ -721,15 +782,19 @@ class PlayerSelect(Select):
         if not self.list or len(self.list) == 1:
             return
 
+        count = self.views
+        if len(self.list) <= self.views:
+            count = 1
+
         if event.GetWheelRotation() > 0:
-            self.index = cw.util.number_normalization(self.index - self.views, 0, len(self.list))
+            self.index = cw.util.number_normalization(self.index - count, 0, len(self.list))
         else:
-            self.index = cw.util.number_normalization(self.index + self.views, 0, len(self.list))
+            self.index = cw.util.number_normalization(self.index + count, 0, len(self.list))
         cw.cwpy.sounds["page"].play()
         self.draw(True)
 
     def OnClickLeftBtn(self, evt):
-        if self.views == 1 or evt.GetEventObject() <> self.leftbtn:
+        if self.views == 1 or evt.GetEventObject() <> self.leftbtn or len(self.list) <= self.views:
             Select.OnClickLeftBtn(self, evt)
             return
         self.index = cw.util.number_normalization(self.index - self.views, 0, len(self.list))
@@ -737,7 +802,7 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickLeft2Btn(self, evt):
-        if self.views == 1 or evt.GetEventObject() <> self.left2btn:
+        if self.views == 1 or evt.GetEventObject() <> self.left2btn or len(self.list) <= self.views:
             Select.OnClickLeft2Btn(self, evt)
             return
         if self.get_page() == 0:
@@ -750,7 +815,7 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickRightBtn(self, evt):
-        if self.views == 1 or evt.GetEventObject() <> self.rightbtn:
+        if self.views == 1 or evt.GetEventObject() <> self.rightbtn or len(self.list) <= self.views:
             Select.OnClickRightBtn(self, evt)
             return
         self.index = cw.util.number_normalization(self.index + self.views, 0, len(self.list))
@@ -758,7 +823,7 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickRight2Btn(self, evt):
-        if self.views == 1 or evt.GetEventObject() <> self.right2btn:
+        if self.views == 1 or evt.GetEventObject() <> self.right2btn or len(self.list) <= self.views:
             Select.OnClickRight2Btn(self, evt)
             return
         if self.get_page() == self.get_pagecount()-1:
@@ -813,32 +878,6 @@ class PlayerSelect(Select):
 
         dlg.Destroy()
 
-    def OnClickDelBtn(self, event):
-        cw.cwpy.sounds["signal"].play()
-        header = self.list[self.index]
-        s = cw.cwpy.msgs["confirm_delete_character"] % (header.name)
-        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-        cw.cwpy.frame.move_dlg(dlg)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds["dump"].play()
-
-            # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
-            if header.level >= 3 and not header.leavenoalbum:
-                path = cw.xmlcreater.create_albumpage(header.fpath)
-                cw.cwpy.ydata.add_album(path)
-
-            cw.cwpy.remove_xml(header)
-            cw.cwpy.ydata.standbys.remove(header)
-            if len(self.list):
-                self.index %= len(self.list)
-            else:
-                self.index = 0
-            self.enable_btn()
-            self.draw(True)
-
-        dlg.Destroy()
-
     def OnClickAddBtn(self, event):
         # カード表示中の場合は処理中止
         if cw.cwpy.is_dealing():
@@ -868,8 +907,23 @@ class PlayerSelect(Select):
             cw.cwpy.frame.exec_func(func)
         cw.cwpy.exec_func(func, header)
 
-    def OnClickGrowBtn(self, event):
+    def OnClickExBtn(self, event):
+        """
+        拡張。
+        """
         cw.cwpy.sounds["click"].play()
+        name = self.list[self.index].name
+        title = cw.cwpy.msgs["extension_title"] % (name)
+        items = [
+            (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer),
+        ]
+        dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    def grow_adventurer(self):
         header = self.list[self.index]
         age = header.age
         index = cw.cwpy.setting.periodcoupons.index(age)
@@ -886,6 +940,7 @@ class PlayerSelect(Select):
             nextage= cw.cwpy.setting.periodcoupons[index + 1]
             s = cw.cwpy.msgs["confirm_grow"] % (header.name, age[1:], nextage[1:])
 
+        cw.cwpy.sounds["signal"].play()
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
@@ -914,6 +969,38 @@ class PlayerSelect(Select):
             self.draw(True)
         else:
             dlg.Destroy()
+
+    def delete_adventurer(self):
+        cw.cwpy.sounds["signal"].play()
+        header = self.list[self.index]
+        s = cw.cwpy.msgs["confirm_delete_character"] % (header.name)
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        cw.cwpy.frame.move_dlg(dlg)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            cw.cwpy.sounds["dump"].play()
+            # 手札カードを移動させる
+            data = cw.data.yadoxml2etree(header.fpath)
+            ccard = cw.character.Character(data)
+            for pocket in ccard.cardpocket:
+                for card in pocket:
+                    cw.cwpy.trade("STOREHOUSE", header=card, from_event=True)
+
+            # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
+            if header.level >= 3 and not header.leavenoalbum:
+                path = cw.xmlcreater.create_albumpage(header.fpath, nocoupon=True)
+                cw.cwpy.ydata.add_album(path)
+
+            cw.cwpy.remove_xml(header)
+            cw.cwpy.ydata.standbys.remove(header)
+            if len(self.list):
+                self.index %= len(self.list)
+            else:
+                self.index = 0
+            self.enable_btn()
+            self.draw(True)
+
+        dlg.Destroy()
 
     def OnClickInfoBtn(self, event):
         cw.cwpy.sounds["click"].play()

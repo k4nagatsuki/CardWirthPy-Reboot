@@ -460,6 +460,7 @@ class Converter(threading.Thread):
                 "sex": "TREPAIRDLG/RepairDlg/SexGroup/Caption",
                 "age": "TREPAIRDLG/RepairDlg/AgeGroup/Caption",
                 "description": "TBILLDLG/BillDlg/WorkPanel/Work_MemoBtn/Caption",
+                "extension": "TBILLDLG/BillDlg/yadoPanel/yado_EditBtn/Caption",
                 "history": "TSTATUSDLG/StatusDlg/ChannelPanel/CareerBtn/Caption",
                 "status": "TSTATUSDLG/StatusDlg/ChannelPanel/MultiBtn/Caption",
                 "skills": "TSTATUSDLG/StatusDlg/ChannelPanel/SkillBtn/Caption",
@@ -654,6 +655,15 @@ class Converter(threading.Thread):
                     s, index = self._get_text(index, True)
                     msglist8.append(s)
 
+            msglist9 = []
+            key = "\xD8\xFF\xFF\xFF\x00\x00\x05\x00\x00\x00\x00\x00\x84\x33\x4F\x00"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key)
+                for i in xrange(19):
+                    s, index = self._get_text(index, True)
+                    msglist9.append(s)
+
             cribs2 = {
                 "new_base": msglist3[3],
                 "adventurers": msglist3[1],
@@ -710,6 +720,7 @@ class Converter(threading.Thread):
                 "mother_coupon": msglist7[3] + "%s",
                 "lost_coupon_2": msglist5[41],
                 "level_up": "\n\n\n#I" + msglist1[69],
+                "extension_title": msglist9[2] + "%s" + msglist9[3],
             }
             for key, msg in cribs2.iteritems():
                 msgtable[key] = msg.strip(" 　")

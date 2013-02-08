@@ -102,6 +102,80 @@ class ErrorLogDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
+class ExtensionDialog(wx.Dialog):
+    """
+    解説つきのボタンをいくつか提示し、選択した処理を実行する。
+    title: ダイアログのタイトル。
+    items: (name, description, func)のlist。
+    """
+    def __init__(self, parent, title, items):
+        wx.Dialog.__init__(self, parent, -1, title)
+        self.items = items
+
+        self.buttons = []
+        for name, desc, func in self.items:
+            btn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=name)
+            self.buttons.append(btn)
+
+        self.panel = wx.Panel(self, -1, style=wx.BORDER)
+        self.desc = wx.StaticText(self.panel, -1, size=(205, 150), style=wx.ST_NO_AUTORESIZE)
+        self.desc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+
+        self.btn_cncl = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["cancel"])
+        self._bind()
+        self._do_layout()
+
+    def _bind(self):
+        for btn in self.buttons:
+            btn.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
+            btn.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
+            self.Bind(wx.EVT_BUTTON, self.OnBotton, btn)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def _do_layout(self):
+        sizer_buttons = wx.BoxSizer(wx.VERTICAL)
+        for btn in self.buttons:
+            sizer_buttons.Add(btn, 0, wx.EXPAND|wx.BOTTOM, 5)
+        sizer_buttons.AddStretchSpacer(1)
+        sizer_buttons.Add(self.btn_cncl, 0, wx.EXPAND)
+
+        sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_panel.Add(self.desc, 1, wx.EXPAND|wx.ALL, 10)
+        self.panel.SetSizer(sizer_panel)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(sizer_buttons, 0, wx.EXPAND|wx.ALL, 10)
+        sizer.Add(self.panel, 1, wx.EXPAND|wx.TOP|wx.RIGHT|wx.BOTTOM, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+
+    def OnEnter(self, event):
+        index = self.buttons.index(event.GetEventObject())
+        self.desc.SetLabel(self.items[index][1])
+
+    def OnLeave(self, event):
+        self.desc.SetLabel("")
+
+    def OnBotton(self, event):
+        index = self.buttons.index(event.GetEventObject())
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+        self.items[index][2]()
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
 def main():
     pass
 

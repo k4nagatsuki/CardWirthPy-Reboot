@@ -136,7 +136,7 @@ def create_settings(setting):
     etree.write(path)
     return path
 
-def create_albumpage(path, lost=False):
+def create_albumpage(path, lost=False, nocoupon=False):
     """
     path: 冒険者XMLファイルのパス。
     lost: Trueなら「旅の中、帰らぬ人となる…」クーポン。
@@ -158,13 +158,14 @@ def create_albumpage(path, lost=False):
     etree = cw.data.xml2etree(element=element)
 
     # クーポン
-    if lost:
-        s = cw.cwpy.msgs["lost_coupon_1"]
-    else:
-        s = cw.cwpy.msgs["lost_coupon_2"]
+    if not nocoupon:
+        if lost:
+            s = cw.cwpy.msgs["lost_coupon_1"]
+        else:
+            s = cw.cwpy.msgs["lost_coupon_2"]
+        element = etree.make_element("Coupon", s, {"value": "0"})
+        etree.append("/Property/Coupons", element)
 
-    element = etree.make_element("Coupon", s, {"value": "0"})
-    etree.append("/Property/Coupons", element)
     # 画像コピー
     name = etree.gettext("/Property/Name", "noname")
     fname = cw.util.repl_dischar(name)

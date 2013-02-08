@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import wx
 
 import cw
@@ -604,6 +605,111 @@ class LevelEditDialog(NumberEditDialog):
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
+
+#-------------------------------------------------------------------------------
+# 宿情報編集ダイアログ
+#-------------------------------------------------------------------------------
+
+class YadoEditDialog(wx.Dialog):
+    def __init__(self, parent, yadodir):
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["rename_base_title"], size=(318, 180),
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.yadodir = yadodir
+        self.path = cw.util.join_paths(yadodir, "Environment.xml")
+        self.SetClientSize((312, 136))
+        self.textctrl = wx.TextCtrl(self, size=(175, 24))
+        self.textctrl.SetMaxLength(18)
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=12)
+        self.textctrl.SetFont(font)
+        self.name = cw.header.GetName(self.path).name
+        if not self.name:
+            self.name = os.path.basename(self.yadodir)
+        self.textctrl.SetValue(self.name)
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                            (100, 30), cw.cwpy.msgs["decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
+        self._do_layout()
+        self._bind()
+
+    def OnInput(self, event):
+        name = self.textctrl.GetValue().strip()
+
+        if name:
+            self.okbtn.Enable()
+        else:
+            self.okbtn.Disable()
+
+    def OnOk(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        name = self.textctrl.GetValue().strip()
+        if name <> self.name:
+
+            # データ上の編集
+            data = cw.data.xml2etree(self.path)
+            if not data.find("Property/Name") is None:
+                data.edit("Property/Name", name)
+            else:
+                e = data.make_element("Name", name)
+                data.insert("Property", e, 0)
+            data.write(self.path)
+
+            # ディレクトリの移動
+            yadodir = os.path.dirname(self.yadodir)
+            dir = cw.binary.util.check_filename(name)
+            if os.path.normcase(os.path.basename(self.yadodir)) <> os.path.normcase(dir):
+                yadodir = cw.util.join_paths(yadodir, dir)
+                yadodir = cw.binary.util.check_duplicate(yadodir)
+                try:
+                    os.rename(self.yadodir, yadodir)
+                    self.yadodir = yadodir
+                except Exception, ex:
+                    print ex
+
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+        # text
+        dc.SetTextForeground(wx.BLACK)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic")
+        dc.SetFont(font)
+        s = cw.cwpy.msgs["rename_base_message"]
+        w = dc.GetTextExtent(s)[0]
+        dc.DrawText(s, (csize[0]-w)/2, 10)
+
+    def _bind(self):
+        self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def _do_layout(self):
+        csize = self.GetClientSize()
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add((0, 35), 0, 0, 0)
+        margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
+        sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_1.Add((0, 25), 0, 0, 0)
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+
+        self.SetSizer(sizer_1)
+        self.Layout()
 
 def main():
     pass
