@@ -1152,8 +1152,6 @@ class CWPy(_Singleton, threading.Thread):
                 header = self.ydata.create_advheader(path)
                 self.ydata.standbys.append(header)
 
-            cw.util.sort_by_attr(self.ydata.standbys, "name")
-
             self.pre_areaids[-1] = 1
             self.clear_specialarea()
 

@@ -796,7 +796,6 @@ class YadoData(object):
     def add_standbys(self, path):
         header = self.create_advheader(path)
         self.standbys.append(header)
-        cw.util.sort_by_attr(self.standbys, "name")
         return header
 
     def add_album(self, path):
@@ -855,12 +854,21 @@ class YadoData(object):
         # カード置場の順序を記憶しておく
         cardorder = {}
         for i, header in enumerate(self.storehouse):
-            if header.fpath.startswith(self.tempdir):
-                fpath = os.path.relpath(header.fpath, self.tempdir)
-            else:
+            if header.fpath.lower().startswith("yado"):
                 fpath = os.path.relpath(header.fpath, self.yadodir)
+            else:
+                fpath = os.path.relpath(header.fpath, self.tempdir)
             fpath = cw.util.join_paths(fpath)
             cardorder[fpath] = i
+        # 宿帳の順序を記憶しておく
+        adventurerorder = {}
+        for i, header in enumerate(self.standbys):
+            if header.fpath.lower().startswith("yado"):
+                fpath = os.path.relpath(header.fpath, self.yadodir)
+            else:
+                fpath = os.path.relpath(header.fpath, self.tempdir)
+            fpath = cw.util.join_paths(fpath)
+            adventurerorder[fpath] = i
 
         # ScenarioLog更新
         if cw.cwpy.is_playingscenario():
@@ -902,7 +910,7 @@ class YadoData(object):
 
         # カードデータベースを更新
         yadodb = cw.yadodb.YadoDB(self.yadodir)
-        yadodb.update(cardorder=cardorder)
+        yadodb.update(cardorder=cardorder, adventurerorder=adventurerorder)
         yadodb.close()
 
     #---------------------------------------------------------------------------

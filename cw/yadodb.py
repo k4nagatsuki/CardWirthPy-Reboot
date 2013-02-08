@@ -29,10 +29,21 @@ class YadoDB(object):
             # cardorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
             cur = self.con.execute("PRAGMA table_info('cardorder')")
             res = cur.fetchall()
-            hastype = False
             if not res:
                 s = """
                     CREATE TABLE cardorder (
+                        fpath TEXT,
+                        numorder INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
+            # adventurerorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
+            cur = self.con.execute("PRAGMA table_info('adventurerorder')")
+            res = cur.fetchall()
+            if not res:
+                s = """
+                    CREATE TABLE adventurerorder (
                         fpath TEXT,
                         numorder INTEGER,
                         PRIMARY KEY (fpath)
@@ -114,6 +125,16 @@ class YadoDB(object):
             """
             self.cur.execute(s)
 
+            # 宿帳の並び順
+            s = """
+                CREATE TABLE adventurerorder (
+                    fpath TEXT,
+                    numorder INTEGER,
+                    PRIMARY KEY (fpath)
+                )
+            """
+            self.cur.execute(s)
+
             # パーティ
             s = """
                 CREATE TABLE party (
@@ -129,7 +150,7 @@ class YadoDB(object):
             self.cur.execute(s)
 
     @synclock(_lock)
-    def update(self, cards=True, adventurers=True, parties=True, cardorder={}):
+    def update(self, cards=True, adventurers=True, parties=True, cardorder={}, adventurerorder={}):
         """データベースを更新する。"""
         def walk(dpath, insert, *args):
             dir = cw.util.join_paths(self.ypath, dpath)
@@ -190,6 +211,22 @@ class YadoDB(object):
                         self._insert_adventurer(path, bool(t[2]), False)
             walk("Adventurer", self._insert_adventurer, False, False)
             walk("Album", self._insert_adventurer, True, False)
+
+            if adventurerorder:
+                # 冒険者の並び順を登録する
+                s = "DELETE FROM adventurerorder"
+                self.cur.execute(s)
+                for fpath, orderc in adventurerorder.items():
+                    s = """
+                        INSERT OR REPLACE INTO adventurerorder VALUES(
+                            ?,
+                            ?
+                        )
+                    """
+                    self.cur.execute(s, (
+                        fpath,
+                        orderc,
+                    ))
 
         if parties:
             s = "SELECT fpath, mtime FROM party"
@@ -391,10 +428,10 @@ class YadoDB(object):
         return headers
 
     @synclock(_lock)
-    def insert_adventurerheader(self, header, commit=True):
-        return self._insert_adventurerheader(header, commit)
+    def insert_adventurerheader(self, header, commit=True, adventurerorder=-1):
+        return self._insert_adventurerheader(header, commit, adventurerorder)
 
-    def _insert_adventurerheader(self, header, commit=True):
+    def _insert_adventurerheader(self, header, commit=True, adventurerorder=-1):
         """データベースに冒険者を登録する。"""
         s = """
         INSERT OR REPLACE INTO adventurer VALUES(
@@ -441,28 +478,55 @@ class YadoDB(object):
             mtime,
         ))
 
+        if -1 < adventurerorder:
+            s = """
+            INSERT OR REPLACE INTO adventurerorder VALUES(
+                ?,
+                ?
+            )
+            """
+            self.cur.execute(s, (
+                fpath,
+                adventurerorder,
+            ))
+
         if commit:
             self.con.commit()
 
     @synclock(_lock)
-    def insert_adventurer(self, path, album, commit=True):
-        return self._insert_adventurer(path, album, commit)
+    def insert_adventurer(self, path, album, commit=True, adventurerorder=-1):
+        return self._insert_adventurer(path, album, commit, adventurerorder)
 
-    def _insert_adventurer(self, path, album, commit=True):
+    def _insert_adventurer(self, path, album, commit=True, adventurerorder=-1):
         try:
             data = cw.data.xml2etree(path)
             e = data.find("Property")
             header = cw.header.AdventurerHeader(e, album=album)
             header.fpath = path
-            return self._insert_adventurerheader(header, commit)
+            return self._insert_adventurerheader(header, commit, adventurerorder)
         except Exception, ex:
             print ex
 
     def get_adventurers(self, album):
-        s = "SELECT * FROM adventurer WHERE album=? ORDER BY name"
         if album:
+            s = "SELECT * FROM adventurer WHERE album=? ORDER BY name"
             album = 1
         else:
+            s = """
+            SELECT
+                *
+            FROM
+                adventurer
+                LEFT OUTER JOIN
+                    adventurerorder
+                ON
+                    adventurer.fpath = adventurerorder.fpath
+            WHERE
+                album=?
+            ORDER BY
+                numorder,
+                name
+            """
             album = 0
         self.cur.execute(s, (album,))
         headers = []
