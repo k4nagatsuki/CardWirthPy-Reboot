@@ -40,11 +40,6 @@ class CWFile(io.BufferedReader):
         """
         s = self.rawstring()
 
-        if multiline:
-            s = util.repl_specialchar(s)
-
-        s = util.repl_escapechar(s)
-
         if not self.decodewrap:
             s = cw.util.encodewrap(s)
 
