@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
 import item
 import skill
 import beast
 import coupon
+
+import cw
 
 
 class Adventurer(base.CWBinaryBase):
@@ -90,6 +94,155 @@ class Adventurer(base.CWBinaryBase):
         coupons_num = f.dword()
         self.coupons = [coupon.Coupon(self, f) for cnt in xrange(coupons_num)]
 
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            if self.image:
+                self.imgpath = self.export_image()
+            else:
+                self.imgpath = ""
+
+            # 所持スキル・召喚獣の使用回数初期化
+            for skill in self.skills:
+                skill.limit = 0
+
+            for beast in self.beasts:
+                beast.limit = 0
+
+            self.data = cw.data.make_element("Adventurer")
+
+            prop = cw.data.make_element("Property")
+
+            e = cw.data.make_element("Id", str(self.id))
+            prop.append(e)
+            e = cw.data.make_element("Name", self.name)
+            prop.append(e)
+            e = cw.data.make_element("ImagePath", self.imgpath)
+            prop.append(e)
+            e = cw.data.make_element("Description", self.description)
+            prop.append(e)
+            e = cw.data.make_element("Level", str(self.level))
+            prop.append(e)
+            e = cw.data.make_element("Life", str(self.life))
+            e.set("max", str(self.maxlife))
+            prop.append(e)
+
+            fe = cw.data.make_element("Feature")
+            e = cw.data.make_element("Type")
+            e.set("undead", str(self.undead))
+            e.set("automaton", str(self.automaton))
+            e.set("unholy", str(self.unholy))
+            e.set("constructure", str(self.constructure))
+            fe.append(e)
+            e = cw.data.make_element("NoEffect")
+            e.set("weapon", str(self.noeffect_weapon))
+            e.set("magic", str(self.noeffect_magic))
+            fe.append(e)
+            e = cw.data.make_element("Resist")
+            e.set("fire", str(self.resist_fire))
+            e.set("ice", str(self.resist_ice))
+            fe.append(e)
+            e = cw.data.make_element("Weakness")
+            e.set("fire", str(self.weakness_fire))
+            e.set("ice", str(self.weakness_ice))
+            fe.append(e)
+            prop.append(fe)
+
+            ae = cw.data.make_element("Ability")
+            e = cw.data.make_element("Physical")
+            e.set("dex", str(self.dex))
+            e.set("agl", str(self.agl))
+            e.set("int", str(self.int))
+            e.set("str", str(self.str))
+            e.set("vit", str(self.vit))
+            e.set("min", str(self.min))
+            ae.append(e)
+            e = cw.data.make_element("Mental")
+            e.set("aggressive", str(self.aggressive))
+            e.set("cheerful", str(self.cheerful))
+            e.set("brave", str(self.brave))
+            e.set("cautious", str(self.cautious))
+            e.set("trickish", str(self.trickish))
+            ae.append(e)
+            e = cw.data.make_element("Enhance")
+            e.set("avoid", str(self.avoid))
+            e.set("resist", str(self.resist))
+            e.set("defense", str(self.defense))
+            ae.append(e)
+            prop.append(ae)
+
+            se = cw.data.make_element("Status")
+            e = cw.data.make_element("Mentality", self.conv_mentality(self.mentality))
+            e.set("duration", str(self.duration_mentality))
+            se.append(e)
+            e = cw.data.make_element("Paralyze", str(self.paralyze))
+            se.append(e)
+            e = cw.data.make_element("Poison", str(self.poison))
+            se.append(e)
+            e = cw.data.make_element("Bind")
+            e.set("duration", str(self.duration_bind))
+            se.append(e)
+            e = cw.data.make_element("Silence")
+            e.set("duration", str(self.duration_silence))
+            se.append(e)
+            e = cw.data.make_element("FaceUp")
+            e.set("duration", str(self.duration_faceup))
+            se.append(e)
+            e = cw.data.make_element("AntiMagic")
+            e.set("duration", str(self.duration_antimagic))
+            se.append(e)
+            prop.append(se)
+
+            ee = cw.data.make_element("Enhance")
+            e = cw.data.make_element("Action", str(self.enhance_action))
+            e.set("duration", str(self.duration_enhance_action))
+            ee.append(e)
+            e = cw.data.make_element("Avoid", str(self.enhance_avoid))
+            e.set("duration", str(self.duration_enhance_avoid))
+            ee.append(e)
+            e = cw.data.make_element("Resist", str(self.enhance_resist))
+            e.set("duration", str(self.duration_enhance_resist))
+            ee.append(e)
+            e = cw.data.make_element("Defense", str(self.enhance_defense))
+            e.set("duration", str(self.duration_enhance_defense))
+            ee.append(e)
+            prop.append(ee)
+
+            ce = cw.data.make_element("Coupons")
+            for coupon in self.coupons:
+                ce.append(coupon.get_data())
+            prop.append(ce)
+
+            self.data.append(prop)
+
+             # シナリオ途中で手に入れたカード(F9で消えるカード)は変換しない
+            e = cw.data.make_element("ItemCards")
+            for card in self.items:
+                if card.premium <= 2:
+                    e.append(card.get_data())
+            self.data.append(e)
+
+            e = cw.data.make_element("SkillCards")
+            for card in self.skills:
+                if card.premium <= 2:
+                    e.append(card.get_data())
+            self.data.append(e)
+
+            e = cw.data.make_element("BeastCards")
+            for card in self.beasts:
+                if card.premium <= 2:
+                    e.append(card.get_data())
+            self.data.append(e)
+
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
+
     def get_xmldict(self, indent):
         # 所持スキル・召喚獣の使用回数初期化
         for skill in self.skills:
@@ -145,7 +298,7 @@ class Adventurer(base.CWBinaryBase):
              "enhance_defense": self.enhance_defense,
              "duration_enhance_defense": self.duration_enhance_defense,
              "coupons": self.get_childrentext(self.coupons, indent + 3),
-             # シナリオ途中で手に入れたカード(F9で消えるカード)は変換しない。
+             # シナリオ途中で手に入れたカード(F9で消えるカード)は変換しない
              "items": self.get_childrentext([i for i in self.items if i.premium <= 2], indent + 2),
              "skills": self.get_childrentext([i for i in self.skills if i.premium <= 2], indent + 2),
              "beasts": self.get_childrentext([i for i in self.beasts if i.premium <= 2], indent + 2),
@@ -163,7 +316,7 @@ class AdventurerCard(base.CWBinaryBase):
         for cnt in xrange(5):
             f.byte()
 
-        self.adventurer = Adventurer(self, f)
+        self.adventurer = Adventurer(self, f, yadodata=yadodata)
 
     def set_image(self, image):
         """埋め込み画像を取り込む時のメソッド。"""

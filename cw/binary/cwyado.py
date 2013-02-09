@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import stat
 import shutil
+import traceback
 
 import util
 import cw
@@ -200,7 +202,8 @@ class CWYado(object):
             try:
                 data = self.load_cardfile(path, cardtypes)
                 carddatadict[data.fname] = data
-            except:
+            except Exception, ex:
+                print ex
                 s = os.path.basename(path)
                 s = u"%s は読込できませんでした。\n" % (s)
                 self.write_errorlog(s)

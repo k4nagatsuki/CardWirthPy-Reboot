@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
 import event
+
+import cw
 
 
 class Battle(base.CWBinaryBase):
@@ -44,6 +48,36 @@ class Battle(base.CWBinaryBase):
         else:
             self.bgm = "DefBattle.mid"
 
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            self.data = cw.data.make_element("Battle")
+            prop = cw.data.make_element("Property")
+            e = cw.data.make_element("Id", str(self.id))
+            prop.append(e)
+            e = cw.data.make_element("Name", self.name)
+            prop.append(e)
+            e = cw.data.make_element("MusicPath", self.get_materialpath(self.bgm))
+            prop.append(e)
+            self.data.append(prop)
+            e = cw.data.make_element("EnemyCards")
+            e.set("spreadtype", self.conv_spreadtype(self.spreadtype))
+            for ecard in self.ecards:
+                e.append(ecard.get_data())
+            self.data.append(e)
+            e = cw.data.make_element("Events")
+            for event in self.events:
+                e.append(event.get_data())
+            self.data.append(e)
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
+
     def get_xmldict(self, indent):
         d = {"id": self.id,
              "name": self.name,
@@ -70,6 +104,37 @@ class EnemyCard(base.CWBinaryBase):
         self.left = f.dword()
         self.top = f.dword()
         self.escape = f.bool()
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            self.data = cw.data.make_element("EnemyCard")
+            self.data.set("escape", str(self.escape))
+            prop = cw.data.make_element("Property")
+            e = cw.data.make_element("Id", str(self.cast_id))
+            prop.append(e)
+            e = cw.data.make_element("Flag", self.flag)
+            prop.append(e)
+            e = cw.data.make_element("Location")
+            e.set("left", str(self.left))
+            e.set("top", str(self.top))
+            prop.append(e)
+            e = cw.data.make_element("Size")
+            e.set("scale", "%s%%" % (self.scale))
+            prop.append(e)
+            self.data.append(prop)
+            e = cw.data.make_element("Events")
+            for event in self.events:
+                e.append(event.get_data())
+            self.data.append(e)
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_xmldict(self, indent):
         d = {"castid": self.cast_id,

@@ -972,6 +972,8 @@ class ChangeBgImageContent(EventContentBase):
         # フレームを進める
         cw.cwpy.draw()
         cw.cwpy.tick_clock()
+        cw.cwpy.input()
+        cw.cwpy.eventhandler.run()
         return 0
 
     def get_status(self):
@@ -1752,6 +1754,8 @@ class RedisplayContent(EventContentBase):
         # フレームを進める
         cw.cwpy.draw()
         cw.cwpy.tick_clock()
+        cw.cwpy.input()
+        cw.cwpy.eventhandler.run()
         return 0
 
     def get_status(self):

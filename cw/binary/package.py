@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
 import event
+
+import cw
 
 
 class Package(base.CWBinaryBase):
@@ -19,6 +23,29 @@ class Package(base.CWBinaryBase):
             return
         events_num = f.dword()
         self.events = [event.SimpleEvent(self, f) for cnt in xrange(events_num)]
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            self.data = cw.data.make_element("Package")
+            prop = cw.data.make_element("Property")
+            e = cw.data.make_element("Id", str(self.id))
+            prop.append(e)
+            e = cw.data.make_element("Name", self.name)
+            prop.append(e)
+            self.data.append(prop)
+            e = cw.data.make_element("Events")
+            for event in self.events:
+                e.append(event.get_data())
+            self.data.append(e)
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_xmldict(self, indent):
         d = {"id": self.id,

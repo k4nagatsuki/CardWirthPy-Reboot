@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
 import bgimage
 import dialog
 import effectmotion
 import xmltemplate
+
+import cw
 
 
 class ContentBase(base.CWBinaryBase):
@@ -33,6 +37,31 @@ class ContentBase(base.CWBinaryBase):
             f.dword()
 
         self.properties = {}
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            self.data = cw.data.make_element(self.tag)
+            if self.type:
+                self.data.set("type", self.type)
+            self.data.set("name", self.name)
+            for key, value in self.properties.iteritems():
+                if isinstance(value, (str, unicode)):
+                    self.data.set(key, value)
+                else:
+                    self.data.set(key, str(value))
+            e = cw.data.make_element("Contents")
+            for child in self.children:
+                e.append(child.get_data())
+            self.data.append(e)
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_xmldict(self, indent):
         d = {"indent": self.get_indent(indent),
@@ -77,11 +106,11 @@ class TalkMessageContent(ContentBase):
         self.properties["path"] = self.get_materialpath(f.string())
         self.text = f.string(True)
 
-    def get_xmldict(self, indent):
-        d = ContentBase.get_xmldict(self, indent)
-        s1 = self.get_indent(indent + 1)
-        d["children"] = "\n%s<Text>%s</Text>" % (s1, self.text)
-        return d
+    def get_data(self):
+        if self.data is None:
+            self.data = ContentBase.get_data(self)
+            self.data.append(cw.data.make_element("Text", self.text))
+        return self.data
 
 class PlayBgmContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -94,12 +123,14 @@ class ChangeBgImageContent(ContentBase):
         bgimgs_num = f.dword()
         self.bgimgs = [bgimage.BgImage(self, f) for cnt in xrange(bgimgs_num)]
 
-    def get_xmldict(self, indent):
-        d = ContentBase.get_xmldict(self, indent)
-        s1 = self.get_indent(indent + 1)
-        s2 = self.get_childrentext(self.bgimgs, indent + 2)
-        d["children"] = "\n%s<BgImages>%s\n%s</BgImages>" % (s1, s2, s1)
-        return d
+    def get_data(self):
+        if self.data is None:
+            self.data = ContentBase.get_data(self)
+            e = cw.data.make_element("BgImages")
+            for bgimg in self.bgimgs:
+                e.append(bgimg.get_data())
+            self.data.append(e)
+        return self.data
 
 class PlaySoundContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -132,12 +163,14 @@ class EffectContent(ContentBase):
         self.motions = [effectmotion.EffectMotion(self, f, dataversion=self.version)
                                         for cnt in xrange(motions_num)]
 
-    def get_xmldict(self, indent):
-        d = ContentBase.get_xmldict(self, indent)
-        s1 = self.get_indent(indent + 1)
-        s2 = self.get_childrentext(self.motions, indent + 2)
-        d["children"] = "\n%s<Motions>%s\n%s</Motions>" % (s1, s2, s1)
-        return d
+    def get_data(self):
+        if self.data is None:
+            self.data = ContentBase.get_data(self)
+            e = cw.data.make_element("Motions")
+            for motion in self.motions:
+                e.append(motion.get_data())
+            self.data.append(e)
+        return self.data
 
 class BranchSelectContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -350,14 +383,16 @@ class TalkDialogContent(ContentBase):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["targetm"] = self.conv_target_member(f.byte())
         dialogs_num = f.dword()
-        self.dialogs = [dialog.Dialog(self, f) for cnt in xrange(dialogs_num)]
+        self.dialogs = [cw.binary.dialog.Dialog(self, f) for cnt in xrange(dialogs_num)]
 
-    def get_xmldict(self, indent):
-        d = ContentBase.get_xmldict(self, indent)
-        s1 = self.get_indent(indent + 1)
-        s2 = self.get_childrentext(self.dialogs, indent + 2)
-        d["children"] = "\n%s<Dialogs>%s\n%s</Dialogs>" % (s1, s2, s1)
-        return d
+    def get_data(self):
+        if self.data is None:
+            self.data = ContentBase.get_data(self)
+            e = cw.data.make_element("Dialogs")
+            for dialog in self.dialogs:
+                e.append(dialog.get_data())
+            self.data.append(e)
+        return self.data
 
 class SetStepUpContent(ContentBase):
     def __init__(self, parent, f, tag, type):

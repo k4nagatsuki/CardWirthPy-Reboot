@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import os
 import base
 
-import cw.util
+import cw
 
 
 class Environment(base.CWBinaryBase):
@@ -56,6 +58,49 @@ class Environment(base.CWBinaryBase):
         self.skintype = ""
         # データの取得に失敗したカード。変換時に追加する
         self.errorcards = []
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            self.data = cw.data.make_element("Environment")
+
+            prop = cw.data.make_element("Property")
+            e = cw.data.make_element("Name", self.name)
+            prop.append(e)
+            e = cw.data.make_element("Type", self.skintype)
+            prop.append(e)
+            e = cw.data.make_element("Cashbox", str(self.money))
+            prop.append(e)
+            e = cw.data.make_element("NowSelectingParty", self.scenarioname)
+            prop.append(e)
+            self.data.append(prop)
+
+            e = cw.data.make_element("CompleteStamps")
+            for compstamp in cw.util.decodetextlist(self.compstamps):
+                e.append(cw.data.make_element("CompleteStamp", compstamp))
+            self.data.append(e)
+
+            e = cw.data.make_element("Gossips")
+            for gossip in cw.util.decodetextlist(self.gossips):
+                e.append(cw.data.make_element("Gossip", gossip))
+            self.data.append(e)
+
+            # 保管庫のカードのxml出力
+            self.errorcards = []
+            for i, unusedcard in enumerate(self.unusedcards):
+                if unusedcard.data:
+                    unusedcard.create_xml2(self.get_dir(), cardorder=i)
+                else:
+                    self.errorcards.append(unusedcard)
+
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_cardtypedict(self):
         d = {}

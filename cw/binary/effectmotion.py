@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
 import beast
+
+import cw
 
 
 class EffectMotion(base.CWBinaryBase):
@@ -58,6 +62,31 @@ class EffectMotion(base.CWBinaryBase):
                                             for cnt in xrange(beasts_num)]
         else:
             raise ValueError(self.fpath)
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            self.data = cw.data.make_element("Motion")
+            self.data.set("type", self.conv_effectmotion_type(self.tabtype, self.type))
+            self.data.set("element", self.conv_effectmotion_element(self.element))
+            for key, value in self.properties.iteritems():
+                if isinstance(value, (str, unicode)):
+                    self.data.set(key, value)
+                else:
+                    self.data.set(key, str(value))
+            if self.beasts:
+                e = cw.data.make_element("Beasts")
+                for beast in self.beasts:
+                    e.append(beast.get_data())
+                self.data.append(e)
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_xmldict(self, indent):
         d = {"type": self.conv_effectmotion_type(self.tabtype, self.type),

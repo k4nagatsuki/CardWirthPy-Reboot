@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
+
+import cw
 
 
 class BgImage(base.CWBinaryBase):
@@ -28,6 +32,32 @@ class BgImage(base.CWBinaryBase):
         else:
             self.flag = ""
             self.unknown = 0
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            self.data = cw.data.make_element("BgImage")
+            self.data.set("mask", str(self.mask))
+            e = cw.data.make_element("ImagePath", self.imgpath)
+            self.data.append(e)
+            e = cw.data.make_element("Flag", self.flag)
+            self.data.append(e)
+            e = cw.data.make_element("Location")
+            e.set("left", str(self.left))
+            e.set("top", str(self.top))
+            self.data.append(e)
+            e = cw.data.make_element("Size")
+            e.set("width", str(self.width))
+            e.set("height", str(self.height))
+            self.data.append(e)
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_xmldict(self, indent):
         d = {"mask": self.mask,

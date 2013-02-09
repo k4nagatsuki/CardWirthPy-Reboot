@@ -819,7 +819,7 @@ class PlayerSelect(Select):
         self.ProcessEvent(btnevent)
 
     def OnMouseWheel(self, event):
-        if self.sort.GetRect().Contains(event.GetPosition()):
+        if self.sort and self.sort.GetRect().Contains(event.GetPosition()):
             index = self.sort.GetSelection()
             count = self.sort.GetCount()
             if event.GetWheelRotation() > 0:
@@ -1234,6 +1234,7 @@ class Album(PlayerSelect):
         self.isalbum = True
         self.index = 0
         self.views = 1
+        self.sort = None
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
         # info

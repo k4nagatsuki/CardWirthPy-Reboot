@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
 import adventurer
 
-import cw.util
+import cw
 
 
 class Party(base.CWBinaryBase):
@@ -28,6 +30,50 @@ class Party(base.CWBinaryBase):
         self.cards = []
         # データの取得に失敗したカード。変換時に追加する
         self.errorcards = []
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            cards = []
+            self.errorcards = []
+            for card in self.cards:
+                if card.mine:
+                    if card.data:
+                        cards.append(card)
+                        # rootが違うデータのためディレクトリを設定しておく
+                        card.data.set_dir(self.get_dir())
+                    else:
+                        self.errorcards.append(card)
+
+            self.data = cw.data.make_element("Party")
+
+            prop = cw.data.make_element("Property")
+
+            e = cw.data.make_element("Name", self.name)
+            prop.append(e)
+            e = cw.data.make_element("Money", str(self.money))
+            prop.append(e)
+
+            me = cw.data.make_element("Members")
+            for member in self.memberslist:
+                me.append(cw.data.make_element("Member", member))
+            prop.append(me)
+
+            self.data.append(prop)
+
+            e = cw.data.make_element("Backpack")
+            for card in cards:
+                e.append(card.get_data())
+            self.data.append(e)
+
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_xmldict(self, indent):
         cards = []

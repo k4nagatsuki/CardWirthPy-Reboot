@@ -4,6 +4,7 @@
 import os
 import re
 import weakref
+import StringIO
 
 import util
 import xmltemplate
@@ -197,19 +198,11 @@ class CWBinaryBase(object):
         path = path.replace(self.get_dir() + "/", "", 1)
         return util.repl_escapechar(path)
 
-    def get_xmldict(self, indent):
-        """XML作成用の辞書を返す。"""
-        return {}
-
-    def get_xmltext(self, indent):
-        """XML作成用の文字列を返す。"""
-        imgpath = self.export_image()
-        d = self.get_xmldict(indent)
-
-        if not d.get("imgpath"):
-            d["imgpath"] = imgpath
-
-        return xmltemplate.get_xmltext(self.xmltype, d)
+    def get_data(self):
+        """CWPyElementのインスタンスを返す。"""
+        xml = self.get_xmltext(0)
+        file = StringIO.StringIO(xml)
+        return cw.data.xml2element(file=file)
 
     def get_childrentext(self, children, indent):
         """子エレメントのXML作成用の文字列を返す。

@@ -1710,23 +1710,24 @@ def xml2element(path="", tag="", file=None, nocache=False):
                 return copy.deepcopy(cachedata.data)
             return cachedata.data
 
+    data = None
     if not file and cw.cwpy and cw.cwpy.classicdata:
         # クラシックなシナリオのファイルだった場合は変換する
         lpath = path.lower()
         if lpath.endswith(".wsm") or lpath.endswith(".wid"):
-            xml = None
             if usecache and path in cw.cwpy.sdata.cache:
                 # クラシックデータは別にキャッシュする
                 cachedata = cw.cwpy.sdata.cache[path]
                 if cachedata.mtime <= mtime:
-                    xml = cachedata.data
-            if not xml:
+                    data = cachedata.data
+            if data is None:
                 cdata = cw.cwpy.classicdata.load_file(path)
-                xml = cdata.get_xmltext(0)
-            file = StringIO.StringIO(xml)
+                data = cdata.get_data()
 
-    parser = SimpleXmlParser(path, tag, file)
-    data = parser.parse()
+    if data is None:
+        parser = SimpleXmlParser(path, tag, file)
+        data = parser.parse()
+
     if usecache:
         # キャッシュにデータを保存
         cachedata = CacheData(data, mtime)

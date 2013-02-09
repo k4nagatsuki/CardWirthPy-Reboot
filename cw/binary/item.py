@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import xml.etree.ElementTree
+
 import base
 import effectmotion
 import event
 
-import cw.util
+import cw
 
 
 class ItemCard(base.CWBinaryBase):
@@ -84,6 +86,86 @@ class ItemCard(base.CWBinaryBase):
         self.enhance_avoid2 = f.dword()
         self.enhance_resist2 = f.dword()
         self.enhance_defense2 = f.dword()
+
+        self.data = None
+
+    def get_data(self):
+        if self.data is None:
+            if self.image:
+                self.imgpath = self.export_image()
+            else:
+                self.imgpath = ""
+            self.data = cw.data.make_element("ItemCard")
+            prop = cw.data.make_element("Property")
+            e = cw.data.make_element("Id", str(self.id))
+            prop.append(e)
+            e = cw.data.make_element("Name", self.name)
+            prop.append(e)
+            e = cw.data.make_element("ImagePath", self.imgpath)
+            prop.append(e)
+            e = cw.data.make_element("Description", self.description)
+            prop.append(e)
+            e = cw.data.make_element("Scenario", self.scenario_name)
+            prop.append(e)
+            e = cw.data.make_element("Author", self.scenario_author)
+            prop.append(e)
+            e = cw.data.make_element("Ability")
+            e.set("physical", self.conv_card_physicalability(self.p_ability))
+            e.set("mental", self.conv_card_mentalability(self.m_ability))
+            prop.append(e)
+            e = cw.data.make_element("Target", self.conv_card_target(self.target))
+            e.set("allrange", str(self.target_all))
+            prop.append(e)
+            e = cw.data.make_element("EffectType", self.conv_card_effecttype(self.effect_type))
+            e.set("spell", str(self.silence))
+            prop.append(e)
+            e = cw.data.make_element("ResistType", self.conv_card_resisttype(self.resist_type))
+            prop.append(e)
+            e = cw.data.make_element("SuccessRate", str(self.success_rate))
+            prop.append(e)
+            e = cw.data.make_element("VisualEffect", self.conv_card_visualeffect(self.visual_effect))
+            prop.append(e)
+            e = cw.data.make_element("Enhance")
+            e.set("avoid", str(self.enhance_avoid))
+            e.set("resist", str(self.enhance_resist))
+            e.set("defense", str(self.enhance_defense))
+            prop.append(e)
+            e = cw.data.make_element("SoundPath", self.get_materialpath(self.sound_effect))
+            prop.append(e)
+            e = cw.data.make_element("SoundPath2", self.get_materialpath(self.sound_effect2))
+            prop.append(e)
+            e = cw.data.make_element("KeyCodes", cw.util.encodetextlist(self.keycodes))
+            prop.append(e)
+            e = cw.data.make_element("Premium", self.conv_card_premium(self.premium))
+            prop.append(e)
+            e = cw.data.make_element("UseLimit", str(self.limit))
+            e.set("max", str(self.limit_max))
+            prop.append(e)
+            e = cw.data.make_element("Price", str(self.price))
+            prop.append(e)
+            e = cw.data.make_element("EnhanceOwner")
+            e.set("avoid", str(self.enhance_avoid2))
+            e.set("resist", str(self.enhance_resist2))
+            e.set("defense", str(self.enhance_defense2))
+            prop.append(e)
+            e = cw.data.make_element("Hold", str(self.hold))
+            prop.append(e)
+            self.data.append(prop)
+            e = cw.data.make_element("Motions")
+            for motion in self.motions:
+                e.append(motion.get_data())
+            self.data.append(e)
+            e = cw.data.make_element("Events")
+            for event in self.events:
+                e.append(event.get_data())
+            self.data.append(e)
+        return self.data
+
+    # FIXME
+    def get_xmltext(self, indent):
+        data = self.get_data()
+        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
+        return text
 
     def get_xmldict(self, indent):
         d = {"id": self.id,
