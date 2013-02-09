@@ -1702,36 +1702,37 @@ def xml2element(path="", tag="", file=None, nocache=False):
         mtime = os.path.getmtime(path)
 
     # キャッシュからデータを取得
-    if usecache and (path, tag) in cw.cwpy.sdata.cache:
-        cachedata = cw.cwpy.sdata.cache[(path, tag)]
+    if usecache and path in cw.cwpy.sdata.cache:
+        cachedata = cw.cwpy.sdata.cache[path]
         if cachedata.mtime <= mtime:
+            data = cachedata.data
+            if tag:
+                data = data.find(tag)
             if nocache:
                 # 変更されてもよいデータを返す
-                return copy.deepcopy(cachedata.data)
-            return cachedata.data
+                return copy.deepcopy(data)
+            return data
 
     data = None
     if not file and cw.cwpy and cw.cwpy.classicdata:
         # クラシックなシナリオのファイルだった場合は変換する
         lpath = path.lower()
         if lpath.endswith(".wsm") or lpath.endswith(".wid"):
-            if usecache and path in cw.cwpy.sdata.cache:
-                # クラシックデータは別にキャッシュする
-                cachedata = cw.cwpy.sdata.cache[path]
-                if cachedata.mtime <= mtime:
-                    data = cachedata.data
-            if data is None:
-                cdata = cw.cwpy.classicdata.load_file(path)
-                data = cdata.get_data()
+            cdata = cw.cwpy.classicdata.load_file(path)
+            data = cdata.get_data()
 
     if data is None:
-        parser = SimpleXmlParser(path, tag, file)
+        parser = SimpleXmlParser(path, "", file)
         data = parser.parse()
+
+    basedata = data
+    if tag:
+        data = data.find(tag)
 
     if usecache:
         # キャッシュにデータを保存
-        cachedata = CacheData(data, mtime)
-        cw.cwpy.sdata.cache[(path, tag)] = cachedata
+        cachedata = CacheData(basedata, mtime)
+        cw.cwpy.sdata.cache[path] = cachedata
         if nocache:
             data = copy.deepcopy(data)
     return data
