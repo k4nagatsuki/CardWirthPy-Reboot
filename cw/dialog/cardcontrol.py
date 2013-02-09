@@ -44,6 +44,7 @@ class CardControl(wx.Dialog):
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])
         self.sort.Append(cw.cwpy.msgs["sort_type"])
+        self.sort.Append(cw.cwpy.msgs["sort_price"])
         if not sort:
             self.sort.Hide()
         # sendto
@@ -638,15 +639,19 @@ class CardHolder(CardControl):
             sorttype = "Level"
         elif index == 3:
             sorttype = "Type"
+        elif index == 4:
+            sorttype = "Price"
         else:
             sorttype = "None"
         if self.callname == "BACKPACK":
             if cw.cwpy.setting.sort_backpack <> sorttype:
+                cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_backpack = sorttype
                 cw.cwpy.ydata.party.sort_backpack()
                 self.draw(True)
         elif self.callname == "STOREHOUSE":
             if cw.cwpy.setting.sort_storehouse <> sorttype:
+                cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_storehouse = sorttype
                 cw.cwpy.ydata.sort_storehouse()
                 self.draw(True)

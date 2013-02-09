@@ -869,6 +869,8 @@ class YadoData(object):
             cw.util.sort_by_attr(self.storehouse, "name")
         elif cw.cwpy.setting.sort_storehouse == "Type":
             cw.util.sort_by_attr(self.storehouse, "type_id")
+        elif cw.cwpy.setting.sort_storehouse == "Price":
+            cw.util.sort_by_attr(self.storehouse, "price")
         else:
             cw.util.sort_by_attr(self.storehouse, "order")
 
@@ -1255,6 +1257,8 @@ class Party(object):
             cw.util.sort_by_attr(self.backpack, "name")
         elif cw.cwpy.setting.sort_backpack == "Type":
             cw.util.sort_by_attr(self.backpack, "type_id")
+        elif cw.cwpy.setting.sort_backpack == "Price":
+            cw.util.sort_by_attr(self.backpack, "price")
         else:
             cw.util.sort_by_attr(self.backpack, "order")
 

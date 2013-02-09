@@ -1203,7 +1203,7 @@ class CWPy(_Singleton, threading.Thread):
         elif targettype in ("PAWNSHOP", "TRASHBOX"):
             if targettype == "PAWNSHOP":
                 if header.type == "SkillCard":
-                    price = 200 + header.level * 100
+                    price = header.price / 2
                 elif header.type == "ItemCard":
                     if header.maxuselimit == 0:
                         price = header.price / 2
@@ -1213,7 +1213,7 @@ class CWPy(_Singleton, threading.Thread):
                         if header.maxuselimit:
                             price /=  header.maxuselimit
                 elif header.type == "BeastCard":
-                    price = 500
+                    price = header.price / 2
                 if not from_event:
                     cw.cwpy.sounds["page"].play()
                     s = cw.cwpy.msgs["confirm_sell"] % (header.name, price)

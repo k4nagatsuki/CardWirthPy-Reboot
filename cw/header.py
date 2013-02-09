@@ -73,7 +73,7 @@ class CardHeader(object):
             self.physical = data.getattr("Ability", "physical").lower()
             self.mental = data.getattr("Ability", "mental").lower()
             # カードの種類ごとに違う処理
-            self.level = 0
+            self.level = 9999
             self.maxuselimit = 0
             self.price = 0
             self.hold = False
@@ -95,6 +95,7 @@ class CardHeader(object):
                 self.enhance_avo_used = data.getint("Enhance", "avoid")
                 self.enhance_res_used = data.getint("Enhance", "resist")
                 self.enhance_def_used = data.getint("Enhance", "defense")
+                self.price = 200 + self.level * 100
             elif self.type == "ItemCard":
                 self.maxuselimit = data.getint("UseLimit", "max")
                 self.enhance_avo = data.getint("EnhanceOwner", "avoid")
@@ -116,11 +117,18 @@ class CardHeader(object):
                     self.attachment = True if self.uselimit == 0 else False
                     e = cw.data.make_element("Attachment", str(self.attachment))
                     data.append(e)
+                self.price = 1000
 
             # Image
             self.imgpath = data.gettext("ImagePath", "")
 
         self.vocation = (self.physical, self.mental)
+
+        # スキルカードと召喚獣カードは価格固定
+        if self.type == "SkillCard":
+            self.price = 400 + self.level * 200
+        elif self.type == "BeastCard":
+            self.price = 1000
 
         # シナリオ取得フラグ
         if from_scenario or (self.carddata is not None and self.carddata.get("scenariocard")):
