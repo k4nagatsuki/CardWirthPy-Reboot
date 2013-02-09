@@ -17,6 +17,7 @@ import cw
 class CardHeader(object):
     def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None):
         self.ref_original = weakref.ref(self)
+        self.order = -1
         if dbrec:
             self.set_owner("STOREHOUSE")
             self.carddata = None
@@ -531,6 +532,7 @@ class AdventurerHeader(object):
         dbrec: データベースから生成する場合は対象レコード。
         冒険者のヘッダ。引数のdataはPropertyElement。
         """
+        self.order = -1
         if dbrec:
             self.fpath = dbrec["fpath"]
             self.level = dbrec["level"]

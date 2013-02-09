@@ -39,7 +39,7 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, (20, 20), bmp=bmp)
         # choice
-        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=(140, 20), style=wx.CB_READONLY)
+        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=(110, 20), style=wx.CB_READONLY)
         if not sendto:
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
@@ -69,8 +69,9 @@ class CardControl(wx.Dialog):
         sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         # トップバー
-        sizer_topbar.SetMinSize(self.combo.GetSize())
-        sizer_topbar.Add((500-140-40, 0), 0, 0, 0)
+        combosize = self.combo.GetSize()
+        sizer_topbar.SetMinSize(combosize)
+        sizer_topbar.Add((500-combosize[0]-40, 0), 0, 0, 0)
         sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
         sizer_topbar.Add(self.combo, 0, 0, 0)
         sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
@@ -209,7 +210,7 @@ class CardControl(wx.Dialog):
         if self.combo.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
             s = cw.cwpy.msgs["send_to"]
-            dc.DrawText(s, 270, 3)
+            dc.DrawText(s, 300, 3)
         return dc
 
     def draw_cards(self, dc, update, mode):
@@ -745,10 +746,19 @@ class CardHolder(CardControl):
         self.draw(True)
 
     def OnMouseWheel(self, event):
+        mousepos = event.GetPosition()
         lpos = self._sizer_leftbar.GetPosition()
         lsize = self._sizer_leftbar.GetSize()
         lwidth = lsize[0] + lpos[0] * 2;
-        if event.GetPosition()[0] < lwidth or self.callname == "INFOVIEW":
+        if self.combo.GetRect().Contains(mousepos):
+            if event.GetWheelRotation() > 0:
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn2.GetId())
+                self.ProcessEvent(btnevent)
+            else:
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn2.GetId())
+                self.ProcessEvent(btnevent)
+            return
+        elif mousepos[0] < lwidth or self.callname == "INFOVIEW":
             if self.callname == "CARDPOCKET":
                 # キャストの手札カード
                 # 特殊技能、アイテム、召喚獣を切り替え

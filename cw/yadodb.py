@@ -421,8 +421,9 @@ class YadoDB(object):
         self.cur.execute(s)
 
         headers = []
-        for rec in self.cur:
+        for order, rec in enumerate(self.cur):
             header = cw.header.CardHeader(dbrec=rec)
+            header.order = order
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)
         return headers
@@ -530,8 +531,9 @@ class YadoDB(object):
             album = 0
         self.cur.execute(s, (album,))
         headers = []
-        for rec in self.cur:
+        for order, rec in enumerate(self.cur):
             header = cw.header.AdventurerHeader(dbrec=rec)
+            header.order = order
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)
         return headers

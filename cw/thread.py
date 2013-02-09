@@ -1140,7 +1140,8 @@ class CWPy(_Singleton, threading.Thread):
             p_backpack = self.ydata.party.backpack[:]
             p_backpack.reverse()
             for header in p_backpack:
-                self.trade("STOREHOUSE", header=header, from_event=True)
+                self.trade("STOREHOUSE", header=header, from_event=True, sort=False)
+            self.ydata.sort_storehouse()
 
             self.ydata.deletedpaths.add(self.ydata.party.data.fpath)
             self.ydata.party.members = []
@@ -1151,6 +1152,7 @@ class CWPy(_Singleton, threading.Thread):
             for path in p_members:
                 header = self.ydata.create_advheader(path)
                 self.ydata.standbys.append(header)
+            self.ydata.sort_standbys()
 
             self.pre_areaids[-1] = 1
             self.clear_specialarea()
@@ -1176,7 +1178,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, sort=False):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -1259,7 +1261,7 @@ class CWPy(_Singleton, threading.Thread):
             if n + 1 > maxn:
                 if from_event:
                     if isinstance(target, cw.character.Player):
-                        self.trade("BACKPACK", header=header, from_event=True)
+                        self.trade("BACKPACK", header=header, from_event=True, sort=sort)
 
                 else:
                     self.sounds["error"].play()
@@ -1384,6 +1386,8 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 target.insert(toindex, header)
             header.set_owner("BACKPACK")
+            if sort:
+                self.ydata.party.sort_backpack()
 
         # 移動先がカード置場だった場合
         elif targettype in ("BACKPACK", "STOREHOUSE"):
@@ -1394,6 +1398,8 @@ class CWPy(_Singleton, threading.Thread):
                 target.insert(toindex, header)
             header.set_owner("STOREHOUSE")
             header.carddata = None
+            if sort:
+                self.ydata.sort_storehouse()
 
         # 下取りに出した場合
         elif targettype == "PAWNSHOP":

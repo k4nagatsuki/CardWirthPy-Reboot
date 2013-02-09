@@ -497,7 +497,7 @@ class CardEditDialog(wx.Dialog):
     def _remove(self, owner, data, index):
         if isinstance(owner, list):
             header = owner[index]
-            cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True)
+            cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True, sort=False)
         else:
             cw.cwpy.remove_materials(data)
             owner.remove(data)
@@ -507,6 +507,9 @@ class CardEditDialog(wx.Dialog):
 
     def OnClose(self, event):
         self._find = False
+        cw.cwpy.ydata.sort_storehouse()
+        if cw.cwpy.ydata.party:
+            cw.cwpy.ydata.party.sort_backpack()
         self.Destroy()
 
     def _get_matcher(self, data):

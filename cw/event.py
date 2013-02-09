@@ -424,6 +424,10 @@ class Event(object):
 
         cw.cwpy.event.clear()
 
+        # イベント中にカード移動が発生していた場合に備えてソート
+        if cw.cwpy.ydata and cw.cwpy.ydata.party:
+            cw.cwpy.ydata.party.sort_backpack()
+
         # 戦闘中か否か
         if cw.cwpy.battle:
             # 敗北処理

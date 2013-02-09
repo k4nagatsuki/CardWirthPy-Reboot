@@ -984,7 +984,8 @@ class PlayerSelect(Select):
             ccard = cw.character.Character(data)
             for pocket in ccard.cardpocket:
                 for card in pocket:
-                    cw.cwpy.trade("STOREHOUSE", header=card, from_event=True)
+                    cw.cwpy.trade("STOREHOUSE", header=card, from_event=True, sort=False)
+            cw.cwpy.ydata.sort_storehouse()
 
             # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
             if header.level >= 3 and not header.leavenoalbum:

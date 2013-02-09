@@ -743,12 +743,14 @@ class YadoData(object):
         for standby in self.yadodb.get_standbys():
             if not standby.fpath in partypaths:
                 self.standbys.append(standby)
+        self.sort_standbys()
 
         # アルバム(AdventurerHeader)
         self.album = self.yadodb.get_album()
 
         # カード置場(CardHeader)
         self.storehouse = self.yadodb.get_cards()
+        self.sort_storehouse()
 
         self.yadodb.close()
 
@@ -793,9 +795,11 @@ class YadoData(object):
             self.party = None
             self.environment.edit("/Property/NowSelectingParty", "")
 
-    def add_standbys(self, path):
+    def add_standbys(self, path, sort=True):
         header = self.create_advheader(path)
         self.standbys.append(header)
+        if sort:
+            self.sort_standbys()
         return header
 
     def add_album(self, path):
@@ -848,6 +852,12 @@ class YadoData(object):
         path = cw.xmlcreater.create_party(header)
         header = self.create_partyheader(path)
         cw.cwpy.load_party(header, chgarea=chgarea)
+
+    def sort_standbys(self):
+        pass # TODO 現在の設定によってソート
+
+    def sort_storehouse(self):
+        pass # TODO 現在の設定によってソート
 
     def save(self):
         """宿データをセーブする。"""
@@ -1109,7 +1119,8 @@ class YadoData(object):
             path = cw.util.dupcheck_plus(path)
             data.write(path)
             # 待機中冒険者のリストに追加
-            self.add_standbys(path)
+            self.add_standbys(path, sort=False)
+        self.sort_standbys()
 
     #---------------------------------------------------------------------------
     # ここからpathリスト取得用メソッド
@@ -1218,9 +1229,14 @@ class Party(object):
             self.members = [yadoxml2etree(path) for path in paths]
             # 選択中のパーティの荷物袋(CardHeader)
             self.backpack = []
-            for e in self.data.getfind("Backpack"):
+            for order, e in enumerate(self.data.getfind("Backpack")):
                 header = cw.header.CardHeader(carddata=e, owner="BACKPACK")
+                header.order = order
                 self.backpack.append(header)
+            self.sort_backpack()
+
+    def sort_backpack(self):
+        pass # TODO: 設定によってソート
 
     def is_loading(self):
         """membersのデータを元にPlayerCardインスタンスを

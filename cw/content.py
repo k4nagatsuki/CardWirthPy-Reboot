@@ -1259,7 +1259,7 @@ def get_card(etree, target, summon=False, toindex=-1):
 
     header = cw.header.CardHeader(carddata=etree.getroot(),
                                     owner=None, from_scenario=from_scenario)
-    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex)
+    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, sort=False)
 
 class GetSkillContent(GetContent):
     def action(self):
@@ -1544,7 +1544,7 @@ class LoseContent(EventContentBase):
                 num = cw.util.numwrap(num, 1, len(headers))
 
             for header in headers[:num]:
-                cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
+                cw.cwpy.trade("TRASHBOX", header=header, from_event=True, sort=False)
 
 class LoseSkillContent(LoseContent):
     def action(self):
