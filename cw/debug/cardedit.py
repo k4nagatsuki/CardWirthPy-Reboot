@@ -427,21 +427,24 @@ class CardEditDialog(wx.Dialog):
                 toplevel = info[0]
                 owner = info[1]
                 data = info[2]
+                order = -1
                 if not item.IsChecked():
                     continue
                 del infos[item]
 
                 index = list(owner).index(data)
+                if isinstance(data, cw.header.CardHeader):
+                    order = data.order
                 self._remove(owner, data, index)
 
                 data = copy.deepcopy(self.target_cards[matcher])
                 name = data.gettext("Property/Name", "")
                 if cw.cwpy.ydata.storehouse is owner:
-                    cw.content.get_card(data, owner, summon=False, toindex=index)
+                    cw.content.get_card(data, owner, summon=False, toindex=index, insertorder=order)
                 elif cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack is owner:
-                    cw.content.get_card(data, owner, summon=False, toindex=index)
+                    cw.content.get_card(data, owner, summon=False, toindex=index, insertorder=order)
                 elif isinstance(toplevel, cw.character.Character):
-                    cw.content.get_card(data, toplevel, summon=False, toindex=index)
+                    cw.content.get_card(data, toplevel, summon=False, toindex=index, insertorder=order)
                 else:
                     dstdir = cw.util.join_paths(cw.cwpy.tempdir, "Material", data.getroot().tag, name)
                     cw.cwpy.copy_materials(data, dstdir)

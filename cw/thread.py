@@ -1149,8 +1149,11 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.environment.edit("/Property/NowSelectingParty", "")
             self.ydata.set_money(p_money)
 
+            order = cw.util.new_order(self.ydata.standbys)
             for path in p_members:
                 header = self.ydata.create_advheader(path)
+                header.order = order
+                order += 1
                 self.ydata.standbys.append(header)
             self.ydata.sort_standbys()
 
@@ -1178,7 +1181,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, sort=False):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -1383,8 +1386,13 @@ class CWPy(_Singleton, threading.Thread):
             # 移動先のリストにCardHeaderを追加
             if toindex == -1:
                 target.insert(0, header)
+                header.order = cw.util.new_order(target, mode=1)
             else:
                 target.insert(toindex, header)
+                if insertorder == -1:
+                    header.order = cw.util.new_order(target, mode=1)
+                else:
+                    header.order = insertorder
             header.set_owner("BACKPACK")
             if sort:
                 self.ydata.party.sort_backpack()
@@ -1394,8 +1402,13 @@ class CWPy(_Singleton, threading.Thread):
             # 移動先のリストにCardHeaderを追加
             if toindex == -1:
                 target.insert(0, header)
+                header.order = cw.util.new_order(target, mode=1)
             else:
                 target.insert(toindex, header)
+                if insertorder == -1:
+                    header.order = cw.util.new_order(target, mode=1)
+                else:
+                    header.order = insertorder
             header.set_owner("STOREHOUSE")
             header.carddata = None
             if sort:

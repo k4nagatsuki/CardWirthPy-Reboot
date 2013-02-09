@@ -797,6 +797,7 @@ class YadoData(object):
 
     def add_standbys(self, path, sort=True):
         header = self.create_advheader(path)
+        header.order = cw.util.new_order(self.standbys)
         self.standbys.append(header)
         if sort:
             self.sort_standbys()
@@ -854,10 +855,22 @@ class YadoData(object):
         cw.cwpy.load_party(header, chgarea=chgarea)
 
     def sort_standbys(self):
-        pass # TODO 現在の設定によってソート
+        if cw.cwpy.setting.sort_standbys == "Level":
+            cw.util.sort_by_attr(self.standbys, "level")
+        elif cw.cwpy.setting.sort_standbys == "Name":
+            cw.util.sort_by_attr(self.standbys, "name")
+        else:
+            cw.util.sort_by_attr(self.standbys, "order")
 
     def sort_storehouse(self):
-        pass # TODO 現在の設定によってソート
+        if cw.cwpy.setting.sort_storehouse == "Level":
+            cw.util.sort_by_attr(self.storehouse, "level")
+        elif cw.cwpy.setting.sort_storehouse == "Name":
+            cw.util.sort_by_attr(self.storehouse, "name")
+        elif cw.cwpy.setting.sort_storehouse == "Type":
+            cw.util.sort_by_attr(self.storehouse, "type_id")
+        else:
+            cw.util.sort_by_attr(self.storehouse, "order")
 
     def save(self):
         """宿データをセーブする。"""
@@ -869,7 +882,7 @@ class YadoData(object):
             else:
                 fpath = os.path.relpath(header.fpath, self.tempdir)
             fpath = cw.util.join_paths(fpath)
-            cardorder[fpath] = i
+            cardorder[fpath] = header.order
         # 宿帳の順序を記憶しておく
         adventurerorder = {}
         for i, header in enumerate(self.standbys):
@@ -878,7 +891,7 @@ class YadoData(object):
             else:
                 fpath = os.path.relpath(header.fpath, self.tempdir)
             fpath = cw.util.join_paths(fpath)
-            adventurerorder[fpath] = i
+            adventurerorder[fpath] = header.order
 
         # ScenarioLog更新
         if cw.cwpy.is_playingscenario():
@@ -1236,7 +1249,14 @@ class Party(object):
             self.sort_backpack()
 
     def sort_backpack(self):
-        pass # TODO: 設定によってソート
+        if cw.cwpy.setting.sort_backpack == "Level":
+            cw.util.sort_by_attr(self.backpack, "level")
+        elif cw.cwpy.setting.sort_backpack == "Name":
+            cw.util.sort_by_attr(self.backpack, "name")
+        elif cw.cwpy.setting.sort_backpack == "Type":
+            cw.util.sort_by_attr(self.backpack, "type_id")
+        else:
+            cw.util.sort_by_attr(self.backpack, "order")
 
     def is_loading(self):
         """membersのデータを元にPlayerCardインスタンスを

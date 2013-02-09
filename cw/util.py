@@ -327,6 +327,24 @@ def sorted_by_attr(seq, attr):
     """
     return sorted(seq, key=operator.attrgetter(attr))
 
+def new_order(seq, mode=1):
+    """order属性を持つアイテムのlistを
+    走査して新しいorderを返す。
+    必要であれば、seq内のorderを振り直す。
+    mode: 0=最大order。1=最小order。orderの振り直しが発生する
+    """
+    if mode == 0:
+        order = -1
+        for item in seq:
+            order = max(item.order, order)
+        return order + 1
+    else:
+        order = 1
+        for item in seq:
+            item.order = order
+            order += 1
+        return 0
+
 def join_paths(*paths):
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     *paths: パス結合する文字列

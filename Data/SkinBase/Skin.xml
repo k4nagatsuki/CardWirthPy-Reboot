@@ -478,6 +478,11 @@
     <Message key="mode_move">移動モード</Message>
     <Message key="mode_use">使用モード</Message>
     <Message key="mode_battle">戦闘行動選択モード</Message>
+    <Message key="sort_title">整列:</Message>
+    <Message key="sort_no">しない</Message>
+    <Message key="sort_name">名前</Message>
+    <Message key="sort_level">レベル</Message>
+    <Message key="sort_type">種類</Message>
     <Message key="send_to">送り先:</Message>
     <Message key="send_to_manual">手動選択</Message>
     <Message key="send_to_storehouse">カード置場</Message>

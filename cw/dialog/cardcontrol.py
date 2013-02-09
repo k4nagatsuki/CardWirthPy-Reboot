@@ -15,7 +15,7 @@ import message
 #-------------------------------------------------------------------------------
 
 class CardControl(wx.Dialog):
-    def __init__(self, parent, name, sendto):
+    def __init__(self, parent, name, sendto, sort):
         # ダイアログ作成
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
@@ -38,7 +38,15 @@ class CardControl(wx.Dialog):
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, (20, 20), bmp=bmp)
-        # choice
+        # sort
+        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=(60, 20), style=wx.CB_READONLY)
+        self.sort.Append(cw.cwpy.msgs["sort_no"])
+        self.sort.Append(cw.cwpy.msgs["sort_name"])
+        self.sort.Append(cw.cwpy.msgs["sort_level"])
+        self.sort.Append(cw.cwpy.msgs["sort_type"])
+        if not sort:
+            self.sort.Hide()
+        # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=(110, 20), style=wx.CB_READONLY)
         if not sendto:
             self.leftbtn2.Hide()
@@ -53,6 +61,7 @@ class CardControl(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn2, self.rightbtn2)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
+        self.Bind(wx.EVT_COMBOBOX, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
@@ -69,9 +78,12 @@ class CardControl(wx.Dialog):
         sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         # トップバー
+        sortsize = self.sort.GetSize()
         combosize = self.combo.GetSize()
         sizer_topbar.SetMinSize(combosize)
-        sizer_topbar.Add((500-combosize[0]-40, 0), 0, 0, 0)
+        sizer_topbar.Add((500-combosize[0]-60-sortsize[0]-40, 0), 0, 0, 0)
+        sizer_topbar.Add(self.sort, 0, 0, 0)
+        sizer_topbar.Add((60, 0), 0, 0, 0)
         sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
         sizer_topbar.Add(self.combo, 0, 0, 0)
         sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
@@ -97,13 +109,18 @@ class CardControl(wx.Dialog):
         sizer_1.Fit(self)
         self.Layout()
 
+    def OnSort(self, event):
+        pass
+
     def OnMouseWheel(self, event):
         if event.GetWheelRotation() > 0:
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
-            self.ProcessEvent(btnevent)
+            if self.leftbtn.IsEnabled():
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
+                self.ProcessEvent(btnevent)
         else:
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
-            self.ProcessEvent(btnevent)
+            if self.rightbtn.IsEnabled():
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
+                self.ProcessEvent(btnevent)
 
     def OnLeftUp(self, event):
         for header in self.get_headers():
@@ -207,6 +224,10 @@ class CardControl(wx.Dialog):
         else:
             s = cw.cwpy.msgs["mode_use"]
         dc.DrawText(s, 8, 2)
+        if self.sort.IsShown():
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
+            s = cw.cwpy.msgs["sort_title"]
+            dc.DrawText(s, 190, 3)
         if self.combo.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
             s = cw.cwpy.msgs["send_to"]
@@ -424,7 +445,8 @@ class CardHolder(CardControl):
             self._can_open_storehouse = not cw.cwpy.is_playingscenario()
 
         # ダイアログ作成
-        CardControl.__init__(self, parent, name, sendto)
+        sort = self.callname in ("STOREHOUSE", "BACKPACK")
+        CardControl.__init__(self, parent, name, sendto, sort)
 
         # キャストの手札カード用のコントロール
         # 情報カードダイアログの場合は切り替えが無いため不要
@@ -574,6 +596,29 @@ class CardHolder(CardControl):
 
         self._sizer_leftbar.Layout()
 
+        # ソート条件
+        if self.callname == "STOREHOUSE":
+            self.sort.Show()
+            sorttype = cw.cwpy.setting.sort_storehouse
+        elif self.callname == "BACKPACK":
+            self.sort.Show()
+            sorttype = cw.cwpy.setting.sort_backpack
+        else:
+            self.sort.Hide()
+            sorttype = None
+
+        if self.sort.IsShown():
+            if sorttype == "Name":
+                self.sort.Select(1)
+            elif sorttype == "Level":
+                self.sort.Select(2)
+            elif sorttype == "Type":
+                self.sort.Select(3)
+            else:
+                self.sort.Select(0)
+
+        self.Layout()
+
     def _do_layout(self):
         self._sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
 
@@ -584,6 +629,28 @@ class CardHolder(CardControl):
     def OnDestroy(self, event):
         if self.callname == "CARDPOCKET" or self.callname == "BACKPACK" or self.callname == "STOREHOUSE":
             cw.cwpy.lastcardpocket = self.index3
+
+    def OnSort(self, event):
+        index = self.sort.GetSelection()
+        if index == 1:
+            sorttype = "Name"
+        elif index == 2:
+            sorttype = "Level"
+        elif index == 3:
+            sorttype = "Type"
+        else:
+            sorttype = "None"
+        if self.callname == "BACKPACK":
+            if cw.cwpy.setting.sort_backpack <> sorttype:
+                cw.cwpy.setting.sort_backpack = sorttype
+                cw.cwpy.ydata.party.sort_backpack()
+                self.draw(True)
+        elif self.callname == "STOREHOUSE":
+            if cw.cwpy.setting.sort_storehouse <> sorttype:
+                cw.cwpy.setting.sort_storehouse = sorttype
+                cw.cwpy.ydata.sort_storehouse()
+                self.draw(True)
+
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -750,7 +817,24 @@ class CardHolder(CardControl):
         lpos = self._sizer_leftbar.GetPosition()
         lsize = self._sizer_leftbar.GetSize()
         lwidth = lsize[0] + lpos[0] * 2;
-        if self.combo.GetRect().Contains(mousepos):
+        if self.sort.IsShown() and self.sort.GetRect().Contains(mousepos):
+            index = self.sort.GetSelection()
+            count = self.sort.GetCount()
+            if event.GetWheelRotation() > 0:
+                if index <= 0:
+                    index = count - 1
+                else:
+                    index -= 1
+            else:
+                if count <= index + 1:
+                    index = 0
+                else:
+                    index += 1
+            self.sort.Select(index)
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
+            self.ProcessEvent(btnevent)
+            return
+        elif self.combo.IsShown() and self.combo.GetRect().Contains(mousepos):
             if event.GetWheelRotation() > 0:
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn2.GetId())
                 self.ProcessEvent(btnevent)
@@ -870,7 +954,7 @@ class HandView(CardControl):
         # ダイアログ作成
         name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
         self.bgcolour = wx.Colour(0, 0, 128)
-        CardControl.__init__(self, parent, name, False)
+        CardControl.__init__(self, parent, name, False, False)
         # 最初に開くページのカードのposを設定
         self.set_cardpos(3)
         # 選択中カード色反転

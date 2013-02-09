@@ -148,6 +148,14 @@ class CardHeader(object):
         if self.is_ccardheader() and self.type == "SkillCard":
             self.get_uselimit()
 
+        # ソート用の型ID
+        if self.type == "SkillCard":
+            self.type_id = 0
+        elif self.type == "ItemCard":
+            self.type_id = 1
+        else:
+            self.type_id = 2
+
     def set_cardimg(self, path):
         if not cw.binary.image.path_is_code(path):
             if self.type == "ActionCard":

@@ -1057,11 +1057,11 @@ class PlayerSelect(Select):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=22))
             s = str(header.level)
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 102, 31)
+            dc.DrawText(s, 110, 31)
             # Name
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
             s = cw.cwpy.msgs["character_class"]
-            dc.DrawText(s, 102 + w + 5, 45)
+            dc.DrawText(s, 110 + w + 5, 45)
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=18))
             s = header.name
             w = dc.GetTextExtent(s)[0]
