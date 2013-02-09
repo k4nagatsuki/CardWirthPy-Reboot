@@ -76,7 +76,35 @@ class CharaInfo(wx.Dialog):
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def OnMouseWheel(self, event):
+        if self.notebook.GetRect().Contains(event.GetPosition()):
+            index = self.notebook.GetSelection()
+            count = self.notebook.GetPageCount()
+            if event.GetWheelRotation() > 0:
+                if index <= 0:
+                    index = count - 1
+                else:
+                    index -= 1
+            else:
+                if count <= index + 1:
+                    index = 0
+                else:
+                    index += 1
+            self.notebook.SetSelection(index)
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, self.notebook.GetId())
+            self.ProcessEvent(btnevent)
+        else:
+            if event.GetWheelRotation() > 0:
+                if self.leftbtn.IsEnabled():
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+                    self.ProcessEvent(btnevent)
+            else:
+                if self.rightbtn.IsEnabled():
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
+                    self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
         cw.cwpy.sounds["click"].play()
