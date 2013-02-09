@@ -1380,7 +1380,27 @@ class ScenarioSelect(Select):
         self.tree.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnTreeItemExpanded)
         self.tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnTreeItemCollapsed)
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
+        self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.draw(True)
+
+    def OnLeftDClick(self, event):
+        selitem = self.tree.GetSelection()
+        if not selitem:
+            return
+        data = self.tree.GetItemPyData(selitem)
+        if not data:
+            return
+        index, pathorheader = data
+        if isinstance(pathorheader, cw.header.ScenarioHeader):
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
+            self.ProcessEvent(btnevent)
+        else:
+            if self.tree.IsExpanded(selitem):
+                cw.cwpy.sounds["page"].play()
+                self.tree.Collapse(selitem)
+            else:
+                cw.cwpy.sounds["equipment"].play()
+                self.tree.Expand(selitem)
 
     def get_selected(self):
         """
