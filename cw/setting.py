@@ -87,6 +87,13 @@ class Setting(object):
         self.transitionspeed = cw.util.numwrap(self.transitionspeed, 0, 10)
         # 背景のスムーススケーリング
         self.smoothscale_bg = data.getbool("SmoothScaling", "bg", False)
+        # ソート基準
+        self.sort_standbys = data.getattr("SortKey", "standbys", "None")
+        self.sort_storehouse = data.getattr("SortKey", "storehouse", "None")
+        self.sort_backpack = data.getattr("SortKey", "backpack", "None")
+        # バックログ最大数
+        self.backlogmax = data.getint("MessageLogMax", 100)
+
         # スキン
         self.skindirname = data.gettext("Skin", "Classic")
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
@@ -116,12 +123,6 @@ class Setting(object):
         self.skintype = data.gettext("/Property/Type", "")
         self.skinexts = data.getfind("/Property/Extension").attrib
         self.classicstyletext = data.gettext("/Property/ClassicStyleText", True)
-        # ソート基準
-        self.sort_standbys = "None"
-        self.sort_storehouse = "None"
-        self.sort_backpack = "None"
-        # バックログ最大数
-        self.backlogmax = data.getint("Property/BackLogMax", 100)
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("/Races")]
 

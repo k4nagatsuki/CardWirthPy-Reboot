@@ -656,7 +656,6 @@ class CardHolder(CardControl):
                 cw.cwpy.ydata.sort_storehouse()
                 self.draw(True)
 
-
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
         old_callname = self.callname

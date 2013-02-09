@@ -112,6 +112,15 @@ def create_settings(setting):
     # 背景のスムーススケーリング
     e = cw.data.make_element("SmoothScaling", str(setting.smoothscale_bg))
     element.append(e)
+    # ソート基準
+    e = cw.data.make_element("SortKey")
+    e.set("standbys", setting.sort_standbys)
+    e.set("storehouse", setting.sort_storehouse)
+    e.set("backpack", setting.sort_backpack)
+    element.append(e)
+    # バックログ最大数
+    e = cw.data.make_element("MessageLogMax", str(setting.backlogmax))
+    element.append(e)
 
     # シナリオ履歴
     if not hasattr(setting, "recenthistory"):

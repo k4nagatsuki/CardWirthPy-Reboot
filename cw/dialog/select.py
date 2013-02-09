@@ -20,6 +20,7 @@ import text
 from cw.util import synclock
 from wx._controls import EVT_TREE_ITEM_EXPANDED
 
+
 _lockupdatescenario = threading.Lock()
 
 #-------------------------------------------------------------------------------
@@ -719,6 +720,20 @@ class PlayerSelect(Select):
         self.views = 1
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=(460, 280))
+        self.toppanel.SetMinSize((460, 280))
+
+        # sort
+        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=(60, 20), style=wx.CB_READONLY)
+        self.sort.Append(cw.cwpy.msgs["sort_no"])
+        self.sort.Append(cw.cwpy.msgs["sort_name"])
+        self.sort.Append(cw.cwpy.msgs["sort_level"])
+        if cw.cwpy.setting.sort_standbys == "Name":
+            self.sort.Select(1)
+        elif cw.cwpy.setting.sort_standbys == "Level":
+            self.sort.Select(2)
+        else:
+            self.sort.Select(0)
+
         # add
         self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (50, 24), cw.cwpy.msgs["add_member"])
         self.buttonlist.append(self.addbtn)
@@ -748,7 +763,14 @@ class PlayerSelect(Select):
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
+        self.Bind(wx.EVT_COMBOBOX, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add((398, 0), 0)
+        sizer.Add(self.sort, 0, wx.TOP, 2)
+        self.toppanel.SetSizer(sizer)
+        self.toppanel.Layout()
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -771,6 +793,24 @@ class PlayerSelect(Select):
         if len(cw.cwpy.get_pcards()) == 6:
             self.addbtn.Disable()
 
+    def OnSort(self, event):
+        if self.isalbum:
+            return
+
+        index = self.sort.GetSelection()
+        if index == 1:
+            sorttype = "Name"
+        elif index == 2:
+            sorttype = "Level"
+        else:
+            sorttype = "None"
+
+        if cw.cwpy.setting.sort_standbys <> sorttype:
+            cw.cwpy.sounds["page"].play()
+            cw.cwpy.setting.sort_standbys = sorttype
+            cw.cwpy.ydata.sort_standbys()
+            self.draw(True)
+
     def OnLeftDClick(self, event):
         # 一覧表示の場合はダブルクリックで編入
         if not self.list or len(cw.cwpy.get_pcards()) == 6:
@@ -779,6 +819,23 @@ class PlayerSelect(Select):
         self.ProcessEvent(btnevent)
 
     def OnMouseWheel(self, event):
+        if self.sort.GetRect().Contains(event.GetPosition()):
+            index = self.sort.GetSelection()
+            count = self.sort.GetCount()
+            if event.GetWheelRotation() > 0:
+                if index <= 0:
+                    index = count - 1
+                else:
+                    index -= 1
+            else:
+                if count <= index + 1:
+                    index = 0
+                else:
+                    index += 1
+            self.sort.Select(index)
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
+            self.ProcessEvent(btnevent)
+            return
         if not self.list or len(self.list) == 1:
             return
 
@@ -1042,114 +1099,123 @@ class PlayerSelect(Select):
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
-        # リストが空だったら描画終了
-        if not self.list:
-            return
-
-        if self.views == 1:
-            header = self.list[self.index % len(self.list)]
-            # Level
+        # 縁取りしながら描画
+        def drawwitharound(dc, s, x, y):
+            for xv in xrange(x-1, x+2):
+                for yv in xrange(y-1, y+2):
+                    if x <> xv or y <> yv:
+                        dc.SetTextForeground(wx.WHITE)
+                        dc.DrawText(s, xv, yv)
             dc.SetTextForeground(wx.BLACK)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-            s = cw.cwpy.msgs["character_level"]
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 65, 45)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=22))
-            s = str(header.level)
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 110, 31)
-            # Name
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-            s = cw.cwpy.msgs["character_class"]
-            dc.DrawText(s, 110 + w + 5, 45)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=18))
-            s = header.name
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 125 - w / 2, 62)
-            # Image
-            path = cw.util.join_yadodir(header.imgpath)
-            bmp = cw.util.load_wxbmp(path, True)
-            dc.DrawBitmap(bmp, 88, 90, True)
-            # Age
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-            s = cw.cwpy.msgs["character_age"] % (header.get_age())
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 127 - w / 2, 195)
-            # Sex
-            s = cw.cwpy.msgs["character_sex"] % (header.get_sex())
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 127 - w / 2, 210)
-            # EP
-            s = cw.cwpy.msgs["character_ep"] % (header.ep)
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 127 - w / 2, 225)
+            dc.DrawText(s, x, y)
 
-            # クーポン(新しい順から7つ)
-            s = cw.cwpy.msgs["character_history"]
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, 320 - w / 2, 65)
-            for index, s in enumerate(header.history):
+        if self.list:
+            if self.views == 1:
+                header = self.list[self.index % len(self.list)]
+                # Level
+                dc.SetTextForeground(wx.BLACK)
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                s = cw.cwpy.msgs["character_level"]
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 320 - w / 2, 95 + 15 * index)
-
-            # ページ番号
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-            s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
-            s = s + "/" + str(len(self.list))
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, 250)
-        else:
-            page = self.get_page()
-            sindex = page * self.views
-            list = self.list[sindex:sindex+self.views]
-            x = 0
-            y = 0
-            size = self.toppanel.GetSize()
-            rw = size[0] / (self.views / 2)
-            rh = size[1] / 2
-            dc.SetTextForeground(wx.BLACK)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
-            for i, header in enumerate(list):
+                dc.DrawText(s, 65, 45)
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=22))
+                s = str(header.level)
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, 110, 31)
+                # Name
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                s = cw.cwpy.msgs["character_class"]
+                dc.DrawText(s, 110 + w + 5, 45)
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=18))
+                s = header.name
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, 125 - w / 2, 62)
                 # Image
                 path = cw.util.join_yadodir(header.imgpath)
                 bmp = cw.util.load_wxbmp(path, True)
-                ix = x + (rw - 72) / 2
-                iy = y + 5
-                dc.DrawBitmap(bmp, ix, iy, True)
-
-                # 縁取りしながら描画
-                def drawwitharound(dc, s, x, y):
-                    for xv in xrange(x-1, x+2):
-                        for yv in xrange(y-1, y+2):
-                            if x <> xv or y <> yv:
-                                dc.SetTextForeground(wx.WHITE)
-                                dc.DrawText(s, xv, yv)
-                    dc.SetTextForeground(wx.BLACK)
-                    dc.DrawText(s, x, y)
-
-                # Name
-                s = header.name
+                dc.DrawBitmap(bmp, 88, 90, True)
+                # Age
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                s = cw.cwpy.msgs["character_age"] % (header.get_age())
                 w = dc.GetTextExtent(s)[0]
-                drawwitharound(dc, s, x + (rw - w) / 2, y + 105)
-                # Level
-                s1 = cw.cwpy.msgs["character_level"]
-                w1 = dc.GetTextExtent(s1)[0]
-                s2 = str(header.level)
-                w2 = dc.GetTextExtent(s2)[0]
-                sx = x + (rw - (w1+5+w2)) / 2
-                sy = y + 120
-                drawwitharound(dc, s1, sx, sy)
-                drawwitharound(dc, s2, sx + w1 + 5, sy)
-                # Selected
-                if sindex + i == self.index:
-                    bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["TARGET"])
-                    dc.DrawBitmap(bmp, ix + 58, iy + 80)
+                dc.DrawText(s, 127 - w / 2, 195)
+                # Sex
+                s = cw.cwpy.msgs["character_sex"] % (header.get_sex())
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, 127 - w / 2, 210)
+                # EP
+                s = cw.cwpy.msgs["character_ep"] % (header.ep)
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, 127 - w / 2, 225)
 
-                if self.views / 2 == i + 1:
-                    x = 0
-                    y += rh
-                else:
-                    x += rw
+                # クーポン(新しい順から7つ)
+                s = cw.cwpy.msgs["character_history"]
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, 320 - w / 2, 65)
+                for index, s in enumerate(header.history):
+                    w = dc.GetTextExtent(s)[0]
+                    dc.DrawText(s, 320 - w / 2, 95 + 15 * index)
+
+                # ページ番号
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
+                s = s + "/" + str(len(self.list))
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, (bmpw-w)/2, 250)
+            else:
+                page = self.get_page()
+
+                sindex = page * self.views
+                list = self.list[sindex:sindex+self.views]
+                x = 0
+                y = 0
+                size = self.toppanel.GetSize()
+                rw = size[0] / (self.views / 2)
+                rh = size[1] / 2
+                dc.SetTextForeground(wx.BLACK)
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                for i, header in enumerate(list):
+                    # Image
+                    path = cw.util.join_yadodir(header.imgpath)
+                    bmp = cw.util.load_wxbmp(path, True)
+                    ix = x + (rw - 72) / 2
+                    iy = y + 5
+                    dc.DrawBitmap(bmp, ix, iy, True)
+
+                    # Name
+                    s = header.name
+                    w = dc.GetTextExtent(s)[0]
+                    drawwitharound(dc, s, x + (rw - w) / 2, y + 105)
+                    # Level
+                    s1 = cw.cwpy.msgs["character_level"]
+                    w1 = dc.GetTextExtent(s1)[0]
+                    s2 = str(header.level)
+                    w2 = dc.GetTextExtent(s2)[0]
+                    sx = x + (rw - (w1+5+w2)) / 2
+                    sy = y + 120
+                    drawwitharound(dc, s1, sx, sy)
+                    drawwitharound(dc, s2, sx + w1 + 5, sy)
+                    # Selected
+                    if sindex + i == self.index:
+                        bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["TARGET"])
+                        dc.DrawBitmap(bmp, ix + 58, iy + 80)
+
+                    if self.views / 2 == i + 1:
+                        x = 0
+                        y += rh
+                    else:
+                        x += rw
+
+                # ページ番号
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                s = str(page+1) if page > 0 else str(-page + 1)
+                s = s + "/" + str(self.get_pagecount())
+                drawwitharound(dc, s, 5, 5)
+
+        # 整列
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
+        s = cw.cwpy.msgs["sort_title"]
+        drawwitharound(dc, s, 358, 5)
 
 #-------------------------------------------------------------------------------
 #　アルバムダイアログ
