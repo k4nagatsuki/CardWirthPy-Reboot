@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import beast
 
@@ -81,29 +79,6 @@ class EffectMotion(base.CWBinaryBase):
                     e.append(beast.get_data())
                 self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"type": self.conv_effectmotion_type(self.tabtype, self.type),
-             "element": self.conv_effectmotion_element(self.element),
-             "properties": self.get_propertiestext(self.properties),
-             "children": " />",
-             "indent": self.get_indent(indent),
-             }
-
-        if self.beasts:
-            s1 = self.get_indent(indent + 1)
-            s2 = self.get_childrentext(self.beasts, indent + 2)
-            s3 = d["indent"]
-            s = ">\n%s<Beasts>%s\n%s</Beasts>\n%s</Motion>" % (s1, s2, s1, s3)
-            d["children"] = s
-
-        return d
 
 def main():
     pass

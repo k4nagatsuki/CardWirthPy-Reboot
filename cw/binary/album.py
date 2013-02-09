@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import coupon
 
@@ -114,35 +112,6 @@ class Album(base.CWBinaryBase):
             self.data.append(prop)
 
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"name": self.name,
-             "description": self.description,
-             "level": self.level,
-             "dex": self.dex,
-             "agl": self.agl,
-             "int": self.int,
-             "str": self.str,
-             "vit": self.vit,
-             "min": self.min,
-             "aggressive": self.aggressive,
-             "cheerful": self.cheerful,
-             "brave": self.brave,
-             "cautious": self.cautious,
-             "trickish": self.trickish,
-             "avoid": self.avoid,
-             "resist": self.resist,
-             "defense": self.defense,
-             "coupons": self.get_childrentext(self.coupons, indent + 3),
-             "indent": self.get_indent(indent)
-             }
-        return d
 
     def create_xml(self, dpath):
         path = base.CWBinaryBase.create_xml(self, dpath)

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 
 import cw
@@ -25,19 +23,6 @@ class Dialog(base.CWBinaryBase):
             e = cw.data.make_element("Text", self.text)
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"coupons": self.coupons,
-             "text": self.text,
-             "indent": self.get_indent(indent)
-             }
-        return d
 
 def main():
     pass

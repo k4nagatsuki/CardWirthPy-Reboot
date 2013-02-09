@@ -1213,9 +1213,10 @@ class PlayerSelect(Select):
                 drawwitharound(dc, s, 5, 5)
 
         # 整列
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
-        s = cw.cwpy.msgs["sort_title"]
-        drawwitharound(dc, s, 358, 5)
+        if self.sort:
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
+            s = cw.cwpy.msgs["sort_title"]
+            drawwitharound(dc, s, 358, 5)
 
 #-------------------------------------------------------------------------------
 #　アルバムダイアログ

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import bgimage
 import dialog
@@ -56,23 +54,6 @@ class ContentBase(base.CWBinaryBase):
                 e.append(child.get_data())
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"indent": self.get_indent(indent),
-             "tag": self.tag,
-             "type": ' type="%s"' % (self.type) if self.type else "",
-             "name": ' name="%s"' % (self.name) if self.name else "",
-             "properties": self.get_propertiestext(self.properties),
-             "children": "",
-             "contents": self.get_childrentext(self.children, indent + 2),
-             }
-        return d
 
 class StartContent(ContentBase):
     pass

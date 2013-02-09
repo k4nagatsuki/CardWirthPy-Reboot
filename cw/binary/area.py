@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import event
 import bgimage
@@ -73,23 +71,6 @@ class Area(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"id": self.id,
-             "name": self.name,
-             "bgimgs": self.get_childrentext(self.bgimgs, indent + 2),
-             "menucards": self.get_childrentext(self.mcards, indent + 2),
-             "events": self.get_childrentext(self.events, indent + 2),
-             "spreadtype": self.conv_spreadtype(self.spreadtype),
-             "indent": self.get_indent(indent)
-             }
-        return d
-
 class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
     def __init__(self, parent, f, yadodata=False, dataversion=4):
@@ -141,25 +122,6 @@ class MenuCard(base.CWBinaryBase):
                 e.append(event.get_data())
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"name": self.name,
-             "imgpath": self.get_materialpath(self.imgpath),
-             "description": self.description,
-             "flag": self.flag,
-             "scale": self.scale,
-             "left": self.left,
-             "top": self.top,
-             "events": self.get_childrentext(self.events, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
 
 def main():
     pass

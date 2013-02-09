@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 
 import cw
@@ -52,24 +50,6 @@ class BgImage(base.CWBinaryBase):
             e.set("height", str(self.height))
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"mask": self.mask,
-             "flag": self.flag,
-             "left": self.left,
-             "top": self.top,
-             "width": self.width,
-             "height": self.height,
-             "imgpath": self.get_materialpath(self.imgpath),
-             "indent": self.get_indent(indent),
-             }
-        return d
 
 def main():
     pass

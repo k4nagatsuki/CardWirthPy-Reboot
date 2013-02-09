@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import os
 import base
 
@@ -96,72 +94,11 @@ class Environment(base.CWBinaryBase):
 
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
     def get_cardtypedict(self):
         d = {}
 
         for card in self.yadocards:
             d[card.fname] = card.type
-
-        return d
-
-    def get_xmldict(self, indent):
-        d = {"name": self.name,
-             "yadotype": self.conv_yadotype(self.yadotype),
-             "skintype": self.skintype,
-             "cashbox": self.money,
-             "selectingparty": self.partyname,
-             "playingscenario": self.scenarioname,
-             "drawcardspeed": self.drawcard_speed,
-             "drawbgspeed": self.drawbg_speed,
-             "messagespeed": self.message_speed,
-             "playbgm": self.play_bgm,
-             "playsound": self.play_sound,
-             "scaledown": self.correct_scaledown,
-             "scaleup": self.correct_scaleup,
-             "autoselectparty": self.autoselect_party,
-             "getmoney": self.effect_getmoney,
-             "clickcancel": self.clickcancel,
-             "clickjump": self.clickjump,
-             "keepmaxlevel": self.keep_levelmax,
-             "bgeffectatselmode": self.bgeffectatselmode,
-             "posterview": self.conv_yado_summaryview(self.viewtype_poster),
-             "messagebgcolor": self.bgcolor_message,
-             "usedecofont": self.use_decofont,
-             "effectanimation": self.conv_yado_bgchange(self.changetype_bg),
-             "indent": self.get_indent(indent)
-             }
-
-        # シナリオ終了印とゴシップ
-        compstamps = []
-        gossips = []
-
-        for compstamp in cw.util.decodetextlist(self.compstamps):
-            if compstamp:
-                s = "%s  <CompleteStamp>%s</CompleteStamp>" % (d["indent"],
-                                                                    compstamp)
-                compstamps.append(s)
-
-        for gossip in cw.util.decodetextlist(self.gossips):
-            if gossip:
-                s = "%s  <Gossip>%s</Gossip>" % (d["indent"], gossip)
-                gossips.append(s)
-
-        d["completestamps"] = "\n".join(compstamps)
-        d["gossips"] = "\n".join(gossips)
-
-        # 保管庫のカードのxml出力
-        self.errorcards = []
-        for i, unusedcard in enumerate(self.unusedcards):
-            if unusedcard.data:
-                unusedcard.create_xml2(self.get_dir(), cardorder=i)
-            else:
-                self.errorcards.append(unusedcard)
 
         return d
 
@@ -179,6 +116,9 @@ class UnusedCard(base.CWBinaryBase):
     def set_data(self, data):
         """widファイルから読み込んだカードデータを関連づける"""
         self.data = data
+
+    def get_data(self):
+        return self.data.get_data()
 
     def create_xml(self, dpath):
         return self.create_xml2(dpath, -1)

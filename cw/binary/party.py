@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import adventurer
 
@@ -69,43 +67,6 @@ class Party(base.CWBinaryBase):
 
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        cards = []
-        self.errorcards = []
-        for card in self.cards:
-            if card.mine:
-                if card.data:
-                    cards.append(card)
-                    # rootが違うデータのためディレクトリを設定しておく
-                    card.data.set_dir(self.get_dir())
-                else:
-                    self.errorcards.append(card)
-
-        d = {"yadoname": self.yadoname,
-             "name": self.name,
-             "money": self.money,
-             "nowadventuring": self.nowadventuring,
-             "backpack": self.get_childrentext(cards, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-
-        # メンバー
-        seq = [""]
-
-        for member in self.memberslist:
-            if member:
-                s = "%s   <Member>%s</Member>" % (d["indent"], member)
-                seq.append(s)
-
-        d["members"] = "\n".join(seq)
-        return d
-
     def create_xml(self, dpath):
         path = base.CWBinaryBase.create_xml(self, dpath)
         yadodb = self.get_root().yadodb
@@ -155,16 +116,13 @@ class BackpackCard(base.CWBinaryBase):
         """widファイルから読み込んだカードデータを関連づける"""
         self.data = data
 
+    def get_data(self):
+        return self.data.get_data()
+
     def create_xml(self, dpath):
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
         return self.data.create_xml(dpath)
-
-    def get_xmltext(self, indent):
-        """self.data.get_xmltext()"""
-        self.data.limit = self.uselimit
-        s = self.data.get_xmltext(indent)
-        return s
 
 def main():
     pass

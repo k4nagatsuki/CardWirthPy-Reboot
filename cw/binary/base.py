@@ -104,9 +104,6 @@ class CWBinaryBase(object):
         """
         # 保存ディレクトリ設定
         self.set_dir(dpath)
-        # xml文字列取得
-        xmltext = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xmltext += self.get_xmltext(0)
 
         # xmlファイルパス
         if self.xmltype in ("Summary", "Environment"):
@@ -126,9 +123,8 @@ class CWBinaryBase(object):
         if not os.path.isdir(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
 
-        f = open(path, "wb")
-        f.write(xmltext.encode("utf-8"))
-        f.close()
+        data = self.get_data()
+        cw.data.CWPyElementTree(element=data).write(path)
         return path
 
     def export_image(self):
@@ -200,19 +196,7 @@ class CWBinaryBase(object):
 
     def get_data(self):
         """CWPyElementのインスタンスを返す。"""
-        xml = self.get_xmltext(0)
-        file = StringIO.StringIO(xml)
-        return cw.data.xml2element(file=file)
-
-    def get_childrentext(self, children, indent):
-        """子エレメントのXML作成用の文字列を返す。
-        children: 子エレメントのリスト
-        """
-        if children:
-            seq = [child.get_xmltext(indent) for child in children]
-            return "\n" + "\n".join(seq)
-        else:
-            return ""
+        return None
 
     def get_materialpath(self, path):
         """引数のパスを素材ディレクトリに関連づける。

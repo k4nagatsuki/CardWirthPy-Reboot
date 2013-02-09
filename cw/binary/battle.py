@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import event
 
@@ -72,23 +70,6 @@ class Battle(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"id": self.id,
-             "name": self.name,
-             "bgm": self.get_materialpath(self.bgm),
-             "enemycards": self.get_childrentext(self.ecards, indent + 2),
-             "events": self.get_childrentext(self.events, indent + 2),
-             "spreadtype": self.conv_spreadtype(self.spreadtype),
-             "indent": self.get_indent(indent)
-             }
-        return d
-
 class EnemyCard(base.CWBinaryBase):
     """エネミーカード。
     主要なデータはキャストカードを参照する。
@@ -129,24 +110,6 @@ class EnemyCard(base.CWBinaryBase):
                 e.append(event.get_data())
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"castid": self.cast_id,
-             "flag": self.flag,
-             "scale": self.scale,
-             "left": self.left,
-             "top": self.top,
-             "escape": self.escape,
-             "events": self.get_childrentext(self.events, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
 
 def main():
     pass

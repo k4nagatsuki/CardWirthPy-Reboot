@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import item
 import skill
@@ -237,75 +235,6 @@ class Adventurer(base.CWBinaryBase):
 
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        # 所持スキル・召喚獣の使用回数初期化
-        for skill in self.skills:
-            skill.limit = 0
-
-        for beast in self.beasts:
-            beast.limit = 0
-
-        d = {"id": self.id,
-             "name": self.name,
-             "description": self.description,
-             "level": self.level,
-             "life": self.life,
-             "maxlife": self.maxlife,
-             "noeffect_weapon": self.noeffect_weapon,
-             "noeffect_magic": self.noeffect_magic,
-             "undead": self.undead,
-             "automaton": self.automaton,
-             "unholy": self.unholy,
-             "constructure": self.constructure,
-             "resist_fire": self.resist_fire,
-             "resist_ice": self.resist_ice,
-             "weakness_fire": self.weakness_fire,
-             "weakness_ice": self.weakness_ice,
-             "dex": self.dex,
-             "agl": self.agl,
-             "int": self.int,
-             "str": self.str,
-             "vit": self.vit,
-             "min": self.min,
-             "aggressive": self.aggressive,
-             "cheerful": self.cheerful,
-             "brave": self.brave,
-             "cautious": self.cautious,
-             "trickish": self.trickish,
-             "avoid": self.avoid,
-             "resist": self.resist,
-             "defense": self.defense,
-             "mentality": self.conv_mentality(self.mentality),
-             "duration_mentality": self.duration_mentality,
-             "paralyze": self.paralyze,
-             "poison": self.poison,
-             "bind": self.duration_bind,
-             "silence": self.duration_silence,
-             "faceup": self.duration_faceup,
-             "antimagic": self.duration_antimagic,
-             "enhance_action": self.enhance_action,
-             "duration_enhance_action": self.duration_enhance_action,
-             "enhance_avoid": self.enhance_avoid,
-             "duration_enhance_avoid": self.duration_enhance_avoid,
-             "enhance_resist": self.enhance_resist,
-             "duration_enhance_resist": self.duration_enhance_resist,
-             "enhance_defense": self.enhance_defense,
-             "duration_enhance_defense": self.duration_enhance_defense,
-             "coupons": self.get_childrentext(self.coupons, indent + 3),
-             # シナリオ途中で手に入れたカード(F9で消えるカード)は変換しない
-             "items": self.get_childrentext([i for i in self.items if i.premium <= 2], indent + 2),
-             "skills": self.get_childrentext([i for i in self.skills if i.premium <= 2], indent + 2),
-             "beasts": self.get_childrentext([i for i in self.beasts if i.premium <= 2], indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
-
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""
     def __init__(self, parent, f, yadodata=False):
@@ -321,6 +250,9 @@ class AdventurerCard(base.CWBinaryBase):
     def set_image(self, image):
         """埋め込み画像を取り込む時のメソッド。"""
         self.adventurer.image = image
+
+    def get_data(self):
+        return self.adventurer.get_data()
 
     def create_xml(self, dpath):
         """adventurerのデータだけxml化する。"""
@@ -340,6 +272,9 @@ class AdventurerWithImage(base.CWBinaryBase):
         self.adventurer = Adventurer(self, f)
         self.adventurer.image = image
         f.byte()
+
+    def get_data(self):
+        return self.adventurer.get_data()
 
     def create_xml(self, dpath):
         """adventurerのデータだけxml化する。"""

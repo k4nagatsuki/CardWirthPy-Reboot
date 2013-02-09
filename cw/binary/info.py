@@ -53,20 +53,6 @@ class InfoCard(base.CWBinaryBase):
             self.data.append(prop)
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"name": self.name,
-             "id": self.id,
-             "description": self.description,
-             "indent": self.get_indent(indent)
-             }
-        return d
-
 def main():
     pass
 

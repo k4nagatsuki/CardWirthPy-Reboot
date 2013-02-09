@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 
 import cw
@@ -91,30 +89,6 @@ class Summary(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"name": self.name,
-             "author": self.author,
-             "description": self.description,
-             "levelmin": self.level_min,
-             "levelmax": self.level_max,
-             "required_coupons": self.required_coupons,
-             "required_coupons_num": self.required_coupons_num,
-             "startarea_id": self.area_id,
-             "labels": "",
-             "tags": self.tags,
-             "skintype": self.skintype,
-             "flags": self.get_childrentext(self.flags, indent + 2),
-             "steps": self.get_childrentext(self.steps, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
-
 class Step(base.CWBinaryBase):
     """ステップ定義。"""
     def __init__(self, parent, f, yadodata=False):
@@ -153,29 +127,6 @@ class Step(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"name": self.name,
-             "default": self.default,
-             "valname0": self.variable_names[0],
-             "valname1": self.variable_names[1],
-             "valname2": self.variable_names[2],
-             "valname3": self.variable_names[3],
-             "valname4": self.variable_names[4],
-             "valname5": self.variable_names[5],
-             "valname6": self.variable_names[6],
-             "valname7": self.variable_names[7],
-             "valname8": self.variable_names[8],
-             "valname9": self.variable_names[9],
-             "indent": self.get_indent(indent)
-             }
-        return d
-
 class Flag(base.CWBinaryBase):
     """フラグ定義。"""
     def __init__(self, parent, f, yadodata=False):
@@ -197,21 +148,6 @@ class Flag(base.CWBinaryBase):
             e = cw.data.make_element("False", self.variable_names[1])
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"name": self.name,
-             "default": self.default,
-             "valname0": self.variable_names[0],
-             "valname1": self.variable_names[1],
-             "indent": self.get_indent(indent)
-             }
-        return d
 
 def main():
     pass

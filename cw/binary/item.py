@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import effectmotion
 import event
@@ -160,47 +158,6 @@ class ItemCard(base.CWBinaryBase):
                 e.append(event.get_data())
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"id": self.id,
-             "name": self.name,
-             "description": self.description,
-             "scenario": self.scenario_name,
-             "author": self.scenario_author,
-             "p_ability": self.conv_card_physicalability(self.p_ability),
-             "m_ability": self.conv_card_mentalability(self.m_ability),
-             "silence": self.silence,
-             "target_all": self.target_all,
-             "target": self.conv_card_target(self.target),
-             "effecttype": self.conv_card_effecttype(self.effect_type),
-             "resisttype": self.conv_card_resisttype(self.resist_type),
-             "successrate": self.success_rate,
-             "sound": self.get_materialpath(self.sound_effect),
-             "sound2": self.get_materialpath(self.sound_effect2),
-             "visual": self.conv_card_visualeffect(self.visual_effect),
-             "enhance_avoid": self.enhance_avoid,
-             "enhance_resist": self.enhance_resist,
-             "enhance_defense": self.enhance_defense,
-             "keycodes": cw.util.encodetextlist(self.keycodes),
-             "premium": self.conv_card_premium(self.premium),
-             "uselimit": self.limit,
-             "uselimitmax": self.limit_max,
-             "price": self.price,
-             "enhance_avoid2": self.enhance_avoid2,
-             "enhance_resist2": self.enhance_resist2,
-             "enhance_defense2": self.enhance_defense2,
-             "hold": self.hold,
-             "motions": self.get_childrentext(self.motions, indent + 2),
-             "events": self.get_childrentext(self.events, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
 
 def main():
     pass

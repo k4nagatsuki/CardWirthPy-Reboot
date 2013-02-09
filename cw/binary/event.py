@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import content
 
@@ -36,21 +34,6 @@ class Event(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"keycodes": self.keycodes,
-             "ignitions": cw.util.encodetextlist([str(i) for i in self.ignitions])
-                                                    if self.ignitions else "",
-             "contents": self.get_childrentext(self.contents, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
-
 class SimpleEvent(base.CWBinaryBase):
     """イベント発火条件なしのイベントデータのクラス。
     カードイベント・パッケージ等で使う。
@@ -71,18 +54,6 @@ class SimpleEvent(base.CWBinaryBase):
                 e.append(content.get_data())
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"contents": self.get_childrentext(self.contents, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
 
 def main():
     pass

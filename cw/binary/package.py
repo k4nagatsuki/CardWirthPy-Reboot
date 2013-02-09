@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree
-
 import base
 import event
 
@@ -40,20 +38,6 @@ class Package(base.CWBinaryBase):
                 e.append(event.get_data())
             self.data.append(e)
         return self.data
-
-    # FIXME
-    def get_xmltext(self, indent):
-        data = self.get_data()
-        text = xml.etree.ElementTree.tostring(element=data, encoding="utf-8", method="xml")
-        return text
-
-    def get_xmldict(self, indent):
-        d = {"id": self.id,
-             "name": self.name,
-             "events": self.get_childrentext(self.events, indent + 2),
-             "indent": self.get_indent(indent)
-             }
-        return d
 
 def main():
     pass
