@@ -1531,10 +1531,11 @@ class LoseContent(EventContentBase):
             if isinstance(target, cw.character.Character):
                 target = target.cardpocket[index]
 
-            if self.lose_card(name, desc, target, num) and\
-                    cw.cwpy.battle and\
+            headers = self.lose_card(name, desc, target, num)
+            if headers and cw.cwpy.battle and\
                     isinstance(ccard, cw.character.Character):
-                ccard.deck.set(ccard)
+                for header in headers:
+                    ccard.deck.remove(ccard, header)
 
     def lose_card(self, name, desc, target, num):
         headers = []
@@ -1555,7 +1556,7 @@ class LoseContent(EventContentBase):
                 cw.cwpy.trade("TRASHBOX", header=header, from_event=True, sort=False)
                 lose = True
 
-        return lose
+        return headers
 
 class LoseSkillContent(LoseContent):
     def action(self):
