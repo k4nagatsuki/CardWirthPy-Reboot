@@ -411,7 +411,8 @@ class BranchAreaContent(BranchContent):
     def action(self):
         """エリア分岐コンテント。"""
         if cw.cwpy.battle:
-            value = None
+            areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
+            value = str(areaid)
         else:
             value = str(cw.cwpy.areaid)
 
