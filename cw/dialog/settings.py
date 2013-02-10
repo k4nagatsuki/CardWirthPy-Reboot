@@ -307,7 +307,7 @@ class AudioSettingPanel(wx.Panel):
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_midi.SetTickFreq(10, 1)
         # 効果音音量
-        self.box_sound = wx.StaticBox(self, -1, u"サウンド音量")
+        self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
         n = int(cw.cwpy.setting.vol_sound * 100)
         self.sl_sound = wx.Slider(
             self, -1, n, 0, 100, size=(250, -1),
