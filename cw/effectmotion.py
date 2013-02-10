@@ -123,21 +123,28 @@ class Effect(object):
         # 各種判定処理
         allmissed = self.successrate <= -5
         allsuccess = self.successrate >= 5
+        success_res = False
+        success_avo = False
         if allmissed:
             # 完全失敗
-            noeffect = False
-            success_res = False
-            success_avo = False
+            noeffect = self.check_noeffect(target)
+            success_res = self.resisttype == "Resist"
+            success_avo = self.resisttype == "Avoid"
         elif allsuccess:
             # 完全成功(無効だけは判定)
             noeffect = self.check_noeffect(target)
-            success_res = False
-            success_avo = False
+            if noeffect:
+                success_res = self.resisttype == "Resist"
+                success_avo = self.resisttype == "Avoid"
         else:
             # 無効・回避・抵抗判定
             noeffect = self.check_noeffect(target)
-            success_res = self.check_resist(target)
-            success_avo = self.check_avoid(target)
+            if noeffect:
+                success_res = self.resisttype == "Resist"
+                success_avo = self.resisttype == "Avoid"
+            else:
+                success_res = self.check_resist(target)
+                success_avo = self.check_avoid(target)
 
         # ダメージ効果の有無
         countdamage = self.count_motion("damage") + self.count_motion("absorb")
@@ -186,21 +193,19 @@ class Effect(object):
         if not success_avo:
             cw.cwpy.play_sound(self.soundpath)
 
-        if not allmissed:
-            if noeffect or (success_res and not hasdamage):
-                cw.cwpy.sounds["ineffective"].play()
-                self.animate(target, True)
-                return False
-            elif success_avo:
-                cw.cwpy.sounds["avoid"].play()
-                pygame.time.wait(cw.cwpy.setting.frametime * 12)
-                return False
+        if success_avo:
+            cw.cwpy.sounds["avoid"].play()
+            pygame.time.wait(cw.cwpy.setting.frametime * 12)
+            return False
+        elif noeffect or (success_res and not hasdamage):
+            cw.cwpy.sounds["ineffective"].play()
+            self.animate(target, True)
+            return False
 
         # 効果モーションを発動
         effectual = False
-        if not allmissed:
-            for motion in self.motions:
-                effectual |= motion.apply(target, success_res)
+        for motion in self.motions:
+            effectual |= motion.apply(target, success_res)
 
         if not effectual:
             # 効果無し
@@ -224,10 +229,7 @@ class Effect(object):
 
             self.animate(target, True)
 
-        if allmissed:
-            return False
-        else:
-            return True
+        return True
 
     def check_noeffect(self, target):
         return check_noeffect(self.effecttype, target)
