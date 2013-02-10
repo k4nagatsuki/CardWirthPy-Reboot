@@ -302,6 +302,10 @@ class EventEngine(object):
                 if isinstance(selection, cw.sprite.card.MenuCard):
                     last_selected = selection
 
+            # メニューカードの反転表示を解除する
+            if isinstance(cw.cwpy.selection, cw.sprite.card.MenuCard):
+                cw.cwpy.clear_selection()
+
             # イベント実行
             if cw.cwpy.is_runningevent():
                 event.run()
