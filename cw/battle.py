@@ -60,6 +60,13 @@ class BattleEngine(object):
         """戦闘行動を開始する。1ラウンド分の処理。"""
         self._running = True
         self._ready = False
+
+        if self.check_win():
+            # デバッグ操作などで敵が全滅したらここへ来る
+            for member in self.members:
+                member.clear_action()
+            raise BattleWinError()
+
         # ラウンドイベントスタート
         cw.cwpy.sdata.start_event(keynum=-self.round)
 
