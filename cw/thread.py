@@ -549,6 +549,7 @@ class CWPy(_Singleton, threading.Thread):
             pcard = cw.sprite.card.PlayerCard(data, pos)
             pcard.rect.topleft = pos
             pcard._rect.topleft = pos
+            pcard.set_fullrecovery()
 
             cw.animation.animate_sprite(pcard, "deal")
 
