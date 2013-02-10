@@ -1527,10 +1527,14 @@ class LoseContent(EventContentBase):
         desc = e.gettext("Description", "")
 
         for target in cw.cwpy.event.get_targetscope(scope):
+            ccard = target
             if isinstance(target, cw.character.Character):
                 target = target.cardpocket[index]
 
-            self.lose_card(name, desc, target, num)
+            if self.lose_card(name, desc, target, num) and\
+                    cw.cwpy.battle and\
+                    isinstance(ccard, cw.character.Character):
+                ccard.deck.set(ccard)
 
     def lose_card(self, name, desc, target, num):
         headers = []
@@ -1540,6 +1544,7 @@ class LoseContent(EventContentBase):
                 headers.append(h)
 
         # カード削除(numが0の場合は全て削除)
+        lose = False
         if headers:
             if num == 0:
                 num = len(headers)
@@ -1548,6 +1553,9 @@ class LoseContent(EventContentBase):
 
             for header in headers[:num]:
                 cw.cwpy.trade("TRASHBOX", header=header, from_event=True, sort=False)
+                lose = True
+
+        return lose
 
 class LoseSkillContent(LoseContent):
     def action(self):
