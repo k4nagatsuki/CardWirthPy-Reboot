@@ -295,10 +295,24 @@ class EventEngine(object):
             event = self.check_keynum(keynum)
 
         if event:
+            # メニューカードの選択を記憶
+            last_selected = None
+            if 0 <= cw.cwpy.index:
+                selection = cw.cwpy.list[cw.cwpy.index]
+                if isinstance(selection, cw.sprite.card.MenuCard):
+                    last_selected = selection
+
+            # イベント実行
             if cw.cwpy.is_runningevent():
                 event.run()
             else:
                 event.start()
+
+            # メニューカードの選択を復元
+            if last_selected and last_selected in cw.cwpy.list:
+                index = cw.cwpy.list.index(last_selected)
+                if 0 <= index:
+                    cw.cwpy.index = index
 
     def check_keycodes(self, keycodes):
         for event in self.events:
