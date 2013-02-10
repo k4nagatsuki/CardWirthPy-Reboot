@@ -1318,6 +1318,8 @@ class CWPy(_Singleton, threading.Thread):
             if targettype == "STOREHOUSE":
                 header.write()
 
+            header.set_owner(None)
+
         # 移動元が荷物袋だった場合
         elif self.ydata.party and owner == self.ydata.party.backpack:
             # 移動元のリストからCardHeaderを削除

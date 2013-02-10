@@ -346,7 +346,7 @@ class CardHeader(object):
             owner.data.is_edited = True
 
             # カード消滅処理。リサイクルカードの場合は消滅させない
-            if header.uselimit <= 0 and not header.recycle:
+            if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
                 if cw.cwpy.battle and header in owner.deck.hand:
                     owner.deck.hand.remove(header)
 
@@ -363,7 +363,7 @@ class CardHeader(object):
             # カード消滅処理
             if header.uselimit <= 0:
                 # 召喚獣消去効果で消えてる場合もあるのでチェック
-                if header in owner.cardpocket[cw.POCKET_BEAST]:
+                if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
     def write(self):
