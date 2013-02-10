@@ -491,8 +491,16 @@ class Frame(wx.Frame):
             if cw.cwpy.is_showingmessage():
                 mwin = cw.cwpy.get_messagewindow()
                 mwin.result = cw.event.EffectBreakError()
-
-            cw.cwpy.exec_func(cw.cwpy.sdata.f9)
+                cw.cwpy.exec_func(cw.cwpy.sdata.f9)
+            else:
+                def stop():
+                    if cw.cwpy.is_runningevent():
+                        # イベント中断
+                        cw.cwpy.event.get_event().exit_func = cw.cwpy.sdata.f9
+                        raise cw.event.EffectBreakError()
+                    else:
+                        cw.cwpy.exec_func(cw.cwpy.sdata.f9)
+                cw.cwpy.exec_func(stop)
 
         self.kill_dlg(dlg)
 

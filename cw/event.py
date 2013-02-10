@@ -356,6 +356,8 @@ class Event(object):
         self.keynums = []
         # 発火キーコード(文字列)
         self.keycodes = []
+        # 終了時実行関数。F9用
+        self.exit_func = None
 
         if event is not None:
             if event.hasfind("Ignitions//Number"):
@@ -389,6 +391,9 @@ class Event(object):
             self.stop()
 
         self.end()
+
+        if self.exit_func:
+            cw.cwpy.exec_func(self.exit_func)
 
     def stop(self):
         """イベント強制中断処理。
