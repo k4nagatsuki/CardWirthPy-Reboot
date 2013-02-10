@@ -549,7 +549,8 @@ class CardEvent(Event):
         カード効果発動・効果中断コンテントに対応。
         """
         # エリアのキーコードイベント
-        self.run_areaevent()
+        if isinstance(self.user, cw.sprite.card.PlayerCard):
+            self.run_areaevent()
 
         # カード効果
         self.effect_cardmotion()
