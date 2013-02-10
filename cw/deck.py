@@ -101,11 +101,11 @@ class Deck(object):
         for header in hand[index:]:
             if header.type == "SkillCard":
                 header = header.ref_original()
-                self.insert(0, header)
+                self.talon.insert(0, header)
                 flag = True
             elif header.type == "ActionCard" and header.id > 0:
                 header = cw.cwpy.rsrc.actioncards[header.id]
-                self.insert(0, header)
+                self.talon.insert(0, header)
                 flag = True
 
         if flag:

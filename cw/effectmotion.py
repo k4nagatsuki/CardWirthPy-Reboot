@@ -157,36 +157,40 @@ class Effect(object):
         guardcard = None # 一時表示するカード
 
         # 使用カードは消耗しない(表示のみ)
-        if target.actiondata and target.actiondata[1]:
-            header = target.actiondata[1]
-            avoid, resist, defense = header.get_enhance_val_used()
-            if (0 <> avoid and self.resisttype == "Avoid") or\
-               (0 <> resist and self.resisttype == "Resist"):
-                guardcard = header
+        if not allsuccess:
+            if target.actiondata and target.actiondata[1]:
+                header = target.actiondata[1]
+                avoid, resist, defense = header.get_enhance_val_used()
+                if (0 <> avoid and self.resisttype == "Avoid") or\
+                   (0 <> resist and self.resisttype == "Resist"):
+                    guardcard = header
+
         # 所有ボーナス(アイテムは消耗しない)
         cards = target.cardpocket[cw.POCKET_BEAST]
-        for header in cards:
-            avoid, resist, defense = header.get_enhance_val()
-            if (0 <> avoid and self.resisttype == "Avoid") or\
-               (0 <> resist and self.resisttype == "Resist"):
-                if not guardcard:
-                    guardcard = header
-                if not allsuccess:
-                    consume.add(header)
+        if not allsuccess:
+            for header in cards:
+                avoid, resist, defense = header.get_enhance_val()
+                if (0 <> avoid and self.resisttype == "Avoid") or\
+                   (0 <> resist and self.resisttype == "Resist"):
+                    if not guardcard:
+                        guardcard = header
+                    if not allsuccess:
+                        consume.add(header)
 
-        # ボーナス・ペナルティの発動したカードを一時表示する
-        guardcardimg = None
-        if not event and guardcard:
-            cw.cwpy.sounds["equipment"].play()
-            cw.cwpy.set_guardcardimg(target, guardcard)
-            cw.cwpy.draw()
-            pygame.time.wait(cw.cwpy.setting.frametime * 12)
-            cw.cwpy.clear_guardcardimg()
-            cw.cwpy.draw()
+            # ボーナス・ペナルティの発動したカードを一時表示する
+            guardcardimg = None
+            if not event and guardcard:
+                cw.cwpy.sounds["equipment"].play()
+                cw.cwpy.set_guardcardimg(target, guardcard)
+                cw.cwpy.draw()
+                pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                cw.cwpy.clear_guardcardimg()
+                cw.cwpy.draw()
 
-        # 回避・抵抗段階での消耗
-        for header in consume:
-            header.set_uselimit(-1)
+            # 回避・抵抗段階での消耗
+            for header in consume:
+                header.set_uselimit(-1)
+
         consume.clear()
 
         # 音鳴らす
