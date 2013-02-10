@@ -35,6 +35,8 @@ class Setting(object):
             self.messagespeed = 4
             self.mwincolour = (0, 0, 80, 180)
             self.mwinframecolour = (128, 0, 0, 255)
+            self.blwincolour = (80, 80, 80, 180)
+            self.blwincolour = (128, 128, 128, 255)
             self.dealspeed = 7
             self.transition = "None"
             self.transitionspeed = 5
@@ -73,11 +75,22 @@ class Setting(object):
         b = data.getint("MessageWindowColor", "blue", 80)
         a = data.getint("MessageWindowColor", "alpha", 180)
         self.mwincolour = self.wrap_colorvalue(r, g, b, a)
-        r = data.getint("MessageWindowFrameColor", "red", 0)
+        r = data.getint("MessageWindowFrameColor", "red", 128)
         g = data.getint("MessageWindowFrameColor", "green", 0)
-        b = data.getint("MessageWindowFrameColor", "blue", 80)
-        a = data.getint("MessageWindowFrameColor", "alpha", 180)
+        b = data.getint("MessageWindowFrameColor", "blue", 0)
+        a = data.getint("MessageWindowFrameColor", "alpha", 255)
         self.mwinframecolour = self.wrap_colorvalue(r, g, b, a)
+        # バックログウィンドウの色と透明度
+        r = data.getint("MessageLogWindowColor", "red", 80)
+        g = data.getint("MessageLogWindowColor", "green", 80)
+        b = data.getint("MessageLogWindowColor", "blue", 80)
+        a = data.getint("MessageLogWindowColor", "alpha", 180)
+        self.blwincolour = self.wrap_colorvalue(r, g, b, a)
+        r = data.getint("MessageLogWindowFrameColor", "red", 128)
+        g = data.getint("MessageLogWindowFrameColor", "green", 128)
+        b = data.getint("MessageLogWindowFrameColor", "blue", 128)
+        a = data.getint("MessageLogWindowFrameColor", "alpha", 255)
+        self.blwinframecolour = self.wrap_colorvalue(r, g, b, a)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
         dealspeed = data.getint("CardDealingSpeed", 6)
         self.set_dealspeed(dealspeed)

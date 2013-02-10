@@ -102,6 +102,21 @@ def create_settings(setting):
          }
     e = cw.data.make_element("MessageWindowFrameColor", "", d)
     element.append(e)
+    # バックログウィンドウの色と透明度
+    d = {"red": str(setting.blwincolour[0]),
+         "green": str(setting.blwincolour[1]),
+         "blue": str(setting.blwincolour[2]),
+         "alpha": str(setting.blwincolour[3])
+         }
+    e = cw.data.make_element("MessageLogWindowColor", "", d)
+    element.append(e)
+    d = {"red": str(setting.blwinframecolour[0]),
+         "green": str(setting.blwinframecolour[1]),
+         "blue": str(setting.blwinframecolour[2]),
+         "alpha": str(setting.blwinframecolour[3])
+         }
+    e = cw.data.make_element("MessageLogWindowFrameColor", "", d)
+    element.append(e)
     # カードの表示スピード(数字が小さいほど速い)(1～100)
     e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed - 1))
     element.append(e)

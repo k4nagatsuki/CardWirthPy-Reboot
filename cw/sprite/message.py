@@ -42,12 +42,15 @@ class MessageWindow(base.CWPySprite):
         self.text = text
         # image
         self.image = pygame.Surface(size).convert_alpha()
-        self.image.fill(cw.cwpy.setting.mwincolour)
+        if self.backlog:
+            self.image.fill(cw.cwpy.setting.blwincolour)
+        else:
+            self.image.fill(cw.cwpy.setting.mwincolour)
         # rect
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         # 外枠描画
-        draw_frame(self.image, size, (0, 0))
+        draw_frame(self.image, size, (0, 0), self.backlog)
         # 話者(CardHeader or Character)
         # 名前のみ使用
         self.talker = talker
@@ -347,7 +350,7 @@ class MessageWindow(base.CWPySprite):
         特殊文字列(#, $)を置換した文字列を返す
         """
         for key, value in self.name_table.iteritems():
-            if not value or key in cw.cwpy.rsrc.specialchars:
+            if key in cw.cwpy.rsrc.specialchars:
                 continue
 
             s = s.replace(key, value)
@@ -430,14 +433,17 @@ class SelectWindow(MessageWindow):
         self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.talker = None
         # image
-        colour = cw.cwpy.setting.mwincolour
+        if self.backlog:
+            colour = cw.cwpy.setting.blwincolour
+        else:
+            colour = cw.cwpy.setting.mwincolour
         self.image = pygame.Surface(size).convert_alpha()
         self.image.fill(colour)
         # rect
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         # 外枠描画
-        draw_frame(self.image, size, (0, 0))
+        draw_frame(self.image, size, (0, 0), self.backlog)
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs((15, 9))
         # frame
@@ -532,11 +538,13 @@ class SelectionBar(base.SelectableSprite):
 
     def get_image(self, size):
         image = pygame.Surface(size).convert_alpha()
-        colour = cw.cwpy.setting.mwincolour
-        colour = colour
+        if self.backlog:
+            colour = cw.cwpy.setting.blwincolour
+        else:
+            colour = cw.cwpy.setting.mwincolour
         image.fill(colour)
         # 外枠描画
-        draw_frame(image, size, pos=(0, 0))
+        draw_frame(image, size, pos=(0, 0), backlog=self.backlog)
         # 選択肢描画
         font = cw.cwpy.rsrc.fonts["selectionbar"]
         nameimg = font.render(self.name, True, (255, 255, 255))
@@ -633,14 +641,17 @@ class BacklogCurtain(base.CWPySprite):
         # spritegroupに追加
         spritegrp.add(self, layer="curtain")
 
-def draw_frame(image, size, pos=(0, 0)):
+def draw_frame(image, size, pos=(0, 0), backlog=False):
     """
     引数のサーフェスにメッセージウィンドウの外枠を描画。
     """
     pointlist = get_pointlist(size, (0, 0))
     colour = (0, 0, 0, 255)
     pygame.draw.lines(image, colour, False, pointlist)
-    colour = cw.cwpy.setting.mwinframecolour
+    if backlog:
+        colour = cw.cwpy.setting.blwinframecolour
+    else:
+        colour = cw.cwpy.setting.mwinframecolour
     pointlist = get_pointlist((size[0]-1, size[1]-1), (1, 1))
     pygame.draw.lines(image, colour, False, pointlist)
     pointlist = get_pointlist((size[0]-2, size[1]-2), (2, 2))
