@@ -342,13 +342,14 @@ class PlayerCard(CWPyCard, character.Player):
 
     def update_shiftup(self):
         """下にさげていたカードを上にあげる。"""
+        speed = cw.cwpy.setting.dealspeed * 3
         if self.frame == 0:
             if self.is_reversed():
                 self.image = cw.cwpy.rsrc.cardbgs["REVERSE"]
             else:
                 self.image = self._image
 
-        elif self.frame == 15:
+        elif self.frame == speed:
             if self.is_reversed():
                 self.status = "reversed"
             else:
@@ -357,24 +358,27 @@ class PlayerCard(CWPyCard, character.Player):
             self.frame = 0
             return
 
-        self.rect.move_ip(0, -10)
+        point = 150 / speed
+        self.rect.move_ip(0, -point)
         for image, rect in self.zoomimgs:
             if not rect is self.rect:
-                rect.move_ip(0, -10)
+                rect.move_ip(0, -point)
         self.frame += 1
 
     def update_shiftdown(self):
         """上にあげていたカードを下にさげる。"""
-        if self.frame == 15:
+        speed = cw.cwpy.setting.dealspeed * 3
+        if self.frame == speed:
             self.image = pygame.Surface((0, 0)).convert()
             self.status = "hidden"
             self.frame = 0
             return
 
-        self.rect.move_ip(0, +10)
+        point = 150 / speed
+        self.rect.move_ip(0, point)
         for image, rect in self.zoomimgs:
             if not rect is self.rect:
-                rect.move_ip(0, +10)
+                rect.move_ip(0, point)
         self.frame += 1
 
     def lclick_event(self):
