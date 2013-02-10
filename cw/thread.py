@@ -785,17 +785,21 @@ class CWPy(_Singleton, threading.Thread):
                 cw.sprite.card.MenuCard(e, pos, status)
 
     def change_area(self, areaid, eventstarting=True,
-                                bginhrt=False, ttype=("Default", "Default")):
+                          bginhrt=False, ttype=("Default", "Default"),
+                          battlewin=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
         ttype: トランジション効果のデータのタプル((効果名, 速度))
+        battlewin: 戦闘勝利時の呼び出しか。
         """
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
+        bginhrt &= not battlewin
+        eventstarting &= not battlewin
         oldareaid = self.areaid
         self.areaid = areaid
-        self.sdata.change_data(areaid)
+        self.sdata.change_data(areaid, battlewin=battlewin)
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
         cw.cwpy.hide_cards(True)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype)
@@ -820,7 +824,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.draw()
 
-            if self.areaid > 0 and self.status == "Scenario":
+            if self.areaid > 0 and not battlewin and self.status == "Scenario":
                 self.elapse_time()
 
             self.sdata.start_event(keynum=1)

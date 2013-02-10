@@ -1200,7 +1200,7 @@ class Character(object):
             if recovery:
                 header.set_uselimit(999)
             else:
-                header.set_uselimit(0)
+                header.set_uselimit(-999)
 
     def set_beast(self, element=None, vanish=False):
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。

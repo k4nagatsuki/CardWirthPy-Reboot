@@ -192,6 +192,9 @@ class BattleEngine(object):
         if cw.cwpy.music.path <> bgmpath:
             cw.cwpy.music.play(bgmpath)
 
+        # 勝利イベント実行時は元のエリアに戻る(時間経過無し)
+        cw.cwpy.change_area(areaid, battlewin=True)
+
         # 勝利イベント開始
         try:
             cw.cwpy.sdata.start_event(keynum=1)
