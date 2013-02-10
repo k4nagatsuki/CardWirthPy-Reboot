@@ -313,6 +313,7 @@ class CWPy(_Singleton, threading.Thread):
             self.tick_clock()
             self.input()
             eventhandler.run()
+        self.clear_selection()
 
         # バックログの保存
         if isinstance(mwin.result, int) and\
