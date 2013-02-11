@@ -1195,7 +1195,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -1229,14 +1229,16 @@ class CWPy(_Singleton, threading.Thread):
                 elif header.type == "BeastCard":
                     price = header.price / 2
                 if not from_event:
-                    cw.cwpy.sounds["page"].play()
+                    if sound:
+                        cw.cwpy.sounds["page"].play()
                     s = cw.cwpy.msgs["confirm_sell"] % (header.name, price)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
                         return
             else:
                 if not from_event:
-                    cw.cwpy.sounds["page"].play()
+                    if sound:
+                        cw.cwpy.sounds["page"].play()
                     s = cw.cwpy.msgs["confirm_dump"] % (header.name)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
@@ -1293,7 +1295,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sounds["dump"].play()
             elif targettype == "PAWNSHOP":
                 self.sounds["signal"].play()
-            else:
+            elif sound:
                 self.sounds["page"].play()
 
         #-----------------------------------------------------------------------

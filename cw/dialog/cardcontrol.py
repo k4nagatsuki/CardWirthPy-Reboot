@@ -287,19 +287,25 @@ class CardControl(wx.Dialog):
         if self.combo.IsShown():
             index = self.combo.GetSelection()
             if index <> self._combo_manual:
-                if index == self._combo_storehouse:
-                    cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self)
-                elif index == self._combo_backpack:
-                    cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self)
-                elif index in self._combo_cast:
-                    target = self.list2[self._combo_cast[index]]
-                    cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self)
-                elif index == self._combo_shelf:
-                    cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self)
-                    cw.cwpy.draw(True)
-                elif index == self._combo_trush:
-                    cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self)
-                self.draw(True)
+                def func(header):
+                    if index == self._combo_storehouse:
+                        cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self, sound=False)
+                    elif index == self._combo_backpack:
+                        cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self, sound=False)
+                    elif index in self._combo_cast:
+                        target = self.list2[self._combo_cast[index]]
+                        cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self, sound=False)
+                    elif index == self._combo_shelf:
+                        cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self, sound=False)
+                        cw.cwpy.draw(True)
+                    elif index == self._combo_trush:
+                        cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
+                    def func():
+                        self.draw(True)
+                        self.Enable(True)
+                    cw.cwpy.frame.exec_func(func)
+                self.Enable(False)
+                cw.cwpy.exec_func(func, header)
                 return
 
         # カード所持者がPlayerCardじゃない場合はカード情報を表示
@@ -543,6 +549,8 @@ class CardHolder(CardControl):
 
             # 最初に開くページのカードのposを設定
             self.set_cardpos(1)
+            # 選択中カード色反転
+            self.Parent.change_selection(self.selection)
 
         # layout
         self._do_layout()
