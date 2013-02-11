@@ -177,7 +177,7 @@ class CardHeader(object):
         imgpath = path
         self._cardimg = cw.image.CardImage(imgpath, self.get_bgtype(),
                                                     self.name, self.premium)
-        self.rect = self._cardimg.rect
+        self.rect.size = self._cardimg.rect.size
 
     def get_owner(self):
         if self._owner == "BACKPACK":
