@@ -381,6 +381,9 @@ class Debugger(wx.Frame):
                 cw.cwpy.sounds["click"].play()
                 cw.cwpy.sdata.reload()
                 cw.cwpy.change_area(cw.cwpy.areaid, False, True)
+                if cw.cwpy.battle:
+                    cw.cwpy.battle.ready()
+                    cw.cwpy.battle.round -= 1
                 cw.cwpy.sounds["signal"].play()
             cw.cwpy.exec_func(func)
 
