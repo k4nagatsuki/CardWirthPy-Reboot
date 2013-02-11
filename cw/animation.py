@@ -8,7 +8,7 @@ from pygame.locals import *
 import cw
 
 
-def animate_sprite(sprite, anitype, speedrate=1, clearevent=True):
+def animate_sprite(sprite, anitype, clearevent=True):
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
 
@@ -22,7 +22,7 @@ def animate_sprite(sprite, anitype, speedrate=1, clearevent=True):
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         sprite.update(cw.cwpy.scr)
         cw.cwpy.draw()
-        cw.cwpy.tick_clock(speedrate=speedrate)
+        cw.cwpy.tick_clock()
         if clearevent:
             pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
         else:

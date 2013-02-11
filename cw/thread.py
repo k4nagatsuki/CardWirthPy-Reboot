@@ -178,8 +178,8 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.write()
         self.rsrc.clear_systemfonttable()
 
-    def tick_clock(self, speedrate=1):
-        self.clock.tick(int(self.setting.fps * speedrate))
+    def tick_clock(self):
+        self.clock.tick(self.setting.fps)
 
     def input(self, eventclear=False):
         self.mousein = pygame.mouse.get_pressed()
@@ -808,7 +808,7 @@ class CWPy(_Singleton, threading.Thread):
             # 宿にいる場合は常に全回復状態にする
             for pcard in self.get_pcards():
                 pcard.set_fullrecovery()
-                pcard.update_image()
+                pcard.update_image(move=False)
 
         if self.is_showparty:
             for index, pcard in enumerate(self.get_pcards()):
