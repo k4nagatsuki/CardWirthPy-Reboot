@@ -178,8 +178,11 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.write()
         self.rsrc.clear_systemfonttable()
 
-    def tick_clock(self):
-        self.clock.tick(self.setting.fps)
+    def tick_clock(self, framerate=0):
+        if framerate:
+            self.clock.tick(framerate)
+        else:
+            self.clock.tick(self.setting.fps)
 
     def wait_frame(self, count):
         for i in xrange(count):

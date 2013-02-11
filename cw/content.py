@@ -972,7 +972,7 @@ class ChangeBgImageContent(EventContentBase):
         cw.cwpy.background.load(elements, bginhrt, ttype)
         # フレームを進める
         cw.cwpy.draw()
-        cw.cwpy.tick_clock()
+        cw.cwpy.tick_clock(framerate=30)
         cw.cwpy.input()
         cw.cwpy.eventhandler.run()
         return 0
@@ -1763,7 +1763,7 @@ class RedisplayContent(EventContentBase):
         cw.cwpy.background.reload(ttype)
         # フレームを進める
         cw.cwpy.draw()
-        cw.cwpy.tick_clock()
+        cw.cwpy.tick_clock(framerate=30)
         cw.cwpy.input()
         cw.cwpy.eventhandler.run()
         return 0
