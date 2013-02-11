@@ -46,7 +46,7 @@ class CardControl(wx.Dialog):
         self.sort.Append(cw.cwpy.msgs["sort_type"])
         self.sort.Append(cw.cwpy.msgs["sort_price"])
         if not sort:
-            self.sort.Hide()
+            self.sort.Freeze()
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=(110, 20), style=wx.CB_READONLY)
         if not sendto:
@@ -225,7 +225,7 @@ class CardControl(wx.Dialog):
         else:
             s = cw.cwpy.msgs["mode_use"]
         dc.DrawText(s, 8, 2)
-        if self.sort.IsShown():
+        if not self.sort.IsFrozen():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
             s = cw.cwpy.msgs["sort_title"]
             dc.DrawText(s, 190, 3)
@@ -607,16 +607,19 @@ class CardHolder(CardControl):
 
         # ソート条件
         if self.callname == "STOREHOUSE":
-            self.sort.Show()
+            if self.sort.IsFrozen():
+                self.sort.Thaw()
             sorttype = cw.cwpy.setting.sort_storehouse
         elif self.callname == "BACKPACK":
-            self.sort.Show()
+            if self.sort.IsFrozen():
+                self.sort.Thaw()
             sorttype = cw.cwpy.setting.sort_backpack
         else:
-            self.sort.Hide()
+            if not self.sort.IsFrozen():
+                self.sort.Freeze()
             sorttype = None
 
-        if self.sort.IsShown():
+        if not self.sort.IsFrozen():
             if sorttype == "Name":
                 self.sort.Select(1)
             elif sorttype == "Level":
@@ -625,8 +628,6 @@ class CardHolder(CardControl):
                 self.sort.Select(3)
             else:
                 self.sort.Select(0)
-
-        self.Layout()
 
     def _do_layout(self):
         self._sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
@@ -829,7 +830,7 @@ class CardHolder(CardControl):
         lpos = self._sizer_leftbar.GetPosition()
         lsize = self._sizer_leftbar.GetSize()
         lwidth = lsize[0] + lpos[0] * 2;
-        if self.sort.IsShown() and self.sort.GetRect().Contains(mousepos):
+        if not self.sort.IsFrozen() and self.sort.GetRect().Contains(mousepos):
             index = self.sort.GetSelection()
             count = self.sort.GetCount()
             if event.GetWheelRotation() > 0:
