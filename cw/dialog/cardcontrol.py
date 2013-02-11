@@ -344,7 +344,7 @@ class CardControl(wx.Dialog):
             if cw.cwpy.battle and owner.actiondata:
                 headerp = owner.actiondata[1]
 
-                if headerp.penalty:
+                if headerp and headerp.penalty:
                     s = cw.cwpy.msgs["selected_penalty"]
                     dlg = message.ErrorMessage(self, s)
                     self.Parent.move_dlg(dlg)

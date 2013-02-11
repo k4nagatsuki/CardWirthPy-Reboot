@@ -1001,12 +1001,13 @@ class CWPy(_Singleton, threading.Thread):
                             and sprite.actiondata and sprite.is_analyzable():
             if not self.areaid == cw.AREA_SELECT:
                 targets, header, beasts = self.selection.actiondata
-                self.set_inusecardimg(sprite, header)
+                if header:
+                    self.set_inusecardimg(sprite, header)
 
-                if header.target == "None":
-                    self.set_targetarrow([sprite])
-                else:
-                    self.set_targetarrow(targets)
+                    if header.target == "None":
+                        self.set_targetarrow([sprite])
+                    elif targets:
+                        self.set_targetarrow(targets)
 
     def set_inusecardimg(self, owner, header, status="normal", center=False):
         """PlayerCardの前に使用中カードの画像を表示。"""

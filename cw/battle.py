@@ -266,7 +266,7 @@ class BattleEngine(object):
         members = cw.cwpy.get_pcards("unreversed")
         members.extend(cw.cwpy.get_ecards("unreversed"))
         members.extend(cw.cwpy.get_fcards())
-        self.members = [member for member in members if member.is_active()]
+        self.members = [member for member in members if member.is_alive()]
 
     def set_actionorder(self):
         """行動順を決める値を算出し、

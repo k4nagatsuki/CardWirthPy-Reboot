@@ -411,7 +411,7 @@ class Character(object):
                         raise cw.battle.BattleWinError()
 
             # 手札カードの使用
-            if self.is_active():
+            if header and self.is_active():
                 if header in self.deck.hand and not header.type == "ItemCard":
                     self.deck.hand.remove(header)
 
@@ -506,7 +506,7 @@ class Character(object):
         """
         自動手札選択。
         """
-        if self.is_inactive() or not cw.cwpy.status == "ScenarioBattle":
+        if self.is_dead() or not cw.cwpy.status == "ScenarioBattle":
             self.clear_action()
             return
 
@@ -522,6 +522,11 @@ class Character(object):
                         targets = [cw.cwpy.dice.choice(effectivetargets)]
 
                     beasts.append((targets, header))
+
+        # 行動不能時は召喚獣のみ
+        if self.is_inactive():
+            self.set_action(None, None, beasts, True)
+            return
 
         # 使用するカード
         headers = []
