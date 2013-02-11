@@ -2166,9 +2166,9 @@ class WaitContent(EventContentBase):
         # 最新の画面を描画してから時間待機する
         cw.cwpy.draw()
         value = self.data.getint("", "value", 0)
-        cnt = 0
 
-        while cw.cwpy.is_running() and cnt < value:
+        tick = pygame.time.get_ticks() + (value * 100)
+        while cw.cwpy.is_running() and pygame.time.get_ticks() < tick:
             keyin = cw.cwpy.keyevent.get_pressed()
             breakflag = pygame.event.peek((MOUSEBUTTONUP, KEYDOWN))
             pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
@@ -2177,8 +2177,7 @@ class WaitContent(EventContentBase):
             if breakflag or keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
                 break
 
-            pygame.time.wait(100)
-            cnt += 1
+            cw.cwpy.wait_frame(1)
 
         return 0
 

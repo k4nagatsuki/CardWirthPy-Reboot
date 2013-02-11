@@ -275,7 +275,7 @@ class CardControl(wx.Dialog):
         # クリックアニメーション。4フレーム分。
         header.clickedflag = True
         self.draw(True)
-        pygame.time.wait(cw.cwpy.setting.frametime * 4)
+        cw.cwpy.wait_frame(4)
         header.clickedflag = False
         dc = wx.ClientDC(self.toppanel)
         self.draw_card(dc, header)

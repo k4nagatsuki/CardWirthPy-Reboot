@@ -183,7 +183,7 @@ class Effect(object):
                 cw.cwpy.sounds["equipment"].play()
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
-                pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                cw.cwpy.wait_frame(12)
                 cw.cwpy.clear_guardcardimg()
                 cw.cwpy.draw()
 
@@ -199,7 +199,7 @@ class Effect(object):
 
         if success_avo:
             cw.cwpy.sounds["avoid"].play()
-            pygame.time.wait(cw.cwpy.setting.frametime * 12)
+            cw.cwpy.wait_frame(12)
             return False
         elif noeffect or (success_res and not hasdamage):
             cw.cwpy.sounds["ineffective"].play()
@@ -280,7 +280,7 @@ class Effect(object):
                 cw.cwpy.draw()
 
             if self.soundpath:
-                pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                cw.cwpy.wait_frame(12)
 
         # 横振動(地震)
         elif self.visualeffect == "Horizontal":
@@ -310,7 +310,7 @@ class Effect(object):
                 cw.cwpy.draw()
 
             if self.soundpath:
-                pygame.time.wait(cw.cwpy.setting.frametime * 12)
+                cw.cwpy.wait_frame(12)
 
     def check_enabledtarget(self, target):
         """

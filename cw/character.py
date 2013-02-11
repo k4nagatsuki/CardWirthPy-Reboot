@@ -360,7 +360,8 @@ class Character(object):
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal")
             cw.animation.animate_sprite(inusecardimg, "zoomin")
-            pygame.time.wait(cw.cwpy.setting.frametime * 15)
+            waitrate = cw.cwpy.setting.dealspeed
+            cw.cwpy.wait_frame(waitrate)
             cw.animation.animate_sprite(inusecardimg, "zoomout")
             cw.animation.animate_sprite(inusecardimg, "hide")
         elif isinstance(self, cw.character.Friend):
@@ -370,8 +371,8 @@ class Character(object):
             cw.animation.animate_sprite(self, "deal")
             cw.animation.animate_sprite(self, "zoomin")
             cw.cwpy.set_inusecardimg(self, header, center=True)
-            cw.cwpy.draw()
-            pygame.time.wait(cw.cwpy.setting.frametime * 15)
+            waitrate = cw.cwpy.setting.dealspeed
+            cw.cwpy.wait_frame(waitrate)
             cw.cwpy.clear_inusecardimg()
             cw.animation.animate_sprite(self, "zoomout")
             cw.animation.animate_sprite(self, "hide")

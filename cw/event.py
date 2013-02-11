@@ -243,14 +243,16 @@ class EventInterface(object):
             if self._step:
                 self._paused = True
 
+            tick = pygame.time.get_ticks()
+            tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
-                        cnt < cw.cwpy.frame.debugger.sc_waittime.GetValue():
+                        pygame.time.get_ticks() < tick:
                 if not self._nowrunningevents[-1].force_nextcontent is None:
                     break
                 pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
-                pygame.time.wait(100)
+                cw.cwpy.wait_frame(1)
                 cnt += 1
 
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
@@ -260,7 +262,7 @@ class EventInterface(object):
                 pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
-                pygame.time.wait(10)
+                cw.cwpy.wait_frame(1)
 
             if self._stoped:
                 raise EffectBreakError()
@@ -566,7 +568,7 @@ class CardEvent(Event):
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:
             waitrate = cw.cwpy.setting.dealspeed * 2
-            pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
+            cw.cwpy.wait_frame(waitrate)
 
         # InuseCardImage削除
         cw.cwpy.clear_inusecardimg()
@@ -635,7 +637,7 @@ class CardEvent(Event):
                 self.targets[0].set_cardtarget()
                 cw.cwpy.draw()
                 waitrate = cw.cwpy.setting.dealspeed * 2
-                pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
+                cw.cwpy.wait_frame(waitrate)
                 targets = self.targets
             else:
                 targets = []
@@ -649,7 +651,7 @@ class CardEvent(Event):
                     cw.cwpy.draw()
                     cw.cwpy.play_sound(path)
                     waitrate = cw.cwpy.setting.dealspeed
-                    pygame.time.wait(cw.cwpy.setting.frametime * waitrate)
+                    cw.cwpy.wait_frame(waitrate)
                     targets.append(target)
 
         self.waited = True

@@ -159,7 +159,9 @@ class _JpySubImage(cw.image.Image):
     def wait(self):
         # 指定時間だけ待機
         if self.waittime > 0:
-            pygame.time.wait(self.waittime)
+            tick = pygame.time.get_ticks() + self.waittime
+            while cw.cwpy.is_running() and pygame.time.get_ticks() < tick:
+                cw.cwpy.wait_frame(1)
         # 右クリックするまで待機
         elif self.waittime < 0:
             cw.util.change_cursor("mouse")
@@ -171,7 +173,7 @@ class _JpySubImage(cw.image.Image):
                         if event.button == 3:
                             flag = True
 
-                pygame.time.wait(10)
+                cw.cwpy.wait_frame(1)
 
             cw.util.change_cursor()
 
@@ -542,7 +544,7 @@ class JpdcImage(cw.image.Image):
                     if event.button == 3:
                         flag = True
 
-            pygame.time.wait(10)
+            cw.cwpy.wait_frame(1)
 
         cw.util.change_cursor()
 

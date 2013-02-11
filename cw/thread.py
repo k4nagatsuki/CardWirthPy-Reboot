@@ -181,6 +181,10 @@ class CWPy(_Singleton, threading.Thread):
     def tick_clock(self):
         self.clock.tick(self.setting.fps)
 
+    def wait_frame(self, count):
+        for i in xrange(count):
+            self.tick_clock()
+
     def input(self, eventclear=False):
         self.mousein = pygame.mouse.get_pressed()
         if pygame.mouse.get_focused():
