@@ -455,15 +455,31 @@ class CardHeader(object):
         return bool(self._owner == "STOREHOUSE")
 
     def is_autoselectable(self):
+        # 対象無し
         flag = not bool(self.target == "None")
+
         if not self.carddata is None:
+            # 効果無し
             flag &= not self.carddata.find("Motions/Motion") is None
 
         if self.type <> "BeastCard":
+            # ホールド
             flag &= not self.hold
 
             if self.type == "ItemCard":
+                # 使用回数0(リサイクルカードのみ)
                 flag &= not bool(self.recycle and self.uselimit <= 0)
+
+            owner = self.get_owner()
+            if not self.carddata is None and owner:
+                # 沈黙
+                spell = self.carddata.getbool("Property/EffectType", "spell", False)
+                flag &= not (owner.is_silence() and spell)
+
+                # 魔法無効状態
+                effecttype = self.carddata.gettext("Property/EffectType", "")
+                magic = effecttype in ("Magic", "PhysicalMagic")
+                flag &= not (owner.is_antimagic() and magic)
 
         return flag
 
