@@ -402,12 +402,13 @@ class Character(object):
             targets, header, beasts = self.actiondata
 
             # 召喚獣カードの使用
-            for targets_b, header_b in beasts:
-                self.use_card(targets_b, header_b)
+            if self.is_alive():
+                for targets_b, header_b in beasts:
+                    self.use_card(targets_b, header_b)
 
-                # 戦闘勝利チェック
-                if cw.cwpy.battle.check_win():
-                    raise cw.battle.BattleWinError()
+                    # 戦闘勝利チェック
+                    if cw.cwpy.battle.check_win():
+                        raise cw.battle.BattleWinError()
 
             # 手札カードの使用
             if self.is_active():
@@ -1363,7 +1364,13 @@ class Player(Character):
             cw.cwpy.sdata.lostadventurers.add(self.data.fpath)
 
 class Enemy(Character):
-    pass
+    def is_dead(self):
+        """
+        敵は隠蔽状態であれば死亡と見做す。
+        """
+        b = Character.is_dead(self)
+        b |= self.status == "hidden"
+        return b
 
 class Friend(Character):
     pass
