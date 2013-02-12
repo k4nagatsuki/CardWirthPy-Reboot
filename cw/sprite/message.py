@@ -409,7 +409,6 @@ class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos=(80, 50), size=(470, 38), backlog=False, result=None):
         base.CWPySprite.__init__(self)
         self.backlog = backlog
-        self.result = result
         self.name_table = {}
         self.flag_table = {}
         self.step_table = {}
@@ -426,7 +425,7 @@ class SelectWindow(MessageWindow):
             self.wxdc = None
 
         # メッセージの選択結果
-        self.result = None
+        self.result = result
         # data
         self.names = names
         self.path = ""

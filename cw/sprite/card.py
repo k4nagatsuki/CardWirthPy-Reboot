@@ -259,7 +259,7 @@ class CWPyCard(base.SelectableSprite):
         if self.cardtarget:
             image = cw.imageretouch.to_negative_for_card(image)
 
-        if hasattr(self, "rect") and self.rect.size == (0, 0):
+        if hasattr(self, "image") and self.rect.size == (0, 0):
             self._image = image
         else:
             self.image = self._image = image
