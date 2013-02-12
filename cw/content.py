@@ -54,16 +54,22 @@ class BranchContent(EventContentBase):
 
         # 対象カードのxmlファイルのパス
         if cardtype == "SkillCard":
-            path = cw.cwpy.sdata.skills[id][1]
+            table = cw.cwpy.sdata.skills
             pocketidx = cw.POCKET_SKILL
         elif cardtype == "ItemCard":
-            path = cw.cwpy.sdata.items[id][1]
+            table = cw.cwpy.sdata.items
             pocketidx = cw.POCKET_ITEM
         elif cardtype == "BeastCard":
-            path = cw.cwpy.sdata.beasts[id][1]
+            table = cw.cwpy.sdata.beasts
             pocketidx = cw.POCKET_BEAST
         else:
             raise ValueError(cardtype + " is invalid cardtype")
+
+        if not id in table:
+            # 存在しないカードは常に所持していない
+            return self.get_boolean_index(False)
+
+        path = table[id][1]
 
         # 対象カードデータ取得
         e = cw.data.xml2element(path, "Property")
