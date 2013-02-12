@@ -330,7 +330,7 @@ class CardControl(wx.Dialog):
             dlg.Destroy()
             self.draw(True)
             return
-        elif isinstance(owner, cw.character.Character):
+        elif not cw.cwpy.areaid in cw.AREAS_TRADE and isinstance(owner, cw.character.Character):
             # 行動不能だったら処理中止
             if owner.is_inactive():
                 s = cw.cwpy.msgs["inactive"] % owner.name
