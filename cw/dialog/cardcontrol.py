@@ -549,8 +549,9 @@ class CardHolder(CardControl):
 
             # 最初に開くページのカードのposを設定
             self.set_cardpos(1)
-            # 選択中カード色反転
-            self.Parent.change_selection(self.selection)
+            if self.callname <> "INFOVIEW":
+                # 選択中カード色反転
+                self.Parent.change_selection(self.selection)
 
         # layout
         self._do_layout()
