@@ -357,17 +357,20 @@ class MessageWindow(base.CWPySprite):
             s = s.replace(key.upper(), value)
 
         # ステップ変数名の置換
-        r_step = re.compile("\$([^\$]*)\$")  # ステップ変数参照($)の集合
+        r_step = re.compile(r"\$(.*?)\$")  # ステップ変数参照($)の集合
         s = r_step.sub(self.rpl_stepvalue, s)
         # フラグ変数名の置換
-        r_flag = re.compile("\%([^\%]*)\%")  # フラグ変数参照(%)の集合
+        r_flag = re.compile(r"\%(.*?)\%")  # フラグ変数参照(%)の集合
         s = r_flag.sub(self.rpl_flagvalue, s)
         return s
 
     def rpl_stepvalue(self, m):
         key = m.group(1)
-        if key in self.step_table:
-            return self.step_table[key]
+        if self.backlog:
+            if key in self.step_table:
+                return self.step_table[key]
+            else:
+                return ""
 
         if key in cw.cwpy.sdata.steps:
             s = cw.cwpy.sdata.steps[key].get_valuename()
@@ -379,8 +382,11 @@ class MessageWindow(base.CWPySprite):
 
     def rpl_flagvalue(self, m):
         key = m.group(1)
-        if key in self.flag_table:
-            return self.flag_table[key]
+        if self.backlog:
+            if key in self.flag_table:
+                return self.flag_table[key]
+            else:
+                return ""
 
         if key in cw.cwpy.sdata.flags:
             s = cw.cwpy.sdata.flags[key].get_valuename()
