@@ -49,10 +49,10 @@ class Converter(threading.Thread):
         self.scenariodir = self.find_scenariodir()
 
         self.data = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
-        self.data.find2("Property/Name").text = self.find_skinname()
-        self.data.find2("Property/Type").text = self.find_type()
-        self.data.find2("Property/Author").text = self.find_author()
-        self.data.find2("Property/Description").text = cw.util.encodewrap(self.find_description())
+        self.data.find("Property/Name").text = self.find_skinname()
+        self.data.find("Property/Type").text = self.find_type()
+        self.data.find("Property/Author").text = self.find_author()
+        self.data.find("Property/Description").text = cw.util.encodewrap(self.find_description())
 
         self.actioncard = self._get_resources(u"ActionCard")
         self.gameover = self._get_resources(u"GameOver")

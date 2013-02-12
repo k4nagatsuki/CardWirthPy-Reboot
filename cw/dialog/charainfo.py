@@ -274,7 +274,7 @@ class TopPanel(wx.Panel):
         self.age = cw.cwpy.setting.periods[0].name
         self.ep = "0"
 
-        for coupon in self.ccard.data.getfind("/Property/Coupons"):
+        for coupon in self.ccard.data.getfind("Property/Coupons"):
             if coupon.text in ages:
                 self.age = coupon.text.replace(u"＿", "", 1)
             elif coupon.text in sexs:
@@ -293,7 +293,7 @@ class TopPanel(wx.Panel):
         # カード画像の後ろにある羽みたいなの
         cw.util.draw_height(dc, self.wing, 25)
         # カード画像
-        path = self.ccard.data.gettext("/Property/ImagePath", "")
+        path = self.ccard.data.gettext("Property/ImagePath", "")
         if not cw.binary.image.path_is_code(path):
             if isinstance(cw.cwpy.selection, (cw.character.Enemy,
                                                 cw.character.Friend)):
@@ -366,7 +366,7 @@ class DescPanel(wx.Panel):
 
     def draw(self, update=False):
         # 解説文
-        self.text = self.ccard.data.gettext("/Property/Description", "")
+        self.text = self.ccard.data.gettext("Property/Description", "")
         self.text = cw.util.txtwrap(self.text, 4)
 
         if update:
@@ -430,7 +430,7 @@ class HistoryPanel(wx.ScrolledWindow):
         # クーポンリスト
         coupons = []
 
-        for coupon in self.ccard.data.getfind("/Property/Coupons"):
+        for coupon in self.ccard.data.getfind("Property/Coupons"):
             if coupon.text and not coupon.text.startswith(u"＠"):
                 if cw.cwpy.debug or not coupon.text.startswith(u"＿"):
                     coupons.append((coupon.text, int(coupon.get("value"))))

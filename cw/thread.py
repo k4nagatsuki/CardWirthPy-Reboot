@@ -853,7 +853,7 @@ class CWPy(_Singleton, threading.Thread):
         oldbgmpath = self.music.path
         self.change_area(areaid, False, ttype=("None", "Default"))
         # 戦闘音楽を流す
-        path = self.sdata.data.gettext("/Property/MusicPath", "")
+        path = self.sdata.data.gettext("Property/MusicPath", "")
         self.music.play(path)
 
         if self.pre_battleareadata:
@@ -1160,7 +1160,7 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.deletedpaths.add(self.ydata.party.data.fpath)
             self.ydata.party.members = []
             self.ydata.load_party(None)
-            self.ydata.environment.edit("/Property/NowSelectingParty", "")
+            self.ydata.environment.edit("Property/NowSelectingParty", "")
             self.ydata.set_money(p_money)
 
             order = cw.util.new_order(self.ydata.standbys)
@@ -1307,7 +1307,7 @@ class CWPy(_Singleton, threading.Thread):
             # 移動元のCardHolderからCardHeaderを削除
             owner.cardpocket[index].remove(header)
             # 移動元からカードのエレメントを削除
-            path = "/%ss" % header.type
+            path = "%ss" % header.type
             owner.data.remove(path, header.carddata)
             # 戦闘中だった場合はデッキからも削除
             owner.deck.remove(owner, header)
@@ -1335,7 +1335,7 @@ class CWPy(_Singleton, threading.Thread):
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
             # PartyデータのBackpackからカードデータを削除
-            self.ydata.party.data.remove("/Backpack", header.carddata)
+            self.ydata.party.data.remove("Backpack", header.carddata)
 
             # 移動先がカード置場だったら
             if targettype == "STOREHOUSE":
@@ -1401,7 +1401,7 @@ class CWPy(_Singleton, threading.Thread):
         elif targettype == "BACKPACK":
             # PartyデータのBackpackにカードデータを書き込む
             if targettype == "BACKPACK":
-                self.ydata.party.data.insert("/Backpack", header.carddata, 0)
+                self.ydata.party.data.insert("Backpack", header.carddata, 0)
 
             # 移動先のリストにCardHeaderを追加
             if toindex == -1:
@@ -1543,7 +1543,7 @@ class CWPy(_Singleton, threading.Thread):
 
                     if pisc:
                         imgdst = cw.util.dupcheck_plus(imgdst, False)
-                        f = open(imgdst, 'wb')
+                        f = open(imgdst, "wb")
                         f.write(idata)
                         f.close()
                     else:

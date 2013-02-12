@@ -495,7 +495,17 @@ class Event(object):
             element = self.cur_content.find("Contents")
 
             if element is not None:
-                return element.getchildren()
+                seq = []
+                for e in element.getchildren():
+                    # フラグ判定コンテントの場合、
+                    # 対応フラグがTrueの場合のみ実行対象に
+                    if e.tag == "Check" and e.get("type") == "Flag":
+                        if cw.content.CheckFlagContent(e).action() == 0:
+                            seq.append(e)
+
+                    else:
+                        seq.append(e)
+                return seq
             else:
                 return None
 

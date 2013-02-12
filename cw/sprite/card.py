@@ -312,7 +312,7 @@ class PlayerCard(CWPyCard, character.Player):
         # CharacterCard初期化
         character.Player.__init__(self)
         # カード画像
-        path = self.data.gettext("/Property/ImagePath", "")
+        path = self.data.gettext("Property/ImagePath", "")
         self.imgpath = cw.util.join_yadodir(path)
 
         self.cardimg = cw.image.CharacterCardImage(self, pos)
@@ -546,14 +546,14 @@ class FriendCard(CWPyCard, character.Friend):
             self.data = cw.data.xml2etree(path, nocache=True)
         elif data:
             self.data = data
-            self.id = self.data.getint("/Property/Id", 1)
+            self.id = self.data.getint("Property/Id", 1)
 
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Friend.__init__(self)
         self.deck.set(self)
         # カード画像
-        path = self.data.gettext("/Property/ImagePath", "")
+        path = self.data.gettext("Property/ImagePath", "")
         if cw.binary.image.path_is_code(path):
             self.imgpath = path
         else:

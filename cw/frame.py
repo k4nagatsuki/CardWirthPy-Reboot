@@ -637,5 +637,5 @@ def get_skincount():
 def main():
     pass
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

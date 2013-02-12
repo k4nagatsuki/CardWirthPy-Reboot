@@ -14,53 +14,53 @@ class Character(object):
             self.data = data
 
         # 名前
-        self.name = self.data.gettext("/Property/Name", "")
+        self.name = self.data.gettext("Property/Name", "")
         # レベル
-        self.level = self.data.getint("/Property/Level")
+        self.level = self.data.getint("Property/Level")
         # 各種所持カードのリスト
         self.cardpocket = self.get_cardpocket()
         # 現在ライフ・最大ライフ
-        self.life = self.data.getint("/Property/Life")
-        self.maxlife = self.data.getint("/Property/Life", "max")
+        self.life = self.data.getint("Property/Life")
+        self.maxlife = self.data.getint("Property/Life", "max")
         # 精神状態
-        self.mentality = self.data.gettext("/Property/Status/Mentality")
-        self.mentality_dur = self.data.getint("/Property/Status/Mentality",
+        self.mentality = self.data.gettext("Property/Status/Mentality")
+        self.mentality_dur = self.data.getint("Property/Status/Mentality",
                                                                     "duration")
         # 麻痺値
-        self.paralyze = self.data.getint("/Property/Status/Paralyze")
+        self.paralyze = self.data.getint("Property/Status/Paralyze")
         # 中毒値
-        self.poison = self.data.getint("/Property/Status/Poison")
+        self.poison = self.data.getint("Property/Status/Poison")
         # 束縛時間値
-        self.bind = self.data.getint("/Property/Status/Bind", "duration")
+        self.bind = self.data.getint("Property/Status/Bind", "duration")
         # 沈黙時間値
-        self.silence = self.data.getint("/Property/Status/Silence", "duration")
+        self.silence = self.data.getint("Property/Status/Silence", "duration")
         # 暴露時間値
-        self.faceup = self.data.getint("/Property/Status/FaceUp", "duration")
+        self.faceup = self.data.getint("Property/Status/FaceUp", "duration")
         # 魔法無効時間値
-        self.antimagic = self.data.getint("/Property/Status/AntiMagic",
+        self.antimagic = self.data.getint("Property/Status/AntiMagic",
                                                                     "duration")
         # 行動力強化値
-        self.enhance_act = self.data.getint("/Property/Enhance/Action")
-        self.enhance_act_dur = self.data.getint("/Property/Enhance/Action",
+        self.enhance_act = self.data.getint("Property/Enhance/Action")
+        self.enhance_act_dur = self.data.getint("Property/Enhance/Action",
                                                                     "duration")
         # 回避力強化値
-        self.enhance_avo = self.data.getint("/Property/Enhance/Avoid")
-        self.enhance_avo_dur = self.data.getint("/Property/Enhance/Avoid",
+        self.enhance_avo = self.data.getint("Property/Enhance/Avoid")
+        self.enhance_avo_dur = self.data.getint("Property/Enhance/Avoid",
                                                                     "duration")
         # 抵抗力強化値
-        self.enhance_res = self.data.getint("/Property/Enhance/Resist")
-        self.enhance_res_dur = self.data.getint("/Property/Enhance/Resist",
+        self.enhance_res = self.data.getint("Property/Enhance/Resist")
+        self.enhance_res_dur = self.data.getint("Property/Enhance/Resist",
                                                                     "duration")
         # 防御力強化値
-        self.enhance_def = self.data.getint("/Property/Enhance/Defense")
-        self.enhance_def_dur = self.data.getint("/Property/Enhance/Defense",
+        self.enhance_def = self.data.getint("Property/Enhance/Defense")
+        self.enhance_def_dur = self.data.getint("Property/Enhance/Defense",
                                                                     "duration")
         # 各種能力値
-        e = self.data.getfind("/Property/Ability/Physical")
+        e = self.data.getfind("Property/Ability/Physical")
         self.physical = copy.copy(e.attrib)
-        e = self.data.getfind("/Property/Ability/Mental")
+        e = self.data.getfind("Property/Ability/Mental")
         self.mental = copy.copy(e.attrib)
-        e = self.data.getfind("/Property/Ability/Enhance")
+        e = self.data.getfind("Property/Ability/Enhance")
         self.enhance = copy.copy(e.attrib)
 
         for d in (self.physical, self.mental, self.enhance):
@@ -68,13 +68,13 @@ class Character(object):
                 d[key] = float(value)
 
         # 特性
-        e = self.data.getfind("/Property/Feature/Type")
+        e = self.data.getfind("Property/Feature/Type")
         self.feature = copy.copy(e.attrib)
-        e = self.data.getfind("/Property/Feature/NoEffect")
+        e = self.data.getfind("Property/Feature/NoEffect")
         self.noeffect = copy.copy(e.attrib)
-        e = self.data.getfind("/Property/Feature/Resist")
+        e = self.data.getfind("Property/Feature/Resist")
         self.resist = copy.copy(e.attrib)
-        e = self.data.getfind("/Property/Feature/Weakness")
+        e = self.data.getfind("Property/Feature/Weakness")
         self.weakness = copy.copy(e.attrib)
 
         for d in (self.feature, self.noeffect, self.resist, self.weakness):
@@ -93,7 +93,7 @@ class Character(object):
         self._vanished = False
 
     def get_imagepath(self):
-        return self.data.gettext("/Property/ImagePath", "")
+        return self.data.gettext("Property/ImagePath", "")
 
     def set_image(self, path):
         e = self.data.find("Property/ImagePath")
@@ -103,18 +103,18 @@ class Character(object):
         self.data.edit("Property/ImagePath", newpath)
 
     def get_name(self):
-        return self.data.gettext("/Property/Name", "")
+        return self.data.gettext("Property/Name", "")
 
     def set_name(self, name):
-        e = self.data.find2("/Property/Name")
+        e = self.data.find("Property/Name")
         e.text = name
         self.name = name
 
     def get_description(self):
-        return cw.util.decodewrap(self.data.gettext("/Property/Description", ""))
+        return cw.util.decodewrap(self.data.gettext("Property/Description", ""))
 
     def set_description(self, desc):
-        e = self.data.find2("/Property/Description")
+        e = self.data.find("Property/Description")
         e.text = cw.util.encodewrap(desc)
 
     def set_physical(self, name, value):
@@ -130,7 +130,7 @@ class Character(object):
     def get_cardpocket(self):
         flag = bool(self.data.getroot().tag == "CastCard")
         maxnums = self.get_cardpocketspace()
-        paths = ("/SkillCards", "/ItemCards", "/BeastCards")
+        paths = ("SkillCards", "ItemCards", "BeastCards")
         cardpocket = []
 
         for maxn, path in zip(maxnums, paths):
@@ -382,7 +382,7 @@ class Character(object):
             cw.animation.animate_sprite(self, "zoomin")
 
         # カードイベント開始
-        e = data.find2("Events/Event")
+        e = data.find("Events/Event")
         cw.event.CardEvent(e, header, self, targets).start()
 
     def throwaway_card(self, header, from_event=True):
@@ -739,13 +739,13 @@ class Character(object):
         """
         所有クーポンをセット型で返す。
         """
-        return set([e.text for e in self.data.getfind("/Property/Coupons")])
+        return set([e.text for e in self.data.getfind("Property/Coupons")])
 
     def has_coupon(self, coupon):
         """
         引数のクーポンを所持しているかbool値で返す。
         """
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text == coupon:
                 return True
 
@@ -757,9 +757,9 @@ class Character(object):
         """
         cnt = 0
 
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text and not e.text.startswith(u"＠"):
-                n = e.getint("", "value", 0)
+                n = e.getint(".", "value", 0)
                 cnt += n
 
         return cnt
@@ -771,16 +771,16 @@ class Character(object):
         """
         d = {}
 
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text and e.text.startswith(u"＠"):
-                d[e.text] = e.getint("", "value", 0)
+                d[e.text] = e.getint(".", "value", 0)
 
         return d
 
     def get_sex(self):
         sets = set(cw.cwpy.setting.sexcoupons)
 
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text in sets:
                 return e.text
 
@@ -794,7 +794,7 @@ class Character(object):
     def get_age(self):
         sets = set(cw.cwpy.setting.periodcoupons)
 
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text in sets:
                 return e.text
 
@@ -808,7 +808,7 @@ class Character(object):
     def get_talent(self):
         sets = set(cw.cwpy.setting.naturecoupons)
 
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text in sets:
                 return e.text
 
@@ -850,7 +850,7 @@ class Character(object):
         if self.timedcoupons:
             self.data.is_edited = True
             names = set([name for name, flag in self.timedcoupons if flag])
-            elements = [e for e in self.data.getfind("/Property/Coupons")
+            elements = [e for e in self.data.getfind("Property/Coupons")
                                                             if e.text in names]
 
             for e in elements:
@@ -873,7 +873,7 @@ class Character(object):
         value = cw.util.numwrap(int(value), 0, 999)
         self.remove_coupon(name)
         e = self.data.make_element("Coupon", name, {"value" : str(value)})
-        self.data.append("/Property/Coupons", e)
+        self.data.append("Property/Coupons", e)
 
         # 時限クーポン
         if name.startswith(u"：") or name.startswith(u"；"):
@@ -893,7 +893,7 @@ class Character(object):
         """
         seq = []
 
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text.startswith(u"：") or e.text.startswith(u"；"):
                  seq.append((e.text, not bool(e.get("value") == "0")))
 
@@ -904,11 +904,11 @@ class Character(object):
         同じ名前のクーポンを全て剥奪する。
         name: クーポン名。
         """
-        elements = [e for e in self.data.getfind("/Property/Coupons")
+        elements = [e for e in self.data.getfind("Property/Coupons")
                                                         if e.text == name]
 
         for e in elements:
-            self.data.remove("/Property/Coupons", e)
+            self.data.remove("Property/Coupons", e)
 
         # 時限クーポン
         if name.startswith(u"：") or name.startswith(u"；"):
@@ -978,7 +978,7 @@ class Character(object):
 
         # レベル
         self.level = value
-        self.data.edit("/Property/Level", str(self.level))
+        self.data.edit("Property/Level", str(self.level))
         # 最大HPとHP
         vit = self.physical.get("vit")
 
@@ -992,19 +992,19 @@ class Character(object):
 
         maxlife = (vit / 2 + 4) * (self.level + 1) + min / 2
         self.maxlife += maxlife - self.maxlife
-        self.data.edit("/Property/Life", str(self.maxlife), "max")
+        self.data.edit("Property/Life", str(self.maxlife), "max")
         self.set_life(self.maxlife)
 
         if not regulate:
             # レベル原点・EPクーポン操作
-            for e in self.data.find2("/Property/Coupons"):
+            for e in self.data.find("Property/Coupons"):
                 if not e.text:
                     continue
 
                 if e.text == u"＠レベル原点":
                     e.attrib["value"] = str(self.level)
                 elif e.text == u"＠ＥＰ":
-                    e.attrib["value"] = str(e.getint("", "value", 0) + 10)
+                    e.attrib["value"] = str(e.getint(".", "value", 0) + 10)
 
     #---------------------------------------------------------------------------
     #　状態変更用
@@ -1058,7 +1058,7 @@ class Character(object):
         """
         self.life += value
         self.life = cw.util.numwrap(self.life, 0, self.maxlife)
-        self.data.edit("/Property/Life", str(int(self.life)))
+        self.data.edit("Property/Life", str(int(self.life)))
 
     def set_paralyze(self, value):
         """
@@ -1067,7 +1067,7 @@ class Character(object):
         """
         self.paralyze += value
         self.paralyze = cw.util.numwrap(self.paralyze, 0, 40)
-        self.data.edit("/Property/Status/Paralyze", str(self.paralyze))
+        self.data.edit("Property/Status/Paralyze", str(self.paralyze))
 
     def set_poison(self, value):
         """
@@ -1076,7 +1076,7 @@ class Character(object):
         """
         self.poison += value
         self.poison = cw.util.numwrap(self.poison, 0, 40)
-        self.data.edit("/Property/Status/Poison", str(self.poison))
+        self.data.edit("Property/Status/Poison", str(self.poison))
 
     def set_mentality(self, name, value):
         """
@@ -1088,7 +1088,7 @@ class Character(object):
         self.mentality = name
         self.mentality_dur = value
         self.mentality_dur = cw.util.numwrap(self.mentality_dur, 0, 999)
-        path = "/Property/Status/Mentality"
+        path = "Property/Status/Mentality"
         self.data.edit(path, self.mentality)
         self.data.edit(path, str(self.mentality_dur), "duration")
 
@@ -1099,7 +1099,7 @@ class Character(object):
         """
         self.bind = value
         self.bind = cw.util.numwrap(self.bind, 0, 999)
-        self.data.edit("/Property/Status/Bind", str(self.bind), "duration")
+        self.data.edit("Property/Status/Bind", str(self.bind), "duration")
 
     def set_silence(self, value):
         """
@@ -1108,7 +1108,7 @@ class Character(object):
         """
         self.silence = value
         self.silence = cw.util.numwrap(self.silence, 0, 999)
-        self.data.edit("/Property/Status/Silence", str(self.silence), "duration")
+        self.data.edit("Property/Status/Silence", str(self.silence), "duration")
 
     def set_faceup(self, value):
         """
@@ -1117,7 +1117,7 @@ class Character(object):
         """
         self.faceup = value
         self.faceup = cw.util.numwrap(self.faceup, 0, 999)
-        self.data.edit("/Property/Status/FaceUp", str(self.faceup), "duration")
+        self.data.edit("Property/Status/FaceUp", str(self.faceup), "duration")
 
     def set_antimagic(self, value):
         """
@@ -1126,7 +1126,7 @@ class Character(object):
         """
         self.antimagic = value
         self.antimagic = cw.util.numwrap(self.antimagic, 0, 999)
-        self.data.edit("/Property/Status/AntiMagic", str(self.antimagic), "duration")
+        self.data.edit("Property/Status/AntiMagic", str(self.antimagic), "duration")
 
     def set_vanish(self):
         """
@@ -1148,7 +1148,7 @@ class Character(object):
         self.enhance_act = cw.util.numwrap(self.enhance_act, -10, 10)
         self.enhance_act_dur = duration
         self.enhance_act_dur = cw.util.numwrap(self.enhance_act_dur, 0, 999)
-        path = "/Property/Enhance/Action"
+        path = "Property/Enhance/Action"
         self.data.edit(path, str(self.enhance_act))
         self.data.edit(path, str(self.enhance_act_dur), "duration")
 
@@ -1163,7 +1163,7 @@ class Character(object):
         self.enhance_avo = cw.util.numwrap(self.enhance_avo, -10, 10)
         self.enhance_avo_dur = duration
         self.enhance_avo_dur = cw.util.numwrap(self.enhance_avo_dur, 0, 999)
-        path = "/Property/Enhance/Avoid"
+        path = "Property/Enhance/Avoid"
         self.data.edit(path, str(self.enhance_avo))
         self.data.edit(path, str(self.enhance_avo_dur), "duration")
 
@@ -1178,7 +1178,7 @@ class Character(object):
         self.enhance_res = cw.util.numwrap(self.enhance_res, -10, 10)
         self.enhance_res_dur = duration
         self.enhance_res_dur = cw.util.numwrap(self.enhance_res_dur, 0, 999)
-        path = "/Property/Enhance/Resist"
+        path = "Property/Enhance/Resist"
         self.data.edit(path, str(self.enhance_res))
         self.data.edit(path, str(self.enhance_res_dur), "duration")
 
@@ -1193,7 +1193,7 @@ class Character(object):
         self.enhance_def = cw.util.numwrap(self.enhance_def, -10, 10)
         self.enhance_def_dur = duration
         self.enhance_def_dur = cw.util.numwrap(self.enhance_def_dur, 0, 999)
-        path = "/Property/Enhance/Defense"
+        path = "Property/Enhance/Defense"
         self.data.edit(path, str(self.enhance_def))
         self.data.edit(path, str(self.enhance_def_dur), "duration")
 
@@ -1384,8 +1384,8 @@ class Friend(Character):
 class AlbumPage(object):
     def __init__(self, data):
         self.data = data
-        self.name = self.data.gettext("/Property/Name", "")
-        self.level = self.data.getint("/Property/Level")
+        self.name = self.data.gettext("Property/Name", "")
+        self.level = self.data.getint("Property/Level")
 
     def get_specialcoupons(self):
         """
@@ -1394,9 +1394,9 @@ class AlbumPage(object):
         """
         d = {}
 
-        for e in self.data.getfind("/Property/Coupons"):
+        for e in self.data.getfind("Property/Coupons"):
             if e.text and e.text.startswith(u"＠"):
-                d[e.text] = e.getint("", "value", 0)
+                d[e.text] = e.getint(".", "value", 0)
 
         return d
 

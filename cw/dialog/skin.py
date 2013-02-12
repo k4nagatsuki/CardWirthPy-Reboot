@@ -61,13 +61,13 @@ class SkinConversionDialog(wx.Dialog):
         self.conv.exe = self.pane_base.exectrl.GetValue()
         self.conv.datadir = self.pane_base.datactrl.GetValue()
         self.conv.scenariodir = self.pane_base.scenarioctrl.GetValue()
-        e = self.conv.data.find2("Property/Name")
+        e = self.conv.data.find("Property/Name")
         e.text = self.pane_base.namectrl.GetValue()
-        e = self.conv.data.find2("Property/Type")
+        e = self.conv.data.find("Property/Type")
         e.text = self.pane_base.typectrl.GetValue()
-        e = self.conv.data.find2("Property/Author")
+        e = self.conv.data.find("Property/Author")
         e.text = self.pane_base.authorctrl.GetValue()
-        e = self.conv.data.find2("Property/Description")
+        e = self.conv.data.find("Property/Description")
         e.text = self.pane_base.descctrl.GetValue()
 
         # プログレスダイアログ表示

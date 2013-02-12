@@ -356,7 +356,7 @@ class ScenarioData(SystemData):
         self.flags = {}
 
         for e in self.summary.getfind("Flags"):
-            value = e.getbool("", "default")
+            value = e.getbool(".", "default")
             name = e.gettext("Name", "")
             truename = e.gettext("True", "")
             falsename = e.gettext("False", "")
@@ -369,20 +369,20 @@ class ScenarioData(SystemData):
         self.steps = {}
 
         for e in self.summary.getfind("Steps"):
-            value = e.getint("", "default")
+            value = e.getint(".", "default")
             name = e.gettext("Name", "")
             valuenames = [e.gettext("Value" + str(n), "") for n in xrange(10)]
             self.steps[name] = Step(value, name, valuenames)
 
     def reset_variables(self):
         """すべての状態変数を初期化する。"""
-        for e in self.summary.find2("/Steps"):
-            value = e.getint("", "default")
+        for e in self.summary.find("Steps"):
+            value = e.getint(".", "default")
             name = e.gettext("Name", "")
             self.steps[name].set(value)
 
-        for e in self.summary.getfind("/Flags"):
-            value = e.getbool("", "default")
+        for e in self.summary.getfind("Flags"):
+            value = e.getbool(".", "default")
             name = e.gettext("Name", "")
             self.flags[name].set(value)
             self.flags[name].redraw_cards()
@@ -536,7 +536,7 @@ class ScenarioData(SystemData):
     def load_log(self):
         path = "Data/Temp/ScenarioLog/ScenarioLog.xml"
         etree = xml2etree(path)
-        cw.cwpy.debug = etree.getbool("/Property/Debug")
+        cw.cwpy.debug = etree.getbool("Property/Debug")
 
         if not cw.cwpy.debug == cw.cwpy.setting.debug:
             cw.cwpy.statusbar.change()
@@ -544,48 +544,48 @@ class ScenarioData(SystemData):
             if not cw.cwpy.debug and cw.cwpy.is_showingdebugger():
                 cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
 
-        for e in etree.getfind("/Flags"):
-            self.flags[e.text].value = e.getbool("", "value")
+        for e in etree.getfind("Flags"):
+            self.flags[e.text].value = e.getbool(".", "value")
 
-        for e in etree.getfind("/Steps"):
-            self.steps[e.text].value = e.getint("", "value")
+        for e in etree.getfind("Steps"):
+            self.steps[e.text].value = e.getint(".", "value")
 
-        for e in etree.getfind("/Gossips"):
+        for e in etree.getfind("Gossips"):
             if e.get("value") == "True":
                 self.gossips[e.text] = True
             elif e.get("value") == "False":
                 self.gossips[e.text] = False
 
-        for e in etree.getfind("/CompleteStamps"):
+        for e in etree.getfind("CompleteStamps"):
             if e.get("value") == "True":
                 self.compstamps[e.text] = True
             elif e.get("value") == "False":
                 self.compstamps[e.text] = False
 
-        for e in etree.getfind("/InfoCards"):
+        for e in etree.getfind("InfoCards"):
             if int(e.text) in self.infos:
                 path = self.infos[int(e.text)][1]
                 e = xml2element(path, "Property")
                 header = cw.header.InfoCardHeader(e)
                 self.infocards.insert(0, header)
 
-        for e in etree.getfind("/CastCards"):
+        for e in etree.getfind("CastCards"):
             data = xml2etree(element=e)
             fcard = cw.sprite.card.FriendCard(data=data)
             self.friendcards.append(fcard)
 
-        for e in etree.getfind("/DeletedFiles"):
+        for e in etree.getfind("DeletedFiles"):
             self.deletedpaths.add(e.text)
 
-        for e in etree.getfind("/LostAdventurers"):
+        for e in etree.getfind("LostAdventurers"):
             self.lostadventurers.add(e.text)
 
         e = etree.getfind("BgImages")
         elements = cw.cwpy.sdata.get_bgdata(e)
         ttype = ("Default", "Default")
         cw.cwpy.background.load(elements, False, ttype)
-        self.startid = cw.cwpy.areaid = etree.getint("/Property/AreaId")
-        return etree.gettext("/Property/MusicPath", "")
+        self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
+        return etree.gettext("Property/MusicPath", "")
 
     def update_log(self):
         cw.xmlcreater.create_scenariolog(self)
@@ -787,14 +787,14 @@ class YadoData(object):
             self.party = Party(header.fpath)
             name = os.path.basename(header.fpath)
             name = os.path.splitext(name)[0]
-            self.environment.edit("/Property/NowSelectingParty", name)
+            self.environment.edit("Property/NowSelectingParty", name)
 
             if header in self.partys:
                 self.partys.remove(header)
 
         else:
             self.party = None
-            self.environment.edit("/Property/NowSelectingParty", "")
+            self.environment.edit("Property/NowSelectingParty", "")
 
     def add_standbys(self, path, sort=True):
         header = self.create_advheader(path)
@@ -986,7 +986,7 @@ class YadoData(object):
         """
         if not self.has_compstamp(name):
             e = make_element("CompleteStamp", name)
-            self.environment.append("/CompleteStamps", e)
+            self.environment.append("CompleteStamps", e)
 
             if cw.cwpy.is_playingscenario():
                 if cw.cwpy.sdata.compstamps.get(name) is False:
@@ -1001,7 +1001,7 @@ class YadoData(object):
         """
         if not self.has_gossip(name):
             e = make_element("Gossip", name)
-            self.environment.append("/Gossips", e)
+            self.environment.append("Gossips", e)
 
             if cw.cwpy.is_playingscenario():
                 if cw.cwpy.sdata.gossips.get(name) is False:
@@ -1014,11 +1014,11 @@ class YadoData(object):
         シナリオ印はScenarioDataのリストから解除する。
         name: シナリオ名
         """
-        elements = [e for e in self.environment.getfind("/CompleteStamps")
+        elements = [e for e in self.environment.getfind("CompleteStamps")
                                                             if e.text == name]
 
         for e in elements:
-            self.environment.remove("/CompleteStamps", e)
+            self.environment.remove("CompleteStamps", e)
 
         if cw.cwpy.is_playingscenario():
             if cw.cwpy.sdata.compstamps.get(name) is True:
@@ -1031,11 +1031,11 @@ class YadoData(object):
         ゴシップはScenarioDataのリストから解除する。
         name: ゴシップ名
         """
-        elements = [e for e in self.environment.getfind("/Gossips")
+        elements = [e for e in self.environment.getfind("Gossips")
                                                             if e.text == name]
 
         for e in elements:
-            self.environment.remove("/Gossips", e)
+            self.environment.remove("Gossips", e)
 
         if cw.cwpy.is_playingscenario():
             if cw.cwpy.sdata.gossips.get(name) is True:
@@ -1046,8 +1046,8 @@ class YadoData(object):
     def clear_compstamps(self):
         """冒険済みシナリオ印を全て削除する。"""
 
-        for e in self.environment.getfind("/CompleteStamps"):
-            self.environment.remove("/CompleteStamps", e)
+        for e in self.environment.getfind("CompleteStamps"):
+            self.environment.remove("CompleteStamps", e)
 
             if cw.cwpy.is_playingscenario():
                 name = e.text
@@ -1059,8 +1059,8 @@ class YadoData(object):
     def clear_gossips(self):
         """ゴシップを全て削除する。"""
 
-        for e in self.environment.getfind("/Gossips"):
-            self.environment.remove("/Gossips", e)
+        for e in self.environment.getfind("Gossips"):
+            self.environment.remove("Gossips", e)
 
             if cw.cwpy.is_playingscenario():
                 name = e.text
@@ -1075,7 +1075,7 @@ class YadoData(object):
         """
         self.money += value
         self.money = cw.util.numwrap(self.money, 0, 9999999)
-        self.environment.edit("/Property/Cashbox", str(self.money))
+        self.environment.edit("Property/Cashbox", str(self.money))
         cw.cwpy.has_inputevent = True
 
     #---------------------------------------------------------------------------
@@ -1112,7 +1112,7 @@ class YadoData(object):
 
             # 所持カードの素材ファイルコピー
             for cardtype in ("SkillCard", "ItemCard", "BeastCard"):
-                for e in data.getfind("/%ss" % (cardtype)):
+                for e in data.getfind("%ss" % (cardtype)):
                     # 対象カード名取得
                     name = e.gettext("Property/Name", "noname")
                     name = cw.util.repl_dischar(name)
@@ -1124,7 +1124,7 @@ class YadoData(object):
 
             # カード画像コピー
             name = cw.util.repl_dischar(fcard.name)
-            e = data.getfind("/Property")
+            e = data.getfind("Property")
             dstdir = cw.util.join_paths(self.yadodir,
                                                 "Material", "Adventurer", name)
             dstdir = cw.util.dupcheck_plus(dstdir)
@@ -1285,7 +1285,7 @@ class Party(object):
         s = os.path.basename(header.fpath)
         s = os.path.splitext(s)[0]
         e = self.data.make_element("Member", s)
-        self.data.append("/Property/Members", e)
+        self.data.append("Property/Members", e)
         if not data:
             data = yadoxml2etree(header.fpath)
         self.members.append(data)
@@ -1301,13 +1301,13 @@ class Party(object):
         pcard.remove_numbercoupon()
         self.members.remove(pcard.data)
         cw.cwpy.pcardgrp.remove(pcard)
-        self.data.getfind("/Property/Members").clear()
+        self.data.getfind("Property/Members").clear()
 
         for index, pcard in enumerate(cw.cwpy.get_pcards()):
             s = os.path.basename(pcard.data.fpath)
             s = os.path.splitext(s)[0]
             e = self.data.make_element("Member", s)
-            self.data.append("/Property/Members", e)
+            self.data.append("Property/Members", e)
 
         self.set_numbercoupon()
 
@@ -1318,7 +1318,7 @@ class Party(object):
         if not self.name == name:
             cw.cwpy.ydata.deletedpaths.add(self.data.fpath)
             self.name = name
-            self.data.edit("/Property/Name", name)
+            self.data.edit("Property/Name", name)
             fname = cw.util.repl_dischar(name) + ".xml"
             path = cw.util.join_paths(cw.cwpy.ydata.tempdir, "Party", fname)
             path = cw.util.dupcheck_plus(path)
@@ -1327,7 +1327,7 @@ class Party(object):
                 self.data = yadoxml2etree(path)
                 pname = os.path.basename(path)
                 pname = os.path.splitext(pname)[0]
-                cw.cwpy.ydata.environment.edit("/Property/NowSelectingParty", pname)
+                cw.cwpy.ydata.environment.edit("Property/NowSelectingParty", pname)
 
     def set_money(self, value):
         """
@@ -1335,7 +1335,7 @@ class Party(object):
         """
         self.money += value
         self.money = cw.util.numwrap(self.money, 0, 9999999)
-        self.data.edit("/Property/Money", str(self.money))
+        self.data.edit("Property/Money", str(self.money))
         cw.cwpy.has_inputevent = True
 
     def set_numbercoupon(self):
@@ -1367,7 +1367,7 @@ class Party(object):
         seq = []
 
         for member in self.members:
-            for e in member.getfind("/Property/Coupons"):
+            for e in member.getfind("Property/Coupons"):
                 seq.append(e.text)
 
         return set(seq)
@@ -1413,7 +1413,7 @@ class Party(object):
         """
         seq = []
 
-        for e in self.data.getfind("/Property/Members"):
+        for e in self.data.getfind("Property/Members"):
             if e.text:
                 path = cw.util.join_yadodir(cw.util.join_paths("Adventurer",  e.text + ".xml"))
                 if not os.path.isfile(path):
@@ -1451,19 +1451,8 @@ class _CWPyElementInterface(object):
         s = s % (self.fpath, tag, attr)
         raise ValueError(s.encode("utf-8"))
 
-    def find2(self, path):
-        """
-        ElementTreeの仕様変更に対応するためのラッパメソッド。
-        """
-        if path == "":
-            return self
-        elif path.startswith("/"):
-            return self.getroot().find(path[1:])
-        else:
-            return self.find(path)
-
     def hasfind(self, path, attr=""):
-        e = self.find2(path)
+        e = self.find(path)
 
         if attr:
             return bool(e is not None and attr in e.attrib)
@@ -1471,7 +1460,7 @@ class _CWPyElementInterface(object):
             return bool(e is not None)
 
     def getfind(self, path, raiseerror=True):
-        e = self.find2(path)
+        e = self.find(path)
 
         if e is None:
             if raiseerror:
@@ -1481,7 +1470,7 @@ class _CWPyElementInterface(object):
         return e
 
     def gettext(self, path, default=None):
-        e = self.find2(path)
+        e = self.find(path)
 
         if e is None:
             text = default
@@ -1494,7 +1483,7 @@ class _CWPyElementInterface(object):
         return text
 
     def getattr(self, path, attr, default=None):
-        e = self.find2(path)
+        e = self.find(path)
 
         if e is None:
             text = default
@@ -1611,28 +1600,28 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                 return
 
         if attrname:
-            self.find2(path).set(attrname, value)
+            self.find(path).set(attrname, value)
         else:
-            self.find2(path).text = value
+            self.find(path).text = value
 
         self.is_edited = True
 
     def append(self, path, element):
-        self.find2(path).append(element)
+        self.find(path).append(element)
         self.is_edited = True
 
     def insert(self, path, element, index):
         """パスのエレメントの指定位置にelementを挿入。
         indexがNoneの場合はappend()の挙動。
         """
-        self.find2(path).insert(index, element)
+        self.find(path).insert(index, element)
         self.is_edited = True
 
     def remove(self, path, element):
         """パスのエレメントからelementを削除した後、
         CWPyElementTreeのインスタンスで返す。
         """
-        self.find2(path).remove(element)
+        self.find(path).remove(element)
         self.is_edited = True
 
     def form_element(self, element, depth=0):

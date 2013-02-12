@@ -34,7 +34,7 @@ def create_party(header):
 
     s = os.path.basename(header.fpath)
     s = os.path.splitext(s)[0]
-    d['members'] = "\n   <Member>%s</Member>" % (s)
+    d["members"] = "\n   <Member>%s</Member>" % (s)
     fname = cw.util.repl_dischar(pname)
     path = cw.util.join_paths(cw.cwpy.yadodir, "Party", fname + ".xml")
     path = cw.util.dupcheck_plus(path)
@@ -174,7 +174,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     sets = set(["Name", "ImagePath", "Description", "Level",
                 "Ability", "Coupons"])
 
-    for e in etree.getfind("/Property"):
+    for e in etree.getfind("Property"):
         if e.tag in sets:
             pelement.append(e)
 
@@ -188,10 +188,10 @@ def create_albumpage(path, lost=False, nocoupon=False):
         else:
             s = cw.cwpy.msgs["lost_coupon_2"]
         element = etree.make_element("Coupon", s, {"value": "0"})
-        etree.append("/Property/Coupons", element)
+        etree.append("Property/Coupons", element)
 
     # 画像コピー
-    name = etree.gettext("/Property/Name", "noname")
+    name = etree.gettext("Property/Name", "noname")
     fname = cw.util.repl_dischar(name)
     dstdir = cw.util.join_paths(cw.cwpy.tempdir, "Material/Album")
     cw.cwpy.copy_materials(etree, dstdir, from_scenario=False)

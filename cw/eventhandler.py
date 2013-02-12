@@ -255,7 +255,7 @@ class EventHandler(object):
 ##        print "*"*20
 ##        import timeit
 ##        s = ("import cw;" +
-##             "image = cw.util.load_image('ACTION0.png');" +
+##             "image = cw.util.load_image("ACTION0.png");" +
 ##             "cw.imageretouch.to_negative_for_card(image)")
 ##        timer = timeit.Timer(s)
 ##        print timer.timeit(5000)

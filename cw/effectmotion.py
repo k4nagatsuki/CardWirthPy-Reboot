@@ -62,12 +62,12 @@ def check_noeffect(effecttype, target):
             return True
 
     # 魔法的物理属性
-    elif effecttype == 'MagicalPhysic':
+    elif effecttype == "MagicalPhysic":
         if noeffect_wpn and noeffect_mgc or antimagic:
             return True
 
     # 物理的魔法属性
-    elif effecttype == 'PhysicalMagic':
+    elif effecttype == "PhysicalMagic":
         if noeffect_wpn or noeffect_mgc or antimagic:
             return True
 

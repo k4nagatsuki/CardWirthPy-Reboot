@@ -80,7 +80,7 @@ class BackGround(base.CWPySprite):
             width = e.getint("Size", "width")
             height = e.getint("Size", "height")
             size = (width, height)
-            mask = e.getbool("", "mask", False)
+            mask = e.getbool(".", "mask", False)
             flag = e.gettext("Flag", "")
             path = e.gettext("ImagePath", "")
 

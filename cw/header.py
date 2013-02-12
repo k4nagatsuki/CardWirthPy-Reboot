@@ -236,8 +236,8 @@ class CardHeader(object):
         owner = self.get_owner()
         physical = self.vocation[0]
         mental = self.vocation[1].replace("un", "", 1)
-        physical = owner.data.getint("/Property/Ability/Physical", physical)
-        mental = owner.data.getint("/Property/Ability/Mental", mental)
+        physical = owner.data.getint("Property/Ability/Physical", physical)
+        mental = owner.data.getint("Property/Ability/Mental", mental)
 
         if self.vocation[1].startswith("un"):
             mental = -mental
@@ -271,7 +271,7 @@ class CardHeader(object):
         if self.is_ccardheader() and self.type == "SkillCard"\
                                                     and not self.maxuselimit:
             owner = self.get_owner()
-            level = owner.data.getint("/Property/Level")
+            level = owner.data.getint("Property/Level")
             value = level - self.level
 
             if value <= -3:
@@ -380,7 +380,7 @@ class CardHeader(object):
         etree = cw.data.xml2etree(element=self.carddata)
 
         if not self.type == "BeastCard":
-            etree.edit("/Property/Hold", "False")
+            etree.edit("Property/Hold", "False")
 
         etree.write(self.fpath)
         # self.fpathを削除予定のfpathリストから削除
@@ -588,7 +588,7 @@ class AdventurerHeader(object):
             self.album = album
 
             # シナリオプレイ中にロストしたかどうかのフラグ
-            if data.hasfind("", "lost"):
+            if data.hasfind(".", "lost"):
                 self.lost = True
             else:
                 self.lost = False
@@ -647,16 +647,16 @@ class AdventurerHeader(object):
         data = cw.data.yadoxml2etree(self.fpath)
         r_gene = re.compile(u"＠Ｇ\d{10}$")
 
-        for e in data.getfind("/Property/Coupons"):
+        for e in data.getfind("Property/Coupons"):
             if not e.text:
                 continue
 
             # EP減少
             if e.text == u"＠ＥＰ":
-                e.attrib["value"] = str(e.getint("", "value") - n)
+                e.attrib["value"] = str(e.getint(".", "value") - n)
             # 子作り回数加算
             elif r_gene.match(e.text):
-                e.attrib["value"] = str(e.getint("", "value") + 1)
+                e.attrib["value"] = str(e.getint(".", "value") + 1)
 
         data.write_xml(True)
 
@@ -681,17 +681,17 @@ class AdventurerHeader(object):
         # 能力値を再調整
         p = data.find("Property/Ability/Physical")
         m = data.find("Property/Ability/Mental")
-        data.dex = p.getint("", "dex", 0)
-        data.agl = p.getint("", "agl", 0)
-        data.int = p.getint("", "int", 0)
-        data.str = p.getint("", "str", 0)
-        data.vit = p.getint("", "vit", 0)
-        data.min = p.getint("", "min", 0)
-        data.aggressive = m.getfloat("", "aggressive", 0)
-        data.cheerful   = m.getfloat("", "cheerful",   0)
-        data.brave      = m.getfloat("", "brave",      0)
-        data.cautious   = m.getfloat("", "cautious",   0)
-        data.trickish   = m.getfloat("", "trickish",   0)
+        data.dex = p.getint(".", "dex", 0)
+        data.agl = p.getint(".", "agl", 0)
+        data.int = p.getint(".", "int", 0)
+        data.str = p.getint(".", "str", 0)
+        data.vit = p.getint(".", "vit", 0)
+        data.min = p.getint(".", "min", 0)
+        data.aggressive = m.getfloat(".", "aggressive", 0)
+        data.cheerful   = m.getfloat(".", "cheerful",   0)
+        data.brave      = m.getfloat(".", "brave",      0)
+        data.cautious   = m.getfloat(".", "cautious",   0)
+        data.trickish   = m.getfloat(".", "trickish",   0)
         race = self.get_race()
         data.maxdex = race.dex + 6
         data.maxagl = race.agl + 6
@@ -717,7 +717,7 @@ class AdventurerHeader(object):
         m.set("trickish",   str(data.trickish))
 
         self.age = nextage
-        for e in data.getfind("/Property/Coupons"):
+        for e in data.getfind("Property/Coupons"):
             if e.text <> self.age:
                 continue
             # 年代クーポンを上書き
@@ -973,7 +973,7 @@ class RaceHeader(object):
         self.coupons = []
 
         for e in data.getfind("Coupons"):
-            name = e.gettext("", "")
+            name = e.gettext(".", "")
             value = 0
             self.coupons.append((name, value))
 

@@ -154,7 +154,7 @@ def init(size=(640, 480), title=""):
     return scr, clock
 
 def convert_maskpos(maskpos, width, height):
-    """maskposが座標ではなくキーワード'center'または'right'
+    """maskposが座標ではなくキーワード"center"または"right"
     であった場合、それぞれ画像の中央、右上の座標を返す。
     """
     if isinstance(maskpos, str):
@@ -390,29 +390,29 @@ def get_truetypefontname(path):
     path: TrueTypeFontファイルのパス。
     """
     #customize path
-    f= open( path, 'rb' )
+    f= open( path, "rb" )
 
     #header
-    shead= struct.Struct( '>IHHHH' )
+    shead= struct.Struct( ">IHHHH" )
     fhead= f.read( shead.size )
     dhead= shead.unpack_from( fhead, 0 )
 
     #font directory
-    stable= struct.Struct( '>4sIII' )
+    stable= struct.Struct( ">4sIII" )
     ftable= f.read( stable.size* dhead[ 1 ] )
     for i in xrange( dhead[1] ): #directory records
         dtable= stable.unpack_from(
                 ftable, i* stable.size )
-        if dtable[0]== 'name': break
-    assert dtable[0]== 'name'
+        if dtable[0]== "name": break
+    assert dtable[0]== "name"
 
     #name table
     f.seek( dtable[2] ) #at offset
     fnametable= f.read( dtable[3] ) #length
-    snamehead= struct.Struct( '>HHH' ) #name table head
+    snamehead= struct.Struct( ">HHH" ) #name table head
     dnamehead= snamehead.unpack_from( fnametable, 0 )
 
-    sname= struct.Struct( '>HHHHHH' )
+    sname= struct.Struct( ">HHHHHH" )
     fontname = ""
 
     for i in xrange( dnamehead[1] ): #name table records
@@ -436,7 +436,7 @@ def get_md5(path):
     path: ハッシュ値を求めるファイルのパス。
     """
     m = hashlib.md5()
-    f = open(path, 'rb')
+    f = open(path, "rb")
 
     while True:
         data = f.read(32768)

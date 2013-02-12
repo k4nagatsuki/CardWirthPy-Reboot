@@ -132,26 +132,26 @@ class Setting(object):
         basedata = cw.data.xml2etree(path)
         path = cw.util.join_paths(self.skindir, "Skin.xml")
         data = cw.data.xml2etree(path)
-        self.skinname = data.gettext("/Property/Name", "")
-        self.skintype = data.gettext("/Property/Type", "")
-        self.skinexts = data.getfind("/Property/Extension").attrib
-        self.classicstyletext = data.gettext("/Property/ClassicStyleText", True)
+        self.skinname = data.gettext("Property/Name", "")
+        self.skintype = data.gettext("Property/Type", "")
+        self.skinexts = data.getfind("Property/Extension").attrib
+        self.classicstyletext = data.gettext("Property/ClassicStyleText", True)
         # スキン・種族
-        self.races = [cw.header.RaceHeader(e) for e in data.getfind("/Races")]
+        self.races = [cw.header.RaceHeader(e) for e in data.getfind("Races")]
 
         # 特性
-        self.sexes = [cw.features.Sex(e) for e in data.getfind("/Sexes")]
+        self.sexes = [cw.features.Sex(e) for e in data.getfind("Sexes")]
         self.sexnames = [f.name for f in self.sexes]
         self.sexsubnames = [f.subname for f in self.sexes]
         self.sexcoupons = [u"＿" + f.name for f in self.sexes]
-        self.periods = [cw.features.Period(e) for e in data.getfind("/Periods")]
+        self.periods = [cw.features.Period(e) for e in data.getfind("Periods")]
         self.periodnames = [f.name for f in self.periods]
         self.periodsubnames = [f.subname for f in self.periods]
         self.periodcoupons = [u"＿" + f.name for f in self.periods]
-        self.natures = [cw.features.Nature(e) for e in data.getfind("/Natures")]
+        self.natures = [cw.features.Nature(e) for e in data.getfind("Natures")]
         self.naturenames = [f.name for f in self.natures]
         self.naturecoupons = [u"＿" + f.name for f in self.natures]
-        self.makings = [cw.features.Making(e) for e in data.getfind("/Makings")]
+        self.makings = [cw.features.Making(e) for e in data.getfind("Makings")]
         self.makingnames = [f.name for f in self.makings]
         self.makingcoupons = [u"＿" + f.name for f in self.makings]
 
