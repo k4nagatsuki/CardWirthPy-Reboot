@@ -22,6 +22,7 @@ class BattleEngine(object):
         戦闘関係のデータ・処理をまとめたクラス。
         初期化時に自動的にready()を実行する。
         """
+        self.victory = False
         # PlayerCard・FriendCardの戦闘用デッキを構築
         for pcard in cw.cwpy.get_pcards():
             pcard.deck.set(pcard)
@@ -196,6 +197,7 @@ class BattleEngine(object):
             cw.cwpy.music.play(bgmpath)
 
         # 勝利イベント実行時は元のエリアに戻る(時間経過無し)
+        self.victory = True
         cw.cwpy.change_area(areaid, battlewin=True)
 
         # 勝利イベント開始

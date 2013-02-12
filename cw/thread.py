@@ -815,7 +815,7 @@ class CWPy(_Singleton, threading.Thread):
             # 宿にいる場合は常に全回復状態にする
             for pcard in self.get_pcards():
                 pcard.set_fullrecovery()
-                pcard.update_image(move=False)
+                pcard.update_image()
 
         if self.is_showparty:
             for index, pcard in enumerate(self.get_pcards()):

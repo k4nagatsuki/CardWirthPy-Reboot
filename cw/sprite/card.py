@@ -15,6 +15,7 @@ class CWPyCard(base.SelectableSprite):
         # 状態
         self.status = status
         self.old_status = status
+        self.rect = pygame.Rect(0, 0, 0, 0)
         # アニメ用フレーム数
         self.frame = 0
         # ズーム画像のリスト。(Surfaice, Rect)のタプル。
@@ -241,7 +242,7 @@ class CWPyCard(base.SelectableSprite):
             if self.status == "hidden":
                 self.clear_image()
 
-    def update_image(self, move=True):
+    def update_image(self):
         """
         画像を再構成する。
         """
@@ -263,15 +264,15 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.image = self._image = image
 
-        if move:
-            self.rect = rect
-            self._rect = pygame.Rect(self.rect)
+        self.rect.size = rect.size
+        self._rect = pygame.Rect(self.rect)
+        self._rect.topleft = rect.topleft
 
         # ズーム画像も更新
         if self.zoomimgs:
-            if move:
-                self.rect = self.zoomimgs[0][1]
-                self._rect = pygame.Rect(self.rect)
+            self.rect.size = self.zoomimgs[0][1].size
+            self._rect = pygame.Rect(self.rect)
+            self._rect.topleft = rect.topleft
             self.zoomimgs = []
             self.update_zoomin()
 

@@ -273,8 +273,8 @@ class Effect(object):
         targetにtypenameの効果アニメーションを実行する。
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
         """
-        # FriendCardはアニメーションさせない
-        if isinstance(target, cw.character.Friend):
+        # 隠れているカードやFriendCardはアニメーションさせない
+        if isinstance(target, cw.character.Friend) or target.status == "hidden":
             if update_image:
                 target.update_image()
                 cw.cwpy.draw()

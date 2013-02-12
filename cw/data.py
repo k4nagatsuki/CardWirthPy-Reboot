@@ -129,7 +129,7 @@ class SystemData(object):
 
     def get_areaname(self):
         """現在滞在中のエリアの名前を返す"""
-        if cw.cwpy.is_battlestatus():
+        if cw.cwpy.is_battlestatus() and not cw.cwpy.battle.victory:
             return self.battles[cw.cwpy.areaid][0]
         else:
             return self.areas[cw.cwpy.areaid][0]
