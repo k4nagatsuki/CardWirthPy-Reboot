@@ -1938,7 +1938,8 @@ class TalkContent(EventContentBase):
         """メッセージウィンドウの選択肢データ(index, name)のリストを返す。"""
         seq = []
 
-        for index, e in enumerate(self.data.getfind("Contents")):
+        index = 0
+        for e in self.data.getfind("Contents"):
             name = e.get("name")
 
             if name:
@@ -1946,9 +1947,14 @@ class TalkContent(EventContentBase):
                 if e.tag == "Check" and e.get("type") == "Flag":
                     if CheckFlagContent(e).action() == 0:
                         seq.append((index, name))
+                        index += 1
 
                 else:
                     seq.append((index, name))
+                    index += 1
+            else:
+                # 選択できないが後続コンテントとしては存在する
+                index += 1
 
         if not seq:
             seq = [(0, cw.cwpy.msgs["ok"])]
