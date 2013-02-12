@@ -290,6 +290,8 @@ class CWPyCard(base.SelectableSprite):
             self._rect.center = center
 
         self.rect.topleft = self._rect.topleft
+        if hasattr(self, "cardimg"):
+            self.cardimg.rect.topleft = self._rect.topleft
 
     def set_cardtarget(self):
         if not self.cardtarget:
