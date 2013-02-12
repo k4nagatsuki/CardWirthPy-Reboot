@@ -792,21 +792,17 @@ class CWPy(_Singleton, threading.Thread):
                 cw.sprite.card.MenuCard(e, pos, status)
 
     def change_area(self, areaid, eventstarting=True,
-                          bginhrt=False, ttype=("Default", "Default"),
-                          battlewin=False):
+                          bginhrt=False, ttype=("Default", "Default")):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
         ttype: トランジション効果のデータのタプル((効果名, 速度))
-        battlewin: 戦闘勝利時の呼び出しか。
         """
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
-        bginhrt |= battlewin
-        eventstarting &= not battlewin
         oldareaid = self.areaid
         self.areaid = areaid
-        self.sdata.change_data(areaid, battlewin=battlewin)
+        self.sdata.change_data(areaid)
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
         cw.cwpy.hide_cards(True)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype)
@@ -831,7 +827,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.draw()
 
-            if self.areaid > 0 and not battlewin and self.status == "Scenario":
+            if self.areaid > 0 and self.status == "Scenario":
                 self.elapse_time()
 
             self.sdata.start_event(keynum=1)
@@ -863,12 +859,27 @@ class CWPy(_Singleton, threading.Thread):
         self.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
         self.battle = cw.battle.BattleEngine()
 
-    def clear_battlearea(self, areachange=True):
+    def clear_battlearea(self, areachange=True, win=False):
         """戦闘状態を解除して戦闘前のエリアに戻る。
         areachangeがFalseだったら、戦闘前のエリアには戻らない
         (戦闘イベントで、エリア移動コンテント等が発動した時用)。
         """
         if self.status == "ScenarioBattle":
+            # 勝利イベントを保持しておく
+            battleevents = self.sdata.events
+
+            for pcard in self.get_pcards():
+                pcard.deck.clear(pcard)
+
+                if not pcard.is_reversed():
+                    pcard.remove_timedcoupons(True)
+
+            for fcard in self.get_fcards():
+                fcard.deck.clear(fcard)
+
+                if not fcard.is_reversed():
+                    fcard.remove_timedcoupons(True)
+
             areaid, bgmpath, battlebgmpath = self.pre_battleareadata
             self.pre_battleareadata = None
             self.set_scenario()
@@ -885,6 +896,10 @@ class CWPy(_Singleton, threading.Thread):
 
             elif areachange:
                 self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
+
+            if win:
+                # 勝利イベント開始
+                battleevents.start(keynum=1)
 
     def change_specialarea(self, areaid):
         """特殊エリア(エリアIDが負の数)に移動する。"""

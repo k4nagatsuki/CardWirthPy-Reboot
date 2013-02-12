@@ -22,7 +22,6 @@ class BattleEngine(object):
         戦闘関係のデータ・処理をまとめたクラス。
         初期化時に自動的にready()を実行する。
         """
-        self.victory = False
         # PlayerCard・FriendCardの戦闘用デッキを構築
         for pcard in cw.cwpy.get_pcards():
             pcard.deck.set(pcard)
@@ -103,24 +102,14 @@ class BattleEngine(object):
         self.ready()
 
     def end(self, areachange=True):
-        """戦闘終了処理。戦闘エリアを解除する。"""
+        """戦闘終了処理。戦闘エリアを解除する。
+        勝利時のみここへ来ない。
+        """
         # 行動内容のクリア
         for member in self.members:
             member.clear_action()
 
         self._running = False
-
-        for pcard in cw.cwpy.get_pcards():
-            pcard.deck.clear(pcard)
-
-            if not pcard.is_reversed():
-                pcard.remove_timedcoupons(True)
-
-        for fcard in cw.cwpy.get_fcards():
-            fcard.deck.clear(fcard)
-
-            if not fcard.is_reversed():
-                fcard.remove_timedcoupons(True)
 
         cw.cwpy.clear_battlearea(areachange=areachange)
 
@@ -198,19 +187,7 @@ class BattleEngine(object):
 
         # 勝利イベント実行時は元のエリアに戻る(時間経過無し)
         self.victory = True
-        cw.cwpy.change_area(areaid, battlewin=True)
-
-        # 勝利イベント開始
-        try:
-            cw.cwpy.sdata.start_event(keynum=1)
-        except BattleAreaChangeError:
-            self.end(False)
-        except BattleDefeatError:
-            self.defeat()
-        except BattleError:
-            self.end()
-        else:
-            self.end()
+        cw.cwpy.clear_battlearea(True, win=True)
 
     def defeat(self):
         """敗北処理。敗北イベント後、

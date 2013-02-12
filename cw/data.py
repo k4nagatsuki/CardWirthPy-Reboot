@@ -99,16 +99,15 @@ class SystemData(object):
     def end(self):
         pass
 
-    def change_data(self, id, battlewin=False):
-        if cw.cwpy.is_battlestatus() and not battlewin:
+    def change_data(self, id):
+        if cw.cwpy.is_battlestatus():
             path = self.battles[id][1]
         else:
             path = self.areas[id][1]
 
         self.data = xml2etree(path)
         cw.cwpy.event.refresh_areaname()
-        if not battlewin:
-            self.events = cw.event.EventEngine(self.data.getfind("Events"))
+        self.events = cw.event.EventEngine(self.data.getfind("Events"))
 
     def start_event(self, keynum=None, keycodes=[]):
         cw.cwpy.statusbar.change(False)
@@ -129,7 +128,7 @@ class SystemData(object):
 
     def get_areaname(self):
         """現在滞在中のエリアの名前を返す"""
-        if cw.cwpy.is_battlestatus() and not cw.cwpy.battle.victory:
+        if cw.cwpy.is_battlestatus():
             return self.battles[cw.cwpy.areaid][0]
         else:
             return self.areas[cw.cwpy.areaid][0]
