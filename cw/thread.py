@@ -802,7 +802,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
-        bginhrt &= not battlewin
+        bginhrt |= battlewin
         eventstarting &= not battlewin
         oldareaid = self.areaid
         self.areaid = areaid
