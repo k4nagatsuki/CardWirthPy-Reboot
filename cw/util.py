@@ -51,6 +51,7 @@ class MusicInterface(object):
 
         fpath = self.get_path(path)
         if not os.path.isfile(fpath):
+            self.path = ""
             self.stop()
         else:
             self.path = path
@@ -65,6 +66,11 @@ class MusicInterface(object):
                 pygame.mixer.music.play(0)
             else:
                 pygame.mixer.music.play(-1)
+
+        if cw.cwpy.pre_battleareadata:
+            areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
+            bgmpath = self.path
+            cw.cwpy.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
     def stop(self):
         if threading.currentThread() <> cw.cwpy:

@@ -884,17 +884,11 @@ class CWPy(_Singleton, threading.Thread):
             self.pre_battleareadata = None
             self.set_scenario()
 
-            if self.music.path == battlebgmpath:
-                if areachange:
-                    if self.music.path <> bgmpath:
-                        self.music.stop()
-                    self.change_area(areaid, False, ttype=("None", "Default"))
-                    if self.music.path <> bgmpath:
-                        self.music.play(bgmpath)
-                else:
-                    self.music.play(bgmpath)
+            # BGMを最後に指定されたものに戻す
+            self.music.play(bgmpath)
 
-            elif areachange:
+            if areachange:
+                # 戦闘前のエリアに戻る
                 self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
 
             if win:

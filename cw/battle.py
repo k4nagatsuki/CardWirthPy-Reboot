@@ -181,12 +181,7 @@ class BattleEngine(object):
         cw.cwpy.hide_cards(True)
         cw.cwpy.mcardgrp.empty()
 
-        areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
-        if cw.cwpy.music.path <> bgmpath:
-            cw.cwpy.music.play(bgmpath)
-
-        # 勝利イベント実行時は元のエリアに戻る(時間経過無し)
-        self.victory = True
+        # 勝利イベント実行時は元のエリアに戻る
         cw.cwpy.clear_battlearea(True, win=True)
 
     def defeat(self):
