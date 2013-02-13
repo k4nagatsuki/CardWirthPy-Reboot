@@ -394,7 +394,9 @@ class CharaRequirementPanel(wx.Panel):
         sizer_name.Add(self.name, 0, wx.ALL, 5)
 
         sizer_image = wx.StaticBoxSizer(self.imgbox, wx.VERTICAL)
-        sizer_image.Add(self.img, 1, wx.ALL|wx.ALIGN_CENTER, 5)
+        sizer_image.AddStretchSpacer(1)
+        sizer_image.Add(self.img, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+        sizer_image.AddStretchSpacer(1)
         sizer_image.Add(self.imgcombo, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND|wx.ALIGN_CENTER, 5)
 
         sizer_level = wx.StaticBoxSizer(self.lvlbox, wx.VERTICAL)
