@@ -490,6 +490,8 @@ class EditPanel(wx.Panel):
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
         self.ccard = ccard
+        # ボタン
+        self.headers = (EditButton(cw.cwpy.msgs["edit_design"], 0), EditButton(cw.cwpy.msgs["regulate_level"], 1))
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
@@ -568,8 +570,6 @@ class EditPanel(wx.Panel):
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
 
-        self.headers = (EditButton(cw.cwpy.msgs["edit_design"], 0), EditButton(cw.cwpy.msgs["regulate_level"], 1))
-
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
@@ -578,6 +578,10 @@ class EditPanel(wx.Panel):
         # 編集項目名
         height = 8
         for header in self.headers:
+            if header.negaflag:
+                dc.SetTextForeground(wx.RED)
+            else:
+                dc.SetTextForeground(wx.WHITE)
             size = dc.GetTextExtent(header.name)
             dc.DrawBitmap(bmp, 12, height - 1, True)
             dc.DrawText(header.name, 32, height)
