@@ -511,7 +511,7 @@ class Status(object):
 
         if self.mentality <> s.mentality or\
                 self.mentality_dur <> s.mentality_dur:
-            pcard.set_mentality(self.mentality, pcard.mentality_dur)
+            pcard.set_mentality(self.mentality, self.mentality_dur)
             update = True
 
         if self.paralyze <> s.paralyze:
