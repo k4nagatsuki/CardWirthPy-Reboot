@@ -61,23 +61,29 @@ class BattleEngine(object):
         self._running = True
         self._ready = False
 
-        if self.check_win():
-            # デバッグ操作などで敵が全滅したらここへ来る
-            for member in self.members:
-                member.clear_action()
+        # デバッグ操作などで状態が変わっている可能性があるため
+        # 勝利・敗北チェック
+        if self.check_defeat():
+            raise BattleDefeatError()
+        elif self.check_win():
             raise BattleWinError()
 
         # ラウンドイベントスタート
         cw.cwpy.sdata.start_event(keynum=-self.round)
 
+        # イベント結果の勝利・敗北チェック
+        if self.check_defeat():
+            raise BattleDefeatError()
+        elif self.check_win():
+            raise BattleWinError()
+
         # 戦闘行動ループ
         for member in self.members:
+
             member.action()
 
             # 勝利チェック
             if self.check_win():
-                for member in self.members:
-                    member.clear_action()
                 raise BattleWinError()
 
         # 行動内容のクリア
