@@ -143,6 +143,8 @@ class SoundInterface(object):
                 mciSendStringW(u"stop %s" % (name), 0, 0, 0)
                 mciSendStringW(u"close %s" % (name), 0, 0, 0)
                 mciSendStringW(u'open "%s" alias %s' % (self._sound, name), 0, 0, 0)
+                volume = int(cw.cwpy.setting.vol_sound * 1000)
+                mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                 mciSendStringW(u"play %s" % (name), 0, 0, 0)
             else:
                 if from_scenario:
