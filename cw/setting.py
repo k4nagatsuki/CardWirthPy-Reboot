@@ -360,7 +360,9 @@ class Resource(object):
         font.set_bold(True)
         fonts["selectionbar"] = font
         # ステータスバーパネル描画用
-        fonts["sbarpanel"] = fonts["pcard_name"]
+        font = pygame.font.Font(self.fontpaths["pmincho"], 14)
+        font.set_bold(True)
+        fonts["sbarpanel"] = font
         # ステータスバーボタン描画用
         fonts["sbarbtn"] = fonts["mcard_name"]
         # ステータス画像の召喚回数描画用
