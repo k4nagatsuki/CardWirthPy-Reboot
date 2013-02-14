@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import wx
+import pygame
 
 import cw
 
@@ -9,57 +10,76 @@ import cw
 class BattleCommand(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["select_battle_action"])
+        self.list = []
+
         # 行動開始
         path = "Resource/Image/Card/BATTLE" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"]).get_wxbmp()
-        self.btn_start = wx.BitmapButton(self, -1, bitmap=bmp,
-                                            style=wx.NO_BORDER|wx.BU_AUTODRAW)
+        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"])
+        w = header.cardbg.get_width()
+        h = header.cardbg.get_height()
+        header.rect = pygame.Rect(5, 5, w, h)
+        header.clickedflag = False
+        header.lclick_event = self.start
+        header.negaflag = False
+        self.list.append(header)
+
+        self.toppanel = wx.Panel(self, -1, size=((w+5)*3+5, h+5*2))
+
         # 逃げる
         path = "Resource/Image/Card/ACTION9" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"]).get_wxbmp()
-        self.btn_runaway = wx.BitmapButton(self, -1, bitmap=bmp,
-                                            style=wx.NO_BORDER|wx.BU_AUTODRAW)
+        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"])
+        header.rect = pygame.Rect((w+5)*1+5, 5, w, h)
+        header.clickedflag = False
+        header.negaflag = False
+        header.lclick_event = self.runaway
+        self.list.append(header)
         # キャンセル
         path = "Resource/Image/Card/COMMAND1" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"]).get_wxbmp()
-        self.btn_cancel = wx.BitmapButton(self, wx.ID_CANCEL, bitmap=bmp,
-                                            style=wx.NO_BORDER|wx.BU_AUTODRAW)
+        header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"])
+        header.rect = pygame.Rect((w+5)*2+5, 5, w, h)
+        header.clickedflag = False
+        header.negaflag = False
+        header.lclick_event = self.cancel
+        self.list.append(header)
+
         self._do_layout()
         self._bind()
 
     def _do_layout(self):
-        sz = wx.BoxSizer(wx.VERTICAL)
-        sz_h1 = wx.BoxSizer(wx.HORIZONTAL)
-
-        sz_h1.Add(self.btn_start, 0, wx.CENTER, 0)
-        sz_h1.Add(self.btn_runaway, 0, wx.CENTER|wx.LEFT, 5)
-        sz_h1.Add(self.btn_cancel, 0, wx.CENTER|wx.LEFT, 5)
-
-        sz.Add(sz_h1, 0, wx.ALL, 5)
-        self.SetSizer(sz)
-        sz.Fit(self)
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
         self.Layout()
 
     def _bind(self):
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_BUTTON, self.OnStart, self.btn_start)
-        self.Bind(wx.EVT_BUTTON, self.OnRunaway, self.btn_runaway)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
-        self.btn_start.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
-        self.btn_cancel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
-        self.btn_runaway.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
+        self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.toppanel.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
+        self.toppanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
+        self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
 
-    def OnStart(self, event):
+    def OnLeftUp(self, event):
+        for header in self.list:
+            if header.rect.collidepoint(event.GetPosition()):
+                cw.cwpy.sounds["click"].play()
+                self.animate_click(header)
+                header.lclick_event()
+                return
+
+    def start(self):
         if cw.cwpy.battle and cw.cwpy.battle.is_ready():
             cw.cwpy.exec_func(cw.cwpy.battle.start)
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
-    def OnRunaway(self, event):
+    def runaway(self):
         s = cw.cwpy.msgs["confirm_runaway"]
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -73,17 +93,90 @@ class BattleCommand(wx.Dialog):
 
         dlg.Destroy()
 
-    def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+    def cancel(self):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint (self, event):
-        dc = wx.PaintDC(self)
+    def OnCancel(self, event):
+        self.cancel()
+
+    def OnMove(self, event):
+        dc = wx.ClientDC(self.toppanel)
+        mousepos = event.GetPosition()
+
+        for header in self.list:
+            if header.rect.collidepoint(mousepos):
+                if not header.negaflag:
+                    header.negaflag = True
+                    self.draw_card(dc, header)
+
+            elif header.negaflag:
+                header.negaflag = False
+                self.draw_card(dc, header)
+
+    def OnEnter(self, event):
+        self.draw(True)
+
+    def OnLeave(self, event):
+        if self.IsActive():
+            for header in self.list:
+                if header.negaflag:
+                    header.negaflag = False
+                    dc = wx.ClientDC(self.toppanel)
+                    self.draw_card(dc, header)
+
+    def OnPaint(self, event):
+        self.draw()
+
+    def draw(self, update=False):
+        if update:
+            dc = wx.ClientDC(self.toppanel)
+            dc = wx.BufferedDC(dc, self.toppanel.GetSize())
+        else:
+            dc = wx.PaintDC(self.toppanel)
+
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
-        csize = self.GetClientSize()
+        csize = self.toppanel.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
+
+        for header in self.list:
+            self.draw_card(dc, header)
+
+        return dc
+
+    def draw_card(self, dc, header):
+        mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
+        if header.rect.collidepoint(mousepos):
+            if not header.negaflag:
+                header.negaflag = True
+        elif header.negaflag:
+            header.negaflag = False
+
+        pos = header.rect.topleft
+        if header.negaflag:
+            bmp = header.get_wxnegabmp()
+        else:
+            bmp = header.get_wxbmp()
+
+        if header.clickedflag:
+            image = bmp.ConvertToImage()
+            size = image.GetSize()
+            image = image.Rescale(size[0]/10*9, size[1]/10*9)
+            bmp = image.ConvertToBitmap()
+            pos = (pos[0]+4, pos[1]+5)
+
+        dc.DrawBitmap(bmp, pos[0], pos[1], False)
+
+    def animate_click(self, header):
+        # クリックアニメーション。4フレーム分。
+        header.clickedflag = True
+        self.draw(True)
+        cw.cwpy.wait_frame(4)
+        header.clickedflag = False
+        dc = wx.ClientDC(self.toppanel)
+        self.draw_card(dc, header)
+        header.negaflag = False
 
 class ErrorLogDialog(wx.Dialog):
     def __init__(self, parent, log):
