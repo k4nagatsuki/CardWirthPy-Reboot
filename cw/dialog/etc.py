@@ -57,12 +57,74 @@ class BattleCommand(wx.Dialog):
 
     def _bind(self):
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.toppanel.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
         self.toppanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+
+        self.leftkeyid = wx.NewId()
+        self.rightkeyid = wx.NewId()
+        self.returnkeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.leftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.rightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.returnkeyid)
+        accel = wx.AcceleratorTable([
+            (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.returnkeyid),
+        ])
+        self.SetAcceleratorTable(accel)
+
+    def OnMouseWheel(self, event):
+        if event.GetWheelRotation() > 0:
+            e = wx.PyCommandEvent(wx.wxEVT_COMMAND_MENU_SELECTED, self.leftkeyid)
+            self.ProcessEvent(e)
+        else:
+            e = wx.PyCommandEvent(wx.wxEVT_COMMAND_MENU_SELECTED, self.rightkeyid)
+            self.ProcessEvent(e)
+
+    def OnKeyDown(self, event):
+        dc = wx.ClientDC(self.toppanel)
+        id = event.GetId()
+
+        list = None
+        if id == self.returnkeyid:
+            for header in self.list:
+                if header.negaflag:
+                    cw.cwpy.sounds["click"].play()
+                    self.animate_click(header)
+                    header.lclick_event()
+                    return
+        elif id == self.leftkeyid:
+            list = self.list[:]
+            list.reverse()
+        elif id == self.rightkeyid:
+            list = self.list
+
+        if not list:
+            return
+        c1 = None
+        c2 = list[0]
+        for i, header in enumerate(list):
+            if header.negaflag:
+                if i == len(list)-1:
+                    c1 = header
+                    c2 = list[0]
+                    break
+                else:
+                    c1 = header
+                    c2 = list[i+1]
+                    break
+
+        if c1:
+            c1.negaflag = False
+            self.draw_card(dc, c1, True)
+        if c2:
+            c2.negaflag = True
+            self.draw_card(dc, c2, True)
 
     def OnLeftUp(self, event):
         for header in self.list:
@@ -145,13 +207,14 @@ class BattleCommand(wx.Dialog):
 
         return dc
 
-    def draw_card(self, dc, header):
-        mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
-        if header.rect.collidepoint(mousepos):
-            if not header.negaflag:
-                header.negaflag = True
-        elif header.negaflag:
-            header.negaflag = False
+    def draw_card(self, dc, header, fromkeyevent=False):
+        if not fromkeyevent:
+            mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
+            if header.rect.collidepoint(mousepos):
+                if not header.negaflag:
+                    header.negaflag = True
+            elif header.negaflag:
+                header.negaflag = False
 
         pos = header.rect.topleft
         if header.negaflag:

@@ -70,6 +70,25 @@ class CardControl(wx.Dialog):
         self.toppanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
 
+        self.leftkeyid = wx.NewId()
+        self.rightkeyid = wx.NewId()
+        self.upid = wx.NewId()
+        self.downid = wx.NewId()
+        self.returnkeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.leftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.rightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.returnkeyid)
+        self.Bind(wx.EVT_MENU, self.OnUp, id=self.upid)
+        self.Bind(wx.EVT_MENU, self.OnDown, id=self.downid)
+        accel = wx.AcceleratorTable([
+            (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_UP, self.upid),
+            (wx.ACCEL_NORMAL, wx.WXK_DOWN, self.downid),
+            (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.returnkeyid),
+        ])
+        self.SetAcceleratorTable(accel)
+
     def _do_layout(self, sizer_leftbar):
         """
         引数に子クラスで設定したsizer_leftbarが必要
@@ -112,6 +131,52 @@ class CardControl(wx.Dialog):
 
     def OnSort(self, event):
         pass
+
+    def OnUp(self, event):
+        pass
+
+    def OnDown(self, event):
+        pass
+
+    def OnKeyDown(self, event):
+        dc = wx.ClientDC(self.toppanel)
+        id = event.GetId()
+
+        list = None
+        if id == self.returnkeyid:
+            for header in self.get_headers():
+                if header.negaflag:
+                    cw.cwpy.sounds["click"].play()
+                    self.animate_click(header)
+                    self.lclick_event(header)
+                    return
+        elif id == self.leftkeyid:
+            list = self.get_headers()[:]
+            list.reverse()
+        elif id == self.rightkeyid:
+            list = self.get_headers()
+
+        if not list:
+            return
+        c1 = None
+        c2 = list[0]
+        for i, header in enumerate(list):
+            if header.negaflag:
+                if i == len(list)-1:
+                    c1 = header
+                    c2 = list[0]
+                    break
+                else:
+                    c1 = header
+                    c2 = list[i+1]
+                    break
+
+        if c1:
+            c1.negaflag = False
+            self.draw_card(dc, c1, True)
+        if c2:
+            c2.negaflag = True
+            self.draw_card(dc, c2, True)
 
     def OnMouseWheel(self, event):
         if event.GetWheelRotation() > 0:
@@ -242,13 +307,14 @@ class CardControl(wx.Dialog):
             header.rect.topleft = pos
             self.draw_card(dc, header)
 
-    def draw_card(self, dc, header):
-        mousepos = self.ScreenToClient(wx.GetMousePosition())
-        if header.rect.collidepoint(mousepos):
-            if not header.negaflag:
-                header.negaflag = True
-        elif header.negaflag:
-            header.negaflag = False
+    def draw_card(self, dc, header, fromkeyevent=False):
+        if not fromkeyevent:
+            mousepos = self.ScreenToClient(wx.GetMousePosition())
+            if header.rect.collidepoint(mousepos):
+                if not header.negaflag:
+                    header.negaflag = True
+            elif header.negaflag:
+                header.negaflag = False
 
         pos = header.rect.topleft
         bmp = header.get_cardwxbmp()
@@ -779,6 +845,32 @@ class CardHolder(CardControl):
                 btn.SetToggle(False)
 
         self.draw(True)
+
+    def OnUp(self, event):
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            # 特殊技能、アイテム、召喚獣を切り替え
+            l = [self.skillbtn, self.itembtn, self.beastbtn]
+            btn = l[self.index3 - 1] if not self.index3 == 0 else l[len(l) -1]
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+            btnevent.SetEventObject(btn)
+            self.ProcessEvent(btnevent)
+        elif self.upbtn.IsShown() and self.upbtn.IsEnabled():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.upbtn.GetId())
+            self.ProcessEvent(btnevent)
+
+    def OnDown(self, event):
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            # 特殊技能、アイテム、召喚獣を切り替え
+            l = [self.skillbtn, self.itembtn, self.beastbtn]
+            btn = l[self.index3 + 1] if not self.index3 == len(l) -1 else l[0]
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+            btnevent.SetEventObject(btn)
+            self.ProcessEvent(btnevent)
+        elif self.upbtn.IsShown() and self.downbtn.IsEnabled():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.downbtn.GetId())
+            self.ProcessEvent(btnevent)
 
     def OnClickUpBtn(self, event):
         cw.cwpy.sounds["click"].play()
