@@ -20,6 +20,7 @@ import io
 
 if sys.platform == "win32":
     import win32com.client
+    import ctypes
 
 import wx
 import pygame
@@ -131,14 +132,27 @@ class SoundInterface(object):
 
         if self._sound:
             assert threading.currentThread() == cw.cwpy
-            if from_scenario:
-                chan = pygame.mixer.Channel(0)
-            else:
-                chan = pygame.mixer.Channel(1)
 
-            self._sound.set_volume(cw.cwpy.setting.vol_sound)
-            chan.stop()
-            chan.play(self._sound)
+            if sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
+                if from_scenario:
+                    name = "cwsnd1"
+                else:
+                    name = "cwsnd2"
+
+                mciSendStringW = ctypes.windll.winmm.mciSendStringW
+                mciSendStringW(u"stop %s" % (name), 0, 0, 0)
+                mciSendStringW(u"close %s" % (name), 0, 0, 0)
+                mciSendStringW(u'open "%s" alias %s' % (self._sound, name), 0, 0, 0)
+                mciSendStringW(u"play %s" % (name), 0, 0, 0)
+            else:
+                if from_scenario:
+                    chan = pygame.mixer.Channel(0)
+                else:
+                    chan = pygame.mixer.Channel(1)
+
+                self._sound.set_volume(cw.cwpy.setting.vol_sound)
+                chan.stop()
+                chan.play(self._sound)
 
 #-------------------------------------------------------------------------------
 #　汎用関数
@@ -311,8 +325,11 @@ def load_sound(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        sound = pygame.mixer.Sound(path.encode(encoding))
-        sound = SoundInterface(sound)
+        if sys.platform == "win32" and path.lower().endswith(".wav"):
+            sound = SoundInterface(path)
+        else:
+            sound = pygame.mixer.Sound(path.encode(encoding))
+            sound = SoundInterface(sound)
     except:
         print u"サウンドが読み込めません", path
         return SoundInterface()
