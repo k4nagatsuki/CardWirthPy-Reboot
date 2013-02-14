@@ -47,6 +47,7 @@ class Setting(object):
             self.sort_storehouse = "None"
             self.sort_backpack = "None"
             self.backlog_max = 100
+            self.showfps = False
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -106,6 +107,8 @@ class Setting(object):
         self.sort_backpack = data.getattr("SortKey", "backpack", "None")
         # バックログ最大数
         self.backlogmax = data.getint("MessageLogMax", 100)
+
+        self.showfps = False
 
         # スキン
         self.skindirname = data.gettext("Skin", "Classic")

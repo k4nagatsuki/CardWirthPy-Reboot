@@ -146,6 +146,9 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar = cw.sprite.statusbar.StatusBar()
         # ステータスバークリップ
         self.sbargrp.set_clip(self.statusbar.rect)
+        # FPS描画用フォント
+        self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], 14)
+        self.fpsfont.set_bold(True)
 
     def run(self):
         try:
@@ -220,6 +223,13 @@ class CWPy(_Singleton, threading.Thread):
             dirty_rects.extend(self.topgrp.draw(self.scr))
             dirty_rects.extend(self.backloggrp.draw(self.scr))
             dirty_rects.extend(self.sbargrp.draw(self.scr))
+
+            # FPS描画
+            if self.setting.showfps:
+                sur = self.fpsfont.render(str(int(self.clock.get_fps())), False, (0, 255, 255))
+                pos = (600, 5)
+                dirty_rects.append(self.scr.blit(sur, pos))
+
             # 画面更新
             pygame.display.update(dirty_rects)
 
