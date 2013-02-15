@@ -1083,13 +1083,13 @@ class Character(object):
         精神状態とその継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
+        value = cw.util.numwrap(value, 0, 999)
         if name == "Normal":
             value = 0
         elif value == 0:
             name = "Normal"
         self.mentality = name
         self.mentality_dur = value
-        self.mentality_dur = cw.util.numwrap(self.mentality_dur, 0, 999)
         path = "Property/Status/Mentality"
         self.data.edit(path, self.mentality)
         self.data.edit(path, str(self.mentality_dur), "duration")
