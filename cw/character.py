@@ -516,11 +516,18 @@ class Character(object):
 
         for header in self.cardpocket[2]:
             if header.is_autoselectable():
-                targets, effectivetargets = header.get_targets()
+                targets, effectivetargets, highprioritys = header.get_targets()
 
-                if effectivetargets:
+                if highprioritys:
+                    efftargets = highprioritys
+                elif effectivetargets:
+                    efftargets = effectivetargets
+                else:
+                    efftargets = []
+
+                if efftargets:
                     if not header.allrange and len(targets) > 1:
-                        targets = [cw.cwpy.dice.choice(effectivetargets)]
+                        targets = [cw.cwpy.dice.choice(efftargets)]
 
                     beasts.append((targets, header))
 
@@ -531,18 +538,24 @@ class Character(object):
 
         # 使用するカード
         headers = []
+        highs = []
 
         for header in self.deck.hand:
             if header.is_autoselectable():
-                targets, effectivetargets = header.get_targets()
+                targets, effectivetargets, highprioritys = header.get_targets()
 
-                if effectivetargets or header.target == "None":
+                if highprioritys:
+                    highs.append((highprioritys, header))
+                elif effectivetargets or header.target == "None":
                     if not header.allrange:
                         targets = effectivetargets
 
                     headers.append((targets, header))
 
-        targets, header = self.decide_usecard(headers)
+        if highs:
+            targets, header = self.decide_usecard(highs)
+        else:
+            targets, header = self.decide_usecard(headers)
 
         if not header.allrange and len(targets) > 1:
             targets = [cw.cwpy.dice.choice(targets)]

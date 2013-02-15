@@ -496,7 +496,10 @@ class CardHeader(object):
 
     def get_targets(self):
         """
-        (ターゲットのリスト, 効果のあるターゲットのリスト)を返す。
+        (ターゲットのリスト,
+         効果のあるターゲットのリスト,
+         優先すべきターゲットのリスト)
+        を返す。
         """
         owner = self.get_owner()
 
@@ -520,10 +523,8 @@ class CardHeader(object):
         elif self.target == "None":
             targets = []
 
-        if not self.allrange:
-            targets = [target for target in targets if target.is_alive()]
-
-        return targets, cw.effectmotion.get_effectivetargets(self, targets)
+        effective, highpriority = cw.effectmotion.get_effectivetargets(self, targets)
+        return targets, effective, highpriority
 
     def is_noeffect(self, target):
         effecttype = self.carddata.gettext("Property/EffectType", "")

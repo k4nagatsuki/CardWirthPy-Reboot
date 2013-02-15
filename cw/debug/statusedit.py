@@ -187,34 +187,37 @@ class StatusEditDialog(wx.Dialog):
         self._update_status()
 
     def OnOkBtn(self, event):
-        def func(pcards, statuses):
-            updates = []
-            for i, status in enumerate(statuses):
+        def func(pcards, oldactive, updates):
+            for i in updates:
                 pcard = pcards[i]
-                oldactive = pcard.is_active()
+                cw.cwpy.sounds["harvest"].play()
+                cw.animation.animate_sprite(pcard, "hide")
+                pcard.update_image()
+                cw.animation.animate_sprite(pcard, "deal")
 
-                if status.put_status(pcard):
-                    updates.append(i)
-
-                    cw.cwpy.sounds["harvest"].play()
-                    cw.animation.animate_sprite(pcard, "hide")
-                    pcard.update_image()
-                    cw.animation.animate_sprite(pcard, "deal")
-
-                    if cw.cwpy.is_battlestatus() and oldactive <> pcard.is_active():
-                        # アクティブ状態が変わったので
-                        # 行動の再選択か、キャンセルを行う
-                        if pcard.is_active():
-                            pcard.deck.set(pcard)
-                            pcard.decide_action()
-                        else:
-                            pcard.clear_action()
-                            cw.cwpy.clear_inusecardimg()
+                if cw.cwpy.is_battlestatus() and oldactive[i] <> pcard.is_active():
+                    # アクティブ状態が変わったので
+                    # 行動の再選択か、キャンセルを行う
+                    if pcard.is_active():
+                        pcard.deck.set(pcard)
+                        pcard.decide_action()
+                    else:
+                        pcard.clear_action()
+                        cw.cwpy.clear_inusecardimg()
 
             if not updates:
                 cw.cwpy.sounds["harvest"].play()
 
-        cw.cwpy.exec_func(func, self.pcards, self.statuses)
+        updates = []
+        oldactive = []
+        for i, status in enumerate(self.statuses):
+            pcard = self.pcards[i]
+            oldactive.append(pcard.is_active())
+
+            if status.put_status(pcard):
+                updates.append(i)
+
+        cw.cwpy.exec_func(func, self.pcards, oldactive, updates)
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()

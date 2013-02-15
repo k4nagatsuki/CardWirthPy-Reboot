@@ -903,12 +903,16 @@ class EffectMotion(object):
 #-------------------------------------------------------------------------------
 
 def get_effectivetargets(header, targets):
-    """カード効果が有効なターゲットのリストをフィルタリングして返す。
+    """
+    (カード効果が有効なターゲットのリスト,
+     優先してターゲットにするべき対象のリスト)
+    を返す。
     header: CardHeader
     targets: Characters
     """
     motions = header.carddata.getfind("Motions").getchildren()
     sets = set()
+    setshp = set()
 
     def narrow(targets):
         targets2 = []
@@ -924,9 +928,12 @@ def get_effectivetargets(header, targets):
             method, flag = checkingmethod_dict[s]
             sets.update([t for t in targets if getattr(t, method)() == flag])
         else:
-            return narrow(targets)
+            sets.update(targets)
+        if s in highpriority_dict:
+            method, flag = highpriority_dict[s]
+            setshp.update([t for t in targets if getattr(t, method)() == flag])
 
-    return narrow(sets)
+    return narrow(sets), narrow(setshp)
 
 # key: モーション名, value: チェック用メソッド名の辞書
 checkingmethod_dict = {"heal" : ("is_injured", True),
@@ -943,6 +950,10 @@ checkingmethod_dict = {"heal" : ("is_injured", True),
                        "facedown" : ("is_faceup", True),
                        "disantimagic" : ("is_antimagic", True),
                        }
+
+# key: モーション名, value: チェック用メソッド名の辞書
+highpriority_dict = {"heal" : ("is_unconscious", True),
+                     }
 
 def main():
     pass
