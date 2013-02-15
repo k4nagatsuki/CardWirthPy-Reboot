@@ -328,6 +328,10 @@ class CardHeader(object):
         # 戦闘時はCardHeaderインスタンスのコピーを使用するため、
         # 誤ったインスタンスを操作しないよう元のインスタンスを参照
         header = self.ref_original()
+        if not header:
+            # 使用時イベントで消滅した場合はここへ来る
+            return
+
         owner = header.get_owner()
 
         # スキルカード。
