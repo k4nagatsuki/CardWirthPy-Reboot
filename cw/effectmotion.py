@@ -448,22 +448,21 @@ class EffectMotion(object):
     def calc_durationvalue(self):
         """
         効果時間値から適性レベルに合わせた実数値を計算して返す。
-        効果コンテントの場合は計算せず効果時間値をそのまま返す。
+        効果コンテントの場合も計算する。
         """
-        if self.is_effectcontent():
-            return self.duration
-        elif self.vocation_level == 0:
-            return self.duration * 50 / 100
+        rndval = cw.cwpy.dice.roll(1, 3) - 2
+        if self.vocation_level == 0:
+            return self.duration * 50 / 100 + rndval
         elif self.vocation_level == 1:
-            return self.duration * 80 / 100
+            return self.duration * 80 / 100 + rndval
         elif self.vocation_level == 2:
-            return self.duration
+            return self.duration + rndval
         elif self.vocation_level == 3:
-            return self.duration * 120 / 100
+            return self.duration * 120 / 100 + rndval
         elif self.vocation_level == 4:
-            return self.duration * 150 / 100
+            return self.duration * 150 / 100 + rndval
         else:
-            return self.duration
+            return self.duration + rndval
 
     def calc_defensedvalue(self, value, target):
         """
@@ -640,10 +639,15 @@ class EffectMotion(object):
         if self.type.title() == "Normal":
             duration = 0
             eff = target.mentality <> self.type.title()
+            target.set_mentality(self.type.title(), duration)
         else:
             duration = self.calc_durationvalue()
-            eff = target.mentality <> self.type.title() and duration <> target.mentality_dur
-        target.set_mentality(self.type.title(), duration)
+            if duration == 0:
+                eff = target.mentality <> "Normal"
+                target.set_mentality("Normal", duration)
+            else:
+                eff = target.mentality <> self.type.title() and duration <> target.mentality_dur
+                target.set_mentality(self.type.title(), duration)
         return eff
 
     def sleep_motion(self, *args, **kwargs):

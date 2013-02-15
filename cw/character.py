@@ -1085,6 +1085,8 @@ class Character(object):
         """
         if name == "Normal":
             value = 0
+        elif value == 0:
+            name = "Normal"
         self.mentality = name
         self.mentality_dur = value
         self.mentality_dur = cw.util.numwrap(self.mentality_dur, 0, 999)
