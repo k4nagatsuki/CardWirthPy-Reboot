@@ -47,18 +47,19 @@ class MusicInterface(object):
             return
 
         assert threading.currentThread() == cw.cwpy
-        if not pygame.mixer or self.path == path:
+        fpath = self.get_path(path)
+        if not pygame.mixer or self.path == fpath:
             return
 
-        fpath = self.get_path(path)
         if not os.path.isfile(fpath):
             self.path = ""
             self.stop()
         else:
-            self.path = path
+            assert threading.currentThread() == cw.cwpy
+
+            self.path = fpath
             self.set_volume()
             load_bgm(fpath)
-            assert threading.currentThread() == cw.cwpy
 
             rpath = "DefReset" + cw.cwpy.rsrc.ext_bgm
             rpath = join_paths(cw.cwpy.setting.skindir, "Bgm", rpath)
@@ -70,7 +71,7 @@ class MusicInterface(object):
 
         if cw.cwpy.pre_battleareadata:
             areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
-            bgmpath = self.path
+            bgmpath = path
             cw.cwpy.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
     def stop(self):
