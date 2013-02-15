@@ -37,6 +37,7 @@ import cw.binary.image
 class MusicInterface(object):
     def __init__(self):
         self.path = ""
+        self.fpath = ""
 
     def play(self, path):
         self._play(path)
@@ -48,26 +49,30 @@ class MusicInterface(object):
 
         assert threading.currentThread() == cw.cwpy
         fpath = self.get_path(path)
-        if not pygame.mixer or self.path == fpath:
+        self.path = path
+        if not pygame.mixer:
             return
 
         if not os.path.isfile(fpath):
+            self.fpath = ""
             self.path = ""
             self.stop()
         else:
             assert threading.currentThread() == cw.cwpy
 
-            self.path = fpath
             self.set_volume()
-            load_bgm(fpath)
+            if self.fpath <> fpath:
+                load_bgm(fpath)
 
-            rpath = "DefReset" + cw.cwpy.rsrc.ext_bgm
-            rpath = join_paths(cw.cwpy.setting.skindir, "Bgm", rpath)
-            if os.path.normcase(fpath) == os.path.normcase(rpath):
-                # DefReset.midを繰り返し流すとシステムが不安定になる
-                pygame.mixer.music.play(0)
-            else:
-                pygame.mixer.music.play(-1)
+                rpath = "DefReset" + cw.cwpy.rsrc.ext_bgm
+                rpath = join_paths(cw.cwpy.setting.skindir, "Bgm", rpath)
+                if os.path.normcase(fpath) == os.path.normcase(rpath):
+                    # DefReset.midを繰り返し流すとシステムが不安定になる
+                    pygame.mixer.music.play(0)
+                else:
+                    pygame.mixer.music.play(-1)
+            self.fpath = fpath
+            self.path = path
 
         if cw.cwpy.pre_battleareadata:
             areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
