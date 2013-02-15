@@ -165,7 +165,7 @@ class MessageWindow(base.CWPySprite):
             self.text = cw.util.txtwrap(self.text, 3)
             posp = pos
 
-        r_join = re.compile(u"[―～]")          # 左右で接続する文字の集合
+        r_join = re.compile(u"[―─～]")          # 左右で接続する文字の集合
         r_halfwidth = re.compile(u"[ -~｡-ﾟ]")    # 半角文字の集合
         r_specialfont = re.compile("#.")     # 特殊文字(#)の集合
         r_changecolour = re.compile("&[a-z]")    # 文字色変更文字(&)の集合
