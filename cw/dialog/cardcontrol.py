@@ -755,7 +755,7 @@ class CardHolder(CardControl):
                 self.Parent.change_selection(self.selection)
         else:
             self.index = 0
-            if self.callname == "BACKPACK":
+            if self.callname == "BACKPACK" and self._can_open_storehouse:
                 # カード置き場 ← 荷物袋
                 self.callname = "STOREHOUSE"
                 self._change_callname(old_callname)
