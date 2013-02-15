@@ -639,9 +639,10 @@ class EffectMotion(object):
         """
         if self.type.title() == "Normal":
             duration = 0
+            eff = target.mentality <> self.type.title()
         else:
             duration = self.calc_durationvalue()
-        eff = target.mentality <> self.type.title() and duration <> target.mentality_dur
+            eff = target.mentality <> self.type.title() and duration <> target.mentality_dur
         target.set_mentality(self.type.title(), duration)
         return eff
 
