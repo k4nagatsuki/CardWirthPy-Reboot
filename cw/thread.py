@@ -1210,6 +1210,18 @@ class CWPy(_Singleton, threading.Thread):
             if name in self.skinsounds:
                 self.skinsounds[name].play(True)
 
+    def has_sound(self, path):
+        if self.is_playingscenario() and not self.areaid < 0:
+            path = cw.util.join_paths(self.sdata.scedir, path)
+        else:
+            path = cw.util.join_paths(self.skindir, path)
+
+        if os.path.isfile(path):
+            return True
+        else:
+            name = os.path.splitext(os.path.basename(path))[0]
+            return name in self.skinsounds
+
 #-------------------------------------------------------------------------------
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
@@ -1222,6 +1234,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         # カード移動操作用データを読み込む
         if self.selectedheader and not header:
+            assert self.selectedheader
             header = self.selectedheader
 
         owner = header.get_owner()
