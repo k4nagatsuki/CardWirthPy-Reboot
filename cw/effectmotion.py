@@ -922,7 +922,7 @@ def get_effectivetargets(header, targets):
         return targets2
 
     for motion in motions:
-        s = motion.get("type", "").lower()
+        s = motion.get("type", "")
 
         if s in checkingmethod_dict:
             method, flag = checkingmethod_dict[s]
@@ -936,23 +936,49 @@ def get_effectivetargets(header, targets):
     return narrow(sets), narrow(setshp)
 
 # key: モーション名, value: チェック用メソッド名の辞書
-checkingmethod_dict = {"heal" : ("is_injured", True),
-                       "dispoison" : ("is_poison", True),
-                       "disparalyze" : ("is_paralyze", True),
-##                       "sleep" : ("is_sleep", False),
-##                       "confuse" : ("is_confuse", False),
-##                       "overheat" : ("is_overheat", False),
-##                       "brave" : ("is_brave", False),
-##                       "panic" : ("is_panic", False),
-                       "normal" : ("is_normal", False),
-                       "disbind" : ("is_bind", True),
-                       "dissilence" : ("is_silence", True),
-                       "facedown" : ("is_faceup", True),
-                       "disantimagic" : ("is_antimagic", True),
+checkingmethod_dict = {"Heal" : ("is_injured", True),
+                       "Damage" : ("is_unconscious", False),
+                       "Absorb" : ("is_unconscious", False),
+                       "Paralyze" : ("is_unconscious", False),
+                       "DisParalyze" : ("is_paralyze", True),
+                       "Poison" : ("is_unconscious", False),
+                       "DisPoison" : ("is_poison", True),
+                       "GetSkillPower" : ("is_unconscious", False),
+                       "LoseSkillPower" : ("is_unconscious", False),
+                       "Sleep" : ("is_unconscious", False),
+                       "Confuse" : ("is_unconscious", False),
+                       "Overheat" : ("is_unconscious", False),
+                       "Brave" : ("is_unconscious", False),
+                       "Panic" : ("is_unconscious", False),
+                       "Normal" : ("is_normal", False),
+                       "Bind" : ("is_unconscious", False),
+                       "DisBind" : ("is_bind", True),
+                       "Silence" : ("is_unconscious", False),
+                       "DisSilence" : ("is_silence", True),
+                       "FaceUp" : ("is_unconscious", False),
+                       "FaceDown" : ("is_faceup", True),
+                       "AntiMagic" : ("is_unconscious", False),
+                       "DisAntiMagic" : ("is_antimagic", True),
+                       "EnhanceAction" : ("is_alive", True),
+                       "EnhanceAvoid" : ("is_alive", True),
+                       "EnhanceResist" : ("is_alive", True),
+                       "EnhanceDefense" : ("is_alive", True),
+                       # VanishTarget: 常に有効
+                       "VanishCard" : ("is_active", True),
+                       "VanishBeast" : ("has_beast", True),
+                       "DealAttackCard" : ("is_active", True),
+                       "DealPowerfulAttackCard" : ("is_active", True),
+                       "DealCriticalAttackCard" : ("is_active", True),
+                       "DealFeintCard" : ("is_active", True),
+                       "DealDefenseCard" : ("is_active", True),
+                       "DealDistanceCard" : ("is_active", True),
+                       "DealConfuseCard" : ("is_active", True),
+                       "DealSkillCard" : ("is_active", True),
+                       "SummonBeast" : ("can_addbeast", True),
                        }
 
 # key: モーション名, value: チェック用メソッド名の辞書
-highpriority_dict = {"heal" : ("is_unconscious", True),
+highpriority_dict = {"Heal" : ("is_unconscious", True),
                      }
 
 def main():

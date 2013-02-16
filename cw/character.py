@@ -1237,11 +1237,15 @@ class Character(object):
                     self.throwaway_card(header)
                     eff = True
 
-        elif len(self.cardpocket[idx]) < self.get_cardpocketspace()[idx]:
+        elif self.can_addbeast():
             etree = cw.data.xml2etree(element=element, nocache=True)
             cw.content.get_card(etree, self, True)
             eff = True
         return eff
+
+    def can_addbeast(self):
+        idx = cw.POCKET_BEAST
+        return len(self.cardpocket[idx]) < self.get_cardpocketspace()[idx]
 
     def set_timeelapse(self, time=1):
         """時間経過。"""
