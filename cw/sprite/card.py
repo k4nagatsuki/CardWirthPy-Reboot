@@ -96,7 +96,7 @@ class CWPyCard(base.SelectableSprite):
         elif self.frame == 3:
             self.status = "normal"
             self.image = self.get_selectedimage()
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.frame = 0
             return
 
@@ -109,7 +109,7 @@ class CWPyCard(base.SelectableSprite):
         if self.frame >= len(cw.cwpy.setting.dealing_scales):
             self.status = "normal"
             self.image = self._image
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.frame = 0
             return
 
@@ -146,17 +146,17 @@ class CWPyCard(base.SelectableSprite):
         横振動させる。
         """
         if self.frame == 12:
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.status = "normal"
             self.frame = 0
             return
 
         if self.frame % 2 == 0:
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.rect.move_ip(5, 0)
             self.frame += 1
         else:
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.rect.move_ip(-5, 0)
             self.frame += 1
 
@@ -165,17 +165,17 @@ class CWPyCard(base.SelectableSprite):
         縦振動させる。
         """
         if self.frame == 12:
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.status = "normal"
             self.frame = 0
             return
 
         if self.frame % 2 == 0:
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.rect.move_ip(0, 5)
             self.frame += 1
         else:
-            self.rect = self._rect
+            self.rect = pygame.Rect(self._rect)
             self.rect.move_ip(0, -5)
             self.frame += 1
 
@@ -184,7 +184,7 @@ class CWPyCard(base.SelectableSprite):
         カードを拡大する。
         """
         if self.frame == 0:
-            self.zoomimgs.append((self._image, self._rect))
+            self.zoomimgs.append((self._image, pygame.Rect(self._rect)))
 
         zoom_w, zoom_h = self.zoomsize
         maxw = self._rect.w + zoom_w
@@ -209,18 +209,14 @@ class CWPyCard(base.SelectableSprite):
             h = cw.util.numwrap(self.rect.h + value, 0, maxh)
 
         self.image = pygame.transform.scale(self.zoomimgs[0][0], (w, h))
-        self.rect = self.image.get_rect()
+        self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self._rect.center
-        self.zoomimgs.append((self.image, self.rect))
+        self.zoomimgs.append((self.image, pygame.Rect(self.rect)))
         self.frame += 1
 
         if (w, h) == (maxw, maxh):
-            self._image = self.image
-            self._rect = self.rect
             self.status = self.old_status
             self.frame = 0
-            if self.status == "hidden":
-                self.clear_image()
 
     def update_zoomout(self):
         """
@@ -229,18 +225,14 @@ class CWPyCard(base.SelectableSprite):
         if self.old_status == "hidden":
             self.image, self.rect = self.zoomimgs[0]
             self.zoomimgs = []
-            self.frame += 1
         else:
             self.image, self.rect = self.zoomimgs.pop()
+            self.rect = pygame.Rect(self.rect)
             self.frame += 1
 
         if not self.zoomimgs:
-            self._image = self.image
-            self._rect = self.rect
             self.status = self.old_status
             self.frame = 0
-            if self.status == "hidden":
-                self.clear_image()
 
     def update_image(self):
         """
@@ -403,11 +395,17 @@ class PlayerCard(CWPyCard, character.Player):
         shift = int(150.0 / speed * self.frame)
         y = self._rect[1] + shift
         self.rect = pygame.Rect(self.rect)
-        self.rect.topleft = (self.rect[0], y)
+        if self.zoomimgs:
+            image, zrect = self.zoomimgs[0]
+            topleft = (zrect[0], y)
+            zrect.topleft = topleft
+            for image, rect in self.zoomimgs[1:]:
+                rect.center = zrect.center
+            self.rect.center = zrect.center
+        else:
+            topleft = (self.rect[0], y)
+            self.rect.topleft = topleft
 
-        for image, rect in self.zoomimgs:
-            if not rect is self.rect:
-                rect.center = self.rect.center
 
         if self.frame == speed:
             self.image = pygame.Surface((0, 0)).convert()
