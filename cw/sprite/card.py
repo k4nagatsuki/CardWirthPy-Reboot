@@ -465,6 +465,8 @@ class PlayerCard(CWPyCard, character.Player):
 class EnemyCard(CWPyCard, character.Enemy):
     def __init__(self, mcarddata, pos=(0, 0), status="hidden"):
         CWPyCard.__init__(self, status)
+        self.mcarddata = mcarddata
+        self._init_pos = pos
         # フラグ
         self.flag = mcarddata.gettext("Property/Flag", "")
         # 逃走の有無
@@ -477,10 +479,22 @@ class EnemyCard(CWPyCard, character.Enemy):
             s = mcarddata.getattr("Property/Size", "scale", "100%")
             self.scale = int(s.rstrip("%"))
 
+        self._init = False
+
+        # 表示するまでデータを作らない
+        if status == "hidden":
+            self._initialize()
+
+        # spritegroupに追加
+        cw.cwpy.mcardgrp.add(self)
+
+    def _initialize(self):
+        self._init = True
+
         # イベントデータ
-        self.events = cw.event.EventEngine(mcarddata.getfind("Events"))
+        self.events = cw.event.EventEngine(self.mcarddata.getfind("Events"))
         # CWPyElementTreeインスタンス
-        path = cw.cwpy.sdata.casts[mcarddata.getint("Property/Id")][1]
+        path = cw.cwpy.sdata.casts[self.mcarddata.getint("Property/Id")][1]
         self.data = cw.data.xml2etree(path, nocache=True)
         self.fpath = self.data.fpath
         # CharacterCard初期化
@@ -492,14 +506,17 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.imgpath = path
         else:
             self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-        self.cardimg = cw.image.CharacterCardImage(self, pos)
+        self.cardimg = cw.image.CharacterCardImage(self, self._init_pos)
         self.update_image()
         # 空のイメージ
         self.clear_image()
         # 精神力回復
         self.set_skillpower()
-        # spritegroupに追加
-        cw.cwpy.mcardgrp.add(self)
+
+    def update(self, scr):
+        if not self._init:
+            self._initialize()
+        CWPyCard.update(self, scr)
 
     def update_delete(self):
         self.update_hide()
