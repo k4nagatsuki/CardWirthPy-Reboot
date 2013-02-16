@@ -2019,18 +2019,19 @@ class ScenarioSelect(Select):
             else:
 
                 # フォルダ内から取得
-                names = []
+                paths = []
                 for dpath, dnames, fnames in os.walk(path):
                     for fname in fnames:
                         if fname.lower().endswith(".txt"):
-                            names.append(fname)
+                            paths.append(cw.util.join_paths(dpath, fname))
 
-                for name in names:
-                    f = open(cw.util.join_paths(path, name), "r")
+                for fpath in paths:
+                    f = open(fpath, "r")
                     data = f.read()
                     f.close()
                     seq2.append(data)
-                    name = os.path.basename(name)
+                    name = os.path.relpath(fpath, path)
+                    name = cw.util.join_paths(name)
                     seq.append(name)
 
         return seq, seq2
