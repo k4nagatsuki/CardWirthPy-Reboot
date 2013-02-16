@@ -483,6 +483,9 @@ class EnemyCard(CWPyCard, character.Enemy):
 
         # 表示するまでデータを作らない
         if status == "hidden":
+            self._rect = pygame.Rect(0, 0, 0, 0)
+            self.clear_image()
+        else:
             self._initialize()
 
         # spritegroupに追加
