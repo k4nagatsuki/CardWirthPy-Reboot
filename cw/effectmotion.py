@@ -471,6 +471,8 @@ class EffectMotion(object):
         if value == 0:
             return 0
         enhance_def = target.get_enhance_def()
+        if 10 <= enhance_def:
+            return 0
         return max(1, (value * (10 - enhance_def)) / 10)
 
     def is_noeffect(self, target):
@@ -533,7 +535,7 @@ class EffectMotion(object):
             value = int(value / 2.0 + 0.5)
 
         # 防御修正
-        self.calc_defensedvalue(value, target)
+        value = self.calc_defensedvalue(value, target)
         target.set_life(-value)
 
         # 睡眠解除
