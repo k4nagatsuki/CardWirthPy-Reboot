@@ -1251,6 +1251,7 @@ class Character(object):
         """時間経過。"""
         # 時限クーポン処理
         self.count_timedcoupon()
+        oldalive = self.is_alive()
         flag = False
 
         # 中毒
@@ -1372,7 +1373,7 @@ class Character(object):
             self.set_unconsciousstatus()
 
         # 敵が中毒効果で死亡していたら、死亡イベント開始
-        if isinstance(self, Enemy) and self.is_dead():
+        if isinstance(self, Enemy) and self.is_dead() and oldalive:
             self.events.start(1)
 
         # 画像更新
