@@ -1344,8 +1344,8 @@ class CWPy(_Singleton, threading.Thread):
             # 戦闘中だった場合はデッキからも削除
             owner.deck.remove(owner, header)
 
-            # スキルの場合は使用回数は必ず0にする
-            if header.type == "SkillCard":
+            # スキルの場合は使用回数を0にする
+            if header.type == "SkillCard" and owner <> target:
                 header.maxuselimit = 0
                 header.uselimit = 0
                 header.carddata.getfind("Property/UseLimit").text = "0"
