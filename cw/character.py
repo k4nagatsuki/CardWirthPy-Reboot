@@ -433,6 +433,21 @@ class Character(object):
             cw.cwpy.sounds["page"].play()
             cw.cwpy.pre_dialogs.pop()
 
+    def adjust_action(self):
+        """
+        現在の状態に合わせて一部戦闘行動を解除する。
+        行動不能であれば自律的な行動は行えず、
+        麻痺・死亡状態であれば召喚獣も動けない。
+        """
+        if not self.action:
+            return
+
+        if self.is_dead():
+            self.clear_action()
+        elif self.is_inactive():
+            target, header, beasts = self.actiondata
+            self.actiondata = (None, None, beasts)
+
     def clear_action(self):
         self.actiondata = None
 
@@ -900,6 +915,9 @@ class Character(object):
 
                 self.reversed = True
 
+        # 隠蔽クーポンがあるため
+        self.adjust_action()
+
     def get_timedcoupons(self):
         """
         時限クーポンのデータをまとめたリストを返す。
@@ -1072,6 +1090,7 @@ class Character(object):
         self.life += value
         self.life = cw.util.numwrap(self.life, 0, self.maxlife)
         self.data.edit("Property/Life", str(int(self.life)))
+        self.adjust_action()
 
     def set_paralyze(self, value):
         """
@@ -1081,6 +1100,7 @@ class Character(object):
         self.paralyze += value
         self.paralyze = cw.util.numwrap(self.paralyze, 0, 40)
         self.data.edit("Property/Status/Paralyze", str(self.paralyze))
+        self.adjust_action()
 
     def set_poison(self, value):
         """
@@ -1106,6 +1126,7 @@ class Character(object):
         path = "Property/Status/Mentality"
         self.data.edit(path, self.mentality)
         self.data.edit(path, str(self.mentality_dur), "duration")
+        self.adjust_action()
 
     def set_bind(self, value):
         """
@@ -1115,6 +1136,7 @@ class Character(object):
         self.bind = value
         self.bind = cw.util.numwrap(self.bind, 0, 999)
         self.data.edit("Property/Status/Bind", str(self.bind), "duration")
+        self.adjust_action()
 
     def set_silence(self, value):
         """
