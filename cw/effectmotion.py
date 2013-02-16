@@ -807,7 +807,7 @@ class EffectMotion(object):
         カード消去。
         """
         if cw.cwpy.battle:
-            target.deck.throwaway(target)
+            target.deck.throwaway()
             return True
         return False
 

@@ -73,13 +73,15 @@ class Deck(object):
         n = (ccard.level + 1) / 2 + 4
         return cw.util.numwrap(n, 5, 12)
 
-    def set(self, ccard):
-        self.clear(ccard)
-        self.talon.extend(self.get_actioncards(ccard))
-        self.talon.extend(self.get_skillcards(ccard))
-        self.shuffle()
-        self.set_hand(ccard)
-        self.draw(ccard)
+    def set(self, ccard, hand=True, talon=True, nextcards=True):
+        self.clear(ccard, hand, talon, nextcards)
+        if talon:
+            self.talon.extend(self.get_actioncards(ccard))
+            self.talon.extend(self.get_skillcards(ccard))
+            self.shuffle()
+        if hand:
+            self.set_hand(ccard)
+            self.draw(ccard)
 
     def set_hand(self, ccard):
         hand = [h for h in self.hand if h.type == "SkillCard" or
@@ -131,33 +133,28 @@ class Deck(object):
             self.nextcards = [h for h in self.nextcards
                                 if not h.ref_original == header.ref_original]
 
-    def clear(self, ccard):
-        self.talon = []
-        self.hand = []
-        self.nextcards = []
-        ccard.clear_action()
+    def clear(self, ccard, hand=True, talon=True, nextcards=True):
+        if talon:
+            self.talon = []
+        if hand:
+            self.hand = []
+            self._throwaway = False
+            ccard.clear_action()
+        if nextcards:
+            self.nextcards = []
 
-    def throwaway(self, ccard):
-        hand = []
-
-        for header in self.hand[1::]:
-            if header.type == "SkillCard":
-                header = header.ref_original()
-                hand.append(header)
-            elif header.type == "ActionCard" and header.id > 0:
-                header = cw.cwpy.rsrc.actioncards[header.id]
-                hand.append(header)
-
-        self.hand = []
-        talon = []
-        talon.extend(hand)
-        talon.extend(self.talon)
-        self.talon = talon
-        self.shuffle()
-        self.set_hand(ccard)
+    def throwaway(self):
+        self._throwaway = True
 
     def draw(self, ccard):
         maxn = self.get_handmaxnum(ccard)
+        if self._throwaway:
+            self.hand = []
+            # カード交換は常に残す
+            header = cw.cwpy.rsrc.actioncards[0].copy()
+            header.set_owner(ccard)
+            self.hand.append(header)
+            self._throwaway = False
 
         while len(self.hand) < maxn:
             if not self.nextcards:

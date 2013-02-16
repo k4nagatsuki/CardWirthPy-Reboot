@@ -439,14 +439,15 @@ class Character(object):
         行動不能であれば自律的な行動は行えず、
         麻痺・死亡状態であれば召喚獣も動けない。
         """
-        if not self.action:
-            return
+        if self.actiondata:
+            if self.is_dead():
+                self.clear_action()
+            elif self.is_inactive():
+                target, header, beasts = self.actiondata
+                self.actiondata = (None, None, beasts)
 
-        if self.is_dead():
-            self.clear_action()
-        elif self.is_inactive():
-            target, header, beasts = self.actiondata
-            self.actiondata = (None, None, beasts)
+        if self.is_inactive():
+            self.deck.throwaway()
 
     def clear_action(self):
         self.actiondata = None
@@ -1245,6 +1246,9 @@ class Character(object):
                 header.set_uselimit(999)
             else:
                 header.set_uselimit(-999)
+
+        if cw.cwpy.is_battlestatus():
+            self.deck.set(self, hand=False, talon=True, nextcards=False)
 
     def set_beast(self, element=None, vanish=False):
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。
