@@ -240,6 +240,10 @@ class Effect(object):
 
     def check_avoid(self, target):
         if self.resisttype == "Avoid" and target.is_avoidable():
+            targetbonus = target.get_enhance_avo()
+            if 10 <= targetbonus:
+                return True
+
             if self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation)
@@ -247,7 +251,7 @@ class Effect(object):
                 userbonus = 4
 
             vocation = ("agl", "cautious")
-            subbonus = target.get_enhance_avo() - self.successrate
+            subbonus = targetbonus - self.successrate
             level = self.user.level if self.user else self.level
             return target.decide_outcome(level, vocation, userbonus, subbonus)
 
