@@ -628,7 +628,15 @@ class CWPy(_Singleton, threading.Thread):
             flag = bool(self.areaid == cw.AREA_CAMP and self.sdata.friendcards)
             self.set_autospread(mcards, flag)
 
-        for mcard in self.get_mcards("invisible"):
+        mcards = self.get_mcards("invisible")
+
+        # エネミーカードは初期化されていない場合がある
+        for mcard in mcards:
+            if isinstance(mcard, cw.sprite.card.EnemyCard):
+                if self.sdata.flags.get(mcard.flag, True):
+                    mcard.initialize()
+
+        for mcard in mcards:
             if self.sdata.flags.get(mcard.flag, True):
                 cw.animation.animate_sprite(mcard, "deal")
 

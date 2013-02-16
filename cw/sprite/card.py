@@ -486,12 +486,15 @@ class EnemyCard(CWPyCard, character.Enemy):
             self._rect = pygame.Rect(0, 0, 0, 0)
             self.clear_image()
         else:
-            self._initialize()
+            self.initialize()
 
         # spritegroupに追加
         cw.cwpy.mcardgrp.add(self)
 
-    def _initialize(self):
+    def initialize(self):
+        if self._init:
+            return
+
         self._init = True
 
         # イベントデータ
@@ -518,7 +521,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def update(self, scr):
         if not self._init:
-            self._initialize()
+            self.initialize()
         CWPyCard.update(self, scr)
 
     def update_delete(self):
