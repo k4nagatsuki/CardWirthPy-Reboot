@@ -1625,8 +1625,21 @@ class ScenarioSelect(Select):
                 names = names[0:12]
                 names.append(cw.cwpy.msgs["history_etc"])
 
-            s = "\n".join(names)
-            dc.DrawLabel(s, wx.Rect(bmpw/2, 130, 1, 1), wx.ALIGN_CENTER_HORIZONTAL)
+            y = 130
+            for name in names:
+                if isinstance(name, cw.header.ScenarioHeader):
+                    header = name
+                    name = name.name
+                    if self.is_playing(header) or self.is_complete(header) or self.is_invisible(header):
+                        dc.SetTextForeground((128, 128, 128))
+                    else:
+                        dc.SetTextForeground((0, 0, 0))
+                else:
+                    dc.SetTextForeground((0, 0, 0))
+                size = dc.GetTextExtent(name)
+                x = (bmpw - size[0]) / 2
+                dc.DrawText(name, x, y)
+                y += 15
             self.yesbtn.Enable()
         else:
             header = self.list[self.index]
@@ -2173,7 +2186,6 @@ class UpdateNamesThread(threading.Thread):
         if self.quit: return
         # dpathの中にあるシナリオ名のリスト
         headers = db.search_dpath(self.dpath)
-        hnames = [header.name for header in headers] if headers else []
         # dpathの中にあるディレクトリ名のリスト
         dnames = []
 
@@ -2183,7 +2195,7 @@ class UpdateNamesThread(threading.Thread):
                 path = path[0:-len(".lnk")]
             dname = "[%s]" % os.path.basename(path)
             dnames.append(dname)
-        self.dlg.names = dnames + hnames
+        self.dlg.names = dnames + headers
         if self.quit: return
         wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack)
         self.dlg.updatenames_thr = None
