@@ -931,9 +931,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.set_curtain()
 
         # ターゲット選択エリア
-        elif areaid == cw.AREA_SELECT and self.selectedheader:
-            self.pre_areaids.append(self.areaid)
-            self.areaid = areaid
+        elif self.selectedheader:
             header = self.selectedheader
             owner = header.get_owner()
             cardtarget = header.target
@@ -974,18 +972,18 @@ class CWPy(_Singleton, threading.Thread):
         """特殊エリアに移動する前のエリアに戻る。
         areaidが-3(パーティ解散)の場合はエリアチェンジする。
         """
-        if self.areaid <= 0:
+        # ターゲット選択エリアを解除の場合
+        if self.selectedheader:
             self.clear_curtain()
             self.selectedheader = None
+            self.call_predlg()
+        elif self.areaid <= 0:
+            self.clear_curtain()
             oldareaid = self.areaid
             areaid = self.pre_areaids.pop()
 
-            # ターゲット選択エリアを解除の場合
-            if oldareaid == cw.AREA_SELECT:
-                self.areaid = areaid
-                self.call_predlg()
             # カード移動操作エリアを解除の場合
-            elif oldareaid in cw.AREAS_TRADE:
+            if oldareaid in cw.AREAS_TRADE:
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
                 self.mcardgrp.remove_sprites_of_layer(0)
@@ -1033,7 +1031,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if isinstance(sprite, cw.character.Character)\
                             and sprite.actiondata and sprite.is_analyzable():
-            if not self.areaid == cw.AREA_SELECT:
+            if not self.selectedheader:
                 targets, header, beasts = self.selection.actiondata
                 if header:
                     self.set_inusecardimg(sprite, header)

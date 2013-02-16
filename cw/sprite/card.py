@@ -430,7 +430,7 @@ class PlayerCard(CWPyCard, character.Player):
                 cw.cwpy.call_dlg("CARDPOCKET")
 
         # カード使用。USECARDダイアログを開く
-        elif cw.cwpy.areaid == 0 and cw.cwpy.selectedheader:
+        elif cw.cwpy.selectedheader:
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
 
@@ -541,7 +541,7 @@ class EnemyCard(CWPyCard, character.Enemy):
                 cw.cwpy.call_dlg("HANDVIEW")
 
         # カード使用。戦闘行動を設定する。
-        elif cw.cwpy.areaid == cw.AREA_SELECT and cw.cwpy.selectedheader:
+        elif cw.cwpy.selectedheader:
             if cw.cwpy.is_battlestatus():
                 header = cw.cwpy.selectedheader
                 header.get_owner().set_action(self, header)
@@ -674,7 +674,7 @@ class MenuCard(CWPyCard):
             cw.animation.animate_sprite(self, "click")
             self.events.start(keynum=1)
         # カード使用イベント
-        elif cw.cwpy.areaid == 0 and cw.cwpy.selectedheader:
+        elif cw.cwpy.selectedheader:
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
 

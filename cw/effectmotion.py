@@ -243,6 +243,8 @@ class Effect(object):
             targetbonus = target.get_enhance_avo()
             if 10 <= targetbonus:
                 return True
+            elif targetbonus <= 10:
+                return False
 
             if self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
@@ -259,6 +261,12 @@ class Effect(object):
 
     def check_resist(self, target):
         if self.resisttype == "Resist" and target.is_resistable():
+            targetbonus = target.get_enhance_res()
+            if 10 <= targetbonus:
+                return True
+            elif targetbonus <= 10:
+                return False
+
             if self.user and self.inusecard:
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation)
@@ -266,7 +274,7 @@ class Effect(object):
                 userbonus = 4
 
             vocation = ("min", "brave")
-            subbonus = target.get_enhance_res() - self.successrate
+            subbonus = targetbonus - self.successrate
             level = self.user.level if self.user else self.level
             return target.decide_outcome(level, vocation, userbonus, subbonus)
 
@@ -477,6 +485,8 @@ class EffectMotion(object):
         enhance_def = target.get_enhance_def()
         if 10 <= enhance_def:
             return 0
+        elif enhance_def <= 10:
+            return value * 4
         return max(1, (value * (10 - enhance_def)) / 10)
 
     def is_noeffect(self, target):

@@ -356,6 +356,7 @@ class Event(object):
         self.error = None
         # コンテンツツリーの辞書(keyはスタートコンテントのname)
         self.trees = {}
+        self.treekeys = []
         self.starttree = self.cur_content = None
         self.nowrunningcontents = []
         # 発火条件(数字)
@@ -379,6 +380,7 @@ class Event(object):
 
                 if not name in self.trees:
                     self.trees[name] = content
+                    self.treekeys.append(name)
 
                 # 一番上にあるツリーをまず最初に実行するツリーに設定
                 if self.starttree is None:

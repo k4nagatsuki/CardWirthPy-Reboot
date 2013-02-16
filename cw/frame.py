@@ -363,7 +363,7 @@ class Frame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
-                cw.cwpy.exec_func(cw.cwpy.change_specialarea, 0)
+                cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
 
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
@@ -377,7 +377,7 @@ class Frame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
-                cw.cwpy.exec_func(cw.cwpy.change_specialarea, 0)
+                cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
 
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)

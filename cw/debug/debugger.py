@@ -1018,7 +1018,8 @@ class EventTreeCtrl(wx.TreeCtrl):
             root = self.AddRoot("Event Root")
             self.SetPyData(root, None)
 
-            for name, tree in event.trees.iteritems():
+            for name in event.treekeys:
+                tree = event.trees[name]
                 self.set_content(root, tree, name)
 
         self.ExpandAll()
