@@ -491,7 +491,7 @@ class EditPanel(wx.Panel):
         # エレメントオブジェクト
         self.ccard = ccard
         # ボタン
-        self.headers = (EditButton(cw.cwpy.msgs["edit_design"], 0), EditButton(cw.cwpy.msgs["regulate_level"], 1))
+        self.headers = []
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
@@ -577,6 +577,8 @@ class EditPanel(wx.Panel):
         bmp = cw.cwpy.rsrc.dialogs["STATUS12"]
         # 編集項目名
         height = 8
+        if not self.headers:
+            self.headers = (EditButton(cw.cwpy.msgs["edit_design"], 0), EditButton(cw.cwpy.msgs["regulate_level"], 1))
         for header in self.headers:
             if header.negaflag:
                 dc.SetTextForeground(wx.RED)
