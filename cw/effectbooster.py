@@ -581,9 +581,9 @@ class JptxImage(cw.image.Image):
             fontcolor = backcolor
 
         # text rendering
-        wxcanvas = wx.EmptyBitmap(24, 24)
-        wxdc = wx.MemoryDC(wxcanvas)
-        def create_font(wxdc, fontface, fontpixels):
+        self.wxcanvas = wx.EmptyBitmap(10, 10)
+        self.wxdc = wx.MemoryDC(self.wxcanvas)
+        def create_font(fontface, fontpixels):
             if fontface in cw.cwpy.rsrc.fontnames.values():
                 fontpath = self.get_fontpath(fontface)
                 font = pygame.font.Font(fontpath, fontpixels)
@@ -597,9 +597,13 @@ class JptxImage(cw.image.Image):
                                fontface,
                                wx.FONTFLAG_NOT_ANTIALIASED)
                 font.SetPixelSize((fontpixels / 2, fontpixels))
-                wxdc.SetFont(font)
+                self.wxdc.SetFont(font)
+                size = self.wxdc.GetTextExtent("##")
+                self.wxcanvas = wx.EmptyBitmap(size[0] * 2, size[1] * 2)
+                self.wxdc = wx.MemoryDC(self.wxcanvas)
+                self.wxdc.SetFont(font)
             return font
-        def set_bold(wxdc, font, start):
+        def set_bold(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_bold(start)
             else:
@@ -607,14 +611,14 @@ class JptxImage(cw.image.Image):
                     font.SetWeight(wx.FONTWEIGHT_BOLD)
                 else:
                     font.SetWeight(wx.FONTWEIGHT_NORMAL)
-                wxdc.SetFont(font)
-        def set_underline(wxdc, font, start):
+                self.wxdc.SetFont(font)
+        def set_underline(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_underline(start)
             else:
                 font.SetUnderlined(start)
-                wxdc.SetFont(font)
-        def set_italic(wxdc, font, start):
+                self.wxdc.SetFont(font)
+        def set_italic(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_italic(start)
             else:
@@ -622,14 +626,14 @@ class JptxImage(cw.image.Image):
                     font.SetStyle(wx.FONTSTYLE_ITALIC)
                 else:
                     font.SetStyle(wx.FONTSTYLE_NORMAL)
-                wxdc.SetFont(font)
-        def get_height(wxdc, font):
+                self.wxdc.SetFont(font)
+        def get_height(font):
             if isinstance(font, pygame.font.Font):
                 return font.get_height()
             else:
-                extent = wxdc.GetFullTextExtent("#")
+                extent = self.wxdc.GetFullTextExtent("#")
                 return extent[1] + extent[2] * 2
-        def font_render(wxdc, wxcanvas, font, char, antialias, fontcolor):
+        def font_render(font, char, antialias, fontcolor):
             if isinstance(font, pygame.font.Font):
                 subimg = font.render(char, antialias, fontcolor)
                 return subimg, subimg.get_width()
@@ -637,15 +641,15 @@ class JptxImage(cw.image.Image):
                 backcolor = (0, 0, 0)
                 if fontcolor[:3] == backcolor:
                     backcolor = (255, 255, 255)
-                wxdc.SetPen(wx.Pen(backcolor))
-                wxdc.SetBrush(wx.Brush(backcolor))
-                wxdc.DrawRectangle(0, 0, wxcanvas.Width, wxcanvas.Height)
-                wxdc.SetTextForeground(fontcolor)
-                wxdc.DrawText(char, 0, 0)
-                image = cw.image.conv2surface(wxcanvas)
+                self.wxdc.SetPen(wx.Pen(backcolor))
+                self.wxdc.SetBrush(wx.Brush(backcolor))
+                self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
+                self.wxdc.SetTextForeground(fontcolor)
+                self.wxdc.DrawText(char, 0, 0)
+                image = cw.image.conv2surface(self.wxcanvas)
                 image.set_colorkey(backcolor, RLEACCEL)
-                return image, wxdc.GetTextExtent(char)[0]
-        font = create_font(wxdc, fontface, fontpixels)
+                return image, self.wxdc.GetTextExtent(char)[0]
+        font = create_font(fontface, fontpixels)
         oldfonts = []
         x = 0
         y = 0
@@ -666,7 +670,7 @@ class JptxImage(cw.image.Image):
                 w = x if x > w else w
                 x = 0 + shiftx
                 if nolinedata or not tagonly:
-                    y += get_height(wxdc, font) * lineheight / 100 - 2 + shifty
+                    y += get_height(font) * lineheight / 100 - 2 + shifty
                 h = y
                 nolinedata = True
                 tagonly = True
@@ -681,11 +685,11 @@ class JptxImage(cw.image.Image):
                 name = name.lower()
 
                 if name == "b":
-                    set_bold(wxdc, font, start)
+                    set_bold(font, start)
                 elif name == "u":
-                    set_underline(wxdc, font, start)
+                    set_underline(font, start)
                 elif name == "i":
-                    set_italic(wxdc, font, start)
+                    set_italic(font, start)
                 elif name == "s":
                     strike = start
                 elif name == "shiftx":
@@ -707,13 +711,13 @@ class JptxImage(cw.image.Image):
                         fontpixels = int(attrs.get("pixels", fontpixels))
                         fontface = attrs.get("fontface", face_def)
                         fontface = attrs.get("face", fontface)
-                        font = create_font(wxdc, fontface, fontpixels)
+                        font = create_font(fontface, fontpixels)
                         color = attrs.get("fontcolor")
                         color = attrs.get("color", color)
                         fontcolor = self.get_fontcolor(color, color_def)
                     else:
                         fontface, fontpixels, color = oldfonts.pop()
-                        font = create_font(wxdc, fontface, fontpixels)
+                        font = create_font(fontface, fontpixels)
                         fontcolor = color
 
                 tag = ""
@@ -722,12 +726,12 @@ class JptxImage(cw.image.Image):
             else:
                 nolinedata = False
                 tagonly = False
-                subimg, width = font_render(wxdc, wxcanvas, font, char, antialias, fontcolor)
+                subimg, width = font_render(font, char, antialias, fontcolor)
 
                 # 取消線
                 if strike:
-                    subimg2, width = font_render(wxdc, wxcanvas, font, u"―", antialias, fontcolor)
-                    size = (subimg.get_width() + 10, get_height(wxdc, font))
+                    subimg2, width = font_render(font, u"―", antialias, fontcolor)
+                    size = (subimg.get_width() + 10, get_height(font))
                     subimg2 = pygame.transform.scale(subimg2, size)
                     subimg.blit(subimg2, (-5, 0))
 
@@ -738,6 +742,9 @@ class JptxImage(cw.image.Image):
             w = w if backwidth < 0 else backwidth
             h = h if backheight < 0 else backheight
             self.image = self.image.subsurface(pygame.Rect(0, 0, w, h))
+
+        self.wxcanvas = None
+        self.wxdc = None
 
     def get_fontpath(self, fontface):
         if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
@@ -878,7 +885,10 @@ class EffectBoosterConfig(object):
 
     def get_int(self, section, option, default=None):
         try:
-            return int(self.get(section, option, default))
+            value = self.get(section, option, default).strip()
+            if value.endswith("px"):
+                return int(value[:-2])
+            return int(value)
         except:
             return default
 
