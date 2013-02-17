@@ -939,17 +939,23 @@ def get_effectivetargets(header, targets):
                 targets2.append(target)
         return targets2
 
-    for motion in motions:
-        s = motion.get("type", "")
+    if header.type == "ActionCard" and header.id == 7 and len(targets) == 1:
+        # 重症時は逃走を優先する
+        if targets[0].is_heavyinjured():
+            sets.add(targets[0])
+            setshp.add(targets[0])
+    else:
+        for motion in motions:
+            s = motion.get("type", "")
 
-        if s in checkingmethod_dict:
-            method, flag = checkingmethod_dict[s]
-            sets.update([t for t in targets if getattr(t, method)() == flag])
-        else:
-            sets.update(targets)
-        if s in highpriority_dict:
-            method, flag = highpriority_dict[s]
-            setshp.update([t for t in targets if getattr(t, method)() == flag])
+            if s in checkingmethod_dict:
+                method, flag = checkingmethod_dict[s]
+                sets.update([t for t in targets if getattr(t, method)() == flag])
+            else:
+                sets.update(targets)
+            if s in highpriority_dict:
+                method, flag = highpriority_dict[s]
+                setshp.update([t for t in targets if getattr(t, method)() == flag])
 
     return narrow(sets), narrow(setshp)
 
