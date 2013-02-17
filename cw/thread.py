@@ -662,6 +662,8 @@ class CWPy(_Singleton, threading.Thread):
         # メニューカードを下げる
         for mcard in self.get_mcards("visible"):
             if hideall or not self.sdata.flags.get(mcard.flag, True):
+                if mcard.inusecardimg:
+                    self.clear_inusecardimg(mcard)
                 cw.animation.animate_sprite(mcard, "hide")
 
         # プレイヤカードを下げる
@@ -1046,11 +1048,16 @@ class CWPy(_Singleton, threading.Thread):
     def set_inusecardimg(self, owner, header, status="normal", center=False):
         """PlayerCardの前に使用中カードの画像を表示。"""
         if not self.get_inusecardimg():
-            cw.sprite.background.InuseCardImage(owner, header, status, center)
+            inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center)
+            owner.inusecardimg = inusecard
 
-    def clear_inusecardimg(self):
+    def clear_inusecardimg(self, user=None):
         """PlayerCardの前の使用中カードの画像を削除。"""
-        self.pcardgrp.remove_sprites_of_layer("inusecard")
+        if user:
+            if user.inusecardimg:
+                self.pcardgrp.remove(user.inusecardimg)
+        else:
+            self.pcardgrp.remove_sprites_of_layer("inusecard")
 
     def set_guardcardimg(self, owner, header):
         """PlayerCardの前に回避・抵抗ボーナスカードの画像を表示。"""

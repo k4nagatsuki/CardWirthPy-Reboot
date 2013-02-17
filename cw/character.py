@@ -373,7 +373,7 @@ class Character(object):
             cw.cwpy.set_inusecardimg(self, header, center=True)
             waitrate = cw.cwpy.setting.dealspeed
             cw.cwpy.wait_frame(waitrate)
-            cw.cwpy.clear_inusecardimg()
+            cw.cwpy.clear_inusecardimg(self)
             cw.animation.animate_sprite(self, "zoomout")
             cw.animation.animate_sprite(self, "hide")
             cw.cwpy.pcardgrp.remove(self)

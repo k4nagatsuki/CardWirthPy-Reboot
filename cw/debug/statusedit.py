@@ -203,7 +203,7 @@ class StatusEditDialog(wx.Dialog):
                         pcard.decide_action()
                     else:
                         pcard.clear_action()
-                        cw.cwpy.clear_inusecardimg()
+                        cw.cwpy.clear_inusecardimg(pcard)
 
             if not updates:
                 cw.cwpy.sounds["harvest"].play()

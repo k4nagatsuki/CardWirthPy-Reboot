@@ -16,6 +16,8 @@ class CWPyCard(base.SelectableSprite):
         self.status = status
         self.old_status = status
         self.rect = pygame.Rect(0, 0, 0, 0)
+        # 前に表示中のカード
+        self.inusecardimg = None
         # アニメ用フレーム数
         self.frame = 0
         # ズーム画像のリスト。(Surfaice, Rect)のタプル。

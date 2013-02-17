@@ -297,6 +297,7 @@ class EventEngine(object):
             event = self.check_keynum(keynum)
 
         if event:
+            event.clear()
             # メニューカードの選択を記憶
             last_selected = None
             if 0 <= cw.cwpy.index:
@@ -551,7 +552,7 @@ class CardEvent(Event):
             cw.cwpy.sounds["confuse"].play(True)
             cw.animation.animate_sprite(self.user, "axialvibe")
             cw.animation.animate_sprite(self.user, "hide")
-            cw.cwpy.clear_inusecardimg()
+            cw.cwpy.clear_inusecardimg(self.user)
             cw.animation.animate_sprite(self.user, "deal")
             self.end()
         else:
@@ -583,7 +584,7 @@ class CardEvent(Event):
             cw.cwpy.wait_frame(waitrate)
 
         # InuseCardImage削除
-        cw.cwpy.clear_inusecardimg()
+        cw.cwpy.clear_inusecardimg(self.user)
 
         # 効果中断等でターゲット色反転が解除されない場合があるため
         for target in self.targets:

@@ -614,7 +614,6 @@ class Flag(object):
                 mcardflag = cw.cwpy.sdata.flags.get(mcard.flag, True)
 
                 if mcardflag and mcard.status == "hidden":
-                    cw.cwpy.clear_inusecardimg()
                     drawflag = True
                 elif not mcardflag and not mcard.status == "hidden":
                     drawflag = True
@@ -626,7 +625,6 @@ class Flag(object):
         elif self.value:
             cw.cwpy.deal_cards()
         else:
-            cw.cwpy.clear_inusecardimg()
             cw.cwpy.hide_cards()
 
     def set(self, value):

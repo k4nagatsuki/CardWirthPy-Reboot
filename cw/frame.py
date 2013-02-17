@@ -454,7 +454,7 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(owner.use_card, targets, header)
             cw.cwpy._runningevent = True
         else:
-            cw.cwpy.exec_func(cw.cwpy.clear_inusecardimg)
+            cw.cwpy.exec_func(cw.cwpy.clear_inusecardimg, owner)
             cw.cwpy.exec_func(cw.cwpy.clear_targetarrow)
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
