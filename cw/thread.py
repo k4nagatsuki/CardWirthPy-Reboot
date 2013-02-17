@@ -622,21 +622,21 @@ class CWPy(_Singleton, threading.Thread):
         """
         self._dealing = True
 
+        mcardsinv = self.get_mcards("invisible")
+
+        # エネミーカードは初期化されていない場合がある
+        for mcard in mcardsinv:
+            if isinstance(mcard, cw.sprite.card.EnemyCard):
+                if self.sdata.flags.get(mcard.flag, True):
+                    mcard.initialize()
+
         # カード自動配置の配置位置を再設定する
         if self.is_autospread():
             mcards = self.get_mcards("flagtrue")
             flag = bool(self.areaid == cw.AREA_CAMP and self.sdata.friendcards)
             self.set_autospread(mcards, flag)
 
-        mcards = self.get_mcards("invisible")
-
-        # エネミーカードは初期化されていない場合がある
-        for mcard in mcards:
-            if isinstance(mcard, cw.sprite.card.EnemyCard):
-                if self.sdata.flags.get(mcard.flag, True):
-                    mcard.initialize()
-
-        for mcard in mcards:
+        for mcard in mcardsinv:
             if self.sdata.flags.get(mcard.flag, True):
                 cw.animation.animate_sprite(mcard, "deal")
 
