@@ -413,7 +413,7 @@ class CardControl(wx.Dialog):
                     return
 
             # 戦闘中にペナルティカードを行動選択していたら処理中止
-            if cw.cwpy.battle and owner.actiondata:
+            if cw.cwpy.battle and owner.actiondata and not cw.cwpy.debug:
                 headerp = owner.actiondata[1]
 
                 if headerp and headerp.penalty:

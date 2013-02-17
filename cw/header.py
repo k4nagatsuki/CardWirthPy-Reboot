@@ -464,10 +464,8 @@ class CardHeader(object):
         flag = not bool(self.target == "None")
 
         # ペナルティカードは無条件に選択可能
-        if self.type <> "BeastCard" and not self.carddata is None:
-            for keycode in cw.util.decodetextlist(self.carddata.gettext("Property/KeyCodes", "")):
-                if keycode == u"ペナルティ":
-                    return True
+        if self.type <> "BeastCard" and self.penalty:
+            return True
 
         if not self.carddata is None:
             # 効果無し
