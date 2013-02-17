@@ -308,7 +308,7 @@ class CardControl(wx.Dialog):
             self.draw_card(dc, header)
 
     def draw_card(self, dc, header, fromkeyevent=False):
-        if not fromkeyevent:
+        if not fromkeyevent and self.IsActive():
             mousepos = self.ScreenToClient(wx.GetMousePosition())
             if header.rect.collidepoint(mousepos):
                 if not header.negaflag:
