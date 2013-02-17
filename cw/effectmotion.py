@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import copy
+
 import pygame
 
 import cw
@@ -243,7 +245,7 @@ class Effect(object):
             targetbonus = target.get_enhance_avo()
             if 10 <= targetbonus:
                 return True
-            elif targetbonus <= 10:
+            elif targetbonus <= -10:
                 return False
 
             if self.user and self.inusecard:
@@ -264,7 +266,7 @@ class Effect(object):
             targetbonus = target.get_enhance_res()
             if 10 <= targetbonus:
                 return True
-            elif targetbonus <= 10:
+            elif targetbonus <= -10:
                 return False
 
             if self.user and self.inusecard:
@@ -393,7 +395,7 @@ class EffectMotion(object):
 
         # 召喚獣
         if data.hasfind("Beasts"):
-            self.beasts = [e for e in data.getfind("Beasts")]
+            self.beasts = [copy.deepcopy(e) for e in data.getfind("Beasts")]
         else:
             self.beasts = []
 
@@ -485,7 +487,7 @@ class EffectMotion(object):
         enhance_def = target.get_enhance_def()
         if 10 <= enhance_def:
             return 0
-        elif enhance_def <= 10:
+        elif enhance_def <= -10:
             return value * 4
         return max(1, (value * (10 - enhance_def)) / 10)
 
