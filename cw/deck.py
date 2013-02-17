@@ -154,6 +154,8 @@ class Deck(object):
             header = cw.cwpy.rsrc.actioncards[0].copy()
             header.set_owner(ccard)
             self.hand.append(header)
+            # アイテムカードを手札に加える
+            self.hand.extend(ccard.cardpocket[cw.POCKET_ITEM])
             self._throwaway = False
 
         while len(self.hand) < maxn:

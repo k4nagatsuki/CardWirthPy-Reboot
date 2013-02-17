@@ -105,9 +105,10 @@ class CardImage(Image):
                 subimg = font.render(s, False, colour)
                 image.blit(subimg, pos)
 
-        if isinstance(header.get_owner(), cw.character.Character):
+        owner = header.get_owner()
+        if isinstance(owner, cw.character.Character):
             # 適性値
-            key = "HAND" + str(header.get_vocation_level())
+            key = "HAND" + str(header.get_vocation_level(owner))
             subimg = cw.cwpy.rsrc.stones[key]
             image.blit(subimg, (60, 90))
 

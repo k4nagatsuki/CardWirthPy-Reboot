@@ -877,7 +877,7 @@ class SkillPanel(wx.Panel):
             header.textpos = pos
             header.subrect = pygame.Rect(pos[0] - 20, pos[1] - 1, size[0] + 20, size[1] + 2)
             # 適正値
-            key = "HAND%s" % (header.get_vocation_level())
+            key = "HAND%s" % (header.get_vocation_level(self.ccard))
             bmp = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(bmp, pos[0]+85, pos[1]-1, True)
             # 使用回数

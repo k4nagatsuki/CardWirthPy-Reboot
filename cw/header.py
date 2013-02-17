@@ -211,11 +211,11 @@ class CardHeader(object):
     def get_cardimg(self):
         return self.cardimg.get_cardimg(self)
 
-    def get_vocation_level(self):
+    def get_vocation_level(self, owner):
         """
         適性値の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
         """
-        value = self.get_vocation_val()
+        value = self.get_vocation_val(owner)
 
         if value < 3:
             value = 0
@@ -230,11 +230,12 @@ class CardHeader(object):
 
         return value
 
-    def get_vocation_val(self):
+    def get_vocation_val(self, owner):
         """
         適性値(身体特性+精神特性の合計値)を返す。
         """
-        owner = self.get_owner()
+        if not owner:
+            owner = self.get_owner()
         physical = self.vocation[0]
         mental = self.vocation[1].replace("un", "", 1)
         physical = owner.data.getint("Property/Ability/Physical", physical)

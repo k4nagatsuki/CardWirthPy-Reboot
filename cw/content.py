@@ -1269,8 +1269,6 @@ def get_card(etree, target, summon=False, toindex=-1, insertorder=-1):
     header = cw.header.CardHeader(carddata=etree.getroot(),
                                     owner=None, from_scenario=from_scenario)
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False)
-    if cw.cwpy.is_battlestatus():
-        target.deck.set(target, hand=False, talon=True, nextcards=False)
 
 class GetSkillContent(GetContent):
     def action(self):
@@ -1539,11 +1537,7 @@ class LoseContent(EventContentBase):
             if isinstance(target, cw.character.Character):
                 target = target.cardpocket[index]
 
-            headers = self.lose_card(name, desc, target, num)
-            if headers and cw.cwpy.battle and\
-                    isinstance(ccard, cw.character.Character):
-                for header in headers:
-                    ccard.deck.remove(ccard, header)
+            self.lose_card(name, desc, target, num)
 
     def lose_card(self, name, desc, target, num):
         headers = []

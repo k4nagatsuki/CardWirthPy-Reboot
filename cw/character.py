@@ -589,7 +589,7 @@ class Character(object):
             if header.type == "ActionCard" and header.id == 0:
                 sortkey = 4
             else:
-                sortkey = header.get_vocation_val()
+                sortkey = header.get_vocation_val(self)
 
             seq.append((sortkey, len(targets), index, (targets, header)))
 
