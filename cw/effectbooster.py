@@ -583,6 +583,9 @@ class JptxImage(cw.image.Image):
         # text rendering
         self.wxcanvas = wx.EmptyBitmap(10, 10)
         self.wxdc = wx.MemoryDC(self.wxcanvas)
+        bold = False
+        underline = False
+        italic = False
         def create_font(fontface, fontpixels):
             if fontface in cw.cwpy.rsrc.fontnames.values():
                 fontpath = self.get_fontpath(fontface)
@@ -596,7 +599,7 @@ class JptxImage(cw.image.Image):
                                0,
                                fontface,
                                wx.FONTFLAG_NOT_ANTIALIASED)
-                font.SetPixelSize((fontpixels / 2, fontpixels))
+                font.SetPixelSize((0, fontpixels))
                 self.wxdc.SetFont(font)
                 size = self.wxdc.GetTextExtent("##")
                 self.wxcanvas = wx.EmptyBitmap(size[0] * 2, size[1] * 2)
@@ -631,8 +634,8 @@ class JptxImage(cw.image.Image):
             if isinstance(font, pygame.font.Font):
                 return font.get_height()
             else:
-                extent = self.wxdc.GetFullTextExtent("#")
-                return extent[1] + extent[2] * 2
+                w, h, lh = self.wxdc.GetMultiLineTextExtent("#")
+                return lh + 2
         def font_render(font, char, antialias, fontcolor):
             if isinstance(font, pygame.font.Font):
                 subimg = font.render(char, antialias, fontcolor)
@@ -685,10 +688,13 @@ class JptxImage(cw.image.Image):
                 name = name.lower()
 
                 if name == "b":
+                    bold = start
                     set_bold(font, start)
                 elif name == "u":
+                    underline = start
                     set_underline(font, start)
                 elif name == "i":
+                    underline = start
                     set_italic(font, start)
                 elif name == "s":
                     strike = start
@@ -719,6 +725,9 @@ class JptxImage(cw.image.Image):
                         fontface, fontpixels, color = oldfonts.pop()
                         font = create_font(fontface, fontpixels)
                         fontcolor = color
+                    set_bold(font, bold)
+                    set_italic(font, italic)
+                    set_underline(font, underline)
 
                 tag = ""
             elif tag:
