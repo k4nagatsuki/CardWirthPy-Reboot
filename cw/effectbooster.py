@@ -552,7 +552,7 @@ class JptxImage(cw.image.Image):
     def __init__(self, path, mask):
         config = EffectBoosterConfig(path)
         # parameters
-        backcolor = config.get_color("jptx:init", "backcolor", (255, 255, 255))
+        backcolor = config.get_color("jptx:init", "backcolor", (0, 0, 0))
         backwidth = config.get_int("jptx:init", "backwidth", -1)
         backheight = config.get_int("jptx:init", "backheight", -1)
         autoline = config.get_bool("jptx:init", "autoline", True)
@@ -770,6 +770,10 @@ class JptxImage(cw.image.Image):
             return cw.cwpy.rsrc.fontpaths["pgothic"]
 
     def get_fontcolor(self, fontcolor, default=(0, 0, 0)):
+        if not fontcolor:
+            return default
+
+        fontcolor = fontcolor.strip()
         if fontcolor == "red":
             return (255, 0, 0)
         elif fontcolor == "yellow":
@@ -802,6 +806,11 @@ class JptxImage(cw.image.Image):
             return (128, 128, 128)
         elif fontcolor == "silver":
             return (192, 192, 192)
+        elif fontcolor.startswith("$") and len(fontcolor) == 7:
+            r = int(fontcolor[1:3], 16)
+            g = int(fontcolor[3:5], 16)
+            b = int(fontcolor[5:7], 16)
+            return (r, g, b)
         else:
             return default
 
