@@ -360,8 +360,8 @@ class _JpySubImage(cw.image.Image):
             image = self.cache.load_image(self.loadcache)
         # 背景画像作成 for JpyBackgroundImage
         elif hasattr(self, "backcolor"):
-            width = self.width if self.width > 0 else cw.SIZE_GAME[0]
-            height = self.height if self.height > 0 else cw.SIZE_GAME[1]
+            width = self.width if self.width > 0 else cw.SIZE_AREA[0]
+            height = self.height if self.height > 0 else cw.SIZE_AREA[1]
             size = (width, height)
             image = pygame.Surface(size).convert()
             image.fill(self.backcolor)
@@ -371,8 +371,8 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
-            width = self.width if self.width > 0 else cw.SIZE_GAME[0]
-            height = self.height if self.height > 0 else cw.SIZE_GAME[1]
+            width = self.width if self.width > 0 else cw.SIZE_AREA[0]
+            height = self.height if self.height > 0 else cw.SIZE_AREA[1]
             size = (width, height)
 
             if not size == image.get_size():
@@ -670,7 +670,6 @@ class JptxImage(cw.image.Image):
 
         for char in text:
             if char == "\n":
-                w = x if x > w else w
                 x = 0 + shiftx
                 if nolinedata or not tagonly:
                     y += get_height(font) * lineheight / 100 - 2 + shifty
@@ -713,14 +712,15 @@ class JptxImage(cw.image.Image):
                 elif name.startswith("font"):
                     if start:
                         oldfonts.append((fontface, fontpixels, fontcolor))
-                        fontpixels = int(attrs.get("fontpixels", pixels_def))
+                        fontpixels = int(attrs.get("fontpixels", fontpixels))
                         fontpixels = int(attrs.get("pixels", fontpixels))
                         fontface = attrs.get("fontface", face_def)
                         fontface = attrs.get("face", fontface)
                         font = create_font(fontface, fontpixels)
                         color = attrs.get("fontcolor")
                         color = attrs.get("color", color)
-                        fontcolor = self.get_fontcolor(color, color_def)
+                        if color:
+                            fontcolor = self.get_fontcolor(color, color_def)
                     else:
                         fontface, fontpixels, color = oldfonts.pop()
                         font = create_font(fontface, fontpixels)
@@ -746,6 +746,7 @@ class JptxImage(cw.image.Image):
 
                 self.image.blit(subimg, (x, y))
                 x += width
+                w = x if x > w else w
 
         if backheight < 0 or backwidth < 0:
             w = w if backwidth < 0 else backwidth
@@ -811,6 +812,15 @@ class JptxImage(cw.image.Image):
             g = int(fontcolor[3:5], 16)
             b = int(fontcolor[5:7], 16)
             return (r, g, b)
+        elif fontcolor:
+            try:
+                value = int(fontcolor, 16)
+                r = (value >> 16) & 0xff
+                g = (value >> 8) & 0xff
+                b = (value >> 0) & 0xff
+                return (r, g, b)
+            except:
+                return default
         else:
             return default
 

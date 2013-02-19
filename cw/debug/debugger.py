@@ -997,7 +997,7 @@ class EventTreeCtrl(wx.TreeCtrl):
                 content = self.GetItemPyData(self.activeitem)
                 parent = self.GetItemParent(self.activeitem)
                 parent = self.GetItemPyData(parent)
-                if not parent:
+                if parent is None:
                     return
                 s = self.get_contentname(parent, content)
                 self.SetItemText(self.activeitem, s)
