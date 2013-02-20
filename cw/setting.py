@@ -12,6 +12,9 @@ from pygame.locals import *
 import cw
 
 
+class NoFontError(ValueError):
+    pass
+
 class Setting(object):
     def __init__(self):
         # フレームレート
@@ -36,7 +39,7 @@ class Setting(object):
             self.mwincolour = (0, 0, 80, 180)
             self.mwinframecolour = (128, 0, 0, 255)
             self.blwincolour = (80, 80, 80, 180)
-            self.blwincolour = (128, 128, 128, 255)
+            self.blwinframecolour = (128, 128, 128, 255)
             self.dealspeed = 7
             self.transition = "None"
             self.transitionspeed = 5
@@ -46,7 +49,7 @@ class Setting(object):
             self.sort_standbys = "None"
             self.sort_storehouse = "None"
             self.sort_backpack = "None"
-            self.backlog_max = 100
+            self.backlogmax = 100
             self.showfps = False
             self.write()
 
@@ -260,7 +263,7 @@ class Resource(object):
                 path = cw.util.join_paths(fontdir, fname)
 
                 if not os.path.isfile(path):
-                    raise ValueError(fname + " not found.")
+                    raise NoFontError(fname + " not found.")
 
             d[os.path.splitext(fname)[0]] = path
 

@@ -124,31 +124,40 @@ class CWPy(_Singleton, threading.Thread):
         self.exec_func(self.startup)
 
     def _init_resources(self):
-        """スキンが関わるリソースの初期化"""
-        # リソース(辞書)
-        self.rsrc = cw.setting.Resource(self.setting)
-        # システム効果音(辞書)
-        self.sounds = self.rsrc.sounds
-        # その他のスキン付属効果音(辞書)
-        self.skinsounds = self.rsrc.skinsounds
-        # システムメッセージ(辞書)
-        self.msgs = self.rsrc.msgs
-        # アクションカードのデータ(CardHeader)
-        self.rsrc.actioncards = self.rsrc.get_actioncards()
-        # 背景スプライト
-        self.background = cw.sprite.background.BackGround()
-        self.bggrp.set_clip(self.background.rect)
-        self.mcardgrp.set_clip(self.background.rect)
-        self.pcardgrp.set_clip(self.background.rect)
-        self.topgrp.set_clip(self.background.rect)
-        self.backloggrp.set_clip(self.background.rect)
-        # ステータスバースプライト
-        self.statusbar = cw.sprite.statusbar.StatusBar()
-        # ステータスバークリップ
-        self.sbargrp.set_clip(self.statusbar.rect)
-        # FPS描画用フォント
-        self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], 14)
-        self.fpsfont.set_bold(True)
+        try:
+            """スキンが関わるリソースの初期化"""
+            # リソース(辞書)
+            self.rsrc = cw.setting.Resource(self.setting)
+            # システム効果音(辞書)
+            self.sounds = self.rsrc.sounds
+            # その他のスキン付属効果音(辞書)
+            self.skinsounds = self.rsrc.skinsounds
+            # システムメッセージ(辞書)
+            self.msgs = self.rsrc.msgs
+            # アクションカードのデータ(CardHeader)
+            self.rsrc.actioncards = self.rsrc.get_actioncards()
+            # 背景スプライト
+            self.background = cw.sprite.background.BackGround()
+            self.bggrp.set_clip(self.background.rect)
+            self.mcardgrp.set_clip(self.background.rect)
+            self.pcardgrp.set_clip(self.background.rect)
+            self.topgrp.set_clip(self.background.rect)
+            self.backloggrp.set_clip(self.background.rect)
+            # ステータスバースプライト
+            self.statusbar = cw.sprite.statusbar.StatusBar()
+            # ステータスバークリップ
+            self.sbargrp.set_clip(self.statusbar.rect)
+            # FPS描画用フォント
+            self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], 14)
+            self.fpsfont.set_bold(True)
+
+        except cw.setting.NoFontError, ex:
+            def func():
+                s = (u"CardWirthPyの実行に必要なフォントがありません。\n"
+                     u"Data/Font以下にIPAフォントをインストールしてください。")
+                wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_ERROR, cw.cwpy.frame)
+                cw.cwpy.frame.Destroy()
+            cw.cwpy.frame.exec_func(func)
 
     def run(self):
         try:
