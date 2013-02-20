@@ -402,6 +402,10 @@ class _JpySubImage(cw.image.Image):
                 dpath = cw.util.join_paths(cw.cwpy.sdata.scedir)
             else:
                 dpath = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material")
+            # シナリオ内に存在しなかった場合はTableを探す
+            if not os.path.isfile(cw.util.join_paths(dpath, filename)):
+                dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
+                filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
         elif self.dirtype == 5:
             dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
             filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
