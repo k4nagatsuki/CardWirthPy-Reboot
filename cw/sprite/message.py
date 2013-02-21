@@ -584,9 +584,9 @@ class SelectionBar(base.SelectableSprite):
 
         # イベント再開(次コンテントへのIndexを渡す)
         if isinstance(mwin, MemberSelectWindow):
-            # キャンセルをクリックした場合、イベント強制中断
+            # キャンセルをクリックした場合
             if len(mwin.selectmembers) == self.index:
-                mwin.result = cw.event.EffectBreakError()
+                mwin.result = 1
             # メンバ名をクリックした場合、選択メンバを変更して、イベント続行
             else:
                 pcard = mwin.selectmembers[self.index]
