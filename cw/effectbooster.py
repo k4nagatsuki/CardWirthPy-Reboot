@@ -13,6 +13,28 @@ from pygame.locals import *
 import cw
 
 
+def wait_effectbooster(waittime):
+    if 0 < waittime:
+        tick = pygame.time.get_ticks() + waittime
+    else:
+        tick = 0
+        cw.util.change_cursor("mouse")
+
+    try:
+        eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
+        while cw.cwpy.is_running() and\
+                (not tick or pygame.time.get_ticks() < tick) and\
+                eventhandler.running and\
+                cw.cwpy.is_playingscenario():
+            cw.cwpy.sbargrp.update(cw.cwpy.scr)
+            cw.cwpy.tick_clock()
+            cw.cwpy.input()
+            eventhandler.run()
+
+    finally:
+        if not tick:
+            cw.util.change_cursor()
+
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
         self.configpath = config.path
@@ -159,23 +181,11 @@ class _JpySubImage(cw.image.Image):
     def wait(self):
         # 指定時間だけ待機
         if self.waittime > 0:
-            tick = pygame.time.get_ticks() + self.waittime
-            while cw.cwpy.is_running() and pygame.time.get_ticks() < tick:
-                cw.cwpy.wait_frame(1)
+            wait_effectbooster(self.waittime)
+
         # 右クリックするまで待機
         elif self.waittime < 0:
-            cw.util.change_cursor("mouse")
-            flag = False
-
-            while cw.cwpy.is_running() and not flag:
-                for event in pygame.event.get((MOUSEBUTTONUP, KEYDOWN)):
-                    if event.type == MOUSEBUTTONUP:
-                        if event.button == 3:
-                            flag = True
-
-                cw.cwpy.wait_frame(1)
-
-            cw.util.change_cursor()
+            wait_effectbooster(0)
 
     def retouch(self):
         """画像加工。"""
@@ -540,15 +550,8 @@ class JpdcImage(cw.image.Image):
     def wait(self):
         # 右クリックするまで待機
         cw.util.change_cursor("mouse")
-        flag = False
 
-        while cw.cwpy.is_running() and not flag:
-            for event in pygame.event.get((MOUSEBUTTONUP, KEYDOWN)):
-                if event.type == MOUSEBUTTONUP:
-                    if event.button == 3:
-                        flag = True
-
-            cw.cwpy.wait_frame(1)
+        wait_effectbooster(0)
 
         cw.util.change_cursor()
 

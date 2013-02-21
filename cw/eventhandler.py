@@ -655,6 +655,85 @@ class EventHandlerForBacklog(EventHandler):
         # 次のバックログ
         self.mwin = self.backlog[self.index].create_message()
 
+class EventHandlerForEffectBooster(EventHandler):
+    def __init__(self):
+        """エフェクトブースターのウェイト処理中の
+        イベントハンドラ。
+        """
+        self.running = True
+
+    def run(self):
+        cw.cwpy.has_inputevent = False
+
+        # リターンキー押しっぱなし
+        if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+            self.returnkey_event(True)
+
+        for event in cw.cwpy.events:
+            if event.type == KEYDOWN:
+                # ESCAPEキー
+                if event.key == K_ESCAPE:
+                    self.escapekey_event()
+                # F1キー
+                elif event.key == K_F1:
+                    self.f1key_event()
+                # F2キー
+                elif event.key == K_F2:
+                    self.f2key_event()
+                # F3キー
+                elif event.key == K_F3:
+                    self.f3key_event()
+                # F4キー
+                elif event.key == K_F4:
+                    self.f4key_event()
+                # F5キー
+                elif event.key == K_F5:
+                    self.f5key_event()
+                # F9キー
+                elif event.key == K_F9:
+                    self.f9key_event()
+                # リターンキー
+                elif event.key == K_RETURN:
+                    self.returnkey_event()
+
+            elif event.type == MOUSEBUTTONUP:
+                # 左クリック
+                if event.button == 1:
+                    self.lclick_event()
+                # ミドルクリック
+                elif event.button == 2:
+                    self.mclick_event()
+                # 右クリック
+                elif event.button == 3:
+                    self.rclick_event()
+
+            # ユーザイベント
+            elif event.type == USEREVENT and hasattr(event, "func"):
+                self.executing_event(event)
+
+    def rclick_event(self):
+        """
+        右クリックイベント。
+        """
+        if cw.cwpy.selection:
+            cw.cwpy.has_inputevent = True
+            cw.cwpy.selection.lclick_event()
+            return
+
+        self.running = False
+
+    def escapekey_event(self):
+        """
+        ESCAPEキーイベント。
+        """
+        self.running = False
+
+    def returnkey_event(self, pushing=False):
+        """
+        リターンキーイベント。
+        """
+        self.running = False
+
 def main():
     pass
 
