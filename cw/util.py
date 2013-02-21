@@ -54,8 +54,6 @@ class MusicInterface(object):
             return
 
         if not os.path.isfile(fpath):
-            self.fpath = ""
-            self.path = ""
             self.stop()
         else:
             assert threading.currentThread() == cw.cwpy
@@ -89,6 +87,7 @@ class MusicInterface(object):
 
         assert threading.currentThread() == cw.cwpy
         pygame.mixer.music.stop()
+        self.fpath = ""
         self.path = ""
         # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
         path = "DefReset" + cw.cwpy.rsrc.ext_bgm
