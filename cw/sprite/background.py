@@ -34,7 +34,8 @@ class BackGround(base.CWPySprite):
         """
         # 対応フラグチェック
         if not cw.cwpy.sdata.flags.get(flag, True):
-            return None
+            return None, False
+        anime = False
 
         # 画像読み込み
         ext = os.path.splitext(path)[1].lower()
@@ -45,6 +46,7 @@ class BackGround(base.CWPySprite):
             image = cw.effectbooster.JpdcImage(mask, path).get_image()
         elif ext == ".jpy1":
             image = cw.effectbooster.JpyImage(path).get_image()
+            anime = True
         else:
             image = cw.util.load_image(path, mask)
 
@@ -55,7 +57,7 @@ class BackGround(base.CWPySprite):
             else:
                 image = pygame.transform.scale(image, size)
 
-        return image
+        return image, anime
 
     def load(self, elements, bginhrt, ttype=("Default", "Default")):
         """背景画面を構成する。
@@ -73,6 +75,7 @@ class BackGround(base.CWPySprite):
             self.bgs = []
 
         # 背景構築
+        animated = False
         for e in elements:
             left = e.getint("Location", "left")
             top = e.getint("Location", "top")
@@ -94,7 +97,8 @@ class BackGround(base.CWPySprite):
                 fname = os.path.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
                 path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
 
-            image = self.load_surface(path, mask, size, flag)
+            image, anime = self.load_surface(path, mask, size, flag)
+            animated |= anime
 
             if image:
                 self.image.blit(image, pos)
@@ -107,7 +111,7 @@ class BackGround(base.CWPySprite):
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
         # トランジション効果で画面入り
-        if transitspr and not oldbgs == self.bgs:
+        if not animated and transitspr and not oldbgs == self.bgs:
             transitspr.add(cw.cwpy.bggrp)
             cw.animation.animate_sprite(transitspr, "transition")
             transitspr.remove(cw.cwpy.bggrp)
@@ -123,8 +127,10 @@ class BackGround(base.CWPySprite):
         self.image = pygame.Surface(cw.SIZE_SCR).convert()
         bgs = []
 
+        animated = False
         for path, mask, size, pos, flag, visible in self.bgs:
-            image = self.load_surface(path, mask, size, flag)
+            image, anime = self.load_surface(path, mask, size, flag)
+            animated |= anime
 
             if image:
                 self.image.blit(image, pos)
@@ -138,7 +144,7 @@ class BackGround(base.CWPySprite):
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
         # トランジション効果で画面入り
-        if transitspr and not oldbgs == self.bgs:
+        if not animated and transitspr and not oldbgs == self.bgs:
             transitspr.add(cw.cwpy.bggrp)
             cw.animation.animate_sprite(transitspr, "transition")
             transitspr.remove(cw.cwpy.bggrp)
