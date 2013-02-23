@@ -165,7 +165,7 @@ def _to_binaryformat(image, value):
 def add_noise(image, value, colornoise=False):
     """ノイズを入れる。
     image: pygame.Surface
-    value: ノイズの度合い(0～255)
+    value: ノイズの度合い(-1～255)
     colornoise: カラーノイズか否か
     """
     try:
@@ -176,13 +176,16 @@ def add_noise(image, value, colornoise=False):
     return _retouch(func, image, value, colornoise)
 
 def _add_noise(image, value, colornoise=False):
-    value = cw.util.numwrap(value, 0, 255)
+    value = cw.util.numwrap(value, -1, 255)
     image = image.copy()
 
     if not value:
         return image
 
-    randmax = value * 2 + 1
+    if value < 0:
+        randmax = 256
+    else:
+        randmax = value * 2 + 1
     pxarray = pygame.PixelArray(image)
 
     for x, pxs in enumerate(pxarray):
@@ -192,14 +195,25 @@ def _add_noise(image, value, colornoise=False):
             r, g, b = hex2color(px)
 
             if colornoise:
-                r += random.randint(0, randmax) - value
-                g += random.randint(0, randmax) - value
-                b += random.randint(0, randmax) - value
+                if value < 0:
+                    r = random.randint(0, randmax)
+                    g = random.randint(0, randmax)
+                    b = random.randint(0, randmax)
+                else:
+                    r += random.randint(0, randmax) - value
+                    g += random.randint(0, randmax) - value
+                    b += random.randint(0, randmax) - value
             else:
-                n = random.randint(0, randmax) - value
-                r += n
-                g += n
-                b += n
+                if value < 0:
+                    n = random.randint(0, randmax)
+                    r = n
+                    g = n
+                    b = n
+                else:
+                    n = random.randint(0, randmax) - value
+                    r += n
+                    g += n
+                    b += n
 
             r = cw.util.numwrap(r, 0, 255)
             g = cw.util.numwrap(g, 0, 255)

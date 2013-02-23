@@ -118,8 +118,8 @@ add_noise(PyObject *self, PyObject *args)
         return NULL;
 
     PyBytes_AsStringAndSize(string, &outdata, &len);
-    val = intwrap(val, 0, 255);
-    randmax = val * 2 + 1;
+    val = intwrap(val, -1, 255);
+    randmax = (val < 0) ? 256 : (val * 2 + 1);
     srand((unsigned) time(NULL));
 
     for (y = 0; y < h; y++)
@@ -132,16 +132,35 @@ add_noise(PyObject *self, PyObject *args)
 
             if (colornoise)
             {
-                r = intwrap(r + (rand() % randmax) - val, 0, 255);
-                g = intwrap(g + (rand() % randmax) - val, 0, 255);
-                b = intwrap(b + (rand() % randmax) - val, 0, 255);
+                if (val < 0)
+                {
+                    r = intwrap(rand() % randmax, 0, 255);
+                    g = intwrap(rand() % randmax, 0, 255);
+                    b = intwrap(rand() % randmax, 0, 255);
+                }
+                else
+                {
+                    r = intwrap(r + (rand() % randmax) - val, 0, 255);
+                    g = intwrap(g + (rand() % randmax) - val, 0, 255);
+                    b = intwrap(b + (rand() % randmax) - val, 0, 255);
+                }
             }
             else
             {
-                i = (rand() % randmax) - val;
-                r = intwrap(r + i, 0, 255);
-                g = intwrap(g + i, 0, 255);
-                b = intwrap(b + i, 0, 255);
+                if (val < 0)
+                {
+                    i = intwrap(rand() % randmax, 0, 255);
+                    r = i;
+                    g = i;
+                    b = i;
+                }
+                else
+                {
+                    i = (rand() % randmax) - val;
+                    r = intwrap(r + i, 0, 255);
+                    g = intwrap(g + i, 0, 255);
+                    b = intwrap(b + i, 0, 255);
+                }
             }
             outdata[0] = (unsigned char) r;
             outdata[1] = (unsigned char) g;
