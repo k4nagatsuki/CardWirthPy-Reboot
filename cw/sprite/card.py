@@ -448,6 +448,10 @@ class PlayerCard(CWPyCard, character.Player):
             else:
                 cw.cwpy.call_dlg("CARDPOCKET")
 
+        # カード移動操作
+        elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
+            cw.animation.animate_sprite(self, "click")
+            cw.cwpy.trade("PLAYERCARD", self)
         # カード使用。USECARDダイアログを開く
         elif cw.cwpy.selectedheader:
             cw.cwpy.sounds["click"].play()
@@ -462,10 +466,6 @@ class PlayerCard(CWPyCard, character.Player):
                 header.get_owner().set_action(self, header)
                 cw.cwpy.clear_specialarea()
 
-        # カード移動操作
-        elif cw.cwpy.areaid in (-1, -2, -5):
-            cw.animation.animate_sprite(self, "click")
-            cw.cwpy.trade("PLAYERCARD", self)
         # パーティ離脱
         elif cw.cwpy.areaid == -3:
             cw.animation.animate_sprite(self, "click")
@@ -692,6 +692,12 @@ class MenuCard(CWPyCard):
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
             self.events.start(keynum=1)
+
+        # カード移動操作
+        elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
+            cw.animation.animate_sprite(self, "click")
+            self.events.start(keynum=1)
+
         # カード使用イベント
         elif cw.cwpy.selectedheader:
             cw.cwpy.sounds["click"].play()
@@ -706,10 +712,6 @@ class MenuCard(CWPyCard):
                 header.get_owner().set_action(self, header)
                 cw.cwpy.clear_specialarea()
 
-        # カード移動操作
-        elif cw.cwpy.areaid in (-1, -2, -5):
-            cw.animation.animate_sprite(self, "click")
-            self.events.start(keynum=1)
         # パーティ解散
         elif cw.cwpy.areaid == -3:
             cw.cwpy.sounds["page"].play()
