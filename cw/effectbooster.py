@@ -77,11 +77,12 @@ class _JpySubImage(cw.image.Image):
             else:
                 back.image.blit(image, self.position)
 
-    def drawtemp(self):
+    def drawtemp(self, doanime):
         """一時描画。"""
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
-            self.wait()
+            if doanime:
+                self.wait()
         # 一時描画
         elif self.animation:
             if self.animeposition:
@@ -96,59 +97,61 @@ class _JpySubImage(cw.image.Image):
 
             # 単一描画
             if not animespeed:
-                image = self.get_image()
-                image = self.clip_tempimg(image, pos)
-                spr = cw.sprite.background.Jpy1TemporalSprite(image, pos,
-                                                                self.paintmode)
-                cw.cwpy.draw()
-                self.wait()
-
-                if not self.animation == 1:
-                    spr.remove(cw.cwpy.topgrp)
-
-            # 連続描画
-            else:
-                goalpos = pos
-                pos = self.cache.load_position()
-                x, y = pos
-                rest_x = goalpos[0] - x
-                rest_y = goalpos[1] - y
-                xdir = bool(rest_x > -1)
-                ydir = bool(rest_y > -1)
-
-                while rest_x or rest_y:
-                    n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
-                    n /= animespeed
-
-                    if n == 0:
-                        n = 1
-
-                    if rest_x:
-                        x = int(pos[0] + round(rest_x / n))
-                        rest_x = goalpos[0] - x
-
-                        if (rest_x < 0 and xdir) or (rest_x > 0 and not xdir):
-                            x = goalpos[0]
-                            rest_x = 0
-
-                    if rest_y:
-                        y = int(pos[1] + round(rest_y / n))
-                        rest_y = goalpos[1] - y
-
-                        if (rest_y < 0 and ydir) or (rest_y > 0 and not ydir):
-                            y = goalpos[1]
-                            rest_y = 0
-
-                    pos = (x, y)
+                if doanime:
                     image = self.get_image()
                     image = self.clip_tempimg(image, pos)
                     spr = cw.sprite.background.Jpy1TemporalSprite(image, pos,
-                                                                self.paintmode)
+                                                                    self.paintmode)
                     cw.cwpy.draw()
                     self.wait()
 
                     if not self.animation == 1:
                         spr.remove(cw.cwpy.topgrp)
+
+            # 連続描画
+            else:
+                if doanime:
+                    goalpos = pos
+                    pos = self.cache.load_position()
+                    x, y = pos
+                    rest_x = goalpos[0] - x
+                    rest_y = goalpos[1] - y
+                    xdir = bool(rest_x > -1)
+                    ydir = bool(rest_y > -1)
+
+                    while rest_x or rest_y:
+                        n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
+                        n /= animespeed
+
+                        if n == 0:
+                            n = 1
+
+                        if rest_x:
+                            x = int(pos[0] + round(rest_x / n))
+                            rest_x = goalpos[0] - x
+
+                            if (rest_x < 0 and xdir) or (rest_x > 0 and not xdir):
+                                x = goalpos[0]
+                                rest_x = 0
+
+                        if rest_y:
+                            y = int(pos[1] + round(rest_y / n))
+                            rest_y = goalpos[1] - y
+
+                            if (rest_y < 0 and ydir) or (rest_y > 0 and not ydir):
+                                y = goalpos[1]
+                                rest_y = 0
+
+                        pos = (x, y)
+                        image = self.get_image()
+                        image = self.clip_tempimg(image, pos)
+                        spr = cw.sprite.background.Jpy1TemporalSprite(image, pos,
+                                                                    self.paintmode)
+                        cw.cwpy.draw()
+                        self.wait()
+
+                        if not self.animation == 1:
+                            spr.remove(cw.cwpy.topgrp)
 
             self.cache.save_position(pos)
 
@@ -450,7 +453,7 @@ class JpyBackGroundImage(_JpySubImage):
         self.visible = False
 
 class JpyImage(cw.image.Image):
-    def __init__(self, path, mask=False, cache=None):
+    def __init__(self, path, mask=False, cache=None, doanime=True):
         if not cache:
             cache = JpyCache()
 
@@ -463,11 +466,11 @@ class JpyImage(cw.image.Image):
                 parts = JpyPartsImage(config, section, cache)
                 parts.load()
                 parts.retouch()
-                parts.drawtemp()
+                parts.drawtemp(doanime)
                 parts.draw2back(back)
 
         back.retouch()
-        back.drawtemp()
+        back.drawtemp(doanime)
         self.image = back.get_image()
         if mask:
             self.image.set_colorkey(self.image.get_at((0, 0)))

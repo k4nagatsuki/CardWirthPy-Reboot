@@ -25,7 +25,7 @@ class BackGround(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.bggrp.add(self)
 
-    def load_surface(self, path, mask, size, flag):
+    def load_surface(self, path, mask, size, flag, doanime):
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
         mask: (0, 0)の色でマスクするか否か。透過画像を使う場合は無視。
@@ -45,7 +45,7 @@ class BackGround(base.CWPySprite):
         elif ext == ".jpdc":
             image = cw.effectbooster.JpdcImage(mask, path).get_image()
         elif ext == ".jpy1":
-            image = cw.effectbooster.JpyImage(path, mask).get_image()
+            image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
             anime = True
         else:
             image = cw.util.load_image(path, mask)
@@ -59,7 +59,7 @@ class BackGround(base.CWPySprite):
 
         return image, anime
 
-    def load(self, elements, bginhrt, ttype=("Default", "Default")):
+    def load(self, elements, bginhrt, ttype=("Default", "Default"), doanime=True):
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         bginhrt: Trueなら背景継承。
@@ -97,7 +97,7 @@ class BackGround(base.CWPySprite):
                 fname = os.path.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
                 path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
 
-            image, anime = self.load_surface(path, mask, size, flag)
+            image, anime = self.load_surface(path, mask, size, flag, doanime)
             animated |= anime
 
             if image:
@@ -129,7 +129,7 @@ class BackGround(base.CWPySprite):
 
         animated = False
         for path, mask, size, pos, flag, visible in self.bgs:
-            image, anime = self.load_surface(path, mask, size, flag)
+            image, anime = self.load_surface(path, mask, size, flag, doanime=False)
             animated |= anime
 
             if image:

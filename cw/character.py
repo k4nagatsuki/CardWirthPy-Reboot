@@ -1182,7 +1182,7 @@ class Character(object):
         """
         if value == 0:
             duration = 0
-        if duration == 0:
+        if duration <= 0:
             value = 0
         self.enhance_act = value
         self.enhance_act = cw.util.numwrap(self.enhance_act, -10, 10)
@@ -1199,7 +1199,7 @@ class Character(object):
         """
         if value == 0:
             duration = 0
-        if duration == 0:
+        if duration <= 0:
             value = 0
         self.enhance_avo = value
         self.enhance_avo = cw.util.numwrap(self.enhance_avo, -10, 10)
@@ -1216,7 +1216,7 @@ class Character(object):
         """
         if value == 0:
             duration = 0
-        if duration == 0:
+        if duration <= 0:
             value = 0
         self.enhance_res = value
         self.enhance_res = cw.util.numwrap(self.enhance_res, -10, 10)
@@ -1233,7 +1233,7 @@ class Character(object):
         """
         if value == 0:
             duration = 0
-        if duration == 0:
+        if duration <= 0:
             value = 0
         self.enhance_def = value
         self.enhance_def = cw.util.numwrap(self.enhance_def, -10, 10)
