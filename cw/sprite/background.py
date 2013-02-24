@@ -45,7 +45,7 @@ class BackGround(base.CWPySprite):
         elif ext == ".jpdc":
             image = cw.effectbooster.JpdcImage(mask, path).get_image()
         elif ext == ".jpy1":
-            image = cw.effectbooster.JpyImage(path).get_image()
+            image = cw.effectbooster.JpyImage(path, mask).get_image()
             anime = True
         else:
             image = cw.util.load_image(path, mask)

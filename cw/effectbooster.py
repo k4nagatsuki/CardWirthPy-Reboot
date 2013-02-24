@@ -450,7 +450,7 @@ class JpyBackGroundImage(_JpySubImage):
         self.visible = False
 
 class JpyImage(cw.image.Image):
-    def __init__(self, path, cache=None):
+    def __init__(self, path, mask=False, cache=None):
         if not cache:
             cache = JpyCache()
 
@@ -469,6 +469,8 @@ class JpyImage(cw.image.Image):
         back.retouch()
         back.drawtemp()
         self.image = back.get_image()
+        if mask:
+            self.image.set_colorkey(self.image.get_at((0, 0)))
 
 class JpyCache(object):
     """Jpy1ファイル読み込み時に使うキャッシュ。
