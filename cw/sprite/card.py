@@ -390,7 +390,9 @@ class PlayerCard(CWPyCard, character.Player):
                 self.image = self.get_animeimage()
 
         shift = int(150.0 / speed * self.frame)
-        y = self.get_animerect()[1] + 150 - shift
+        y = self._rect[1] + 150 - shift
+        if self.zoomimgs:
+            y += self.zoomimgs[-1][1][1] - self.zoomimgs[0][1][1]
         self.rect = pygame.Rect(self.rect)
         self.rect.topleft = (self.rect[0], y)
 
@@ -415,7 +417,7 @@ class PlayerCard(CWPyCard, character.Player):
         speed = cw.cwpy.setting.dealspeed * 3
 
         shift = int(150.0 / speed * self.frame)
-        y = self.get_animerect()[1] + shift
+        y = self._rect[1] + shift
         self.rect = pygame.Rect(self.rect)
         if self.zoomimgs:
             image, zrect = self.zoomimgs[0]
