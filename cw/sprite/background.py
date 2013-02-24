@@ -71,11 +71,11 @@ class BackGround(base.CWPySprite):
 
         # 背景継承するか否か
         if not bginhrt:
-            self.image = pygame.Surface(cw.SIZE_SCR).convert()
             self.bgs = []
 
         # 背景構築
         animated = False
+        blitlist = []
         for e in elements:
             left = e.getint("Location", "left")
             top = e.getint("Location", "top")
@@ -101,11 +101,18 @@ class BackGround(base.CWPySprite):
             animated |= anime
 
             if image:
-                self.image.blit(image, pos)
+                blitlist.append((image, pos))
                 self.bgs.append((path, mask, size, pos, flag, True))
             else:
                 self.bgs.append((path, mask, size, pos, flag, False))
                 oldbgs.append((path, mask, size, pos, flag, False))
+
+        # エフェクトブースターの実行後に背景を更新する
+        if not bginhrt:
+            self.image = pygame.Surface(cw.SIZE_SCR).convert()
+
+        for image, pos in blitlist:
+            self.image.blit(image, pos)
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -124,20 +131,26 @@ class BackGround(base.CWPySprite):
         transitspr = cw.sprite.transition.get_transition(ttype)
         oldbgs = list(self.bgs)
         # 背景再構築
-        self.image = pygame.Surface(cw.SIZE_SCR).convert()
         bgs = []
 
         animated = False
+        blitlist = []
         for path, mask, size, pos, flag, visible in self.bgs:
             image, anime = self.load_surface(path, mask, size, flag, doanime=False)
             animated |= anime
 
             if image:
-                self.image.blit(image, pos)
+                blitlist.append((image, pos))
                 bgs.append((path, mask, size, pos, flag, True))
             else:
                 bgs.append((path, mask, size, pos, flag, False))
                 oldbgs.append((path, mask, size, pos, flag, False))
+
+        # エフェクトブースターの実行後に背景を更新する
+        self.image = pygame.Surface(cw.SIZE_SCR).convert()
+
+        for image, pos in blitlist:
+            self.image.blit(image, pos)
 
         self.bgs = bgs
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
