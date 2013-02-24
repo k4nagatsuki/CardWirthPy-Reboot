@@ -396,35 +396,40 @@ class _JpySubImage(cw.image.Image):
 
         self.image = image
 
-    def get_filepath(self):
+    def get_filepath(self, dirtype=-1):
         """読み込むファイルのパスを取得する。"""
         if self.filename:
             filename = self.filename
         else:
             return ""
 
-        if self.dirtype == 1:
+        if dirtype == -1:
+            dirtype = self.dirtype
+
+        if dirtype == 1:
             dpath = os.path.dirname(self.configpath)
-        elif self.dirtype == 2:
+            # シナリオ内に存在しなかった場合はTable内
+            if not os.path.isfile(cw.util.join_paths(dpath, filename)):
+                return self.get_filepath(2)
+        elif dirtype == 2:
             dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
             filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
-        elif self.dirtype == 3:
+        elif dirtype == 3:
             dpath = "Data/EffectBooster"
-        elif self.dirtype == 4:
+        elif dirtype == 4:
             if cw.cwpy.classicdata:
                 dpath = cw.util.join_paths(cw.cwpy.sdata.scedir)
             else:
                 dpath = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material")
-            # シナリオ内に存在しなかった場合はTableを探す
+            # 指定位置に存在しなかった場合は相対位置
             if not os.path.isfile(cw.util.join_paths(dpath, filename)):
-                dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
-                filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
-        elif self.dirtype == 5:
+                return self.get_filepath(1)
+        elif dirtype == 5:
             dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
             filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
-        elif self.dirtype == 6:
+        elif dirtype == 6:
             dpath = os.path.dirname(os.path.dirname(self.configpath))
-        elif self.dirtype == 7:
+        elif dirtype == 7:
             dpath = ""
         else:
             dpath = os.path.dirname(self.configpath)
