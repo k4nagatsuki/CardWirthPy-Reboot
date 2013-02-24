@@ -985,12 +985,7 @@ class CWPy(_Singleton, threading.Thread):
         """特殊エリアに移動する前のエリアに戻る。
         areaidが-3(パーティ解散)の場合はエリアチェンジする。
         """
-        # ターゲット選択エリアを解除の場合
-        if self.selectedheader and self.pre_dialogs:
-            self.clear_curtain()
-            self.selectedheader = None
-            self.call_predlg()
-        elif self.areaid <= 0:
+        if self.areaid <= 0:
             self.clear_curtain()
             self.selectedheader = None
             oldareaid = self.areaid
@@ -1006,6 +1001,16 @@ class CWPy(_Singleton, threading.Thread):
                 self.index = -1
             else:
                 self.change_area(areaid)
+        elif self.is_battlestatus():
+            self.clear_curtain()
+            self.selectedheader = None
+        elif self.selectedheader and self.pre_dialogs:
+            # ターゲット選択エリアを解除の場合
+            self.clear_curtain()
+            self.selectedheader = None
+            self.call_predlg()
+        elif self.selectedheader:
+            self.selectedheader = None
 
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド
