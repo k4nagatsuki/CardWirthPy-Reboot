@@ -96,6 +96,9 @@ class EventHandler(object):
         """
         方向キーイベント。カードのフォーカスを変更する。
         """
+        if cw.cwpy.is_runningevent():
+            return
+
         cw.cwpy.has_inputevent = True
 
         if sidechange:

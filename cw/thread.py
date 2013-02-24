@@ -1004,6 +1004,7 @@ class CWPy(_Singleton, threading.Thread):
         elif self.is_battlestatus():
             self.clear_curtain()
             self.selectedheader = None
+            self.call_predlg()
         elif self.selectedheader and self.pre_dialogs:
             # ターゲット選択エリアを解除の場合
             self.clear_curtain()
