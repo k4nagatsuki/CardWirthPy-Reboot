@@ -986,12 +986,13 @@ class CWPy(_Singleton, threading.Thread):
         areaidが-3(パーティ解散)の場合はエリアチェンジする。
         """
         # ターゲット選択エリアを解除の場合
-        if self.selectedheader:
+        if self.selectedheader and self.pre_dialogs:
             self.clear_curtain()
             self.selectedheader = None
             self.call_predlg()
         elif self.areaid <= 0:
             self.clear_curtain()
+            self.selectedheader = None
             oldareaid = self.areaid
             areaid = self.pre_areaids.pop()
 
@@ -1503,9 +1504,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.party.set_money(price)
             else:
                 self.ydata.set_money(price)
-
-        # カード移動操作用データを削除
-        self.selectedheader = None
 
         # カード選択ダイアログを再び開く(イベントから呼ばれたのでなかったら)
         if not from_event:
