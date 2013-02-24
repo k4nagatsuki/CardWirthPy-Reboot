@@ -305,7 +305,7 @@ class CouponEditDialog(wx.Dialog):
             # システムクーポン以外を一旦除去
             for name in pcard.get_coupons():
                 if not (name.startswith(u"＠") or name in self.syscoupons):
-                    cdata.remove_coupon(name)
+                    pcard.remove_coupon(name)
             # クーポン追加
             list.reverse()
             for coupon in list:

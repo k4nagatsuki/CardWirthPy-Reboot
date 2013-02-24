@@ -185,7 +185,7 @@ class CharaInfo(wx.Dialog):
         win = self.notebook.GetCurrentPage()
         dc = wx.ClientDC(win)
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
 
         for header in win.headers:
             s = header.name
@@ -381,7 +381,7 @@ class DescPanel(wx.Panel):
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
         # 解説文
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
         dc.DrawLabel(self.text, (24, 10, 200, 120))
         dc.EndDrawing()
 
@@ -439,7 +439,7 @@ class HistoryPanel(wx.ScrolledWindow):
         # maxheght計算
         h = self.gold.GetSize()[1]
         maxheight = (h + 5) * len(coupons) + 8
-        self.SetVirtualSize((-1, maxheight))
+        maxwidth = 0
 
         # create buffer
         csize = self.csize
@@ -456,11 +456,12 @@ class HistoryPanel(wx.ScrolledWindow):
 
         # クーポン
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
 
         for index, coupon in enumerate(coupons):
             height = 8 + (h + 5) * index
             text, value = coupon
+            maxwidth = max(dc.GetTextExtent(text)[0], maxwidth)
             dc.DrawText(text, 32, height)
 
             if value > 1:
@@ -471,6 +472,8 @@ class HistoryPanel(wx.ScrolledWindow):
                 dc.DrawBitmap(self.bronze, 12, height - 1, True)
             else:
                 dc.DrawBitmap(self.black, 12, height - 1, True)
+        maxwidth += 32
+        self.SetVirtualSize((maxwidth, maxheight))
 
         if update:
             self.Scroll(0, 0)
@@ -537,14 +540,14 @@ class EditPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
 
     def OnMove(self, event):
         dc = wx.ClientDC(self)
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
         mousepos = event.GetPosition()
 
         for header in self.headers:
@@ -572,7 +575,7 @@ class EditPanel(wx.Panel):
 
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
         # 編集アイコン
         bmp = cw.cwpy.rsrc.dialogs["STATUS12"]
         # 編集項目名
@@ -637,7 +640,7 @@ class StatusPanel(wx.ScrolledWindow):
 
         # 状態
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
 
         height = 8
 
@@ -816,14 +819,14 @@ class SkillPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
 
     def OnMove(self, event):
         dc = wx.ClientDC(self)
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
         mousepos = event.GetPosition()
 
         for header in self.headers:
@@ -853,7 +856,7 @@ class SkillPanel(wx.Panel):
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
         # 所持スキル
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[0]
@@ -919,7 +922,7 @@ class ItemPanel(SkillPanel):
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
         # 所持アイテム
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[1]
@@ -982,7 +985,7 @@ class BeastPanel(SkillPanel):
         dc.DrawBitmap(self.watermark, (self.csize[0]-226)/2, (self.csize[1]-132)/2, True)
         # 所持召喚獣
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=9))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=9))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[2]
