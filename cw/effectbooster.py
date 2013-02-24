@@ -357,7 +357,7 @@ class _JpySubImage(cw.image.Image):
                 image = pygame.Surface((0, 0)).convert()
             # Jpy1ファイル
             elif ext == ".jpy1":
-                image = JpyImage(path, self.cache).get_image()
+                image = JpyImage(path, cache=self.cache).get_image()
             # Jpdcファイル
             elif ext == ".jpdc":
                 image = JpdcImage(self.transparent, path).get_image()
@@ -444,7 +444,7 @@ class JpyPartsImage(_JpySubImage):
 class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache):
         _JpySubImage.__init__(self, config, "init", cache)
-        self.backcolor = config.get_color("init", "backcolor", (255, 255, 255))
+        self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
         self.width = config.get_int("init", "backwidth", -1)
         self.height = config.get_int("init", "backheight", -1)
         self.transparent = config.get_bool("init", "transparent", False)
@@ -480,17 +480,24 @@ class JpyCache(object):
     最後に一時描画したポジションや、
     キャッシュした画像をセーブ・ロードする。
     """
+    def __init__(self):
+        self.pos = None
+        self.img = {}
+
     def save_position(self, pos):
         self.pos = pos
 
     def load_position(self):
-        return getattr(self, "pos", (0, 0))
+        if self.pos:
+            return self.pos
+        else:
+            return (0, 0)
 
     def save_image(self, n, image):
-        setattr(self, "img" + str(n), image)
+        self.img[n] = image
 
     def load_image(self, n):
-        image = getattr(self, "img" + str(n), None)
+        image = self.img.get(n, None)
 
         if image:
             image = image.copy()
