@@ -145,6 +145,7 @@ class _JpySubImage(cw.image.Image):
                         pos = (x, y)
                         image = self.get_image()
                         image = self.clip_tempimg(image, pos)
+                        cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
                         spr = cw.sprite.background.Jpy1TemporalSprite(image, pos,
                                                                     self.paintmode)
                         cw.cwpy.draw()
