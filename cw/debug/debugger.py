@@ -29,7 +29,9 @@ ID_INFO = wx.NewId()
 ID_SAVE = wx.NewId()
 ID_LOAD = wx.NewId()
 ID_RESET = wx.NewId()
-ID_STEP = wx.NewId()
+ID_STEPRETURN = wx.NewId()
+ID_STEPOVER = wx.NewId()
+ID_STEPIN = wx.NewId()
 ID_PAUSE = wx.NewId()
 ID_STOP = wx.NewId()
 
@@ -143,10 +145,18 @@ class Debugger(wx.Frame):
         self.mi_info.SetBitmap(rsrc["INFO"])
         scenario_menu.AppendItem(self.mi_info)
 
-        self.mi_step = wx.MenuItem(run_menu, ID_STEP, u"1コンテント実行(&I)\tF11",
-                         u"イベントを1コンテントだけ実行します。")
-        self.mi_step.SetBitmap(rsrc["EVTCTRL_STEP"])
-        run_menu.AppendItem(self.mi_step)
+        self.mi_stepreturn = wx.MenuItem(run_menu, ID_STEPRETURN, u"ステップリターン(&R)\tCtrl+Shift+F11",
+                         u"イベントのサブルーチンを抜けます。")
+        self.mi_stepreturn.SetBitmap(rsrc["EVTCTRL_STEPRETURN"])
+        run_menu.AppendItem(self.mi_stepreturn)
+        self.mi_stepover = wx.MenuItem(run_menu, ID_STEPOVER, u"ステップオーバー(&I)\tF11",
+                         u"イベントを1コンテントだけ実行します。サブルーチンには入りません。")
+        self.mi_stepover.SetBitmap(rsrc["EVTCTRL_STEPOVER"])
+        run_menu.AppendItem(self.mi_stepover)
+        self.mi_stepin = wx.MenuItem(run_menu, ID_STEPIN, u"ステップイン(&R)\tCtrl+F11",
+                         u"イベントを1コンテントだけ実行します。サブルーチンに入ります。")
+        self.mi_stepin.SetBitmap(rsrc["EVTCTRL_STEPIN"])
+        run_menu.AppendItem(self.mi_stepin)
         self.mi_pause = wx.MenuItem(run_menu, ID_PAUSE, u"イベント一時停止(&P)\tF10",
                          u"イベントを一時停止します。", kind=wx.ITEM_CHECK)
         bmp1 = rsrc["EVTCTRL_PLAY"]
@@ -236,9 +246,16 @@ class Debugger(wx.Frame):
         # create event control bar
         self.tb_event = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_event.SetToolBitmapSize(wx.Size(20, 20))
-        self.tl_step = self.tb_event.AddLabelTool(
-            ID_STEP, u"1コンテント実行", rsrc["EVTCTRL_STEP"],
-            shortHelp=u"イベントを1コンテントだけ実行します。")
+        self.tl_stepreturn = self.tb_event.AddLabelTool(
+            ID_STEPRETURN, u"ステップリターン", rsrc["EVTCTRL_STEPRETURN"],
+            shortHelp=u"イベントのサブルーチンを抜けます。")
+        self.tl_stepover = self.tb_event.AddLabelTool(
+            ID_STEPOVER, u"ステップオーバー", rsrc["EVTCTRL_STEPOVER"],
+            shortHelp=u"イベントを1コンテントだけ実行します。サブルーチンには入りません。")
+        self.tl_stepin = self.tb_event.AddLabelTool(
+            ID_STEPIN, u"ステップイン", rsrc["EVTCTRL_STEPIN"],
+            shortHelp=u"イベントを1コンテントだけ実行します。サブルーチンに入ります。")
+        self.tb_event.AddSeparator()
         self.tl_pause = self.tb_event.AddCheckLabelTool(
             ID_PAUSE, u"イベント一時停止", rsrc["EVTCTRL_PAUSE"],
             shortHelp=u"イベントを一時停止します。")
@@ -333,7 +350,9 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_MENU, self.OnAreaTool, id=ID_AREA)
         self.Bind(wx.EVT_MENU, self.OnSelectionTool, id=ID_SELECTION)
-        self.Bind(wx.EVT_MENU, self.OnStepTool, id=ID_STEP)
+        self.Bind(wx.EVT_MENU, self.OnStepReturnTool, id=ID_STEPRETURN)
+        self.Bind(wx.EVT_MENU, self.OnStepOverTool, id=ID_STEPOVER)
+        self.Bind(wx.EVT_MENU, self.OnStepInTool, id=ID_STEPIN)
         self.Bind(wx.EVT_MENU, self.OnPauseTool, id=ID_PAUSE)
         self.Bind(wx.EVT_MENU, self.OnStopTool, id=ID_STOP)
         self.Bind(wx.EVT_MENU, self.OnRecoveryTool, id=ID_RECOVERY)
@@ -650,22 +669,52 @@ class Debugger(wx.Frame):
 
             dlg.Destroy()
 
-    def OnStepTool(self, event):
+    def OnStepReturnTool(self, event):
+        if len(cw.cwpy.event._nowrunningevents[-1].nowrunningcontents) == 0:
+            evt = wx.PyCommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED, ID_PAUSE)
+            self.ProcessEvent(evt)
+            return
+        cw.cwpy.event._targetstack = len(cw.cwpy.event._nowrunningevents[-1].nowrunningcontents) - 1
+        cw.cwpy.event._step = True
+        cw.cwpy.event._paused = False
         mwin = cw.cwpy.get_messagewindow()
         if mwin:
             # メッセージウィンドウ表示中の場合で処理を分ける
             cw.cwpy.sounds["click"].play(True)
             mwin.result = 0
+
+    def OnStepOverTool(self, event):
+        cw.cwpy.event._targetstack = len(cw.cwpy.event._nowrunningevents[-1].nowrunningcontents)
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
+        mwin = cw.cwpy.get_messagewindow()
+        if mwin:
+            # メッセージウィンドウ表示中の場合で処理を分ける
+            cw.cwpy.sounds["click"].play(True)
+            mwin.result = 0
+
+    def OnStepInTool(self, event):
+        cw.cwpy.event._targetstack = -1
+        cw.cwpy.event._step = True
+        cw.cwpy.event._paused = False
+        mwin = cw.cwpy.get_messagewindow()
+        if mwin:
+            # メッセージウィンドウ表示中の場合で処理を分ける
+            cw.cwpy.sounds["click"].play(True)
+            mwin.result = 0
 
     def OnPauseTool(self, event):
         # メッセージウィンドウ表示中の場合は一時停止できない
         cw.cwpy.event._paused = not cw.cwpy.event._paused
         cw.cwpy.event._step = False
 
-        self.mi_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
-        self.tl_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
+        step = cw.cwpy.event._paused and cw.cwpy.is_runningevent()
+        self.mi_stepreturn.Enable(step)
+        self.tl_stepreturn.Enable(step)
+        self.mi_stepover.Enable(step)
+        self.tl_stepover.Enable(step)
+        self.mi_stepin.Enable(step)
+        self.tl_stepin.Enable(step)
 
         self.mi_pause.Check(cw.cwpy.event._paused)
         # SetToggleが効かないため
@@ -704,8 +753,12 @@ class Debugger(wx.Frame):
             if self.tl_pause.IsToggled():
                 self.tl_pause.Toggle()
 
-        self.mi_step.Enable(False)
-        self.tl_step.Enable(False)
+        self.mi_stepreturn.Enable(False)
+        self.tl_stepreturn.Enable(False)
+        self.mi_stepover.Enable(False)
+        self.tl_stepover.Enable(False)
+        self.mi_stepin.Enable(False)
+        self.tl_stepin.Enable(False)
         self.tb_event.Realize()
 
     def refresh_areaname(self):
@@ -773,8 +826,12 @@ class Debugger(wx.Frame):
         self.tl_load.Enable(False)
         self.mi_reset.Enable(False)
         self.tl_reset.Enable(False)
-        self.mi_step.Enable(False)
-        self.tl_step.Enable(False)
+        self.mi_stepreturn.Enable(False)
+        self.tl_stepreturn.Enable(False)
+        self.mi_stepover.Enable(False)
+        self.tl_stepover.Enable(False)
+        self.mi_stepin.Enable(False)
+        self.tl_stepin.Enable(False)
         self.mi_pause.Enable(False)
         self.tl_pause.Enable(False)
         self.mi_stop.Enable(False)
@@ -838,8 +895,13 @@ class Debugger(wx.Frame):
             self.mi_pause.Enable(True)
             self.tl_pause.Enable(True)
 
-        self.mi_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
-        self.tl_step.Enable(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
+        step = cw.cwpy.event._paused and cw.cwpy.is_runningevent()
+        self.mi_stepreturn.Enable(step)
+        self.tl_stepreturn.Enable(step)
+        self.mi_stepover.Enable(step)
+        self.tl_stepover.Enable(step)
+        self.mi_stepin.Enable(step)
+        self.tl_stepin.Enable(step)
 
         self.tb1.Realize()
         self.tb2.Realize()

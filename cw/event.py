@@ -22,6 +22,7 @@ class EventInterface(object):
         self._paused = False
         self._stoped = False
         self._step = False
+        self._targetstack = -1
 
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
@@ -66,6 +67,7 @@ class EventInterface(object):
         self.clear_events()
         self.nowrunningpacks = {}
         self._stoped = False
+        self._targetstack = -1
         self.refresh_tools()
 
     def set_inusecard(self, header):
@@ -257,6 +259,8 @@ class EventInterface(object):
 
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                                             self._paused and not self._stoped:
+                if 0 <= self._targetstack and self._targetstack < len(self._nowrunningevents[-1].nowrunningcontents):
+                    break
                 if not self._nowrunningevents[-1].force_nextcontent is None:
                     break
                 pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
