@@ -489,6 +489,7 @@ class CharaRequirementPanel(wx.Panel):
         self._set_random()
 
     def _update_images(self):
+        cw.util.t_start()
         fpaths = set()
         if 0 >= self.imgcombo.GetSelection():
             img = ""
@@ -500,10 +501,7 @@ class CharaRequirementPanel(wx.Panel):
         # 使用可能なイメージの一覧を取得
         facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
         for info in infos:
-            for fpath in cw.util.get_facepaths(info.sex, info.age):
-                fpath = os.path.relpath(fpath, facedir)
-                fpath = cw.util.join_paths(fpath)
-                fpaths.add(fpath)
+            fpaths.update(cw.util.get_facepaths(info.sex, info.age, rel=True))
         flist = list(fpaths)
         flist.sort()
         flist.insert(0, u"[変更しない]")

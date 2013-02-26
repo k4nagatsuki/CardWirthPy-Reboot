@@ -526,6 +526,7 @@ class EditPanel(wx.Panel):
                         self.ccard.data.write_xml()
                         self.Parent.Parent.toppanel.draw(True)
                     dlg.Destroy()
+                self.draw(True)
                 return
 
     def OnPaint(self, event):
@@ -802,6 +803,9 @@ class SkillPanel(wx.Panel):
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
+                for header in self.headers:
+                    header.negaflag = False
+                self.draw(True)
                 return True
         return False
 

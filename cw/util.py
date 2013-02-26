@@ -249,10 +249,11 @@ def get_imageext(b):
             return ".tiff"
     return ""
 
-def get_facepaths(sexcoupon, agecoupon):
+def get_facepaths(sexcoupon, agecoupon, rel=False):
     """sexとageに対応したFaceディレクトリ内の画像パスをlistで返す。
     sexcoupon: 性別クーポン。
     agecoupon: 年代クーポン。
+    rel: TrueならFaceディレクトリからの相対パスで返す。
     """
     sex = ""
     for f in cw.cwpy.setting.sexes:
@@ -270,32 +271,36 @@ def get_facepaths(sexcoupon, agecoupon):
     # 性別・年代限定
     if sex and age:
         dpath = sex + "-" + age
-        dpaths.append(cw.util.join_paths(facedir, dpath))
+        dpaths.append(dpath)
     # 性別限定
     if sex:
         dpath = sex
-        dpaths.append(cw.util.join_paths(facedir, dpath))
+        dpaths.append(dpath)
     # 年代限定
     if age:
         dpath = "Common-" + age
-        dpaths.append(cw.util.join_paths(facedir, dpath))
+        dpaths.append(dpath)
     # 汎用
     dpath = "Common"
-    dpaths.append(cw.util.join_paths(facedir, dpath))
+    dpaths.append(dpath)
 
     imgpaths = []
 
     for dpath in dpaths:
-        if not os.path.isdir(dpath):
+        dpath2 = cw.util.join_paths(facedir, dpath)
+        if not os.path.isdir(dpath2):
             continue
-        for name in os.listdir(dpath):
-            path = cw.util.join_paths(dpath, name)
+        for name in os.listdir(dpath2):
+            path = cw.util.join_paths(dpath2, name)
 
             lpath = path.lower()
             if os.path.isfile(path):
                 for ext in cw.EXTS_IMG:
                     if lpath.endswith(ext):
-                        imgpaths.append(path)
+                        if rel:
+                            imgpaths.append(cw.util.join_paths(dpath, name))
+                        else:
+                            imgpaths.append(path)
                         break
 
     return imgpaths
