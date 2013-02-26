@@ -334,7 +334,7 @@ class Character(object):
         """
         付帯召喚じゃない召喚獣カードの所持数を返す。
         """
-        return len([h for h in self.cardpocket[2] if not h.attachment])
+        return len([h for h in self.get_pocketcards(cw.POCKET_BEAST) if not h.attachment])
 
     #---------------------------------------------------------------------------
     #　カード操作
@@ -530,7 +530,7 @@ class Character(object):
         # 召喚獣カード
         beasts = []
 
-        for header in self.cardpocket[2]:
+        for header in self.get_pocketcards(cw.POCKET_BEAST):
             if header.is_autoselectable():
                 targets, effectivetargets, highprioritys = header.get_targets()
 
@@ -606,6 +606,13 @@ class Character(object):
     #　状態取得用
     #---------------------------------------------------------------------------
 
+    def get_pocketcards(self, index):
+        """
+        所持しているカードを返す。
+        index: カードの種類。
+        """
+        return self.cardpocket[index]
+
     def get_cardpocketspace(self):
         """
         最大所持カード枚数を
@@ -670,7 +677,7 @@ class Character(object):
         val3 = 0
         b = False
 
-        for header in self.cardpocket[cw.POCKET_ITEM] + self.cardpocket[cw.POCKET_BEAST]:
+        for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
             avoid, resist, defense = header.get_enhance_val()
 
             if defense >= 10:
@@ -717,7 +724,7 @@ class Character(object):
         val2 = cw.util.numwrap(val2, -10, 10)
 
         val3 = 0
-        for header in self.cardpocket[cw.POCKET_ITEM] + self.cardpocket[cw.POCKET_BEAST]:
+        for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
             avoid, resist, defense = header.get_enhance_val()
             val3 += resist
         val3 = cw.util.numwrap(val3, -10, 10)
@@ -744,7 +751,7 @@ class Character(object):
         val2 = cw.util.numwrap(val2, -10, 10)
 
         val3 = 0
-        for header in self.cardpocket[cw.POCKET_ITEM] + self.cardpocket[cw.POCKET_BEAST]:
+        for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
             avoid, resist, defense = header.get_enhance_val()
             val3 += avoid
         val3 = cw.util.numwrap(val3, -10, 10)
@@ -1249,7 +1256,7 @@ class Character(object):
         recoveryがTrueだったら、最大値まで回復。
         Falseだったら、0にする。
         """
-        for header in self.cardpocket[0]:
+        for header in self.get_pocketcards(cw.POCKET_SKILL):
             if recovery:
                 header.set_uselimit(999)
             else:
@@ -1266,7 +1273,7 @@ class Character(object):
 
         eff = False
         if vanish:
-            for header in self.cardpocket[idx][::-1]:
+            for header in self.get_pocketcards(idx)[::-1]:
                 if not header.attachment:
                     self.throwaway_card(header)
                     eff = True
@@ -1279,7 +1286,7 @@ class Character(object):
 
     def can_addbeast(self):
         idx = cw.POCKET_BEAST
-        return len(self.cardpocket[idx]) < self.get_cardpocketspace()[idx]
+        return len(self.get_pocketcards(idx)) < self.get_cardpocketspace()[idx]
 
     def set_timeelapse(self, time=1):
         """時間経過。"""

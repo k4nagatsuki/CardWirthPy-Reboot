@@ -28,7 +28,7 @@ class Deck(object):
     def get_skillcards(self, ccard):
         seq = []
 
-        for header in ccard.cardpocket[cw.POCKET_SKILL]:
+        for header in ccard.get_pocketcards(cw.POCKET_SKILL):
             uselimit, maxn = header.get_uselimit()
 
             for cnt in xrange(uselimit):
@@ -93,7 +93,7 @@ class Deck(object):
         header.set_owner(ccard)
         self.hand.append(header)
         # アイテムカードを手札に加える
-        self.hand.extend(ccard.cardpocket[cw.POCKET_ITEM])
+        self.hand.extend(ccard.get_pocketcards(cw.POCKET_ITEM))
         # アクションカード、技能カードを手札に加える
         maxn = self.get_handmaxnum(ccard)
         index = maxn - len(self.hand)
@@ -155,7 +155,7 @@ class Deck(object):
             header.set_owner(ccard)
             self.hand.append(header)
             # アイテムカードを手札に加える
-            self.hand.extend(ccard.cardpocket[cw.POCKET_ITEM])
+            self.hand.extend(ccard.get_pocketcards(cw.POCKET_ITEM))
             self._throwaway = False
 
         while len(self.hand) < maxn:

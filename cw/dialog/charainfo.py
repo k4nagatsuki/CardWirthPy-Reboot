@@ -859,7 +859,7 @@ class SkillPanel(wx.Panel):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
 
         if not self.headers:
-            self.headers = self.ccard.cardpocket[0]
+            self.headers = self.ccard.cardpocket[cw.POCKET_SKILL]
 
         for index, header in enumerate(self.headers):
             if index < 5:
@@ -925,7 +925,7 @@ class ItemPanel(SkillPanel):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
 
         if not self.headers:
-            self.headers = self.ccard.cardpocket[1]
+            self.headers = self.ccard.cardpocket[cw.POCKET_ITEM]
 
         for index, header in enumerate(self.headers):
             if index < 5:
@@ -988,7 +988,7 @@ class BeastPanel(SkillPanel):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
 
         if not self.headers:
-            self.headers = self.ccard.cardpocket[2]
+            self.headers = self.ccard.cardpocket[cw.POCKET_BEAST]
 
         # 召喚獣アイコン
         for index, header in enumerate(self.headers):

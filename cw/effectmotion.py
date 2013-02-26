@@ -168,7 +168,7 @@ class Effect(object):
                     guardcard = header
 
         # 所有ボーナス(アイテムは消耗しない)
-        cards = target.cardpocket[cw.POCKET_BEAST]
+        cards = target.get_pocketcards(cw.POCKET_BEAST)
         if not allsuccess:
             for header in cards:
                 avoid, resist, defense = header.get_enhance_val()

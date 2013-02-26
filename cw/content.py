@@ -96,7 +96,7 @@ class BranchContent(EventContentBase):
             if isinstance(target, list):
                 targetheaders = target
             else:
-                targetheaders = target.cardpocket[pocketidx]
+                targetheaders = target.get_pocketcards(pocketidx)
 
             headers = []
 
@@ -1535,7 +1535,7 @@ class LoseContent(EventContentBase):
         for target in cw.cwpy.event.get_targetscope(scope):
             ccard = target
             if isinstance(target, cw.character.Character):
-                target = target.cardpocket[index]
+                target = target.get_pocketcards(index)
 
             self.lose_card(name, desc, target, num)
 
