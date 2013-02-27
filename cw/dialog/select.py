@@ -1383,6 +1383,7 @@ class ScenarioSelect(Select):
         self.tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnTreeItemCollapsed)
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
         self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+        self.tree.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.draw(True)
 
     def OnLeftDClick(self, event):
@@ -1403,6 +1404,21 @@ class ScenarioSelect(Select):
             else:
                 cw.cwpy.sounds["equipment"].play()
                 self.tree.Expand(selitem)
+
+    def OnKeyUp(self, event):
+        if event.GetKeyCode() <> wx.WXK_RETURN:
+            return
+
+        selitem = self.tree.GetSelection()
+        if not selitem:
+            return
+        data = self.tree.GetItemPyData(selitem)
+        if not data:
+            return
+        index, pathorheader = data
+        if isinstance(pathorheader, cw.header.ScenarioHeader):
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
+            self.ProcessEvent(btnevent)
 
     def get_selected(self):
         """
