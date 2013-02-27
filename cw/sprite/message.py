@@ -419,6 +419,7 @@ class SelectWindow(MessageWindow):
         self.name_table = {}
         self.flag_table = {}
         self.step_table = {}
+        self.talker_image = None
 
         # クラシックスタイルか
         self.classicstyletext = cw.cwpy.setting.classicstyletext

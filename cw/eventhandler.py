@@ -139,6 +139,9 @@ class EventHandler(object):
         """
         左クリックイベント。
         """
+        if cw.cwpy.is_runningevent():
+            return
+
         if cw.cwpy.selection:
             if cw.cwpy.lock_menucards:
                 return
@@ -153,6 +156,9 @@ class EventHandler(object):
         """
         右クリックイベント。
         """
+        if cw.cwpy.is_runningevent():
+            return
+
         if cw.cwpy.selection:
             if cw.cwpy.lock_menucards:
                 return
@@ -281,6 +287,9 @@ class EventHandler(object):
         """
         リターンキーイベント。
         """
+        if cw.cwpy.is_runningevent():
+            return
+
         if cw.cwpy.selection:
             if cw.cwpy.lock_menucards:
                 return

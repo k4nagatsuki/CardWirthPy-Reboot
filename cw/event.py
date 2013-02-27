@@ -238,6 +238,11 @@ class EventInterface(object):
             # ここでは待ち合わせない
             return
 
+        # 一部のイベント実行
+        cw.cwpy.sbargrp.update(cw.cwpy.scr)
+        cw.cwpy.input()
+        cw.cwpy.eventhandler.run()
+
         if cw.cwpy.is_showingdebugger() and\
                  cw.cwpy.is_playingscenario() and 0 < cw.cwpy.areaid:
             cnt = 0
@@ -251,7 +256,6 @@ class EventInterface(object):
                         pygame.time.get_ticks() < tick:
                 if not self._nowrunningevents[-1].force_nextcontent is None:
                     break
-                pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1)
@@ -263,7 +267,6 @@ class EventInterface(object):
                     break
                 if not self._nowrunningevents[-1].force_nextcontent is None:
                     break
-                pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1)
