@@ -13,7 +13,7 @@ import base
 
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
-                 pos=(80, 50), size=(470, 180), talkerimage=None,
+                 pos=(81, 50), size=(470, 180), talkerimage=None,
                  nametable={}, flagtable={}, steptable={},
                  backlog=False, result=None):
         base.CWPySprite.__init__(self)
@@ -66,7 +66,8 @@ class MessageWindow(base.CWPySprite):
             self.talker_image = None
 
         if self.talker_image:
-            self.image.blit(self.talker_image, (18, 38))
+            y = (self.rect.height - self.talker_image.get_height()) / 2
+            self.image.blit(self.talker_image, (15, y))
 
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs()
@@ -155,11 +156,11 @@ class MessageWindow(base.CWPySprite):
                 self.selections.append(sbar)
                 sbar.update()
 
-    def create_charimgs(self, pos=(15, 13)):
-        if self.path:
+    def create_charimgs(self, pos=(15, 11)):
+        if self.talker_image:
             self.text = self.rpl_specialstr(self.text)
             self.text = cw.util.txtwrap(self.text, 2)
-            posp = pos = pos[0] + 100, pos[1]
+            posp = pos = pos[0] + 26 + self.talker_image.get_width(), pos[1]
         else:
             self.text = self.rpl_specialstr(self.text)
             self.text = cw.util.txtwrap(self.text, 3)
@@ -412,7 +413,7 @@ class MessageWindow(base.CWPySprite):
             return (255, 255, 255)
 
 class SelectWindow(MessageWindow):
-    def __init__(self, names, text="", pos=(80, 50), size=(470, 38), backlog=False, result=None):
+    def __init__(self, names, text="", pos=(81, 50), size=(470, 38), backlog=False, result=None):
         base.CWPySprite.__init__(self)
         self.backlog = backlog
         self.name_table = {}

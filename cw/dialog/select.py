@@ -1648,7 +1648,8 @@ class ScenarioSelect(Select):
             if header.image:
                 bmp = header.get_wxbmp()
                 w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, 65, True)
+                # 左上位置固定(互換性維持)
+                dc.DrawBitmap(bmp, 163, 65, True)
 
             # シナリオ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
