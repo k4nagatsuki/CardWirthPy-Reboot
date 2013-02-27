@@ -530,6 +530,7 @@ class AdventurerCreaterPage(wx.Panel):
     def _bind(self):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
@@ -547,12 +548,22 @@ class AdventurerCreaterPage(wx.Panel):
         mousepos = event.GetPosition()
 
         for key, value in self.clickables.iteritems():
-            rect, method = value
+            rect, method, wheelmethod = value
 
-            if rect.collidepoint(mousepos):
+            if method and rect.collidepoint(mousepos):
                 method(key)
 
-    def draw_clickabletext(self, dc, s, pos, name, method, setname=None):
+    def OnMouseWheel(self, event):
+        dc = wx.ClientDC(self)
+        mousepos = event.GetPosition()
+
+        for key, value in self.clickables.iteritems():
+            rect, method, wheelmethod = value
+
+            if wheelmethod and rect.collidepoint(mousepos):
+                wheelmethod(key, event.GetWheelRotation())
+
+    def draw_clickabletext(self, dc, s, pos, name, method, wheelmethod, setname=None):
         size = dc.GetTextExtent(s)
         dc.DrawText(s, pos[0], pos[1])
 
@@ -565,9 +576,9 @@ class AdventurerCreaterPage(wx.Panel):
             # クリックしにくいのでサイズ拡大
             size = size[0] + 4, size[1] + 4
             pos = pos[0] - 2, pos[1] - 2
-            self.clickables[name] = pygame.Rect(pos, size), method
+            self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
-    def draw_clickablebmp(self, dc, bmp, pos, name, method, mask=True):
+    def draw_clickablebmp(self, dc, bmp, pos, name, method, wheelmethod, mask=True):
         size = bmp.GetSize()
         dc.DrawBitmap(bmp, pos[0], pos[1], True)
 
@@ -575,7 +586,7 @@ class AdventurerCreaterPage(wx.Panel):
             # クリックしにくいのでサイズ拡大
             size = size[0] + 20, size[1] + 20
             pos = pos[0] - 10, pos[1] - 10
-            self.clickables[name] = pygame.Rect(pos, size), method
+            self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def set_next(self, page):
         self.next = page
@@ -699,7 +710,7 @@ class NamePage(AdventurerCreaterPage):
         for sex in cw.cwpy.setting.sexes:
             s = sex.subname
             pos = (x, y)
-            self.draw_clickabletext(dc, s, pos, u"＿" + sex.name, self.set_sex, self.sex)
+            self.draw_clickabletext(dc, s, pos, u"＿" + sex.name, self.set_sex, None, self.sex)
             if xx[1] == x:
                 x = xx[0]
                 y += 20
@@ -712,7 +723,7 @@ class NamePage(AdventurerCreaterPage):
         for period in cw.cwpy.setting.periods:
             s = period.subname
             pos = (x, y)
-            self.draw_clickabletext(dc, s, pos, u"＿" + period.name, self.set_age, self.age)
+            self.draw_clickabletext(dc, s, pos, u"＿" + period.name, self.set_age, None, self.age)
             if xx[1] == x:
                 x = xx[0]
                 y += 20
@@ -722,14 +733,14 @@ class NamePage(AdventurerCreaterPage):
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         pos = (250, 170)
-        self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg)
+        self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         pos = (365, 170)
-        self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg)
+        self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
         bmp = cw.util.load_wxbmp(self.imgpath, True)
-        dc.DrawBitmap(bmp, 275, 130, True)
+        self.draw_clickablebmp(dc, bmp, (275, 130), "Face", None, self.on_mousewheel, True)
 
     def set_sex(self, name):
         if not self.sex == name:
@@ -744,6 +755,12 @@ class NamePage(AdventurerCreaterPage):
             self.age = name
             self.set_imgpaths(True)
             self.draw(True)
+
+    def on_mousewheel(self, name, rotate):
+        if rotate < 0:
+            self.set_previmg(name)
+        elif 0 < rotate:
+            self.set_nextimg(name)
 
     def set_nextimg(self, name):
         if self.imgpaths:
@@ -880,19 +897,19 @@ class RelationPage(AdventurerCreaterPage):
         # PrevFather
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         pos = (70, 150)
-        self.draw_clickablebmp(dc, bmp, pos, "PrevFather", self.set_prevfather)
+        self.draw_clickablebmp(dc, bmp, pos, "PrevFather", self.set_prevfather, None)
         # NextFather
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         pos = (190, 150)
-        self.draw_clickablebmp(dc, bmp, pos, "NextFather", self.set_nextfather)
+        self.draw_clickablebmp(dc, bmp, pos, "NextFather", self.set_nextfather, None)
         # PrevMother
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         pos = (250, 150)
-        self.draw_clickablebmp(dc, bmp, pos, "PrevMother", self.set_prevmother)
+        self.draw_clickablebmp(dc, bmp, pos, "PrevMother", self.set_prevmother, None)
         # NextMother
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         pos = (370, 150)
-        self.draw_clickablebmp(dc, bmp, pos, "NextMother", self.set_nextmother)
+        self.draw_clickablebmp(dc, bmp, pos, "NextMother", self.set_nextmother, None)
 
         # 父親画像
         if self.father:
@@ -1074,7 +1091,7 @@ class TalentPage(AdventurerCreaterPage):
                 dc.SetFont(font2)
                 s = nature.name
                 pos = (x, y)
-                self.draw_clickabletext(dc, s, pos, u"＿" + nature.name, self.set_talent, self.talent)
+                self.draw_clickabletext(dc, s, pos, u"＿" + nature.name, self.set_talent, None, self.talent)
 
                 if x == xx[1]:
                     x = xx[0]
@@ -1127,14 +1144,14 @@ class AttrPage(AdventurerCreaterPage):
             else:
                 coupons = (m1.name)
             name = (u"＿" + s, coupons)
-            self.draw_clickabletext(dc, s, pos, name, self.set_coupon)
+            self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
             if index + 1 < len(cw.cwpy.setting.makings):
                 pos = pos[0] + 86, pos[1]
                 s = m2.name
                 name = (u"＿" + s, coupons)
-                self.draw_clickabletext(dc, s, pos, name, self.set_coupon)
+                self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
 
-    def draw_clickabletext(self, dc, s, pos, name, method, setname=None):
+    def draw_clickabletext(self, dc, s, pos, name, method, wheelmethod, setname=None):
         size = dc.GetTextExtent(s)
         dc.DrawText(s, pos[0], pos[1])
 
@@ -1150,7 +1167,7 @@ class AttrPage(AdventurerCreaterPage):
             # クリックしにくいのでサイズ拡大
             size = size[0] + 2, size[1] + 2
             pos = pos[0] - 1, pos[1] - 1
-            self.clickables[name] = pygame.Rect(pos, size), method
+            self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def set_coupon(self, name):
         name, coupons = name
@@ -1445,14 +1462,20 @@ class DesignPanel(AdventurerCreaterPage):
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         pos = (135, 150)
-        self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg)
+        self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         pos = (260, 150)
-        self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg)
+        self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
         bmp = cw.util.load_wxbmp(self.imgpath, True)
-        dc.DrawBitmap(bmp, (cwidth - 74) / 2, 116, True)
+        self.draw_clickablebmp(dc, bmp, ((cwidth - 74) / 2, 116), "Face", None, self.on_mousewheel, True)
+
+    def on_mousewheel(self, name, rotate):
+        if rotate < 0:
+            self.set_previmg(name)
+        elif 0 < rotate:
+            self.set_nextimg(name)
 
     def set_nextimg(self, name):
         if self.imgpaths:
