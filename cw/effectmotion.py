@@ -466,17 +466,17 @@ class EffectMotion(object):
         """
         rndval = cw.cwpy.dice.roll(1, 3) - 2
         if self.vocation_level == 0:
-            return self.duration * 50 / 100 + rndval
+            return cw.util.numwrap(self.duration * 50 / 100 + rndval, 0, 999)
         elif self.vocation_level == 1:
-            return self.duration * 80 / 100 + rndval
+            return cw.util.numwrap(self.duration * 80 / 100 + rndval, 0, 999)
         elif self.vocation_level == 2:
-            return self.duration + rndval
+            return cw.util.numwrap(self.duration + rndval, 0, 999)
         elif self.vocation_level == 3:
-            return self.duration * 120 / 100 + rndval
+            return cw.util.numwrap(self.duration * 120 / 100 + rndval, 0, 999)
         elif self.vocation_level == 4:
-            return self.duration * 150 / 100 + rndval
+            return cw.util.numwrap(self.duration * 150 / 100 + rndval, 0, 999)
         else:
-            return self.duration + rndval
+            return cw.util.numwrap(self.duration + rndval, 0, 999)
 
     def calc_defensedvalue(self, value, target):
         """
@@ -664,7 +664,7 @@ class EffectMotion(object):
                 eff = target.mentality <> "Normal"
                 target.set_mentality("Normal", duration)
             else:
-                eff = target.mentality <> self.type.title() and duration <> target.mentality_dur
+                eff = target.mentality <> self.type.title() or duration <> target.mentality_dur
                 target.set_mentality(self.type.title(), duration)
         return eff
 
@@ -764,7 +764,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue()
         else:
             duration = 0
-        eff = target.enhance_act <> self.value and target.enhance_act_dur <> duration
+        eff = target.enhance_act <> self.value or target.enhance_act_dur <> duration
         target.set_enhance_act(self.value, duration)
         return eff
 
@@ -776,7 +776,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue()
         else:
             duration = 0
-        eff = target.enhance_avo <> self.value and target.enhance_avo_dur <> duration
+        eff = target.enhance_avo <> self.value or target.enhance_avo_dur <> duration
         target.set_enhance_avo(self.value, duration)
         return eff
 
@@ -788,7 +788,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue()
         else:
             duration = 0
-        eff = target.enhance_res <> self.value and target.enhance_res_dur <> duration
+        eff = target.enhance_res <> self.value or target.enhance_res_dur <> duration
         target.set_enhance_res(self.value, duration)
         return eff
 
@@ -800,7 +800,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue()
         else:
             duration = 0
-        eff = target.enhance_def <> self.value and target.enhance_def_dur <> duration
+        eff = target.enhance_def <> self.value or target.enhance_def_dur <> duration
         target.set_enhance_def(self.value, duration)
         return eff
 

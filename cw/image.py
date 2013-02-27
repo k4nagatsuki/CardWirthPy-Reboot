@@ -233,7 +233,8 @@ class CharacterCardImage(CardImage):
         # 画像合成
         bgname = self.get_cardbgname(ccard)
         self.image = cw.cwpy.rsrc.cardbgs[bgname].copy()
-        self.image.blit(self.levelimg, (90 - self.levelimg.get_width(), 2))
+        if ccard.is_analyzable():
+            self.image.blit(self.levelimg, (90 - self.levelimg.get_width(), 2))
         self.image.blit(self.cardimg, (11, 17))
         self.image.blit(self.nameimg, (7, 4))
 
@@ -296,7 +297,11 @@ class CharacterCardImage(CardImage):
         elif ccard.enhance_def < 0: # 防御力弱化
             self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def)
 
-        x, y = 7, 92
+        x = 7
+        if ccard.is_analyzable():
+            y = 92
+        else:
+            y = 107
 
         index = 0
         for subimg in seq:
