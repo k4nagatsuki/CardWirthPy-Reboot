@@ -954,8 +954,21 @@ def get_effectivetargets(header, targets):
             else:
                 sets.update(targets)
             if s in highpriority_dict:
+                # 優先度の高い行動
                 method, flag = highpriority_dict[s]
-                setshp.update([t for t in targets if getattr(t, method)() == flag])
+                ts = set()
+                for t in targets:
+                    if getattr(t, method)() == flag:
+                        ts.add(t)
+                if cw.cwpy.battle:
+                    # すでにその行動のターゲットになっている場合は行わない
+                    for s2, tarr, user in cw.cwpy.battle.priorityacts:
+                        if s == s2:
+                            for t in tarr:
+                                if t in ts:
+                                    ts.remove(t)
+                                    break
+                setshp.update(ts)
 
     return narrow(sets), narrow(setshp)
 

@@ -29,6 +29,8 @@ class BattleEngine(object):
         for fcard in cw.cwpy.get_fcards():
             fcard.deck.set(fcard)
 
+        self.priorityacts = []
+
         # ラウンド数
         self.round = 0
         # 戦闘参加メンバ
@@ -126,6 +128,7 @@ class BattleEngine(object):
         self.round += 1
         self.round = cw.util.numwrap(self.round, 1, 999999)
         # 戦闘参加メンバセット・行動順にソート・手札自動選択
+        self.priorityacts = []
         self.set_members()
         self.set_actionorder()
         self.set_action()

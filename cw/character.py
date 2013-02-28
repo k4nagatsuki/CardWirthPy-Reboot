@@ -424,14 +424,28 @@ class Character(object):
         auto: 自動手札選択から設定されたかどうか。
         """
         if auto:
+            self.clear_action()
             self.actiondata = (target, header, beasts)
         else:
             if self.actiondata:
                 beasts = self.actiondata[2]
 
+            self.clear_action()
             self.actiondata = (target, header, beasts)
             cw.cwpy.sounds["page"].play()
             cw.cwpy.pre_dialogs.pop()
+
+        if cw.cwpy.battle and target:
+            seq = []
+            if header:
+                seq.append(header)
+            seq.extend(beasts)
+
+            for h in seq:
+                for e in h.carddata.getfind("Motions"):
+                    t = e.get("type", "")
+                    if t:
+                        cw.cwpy.battle.priorityacts.append((t, target, self))
 
     def adjust_action(self):
         """
@@ -444,13 +458,17 @@ class Character(object):
                 self.clear_action()
             elif self.is_inactive():
                 target, header, beasts = self.actiondata
-                self.actiondata = (None, None, beasts)
+                self.set_action(None, None, beasts, True)
 
         if self.is_inactive():
             self.deck.throwaway()
 
     def clear_action(self):
         self.actiondata = None
+        if cw.cwpy.battle:
+            for key, target, user in cw.cwpy.battle.priorityacts[:]:
+                if user == self:
+                    cw.cwpy.battle.priorityacts.remove((key, target, user))
 
     #---------------------------------------------------------------------------
     #　判定用
@@ -523,8 +541,8 @@ class Character(object):
         """
         自動手札選択。
         """
+        self.clear_action()
         if self.is_dead() or not cw.cwpy.status == "ScenarioBattle":
-            self.clear_action()
             return
 
         # 召喚獣カード
