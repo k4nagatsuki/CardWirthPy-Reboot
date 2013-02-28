@@ -92,6 +92,11 @@ class Character(object):
         # 対象消去されたか否か
         self._vanished = False
 
+        # 状態の正規化
+        self.cardimg = None
+        if self.is_unconscious():
+            self.set_unconsciousstatus()
+
     def get_imagepath(self):
         return self.data.gettext("Property/ImagePath", "")
 

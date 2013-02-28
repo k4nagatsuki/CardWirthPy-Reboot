@@ -260,6 +260,8 @@ class CWPyCard(base.SelectableSprite):
         """
         画像を再構成する。
         """
+        if not self.cardimg:
+            return
         # 画像参照
         self.cardimg.update(self)
         image = self.cardimg.get_image()
