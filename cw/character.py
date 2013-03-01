@@ -443,10 +443,10 @@ class Character(object):
         if cw.cwpy.battle and target:
             seq = []
             if header:
-                seq.append(header)
+                seq.append((target, header))
             seq.extend(beasts)
 
-            for h in seq:
+            for target, h in seq:
                 for e in h.carddata.getfind("Motions"):
                     t = e.get("type", "")
                     if t:

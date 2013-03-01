@@ -1375,6 +1375,19 @@ class CWPy(_Singleton, threading.Thread):
             # 戦闘中だった場合はデッキからも削除
             owner.deck.remove(owner, header)
 
+            # 行動予定に入っていればキャンセル
+            action = owner.actiondata
+            if action:
+                targets, aheader, beasts = action
+                if aheader and aheader.ref_original == header.ref_original:
+                    aheader = None
+                    targets = None
+                beasts2 = []
+                for targets, beast in beasts:
+                    if beast.ref_original <> header.ref_original:
+                        beasts2.append((targets, beast))
+                owner.set_action(targets, aheader, beasts2, True)
+
             # スキルの場合は使用回数を0にする
             if header.type == "SkillCard" and owner <> target:
                 header.maxuselimit = 0
