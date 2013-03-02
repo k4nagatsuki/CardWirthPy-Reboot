@@ -1226,6 +1226,8 @@ class YadoData(object):
 
 class Party(object):
     def __init__(self, path, partyinfoonly=True):
+        self.cardpath = os.path.splitext(path)[0]
+
         # True時は、エリア移動中にPlayerCardスプライトを新規作成する
         self._loading = True
         # パーティデータ(CWPyElementTree)
@@ -1249,6 +1251,10 @@ class Party(object):
                 header = cw.header.CardHeader(carddata=e, owner="BACKPACK")
                 header.order = order
                 self.backpack.append(header)
+            if os.path.isdir(self.cardpath):
+                carddb = cw.yadodb.YadoDB(self.cardpath, adventurers=False, fname="Card.db")
+                self.backpack.extend(carddb.get_cards())
+                carddb.close()
             self.sort_backpack()
 
     def sort_backpack(self):

@@ -17,9 +17,10 @@ class YadoDB(object):
 
     """カードのデータベース。ロックのタイムアウトは30秒指定。"""
     @synclock(_lock)
-    def __init__(self, ypath):
+    def __init__(self, ypath, adventurers=True, fname="Yado.db"):
         self.ypath = ypath
-        self.name = os.path.join(ypath, "Yado.db")
+        self.name = os.path.join(ypath, fname)
+        self.adventurers = adventurers
 
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
@@ -38,18 +39,19 @@ class YadoDB(object):
                     )
                 """
                 self.cur.execute(s)
-            # adventurerorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
-            cur = self.con.execute("PRAGMA table_info('adventurerorder')")
-            res = cur.fetchall()
-            if not res:
-                s = """
-                    CREATE TABLE adventurerorder (
-                        fpath TEXT,
-                        numorder INTEGER,
-                        PRIMARY KEY (fpath)
-                    )
-                """
-                self.cur.execute(s)
+            if self.adventurers:
+                # adventurerorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
+                cur = self.con.execute("PRAGMA table_info('adventurerorder')")
+                res = cur.fetchall()
+                if not res:
+                    s = """
+                        CREATE TABLE adventurerorder (
+                            fpath TEXT,
+                            numorder INTEGER,
+                            PRIMARY KEY (fpath)
+                        )
+                    """
+                    self.cur.execute(s)
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.con.row_factory = sqlite3.Row
@@ -102,52 +104,53 @@ class YadoDB(object):
             """
             self.cur.execute(s)
 
-            # 宿帳とアルバムの冒険者
-            s = """
-                CREATE TABLE adventurer (
-                    fpath TEXT,
-                    level INTEGER,
-                    name TEXT,
-                    imgpath TEXT,
-                    album INTEGER,
-                    lost INTEGER,
-                    sex TEXT,
-                    age TEXT,
-                    ep INTEGER,
-                    leavenoalbum INTEGER,
-                    gene TEXT,
-                    history TEXT,
-                    race TEXT,
-                    ctime INTEGER,
-                    mtime INTEGER,
-                    PRIMARY KEY (fpath)
-                )
-            """
-            self.cur.execute(s)
+            if self.adventurers:
+                # 宿帳とアルバムの冒険者
+                s = """
+                    CREATE TABLE adventurer (
+                        fpath TEXT,
+                        level INTEGER,
+                        name TEXT,
+                        imgpath TEXT,
+                        album INTEGER,
+                        lost INTEGER,
+                        sex TEXT,
+                        age TEXT,
+                        ep INTEGER,
+                        leavenoalbum INTEGER,
+                        gene TEXT,
+                        history TEXT,
+                        race TEXT,
+                        ctime INTEGER,
+                        mtime INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
 
-            # 宿帳の並び順
-            s = """
-                CREATE TABLE adventurerorder (
-                    fpath TEXT,
-                    numorder INTEGER,
-                    PRIMARY KEY (fpath)
-                )
-            """
-            self.cur.execute(s)
+                # 宿帳の並び順
+                s = """
+                    CREATE TABLE adventurerorder (
+                        fpath TEXT,
+                        numorder INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
 
-            # パーティ
-            s = """
-                CREATE TABLE party (
-                    fpath TEXT,
-                    name TEXT,
-                    money INTEGER,
-                    members TEXT,
-                    ctime INTEGER,
-                    mtime INTEGER,
-                    PRIMARY KEY (fpath)
-                )
-            """
-            self.cur.execute(s)
+                # パーティ
+                s = """
+                    CREATE TABLE party (
+                        fpath TEXT,
+                        name TEXT,
+                        money INTEGER,
+                        members TEXT,
+                        ctime INTEGER,
+                        mtime INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
 
     @synclock(_lock)
     def update(self, cards=True, adventurers=True, parties=True, cardorder={}, adventurerorder={}):
@@ -195,7 +198,7 @@ class YadoDB(object):
                         orderc,
                     ))
 
-        if adventurers:
+        if self.adventurers and adventurers:
             s = "SELECT fpath, mtime, album FROM adventurer"
             self.cur.execute(s)
             data = self.cur.fetchall()
@@ -228,7 +231,7 @@ class YadoDB(object):
                         orderc,
                     ))
 
-        if parties:
+        if self.adventurers and parties:
             s = "SELECT fpath, mtime FROM party"
             self.cur.execute(s)
             data = self.cur.fetchall()
@@ -250,10 +253,11 @@ class YadoDB(object):
         """肥大化したDBファイルのサイズを最適化する。"""
         s = "VACUUM card"
         self.cur.execute(s)
-        s = "VACUUM adventurer"
-        self.cur.execute(s)
-        s = "VACUUM party"
-        self.cur.execute(s)
+        if self.adventurers:
+            s = "VACUUM adventurer"
+            self.cur.execute(s)
+            s = "VACUUM party"
+            self.cur.execute(s)
 
         if commit:
             self.con.commit()
