@@ -9,7 +9,8 @@ import shutil
 import threading
 import StringIO
 import xml.parsers.expat
-from xml.etree.ElementTree import ElementTree, _ElementInterface
+from xml.etree.cElementTree import ElementTree
+from xml.etree.ElementTree import _ElementInterface
 
 import cw
 import cw.scenariodb

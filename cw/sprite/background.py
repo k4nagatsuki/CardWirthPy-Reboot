@@ -3,7 +3,6 @@
 
 import os
 import math
-import xml.etree.ElementTree
 import pygame
 from pygame.locals import BLEND_MIN, BLEND_ADD
 
@@ -165,25 +164,30 @@ class BackGround(base.CWPySprite):
     def get_data(self):
         """現在の背景からBgImagesElementを生成して返す。
         """
-        data = xml.etree.ElementTree.Element("BgImages")
+        data = cw.data.make_element("BgImages")
         for bg in self.bgs:
-            e = xml.etree.ElementTree.SubElement(data, "BgImage")
+            e = cw.data.make_element("BgImage")
             path = bg[0]
             mask = bg[1]
             size = bg[2]
             pos  = bg[3]
             flag = bg[4]
-            e2 = xml.etree.ElementTree.SubElement(e, "ImagePath")
+            e2 = cw.data.make_element("ImagePath")
             e2.text = path
+            e.append(e2)
             e.set("mask", str(mask))
-            e2 = xml.etree.ElementTree.SubElement(e, "Size")
+            e2 = cw.data.make_element("Size")
             e2.set("width", str(size[0]))
             e2.set("height", str(size[1]))
-            e2 = xml.etree.ElementTree.SubElement(e, "Location")
+            e.append(e2)
+            e2 = cw.data.make_element("Location")
             e2.set("left", str(pos[0]))
             e2.set("top", str(pos[1]))
-            e2 = xml.etree.ElementTree.SubElement(e, "Flag")
+            e.append(e2)
+            e2 = cw.data.make_element("Flag")
             e2.text = flag
+            e.append(e2)
+            data.append(e)
         return data
 
 class Curtain(base.SelectableSprite):
