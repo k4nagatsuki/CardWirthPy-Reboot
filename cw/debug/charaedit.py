@@ -489,7 +489,6 @@ class CharaRequirementPanel(wx.Panel):
         self._set_random()
 
     def _update_images(self):
-        cw.util.t_start()
         fpaths = set()
         if 0 >= self.imgcombo.GetSelection():
             img = ""
