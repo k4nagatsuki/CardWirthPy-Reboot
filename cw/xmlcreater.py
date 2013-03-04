@@ -35,11 +35,11 @@ def create_party(header):
     s = os.path.basename(header.fpath)
     s = os.path.splitext(s)[0]
     d["members"] = "\n   <Member>%s</Member>" % (s)
-    fname = cw.util.repl_dischar(pname)
-    path = cw.util.join_paths(cw.cwpy.yadodir, "Party", fname + ".xml")
+    dname = cw.util.repl_dischar(pname)
+    path = cw.util.join_paths(cw.cwpy.yadodir, "Party", dname)
     path = cw.util.dupcheck_plus(path)
     path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
-    _create_xml("Party", path, d)
+    _create_xml("Party", cw.util.join_paths(path, "Party.xml"), d)
     return path
 
 def create_environment(name, dpath):

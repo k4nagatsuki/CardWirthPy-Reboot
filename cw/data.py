@@ -415,6 +415,8 @@ class ScenarioData(SystemData):
 
             cw.cwpy.remove_xml(ccard.data.fpath)
 
+        # TODO 移動済みの荷物袋カードを削除
+
         self.remove_log()
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
@@ -432,6 +434,9 @@ class ScenarioData(SystemData):
         if cw.cwpy.battle and cw.cwpy.battle.is_running:
             # バトルを強制終了
             cw.cwpy.exec_func(cw.cwpy.battle.end)
+
+        # TODO 荷物袋のデータを戻す
+
         # party copy
         fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
         path = cw.util.join_paths("Data/Temp/ScenarioLog/Party", fname)
@@ -729,6 +734,8 @@ class YadoData(object):
         # 宿の金庫
         self.money = int(self.environment.getroot().find("Property/Cashbox").text)
 
+        self.update_version()
+
         self.yadodb = cw.yadodb.YadoDB(self.yadodir)
         self.yadodb.update()
 
@@ -760,7 +767,7 @@ class YadoData(object):
         pname = self.environment.gettext("Property/NowSelectingParty", "")
 
         if pname:
-            path = cw.util.join_paths(self.yadodir, "Party", pname + ".xml")
+            path = cw.util.join_paths(self.yadodir, pname)
             seq = [header for header in self.partys if path == header.fpath]
 
             if seq:
@@ -770,6 +777,49 @@ class YadoData(object):
 
         else:
             self.load_party(None)
+
+    def update_version(self):
+        """古いバージョンの宿データであれば更新する。
+        """
+        ppath = cw.util.join_paths(self.yadodir, "Party")
+        for fpath in os.listdir(ppath):
+            fpath = cw.util.join_paths(ppath, fpath)
+            if os.path.isdir(fpath):
+                continue
+
+            # パーティデータが1つのファイルであれば
+            # ディレクトリ方式に変換する
+
+            # 変換後のディレクトリ
+            dpath = os.path.splitext(fpath)[0]
+            dpath = cw.binary.util.check_duplicate(dpath)
+            os.makedirs(dpath)
+
+            # データベース
+            carddb = cw.yadodb.YadoDB(dpath, cw.yadodb.PARTY)
+
+            data = xml2etree(fpath)
+            # Backpack要素を分解してディレクトリに保存
+            for order, e in enumerate(data.getfind("Backpack")):
+                carddata = CWPyElementTree(element=e)
+                name = carddata.gettext("Property/Name", "")
+                carddata.fpath = cw.binary.util.check_filename(name + ".xml")
+                carddata.fpath = cw.util.join_paths(dpath, e.tag, carddata.fpath)
+                carddata.fpath = cw.binary.util.check_duplicate(carddata.fpath)
+                carddata.write(path=carddata.fpath)
+
+                header = cw.header.CardHeader(carddata=e)
+                header.fpath = carddata.fpath
+                carddb.insert_cardheader(header, commit=False, cardorder=order)
+            carddb.commit()
+            carddb.close()
+
+            # パーティの基本データを書き込み
+            data.remove(".", data.find("Backpack"))
+            data.write(path=cw.util.join_paths(dpath, "Party.xml"))
+
+            # 旧データを除去
+            os.remove(fpath)
 
     def load_party(self, header=None):
         """
@@ -785,8 +835,11 @@ class YadoData(object):
 
         if header:
             self.party = Party(header.fpath)
-            name = os.path.basename(header.fpath)
-            name = os.path.splitext(name)[0]
+            if header.fpath.lower().startswith("yado"):
+                name = os.path.relpath(header.fpath, self.yadodir)
+            else:
+                name = os.path.relpath(header.fpath, self.tempdir)
+            name = cw.util.join_paths(name)
             self.environment.edit("Property/NowSelectingParty", name)
 
             if header in self.partys:
@@ -843,7 +896,7 @@ class YadoData(object):
         element: PropertyタグのElement。
         """
         if element is None:
-            element = yadoxml2element(path, "Property")
+            element = xml2element(path, "Property")
 
         return cw.header.PartyHeader(element)
 
@@ -1226,10 +1279,13 @@ class YadoData(object):
 
 class Party(object):
     def __init__(self, path, partyinfoonly=True):
-        self.cardpath = os.path.splitext(path)[0]
-
         # True時は、エリア移動中にPlayerCardスプライトを新規作成する
         self._loading = True
+
+        self.members = []
+        self.backpack = []
+        self.path = path
+
         # パーティデータ(CWPyElementTree)
         self.data = yadoxml2etree(path)
         # パーティ名
@@ -1238,23 +1294,15 @@ class Party(object):
         self.money = self.data.getint("Property/Money", 0)
 
         self.partyinfoonly = partyinfoonly
-        if not partyinfoonly:
-            self.members = []
-            self.backpack = []
-        else:
+        if partyinfoonly:
             # 選択中パーティのメンバー(CWPyElementTree)
             paths = self.get_memberpaths()
             self.members = [yadoxml2etree(path) for path in paths]
             # 選択中のパーティの荷物袋(CardHeader)
-            self.backpack = []
-            for order, e in enumerate(self.data.getfind("Backpack")):
-                header = cw.header.CardHeader(carddata=e, owner="BACKPACK")
-                header.order = order
-                self.backpack.append(header)
-            if os.path.isdir(self.cardpath):
-                carddb = cw.yadodb.YadoDB(self.cardpath, adventurers=False, fname="Card.db")
-                self.backpack.extend(carddb.get_cards())
-                carddb.close()
+            dpath = os.path.dirname(self.path)
+            carddb = cw.yadodb.YadoDB(dpath, mode=cw.yadodb.PARTY)
+            self.backpack = carddb.get_cards()
+            carddb.close()
             self.sort_backpack()
 
     def sort_backpack(self):
@@ -1322,18 +1370,8 @@ class Party(object):
         パーティ名を変更する。
         """
         if not self.name == name:
-            cw.cwpy.ydata.deletedpaths.add(self.data.fpath)
             self.name = name
             self.data.edit("Property/Name", name)
-            fname = cw.util.repl_dischar(name) + ".xml"
-            path = cw.util.join_paths(cw.cwpy.ydata.tempdir, "Party", fname)
-            path = cw.util.dupcheck_plus(path)
-            self.data.write(path)
-            if self is cw.cwpy.ydata.party:
-                self.data = yadoxml2etree(path)
-                pname = os.path.basename(path)
-                pname = os.path.splitext(pname)[0]
-                cw.cwpy.ydata.environment.edit("Property/NowSelectingParty", pname)
 
     def set_money(self, value):
         """

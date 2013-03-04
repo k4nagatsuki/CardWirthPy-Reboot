@@ -619,7 +619,7 @@ def join_yadodir(path):
     temppath = join_paths(cw.cwpy.tempdir, path)
     yadopath = join_paths(cw.cwpy.yadodir, path)
 
-    if os.path.isfile(temppath):
+    if os.path.exists(temppath):
         return temppath
     else:
         return yadopath

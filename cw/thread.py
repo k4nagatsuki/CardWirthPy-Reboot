@@ -1400,47 +1400,46 @@ class CWPy(_Singleton, threading.Thread):
             if not header.type == "BeastCard":
                 header.carddata.getfind("Property/Hold").text = "False"
 
-            # 移動先がカード置場だったら
-            if targettype == "STOREHOUSE":
-                header.write()
-
             header.set_owner(None)
 
         # 移動元が荷物袋だった場合
         elif self.ydata.party and owner == self.ydata.party.backpack:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
-            # PartyデータのBackpackからカードデータを削除
-            self.ydata.party.data.remove("Backpack", header.carddata)
+            if not header.carddata:
+                # パーティフォルダからcarddataを生成
+                header.carddata = cw.data.yadoxml2element(header.fpath)
+                header.data = header.carddata.getfind("Property")
 
-            # 移動先がカード置場だったら
-            if targettype == "STOREHOUSE":
-                header.write()
+            if self.is_playingscenario():
+                # シナリオプレイ中であれば削除フラグを立てる
+                header.carddata.edit("Property", "True", "moved")
+            else:
+                # 宿にいる場合はデータ消去
+                header.contain_xml()
 
         # 移動元がカード置場だった場合
         elif owner == self.ydata.storehouse:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
 
-            # 移動先がPlayerCard・荷物袋だったら
-            if targettype in ("PLAYERCARD", "BACKPACK"):
-                header.contain_xml()
+            header.contain_xml()
 
         # 移動元が存在しない場合(get or loseコンテンツから呼んだ場合)
         else:
-            # 移動先がPlayerCard・荷物袋だったら
-            if targettype in ("PLAYERCARD", "BACKPACK"):
-                header.contain_xml()
-            # 移動先がカード置場だったら
-            elif targettype == "STOREHOUSE":
-                header.write()
+            header.contain_xml()
+
+        if targettype in ("BACKPACK", "STOREHOUSE"):
+            # 移動先が荷物袋かカード置場だったら
+            header.fpath = ""
+            header.write()
 
         #-----------------------------------------------------------------------
         # ファイル削除
         #-----------------------------------------------------------------------
 
         # 移動先がゴミ箱・下取りだったら
-        if targettype in ("PAWNSHOP", "TRASHBOX"):
+        if targettype in ("PAWNSHOP", "TRASHBOX") and not (self.ydata.party and not self.ydata.party.onefile and owner == self.ydata.party.backpack):
             # 付帯以外の召喚獣カードの場合
             if header.type == "BeastCard" and not header.attachment:
                 owner.update_image()
@@ -1481,10 +1480,6 @@ class CWPy(_Singleton, threading.Thread):
 
         # 移動先が荷物袋だった場合
         elif targettype == "BACKPACK":
-            # PartyデータのBackpackにカードデータを書き込む
-            if targettype == "BACKPACK":
-                self.ydata.party.data.insert("Backpack", header.carddata, 0)
-
             # 移動先のリストにCardHeaderを追加
             if toindex == -1:
                 target.insert(0, header)
@@ -1496,11 +1491,12 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     header.order = insertorder
             header.set_owner("BACKPACK")
+            header.carddata = None
             if sort:
                 self.ydata.party.sort_backpack()
 
         # 移動先がカード置場だった場合
-        elif targettype in ("BACKPACK", "STOREHOUSE"):
+        elif targettype == "STOREHOUSE":
             # 移動先のリストにCardHeaderを追加
             if toindex == -1:
                 target.insert(0, header)

@@ -15,11 +15,11 @@ import cw
 
 
 class CardHeader(object):
-    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None):
+    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None, dbowner="STOREHOUSE"):
         self.ref_original = weakref.ref(self)
         self.order = -1
         if dbrec:
-            self.set_owner("STOREHOUSE")
+            self.set_owner(dbowner)
             self.carddata = None
             self.fpath = dbrec["fpath"]
             self.type = dbrec["type"]
@@ -47,6 +47,7 @@ class CardHeader(object):
             self.enhance_res_used = dbrec["enhance_res_used"]
             self.enhance_def_used = dbrec["enhance_def_used"]
             self.attachment = bool(dbrec["attachment"])
+            self.moved = bool(dbrec["moved"])
         else:
             self.set_owner(owner)
             self.carddata = carddata
@@ -84,6 +85,7 @@ class CardHeader(object):
             self.enhance_res_used = 0
             self.enhance_def_used = 0
             self.attachment = False
+            self.moved = data.getbool(".", "moved", False)
 
             if self.type == "ActionCard":
                 self.enhance_avo_used = data.getint("Enhance", "avoid")
@@ -380,7 +382,12 @@ class CardHeader(object):
             path = self.fpath
         else:
             fname = cw.util.repl_dischar(self.name) + ".xml"
-            path = cw.util.join_paths(cw.cwpy.tempdir, self.type, fname)
+            if self._owner == "BACKPACK":
+                dpath = os.path.dirname(cw.cwpy.ydata.party.path)
+                dpath = dpath.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
+            else:
+                dpath = cw.cwpy.tempdir
+            path = cw.util.join_paths(dpath, self.type, fname)
             self.fpath = cw.util.dupcheck_plus(path)
 
         etree = cw.data.xml2etree(element=self.carddata)

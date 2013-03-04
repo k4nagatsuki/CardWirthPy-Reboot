@@ -13,14 +13,21 @@ from cw.util import synclock
 
 _lock = threading.Lock()
 
+YADO = 0
+PARTY = 1
+
 class YadoDB(object):
 
     """カードのデータベース。ロックのタイムアウトは30秒指定。"""
     @synclock(_lock)
-    def __init__(self, ypath, adventurers=True, fname="Yado.db"):
+    def __init__(self, ypath, mode=YADO):
         self.ypath = ypath
+        if mode == YADO:
+            fname = "Yado.db"
+        else:
+            fname = "Card.db"
         self.name = os.path.join(ypath, fname)
-        self.adventurers = adventurers
+        self.mode = mode
 
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
@@ -39,7 +46,7 @@ class YadoDB(object):
                     )
                 """
                 self.cur.execute(s)
-            if self.adventurers:
+            if self.mode == YADO:
                 # adventurerorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
                 cur = self.con.execute("PRAGMA table_info('adventurerorder')")
                 res = cur.fetchall()
@@ -52,6 +59,19 @@ class YadoDB(object):
                         )
                     """
                     self.cur.execute(s)
+
+            # moved列が存在しない場合は作成する(旧バージョンとの互換性維持)
+            cur = self.con.execute("PRAGMA table_info('card')")
+            res = cur.fetchall()
+            hastype = False
+            for rec in res:
+                if rec[1] == "moved":
+                    hastype = True
+                    break
+            if not hastype:
+                self.cur.execute("ALTER TABLE card ADD COLUMN moved INTEGER")
+                self.cur.execute("UPDATE card SET moved=?", (0,))
+
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.con.row_factory = sqlite3.Row
@@ -87,6 +107,7 @@ class YadoDB(object):
                     enhance_res_used INTEGER,
                     enhance_def_used INTEGER,
                     attachment INTEGER,
+                    moved INTEGER,
                     ctime INTEGER,
                     mtime INTEGER,
                     PRIMARY KEY (fpath)
@@ -104,7 +125,7 @@ class YadoDB(object):
             """
             self.cur.execute(s)
 
-            if self.adventurers:
+            if self.mode == YADO:
                 # 宿帳とアルバムの冒険者
                 s = """
                     CREATE TABLE adventurer (
@@ -198,7 +219,7 @@ class YadoDB(object):
                         orderc,
                     ))
 
-        if self.adventurers and adventurers:
+        if self.mode == YADO and adventurers:
             s = "SELECT fpath, mtime, album FROM adventurer"
             self.cur.execute(s)
             data = self.cur.fetchall()
@@ -231,7 +252,7 @@ class YadoDB(object):
                         orderc,
                     ))
 
-        if self.adventurers and parties:
+        if self.mode == YADO and parties:
             s = "SELECT fpath, mtime FROM party"
             self.cur.execute(s)
             data = self.cur.fetchall()
@@ -245,7 +266,8 @@ class YadoDB(object):
                     if os.path.getmtime(path) > t[1]:
                         # 情報を更新
                         self._insert_party(path, False)
-            walk("Party", self._insert_party, False)
+            for dpath in os.listdir(cw.util.join_paths(self.ypath, "Party")):
+                walk(cw.util.join_paths("Party", dpath), self._insert_party, False)
 
         self.con.commit()
 
@@ -253,7 +275,7 @@ class YadoDB(object):
         """肥大化したDBファイルのサイズを最適化する。"""
         s = "VACUUM card"
         self.cur.execute(s)
-        if self.adventurers:
+        if self.mode == YADO:
             s = "VACUUM adventurer"
             self.cur.execute(s)
             s = "VACUUM party"
@@ -287,7 +309,38 @@ class YadoDB(object):
     def _insert_cardheader(self, header, commit=True, cardorder=-1):
         """データベースにカードを登録する。"""
         s = """
-        INSERT OR REPLACE INTO card VALUES(
+        INSERT OR REPLACE INTO card(
+            fpath,
+            type,
+            id,
+            name,
+            imgpath,
+            desc,
+            scenario,
+            author,
+            keycodes,
+            uselimit,
+            target,
+            allrange,
+            premium,
+            physical,
+            mental,
+            level,
+            maxuselimit,
+            price,
+            hold,
+            enhance_avo,
+            enhance_res,
+            enhance_def,
+            enhance_avo_used,
+            enhance_res_used,
+            enhance_def_used,
+            attachment,
+            moved,
+            ctime,
+            mtime
+        ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -349,6 +402,7 @@ class YadoDB(object):
             header.enhance_res_used,
             header.enhance_def_used,
             header.attachment,
+            1 if header.moved else 0,
             ctime,
             mtime,
         ))
@@ -409,6 +463,7 @@ class YadoDB(object):
                 enhance_res_used,
                 enhance_def_used,
                 attachment,
+                moved,
                 ctime,
                 mtime,
                 numorder
@@ -425,8 +480,12 @@ class YadoDB(object):
         self.cur.execute(s)
 
         headers = []
+        if self.mode == YADO:
+            owner = "STOREHOUSE"
+        else:
+            owner = "BACKPACK"
         for order, rec in enumerate(self.cur):
-            header = cw.header.CardHeader(dbrec=rec)
+            header = cw.header.CardHeader(dbrec=rec, dbowner=owner)
             header.order = order
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)
@@ -598,6 +657,7 @@ class YadoDB(object):
 
     def _insert_party(self, path, commit=True):
         try:
+            # 新フォーマット(ディレクトリ)
             data = cw.data.xml2etree(path)
             e = data.find("Property")
             header = cw.header.PartyHeader(e)
