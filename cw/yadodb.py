@@ -72,6 +72,7 @@ class YadoDB(object):
                 self.cur.execute("ALTER TABLE card ADD COLUMN moved INTEGER")
                 self.cur.execute("ALTER TABLE card ADD COLUMN scenariocard INTEGER")
                 self.cur.execute("UPDATE card SET moved=?, scenariocard=?", (0, 0,))
+                self.commit()
 
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)

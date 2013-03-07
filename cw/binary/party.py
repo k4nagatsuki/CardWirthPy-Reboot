@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+
 import base
 import adventurer
 
@@ -13,7 +15,6 @@ class Party(base.CWBinaryBase):
     宿の画像も格納しているが必要ないと思うので破棄。
     """
     def __init__(self, parent, f, yadodata=False):
-        # TODO 新方式の変換
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 2
         self.fname = self.get_fname()
@@ -34,17 +35,6 @@ class Party(base.CWBinaryBase):
 
     def get_data(self):
         if self.data is None:
-            cards = []
-            self.errorcards = []
-            for card in self.cards:
-                if card.mine:
-                    if card.data:
-                        cards.append(card)
-                        # rootが違うデータのためディレクトリを設定しておく
-                        card.data.set_dir(self.get_dir())
-                    else:
-                        self.errorcards.append(card)
-
             self.data = cw.data.make_element("Party")
 
             prop = cw.data.make_element("Property")
@@ -61,11 +51,6 @@ class Party(base.CWBinaryBase):
 
             self.data.append(prop)
 
-            e = cw.data.make_element("Backpack")
-            for card in cards:
-                e.append(card.get_data())
-            self.data.append(e)
-
         return self.data
 
     def create_xml(self, dpath):
@@ -73,6 +58,24 @@ class Party(base.CWBinaryBase):
         yadodb = self.get_root().yadodb
         if yadodb:
             yadodb.insert_party(path, commit=False)
+
+        # 荷物袋内のカード
+        cdpath = os.path.dirname(path)
+        carddb = cw.yadodb.YadoDB(cdpath, cw.yadodb.PARTY)
+        self.errorcards = []
+        order = 0
+        for card in self.cards:
+            if card.mine:
+                if card.data:
+                    card.data.materialbasedir = dpath
+                    path = card.create_xml(cdpath)
+                    carddb.insert_card(path, commit=False, cardorder=order)
+                    order += 1
+                else:
+                    self.errorcards.append(card)
+        carddb.commit()
+        carddb.close()
+
         return path
 
 class PartyMembers(base.CWBinaryBase):

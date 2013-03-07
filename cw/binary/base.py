@@ -20,6 +20,7 @@ class CWBinaryBase(object):
             self.fpath = f.name
         else:
             self.fpath = ""
+        self.materialbasedir = ""
         self.set_materialdir(materialdir)
         self.set_image_export(image_export)
         self.yadodb = None
@@ -108,6 +109,12 @@ class CWBinaryBase(object):
         # xmlファイルパス
         if self.xmltype in ("Summary", "Environment"):
             path = util.join_paths(self.get_dir(), self.xmltype + ".xml")
+            path = util.check_duplicate(path)
+        elif self.xmltype == "Party":
+            name = util.check_filename(self.name)
+            path = util.join_paths(self.get_dir(), "Party", name)
+            path = util.check_duplicate(path)
+            path = util.join_paths(path, "Party.xml")
         else:
             name = util.check_filename(self.name) + ".xml"
 
@@ -116,9 +123,9 @@ class CWBinaryBase(object):
                 name = str(self.id).zfill(2) + "_" + name
 
             path = util.join_paths(self.get_dir(), self.xmltype, name)
+            path = util.check_duplicate(path)
 
         # xml出力
-        path = util.check_duplicate(path)
 
         if not os.path.isdir(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
@@ -139,9 +146,13 @@ class CWBinaryBase(object):
             # パスの代わりにバイナリイメージを使用する
             return cw.binary.image.data_to_code(self.image)
 
+        basedir = self.materialbasedir
+        if not basedir:
+            basedir = self.get_dir()
+
         # 画像保存ディレクトリ
         if self.xmltype == "Summary":
-            imgdir = self.get_dir()
+            imgdir = basedir
         elif self.xmltype == "BeastCard" and self.summoneffect:
             imgdir = self.get_imgdir()
 
@@ -150,9 +161,9 @@ class CWBinaryBase(object):
                 name = util.check_filename(root.name)
                 mdir = self.get_materialdir()
                 if mdir == "":
-                    imgdir = util.join_paths(self.get_dir(), root.xmltype, name)
+                    imgdir = util.join_paths(basedir, root.xmltype, name)
                 else:
-                    imgdir = util.join_paths(self.get_dir(), mdir, root.xmltype, name)
+                    imgdir = util.join_paths(basedir, mdir, root.xmltype, name)
                 imgdir = util.check_duplicate(imgdir)
                 self.set_imgdir(imgdir)
 
@@ -161,17 +172,17 @@ class CWBinaryBase(object):
             name = util.check_filename(self.name)
             mdir = self.get_materialdir()
             if mdir == "":
-                imgdir = util.join_paths(self.get_dir(), self.xmltype, name)
+                imgdir = util.join_paths(basedir, self.xmltype, name)
             else:
-                imgdir = util.join_paths(self.get_dir(), mdir, self.xmltype, name)
+                imgdir = util.join_paths(basedir, mdir, self.xmltype, name)
             imgdir = util.check_duplicate(imgdir)
             self.set_imgdir(imgdir)
         else:
             mdir = self.get_materialdir()
             if mdir == "":
-                imgdir = util.join_paths(self.get_dir(), self.xmltype)
+                imgdir = util.join_paths(basedir, self.xmltype)
             else:
-                imgdir = util.join_paths(self.get_dir(), mdir, self.xmltype)
+                imgdir = util.join_paths(basedir, mdir, self.xmltype)
 
         # 画像保存
         # 画像パス
@@ -191,7 +202,7 @@ class CWBinaryBase(object):
         f.write(self.image)
         f.close()
         # 最後に参照パスを返す
-        path = path.replace(self.get_dir() + "/", "", 1)
+        path = path.replace(basedir + "/", "", 1)
         return util.repl_escapechar(path)
 
     def get_data(self):
