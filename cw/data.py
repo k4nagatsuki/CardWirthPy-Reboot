@@ -415,8 +415,6 @@ class ScenarioData(SystemData):
 
             cw.cwpy.remove_xml(ccard.data.fpath)
 
-        # TODO 移動済みの荷物袋カードを削除
-
         self.remove_log()
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
@@ -424,6 +422,15 @@ class ScenarioData(SystemData):
         if cw.cwpy.ydata.party:
             for header in cw.cwpy.ydata.party.get_allcardheaders():
                 header.set_scenarioend()
+
+            # 移動済みの荷物袋カードを削除
+            for header in cw.cwpy.ydata.party.backpack_moved:
+                if header.moved == 2:
+                    # 素材も含めて完全削除
+                    cw.cwpy.remove_xml(header)
+                else:
+                    # どこかで所有しているので素材は消さない
+                    header.contain_xml()
 
     def f9(self):
         """
@@ -435,12 +442,11 @@ class ScenarioData(SystemData):
             # バトルを強制終了
             cw.cwpy.exec_func(cw.cwpy.battle.end)
 
-        # TODO 荷物袋のデータを戻す
-
         # party copy
         fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
+        dname = os.path.basename(os.path.dirname(cw.cwpy.ydata.party.data.fpath))
         path = cw.util.join_paths("Data/Temp/ScenarioLog/Party", fname)
-        dstpath = cw.util.join_paths(cw.cwpy.ydata.tempdir, "Party", fname)
+        dstpath = cw.util.join_paths(cw.cwpy.ydata.tempdir, "Party", dname, fname)
         dpath = os.path.dirname(dstpath)
 
         if not os.path.isdir(dpath):
@@ -478,8 +484,45 @@ class ScenarioData(SystemData):
             else:
                 cw.cwpy.ydata.set_compstamp(key)
 
-        self.remove_log()
         cw.cwpy.ydata.party.reload()
+
+        # 荷物袋のデータを戻す
+        path = "Data/Temp/ScenarioLog/Backpack.xml"
+        etree = cw.data.xml2etree(path)
+        backpacktable = {}
+        yadodir = cw.cwpy.ydata.party.get_yadodir()
+        tempdir = cw.cwpy.ydata.party.get_tempdir()
+
+        for header in cw.cwpy.ydata.party.backpack + cw.cwpy.ydata.party.backpack_moved:
+            if header.scenariocard:
+                header.contain_xml()
+                continue
+
+            if header.fpath.lower().startswith("yado"):
+                fpath = os.path.relpath(header.fpath, yadodir)
+            else:
+                fpath = os.path.relpath(header.fpath, tempdir)
+            fpath = cw.util.join_paths(fpath)
+            backpacktable[fpath] = header
+
+        cw.cwpy.ydata.party.backpack = []
+        cw.cwpy.ydata.party.backpack_moved = []
+
+        for e in etree.getfind("."):
+            header = backpacktable[e.text]
+            del backpacktable[e.text]
+            if header.moved <> 0:
+                # 削除フラグを除去
+                etree = cw.data.yadoxml2etree(header.fpath)
+                etree.remove("Property", attrname="moved")
+                etree.write()
+                header.moved = 0
+            cw.cwpy.ydata.party.backpack.append(header)
+        for fpath, header in backpacktable.iteritems():
+            if not header.scenariocard:
+                cw.cwpy.remove_xml(header)
+
+        self.remove_log()
 
         if not cw.cwpy.areaid > 0:
             cw.cwpy.areaid = cw.cwpy.pre_areaids[0]
@@ -523,6 +566,21 @@ class ScenarioData(SystemData):
             dstpath = cw.util.join_paths("Data/Temp/ScenarioLog/Members",
                                                     os.path.basename(path))
             shutil.copy2(path, dstpath)
+
+        # 荷物袋内のカード群(ファイルパスのみ)
+        element = cw.data.make_element("BackpackFiles")
+        yadodir = cw.cwpy.ydata.party.get_yadodir()
+        tempdir = cw.cwpy.ydata.party.get_tempdir()
+        for header in cw.cwpy.ydata.party.backpack:
+            if header.fpath.lower().startswith("yado"):
+                fpath = os.path.relpath(header.fpath, yadodir)
+            else:
+                fpath = os.path.relpath(header.fpath, tempdir)
+            fpath = cw.util.join_paths(fpath)
+            element.append(cw.data.make_element("File", fpath))
+        path = "Data/Temp/ScenarioLog/Backpack.xml"
+        etree = cw.data.xml2etree(element=element)
+        etree.write(path)
 
         # create_zip
         path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
@@ -734,7 +792,11 @@ class YadoData(object):
         # 宿の金庫
         self.money = int(self.environment.getroot().find("Property/Cashbox").text)
 
-        self.update_version()
+        dataversion = self.environment.getattr(".", "dataVersion", 0)
+        if dataversion < 1:
+            self.update_version()
+            self.environment.edit(".", "1", "dataVersion")
+            self.environment.write()
 
         self.yadodb = cw.yadodb.YadoDB(self.yadodir)
         self.yadodb.update()
@@ -781,10 +843,11 @@ class YadoData(object):
     def update_version(self):
         """古いバージョンの宿データであれば更新する。
         """
+        nowparty = self.environment.gettext("Property/NowSelectingParty", "")
         ppath = cw.util.join_paths(self.yadodir, "Party")
         for fpath in os.listdir(ppath):
             fpath = cw.util.join_paths(ppath, fpath)
-            if os.path.isdir(fpath):
+            if os.path.isdir(fpath) or not fpath.lower().endswith(".xml"):
                 continue
 
             # パーティデータが1つのファイルであれば
@@ -795,22 +858,95 @@ class YadoData(object):
             dpath = cw.binary.util.check_duplicate(dpath)
             os.makedirs(dpath)
 
+            if nowparty == os.path.splitext(os.path.basename(fpath))[0]:
+                pname = cw.util.join_paths("Party", os.path.basename(dpath), "Party.xml")
+                self.environment.edit("Property/NowSelectingParty", pname)
+
             # データベース
             carddb = cw.yadodb.YadoDB(dpath, cw.yadodb.PARTY)
+            order = 0
 
+            # シナリオログ
+            wslpath = os.path.splitext(fpath)[0] + ".wsl"
+            haswsl = os.path.isfile(wslpath)
+            if haswsl:
+                cw.util.decompress_zip(wslpath, "Data/Temp", "ScenarioLog")
+
+                # 荷物袋内のカード群(ファイルパスのみ)
+                files = cw.data.make_element("BackpackFiles")
+                party = xml2etree(cw.util.join_paths("Data/Temp/ScenarioLog/Party", os.path.basename(fpath)))
+                for e in party.getfind("Backpack"):
+                    # まだ所持しているカードとシナリオ内で
+                    # 失われたカードを判別できないので、
+                    # ログの荷物袋のカードは一旦全て削除済みと
+                    # マークしておき、現行の荷物袋のカードは
+                    # 新規入手状態にする
+                    carddata = CWPyElementTree(element=e)
+                    name = carddata.gettext("Property/Name", "")
+                    carddata.edit("Property", "2", "moved")
+                    carddata.fpath = cw.binary.util.check_filename(name + ".xml")
+                    carddata.fpath = cw.util.join_paths(dpath, e.tag, carddata.fpath)
+                    carddata.fpath = cw.binary.util.check_duplicate(carddata.fpath)
+                    carddata.write(path=carddata.fpath)
+
+                    header = cw.header.CardHeader(carddata=e)
+                    header.fpath = carddata.fpath
+                    carddb.insert_cardheader(header, commit=False, cardorder=order)
+                    order += 1
+
+                    path = os.path.relpath(carddata.fpath, dpath)
+                    path = cw.util.join_paths(path)
+                    files.append(cw.data.make_element("File", path))
+
+                # 新フォーマットの荷物袋ログ
+                path = "Data/Temp/ScenarioLog/Backpack.xml"
+                etree = CWPyElementTree(element=files)
+                etree.write(path)
+
+                party.getroot().remove(party.find("Backpack"))
+                party.write()
+                shutil.move(party.fpath, "Data/Temp/ScenarioLog/Party/Party.xml")
+
+                wslpath2 = cw.util.join_paths(dpath, "Party.wsl")
+                cw.util.compress_zip("Data/Temp/ScenarioLog", wslpath2)
+                os.remove(wslpath)
+                shutil.rmtree("Data/Temp/ScenarioLog")
+
+            # 現状のパーティデータ
             data = xml2etree(fpath)
             # Backpack要素を分解してディレクトリに保存
-            for order, e in enumerate(data.getfind("Backpack")):
+            for e in data.getfind("Backpack"):
                 carddata = CWPyElementTree(element=e)
                 name = carddata.gettext("Property/Name", "")
                 carddata.fpath = cw.binary.util.check_filename(name + ".xml")
                 carddata.fpath = cw.util.join_paths(dpath, e.tag, carddata.fpath)
                 carddata.fpath = cw.binary.util.check_duplicate(carddata.fpath)
-                carddata.write(path=carddata.fpath)
 
                 header = cw.header.CardHeader(carddata=e)
+
+                if haswsl and not carddata.getbool(".", "scenariocard", False):
+                    # シナリオログ側のコメントを参照
+                    carddata.edit(".", "True", "scenariocard")
+                    header.scenariocard = True
+
+                    # 元々scenariocardでない場合は
+                    # ImagePathの指す先をバイナリ化しておく
+                    for e2 in carddata.getiterator():
+                        if e2.tag == "ImagePath" and e2.text and not cw.binary.image.path_is_code(e2.text):
+                            path = cw.util.join_paths(self.yadodir, e2.text)
+                            if os.path.isfile(path):
+                                f = open(path, "rb")
+                                imagedata = f.read()
+                                f.close()
+                                e2.text = cw.binary.image.data_to_code(imagedata)
+                                header.imgpath = e2.text
+
+                carddata.write(path=carddata.fpath)
+
                 header.fpath = carddata.fpath
                 carddb.insert_cardheader(header, commit=False, cardorder=order)
+                order += 1
+
             carddb.commit()
             carddb.close()
 
@@ -831,10 +967,10 @@ class YadoData(object):
         if self.party:
             self.party.write()
             if self.party.members:
-                self.add_party(self.party.data.fpath)
+                self.add_party(self.party)
 
         if header:
-            self.party = Party(header.fpath)
+            self.party = Party(header)
             if header.fpath.lower().startswith("yado"):
                 name = os.path.relpath(header.fpath, self.yadodir)
             else:
@@ -863,8 +999,10 @@ class YadoData(object):
         cw.util.sort_by_attr(self.album, "name")
         return header
 
-    def add_party(self, path):
-        header = self.create_partyheader(path)
+    def add_party(self, party):
+        fpath = party.path
+        header = self.create_partyheader(fpath)
+        header.data = party # 保存時まで記憶しておく
         self.partys.append(header)
         cw.util.sort_by_attr(self.partys, "name")
         return header
@@ -986,6 +1124,30 @@ class YadoData(object):
         self.deletedpaths.clear()
         # 宿のtempフォルダを空にする
         cw.util.remove(self.tempdir)
+
+        # 各パーティの荷物袋のデータを保存する
+        def update_backpack(party):
+            # カード置場の順序を記憶しておく
+            cardorder = {}
+            ppath = os.path.dirname(party.path)
+            yadodir = party.get_yadodir()
+            tempdir = party.get_tempdir()
+            for i, header in enumerate(party.backpack):
+                if header.fpath.lower().startswith("yado"):
+                    fpath = os.path.relpath(header.fpath, yadodir)
+                else:
+                    fpath = os.path.relpath(header.fpath, tempdir)
+                fpath = cw.util.join_paths(fpath)
+                cardorder[fpath] = header.order
+            carddb = cw.yadodb.YadoDB(ppath, mode=cw.yadodb.PARTY)
+            carddb.update(cardorder=cardorder)
+            carddb.close()
+        if self.party:
+            update_backpack(self.party)
+        for party in self.partys:
+            if party.data:
+                update_backpack(party.data)
+                party.data = None
 
         # カードデータベースを更新
         yadodb = cw.yadodb.YadoDB(self.yadodir)
@@ -1278,12 +1440,16 @@ class YadoData(object):
         return seq
 
 class Party(object):
-    def __init__(self, path, partyinfoonly=True):
+    def __init__(self, header, partyinfoonly=True):
+        path = header.fpath
+
         # True時は、エリア移動中にPlayerCardスプライトを新規作成する
         self._loading = True
 
         self.members = []
-        self.backpack = []
+        if not header.data:
+            self.backpack = []
+            self.backpack_moved = []
         self.path = path
 
         # パーティデータ(CWPyElementTree)
@@ -1299,10 +1465,19 @@ class Party(object):
             paths = self.get_memberpaths()
             self.members = [yadoxml2etree(path) for path in paths]
             # 選択中のパーティの荷物袋(CardHeader)
-            dpath = os.path.dirname(self.path)
-            carddb = cw.yadodb.YadoDB(dpath, mode=cw.yadodb.PARTY)
-            self.backpack = carddb.get_cards()
-            carddb.close()
+            if header.data:
+                # header.dataがある場合は保存前
+                self.backpack = header.data.backpack
+                self.backpack_moved = header.data.backpack_moved
+            else:
+                dpath = os.path.dirname(self.path)
+                carddb = cw.yadodb.YadoDB(dpath, mode=cw.yadodb.PARTY)
+                for header in carddb.get_cards():
+                    if header.moved == 0:
+                        self.backpack.append(header)
+                    else:
+                        self.backpack_moved.append(header)
+                carddb.close()
             self.sort_backpack()
 
     def sort_backpack(self):
@@ -1317,6 +1492,20 @@ class Party(object):
         else:
             cw.util.sort_by_attr(self.backpack, "order")
 
+    def get_relpath(self):
+        ppath = os.path.dirname(self.path)
+        if ppath.lower().startswith("yado"):
+            relpath = os.path.relpath(ppath, cw.cwpy.ydata.yadodir)
+        else:
+            relpath = os.path.relpath(ppath, cw.cwpy.ydata.tempdir)
+        return cw.util.join_paths(relpath)
+
+    def get_yadodir(self):
+        return cw.util.join_paths(cw.cwpy.ydata.yadodir, self.get_relpath())
+
+    def get_tempdir(self):
+        return cw.util.join_paths(cw.cwpy.ydata.yadodir, self.get_relpath())
+
     def is_loading(self):
         """membersのデータを元にPlayerCardインスタンスを
         生成していなかったら、Trueを返す。
@@ -1324,7 +1513,9 @@ class Party(object):
         return self._loading
 
     def reload(self):
-        self.__init__(self.data.fpath)
+        header = cw.header.PartyHeader(data=self.data.find("Property"))
+        header.data = self
+        self.__init__(header)
 
     def add(self, header, data=None):
         """
@@ -1466,16 +1657,6 @@ class Party(object):
 
                 seq.append(path)
 
-        return seq
-
-    def get_backpackpaths(self):
-        """
-        現在選択中のパーティの荷物袋にあるカードのxmlのpathリストを返す。
-        """
-        elements = self.data.find("Backpack").getchildren()
-        seq = [cw.util.join_paths(cw.cwpy.yadodir,
-                                            e.tag, e.text + ".xml")
-                                                    for e in elements if e.text]
         return seq
 
 #-------------------------------------------------------------------------------
@@ -1661,11 +1842,16 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         self.find(path).insert(index, element)
         self.is_edited = True
 
-    def remove(self, path, element):
+    def remove(self, path, element=None, attrname=None):
         """パスのエレメントからelementを削除した後、
         CWPyElementTreeのインスタンスで返す。
         """
-        self.find(path).remove(element)
+        if attrname:
+            e = self.find(path)
+            e.get(attrname) # 属性の辞書を生成させる
+            del e.attrib[attrname]
+        else:
+            self.find(path).remove(element)
         self.is_edited = True
 
     def form_element(self, element, depth=0):

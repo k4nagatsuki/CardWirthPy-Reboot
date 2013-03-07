@@ -47,7 +47,9 @@ class CardHeader(object):
             self.enhance_res_used = dbrec["enhance_res_used"]
             self.enhance_def_used = dbrec["enhance_def_used"]
             self.attachment = bool(dbrec["attachment"])
-            self.moved = bool(dbrec["moved"])
+            if dbowner == "BACKPACK":
+                from_scenario = bool(dbrec["scenariocard"])
+            self.moved = dbrec["moved"]
         else:
             self.set_owner(owner)
             self.carddata = carddata
@@ -85,7 +87,7 @@ class CardHeader(object):
             self.enhance_res_used = 0
             self.enhance_def_used = 0
             self.attachment = False
-            self.moved = data.getbool(".", "moved", False)
+            self.moved = data.getint(".", "moved", 0)
 
             if self.type == "ActionCard":
                 self.enhance_avo_used = data.getint("Enhance", "avoid")
@@ -374,7 +376,7 @@ class CardHeader(object):
                 if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
-    def write(self):
+    def write(self, party=None):
         if self.carddata is None:
             return
 
@@ -383,7 +385,9 @@ class CardHeader(object):
         else:
             fname = cw.util.repl_dischar(self.name) + ".xml"
             if self._owner == "BACKPACK":
-                dpath = os.path.dirname(cw.cwpy.ydata.party.path)
+                if not party:
+                    party = cw.cwpy.ydata.party
+                dpath = os.path.dirname(party.path)
                 dpath = dpath.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
             else:
                 dpath = cw.cwpy.tempdir
@@ -415,7 +419,7 @@ class CardHeader(object):
             e.text = str(self.uselimit)
             owner = self.get_owner()
             owner.data.is_edited = True
-        elif self.is_backpackheader() and self.scenariocard:
+        elif self.is_backpackheader() and self.scenariocard and self.carddata:
             path = self.carddata.gettext("Property/ImagePath", "")
             self.set_cardimg(path)
 
@@ -427,6 +431,9 @@ class CardHeader(object):
         """
         if self.scenariocard:
             # シナリオ取得フラグクリア
+            if self.carddata is None:
+                self.carddata = cw.data.xml2element(self.fpath)
+
             self.scenariocard = False
             self.carddata.attrib.pop("scenariocard")
             # 画像コピー
@@ -437,10 +444,14 @@ class CardHeader(object):
             # 画像更新
             path = self.carddata.gettext("Property/ImagePath", "")
             self.set_cardimg(path)
+            if self.is_backpackheader():
+                etree = cw.data.CWPyElementTree(element=self.carddata)
+                etree.write()
+                self.carddata = None
         elif self.type == "BeastCard" and not self.attachment:
             cw.cwpy.trade("TRASHBOX", header=self, from_event=True)
 
-        if self.is_ccardheader() and self.type == "SkillCard":
+        if self.is_ccardheader() and self.type == "SkillCard" and not self.carddata is None:
             self.carddata.getfind("Property/UseLimit").text = "0"
 
         if self.is_ccardheader():
@@ -880,6 +891,8 @@ class PartyHeader(object):
             self.name = data.gettext("Name")
             self.money = data.getint("Money", 0)
             self.members = [e.text for e in data.getfind("Members") if e.text]
+
+        self.data = None
 
     def is_adventuring(self):
         path = os.path.splitext(self.fpath)[0] + ".wsl"

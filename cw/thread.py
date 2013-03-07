@@ -1207,7 +1207,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.trade("STOREHOUSE", header=header, from_event=True, sort=False)
             self.ydata.sort_storehouse()
 
-            self.ydata.deletedpaths.add(self.ydata.party.data.fpath)
+            self.ydata.deletedpaths.add(os.path.dirname(self.ydata.party.data.fpath))
             self.ydata.party.members = []
             self.ydata.load_party(None)
             self.ydata.environment.edit("Property/NowSelectingParty", "")
@@ -1257,7 +1257,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True, party=None):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -1268,13 +1268,18 @@ class CWPy(_Singleton, threading.Thread):
             assert self.selectedheader
             header = self.selectedheader
 
-        owner = header.get_owner()
+        if header.is_backpackheader() and party:
+            owner = party.backpack
+        else:
+            owner = header.get_owner()
 
         # 移動先を設定。
         if targettype == "PLAYERCARD":
             target = target
         elif targettype == "BACKPACK":
-            target = self.ydata.party.backpack
+            if not party:
+                party = self.ydata.party
+            target = party.backpack
         elif targettype == "STOREHOUSE":
             target = self.ydata.storehouse
         elif targettype in ("PAWNSHOP", "TRASHBOX"):
@@ -1403,20 +1408,33 @@ class CWPy(_Singleton, threading.Thread):
             header.set_owner(None)
 
         # 移動元が荷物袋だった場合
-        elif self.ydata.party and owner == self.ydata.party.backpack:
+        elif party and owner == party.backpack:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
-            if not header.carddata:
-                # パーティフォルダからcarddataを生成
-                header.carddata = cw.data.yadoxml2element(header.fpath)
-                header.data = header.carddata.getfind("Property")
 
-            if self.is_playingscenario():
-                # シナリオプレイ中であれば削除フラグを立てる
-                header.carddata.edit("Property", "True", "moved")
-            else:
-                # 宿にいる場合はデータ消去
-                header.contain_xml()
+            if not header.scenariocard:
+                if self.is_playingscenario():
+                    # シナリオプレイ中であれば削除フラグを立てる
+                    if header.carddata is None:
+                        # パーティフォルダからcarddataを生成
+                        header.carddata = cw.data.yadoxml2element(header.fpath)
+                        header.data = header.carddata.find("Property")
+
+                    if targettype in ("PAWNSHOP", "TRASHBOX"):
+                        # 移動先がゴミ箱・下取りだったら完全削除予約
+                        moved = 2
+                    else:
+                        # どこかに残る場合
+                        moved = 1
+
+                    etree = cw.data.xml2etree(element=header.carddata)
+                    etree.edit("Property", str(moved), "moved")
+                    etree.write()
+                    header.moved = moved
+                    party.backpack_moved.append(header)
+                else:
+                    # 宿にいる場合はデータ消去
+                    header.contain_xml()
 
         # 移動元がカード置場だった場合
         elif owner == self.ydata.storehouse:
@@ -1429,22 +1447,17 @@ class CWPy(_Singleton, threading.Thread):
         else:
             header.contain_xml()
 
-        if targettype in ("BACKPACK", "STOREHOUSE"):
-            # 移動先が荷物袋かカード置場だったら
-            header.fpath = ""
-            header.write()
-
         #-----------------------------------------------------------------------
         # ファイル削除
         #-----------------------------------------------------------------------
 
         # 移動先がゴミ箱・下取りだったら
-        if targettype in ("PAWNSHOP", "TRASHBOX") and not (self.ydata.party and not self.ydata.party.onefile and owner == self.ydata.party.backpack):
+        if targettype in ("PAWNSHOP", "TRASHBOX"):
             # 付帯以外の召喚獣カードの場合
             if header.type == "BeastCard" and not header.attachment:
                 owner.update_image()
             # シナリオで取得したカードじゃない場合、XMLの削除
-            elif not header.scenariocard:
+            elif not header.scenariocard and header.moved == 0:
                 self.remove_xml(header)
 
         #-----------------------------------------------------------------------
@@ -1491,9 +1504,8 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     header.order = insertorder
             header.set_owner("BACKPACK")
-            header.carddata = None
             if sort:
-                self.ydata.party.sort_backpack()
+                party.sort_backpack()
 
         # 移動先がカード置場だった場合
         elif targettype == "STOREHOUSE":
@@ -1508,17 +1520,22 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     header.order = insertorder
             header.set_owner("STOREHOUSE")
-            header.carddata = None
             if sort:
                 self.ydata.sort_storehouse()
 
         # 下取りに出した場合
         elif targettype == "PAWNSHOP":
             # パーティの所持金または金庫に下取金を追加
-            if self.ydata.party:
-                self.ydata.party.set_money(price)
+            if party:
+                party.set_money(price)
             else:
                 self.ydata.set_money(price)
+
+        if targettype in ("BACKPACK", "STOREHOUSE"):
+            # 移動先が荷物袋かカード置場だったら
+            header.fpath = ""
+            header.write(party)
+            header.carddata = None
 
         # カード選択ダイアログを再び開く(イベントから呼ばれたのでなかったら)
         if not from_event:
@@ -1569,7 +1586,7 @@ class CWPy(_Singleton, threading.Thread):
                 if os.path.isfile(temppath):
                     self.ydata.deletedpaths.add(temppath)
 
-    def copy_materials(self, data, dstdir, from_scenario=True):
+    def copy_materials(self, data, dstdir, from_scenario=True, scedir=""):
         """
         from_scenario: Trueの場合は開いているシナリオから、
                        Falseの場合は開いている宿からコピーする
@@ -1586,7 +1603,9 @@ class CWPy(_Singleton, threading.Thread):
                     imgpath = e.text
                 else:
                     if from_scenario:
-                        imgpath = cw.util.join_paths(self.sdata.scedir, e.text)
+                        if not scedir:
+                            scedir = self.sdata.scedir
+                        imgpath = cw.util.join_paths(scedir, e.text)
                     else:
                         imgpath = cw.util.join_yadodir(e.text)
 
@@ -1595,7 +1614,7 @@ class CWPy(_Singleton, threading.Thread):
                     continue
 
                 # 重複チェック。既に処理しているimgpathかどうか
-                if imgpath in imgpaths:
+                if not pisc and imgpath in imgpaths:
                     # ElementTree編集
                     e.text = imgpaths[imgpath]
                 else:
@@ -1625,8 +1644,9 @@ class CWPy(_Singleton, threading.Thread):
                         shutil.copy2(imgpath, imgdst)
                     # ElementTree編集
                     e.text = imgdst.replace(self.tempdir + "/", "", 1)
-                    # 重複して処理しないよう辞書に登録
-                    imgpaths[imgpath] = e.text
+                    if not pisc:
+                        # 重複して処理しないよう辞書に登録
+                        imgpaths[imgpath] = e.text
 
 #-------------------------------------------------------------------------------
 # 状態取得用メソッド

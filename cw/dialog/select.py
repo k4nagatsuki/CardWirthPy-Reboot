@@ -584,7 +584,7 @@ class PartySelect(Select):
 
     def OnClickInfoBtn(self, event):
         header = self.list[self.index]
-        party = cw.data.Party(header.fpath, True)
+        party = cw.data.Party(header, True)
 
         dlg = cw.dialog.edit.PartyEditor(self.Parent, party)
         cw.cwpy.frame.move_dlg(dlg)
@@ -604,7 +604,7 @@ class PartySelect(Select):
             cw.cwpy.ydata.partys[self.index] = header
             self.draw(True)
         header = self.list[self.index]
-        party = cw.data.Party(header.fpath, True)
+        party = cw.data.Party(header, True)
         headers = []
         for memberpath in party.get_memberpaths():
             headers.append(cw.cwpy.ydata.create_advheader(memberpath))

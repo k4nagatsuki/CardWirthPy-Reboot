@@ -1240,7 +1240,7 @@ class GetContent(EventContentBase):
                 etree = cw.data.xml2etree(path, nocache=True)
                 get_card(etree, target)
 
-def get_card(etree, target, summon=False, toindex=-1, insertorder=-1):
+def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom=""):
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
     etree: ElementTree or Element
     target: Character or list(Backpack, Storehouse)
@@ -1251,7 +1251,7 @@ def get_card(etree, target, summon=False, toindex=-1, insertorder=-1):
     name = cw.util.repl_dischar(name)
 
     # シナリオ取得フラグ
-    if summon:
+    if notscenariocard:
         from_scenario = False
     else:
         from_scenario = True
@@ -1284,7 +1284,28 @@ def get_card(etree, target, summon=False, toindex=-1, insertorder=-1):
 
     header = cw.header.CardHeader(carddata=etree.getroot(),
                                     owner=None, from_scenario=from_scenario)
-    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False)
+
+    if copymaterialfrom:
+        if from_scenario:
+            # F9時に破棄しなければならないので
+            # ImagePathの取り込みに留める
+            for e2 in etree.getiterator():
+                if e2.tag == "ImagePath" and e2.text and not cw.binary.image.path_is_code(e2.text):
+                    path = cw.util.join_paths(copymaterialfrom, e2.text)
+                    if os.path.isfile(path):
+                        f = open(path, "rb")
+                        imagedata = f.read()
+                        f.close()
+                        e2.text = cw.binary.image.data_to_code(imagedata)
+                        header.imgpath = e2.text
+        else:
+            # 素材ファイルコピー
+            dstdir = cw.util.join_paths(cw.cwpy.ydata.yadodir,
+                                        "Material", header.type, name)
+            dstdir = cw.util.dupcheck_plus(dstdir)
+            cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom)
+
+    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party)
 
 class GetSkillContent(GetContent):
     def action(self):

@@ -13,6 +13,7 @@ class Party(base.CWBinaryBase):
     宿の画像も格納しているが必要ないと思うので破棄。
     """
     def __init__(self, parent, f, yadodata=False):
+        # TODO 新方式の変換
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 2
         self.fname = self.get_fname()

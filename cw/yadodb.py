@@ -70,7 +70,8 @@ class YadoDB(object):
                     break
             if not hastype:
                 self.cur.execute("ALTER TABLE card ADD COLUMN moved INTEGER")
-                self.cur.execute("UPDATE card SET moved=?", (0,))
+                self.cur.execute("ALTER TABLE card ADD COLUMN scenariocard INTEGER")
+                self.cur.execute("UPDATE card SET moved=?, scenariocard=?", (0, 0,))
 
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)
@@ -108,6 +109,7 @@ class YadoDB(object):
                     enhance_def_used INTEGER,
                     attachment INTEGER,
                     moved INTEGER,
+                    scenariocard INTEGER,
                     ctime INTEGER,
                     mtime INTEGER,
                     PRIMARY KEY (fpath)
@@ -337,9 +339,11 @@ class YadoDB(object):
             enhance_def_used,
             attachment,
             moved,
+            scenariocard,
             ctime,
             mtime
         ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -402,7 +406,8 @@ class YadoDB(object):
             header.enhance_res_used,
             header.enhance_def_used,
             header.attachment,
-            1 if header.moved else 0,
+            header.moved,
+            1 if header.scenariocard else 0,
             ctime,
             mtime,
         ))
@@ -464,6 +469,7 @@ class YadoDB(object):
                 enhance_def_used,
                 attachment,
                 moved,
+                scenariocard,
                 ctime,
                 mtime,
                 numorder

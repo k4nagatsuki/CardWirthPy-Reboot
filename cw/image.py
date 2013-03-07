@@ -55,7 +55,10 @@ class CardImage(Image):
             image.blit(subimg, (64, 5))
             image.blit(subimg, (5, 41))
 
-        path = cw.util.get_yadofilepath(self.path)
+        if cw.binary.image.path_is_code(self.path):
+            path = self.path
+        else:
+            path = cw.util.get_yadofilepath(self.path)
 
         if not path:
             path = self.path
