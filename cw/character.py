@@ -596,7 +596,7 @@ class Character(object):
         else:
             targets, header = self.decide_usecard(headers)
 
-        if not header.allrange and len(targets) > 1:
+        if header and not header.allrange and len(targets) > 1:
             targets = [cw.cwpy.dice.choice(targets)]
 
         # 行動設定
@@ -622,6 +622,9 @@ class Character(object):
         for index, i in enumerate(seq):
             for cnt in xrange(len(seq) - index):
                 seq2.append(i)
+
+        if not seq2:
+            return None, None
 
         return cw.cwpy.dice.choice(seq2)[3]
 

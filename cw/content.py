@@ -1259,7 +1259,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
 
     # 召喚獣カードの場合、付帯属性を操作する
     if etree.getroot().tag == "BeastCard":
-        if summon:
+        if notscenariocard:
             if etree.gettext("Property/UseLimit") == "0":
                 etree.edit("Property/UseLimit", "1")
 

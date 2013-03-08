@@ -1420,6 +1420,9 @@ class CWPy(_Singleton, threading.Thread):
                 header.contain_xml()
             else:
                 if self.is_playingscenario():
+                    if not header.carddata:
+                        e = cw.data.yadoxml2etree(header.fpath)
+                        header.carddata = e.getroot()
                     # シナリオプレイ中であれば削除フラグを立てて削除を保留
                     # (F9時に復旧する必要があるため)
                     if targettype in ("PAWNSHOP", "TRASHBOX"):

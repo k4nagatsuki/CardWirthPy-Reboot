@@ -787,6 +787,9 @@ class SkillPanel(wx.Panel):
                     return
                 cw.cwpy.sounds["click"].play()
                 header.hold = not header.hold
+                etree = cw.data.CWPyElementTree(element=header.carddata)
+                etree.edit("Property/Hold", str(header.hold))
+                self.ccard.data.is_edited = True
                 if header.hold:
                     bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
                 else:

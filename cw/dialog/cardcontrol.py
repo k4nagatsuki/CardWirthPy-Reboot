@@ -56,6 +56,8 @@ class CardControl(wx.Dialog):
         # focus
         self.panel.SetFocusIgnoringChildren()
 
+        self._proc = False
+
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
@@ -139,6 +141,9 @@ class CardControl(wx.Dialog):
         pass
 
     def OnKeyDown(self, event):
+        if self._proc:
+            return
+
         dc = wx.ClientDC(self.toppanel)
         id = event.GetId()
 
@@ -189,6 +194,9 @@ class CardControl(wx.Dialog):
                 self.ProcessEvent(btnevent)
 
     def OnLeftUp(self, event):
+        if self._proc:
+            return
+
         for header in self.get_headers():
             if header.rect.collidepoint(event.GetPosition()):
                 cw.cwpy.sounds["click"].play()
@@ -197,6 +205,9 @@ class CardControl(wx.Dialog):
                 return
 
     def OnRightUp(self, event):
+        if self._proc:
+            return
+
         cw.cwpy.sounds["click"].play()
 
         for header in self.get_headers():
@@ -348,6 +359,9 @@ class CardControl(wx.Dialog):
         header.negaflag = False
 
     def lclick_event(self, header):
+        if self._proc:
+            return
+
         owner = header.get_owner()
 
         if self.combo.IsShown():
@@ -367,10 +381,10 @@ class CardControl(wx.Dialog):
                     elif index == self._combo_trush:
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
                     def func():
+                        self._proc = False
                         self.draw(True)
-                        self.Enable(True)
                     cw.cwpy.frame.exec_func(func)
-                self.Enable(False)
+                self._proc = True
                 cw.cwpy.exec_func(func, header)
                 return
 
