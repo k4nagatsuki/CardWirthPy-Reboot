@@ -153,7 +153,7 @@ class CWPyCard(base.SelectableSprite):
         rect = self.get_animerect()
         size = rect.w * n / 100, rect.h
         self.image = pygame.transform.scale(self.get_animeimage(), size)
-        self.rect = self.image.get_rect(center=self.rect.center)
+        self.rect = self.image.get_rect(center=rect.center)
         if self.highspeed:
             self.frame += 2
         else:
@@ -245,16 +245,18 @@ class CWPyCard(base.SelectableSprite):
         if self.old_status == "hidden":
             self.image, self.rect = self.zoomimgs[0]
             self.zoomimgs = []
+            self.status = self.old_status
+            self.frame = 0
         else:
             self.image, self.rect = self.zoomimgs.pop()
             self.rect = pygame.Rect(self.rect)
             self.frame += 1
 
-        if not self.zoomimgs:
-            self.status = self.old_status
-            self.frame = 0
-            if self.status == "hidden":
-                self.clear_image()
+            if not self.zoomimgs:
+                self.status = self.old_status
+                self.frame = 0
+                if self.status == "hidden":
+                    self.clear_image()
 
     def update_image(self):
         """
