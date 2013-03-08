@@ -37,10 +37,10 @@ class CWPyCard(base.SelectableSprite):
         self.highspeed = False
 
     def get_unselectedimage(self):
-        return self._image
+        return self.get_animeimage()
 
     def get_selectedimage(self):
-        return cw.imageretouch.to_negative_for_card(self._image)
+        return cw.imageretouch.to_negative_for_card(self.get_animeimage())
 
     def get_animeimage(self):
         if self.zoomimgs:
