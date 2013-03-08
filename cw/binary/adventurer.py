@@ -235,6 +235,13 @@ class Adventurer(base.CWBinaryBase):
 
         return self.data
 
+    def create_xml(self, dpath):
+        path = base.CWBinaryBase.create_xml(self, dpath)
+        yadodb = self.get_root().yadodb
+        if yadodb:
+            yadodb.insert_adventurer(path, album=False, commit=False)
+        return path
+
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""
     def __init__(self, parent, f, yadodata=False):
@@ -256,11 +263,7 @@ class AdventurerCard(base.CWBinaryBase):
 
     def create_xml(self, dpath):
         """adventurerのデータだけxml化する。"""
-        path = self.adventurer.create_xml(dpath)
-        yadodb = self.get_root().yadodb
-        if yadodb:
-            yadodb.insert_adventurer(path, album=False, commit=False)
-        return path
+        return self.adventurer.create_xml(dpath)
 
 class AdventurerWithImage(base.CWBinaryBase):
     """埋め込み画像付き冒険者データ。
