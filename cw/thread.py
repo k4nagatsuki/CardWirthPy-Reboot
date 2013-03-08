@@ -1268,6 +1268,9 @@ class CWPy(_Singleton, threading.Thread):
             assert self.selectedheader
             header = self.selectedheader
 
+        if not party:
+            party = self.ydata.party
+
         if header.is_backpackheader() and party:
             owner = party.backpack
         else:
@@ -1277,8 +1280,6 @@ class CWPy(_Singleton, threading.Thread):
         if targettype == "PLAYERCARD":
             target = target
         elif targettype == "BACKPACK":
-            if not party:
-                party = self.ydata.party
             target = party.backpack
         elif targettype == "STOREHOUSE":
             target = self.ydata.storehouse
@@ -1466,6 +1467,10 @@ class CWPy(_Singleton, threading.Thread):
 
         # 移動先がPlayerCardだった場合
         if targettype == "PLAYERCARD":
+            if header.carddata is None:
+                header.carddata = cw.data.yadoxml2element(header.fpath)
+                header.data = header.carddata.find("Property")
+
             # cardpocketにCardHeaderを追加
             header.set_owner(target)
             # 使用回数を設定
