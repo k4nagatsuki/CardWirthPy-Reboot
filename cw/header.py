@@ -408,7 +408,7 @@ class CardHeader(object):
             e = cw.data.yadoxml2etree(self.fpath)
             self.carddata = e.getroot()
             # self.fpathを削除予定のfpathリストに追加
-            cw.cwpy.ydata.deletedpaths.add(self.fpath)
+            cw.cwpy.ydata.deletedpaths.add(self.fpath, self.scenariocard)
 
     def set_scenariostart(self):
         """

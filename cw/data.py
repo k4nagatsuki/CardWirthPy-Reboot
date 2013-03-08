@@ -751,11 +751,11 @@ class YadoDeletedPathSet(set):
 
         return set.__contains__(self, path)
 
-    def add(self, path):
+    def add(self, path, forceyado=False):
         if path.startswith(self.tempdir):
             path = path.replace(self.tempdir, self.yadodir, 1)
 
-        if cw.cwpy.is_playingscenario():
+        if not forceyado and cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.deletedpaths.add(path)
         else:
             set.add(self, path)

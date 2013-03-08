@@ -1414,11 +1414,14 @@ class CWPy(_Singleton, threading.Thread):
         elif party and owner == party.backpack:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
-            header.contain_xml()
 
-            if not header.scenariocard:
+            if header.scenariocard:
+                # シナリオで入手したカードはそのまま削除してよい
+                header.contain_xml()
+            else:
                 if self.is_playingscenario():
-                    # シナリオプレイ中であれば削除フラグを立てる
+                    # シナリオプレイ中であれば削除フラグを立てて削除を保留
+                    # (F9時に復旧する必要があるため)
                     if targettype in ("PAWNSHOP", "TRASHBOX"):
                         # 移動先がゴミ箱・下取りだったら完全削除予約
                         moved = 2
@@ -1431,6 +1434,9 @@ class CWPy(_Singleton, threading.Thread):
                     etree.write_xml()
                     header.moved = moved
                     party.backpack_moved.append(header)
+                else:
+                    # 宿にいる場合はそのまま削除する
+                    header.contain_xml()
 
         # 移動元がカード置場だった場合
         elif owner == self.ydata.storehouse:
@@ -1530,7 +1536,8 @@ class CWPy(_Singleton, threading.Thread):
             # 移動先が荷物袋かカード置場だったら
             header.fpath = ""
             etree = cw.data.xml2etree(element=header.carddata)
-            etree.remove("Property", attrname="moved")
+            if etree.getint("Property", "moved", 0) <> 0:
+                etree.remove("Property", attrname="moved")
             header.write(party)
             header.carddata = None
 
