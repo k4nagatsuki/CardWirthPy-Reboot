@@ -323,7 +323,7 @@ class Frame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             header = dlg.list[dlg.index]
-            cw.cwpy.exec_func(cw.cwpy.set_scenario, header)
+            cw.cwpy.exec_func(cw.cwpy.set_scenario, header, dlg.get_selected())
 
         # キャンセルしても最後の選択は記憶する
         cw.cwpy.setting.lastscenario = dlg.get_selected()

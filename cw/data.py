@@ -404,6 +404,8 @@ class ScenarioData(SystemData):
         """
         self._playing = False
 
+        cw.cwpy.ydata.party.set_lastscenario([])
+
         # ロストした冒険者を削除
         for path in self.lostadventurers:
             ccard = cw.character.Character(yadoxml2etree(path))
@@ -484,6 +486,7 @@ class ScenarioData(SystemData):
             else:
                 cw.cwpy.ydata.set_compstamp(key)
 
+        cw.cwpy.ydata.party.set_lastscenario([])
         cw.cwpy.ydata.party.reload()
 
         # 荷物袋のデータを戻す
@@ -972,6 +975,8 @@ class YadoData(object):
 
         if header:
             self.party = Party(header)
+            if self.party.lastscenario:
+                cw.cwpy.setting.lastscenario = self.party.lastscenario
             if header.fpath.lower().startswith("yado"):
                 name = os.path.relpath(header.fpath, self.yadodir)
             else:
@@ -1460,6 +1465,11 @@ class Party(object):
         # パーティ所持金
         self.money = self.data.getint("Property/Money", 0)
 
+        # 現在プレイ中のシナリオ
+        self.lastscenario = []
+        for e in self.data.getfind("Property/LastScenario", raiseerror=False):
+            self.lastscenario.append(e.text)
+
         self.partyinfoonly = partyinfoonly
         if partyinfoonly:
             # 選択中パーティのメンバー(CWPyElementTree)
@@ -1473,6 +1483,7 @@ class Party(object):
             else:
                 dpath = os.path.dirname(self.path)
                 carddb = cw.yadodb.YadoDB(dpath, mode=cw.yadodb.PARTY)
+                carddb.update()
                 for header in carddb.get_cards():
                     if header.moved == 0:
                         self.backpack.append(header)
@@ -1659,6 +1670,20 @@ class Party(object):
                 seq.append(path)
 
         return seq
+
+    def set_lastscenario(self, lastscenario):
+        """
+        プレイ中シナリオへの経路を記録する。
+        """
+        self.lastscenario = lastscenario
+        e = self.data.find("Property/LastScenario")
+        if e is None:
+            e = make_element("LastScenario")
+            self.data.append("Property", e)
+
+        e.clear()
+        for path in lastscenario:
+            e.append(make_element("Path", path))
 
 #-------------------------------------------------------------------------------
 #  CWPyElement
@@ -1931,7 +1956,7 @@ def xml2element(path="", tag="", file=None, nocache=False):
                 data = data.find(tag)
             if nocache:
                 # 変更されてもよいデータを返す
-                return copy.deepcopy(data)
+                return copydata(data)
             return data
 
     data = None
@@ -1955,13 +1980,24 @@ def xml2element(path="", tag="", file=None, nocache=False):
         cachedata = CacheData(basedata, mtime)
         cw.cwpy.sdata.cache[path] = cachedata
         if nocache:
-            data = copy.deepcopy(data)
+            data = copydata(data)
     return data
 
 class CacheData(object):
     def __init__(self, data, mtime):
         self.data = data
         self.mtime = mtime
+
+def copydata(data):
+    if data.tag in ("Motions", "Events"):
+        # 不変
+        return data
+
+    e = make_element(data.tag, data.text, copy.deepcopy(data.attrib), data.tail)
+    for child in data:
+        e.append(copydata(child))
+
+    return e
 
 class SimpleXmlParser(object):
     def __init__(self, fpath, targettag="", file=None):

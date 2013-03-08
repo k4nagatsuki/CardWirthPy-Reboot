@@ -395,7 +395,7 @@ class EffectMotion(object):
 
         # 召喚獣
         if data.hasfind("Beasts"):
-            self.beasts = [copy.deepcopy(e) for e in data.getfind("Beasts")]
+            self.beasts = [cw.data.copydata(e) for e in data.getfind("Beasts")]
         else:
             self.beasts = []
 

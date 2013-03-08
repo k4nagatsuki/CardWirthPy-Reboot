@@ -514,7 +514,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.change_area(areaid)
 
-    def set_scenario(self, header=None):
+    def set_scenario(self, header=None, lastscenario=[]):
         """シナリオ画面へ遷移。
         header: ScenarioHeader
         """
@@ -530,6 +530,8 @@ class CWPy(_Singleton, threading.Thread):
             s += "%s %s" % (self.ydata.name, self.sdata.name)
             self.set_titlebar(s)
             areaid = self.sdata.startid
+            if lastscenario:
+                self.ydata.party.set_lastscenario(lastscenario)
 
             if musicpath is None or\
                             self.music.path == self.music.get_path(musicpath):
@@ -1412,15 +1414,11 @@ class CWPy(_Singleton, threading.Thread):
         elif party and owner == party.backpack:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
+            header.contain_xml()
 
             if not header.scenariocard:
                 if self.is_playingscenario():
                     # シナリオプレイ中であれば削除フラグを立てる
-                    if header.carddata is None:
-                        # パーティフォルダからcarddataを生成
-                        header.carddata = cw.data.yadoxml2element(header.fpath)
-                        header.data = header.carddata.find("Property")
-
                     if targettype in ("PAWNSHOP", "TRASHBOX"):
                         # 移動先がゴミ箱・下取りだったら完全削除予約
                         moved = 2
@@ -1430,18 +1428,14 @@ class CWPy(_Singleton, threading.Thread):
 
                     etree = cw.data.xml2etree(element=header.carddata)
                     etree.edit("Property", str(moved), "moved")
-                    etree.write()
+                    etree.write_xml()
                     header.moved = moved
                     party.backpack_moved.append(header)
-                else:
-                    # 宿にいる場合はデータ消去
-                    header.contain_xml()
 
         # 移動元がカード置場だった場合
         elif owner == self.ydata.storehouse:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
-
             header.contain_xml()
 
         # 移動元が存在しない場合(get or loseコンテンツから呼んだ場合)
@@ -1467,10 +1461,6 @@ class CWPy(_Singleton, threading.Thread):
 
         # 移動先がPlayerCardだった場合
         if targettype == "PLAYERCARD":
-            if header.carddata is None:
-                header.carddata = cw.data.yadoxml2element(header.fpath)
-                header.data = header.carddata.find("Property")
-
             # cardpocketにCardHeaderを追加
             header.set_owner(target)
             # 使用回数を設定
@@ -1539,6 +1529,8 @@ class CWPy(_Singleton, threading.Thread):
         if targettype in ("BACKPACK", "STOREHOUSE"):
             # 移動先が荷物袋かカード置場だったら
             header.fpath = ""
+            etree = cw.data.xml2etree(element=header.carddata)
+            etree.remove("Property", attrname="moved")
             header.write(party)
             header.carddata = None
 

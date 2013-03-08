@@ -449,7 +449,7 @@ class CardEditDialog(wx.Dialog):
                 self._remove(owner, data, index)
 
                 header, data = self.target_cards[matcher]
-                data = copy.deepcopy(data)
+                data = cw.data.copydata(data)
                 name = data.gettext("Property/Name", "")
                 if cw.cwpy.ydata.storehouse is owner:
                     cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir)
