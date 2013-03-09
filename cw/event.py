@@ -400,7 +400,9 @@ class Event(object):
 
     def start(self):
         try:
-            cw.cwpy.statusbar.change(False)
+            showbuttons = not cw.cwpy.is_playingscenario() or\
+                cw.cwpy.areaid in cw.AREAS_SP
+            cw.cwpy.statusbar.change(showbuttons)
             self.run()
         except EventError, err:
             self.error = err

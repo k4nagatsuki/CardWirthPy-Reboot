@@ -220,8 +220,9 @@ class CWPy(_Singleton, threading.Thread):
         self.mcardgrp.update(self.scr)
         self.pcardgrp.update(self.scr)
         self.sbargrp.update(self.scr)
-        if not self.statusbar.showbuttons and not self.is_runningevent():
-            self.statusbar.change()
+        if not self.statusbar.showbuttons:
+            if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE:
+                self.statusbar.change()
 
     def draw(self, mainloop=False):
         if self.has_inputevent or not mainloop:
@@ -983,6 +984,10 @@ class CWPy(_Singleton, threading.Thread):
                     owner.set_action(owner, header)
                     self.clear_specialarea()
 
+        showbuttons = not self.is_playingscenario() or\
+            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
+        self.statusbar.change(showbuttons)
+
     def clear_specialarea(self):
         """特殊エリアに移動する前のエリアに戻る。
         areaidが-3(パーティ解散)の場合はエリアチェンジする。
@@ -1014,6 +1019,10 @@ class CWPy(_Singleton, threading.Thread):
             self.call_predlg()
         elif self.selectedheader:
             self.selectedheader = None
+
+        showbuttons = not self.is_playingscenario() or\
+            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
+        self.statusbar.change(showbuttons)
 
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド
