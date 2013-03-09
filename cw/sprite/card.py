@@ -280,7 +280,9 @@ class CWPyCard(base.SelectableSprite):
         if hasattr(self, "image") and self.rect.size == (0, 0):
             self._image = image
         else:
-            self.image = self._image = image
+            self._image = image
+            if self.status <> "reversed":
+                self.image = self._image
 
         self.rect.size = rect.size
         self._rect = pygame.Rect(self.rect)

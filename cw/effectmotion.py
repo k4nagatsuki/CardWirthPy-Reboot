@@ -287,8 +287,12 @@ class Effect(object):
         targetにtypenameの効果アニメーションを実行する。
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
         """
+        # 隠蔽中はアニメーションせず、時間経過も無し
+        if target.status == "reversed":
+            target.update_image()
+
         # 隠れているカードやFriendCardはアニメーションさせない
-        if isinstance(target, cw.character.Friend) or target.status == "hidden":
+        elif isinstance(target, cw.character.Friend) or target.status == "hidden":
             if update_image:
                 target.update_image()
                 cw.cwpy.draw()
