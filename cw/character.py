@@ -408,11 +408,11 @@ class Character(object):
             targets, header, beasts = self.actiondata
 
             # 召喚獣カードの使用
-            if self.is_alive():
+            if self.is_alive() and self.status <> "hidden" and self.status <> "reversed":
                 for targets_b, header_b in beasts:
                     # カードの効果で行動が変わっている可能性がある
                     targets, header, beasts = self.actiondata
-                    if not beasts:
+                    if not beasts or self.status == "hidden" or self.status == "reversed":
                         break;
 
                     self.use_card(targets_b, header_b)
@@ -423,7 +423,7 @@ class Character(object):
 
             # 手札カードの使用
             targets, header, beasts = self.actiondata
-            if header and self.is_active():
+            if header and self.is_active() and self.status <> "hidden" and self.status <> "reversed":
                 if header in self.deck.hand and not header.type == "ItemCard":
                     self.deck.hand.remove(header)
 
