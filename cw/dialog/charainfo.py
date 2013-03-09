@@ -778,6 +778,11 @@ class SkillPanel(wx.Panel):
             del header.subrect
 
     def OnLeftUp(self, event):
+        if not cw.cwpy.debug and not isinstance(self.ccard, cw.character.Player):
+            # ホールド不可
+            self._open_cardinfo(event.GetPosition())
+            return
+
         for header in self.headers:
             if header.subrect.collidepoint(event.GetPosition()):
                 # ホールド状態切り替え(召喚獣以外)
@@ -787,9 +792,10 @@ class SkillPanel(wx.Panel):
                     return
                 cw.cwpy.sounds["click"].play()
                 header.hold = not header.hold
-                etree = cw.data.CWPyElementTree(element=header.carddata)
-                etree.edit("Property/Hold", str(header.hold))
-                self.ccard.data.is_edited = True
+                if isinstance(self.ccard, cw.character.Player):
+                    etree = cw.data.CWPyElementTree(element=header.carddata)
+                    etree.edit("Property/Hold", str(header.hold))
+                    self.ccard.data.is_edited = True
                 if header.hold:
                     bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
                 else:
