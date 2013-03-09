@@ -1729,7 +1729,7 @@ class ScenarioSelect(Select):
     def is_invisible(self, header):
         num = 0
 
-        for coupon in header.coupons.split("\n"):
+        for coupon in header.coupons.splitlines():
             if coupon and coupon in self.coupons:
                 num += 1
 
