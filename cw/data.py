@@ -1516,7 +1516,7 @@ class Party(object):
         return cw.util.join_paths(cw.cwpy.ydata.yadodir, self.get_relpath())
 
     def get_tempdir(self):
-        return cw.util.join_paths(cw.cwpy.ydata.yadodir, self.get_relpath())
+        return cw.util.join_paths(cw.cwpy.ydata.tempdir, self.get_relpath())
 
     def is_loading(self):
         """membersのデータを元にPlayerCardインスタンスを

@@ -1499,14 +1499,14 @@ class CWPy(_Singleton, threading.Thread):
         elif targettype == "BACKPACK":
             # 移動先のリストにCardHeaderを追加
             if toindex == -1:
-                target.insert(0, header)
                 header.order = cw.util.new_order(target, mode=1)
+                target.insert(0, header)
             else:
-                target.insert(toindex, header)
                 if insertorder == -1:
                     header.order = cw.util.new_order(target, mode=1)
                 else:
                     header.order = insertorder
+                target.insert(toindex, header)
             header.set_owner("BACKPACK")
             if sort:
                 party.sort_backpack()
@@ -1515,14 +1515,14 @@ class CWPy(_Singleton, threading.Thread):
         elif targettype == "STOREHOUSE":
             # 移動先のリストにCardHeaderを追加
             if toindex == -1:
-                target.insert(0, header)
                 header.order = cw.util.new_order(target, mode=1)
+                target.insert(0, header)
             else:
-                target.insert(toindex, header)
                 if insertorder == -1:
                     header.order = cw.util.new_order(target, mode=1)
                 else:
                     header.order = insertorder
+                target.insert(toindex, header)
             header.set_owner("STOREHOUSE")
             if sort:
                 self.ydata.sort_storehouse()
