@@ -375,10 +375,8 @@ def new_order(seq, mode=1):
             order = max(item.order, order)
         return order + 1
     else:
-        order = 1
         for item in seq:
-            item.order = order
-            order += 1
+            item.order += 1
         return 0
 
 def join_paths(*paths):
