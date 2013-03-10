@@ -1396,12 +1396,12 @@ class CWPy(_Singleton, threading.Thread):
             action = owner.actiondata
             if action:
                 targets, aheader, beasts = action
-                if aheader and aheader.ref_original == header.ref_original:
+                if aheader and aheader.ref_original() == header.ref_original():
                     aheader = None
                     targets = None
                 beasts2 = []
                 for targets, beast in beasts:
-                    if beast.ref_original <> header.ref_original:
+                    if beast.ref_original() <> header.ref_original():
                         beasts2.append((targets, beast))
                 owner.set_action(targets, aheader, beasts2, True)
 

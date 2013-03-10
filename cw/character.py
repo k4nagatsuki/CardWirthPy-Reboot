@@ -409,19 +409,24 @@ class Character(object):
 
             # 召喚獣カードの使用
             if self.is_alive() and self.status <> "hidden" and self.status <> "reversed":
-                for targets_b, header_b in beasts:
-                    # カードの効果で行動が変わっている可能性がある
-                    if not self.actiondata:
-                        break
-                    targets, header, beasts = self.actiondata
-                    if not beasts or self.status == "hidden" or self.status == "reversed":
-                        break;
+                for targets_b, header_b in beasts[:]:
 
                     self.use_card(targets_b, header_b)
 
                     # 戦闘勝利チェック
                     if cw.cwpy.battle.check_win():
                         raise cw.battle.BattleWinError()
+
+                    # カードの効果で行動が変わっている可能性がある
+                    if not self.actiondata or self.status == "hidden" or self.status == "reversed":
+                        break
+                    inarr = False
+                    for targets_c, header_c in self.actiondata[2]:
+                        if header_c == header_b:
+                            inarr = True
+                            break
+                    if not inarr:
+                        break;
 
             # 手札カードの使用
             if self.actiondata:
