@@ -90,7 +90,7 @@ class CWPyCard(base.SelectableSprite):
                 if self.zoomimgs:
                     image = pygame.transform.scale(image, self.zoomimgs[1][1].size)
                 elif not self.scale == 100:
-                    image = pygame.transform.rotozoom(image, 0, scale)
+                    image = pygame.transform.rotozoom(image, 0, self.scale)
 
                 self._image = image
             else:
