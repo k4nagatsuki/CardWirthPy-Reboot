@@ -623,7 +623,7 @@ class CardEvent(Event):
             target.events.start(1)
 
     def run_successevent(self, target, successflag):
-        if isinstance(target, Enemy):
+        if isinstance(target, Enemy) and not (target.is_dead() or target.is_vanished()):
             if successflag:
                 keycodes = [self.inusecard.name + u"○"]
             else:
