@@ -25,13 +25,13 @@ class Deck(object):
 
         return seq
 
-    def get_skillcards(self, ccard):
+    def get_skillcards(self, ccard, handcounts={}):
         seq = []
 
         for header in ccard.get_pocketcards(cw.POCKET_SKILL):
             uselimit, maxn = header.get_uselimit()
 
-            for cnt in xrange(uselimit):
+            for cnt in xrange(uselimit - handcounts.get(header, 0)):
                 seq.append(header)
 
         return seq
@@ -73,15 +73,13 @@ class Deck(object):
         n = (ccard.level + 1) / 2 + 4
         return cw.util.numwrap(n, 5, 12)
 
-    def set(self, ccard, hand=True, talon=True, nextcards=True):
-        self.clear(ccard, hand, talon, nextcards)
-        if talon:
-            self.talon.extend(self.get_actioncards(ccard))
-            self.talon.extend(self.get_skillcards(ccard))
-            self.shuffle()
-        if hand:
-            self.set_hand(ccard)
-            self.draw(ccard)
+    def set(self, ccard):
+        self.clear(ccard)
+        self.talon.extend(self.get_actioncards(ccard))
+        self.talon.extend(self.get_skillcards(ccard))
+        self.shuffle()
+        self.set_hand(ccard)
+        self.draw(ccard)
 
     def set_hand(self, ccard):
         hand = [h for h in self.hand if h.type == "SkillCard" or
@@ -133,15 +131,37 @@ class Deck(object):
             self.nextcards = [h for h in self.nextcards
                                 if not h.ref_original == header.ref_original]
 
-    def clear(self, ccard, hand=True, talon=True, nextcards=True):
-        if talon:
-            self.talon = []
-        if hand:
-            self.hand = []
-            self._throwaway = False
-            ccard.clear_action()
-        if nextcards:
-            self.nextcards = []
+    def get_skillpower(self, ccard):
+        # 一旦山札から全てのスキルを取り除く
+        self.lose_skillpower(ccard)
+
+        # 現在手札にある分をカウントする
+        handcounts = {}
+        for header in self.hand:
+            header = header.ref_original()
+            count = handcounts.get(header, 0)
+            count += 1
+            handcounts[header] = count
+
+        # 山札に改めて追加
+        self.talon.extend(self.get_skillcards(ccard, handcounts))
+        self.shuffle()
+
+    def lose_skillpower(self, ccard):
+        # 現在handにある分は除去しなくてよい
+        talon = []
+        for header in self.talon:
+            if header.type <> "SkillCard":
+                talon.append(header)
+        self.talon = talon
+        self.shuffle()
+
+    def clear(self, ccard):
+        self.talon = []
+        self.hand = []
+        self.nextcards = []
+        self._throwaway = False
+        ccard.clear_action()
 
     def throwaway(self):
         self._throwaway = True
@@ -149,6 +169,16 @@ class Deck(object):
     def draw(self, ccard):
         maxn = self.get_handmaxnum(ccard)
         if self._throwaway:
+            # 現在の手札を山札に戻す
+            for header in self.hand[1::]:
+                if header.type == "SkillCard":
+                    header = header.ref_original()
+                    self.talon.append(header)
+                elif header.type == "ActionCard" and header.id > 0:
+                    header = cw.cwpy.rsrc.actioncards[header.id]
+                    self.talon.append(header)
+            self.shuffle()
+
             self.hand = []
             # カード交換は常に残す
             header = cw.cwpy.rsrc.actioncards[0].copy()

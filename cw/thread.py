@@ -1500,9 +1500,7 @@ class CWPy(_Singleton, threading.Thread):
 
             # 手札の再構築
             if cw.cwpy.is_battlestatus():
-                target.deck.set(target, hand=False, talon=True, nextcards=False)
-                if header.type == "ItemCard":
-                    target.deck.add(target, header)
+                target.deck.add(target, header)
 
         # 移動先が荷物袋だった場合
         elif targettype == "BACKPACK":
