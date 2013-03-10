@@ -432,6 +432,7 @@ class CardHeader(object):
         if self.scenariocard:
             # シナリオ取得フラグクリア
             if self.carddata is None:
+                assert self.fpath, self.name
                 self.carddata = cw.data.xml2element(self.fpath)
 
             self.scenariocard = False
