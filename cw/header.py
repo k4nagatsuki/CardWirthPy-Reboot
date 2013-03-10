@@ -430,15 +430,16 @@ class CardHeader(object):
         シナリオで取得したカードの素材ファイルを宿にコピーしたりする。
         """
         if self.scenariocard:
-            # シナリオ取得フラグクリア
             if self.carddata is None:
                 assert self.fpath, self.name
+                assert os.path.isfile(self.fpath), self.name
                 self.carddata = cw.data.xml2element(self.fpath)
 
+            # シナリオ取得フラグクリア
             self.scenariocard = False
             self.carddata.attrib.pop("scenariocard")
             # 画像コピー
-            dstdir = cw.util.join_paths(cw.cwpy.yadodir,
+            dstdir = cw.util.join_paths(cw.cwpy.tempdir,
                                             "Material", self.type, self.name)
             dstdir = cw.util.dupcheck_plus(dstdir)
             cw.cwpy.copy_materials(self.carddata, dstdir)
