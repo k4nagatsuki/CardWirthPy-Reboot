@@ -400,6 +400,7 @@ class CardHeader(object):
             etree.edit("Property/Hold", "False")
 
         etree.write_xml(True)
+        self.fpath = etree.fpath
         # self.fpathを削除予定のfpathリストから削除
         cw.cwpy.ydata.deletedpaths.discard(self.fpath)
 
@@ -432,7 +433,7 @@ class CardHeader(object):
         if self.scenariocard:
             if self.carddata is None:
                 assert self.fpath, self.name
-                assert os.path.isfile(self.fpath), self.name
+                assert os.path.isfile(self.fpath), self.fpath
                 self.carddata = cw.data.xml2element(self.fpath)
 
             # シナリオ取得フラグクリア
