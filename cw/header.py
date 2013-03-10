@@ -439,7 +439,7 @@ class CardHeader(object):
             self.scenariocard = False
             self.carddata.attrib.pop("scenariocard")
             # 画像コピー
-            dstdir = cw.util.join_paths(cw.cwpy.tempdir,
+            dstdir = cw.util.join_paths(cw.cwpy.yadodir,
                                             "Material", self.type, self.name)
             dstdir = cw.util.dupcheck_plus(dstdir)
             cw.cwpy.copy_materials(self.carddata, dstdir)

@@ -1338,7 +1338,7 @@ class YadoData(object):
                     name = e.gettext("Property/Name", "noname")
                     name = cw.util.repl_dischar(name)
                     # 素材ファイルコピー
-                    dstdir = cw.util.join_paths(self.tempdir,
+                    dstdir = cw.util.join_paths(self.yadodir,
                                                     "Material", cardtype, name)
                     dstdir = cw.util.dupcheck_plus(dstdir)
                     cw.cwpy.copy_materials(e, dstdir)
@@ -1346,7 +1346,7 @@ class YadoData(object):
             # カード画像コピー
             name = cw.util.repl_dischar(fcard.name)
             e = data.getfind("Property")
-            dstdir = cw.util.join_paths(self.tempdir,
+            dstdir = cw.util.join_paths(self.yadodir,
                                                 "Material", "Adventurer", name)
             dstdir = cw.util.dupcheck_plus(dstdir)
             cw.cwpy.copy_materials(e, dstdir)

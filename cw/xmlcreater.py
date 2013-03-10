@@ -193,7 +193,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     # 画像コピー
     name = etree.gettext("Property/Name", "noname")
     fname = cw.util.repl_dischar(name)
-    dstdir = cw.util.join_paths(cw.cwpy.tempdir, "Material/Album")
+    dstdir = cw.util.join_paths(cw.cwpy.yadodir, "Material/Album")
     cw.cwpy.copy_materials(etree, dstdir, from_scenario=False)
     # ファイル書き込み
     path = cw.util.join_paths(cw.cwpy.tempdir, "Album", fname + ".xml")
