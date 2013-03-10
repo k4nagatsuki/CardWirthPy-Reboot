@@ -1360,7 +1360,7 @@ class CWPy(_Singleton, threading.Thread):
             if n + 1 > maxn:
                 if from_event:
                     if isinstance(target, cw.character.Player):
-                        self.trade("BACKPACK", header=header, from_event=True, sort=sort)
+                        self.trade("BACKPACK", header=header, from_event=True, sort=sort, party=party)
 
                 else:
                     self.sounds["error"].play()

@@ -388,18 +388,18 @@ class CardHeader(object):
                 if not party:
                     party = cw.cwpy.ydata.party
                 dpath = os.path.dirname(party.path)
-                dpath = dpath.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
             else:
-                dpath = cw.cwpy.tempdir
+                dpath = cw.cwpy.yadodir
             path = cw.util.join_paths(dpath, self.type, fname)
             self.fpath = cw.util.dupcheck_plus(path)
 
         etree = cw.data.xml2etree(element=self.carddata)
+        etree.fpath = self.fpath
 
         if not self.type == "BeastCard":
             etree.edit("Property/Hold", "False")
 
-        etree.write(self.fpath)
+        etree.write_xml(True)
         # self.fpathを削除予定のfpathリストから削除
         cw.cwpy.ydata.deletedpaths.discard(self.fpath)
 
