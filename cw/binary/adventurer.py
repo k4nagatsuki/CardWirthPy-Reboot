@@ -242,6 +242,9 @@ class Adventurer(base.CWBinaryBase):
             yadodb.insert_adventurer(path, album=False, commit=False)
         return path
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""
     def __init__(self, parent, f, yadodata=False):
@@ -265,6 +268,9 @@ class AdventurerCard(base.CWBinaryBase):
         """adventurerのデータだけxml化する。"""
         return self.adventurer.create_xml(dpath)
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class AdventurerWithImage(base.CWBinaryBase):
     """埋め込み画像付き冒険者データ。
     パーティデータを読み込むときに使う。
@@ -282,6 +288,9 @@ class AdventurerWithImage(base.CWBinaryBase):
     def create_xml(self, dpath):
         """adventurerのデータだけxml化する。"""
         self.adventurer.create_xml(dpath)
+
+    def unconv(self, f, data):
+        pass # TODO
 
 class AdventurerHeader(base.CWBinaryBase):
     """wchファイル(type=0)。おそらく宿帳表示用の簡易データと思われる。
@@ -315,6 +324,9 @@ class AdventurerHeader(base.CWBinaryBase):
         f.byte()
         self.min = f.byte()
         f.byte()
+
+    def unconv(self, f, data):
+        pass # TODO
 
 def main():
     pass

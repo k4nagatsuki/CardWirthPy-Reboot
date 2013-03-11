@@ -71,6 +71,9 @@ class Area(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
     def __init__(self, parent, f, yadodata=False, dataversion=4):
@@ -122,6 +125,9 @@ class MenuCard(base.CWBinaryBase):
                 e.append(event.get_data())
             self.data.append(e)
         return self.data
+
+    def unconv(self, f, data):
+        pass # TODO
 
 def main():
     pass

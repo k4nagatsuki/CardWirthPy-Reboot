@@ -78,6 +78,9 @@ class Party(base.CWBinaryBase):
 
         return path
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class PartyMembers(base.CWBinaryBase):
     """wptファイル(type=3)。パーティメンバと
     荷物袋に入っているカードリストを格納している。
@@ -105,6 +108,9 @@ class PartyMembers(base.CWBinaryBase):
         for adventurer in self.adventurers:
             adventurer.create_xml(dpath)
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class BackpackCard(base.CWBinaryBase):
     """荷物袋に入っているカードのデータ。
     self.dataにwidファイルから読み込んだカードデータがある。
@@ -127,6 +133,9 @@ class BackpackCard(base.CWBinaryBase):
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
         return self.data.create_xml(dpath)
+
+    def unconv(self, f, data):
+        pass # TODO
 
 def main():
     pass

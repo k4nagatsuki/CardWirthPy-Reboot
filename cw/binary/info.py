@@ -51,6 +51,9 @@ class InfoCard(base.CWBinaryBase):
             self.data.append(prop)
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 def main():
     pass
 

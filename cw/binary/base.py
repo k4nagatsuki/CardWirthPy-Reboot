@@ -377,6 +377,142 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_contenttype(self, n):
+        if type == "Start" and n == "":
+            return 0
+        elif type == "Link" and n == "Start":
+            return 1
+        elif type == "Start" and n == "Battle":
+            return 2
+        elif type == "End" and n == "":
+            return 3
+        elif type == "End" and n == "BadEnd":
+            return 4
+        elif type == "Change" and n == "Area":
+            return 5
+        elif type == "Talk" and n == "Message":
+            return 6
+        elif type == "Play" and n == "Bgm":
+            return 7
+        elif type == "Change" and n == "BgImage":
+            return 8
+        elif type == "Play" and n == "Sound":
+            return 9
+        elif type == "Wait" and n == "":
+            return 10
+        elif type == "Effect" and n == "":
+            return 11
+        elif type == "Branch" and n == "Select":
+            return 12
+        elif type == "Branch" and n == "Ability":
+            return 13
+        elif type == "Branch" and n == "Random":
+            return 14
+        elif type == "Branch" and n == "Flag":
+            return 15
+        elif type == "Set" and n == "Flag":
+            return 16
+        elif type == "Branch" and n == "MultiStep":
+            return 17
+        elif type == "Set" and n == "Step":
+            return 18
+        elif type == "Branch" and n == "Cast":
+            return 19
+        elif type == "Branch" and n == "Item":
+            return 20
+        elif type == "Branch" and n == "Skill":
+            return 21
+        elif type == "Branch" and n == "Info":
+            return 22
+        elif type == "Branch" and n == "Beast":
+            return 23
+        elif type == "Branch" and n == "Money":
+            return 24
+        elif type == "Branch" and n == "Coupon":
+            return 25
+        elif type == "Get" and n == "Cast":
+            return 26
+        elif type == "Get" and n == "Item":
+            return 27
+        elif type == "Get" and n == "Skill":
+            return 28
+        elif type == "Get" and n == "Info":
+            return 29
+        elif type == "Get" and n == "Beast":
+            return 30
+        elif type == "Get" and n == "Money":
+            return 31
+        elif type == "Get" and n == "Coupon":
+            return 32
+        elif type == "Lose" and n == "Cast":
+            return 33
+        elif type == "Lose" and n == "Item":
+            return 34
+        elif type == "Lose" and n == "Skill":
+            return 35
+        elif type == "Lose" and n == "Info":
+            return 36
+        elif type == "Lose" and n == "Beast":
+            return 37
+        elif type == "Lose" and n == "Money":
+            return 38
+        elif type == "Lose" and n == "Coupon":
+            return 39
+        elif type == "Talk" and n == "Dialog":
+            return 40
+        elif type == "Set" and n == "StepUp":
+            return 41
+        elif type == "Set" and n == "StepDown":
+            return 42
+        elif type == "Reverse" and n == "Flag":
+            return 43
+        elif type == "Branch" and n == "Step":
+            return 44
+        elif type == "Elapse" and n == "Time":
+            return 45
+        elif type == "Branch" and n == "Level":
+            return 46
+        elif type == "Branch" and n == "Status":
+            return 47
+        elif type == "Branch" and n == "PartyNumber":
+            return 48
+        elif type == "Show" and n == "Party":
+            return 49
+        elif type == "Hide" and n == "Party":
+            return 50
+        elif type == "Effect" and n == "Break":
+            return 51
+        elif type == "Call" and n == "Start":
+            return 52
+        elif type == "Link" and n == "Package":
+            return 53
+        elif type == "Call" and n == "Package":
+            return 54
+        elif type == "Branch" and n == "Area":
+            return 55
+        elif type == "Branch" and n == "Battle":
+            return 56
+        elif type == "Branch" and n == "CompleteStamp":
+            return 57
+        elif type == "Get" and n == "CompleteStamp":
+            return 58
+        elif type == "Lose" and n == "CompleteStamp":
+            return 59
+        elif type == "Branch" and n == "Gossip":
+            return 60
+        elif type == "Get" and n == "Gossip":
+            return 61
+        elif type == "Lose" and n == "Gossip":
+            return 62
+        elif type == "Branch" and n == "IsBattle":
+            return 63
+        elif type == "Redisplay" and n == "":
+            return 64
+        elif type == "Check" and n == "Flag":
+            return 65
+        else:
+            raise ValueError(self.fpath)
+
 #-------------------------------------------------------------------------------
 # 適用メンバ・適用範囲
 #-------------------------------------------------------------------------------
@@ -405,6 +541,24 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_target_member(self, n):
+        if n == "Selected":
+            return 0
+        elif n == "Random":
+            return 1
+        elif n == "Unselected":
+            return 2
+        elif n == "SelectedSleep":
+            return 3
+        elif n == "RandomSleep":
+            return 4
+        elif n == "PartySleep":
+            return 5
+        elif n == "Party":
+            return 6
+        else:
+            raise ValueError(self.fpath)
+
     def conv_target_scope(self, n):
         """引数の値から、「適用範囲」の種類を返す。
         0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
@@ -426,6 +580,22 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_target_scope(self, n):
+        if n == "Selected":
+            return 0
+        elif n == "Random":
+            return 1
+        elif n == "Party":
+            return 2
+        elif n == "Backpack":
+            return 3
+        elif n == "PartyAndBackpack":
+            return 4
+        elif n == "Field":
+            return 5
+        else:
+            raise ValueError(self.fpath)
+
 #-------------------------------------------------------------------------------
 # コンテント系
 #-------------------------------------------------------------------------------
@@ -436,6 +606,14 @@ class CWBinaryBase(object):
             return "Auto"
         elif n == 1:
             return "Custom"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_spreadtype(self, n):
+        if n == "Auto":
+            return 0
+        elif n == "Custom":
+            return 1
         else:
             raise ValueError(self.fpath)
 
@@ -473,6 +651,34 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_statustype(self, n):
+        if n == "Active":
+            return 0
+        elif n == "Inactive":
+            return 1
+        elif n == "Alive":
+            return 2
+        elif n == "Dead":
+            return 3
+        elif n == "Fine":
+            return 4
+        elif n == "Injured":
+            return 5
+        elif n == "HeavyInjured":
+            return 6
+        elif n == "Unconscious":
+            return 7
+        elif n == "Poison":
+            return 8
+        elif n == "Sleep":
+            return 9
+        elif n == "Bind":
+            return 10
+        elif n == "Paralyze":
+            return 11
+        else:
+            raise ValueError(self.fpath)
+
 #-------------------------------------------------------------------------------
 # 効果モーション関連
 #-------------------------------------------------------------------------------
@@ -496,6 +702,24 @@ class CWBinaryBase(object):
             return "Fire"
         elif n == 6:
             return "Ice"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_effectmotion_element(self, n):
+        if n == "All":
+            return 0
+        elif n == "Health":
+            return 1
+        elif n == "Mind":
+            return 2
+        elif n == "Miracle":
+            return 3
+        elif n == "Magic":
+            return 4
+        elif n == "Fire":
+            return 5
+        elif n == "Ice":
+            return 6
         else:
             raise ValueError(self.fpath)
 
@@ -621,6 +845,97 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_effectmotion_type(self, n):
+        if n == "Heal":
+            return 0, 0
+        elif n == "Damage":
+            return 0, 1
+        elif n == "Absorb":
+            return 0, 2
+
+        elif n == "Paralyze":
+            return 1, 0
+        elif n == "DisParalyze":
+            return 1, 1
+        elif n == "Poison":
+            return 1, 2
+        elif n == "DisPoison":
+            return 1, 3
+
+        elif n == "GetSkillPower":
+            return 2, 0
+        elif n == "LoseSkillPower":
+            return 2, 1
+
+        elif n == "Sleep":
+            return 3, 0
+        elif n == "Confuse":
+            return 3, 1
+        elif n == "Overheat":
+            return 3, 2
+        elif n == "Brave":
+            return 3, 3
+        elif n == "Panic":
+            return 3, 4
+        elif n == "Normal":
+            return 3, 5
+
+        elif n == "Bind":
+            return 4, 0
+        elif n == "DisBind":
+            return 4, 1
+        elif n == "Silence":
+            return 4, 2
+        elif n == "DisSilence":
+            return 4, 3
+        elif n == "FaceUp":
+            return 4, 4
+        elif n == "FaceDown":
+            return 4, 5
+        elif n == "AntiMagic":
+            return 4, 6
+        elif n == "DisAntiMagic":
+            return 4, 7
+
+        elif n == "EnhanceAction":
+            return 5, 0
+        elif n == "EnhanceAvoid":
+            return 5, 1
+        elif n == "EnhanceResist":
+            return 5, 2
+        elif n == "EnhanceDefense":
+            return 5, 3
+
+        elif n == "VanishTarget":
+            return 6, 0
+        elif n == "VanishCard":
+            return 6, 1
+        elif n == "VanishBeast":
+            return 6, 2
+
+        elif n == "DealAttackCard":
+            return 7, 0
+        elif n == "DealPowerfulAttackCard":
+            return 7, 1
+        elif n == "DealCriticalAttackCard":
+            return 7, 2
+        elif n == "DealFeintCard":
+            return 7, 3
+        elif n == "DealDefenseCard":
+            return 7, 4
+        elif n == "DealDistanceCard":
+            return 7, 5
+        elif n == "DealConfuseCard":
+            return 7, 6
+        elif n == "DealSkillCard":
+            return 7, 7
+
+        elif n == "SummonBeast":
+            return 8, 0
+
+        else:
+            raise ValueError(self.fpath)
+
     def conv_effectmotion_damagetype(self, n):
         """引数の値から、効果モーションの「属性」を返す。
         0:levelratio(レベル比), 1:normal(効果値), 2:max(最大値)
@@ -631,6 +946,16 @@ class CWBinaryBase(object):
             return "Normal"
         elif n == 2:
             return "Max"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_effectmotion_damagetype(self, n):
+        if n == "LevelRatio":
+            return 0
+        elif n == "Normal":
+            return 1
+        elif n == "Max":
+            return 2
         else:
             raise ValueError(self.fpath)
 
@@ -656,6 +981,20 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_card_effecttype(self, n):
+        if n == "Physic":
+            return 0
+        elif n == "Magic":
+            return 1
+        elif n == "MagicalPhysic":
+            return 2
+        elif n == "PhysicalMagic":
+            return 3
+        elif n == "None":
+            return 4
+        else:
+            raise ValueError(self.fpath)
+
     def conv_card_resisttype(self, n):
         """引数の値から、「抵抗属性」の種類を返す。
         0:Avoid(物理属性), 1:Resist(抵抗属性), 3:Unfail(必中属性)
@@ -666,6 +1005,16 @@ class CWBinaryBase(object):
             return "Resist"
         elif n == 2:
             return "Unfail"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_card_resisttype(self, n):
+        if n == "Avoid":
+            return 0
+        elif n == "Resist":
+            return 1
+        elif n == "Unfail":
+            return 2
         else:
             raise ValueError(self.fpath)
 
@@ -682,6 +1031,18 @@ class CWBinaryBase(object):
             return "Horizontal"
         elif n == 3:
             return "Vertical"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_card_visualeffect(self, n):
+        if n == "None":
+            return 0
+        elif n == "Reverse":
+            return 1
+        elif n == "Horizontal":
+            return 2
+        elif n == "Vertical":
+            return 3
         else:
             raise ValueError(self.fpath)
 
@@ -702,6 +1063,22 @@ class CWBinaryBase(object):
             return "Vit"
         elif n == 5:
             return "Min"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_card_physicalability(self, n):
+        if n == "Dex":
+            return 0
+        elif n == "Agl":
+            return 1
+        elif n == "Int":
+            return 2
+        elif n == "Str":
+            return 3
+        elif n == "Vit":
+            return 4
+        elif n == "Min":
+            return 5
         else:
             raise ValueError(self.fpath)
 
@@ -734,6 +1111,30 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_card_mentalability(self, n):
+        if n == "Aggressive":
+            return 1
+        elif n == "Unaggressive":
+            return -1
+        elif n == "Cheerful":
+            return 2
+        elif n == "Uncheerful":
+            return -2
+        elif n == "Brave":
+            return 3
+        elif n == "Unbrave":
+            return -3
+        elif n == "Cautious":
+            return 4
+        elif n == "Uncautious":
+            return -4
+        elif n == "Trickish":
+            return 5
+        elif n == "Untrickish":
+            return -5
+        else:
+            raise ValueError(self.fpath)
+
     def conv_card_target(self, n):
         """引数の値から、効果目標の種類を返す。
         0:None(対象無し), 1:User(使用者), 2:Party(味方),
@@ -752,6 +1153,20 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_card_target(self, n):
+        if n == "None":
+            return 0
+        elif n == "User":
+            return 1
+        elif n == "Party":
+            return 2
+        elif n == "Enemy":
+            return 3
+        elif n == "Both":
+            return 4
+        else:
+            raise ValueError(self.fpath)
+
     def conv_card_premium(self, n):
         """引数の値から、希少度の種類を返す。
         一時的に所持しているだけのF9でなくなるカードの場合は+3されている。
@@ -763,6 +1178,16 @@ class CWBinaryBase(object):
             return "Rare"
         elif n == 2:
             return "Premium"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_card_premium(self, n):
+        if n == "Normal":
+            return 0
+        elif n == "Rare":
+            return 1
+        elif n == "Premium":
+            return 2
         else:
             raise ValueError(self.fpath)
 
@@ -789,6 +1214,22 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_mentality(self, n):
+        if n == "Normal":
+            return 0
+        elif n == "Panic":
+            return 1
+        elif n == "Brave":
+            return 2
+        elif n == "Overheat":
+            return 3
+        elif n == "Confuse":
+            return 4
+        elif n == "Sleep":
+            return 5
+        else:
+            raise ValueError(self.fpath)
+
 #-------------------------------------------------------------------------------
 #　宿データ関連
 #-------------------------------------------------------------------------------
@@ -801,6 +1242,14 @@ class CWBinaryBase(object):
             return "Normal"
         elif n == 2:
             return "Debug"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_yadotype(self, n):
+        if n == "Normal":
+            return 1
+        elif n == "Debug":
+            return 2
         else:
             raise ValueError(self.fpath)
 
@@ -820,6 +1269,18 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
+    def unconv_yado_summaryview(self, n):
+        if n == "HideHiddenAndCompleteScenario":
+            return 0
+        elif n == "HideHiddenScenario":
+            return 1
+        elif n == "ShowAll":
+            return 2
+        elif n == "ShowFittingScenario":
+            return 3
+        else:
+            raise ValueError(self.fpath)
+
     def conv_yado_bgchange(self, n):
         """引数の値から、背景の切り替え方式の種類を返す。
         0:アニメーションなし, 1:短冊式,
@@ -833,6 +1294,18 @@ class CWBinaryBase(object):
             return "ColorShade"
         elif n == 3:
             return "ReplaceDot"
+        else:
+            raise ValueError(self.fpath)
+
+    def unconv_yado_bgchange(self, n):
+        if n == "NoAnimation":
+            return 0
+        elif n == "ReedShape":
+            return 1
+        elif n == "ColorShade":
+            return 2
+        elif n == "ReplaceDot":
+            return 3
         else:
             raise ValueError(self.fpath)
 

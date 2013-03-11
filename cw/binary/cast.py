@@ -243,6 +243,9 @@ class CastCard(base.CWBinaryBase):
 
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 def main():
     pass
 

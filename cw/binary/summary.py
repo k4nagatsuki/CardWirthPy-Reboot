@@ -89,6 +89,9 @@ class Summary(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class Step(base.CWBinaryBase):
     """ステップ定義。"""
     def __init__(self, parent, f, yadodata=False):
@@ -127,6 +130,21 @@ class Step(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
+    def unconv(self, f, data):
+        name = ""
+        default = int(e.get("default"))
+        variable_names = [""] * 10
+        for e in data:
+            if e.tag == "Name":
+                name = e.text
+            elif e.tag.startswith("Value"):
+                variable_names[int(e.tag[5:])] = e.text
+
+        f.write_string(name)
+        f.write_dword(default)
+        for variable_name in variable_names:
+            f.write_string(variable_name);
+
 class Flag(base.CWBinaryBase):
     """フラグ定義。"""
     def __init__(self, parent, f, yadodata=False):
@@ -148,6 +166,23 @@ class Flag(base.CWBinaryBase):
             e = cw.data.make_element("False", self.variable_names[1])
             self.data.append(e)
         return self.data
+
+    def unconv(self, f, data):
+        name = ""
+        default = bool(e.get("default"))
+        variable_names = [""] * 2
+        for e in data:
+            if e.tag == "Name":
+                name = e.text
+            elif e.tag == "True":
+                variable_names[0] = e.text
+            elif e.tag == "False":
+                variable_names[1] = e.text
+
+        f.write_string(name)
+        f.write_bool(default)
+        for variable_name in variable_names:
+            f.write_string(variable_name);
 
 def main():
     pass

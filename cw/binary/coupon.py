@@ -21,6 +21,9 @@ class Coupon(base.CWBinaryBase):
             self.data.set("value", str(self.value))
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 def main():
     pass
 

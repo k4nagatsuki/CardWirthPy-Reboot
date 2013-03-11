@@ -120,6 +120,9 @@ class Album(base.CWBinaryBase):
             yadodb.insert_adventurer(path, album=True, commit=False)
         return path
 
+    def unconv(self, f, data):
+        pass # TODO
+
 def main():
     pass
 

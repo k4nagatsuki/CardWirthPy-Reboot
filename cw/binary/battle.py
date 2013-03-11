@@ -70,6 +70,9 @@ class Battle(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class EnemyCard(base.CWBinaryBase):
     """エネミーカード。
     主要なデータはキャストカードを参照する。
@@ -110,6 +113,9 @@ class EnemyCard(base.CWBinaryBase):
                 e.append(event.get_data())
             self.data.append(e)
         return self.data
+
+    def unconv(self, f, data):
+        pass # TODO
 
 def main():
     pass

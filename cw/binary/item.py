@@ -159,6 +159,9 @@ class ItemCard(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 def main():
     pass
 

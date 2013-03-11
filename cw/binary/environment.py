@@ -102,6 +102,9 @@ class Environment(base.CWBinaryBase):
 
         return d
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class UnusedCard(base.CWBinaryBase):
     """カード置き場のカードのデータ。
     self.dataにwidファイルから読み込んだカードデータがある。
@@ -132,6 +135,9 @@ class UnusedCard(base.CWBinaryBase):
             yadodb.insert_card(path, commit=False, cardorder=cardorder)
         return path
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class YadoCard(base.CWBinaryBase):
     """カード置き場のカードと荷物袋のカードのデータ。
     ここのtypeで宿にあるカードのタイプ(技能・アイテム・召喚獣)を判別できる。
@@ -145,6 +151,9 @@ class YadoCard(base.CWBinaryBase):
         self.type = f.byte()
         self.fname = f.rawstring()
         self.number = f.dword() # 個数
+
+    def unconv(self, f, data):
+        pass # TODO
 
 def main():
     pass

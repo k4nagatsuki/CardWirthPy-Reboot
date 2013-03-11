@@ -34,6 +34,9 @@ class Event(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
+    def unconv(self, f, data):
+        pass # TODO
+
 class SimpleEvent(base.CWBinaryBase):
     """イベント発火条件なしのイベントデータのクラス。
     カードイベント・パッケージ等で使う。
@@ -54,6 +57,9 @@ class SimpleEvent(base.CWBinaryBase):
                 e.append(content.get_data())
             self.data.append(e)
         return self.data
+
+    def unconv(self, f, data):
+        pass # TODO
 
 def main():
     pass
