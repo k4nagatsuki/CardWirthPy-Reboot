@@ -2181,10 +2181,14 @@ class TalkDialogContent(TalkContent):
     def get_dialogtext(self, dialogs, coupons):
         dialogtext = ""
         for req_coupons, text in dialogs:
+            hasallcoupons = True
             for req_coupon in req_coupons:
-                if req_coupon in coupons:
-                    dialogtext = text
+                if not req_coupon in coupons:
+                    hasallcoupons = False
                     break
+
+            if hasallcoupons:
+                dialogtext = text
 
             if not req_coupons:
                 dialogtext = text
