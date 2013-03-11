@@ -381,13 +381,18 @@ class CouponEditDialog(wx.Dialog):
 
         index = -1
         total = 0
+        if 2 <= len(indexes):
+            state = wx.LIST_STATE_SELECTED
+        else:
+            state = 0
+
         while True:
-            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, state)
             if index <= -1:
                 break
             total += int(self.values.GetItem(index, 1).GetText())
 
-        if indexes:
+        if 2 <= len(indexes):
             self.total.SetLabel(u"選択中の合計: %s点" % (total))
         else:
             self.total.SetLabel(u"合計: %s点" % (total))
