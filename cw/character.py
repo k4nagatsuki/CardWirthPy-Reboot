@@ -959,9 +959,7 @@ class Character(object):
 
             # 隠蔽クーポン
             if name == u"：Ｒ" and not self.is_reversed():
-                if not self.status == "hidden":
-                    cw.animation.animate_sprite(self, "reverse")
-
+                cw.animation.animate_sprite(self, "reverse")
                 self.reversed = True
 
         # 隠蔽クーポンがあるため
@@ -999,9 +997,7 @@ class Character(object):
 
             # 隠蔽クーポン
             if name == u"：Ｒ" and self.is_reversed():
-                if not self.status == "hidden":
-                    cw.animation.animate_sprite(self, "reverse")
-
+                cw.animation.animate_sprite(self, "reverse")
                 self.reversed = False
 
     def remove_timedcoupons(self, battleonly=False):

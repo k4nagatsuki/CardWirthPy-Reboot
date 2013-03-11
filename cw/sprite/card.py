@@ -76,13 +76,7 @@ class CWPyCard(base.SelectableSprite):
         """
         カードをひっくり返す。
         """
-        self.update_hide()
-
-        if self.status == "hidden":
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock()
-            self.reversed = not self.reversed
-
+        def reverse():
             # 表←→裏の画像切り替え
             if self.reversed:
                 image = cw.cwpy.rsrc.cardbgs["REVERSE"]
@@ -96,6 +90,21 @@ class CWPyCard(base.SelectableSprite):
                 self._image = image
             else:
                 self.update_image()
+
+        if self.old_status == "hidden":
+            self.reversed = not self.reversed
+            reverse()
+            self.status = "hidden"
+            return
+
+        self.update_hide()
+
+        if self.status == "hidden":
+            cw.cwpy.draw()
+            cw.cwpy.tick_clock()
+            self.reversed = not self.reversed
+
+            reverse()
 
             cw.animation.animate_sprite(self, "deal")
 
@@ -282,7 +291,7 @@ class CWPyCard(base.SelectableSprite):
             self._image = image
         else:
             self._image = image
-            if self.status <> "reversed":
+            if not self.reversed:
                 self.image = self._image
 
         self.rect.size = rect.size
