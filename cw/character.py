@@ -947,7 +947,8 @@ class Character(object):
         value: クーポン点数。
         """
         value = cw.util.numwrap(int(value), 0, 999)
-        self.remove_coupon(name)
+        if name <> "：Ｒ":
+            self.remove_coupon(name)
         e = self.data.make_element("Coupon", name, {"value" : str(value)})
         self.data.append("Property/Coupons", e)
 
