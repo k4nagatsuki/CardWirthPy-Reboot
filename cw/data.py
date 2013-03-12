@@ -1143,6 +1143,7 @@ class YadoData(object):
                     fpath = os.path.relpath(header.fpath, yadodir)
                 else:
                     fpath = os.path.relpath(header.fpath, tempdir)
+                    header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
                 fpath = cw.util.join_paths(fpath)
                 cardorder[fpath] = header.order
             carddb = cw.yadodb.YadoDB(ppath, mode=cw.yadodb.PARTY)

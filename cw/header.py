@@ -448,9 +448,10 @@ class CardHeader(object):
             path = self.carddata.gettext("Property/ImagePath", "")
             self.set_cardimg(path)
             if self.is_backpackheader():
-                etree = cw.data.CWPyElementTree(element=self.carddata)
-                etree.write()
+                self.fpath = ""
+                self.write()
                 self.carddata = None
+
         elif self.type == "BeastCard" and not self.attachment:
             cw.cwpy.trade("TRASHBOX", header=self, from_event=True)
 
