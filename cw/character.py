@@ -947,8 +947,7 @@ class Character(object):
         value: クーポン点数。
         """
         value = cw.util.numwrap(int(value), 0, 999)
-        if name <> "：Ｒ":
-            self.remove_coupon(name)
+        removed = self._remove_coupon(name, False)
         e = self.data.make_element("Coupon", name, {"value" : str(value)})
         self.data.append("Property/Coupons", e)
 
@@ -959,7 +958,8 @@ class Character(object):
 
             # 隠蔽クーポン
             if name == u"：Ｒ" and not self.is_reversed():
-                cw.animation.animate_sprite(self, "reverse")
+                if not removed:
+                    cw.animation.animate_sprite(self, "reverse")
                 self.reversed = True
 
         # 隠蔽クーポンがあるため
@@ -982,6 +982,9 @@ class Character(object):
         同じ名前のクーポンを全て剥奪する。
         name: クーポン名。
         """
+        return self._remove_coupon(name, True)
+
+    def _remove_coupon(self, name, update):
         elements = [e for e in self.data.getfind("Property/Coupons")
                                                         if e.text == name]
 
@@ -997,8 +1000,11 @@ class Character(object):
 
             # 隠蔽クーポン
             if name == u"：Ｒ" and self.is_reversed():
-                cw.animation.animate_sprite(self, "reverse")
-                self.reversed = False
+                if update:
+                    cw.animation.animate_sprite(self, "reverse")
+                    self.reversed = False
+
+        return 0 < len(elements)
 
     def remove_timedcoupons(self, battleonly=False):
         """
