@@ -442,20 +442,19 @@ class EffectMotion(object):
             return 0
 
         # レベル比の効果値を計算(レベル比じゃない場合はそのままの効果値)
-        if not self.is_effectcontent() and self.damagetype == "LevelRatio":
+        if self.damagetype == "LevelRatio":
             bonus = self.vocation_val + self.enhance_act
             bonus = bonus / 2 + bonus % 2
             value = value * (self.level + bonus)
             value = value / 2 + value % 2
 
         # 効果値から実数値を計算
-        if not self.is_effectcontent():
-            n = value / 5
-            value = cw.cwpy.dice.roll(n, 10)
-            n = value % 5 * 2
+        n = value / 5
+        value = cw.cwpy.dice.roll(n, 10)
+        n = value % 5 * 2
 
-            if n:
-                value += cw.cwpy.dice.roll(1, n)
+        if n:
+            value += cw.cwpy.dice.roll(1, n)
 
         # 最低でも1ダメージとする
         if value <= 0:
@@ -463,24 +462,29 @@ class EffectMotion(object):
 
         return value
 
-    def calc_durationvalue(self):
+    def calc_durationvalue(self, enhance):
         """
         効果時間値から適性レベルに合わせた実数値を計算して返す。
         効果コンテントの場合も計算する。
         """
+        if enhance or self.duration == 0:
+            minvalue = 0
+        else:
+            minvalue = 1
+
         rndval = cw.cwpy.dice.roll(1, 3) - 2
         if self.vocation_level == 0:
-            return cw.util.numwrap(self.duration * 50 / 100 + rndval, 0, 999)
+            return cw.util.numwrap(self.duration * 50 / 100 + rndval, minvalue, 999)
         elif self.vocation_level == 1:
-            return cw.util.numwrap(self.duration * 80 / 100 + rndval, 0, 999)
+            return cw.util.numwrap(self.duration * 80 / 100 + rndval, minvalue, 999)
         elif self.vocation_level == 2:
-            return cw.util.numwrap(self.duration + rndval, 0, 999)
+            return cw.util.numwrap(self.duration + rndval, minvalue, 999)
         elif self.vocation_level == 3:
-            return cw.util.numwrap(self.duration * 120 / 100 + rndval, 0, 999)
+            return cw.util.numwrap(self.duration * 120 / 100 + rndval, minvalue, 999)
         elif self.vocation_level == 4:
-            return cw.util.numwrap(self.duration * 150 / 100 + rndval, 0, 999)
+            return cw.util.numwrap(self.duration * 150 / 100 + rndval, minvalue, 999)
         else:
-            return cw.util.numwrap(self.duration + rndval, 0, 999)
+            return cw.util.numwrap(self.duration + rndval, minvalue, 999)
 
     def calc_defensedvalue(self, value, target):
         """
@@ -663,7 +667,7 @@ class EffectMotion(object):
             eff = target.mentality <> self.type.title()
             target.set_mentality(self.type.title(), duration)
         else:
-            duration = self.calc_durationvalue()
+            duration = self.calc_durationvalue(False)
             if duration == 0:
                 eff = target.mentality <> "Normal"
                 target.set_mentality("Normal", duration)
@@ -697,7 +701,7 @@ class EffectMotion(object):
         """
         束縛状態。
         """
-        duration = self.calc_durationvalue()
+        duration = self.calc_durationvalue(False)
         target.set_bind(duration)
         return 0 < duration
 
@@ -713,7 +717,7 @@ class EffectMotion(object):
         """
         沈黙状態。
         """
-        duration = self.calc_durationvalue()
+        duration = self.calc_durationvalue(False)
         target.set_silence(duration)
         return 0 < duration
 
@@ -729,7 +733,7 @@ class EffectMotion(object):
         """
         暴露状態。
         """
-        duration = self.calc_durationvalue()
+        duration = self.calc_durationvalue(False)
         target.set_faceup(duration)
         return 0 < duration
 
@@ -745,7 +749,7 @@ class EffectMotion(object):
         """
         魔法無効化状態。
         """
-        duration = self.calc_durationvalue()
+        duration = self.calc_durationvalue(False)
         target.set_antimagic(duration)
         return 0 < duration
 
@@ -765,7 +769,7 @@ class EffectMotion(object):
         行動力変化。
         """
         if self.value <> 0:
-            duration = self.calc_durationvalue()
+            duration = self.calc_durationvalue(True)
         else:
             duration = 0
         eff = target.enhance_act <> self.value or target.enhance_act_dur <> duration
@@ -777,7 +781,7 @@ class EffectMotion(object):
         回避力変化。
         """
         if self.value <> 0:
-            duration = self.calc_durationvalue()
+            duration = self.calc_durationvalue(True)
         else:
             duration = 0
         eff = target.enhance_avo <> self.value or target.enhance_avo_dur <> duration
@@ -789,7 +793,7 @@ class EffectMotion(object):
         抵抗力変化。
         """
         if self.value <> 0:
-            duration = self.calc_durationvalue()
+            duration = self.calc_durationvalue(True)
         else:
             duration = 0
         eff = target.enhance_res <> self.value or target.enhance_res_dur <> duration
@@ -801,7 +805,7 @@ class EffectMotion(object):
         防御力変化。
         """
         if self.value <> 0:
-            duration = self.calc_durationvalue()
+            duration = self.calc_durationvalue(True)
         else:
             duration = 0
         eff = target.enhance_def <> self.value or target.enhance_def_dur <> duration
