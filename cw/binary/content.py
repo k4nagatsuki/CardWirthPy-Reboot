@@ -55,8 +55,25 @@ class ContentBase(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        tag = data.tag
+        type = data.get("type")
+        name = data.get("name")
+        children = []
+
+        for e in data:
+            if e.tag == "Contents":
+                children = e
+
+        f.write_byte(unconv_contenttype(tag, type))
+        f.write_string(name)
+        f.write_dword(len(children) + 50000)
+        for child in children:
+            Content_unconv(f, child)
+        # 宿データの埋め込みカードのコンテントは
+        # 子コンテントデータの後ろに"dword()"(5)が埋め込まれている。
+        f.write_dword(5)
 
 class StartContent(ContentBase):
     pass
@@ -66,15 +83,30 @@ class LinkStartContent(ContentBase):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["link"] = f.string()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("link"))
+
 class StartBattleContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+
 class EndContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["complete"] = f.bool()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_bool(bool(data.get("complete")))
 
 class EndBadEndContent(ContentBase):
     pass
@@ -83,6 +115,11 @@ class ChangeAreaContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
 
 class TalkMessageContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -96,10 +133,26 @@ class TalkMessageContent(ContentBase):
             self.data.append(cw.data.make_element("Text", self.text))
         return self.data
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        text = ""
+        for e in data:
+            if e.tag == "Text":
+                text= e.text
+                break
+        f.write_string(materialpath(data.get("path")))
+        f.write_string(text, True)
+
 class PlayBgmContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["path"] = self.get_materialpath(f.string())
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(materialpath(data.get("path")))
 
 class ChangeBgImageContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -116,15 +169,37 @@ class ChangeBgImageContent(ContentBase):
             self.data.append(e)
         return self.data
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        bgimgs = []
+        for e in data:
+            if e.tag == "BgImages":
+                bgimgs = e
+                break
+        f.write_dword(len(bgimgs))
+        for bgimg in bgimgs:
+            bgimage.BgImage.unconv(f, bgimg)
+
 class PlaySoundContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["path"] = self.get_materialpath(f.string())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(materialpath(data.get("path")))
+
 class WaitContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["value"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("value")))
 
 class EffectContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -156,11 +231,36 @@ class EffectContent(ContentBase):
             self.data.append(e)
         return self.data
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("level")))
+        f.write_byte(unconv_target_member(data.get("targetm")))
+        f.write_byte(unconv_card_effecttype(data.get("effecttype")))
+        f.write_byte(unconv_card_resisttype(data.get("resisttype")))
+        f.write_dword(int(data.get("successrate")))
+        f.write_string(materialpath(data.get("sound")))
+        f.write_byte(unconv_card_visualeffect(data.get("visual")))
+        motions = []
+        for e in data:
+            if e.tag == "Motions":
+                motions = e
+                break
+        f.write_dword(len(motions))
+        for motion in motions:
+            effectmotion.EffectMotion(f, motion)
+
 class BranchSelectContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["targetall"] = f.bool()
         self.properties["random"] = f.bool()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_bool(bool(data.get("targetall")))
+        f.write_bool(bool(data.get("random")))
 
 class BranchAbilityContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -170,15 +270,33 @@ class BranchAbilityContent(ContentBase):
         self.properties["physical"] = self.conv_card_physicalability(f.dword())
         self.properties["mental"] = self.conv_card_mentalability(f.dword())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("value")))
+        f.write_byte(unconv_target_member(data.get("targetm")))
+        f.write_dword(unconv_card_physicalability(data.get("physical")))
+        f.write_dword(unconv_card_mentalability(data.get("mental")))
+
 class BranchRandomContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["value"] = f.dword()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("value")))
+
 class BranchFlagContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["flag"] = f.string()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("flag"))
 
 class SetFlagContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -186,10 +304,21 @@ class SetFlagContent(ContentBase):
         self.properties["flag"] = f.string()
         self.properties["value"] = f.bool()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("flag"))
+        f.write_bool(bool(data.get("value")))
+
 class BranchMultiStepContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["step"] = f.string()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("step"))
 
 class SetStepContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -197,10 +326,21 @@ class SetStepContent(ContentBase):
         self.properties["step"] = f.string()
         self.properties["value"] = f.dword()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("step"))
+        f.write_dword(int(data.get("value")))
+
 class BranchCastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
 
 class BranchItemContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -213,6 +353,13 @@ class BranchItemContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class BranchSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
@@ -224,10 +371,22 @@ class BranchSkillContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class BranchInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
 
 class BranchBeastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -240,10 +399,22 @@ class BranchBeastContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class BranchMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["value"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("value")))
 
 class BranchCouponContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -252,10 +423,21 @@ class BranchCouponContent(ContentBase):
         f.dword() # 不明
         self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("coupon"))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class GetCastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
 
 class GetItemContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -268,6 +450,13 @@ class GetItemContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class GetSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
@@ -279,10 +468,22 @@ class GetSkillContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class GetInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
 
 class GetBeastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -295,10 +496,22 @@ class GetBeastContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class GetMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["value"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("value")))
 
 class GetCouponContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -307,10 +520,22 @@ class GetCouponContent(ContentBase):
         self.properties["value"] = f.dword()
         self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("coupon"))
+        f.write_dword(int(data.get("value")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class LoseCastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
 
 class LoseItemContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -323,6 +548,13 @@ class LoseItemContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class LoseSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
@@ -334,10 +566,22 @@ class LoseSkillContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class LoseInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["id"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
 
 class LoseBeastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -350,10 +594,22 @@ class LoseBeastContent(ContentBase):
             self.properties["number"] = f.dword()
             self.properties["targets"] = self.conv_target_scope(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("id")))
+        f.write_dword(int(data.get("number")))
+        f.write_byte(unconv_target_scope(data.get("targets")))
+
 class LoseMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["value"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("value")))
 
 class LoseCouponContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -361,6 +617,13 @@ class LoseCouponContent(ContentBase):
         self.properties["coupon"] = f.string()
         f.dword() # 不明
         self.properties["targets"] = self.conv_target_scope(f.byte())
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("coupon"))
+        f.write_dword(0)
+        f.write_byte(unconv_target_scope(data.get("targets")))
 
 class TalkDialogContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -378,26 +641,60 @@ class TalkDialogContent(ContentBase):
             self.data.append(e)
         return self.data
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_byte(unconv_target_member(data.get("targetm")))
+        dialogs = []
+        for e in data:
+            if e.tag == "Dialogs":
+                dialogs = e
+                break
+        f.write_dword(len(dialogs))
+        for dialog in dialogs:
+            cw.binary.dialog.Dialog.unconv(f, dialog)
+
 class SetStepUpContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["step"] = f.string()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("step"))
 
 class SetStepDownContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["step"] = f.string()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("step"))
+
 class ReverseFlagContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["flag"] = f.string()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("flag"))
 
 class BranchStepContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["step"] = f.string()
         self.properties["value"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("step"))
+        f.write_dword(int(data.get("value")))
 
 class ElapseTimeContent(ContentBase):
     pass
@@ -408,16 +705,33 @@ class BranchLevelContent(ContentBase):
         self.properties["average"] = f.bool()
         self.properties["value"] = f.dword()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_bool(bool(data.get("average")))
+        f.write_dword(int(data.get("value")))
+
 class BranchStatusContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["status"] = self.conv_statustype(f.byte())
         self.properties["targetm"] = self.conv_target_member(f.byte())
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_byte(unconv_statustype(data.get("status")))
+        f.write_byte(unconv_target_member(data.get("targetm")))
+
 class BranchPartyNumberContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["value"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("value")))
 
 class ShowPartyContent(ContentBase):
     pass
@@ -433,15 +747,30 @@ class CallStartContent(ContentBase):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["call"] = f.string()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("call"))
+
 class LinkPackageContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["link"] = f.dword()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("link")))
+
 class CallPackageContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["call"] = f.dword()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_dword(int(data.get("call")))
 
 class BranchAreaContent(ContentBase):
     pass
@@ -454,30 +783,60 @@ class BranchCompleteStampContent(ContentBase):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["scenario"] = f.string()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("scenario"))
+
 class GetCompleteStampContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["scenario"] = f.string()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("scenario"))
 
 class LoseCompleteStampContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["scenario"] = f.string()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("scenario"))
+
 class BranchGossipContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["gossip"] = f.string()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("gossip"))
 
 class GetGossipContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["gossip"] = f.string()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("gossip"))
+
 class LoseGossipContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["gossip"] = f.string()
+
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("gossip"))
 
 class BranchIsBattleContent(ContentBase):
     pass
@@ -490,6 +849,11 @@ class CheckFlagContent(ContentBase):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["flag"] = f.string()
 
+    @staticmethod
+    def unconv(f, data):
+        ContentBase.unconv(f, data)
+        f.write_string(data.get("flag"))
+
 def Content(parent, f):
     """Contentファクトリ。
     parent: CWBinaryBase
@@ -498,6 +862,11 @@ def Content(parent, f):
     type = f.byte()
     tag, type = parent.conv_contenttype(type)
     return globals()[tag + type + "Content"](parent, f, tag, type)
+
+def Content_unconv(f, data):
+    tag = data.tag
+    type = data.get("type")
+    return globals()[tag + type + "Content"].unconv(f, data)
 
 def main():
     pass

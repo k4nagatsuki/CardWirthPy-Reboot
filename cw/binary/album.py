@@ -120,8 +120,88 @@ class Album(base.CWBinaryBase):
             yadodb.insert_adventurer(path, album=True, commit=False)
         return path
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        name = ""
+        image = None
+        level = 0
+        dex = 0
+        agl = 0
+        int = 0
+        str = 0
+        vit = 0
+        min = 0
+        aggressive = 0
+        cheerful = 0
+        brave = 0
+        cautious = 0
+        trickish = 0
+        avoid = 0
+        resist = 0
+        defense = 0
+        description = ""
+        coupons = []
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "ImagePath":
+                        image = import_image(prop.text)
+                    elif prop.tag == "Description":
+                        description = prop.text
+                    elif prop.tag == "Level":
+                        level = int(prop.text)
+                    elif prop.tag == "Ability":
+                        for ae in prop:
+                            if ae.tag == "Physical":
+                                dex = int(ae.get("dex"))
+                                agl = int(ae.get("agl"))
+                                int = int(ae.get("int"))
+                                str = int(ae.get("str"))
+                                vit = int(ae.get("vit"))
+                                min = int(ae.get("min"))
+                            elif ae.tag == "Mental":
+                                aggressive = int(ae.get("aggressive"))
+                                cheerful = int(ae.get("cheerful"))
+                                brave = int(ae.get("brave"))
+                                cautious = int(ae.get("cautious"))
+                                trickish = int(ae.get("trickish"))
+                            elif ae.tag == "Enhance":
+                                avoid = int(ae.get("avoid"))
+                                resist = int(ae.get("resist"))
+                                defense = int(ae.get("defense"))
+                    elif prop.tag == "Coupons":
+                        coupons = prop
+
+        f.write_byte(0)
+        f.write_byte(0)
+        f.write_string(name)
+        f.write_image(image)
+        f.write_word(level)
+        f.write_word(0) # 不明
+        f.write_word(0) # 不明
+        f.write_word(0) # 不明
+        f.write_word(dex)
+        f.write_word(agl)
+        f.write_word(int)
+        f.write_word(str)
+        f.write_word(vit)
+        f.write_word(min)
+        f.write_word(aggressive)
+        f.write_word(cheerful)
+        f.write_word(brave)
+        f.write_word(cautious)
+        f.write_word(trickish)
+        f.write_word(avoid)
+        f.write_word(resist)
+        f.write_word(defense)
+        f.write_dword(0)
+        f.write_string("TEXT\\n" + description)
+        f.write_dword(len(coupons))
+        for coupon in coupons:
+            coupon.Coupon.unconv(f, coupon)
 
 def main():
     pass

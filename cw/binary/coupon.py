@@ -21,8 +21,13 @@ class Coupon(base.CWBinaryBase):
             self.data.set("value", str(self.value))
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        name = data.text
+        value = int(data.get("value"))
+
+        f.write_string(name)
+        f.write_dword(value)
 
 def main():
     pass

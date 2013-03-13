@@ -51,8 +51,37 @@ class BgImage(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        left = 0
+        top = 0
+        width = 0
+        height = 0
+        imgpath = ""
+        mask = bool(data.get("mask"))
+        flag = ""
+        unknown = 0
+
+        for e in data:
+            if e.tag == "ImagePath":
+                imgpath = e.text
+            elif e.tag == "Flag":
+                flag = e.text
+            elif e.tag == "Location":
+                left = int(e.get("left"))
+                top = int(e.get("top"))
+            elif e.tag == "Size":
+                width = int(e.get("width"))
+                height = int(e.get("height"))
+
+        f.write_dword(left)
+        f.write_dword(top)
+        f.write_dword(width + 50000)
+        f.write_dword(height)
+        f.write_string(imgpath)
+        f.write_bool(mask)
+        f.write_string(flag)
+        f.write_byte(unknown)
 
 def main():
     pass

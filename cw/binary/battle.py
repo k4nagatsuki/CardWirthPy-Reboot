@@ -70,8 +70,46 @@ class Battle(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        type = 1
+        name = ""
+        id = 0
+        events = []
+        spreadtype = 0
+        ecards = []
+        bgm = ""
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Id":
+                        id = int(prop.text)
+                    elif prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "MusicPath":
+                        bgm = materialpath(prop.text)
+            elif e.tag == "EnemyCards":
+                ecards = e
+                spreadtype = unconv_spreadtype(e.get("spreadtype"))
+            elif e.tag == "Events":
+                events = e
+
+        f.write_byte(type)
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_string(name)
+        f.write_dword(id + 40000)
+        f.write_dword(len(events))
+        for event in events:
+            event.Event.unconv(f, event)
+        f.write_byte(spreadtype)
+        f.write_dword(len(ecards))
+        for ecard in ecards:
+            EnemyCard.unconv(f, ecard)
+        f.write_string(bgm)
 
 class EnemyCard(base.CWBinaryBase):
     """エネミーカード。
@@ -114,8 +152,44 @@ class EnemyCard(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        cast_id = 0
+        events = []
+        flag = ""
+        scale = 0
+        left = 0
+        top = 0
+        escape = bool(data.get("escape"))
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Id":
+                        cast_id = int(prop.text)
+                    elif prop.tag == "Flag":
+                        flag = prop.text
+                    elif prop.tag == "Location":
+                        left = int(prop.get("left"))
+                        top = int(prop.get("top"))
+                    elif prop.tag == "Size":
+                        scale = prop.get("scale")
+                        if scale.endswith("%"):
+                            scale = int(scale[:-1])
+                        else:
+                            scale = int(scale)
+            elif e.tag == "Events":
+                events = e
+
+        f.write_dword(cast_id)
+        f.write_dword(len(events))
+        for event in events:
+            event.Event.unconv(f, event)
+        f.write_string(flag)
+        f.write_dword(scale)
+        f.write_dword(left)
+        f.write_dword(top)
+        f.write_bool(escape)
 
 def main():
     pass

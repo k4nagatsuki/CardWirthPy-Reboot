@@ -155,8 +155,140 @@ class BeastCard(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        type = 6
+        image = None
+        name = ""
+        id = 0
+        description = ""
+        p_ability = 0
+        m_ability = 0
+        silence = False
+        target_all = False
+        target = 0
+        effect_type = 0
+        resist_type = 0
+        success_rate = 0
+        visual_effect = 0
+        motions = []
+        enhance_avoid = 0
+        enhance_resist = 0
+        enhance_defense = 0
+        sound_effect = ""
+        sound_effect2 = ""
+        keycodes = []
+        premium = 0
+        scenario_name = ""
+        scenario_author = ""
+        events = []
+        hold = False
+        limit = 0
+        attachment = False
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Id":
+                        id = int(prop.text)
+                    elif prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "ImagePath":
+                        image = import_image(prop.text)
+                    elif prop.tag == "Description":
+                        description = prop.text
+                    elif prop.tag == "Scenario":
+                        scenario_name = prop.text
+                    elif prop.tag == "Author":
+                        scenario_author = prop.text
+                    elif prop.tag == "Level":
+                        level = int(prop.text)
+                    elif prop.tag == "Ability":
+                        p_ability = unconv_card_physicalability(prop.get("physical"))
+                        m_ability = unconv_card_mentalability(prop.get("mental"))
+                    elif prop.tag == "Target":
+                        target = unconv_card_target(prop.text)
+                        target_all = bool(prop.get("allrange"))
+                    elif prop.tag == "EffectType":
+                        effect_type = unconv_card_effecttype(prop.text)
+                        silence = bool(prop.get("spell"))
+                    elif prop.tag == "ResistType":
+                        resist_type = unconv_card_resisttype(prop.text)
+                    elif prop.tag == "SuccessRate":
+                        success_rate = int(prop.text)
+                    elif prop.tag == "VisualEffect":
+                        visual_effect = unconv_card_visualeffect(prop.text)
+                    elif prop.tag == "Enhance":
+                        enhance_avoid = int(prop.get("avoid"))
+                        enhance_resist = int(prop.get("resist"))
+                        enhance_defense = int(prop.get("defense"))
+                    elif prop.tag == "SoundPath":
+                        sound_effect = materialpath(prop.text)
+                    elif prop.tag == "SoundPath2":
+                        sound_effect2 = materialpath(prop.text)
+                    elif prop.tag == "KeyCodes":
+                        keycodes = cw.util.decodetextlist(prop.text)
+                        # 5件まで絞り込む
+                        if 5 < len(keycodes):
+                            keycodes2
+                            for keycode in keycodes:
+                                if keycode:
+                                    keycodes2.append(keycode)
+                                    if 5 <= len(keycodes2):
+                                        break
+                            keycodes = keycodes2
+                        if len(keycodes) < 5:
+                            keycodes.append([""] * (5 - len(keycodes)))
+                    elif prop.tag == "Premium":
+                        premium = unconv_card_premium(prop.text)
+                    elif prop.tag == "UseLimit":
+                        limit = int(prop.text)
+                    elif prop.tag == "Hold":
+                        hold = bool(prop.text)
+                    elif prop.tag == "Attachment":
+                        attachment = bool(prop.text)
+            elif e.tag == "Motions":
+                motions = e
+            elif e.tag == "Events":
+                events = e
+
+        f.write_byte(type)
+        f.write_image(image)
+        f.write_string(name)
+        f.write_dword(id + 50000)
+        f.write_string(description, True)
+        f.write_dword(p_ability)
+        f.write_dword(m_ability)
+        f.write_bool(silence)
+        f.write_bool(target_all)
+        f.write_byte(target)
+        f.write_byte(effect_type)
+        f.write_byte(resist_type)
+        f.write_dword(success_rate)
+        f.write_byte(visual_effect)
+        f.write_dword(len(motions))
+        for motion in motions:
+            effectmotion.EffectMotion.unconv(f, motion)
+        f.write_dword(enhance_avoid)
+        f.write_dword(enhance_resist)
+        f.write_dword(enhance_defense)
+        f.write_string(sound_effect)
+        f.write_string(sound_effect2)
+        for keycode in keycodes:
+            f.write_string(keycode)
+        f.write_byte(premium)
+        f.write_string(scenario_name)
+        f.write_string(scenario_author)
+        f.write_dword(len(events))
+        for event in events:
+            event.SimpleEvent.unconv(f, event)
+        f.write_bool(hold)
+
+        # 宿データだとここに不明なデータ(4)が付加されている
+        f.write_dword(4)
+
+        f.write_dword(limit)
+        f.write_bool(attachment)
 
 def main():
     pass

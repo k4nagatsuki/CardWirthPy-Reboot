@@ -39,8 +39,28 @@ class Package(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        name = ""
+        id = 0
+        events = []
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Id":
+                        id = int(prop.text)
+                    elif prop.tag == "Name":
+                        name = prop.text
+            elif e.tag == "Events":
+                events = e
+
+        f.write_dword(0) # 不明
+        f.write_string(name)
+        f.write_dword(id)
+        f.write_dword(len(events))
+        for event in events:
+            event.SimpleEvent.unconv(f, event)
 
 def main():
     pass

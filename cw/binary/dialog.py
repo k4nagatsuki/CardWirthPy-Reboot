@@ -24,8 +24,19 @@ class Dialog(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        coupons = ""
+        text = ""
+
+        for e in data:
+            if e.tag == "RequiredCoupons":
+                coupons = e.text
+            elif e.tag == "Text":
+                text = e.text
+
+        f.write_string(coupons)
+        f.write_string(text, True)
 
 def main():
     pass

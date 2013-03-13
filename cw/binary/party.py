@@ -78,7 +78,8 @@ class Party(base.CWBinaryBase):
 
         return path
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
         pass # TODO
 
 class PartyMembers(base.CWBinaryBase):
@@ -108,7 +109,8 @@ class PartyMembers(base.CWBinaryBase):
         for adventurer in self.adventurers:
             adventurer.create_xml(dpath)
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
         pass # TODO
 
 class BackpackCard(base.CWBinaryBase):
@@ -134,7 +136,8 @@ class BackpackCard(base.CWBinaryBase):
         self.data.limit = self.uselimit
         return self.data.create_xml(dpath)
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
         pass # TODO
 
 def main():

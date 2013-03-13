@@ -377,7 +377,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_contenttype(self, n):
+    @staticmethod
+    def unconv_contenttype(n):
         if type == "Start" and n == "":
             return 0
         elif type == "Link" and n == "Start":
@@ -511,7 +512,7 @@ class CWBinaryBase(object):
         elif type == "Check" and n == "Flag":
             return 65
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(type + ", " + n)
 
 #-------------------------------------------------------------------------------
 # 適用メンバ・適用範囲
@@ -541,7 +542,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_target_member(self, n):
+    @staticmethod
+    def unconv_target_member(n):
         if n == "Selected":
             return 0
         elif n == "Random":
@@ -557,7 +559,7 @@ class CWBinaryBase(object):
         elif n == "Party":
             return 6
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_target_scope(self, n):
         """引数の値から、「適用範囲」の種類を返す。
@@ -580,7 +582,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_target_scope(self, n):
+    @staticmethod
+    def unconv_target_scope(n):
         if n == "Selected":
             return 0
         elif n == "Random":
@@ -594,7 +597,7 @@ class CWBinaryBase(object):
         elif n == "Field":
             return 5
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
 #-------------------------------------------------------------------------------
 # コンテント系
@@ -609,13 +612,14 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_spreadtype(self, n):
+    @staticmethod
+    def unconv_spreadtype(n):
         if n == "Auto":
             return 0
         elif n == "Custom":
             return 1
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_statustype(self, n):
         """引数の値から、状態を返す。
@@ -651,7 +655,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_statustype(self, n):
+    @staticmethod
+    def unconv_statustype(n):
         if n == "Active":
             return 0
         elif n == "Inactive":
@@ -677,7 +682,7 @@ class CWBinaryBase(object):
         elif n == "Paralyze":
             return 11
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
 #-------------------------------------------------------------------------------
 # 効果モーション関連
@@ -705,7 +710,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_effectmotion_element(self, n):
+    @staticmethod
+    def unconv_effectmotion_element(n):
         if n == "All":
             return 0
         elif n == "Health":
@@ -721,7 +727,7 @@ class CWBinaryBase(object):
         elif n == "Ice":
             return 6
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_effectmotion_type(self, tabn, n):
         """引数の値から、効果モーションの「種類」を返す。
@@ -845,7 +851,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_effectmotion_type(self, n):
+    @staticmethod
+    def unconv_effectmotion_type(n):
         if n == "Heal":
             return 0, 0
         elif n == "Damage":
@@ -934,7 +941,7 @@ class CWBinaryBase(object):
             return 8, 0
 
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_effectmotion_damagetype(self, n):
         """引数の値から、効果モーションの「属性」を返す。
@@ -949,7 +956,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_effectmotion_damagetype(self, n):
+    @staticmethod
+    def unconv_effectmotion_damagetype(n):
         if n == "LevelRatio":
             return 0
         elif n == "Normal":
@@ -957,7 +965,7 @@ class CWBinaryBase(object):
         elif n == "Max":
             return 2
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
 #-------------------------------------------------------------------------------
 # スキル・アイテム・召喚獣関連
@@ -981,7 +989,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_card_effecttype(self, n):
+    @staticmethod
+    def unconv_card_effecttype(n):
         if n == "Physic":
             return 0
         elif n == "Magic":
@@ -993,7 +1002,7 @@ class CWBinaryBase(object):
         elif n == "None":
             return 4
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_card_resisttype(self, n):
         """引数の値から、「抵抗属性」の種類を返す。
@@ -1008,7 +1017,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_card_resisttype(self, n):
+    @staticmethod
+    def unconv_card_resisttype(n):
         if n == "Avoid":
             return 0
         elif n == "Resist":
@@ -1016,7 +1026,7 @@ class CWBinaryBase(object):
         elif n == "Unfail":
             return 2
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_card_visualeffect(self, n):
         """引数の値から、「視覚的効果」の種類を返す。
@@ -1034,7 +1044,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_card_visualeffect(self, n):
+    @staticmethod
+    def unconv_card_visualeffect(n):
         if n == "None":
             return 0
         elif n == "Reverse":
@@ -1044,7 +1055,7 @@ class CWBinaryBase(object):
         elif n == "Vertical":
             return 3
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_card_physicalability(self, n):
         """引数の値から、身体的要素の種類を返す。
@@ -1066,7 +1077,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_card_physicalability(self, n):
+    @staticmethod
+    def unconv_card_physicalability(n):
         if n == "Dex":
             return 0
         elif n == "Agl":
@@ -1080,7 +1092,7 @@ class CWBinaryBase(object):
         elif n == "Min":
             return 5
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_card_mentalability(self, n):
         """引数の値から、精神的要素の種類を返す。
@@ -1111,7 +1123,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_card_mentalability(self, n):
+    @staticmethod
+    def unconv_card_mentalability(n):
         if n == "Aggressive":
             return 1
         elif n == "Unaggressive":
@@ -1133,7 +1146,7 @@ class CWBinaryBase(object):
         elif n == "Untrickish":
             return -5
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_card_target(self, n):
         """引数の値から、効果目標の種類を返す。
@@ -1153,7 +1166,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_card_target(self, n):
+    @staticmethod
+    def unconv_card_target(n):
         if n == "None":
             return 0
         elif n == "User":
@@ -1165,7 +1179,7 @@ class CWBinaryBase(object):
         elif n == "Both":
             return 4
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_card_premium(self, n):
         """引数の値から、希少度の種類を返す。
@@ -1181,7 +1195,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_card_premium(self, n):
+    @staticmethod
+    def unconv_card_premium(n):
         if n == "Normal":
             return 0
         elif n == "Rare":
@@ -1189,7 +1204,7 @@ class CWBinaryBase(object):
         elif n == "Premium":
             return 2
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
 #-------------------------------------------------------------------------------
 #　キャラクター関連
@@ -1214,7 +1229,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_mentality(self, n):
+    @staticmethod
+    def unconv_mentality(n):
         if n == "Normal":
             return 0
         elif n == "Panic":
@@ -1228,7 +1244,7 @@ class CWBinaryBase(object):
         elif n == "Sleep":
             return 5
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
 #-------------------------------------------------------------------------------
 #　宿データ関連
@@ -1245,13 +1261,14 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_yadotype(self, n):
+    @staticmethod
+    def unconv_yadotype(n):
         if n == "Normal":
             return 1
         elif n == "Debug":
             return 2
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_yado_summaryview(self, n):
         """引数の値から、張り紙の表示の種類を返す。
@@ -1269,7 +1286,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_yado_summaryview(self, n):
+    @staticmethod
+    def unconv_yado_summaryview(n):
         if n == "HideHiddenAndCompleteScenario":
             return 0
         elif n == "HideHiddenScenario":
@@ -1279,7 +1297,7 @@ class CWBinaryBase(object):
         elif n == "ShowFittingScenario":
             return 3
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
     def conv_yado_bgchange(self, n):
         """引数の値から、背景の切り替え方式の種類を返す。
@@ -1297,7 +1315,8 @@ class CWBinaryBase(object):
         else:
             raise ValueError(self.fpath)
 
-    def unconv_yado_bgchange(self, n):
+    @staticmethod
+    def unconv_yado_bgchange(n):
         if n == "NoAnimation":
             return 0
         elif n == "ReedShape":
@@ -1307,7 +1326,7 @@ class CWBinaryBase(object):
         elif n == "ReplaceDot":
             return 3
         else:
-            raise ValueError(self.fpath)
+            raise ValueError(n)
 
 def main():
     pass

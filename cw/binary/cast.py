@@ -243,8 +243,241 @@ class CastCard(base.CWBinaryBase):
 
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        type = 2
+        image = None
+        name = ""
+        id = 0
+
+        noeffect_weapon = False
+        noeffect_magic = False
+        undead = False
+        automaton = False
+        unholy = False
+        constructure = False
+        resist_fire = False
+        resist_ice = False
+        weakness_fire = False
+        weakness_ice = False
+
+        level = 0
+        money = 0
+        description = ""
+        life = 0
+        maxlife = 0
+
+        paralyze = 0
+        poison = 0
+
+        avoid = 0
+        resist = 0
+        defense = 0
+
+        dex = 0
+        agl = 0
+        int = 0
+        str = 0
+        vit = 0
+        min = 0
+
+        aggressive = 0
+        cheerful = 0
+        brave = 0
+        cautious = 0
+        trickish = 0
+
+        mentality = 0
+        duration_mentality = 0
+
+        duration_bind = 0
+        duration_silence = 0
+        duration_faceup = 0
+        duration_antimagic = 0
+
+        enhance_action = 0
+        duration_enhance_action = 0
+        enhance_avoid = 0
+        duration_enhance_avoid = 0
+        enhance_resist = 0
+        duration_enhance_resist = 0
+        enhance_defense = 0
+        duration_enhance_defense = 0
+
+        items = []
+        skills = []
+        beasts = []
+
+        coupons = []
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Id":
+                        id = int(prop.text)
+                    elif prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "ImagePath":
+                        image = import_image(prop.text)
+                    elif prop.tag == "Description":
+                        description = prop.text
+                    elif prop.tag == "Level":
+                        level = int(prop.text)
+                    elif prop.tag == "Money":
+                        money = int(prop.text)
+                    elif prop.tag == "Life":
+                        life = int(prop.text)
+                        maxlife = int(prop.get("max"))
+                    elif prop.tag == "Feature":
+                        for fe in prop:
+                            if fe.tag == "Type":
+                                undead = bool(fe.get("undead"))
+                                automaton = bool(fe.get("automaton"))
+                                unholy = bool(fe.get("unholy"))
+                                constructure = bool(fe.get("constructure"))
+                            elif fe.tag == "NoEffect":
+                                noeffect_weapon = bool(fe.get("noeffect_weapon"))
+                                noeffect_magic = bool(fe.get("noeffect_magic"))
+                            elif fe.tag == "Resist":
+                                resist_fire = bool(fe.get("resist_fire"))
+                                resist_ice = bool(fe.get("resist_ice"))
+                            elif fe.tag == "Weakness":
+                                weakness_fire = bool(fe.get("weakness_fire"))
+                                weakness_ice = bool(fe.get("weakness_ice"))
+                    elif prop.tag == "Ability":
+                        for ae in prop:
+                            if ae.tag == "Physical":
+                                dex = int(ae.get("dex"))
+                                agl = int(ae.get("agl"))
+                                int = int(ae.get("int"))
+                                str = int(ae.get("str"))
+                                vit = int(ae.get("vit"))
+                                min = int(ae.get("min"))
+                            elif ae.tag == "Mental":
+                                aggressive = int(ae.get("aggressive"))
+                                cheerful = int(ae.get("cheerful"))
+                                brave = int(ae.get("brave"))
+                                cautious = int(ae.get("cautious"))
+                                trickish = int(ae.get("trickish"))
+                            elif ae.tag == "Enhance":
+                                avoid = int(ae.get("avoid"))
+                                resist = int(ae.get("resist"))
+                                defense = int(ae.get("defense"))
+                    elif prop.tag == "Status":
+                        for se in prop:
+                            if se.tag == "Mentality":
+                                mentality = unconv_mentality(se.text)
+                                duration_mentality = int(se.get("duration"))
+                            elif se.tag == "Paralyze":
+                                paralyze = int(se.text)
+                            elif se.tag == "Poison":
+                                poison = int(se.text)
+                            elif se.tag == "Bind":
+                                duration_bind = int(se.get("duration"))
+                            elif se.tag == "Silence":
+                                duration_silence = int(se.get("duration"))
+                            elif se.tag == "FaceUp":
+                                duration_faceup = int(se.get("duration"))
+                            elif se.tag == "AntiMagic":
+                                duration_antimagic = int(se.get("duration"))
+                    elif prop.tag == "Enhance":
+                        for ee in prop:
+                            if ee.tag == "Action":
+                                enhance_action = int(ee.text)
+                                duration_enhance_action = int(ee.get("duration"))
+                            elif ee.tag == "Avoid":
+                                enhance_avoid = int(ee.text)
+                                duration_enhance_avoid = int(ee.get("duration"))
+                            elif ee.tag == "Resist":
+                                enhance_resist = int(ee.text)
+                                duration_enhance_resist = int(ee.get("duration"))
+                            elif ee.tag == "Defense":
+                                enhance_defense = int(ee.text)
+                                duration_enhance_defense = int(ee.get("duration"))
+                    elif prop.tag == "Coupons":
+                        coupons = prop
+
+            elif e.tag == "ItemCards":
+                items = e
+
+            elif e.tag == "SkillCards":
+                skills = e
+
+            elif e.tag == "BeastCards":
+                beasts = e
+
+        f.write_byte(type)
+        f.write_image(image)
+        f.write_string(name)
+        f.write_dword(id + 40000)
+
+        f.write_bool(noeffect_weapon)
+        f.write_bool(noeffect_magic)
+        f.write_bool(undead)
+        f.write_bool(automaton)
+        f.write_bool(unholy)
+        f.write_bool(constructure)
+        f.write_bool(resist_fire)
+        f.write_bool(resist_ice)
+        f.write_bool(weakness_fire)
+        f.write_bool(weakness_ice)
+
+        f.write_dword(level)
+        f.write_dword(money)
+        f.write_string("TEXT\\n" + description, True)
+        f.write_dword(life)
+        f.write_dword(maxlife)
+
+        f.write_dword(paralyze)
+        f.write_dword(poison)
+
+        f.write_dword(avoid)
+        f.write_dword(resist)
+        f.write_dword(defense)
+
+        f.write_dword(dex)
+        f.write_dword(agl)
+        f.write_dword(int)
+        f.write_dword(str)
+        f.write_dword(vit)
+        f.write_dword(min)
+
+        f.write_dword(aggressive)
+        f.write_dword(cheerful)
+        f.write_dword(brave)
+        f.write_dword(cautious)
+        f.write_dword(trickish)
+
+        f.write_byte(mentality)
+        f.write_dword(duration_mentality)
+
+        f.write_dword(duration_bind)
+        f.write_dword(duration_silence)
+        f.write_dword(duration_faceup)
+        f.write_dword(duration_antimagic)
+
+        f.write_dword(enhance_action)
+        f.write_dword(duration_enhance_action)
+        f.write_dword(enhance_avoid)
+        f.write_dword(duration_enhance_avoid)
+        f.write_dword(enhance_resist)
+        f.write_dword(duration_enhance_resist)
+        f.write_dword(enhance_defense)
+        f.write_dword(duration_enhance_defense)
+
+        f.write_dword(len(items))
+        for item in items:
+            item.ItemCard.unconv(f, item)
+        f.write_dword(len(skills))
+        for skill in skills:
+            skill.SkillCard.unconv(f, skill)
+        f.write_dword(len(beasts))
+        for beast in beasts:
+            beast.BeastCard.unconv(f, beast)
+
+        f.write_dword(len(coupons))
+        for coupon in coupons:
+            coupon.Coupon.unconv(f, coupon)
 
 def main():
     pass

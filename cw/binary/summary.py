@@ -89,8 +89,60 @@ class Summary(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        image = None
+        name = ""
+        description = ""
+        author = ""
+        required_coupons = ""
+        required_coupons_num = 0
+        area_id = 0
+        steps = []
+        flags = []
+        level_min = 0
+        level_max = 0
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "ImagePath":
+                        image = import_image(prop.text)
+                    elif prop.tag == "Author":
+                        author = prop.text
+                    elif prop.tag == "Description":
+                        description = prop.text
+                    elif prop.tag == "Level":
+                        level_min = int(prop.get("min"))
+                        level_max = int(prop.get("max"))
+                    elif prop.tag == "RequiredCoupons":
+                        required_coupons = prop.text
+                        required_coupons_num = int(prop.get("number"))
+                    elif prop.tag == "StartAreaId":
+                        level_max = int(prop.text)
+            elif e.tag == "Flags":
+                flags = e
+            elif e.tag == "Steps":
+                steps = e
+
+        f.write_image(image)
+        f.write_string(name)
+        f.write_string(description)
+        f.write_string(author)
+        f.write_string(required_coupons)
+        f.write_dword(required_coupons_num)
+        f.write_dword(area_id + 40000)
+        f.write_dword(len(steps))
+        for step in steps:
+            Step.unconv(f, step)
+        f.write_dword(len(flags))
+        for flag in flags:
+            Flag.unconv(f, flag)
+        f.write_dword(0) # 不明
+        f.write_dword(level_min)
+        f.write_dword(level_max)
 
 class Step(base.CWBinaryBase):
     """ステップ定義。"""
@@ -130,7 +182,8 @@ class Step(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
         name = ""
         default = int(e.get("default"))
         variable_names = [""] * 10
@@ -167,7 +220,8 @@ class Flag(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
         name = ""
         default = bool(e.get("default"))
         variable_names = [""] * 2

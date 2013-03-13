@@ -80,8 +80,48 @@ class EffectMotion(base.CWBinaryBase):
                 self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        tabtype, type = unconv_effectmotion_type(data.get("type"))
+        element = unconv_effectmotion_element(data.get("element"))
+
+        f.write_byte(tabtype)
+
+        # 不明なバイト列
+        for cnt in xrange(5):
+            f.write_byte(0)
+
+        f.write_byte(element)
+
+        # 大分類が召喚の場合は、typeを飛ばす
+        if tabtype <> 8:
+            f.write_byte(type)
+
+        # 生命力, 肉体
+        if tabtype in (0, 1):
+            f.write_byte(unconv_effectmotion_type(data.get("damagetype")))
+            f.write_dword(int(data.get("value")))
+        # 精神, 魔法
+        elif tabtype in (3, 4):
+            f.write_dword(int(data.get("duration")))
+        # 能力
+        elif tabtype == 5:
+            f.write_dword(int(data.get("value")))
+            f.write_dword(int(data.get("duration")))
+        # 技能, 消滅, カード
+        elif tabtype in (2, 6, 7):
+            pass
+        # 召喚(BeastCardインスタンスを生成)
+        elif tabtype == 8:
+            beasts = []
+            for e in data:
+                if e.tag == "Beasts":
+                    beasts = e
+            f.write_dword(len(beasts))
+            for beast in beasts:
+                beast.BeastCard.unconv(f, beast)
+        else:
+            raise ValueError(tabtype)
 
 def main():
     pass

@@ -51,8 +51,31 @@ class InfoCard(base.CWBinaryBase):
             self.data.append(prop)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        type = 4
+        image = None
+        name = ""
+        id = 0
+        description = ""
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Id":
+                        id = int(prop.text)
+                    elif prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "ImagePath":
+                        image = import_image(prop.text)
+                    elif prop.tag == "Description":
+                        description = prop.text
+
+        f.write_byte(type)
+        f.write_image(image)
+        f.write_string(name)
+        f.write_dword(id + 40000)
+        f.write_string(description, True)
 
 def main():
     pass

@@ -34,8 +34,30 @@ class Event(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        contents = []
+        ignitions = []
+        keycodes = ""
+
+        for e in data:
+            if e.tag == "Ignitions":
+                for ig in e:
+                    if ig.tag == "Number":
+                        for num in cw.util.decodetextlist(ig.text):
+                            ignitions.append(int(num))
+                    elif ig.tag == "KeyCodes":
+                        keycodes = ig.text
+            elif e.tag == "Contents":
+                contents = e
+
+        f.write_dword(len(contents))
+        for content in contents:
+            content.Content_unconv(f, content)
+        f.write_dword(len(ignitions))
+        for ignition in ignitions:
+            f.write_dword(ignition)
+        f.write_string(keycodes)
 
 class SimpleEvent(base.CWBinaryBase):
     """イベント発火条件なしのイベントデータのクラス。
@@ -58,8 +80,17 @@ class SimpleEvent(base.CWBinaryBase):
             self.data.append(e)
         return self.data
 
-    def unconv(self, f, data):
-        pass # TODO
+    @staticmethod
+    def unconv(f, data):
+        contents = []
+
+        for e in data:
+            if e.tag == "Contents":
+                contents = e
+
+        f.write_dword(len(contents))
+        for content in contents:
+            content.Content_unconv(f, content)
 
 def main():
     pass

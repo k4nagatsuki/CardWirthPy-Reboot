@@ -102,8 +102,58 @@ class Environment(base.CWBinaryBase):
 
         return d
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
+        yadotype = 0 # TODO
+        drawcard_speed = 0 # TODO
+        drawbg_speed = 0 # TODO
+        message_speed = 0 # TODO
+        play_bgm = True
+        play_sound = True
+        correct_scaledown = True
+        correct_scaleup = True
+        autoselect_party = True
+        clickcancel = True
+        effect_getmoney = True
+        clickjump = True
+        keep_levelmax = False
+        viewtype_poster = 0 # TODO
+        bgcolor_message = 0 # TODO
+        use_decofont = False
+        changetype_bg = 0 # TODO
+        compstamps = ""
+        scenarioname = ""
+        gossips = ""
+        money = 0
+        partyname = "" # TODO
+
         pass # TODO
+
+        f.write_string("DATAVERSION_10")
+        f.write_byte(yadotype)
+        f.write_dword(drawcard_speed)
+        f.write_dword(drawbg_speed)
+        f.write_dword(message_speed)
+        f.write_bool(play_bgm)
+        f.write_bool(play_sound)
+        f.write_bool(correct_scaledown)
+        f.write_bool(correct_scaleup)
+        f.write_bool(autoselect_party)
+        f.write_bool(clickcancel)
+        f.write_bool(effect_getmoney)
+        f.write_bool(clickjump)
+        f.write_bool(keep_levelmax)
+        f.write_byte(viewtype_poster)
+        f.write_dword(bgcolor_message)
+        f.write_bool(use_decofont)
+        f.write_byte(changetype_bg)
+        f.write_string(compstamps)
+        f.write_string(scenarioname)
+        f.write_string(gossips)
+        # TODO unusedcards
+        # TODO yadocards
+        f.write_dword(money)
+        f.write_string(partyname)
 
 class UnusedCard(base.CWBinaryBase):
     """カード置き場のカードのデータ。
@@ -135,7 +185,8 @@ class UnusedCard(base.CWBinaryBase):
             yadodb.insert_card(path, commit=False, cardorder=cardorder)
         return path
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
         pass # TODO
 
 class YadoCard(base.CWBinaryBase):
@@ -152,7 +203,8 @@ class YadoCard(base.CWBinaryBase):
         self.fname = f.rawstring()
         self.number = f.dword() # 個数
 
-    def unconv(self, f, data):
+    @staticmethod
+    def unconv(f, data):
         pass # TODO
 
 def main():
