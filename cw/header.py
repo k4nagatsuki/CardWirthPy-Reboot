@@ -448,7 +448,6 @@ class CardHeader(object):
             path = self.carddata.gettext("Property/ImagePath", "")
             self.set_cardimg(path)
             if self.is_backpackheader():
-                self.fpath = ""
                 self.write()
                 self.carddata = None
 
