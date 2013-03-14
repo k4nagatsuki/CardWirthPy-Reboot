@@ -2008,12 +2008,14 @@ class ScenarioSelect(Select):
                             for dpath2, dnames, fnames in os.walk(dpath):
                                 for fname in fnames:
                                     if fname.lower().endswith(".txt"):
+                                        dpath2 = cw.util.decode_zipname(dpath2)
                                         f = open(cw.util.join_paths(dpath2, fname), "r")
                                         seq2.append(f.read())
                                         f.close()
                                         seq.append(fname)
                     finally:
                         for file in os.listdir(dpath):
+                            file = cw.util.decode_zipname(file)
                             file = cw.util.join_paths(dpath, file)
                             if os.path.isdir(file):
                                 shutil.rmtree(file)
