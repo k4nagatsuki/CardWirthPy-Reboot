@@ -300,14 +300,15 @@ class CWPyCard(base.SelectableSprite):
 
         # ズーム画像も更新
         if self.zoomimgs:
-            self.rect.size = self.zoomimgs[0][1].size
-            self._rect = pygame.Rect(self.rect)
-            self._rect.topleft = rect.topleft
-            self.zoomimgs = []
-            self.update_zoomin()
-
-            while not self.frame == 0:
-                self.update_zoomin()
+            self.zoomimgs[0] = self._image, self.zoomimgs[0][1]
+            for i, t in enumerate(self.zoomimgs[1:]):
+                rect = t[1]
+                w = rect[2]
+                h = rect[3]
+                image = pygame.transform.scale(self._image, (w, h))
+                self.zoomimgs[i+1] = image, rect
+            self.image = self.zoomimgs[-1][0]
+            self.rect = pygame.Rect(self.zoomimgs[-1][1])
 
     def clear_image(self):
         self.image = pygame.Surface((0, 0)).convert()
