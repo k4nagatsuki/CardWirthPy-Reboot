@@ -673,16 +673,16 @@ class BranchSelectContent(BranchContent):
         targetall = self.data.getbool(".", "targetall", True)
         random = self.data.getbool(".", "random", True)
 
+        if targetall:
+            pcards = cw.cwpy.get_pcards("unreversed")
+        else:
+            pcards = cw.cwpy.get_pcards("active")
+
         if random:
-            pcard = cw.cwpy.event.get_targetmember("Random")
+            pcard = cw.cwpy.dice.choice(pcards)
             cw.cwpy.event.set_selectedmember(pcard)
             index = 0
         else:
-            if targetall:
-                pcards = cw.cwpy.get_pcards("unreversed")
-            else:
-                pcards = cw.cwpy.get_pcards("active")
-
             if pcards:
                 mwin = cw.sprite.message.MemberSelectWindow(pcards)
                 index = cw.cwpy.show_message(mwin)
