@@ -221,7 +221,7 @@ class CWPy(_Singleton, threading.Thread):
         self.pcardgrp.update(self.scr)
         self.sbargrp.update(self.scr)
         if not self.statusbar.showbuttons:
-            if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE:
+            if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
 
     def draw(self, mainloop=False):
