@@ -1049,7 +1049,7 @@ class YadoData(object):
         header: AdventurerHeader
         """
         path = cw.xmlcreater.create_party(header)
-        header = self.create_partyheader(path)
+        header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))
         cw.cwpy.load_party(header, chgarea=chgarea)
 
     def sort_standbys(self):

@@ -75,6 +75,9 @@ class YadoDB(object):
                 self.con.commit()
 
         else:
+            dir = os.path.dirname(self.name)
+            if not os.path.isdir(dir):
+                os.makedirs(dir)
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.con.row_factory = sqlite3.Row
             self.cur = self.con.cursor()
