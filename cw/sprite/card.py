@@ -314,7 +314,8 @@ class CWPyCard(base.SelectableSprite):
 
     def clear_image(self):
         self.image = pygame.Surface((0, 0)).convert()
-        self.rect = self.image.get_rect(center=self.get_animerect().center)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = self._rect.topleft
 
     def set_pos(self, pos=None, center=None):
         if pos:
