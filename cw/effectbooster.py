@@ -27,7 +27,7 @@ def wait_effectbooster(waittime):
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
             cw.cwpy.sbargrp.update(cw.cwpy.scr)
-            cw.cwpy.tick_clock()
+            cw.cwpy.tick_clock(1000)
             cw.cwpy.input()
             eventhandler.run()
 

@@ -257,6 +257,8 @@ class CWPyCard(base.SelectableSprite):
             self.zoomimgs = []
             self.status = self.old_status
             self.frame = 0
+            if self.status == "hidden":
+                self.clear_image()
         else:
             self.image, self.rect = self.zoomimgs.pop()
             self.rect = pygame.Rect(self.rect)
