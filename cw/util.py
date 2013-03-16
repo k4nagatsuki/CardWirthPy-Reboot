@@ -211,8 +211,11 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None):
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
-            encoding = sys.getfilesystemencoding()
-            image = pygame.image.load(path.encode(encoding))
+            f = io.BufferedReader(io.FileIO(path))
+            try:
+                image = pygame.image.load(f)
+            finally:
+                f.close()
     except:
         print u"画像が読み込めません", path
         return pygame.Surface((0, 0)).convert()
@@ -315,11 +318,13 @@ def load_bgm(path):
     if not pygame.mixer or not os.path.isfile(path):
         return
 
-    encoding = sys.getfilesystemencoding()
-
     try:
         assert threading.currentThread() == cw.cwpy
-        pygame.mixer.music.load(path.encode(encoding))
+        f = io.BufferedReader(io.FileIO(path))
+        try:
+            pygame.mixer.music.load(f)
+        finally:
+            f.close()
     except:
         print u"BGMが読み込めません", path
         return

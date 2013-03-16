@@ -341,6 +341,18 @@ class Character(object):
         """
         return len([h for h in self.get_pocketcards(cw.POCKET_BEAST) if not h.attachment])
 
+    def is_enhanced_act(self):
+        return self.enhance_act <> 0 and 0 < self.enhance_act_dur
+
+    def is_enhanced_res(self):
+        return self.enhance_res <> 0 and 0 < self.enhance_res_dur
+
+    def is_enhanced_avo(self):
+        return self.enhance_avo <> 0 and 0 < self.enhance_avo_dur
+
+    def is_enhanced_def(self):
+        return self.enhance_def <> 0 and 0 < self.enhance_def_dur
+
     #---------------------------------------------------------------------------
     #　カード操作
     #---------------------------------------------------------------------------

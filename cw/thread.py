@@ -1325,7 +1325,7 @@ class CWPy(_Singleton, threading.Thread):
                         return
 
             # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
-            if header.premium == "Premium" and not from_event:
+            if not cw.cwpy.debug and header.premium == "Premium" and not from_event:
                 if targettype == "PAWNSHOP":
                     self.sounds["error"].play()
                     s = cw.cwpy.msgs["error_sell_premier_card"]

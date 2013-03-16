@@ -956,6 +956,10 @@ def get_effectivetargets(header, targets):
         for motion in motions:
             s = motion.get("type", "")
 
+            if s in ("EnhanceAction", "EnhanceAvoid", "EnhanceResist", "EnhanceDefense"):
+                if 0 == int(motion.get("value", "0")):
+                    s = "Dis" + s
+
             if s in checkingmethod_dict:
                 method, flag = checkingmethod_dict[s]
                 sets.update([t for t in targets if getattr(t, method)() == flag])
@@ -1020,6 +1024,12 @@ checkingmethod_dict = {"Heal" : ("is_injured", True),
                        "DealConfuseCard" : ("is_active", True),
                        "DealSkillCard" : ("is_active", True),
                        "SummonBeast" : ("can_addbeast", True),
+
+                       # 能力修正に限り、値が0なら特別に解除効果として扱う
+                       "DisEnhanceAction" : ("is_enhanced_act", True),
+                       "DisEnhanceResist" : ("is_enhanced_res", True),
+                       "DisEnhanceAvoid" : ("is_enhanced_avo", True),
+                       "DisEnhanceDefense" : ("is_enhanced_def", True),
                        }
 
 # key: モーション名, value: チェック用メソッド名の辞書
