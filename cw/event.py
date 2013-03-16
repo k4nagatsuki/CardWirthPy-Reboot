@@ -617,12 +617,12 @@ class CardEvent(Event):
         cw.cwpy.sdata.events.start(keycodes=keycodes)
 
     def run_enemyevent(self, target):
-        if isinstance(target, Enemy):
+        if isinstance(target, Enemy) and not (target.is_dead() or target.is_vanished()):
             keycodes = self.inusecard.keycodes
             target.events.start(keycodes=keycodes)
 
     def run_deadevent(self, target):
-        if isinstance(target, Enemy) and (target.is_dead() or target.is_vanished()):
+        if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
             target.events.start(1)
 
     def run_successevent(self, target, successflag):
