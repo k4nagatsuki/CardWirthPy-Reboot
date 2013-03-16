@@ -61,6 +61,9 @@ class EventInterface(object):
     def get_events(self):
         return self._nowrunningevents
 
+    def get_currentstack(self):
+        return len(self._nowrunningevents) - 1 + len(self._nowrunningevents[-1].nowrunningcontents)
+
     def clear(self):
         self.set_selectedmember(None)
         self.set_inusecard(None)
@@ -263,7 +266,7 @@ class EventInterface(object):
 
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                                             self._paused and not self._stoped:
-                if 0 <= self._targetstack and self._targetstack < len(self._nowrunningevents[-1].nowrunningcontents):
+                if 0 <= self._targetstack and self._targetstack < self.get_currentstack():
                     break
                 if not self._nowrunningevents[-1].force_nextcontent is None:
                     break

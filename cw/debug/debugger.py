@@ -670,11 +670,11 @@ class Debugger(wx.Frame):
             dlg.Destroy()
 
     def OnStepReturnTool(self, event):
-        if len(cw.cwpy.event._nowrunningevents[-1].nowrunningcontents) == 0:
+        if cw.cwpy.event.get_currentstack() == 0:
             evt = wx.PyCommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED, ID_PAUSE)
             self.ProcessEvent(evt)
             return
-        cw.cwpy.event._targetstack = len(cw.cwpy.event._nowrunningevents[-1].nowrunningcontents) - 1
+        cw.cwpy.event._targetstack = cw.cwpy.event.get_currentstack() - 1
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
         mwin = cw.cwpy.get_messagewindow()
@@ -684,7 +684,7 @@ class Debugger(wx.Frame):
             mwin.result = 0
 
     def OnStepOverTool(self, event):
-        cw.cwpy.event._targetstack = len(cw.cwpy.event._nowrunningevents[-1].nowrunningcontents)
+        cw.cwpy.event._targetstack = cw.cwpy.event.get_currentstack()
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
         mwin = cw.cwpy.get_messagewindow()
