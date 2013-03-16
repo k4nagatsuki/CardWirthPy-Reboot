@@ -60,8 +60,8 @@ class CWPy(_Singleton, threading.Thread):
         self.cut_animation = False
         # 入力があるまでメニューカード表示を待つ
         self.wait_showcards = False
-        # ダイアログ表示中フラグ
-        self._showingdlg = False
+        # ダイアログ表示階層
+        self._showingdlg = 0
         # フルスクリーンフラグ
         self._fullscreen = False
         # カーテンスプライト表示中フラグ
@@ -248,7 +248,7 @@ class CWPy(_Singleton, threading.Thread):
         name: ダイアログ名。cw.frame参照。
         """
         self.lock_menucards = True
-        self._showingdlg = True
+        self._showingdlg += 1
         self.keyevent.clear() # キー入力初期化
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
         event.args = kwargs
@@ -264,10 +264,11 @@ class CWPy(_Singleton, threading.Thread):
         """ダイアログを開き、閉じるまで待機する。
         name: ダイアログ名。cw.frame参照。
         """
+        stack = self._showingdlg
         self.call_dlg(name, **kwargs)
 
         if threading.currentThread() == self:
-            while self.is_running() and self.is_showingdlg():
+            while self.is_running() and stack < self._showingdlg:
                 pass
 
     def call_predlg(self):
@@ -1685,7 +1686,7 @@ class CWPy(_Singleton, threading.Thread):
         return bool(self.event._nowrunningevents)
 
     def is_showingdlg(self):
-        return self._showingdlg
+        return 0 < self._showingdlg
 
     def is_fullscreen(self):
         return self._fullscreen

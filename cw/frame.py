@@ -560,16 +560,10 @@ class Frame(wx.Frame):
         dlg.MoveXY(x, y)
 
     def kill_dlg(self, dlg=None):
-        if dlg:
-            parent = dlg.GetParent()
-        else:
-            parent = None
-
         dlg.Destroy()
         cw.cwpy.mousepos = (-1, -1)
 
-        if parent is self:
-            cw.cwpy._showingdlg = False
+        cw.cwpy._showingdlg -= 1
 
     def change_selection(self, selection):
         """選択カードを変更し、色反転させる。

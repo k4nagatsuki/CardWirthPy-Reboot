@@ -2267,11 +2267,6 @@ class PostEventContent(EventContentBase):
                 methodname = self.methoddict[command]
                 method = getattr(cw.cwpy, methodname)
 
-                # 場当たり的処置
-                # メソッドが実行されるまで選択カードが変更されないように
-                if methodname == "call_dlg":
-                    cw.cwpy._showingdlg = True
-
                 if arg:
                     cw.cwpy.exec_func(method, arg)
                 else:
