@@ -852,6 +852,7 @@ class CWPy(_Singleton, threading.Thread):
                 pos = (9 + 95 * index + 9 * index, 285)
                 pcard.rect.topleft = pos
                 pcard._rect.topleft = pos
+                pcard.cardimg.rect.topleft = pos
 
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
