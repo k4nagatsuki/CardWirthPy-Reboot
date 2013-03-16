@@ -370,6 +370,19 @@ class EventHandlerForMessageWindow(EventHandler):
                 # 下方向キー
                 elif event.key == K_DOWN:
                     self.dirkey_event(y=1)
+                # Shiftキー
+                elif event.key == K_RSHIFT or event.key == K_LSHIFT:
+                    self.shiftkey_event(True)
+
+            elif event.type == KEYUP:
+                # Shiftキー
+                if event.key == K_RSHIFT or event.key == K_LSHIFT:
+                    self.shiftkey_event(False)
+
+            elif event.type == MOUSEBUTTONDOWN:
+                # 右クリックイベント
+                if event.button == 3 and cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
+                    self.shiftkey_event(True)
 
             elif event.type == MOUSEBUTTONUP:
                 # マウスボタン押下(文字描画中のみ)
@@ -438,6 +451,8 @@ class EventHandlerForMessageWindow(EventHandler):
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.rclick_event()
+        elif cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
+            self.shiftkey_event(False)
 
     def returnkey_event(self, pushing=False):
         """
@@ -483,6 +498,23 @@ class EventHandlerForMessageWindow(EventHandler):
         elif cw.cwpy.list:
             cw.cwpy.has_inputevent = True
             self.dirkey_event(y=y)
+
+    def shiftkey_event(self, down):
+        """
+        シフトキーイベント。
+        メッセージウィンドウを一時的に非表示にする。
+        """
+        if down:
+            cw.cwpy.clear_selection()
+            cw.cwpy.pcardgrp.remove_sprites_of_layer("message")
+            cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
+            cw.cwpy.draw()
+        else:
+            if not cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
+                cw.cwpy.pcardgrp.add(self.mwin, layer="message")
+                for sbar in self.mwin.selections:
+                    cw.cwpy.pcardgrp.add(sbar, layer="selectionbar")
+                cw.cwpy.draw()
 
 class EventHandlerForBacklog(EventHandler):
     def __init__(self, backlog, index):

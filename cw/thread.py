@@ -211,7 +211,7 @@ class CWPy(_Singleton, threading.Thread):
         self.keyin = self.keyevent.get_pressed()
 
         if eventclear:
-            pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         else:
             self.events = pygame.event.get()
 

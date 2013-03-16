@@ -3,7 +3,7 @@
 
 import os
 import pygame
-from pygame.locals import MOUSEBUTTONUP, KEYDOWN, K_RETURN
+from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, K_RETURN
 
 import cw
 
@@ -2219,8 +2219,8 @@ class WaitContent(EventContentBase):
         tick = pygame.time.get_ticks() + (value * 100)
         while cw.cwpy.is_running() and pygame.time.get_ticks() < tick:
             keyin = cw.cwpy.keyevent.get_pressed()
-            breakflag = pygame.event.peek((MOUSEBUTTONUP, KEYDOWN))
-            pygame.event.clear((MOUSEBUTTONUP, KEYDOWN))
+            breakflag = pygame.event.peek((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
 
             # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
             if breakflag or keyin[K_RETURN] > cw.cwpy.keyevent.threshold:

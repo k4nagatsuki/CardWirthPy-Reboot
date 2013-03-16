@@ -29,7 +29,8 @@ class KeyEventRelay(object):
             wx.WXK_UP : K_UP,
             wx.WXK_DOWN : K_DOWN,
             wx.WXK_LEFT : K_LEFT,
-            wx.WXK_RIGHT : K_RIGHT}
+            wx.WXK_RIGHT : K_RIGHT,
+            wx.WXK_SHIFT : K_LSHIFT}
         # キー入力(pygame用)
         self.keyin = [0 for cnt in xrange(322)]
         # キー押しっぱなし閾値

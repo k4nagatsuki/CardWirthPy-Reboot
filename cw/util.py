@@ -178,7 +178,7 @@ def init(size=(640, 480), title=""):
 
     pygame.mixer.set_num_channels(2)
     pygame.event.set_blocked(None)
-    pygame.event.set_allowed([KEYDOWN, MOUSEBUTTONUP, USEREVENT])
+    pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
     return scr, clock
 
 def convert_maskpos(maskpos, width, height):
