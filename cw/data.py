@@ -115,6 +115,8 @@ class SystemData(object):
         self.events.start(keynum=keynum, keycodes=keycodes)
         if not cw.cwpy.is_dealing() and not cw.cwpy.battle:
             cw.cwpy.statusbar.change()
+            cw.cwpy.disposition_pcards()
+            cw.cwpy.show_party()
 
     def check_bginhrt(self, elements=[]):
         """

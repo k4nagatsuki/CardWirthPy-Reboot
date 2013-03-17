@@ -133,6 +133,7 @@ class BattleEngine(object):
         self.set_actionorder()
         self.set_action()
         self._ready = True
+        cw.cwpy.disposition_pcards()
         cw.cwpy.statusbar.change()
 
     def runaway(self):

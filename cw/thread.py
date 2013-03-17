@@ -824,6 +824,17 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 cw.sprite.card.MenuCard(e, pos, status)
 
+    def disposition_pcards(self):
+        """プレイヤーカードの位置を補正する。
+        対象消去が発生した場合や解散直後に適用。
+        """
+        for index, pcard in enumerate(self.get_pcards()):
+            assert not pcard.zoomimgs
+            x = 9 + 95 * index + 9 * index
+            pcard.rect[0] = x
+            pcard._rect[0] = x
+            pcard.cardimg.rect[0] = x
+
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default")):
         """ゲームエリアチェンジ。
@@ -846,13 +857,7 @@ class CWPy(_Singleton, threading.Thread):
                 pcard.set_fullrecovery()
                 pcard.update_image()
 
-        if self.is_showparty:
-            for index, pcard in enumerate(self.get_pcards()):
-                # 解散直後などは位置が揃っていないので再設定
-                pos = (9 + 95 * index + 9 * index, 285)
-                pcard.rect.topleft = pos
-                pcard._rect.topleft = pos
-                pcard.cardimg.rect.topleft = pos
+        self.disposition_pcards()
 
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
@@ -989,6 +994,7 @@ class CWPy(_Singleton, threading.Thread):
         showbuttons = not self.is_playingscenario() or\
             (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
         self.statusbar.change(showbuttons)
+        self.disposition_pcards()
 
     def clear_specialarea(self):
         """特殊エリアに移動する前のエリアに戻る。
@@ -1025,6 +1031,7 @@ class CWPy(_Singleton, threading.Thread):
         showbuttons = not self.is_playingscenario() or\
             (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
         self.statusbar.change(showbuttons)
+        self.disposition_pcards()
 
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド
