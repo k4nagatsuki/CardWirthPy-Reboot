@@ -489,7 +489,7 @@ class CardHolder(CardControl):
             if self.callname == "CARDPOCKET":
                 self.index = 0
                 self.list2 = cw.cwpy.get_pcards("unreversed")
-                self.selection = self.list2[self.index2]
+                self.selection = self.index2
             else:
                 # カード移動でページ数が減っていたらself.indexを-1
                 if len(self.list) % 10 == 0 and len(self.list) / 10 == indexs[0]:
@@ -509,7 +509,7 @@ class CardHolder(CardControl):
                 else:
                     # NPCの手札カード
                     self.list2 = cw.cwpy.get_fcards()
-                self.index2 = self.list2.index(self.selection)
+                self.index2 = self.selection
             else:
                 self.index2 = cw.cwpy.lastcardpocket
 
@@ -751,7 +751,7 @@ class CardHolder(CardControl):
         old_callname = self.callname
 
         if self.callname == "CARDPOCKET":
-            if self.index2 == 0:
+            if self.index2 is self.list2[0]:
                 if self._can_open_backpack:
                     # 荷物袋 ← 左端
                     self.index = 0
@@ -759,13 +759,13 @@ class CardHolder(CardControl):
                     self._change_callname(old_callname)
                 else:
                     # 右端 ← 左端
-                    self.index2 = len(self.list2) - 1
-                    self.selection = self.list2[self.index2]
+                    self.index2 = self.list2[-1]
+                    self.selection = self.index2
                     self.Parent.change_selection(self.selection)
             else:
                 # 一つ左のメンバ
-                self.index2 -= 1
-                self.selection = self.list2[self.index2]
+                self.index2 = self.list2[self.list2.index(self.index2) - 1]
+                self.selection = self.index2
                 self.Parent.change_selection(self.selection)
         else:
             self.index = 0
@@ -776,8 +776,8 @@ class CardHolder(CardControl):
             else:
                 # パーティの手札 ← カード置き場
                 self.callname = "CARDPOCKET"
-                self.index2 = len(self.list2) - 1
-                self.selection = self.list2[self.index2]
+                self.index2 = self.list2[-1]
+                self.selection = self.index2
                 self._change_callname(old_callname)
 
         self.draw(True)
@@ -810,7 +810,7 @@ class CardHolder(CardControl):
         old_callname = self.callname
 
         if self.callname == "CARDPOCKET":
-            if self.index2 == len(self.list2) -1:
+            if self.index2 is self.list2[-1]:
                 if self._can_open_storehouse:
                     # 右端 → カード置き場
                     self.index = 0
@@ -823,13 +823,13 @@ class CardHolder(CardControl):
                     self._change_callname(old_callname)
                 else:
                     # 右端 → 左端
-                    self.index2 = 0
-                    self.selection = self.list2[self.index2]
+                    self.index2 = self.list2[0]
+                    self.selection = self.index2
                     self.Parent.change_selection(self.selection)
             else:
                 # 一つ右のメンバ
-                self.index2 += 1
-                self.selection = self.list2[self.index2]
+                self.index2 = self.list2[self.list2.index(self.index2) + 1]
+                self.selection = self.index2
                 self.Parent.change_selection(self.selection)
         else:
             self.index = 0
@@ -840,8 +840,8 @@ class CardHolder(CardControl):
             else:
                 # 荷物袋 → パーティの手札
                 self.callname = "CARDPOCKET"
-                self.index2 = 0
-                self.selection = self.list2[self.index2]
+                self.index2 = self.list2[0]
+                self.selection = self.index2
                 self._change_callname(old_callname)
 
         self.draw(True)

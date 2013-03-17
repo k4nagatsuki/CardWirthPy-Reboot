@@ -274,7 +274,19 @@ class CWPy(_Singleton, threading.Thread):
     def call_predlg(self):
         """直前に開いていたダイアログを再び開く。"""
         if self.pre_dialogs:
-            callname = self.pre_dialogs[-1][0]
+            pre_info = self.pre_dialogs[-1]
+            callname = pre_info[0]
+
+            if callname == "CARDPOCKET":
+                # 手札カードダイアログの選択者が
+                # 対象消去されている場合は開かない
+                indexs = pre_info[1]
+                index2 = indexs[1]
+                if isinstance(index2, cw.character.Character) and\
+                        index2.is_vanished():
+                    self.pre_dialogs.pop()
+                    return
+
             self.call_dlg(callname)
 
     def exec_func(self, func, *args, **kwargs):
