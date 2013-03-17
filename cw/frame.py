@@ -564,6 +564,8 @@ class Frame(wx.Frame):
         cw.cwpy.mousepos = (-1, -1)
 
         cw.cwpy._showingdlg -= 1
+        if cw.cwpy._showingdlg <= 0:
+            cw.cwpy.lock_menucards = False
 
     def change_selection(self, selection):
         """選択カードを変更し、色反転させる。

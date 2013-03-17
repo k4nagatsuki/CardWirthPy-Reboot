@@ -292,7 +292,8 @@ class CardControl(wx.Dialog):
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
         if self.callname == "INFOVIEW" or\
-            (self.callname == "HANDVIEW" and not cw.cwpy.debug and isinstance(self.owner, (cw.character.Enemy, cw.character.Friend))):
+            (self.callname == "CARDPOCKET" and isinstance(self.selection, cw.character.Friend)) or\
+            (self.callname == "HANDVIEW" and not cw.cwpy.debug and isinstance(self.selection, (cw.character.Enemy, cw.character.Friend))):
             s = cw.cwpy.msgs["mode_show"]
         elif cw.cwpy.areaid in cw.AREAS_TRADE:
             s = cw.cwpy.msgs["mode_move"]
@@ -389,7 +390,8 @@ class CardControl(wx.Dialog):
                 return
 
         # カード所持者がPlayerCardじゃない場合はカード情報を表示
-        if not cw.cwpy.debug and isinstance(owner, (cw.character.Enemy, cw.character.Friend)):
+        if isinstance(self.selection, cw.character.Friend) or\
+                (not cw.cwpy.debug and isinstance(owner, (cw.character.Enemy, cw.character.Friend))):
             dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()

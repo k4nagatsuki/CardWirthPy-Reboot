@@ -258,7 +258,6 @@ class CWPy(_Singleton, threading.Thread):
                 pass
         else:
             self.frame.ProcessEvent(event)
-        self.lock_menucards = False
 
     def call_modaldlg(self, name, **kwargs):
         """ダイアログを開き、閉じるまで待機する。
@@ -890,7 +889,6 @@ class CWPy(_Singleton, threading.Thread):
         """
         指定するIDの戦闘を開始する。
         """
-        self.lock_menucards = True
         self.sounds["battle"].play()
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
@@ -910,7 +908,6 @@ class CWPy(_Singleton, threading.Thread):
 
         self.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
         self.battle = cw.battle.BattleEngine()
-        self.lock_menucards = False
 
     def clear_battlearea(self, areachange=True, win=False):
         """戦闘状態を解除して戦闘前のエリアに戻る。
