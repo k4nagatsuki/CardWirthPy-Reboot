@@ -306,6 +306,104 @@ class CWYado(object):
         f.close()
         return data
 
+class UnconvCWYado(object):
+    """pathの宿データを逆変換してdstpathへ保存する。
+    """
+    def __init__(self, ydata, path, dstpath):
+        self.ydata = ydata
+        self.name = self.ydata.name
+        self.path = path
+        self.dir = util.join_paths(dstpath, util.check_filename(self.name))
+        self.dir = util.check_duplicate(self.dir)
+        # progress dialog data
+        self.message = ""
+        self.curnum = 0
+        self.maxnum = 1
+        # エラーログ
+        self.errorlog = ""
+
+    def convert(self):
+        # 変換中情報
+        table = {}
+
+        def create_fpath(name, ext):
+            fpath = util.join_paths(self.dir, util.check_filename(header.name) + ext)
+            fpath = util.check_duplicate(fpath)
+            return fpath
+
+        def write_card(header):
+            data = cw.data.xml2element(header.fpath)
+            fpath = create_fpath(header.name, ".wid")
+            f = cwfile.CWFile(fpath, "wb")
+            try:
+                if header.type == "SkillCard":
+                    skill.SkillCard.unconv(f, data)
+                elif header.type == "ItemCard":
+                    item.ItemCard.unconv(f, data)
+                elif header.type == "BeastCard":
+                    beast.BeastCard.unconv(f, data)
+            finally:
+                f.close()
+            return fpath
+
+        # カード置場のカード(*.wid)
+        unusedcards = {}
+        for header in ydata.storehouse:
+            fpath = write_card(header)
+            unusedcards[os.path.basename(fpath)] = data
+        table["unusedcards"] = unusedcards
+
+        # 待機中冒険者
+        for header in ydata.standbys:
+            data = cw.data.xml2element(header.fpath)
+
+            ppath = create_fpath(header.name, ".wcp")
+            f = cwfile.CWFile(ppath, "wb")
+            try:
+                adventurer.AdventurerCard.unconv(data, f)
+            finally:
+                f.close()
+
+            hpath = create_fpath(header.name, ".wch")
+            f = cwfile.CWFile(hpath, "wb")
+            try:
+                adventurer.AdventurerHeader.unconv(data, f, ppath)
+            finally:
+                f.close()
+
+        # 荷物袋のカード(*.wid)
+        parties = []
+        yadocards = {}
+        for partyheader in ydata.partys:
+            party = cw.data.Party(partyheader)
+            parties.append(partyheader, party)
+
+            yadodir = party.get_yadodir()
+            tempdir = party.get_tempdir()
+            for header in party.backpack + party.backpack_moved:
+                fpath = write_card(header)
+                if header.fpath.lower().startswith("yado"):
+                    basepath = os.path.relpath(header.fpath, yadodir)
+                else:
+                    basepath = os.path.relpath(header.fpath, tempdir)
+
+                yadocards[basepath] = os.path.basename(fpath)
+
+        table["yadocards"] = yadocards
+
+        # パーティ内冒険者
+        for partyheader, party in parties:
+            pass # TODO
+
+        # パーティ
+        # TODO
+
+        # アルバム
+        # TODO
+
+        # Environment.wyd
+        # TODO
+
 def main():
     pass
 

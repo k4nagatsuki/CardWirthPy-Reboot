@@ -79,8 +79,36 @@ class Party(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f, data):
-        pass # TODO
+    def unconv(f, data, table):
+        yadoname = table["yadoname"]
+        image = None
+        memberslist = ""
+        name = ""
+        money = 0
+        nowadventuring = False
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "Money":
+                        money = int(prop.text)
+            elif e.tag == "Members":
+                atbl = table["adventurers"]
+                seq = []
+                for me in e:
+                    fpath = atbl[me.text]
+                    seq.append(fpath)
+                memberslist = cw.util.encodetextlist(seq)
+
+        f.write_word(0) # 不明
+        f.write_string(yadoname)
+        f.write_image(image)
+        f.write_string(memberlist)
+        f.write_string(name)
+        f.write_dword(money)
+        f.write_bool(nowadventuring)
 
 class PartyMembers(base.CWBinaryBase):
     """wptファイル(type=3)。パーティメンバと
@@ -110,8 +138,36 @@ class PartyMembers(base.CWBinaryBase):
             adventurer.create_xml(dpath)
 
     @staticmethod
-    def unconv(f, data):
-        pass # TODO
+    def unconv(f, party, fname):
+        adventurers = []
+        vanisheds = []
+        name = ""
+        cards = []
+
+        for member in party.members:
+            if member.is_vanished():
+                adventurers.append(member)
+            else:
+                vanisheds.append(member)
+        name = party.name
+
+        f.write_byte(len(adventurers) + 30)
+        f.write_dword() # 不明
+        for member in adventurers:
+            adventurer.AdventurerWithImage.unconv(f, member)
+        f.write_word(len(vanisheds))
+        f.write_byte() # 不明
+        for member in vanisheds:
+            adventurer.AdventurerWithImage.unconv(f, member)
+        f.write_string(name)
+        f.write_dword(len(party.backpack) + len(party.backpack_moved))
+        btbl = table["yadocards"]
+        for header in party.backpack:
+            fpath, data = btbl[header.fpath]
+            cards.append(BackpackCard.unconv(f, data, fpath, True))
+        for header in party.backpack_moved:
+            fpath, data = btbl[header.fpath]
+            cards.append(BackpackCard.unconv(f, data, fpath, False))
 
 class BackpackCard(base.CWBinaryBase):
     """荷物袋に入っているカードのデータ。
@@ -137,8 +193,10 @@ class BackpackCard(base.CWBinaryBase):
         return self.data.create_xml(dpath)
 
     @staticmethod
-    def unconv(f, data):
-        pass # TODO
+    def unconv(f, data, fname, mine):
+        f.write_rawstring(fname)
+        f.write_dword(int(data.findtext("Property/UseLimit", "0")))
+        f.write_bool(mine)
 
 def main():
     pass

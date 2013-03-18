@@ -493,7 +493,12 @@ class AdventurerCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        pass # TODO
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        Adventurer.unconv(f, data)
 
 class AdventurerWithImage(base.CWBinaryBase):
     """埋め込み画像付き冒険者データ。
@@ -515,7 +520,9 @@ class AdventurerWithImage(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        pass # TODO
+        f.write_image(import_image(data.findtext("Property/ImagePath")))
+        Adventurer.unconv(f, data)
+        f.write_byte(0)
 
 class AdventurerHeader(base.CWBinaryBase):
     """wchファイル(type=0)。おそらく宿帳表示用の簡易データと思われる。
@@ -551,8 +558,58 @@ class AdventurerHeader(base.CWBinaryBase):
         f.byte()
 
     @staticmethod
-    def unconv(f, data):
-        pass # TODO
+    def unconv(f, data, fname):
+        name = ""
+        image = None
+        level = 0
+        coupons = ""
+        dex = 0
+        agl = 0
+        int = 0
+        str = 0
+        vit = 0
+        min = 0
+        ep = 0
+
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Name":
+                        name = prop.text
+                    elif prop.tag == "ImagePath":
+                        image = import_image(prop.text)
+                    elif prop.tag == "Level":
+                        level = int(prop.text)
+                    elif prop.tag == "Ability":
+                        for ae in prop:
+                            if ae.tag == "Physical":
+                                dex = int(ae.get("dex"))
+                                agl = int(ae.get("agl"))
+                                int = int(ae.get("int"))
+                                str = int(ae.get("str"))
+                                vit = int(ae.get("vit"))
+                                min = int(ae.get("min"))
+                    elif prop.tag == "Coupons":
+                        seq = []
+                        for ce in prop:
+                            seq.append(ce.text)
+                            if ce.text == u"＠ＥＰ":
+                                ep = int(ce.get("value", "0"))
+                        coupons = cw.util.decodetextlist(seq)
+
+        f.write_word(0) # 不明
+        f.write_string(name)
+        f.write_image(image)
+        f.write_word(level)
+        f.write_string(coupons)
+        f.write_word(0) # 不明
+        f.write_word(ep)
+        f.write_word(dex)
+        f.write_word(agl)
+        f.write_word(int)
+        f.write_word(str)
+        f.write_word(vit)
+        f.write_word(min)
 
 def main():
     pass

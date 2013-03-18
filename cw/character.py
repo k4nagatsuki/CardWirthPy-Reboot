@@ -464,7 +464,9 @@ class Character(object):
             self.clear_action()
             self.actiondata = (target, header, beasts)
             cw.cwpy.sounds["page"].play()
-            cw.cwpy.pre_dialogs.pop()
+            assert cw.cwpy.pre_dialogs
+            if cw.cwpy.pre_dialogs:
+                cw.cwpy.pre_dialogs.pop()
 
         if cw.cwpy.battle and target:
             seq = []
@@ -1174,7 +1176,7 @@ class Character(object):
         self.poison = cw.util.numwrap(self.poison, 0, 40)
         self.data.edit("Property/Status/Poison", str(self.poison))
 
-    def set_mentality(self, name, value):
+    def set_mentality(self, name, value, overwrite=True):
         """
         精神状態とその継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
@@ -1184,47 +1186,65 @@ class Character(object):
             value = 0
         elif value == 0:
             name = "Normal"
-        self.mentality = name
-        self.mentality_dur = value
+
+        if not overwrite and name == self.mentality and name <> "Normal":
+            # 長い方の効果時間を優先
+            self.mentality_dur = max(self.mentality_dur, value)
+        else:
+            self.mentality = name
+            self.mentality_dur = value
+
         path = "Property/Status/Mentality"
         self.data.edit(path, self.mentality)
         self.data.edit(path, str(self.mentality_dur), "duration")
         self.adjust_action()
 
-    def set_bind(self, value):
+    def set_bind(self, value, overwrite=True):
         """
         束縛状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        self.bind = value
+        if overwrite:
+            self.bind = value
+        else:
+            self.bind = max(self.bind, value)
         self.bind = cw.util.numwrap(self.bind, 0, 999)
         self.data.edit("Property/Status/Bind", str(self.bind), "duration")
         self.adjust_action()
 
-    def set_silence(self, value):
+    def set_silence(self, value, overwrite=True):
         """
         沈黙状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        self.silence = value
+        if overwrite:
+            self.silence = value
+        else:
+            self.silence = max(self.silence, value)
         self.silence = cw.util.numwrap(self.silence, 0, 999)
         self.data.edit("Property/Status/Silence", str(self.silence), "duration")
 
-    def set_faceup(self, value):
+    def set_faceup(self, value, overwrite=True):
         """
         暴露状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        self.faceup = value
+        if overwrite:
+            self.faceup = value
+        else:
+            self.faceup = max(self.faceup, value)
         self.faceup = cw.util.numwrap(self.faceup, 0, 999)
         self.data.edit("Property/Status/FaceUp", str(self.faceup), "duration")
 
-    def set_antimagic(self, value):
+    def set_antimagic(self, value, overwrite=True):
         """
         魔法無効状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        self.antimagic = value
+        if overwrite:
+            self.antimagic = value
+        else:
+            self.antimagic = max(self.antimagic, value)
         self.antimagic = cw.util.numwrap(self.antimagic, 0, 999)
         self.data.edit("Property/Status/AntiMagic", str(self.antimagic), "duration")
 

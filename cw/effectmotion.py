@@ -672,8 +672,8 @@ class EffectMotion(object):
                 eff = target.mentality <> "Normal"
                 target.set_mentality("Normal", duration)
             else:
-                eff = target.mentality <> self.type.title() or duration <> target.mentality_dur
-                target.set_mentality(self.type.title(), duration)
+                eff = target.mentality <> self.type.title() or target.mentality_dur < duration
+                target.set_mentality(self.type.title(), duration, overwrite=False)
         return eff
 
     def sleep_motion(self, *args, **kwargs):
@@ -702,8 +702,9 @@ class EffectMotion(object):
         束縛状態。
         """
         duration = self.calc_durationvalue(False)
-        target.set_bind(duration)
-        return 0 < duration
+        eff = target.bind < duration
+        target.set_bind(duration, overwrite=False)
+        return eff
 
     def disbind_motion(self, target, success_res):
         """
@@ -718,8 +719,9 @@ class EffectMotion(object):
         沈黙状態。
         """
         duration = self.calc_durationvalue(False)
-        target.set_silence(duration)
-        return 0 < duration
+        eff = target.silence < duration
+        target.set_silence(duration, overwrite=False)
+        return eff
 
     def dissilence_motion(self, target, success_res):
         """
@@ -734,8 +736,9 @@ class EffectMotion(object):
         暴露状態。
         """
         duration = self.calc_durationvalue(False)
-        target.set_faceup(duration)
-        return 0 < duration
+        eff = target.faceup < duration
+        target.set_faceup(duration, overwrite=False)
+        return eff
 
     def facedown_motion(self, target, success_res):
         """
@@ -750,8 +753,9 @@ class EffectMotion(object):
         魔法無効化状態。
         """
         duration = self.calc_durationvalue(False)
-        target.set_antimagic(duration)
-        return 0 < duration
+        eff = target.antimagic < duration
+        target.set_antimagic(duration, overwrite=False)
+        return eff
 
     def disantimagic_motion(self, target, success_res):
         """

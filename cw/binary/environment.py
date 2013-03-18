@@ -70,7 +70,7 @@ class Environment(base.CWBinaryBase):
             prop.append(e)
             e = cw.data.make_element("Cashbox", str(self.money))
             prop.append(e)
-            e = cw.data.make_element("NowSelectingParty", self.scenarioname)
+            e = cw.data.make_element("NowSelectingParty", self.partyname)
             prop.append(e)
             self.data.append(prop)
 
@@ -103,7 +103,7 @@ class Environment(base.CWBinaryBase):
         return d
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f, data, table):
         yadotype = 0 # TODO
         drawcard_speed = 0 # TODO
         drawbg_speed = 0 # TODO
@@ -127,7 +127,23 @@ class Environment(base.CWBinaryBase):
         money = 0
         partyname = "" # TODO
 
-        pass # TODO
+        for e in data:
+            if e.tag == "Property":
+                for prop in e:
+                    if prop.tag == "Cashbox":
+                        money = int(prop.text)
+                    elif prop.tag == "NowSelectingParty":
+                        partyname = table["party"].get(prop.text, "")
+            elif e.tag == "CompleteStamps":
+                seq = []
+                for cse in e:
+                    seq.append(cse.text)
+                compstamps = cw.util.encodetextlist(seq)
+            elif e.tag == "Gossips":
+                seq = []
+                for ge in e:
+                    seq.append(ge.text)
+                compstamps = cw.util.encodetextlist(seq)
 
         f.write_string("DATAVERSION_10")
         f.write_byte(yadotype)
@@ -150,8 +166,14 @@ class Environment(base.CWBinaryBase):
         f.write_string(compstamps)
         f.write_string(scenarioname)
         f.write_string(gossips)
-        # TODO unusedcards
-        # TODO yadocards
+        unusedcards = table.get["unusedcards"]
+        f.write_dword(len(unusedcards))
+        for fname, card in unusedcards:
+            UnusedCard.unconv(f, card, fname)
+        yadocards = table.get["yadocards"]
+        f.write_dword(len(yadocards))
+        for fname, card in yadocards:
+            YadoCard.unconv(f, card, fname)
         f.write_dword(money)
         f.write_string(partyname)
 
@@ -186,8 +208,10 @@ class UnusedCard(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f, data):
-        pass # TODO
+    def unconv(f, data, fname):
+        f.write_rawstring(fname)
+        f.write_dword(int(data.findtext("Property/UseLimit", "0")))
+        f.write_byte(0)
 
 class YadoCard(base.CWBinaryBase):
     """カード置き場のカードと荷物袋のカードのデータ。
@@ -204,8 +228,24 @@ class YadoCard(base.CWBinaryBase):
         self.number = f.dword() # 個数
 
     @staticmethod
-    def unconv(f, data):
-        pass # TODO
+    def unconv(f, data, fname):
+        name = data.findtext("Property/Name", "")
+        description = data.findtext("Property/Description", "")
+        if data.tag == "SkillCard":
+            type = 1
+        elif data.tag == "ItemCard":
+            type = 2
+        elif data.tag == "BeastCard":
+            type = 3
+        number = 1
+
+        f.write_byte(0)
+        f.write_byte(0)
+        f.write_string(name)
+        f.write_string(description)
+        f.write_byte(type)
+        f.write_rawstring(fname)
+        f.write_dword(number)
 
 def main():
     pass

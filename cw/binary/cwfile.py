@@ -32,6 +32,9 @@ class CWFile(io.BufferedReader):
         else:
             return False
 
+    def write_bool(self, b):
+        self.byte(1 if b else 0)
+
     def string(self, multiline=False):
         """dwordの値で読み込んだバイナリをユニコード文字列にして返す。
         dwordの値が"0"だったら空の文字列を返す。
@@ -45,6 +48,11 @@ class CWFile(io.BufferedReader):
 
         return s
 
+    def write_string(self, s, multiline=False):
+        if not self.decodewrap:
+            s = cw.util.decodewrap(s)
+        self.write_rawstring(s)
+
     def rawstring(self):
         dword = self.dword()
 
@@ -53,11 +61,19 @@ class CWFile(io.BufferedReader):
         else:
             return ""
 
+    def write_rawstring(self, s):
+        s = (s + "\x00").encode("mbcs")
+        self.write_dword(len(s))
+        self.write(s)
+
     def byte(self):
         """byteの値を符号付きで返す。"""
         raw_data = self.read(1)
         data = struct.unpack("b", raw_data)
         return data[0]
+
+    def write_byte(self, b):
+        self.write(struct.pack("b", b))
 
     def dword(self):
         """dwordの値(4byte)を符号付きで返す。リトルエンディアン。"""
@@ -65,11 +81,17 @@ class CWFile(io.BufferedReader):
         data = struct.unpack("<l", raw_data)
         return data[0]
 
+    def write_dword(self, dw):
+        self.write(struct.pack("<l", dw))
+
     def word(self):
         """wordの値(2byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(2)
         data = struct.unpack("<h", raw_data)
         return data[0]
+
+    def write_word(self, w):
+        self.write(struct.pack("<h", w))
 
     def image(self):
         """dwordの値で読み込んだ画像のバイナリデータを返す。
@@ -81,6 +103,14 @@ class CWFile(io.BufferedReader):
             return self.read(dword)
         else:
             return None
+
+    def write_image(self, image):
+        if image:
+            # TODO Bitmapでなければ変換が必要
+            self.write_dword(len(image))
+            self.write(image)
+        else:
+            self.write_dword(0)
 
 def main():
     pass
