@@ -246,7 +246,7 @@ class CWPyCard(base.SelectableSprite):
             self.status = self.old_status
             self.frame = 0
             if self.status == "hidden":
-                self.clear_image()
+                self.clear_image(move=False)
 
     def update_zoomout(self):
         """
@@ -257,6 +257,7 @@ class CWPyCard(base.SelectableSprite):
             self.zoomimgs = []
             self.status = self.old_status
             self.frame = 0
+            self.clear_image(move=False)
         else:
             self.image, self.rect = self.zoomimgs.pop()
             self.rect = pygame.Rect(self.rect)
@@ -308,10 +309,14 @@ class CWPyCard(base.SelectableSprite):
             self.image = self.zoomimgs[-1][0]
             self.rect = pygame.Rect(self.zoomimgs[-1][1])
 
-    def clear_image(self):
+    def clear_image(self, move=True):
         self.image = pygame.Surface((0, 0)).convert()
-        self.rect = self.image.get_rect()
-        self.rect.topleft = self._rect.topleft
+        rect = self.image.get_rect()
+        if move:
+            rect.topleft = self._rect.topleft
+        else:
+            rect.topleft = self.rect.topleft
+        self.rect = rect
 
     def set_pos(self, pos=None, center=None):
         if pos:
