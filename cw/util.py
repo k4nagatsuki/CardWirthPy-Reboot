@@ -339,14 +339,14 @@ def load_sound(path):
     if not pygame.mixer or not os.path.isfile(path):
         return SoundInterface()
 
-    encoding = sys.getfilesystemencoding()
-
     try:
         assert threading.currentThread() == cw.cwpy
         if sys.platform == "win32" and path.lower().endswith(".wav"):
             sound = SoundInterface(path)
         else:
-            sound = pygame.mixer.Sound(path.encode(encoding))
+            f = io.BufferedReader(io.FileIO(path))
+            sound = pygame.mixer.Sound(f)
+            f.close()
             sound = SoundInterface(sound)
     except:
         print u"サウンドが読み込めません", path

@@ -307,24 +307,30 @@ class CWYado(object):
         return data
 
 class UnconvCWYado(object):
-    """pathの宿データを逆変換してdstpathへ保存する。
+    """宿データを逆変換してdstpathへ保存する。
     """
-    def __init__(self, ydata, path, dstpath):
+    def __init__(self, ydata, dstpath):
         self.ydata = ydata
         self.name = self.ydata.name
-        self.path = path
         self.dir = util.join_paths(dstpath, util.check_filename(self.name))
         self.dir = util.check_duplicate(self.dir)
         # progress dialog data
         self.message = ""
         self.curnum = 0
         self.maxnum = 1
+        self.maxnum += len(ydata.storehouse)
+        self.maxnum += len(ydata.standbys)
+        self.maxnum += len(ydata.partys) * 2
+        self.maxnum += len(ydata.album)
         # エラーログ
         self.errorlog = ""
 
+    def write_errorlog(self, s):
+        self.errorlog += s + "\n"
+
     def convert(self):
         # 変換中情報
-        table = {}
+        table = { "yadoname":self.name }
 
         def create_fpath(name, ext):
             fpath = util.join_paths(self.dir, util.check_filename(header.name) + ext)
@@ -334,7 +340,7 @@ class UnconvCWYado(object):
         def write_card(header):
             data = cw.data.xml2element(header.fpath)
             fpath = create_fpath(header.name, ".wid")
-            f = cwfile.CWFile(fpath, "wb")
+            f = cwfile.CWFileWriter(fpath, "wb")
             try:
                 if header.type == "SkillCard":
                     skill.SkillCard.unconv(f, data)
@@ -346,63 +352,141 @@ class UnconvCWYado(object):
                 f.close()
             return fpath
 
+        if not os.path.isdir(self.dir):
+            os.makedirs(self.dir)
+
         # カード置場のカード(*.wid)
         unusedcards = {}
-        for header in ydata.storehouse:
-            fpath = write_card(header)
-            unusedcards[os.path.basename(fpath)] = data
+        for header in self.ydata.storehouse:
+            try:
+                self.message = u"%s を変換中" % (header.name)
+                self.curnum += 1
+                fpath = write_card(header)
+                unusedcards[os.path.basename(fpath)] = data
+            except Exception, ex:
+                print ex
+                s = u"%s は変換できませんでした。\n" % (header.name)
+                self.write_errorlog(s)
         table["unusedcards"] = unusedcards
 
-        # 待機中冒険者
-        for header in ydata.standbys:
-            data = cw.data.xml2element(header.fpath)
-
-            ppath = create_fpath(header.name, ".wcp")
-            f = cwfile.CWFile(ppath, "wb")
+        # 待機中冒険者(*.wcp)とそのヘッダ(*.wch)
+        for header in self.ydata.standbys:
             try:
-                adventurer.AdventurerCard.unconv(data, f)
-            finally:
-                f.close()
+                self.message = u"%s を変換中" % (header.name)
+                self.curnum += 1
 
-            hpath = create_fpath(header.name, ".wch")
-            f = cwfile.CWFile(hpath, "wb")
-            try:
-                adventurer.AdventurerHeader.unconv(data, f, ppath)
-            finally:
-                f.close()
+                data = cw.data.xml2element(header.fpath)
+
+                ppath = create_fpath(header.name, ".wcp")
+                f = cwfile.CWFileWriter(ppath, "wb")
+                try:
+                    adventurer.AdventurerCard.unconv(f, data)
+                finally:
+                    f.close()
+
+                hpath = create_fpath(header.name, ".wch")
+                f = cwfile.CWFileWriter(hpath, "wb")
+                try:
+                    adventurer.AdventurerHeader.unconv(f, data, ppath)
+                finally:
+                    f.close()
+
+            except Exception, ex:
+                print ex
+                s = u"%s は変換できませんでした。\n" % (header.name)
+                self.write_errorlog(s)
 
         # 荷物袋のカード(*.wid)
         parties = []
         yadocards = {}
-        for partyheader in ydata.partys:
+        for partyheader in self.ydata.partys:
+            self.message = u"%s の荷物袋を変換中" % (partyheader.name)
+            self.curnum += 1
+
             party = cw.data.Party(partyheader)
-            parties.append(partyheader, party)
+            parties.append((partyheader, party))
 
             yadodir = party.get_yadodir()
             tempdir = party.get_tempdir()
             for header in party.backpack + party.backpack_moved:
-                fpath = write_card(header)
-                if header.fpath.lower().startswith("yado"):
-                    basepath = os.path.relpath(header.fpath, yadodir)
-                else:
-                    basepath = os.path.relpath(header.fpath, tempdir)
+                try:
+                    fpath = write_card(header)
+                    if header.fpath.lower().startswith("yado"):
+                        basepath = os.path.relpath(header.fpath, yadodir)
+                    else:
+                        basepath = os.path.relpath(header.fpath, tempdir)
 
-                yadocards[basepath] = os.path.basename(fpath)
+                    yadocards[basepath] = os.path.basename(fpath)
+
+                except Exception, ex:
+                    print ex
+                    s = u"%s の %s は変換できませんでした。\n" % (partyheader.name, header.name)
+                    self.write_errorlog(s)
 
         table["yadocards"] = yadocards
 
-        # パーティ内冒険者
-        for partyheader, party in parties:
-            pass # TODO
+        # パーティ(*.wpl)とパーティ内冒険者(*.wpt)
+        for partyheader, pt in parties:
+            try:
+                self.message = u"%s を変換中" % (partyheader.name)
+                self.curnum += 1
 
-        # パーティ
-        # TODO
+                fpath = create_fpath(pt.name, ".wpl")
+                f = cwfile.CWFileWriter(fpath, "wb")
+                try:
+                    party.Party.unconv(f, pt.data, table)
+                finally:
+                    f.close()
 
-        # アルバム
-        # TODO
+                fpath = create_fpath(pt.name, ".wpt")
+                f = cwfile.CWFileWriter(fpath, "wb")
+                try:
+                    party.PartyMembers.unconv(f, pt)
+                finally:
+                    f.close()
+
+            except Exception, ex:
+                print ex
+                s = u"%s は変換できませんでした。\n" % (partyheader.name)
+                self.write_errorlog(s)
+
+        # アルバム(*.wrm)
+        for header in self.ydata.album:
+            try:
+                self.message = u"%s を変換中" % (header.name)
+                self.curnum += 1
+
+                data = cw.data.xml2element(header.fpath)
+
+                fpath = create_fpath(header.name, ".wrm")
+                f = cwfile.CWFileWriter(fpath, "wb")
+                try:
+                    album.Album.unconv(f, data)
+                finally:
+                    f.close()
+
+            except Exception, ex:
+                print ex
+                s = u"%s は変換できませんでした。\n" % (header.name)
+                self.write_errorlog(s)
 
         # Environment.wyd
-        # TODO
+        self.message = u"宿情報を変換中"
+        self.curnum += 1
+        try:
+            fpath = cw.util.join_paths(self.dir, "Environment.wyd")
+            f = cwfile.CWFileWriter(fpath, "wb")
+            try:
+                environment.Environment.unconv(f, self.ydata.data)
+            finally:
+                f.close()
+
+        except Exception, ex:
+            print ex
+            s = u"宿情報は変換できませんでした。\n"
+            self.write_errorlog(s)
+
+        # TODO 過程・デバッグ
 
 def main():
     pass

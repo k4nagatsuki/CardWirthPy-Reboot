@@ -82,8 +82,8 @@ class EffectMotion(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        tabtype, type = unconv_effectmotion_type(data.get("type"))
-        element = unconv_effectmotion_element(data.get("element"))
+        tabtype, type = base.CWBinaryBase.unconv_effectmotion_type(data.get("type"))
+        element = base.CWBinaryBase.unconv_effectmotion_element(data.get("element"))
 
         f.write_byte(tabtype)
 
@@ -99,7 +99,7 @@ class EffectMotion(base.CWBinaryBase):
 
         # 生命力, 肉体
         if tabtype in (0, 1):
-            f.write_byte(unconv_effectmotion_type(data.get("damagetype")))
+            f.write_byte(base.CWBinaryBase.unconv_effectmotion_type(data.get("damagetype")))
             f.write_dword(int(data.get("value")))
         # 精神, 魔法
         elif tabtype in (3, 4):

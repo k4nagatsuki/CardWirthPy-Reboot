@@ -613,7 +613,7 @@ class CWPy(_Singleton, threading.Thread):
         self.tempdir = self.yadodir.replace("Yado",
                                                     "Data/Temp/Yado", 1)
         self.music.stop()
-        self.ydata = cw.data.YadoData()
+        self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
         self.setting.lastyado = self.ydata.name
 
         if self.ydata.party:

@@ -92,7 +92,7 @@ class Area(base.CWBinaryBase):
                 bgimgs = e
             elif e.tag == "MenuCards":
                 mcards = e
-                spreadtype = unconv_spreadtype(e.get("spreadtype"))
+                spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))
             elif e.tag == "Events":
                 events = e
 
@@ -104,8 +104,8 @@ class Area(base.CWBinaryBase):
         f.write_string(name)
         f.write_dword(id + 40000)
         f.write_dword(len(events))
-        for event in events:
-            event.Event.unconv(f, event)
+        for evt in events:
+            event.Event.unconv(f, evt)
         f.write_byte(spreadtype)
         f.write_dword(len(mcards))
         for mcard in mcards:
@@ -184,7 +184,7 @@ class MenuCard(base.CWBinaryBase):
                     if prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
-                        imgpath = materialpath(prop.text)
+                        imgpath = base.CWBinaryBase.materialpath(prop.text)
                     elif prop.tag == "Description":
                         description = prop.text
                     elif prop.tag == "Flag":
@@ -207,8 +207,8 @@ class MenuCard(base.CWBinaryBase):
         f.write_dword(0) # 不明
         f.write_string(description, True)
         f.write_dword(len(events))
-        for event in events:
-            event.Event.unconv(f, event)
+        for evt in events:
+            event.Event.unconv(f, evt)
         f.write_string(flag)
         f.write_dword(scale)
         f.write_dword(left)

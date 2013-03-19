@@ -318,7 +318,7 @@ class CastCard(base.CWBinaryBase):
                     elif prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
-                        image = import_image(prop.text)
+                        image = base.CWBinaryBase.import_image(prop.text)
                     elif prop.tag == "Description":
                         description = prop.text
                     elif prop.tag == "Level":
@@ -366,7 +366,7 @@ class CastCard(base.CWBinaryBase):
                     elif prop.tag == "Status":
                         for se in prop:
                             if se.tag == "Mentality":
-                                mentality = unconv_mentality(se.text)
+                                mentality = base.CWBinaryBase.unconv_mentality(se.text)
                                 duration_mentality = int(se.get("duration"))
                             elif se.tag == "Paralyze":
                                 paralyze = int(se.text)

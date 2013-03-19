@@ -773,10 +773,10 @@ class YadoDeletedPathSet(set):
             self.remove(path)
 
 class YadoData(object):
-    def __init__(self):
+    def __init__(self, yadodir, tempdir, loadparty=True):
         # 宿データのあるディレクトリ
-        self.yadodir = cw.cwpy.yadodir
-        self.tempdir = cw.cwpy.tempdir
+        self.yadodir = yadodir
+        self.tempdir = tempdir
 
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
@@ -830,20 +830,21 @@ class YadoData(object):
         self.yadodb.close()
 
         # 現在選択中のパーティをセット
-        self.party = None
-        pname = self.environment.gettext("Property/NowSelectingParty", "")
+        if loadparty:
+            self.party = None
+            pname = self.environment.gettext("Property/NowSelectingParty", "")
 
-        if pname:
-            path = cw.util.join_paths(self.yadodir, pname)
-            seq = [header for header in self.partys if path == header.fpath]
+            if pname:
+                path = cw.util.join_paths(self.yadodir, pname)
+                seq = [header for header in self.partys if path == header.fpath]
 
-            if seq:
-                self.load_party(seq[0])
+                if seq:
+                    self.load_party(seq[0])
+                else:
+                    self.load_party(None)
+
             else:
                 self.load_party(None)
-
-        else:
-            self.load_party(None)
 
     def update_version(self):
         """古いバージョンの宿データであれば更新する。
@@ -1510,16 +1511,16 @@ class Party(object):
     def get_relpath(self):
         ppath = os.path.dirname(self.path)
         if ppath.lower().startswith("yado"):
-            relpath = os.path.relpath(ppath, cw.cwpy.ydata.yadodir)
+            relpath = os.path.relpath(ppath, cw.cwpy.yadodir)
         else:
-            relpath = os.path.relpath(ppath, cw.cwpy.ydata.tempdir)
+            relpath = os.path.relpath(ppath, cw.cwpy.tempdir)
         return cw.util.join_paths(relpath)
 
     def get_yadodir(self):
-        return cw.util.join_paths(cw.cwpy.ydata.yadodir, self.get_relpath())
+        return cw.util.join_paths(cw.cwpy.yadodir, self.get_relpath())
 
     def get_tempdir(self):
-        return cw.util.join_paths(cw.cwpy.ydata.tempdir, self.get_relpath())
+        return cw.util.join_paths(cw.cwpy.tempdir, self.get_relpath())
 
     def is_loading(self):
         """membersのデータを元にPlayerCardインスタンスを

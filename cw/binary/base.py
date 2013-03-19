@@ -3,13 +3,15 @@
 
 import os
 import re
+import io
 import weakref
 import StringIO
 
 import util
 import xmltemplate
+import wx
 
-import cw.binary.image
+import cw
 
 
 class CWBinaryBase(object):
@@ -205,6 +207,29 @@ class CWBinaryBase(object):
         path = path.replace(basedir + "/", "", 1)
         return util.repl_escapechar(path)
 
+    @staticmethod
+    def import_image(imagepath, convertbitmap=True):
+        """imagepathの画像を読み込み、バイナリデータとして返す。
+        ビットマップ以外であればビットマップに変換する。
+        """
+        if not os.path.isfile(imagepath):
+            return None
+
+        f = open(imagepath, "rb")
+        image = f.read()
+        f.close()
+
+        if convertbitmap and not cw.util.get_imageext(image) <> ".bmp":
+            f = io.BytesIO(image)
+            data = wx.Image(f)
+            f.close()
+            f = io.BytesIO()
+            data.SaveStream(f, wx.BITMAP_TYPE_BMP)
+            f.close()
+            image = f.getvalue()
+
+        return image
+
     def get_data(self):
         """CWPyElementのインスタンスを返す。"""
         return None
@@ -222,6 +247,11 @@ class CWBinaryBase(object):
             return util.join_paths(mdir, path)
         else:
             return ""
+
+    @staticmethod
+    def materialpath(path):
+        """逆変換で素材パスのマーカ的に使用。実際は何もしない。"""
+        return path
 
     def get_indent(self, indent):
         """インデントの文字列を返す。スペース一個分。"""

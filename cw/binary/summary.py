@@ -109,7 +109,7 @@ class Summary(base.CWBinaryBase):
                     if prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
-                        image = import_image(prop.text)
+                        image = base.CWBinaryBase.import_image(prop.text)
                     elif prop.tag == "Author":
                         author = prop.text
                     elif prop.tag == "Description":

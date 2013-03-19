@@ -88,10 +88,10 @@ class Battle(base.CWBinaryBase):
                     elif prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "MusicPath":
-                        bgm = materialpath(prop.text)
+                        bgm = base.CWBinaryBase.materialpath(prop.text)
             elif e.tag == "EnemyCards":
                 ecards = e
-                spreadtype = unconv_spreadtype(e.get("spreadtype"))
+                spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))
             elif e.tag == "Events":
                 events = e
 
@@ -103,8 +103,8 @@ class Battle(base.CWBinaryBase):
         f.write_string(name)
         f.write_dword(id + 40000)
         f.write_dword(len(events))
-        for event in events:
-            event.Event.unconv(f, event)
+        for evt in events:
+            event.Event.unconv(f, evt)
         f.write_byte(spreadtype)
         f.write_dword(len(ecards))
         for ecard in ecards:
@@ -183,8 +183,8 @@ class EnemyCard(base.CWBinaryBase):
 
         f.write_dword(cast_id)
         f.write_dword(len(events))
-        for event in events:
-            event.Event.unconv(f, event)
+        for evt in events:
+            event.Event.unconv(f, evt)
         f.write_string(flag)
         f.write_dword(scale)
         f.write_dword(left)

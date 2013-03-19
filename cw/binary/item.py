@@ -202,7 +202,7 @@ class ItemCard(base.CWBinaryBase):
                     elif prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
-                        image = import_image(prop.text)
+                        image = base.CWBinaryBase.import_image(prop.text)
                     elif prop.tag == "Description":
                         description = prop.text
                     elif prop.tag == "Scenario":
@@ -212,28 +212,28 @@ class ItemCard(base.CWBinaryBase):
                     elif prop.tag == "Level":
                         level = int(prop.text)
                     elif prop.tag == "Ability":
-                        p_ability = unconv_card_physicalability(prop.get("physical"))
-                        m_ability = unconv_card_mentalability(prop.get("mental"))
+                        p_ability = base.CWBinaryBase.unconv_card_physicalability(prop.get("physical"))
+                        m_ability = base.CWBinaryBase.unconv_card_mentalability(prop.get("mental"))
                     elif prop.tag == "Target":
-                        target = unconv_card_target(prop.text)
+                        target = base.CWBinaryBase.unconv_card_target(prop.text)
                         target_all = bool(prop.get("allrange"))
                     elif prop.tag == "EffectType":
-                        effect_type = unconv_card_effecttype(prop.text)
+                        effect_type = base.CWBinaryBase.unconv_card_effecttype(prop.text)
                         silence = bool(prop.get("spell"))
                     elif prop.tag == "ResistType":
-                        resist_type = unconv_card_resisttype(prop.text)
+                        resist_type = base.CWBinaryBase.unconv_card_resisttype(prop.text)
                     elif prop.tag == "SuccessRate":
                         success_rate = int(prop.text)
                     elif prop.tag == "VisualEffect":
-                        visual_effect = unconv_card_visualeffect(prop.text)
+                        visual_effect = base.CWBinaryBase.unconv_card_visualeffect(prop.text)
                     elif prop.tag == "Enhance":
                         enhance_avoid = int(prop.get("avoid"))
                         enhance_resist = int(prop.get("resist"))
                         enhance_defense = int(prop.get("defense"))
                     elif prop.tag == "SoundPath":
-                        sound_effect = materialpath(prop.text)
+                        sound_effect = base.CWBinaryBase.materialpath(prop.text)
                     elif prop.tag == "SoundPath2":
-                        sound_effect2 = materialpath(prop.text)
+                        sound_effect2 = base.CWBinaryBase.materialpath(prop.text)
                     elif prop.tag == "KeyCodes":
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む
@@ -248,7 +248,7 @@ class ItemCard(base.CWBinaryBase):
                         if len(keycodes) < 5:
                             keycodes.append([""] * (5 - len(keycodes)))
                     elif prop.tag == "Premium":
-                        premium = unconv_card_premium(prop.text)
+                        premium = base.CWBinaryBase.unconv_card_premium(prop.text)
                     elif prop.tag == "UseLimit":
                         limit = int(prop.text)
                         limit_max = int(prop.get("max"))
@@ -293,8 +293,8 @@ class ItemCard(base.CWBinaryBase):
         f.write_string(scenario_name)
         f.write_string(scenario_author)
         f.write_dword(len(events))
-        for event in events:
-            event.SimpleEvent.unconv(f, event)
+        for evt in events:
+            event.SimpleEvent.unconv(f, evt)
         f.write_bool(hold)
 
         # 宿データだとここに不明なデータ(4)が付加されている

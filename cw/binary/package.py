@@ -59,8 +59,8 @@ class Package(base.CWBinaryBase):
         f.write_string(name)
         f.write_dword(id)
         f.write_dword(len(events))
-        for event in events:
-            event.SimpleEvent.unconv(f, event)
+        for evt in events:
+            event.SimpleEvent.unconv(f, evt)
 
 def main():
     pass

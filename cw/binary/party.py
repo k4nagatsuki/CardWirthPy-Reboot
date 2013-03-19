@@ -138,7 +138,7 @@ class PartyMembers(base.CWBinaryBase):
             adventurer.create_xml(dpath)
 
     @staticmethod
-    def unconv(f, party, fname):
+    def unconv(f, party):
         adventurers = []
         vanisheds = []
         name = ""

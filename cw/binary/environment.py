@@ -104,10 +104,10 @@ class Environment(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, table):
-        yadotype = 0 # TODO
-        drawcard_speed = 0 # TODO
-        drawbg_speed = 0 # TODO
-        message_speed = 0 # TODO
+        yadotype = 0 # 常に通常宿とする
+        drawcard_speed = 5 # TODO
+        drawbg_speed = 5 # TODO
+        message_speed = 5 # TODO
         play_bgm = True
         play_sound = True
         correct_scaledown = True
@@ -118,7 +118,7 @@ class Environment(base.CWBinaryBase):
         clickjump = True
         keep_levelmax = False
         viewtype_poster = 0 # TODO
-        bgcolor_message = 0 # TODO
+        bgcolor_message = 5 # TODO
         use_decofont = False
         changetype_bg = 0 # TODO
         compstamps = ""

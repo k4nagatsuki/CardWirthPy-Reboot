@@ -1406,7 +1406,8 @@ class Character(object):
                     self.set_enhance_def(0, 0)
                     self.set_beast(vanish=True)
 
-                cw.animation.animate_sprite(self, "lateralvibe")
+                if self.status <> "reversed" and self.status <> "hidden":
+                    cw.animation.animate_sprite(self, "lateralvibe")
                 self.update_image()
 
         # 麻痺
@@ -1498,9 +1499,12 @@ class Character(object):
 
         # 画像更新
         if flag:
-            cw.animation.animate_sprite(self, "hide")
-            self.update_image()
-            cw.animation.animate_sprite(self, "deal")
+            if self.status <> "reversed" and self.status <> "hidden":
+                cw.animation.animate_sprite(self, "hide")
+                self.update_image()
+                cw.animation.animate_sprite(self, "deal")
+            else:
+                self.update_image()
 
 class Player(Character):
     def lost(self):

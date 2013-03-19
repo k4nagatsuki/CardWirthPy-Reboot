@@ -272,7 +272,8 @@ class YadoSelect(Select):
         items = [
             (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado),
             (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado),
-            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado)
+            (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
@@ -363,8 +364,8 @@ class YadoSelect(Select):
         CardWirthの宿データを変換。
         """
         # ディレクトリ選択ダイアログ
-        s = (u"カードワースの宿のデータをカードワースパイ用に変換します。" +
-              u"\n変換する宿のディレクトリを選択してください。")
+        s = (u"CardWirthの宿のデータをCardWirthPy用に変換します。" +
+              u"\n変換する宿のフォルダを選択してください。")
         dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
         dlg.SetPath(os.getcwdu())
 
@@ -423,7 +424,7 @@ class YadoSelect(Select):
         """
         # カードワースの宿か確認
         if not os.path.exists(cw.util.join_paths(path, "Environment.wyd")):
-            s = u"カードワースの宿のディレクトリではありません。"
+            s = u"CardWirthの宿のディレクトリではありません。"
             dlg = message.ErrorMessage(self, s)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
@@ -485,6 +486,69 @@ class YadoSelect(Select):
         dlg.Destroy()
         cw.cwpy.sounds["page"].play()
         self.update_list(yadodir)
+
+    def unconv_yado(self):
+        """
+        CardWirthの宿データへ逆変換。
+        """
+        yadodir = self.list[self.index]
+        yadoname = self.names[self.index]
+
+        # TODO フォルダ選択
+        dstpath = "TestUnconvYado"
+
+        # 変換確認ダイアログ
+        cw.cwpy.sounds["click"].play()
+        s = u"%s を逆変換し、%s に作成したフォルダへ格納します。\nよろしいですか？" % (yadoname, dstpath)
+        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        self.Parent.move_dlg(dlg)
+
+        if not dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
+            return
+
+        dlg.Destroy()
+
+        # 宿データ
+        yadodir = cw.util.join_paths(yadodir)
+        tempdir = yadodir.replace("Yado", "Data/Temp/Yado", 1)
+        ydata = cw.data.YadoData(yadodir, tempdir, loadparty=False)
+
+        # コンバータ
+        cw.cwpy.yadodir = yadodir
+        cw.cwpy.tempdir = tempdir
+        unconv = cw.binary.cwyado.UnconvCWYado(ydata, dstpath)
+
+        # プログレスダイアログ表示
+        dlg = wx.ProgressDialog(
+            u"%s 逆変換" % (yadoname), "", maximum=unconv.maxnum,
+            parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
+            wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
+        thread = cw.binary.ConvertingThread(unconv)
+        thread.start()
+
+        while not thread.complete:
+            dlg.Update(unconv.curnum, unconv.message)
+            wx.MilliSleep(1)
+
+        cw.cwpy.yadodir = ""
+        cw.cwpy.tempdir = ""
+        dlg.Destroy()
+
+        # エラーログ表示
+        if unconv.errorlog:
+            dlg = cw.dialog.etc.ErrorLogDialog(self, unconv.errorlog)
+            self.Parent.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+        # 変換完了ダイアログ
+        cw.cwpy.sounds["harvest"].play()
+        s = u"データの逆変換が完了しました。\n%s" % (unconv.dir)
+        dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
+        self.Parent.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def update_list(self, yadodir=""):
         """

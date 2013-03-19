@@ -358,7 +358,7 @@ class Adventurer(base.CWBinaryBase):
                     elif prop.tag == "Status":
                         for se in prop:
                             if se.tag == "Mentality":
-                                mentality = unconv_mentality(se.text)
+                                mentality = base.CWBinaryBase.unconv_mentality(se.text)
                                 duration_mentality = int(se.get("duration"))
                             elif se.tag == "Paralyze":
                                 paralyze = int(se.text)
@@ -520,7 +520,7 @@ class AdventurerWithImage(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        f.write_image(import_image(data.findtext("Property/ImagePath")))
+        f.write_image(base.CWBinaryBase.import_image(data.findtext("Property/ImagePath")))
         Adventurer.unconv(f, data)
         f.write_byte(0)
 
@@ -577,7 +577,7 @@ class AdventurerHeader(base.CWBinaryBase):
                     if prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
-                        image = import_image(prop.text)
+                        image = base.CWBinaryBase.import_image(prop.text)
                     elif prop.tag == "Level":
                         level = int(prop.text)
                     elif prop.tag == "Ability":

@@ -66,7 +66,7 @@ class ContentBase(base.CWBinaryBase):
             if e.tag == "Contents":
                 children = e
 
-        f.write_byte(unconv_contenttype(tag, type))
+        f.write_byte(base.CWBinaryBase.unconv_contenttype(tag, type))
         f.write_string(name)
         f.write_dword(len(children) + 50000)
         for child in children:
@@ -141,7 +141,7 @@ class TalkMessageContent(ContentBase):
             if e.tag == "Text":
                 text= e.text
                 break
-        f.write_string(materialpath(data.get("path")))
+        f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
         f.write_string(text, True)
 
 class PlayBgmContent(ContentBase):
@@ -152,7 +152,7 @@ class PlayBgmContent(ContentBase):
     @staticmethod
     def unconv(f, data):
         ContentBase.unconv(f, data)
-        f.write_string(materialpath(data.get("path")))
+        f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
 
 class ChangeBgImageContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -189,7 +189,7 @@ class PlaySoundContent(ContentBase):
     @staticmethod
     def unconv(f, data):
         ContentBase.unconv(f, data)
-        f.write_string(materialpath(data.get("path")))
+        f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
 
 class WaitContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -235,12 +235,12 @@ class EffectContent(ContentBase):
     def unconv(f, data):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("level")))
-        f.write_byte(unconv_target_member(data.get("targetm")))
-        f.write_byte(unconv_card_effecttype(data.get("effecttype")))
-        f.write_byte(unconv_card_resisttype(data.get("resisttype")))
+        f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
+        f.write_byte(base.CWBinaryBase.unconv_card_effecttype(data.get("effecttype")))
+        f.write_byte(base.CWBinaryBase.unconv_card_resisttype(data.get("resisttype")))
         f.write_dword(int(data.get("successrate")))
-        f.write_string(materialpath(data.get("sound")))
-        f.write_byte(unconv_card_visualeffect(data.get("visual")))
+        f.write_string(base.CWBinaryBase.materialpath(data.get("sound")))
+        f.write_byte(base.CWBinaryBase.unconv_card_visualeffect(data.get("visual")))
         motions = []
         for e in data:
             if e.tag == "Motions":
@@ -274,9 +274,9 @@ class BranchAbilityContent(ContentBase):
     def unconv(f, data):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("value")))
-        f.write_byte(unconv_target_member(data.get("targetm")))
-        f.write_dword(unconv_card_physicalability(data.get("physical")))
-        f.write_dword(unconv_card_mentalability(data.get("mental")))
+        f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
+        f.write_dword(base.CWBinaryBase.unconv_card_physicalability(data.get("physical")))
+        f.write_dword(base.CWBinaryBase.unconv_card_mentalability(data.get("mental")))
 
 class BranchRandomContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -358,7 +358,7 @@ class BranchItemContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class BranchSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -376,7 +376,7 @@ class BranchSkillContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class BranchInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -404,7 +404,7 @@ class BranchBeastContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class BranchMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -427,7 +427,7 @@ class BranchCouponContent(ContentBase):
     def unconv(f, data):
         ContentBase.unconv(f, data)
         f.write_string(data.get("coupon"))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class GetCastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -455,7 +455,7 @@ class GetItemContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class GetSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -473,7 +473,7 @@ class GetSkillContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class GetInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -501,7 +501,7 @@ class GetBeastContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class GetMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -525,7 +525,7 @@ class GetCouponContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_string(data.get("coupon"))
         f.write_dword(int(data.get("value")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class LoseCastContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -553,7 +553,7 @@ class LoseItemContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class LoseSkillContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -571,7 +571,7 @@ class LoseSkillContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class LoseInfoContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -599,7 +599,7 @@ class LoseBeastContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_dword(int(data.get("id")))
         f.write_dword(int(data.get("number")))
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class LoseMoneyContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -623,7 +623,7 @@ class LoseCouponContent(ContentBase):
         ContentBase.unconv(f, data)
         f.write_string(data.get("coupon"))
         f.write_dword(0)
-        f.write_byte(unconv_target_scope(data.get("targets")))
+        f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class TalkDialogContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -644,7 +644,7 @@ class TalkDialogContent(ContentBase):
     @staticmethod
     def unconv(f, data):
         ContentBase.unconv(f, data)
-        f.write_byte(unconv_target_member(data.get("targetm")))
+        f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
         dialogs = []
         for e in data:
             if e.tag == "Dialogs":
@@ -720,8 +720,8 @@ class BranchStatusContent(ContentBase):
     @staticmethod
     def unconv(f, data):
         ContentBase.unconv(f, data)
-        f.write_byte(unconv_statustype(data.get("status")))
-        f.write_byte(unconv_target_member(data.get("targetm")))
+        f.write_byte(base.CWBinaryBase.unconv_statustype(data.get("status")))
+        f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
 
 class BranchPartyNumberContent(ContentBase):
     def __init__(self, parent, f, tag, type):
