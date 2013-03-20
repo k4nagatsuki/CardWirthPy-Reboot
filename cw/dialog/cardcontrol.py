@@ -807,6 +807,13 @@ class CardHolder(CardControl):
         self.Parent.change_selection(self.selection)
         self._re_layout()
 
+        if self.callname == "CARDPOCKET" or len(self.list) <= 10:
+            self.upbtn.Disable()
+            self.downbtn.Disable()
+        else:
+            self.upbtn.Enable()
+            self.downbtn.Enable()
+
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
         old_callname = self.callname
