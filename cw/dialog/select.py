@@ -494,12 +494,22 @@ class YadoSelect(Select):
         yadodir = self.list[self.index]
         yadoname = self.names[self.index]
 
-        # TODO フォルダ選択
-        dstpath = "TestUnconvYado"
+        # ディレクトリ選択ダイアログ
+        s = (u"この拠点のデータをCardWirth用に逆変換します。" +
+              u"\n変換先のフォルダを選択してください。")
+        dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
+        dlg.SetPath(os.getcwdu())
+
+        if dlg.ShowModal() == wx.ID_OK:
+            dstpath = dlg.GetPath()
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            return
 
         # 変換確認ダイアログ
         cw.cwpy.sounds["click"].play()
-        s = u"%s を逆変換し、%s に作成したフォルダへ格納します。\nよろしいですか？" % (yadoname, dstpath)
+        s = u"%s を逆変換し、\n新規作成したフォルダへ格納します。\nよろしいですか？" % (yadoname)
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
 
