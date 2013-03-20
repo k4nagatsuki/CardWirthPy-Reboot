@@ -1312,6 +1312,8 @@ class YadoData(object):
         シナリオのNPCを宿に連れ込む。
         """
         for fcard in cw.cwpy.get_fcards():
+            fcard.set_fullrecovery()
+
             # 必須クーポンを所持していなかったら補填
             if not fcard.get_age() or not fcard.get_sex():
                 cw.cwpy.sounds["signal"].play()

@@ -1227,6 +1227,7 @@ class CWPy(_Singleton, threading.Thread):
             for pcard in self.get_pcards():
                 pcard.remove_numbercoupon()
                 cw.animation.animate_sprite(pcard, "hide")
+                pcard.data.write_xml()
 
             p_money = int(self.ydata.party.data.find("Property/Money").text)
             p_members = [member.fpath for member in self.ydata.party.members]

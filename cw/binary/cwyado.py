@@ -365,12 +365,14 @@ class UnconvCWYado(object):
 
         # カード置場のカード(*.wid)
         unusedcards = []
+        yadocards = {}
         for header in self.ydata.storehouse:
 ##            try:
                 self.message = u"%s を変換中" % (header.name)
                 self.curnum += 1
                 data, fpath = write_card(header)
                 unusedcards.append((os.path.basename(fpath), data))
+                yadocards[header.fpath] = os.path.basename(fpath), data
 ##            except Exception, ex:
 ##                print ex
 ##                s = u"%s は変換できませんでした。\n" % (header.name)
@@ -406,7 +408,6 @@ class UnconvCWYado(object):
 
         # 荷物袋のカード(*.wid)
         parties = []
-        yadocards = {}
         for partyheader in self.ydata.partys:
             self.message = u"%s の荷物袋を変換中" % (partyheader.name)
             self.curnum += 1

@@ -100,8 +100,7 @@ class Party(base.CWBinaryBase):
                         seq = []
                         for me in prop:
                             if me.tag == "Member" and me.text:
-                                name = atbl[me.text]
-                                seq.append(name)
+                                seq.append(atbl[me.text])
                         memberslist = cw.util.encodetextlist(seq)
 
         f.write_word(0) # 不明
@@ -121,10 +120,7 @@ class PartyMembers(base.CWBinaryBase):
         self.type = 3
         self.fname = self.get_fname()
         adventurers_num = f.byte() - 30
-        b = f.byte() # 不明
-        b = f.byte() # 不明
-        b = f.byte() # 不明
-        b = f.byte() # 不明
+        dw = f.dword() # 不明。ランダムな値に見える。メモリ上のゴミ？
         self.adventurers = [adventurer.AdventurerWithImage(self, f)
                                         for cnt in xrange(adventurers_num)]
         vanisheds_num = f.byte()
@@ -135,6 +131,11 @@ class PartyMembers(base.CWBinaryBase):
         # 荷物袋にあるカードリスト
         cards_num = f.dword()
         self.cards = [BackpackCard(self, f) for cnt in xrange(cards_num)]
+        money = f.dword() # パーティの所持金(*.wplにもある)
+        # 以降は存在を確信できないため読み込まない
+        #dw = f.dword() # 不明(0)
+        #dw = f.dword() # 不明(0)
+        #b = f.byte() # 不明(0)
 
     def create_xml(self, dpath):
         """adventurercardだけxml化する。"""
@@ -172,6 +173,10 @@ class PartyMembers(base.CWBinaryBase):
         for header in party.backpack_moved:
             fpath, data = btbl[header.fpath]
             cards.append(BackpackCard.unconv(f, data, fpath, False))
+        f.write_dword(party.money) # パーティの所持金
+        f.write_dword(0) # 不明(0)
+        f.write_dword(0) # 不明(0)
+        f.write_byte(0) # 不明(0)
 
 class BackpackCard(base.CWBinaryBase):
     """荷物袋に入っているカードのデータ。

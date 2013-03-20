@@ -427,6 +427,7 @@ class BranchCouponContent(ContentBase):
     def unconv(f, data):
         ContentBase.unconv(f, data)
         f.write_string(data.get("coupon"))
+        f.write_dword(0)
         f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
 
 class GetCastContent(ContentBase):
