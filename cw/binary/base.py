@@ -212,6 +212,9 @@ class CWBinaryBase(object):
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。
         """
+        if not imagepath:
+            return None
+
         if fullpath:
             fpath = imagepath
         else:
