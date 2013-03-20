@@ -99,7 +99,7 @@ class EffectMotion(base.CWBinaryBase):
 
         # 生命力, 肉体
         if tabtype in (0, 1):
-            f.write_byte(base.CWBinaryBase.unconv_effectmotion_type(data.get("damagetype")))
+            f.write_byte(base.CWBinaryBase.unconv_effectmotion_damagetype(data.get("damagetype")))
             f.write_dword(int(data.get("value")))
         # 精神, 魔法
         elif tabtype in (3, 4):
@@ -118,8 +118,8 @@ class EffectMotion(base.CWBinaryBase):
                 if e.tag == "Beasts":
                     beasts = e
             f.write_dword(len(beasts))
-            for beast in beasts:
-                beast.BeastCard.unconv(f, beast)
+            for card in beasts:
+                beast.BeastCard.unconv(f, card)
         else:
             raise ValueError(tabtype)
 

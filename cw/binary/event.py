@@ -89,8 +89,8 @@ class SimpleEvent(base.CWBinaryBase):
                 contents = e
 
         f.write_dword(len(contents))
-        for content in contents:
-            content.Content_unconv(f, content)
+        for ct in contents:
+            content.Content_unconv(f, ct)
 
 def main():
     pass

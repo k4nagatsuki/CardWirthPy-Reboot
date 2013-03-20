@@ -127,7 +127,7 @@ class Album(base.CWBinaryBase):
         level = 0
         dex = 0
         agl = 0
-        int = 0
+        inte = 0
         str = 0
         vit = 0
         min = 0
@@ -158,7 +158,7 @@ class Album(base.CWBinaryBase):
                             if ae.tag == "Physical":
                                 dex = int(ae.get("dex"))
                                 agl = int(ae.get("agl"))
-                                int = int(ae.get("int"))
+                                inte = int(ae.get("int"))
                                 str = int(ae.get("str"))
                                 vit = int(ae.get("vit"))
                                 min = int(ae.get("min"))
@@ -185,7 +185,7 @@ class Album(base.CWBinaryBase):
         f.write_word(0) # 不明
         f.write_word(dex)
         f.write_word(agl)
-        f.write_word(int)
+        f.write_word(inte)
         f.write_word(str)
         f.write_word(vit)
         f.write_word(min)

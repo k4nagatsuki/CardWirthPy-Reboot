@@ -333,7 +333,7 @@ class UnconvCWYado(object):
         table = { "yadoname":self.name }
 
         def create_fpath(name, ext):
-            fpath = util.join_paths(self.dir, util.check_filename(header.name) + ext)
+            fpath = util.join_paths(self.dir, util.check_filename(name) + ext)
             fpath = util.check_duplicate(fpath)
             return fpath
 
@@ -350,28 +350,28 @@ class UnconvCWYado(object):
                     beast.BeastCard.unconv(f, data)
             finally:
                 f.close()
-            return fpath
+            return data, fpath
 
         if not os.path.isdir(self.dir):
             os.makedirs(self.dir)
 
         # カード置場のカード(*.wid)
-        unusedcards = {}
+        unusedcards = []
         for header in self.ydata.storehouse:
-            try:
+##            try:
                 self.message = u"%s を変換中" % (header.name)
                 self.curnum += 1
-                fpath = write_card(header)
-                unusedcards[os.path.basename(fpath)] = data
-            except Exception, ex:
-                print ex
-                s = u"%s は変換できませんでした。\n" % (header.name)
-                self.write_errorlog(s)
+                data, fpath = write_card(header)
+                unusedcards.append((os.path.basename(fpath), data))
+##            except Exception, ex:
+##                print ex
+##                s = u"%s は変換できませんでした。\n" % (header.name)
+##                self.write_errorlog(s)
         table["unusedcards"] = unusedcards
 
         # 待機中冒険者(*.wcp)とそのヘッダ(*.wch)
         for header in self.ydata.standbys:
-            try:
+##            try:
                 self.message = u"%s を変換中" % (header.name)
                 self.curnum += 1
 
@@ -391,10 +391,10 @@ class UnconvCWYado(object):
                 finally:
                     f.close()
 
-            except Exception, ex:
-                print ex
-                s = u"%s は変換できませんでした。\n" % (header.name)
-                self.write_errorlog(s)
+##            except Exception, ex:
+##                print ex
+##                s = u"%s は変換できませんでした。\n" % (header.name)
+##                self.write_errorlog(s)
 
         # 荷物袋のカード(*.wid)
         parties = []
@@ -403,56 +403,62 @@ class UnconvCWYado(object):
             self.message = u"%s の荷物袋を変換中" % (partyheader.name)
             self.curnum += 1
 
-            party = cw.data.Party(partyheader)
-            parties.append((partyheader, party))
+            pt = cw.data.Party(partyheader)
+            parties.append((partyheader, pt))
 
-            yadodir = party.get_yadodir()
-            tempdir = party.get_tempdir()
-            for header in party.backpack + party.backpack_moved:
-                try:
-                    fpath = write_card(header)
-                    if header.fpath.lower().startswith("yado"):
-                        basepath = os.path.relpath(header.fpath, yadodir)
-                    else:
-                        basepath = os.path.relpath(header.fpath, tempdir)
+            for header in pt.backpack + pt.backpack_moved:
+##                try:
+                    data, fpath = write_card(header)
 
-                    yadocards[basepath] = os.path.basename(fpath)
+                    yadocards[header.fpath] = os.path.basename(fpath), data
 
-                except Exception, ex:
-                    print ex
-                    s = u"%s の %s は変換できませんでした。\n" % (partyheader.name, header.name)
-                    self.write_errorlog(s)
+##                except Exception, ex:
+##                    print ex
+##                    s = u"%s の %s は変換できませんでした。\n" % (partyheader.name, header.name)
+##                    self.write_errorlog(s)
 
         table["yadocards"] = yadocards
 
         # パーティ(*.wpl)とパーティ内冒険者(*.wpt)
+        partytable = {}
+        yadodir = self.ydata.yadodir
+        tempdir = self.ydata.tempdir
         for partyheader, pt in parties:
-            try:
+##            try:
                 self.message = u"%s を変換中" % (partyheader.name)
                 self.curnum += 1
 
                 fpath = create_fpath(pt.name, ".wpl")
                 f = cwfile.CWFileWriter(fpath, "wb")
                 try:
-                    party.Party.unconv(f, pt.data, table)
+                    party.Party.unconv(f, pt.data.find("."), table)
                 finally:
                     f.close()
 
                 fpath = create_fpath(pt.name, ".wpt")
                 f = cwfile.CWFileWriter(fpath, "wb")
                 try:
-                    party.PartyMembers.unconv(f, pt)
+                    party.PartyMembers.unconv(f, pt, table)
                 finally:
                     f.close()
 
-            except Exception, ex:
-                print ex
-                s = u"%s は変換できませんでした。\n" % (partyheader.name)
-                self.write_errorlog(s)
+                if partyheader.fpath.lower().startswith("yado"):
+                    relpath = os.path.relpath(partyheader.fpath, yadodir)
+                else:
+                    relpath = os.path.relpath(partyheader.fpath, tempdir)
+                relpath = cw.util.join_paths(relpath)
+                partytable[relpath] = os.path.splitext(os.path.basename(fpath))[0]
+
+##            except Exception, ex:
+##                print ex
+##                s = u"%s は変換できませんでした。\n" % (partyheader.name)
+##                self.write_errorlog(s)
+
+        table["party"] = partytable
 
         # アルバム(*.wrm)
         for header in self.ydata.album:
-            try:
+##            try:
                 self.message = u"%s を変換中" % (header.name)
                 self.curnum += 1
 
@@ -465,26 +471,27 @@ class UnconvCWYado(object):
                 finally:
                     f.close()
 
-            except Exception, ex:
-                print ex
-                s = u"%s は変換できませんでした。\n" % (header.name)
-                self.write_errorlog(s)
+##            except Exception, ex:
+##                print ex
+##                s = u"%s は変換できませんでした。\n" % (header.name)
+##                self.write_errorlog(s)
 
         # Environment.wyd
         self.message = u"宿情報を変換中"
         self.curnum += 1
+##        try:
+        data = self.ydata.environment.find(".")
+        fpath = cw.util.join_paths(self.dir, "Environment.wyd")
+        f = cwfile.CWFileWriter(fpath, "wb")
         try:
-            fpath = cw.util.join_paths(self.dir, "Environment.wyd")
-            f = cwfile.CWFileWriter(fpath, "wb")
-            try:
-                environment.Environment.unconv(f, self.ydata.data)
-            finally:
-                f.close()
+            environment.Environment.unconv(f, data, table)
+        finally:
+            f.close()
 
-        except Exception, ex:
-            print ex
-            s = u"宿情報は変換できませんでした。\n"
-            self.write_errorlog(s)
+##        except Exception, ex:
+##            print ex
+##            s = u"宿情報は変換できませんでした。\n"
+##            self.write_errorlog(s)
 
         # TODO 過程・デバッグ
 

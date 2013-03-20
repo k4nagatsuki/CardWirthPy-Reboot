@@ -58,8 +58,8 @@ class ContentBase(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data):
         tag = data.tag
-        type = data.get("type")
-        name = data.get("name")
+        type = data.get("type", "")
+        name = data.get("name", "")
         children = []
 
         for e in data:
@@ -248,7 +248,7 @@ class EffectContent(ContentBase):
                 break
         f.write_dword(len(motions))
         for motion in motions:
-            effectmotion.EffectMotion(f, motion)
+            effectmotion.EffectMotion.unconv(f, motion)
 
 class BranchSelectContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -865,7 +865,7 @@ def Content(parent, f):
 
 def Content_unconv(f, data):
     tag = data.tag
-    type = data.get("type")
+    type = data.get("type", "")
     return globals()[tag + type + "Content"].unconv(f, data)
 
 def main():

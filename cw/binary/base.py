@@ -208,25 +208,33 @@ class CWBinaryBase(object):
         return util.repl_escapechar(path)
 
     @staticmethod
-    def import_image(imagepath, convertbitmap=True):
+    def import_image(imagepath, convertbitmap=True, fullpath=False):
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。
         """
-        if not os.path.isfile(imagepath):
-            return None
+        if fullpath:
+            fpath = imagepath
+        else:
+            fpath = cw.util.join_paths(cw.cwpy.sdata.tempdir, imagepath)
+            if not os.path.isfile(fpath):
+                fpath = cw.util.join_paths(cw.cwpy.tempdir, imagepath)
+                if not os.path.isfile(fpath):
+                    fpath = cw.util.join_paths(cw.cwpy.yadodir, imagepath)
+                    if not os.path.isfile(fpath):
+                        return None
 
-        f = open(imagepath, "rb")
+        f = open(fpath, "rb")
         image = f.read()
         f.close()
 
-        if convertbitmap and not cw.util.get_imageext(image) <> ".bmp":
+        if convertbitmap and cw.util.get_imageext(image) <> ".bmp":
             f = io.BytesIO(image)
-            data = wx.Image(f)
+            data = wx.ImageFromStream(f)
             f.close()
             f = io.BytesIO()
             data.SaveStream(f, wx.BITMAP_TYPE_BMP)
-            f.close()
             image = f.getvalue()
+            f.close()
 
         return image
 
@@ -408,7 +416,7 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_contenttype(n):
+    def unconv_contenttype(type, n):
         if type == "Start" and n == "":
             return 0
         elif type == "Link" and n == "Start":

@@ -104,10 +104,10 @@ class Environment(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, table):
-        yadotype = 0 # 常に通常宿とする
-        drawcard_speed = 5 # TODO
-        drawbg_speed = 5 # TODO
-        message_speed = 5 # TODO
+        yadotype = 1 # 常に通常宿とする
+        drawcard_speed = 4 # 標準値
+        drawbg_speed = 4 # 標準値
+        message_speed = 4 # 標準値
         play_bgm = True
         play_sound = True
         correct_scaledown = True
@@ -117,10 +117,10 @@ class Environment(base.CWBinaryBase):
         effect_getmoney = True
         clickjump = True
         keep_levelmax = False
-        viewtype_poster = 0 # TODO
-        bgcolor_message = 5 # TODO
+        viewtype_poster = 1
+        bgcolor_message = 3
         use_decofont = False
-        changetype_bg = 0 # TODO
+        changetype_bg = 1
         compstamps = ""
         scenarioname = ""
         gossips = ""
@@ -166,13 +166,13 @@ class Environment(base.CWBinaryBase):
         f.write_string(compstamps)
         f.write_string(scenarioname)
         f.write_string(gossips)
-        unusedcards = table.get["unusedcards"]
+        unusedcards = table["unusedcards"]
         f.write_dword(len(unusedcards))
         for fname, card in unusedcards:
             UnusedCard.unconv(f, card, fname)
-        yadocards = table.get["yadocards"]
+        yadocards = table["yadocards"]
         f.write_dword(len(yadocards))
-        for fname, card in yadocards:
+        for fname, card in yadocards.values():
             YadoCard.unconv(f, card, fname)
         f.write_dword(money)
         f.write_string(partyname)

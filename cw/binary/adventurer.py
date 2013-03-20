@@ -272,7 +272,7 @@ class Adventurer(base.CWBinaryBase):
 
         dex = 0
         agl = 0
-        int = 0
+        inte = 0
         str = 0
         vit = 0
         min = 0
@@ -319,7 +319,7 @@ class Adventurer(base.CWBinaryBase):
                         level = int(prop.text)
                     elif prop.tag == "Life":
                         life = int(prop.text)
-                        maxlife = int(prop.get("max"))
+                        maxlife = int(float(prop.get("max")))
                     elif prop.tag == "Feature":
                         for fe in prop:
                             if fe.tag == "Type":
@@ -341,7 +341,7 @@ class Adventurer(base.CWBinaryBase):
                             if ae.tag == "Physical":
                                 dex = int(ae.get("dex"))
                                 agl = int(ae.get("agl"))
-                                int = int(ae.get("int"))
+                                inte = int(ae.get("int"))
                                 str = int(ae.get("str"))
                                 vit = int(ae.get("vit"))
                                 min = int(ae.get("min"))
@@ -426,7 +426,7 @@ class Adventurer(base.CWBinaryBase):
 
         f.write_dword(dex)
         f.write_dword(agl)
-        f.write_dword(int)
+        f.write_dword(inte)
         f.write_dword(str)
         f.write_dword(vit)
         f.write_dword(min)
@@ -455,18 +455,18 @@ class Adventurer(base.CWBinaryBase):
         f.write_dword(duration_enhance_defense)
 
         f.write_dword(len(items))
-        for item in items:
-            item.ItemCard.unconv(f, item)
+        for card in items:
+            item.ItemCard.unconv(f, card)
         f.write_dword(len(skills))
-        for skill in skills:
-            skill.SkillCard.unconv(f, skill)
+        for card in skills:
+            skill.SkillCard.unconv(f, card)
         f.write_dword(len(beasts))
-        for beast in beasts:
-            beast.BeastCard.unconv(f, beast)
+        for card in beasts:
+            beast.BeastCard.unconv(f, card)
 
         f.write_dword(len(coupons))
-        for coupon in coupons:
-            coupon.Coupon.unconv(f, coupon)
+        for cp in coupons:
+            coupon.Coupon.unconv(f, cp)
 
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""
@@ -565,7 +565,7 @@ class AdventurerHeader(base.CWBinaryBase):
         coupons = ""
         dex = 0
         agl = 0
-        int = 0
+        inte = 0
         str = 0
         vit = 0
         min = 0
@@ -585,7 +585,7 @@ class AdventurerHeader(base.CWBinaryBase):
                             if ae.tag == "Physical":
                                 dex = int(ae.get("dex"))
                                 agl = int(ae.get("agl"))
-                                int = int(ae.get("int"))
+                                inte = int(ae.get("int"))
                                 str = int(ae.get("str"))
                                 vit = int(ae.get("vit"))
                                 min = int(ae.get("min"))
@@ -606,7 +606,7 @@ class AdventurerHeader(base.CWBinaryBase):
         f.write_word(ep)
         f.write_word(dex)
         f.write_word(agl)
-        f.write_word(int)
+        f.write_word(inte)
         f.write_word(str)
         f.write_word(vit)
         f.write_word(min)

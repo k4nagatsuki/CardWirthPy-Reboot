@@ -81,7 +81,9 @@ class Party(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data, table):
         yadoname = table["yadoname"]
-        image = None
+        imgpath = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
+        imgpath = cw.util.join_paths(cw.cwpy.skindir, imgpath)
+        image = base.CWBinaryBase.import_image(imgpath, fullpath=True)
         memberslist = ""
         name = ""
         money = 0
@@ -105,7 +107,7 @@ class Party(base.CWBinaryBase):
         f.write_word(0) # 不明
         f.write_string(yadoname)
         f.write_image(image)
-        f.write_string(memberlist)
+        f.write_string(memberslist)
         f.write_string(name)
         f.write_dword(money)
         f.write_bool(nowadventuring)
@@ -138,25 +140,25 @@ class PartyMembers(base.CWBinaryBase):
             adventurer.create_xml(dpath)
 
     @staticmethod
-    def unconv(f, party):
+    def unconv(f, party, table):
         adventurers = []
         vanisheds = []
         name = ""
         cards = []
 
         for member in party.members:
-            if member.is_vanished():
-                adventurers.append(member)
+            if member.getbool("Property", "lost", False):
+                adventurers.append(member.find("."))
             else:
-                vanisheds.append(member)
+                vanisheds.append(member.find("."))
         name = party.name
 
         f.write_byte(len(adventurers) + 30)
-        f.write_dword() # 不明
+        f.write_dword(0) # 不明
         for member in adventurers:
             adventurer.AdventurerWithImage.unconv(f, member)
         f.write_word(len(vanisheds))
-        f.write_byte() # 不明
+        f.write_byte(0) # 不明
         for member in vanisheds:
             adventurer.AdventurerWithImage.unconv(f, member)
         f.write_string(name)

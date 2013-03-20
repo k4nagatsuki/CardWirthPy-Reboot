@@ -276,7 +276,7 @@ class CastCard(base.CWBinaryBase):
 
         dex = 0
         agl = 0
-        int = 0
+        inte = 0
         str = 0
         vit = 0
         min = 0
@@ -349,7 +349,7 @@ class CastCard(base.CWBinaryBase):
                             if ae.tag == "Physical":
                                 dex = int(ae.get("dex"))
                                 agl = int(ae.get("agl"))
-                                int = int(ae.get("int"))
+                                inte = int(ae.get("int"))
                                 str = int(ae.get("str"))
                                 vit = int(ae.get("vit"))
                                 min = int(ae.get("min"))
@@ -437,7 +437,7 @@ class CastCard(base.CWBinaryBase):
 
         f.write_dword(dex)
         f.write_dword(agl)
-        f.write_dword(int)
+        f.write_dword(inte)
         f.write_dword(str)
         f.write_dword(vit)
         f.write_dword(min)
@@ -466,18 +466,18 @@ class CastCard(base.CWBinaryBase):
         f.write_dword(duration_enhance_defense)
 
         f.write_dword(len(items))
-        for item in items:
-            item.ItemCard.unconv(f, item)
+        for card in items:
+            item.ItemCard.unconv(f, card)
         f.write_dword(len(skills))
-        for skill in skills:
-            skill.SkillCard.unconv(f, skill)
+        for card in skills:
+            skill.SkillCard.unconv(f, card)
         f.write_dword(len(beasts))
-        for beast in beasts:
-            beast.BeastCard.unconv(f, beast)
+        for card in beasts:
+            beast.BeastCard.unconv(f, card)
 
         f.write_dword(len(coupons))
-        for coupon in coupons:
-            coupon.Coupon.unconv(f, coupon)
+        for cp in coupons:
+            coupon.Coupon.unconv(f, cp)
 
 def main():
     pass
