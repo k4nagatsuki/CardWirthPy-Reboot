@@ -18,9 +18,9 @@ class Album(base.CWBinaryBase):
         self.name = f.string()
         self.image = f.image()
         self.level = f.word()
-        f.word() # 不明
-        f.word() # 不明
-        f.word() # 不明
+        w = f.word() # 不明
+        w = f.word() # 不明
+        w = f.word() # 不明
         # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
         # 能力値
         self.dex = f.byte()

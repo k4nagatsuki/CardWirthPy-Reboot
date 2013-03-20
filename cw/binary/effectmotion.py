@@ -16,9 +16,9 @@ class EffectMotion(base.CWBinaryBase):
         self.tabtype = f.byte()
 
         if 2 < dataversion:
-            # 不明なバイト列。読み飛ばし。
+            # 不明なバイト列(8,5,0,0,0)。読み飛ばし。
             for cnt in xrange(5):
-                f.byte()
+                b = f.byte()
 
         self.element = f.byte()
 
@@ -88,8 +88,11 @@ class EffectMotion(base.CWBinaryBase):
         f.write_byte(tabtype)
 
         # 不明なバイト列
-        for cnt in xrange(5):
-            f.write_byte(0)
+        f.write_byte(8)
+        f.write_byte(5)
+        f.write_byte(0)
+        f.write_byte(0)
+        f.write_byte(0)
 
         f.write_byte(element)
 

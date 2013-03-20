@@ -510,13 +510,11 @@ class YadoSelect(Select):
         dlg.Destroy()
 
         # 宿データ
-        yadodir = cw.util.join_paths(yadodir)
-        tempdir = yadodir.replace("Yado", "Data/Temp/Yado", 1)
-        ydata = cw.data.YadoData(yadodir, tempdir, loadparty=False)
+        cw.cwpy.yadodir = cw.util.join_paths(yadodir)
+        cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado", "Data/Temp/Yado", 1)
+        ydata = cw.data.YadoData(cw.cwpy.yadodir, cw.cwpy.tempdir, loadparty=False)
 
         # コンバータ
-        cw.cwpy.yadodir = yadodir
-        cw.cwpy.tempdir = tempdir
         unconv = cw.binary.cwyado.UnconvCWYado(ydata, dstpath)
 
         # プログレスダイアログ表示

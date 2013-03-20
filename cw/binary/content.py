@@ -30,7 +30,7 @@ class ContentBase(base.CWBinaryBase):
         self.children = [Content(self, f) for cnt in xrange(children_num)]
 
         # 宿データの埋め込みカードのコンテントは
-        # 子コンテントデータの後ろに"dword()"(5)が埋め込まれている。
+        # 子コンテントデータの後ろに"dword()"(4)が埋め込まれている。
         if 5 <= self.version:
             f.dword()
 
@@ -72,8 +72,8 @@ class ContentBase(base.CWBinaryBase):
         for child in children:
             Content_unconv(f, child)
         # 宿データの埋め込みカードのコンテントは
-        # 子コンテントデータの後ろに"dword()"(5)が埋め込まれている。
-        f.write_dword(5)
+        # 子コンテントデータの後ろに"dword()"(4)が埋め込まれている。
+        f.write_dword(4)
 
 class StartContent(ContentBase):
     pass
@@ -106,7 +106,7 @@ class EndContent(ContentBase):
     @staticmethod
     def unconv(f, data):
         ContentBase.unconv(f, data)
-        f.write_bool(bool(data.get("complete")))
+        f.write_bool(cw.util.str2bool(data.get("complete")))
 
 class EndBadEndContent(ContentBase):
     pass
@@ -259,8 +259,8 @@ class BranchSelectContent(ContentBase):
     @staticmethod
     def unconv(f, data):
         ContentBase.unconv(f, data)
-        f.write_bool(bool(data.get("targetall")))
-        f.write_bool(bool(data.get("random")))
+        f.write_bool(cw.util.str2bool(data.get("targetall")))
+        f.write_bool(cw.util.str2bool(data.get("random")))
 
 class BranchAbilityContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -308,7 +308,7 @@ class SetFlagContent(ContentBase):
     def unconv(f, data):
         ContentBase.unconv(f, data)
         f.write_string(data.get("flag"))
-        f.write_bool(bool(data.get("value")))
+        f.write_bool(cw.util.str2bool(data.get("value")))
 
 class BranchMultiStepContent(ContentBase):
     def __init__(self, parent, f, tag, type):
@@ -420,7 +420,7 @@ class BranchCouponContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["coupon"] = f.string()
-        f.dword() # 不明
+        f.dword() # 得点(不使用)
         self.properties["targets"] = self.conv_target_scope(f.byte())
 
     @staticmethod
@@ -615,7 +615,7 @@ class LoseCouponContent(ContentBase):
     def __init__(self, parent, f, tag, type):
         ContentBase.__init__(self, parent, f, tag, type)
         self.properties["coupon"] = f.string()
-        f.dword() # 不明
+        f.dword() # 得点(不使用)
         self.properties["targets"] = self.conv_target_scope(f.byte())
 
     @staticmethod
@@ -708,7 +708,7 @@ class BranchLevelContent(ContentBase):
     @staticmethod
     def unconv(f, data):
         ContentBase.unconv(f, data)
-        f.write_bool(bool(data.get("average")))
+        f.write_bool(cw.util.str2bool(data.get("average")))
         f.write_dword(int(data.get("value")))
 
 class BranchStatusContent(ContentBase):

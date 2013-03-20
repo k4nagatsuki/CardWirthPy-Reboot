@@ -323,19 +323,19 @@ class Adventurer(base.CWBinaryBase):
                     elif prop.tag == "Feature":
                         for fe in prop:
                             if fe.tag == "Type":
-                                undead = bool(fe.get("undead"))
-                                automaton = bool(fe.get("automaton"))
-                                unholy = bool(fe.get("unholy"))
-                                constructure = bool(fe.get("constructure"))
+                                undead = cw.util.str2bool(fe.get("undead"))
+                                automaton = cw.util.str2bool(fe.get("automaton"))
+                                unholy = cw.util.str2bool(fe.get("unholy"))
+                                constructure = cw.util.str2bool(fe.get("constructure"))
                             elif fe.tag == "NoEffect":
-                                noeffect_weapon = bool(fe.get("noeffect_weapon"))
-                                noeffect_magic = bool(fe.get("noeffect_magic"))
+                                noeffect_weapon = cw.util.str2bool(fe.get("weapon"))
+                                noeffect_magic = cw.util.str2bool(fe.get("magic"))
                             elif fe.tag == "Resist":
-                                resist_fire = bool(fe.get("resist_fire"))
-                                resist_ice = bool(fe.get("resist_ice"))
+                                resist_fire = cw.util.str2bool(fe.get("fire"))
+                                resist_ice = cw.util.str2bool(fe.get("ice"))
                             elif fe.tag == "Weakness":
-                                weakness_fire = bool(fe.get("weakness_fire"))
-                                weakness_ice = bool(fe.get("weakness_ice"))
+                                weakness_fire = cw.util.str2bool(fe.get("fire"))
+                                weakness_ice = cw.util.str2bool(fe.get("ice"))
                     elif prop.tag == "Ability":
                         for ae in prop:
                             if ae.tag == "Physical":
@@ -475,8 +475,9 @@ class AdventurerCard(base.CWBinaryBase):
         self.type = 1
         self.fname = self.get_fname()
 
+        # 不明(0,0,0,0,0)
         for cnt in xrange(5):
-            f.byte()
+            b = f.byte()
 
         self.adventurer = Adventurer(self, f, yadodata=yadodata)
 
@@ -532,30 +533,29 @@ class AdventurerHeader(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 0
         self.fname = self.get_fname()
-        f.byte()
-        f.byte()
+        b = f.byte() # 不明(0)
+        b = f.byte() # 不明(0)
         self.name = f.string()
         self.image = f.image()
         self.level = f.byte()
-        f.byte()
+        b = f.byte() # 不明(0)
         self.coupons = f.string()
-        f.byte()
-        f.byte()
+        w = f.word() # 不明(0)
         # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
         self.ep = f.byte()
-        f.byte()
+        b = f.byte()
         self.dex = f.byte()
-        f.byte()
+        b = f.byte()
         self.agl = f.byte()
-        f.byte()
+        b = f.byte()
         self.int = f.byte()
-        f.byte()
+        b = f.byte()
         self.str = f.byte()
-        f.byte()
+        b = f.byte()
         self.vit = f.byte()
-        f.byte()
+        b = f.byte()
         self.min = f.byte()
-        f.byte()
+        b = f.byte()
 
     @staticmethod
     def unconv(f, data, fname):
@@ -595,7 +595,7 @@ class AdventurerHeader(base.CWBinaryBase):
                             seq.append(ce.text)
                             if ce.text == u"＠ＥＰ":
                                 ep = int(ce.get("value", "0"))
-                        coupons = cw.util.decodetextlist(seq)
+                        coupons = cw.util.encodetextlist(seq)
 
         f.write_word(0) # 不明
         f.write_string(name)

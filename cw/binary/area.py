@@ -28,9 +28,9 @@ class Area(base.CWBinaryBase):
                 self.id = idl - 20000
         else:
             dataversion = 4
-            f.byte() # 不明
-            f.byte() # 不明
-            f.byte() # 不明
+            b = f.byte()
+            b = f.byte()
+            b = f.byte()
             self.name = f.string()
             self.id = f.dword() - 40000
 
@@ -97,10 +97,7 @@ class Area(base.CWBinaryBase):
                 events = e
 
         f.write_byte(type)
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
+        f.write_dword(0) # 不明
         f.write_string(name)
         f.write_dword(id + 40000)
         f.write_dword(len(events))
@@ -118,10 +115,10 @@ class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
     def __init__(self, parent, f, yadodata=False, dataversion=4):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        f.byte() # 不明
+        b = f.byte() # 不明
         self.image = f.image()
         self.name = f.string()
-        f.dword() # 不明
+        dw = f.dword() # 不明
         self.description = f.string(True)
         events_num = f.dword()
         self.events = [event.Event(self, f) for cnt in xrange(events_num)]

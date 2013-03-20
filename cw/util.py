@@ -928,14 +928,14 @@ def encodewrap(s):
             r.append(c)
     return "".join(r)
 
-def decodewrap(s):
+def decodewrap(s, code="\n"):
     """\nを改行コードに戻す。"""
     r = []
     bs = False
     for c in s:
         if bs:
             if c == 'n':
-                r.append('\n')
+                r.append(code)
             elif c == '\\':
                 r.append('\\')
             else:

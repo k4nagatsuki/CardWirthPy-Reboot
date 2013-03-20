@@ -258,8 +258,14 @@ class CWBinaryBase(object):
 
     @staticmethod
     def materialpath(path):
-        """逆変換で素材パスのマーカ的に使用。実際は何もしない。"""
-        return path
+        """素材パスを逆変換する。"""
+        if not path:
+            return ""
+
+        if path.startswith("Material/"):
+            return path[9:]
+        else:
+            return path
 
     def get_indent(self, indent):
         """インデントの文字列を返す。スペース一個分。"""

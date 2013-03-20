@@ -52,6 +52,9 @@ class Environment(base.CWBinaryBase):
         self.yadocards = [YadoCard(self, f) for cnt in xrange(yadocards_num)]
         self.money = f.dword()
         self.partyname = f.string()
+        # CardWirthPyにおける選択中パーティ
+        # パーティ変換後に操作する
+        self.cwpypartyname = ""
         # スキンタイプ。読み込み後に操作する
         self.skintype = ""
         # データの取得に失敗したカード。変換時に追加する
@@ -70,7 +73,7 @@ class Environment(base.CWBinaryBase):
             prop.append(e)
             e = cw.data.make_element("Cashbox", str(self.money))
             prop.append(e)
-            e = cw.data.make_element("NowSelectingParty", self.partyname)
+            e = cw.data.make_element("NowSelectingParty", self.cwpypartyname)
             prop.append(e)
             self.data.append(prop)
 
@@ -116,7 +119,7 @@ class Environment(base.CWBinaryBase):
         clickcancel = True
         effect_getmoney = True
         clickjump = True
-        keep_levelmax = False
+        keep_levelmax = True
         viewtype_poster = 1
         bgcolor_message = 3
         use_decofont = False
@@ -137,13 +140,15 @@ class Environment(base.CWBinaryBase):
             elif e.tag == "CompleteStamps":
                 seq = []
                 for cse in e:
-                    seq.append(cse.text)
+                    if cse.text:
+                        seq.append(cse.text)
                 compstamps = cw.util.encodetextlist(seq)
             elif e.tag == "Gossips":
                 seq = []
                 for ge in e:
-                    seq.append(ge.text)
-                compstamps = cw.util.encodetextlist(seq)
+                    if ge.text:
+                        seq.append(ge.text)
+                gossips = cw.util.encodetextlist(seq)
 
         f.write_string("DATAVERSION_10")
         f.write_byte(yadotype)
@@ -209,7 +214,7 @@ class UnusedCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, fname):
-        f.write_rawstring(fname)
+        f.write_rawstring(os.path.splitext(fname)[0])
         f.write_dword(int(data.findtext("Property/UseLimit", "0")))
         f.write_byte(0)
 
@@ -244,7 +249,7 @@ class YadoCard(base.CWBinaryBase):
         f.write_string(name)
         f.write_string(description)
         f.write_byte(type)
-        f.write_rawstring(fname)
+        f.write_rawstring(os.path.splitext(fname)[0])
         f.write_dword(number)
 
 def main():

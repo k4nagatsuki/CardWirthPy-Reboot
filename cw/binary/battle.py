@@ -27,9 +27,9 @@ class Battle(base.CWBinaryBase):
                 self.id = idl - 20000
         else:
             dataversion = 4
-            f.byte() # 不明
-            f.byte() # 不明
-            f.byte() # 不明
+            f.byte()
+            f.byte()
+            f.byte()
             self.name = f.string()
             self.id = f.dword() - 40000
 
@@ -96,10 +96,7 @@ class Battle(base.CWBinaryBase):
                 events = e
 
         f.write_byte(type)
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
-        f.write_byte(0) # 不明
+        f.write_dword(0) # 不明
         f.write_string(name)
         f.write_dword(id + 40000)
         f.write_dword(len(events))
@@ -160,7 +157,7 @@ class EnemyCard(base.CWBinaryBase):
         scale = 0
         left = 0
         top = 0
-        escape = bool(data.get("escape"))
+        escape = cw.util.str2bool(data.get("escape"))
 
         for e in data:
             if e.tag == "Property":

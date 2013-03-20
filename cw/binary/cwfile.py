@@ -99,7 +99,7 @@ class CWFileWriter(io.BufferedWriter):
         if s is None:
             s = ""
         if not self.decodewrap:
-            s = cw.util.decodewrap(s)
+            s = cw.util.decodewrap(s, "\r\n")
         self.write_rawstring(s)
 
     def write_rawstring(self, s):

@@ -161,7 +161,7 @@ class ItemCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        type = 3
+        type = 0
         image = None
         name = ""
         id = 0
@@ -216,10 +216,10 @@ class ItemCard(base.CWBinaryBase):
                         m_ability = base.CWBinaryBase.unconv_card_mentalability(prop.get("mental"))
                     elif prop.tag == "Target":
                         target = base.CWBinaryBase.unconv_card_target(prop.text)
-                        target_all = bool(prop.get("allrange"))
+                        target_all = cw.util.str2bool(prop.get("allrange"))
                     elif prop.tag == "EffectType":
                         effect_type = base.CWBinaryBase.unconv_card_effecttype(prop.text)
-                        silence = bool(prop.get("spell"))
+                        silence = cw.util.str2bool(prop.get("spell"))
                     elif prop.tag == "ResistType":
                         resist_type = base.CWBinaryBase.unconv_card_resisttype(prop.text)
                     elif prop.tag == "SuccessRate":
@@ -253,7 +253,7 @@ class ItemCard(base.CWBinaryBase):
                         limit = int(prop.text)
                         limit_max = int(prop.get("max"))
                     elif prop.tag == "Hold":
-                        hold = bool(prop.text)
+                        hold = cw.util.str2bool(prop.text)
                     elif prop.tag == "Price":
                         price = int(prop.text)
                     elif prop.tag == "EnhanceOwner":

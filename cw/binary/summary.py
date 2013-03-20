@@ -34,7 +34,7 @@ class Summary(base.CWBinaryBase):
         self.steps = [Step(self, f) for cnt in xrange(steps_num)]
         flags_num = f.dword()
         self.flags = [Flag(self, f) for cnt in xrange(flags_num)]
-        f.dword() # 不明
+        w = f.dword() # 不明
         if 0 < self.version:
             self.level_min = f.dword()
             self.level_max = f.dword()
@@ -223,7 +223,7 @@ class Flag(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data):
         name = ""
-        default = bool(e.get("default"))
+        default = cw.util.str2bool(e.get("default"))
         variable_names = [""] * 2
         for e in data:
             if e.tag == "Name":

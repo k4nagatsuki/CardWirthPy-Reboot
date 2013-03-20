@@ -110,7 +110,14 @@ class CWYado(object):
             self.curnum = 50 + self.curnum_n * 50 / self.maxnum
 
             try:
-                data.create_xml(self.dir)
+                fpath = data.create_xml(self.dir)
+
+                if isinstance(data, party.Party) and\
+                        self.wyd.partyname == os.path.splitext(os.path.basename(data.fpath))[0]:
+                    fpath = os.path.relpath(fpath, self.dir)
+                    fpath = cw.util.join_paths(fpath)
+                    self.wyd.cwpypartyname = fpath
+
                 if hasattr(data, "errorcards"):
                     for errcard in data.errorcards:
                         s = errcard.fname
@@ -245,11 +252,12 @@ class CWYado(object):
     #---------------------------------------------------------------------------
 
         # データリスト作成
-        self.datalist = [self.wyd]
+        self.datalist = []
         self.datalist.extend(self.wcps)
         self.datalist.extend(self.wpls)
         self.datalist.extend(self.wpts)
         self.datalist.extend(self.wrms)
+        self.datalist.append(self.wyd)
 
         self.maxnum = len(self.datalist)
         self.maxnum += len(self.otherfiles)
@@ -428,10 +436,19 @@ class UnconvCWYado(object):
                 self.message = u"%s を変換中" % (partyheader.name)
                 self.curnum += 1
 
+                atbl = { "yadoname":self.ydata.name }
+                names = partyheader.get_membernames()
+                i = 0
+                for member in pt.data.getfind("Property/Members"):
+                    if member.tag == "Member" and member.text:
+                        atbl[member.text] = names[i]
+                        i += 1
+                atbl["adventurers"] = atbl
+
                 fpath = create_fpath(pt.name, ".wpl")
                 f = cwfile.CWFileWriter(fpath, "wb")
                 try:
-                    party.Party.unconv(f, pt.data.find("."), table)
+                    party.Party.unconv(f, pt.data.find("."), atbl)
                 finally:
                     f.close()
 

@@ -18,8 +18,7 @@ class Party(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 2
         self.fname = self.get_fname()
-        f.byte()
-        f.byte()
+        w = f.word() # 不明(0)
         self.yadoname = f.string()
         f.image() # 宿の埋め込み画像は破棄。
         self.memberslist = cw.util.decodetextlist(f.string())
@@ -68,8 +67,8 @@ class Party(base.CWBinaryBase):
             if card.mine:
                 if card.data:
                     card.data.materialbasedir = dpath
-                    path = card.create_xml(cdpath)
-                    carddb.insert_card(path, commit=False, cardorder=order)
+                    cpath = card.create_xml(cdpath)
+                    carddb.insert_card(cpath, commit=False, cardorder=order)
                     order += 1
                 else:
                     self.errorcards.append(card)
@@ -96,13 +95,14 @@ class Party(base.CWBinaryBase):
                         name = prop.text
                     elif prop.tag == "Money":
                         money = int(prop.text)
-            elif e.tag == "Members":
-                atbl = table["adventurers"]
-                seq = []
-                for me in e:
-                    fpath = atbl[me.text]
-                    seq.append(fpath)
-                memberslist = cw.util.encodetextlist(seq)
+                    elif prop.tag == "Members":
+                        atbl = table["adventurers"]
+                        seq = []
+                        for me in prop:
+                            if me.tag == "Member" and me.text:
+                                name = atbl[me.text]
+                                seq.append(name)
+                        memberslist = cw.util.encodetextlist(seq)
 
         f.write_word(0) # 不明
         f.write_string(yadoname)
@@ -121,12 +121,14 @@ class PartyMembers(base.CWBinaryBase):
         self.type = 3
         self.fname = self.get_fname()
         adventurers_num = f.byte() - 30
-        f.dword()
+        b = f.byte() # 不明
+        b = f.byte() # 不明
+        b = f.byte() # 不明
+        b = f.byte() # 不明
         self.adventurers = [adventurer.AdventurerWithImage(self, f)
                                         for cnt in xrange(adventurers_num)]
         vanisheds_num = f.byte()
-        f.byte()
-        f.byte()
+        w = f.word() # 不明(0)
         self.vanisheds = [adventurer.AdventurerWithImage(self, f)
                                         for cnt in xrange(vanisheds_num)]
         self.name = f.string()
@@ -148,17 +150,17 @@ class PartyMembers(base.CWBinaryBase):
 
         for member in party.members:
             if member.getbool("Property", "lost", False):
-                adventurers.append(member.find("."))
-            else:
                 vanisheds.append(member.find("."))
+            else:
+                adventurers.append(member.find("."))
         name = party.name
 
         f.write_byte(len(adventurers) + 30)
         f.write_dword(0) # 不明
         for member in adventurers:
             adventurer.AdventurerWithImage.unconv(f, member)
-        f.write_word(len(vanisheds))
-        f.write_byte(0) # 不明
+        f.write_byte(len(vanisheds))
+        f.write_word(0) # 不明
         for member in vanisheds:
             adventurer.AdventurerWithImage.unconv(f, member)
         f.write_string(name)
@@ -196,7 +198,7 @@ class BackpackCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, fname, mine):
-        f.write_rawstring(fname)
+        f.write_rawstring(os.path.splitext(fname)[0])
         f.write_dword(int(data.findtext("Property/UseLimit", "0")))
         f.write_bool(mine)
 

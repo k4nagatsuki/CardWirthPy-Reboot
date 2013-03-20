@@ -72,7 +72,7 @@ def load(path):
     # 変数の状態
     for flag in data.getfind("FlagValues"):
         name = flag.get("name")
-        value = bool(flag.get("value"))
+        value = cw.util.str2bool(flag.get("value"))
         if name in cw.cwpy.sdata.flags:
             flag = cw.cwpy.sdata.flags[name]
             if flag.value <> value:

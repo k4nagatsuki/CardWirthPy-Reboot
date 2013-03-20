@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+
 import base
 import effectmotion
 import event
@@ -76,7 +78,7 @@ class SkillCard(base.CWBinaryBase):
 
         # 宿データだとここに不明なデータ(4)が付加されている
         if 5 <= dataversion:
-            f.dword()
+            dw = f.dword()
 
         self.level = f.dword()
         self.limit = f.dword()
@@ -151,7 +153,7 @@ class SkillCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        type = 5
+        type = 0
         image = None
         name = ""
         id = 0
@@ -202,10 +204,10 @@ class SkillCard(base.CWBinaryBase):
                         m_ability = base.CWBinaryBase.unconv_card_mentalability(prop.get("mental"))
                     elif prop.tag == "Target":
                         target = base.CWBinaryBase.unconv_card_target(prop.text)
-                        target_all = bool(prop.get("allrange"))
+                        target_all = cw.util.str2bool(prop.get("allrange"))
                     elif prop.tag == "EffectType":
                         effect_type = base.CWBinaryBase.unconv_card_effecttype(prop.text)
-                        silence = bool(prop.get("spell"))
+                        silence = cw.util.str2bool(prop.get("spell"))
                     elif prop.tag == "ResistType":
                         resist_type = base.CWBinaryBase.unconv_card_resisttype(prop.text)
                     elif prop.tag == "SuccessRate":
@@ -238,7 +240,7 @@ class SkillCard(base.CWBinaryBase):
                     elif prop.tag == "UseLimit":
                         limit = int(prop.text)
                     elif prop.tag == "Hold":
-                        hold = bool(prop.text)
+                        hold = cw.util.str2bool(prop.text)
             elif e.tag == "Motions":
                 motions = e
             elif e.tag == "Events":

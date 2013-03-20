@@ -58,7 +58,7 @@ class BgImage(base.CWBinaryBase):
         width = 0
         height = 0
         imgpath = ""
-        mask = bool(data.get("mask"))
+        mask = cw.util.str2bool(data.get("mask"))
         flag = ""
         unknown = 0
 
