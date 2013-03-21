@@ -889,7 +889,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         指定するIDの戦闘を開始する。
         """
-        self.sounds["battle"].play()
+        self.sounds["battle"].play(from_scenario=True)
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")

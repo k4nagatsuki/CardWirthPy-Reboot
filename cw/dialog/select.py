@@ -414,7 +414,7 @@ class YadoSelect(Select):
         # 所属冒険者
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
         for idx, name in enumerate(self.list2[self.index]):
-            x = (bmpw - 250) / 2 + ((idx % 3) * 95)
+            x = (bmpw - 270) / 2 + ((idx % 3) * 95)
             y = 200 + (idx / 3) * 16
             dc.DrawText(name, x, y)
 
