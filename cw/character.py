@@ -422,7 +422,12 @@ class Character(object):
             targets, header, beasts = self.actiondata
 
             # 召喚獣カードの使用
-            if self.is_alive() and self.status <> "hidden" and self.status <> "reversed":
+            if isinstance(self, cw.sprite.card.FriendCard):
+                ishidden = self._vanished
+            else:
+                ishidden = self.status == "hidden"
+
+            if self.is_alive() and not ishidden and self.status <> "reversed":
                 for targets_b, header_b in beasts[:]:
 
                     self.use_card(targets_b, header_b)
@@ -432,7 +437,7 @@ class Character(object):
                         raise cw.battle.BattleWinError()
 
                     # カードの効果で行動が変わっている可能性がある
-                    if not self.actiondata or self.status == "hidden" or self.status == "reversed":
+                    if not self.actiondata or ishidden or self.status == "reversed":
                         break
                     inarr = False
                     for targets_c, header_c in self.actiondata[2]:
@@ -445,7 +450,7 @@ class Character(object):
             # 手札カードの使用
             if self.actiondata:
                 targets, header, beasts = self.actiondata
-                if header and self.is_active() and self.status <> "hidden" and self.status <> "reversed":
+                if header and self.is_active() and not ishidden and self.status <> "reversed":
                     if header in self.deck.hand and not header.type == "ItemCard":
                         self.deck.hand.remove(header)
 
