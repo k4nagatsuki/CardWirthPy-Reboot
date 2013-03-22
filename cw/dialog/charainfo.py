@@ -302,7 +302,8 @@ class TopPanel(wx.Panel):
                 path = cw.util.join_yadodir(path)
 
         bmp = cw.util.load_wxbmp(path, True)
-        cw.util.draw_height(dc, bmp, 5)
+        x = (dc.GetSize()[0] - 74) / 2
+        dc.DrawBitmap(bmp, x, 5, True)
         # レベル
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
