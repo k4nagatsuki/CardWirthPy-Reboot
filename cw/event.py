@@ -544,7 +544,7 @@ class CardEvent(Event):
         self.waited = False
 
     def start(self):
-        cw.cwpy.sdata.versionhint[cw.HINT_CARD] = header.versionhint
+        cw.cwpy.sdata.versionhint[cw.HINT_CARD] = self.inusecard.versionhint
 
         cw.cwpy.event.set_selectedmember(self.user)
         cw.cwpy.event.set_inusecard(self.inusecard)
