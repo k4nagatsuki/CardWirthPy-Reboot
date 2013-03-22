@@ -218,8 +218,13 @@ class CWPy(_Singleton, threading.Thread):
 
     def update(self):
         self.bggrp.update(self.scr)
-        self.mcardgrp.update(self.scr)
-        self.pcardgrp.update(self.scr)
+        # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+        if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            self.pcardgrp.update(self.scr)
+            self.mcardgrp.update(self.scr)
+        else:
+            self.mcardgrp.update(self.scr)
+            self.pcardgrp.update(self.scr)
         self.sbargrp.update(self.scr)
         if not self.statusbar.showbuttons:
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
