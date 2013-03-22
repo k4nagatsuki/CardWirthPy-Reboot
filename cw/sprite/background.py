@@ -58,7 +58,7 @@ class BackGround(base.CWPySprite):
 
         return image, anime
 
-    def load(self, elements, bginhrt, ttype=("Default", "Default"), doanime=True):
+    def load(self, elements, bginhrt, doanime=True, ttype=("Default", "Default")):
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         bginhrt: Trueなら背景継承。
@@ -122,7 +122,7 @@ class BackGround(base.CWPySprite):
             cw.animation.animate_sprite(transitspr, "transition")
             transitspr.remove(cw.cwpy.bggrp)
 
-    def reload(self, ttype=("Default", "Default")):
+    def reload(self, doanime=True, ttype=("Default", "Default")):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -135,7 +135,7 @@ class BackGround(base.CWPySprite):
         animated = False
         blitlist = []
         for path, mask, size, pos, flag, visible in self.bgs:
-            image, anime = self.load_surface(path, mask, size, flag, doanime=False)
+            image, anime = self.load_surface(path, mask, size, flag, doanime=doanime)
             animated |= anime
 
             if image:

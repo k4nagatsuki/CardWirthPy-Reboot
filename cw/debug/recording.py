@@ -67,7 +67,7 @@ def load(path):
     cw.cwpy.music.play(data.gettext("Bgm", ""))
 
     # 背景とセル
-    cw.cwpy.background.load(data.getfind("BgImages"), bginhrt=False)
+    cw.cwpy.background.load(data.getfind("BgImages"), doanime=False, bginhrt=False)
 
     # 変数の状態
     for flag in data.getfind("FlagValues"):

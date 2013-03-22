@@ -757,7 +757,7 @@ class CWPy(_Singleton, threading.Thread):
         # 背景スプライト作成
         if not bginhrt:
             bginhrt |= self.sdata.check_bginhrt()
-            self.background.load(self.sdata.get_bgdata(), bginhrt, ttype)
+            self.background.load(self.sdata.get_bgdata(), bginhrt, True, ttype)
 
         # 特殊エリア(メンバー解散)だったら背景にカーテンを追加。
         if self.areaid == cw.AREA_BREAKUP:

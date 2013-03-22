@@ -340,7 +340,7 @@ class _JpySubImage(cw.image.Image):
 
         self.image = image
 
-    def load(self):
+    def load(self, doanime):
         """画像作成。"""
         path = self.get_filepath()
 
@@ -350,10 +350,11 @@ class _JpySubImage(cw.image.Image):
 
             # 効果音ファイル
             if ext in cw.EXTS_SND:
-                sound = cw.util.load_sound(path)
+                if doanime:
+                    sound = cw.util.load_sound(path)
 
-                if sound:
-                    sound.play()
+                    if sound:
+                        sound.play()
 
                 image = pygame.Surface((0, 0)).convert()
             # Jpy1ファイル
@@ -465,12 +466,12 @@ class JpyImage(cw.image.Image):
 
         config = EffectBoosterConfig(path)
         back = JpyBackGroundImage(config, cache)
-        back.load()
+        back.load(doanime)
 
         for section in config.sections():
             if not section == "init":
                 parts = JpyPartsImage(config, section, cache)
-                parts.load()
+                parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
                 parts.draw2back(back)
