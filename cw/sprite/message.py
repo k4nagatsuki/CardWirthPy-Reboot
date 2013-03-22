@@ -15,7 +15,7 @@ class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
                  pos=(81, 50), size=(470, 180), talkerimage=None,
                  nametable={}, flagtable={}, steptable={},
-                 backlog=False, result=None):
+                 backlog=False, result=None, versionhint=""):
         base.CWPySprite.__init__(self)
         self.backlog = backlog
 
@@ -52,8 +52,15 @@ class MessageWindow(base.CWPySprite):
         # 外枠描画
         draw_frame(self.image, size, (0, 0), self.backlog)
         # 話者(CardHeader or Character)
-        # 名前のみ使用
         self.talker = talker
+
+        self.backlog_versionhint = versionhint
+        self.versionhint = ""
+        if not self.backlog and self.talker and cw.cwpy.is_playingscenario():
+            cw.cwpy.sdata.versionhint[cw.HINT_MESSAGE] = talker.versionhint
+
+        if not self.backlog:
+            self.versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
 
         self._init_nametable()
 
@@ -160,7 +167,16 @@ class MessageWindow(base.CWPySprite):
         if self.talker_image:
             self.text = self.rpl_specialstr(self.text)
             self.text = cw.util.txtwrap(self.text, 2)
-            posp = pos = pos[0] + 26 + self.talker_image.get_width(), pos[1]
+            # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
+            if self.backlog:
+                versionhint = self.backlog_versionhint
+            else:
+                versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
+            if cw.cwpy.sct.lessthan("1.28", versionhint):
+                w = self.talker_image.get_width()
+            else:
+                w = 74
+            posp = pos = pos[0] + 26 + w, pos[1]
         else:
             self.text = self.rpl_specialstr(self.text)
             self.text = cw.util.txtwrap(self.text, 3)
@@ -420,6 +436,8 @@ class SelectWindow(MessageWindow):
         self.flag_table = {}
         self.step_table = {}
         self.talker_image = None
+        self.versionhint = ""
+        self.backlog_versionhint = ""
 
         # クラシックスタイルか
         self.classicstyletext = cw.cwpy.setting.classicstyletext
@@ -619,6 +637,7 @@ class BacklogData:
         self.flag_table = base.flag_table
         self.step_table = base.step_table
         self.result = base.result
+        self.versionhint = base.versionhint
 
     def create_message(self):
         if self.type == 0:
@@ -626,10 +645,10 @@ class BacklogData:
                                  self.rect.topleft, self.rect.size,
                                  self.talker_image,
                                  self.name_table, self.flag_table, self.step_table,
-                                 True, self.result)
+                                 True, self.result, self.versionhint)
         else:
             return SelectWindow(self.names, self.text, self.rect.topleft, self.rect.size,
-                                True, self.result)
+                                True, self.result, self.versionhint)
 
 class BacklogCurtain(base.CWPySprite):
     def __init__(self, spritegrp, size=(632, 420), pos=(0, 0), alpha=192):

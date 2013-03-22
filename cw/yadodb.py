@@ -60,18 +60,53 @@ class YadoDB(object):
                     """
                     self.cur.execute(s)
 
-            # moved列が存在しない場合は作成する(旧バージョンとの互換性維持)
+            # moved列,scenariocard列,versionhint列が存在しない
+            # 場合は作成する(旧バージョンとの互換性維持)
             cur = self.con.execute("PRAGMA table_info('card')")
             res = cur.fetchall()
-            hastype = False
+            hasmoved = False
+            hasscenariocard = False
+            hasversionhint = False
             for rec in res:
                 if rec[1] == "moved":
-                    hastype = True
-                    break
-            if not hastype:
+                    hasmoved = True
+                elif rec[1] == "scenariocard":
+                    hasscenariocard = True
+                elif rec[1] == "versionhint":
+                    hasversionhint = True
+
+            reqcommit = False
+
+            if not hasmoved:
                 self.cur.execute("ALTER TABLE card ADD COLUMN moved INTEGER")
+                self.cur.execute("UPDATE card SET moved=?", (0,))
+                reqcommit = True
+            if not hasscenariocard:
                 self.cur.execute("ALTER TABLE card ADD COLUMN scenariocard INTEGER")
-                self.cur.execute("UPDATE card SET moved=?, scenariocard=?", (0, 0,))
+                self.cur.execute("UPDATE card SET scenariocard=?", (0,))
+                reqcommit = True
+            if not hasversionhint:
+                self.cur.execute("ALTER TABLE card ADD COLUMN versionhint TEXT")
+                self.cur.execute("UPDATE card SET versionhint=?", ("",))
+                reqcommit = True
+
+            if self.mode == YADO:
+                # versionhint列が存在しない場合は作成する
+                # (旧バージョンとの互換性維持)
+                cur = self.con.execute("PRAGMA table_info('adventurer')")
+                res = cur.fetchall()
+                hasversionhint = False
+                for rec in res:
+                    if rec[1] == "versionhint":
+                        hasversionhint = True
+                        break
+
+                if not hasversionhint:
+                    self.cur.execute("ALTER TABLE adventurer ADD COLUMN versionhint TEXT")
+                    self.cur.execute("UPDATE adventurer SET versionhint=?", ("",))
+                    reqcommit = True
+
+            if reqcommit:
                 self.con.commit()
 
         else:
@@ -114,6 +149,7 @@ class YadoDB(object):
                     attachment INTEGER,
                     moved INTEGER,
                     scenariocard INTEGER,
+                    versionhint TEXT,
                     ctime INTEGER,
                     mtime INTEGER,
                     PRIMARY KEY (fpath)
@@ -148,6 +184,7 @@ class YadoDB(object):
                         gene TEXT,
                         history TEXT,
                         race TEXT,
+                        versionhint TEXT,
                         ctime INTEGER,
                         mtime INTEGER,
                         PRIMARY KEY (fpath)
@@ -344,9 +381,11 @@ class YadoDB(object):
             attachment,
             moved,
             scenariocard,
+            versionhint,
             ctime,
             mtime
         ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -412,6 +451,7 @@ class YadoDB(object):
             header.attachment,
             header.moved,
             1 if header.scenariocard else 0,
+            header.versionhint,
             ctime,
             mtime,
         ))
@@ -474,6 +514,7 @@ class YadoDB(object):
                 attachment,
                 moved,
                 scenariocard,
+                versionhint,
                 ctime,
                 mtime,
                 numorder
@@ -508,7 +549,25 @@ class YadoDB(object):
     def _insert_adventurerheader(self, header, commit=True, adventurerorder=-1):
         """データベースに冒険者を登録する。"""
         s = """
-        INSERT OR REPLACE INTO adventurer VALUES(
+        INSERT OR REPLACE INTO adventurer(
+            fpath,
+            level,
+            name,
+            imgpath,
+            album,
+            lost,
+            sex,
+            age,
+            ep,
+            leavenoalbum,
+            gene,
+            history,
+            race,
+            versionhint,
+            ctime,
+            mtime
+        ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -548,6 +607,7 @@ class YadoDB(object):
             header.gene.get_str(),
             "\n".join(header.history),
             header.race,
+            header.versionhint,
             ctime,
             mtime,
         ))

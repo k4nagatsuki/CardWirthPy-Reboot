@@ -63,9 +63,8 @@ class Win32Res(object):
             if self._winhandle:
                 return
 
-        f = open(file, "rb")
-        data = f.read()
-        f.close()
+        with open(file, "rb") as f:
+            data = f.read()
         base = data[:]
 
         uint32 = struct.Struct("<L")

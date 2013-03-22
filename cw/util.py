@@ -429,45 +429,44 @@ def get_truetypefontname(path):
     path: TrueTypeFontファイルのパス。
     """
     #customize path
-    f= open( path, "rb" )
+    with open(path, "rb") as f:
 
-    #header
-    shead= struct.Struct( ">IHHHH" )
-    fhead= f.read( shead.size )
-    dhead= shead.unpack_from( fhead, 0 )
+        #header
+        shead= struct.Struct( ">IHHHH" )
+        fhead= f.read( shead.size )
+        dhead= shead.unpack_from( fhead, 0 )
 
-    #font directory
-    stable= struct.Struct( ">4sIII" )
-    ftable= f.read( stable.size* dhead[ 1 ] )
-    for i in xrange( dhead[1] ): #directory records
-        dtable= stable.unpack_from(
-                ftable, i* stable.size )
-        if dtable[0]== "name": break
-    assert dtable[0]== "name"
+        #font directory
+        stable= struct.Struct( ">4sIII" )
+        ftable= f.read( stable.size* dhead[ 1 ] )
+        for i in xrange( dhead[1] ): #directory records
+            dtable= stable.unpack_from(
+                    ftable, i* stable.size )
+            if dtable[0]== "name": break
+        assert dtable[0]== "name"
 
-    #name table
-    f.seek( dtable[2] ) #at offset
-    fnametable= f.read( dtable[3] ) #length
-    snamehead= struct.Struct( ">HHH" ) #name table head
-    dnamehead= snamehead.unpack_from( fnametable, 0 )
+        #name table
+        f.seek( dtable[2] ) #at offset
+        fnametable= f.read( dtable[3] ) #length
+        snamehead= struct.Struct( ">HHH" ) #name table head
+        dnamehead= snamehead.unpack_from( fnametable, 0 )
 
-    sname= struct.Struct( ">HHHHHH" )
-    fontname = ""
+        sname= struct.Struct( ">HHHHHH" )
+        fontname = ""
 
-    for i in xrange( dnamehead[1] ): #name table records
-        dname= sname.unpack_from(fnametable, snamehead.size+ i* sname.size )
+        for i in xrange( dnamehead[1] ): #name table records
+            dname= sname.unpack_from(fnametable, snamehead.size+ i* sname.size )
 
-        if dname[3]== 4: #key == 4: "full name of font"
-            s= struct.unpack_from(
-                    '%is'% dname[4], fnametable,
-                    dnamehead[2]+ dname[5] )[0]
-            if dname[:3] == (1, 0, 0):
-                fontname = s
-            elif dname[:3] == (3, 1, 1033):
-                s = s.split("\x00")
-                fontname = "".join(s)
+            if dname[3]== 4: #key == 4: "full name of font"
+                s= struct.unpack_from(
+                        '%is'% dname[4], fnametable,
+                        dnamehead[2]+ dname[5] )[0]
+                if dname[:3] == (1, 0, 0):
+                    fontname = s
+                elif dname[:3] == (3, 1, 1033):
+                    s = s.split("\x00")
+                    fontname = "".join(s)
 
-    f.close()
     return fontname
 
 def get_md5(path):
@@ -475,17 +474,16 @@ def get_md5(path):
     path: ハッシュ値を求めるファイルのパス。
     """
     m = hashlib.md5()
-    f = open(path, "rb")
+    with open(path, "rb") as f:
 
-    while True:
-        data = f.read(32768)
+        while True:
+            data = f.read(32768)
 
-        if not data:
-            break
+            if not data:
+                break
 
-        m.update(data)
+            m.update(data)
 
-    f.close()
     return m.hexdigest()
 
 def change_cursor(name="arrow"):
@@ -770,9 +768,8 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
             if dpath and not os.path.isdir(dpath):
                 os.makedirs(dpath)
 
-            f = open(fpath, "wb")
-            f.write(data)
-            f.close()
+            with open(fpath, "wb") as f:
+                f.write(data)
 
     z.close()
 

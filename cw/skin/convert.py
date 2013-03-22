@@ -39,9 +39,8 @@ class Converter(threading.Thread):
 
         self.exe = exe
         if self.exe:
-            f = open(self.exe, "rb")
-            self.exebinary = f.read()
-            f.close()
+            with open(self.exe, "rb") as f:
+                self.exebinary = f.read()
 
             self.res = cw.skin.win32res.Win32Res(self.exe)
 
@@ -936,9 +935,8 @@ class Converter(threading.Thread):
                 resdir = os.path.dirname(fpath)
                 if not os.path.isdir(resdir):
                     os.makedirs(resdir)
-                f = open(fpath, "wb")
-                f.write(res)
-                f.close()
+                with open(fpath, "wb") as f:
+                    f.write(res)
                 f = None
             for respath, target in glyphtbl.items():
                 respaths = respath.split("/")
@@ -955,9 +953,8 @@ class Converter(threading.Thread):
                     res = str(res[12:])
                 else:
                     res = str(res[4:])
-                f = open(fpath, "wb")
-                f.write(res)
-                f.close()
+                with open(fpath, "wb") as f:
+                    f.write(res)
                 f = None
 
             if not os.path.isabs(self.datadir):

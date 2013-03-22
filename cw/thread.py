@@ -32,6 +32,7 @@ class CWPy(_Singleton, threading.Thread):
         if frame and not hasattr(self, "frame"):
             threading.Thread.__init__(self)
             self.frame = frame   # 親フレーム
+            self.sct = cw.setting.ScenarioCompatibilityTable() # 互換性データベース
             self._running = False
             self.init_pygame(setting)
 
@@ -228,8 +229,15 @@ class CWPy(_Singleton, threading.Thread):
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
             dirty_rects = self.bggrp.draw(self.scr)
-            dirty_rects.extend(self.mcardgrp.draw(self.scr))
-            dirty_rects.extend(self.pcardgrp.draw(self.scr))
+
+            # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+            if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+                dirty_rects.extend(self.pcardgrp.draw(self.scr))
+                dirty_rects.extend(self.mcardgrp.draw(self.scr))
+            else:
+                dirty_rects.extend(self.mcardgrp.draw(self.scr))
+                dirty_rects.extend(self.pcardgrp.draw(self.scr))
+
             dirty_rects.extend(self.topgrp.draw(self.scr))
             dirty_rects.extend(self.backloggrp.draw(self.scr))
             dirty_rects.extend(self.sbargrp.draw(self.scr))
@@ -368,6 +376,10 @@ class CWPy(_Singleton, threading.Thread):
         # スプライト削除
         self.pcardgrp.remove_sprites_of_layer("selectionbar")
         self.pcardgrp.remove_sprites_of_layer("message")
+
+        # 互換性マーク削除
+        if self.is_playingscenario():
+            self.sdata.versionhint[cw.HINT_MESSAGE] = ""
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。
@@ -1670,9 +1682,8 @@ class CWPy(_Singleton, threading.Thread):
 
                     if pisc:
                         imgdst = cw.util.dupcheck_plus(imgdst, False)
-                        f = open(imgdst, "wb")
-                        f.write(idata)
-                        f.close()
+                        with open(imgdst, "wb") as f:
+                            f.write(idata)
                     else:
                         shutil.copy2(imgpath, imgdst)
                     # ElementTree編集

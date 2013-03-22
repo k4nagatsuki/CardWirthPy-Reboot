@@ -200,9 +200,9 @@ class CWBinaryBase(object):
         if not os.path.isdir(imgdir):
             os.makedirs(imgdir)
 
-        f = open(path, "wb")
-        f.write(self.image)
-        f.close()
+        with open(path, "wb") as f:
+            f.write(self.image)
+
         # 最後に参照パスを返す
         path = path.replace(basedir + "/", "", 1)
         return util.repl_escapechar(path)
@@ -226,9 +226,8 @@ class CWBinaryBase(object):
                     if not os.path.isfile(fpath):
                         return None
 
-        f = open(fpath, "rb")
-        image = f.read()
-        f.close()
+        with open(fpath, "rb") as f:
+            image = f.read()
 
         if convertbitmap and cw.util.get_imageext(image) <> ".bmp":
             f = io.BytesIO(image)

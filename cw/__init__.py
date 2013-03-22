@@ -65,6 +65,12 @@ EXTS_IMG = (".bmp", ".jpg", ".jpeg", ".png", ".gif", ".pcx", ".tif", ".xpm")
 EXTS_MSC = (".mid", ".midi", ".mp3", ".ogg")
 EXTS_SND = (".wav", ".wave", ".ogg")
 
+# 互換性マークのインデックス
+HINT_MESSAGE = 0    # メッセージ表示時の話者(キャストまたはカード)
+HINT_CARD = 1       # 使用中のカード
+HINT_AREA = 2       # エリア・バトル・パッケージ
+HINT_SCENARIO = 3   # シナリオ本体
+
 def main():
     pass
 

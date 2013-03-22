@@ -23,6 +23,7 @@ class CWFile(io.BufferedReader):
             f = io.FileIO(path, mode)
             io.BufferedReader.__init__(self, f)
         f.name = path
+        self.filedata = []
         self.decodewrap = decodewrap
 
     def bool(self):
@@ -81,6 +82,11 @@ class CWFile(io.BufferedReader):
             return self.read(dword)
         else:
             return None
+
+    def read(self, n=None):
+        raw_data = io.BufferedReader.read(self, n)
+        self.filedata.append(raw_data)
+        return raw_data
 
 class CWFileWriter(io.BufferedWriter):
     """CardWirth用のバイナリファイルを読み込むための

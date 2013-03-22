@@ -3,6 +3,9 @@
 
 import os
 import shutil
+import ConfigParser
+
+import cw
 
 import util
 import cwfile
@@ -49,6 +52,10 @@ class CWScenario(object):
         self.otherdirs = []
         self.summarypath = None
 
+        # 互換性マーク
+        self.versionhint = ""
+        self.hasmodeini = False
+
         if self.path == "":
             return
         for name in os.listdir(self.path):
@@ -64,18 +71,33 @@ class CWScenario(object):
                     self.cwfiles.append(path)
                 elif ext in exts_mat:
                     self.materials.append(path)
+                elif name.lower() == "mode.ini":
+                    self.read_modeini(path)
                 else:
                     self.otherfiles.append(path)
 
             else:
                 self.otherdirs.append(path)
 
+        if self.summarypath and not self.hasmodeini and not self.versionhint:
+            self.versionhint = cw.cwpy.sct.get_versionhint(fpath=self.summarypath)
+
+    def read_modeini(self, fpath):
+        try:
+            conf = ConfigParser.SafeConfigParser()
+            conf.read(fpath)
+            self.versionhint = conf.get("Compatibility", "engine")
+            if self.versionhint:
+                self.hasmodeini = True
+        except Exception, ex:
+            print ex
+
     def is_convertible(self):
         if not self.summarypath:
             return False
 
         try:
-            data = self.load_file(self.summarypath)
+            data, filedata = self.load_file(self.summarypath)
         except:
             return False
 
@@ -95,7 +117,7 @@ class CWScenario(object):
 
         for path in self.cwfiles:
             try:
-                data = self.load_file(path)
+                data, filedata = self.load_file(path)
                 self.datalist.append(data)
             except:
                 s = os.path.basename(path)
@@ -158,8 +180,12 @@ class CWScenario(object):
                 f.close()
                 raise ValueError(path)
 
+        if not nameonly:
+            # 読み残し分を全て読み込む
+            f.read()
+
         f.close()
-        return data
+        return data, "".join(f.filedata)
 
     def convert(self):
         if not self.datalist:

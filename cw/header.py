@@ -49,6 +49,7 @@ class CardHeader(object):
             self.attachment = bool(dbrec["attachment"])
             if dbowner == "BACKPACK":
                 from_scenario = bool(dbrec["scenariocard"])
+            self.versionhint = dbrec["versionhint"]
             self.moved = dbrec["moved"]
         else:
             self.set_owner(owner)
@@ -125,6 +126,8 @@ class CardHeader(object):
 
             # Image
             self.imgpath = data.gettext("ImagePath", "")
+            # 互換性マーク
+            self.versionhint = data.getattr(".", "versionhint", "")
 
         self.vocation = (self.physical, self.mental)
 
@@ -612,6 +615,7 @@ class AdventurerHeader(object):
             self.gene.set_str(dbrec["gene"])
             self.history = dbrec["history"].split("\n")
             self.race = dbrec["race"]
+            self.versionhint = dbrec["versionhint"]
         else:
             self.fpath = data.fpath
             self.level = data.getint("Level", 0)
@@ -638,6 +642,8 @@ class AdventurerHeader(object):
             self.gene.set_randombit()
             self.history = []
             self.race = ""
+            # 互換性マーク
+            self.versionhint = data.getattr(".", "versionhint", "")
 
             for e in reversed(data.getfind("Coupons").getchildren()):
                 if not e.text:
@@ -955,13 +961,11 @@ class GetName(object):
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.character_data
 
-        f = open(fpath)
-        try:
-            parser.ParseFile(f)
-        except Exception, ex:
-            pass
-        finally:
-            f.close()
+        with open(fpath) as f:
+            try:
+                parser.ParseFile(f)
+            except Exception, ex:
+                pass
 
     def start_element(self, name, attrs):
         self.stack.append(name)

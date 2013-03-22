@@ -94,6 +94,10 @@ class SystemData(object):
         cw.cwpy.areaid = areaid
         self.data = None
 
+    def get_versionhint(self, frompos=0):
+        """現在有効になっている互換性マークを返す(常に無し)。"""
+        return ""
+
     def start(self):
         pass
 
@@ -107,6 +111,8 @@ class SystemData(object):
             path = self.areas[id][1]
 
         self.data = xml2etree(path)
+        if isinstance(self, ScenarioData):
+            self.versionhint[cw.HINT_AREA] = self.data.getattr("Property", "versionHint", "")
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
 
@@ -235,6 +241,24 @@ class ScenarioData(SystemData):
         # メッセージのバックログ
         self.backlog = []
 
+        # 各段階の互換性マーク
+        self.versionhint = [
+            "", # メッセージ表示時の話者(キャストまたはカード)
+            "", # 使用中のカード
+            "", # エリア・バトル・パッケージ
+            "", # シナリオ本体
+        ]
+
+        if cw.cwpy.classicdata:
+            self.versionhint[cw.HINT_SCENARIO] = cw.cwpy.classicdata.versionhint
+
+    def get_versionhint(self, frompos=0):
+        """現在有効になっている互換性マークを返す。"""
+        for hint in self.versionhint[frompos:]:
+            if hint:
+                return hint
+        return ""
+
     def reload(self):
         flagvals = {}
         stepvals = {}
@@ -315,7 +339,7 @@ class ScenarioData(SystemData):
                     name = e.gettext("Name", "")
                 else:
                     # クラシックなシナリオの基本要素一覧情報
-                    wdata = cw.cwpy.classicdata.load_file(path, nameonly=True)
+                    wdata, filedata = cw.cwpy.classicdata.load_file(path, nameonly=True)
                     id = wdata.id
                     name = wdata.name
 
@@ -940,9 +964,8 @@ class YadoData(object):
                         if e2.tag == "ImagePath" and e2.text and not cw.binary.image.path_is_code(e2.text):
                             path = cw.util.join_paths(self.yadodir, e2.text)
                             if os.path.isfile(path):
-                                f = open(path, "rb")
-                                imagedata = f.read()
-                                f.close()
+                                with open(path, "rb") as f:
+                                    imagedata = f.read()
                                 e2.text = cw.binary.image.data_to_code(imagedata)
                                 header.imgpath = e2.text
 
@@ -1828,10 +1851,9 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         if dpath and not os.path.isdir(dpath):
             os.makedirs(dpath)
 
-        f = open(path, "wb")
-        f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
-        ElementTree.write(self, f, "utf-8")
-        f.close()
+        with open(path, "wb") as f:
+            f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
+            ElementTree.write(self, f, "utf-8")
 
     def write_xml(self, nocheck_edited=False):
         """エレメントが編集されていたら、
@@ -1966,12 +1988,23 @@ def xml2element(path="", tag="", file=None, nocache=False):
             return data
 
     data = None
+    versionhint = ""
     if not file and cw.cwpy and cw.cwpy.classicdata:
         # クラシックなシナリオのファイルだった場合は変換する
         lpath = path.lower()
         if lpath.endswith(".wsm") or lpath.endswith(".wid"):
-            cdata = cw.cwpy.classicdata.load_file(path)
+            cdata, filedata = cw.cwpy.classicdata.load_file(path)
             data = cdata.get_data()
+
+            # 互換性マーク付与
+            if cw.cwpy.classicdata.hasmodeini:
+                # mode.ini優先
+                versionhint = cw.cwpy.classicdata.versionhint
+            else:
+                versionhint = cw.cwpy.sct.get_versionhint(filedata=filedata)
+                if not versionhint:
+                    # 個別のファイルの情報が無い場合はシナリオの情報を使う
+                    versionhint = cw.cwpy.classicdata.versionhint
 
     if data is None:
         parser = SimpleXmlParser(path, "", file)
@@ -1987,6 +2020,12 @@ def xml2element(path="", tag="", file=None, nocache=False):
         cw.cwpy.sdata.cache[path] = cachedata
         if nocache:
             data = copydata(data)
+
+    if versionhint:
+        prop = data.find("Property")
+        if not prop is None:
+            prop.set("versionHint", versionhint)
+
     return data
 
 class CacheData(object):
@@ -2069,9 +2108,8 @@ class SimpleXmlParser(object):
         if hasattr(self.file, "read"):
             self.parse_file(self.file)
         else:
-            f = open(self.fpath, "rb")
-            self.parse_file(f)
-            f.close()
+            with open(self.fpath, "rb") as f:
+                self.parse_file(f)
 
         return self.root
 

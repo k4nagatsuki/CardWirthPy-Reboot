@@ -91,6 +91,8 @@ class Character(object):
         self.timedcoupons = self.get_timedcoupons()
         # 対象消去されたか否か
         self._vanished = False
+        # 互換性マーク
+        self.versionhint = self.data.getattr("Property", "versionHint", "")
 
         # 状態の正規化
         self.cardimg = None

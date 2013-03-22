@@ -544,6 +544,8 @@ class CardEvent(Event):
         self.waited = False
 
     def start(self):
+        cw.cwpy.sdata.versionhint[cw.HINT_CARD] = header.versionhint
+
         cw.cwpy.event.set_selectedmember(self.user)
         cw.cwpy.event.set_inusecard(self.inusecard)
 
@@ -608,6 +610,9 @@ class CardEvent(Event):
 
         # 特殊エリア解除・カード選択ダイアログを開く
         cw.cwpy.clear_specialarea()
+
+        # 互換性マークを削除
+        cw.cwpy.sdata.versionhint[cw.HINT_CARD] = ""
 
         # 通常イベントの終了処理
         Event.end(self)

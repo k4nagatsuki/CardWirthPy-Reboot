@@ -962,13 +962,26 @@ class CallPackageContent(EventContentBase):
         if id and id in cw.cwpy.sdata.packs:
             if not id in cw.cwpy.event.nowrunningpacks:
                 path = cw.cwpy.sdata.packs[id][1]
-                e = cw.data.xml2element(path, "Events")
-                cw.cwpy.event.nowrunningpacks[id] = cw.event.EventEngine(e)
+                data = cw.data.xml2element(path)
+                e = data.find("Events")
+                engine = cw.event.EventEngine(e)
+                engine.versionhint = data.getattr("Property", "versionHint", "")
+                cw.cwpy.event.nowrunningpacks[id] = engine
+            else:
+                engine = cw.cwpy.event.nowrunningpacks[id]
 
-            events = cw.cwpy.event.nowrunningpacks[id].events
+            events = engine.events
 
             if events:
-                events[0].run()
+                if cw.cwpy.is_playingscenario():
+                    versionhint = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
+                    cw.cwpy.sdata.versionhint[cw.HINT_AREA] = engine.versionhint
+                    try:
+                        events[0].run()
+                    finally:
+                        cw.cwpy.sdata.versionhint[cw.HINT_AREA] = versionhint
+                else:
+                    events[0].run()
 
         return 0
 
@@ -1293,9 +1306,8 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
                 if e2.tag == "ImagePath" and e2.text and not cw.binary.image.path_is_code(e2.text):
                     path = cw.util.join_paths(copymaterialfrom, e2.text)
                     if os.path.isfile(path):
-                        f = open(path, "rb")
-                        imagedata = f.read()
-                        f.close()
+                        with open(path, "rb") as f:
+                            imagedata = f.read()
                         e2.text = cw.binary.image.data_to_code(imagedata)
                         header.imgpath = e2.text
         else:
@@ -1515,12 +1527,19 @@ class LinkPackageContent(EventContentBase):
         if id in cw.cwpy.sdata.packs:
             if not id in cw.cwpy.event.nowrunningpacks:
                 path = cw.cwpy.sdata.packs[id][1]
-                e = cw.data.xml2element(path, "Events")
-                cw.cwpy.event.nowrunningpacks[id] = cw.event.EventEngine(e)
+                data = cw.data.xml2element(path)
+                e = data.find("Events")
+                engine = cw.event.EventEngine(e)
+                engine.versionhint = data.getattr("Property", "versionHint", "")
+                cw.cwpy.event.nowrunningpacks[id] = engine
+            else:
+                engine = cw.cwpy.event.nowrunningpacks[id]
 
-            events = cw.cwpy.event.nowrunningpacks[id].events
+            events = engine.events
 
             if events:
+                if cw.cwpy.is_playingscenario():
+                    cw.cwpy.sdata.versionhint[cw.HINT_AREA] = engine.versionhint
                 events[0].run()
 
         return cw.IDX_TREEEND

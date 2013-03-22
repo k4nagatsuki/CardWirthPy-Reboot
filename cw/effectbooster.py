@@ -883,44 +883,43 @@ class EffectBoosterConfig(object):
         self._sections = {}
         cur_sec = {}
         jptxtxt = []
-        f = open(path, "rb")
 
-        for line in f:
-            if line[0] in '#;':
-                continue
+        with open(path, "rb") as f:
 
-            line = line.decode("mbcs").replace("\r\n", "\n")
+            for line in f:
+                if line[0] in '#;':
+                    continue
 
-            # jptxテキスト
-            if line == "[jptx:end]\n" or line == "[jptx:end]":
-                break
-            elif line == "[jptx:begin]\n":
-                jptxtxt.append("")
-                continue
-            elif jptxtxt:
-                jptxtxt.append(line)
-                continue
+                line = line.decode("mbcs").replace("\r\n", "\n")
 
-            # セクション
-            m = r_sec.match(line)
+                # jptxテキスト
+                if line == "[jptx:end]\n" or line == "[jptx:end]":
+                    break
+                elif line == "[jptx:begin]\n":
+                    jptxtxt.append("")
+                    continue
+                elif jptxtxt:
+                    jptxtxt.append(line)
+                    continue
 
-            if m:
-                sec = m.group(1).strip()
-                cur_sec = {}
-                self._sections[sec] = cur_sec
-                self._orderedsecs.append(sec)
-                continue
+                # セクション
+                m = r_sec.match(line)
 
-            # オプション
-            m = r_opt.match(line)
+                if m:
+                    sec = m.group(1).strip()
+                    cur_sec = {}
+                    self._sections[sec] = cur_sec
+                    self._orderedsecs.append(sec)
+                    continue
 
-            if m:
-                opt = m.group(1).strip().lower()
-                val = m.group(2).strip()
-                cur_sec[opt] = val
-                continue
+                # オプション
+                m = r_opt.match(line)
 
-        f.close()
+                if m:
+                    opt = m.group(1).strip().lower()
+                    val = m.group(2).strip()
+                    cur_sec[opt] = val
+                    continue
 
         if jptxtxt:
             self._sections["jptx:begin"] = {"jptx:end": "".join(jptxtxt)}

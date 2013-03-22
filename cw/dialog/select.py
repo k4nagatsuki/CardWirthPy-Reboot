@@ -2081,9 +2081,8 @@ class ScenarioSelect(Select):
                                 for fname in fnames:
                                     if fname.lower().endswith(".txt"):
                                         dpath2 = cw.util.decode_zipname(dpath2)
-                                        f = open(cw.util.join_paths(dpath2, fname), "r")
-                                        seq2.append(f.read())
-                                        f.close()
+                                        with open(cw.util.join_paths(dpath2, fname), "r") as f:
+                                            seq2.append(f.read())
                                         seq.append(fname)
                     finally:
                         for file in os.listdir(dpath):
@@ -2117,9 +2116,8 @@ class ScenarioSelect(Select):
                             paths.append(cw.util.join_paths(dpath, fname))
 
                 for fpath in paths:
-                    f = open(fpath, "r")
-                    data = f.read()
-                    f.close()
+                    with open(fpath, "r") as f:
+                        data = f.read()
                     seq2.append(data)
                     name = os.path.relpath(fpath, path)
                     name = cw.util.join_paths(name)

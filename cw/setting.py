@@ -5,6 +5,7 @@ import os
 import sys
 import ctypes
 import math
+import md5
 import wx
 import pygame
 from pygame.locals import *
@@ -721,3 +722,54 @@ class RecentHistory(object):
                 return i_temppath
 
         return None
+
+class ScenarioCompatibilityTable:
+    """互換性データベース。
+    *.wsmまたは*.widファイルのMD5ダイジェストをキーに、
+    本来そのファイルが再生されるべきCardWirthのバージョンを持つ。
+    ここでの判断の優先順位はシナリオのmode.iniより低い。
+    互換動作の判断は、
+    (1)メッセージ表示時の話者(キャストまたはカード)→(2)使用中のカード
+    →(3)エリア・バトル・パッケージ→(4)シナリオ本体
+    の優先順位で行う。このデータベースの情報はいずれにも適用される。
+
+    通常シナリオを互換モードで動かすにはSummary.wsmのMD5値をキーに
+    バージョンを登録すればよい。
+    Unix系列ではmd5コマンドで取得できるが、普通CardWirthのユーザは
+    Windowsユーザであるため、PowerShellを使う事になる。例えば:
+    $ [string]::concat(([Security.Cryptography.MD5]::Create().ComputeHash((gi Summary.wsm).OpenRead())|%{$_.ToString('x2')}))
+
+    Pythonでは次のようにして取得できる。
+    >>> import md5
+    >>> md5.new(open("Summary.wsm", "rb").read()).hexdigest()
+    """
+    def __init__(self):
+        self.table = {}
+        if os.path.isfile("Data/Compatibility.xml"):
+            data = cw.data.xml2element(path="Data/Compatibility.xml")
+            for e in data:
+                key = e.get("md5", "")
+                if key:
+                    self.table[key] = e.text
+
+    def get_versionhint(self, fpath=None, filedata=None):
+        """fpathのファイル内容またはfiledataから、
+        本来そのファイルが再生されるべきCardWirthの
+        バージョンを取得する。
+        """
+        if filedata:
+            key = md5.new(filedata).hexdigest()
+        else:
+            key = cw.util.get_md5(fpath)
+
+        return self.table.get(key, "")
+
+    def lessthan(self, versionhint, currentversion):
+        """currentversionがversionhint以下であればTrueを返す。"""
+        if not currentversion:
+            return False
+
+        try:
+            return float(currentversion) <= float(versionhint)
+        except:
+            return False
