@@ -305,13 +305,18 @@ class TopPanel(wx.Panel):
         x = (dc.GetSize()[0] - 74) / 2
         dc.DrawBitmap(bmp, x, 5, True)
         # レベル
-        dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
         coupons = self.ccard.get_specialcoupons()
         if u"＠レベル原点" in coupons and self.ccard.level <> coupons[u"＠レベル原点"]:
             s = "Level: %d / %d" % (self.ccard.level, coupons[u"＠レベル原点"])
         else:
             s = "Level: %d" % (self.ccard.level)
+            if u"＠レベル上限" in coupons and coupons[u"＠レベル上限"] <= self.ccard.level:
+                # max
+                dc.SetTextForeground(wx.RED)
+                dc.DrawText("max", 25, 20)
+
+        dc.SetTextForeground(wx.BLACK)
         dc.DrawText(s, 5, 5)
         # EP
         s = "EP: " + self.ep

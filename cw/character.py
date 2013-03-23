@@ -844,6 +844,19 @@ class Character(object):
         """
         return set(self.coupons.keys())
 
+    def get_couponvalue(self, name, raiseerror=True):
+        """
+        クーポンの値を返す。
+        """
+        if raiseerror:
+            return self.coupons[name][0]
+        else:
+            data = self.coupons.get(name, None)
+            if data:
+                return data[0]
+            else:
+                return 0
+
     def has_coupon(self, coupon):
         """
         引数のクーポンを所持しているかbool値で返す。
