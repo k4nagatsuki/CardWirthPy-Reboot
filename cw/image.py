@@ -236,11 +236,28 @@ class CharacterCardImage(CardImage):
         # 画像合成
         bgname = self.get_cardbgname(ccard)
         self.image = cw.cwpy.rsrc.cardbgs[bgname].copy()
+
+        # レベル
         if ccard.is_analyzable():
             self.image.blit(self.levelimg, (90 - self.levelimg.get_width(), 2))
-        self.image.blit(self.cardimg, (11, 17))
+
+        # カード画像
+        insets_n = 18
+        insets_e = 10
+        insets_s = 18
+        insets_w = 10
+        bw = 95 - insets_w - insets_e
+        bh = 130 - insets_n - insets_s
+        dw = self.cardimg.get_width()
+        dh = self.cardimg.get_height()
+        x = insets_w + (bw - dw) / 2
+        y = insets_n + (bh - dh) / 2
+        self.image.blit(self.cardimg, (x, y))
+
+        # 名前
         self.image.blit(self.nameimg, (7, 4))
 
+        # ライフ
         if ccard.is_analyzable():
             lifeper = ccard.get_lifeper()
             self.lifeimg.blit(self.lifebar, (int(0.79 * (lifeper - 100)), 1))
