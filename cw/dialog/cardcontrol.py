@@ -998,6 +998,11 @@ class CardHolder(CardControl):
         CardControl.OnMouseWheel(self, event)
 
     def draw(self, update=False):
+        if 0 < self.index and (len(self.list)+9) / 10 <= self.index:
+            # 現ページのカードの移動などで
+            # 最大ページを超えてしまった場合
+            self.index -= 1
+
         dc = CardControl.draw(self, update)
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
