@@ -24,6 +24,9 @@ class EventInterface(object):
         self._step = False
         self._targetstack = -1
 
+        # イベント実行中に操作を受け付けるためのタイマ
+        self.eventtimer = 0
+
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
         try:
@@ -242,9 +245,13 @@ class EventInterface(object):
             return
 
         # 一部のイベント実行
-        cw.cwpy.sbargrp.update(cw.cwpy.scr)
-        cw.cwpy.input()
-        cw.cwpy.eventhandler.run()
+        if 10000 <= self.eventtimer:
+            cw.cwpy.sbargrp.update(cw.cwpy.scr)
+            cw.cwpy.input()
+            cw.cwpy.eventhandler.run()
+            self.eventtimer = 0
+        else:
+            self.eventtimer += 1
 
         if cw.cwpy.is_showingdebugger() and\
                  cw.cwpy.is_playingscenario() and 0 < cw.cwpy.areaid:
@@ -428,7 +435,7 @@ class Event(object):
             cw.cwpy.event.remove_event(event)
             event.clear()
 
-    def run(self, restart=False):
+    def run(self, restart=False, perf=False):
         """イベント実行。子コンテンツを順番に実行する。
         restart: スタートコールコンテントを呼んだところから再開時、True。
         """
