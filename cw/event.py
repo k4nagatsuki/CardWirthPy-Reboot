@@ -450,7 +450,6 @@ class Event(object):
             cw.cwpy.event.refresh_activeitem()
             cw.cwpy.event.wait()
             self.action()
-            self.check_gameover()
             nextcontents = self.get_nextcontents()
 
         # スタートコールコンテントを呼んでいた場合、呼んだところから再開
@@ -504,6 +503,11 @@ class Event(object):
             self.index = content.action()
         else:
             self.index = 0
+
+        if (self.cur_content.tag == "Effect") or\
+            (self.cur_content.tag == "Set" and self.cur_content.get("type") == "Coupon") or\
+            (self.cur_content.tag == "Elapse" and self.cur_content.get("type") == "Time"):
+            self.check_gameover()
 
     def get_nextcontents(self):
         """self.cur_contentの子コンテントのリストを返す。"""
