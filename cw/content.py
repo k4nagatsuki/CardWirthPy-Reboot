@@ -171,20 +171,23 @@ class BranchContent(EventContentBase):
         idx_default = cw.IDX_TREEEND  # 「その他」の分岐
 
         index = 0
-        for e in self.data.getfind("Contents"):
-            # フラグ判定コンテントの場合、
-            # 対応フラグがTrueの場合のみ実行対象に
-            if e.tag == "Check" and e.get("type") == "Flag":
-                if cw.content.CheckFlagContent(e).action() <> 0:
-                    continue
+        for chld in self.data:
+            if chld.tag == "Contents":
+                for e in chld:
+                    # フラグ判定コンテントの場合、
+                    # 対応フラグがTrueの場合のみ実行対象に
+                    if e.tag == "Check" and e.get("type") == "Flag":
+                        if cw.content.CheckFlagContent(e).action() <> 0:
+                            continue
 
-            name = e.get("name")
+                    name = e.get("name")
 
-            if idx_value < 0 and name == value:
-                idx_value = index
-            elif idx_default < 0 and name == "Default":
-                idx_default = index
-            index += 1
+                    if idx_value < 0 and name == value:
+                        idx_value = index
+                    elif idx_default < 0 and name == "Default":
+                        idx_default = index
+                    index += 1
+                break
 
         if idx_value is not cw.IDX_TREEEND:
             index = idx_value
