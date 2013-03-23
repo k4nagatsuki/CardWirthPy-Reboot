@@ -394,6 +394,7 @@ def parse_summarydata(data, type, archive):
     for coupon in clist:
         if coupon:
             coupons.append(coupon)
+    coupons = cw.util.encodewrap(coupons)
     couponsnum = int(e.get("number", 0))
     e = data.find("StartAreaId")
     startid = int(e.text) if e.text else 0
