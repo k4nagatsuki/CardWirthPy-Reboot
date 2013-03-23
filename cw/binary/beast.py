@@ -288,7 +288,8 @@ class BeastCard(base.CWBinaryBase):
         f.write_dword(4)
 
         f.write_dword(limit)
-        f.write_bool(attachment)
+        # 付帯召喚はboolの値が逆
+        f.write_bool(not attachment)
 
 def main():
     pass
