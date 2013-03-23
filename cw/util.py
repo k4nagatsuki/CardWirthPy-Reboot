@@ -1257,6 +1257,7 @@ def create_link(path, target):
 #  パフォーマンスカウンタ
 #-------------------------------------------------------------------------------
 
+dictimes = {}
 times = [0.0] * 1024
 timer = 0.0
 
@@ -1269,11 +1270,22 @@ def t_end(index):
     times[index] += time.time() - timer
     timer = time.time()
 
+def td_end(key):
+    global dictimes, timer
+    if key in dictimes:
+        dictimes[key] += time.time() - timer
+    else:
+        dictimes[key] = time.time() - timer
+    timer = time.time()
+
 def t_print():
-    global times
+    global times, dictimes
     for i, t in enumerate(times):
         if 0 < t:
             print "time[%s] = %s" % (i, t)
+    for key, t in dictimes.iteritems():
+        if 0 < t:
+            print "time[%s] = %s" % (key, t)
 
 def main():
     pass

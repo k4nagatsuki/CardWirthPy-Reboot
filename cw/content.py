@@ -140,20 +140,23 @@ class BranchContent(EventContentBase):
         idx_false = cw.IDX_TREEEND
 
         index = 0
-        for e in self.data.getfind("Contents"):
-            # フラグ判定コンテントの場合、
-            # 対応フラグがTrueの場合のみ実行対象に
-            if e.tag == "Check" and e.get("type") == "Flag":
-                if cw.content.CheckFlagContent(e).action() <> 0:
-                    continue
+        for chld in self.data:
+            if chld.tag == "Contents":
+                for e in chld:
+                    # フラグ判定コンテントの場合、
+                    # 対応フラグがTrueの場合のみ実行対象に
+                    if e.tag == "Check" and e.get("type") == "Flag":
+                        if cw.content.CheckFlagContent(e).action() <> 0:
+                            continue
 
-            name = e.get("name")
+                    name = e.get("name")
 
-            if idx_true < 0 and name == u"○":
-                idx_true = index
-            elif idx_false < 0 and name == u"×":
-                idx_false = index
-            index += 1
+                    if idx_true < 0 and name == u"○":
+                        idx_true = index
+                    elif idx_false < 0 and name == u"×":
+                        idx_false = index
+                    index += 1
+                break
 
         if flag:
             index = idx_true
