@@ -30,8 +30,12 @@ def compress_all(zpath, targ):
     return zpath
 
 if __name__ == '__main__':
-    if operator.lt(len(sys.argv), 2):
-        sys.argv.append('py2exe')
+    dir = "."
+    if 1 < len(sys.argv):
+        dir = sys.argv[1]
+        sys.argv.pop()
+
+    sys.argv = [sys.argv[0], 'py2exe']
     exe = build_exe.BuildExe()
     exe.run()
 
@@ -56,6 +60,7 @@ if __name__ == '__main__':
     if mark == "a":
         mark = ""
     fpath = "cardwirthpy_%s%s.zip" % (fpath, mark)
+    fpath = os.path.join(dir, fpath)
     compress_all(fpath, exe.dist_dir)
 
     print ""
