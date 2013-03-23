@@ -1636,6 +1636,22 @@ class Party(object):
 
         cw.cwpy.remove_xml(self)
 
+    def get_coupontable(self):
+        """
+        パーティ全体が所持しているクーポンの
+        所持数テーブルを返す。
+        """
+        d = {}
+
+        for member in self.members:
+            for e in member.getfind("Property/Coupons"):
+                if e.text in d:
+                    d[e.text] += 1
+                else:
+                    d[e.text] = 1
+
+        return d
+
     def get_coupons(self):
         """
         パーティ全体が所持しているクーポンをセット型で返す。

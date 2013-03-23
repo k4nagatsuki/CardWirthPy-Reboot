@@ -1399,7 +1399,7 @@ class ScenarioSelect(Select):
         # クリアシナリオ名の集合
         self.stamps = cw.cwpy.ydata.get_compstamps()
         # パーティの所持しているクーポンの集合
-        self.coupons = cw.cwpy.ydata.party.get_coupons()
+        self.coupons = cw.cwpy.ydata.party.get_coupontable()
         # 現在進行中のシナリオパスの集合
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
         # toppanel
@@ -1802,8 +1802,8 @@ class ScenarioSelect(Select):
         num = 0
 
         for coupon in header.coupons.splitlines():
-            if coupon and coupon in self.coupons:
-                num += 1
+            if coupon:
+                num += self.coupons.get(coupon, 0)
 
         return num < header.couponsnum
 
