@@ -53,7 +53,7 @@ class Event(base.CWBinaryBase):
 
         f.write_dword(len(contents))
         for content in contents:
-            content.Content_unconv(f, content)
+            content.Content.unconv(f, content)
         f.write_dword(len(ignitions))
         for ignition in ignitions:
             f.write_dword(ignition)
@@ -90,7 +90,7 @@ class SimpleEvent(base.CWBinaryBase):
 
         f.write_dword(len(contents))
         for ct in contents:
-            content.Content_unconv(f, ct)
+            content.Content.unconv(f, ct)
 
 def main():
     pass
