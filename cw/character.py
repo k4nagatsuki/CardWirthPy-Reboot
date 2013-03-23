@@ -87,8 +87,14 @@ class Character(object):
         self.actiondata = None
         # 行動順位を決定する数値
         self.actionorder = 0
+
+        # クーポン一覧
+        self.coupons = {}
+        for e in self.data.getfind("Property/Coupons"):
+             self.coupons[e.text] = int(e.get("value")), e
         # 時限クーポンのデータのリスト(name, flag_countable)
         self.timedcoupons = self.get_timedcoupons()
+
         # 対象消去されたか否か
         self._vanished = False
         # 互換性マーク
@@ -836,17 +842,13 @@ class Character(object):
         """
         所有クーポンをセット型で返す。
         """
-        return set([e.text for e in self.data.getfind("Property/Coupons")])
+        return set(self.coupons.keys())
 
     def has_coupon(self, coupon):
         """
         引数のクーポンを所持しているかbool値で返す。
         """
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text == coupon:
-                return True
-
-        return False
+        return coupon in self.coupons
 
     def get_couponsvalue(self):
         """
@@ -854,10 +856,10 @@ class Character(object):
         """
         cnt = 0
 
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text and not e.text.startswith(u"＠"):
-                n = e.getint(".", "value", 0)
-                cnt += n
+        for coupon, data in self.coupons.iteritems():
+            if coupon and not coupon.startswith(u"＠"):
+                value = data[0]
+                cnt += value
 
         return cnt
 
@@ -868,68 +870,66 @@ class Character(object):
         """
         d = {}
 
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text and e.text.startswith(u"＠"):
-                d[e.text] = e.getint(".", "value", 0)
+        for coupon, data in self.coupons.iteritems():
+            if coupon and coupon.startswith(u"＠"):
+                value = data[0]
+                d[coupon] = value
 
         return d
 
     def get_sex(self):
-        sets = set(cw.cwpy.setting.sexcoupons)
-
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text in sets:
-                return e.text
+        for coupon in cw.cwpy.setting.sexcoupons:
+            if coupon in self.coupons:
+                return coupon
 
         return None
 
     def set_sex(self, sex):
-        for coupon in cw.cwpy.setting.sexcoupons:
-            self.remove_coupon(coupon)
+        old = self.get_sex()
+        if old:
+            self.remove_coupon(old)
         self.set_coupon(sex, 0)
 
     def get_age(self):
-        sets = set(cw.cwpy.setting.periodcoupons)
-
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text in sets:
-                return e.text
+        for coupon in cw.cwpy.setting.periodcoupons:
+            if coupon in self.coupons:
+                return coupon
 
         return None
 
     def set_age(self, age):
-        for coupon in cw.cwpy.setting.periodcoupons:
-            self.remove_coupon(coupon)
+        old = self.get_age()
+        if old:
+            self.remove_coupon(old)
         self.set_coupon(age, 0)
 
     def get_talent(self):
-        sets = set(cw.cwpy.setting.naturecoupons)
-
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text in sets:
-                return e.text
+        for coupon in cw.cwpy.setting.naturecoupons:
+            if coupon in self.coupons:
+                return coupon
 
         return None
 
     def set_talent(self, talent):
-        for coupon in cw.cwpy.setting.naturecoupons:
-            self.remove_coupon(coupon)
+        old = self.get_talent()
+        if old:
+            self.remove_coupon(old)
         self.set_coupon(talent, 0)
 
     def get_makings(self):
         """
         所持する特徴クーポンをセット型で返す。
         """
-        coupons = self.get_coupons()
         makings = set()
         for making in cw.cwpy.setting.makingcoupons:
-            if making in coupons:
+            if making in self.coupons:
                 makings.add(making)
         return makings
 
     def set_makings(self, makings):
         for coupon in cw.cwpy.setting.makingcoupons:
-            self.remove_coupon(coupon)
+            if making in self.coupons:
+                self.remove_coupon(coupon)
         for coupon in makings:
             self.set_coupon(coupon, 0)
 
@@ -946,19 +946,18 @@ class Character(object):
         """
         if self.timedcoupons:
             self.data.is_edited = True
-            names = set([name for name, flag in self.timedcoupons if flag])
-            elements = [e for e in self.data.getfind("Property/Coupons")
-                                                            if e.text in names]
 
-            for e in elements:
-                if "value" in e.attrib:
-                    n = int(e.get("value", 0)) + value
-                    n = cw.util.numwrap(n, 0, 999)
+            for coupon in list(self.timedcoupons):
+                oldvalue, e = self.coupons[coupon]
 
-                    if n > 0:
-                        e.set("value", str(n))
-                    else:
-                        self.remove_coupon(e.text)
+                n = oldvalue + value
+                n = cw.util.numwrap(n, 0, 999)
+
+                if n > 0:
+                    e.set("value", str(n))
+                    self.coupons[coupon] = n, e
+                else:
+                    self.remove_coupon(coupon)
 
     def set_coupon(self, name, value):
         """
@@ -967,36 +966,40 @@ class Character(object):
         name: クーポン名。
         value: クーポン点数。
         """
-        value = cw.util.numwrap(int(value), 0, 999)
+        value = int(value)
+        value = cw.util.numwrap(value, 0, 999)
         removed = self._remove_coupon(name, False)
         e = self.data.make_element("Coupon", name, {"value" : str(value)})
         self.data.append("Property/Coupons", e)
+        self.coupons[name] = value, e
 
         # 時限クーポン
         if name.startswith(u"：") or name.startswith(u"；"):
-            timedcoupon = (name, bool(int(value)))
-            self.timedcoupons.append(timedcoupon)
+            if 0 < value:
+                self.timedcoupons.add(name)
 
-            # 隠蔽クーポン
-            if name == u"：Ｒ" and not self.is_reversed():
-                if not removed:
-                    cw.animation.animate_sprite(self, "reverse")
-                self.reversed = True
+        # 隠蔽クーポン
+        if name == u"：Ｒ" and not self.is_reversed():
+            if not removed:
+                cw.animation.animate_sprite(self, "reverse")
+            self.reversed = True
 
         # 隠蔽クーポンがあるため
         self.adjust_action()
 
     def get_timedcoupons(self):
         """
-        時限クーポンのデータをまとめたリストを返す。
+        時限クーポンのデータをまとめたsetを返す。
         """
-        seq = []
+        s = set()
 
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text.startswith(u"：") or e.text.startswith(u"；"):
-                 seq.append((e.text, not bool(e.get("value") == "0")))
+        for coupon, data in self.coupons.iteritems():
+            if coupon.startswith(u"：") or coupon.startswith(u"；"):
+                value = data[0]
+                if 0 < value:
+                    s.add(coupon)
 
-        return seq
+        return s
 
     def remove_coupon(self, name):
         """
@@ -1006,35 +1009,31 @@ class Character(object):
         return self._remove_coupon(name, True)
 
     def _remove_coupon(self, name, update):
-        elements = [e for e in self.data.getfind("Property/Coupons")
-                                                        if e.text == name]
+        if not name in self.coupons:
+            return False
 
-        for e in elements:
-            self.data.remove("Property/Coupons", e)
+        value, e = self.coupons[name]
+        self.data.remove("Property/Coupons", e)
+        del self.coupons[name]
 
         # 時限クーポン
-        if name.startswith(u"：") or name.startswith(u"；"):
-            timedcoupons = [i for i in self.timedcoupons if i[0] == name]
+        if name in self.timedcoupons:
+            self.timedcoupons.remove(name)
 
-            for timedcoupon in timedcoupons:
-                self.timedcoupons.remove(timedcoupon)
+        # 隠蔽クーポン
+        if name == u"：Ｒ" and self.is_reversed():
+            if update:
+                cw.animation.animate_sprite(self, "reverse")
+                self.reversed = False
 
-            # 隠蔽クーポン
-            if name == u"：Ｒ" and self.is_reversed():
-                if update:
-                    cw.animation.animate_sprite(self, "reverse")
-                    self.reversed = False
-
-        return 0 < len(elements)
+        return True
 
     def remove_timedcoupons(self, battleonly=False):
         """
         時限クーポンを削除する。
         battleonly: Trueの場合は"；"の時限クーポンのみ削除。
         """
-        names = [name for name, value in self.timedcoupons]
-
-        for name in names:
+        for name in self.timedcoupons:
             if not battleonly or name.startswith(u"；"):
                 self.remove_coupon(name)
 
