@@ -451,7 +451,7 @@ class EventHandlerForMessageWindow(EventHandler):
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.rclick_event()
-        elif cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
+        elif not cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
             self.shiftkey_event(False)
 
     def returnkey_event(self, pushing=False):
