@@ -1118,8 +1118,11 @@ class Character(object):
 
                 if e.text == u"＠レベル原点":
                     e.attrib["value"] = str(self.level)
+                    self.coupons[e.text] = self.level, e
                 elif e.text == u"＠ＥＰ":
-                    e.attrib["value"] = str(e.getint(".", "value", 0) + 10)
+                    value = e.getint(".", "value", 0) + 10
+                    e.attrib["value"] = str(value)
+                    self.coupons[e.text] = value, e
 
     #---------------------------------------------------------------------------
     #　状態変更用
@@ -1557,9 +1560,10 @@ class AlbumPage(object):
         """
         d = {}
 
-        for e in self.data.getfind("Property/Coupons"):
-            if e.text and e.text.startswith(u"＠"):
-                d[e.text] = e.getint(".", "value", 0)
+        for coupon, data in self.coupons:
+            if coupon and coupon.startswith(u"＠"):
+                value = data[0]
+                d[coupon] = value
 
         return d
 
