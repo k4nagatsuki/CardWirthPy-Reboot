@@ -64,6 +64,8 @@ class BattleEngine(object):
 
     def run(self):
         """戦闘行動を開始する。1ラウンド分の処理。"""
+        cw.cwpy.clear_selection()
+
         self._running = True
         self._ready = False
 

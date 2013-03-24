@@ -1187,6 +1187,8 @@ class YadoData(object):
         yadodb.update(cardorder=cardorder, adventurerorder=adventurerorder)
         yadodb.close()
 
+        cw.cwpy.clear_selection()
+
     #---------------------------------------------------------------------------
     # ゴシップ・シナリオ終了印用メソッド
     #---------------------------------------------------------------------------

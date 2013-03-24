@@ -1178,6 +1178,8 @@ class Character(object):
         self.life = cw.util.numwrap(self.life, 0, self.maxlife)
         self.data.edit("Property/Life", str(int(self.life)))
         self.adjust_action()
+        if self.is_unconscious():
+            self.set_unconsciousstatus()
 
     def set_paralyze(self, value):
         """
@@ -1203,6 +1205,8 @@ class Character(object):
         精神状態とその継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         value = cw.util.numwrap(value, 0, 999)
         if name == "Normal":
             value = 0
@@ -1226,6 +1230,8 @@ class Character(object):
         束縛状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if overwrite:
             self.bind = value
         else:
@@ -1239,6 +1245,8 @@ class Character(object):
         沈黙状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if overwrite:
             self.silence = value
         else:
@@ -1251,6 +1259,8 @@ class Character(object):
         暴露状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if overwrite:
             self.faceup = value
         else:
@@ -1263,6 +1273,8 @@ class Character(object):
         魔法無効状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if overwrite:
             self.antimagic = value
         else:
@@ -1284,6 +1296,8 @@ class Character(object):
         行動力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if value == 0:
             duration = 0
         if duration <= 0:
@@ -1301,6 +1315,8 @@ class Character(object):
         回避力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if value == 0:
             duration = 0
         if duration <= 0:
@@ -1318,6 +1334,8 @@ class Character(object):
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if value == 0:
             duration = 0
         if duration <= 0:
@@ -1335,6 +1353,8 @@ class Character(object):
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
+        if self.is_unconscious():
+            return
         if value == 0:
             duration = 0
         if duration <= 0:
@@ -1370,6 +1390,8 @@ class Character(object):
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。
         vanish: 召喚獣を消去するかどうか。
         """
+        if self.is_unconscious():
+            return
         idx = cw.POCKET_BEAST
 
         eff = False
@@ -1386,6 +1408,8 @@ class Character(object):
         return eff
 
     def can_addbeast(self):
+        if self.is_unconscious():
+            return False
         idx = cw.POCKET_BEAST
         return len(self.get_pocketcards(idx)) < self.get_cardpocketspace()[idx]
 
