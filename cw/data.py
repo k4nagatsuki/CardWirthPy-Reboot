@@ -659,7 +659,7 @@ class ScenarioData(SystemData):
                 path = self.infos[int(e.text)][1]
                 e = xml2element(path, "Property")
                 header = cw.header.InfoCardHeader(e)
-                self.infocards.insert(0, header)
+                self.infocards.append(header)
 
         for e in etree.getfind("CastCards"):
             data = xml2etree(element=e)

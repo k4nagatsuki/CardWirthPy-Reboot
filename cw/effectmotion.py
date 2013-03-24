@@ -290,12 +290,13 @@ class Effect(object):
         # 隠蔽中はアニメーションせず、時間経過も無し
         if target.status == "reversed":
             target.update_image()
+            cw.cwpy.draw()
 
         # 隠れているカードやFriendCardはアニメーションさせない
         elif isinstance(target, cw.character.Friend) or target.status == "hidden":
             if update_image:
                 target.update_image()
-                cw.cwpy.draw()
+            cw.cwpy.draw()
 
             if cw.cwpy.has_sound(self.soundpath):
                 cw.cwpy.wait_frame(12)
@@ -325,7 +326,7 @@ class Effect(object):
         else:
             if update_image:
                 target.update_image()
-                cw.cwpy.draw()
+            cw.cwpy.draw()
 
             if cw.cwpy.has_sound(self.soundpath):
                 cw.cwpy.wait_frame(12)
