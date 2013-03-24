@@ -1193,26 +1193,26 @@ class YadoData(object):
 
     def get_gossips(self):
         """ゴシップ名をset型で返す。"""
-        return set([e.text for e in self.environment.getfind("Gossips")])
+        return set([e.text for e in self.environment.getfind("Gossips") if e.text])
 
     def get_compstamps(self):
         """冒険済みシナリオ名をset型で返す。"""
-        return set([e.text for e in self.environment.getfind("CompleteStamps")])
+        return set([e.text for e in self.environment.getfind("CompleteStamps") if e.text])
 
     def get_gossiplist(self):
         """ゴシップ名をlist型で返す。"""
-        return [e.text for e in self.environment.getfind("Gossips")]
+        return [e.text for e in self.environment.getfind("Gossips") if e.text]
 
     def get_compstamplist(self):
         """冒険済みシナリオ名をlist型で返す。"""
-        return [e.text for e in self.environment.getfind("CompleteStamps")]
+        return [e.text for e in self.environment.getfind("CompleteStamps") if e.text]
 
     def has_compstamp(self, name):
         """冒険済みシナリオかどうかbool値で返す。
         name: シナリオ名。
         """
         for e in self.environment.getfind("CompleteStamps"):
-            if e.text == name:
+            if e.text and e.text == name:
                 return True
 
         return False
@@ -1222,7 +1222,7 @@ class YadoData(object):
         name: ゴシップ名
         """
         for e in self.environment.getfind("Gossips"):
-            if e.text == name:
+            if e.text and e.text == name:
                 return True
 
         return False

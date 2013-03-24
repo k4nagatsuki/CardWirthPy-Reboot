@@ -79,12 +79,14 @@ class Environment(base.CWBinaryBase):
 
             e = cw.data.make_element("CompleteStamps")
             for compstamp in cw.util.decodetextlist(self.compstamps):
-                e.append(cw.data.make_element("CompleteStamp", compstamp))
+                if compstamp:
+                    e.append(cw.data.make_element("CompleteStamp", compstamp))
             self.data.append(e)
 
             e = cw.data.make_element("Gossips")
             for gossip in cw.util.decodetextlist(self.gossips):
-                e.append(cw.data.make_element("Gossip", gossip))
+                if gossip:
+                    e.append(cw.data.make_element("Gossip", gossip))
             self.data.append(e)
 
             # 保管庫のカードのxml出力
