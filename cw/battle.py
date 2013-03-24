@@ -113,7 +113,7 @@ class BattleEngine(object):
         # 次ターン準備
         self.ready()
 
-    def end(self, areachange=True):
+    def end(self, areachange=True, f9=False):
         """戦闘終了処理。戦闘エリアを解除する。
         勝利時のみここへ来ない。
         """
@@ -123,7 +123,10 @@ class BattleEngine(object):
 
         self._running = False
 
-        cw.cwpy.clear_battlearea(areachange=areachange)
+        if f9:
+            self.pre_battleareadata = None
+        else:
+            cw.cwpy.clear_battlearea(areachange=areachange)
 
     def ready(self):
         """戦闘行動の準備を行う。

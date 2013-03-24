@@ -182,7 +182,7 @@ class Effect(object):
             # ボーナス・ペナルティの発動したカードを一時表示する
             guardcardimg = None
             if not event and guardcard:
-                cw.cwpy.sounds["equipment"].play()
+                cw.cwpy.sounds["equipment"].play(True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
                 cw.cwpy.wait_frame(12)
@@ -200,7 +200,7 @@ class Effect(object):
             cw.cwpy.play_sound(self.soundpath)
 
         if success_avo:
-            cw.cwpy.sounds["avoid"].play()
+            cw.cwpy.sounds["avoid"].play(True)
             cw.cwpy.wait_frame(12)
             return False
         elif noeffect or (success_res and not hasdamage):

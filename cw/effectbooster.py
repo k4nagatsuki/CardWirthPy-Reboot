@@ -354,7 +354,7 @@ class _JpySubImage(cw.image.Image):
                     sound = cw.util.load_sound(path)
 
                     if sound:
-                        sound.play()
+                        sound.play(True)
 
                 image = pygame.Surface((0, 0)).convert()
             # Jpy1ファイル

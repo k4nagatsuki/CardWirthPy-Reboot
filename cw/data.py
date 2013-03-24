@@ -468,7 +468,7 @@ class ScenarioData(SystemData):
         # battle
         if cw.cwpy.battle and cw.cwpy.battle.is_running:
             # バトルを強制終了
-            cw.cwpy.exec_func(cw.cwpy.battle.end)
+            cw.cwpy.exec_func(cw.cwpy.battle.end, True, True)
 
         # party copy
         fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
