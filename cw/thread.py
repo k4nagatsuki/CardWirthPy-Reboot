@@ -675,7 +675,10 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_autospread():
             mcards = self.get_mcards("flagtrue")
             flag = bool(self.areaid == cw.AREA_CAMP and self.sdata.friendcards)
-            self.set_autospread(mcards, flag)
+            if self.is_battlestatus():
+                self.set_autospread(mcards, 6, flag)
+            else:
+                self.set_autospread(mcards, 8, flag)
 
         for mcard in mcardsinv:
             if self.sdata.flags.get(mcard.flag, True):
@@ -786,14 +789,16 @@ class CWPy(_Singleton, threading.Thread):
                 fcard.status = "hidden"
                 self.mcardgrp.add(fcard)
 
-    def set_autospread(self, mcards, campwithfriend=False):
+    def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):
         """自動整列設定時のメニューカードの配置位置を設定する。
         mcards: MenuCard or EnemyCardのリスト。
+        maxcol: この値を超えると改行する。
         campwithfriend: キャンプ画面時＆FriendCardが存在しているかどうか。
+        anime: カードを一旦消去してから再配置するならTrue。
         """
         def set_mcardpos(mcards, (maxw, maxh), y):
             n = maxw + 5
-            x = (632 - n * len(mcards) - 5) / 2
+            x = (632 - n * len(mcards) + 5) / 2
 
             for mcard in mcards:
                 w, h = mcard._rect.size
@@ -812,19 +817,27 @@ class CWPy(_Singleton, threading.Thread):
             if h > maxh:
                 maxh = h
 
+            if anime:
+                cw.animation.animate_sprite(mcard, "hide")
+
         n = len(mcards)
 
         if campwithfriend:
             y = (145 - maxh) / 2 + 140 - 2
             set_mcardpos(mcards, (maxw, maxh), y)
-        elif n < 8:
+        elif n <= maxcol:
             y = (285 - maxh) / 2 - 2
             set_mcardpos(mcards, (maxw, maxh), y)
         else:
             y = (285 - maxh * 2) / 2
             y2 = y + maxh + 5
-            set_mcardpos(mcards[:n / 2 + n % 2], (maxw, maxh), y)
-            set_mcardpos(mcards[n / 2:], (maxw, maxh), y2)
+            p = n / 2 + n % 2
+            set_mcardpos(mcards[:p], (maxw, maxh), y)
+            set_mcardpos(mcards[p:], (maxw, maxh), y2)
+
+        if anime:
+            for mcard in mcards:
+                cw.animation.animate_sprite(mcard, "deal")
 
     def set_mcards(self, (stype, elements), dealanime=True):
         """メニューカードスプライトを構成する。

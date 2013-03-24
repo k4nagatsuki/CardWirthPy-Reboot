@@ -39,6 +39,10 @@ class BattleEngine(object):
         self._ready = False
         # 戦闘行動中フラグ
         self._running = False
+        # 表示中の敵の数
+        self._numenemy = 0
+        if cw.cwpy.is_autospread():
+            self._numenemy = len(cw.cwpy.get_mcards("flagtrue"))
         # 行動準備
         self.ready()
 
@@ -133,6 +137,11 @@ class BattleEngine(object):
         self.set_actionorder()
         self.set_action()
         self._ready = True
+        if cw.cwpy.is_autospread():
+            ecards = cw.cwpy.get_mcards("flagtrue")
+            if self._numenemy <> len(ecards):
+                self._numenemy = len(ecards)
+                cw.cwpy.set_autospread(ecards, 6, False, anime=True)
         cw.cwpy.disposition_pcards()
         cw.cwpy.statusbar.change()
 

@@ -115,7 +115,7 @@ class Effect(object):
             target.events.start(keycodes=keycodes)
             return True
         else:
-            cw.cwpy.sounds["ineffective"].play()
+            cw.cwpy.sounds["ineffective"].play(True)
             return False
 
     def apply_charactercard(self, target, event=False):
@@ -204,7 +204,7 @@ class Effect(object):
             cw.cwpy.wait_frame(12)
             return False
         elif noeffect or (success_res and not hasdamage):
-            cw.cwpy.sounds["ineffective"].play()
+            cw.cwpy.sounds["ineffective"].play(True)
             self.animate(target, True)
             return False
 
@@ -215,7 +215,7 @@ class Effect(object):
 
         if not effectual:
             # 効果無し
-            cw.cwpy.sounds["ineffective"].play()
+            cw.cwpy.sounds["ineffective"].play(True)
 
         # ダメージ軽減によるカード消耗
         if hasdamage:
