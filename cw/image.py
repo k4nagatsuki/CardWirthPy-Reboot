@@ -268,7 +268,7 @@ class CharacterCardImage(CardImage):
         self.update_statusimg(ccard)
 
         if header:
-            # 適正表示(カード移動時)
+            # 適性表示(カード移動時)
             key = "HAND" + str(header.get_vocation_level(ccard))
             subimg = cw.cwpy.rsrc.stones[key]
             self.image.blit(subimg, (73, 95))

@@ -528,7 +528,7 @@ class Character(object):
         行為判定を行う。成功ならTrue。失敗ならFalseを返す。
         level: 判定レベル。
         vocation: 適性データ。(身体適性名, 精神適性名)のタプル。
-        thresholdbonus: アクション元の適正値+行動力強化値。効果コンテントだと4。
+        thresholdbonus: アクション元の適性値+行動力強化値。効果コンテントだと4。
         subbonus: 各種判定のサブボーナス(回避判定なら回避力強化値をあてる等)。
         """
         dice = cw.cwpy.dice.roll(2)
@@ -713,7 +713,7 @@ class Character(object):
 
     def get_vocation_val(self, vocation):
         """
-        適正値(身体適性値 + 精神適性値)を返す。
+        適性値(身体適性値 + 精神適性値)を返す。
         引数のvocationは(身体適性名, 精神適性名)のタプル。
         """
         vocation = (vocation[0].lower(), vocation[1].lower())

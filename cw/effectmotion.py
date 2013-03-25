@@ -408,9 +408,9 @@ class EffectMotion(object):
         self.user = user
         # 使用カード(CardHeader)
         self.cardheader = header
-        # 使用者の適正値(効果コンテントの場合は"4")
+        # 使用者の適性値(効果コンテントの場合は"4")
         self.vocation_val = header.get_vocation_val(user) if header else 4
-        # 使用者の適正レベル(効果コンテントの場合は"1")
+        # 使用者の適性レベル(効果コンテントの場合は"1")
         self.vocation_level = header.get_vocation_level(user) if header else 1
         # 使用者のレベルもしくは効果コンテントの対象レベル
         self.level = user.level if user else targetlevel
