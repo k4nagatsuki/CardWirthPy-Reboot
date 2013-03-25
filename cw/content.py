@@ -1175,9 +1175,15 @@ class EndContent(EventContentBase):
 
             # レベルアップ
             if levelup:
-                n = pcard.get_specialcoupons()[u"＠レベル原点"] + 1
+                n = pcard.get_specialcoupons()[u"＠レベル原点"] + levelup
                 pcard.set_level(n)
                 cw.animation.animate_sprite(pcard, "levelup")
+
+                if 1 < levelup:
+                    # 複数回レベルアップした場合はその分回転
+                    for i in xrange(levelup - 1):
+                        cw.animation.animate_sprite(pcard, "hide")
+                        cw.animation.animate_sprite(pcard, "deal")
 
             # 回復処理
             cw.cwpy.sounds["harvest"].play(True)
@@ -1187,7 +1193,7 @@ class EndContent(EventContentBase):
             cw.animation.animate_sprite(pcard, "deal")
 
             # レベルアップメッセージ
-            if levelup:
+            if 0 < levelup:
                 text = cw.util.encodewrap(cw.cwpy.msgs["level_up"])
                 names = [(0, cw.cwpy.msgs["ok"])]
                 mwin = cw.sprite.message.MessageWindow(text, names, pcard.imgpath, pcard)

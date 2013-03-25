@@ -1078,7 +1078,11 @@ class Character(object):
 
         cnt = self.get_couponsvalue()
         n = level * (level + 1)
-        return bool(cnt >= n and limit > level)
+        upvalue = 0
+        while n <= cnt and (level + upvalue) < limit:
+            upvalue += 1
+            n = (level + upvalue) * (level + upvalue + 1)
+        return upvalue
 
     def set_level(self, value, regulate=False):
         """レベルを設定する。
@@ -1092,6 +1096,7 @@ class Character(object):
                 limit = coupons[u"＠レベル原点"]
 
         # レベル
+        uplevel = value - self.level
         self.level = value
         self.data.edit("Property/Level", str(self.level))
         # 最大HPとHP
@@ -1119,8 +1124,8 @@ class Character(object):
                 if e.text == u"＠レベル原点":
                     e.attrib["value"] = str(self.level)
                     self.coupons[e.text] = self.level, e
-                elif e.text == u"＠ＥＰ":
-                    value = e.getint(".", "value", 0) + 10
+                elif e.text == u"＠ＥＰ" and 0 < uplevel:
+                    value = e.getint(".", "value", 0) + uplevel * 10
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e
 

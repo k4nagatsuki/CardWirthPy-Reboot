@@ -385,7 +385,6 @@ class PlayerCard(CWPyCard, character.Player):
             if self.frame == 15:
                 self.status = "normal"
                 self.cardimg.set_levelimg(self.level)
-                self.update_image()
                 self.frame = 0
                 return
 
