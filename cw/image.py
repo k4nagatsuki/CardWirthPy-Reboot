@@ -232,7 +232,7 @@ class CharacterCardImage(CardImage):
                     color[3] = color[3] / 2
                     self.levelimg.set_at((x, y), color)
 
-    def update(self, ccard):
+    def update(self, ccard, header=None):
         # 画像合成
         bgname = self.get_cardbgname(ccard)
         self.image = cw.cwpy.rsrc.cardbgs[bgname].copy()
@@ -266,6 +266,12 @@ class CharacterCardImage(CardImage):
 
         # ステータス画像追加
         self.update_statusimg(ccard)
+
+        if header:
+            # 適正表示(カード移動時)
+            key = "HAND" + str(header.get_vocation_level(ccard))
+            subimg = cw.cwpy.rsrc.stones[key]
+            self.image.blit(subimg, (73, 95))
 
     def update_statusimg(self, ccard):
         seq = []

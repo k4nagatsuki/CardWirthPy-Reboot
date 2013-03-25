@@ -273,8 +273,13 @@ class CWPyCard(base.SelectableSprite):
         """
         if not self.cardimg:
             return
+
         # 画像参照
-        self.cardimg.update(self)
+        if hasattr(self, "test_aptitude"):
+            self.cardimg.update(self, self.test_aptitude)
+        else:
+            self.cardimg.update(self)
+
         image = self.cardimg.get_image()
         rect = self.cardimg.rect
 

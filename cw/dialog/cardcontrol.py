@@ -442,6 +442,10 @@ class CardControl(wx.Dialog):
 
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
+        # 能力適性表示
+        for pcard in cw.cwpy.get_pcards("unreversed"):
+            pcard.test_aptitude = header
+            pcard.update_image()
         # 開いていたダイアログの情報
         indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
         cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition()))
@@ -457,6 +461,12 @@ class CardHolder(CardControl):
     def __init__(self, parent, callname):
         # タイプ判別
         self.callname = callname
+
+        # 適性表示を除去
+        for pcard in cw.cwpy.get_pcards():
+            if pcard.test_aptitude:
+                pcard.test_aptitude = None
+                pcard.update_image()
 
         # タイプ別初期化(キャストの手札の場合はindex復元後)
         if self.callname == "BACKPACK":

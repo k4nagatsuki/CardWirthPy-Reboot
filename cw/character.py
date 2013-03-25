@@ -105,6 +105,9 @@ class Character(object):
         if self.is_unconscious():
             self.set_unconsciousstatus()
 
+        # 適性検査用のCardHeader。
+        self.test_aptitude = None
+
     def get_imagepath(self):
         return self.data.gettext("Property/ImagePath", "")
 
