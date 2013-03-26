@@ -1350,7 +1350,7 @@ class AdventurerDesignDialog(wx.Dialog):
 
         def func(ccard):
             cw.cwpy.sounds["harvest"].play()
-            if isinstance(self.ccard, cw.sprite.card.CWPyCard):
+            if isinstance(ccard, cw.sprite.card.CWPyCard):
                 cw.animation.animate_sprite(ccard, "hide")
                 ccard.update_image()
                 cw.animation.animate_sprite(ccard, "deal")

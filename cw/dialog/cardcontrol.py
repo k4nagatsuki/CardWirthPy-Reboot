@@ -382,8 +382,8 @@ class CardControl(wx.Dialog):
                     elif index == self._combo_trush:
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
                     def func():
+                        self._proc = False
                         self.draw(True)
-                    self._proc = False
                     cw.cwpy.frame.exec_func(func)
                 self._proc = True
                 cw.cwpy.exec_func(func, header)

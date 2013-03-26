@@ -944,7 +944,7 @@ class Character(object):
 
     def set_makings(self, makings):
         for coupon in cw.cwpy.setting.makingcoupons:
-            if making in self.coupons:
+            if coupon in self.coupons:
                 self.remove_coupon(coupon)
         for coupon in makings:
             self.set_coupon(coupon, 0)

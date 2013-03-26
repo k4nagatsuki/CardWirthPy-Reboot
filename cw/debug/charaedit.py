@@ -146,11 +146,12 @@ class CharacterEditDialog(wx.Dialog):
         if self.create:
             self.fpath = self.infos[0].create_adventurer()
         else:
-            def func(updates):
+            def func(updates, pcards):
                 for i in updates:
-                    pcard = self.pcards[i]
+                    pcard = pcards[i]
                     cw.cwpy.sounds["harvest"].play()
                     cw.animation.animate_sprite(pcard, "hide")
+                    pcard.cardimg.set_levelimg(pcard.level)
                     pcard.update_image()
                     cw.animation.animate_sprite(pcard, "deal")
                 if not updates:
@@ -160,7 +161,7 @@ class CharacterEditDialog(wx.Dialog):
             for i, info in enumerate(self.infos):
                 if info.put_params(self.pcards[i]):
                     updates.append(i)
-            cw.cwpy.exec_func(func, updates)
+            cw.cwpy.exec_func(func, updates, self.pcards)
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
@@ -341,6 +342,7 @@ class CharaRequirementPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.infos = infos
         self.cindex = 0
+        self._proc = False
 
         self.namebox = wx.StaticBox(self, -1, u"名前")
         self.name = wx.TextCtrl(self, size=(125, -1))
@@ -430,6 +432,8 @@ class CharaRequirementPanel(wx.Panel):
         self.Layout()
 
     def OnName(self, event):
+        if self._proc:
+            return
         self.Parent.Parent.okbtn.Enable(False)
         for info in self._get_infos():
             info.name = self.name.GetValue()
@@ -549,6 +553,7 @@ class CharaRequirementPanel(wx.Panel):
             return [self.infos[self.cindex-1]]
 
     def _select_target(self, cindex):
+        self._proc = True
         self.cindex = cindex
         name = ""
         level = u"―"
@@ -630,6 +635,7 @@ class CharaRequirementPanel(wx.Panel):
 
         self._update_images()
         self.Layout()
+        self._proc = False
 
     def _set_random(self):
         infos = self._get_infos()

@@ -1016,25 +1016,25 @@ class PlayerSelect(Select):
         header = self.list[self.index]
         cw.cwpy.ydata.standbys.remove(header)
 
-        def func(header):
+        def func(header, index):
             if cw.cwpy.ydata.party:
                 if len(cw.cwpy.ydata.party.members) < 6:
                     cw.cwpy.ydata.party.add(header)
                 else:
                     # 追加できなかった
-                    cw.cwpy.ydata.standbys.insert(self.index, header)
+                    cw.cwpy.ydata.standbys.insert(index, header)
                     return
             else:
                 cw.cwpy.ydata.create_party(header, chgarea=False)
-            if len(self.list):
-                self.index %= len(self.list)
-            else:
-                self.index = 0
             def func():
+                if len(self.list):
+                    self.index %= len(self.list)
+                else:
+                    self.index = 0
                 self.enable_btn()
                 self.draw(True)
             cw.cwpy.frame.exec_func(func)
-        cw.cwpy.exec_func(func, header)
+        cw.cwpy.exec_func(func, header, self.index)
 
     def OnClickExBtn(self, event):
         """
