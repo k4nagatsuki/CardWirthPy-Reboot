@@ -588,6 +588,8 @@ class CardEvent(Event):
         """イベント実行の最後に行う終了処理。
         カード効果発動・効果中断コンテントに対応。
         """
+        cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
+
         # エリアのキーコードイベント
         if isinstance(self.user, cw.sprite.card.PlayerCard):
             self.run_areaevent()
@@ -599,6 +601,8 @@ class CardEvent(Event):
         Event.run_exit(self)
 
     def end(self):
+        cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
+
         # カードの使用回数減らす(シナリオ終了後に回数減らさないよう条件付き)
         if not isinstance(self.error, ScenarioEndError):
             self.inusecard.set_uselimit(-1)
