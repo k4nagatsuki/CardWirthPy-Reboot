@@ -7,12 +7,15 @@ import base
 import adventurer
 
 import cw
+import bgimage
 
 
 class Party(base.CWBinaryBase):
     """wplファイル(type=2)。パーティの見出しデータ。
     パーティの所持金や名前はここ。
     宿の画像も格納しているが必要ないと思うので破棄。
+    F9のためにゴシップと終了印を記憶しているような事は無い
+    (その2つはF9で戻らない)。
     """
     def __init__(self, parent, f, yadodata=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
@@ -23,7 +26,7 @@ class Party(base.CWBinaryBase):
         f.image() # 宿の埋め込み画像は破棄。
         self.memberslist = cw.util.decodetextlist(f.string())
         self.name = f.string()
-        self.money = f.dword()
+        self.money = f.dword() # 冒険中の現在値
         self.nowadventuring = f.bool()
         # 読み込み後に操作
         self.cards = []
@@ -131,11 +134,25 @@ class PartyMembers(base.CWBinaryBase):
         # 荷物袋にあるカードリスト
         cards_num = f.dword()
         self.cards = [BackpackCard(self, f) for cnt in xrange(cards_num)]
-        money = f.dword() # パーティの所持金(*.wplにもある)
-        # 以降は存在を確信できないため読み込まない
-        #dw = f.dword() # 不明(0)
-        #dw = f.dword() # 不明(0)
-        #b = f.byte() # 不明(0)
+        # *.wplにもあるパーティの所持金(冒険中の現在値)
+        money = f.dword()
+
+        # ここから先はプレイ中のシナリオの状況が記録されている
+        dw = f.dword() # 冒険前の所持金。冒険中でなければ0
+        if f.bool(): # 冒険中か
+            w = f.word() # 不明(0)
+            self.scenariopath = f.string() # シナリオ
+            self.areaid = f.dword()
+            self.stepvalues = f.string()
+            self.flagvalue = f.string()
+            self.friendcards = f.string()
+            self.infocards = f.string()
+            self.music = f.string()
+            bgimgs_num = f.dword()
+            self.bgimgs = [bgimage.BgImage(self, f) for cnt in xrange(bgimgs_num)]
+        else:
+            w = f.word()  # 不明(0)
+        pass
 
     def create_xml(self, dpath):
         """adventurercardだけxml化する。"""

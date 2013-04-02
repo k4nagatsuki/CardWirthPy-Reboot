@@ -510,7 +510,8 @@ class AdventurerWithImage(base.CWBinaryBase):
         image = f.image()
         self.adventurer = Adventurer(self, f)
         self.adventurer.image = image
-        f.byte()
+        b = f.byte() # 不明
+        pass
 
     def get_data(self):
         return self.adventurer.get_data()
