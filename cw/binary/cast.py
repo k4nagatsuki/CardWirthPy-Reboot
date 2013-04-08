@@ -467,13 +467,13 @@ class CastCard(base.CWBinaryBase):
 
         f.write_dword(len(items))
         for card in items:
-            item.ItemCard.unconv(f, card)
+            item.ItemCard.unconv(f, card, False)
         f.write_dword(len(skills))
         for card in skills:
-            skill.SkillCard.unconv(f, card)
+            skill.SkillCard.unconv(f, card, False)
         f.write_dword(len(beasts))
         for card in beasts:
-            beast.BeastCard.unconv(f, card)
+            beast.BeastCard.unconv(f, card, False)
 
         f.write_dword(len(coupons))
         for cp in coupons:

@@ -67,29 +67,32 @@ class Party(base.CWBinaryBase):
         self.errorcards = []
         order = 0
         for card in self.cards:
-            if card.mine:
-                if card.data:
-                    card.data.materialbasedir = dpath
-                    cpath = card.create_xml(cdpath)
-                    carddb.insert_card(cpath, commit=False, cardorder=order)
-                    order += 1
-                else:
-                    self.errorcards.append(card)
+            if card.data:
+                card.data.materialbasedir = dpath
+                cpath = card.create_xml(cdpath)
+                carddb.insert_card(cpath, commit=False, cardorder=order)
+                order += 1
+            else:
+                self.errorcards.append(card)
         carddb.commit()
         carddb.close()
 
         return path
 
     @staticmethod
-    def unconv(f, data, table):
-        yadoname = table["yadoname"]
+    def unconv(f, data, table, scenarioname):
+        if scenarioname:
+            yadoname = scenarioname
+            nowadventuring = True
+        else:
+            yadoname = table["yadoname"]
+            nowadventuring = False
         imgpath = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
         imgpath = cw.util.join_paths(cw.cwpy.skindir, imgpath)
         image = base.CWBinaryBase.import_image(imgpath, fullpath=True)
         memberslist = ""
         name = ""
         money = 0
-        nowadventuring = False
 
         for e in data:
             if e.tag == "Property":
@@ -123,13 +126,27 @@ class PartyMembers(base.CWBinaryBase):
         self.type = 3
         self.fname = self.get_fname()
         adventurers_num = f.byte() - 30
-        dw = f.dword() # 不明。ランダムな値に見える。メモリ上のゴミ？
-        self.adventurers = [adventurer.AdventurerWithImage(self, f)
-                                        for cnt in xrange(adventurers_num)]
-        vanisheds_num = f.byte()
-        w = f.word() # 不明(0)
-        self.vanisheds = [adventurer.AdventurerWithImage(self, f)
-                                        for cnt in xrange(vanisheds_num)]
+        b = f.byte() # 不明(0)
+        b = f.byte() # 不明(0)
+        b = f.byte() # 不明(0)
+        b = f.byte() # 不明(5)
+        self.adventurers = []
+        vanisheds_num = 0
+        for i in xrange(adventurers_num):
+            self.adventurers.append(adventurer.AdventurerWithImage(self, f))
+            vanisheds_num = f.byte() # 最後のメンバが消滅メンバの数を持っている？
+        self.vanisheds = []
+        if 0 < vanisheds_num:
+            dw = f.dword() # 不明(0)
+            for i in xrange(vanisheds_num):
+                self.vanisheds.append(adventurer.AdventurerWithImage(self, f))
+                if i + 1 < vanisheds_num:
+                    b = f.byte()
+            self.vanisheds.reverse()
+        else:
+            b = f.byte() # 不明(0)
+            b = f.byte() # 不明(0)
+            b = f.byte() # 不明(0)
         self.name = f.string()
         # 荷物袋にあるカードリスト
         cards_num = f.dword()
@@ -138,62 +155,179 @@ class PartyMembers(base.CWBinaryBase):
         money = f.dword()
 
         # ここから先はプレイ中のシナリオの状況が記録されている
-        dw = f.dword() # 冒険前の所持金。冒険中でなければ0
-        if f.bool(): # 冒険中か
+        self.money_beforeadventure = f.dword() # 冒険前の所持金。冒険中でなければ0
+        self.nowadventuring = f.bool()
+        if self.nowadventuring: # 冒険中か
             w = f.word() # 不明(0)
-            self.scenariopath = f.string() # シナリオ
+            self.scenariopath = f.rawstring() # シナリオ
             self.areaid = f.dword()
-            self.stepvalues = f.string()
-            self.flagvalue = f.string()
-            self.friendcards = f.string()
-            self.infocards = f.string()
-            self.music = f.string()
+            self.steps = self.split_variables(f.rawstring(), True)
+            self.flags = self.split_variables(f.rawstring(), False)
+            self.friendcards = self.split_ids(f.rawstring())
+            self.infocards = self.split_ids(f.rawstring())
+            self.music = f.rawstring()
             bgimgs_num = f.dword()
             self.bgimgs = [bgimage.BgImage(self, f) for cnt in xrange(bgimgs_num)]
-        else:
-            w = f.word()  # 不明(0)
-        pass
+
+    def split_variables(self, str, step):
+        d = {}
+        for l in str.splitlines():
+            index = -1
+            for i, c in enumerate(l):
+                if c == '=':
+                    index = i
+                    break
+            if index <> -1:
+                if step:
+                    d[l[:index]] = int(l[index+1:])
+                else:
+                    d[l[:index]] = bool(int(l[index+1:]))
+        return d
+
+    def split_ids(self, str):
+        seq = []
+        for l in str.splitlines():
+            if l:
+                seq.append(int(l))
+        return seq
 
     def create_xml(self, dpath):
         """adventurercardだけxml化する。"""
         for adventurer in self.adventurers:
             adventurer.create_xml(dpath)
 
+    def create_vanisheds_xml(self, dpath):
+        for adventurer in self.vanisheds:
+            data = adventurer.get_data()
+            data.find("Property").set("lost", "True")
+            adventurer.create_xml(dpath)
+
     @staticmethod
-    def unconv(f, party, table):
+    def join_variables(data):
+        seq = []
+        for e in data:
+            name = e.text
+            value = e.get("value")
+            if value == "True":
+                value = "1"
+            elif value == "False":
+                value = "0"
+            seq.append(name + "=" + value)
+        if seq:
+            seq.append("")
+        return "\r\n".join(seq)
+
+    @staticmethod
+    def join_ids(data):
+        seq = []
+        for e in data:
+            if e.tag == "CastCard":
+                seq.append(e.find("Property/Id").text)
+            else:
+                seq.append(e.text)
+        if seq:
+            seq.append("")
+        return "\r\n".join(seq)
+
+    @staticmethod
+    def unconv(f, party, table, logdir):
         adventurers = []
         vanisheds = []
         name = ""
         cards = []
+        money_beforeadventure = 0
+        nowadventuring = False
+        scenariopath = ""
+        areaid = 0
+        steps = ""
+        flags = ""
+        friendcards = ""
+        infocards = ""
+        music = ""
+        bgimgs = []
 
         for member in party.members:
-            if member.getbool("Property", "lost", False):
-                vanisheds.append(member.find("."))
-            else:
-                adventurers.append(member.find("."))
+            adventurers.append(member.find("."))
         name = party.name
 
+        if logdir:
+            # プレイ中のシナリオの状況
+            e_log = cw.data.xml2etree(cw.util.join_paths(logdir, "ScenarioLog.xml"))
+            e_party = cw.data.xml2etree(cw.util.join_paths(logdir, "Party/Party.xml"))
+            money_beforeadventure = e_party.getint("Property/Money", party.money)
+            nowadventuring = True
+            scenariopath = e_log.gettext("Property/WsnPath", "")
+            areaid = e_log.getint("Property/AreaId", 0)
+            steps = PartyMembers.join_variables(e_log.getfind("Steps"))
+            flags = PartyMembers.join_variables(e_log.getfind("Flags"))
+            friendcards = PartyMembers.join_ids(e_log.getfind("CastCards"))
+            infocards = PartyMembers.join_ids(e_log.getfind("InfoCards"))
+            music = e_log.gettext("Property/MusicPath", "")
+            bgimgs = e_log.find("BgImages")
+
+            for e in e_log.getfind("LostAdventurers"):
+                path = cw.util.join_yadodir(e.text)
+                vanisheds.append(cw.data.xml2element(path))
+            vanisheds.reverse()
+
         f.write_byte(len(adventurers) + 30)
-        f.write_dword(0) # 不明
-        for member in adventurers:
-            adventurer.AdventurerWithImage.unconv(f, member)
-        f.write_byte(len(vanisheds))
-        f.write_word(0) # 不明
-        for member in vanisheds:
-            adventurer.AdventurerWithImage.unconv(f, member)
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_byte(0) # 不明
+        f.write_byte(5) # 不明
+        for i, member in enumerate(adventurers):
+            if logdir:
+                fpath = cw.util.join_paths(logdir, "Members", os.path.basename(member.fpath))
+                logdata = cw.data.xml2element(fpath)
+            else:
+                logdata = None
+            adventurer.AdventurerWithImage.unconv(f, member, logdata)
+            if i + 1 < len(adventurers):
+                f.write_byte(0) # 不明
+            else:
+                f.write_byte(len(vanisheds)) # 消滅メンバの数？
+        if vanisheds:
+            for i, member in enumerate(vanisheds):
+                if logdir:
+                    fpath = cw.util.join_paths(logdir, "Members", os.path.basename(member.fpath))
+                    logdata = cw.data.xml2element(fpath)
+                else:
+                    logdata = None
+                adventurer.AdventurerWithImage.unconv(f, member, logdata)
+                if i + 1 < len(vanisheds):
+                    f.write_byte(0) # 不明
+        else:
+            f.write_byte(0) # 不明
+            f.write_byte(0) # 不明
+            f.write_byte(0) # 不明
         f.write_string(name)
-        f.write_dword(len(party.backpack) + len(party.backpack_moved))
+        f.write_dword(len(party.backpack))
         btbl = table["yadocards"]
+        # CardWirthでは削除されたカードはF9でも復活しないので変換不要
         for header in party.backpack:
             fpath, data = btbl[header.fpath]
-            cards.append(BackpackCard.unconv(f, data, fpath, True))
-        for header in party.backpack_moved:
-            fpath, data = btbl[header.fpath]
-            cards.append(BackpackCard.unconv(f, data, fpath, False))
-        f.write_dword(party.money) # パーティの所持金
-        f.write_dword(0) # 不明(0)
-        f.write_dword(0) # 不明(0)
-        f.write_byte(0) # 不明(0)
+            scenariocard = cw.util.str2bool(data.get("scenariocard", "False"))
+            cards.append(BackpackCard.unconv(f, data, fpath, not scenariocard))
+        f.write_dword(party.money) # パーティの所持金(現在値)
+
+        # プレイ中のシナリオの状況
+        if nowadventuring:
+            f.write_dword(money_beforeadventure)
+            f.write_bool(nowadventuring)
+            f.write_word(0) # 不明(0)
+            f.write_rawstring(os.path.abspath(scenariopath))
+            f.write_dword(areaid)
+            f.write_rawstring(steps)
+            f.write_rawstring(flags)
+            f.write_rawstring(friendcards)
+            f.write_rawstring(infocards)
+            f.write_rawstring(music)
+            f.write_dword(len(bgimgs))
+            for bgimg in bgimgs:
+                bgimage.BgImage.unconv(f, bgimg)
+        else:
+            f.write_dword(0)
+            f.write_bool(False)
 
 class BackpackCard(base.CWBinaryBase):
     """荷物袋に入っているカードのデータ。
@@ -209,6 +343,10 @@ class BackpackCard(base.CWBinaryBase):
     def set_data(self, data):
         """widファイルから読み込んだカードデータを関連づける"""
         self.data = data
+        data = self.data.get_data()
+        if not self.mine:
+            data.set("scenariocard", "True")
+            self.data.set_image_export(False, True)
 
     def get_data(self):
         return self.data.get_data()

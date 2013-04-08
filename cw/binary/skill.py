@@ -134,7 +134,13 @@ class SkillCard(base.CWBinaryBase):
             prop.append(e)
             e = cw.data.make_element("KeyCodes", cw.util.encodetextlist(self.keycodes))
             prop.append(e)
-            e = cw.data.make_element("Premium", self.conv_card_premium(self.premium))
+            if 2 < self.premium:
+                # シナリオで入手したカード
+                self.data.set("scenariocard", "True")
+                self.set_image_export(False, True)
+                e = cw.data.make_element("Premium", self.conv_card_premium(self.premium - 2))
+            else:
+                e = cw.data.make_element("Premium", self.conv_card_premium(self.premium))
             prop.append(e)
             e = cw.data.make_element("UseLimit", str(self.limit))
             prop.append(e)
@@ -152,7 +158,7 @@ class SkillCard(base.CWBinaryBase):
         return self.data
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f, data, ownerisadventurer):
         type = 0
         image = None
         name = ""
@@ -181,6 +187,7 @@ class SkillCard(base.CWBinaryBase):
         hold = False
         level = 0
         limit = 0
+        scenariocard = cw.util.str2bool(data.get("scenariocard", "False"))
 
         for e in data:
             if e.tag == "Property":
@@ -237,6 +244,8 @@ class SkillCard(base.CWBinaryBase):
                             keycodes.append([""] * (5 - len(keycodes)))
                     elif prop.tag == "Premium":
                         premium = base.CWBinaryBase.unconv_card_premium(prop.text)
+                        if ownerisadventurer and scenariocard:
+                            premium += 2
                     elif prop.tag == "UseLimit":
                         limit = int(prop.text)
                     elif prop.tag == "Hold":

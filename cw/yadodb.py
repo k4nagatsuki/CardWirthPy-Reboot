@@ -543,6 +543,30 @@ class YadoDB(object):
         return headers
 
     @synclock(_lock)
+    def get_cardfpaths(self, scenariocard=True):
+        s = """
+            SELECT
+                card.fpath
+            FROM
+                card
+                LEFT OUTER JOIN
+                    cardorder
+                ON
+                    card.fpath = cardorder.fpath
+            WHERE
+                scenariocard=?
+            ORDER BY
+                numorder,
+                name
+        """
+        self.cur.execute(s, (1 if scenariocard else 0,))
+
+        seq = []
+        for rec in self.cur:
+            seq.append(rec["fpath"])
+        return seq
+
+    @synclock(_lock)
     def insert_adventurerheader(self, header, commit=True, adventurerorder=-1):
         return self._insert_adventurerheader(header, commit, adventurerorder)
 
@@ -656,7 +680,7 @@ class YadoDB(object):
                 ON
                     adventurer.fpath = adventurerorder.fpath
             WHERE
-                album=?
+                lost=0 AND album=?
             ORDER BY
                 numorder,
                 name
@@ -676,10 +700,10 @@ class YadoDB(object):
 
     def get_standbynames(self, maxcount=0):
         if 0 < maxcount:
-            s = "SELECT name FROM adventurer WHERE album=? ORDER BY name"
+            s = "SELECT name FROM adventurer WHERE lost=0 AND album=? ORDER BY name"
             self.cur.execute(s, (0,))
         else:
-            s = "SELECT name FROM adventurer WHERE album=? ORDER BY name LIMIT=?"
+            s = "SELECT name FROM adventurer WHERE lost=0 AND album=? ORDER BY name LIMIT=?"
             self.cur.execute(s, (0, maxcount,))
         names = []
         for rec in self.cur:

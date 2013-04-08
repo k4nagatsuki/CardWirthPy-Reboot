@@ -93,22 +93,27 @@ class Adventurer(base.CWBinaryBase):
         self.coupons = [coupon.Coupon(self, f) for cnt in xrange(coupons_num)]
 
         self.data = None
+        self.f9data = None
 
     def get_data(self):
-        if self.data is None:
+        return self._get_data(False)
+
+    def get_f9data(self):
+        return self._get_data(True)
+
+    def _get_data(self, f9data):
+        if f9data:
+            data = self.f9data
+        else:
+            data = self.data
+
+        if data is None:
             if self.image:
                 self.imgpath = self.export_image()
             else:
                 self.imgpath = ""
 
-            # 所持スキル・召喚獣の使用回数初期化
-            for skill in self.skills:
-                skill.limit = 0
-
-            for beast in self.beasts:
-                beast.limit = 0
-
-            self.data = cw.data.make_element("Adventurer")
+            data = cw.data.make_element("Adventurer")
 
             prop = cw.data.make_element("Property")
 
@@ -208,32 +213,71 @@ class Adventurer(base.CWBinaryBase):
             prop.append(ee)
 
             ce = cw.data.make_element("Coupons")
-            for coupon in self.coupons:
-                ce.append(coupon.get_data())
+            if f9data:
+                # u"＿１"などの番号クーポン以降を除去
+                numcoupons = set([u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"])
+                coupons = self.coupons
+                cut = False
+                for i, coupon in enumerate(coupons):
+                    if coupon.name in numcoupons:
+                        coupons = coupons[:i]
+                        cut = True
+                        break
+
+                if not cut and cw.cwpy.msgs["number_1_coupon"] <> u"＿１":
+                    # バリアントによってはu"＿１"が別の文字列に置換されている
+                    # 可能性があるので、それを加えて再度判断する
+                    numcoupons.add(cw.cwpy.msgs["number_1_coupon"])
+                    for i, coupon in enumerate(coupons):
+                        if coupon.name in numcoupons:
+                            coupons = coupons[:i]
+                            break
+
+                # '＾'で始まるクーポンは'＾'を取り除く
+                for coupon in coupons:
+                    if coupon.name.startswith(u"＾"):
+                        data = coupon.get_data()
+                        data.text = coupon.name[1:]
+                        ce.append(data)
+                    else:
+                        ce.append(coupon.get_data())
+            else:
+                # '＾'で始まるクーポンはシナリオ内で削除済みのもの
+                for coupon in self.coupons:
+                    if not coupon.name.startswith(u"＾"):
+                        ce.append(coupon.get_data())
             prop.append(ce)
 
-            self.data.append(prop)
+            data.append(prop)
 
-             # シナリオ途中で手に入れたカード(F9で消えるカード)は変換しない
             e = cw.data.make_element("ItemCards")
             for card in self.items:
-                if card.premium <= 2:
+                if not f9data or card.premium <= 2:
                     e.append(card.get_data())
-            self.data.append(e)
+            data.append(e)
 
             e = cw.data.make_element("SkillCards")
             for card in self.skills:
-                if card.premium <= 2:
+                if not f9data or card.premium <= 2:
                     e.append(card.get_data())
-            self.data.append(e)
+            data.append(e)
 
             e = cw.data.make_element("BeastCards")
             for card in self.beasts:
-                if card.premium <= 2:
+                if not f9data or card.premium <= 2:
                     e.append(card.get_data())
-            self.data.append(e)
+            data.append(e)
 
-        return self.data
+            if f9data:
+                ccard = cw.character.Character(cw.data.CWPyElementTree(element=data))
+                ccard.set_fullrecovery()
+
+        if f9data:
+            self.f9data = data
+        else:
+            self.data = data
+
+        return data
 
     def create_xml(self, dpath):
         path = base.CWBinaryBase.create_xml(self, dpath)
@@ -243,7 +287,31 @@ class Adventurer(base.CWBinaryBase):
         return path
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f, data, logdata):
+        if not logdata is None:
+            # 変換用にクーポンを整理
+            coupons = cw.data.make_element("Coupons")
+            coupons1 = {}
+            coupons2 = set()
+            for e in data.getfind("Property/Coupons"):
+                coupons1[e.text] = e
+                coupons2.add(e)
+
+            for e in logdata.getfind("Property/Coupons"):
+                if e.text in coupons1:
+                    coupons.append(e)
+                    coupons2.remove(coupons1[e.text])
+                    del coupons1[e.text]
+                else:
+                    # 削除されたクーポン
+                    coupons.append(cw.data.make_element("Coupon", u"＾" + e.text, { "value":e.get("value", "0") }))
+            # 追加されたクーポン
+            for e in data.getfind("Property/Coupons"):
+                if e in coupons2:
+                    coupons.append(e)
+        else:
+            coupons = data.find("Property/Coupons")
+
         name = ""
         id = 0
 
@@ -456,13 +524,13 @@ class Adventurer(base.CWBinaryBase):
 
         f.write_dword(len(items))
         for card in items:
-            item.ItemCard.unconv(f, card)
+            item.ItemCard.unconv(f, card, True)
         f.write_dword(len(skills))
         for card in skills:
-            skill.SkillCard.unconv(f, card)
+            skill.SkillCard.unconv(f, card, True)
         f.write_dword(len(beasts))
         for card in beasts:
-            beast.BeastCard.unconv(f, card)
+            beast.BeastCard.unconv(f, card, True)
 
         f.write_dword(len(coupons))
         for cp in coupons:
@@ -499,7 +567,7 @@ class AdventurerCard(base.CWBinaryBase):
         f.write_byte(0) # 不明
         f.write_byte(0) # 不明
         f.write_byte(0) # 不明
-        Adventurer.unconv(f, data)
+        Adventurer.unconv(f, data, None)
 
 class AdventurerWithImage(base.CWBinaryBase):
     """埋め込み画像付き冒険者データ。
@@ -510,21 +578,23 @@ class AdventurerWithImage(base.CWBinaryBase):
         image = f.image()
         self.adventurer = Adventurer(self, f)
         self.adventurer.image = image
-        b = f.byte() # 不明
-        pass
 
     def get_data(self):
         return self.adventurer.get_data()
 
+    def get_f9data(self):
+        return self.adventurer.get_f9data()
+
     def create_xml(self, dpath):
         """adventurerのデータだけxml化する。"""
-        self.adventurer.create_xml(dpath)
+        path = self.adventurer.create_xml(dpath)
+        self.xmlpath = self.adventurer.xmlpath
+        return path
 
     @staticmethod
-    def unconv(f, data):
+    def unconv(f, data, logdata):
         f.write_image(base.CWBinaryBase.import_image(data.findtext("Property/ImagePath")))
-        Adventurer.unconv(f, data)
-        f.write_byte(0)
+        Adventurer.unconv(f, data, logdata)
 
 class AdventurerHeader(base.CWBinaryBase):
     """wchファイル(type=0)。おそらく宿帳表示用の簡易データと思われる。

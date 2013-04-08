@@ -434,6 +434,7 @@ class ScenarioData(SystemData):
 
         # ロストした冒険者を削除
         for path in self.lostadventurers:
+            path = cw.util.join_yadodir(path)
             ccard = cw.character.Character(yadoxml2etree(path))
 
             # "＿消滅予約"を持ってない場合、アルバムに残す
@@ -512,7 +513,11 @@ class ScenarioData(SystemData):
             else:
                 cw.cwpy.ydata.set_compstamp(key)
 
+        # scenario
         cw.cwpy.ydata.party.set_lastscenario([])
+
+        # members
+        cw.cwpy.ydata.party.data = cw.data.yadoxml2etree(cw.cwpy.ydata.party.data.fpath)
         cw.cwpy.ydata.party.reload()
 
         # 荷物袋のデータを戻す
@@ -570,7 +575,7 @@ class ScenarioData(SystemData):
 
         if path:
             cw.util.decompress_zip(path, "Data/Temp", "ScenarioLog")
-            musicpath = self.load_log()
+            musicpath = self.load_log("Data/Temp/ScenarioLog/ScenarioLog.xml", False)
             return True, musicpath
         else:
             self.create_log()
@@ -578,7 +583,7 @@ class ScenarioData(SystemData):
 
     def create_log(self):
         # log
-        cw.xmlcreater.create_scenariolog(self)
+        cw.xmlcreater.create_scenariolog(self, "Data/Temp/ScenarioLog/ScenarioLog.xml", False)
         # Party and members xml update
         cw.cwpy.ydata.party.write()
         # party
@@ -625,35 +630,39 @@ class ScenarioData(SystemData):
         path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         cw.cwpy.ydata.deletedpaths.add(path)
 
-    def load_log(self):
-        path = "Data/Temp/ScenarioLog/ScenarioLog.xml"
+    def load_log(self, path, recording):
         etree = xml2etree(path)
-        cw.cwpy.debug = etree.getbool("Property/Debug")
+        if not recording:
+            cw.cwpy.debug = etree.getbool("Property/Debug")
 
-        if not cw.cwpy.debug == cw.cwpy.setting.debug:
-            cw.cwpy.statusbar.change()
+            if not cw.cwpy.debug == cw.cwpy.setting.debug:
+                cw.cwpy.statusbar.change()
 
-            if not cw.cwpy.debug and cw.cwpy.is_showingdebugger():
-                cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
+                if not cw.cwpy.debug and cw.cwpy.is_showingdebugger():
+                    cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
 
         for e in etree.getfind("Flags"):
-            self.flags[e.text].value = e.getbool(".", "value")
+            if e.text in self.flags:
+                self.flags[e.text].value = e.getbool(".", "value")
 
         for e in etree.getfind("Steps"):
-            self.steps[e.text].value = e.getint(".", "value")
+            if e.text in self.steps:
+                self.steps[e.text].value = e.getint(".", "value")
 
-        for e in etree.getfind("Gossips"):
-            if e.get("value") == "True":
-                self.gossips[e.text] = True
-            elif e.get("value") == "False":
-                self.gossips[e.text] = False
+        if not recording:
+            for e in etree.getfind("Gossips"):
+                if e.get("value") == "True":
+                    self.gossips[e.text] = True
+                elif e.get("value") == "False":
+                    self.gossips[e.text] = False
 
-        for e in etree.getfind("CompleteStamps"):
-            if e.get("value") == "True":
-                self.compstamps[e.text] = True
-            elif e.get("value") == "False":
-                self.compstamps[e.text] = False
+            for e in etree.getfind("CompleteStamps"):
+                if e.get("value") == "True":
+                    self.compstamps[e.text] = True
+                elif e.get("value") == "False":
+                    self.compstamps[e.text] = False
 
+        self.infocards = []
         for e in etree.getfind("InfoCards"):
             if int(e.text) in self.infos:
                 path = self.infos[int(e.text)][1]
@@ -661,16 +670,23 @@ class ScenarioData(SystemData):
                 header = cw.header.InfoCardHeader(e)
                 self.infocards.append(header)
 
+        self.friendcards = []
         for e in etree.getfind("CastCards"):
-            data = xml2etree(element=e)
-            fcard = cw.sprite.card.FriendCard(data=data)
-            self.friendcards.append(fcard)
+            if e.tag == "FriendCard":
+                # IDのみ。変換直後の宿でこの状態になる
+                fcard = cw.sprite.card.FriendCard(castid=int(e.text))
+                self.friendcards.append(fcard)
+            else:
+                data = xml2etree(element=e)
+                fcard = cw.sprite.card.FriendCard(data=data)
+                self.friendcards.append(fcard)
 
-        for e in etree.getfind("DeletedFiles"):
-            self.deletedpaths.add(e.text)
+        if not recording:
+            for e in etree.getfind("DeletedFiles"):
+                self.deletedpaths.add(e.text)
 
-        for e in etree.getfind("LostAdventurers"):
-            self.lostadventurers.add(e.text)
+            for e in etree.getfind("LostAdventurers"):
+                self.lostadventurers.add(e.text)
 
         e = etree.getfind("BgImages")
         elements = cw.cwpy.sdata.get_bgdata(e)
@@ -680,7 +696,7 @@ class ScenarioData(SystemData):
         return etree.gettext("Property/MusicPath", "")
 
     def update_log(self):
-        cw.xmlcreater.create_scenariolog(self)
+        cw.xmlcreater.create_scenariolog(self, "Data/Temp/ScenarioLog/ScenarioLog.xml", False)
         path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
 
         if path.startswith("Yado"):

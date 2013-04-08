@@ -10,7 +10,7 @@ import cw
 
 class Character(object):
     def __init__(self, data=None):
-        if data:
+        if not data is None:
             self.data = data
 
         # 名前
@@ -107,6 +107,8 @@ class Character(object):
 
         # 適性検査用のCardHeader。
         self.test_aptitude = None
+
+        self.reversed = False
 
     def get_imagepath(self):
         return self.data.gettext("Property/ImagePath", "")
@@ -258,7 +260,7 @@ class Character(object):
         """
         意識不明状態かどうかをbool値で返す
         """
-        return bool(self.get_lifeper() == 0)
+        return bool(self.life <= 0)
 
     def is_heavyinjured(self):
         """
@@ -1057,7 +1059,7 @@ class Character(object):
         """
         "＿１"等の番号クーポンを削除。
         """
-        names = [cw.cwpy.msgs["number_1_coupon"], u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
+        names = [cw.cwpy.msgs["number_1_coupon"], u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
 
         for name in names:
             self.remove_coupon(name)
@@ -1398,8 +1400,6 @@ class Character(object):
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。
         vanish: 召喚獣を消去するかどうか。
         """
-        if self.is_unconscious():
-            return
         idx = cw.POCKET_BEAST
 
         eff = False
@@ -1410,6 +1410,8 @@ class Character(object):
                     eff = True
 
         elif self.can_addbeast():
+            if self.is_unconscious():
+                return eff
             etree = cw.data.xml2etree(element=element, nocache=True)
             cw.content.get_card(etree, self, True)
             eff = True
@@ -1565,7 +1567,12 @@ class Player(Character):
         if cw.cwpy.is_playingscenario():
             self.data.edit("Property", "True", "lost")
             self.data.write_xml()
-            cw.cwpy.sdata.lostadventurers.add(self.data.fpath)
+            if self.data.fpath.lower().startswith("yado"):
+                fpath = os.path.relpath(self.data.fpath, cw.cwpy.ydata.yadodir)
+            else:
+                fpath = os.path.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
+            fpath = cw.util.join_paths(fpath)
+            cw.cwpy.sdata.lostadventurers.add(fpath)
 
 class Enemy(Character):
     def is_dead(self):
@@ -1592,10 +1599,10 @@ class AlbumPage(object):
         """
         d = {}
 
-        for coupon, data in self.coupons:
+        for e in self.data.getfind("Property/Coupons"):
+            coupon = e.text
             if coupon and coupon.startswith(u"＠"):
-                value = data[0]
-                d[coupon] = value
+                d[coupon] = int(e.get("value", "0"))
 
         return d
 

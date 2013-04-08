@@ -245,8 +245,7 @@ def write_castimagepath(name, path):
     else:
         return ""
 
-
-def create_scenariolog(sdata):
+def create_scenariolog(sdata, path, recording):
     """
     シナリオのプレイデータを記録したXMLファイルを作成する。
     """
@@ -264,17 +263,18 @@ def create_scenariolog(sdata):
     else:
         areaid = cw.cwpy.pre_areaids[0]
 
-    e = cw.data.make_element("Debug", str(cw.cwpy.debug))
-    e_prop.append(e)
+    if not recording:
+        e = cw.data.make_element("Debug", str(cw.cwpy.debug))
+        e_prop.append(e)
     e = cw.data.make_element("AreaId", str(areaid))
     e_prop.append(e)
 
     if cw.cwpy.music.path.startswith(cw.cwpy.skindir):
-        path = cw.cwpy.music.path.replace(cw.cwpy.skindir + "/", "", 1)
+        fpath = cw.cwpy.music.path.replace(cw.cwpy.skindir + "/", "", 1)
     else:
-        path = cw.cwpy.music.path.replace(sdata.scedir + "/", "", 1)
+        fpath = cw.cwpy.music.path.replace(sdata.scedir + "/", "", 1)
 
-    e = cw.data.make_element("MusicPath", path)
+    e = cw.data.make_element("MusicPath", fpath)
     e_prop.append(e)
     e = cw.data.make_element("Yado", cw.cwpy.ydata.name)
     e_prop.append(e)
@@ -284,15 +284,15 @@ def create_scenariolog(sdata):
     e_bgimgs = cw.data.make_element("BgImages")
     element.append(e_bgimgs)
 
-    for path, mask, size, pos, flag, visible in cw.cwpy.background.bgs:
+    for fpath, mask, size, pos, flag, visible in cw.cwpy.background.bgs:
         e_bgimg  = cw.data.make_element("BgImage", attrs={"mask": str(mask)})
 
-        if path.startswith(cw.cwpy.skindir):
-            path = path.replace(cw.cwpy.skindir + "/", "", 1)
+        if fpath.startswith(cw.cwpy.skindir):
+            fpath = fpath.replace(cw.cwpy.skindir + "/", "", 1)
         else:
-            path = path.replace(sdata.scedir + "/", "", 1)
+            fpath = fpath.replace(sdata.scedir + "/", "", 1)
 
-        e = cw.data.make_element("ImagePath", path)
+        e = cw.data.make_element("ImagePath", fpath)
         e_bgimg.append(e)
         e = cw.data.make_element("Flag", flag)
         e_bgimg.append(e)
@@ -320,21 +320,22 @@ def create_scenariolog(sdata):
         e = cw.data.make_element("Step", name, {"value": str(step.value)})
         e_step.append(e)
 
-    # gossip
-    e_gossip = cw.data.make_element("Gossips")
-    element.append(e_gossip)
+    if not recording:
+        # gossip
+        e_gossip = cw.data.make_element("Gossips")
+        element.append(e_gossip)
 
-    for key, value in sdata.gossips.iteritems():
-        e = cw.data.make_element("Gossip", key, {"value": str(value)})
-        e_gossip.append(e)
+        for key, value in sdata.gossips.iteritems():
+            e = cw.data.make_element("Gossip", key, {"value": str(value)})
+            e_gossip.append(e)
 
-    # completestamps
-    e_compstamp = cw.data.make_element("CompleteStamps")
-    element.append(e_compstamp)
+        # completestamps
+        e_compstamp = cw.data.make_element("CompleteStamps")
+        element.append(e_compstamp)
 
-    for key, value in sdata.compstamps.iteritems():
-        e = cw.data.make_element("CompleteStamp", key, {"value": str(value)})
-        e_compstamp.append(e)
+        for key, value in sdata.compstamps.iteritems():
+            e = cw.data.make_element("CompleteStamp", key, {"value": str(value)})
+            e_compstamp.append(e)
 
     # InfoCard
     e_info = cw.data.make_element("InfoCards")
@@ -351,24 +352,24 @@ def create_scenariolog(sdata):
     for fcard in sdata.friendcards:
         e_cast.append(fcard.data.getroot())
 
-    # DeletedFile
-    e_del = cw.data.make_element("DeletedFiles")
-    element.append(e_del)
+    if not recording:
+        # DeletedFile
+        e_del = cw.data.make_element("DeletedFiles")
+        element.append(e_del)
 
-    for path in sdata.deletedpaths:
-        e = cw.data.make_element("DeletedFile", path)
-        e_del.append(e)
+        for fpath in sdata.deletedpaths:
+            e = cw.data.make_element("DeletedFile", fpath)
+            e_del.append(e)
 
-    # LostAdventurer
-    e_lost = cw.data.make_element("LostAdventurers")
-    element.append(e_lost)
+        # LostAdventurer
+        e_lost = cw.data.make_element("LostAdventurers")
+        element.append(e_lost)
 
-    for path in sdata.lostadventurers:
-        e = cw.data.make_element("LostAdventurer", path)
-        e_lost.append(e)
+        for fpath in sdata.lostadventurers:
+            e = cw.data.make_element("LostAdventurer", fpath)
+            e_lost.append(e)
 
     # ファイル書き込み
-    path = "Data/Temp/ScenarioLog/ScenarioLog.xml"
     etree = cw.data.xml2etree(element=element)
     etree.write(path)
     return path

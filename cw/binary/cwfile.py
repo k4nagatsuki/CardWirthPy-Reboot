@@ -109,11 +109,13 @@ class CWFileWriter(io.BufferedWriter):
         self.write_rawstring(s)
 
     def write_rawstring(self, s):
-        if s is None:
-            s = ""
-        s = (s + "\x00").encode("mbcs")
-        self.write_dword(len(s))
-        self.write(s)
+        if s:
+            s = (s + "\x00").encode("mbcs")
+            self.write_dword(len(s))
+            self.write(s)
+        else:
+            self.write_dword(1)
+            self.write_byte(0)
 
     def write_byte(self, b):
         self.write(struct.pack("b", b))

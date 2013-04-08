@@ -24,8 +24,9 @@ class CWBinaryBase(object):
             self.fpath = ""
         self.materialbasedir = ""
         self.set_materialdir(materialdir)
-        self.set_image_export(image_export)
+        self.set_image_export(image_export, False)
         self.yadodb = None
+        self.xmlpath = ""
 
         if parent:
             self._yadodata = parent._yadodata
@@ -83,13 +84,17 @@ class CWBinaryBase(object):
         else:
             return root.get_materialdir()
 
-    def set_image_export(self, image_export):
+    def set_image_export(self, image_export, force=False):
         """XML変換時に格納イメージをエクスポートするか設定する。"""
         self._image_export = image_export
+        self._force_exportsetting = force
 
     def get_image_export(self):
         """XML変換時に格納イメージをエクスポートする場合はTrue。
         親要素がある場合、親の設定が優先される。"""
+        if self._force_exportsetting:
+            return self._image_export
+
         root = self.get_root()
         if root is self:
             return self._image_export
@@ -134,6 +139,7 @@ class CWBinaryBase(object):
 
         data = self.get_data()
         cw.data.CWPyElementTree(element=data).write(path)
+        self.xmlpath = path
         return path
 
     def export_image(self):

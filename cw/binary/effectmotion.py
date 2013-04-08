@@ -122,7 +122,7 @@ class EffectMotion(base.CWBinaryBase):
                     beasts = e
             f.write_dword(len(beasts))
             for card in beasts:
-                beast.BeastCard.unconv(f, card)
+                beast.BeastCard.unconv(f, card, False)
         else:
             raise ValueError(tabtype)
 

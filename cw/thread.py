@@ -563,6 +563,11 @@ class CWPy(_Singleton, threading.Thread):
             if lastscenario:
                 self.ydata.party.set_lastscenario(lastscenario)
 
+            if not loaded:
+                # CardWirthは番号クーポンを手がかりにF9処理を行うので、
+                # 逆変換のためにここで番号クーポンをつけなおす必要がある
+                self.ydata.party.set_numbercoupon()
+
             if musicpath is None or\
                             self.music.path == self.music.get_path(musicpath):
                 self.change_area(areaid, not loaded, loaded)
@@ -597,12 +602,14 @@ class CWPy(_Singleton, threading.Thread):
         緊急非難処理の続きを行う。
         """
         # スプライトを作り直す
-        for idx, pcard in enumerate(self.get_pcards()):
+        pcards = self.get_pcards()
+        for idx, data in enumerate(self.ydata.party.members):
             self.sounds["harvest"].play()
-            cw.animation.animate_sprite(pcard, "hide")
-            self.pcardgrp.remove(pcard)
+            if idx < len(pcards):
+                pcard = pcards[idx]
+                cw.animation.animate_sprite(pcard, "hide")
+                self.pcardgrp.remove(pcard)
 
-            data = self.ydata.party.members[idx]
             pos = (95 * idx + 9 * (idx + 1), 285)
             pcard = cw.sprite.card.PlayerCard(data, pos)
             pcard.rect.topleft = pos

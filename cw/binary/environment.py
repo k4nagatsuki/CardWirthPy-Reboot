@@ -130,7 +130,7 @@ class Environment(base.CWBinaryBase):
         scenarioname = ""
         gossips = ""
         money = 0
-        partyname = "" # TODO
+        partyname = ""
 
         for e in data:
             if e.tag == "Property":
