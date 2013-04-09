@@ -166,7 +166,7 @@ class EventInterface(object):
         """選択中のPlayerCardインスタンスを返す。
         存在しなかったらランダムで選択して返す。
         """
-        if not self._selectedmember or self._selectedmember.lost:
+        if not self._selectedmember or self._selectedmember.status == "hidden":
             self.set_selectedmember(self.get_randommember())
 
         return self._selectedmember
