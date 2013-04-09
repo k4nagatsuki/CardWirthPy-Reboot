@@ -344,10 +344,6 @@ class BackpackCard(base.CWBinaryBase):
     def set_data(self, data):
         """widファイルから読み込んだカードデータを関連づける"""
         self.data = data
-        data = self.data.get_data()
-        if not self.mine:
-            data.set("scenariocard", "True")
-            self.data.set_image_export(False, True)
 
     def get_data(self):
         return self.data.get_data()
@@ -355,6 +351,10 @@ class BackpackCard(base.CWBinaryBase):
     def create_xml(self, dpath):
         """self.data.create_xml()"""
         self.data.limit = self.uselimit
+        data = self.data.get_data()
+        if not self.mine:
+            data.set("scenariocard", "True")
+            self.data.set_image_export(False, True)
         return self.data.create_xml(dpath)
 
     @staticmethod

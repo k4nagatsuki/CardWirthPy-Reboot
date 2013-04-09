@@ -434,7 +434,8 @@ class ScenarioData(SystemData):
 
         # ロストした冒険者を削除
         for path in self.lostadventurers:
-            path = cw.util.join_yadodir(path)
+            if not path.lower().startswith("yado"):
+                path = cw.util.join_yadodir(path)
             ccard = cw.character.Character(yadoxml2etree(path))
 
             # "＿消滅予約"を持ってない場合、アルバムに残す
