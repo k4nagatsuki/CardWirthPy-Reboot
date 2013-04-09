@@ -287,6 +287,7 @@ class PartyMembers(base.CWBinaryBase):
             else:
                 f.write_byte(len(vanisheds)) # 消滅メンバの数？
         if vanisheds:
+            f.write_dword(0) # 不明
             for i, member in enumerate(vanisheds):
                 if logdir:
                     fpath = cw.util.join_paths(logdir, "Members", os.path.basename(member.fpath))
