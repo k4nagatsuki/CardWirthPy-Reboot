@@ -16,6 +16,7 @@ class ItemCard(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = f.byte()
         self.image = f.image()
+        self.imgpath = ""
         self.name = f.string()
         idl = f.dword()
 
@@ -89,10 +90,11 @@ class ItemCard(base.CWBinaryBase):
 
     def get_data(self):
         if self.data is None:
-            if self.image:
-                self.imgpath = self.export_image()
-            else:
-                self.imgpath = ""
+            if not self.imgpath:
+                if self.image:
+                    self.imgpath = self.export_image()
+                else:
+                    self.imgpath = ""
             self.data = cw.data.make_element("ItemCard")
             prop = cw.data.make_element("Property")
             e = cw.data.make_element("Id", str(self.id))

@@ -18,6 +18,7 @@ class Adventurer(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
         self.id = f.dword() % 10000
+        self.imgpath = ""
 
         # mate特有の属性値(真偽値)*10
         self.noeffect_weapon = f.bool()
@@ -108,10 +109,11 @@ class Adventurer(base.CWBinaryBase):
             data = self.data
 
         if data is None:
-            if self.image:
-                self.imgpath = self.export_image()
-            else:
-                self.imgpath = ""
+            if not self.imgpath:
+                if self.image:
+                    self.imgpath = self.export_image()
+                else:
+                    self.imgpath = ""
 
             data = cw.data.make_element("Adventurer")
 
@@ -236,9 +238,9 @@ class Adventurer(base.CWBinaryBase):
                 # '＾'で始まるクーポンは'＾'を取り除く
                 for coupon in coupons:
                     if coupon.name.startswith(u"＾"):
-                        data = coupon.get_data()
-                        data.text = coupon.name[1:]
-                        ce.append(data)
+                        cdata = coupon.get_data()
+                        cdata.text = coupon.name[1:]
+                        ce.append(cdata)
                     else:
                         ce.append(coupon.get_data())
             else:
@@ -246,6 +248,7 @@ class Adventurer(base.CWBinaryBase):
                 for coupon in self.coupons:
                     if not coupon.name.startswith(u"＾"):
                         ce.append(coupon.get_data())
+
             prop.append(ce)
 
             data.append(prop)
@@ -253,18 +256,21 @@ class Adventurer(base.CWBinaryBase):
             e = cw.data.make_element("ItemCards")
             for card in self.items:
                 if not f9data or card.premium <= 2:
+                    card.set_image_export(False, f9data)
                     e.append(card.get_data())
             data.append(e)
 
             e = cw.data.make_element("SkillCards")
             for card in self.skills:
                 if not f9data or card.premium <= 2:
+                    card.set_image_export(False, f9data)
                     e.append(card.get_data())
             data.append(e)
 
             e = cw.data.make_element("BeastCards")
             for card in self.beasts:
                 if not f9data or card.premium <= 2:
+                    card.set_image_export(False, f9data)
                     e.append(card.get_data())
             data.append(e)
 
@@ -372,8 +378,6 @@ class Adventurer(base.CWBinaryBase):
         skills = []
         beasts = []
 
-        coupons = []
-
         for e in data:
             if e.tag == "Property":
                 for prop in e:
@@ -455,7 +459,8 @@ class Adventurer(base.CWBinaryBase):
                                 enhance_defense = int(ee.text)
                                 duration_enhance_defense = int(ee.get("duration"))
                     elif prop.tag == "Coupons":
-                        coupons = prop
+                        # このメソッドの冒頭を参照
+                        pass
 
             elif e.tag == "ItemCards":
                 items = e
