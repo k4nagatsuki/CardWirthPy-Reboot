@@ -255,6 +255,7 @@ class CWPy(_Singleton, threading.Thread):
 
             # 画面更新
             pygame.display.update(dirty_rects)
+            self.event.eventtimer = 0
 
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。

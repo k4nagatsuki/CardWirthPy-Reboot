@@ -25,7 +25,7 @@ class EventInterface(object):
         self._targetstack = -1
 
         # イベント実行中に操作を受け付けるためのタイマ
-        self.eventtimer = 0
+        self.eventtimer = 1
 
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
@@ -259,11 +259,11 @@ class EventInterface(object):
             return
 
         # 一部のイベント実行
-        if 10000 <= self.eventtimer:
+        if self.eventtimer % 10000 == 0:
             cw.cwpy.sbargrp.update(cw.cwpy.scr)
             cw.cwpy.input()
             cw.cwpy.eventhandler.run()
-            self.eventtimer = 0
+            self.eventtimer = 1
         else:
             self.eventtimer += 1
 
