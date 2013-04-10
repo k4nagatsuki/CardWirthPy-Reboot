@@ -198,6 +198,7 @@ class CWPy(_Singleton, threading.Thread):
             self.clock.tick(self.setting.fps)
 
     def wait_frame(self, count):
+        self.event.eventtimer = 0
         for i in xrange(count):
             self.tick_clock()
 
