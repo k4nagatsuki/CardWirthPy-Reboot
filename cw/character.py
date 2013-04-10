@@ -1059,7 +1059,8 @@ class Character(object):
         """
         "＿１"等の番号クーポンを削除。
         """
-        names = [cw.cwpy.msgs["number_1_coupon"], u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６"]
+        # u"＠ＭＰ３"はCardWirth 1.29以降で配布されるクーポン
+        names = [cw.cwpy.msgs["number_1_coupon"], u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６", u"＠ＭＰ３"]
 
         for name in names:
             self.remove_coupon(name)

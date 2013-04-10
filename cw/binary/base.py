@@ -426,6 +426,16 @@ class CWBinaryBase(object):
             return "Redisplay", ""            # 画面の再構築
         elif n == 65:
             return "Check", "Flag"            # フラグ判定
+        elif n == 66:
+            return "Substitute", "Step"       # ステップ代入(1.30)
+        elif n == 67:
+            return "Substitute", "Flag"       # フラグ代入(1.30)
+        elif n == 68:
+            return "Branch", "StepValue"      # ステップ比較(1.30)
+        elif n == 69:
+            return "Branch", "FlagValue"      # フラグ比較(1.30)
+        elif n == 70:
+            return "Branch", "RandomSelect"   # ランダム選択(1.30)
         else:
             raise ValueError(self.fpath)
 
@@ -563,6 +573,16 @@ class CWBinaryBase(object):
             return 64
         elif type == "Check" and n == "Flag":
             return 65
+        elif type == "Substitute" and n == "Step": # 1.30
+            return 66
+        elif type == "Substitute" and n == "Flag": # 1.30
+            return 67
+        elif type == "Branch" and n == "StepValue": # 1.30
+            return 68
+        elif type == "Branch" and n == "FlagValue": # 1.30
+            return 69
+        elif type == "Branch" and n == "RandomSelect": # 1.30
+            return 70
         else:
             raise ValueError(type + ", " + n)
 
@@ -651,6 +671,64 @@ class CWBinaryBase(object):
         else:
             raise ValueError(n)
 
+    def conv_target_scope_coupon(self, n):
+        """引数の値から、「適用範囲」の種類を返す(1.30～のクーポン分岐)。
+        0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
+        2:Party(パーティの全員), 3:FieldCasts(フィールド全体のキャスト)
+        """
+        if n == 0:
+            return "Selected"
+        elif n == 1:
+            return "Random"
+        elif n == 2:
+            return "Party"
+        elif n == 3:
+            return "Field"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_target_scope_coupon(n):
+        if n == "Selected":
+            return 0
+        elif n == "Random":
+            return 1
+        elif n == "Party":
+            return 2
+        elif n == "Field":
+            return 3
+        else:
+            raise ValueError(n)
+
+    def conv_castranges(self, n):
+        """引数の値から、「適用メンバ」の種類をsetで返す(1.30)。
+        0b0001:パーティ
+        0b0010:エネミー
+        0b0100:同行NPC
+        """
+        s = set()
+        if (n & 0b0001) <> 0:
+            s.add("Party")
+        if (n & 0b0010) <> 0:
+            s.add("Enemy")
+        if (n & 0b0100) <> 0:
+            s.add("Npc")
+        return s
+
+    @staticmethod
+    def unconv_castranges(data):
+        value = 0
+        for n in data:
+            if n.text == "Party":
+                value |= 0b0001
+            elif n.text == "Enemy":
+                value |= 0b0010
+            elif n.text == "Npc":
+                value |= 0b0100
+            else:
+                raise ValueError(n)
+        return value
+
 #-------------------------------------------------------------------------------
 # コンテント系
 #-------------------------------------------------------------------------------
@@ -679,6 +757,8 @@ class CWBinaryBase(object):
         4:Fine(健康), 5:Injured(負傷), 6:Heavy-Injured(重傷),
         7:Unconscious(意識不明), 8:Poison(中毒), 9:Sleep(眠り),
         10:Bind(呪縛), 11:Paralyze(麻痺・石化)
+        以降は1.30～
+        12:Confuse(混乱), 13:Overheat(激昂), 14:Brave(勇敢), 15:Panic(恐慌)
         """
         if n == 0:
             return "Active"
@@ -704,6 +784,14 @@ class CWBinaryBase(object):
             return "Bind"
         elif n == 11:
             return "Paralyze"
+        elif n == 12:
+            return "Confuse"
+        elif n == 13:
+            return "Overheat"
+        elif n == 14:
+            return "Brave"
+        elif n == 15:
+            return "Panic"
         else:
             raise ValueError(self.fpath)
 
@@ -733,6 +821,14 @@ class CWBinaryBase(object):
             return 10
         elif n == "Paralyze":
             return 11
+        elif n == "Confuse":
+            return 12
+        elif n == "Overheat":
+            return 13
+        elif n == "Brave":
+            return 14
+        elif n == "Panic":
+            return 15
         else:
             raise ValueError(n)
 

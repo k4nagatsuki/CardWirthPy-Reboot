@@ -516,6 +516,81 @@ def add_transparentline(image, vline, hline):
 
     return image
 
+def add_border(wxdc, wxbmp, textcolor, borderwidth):
+    """textcolorの領域を縁取りする。
+    この処理はwxPythonのインスタンスに対して行う。
+    wxbmp: wx.DC
+    wxbmp: wx.Bitmap
+    textcolor: 色(R,G,B)。
+    borderwidth: 縁取りの太さ。
+    """
+    try:
+        func = _imageretouch.bordering
+    except NameError:
+        func = _bordering
+
+    wximg = wxbmp.ConvertToImage()
+    buf = wximg.GetDataBuffer()
+    w = wximg.GetWidth()
+    h = wximg.GetHeight()
+    points = func(buf, (w, h), textcolor[:3])
+    hbw = borderwidth / 2
+    for i in xrange(0, len(points), 2):
+        x = points[i+0]
+        y = points[i+1]
+        if borderwidth == 1:
+            wxdc.DrawPoint(x, y)
+        elif bw == 2:
+            wxdc.DrawRectangle(x - 1, y - 1, 2, 2)
+        else:
+            wxdc.DrawEllipse(x - hbw, y - hbw, borderwidth, borderwidth)
+
+def _bordering(data, size, textcolor):
+    w = size[0]
+    h = size[1]
+
+    color = [0] * (w * h)
+    left = w
+    right = 0
+    top = h
+    bottom = 0
+    for i in xrange(w * h):
+        iData = i * 3
+        color[i] = (ord(data[iData+0]), ord(data[iData+1]), ord(data[iData+2])) == textcolor
+        if color[i]:
+            x = i % w
+            y = i / w
+            left = min(left, max(x - 1, 0))
+            right = max(right, min(x + 2, w))
+            top = min(top, max(y - 1, 0))
+            bottom = max(bottom, min(y + 2, h))
+
+    if left >= right:
+        return []
+
+    seq = []
+    for x in xrange(left, right):
+        for y in xrange(top, bottom):
+            yi = y * w
+            i = x + yi
+            if color[i]:
+                continue
+
+            find = False
+            find |= 0 < x and 0 < y and color[(x - 1) + (yi - w)]
+            find |= 0 < y and color[(x + 0) + (yi - w)]
+            find |= x + 1 < w and 0 < y and color[(x + 1) + (yi - w)]
+            find |= 0 < x and color[(x - 1) + (yi)]
+            find |= x + 1 < w and color[(x + 1) + (yi)]
+            find |= 0 < x and y + 1 < h and color[(x - 1) + (yi + w)]
+            find |= y + 1 < h and color[(x + 0) + (yi + w)]
+            find |= x + 1 < w and y + 1 < h and color[(x + 1) + (yi + w)]
+
+            if find:
+                seq.append(x)
+                seq.append(y)
+    return seq
+
 def hex2color(hexnum):
     """RGBデータの16進数を(r, g, b)のタプルで返す。
     hexnum: 16進数。

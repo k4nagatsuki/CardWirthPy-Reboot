@@ -89,7 +89,7 @@ class EventInterface(object):
         self._selectedmember = ccard
         self.refresh_selectedmembername()
 
-    def get_targetscope(self, scope, unreversed=True):
+    def get_targetscope(self, scope, unreversed=True, cards=True):
         """
         コンテントの適用範囲を返す関数。
         すべてリストで返す。
@@ -118,6 +118,18 @@ class EventInterface(object):
             seq.extend(cw.cwpy.get_pcards(mode))
             seq.extend([cw.cwpy.ydata.party.backpack])
             seq.extend(cw.cwpy.get_ecards(mode))
+        # 敵全体(1.30～)
+        elif scope == "Enemy":
+            seq = cw.cwpy.get_ecards(mode)
+        # 同行NPC全体(1.30～)
+        elif scope == "Npc":
+            seq = cw.cwpy.get_fcards(mode)
+        # フィールド全体(キャストのみ)
+        elif scope == "FieldCasts":
+            seq = [self.get_selectedmember()]
+            seq.extend(cw.cwpy.get_pcards(mode))
+            seq.extend(cw.cwpy.get_ecards(mode))
+            seq.extend(cw.cwpy.get_fcards(mode))
         else:
             raise ValueError(scope + " is invalid value.")
 
@@ -166,7 +178,9 @@ class EventInterface(object):
         """選択中のPlayerCardインスタンスを返す。
         存在しなかったらランダムで選択して返す。
         """
-        if not self._selectedmember or self._selectedmember.status == "hidden":
+        if not self._selectedmember or\
+                (not isinstance(self._selectedmember, cw.sprite.card.FriendCard) and\
+                 self._selectedmember.status == "hidden"):
             self.set_selectedmember(self.get_randommember())
 
         return self._selectedmember

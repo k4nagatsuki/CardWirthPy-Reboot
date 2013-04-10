@@ -1642,6 +1642,7 @@ class Party(object):
         for index, pcard in enumerate(cw.cwpy.get_pcards()):
             pcard.remove_numbercoupon()
             pcard.set_coupon(names[index], 0)
+            pcard.set_coupon(u"＠ＭＰ３", 0) # 1.29
 
     def write(self):
         self.data.write_xml()

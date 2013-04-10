@@ -14,6 +14,15 @@ intwrap(int i, int min, int max)
     return i;
 }
 
+static int
+equals_rgb(unsigned char *data1, size_t index1, int r, int g, int b)
+{
+    if (data1[index1 + 0] != r) return 0;
+    if (data1[index1 + 1] != g) return 0;
+    if (data1[index1 + 2] != b) return 0;
+    return 1;
+}
+
 static PyObject *
 add_mosaic(PyObject *self, PyObject *args)
 {
@@ -369,6 +378,71 @@ filter(PyObject *self, PyObject *args)
     return string;
 }
 
+static PyObject *
+bordering(PyObject *self, PyObject *args)
+{
+    PyObject *points = NULL;
+    size_t len;
+    int w, h, x, y, r, g, b, text_r, text_g, text_b;
+    unsigned char *data;
+    unsigned char *data_lt, *data_mt, *data_rt, *data_lm, *data_rm, *data_lb, *data_mb, *data_rb;
+    int find;
+
+    if (!PyArg_ParseTuple(args, "s#(ii)(iii)", &data, &len, &w, &h,
+                &text_r, &text_g, &text_b))
+        return NULL;
+
+    points = PyList_New(0);
+    if (!points)
+        return NULL;
+
+    data_lt = data - (w + 1) * 3;
+    data_mt = data - w * 3;
+    data_rt = data - (w - 1) * 3;
+    data_lm = data - 3;
+    data_rm = data + 3;
+    data_lb = data + (w + 1) * 3;
+    data_mb = data + w * 3;
+    data_rb = data + (w - 1) * 3;
+    for (y = 0; y < h; y++)
+    {
+        for (x = 0; x < w; x++)
+        {
+            r = (int) data[0];
+            g = (int) data[1];
+            b = (int) data[2];
+            if (text_r != r || text_g != g || text_b != b)
+            {
+                find = 0;
+                find |= 0 < x && 0 < y && equals_rgb(data_lt, 0, text_r, text_g, text_b);
+                find |= 0 < y && equals_rgb(data_mt, 0, text_r, text_g, text_b);
+                find |= x + 1 < w && 0 < y && equals_rgb(data_rt, 0, text_r, text_g, text_b);
+                find |= 0 < x && equals_rgb(data_lm, 0, text_r, text_g, text_b);
+                find |= x + 1 < w && equals_rgb(data_rm, 0, text_r, text_g, text_b);
+                find |= 0 < x && y + 1 < h && equals_rgb(data_lb, 0, text_r, text_g, text_b);
+                find |= y + 1 < h && equals_rgb(data_mb, 0, text_r, text_g, text_b);
+                find |= x + 1 < w && y + 1 < h && equals_rgb(data_rb, 0, text_r, text_g, text_b);
+
+                if (find)
+                {
+                    PyList_Append(points, PyInt_FromSize_t(x));
+                    PyList_Append(points, PyInt_FromSize_t(y));
+                }
+            }
+            data += 3;
+            data_lt += 3;
+            data_mt += 3;
+            data_rt += 3;
+            data_lm += 3;
+            data_rm += 3;
+            data_lb += 3;
+            data_mb += 3;
+            data_rb += 3;
+        }
+    }
+    return points;
+}
+
 static PyMethodDef
 _imageretouchMethods[] =
 {
@@ -386,6 +460,8 @@ _imageretouchMethods[] =
         "spread_pixels(rgba_str, size)"},
     {"filter", filter, METH_VARARGS,
         "filter(rgba_str, size, weight, offset, div)"},
+    {"bordering", bordering, METH_VARARGS,
+        "bordering(rgba_str, size, color)"},
     {NULL, NULL, 0, NULL}
 };
 

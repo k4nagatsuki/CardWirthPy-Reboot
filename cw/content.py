@@ -196,6 +196,42 @@ class BranchContent(EventContentBase):
 
         return index
 
+    def get_compare_index(self, cmp):
+        idx_lt = cw.IDX_TREEEND
+        idx_eq = cw.IDX_TREEEND
+        idx_gt = cw.IDX_TREEEND
+
+        index = 0
+        for chld in self.data:
+            if chld.tag == "Contents":
+                for e in chld:
+                    # フラグ判定コンテントの場合、
+                    # 対応フラグがTrueの場合のみ実行対象に
+                    if e.tag == "Check" and e.get("type") == "Flag":
+                        if cw.content.CheckFlagContent(e).action() <> 0:
+                            continue
+
+                    name = e.get("name")
+
+                    if idx_lt < 0 and name == u"<":
+                        idx_lt = index
+                    elif idx_eq < 0 and name == u"=":
+                        idx_eq = index
+                    elif idx_gt < 0 and name == u">":
+                        idx_gt = index
+                    index += 1
+                break
+
+        if cmp < 0:
+            index = idx_lt
+        elif cmp == 0:
+            index = idx_eq
+        else:
+            assert cmp > 0
+            index = idx_gt
+
+        return index
+
     textdict = {
         # 対象範囲
         "selected" : u"選択中メンバが",
@@ -210,6 +246,8 @@ class BranchContent(EventContentBase):
         "unselected" : u"選択外メンバ",
         "inusecard" : u"使用中カード",
         "party" : u"パーティ全体",
+        "enemy" : u"敵全体",
+        "npc" : u"同行キャスト全体",
         # 身体能力
         "dex" : u"器用度",
         "agl" : u"敏捷度",
@@ -241,6 +279,10 @@ class BranchContent(EventContentBase):
         "sleep" : u"眠り",
         "bind" : u"呪縛",
         "paralyze" : u"麻痺／石化",
+        "confuse" : u"混乱", # 1.30
+        "overheat" : u"激昂", # 1.30
+        "brave" : u"勇敢", # 1.30
+        "panic" : u"恐慌", # 1.30
     }
 
 class BranchSkillContent(BranchContent):
@@ -628,6 +670,10 @@ class BranchCouponContent(BranchContent):
         elif scope == "Party":
             someone = False
             unreversed = True
+        elif scope == "Field":
+            scope = "FieldCasts"
+            someone = True
+            unreversed = True
         else:
             someone = True
             unreversed = True
@@ -849,7 +895,11 @@ class BranchRandomContent(BranchContent):
     def action(self):
         """ランダム分岐コンテント。"""
         value = self.data.getint(".", "value", 0)
-        flag = bool(cw.cwpy.dice.roll(1, 100) <= value)
+        if cw.cwpy.sdata and self.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
+            # 互換動作: 1.28以前のバグで、確率分岐の値が+1になる
+            flag = bool(cw.cwpy.dice.roll(1, 100) <= value+1)
+        else:
+            flag = bool(cw.cwpy.dice.roll(1, 100) <= value)
         return self.get_boolean_index(flag)
 
     def get_status(self):
@@ -2267,6 +2317,219 @@ class WaitContent(EventContentBase):
 
     def get_status(self):
         return u"時間経過コンテント"
+
+#-------------------------------------------------------------------------------
+# 代入コンテント (1.30～)
+#-------------------------------------------------------------------------------
+
+class SubstituteStepContent(EventContentBase):
+    def action(self):
+        """ステップ代入コンテント。"""
+        fromstep = self.data.get("from")
+        tostep = self.data.get("to")
+
+        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
+            cw.cwpy.sdata.steps[tostep].set(cw.cwpy.sdata.steps[fromstep].value)
+        elif fromstep == "??Random":
+            if tostep in cw.cwpy.sdata.steps:
+                sides = len(cw.cwpy.sdata.steps[tostep].valuenames)
+                cw.cwpy.sdata.steps[tostep].set(cw.cwpy.dice.roll(1, sides)-1)
+
+        return 0
+
+    def get_status(self):
+        fromstep = self.data.get("from")
+        tostep = self.data.get("to")
+
+        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
+            return u"ステップ『%s』の値を『%s』へ代入" % (fromstep, tostep)
+        elif fromstep == "??Random" and tostep in cw.cwpy.sdata.steps:
+            return u"ランダム値を『%s』へ代入" % (tostep)
+        else:
+            return u"ステップが指定されていません"
+
+class SubstituteFlagContent(EventContentBase):
+    def action(self):
+        """フラグ代入コンテント。"""
+        fromflag = self.data.get("from")
+        toflag = self.data.get("to")
+
+        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
+            cw.cwpy.sdata.flags[toflag].set(cw.cwpy.sdata.flags[fromflag].value)
+        elif fromflag == "??Random":
+            if toflag in cw.cwpy.sdata.flags:
+                if cw.cwpy.dice.roll(1, 2) == 1:
+                    cw.cwpy.sdata.flags[toflag].set(True)
+                else:
+                    cw.cwpy.sdata.flags[toflag].set(False)
+
+        return 0
+
+    def get_status(self):
+        fromflag = self.data.get("from")
+        toflag = self.data.get("to")
+
+        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
+            return u"フラグ『%s』の値を『%s』へ代入" % (fromflag, toflag)
+        elif fromflag == "??Random" and toflag in cw.cwpy.sdata.flags:
+            return u"ランダム値を『%s』へ代入" % (toflag)
+        else:
+            return u"フラグが指定されていません"
+
+#-------------------------------------------------------------------------------
+# 比較分岐コンテント (1.30～)
+#-------------------------------------------------------------------------------
+
+class BranchStepValueContent(BranchContent):
+    def action(self):
+        """ステップ比較分岐コンテント。"""
+        fromstep = self.data.get("from")
+        tostep = self.data.get("to")
+
+        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
+            value = cmp(cw.cwpy.sdata.steps[fromstep].value, cw.cwpy.sdata.steps[tostep].value)
+            index = self.get_compare_index(value)
+        else:
+            index = cw.IDX_TREEEND
+
+        return index
+
+    def get_status(self):
+        fromstep = self.data.get("from")
+        tostep = self.data.get("to")
+
+        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
+            return u"ステップ『%s』と『%s』を比較" % (fromstep, tostep)
+        else:
+            return u"ステップが指定されていません"
+
+    def get_childname(self, child):
+        fromstep = self.data.get("from")
+        tostep = self.data.get("to")
+
+        if fromstep in cw.cwpy.sdata.steps and tostep in cw.cwpy.sdata.steps:
+            if child.get("name", "") == ">":
+                return u"ステップ『%s』が『%s』より大きい" % (fromstep, tostep)
+            elif child.get("name", "") == "=":
+                return u"ステップ『%s』が『%s』と等しい" % (fromstep, tostep)
+            else:
+                return u"ステップ『%s』が『%s』より小さい" % (fromstep, tostep)
+
+        else:
+            return u"ステップが指定されていません"
+
+class BranchFlagValueContent(BranchContent):
+    def action(self):
+        """フラグ比較分岐コンテント。"""
+        fromflag = self.data.get("from")
+        toflag = self.data.get("to")
+
+        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
+            value = cw.cwpy.sdata.flags[fromflag].value == cw.cwpy.sdata.flags[toflag].value
+            index = self.get_boolean_index(value)
+        else:
+            index = cw.IDX_TREEEND
+
+        return index
+
+    def get_status(self):
+        fromflag = self.data.get("from")
+        toflag = self.data.get("to")
+
+        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
+            return u"フラグ『%s』と『%s』を比較" % (fromflag, toflag)
+        else:
+            return u"フラグが指定されていません"
+
+    def get_childname(self, child):
+        fromflag = self.data.get("from")
+        toflag = self.data.get("to")
+
+        if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
+            if child.get("name", "") == u"○":
+                return u"フラグ『%s』が『%s』と同値" % (fromflag, toflag)
+            else:
+                return u"フラグ『%s』が『%s』と異なる" % (fromflag, toflag)
+
+        else:
+            return u"フラグが指定されていません"
+
+#-------------------------------------------------------------------------------
+# ランダム選択分岐コンテント (1.30～)
+#-------------------------------------------------------------------------------
+
+class BranchRandomSelectContent(BranchContent):
+    def action(self):
+        """ランダム選択分岐コンテント。"""
+        minlevel = int(self.data.get("minLevel", "0"))
+        maxlevel = int(self.data.get("maxLevel", "0"))
+        status = self.data.get("status", "")
+        ranges = self.get_castranges()
+
+        if status:
+            methodname = "is_%s" % status.lower()
+
+        # 対象メンバ取得
+        targets = []
+        for scope in ("Party", "Enemy", "Npc"): # 順序はPC→敵→同行NPCに固定
+            if scope in ranges:
+                targets.extend(cw.cwpy.event.get_targetscope(scope, False))
+
+        # レベル・状態判定
+        selectedmember = None
+        for target in targets:
+            if status and not (hasattr(target, methodname) and getattr(target, methodname)()):
+                continue
+            if 0 < minlevel and target.level < minlevel:
+                continue
+            if 0 < maxlevel and maxlevel < target.level:
+                continue
+
+            selectedmember = target
+            break
+
+        # 選択設定
+        if selectedmember:
+            cw.cwpy.event.set_selectedmember(selectedmember)
+
+        return self.get_boolean_index(not selectedmember is None)
+
+    def get_castranges(self):
+        ranges = set()
+        for e in self.data.getfind("CastRanges"):
+            ranges.add(e.gettext(".", ""))
+        return ranges
+
+    def get_status(self):
+        return u"ランダム選択分岐コンテント"
+
+    def get_childname(self, child):
+        minlevel = int(self.data.get("minLevel", "0"))
+        maxlevel = int(self.data.get("maxLevel", "0"))
+        status = self.data.get("status", "")
+        ranges = self.get_castranges()
+        if "Party" in ranges and "Enemy" in ranges and "Npc" in ranges:
+            s = self.textdict.get("field")
+        else:
+            s = ""
+            for scope in ranges:
+                if s:
+                    s += u"と"
+                s += self.textdict.get(scope.lower(), u"不明な範囲")
+
+        s2 = ""
+        if 0 < minlevel:
+            s2 += u"レベルが%s～%s" % (minlevel, maxlevel)
+
+        if status:
+            if s2:
+                s2 += u"で"
+            s2 += u"【%s】" % (self.textdict.get(self.data.get("status", "").lower(), ""))
+
+        if child.get("name", "") == u"○":
+            return u"%sから%sのキャラクターの選択に成功" % (s, s2)
+        else:
+            return u"%sから%sのキャラクターの選択に失敗" % (s, s2)
 
 #-------------------------------------------------------------------------------
 # 特殊コンテント

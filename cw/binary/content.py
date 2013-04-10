@@ -134,7 +134,7 @@ class Content(base.CWBinaryBase):
         elif self.tag == "Branch" and self.type == "Coupon":
             self.properties["coupon"] = f.string()
             f.dword() # 得点(不使用)
-            self.properties["targets"] = self.conv_target_scope(f.byte())
+            self.properties["targets"] = self.conv_target_scope_coupon(f.byte())
         elif self.tag == "Get" and self.type == "Cast":
             self.properties["id"] = f.dword()
         elif self.tag == "Get" and self.type == "Item":
@@ -260,6 +260,26 @@ class Content(base.CWBinaryBase):
             pass
         elif self.tag == "Check" and self.type == "Flag":
             self.properties["flag"] = f.string()
+        elif self.tag == "Substitute" and self.type == "Step": # 1.30
+            self.properties["from"] = f.string()
+            self.properties["to"] = f.string()
+        elif self.tag == "Substitute" and self.type == "Flag": # 1.30
+            self.properties["from"] = f.string()
+            self.properties["to"] = f.string()
+        elif self.tag == "Branch" and self.type == "StepValue": # 1.30
+            self.properties["from"] = f.string()
+            self.properties["to"] = f.string()
+        elif self.tag == "Branch" and self.type == "FlagValue": # 1.30
+            self.properties["from"] = f.string()
+            self.properties["to"] = f.string()
+        elif self.tag == "Branch" and self.type == "RandomSelect": # 1.30
+            self.castranges = self.conv_castranges(f.byte())
+            style = f.byte()
+            if (style & 0b01) <> 0:
+                self.properties["levelmin"] = f.dword()
+                self.properties["levelmax"] = f.dword()
+            if (style & 0b10) <> 0:
+                self.properties["status"] = self.conv_statustype(f.byte())
         else:
             raise ValueError(self.tag + ", " + self.type)
 
@@ -297,6 +317,11 @@ class Content(base.CWBinaryBase):
                 e = cw.data.make_element("Dialogs")
                 for dialog in self.dialogs:
                     e.append(dialog.get_data())
+                self.data.append(e)
+            elif self.tag == "Branch" and self.type == "RandomSelect": # 1.30
+                e = cw.data.make_element("CastRanges")
+                for range in self.castranges:
+                    e.append(cw.data.make_element("CastRange", range))
                 self.data.append(e)
 
         return self.data
@@ -413,7 +438,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and type == "Coupon":
             f.write_string(data.get("coupon"))
             f.write_dword(0)
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets")))
         elif tag == "Get" and type == "Cast":
             f.write_dword(int(data.get("id")))
         elif tag == "Get" and type == "Item":
@@ -521,6 +546,34 @@ class Content(base.CWBinaryBase):
             pass
         elif tag == "Check" and type == "Flag":
             f.write_string(data.get("flag"))
+        elif tag == "Substitute" and type == "Step": # 1.30
+            f.write_string(data.get("from"))
+            f.write_string(data.get("to"))
+        elif tag == "Substitute" and type == "Flag": # 1.30
+            f.write_string(data.get("from"))
+            f.write_string(data.get("to"))
+        elif tag == "Branch" and type == "StepValue": # 1.30
+            f.write_string(data.get("from"))
+            f.write_string(data.get("to"))
+        elif tag == "Branch" and type == "FlagValue": # 1.30
+            f.write_string(data.get("from"))
+            f.write_string(data.get("to"))
+        elif tag == "Branch" and type == "RandomSelect": # 1.30
+            f.write_byte(base.CWBinaryBase.unconv_castranges(data.find("CastRanges")))
+            levelmin = data.get("levelmin", None)
+            levelmax = data.get("levelmax", None)
+            status = data.get("status", None)
+            style = 0
+            if not (levelmin is None and levelmax is None):
+                style |= 0b01
+            if not status is None:
+                style |= 0b10
+            f.write_byte(style)
+            if (style & 0b01) <> 0:
+                f.write_dword(levelmin)
+                f.write_dword(levelmax)
+            if (style & 0b10) <> 0:
+                f.write_byte(base.CWBinaryBase.unconv_statustype(status))
         else:
             raise ValueError(self.tag + ", " + self.type)
 

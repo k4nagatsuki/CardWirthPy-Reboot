@@ -686,8 +686,16 @@ class MenuCard(CWPyCard):
 
         # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成。
         path = data.gettext("Property/ImagePath", "")
-
-        if path and not cw.binary.image.path_is_code(path):
+        pcn = ""
+        if not path:
+            pcn = data.gettext("Property/PCNumber", "")
+        if pcn:
+            # メニューカードにPCの画像を表示(1.30)
+            pcards = cw.cwpy.get_pcards()
+            pi = int(pcn) - 1
+            if pi < len(pcards):
+                path = pcards[pi].cardimg.path
+        elif path and not cw.binary.image.path_is_code(path):
             if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
                 path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
             else:

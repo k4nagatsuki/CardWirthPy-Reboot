@@ -67,6 +67,12 @@ class MusicInterface(object):
                 if os.path.normcase(fpath) == os.path.normcase(rpath):
                     # DefReset.midを繰り返し流すとシステムが不安定になる
                     pygame.mixer.music.play(0)
+                elif os.path.splitext(fpath)[1].lower() == ".mp3":
+                    # 互換動作: 1.28以前はMP3がループ再生されない
+                    if cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
+                        pygame.mixer.music.play(0)
+                    else:
+                        pygame.mixer.music.play(-1)
                 else:
                     pygame.mixer.music.play(-1)
             self.fpath = fpath

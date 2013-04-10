@@ -204,6 +204,7 @@ class CharacterCardImage(CardImage):
         self.rect = pygame.Rect(pos, (95, 130))
 
     def set_faceimg(self, path):
+        self.path = path
         self.cardimg = cw.util.load_image(path, True)
 
     def set_nameimg(self, name):
@@ -380,6 +381,81 @@ class CharacterCardImage(CardImage):
 
     def get_cardimg(self, header):
         return self.get_image()
+
+#-------------------------------------------------------------------------------
+# 背景セル関係
+#-------------------------------------------------------------------------------
+
+def create_type2textcell(text, size, face, color,
+        bold, italic, sline, uline, vertical,
+        w, h, bcolor, bwidth):
+    """縁取りType2のテキストセルを作成する。
+    """
+    wxbmp = wx.EmptyBitmap(w, h)
+    wxdc = wx.MemoryDC(wxbmp)
+
+    # mat
+    ni = 1 if color[0] < 128 else -1
+    back = (color[0]+ni, color[1], color[2])
+    while color == back or bcolor == back:
+        back = (back[0]+ni, back[1], back[2])
+
+    wxdc.SetPen(wx.Pen(back, 1, wx.SOLID))
+    wxdc.SetBrush(wx.Brush(back, wx.SOLID))
+    wxdc.DrawRectangle(0, 0, w, h)
+
+    # text
+    family = wx.FONTFAMILY_DEFAULT
+    style = wx.FONTSTYLE_NORMAL
+    weight = wx.FONTWEIGHT_NORMAL
+    encoding = wx.FONTFLAG_NOT_ANTIALIASED
+    if bold:
+        weight = wx.FONTWEIGHT_BOLD
+    if italic:
+        style = wx.FONTSTYLE_ITALIC
+    if vertical and not face.startswith("@"):
+        face = "@" + face
+
+    font = wx.Font(12, family, style, weight, uline, face, encoding)
+    font.SetPixelSize((0, size))
+    wxdc.SetFont(font)
+    te = wxdc.GetTextExtent("#")
+    lwidth = max(1, size / 15)
+
+    lines = text.splitlines()
+    pen = wx.Pen(color, lwidth, wx.SOLID)
+    wxdc.SetTextForeground(color)
+    wxdc.SetPen(pen)
+    if vertical:
+        x = w - te[1]
+        y = 0
+        for line in lines:
+            wxdc.DrawRotatedText(line, x, y, -90)
+            if sline:
+                lpos = x - (te[1] + lwidth) / 2
+                wxdc.DrawLine(lpos, y, lpos, y + wxdc.GetTextExtent(line)[0])
+
+            x -= te[1]
+    else:
+        x = 0
+        y = 0
+        for line in lines:
+            wxdc.DrawText(line, x, y)
+            if sline:
+                lpos = y + (te[1] + lwidth) / 2
+                wxdc.DrawLine(x, lpos, x + wxdc.GetTextExtent(line)[0], lpos)
+
+            y += te[1]
+
+    # border
+    wxdc.SetPen(wx.Pen(bcolor, 1, wx.SOLID))
+    wxdc.SetBrush(wx.Brush(bcolor, wx.SOLID))
+    cw.imageretouch.add_border(wxdc, wxbmp, color, bwidth)
+
+    wxdc.SelectObject(wx.NullBitmap)
+    wxbmp.SetMaskColour(back)
+
+    return conv2surface(wxbmp)
 
 #-------------------------------------------------------------------------------
 # 画像変換用関数

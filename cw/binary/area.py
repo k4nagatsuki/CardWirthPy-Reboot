@@ -143,7 +143,10 @@ class MenuCard(base.CWBinaryBase):
             prop = cw.data.make_element("Property")
             e = cw.data.make_element("Name", self.name)
             prop.append(e)
-            e = cw.data.make_element("ImagePath", self.imgpath)
+            if self.imgpath in ("1", "2", "3", "4", "5", "6"):
+                e = cw.data.make_element("PCNumber", self.imgpath)
+            else:
+                e = cw.data.make_element("ImagePath", self.imgpath)
             prop.append(e)
             e = cw.data.make_element("Description", self.description)
             prop.append(e)
@@ -182,6 +185,8 @@ class MenuCard(base.CWBinaryBase):
                         name = prop.text
                     elif prop.tag == "ImagePath":
                         imgpath = base.CWBinaryBase.materialpath(prop.text)
+                    elif prop.tag == "PCNumber":
+                        imgpath = prop.text
                     elif prop.tag == "Description":
                         description = prop.text
                     elif prop.tag == "Flag":
