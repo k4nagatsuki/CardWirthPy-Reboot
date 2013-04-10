@@ -1217,7 +1217,8 @@ class Character(object):
         継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            name = "Normal"
+            value = 0
         value = cw.util.numwrap(value, 0, 999)
         if name == "Normal":
             value = 0
@@ -1242,7 +1243,7 @@ class Character(object):
         継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
         if overwrite:
             self.bind = value
         else:
@@ -1257,7 +1258,7 @@ class Character(object):
         継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
         if overwrite:
             self.silence = value
         else:
@@ -1271,7 +1272,7 @@ class Character(object):
         継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
         if overwrite:
             self.faceup = value
         else:
@@ -1285,7 +1286,7 @@ class Character(object):
         継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
         if overwrite:
             self.antimagic = value
         else:
@@ -1308,7 +1309,8 @@ class Character(object):
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
+            duration = 0
         if value == 0:
             duration = 0
         if duration <= 0:
@@ -1327,7 +1329,8 @@ class Character(object):
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
+            duration = 0
         if value == 0:
             duration = 0
         if duration <= 0:
@@ -1346,7 +1349,8 @@ class Character(object):
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
+            duration = 0
         if value == 0:
             duration = 0
         if duration <= 0:
@@ -1365,7 +1369,8 @@ class Character(object):
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
         if self.is_unconscious():
-            return
+            value = 0
+            duration = 0
         if value == 0:
             duration = 0
         if duration <= 0:
