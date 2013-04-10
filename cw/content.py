@@ -895,7 +895,7 @@ class BranchRandomContent(BranchContent):
     def action(self):
         """ランダム分岐コンテント。"""
         value = self.data.getint(".", "value", 0)
-        if cw.cwpy.sdata and self.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
+        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
             # 互換動作: 1.28以前のバグで、確率分岐の値が+1になる
             flag = bool(cw.cwpy.dice.roll(1, 100) <= value+1)
         else:
