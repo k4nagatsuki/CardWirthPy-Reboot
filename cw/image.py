@@ -28,6 +28,10 @@ class Image(object):
         image = self.get_negaimg()
         return conv2wxbmp(image)
 
+#-------------------------------------------------------------------------------
+# カード関係
+#-------------------------------------------------------------------------------
+
 class CardImage(Image):
     def __init__(self, path, bgtype, name="", premium=""):
         """
@@ -405,10 +409,125 @@ def create_type2textcell(text, size, face, color,
     wxdc.DrawRectangle(0, 0, w, h)
 
     # text
+    pen, lineheight = set_textcellfont(wxdc, size, face, color, bold,
+                                       italic, uline, vertical, False)
+    lwidth = pen.GetWidth()
+
+    lines = text.splitlines()
+    if vertical:
+        x = w - lineheight
+        y = 0
+        for line in lines:
+            wxdc.DrawRotatedText(line, x, y, -90)
+            if sline:
+                lpos = x - (lineheight + lwidth) / 2
+                wxdc.DrawLine(lpos, y, lpos, y + wxdc.GetTextExtent(line)[0])
+
+            x -= lineheight
+    else:
+        x = 0
+        y = 0
+        for line in lines:
+            wxdc.DrawText(line, x, y)
+            if sline:
+                lpos = y + (lineheight + lwidth) / 2
+                wxdc.DrawLine(x, lpos, x + wxdc.GetTextExtent(line)[0], lpos)
+
+            y += lineheight
+
+    # border
+    wxdc.SetPen(wx.Pen(bcolor, 1, wx.SOLID))
+    wxdc.SetBrush(wx.Brush(bcolor, wx.SOLID))
+    cw.imageretouch.add_border(wxdc, wxbmp, color, bwidth)
+
+    wxdc.SelectObject(wx.NullBitmap)
+    wxbmp.SetMaskColour(back)
+
+    return conv2surface(wxbmp)
+
+def draw_textcell(image, rect, text, size, face, color,
+        bold, italic, sline, uline, vertical, bcolor=None):
+    """縁取りType2以外のテキストセルを描画する。
+    """
+    clip = rect.clip(pygame.Rect((0, 0), image.get_rect().size))
+    xm = clip.x - rect.x
+    ym = clip.y - rect.y
+    if clip.width <= 0 or clip.height <= 0:
+        return
+
+    wxbmp = wx.EmptyBitmap(clip.width, clip.height)
+    wxdc = wx.MemoryDC(wxbmp)
+    wxdc.DrawBitmap(conv2wxbmp(image.subsurface(clip)), 0, 0)
+    pen, lineheight = set_textcellfont(wxdc, size, face, color, bold,
+                                       italic, uline, vertical, True)
+    lwidth = pen.GetWidth()
+    if bcolor:
+        bpen = wx.Pen(bcolor, lwidth, wx.SOLID)
+    lines = text.splitlines()
+    if vertical:
+        x = clip.width - xm
+        y = -ym
+        for line in lines:
+            if bcolor:
+                wxdc.SetPen(bpen)
+                wxdc.SetTextForeground(bcolor)
+                for xx in xrange(-1, 2):
+                    for yy in xrange(-1, 2):
+                        if xx == 0 and yy == 0:
+                            continue
+                        wxdc.DrawRotatedText(line, x+xx, y+yy, -90)
+                        if sline:
+                            lpos = x - (lineheight + lwidth) / 2
+                            yto = y + wxdc.GetTextExtent(line)[0]
+                            wxdc.DrawLine(lpos+xx, y+yy, lpos+xx, yto+yy)
+                wxdc.SetPen(pen)
+                wxdc.SetTextForeground(color)
+            wxdc.DrawRotatedText(line, x, y, -90)
+            if sline:
+                lpos = x - (lineheight + lwidth) / 2
+                yto = y + wxdc.GetTextExtent(line)[0]
+                wxdc.DrawLine(lpos, y, lpos, yto)
+
+            x -= lineheight
+    else:
+        x = -xm
+        y = -ym
+        for line in lines:
+            if bcolor:
+                wxdc.SetPen(bpen)
+                wxdc.SetTextForeground(bcolor)
+                for xx in xrange(-1, 2):
+                    for yy in xrange(-1, 2):
+                        if xx == 0 and yy == 0:
+                            continue
+                        wxdc.DrawText(line, x+xx, y+yy)
+                        if sline:
+                            lpos = y + (lineheight + lwidth) / 2
+                            xto = x + wxdc.GetTextExtent(line)[0]
+                            wxdc.DrawLine(x+xx, lpos+yy, xto+xx, lpos+yy)
+                wxdc.SetPen(pen)
+                wxdc.SetTextForeground(color)
+            wxdc.DrawText(line, x, y)
+            if sline:
+                lpos = y + (lineheight + lwidth) / 2
+                xto = x + wxdc.GetTextExtent(line)[0]
+                wxdc.DrawLine(x, lpos, xto, lpos)
+
+            y += lineheight
+
+    wxdc.SelectObject(wx.NullBitmap)
+    bmp = conv2surface(wxbmp)
+    image.blit(bmp, clip.topleft)
+
+def set_textcellfont(wxdc, size, face, color, bold, italic,
+                     uline, vertical, antialiased):
+    """テキストセル用のフォントをwxdcへセットし、
+    (pen, lineheight)を返す。
+    """
     family = wx.FONTFAMILY_DEFAULT
     style = wx.FONTSTYLE_NORMAL
     weight = wx.FONTWEIGHT_NORMAL
-    encoding = wx.FONTFLAG_NOT_ANTIALIASED
+    encoding = wx.FONTFLAG_NOT_ANTIALIASED if antialiased else wx.FONTENCODING_DEFAULT
     if bold:
         weight = wx.FONTWEIGHT_BOLD
     if italic:
@@ -422,40 +541,51 @@ def create_type2textcell(text, size, face, color,
     te = wxdc.GetTextExtent("#")
     lwidth = max(1, size / 15)
 
-    lines = text.splitlines()
     pen = wx.Pen(color, lwidth, wx.SOLID)
     wxdc.SetTextForeground(color)
     wxdc.SetPen(pen)
-    if vertical:
-        x = w - te[1]
-        y = 0
-        for line in lines:
-            wxdc.DrawRotatedText(line, x, y, -90)
-            if sline:
-                lpos = x - (te[1] + lwidth) / 2
-                wxdc.DrawLine(lpos, y, lpos, y + wxdc.GetTextExtent(line)[0])
+    return pen, te[1]
 
-            x -= te[1]
+def create_colorcell(size, color1, gradient, color2):
+    """ブレンド前のカラーセルを生成し、
+    pygame.Surfaceのインスタンスを返す。
+    size: セルのサイズ
+    color1: 基本色
+    gradient: グラデーション方向。
+              "None","LeftToRight","TopToBottom"のいずれか
+    color2: 終端色
+    """
+    image = pygame.Surface(size).convert_alpha()
+
+    def calc_per(mn, mx, per):
+        if mn == mx:
+            return mn
+        l = min(mn, mx)
+        r = max(mx, mn)
+        c = r - l
+        return min(255, max(0, int(l + c * per)))
+
+    w = image.get_width()
+    h = image.get_height()
+    if gradient == "LeftToRight":
+        for x in xrange(w):
+            per = float(x) / w
+            r = calc_per(color1[0], color2[0], per)
+            g = calc_per(color1[1], color2[1], per)
+            b = calc_per(color1[2], color2[2], per)
+            a = calc_per(color1[3], color2[3], per)
+            pygame.draw.line(image, (r, g, b, a), (x, 0), (x, h), 1)
+    elif gradient == "TopToBottom":
+        for y in xrange(h):
+            per = float(y) / h
+            r = calc_per(color1[0], color2[0], per)
+            g = calc_per(color1[1], color2[1], per)
+            b = calc_per(color1[2], color2[2], per)
+            a = calc_per(color1[3], color2[3], per)
+            pygame.draw.line(image, (r, g, b, a), (0, y), (w, y), 1)
     else:
-        x = 0
-        y = 0
-        for line in lines:
-            wxdc.DrawText(line, x, y)
-            if sline:
-                lpos = y + (te[1] + lwidth) / 2
-                wxdc.DrawLine(x, lpos, x + wxdc.GetTextExtent(line)[0], lpos)
-
-            y += te[1]
-
-    # border
-    wxdc.SetPen(wx.Pen(bcolor, 1, wx.SOLID))
-    wxdc.SetBrush(wx.Brush(bcolor, wx.SOLID))
-    cw.imageretouch.add_border(wxdc, wxbmp, color, bwidth)
-
-    wxdc.SelectObject(wx.NullBitmap)
-    wxbmp.SetMaskColour(back)
-
-    return conv2surface(wxbmp)
+        image.fill(color1)
+    return image
 
 #-------------------------------------------------------------------------------
 # 画像変換用関数

@@ -284,25 +284,29 @@ def create_scenariolog(sdata, path, recording):
     e_bgimgs = cw.data.make_element("BgImages")
     element.append(e_bgimgs)
 
-    for fpath, mask, size, pos, flag, visible in cw.cwpy.background.bgs:
-        e_bgimg  = cw.data.make_element("BgImage", attrs={"mask": str(mask)})
+    for type, d in cw.cwpy.background.bgs:
+        if type == cw.sprite.background.BG_IMAGE:
+            fpath, mask, size, pos, flag, visible = d
+            e_bgimg  = cw.data.make_element("BgImage", attrs={"mask": str(mask)})
 
-        if fpath.startswith(cw.cwpy.skindir):
-            fpath = fpath.replace(cw.cwpy.skindir + "/", "", 1)
+            if fpath.startswith(cw.cwpy.skindir):
+                fpath = fpath.replace(cw.cwpy.skindir + "/", "", 1)
+            else:
+                fpath = fpath.replace(sdata.scedir + "/", "", 1)
+
+            e = cw.data.make_element("ImagePath", fpath)
+            e_bgimg.append(e)
+            e = cw.data.make_element("Flag", flag)
+            e_bgimg.append(e)
+            e = cw.data.make_element("Location",
+                            attrs={"left": str(pos[0]), "top": str(pos[1])})
+            e_bgimg.append(e)
+            e = cw.data.make_element("Size",
+                            attrs={"width": str(size[0]), "height": str(size[1])})
+            e_bgimg.append(e)
+            e_bgimgs.append(e_bgimg)
         else:
-            fpath = fpath.replace(sdata.scedir + "/", "", 1)
-
-        e = cw.data.make_element("ImagePath", fpath)
-        e_bgimg.append(e)
-        e = cw.data.make_element("Flag", flag)
-        e_bgimg.append(e)
-        e = cw.data.make_element("Location",
-                        attrs={"left": str(pos[0]), "top": str(pos[1])})
-        e_bgimg.append(e)
-        e = cw.data.make_element("Size",
-                        attrs={"width": str(size[0]), "height": str(size[1])})
-        e_bgimg.append(e)
-        e_bgimgs.append(e_bgimg)
+            assert False # TODO textcell, colorcell
 
     # flag
     e_flag = cw.data.make_element("Flags")

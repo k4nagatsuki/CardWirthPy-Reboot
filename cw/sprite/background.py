@@ -4,7 +4,7 @@
 import os
 import math
 import pygame
-from pygame.locals import BLEND_MIN, BLEND_ADD
+from pygame.locals import BLEND_MIN, BLEND_ADD, BLEND_ADD, BLEND_SUB, BLEND_MULT
 
 import cw
 import base
@@ -14,6 +14,10 @@ import card
 #-------------------------------------------------------------------------------
 #　背景スプライト
 #-------------------------------------------------------------------------------
+
+BG_IMAGE = 0
+BG_TEXT = 1
+BG_COLOR = 2
 
 class BackGround(base.CWPySprite):
     def __init__(self):
@@ -76,51 +80,40 @@ class BackGround(base.CWPySprite):
         animated = False
         blitlist = []
         for e in elements:
-            left = e.getint("Location", "left")
-            top = e.getint("Location", "top")
-            pos = (left, top)
-            width = e.getint("Size", "width")
-            height = e.getint("Size", "height")
-            size = (width, height)
-            mask = e.getbool(".", "mask", False)
-            flag = e.gettext("Flag", "")
-            path = e.gettext("ImagePath", "")
+            if e.tag == "BgImage":
+                left = e.getint("Location", "left")
+                top = e.getint("Location", "top")
+                pos = (left, top)
+                width = e.getint("Size", "width")
+                height = e.getint("Size", "height")
+                size = (width, height)
+                mask = e.getbool(".", "mask", False)
+                flag = e.gettext("Flag", "")
+                path = e.gettext("ImagePath", "")
 
-            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
-                path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+                if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
+                    path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+                else:
+                    path = cw.util.join_paths(cw.cwpy.skindir, path)
+
+                if not os.path.isfile(path):
+                    fname = os.path.basename(path)
+                    fname = os.path.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
+                    path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
+
+                image, anime = self.load_surface(path, mask, size, flag, doanime)
+                animated |= anime
+
+                if image:
+                    blitlist.append((BG_IMAGE, (image, pos, 0)))
+                    self.bgs.append((BG_IMAGE, (path, mask, size, pos, flag, True)))
+                else:
+                    self.bgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
+                    oldbgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
             else:
-                path = cw.util.join_paths(cw.cwpy.skindir, path)
+                assert False # TODO textcell, colorcell
 
-            if not os.path.isfile(path):
-                fname = os.path.basename(path)
-                fname = os.path.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
-                path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
-
-            image, anime = self.load_surface(path, mask, size, flag, doanime)
-            animated |= anime
-
-            if image:
-                blitlist.append((image, pos))
-                self.bgs.append((path, mask, size, pos, flag, True))
-            else:
-                self.bgs.append((path, mask, size, pos, flag, False))
-                oldbgs.append((path, mask, size, pos, flag, False))
-
-        # エフェクトブースターの実行後に背景を更新する
-        if not bginhrt:
-            self.image = pygame.Surface(cw.SIZE_SCR).convert()
-
-        for image, pos in blitlist:
-            self.image.blit(image, pos)
-
-        # エフェクトブースターの一時描画で使ったスプライトはすべて削除
-        cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
-
-        # トランジション効果で画面入り
-        if not animated and transitspr and not oldbgs == self.bgs:
-            transitspr.add(cw.cwpy.bggrp)
-            cw.animation.animate_sprite(transitspr, "transition")
-            transitspr.remove(cw.cwpy.bggrp)
+        self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs)
 
     def reload(self, doanime=True, ttype=("Default", "Default")):
         """背景画面を再構成する。
@@ -134,24 +127,36 @@ class BackGround(base.CWPySprite):
 
         animated = False
         blitlist = []
-        for path, mask, size, pos, flag, visible in self.bgs:
-            image, anime = self.load_surface(path, mask, size, flag, doanime=doanime)
-            animated |= anime
+        for type, d in self.bgs:
+            if type == BG_IMAGE:
+                path, mask, size, pos, flag, visible = d
+                image, anime = self.load_surface(path, mask, size, flag, doanime=doanime)
+                animated |= anime
 
-            if image:
-                blitlist.append((image, pos))
-                bgs.append((path, mask, size, pos, flag, True))
+                if image:
+                    blitlist.append((BG_IMAGE, (image, pos, 0)))
+                    bgs.append((BG_IMAGE, (path, mask, size, pos, flag, True)))
+                else:
+                    bgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
+                    oldbgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
             else:
-                bgs.append((path, mask, size, pos, flag, False))
-                oldbgs.append((path, mask, size, pos, flag, False))
-
-        # エフェクトブースターの実行後に背景を更新する
-        self.image = pygame.Surface(cw.SIZE_SCR).convert()
-
-        for image, pos in blitlist:
-            self.image.blit(image, pos)
+                assert False # TODO textcell, colorcell
 
         self.bgs = bgs
+        self._load_after(False, blitlist, animated, transitspr, oldbgs)
+
+    def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs):
+        # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
+        if not bginhrt:
+            self.image = pygame.Surface(cw.SIZE_SCR).convert()
+
+        for type, d in blitlist:
+            if type == BG_IMAGE:
+                image, pos, flag = d
+                self.image.blit(image, pos, None, flag)
+            else:
+                assert False # TODO textcell, colorcell
+
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
@@ -165,29 +170,28 @@ class BackGround(base.CWPySprite):
         """現在の背景からBgImagesElementを生成して返す。
         """
         data = cw.data.make_element("BgImages")
-        for bg in self.bgs:
-            e = cw.data.make_element("BgImage")
-            path = bg[0]
-            mask = bg[1]
-            size = bg[2]
-            pos  = bg[3]
-            flag = bg[4]
-            e2 = cw.data.make_element("ImagePath")
-            e2.text = path
-            e.append(e2)
-            e.set("mask", str(mask))
-            e2 = cw.data.make_element("Size")
-            e2.set("width", str(size[0]))
-            e2.set("height", str(size[1]))
-            e.append(e2)
-            e2 = cw.data.make_element("Location")
-            e2.set("left", str(pos[0]))
-            e2.set("top", str(pos[1]))
-            e.append(e2)
-            e2 = cw.data.make_element("Flag")
-            e2.text = flag
-            e.append(e2)
-            data.append(e)
+        for type, d in self.bgs:
+            if type == BG_IMAGE:
+                path, mask, size, pos, flag = d
+                e = cw.data.make_element("BgImage")
+                e2 = cw.data.make_element("ImagePath")
+                e2.text = path
+                e.append(e2)
+                e.set("mask", str(mask))
+                e2 = cw.data.make_element("Size")
+                e2.set("width", str(size[0]))
+                e2.set("height", str(size[1]))
+                e.append(e2)
+                e2 = cw.data.make_element("Location")
+                e2.set("left", str(pos[0]))
+                e2.set("top", str(pos[1]))
+                e.append(e2)
+                e2 = cw.data.make_element("Flag")
+                e2.text = flag
+                e.append(e2)
+                data.append(e)
+            else:
+                assert False # TODO textcell, colorcell
         return data
 
 class Curtain(base.SelectableSprite):
