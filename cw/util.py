@@ -574,6 +574,9 @@ def dupcheck_plus(path, yado=True):
 
     dpath, basename = os.path.split(path)
     fname, ext = os.path.splitext(basename)
+    fname = fname.strip()
+    ext = ext.strip()
+    basename = fname + ext
     count = 2
 
     while os.path.exists(path) or os.path.exists(temppath):
@@ -591,7 +594,7 @@ def dupcheck_plus(path, yado=True):
 
         count += 1
 
-    return path
+    return join_paths(dpath, basename)
 
 def repl_dischar(fname):
     """

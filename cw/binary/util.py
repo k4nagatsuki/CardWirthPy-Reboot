@@ -40,7 +40,8 @@ def check_filename(name):
         name = name.replace(s, s2)
 
     # 両端の空白を削除
-    return name.strip()
+    name, ext = os.path.splitext(name)
+    return name.strip() + ext.strip()
 
 def check_duplicate(path):
     """パスの重複チェック。
