@@ -145,9 +145,14 @@ class BranchContent(EventContentBase):
                 for e in chld:
                     # フラグ判定コンテントの場合、
                     # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check" and e.get("type") == "Flag":
-                        if cw.content.CheckFlagContent(e).action() <> 0:
-                            continue
+                    if e.tag == "Check":
+                        type = e.get("type")
+                        if type == "Flag":
+                            if cw.content.CheckFlagContent(e).action() <> 0:
+                                continue
+                        elif type == "Step":
+                            if cw.content.CheckStepContent(e).action() <> 0:
+                                continue
 
                     name = e.get("name")
 
@@ -176,9 +181,14 @@ class BranchContent(EventContentBase):
                 for e in chld:
                     # フラグ判定コンテントの場合、
                     # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check" and e.get("type") == "Flag":
-                        if cw.content.CheckFlagContent(e).action() <> 0:
-                            continue
+                    if e.tag == "Check":
+                        type = e.get("type")
+                        if type == "Flag":
+                            if cw.content.CheckFlagContent(e).action() <> 0:
+                                continue
+                        elif type == "Step":
+                            if cw.content.CheckStepContent(e).action() <> 0:
+                                continue
 
                     name = e.get("name")
 
@@ -207,9 +217,14 @@ class BranchContent(EventContentBase):
                 for e in chld:
                     # フラグ判定コンテントの場合、
                     # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check" and e.get("type") == "Flag":
-                        if cw.content.CheckFlagContent(e).action() <> 0:
-                            continue
+                    if e.tag == "Check":
+                        type = e.get("type")
+                        if type == "Flag":
+                            if cw.content.CheckFlagContent(e).action() <> 0:
+                                continue
+                        elif type == "Step":
+                            if cw.content.CheckStepContent(e).action() <> 0:
+                                continue
 
                     name = e.get("name")
 
@@ -294,6 +309,11 @@ class BranchContent(EventContentBase):
         "downavoid" : u"回避力低下", # 1.50
         "downresist" : u"抵抗力低下", # 1.50
         "downdefense" : u"防御力低下", # 1.50
+        # カード種別
+        "all" : u"全てのカード", # 1.50
+        "skill" : u"特殊技能カード", # 1.50
+        "item" : u"アイテムカード", # 1.50
+        "beast" : u"召喚獣カード", # 1.50
     }
 
 class BranchSkillContent(BranchContent):
@@ -993,6 +1013,184 @@ class BranchAbilityContent(BranchContent):
 
         return s
 
+class BranchRandomSelectContent(BranchContent):
+    def action(self):
+        """ランダム選択分岐コンテント(1.30)。"""
+        minlevel = int(self.data.get("minLevel", "0"))
+        maxlevel = int(self.data.get("maxLevel", "0"))
+        status = self.data.get("status", "")
+        ranges = self.get_castranges()
+
+        if status:
+            methodname = "is_%s" % status.lower()
+
+        # 対象メンバ取得
+        targets = []
+        for scope in ("Party", "Enemy", "Npc"): # 順序はPC→敵→同行NPCに固定
+            if scope in ranges:
+                targets.extend(cw.cwpy.event.get_targetscope(scope, False))
+
+        # レベル・状態判定
+        selectedmember = None
+        for target in targets:
+            if status and not (hasattr(target, methodname) and getattr(target, methodname)()):
+                continue
+            if 0 < minlevel and target.level < minlevel:
+                continue
+            if 0 < maxlevel and maxlevel < target.level:
+                continue
+
+            selectedmember = target
+            break
+
+        # 選択設定
+        if selectedmember:
+            cw.cwpy.event.set_selectedmember(selectedmember)
+
+        return self.get_boolean_index(not selectedmember is None)
+
+    def get_castranges(self):
+        ranges = set()
+        for e in self.data.getfind("CastRanges"):
+            ranges.add(e.gettext(".", ""))
+        return ranges
+
+    def get_status(self):
+        return u"ランダム選択分岐コンテント"
+
+    def get_childname(self, child):
+        minlevel = int(self.data.get("minLevel", "0"))
+        maxlevel = int(self.data.get("maxLevel", "0"))
+        status = self.data.get("status", "")
+        ranges = self.get_castranges()
+        if "Party" in ranges and "Enemy" in ranges and "Npc" in ranges:
+            s = self.textdict.get("field")
+        else:
+            s = ""
+            for scope in ranges:
+                if s:
+                    s += u"と"
+                s += self.textdict.get(scope.lower(), u"不明な範囲")
+
+        s2 = ""
+        if 0 < minlevel:
+            s2 += u"レベルが%s～%s" % (minlevel, maxlevel)
+
+        if status:
+            if s2:
+                s2 += u"で"
+            s2 += u"【%s】" % (self.textdict.get(self.data.get("status", "").lower(), ""))
+
+        if child.get("name", "") == u"○":
+            return u"%sから%sのキャラクターの選択に成功" % (s, s2)
+        else:
+            return u"%sから%sのキャラクターの選択に失敗" % (s, s2)
+
+class BranchKeyCodeContent(BranchContent):
+    def action(self):
+        """キーコード所持分岐コンテント(1.30)。"""
+        targetkc = self.data.get("targetkc", "Selected")
+        type = self.data.get("effectCardType", "All")
+        keycode = self.data.get("keyCode", "")
+
+        # 対象メンバ取得
+        targets = []
+        if targetkc == "Selected":
+            targets.append(cw.cwpy.event.get_targetmember(targetkc))
+        elif targetkc == "Random":
+            targets.extend(cw.cwpy.event.get_targetmember("Party"))
+            cw.cwpy.dice.shuffle(targets)
+        elif targetkc == "Backpack":
+            targets.append(cw.cwpy.ydata.party)
+        elif targetkc == "PartyAndBackpack":
+            targets.extend(cw.cwpy.event.get_targetmember("Party"))
+            cw.cwpy.dice.shuffle(targets)
+            targets.append(cw.cwpy.ydata.party)
+
+        # 対象カード種別
+        skill = False
+        item = False
+        beast = False
+        if type == "All":
+            skill = True
+            item = True
+            beast = True
+        elif type == "Skill":
+            skill = True
+        elif type == "Item":
+            item = True
+        elif type == "Beast":
+            beast = True
+
+        # キーコード所持判定
+        selectedmember = None
+        flag = False
+        for target in targets:
+            if isinstance(target, cw.character.Character):
+                if target.has_keycode(keycode, skill, item, beast):
+                    selectedmember = target
+                    flag = True
+                    break
+            elif isinstance(target, cw.data.Party):
+                if target.has_backpackkeycode(keycode, skill, item, beast):
+                    flag = True
+                    break
+            else:
+                assert False
+
+        # 選択設定
+        if selectedmember:
+            cw.cwpy.event.set_selectedmember(selectedmember)
+
+        return self.get_boolean_index(flag)
+
+    def get_status(self):
+        return u"キーコード所持分岐コンテント"
+
+    def get_childname(self, child):
+        targetkc = self.data.get("targetkc", "Selected")
+        type = self.data.get("effectCardType", "All")
+        keycode = self.data.get("keyCode", "")
+
+        s = self.textdict.get(targetkc.lower(), "")
+        s2 = self.textdict.get(type.lower(), "")
+        s3 = keycode
+
+        if child.get("name", "") == u"○":
+            return u"%sの%sからキーコード『%s』の発見に成功" % (s, s2, s3)
+        else:
+            return u"%sの%sからキーコード『%s』の発見に失敗" % (s, s2, s3)
+
+class BranchRoundContent(BranchContent):
+    def action(self):
+        """ラウンド分岐コンテント(1.50)。"""
+        round1 = int(self.data.get("round", "1"))
+        comparison = self.data.get("comparison")
+
+        flag = False
+        if cw.cwpy.is_battlestatus():
+            round2 = cw.cwpy.battle.round
+            if comparison == "=":
+                flag = (round1 == round2)
+            elif comparison == "<":
+                flag = (round1 < round2)
+            elif comparison == ">":
+                flag = (round1 > round2)
+
+        return self.get_boolean_index(flag)
+
+    def get_status(self):
+        return u"ラウンド分岐コンテント"
+
+    def get_childname(self, child):
+        round = int(self.data.get("round", "1"))
+        comparison = self.data.get("comparison")
+
+        if child.get("name", "") == u"○":
+            return u"%s %s 現在のバトルラウンドである" % (round, comparison)
+        else:
+            return u"%s %s 現在のバトルラウンドでない" % (round, comparison)
+
 #-------------------------------------------------------------------------------
 # Call系コンテント
 #-------------------------------------------------------------------------------
@@ -1131,6 +1329,40 @@ class CheckFlagContent(EventContentBase):
             return u"フラグ『%s』の値で判定" % (flag)
         else:
             return u"フラグが指定されていません"
+
+class CheckStepContent(EventContentBase):
+    def action(self):
+        """ステップ判定コンテント(1.50)。"""
+        step = self.data.get("step")
+        value1 = self.data.getint(".", "value", 0)
+        comparison = self.data.get("comparison")
+
+        if step in cw.cwpy.sdata.steps:
+            value2 = cw.cwpy.sdata.steps[step].value
+            if comparison == "=":
+                if value1 == value2:
+                    return 0
+            elif comparison == "<>":
+                if value1 <> value2:
+                    return 0
+            elif comparison == "<":
+                if value1 < value2:
+                    return 0
+            elif comparison == ">":
+                if value1 > value2:
+                    return 0
+
+        return cw.IDX_TREEEND
+
+    def get_status(self):
+        step = self.data.get("step")
+        value1 = self.data.getint(".", "value", 0)
+        comparison = self.data.get("comparison")
+
+        if step:
+            return u"%s %s ステップ『%s』" % (value1, comparison, step)
+        else:
+            return u"ステップが指定されていません"
 
 #-------------------------------------------------------------------------------
 # Effect系コンテント
@@ -2069,10 +2301,16 @@ class TalkContent(EventContentBase):
 
             if name:
                 # フラグ判定コンテントの場合、対応フラグがTrueだったら選択肢追加
-                if e.tag == "Check" and e.get("type") == "Flag":
-                    if CheckFlagContent(e).action() == 0:
-                        seq.append((index, name))
-                        index += 1
+                if e.tag == "Check":
+                    type = e.get("type")
+                    if type == "Flag":
+                        if CheckFlagContent(e).action() == 0:
+                            seq.append((index, name))
+                            index += 1
+                    elif type == "Step":
+                        if CheckStepContent(e).action() == 0:
+                            seq.append((index, name))
+                            index += 1
 
                 else:
                     seq.append((index, name))
@@ -2494,83 +2732,6 @@ class BranchFlagValueContent(BranchContent):
 
         else:
             return u"フラグが指定されていません"
-
-#-------------------------------------------------------------------------------
-# ランダム選択分岐コンテント (1.30～)
-#-------------------------------------------------------------------------------
-
-class BranchRandomSelectContent(BranchContent):
-    def action(self):
-        """ランダム選択分岐コンテント。"""
-        minlevel = int(self.data.get("minLevel", "0"))
-        maxlevel = int(self.data.get("maxLevel", "0"))
-        status = self.data.get("status", "")
-        ranges = self.get_castranges()
-
-        if status:
-            methodname = "is_%s" % status.lower()
-
-        # 対象メンバ取得
-        targets = []
-        for scope in ("Party", "Enemy", "Npc"): # 順序はPC→敵→同行NPCに固定
-            if scope in ranges:
-                targets.extend(cw.cwpy.event.get_targetscope(scope, False))
-
-        # レベル・状態判定
-        selectedmember = None
-        for target in targets:
-            if status and not (hasattr(target, methodname) and getattr(target, methodname)()):
-                continue
-            if 0 < minlevel and target.level < minlevel:
-                continue
-            if 0 < maxlevel and maxlevel < target.level:
-                continue
-
-            selectedmember = target
-            break
-
-        # 選択設定
-        if selectedmember:
-            cw.cwpy.event.set_selectedmember(selectedmember)
-
-        return self.get_boolean_index(not selectedmember is None)
-
-    def get_castranges(self):
-        ranges = set()
-        for e in self.data.getfind("CastRanges"):
-            ranges.add(e.gettext(".", ""))
-        return ranges
-
-    def get_status(self):
-        return u"ランダム選択分岐コンテント"
-
-    def get_childname(self, child):
-        minlevel = int(self.data.get("minLevel", "0"))
-        maxlevel = int(self.data.get("maxLevel", "0"))
-        status = self.data.get("status", "")
-        ranges = self.get_castranges()
-        if "Party" in ranges and "Enemy" in ranges and "Npc" in ranges:
-            s = self.textdict.get("field")
-        else:
-            s = ""
-            for scope in ranges:
-                if s:
-                    s += u"と"
-                s += self.textdict.get(scope.lower(), u"不明な範囲")
-
-        s2 = ""
-        if 0 < minlevel:
-            s2 += u"レベルが%s～%s" % (minlevel, maxlevel)
-
-        if status:
-            if s2:
-                s2 += u"で"
-            s2 += u"【%s】" % (self.textdict.get(self.data.get("status", "").lower(), ""))
-
-        if child.get("name", "") == u"○":
-            return u"%sから%sのキャラクターの選択に成功" % (s, s2)
-        else:
-            return u"%sから%sのキャラクターの選択に失敗" % (s, s2)
 
 #-------------------------------------------------------------------------------
 # 特殊コンテント

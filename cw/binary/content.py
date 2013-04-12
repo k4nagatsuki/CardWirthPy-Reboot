@@ -289,6 +289,17 @@ class Content(base.CWBinaryBase):
                 self.properties["levelmax"] = f.dword()
             if (style & 0b10) <> 0:
                 self.properties["status"] = self.conv_statustype(f.byte())
+        elif self.tag == "Branch" and self.type == "KeyCode": # 1.50
+            self.properties["targetkc"] = self.conv_keycoderange(f.byte())
+            self.properties["effectCardType"] = self.conv_effectcardtype(f.byte())
+            self.properties["keyCode"] = f.string()
+        elif self.tag == "Check" and self.type == "Step": # 1.50
+            self.properties["step"] = f.string()
+            self.properties["value"] = f.dword()
+            self.properties["comparison"] = self.conv_comparison4(f.byte())
+        elif self.tag == "Branch" and self.type == "Round": # 1.50
+            self.properties["comparison"] = self.conv_comparison3(f.byte())
+            self.properties["round"] = f.dword()
         else:
             raise ValueError(self.tag + ", " + self.type)
 
@@ -600,6 +611,17 @@ class Content(base.CWBinaryBase):
                 f.write_dword(levelmax)
             if (style & 0b10) <> 0:
                 f.write_byte(base.CWBinaryBase.unconv_statustype(status))
+        elif tag == "Branch" and type == "KeyCode": # 1.50
+            f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc")))
+            f.write_byte(base.CWBinaryBase.unconv_effectcardtype(data.get("effectCardType")))
+            f.write_string(data.get("keyCode"))
+        elif tag == "Check" and type == "Step": # 1.50
+            f.write_string(data.get("step"))
+            f.write_dword(int(data.get("value")))
+            f.write_byte(base.CWBinaryBase.unconv_comparison4(data.get("comparison")))
+        elif tag == "Branch" and type == "Round": # 1.50
+            f.write_byte(base.CWBinaryBase.unconv_comparison3(data.get("comparison")))
+            f.write_dword(int(data.get("round")))
         else:
             raise ValueError(self.tag + ", " + self.type)
 

@@ -580,9 +580,14 @@ class Event(object):
                 for e in element.getchildren():
                     # フラグ判定コンテントの場合、
                     # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check" and e.get("type") == "Flag":
-                        if cw.content.CheckFlagContent(e).action() == 0:
-                            seq.append(e)
+                    if e.tag == "Check":
+                        type = e.get("type")
+                        if type == "Flag":
+                            if cw.content.CheckFlagContent(e).action() == 0:
+                                seq.append(e)
+                        elif type == "Step":
+                            if cw.content.CheckStepContent(e).action() == 0:
+                                seq.append(e)
 
                     else:
                         seq.append(e)

@@ -436,6 +436,12 @@ class CWBinaryBase(object):
             return "Branch", "FlagValue"      # フラグ比較(1.30)
         elif n == 70:
             return "Branch", "RandomSelect"   # ランダム選択(1.30)
+        elif n == 71:
+            return "Branch", "KeyCode"        # キーコード所持分岐(1.50)
+        elif n == 72:
+            return "Check", "Step"            # ステップ判定(1.50)
+        elif n == 73:
+            return "Branch", "Round"          # ラウンド分岐(1.50)
         else:
             raise ValueError(self.fpath)
 
@@ -583,6 +589,12 @@ class CWBinaryBase(object):
             return 69
         elif type == "Branch" and n == "RandomSelect": # 1.30
             return 70
+        elif type == "Branch" and n == "KeyCode": # 1.50
+            return 71
+        elif type == "Check" and n == "Step": # 1.50
+            return 72
+        elif type == "Branch" and n == "Round": # 1.50
+            return 73
         else:
             raise ValueError(type + ", " + n)
 
