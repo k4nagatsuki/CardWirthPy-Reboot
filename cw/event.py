@@ -351,6 +351,9 @@ class EventEngine(object):
                 index = cw.cwpy.list.index(last_selected)
                 if 0 <= index:
                     cw.cwpy.index = index
+            return True
+        else:
+            return False
 
     def check_keycodes(self, keycodes):
         kcset = set(keycodes)
@@ -393,6 +396,10 @@ class EventEngine(object):
     def check_keynum(self, keynum):
         for event in self.events:
             if keynum in event.keynums:
+                return event
+            if keynum < 0 and 4 in event.keynums:
+                # ラウンド発火条件の場合は
+                # 毎ラウンド発火もチェックする(1.50)
                 return event
 
         return None

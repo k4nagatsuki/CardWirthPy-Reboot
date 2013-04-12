@@ -1354,18 +1354,23 @@ class CWPy(_Singleton, threading.Thread):
             target = self.ydata.storehouse
         elif targettype in ("PAWNSHOP", "TRASHBOX"):
             if targettype == "PAWNSHOP":
+                def calc_price(header):
+                    if header.premium == "Normal":
+                        return header.price / 2
+                    else:
+                        return int(header.price * 0.75)
                 if header.type == "SkillCard":
-                    price = header.price / 2
+                    price = calc_price(header)
                 elif header.type == "ItemCard":
                     if header.maxuselimit == 0:
-                        price = header.price / 2
+                        price = calc_price(header)
                     else:
                         # 使用回数がある場合は使うほど売値が減る
-                        price = header.price / 2 * header.uselimit
+                        price = calc_price(header) * header.uselimit
                         if header.maxuselimit:
                             price /=  header.maxuselimit
                 elif header.type == "BeastCard":
-                    price = header.price / 2
+                    price = calc_price(header)
                 if not from_event:
                     if sound:
                         cw.cwpy.sounds["page"].play()

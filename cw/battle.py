@@ -46,6 +46,10 @@ class BattleEngine(object):
         # 行動準備
         self.ready()
 
+        # バトル開始イベント(1.50)
+        # このイベントの終了時点では勝利・敗北は発生しない
+        cw.cwpy.sdata.start_event(keynum=5)
+
     def is_running(self):
         return self._running
 
