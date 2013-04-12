@@ -4,7 +4,7 @@
 import os
 import math
 import pygame
-from pygame.locals import BLEND_MIN, BLEND_ADD, BLEND_ADD, BLEND_SUB, BLEND_MULT
+from pygame.locals import BLEND_MIN, BLEND_ADD, BLEND_RGBA_ADD, BLEND_RGBA_SUB, BLEND_RGBA_MULT
 
 import cw
 import base
@@ -80,15 +80,25 @@ class BackGround(base.CWPySprite):
         animated = False
         blitlist = []
         for e in elements:
+            left = e.getint("Location", "left")
+            top = e.getint("Location", "top")
+            pos = (left, top)
+            width = e.getint("Size", "width")
+            height = e.getint("Size", "height")
+            size = (width, height)
+            flag = e.gettext("Flag", "")
+            visible = cw.cwpy.sdata.flags.get(flag, True)
+
+            def getcolor(e, xpath, r, g, b, a):
+                r = e.getint(xpath, "r", r)
+                g = e.getint(xpath, "g", g)
+                b = e.getint(xpath, "b", b)
+                a = e.getint(xpath, "a", a)
+                return (r, g, b, a)
+
             if e.tag == "BgImage":
-                left = e.getint("Location", "left")
-                top = e.getint("Location", "top")
-                pos = (left, top)
-                width = e.getint("Size", "width")
-                height = e.getint("Size", "height")
-                size = (width, height)
+                # 背景画像
                 mask = e.getbool(".", "mask", False)
-                flag = e.gettext("Flag", "")
                 path = e.gettext("ImagePath", "")
 
                 if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
@@ -101,17 +111,40 @@ class BackGround(base.CWPySprite):
                     fname = os.path.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
                     path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
 
-                image, anime = self.load_surface(path, mask, size, flag, doanime)
-                animated |= anime
+                d = (path, mask, size, pos, flag, visible)
+                animated |= self._add_imagecell(blitlist, self.bgs, oldbgs, d, doanime)
 
-                if image:
-                    blitlist.append((BG_IMAGE, (image, pos, 0)))
-                    self.bgs.append((BG_IMAGE, (path, mask, size, pos, flag, True)))
-                else:
-                    self.bgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
-                    oldbgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
+            elif e.tag == "TextCell":
+                # テキストセル
+                text = e.gettext("Text", "")
+                face = e.gettext("Font", "")
+                tsize = e.getint("Font", "size", 12)
+                color = getcolor(e, "Color", 0, 0, 0, 255)
+                bold = e.getbool("Font", "bold", False)
+                italic = e.getbool("Font", "italic", False)
+                underline = e.getbool("Font", "underline", False)
+                strike = e.getbool("Font", "strike", False)
+                vertical = e.getbool("Vertical", False)
+                btype = e.getattr("Bordering", "type", "None")
+                bcolor = getcolor(e, "Bordering/Color", 255, 255, 255, 255)
+                bwidth = e.getint("Bordering", "width", 1)
+
+                d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
+                     btype, bcolor, bwidth, size, pos, flag, visible)
+                self._add_textcell(blitlist, self.bgs, oldbgs, d)
+
+            elif e.tag == "ColorCell":
+                # カラーセル
+                blend = e.gettext("BlendMode", "Normal")
+                color1 = getcolor(e, "Color", 255, 255, 255, 255)
+                gradient = e.getattr("Gradient", "direction", "None")
+                color2 = getcolor(e, "Gradient/EndColor", 0, 0, 0, 255)
+
+                d = blend, color1, gradient, color2, size, pos, flag, visible
+                self._add_colorcell(blitlist, self.bgs, oldbgs, d)
+
             else:
-                assert False # TODO textcell, colorcell
+                assert False
 
         self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs)
 
@@ -129,21 +162,81 @@ class BackGround(base.CWPySprite):
         blitlist = []
         for type, d in self.bgs:
             if type == BG_IMAGE:
-                path, mask, size, pos, flag, visible = d
-                image, anime = self.load_surface(path, mask, size, flag, doanime=doanime)
-                animated |= anime
+                # 背景画像
+                animated |= self._add_imagecell(blitlist, bgs, oldbgs, d, doanime)
 
-                if image:
-                    blitlist.append((BG_IMAGE, (image, pos, 0)))
-                    bgs.append((BG_IMAGE, (path, mask, size, pos, flag, True)))
-                else:
-                    bgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
-                    oldbgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
+            elif type == BG_TEXT:
+                # テキストセル
+                self._add_textcell(blitlist, bgs, oldbgs, d)
+
+            elif type == BG_COLOR:
+                # カラーセル
+                self._add_colorcell(blitlist, bgs, oldbgs, d)
+
             else:
-                assert False # TODO textcell, colorcell
+                assert False
 
         self.bgs = bgs
         self._load_after(False, blitlist, animated, transitspr, oldbgs)
+
+    def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime):
+        path, mask, size, pos, flag, visible = d
+        image, anime = self.load_surface(path, mask, size, flag, doanime=doanime)
+
+        if image:
+            blitlist.append((BG_IMAGE, (image, pos, 0)))
+            bgs.append((BG_IMAGE, (path, mask, size, pos, flag, True)))
+        else:
+            bgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
+            oldbgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
+
+        return anime
+
+    def _add_textcell(self, blitlist, bgs, oldbgs, d):
+        text, face, tsize, color, bold, italic, underline, strike, vertical,\
+            btype, bcolor, bwidth, size, pos, flag, visible = d
+        visible = cw.cwpy.sdata.flags.get(flag, True)
+        d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
+             btype, bcolor, bwidth, size, pos, flag, visible)
+        if visible:
+            text = cw.sprite.message.rpl_specialstr(text)
+            if btype == "Inline":
+                # 縁取り形式2のみは事前にセル生成が可能
+                image = cw.image.create_type2textcell(text, face, tsize, color,
+                    bold, italic, underline, strike, vertical,
+                    size, bcolor, bwidth)
+                blitlist.append((BG_IMAGE, (image, pos, 0)))
+            else:
+                # アンチエイリアスの関係で後から描画
+                if btype <> "Outline":
+                    bcolor = None
+                d2 = (text, face, tsize, color, bold, italic, underline, strike, vertical,
+                      bcolor, size, pos)
+                blitlist.append((BG_TEXT, d2))
+            bgs.append((type, d))
+        else:
+            bgs.append((type, d))
+            oldbgs.append((type, d))
+
+    def _add_colorcell(self, blitlist, bgs, oldbgs, d):
+        blend, color1, gradient, color2, size, pos, flag, visible = d
+        visible = cw.cwpy.sdata.flags.get(flag, True)
+        d = blend, color1, gradient, color2, size, pos, flag, visible
+        if visible:
+            image = cw.image.create_colorcell(size, color1, gradient, color2)
+            if blend == "Add":
+                blendflag = BLEND_RGBA_ADD
+            elif blend == "Subtract":
+                blendflag = BLEND_RGBA_SUB
+            elif blend == "Multiply":
+                blendflag = BLEND_RGBA_MULT
+            else:
+                blendflag = 0
+            blitlist.append((BG_IMAGE, (image, pos, blendflag)))
+            bgs.append((type, d))
+        else:
+            bgs.append((type, d))
+            oldbgs.append((type, d))
 
     def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
@@ -152,10 +245,19 @@ class BackGround(base.CWPySprite):
 
         for type, d in blitlist:
             if type == BG_IMAGE:
+                # 背景画像、カラーセル、縁取り形式2のテキストセル
                 image, pos, flag = d
                 self.image.blit(image, pos, None, flag)
+
+            elif type == BG_TEXT:
+                # 縁取り形式2以外のテキストセル
+                text, face, tsize, color, bold, italic, underline, strike, vertical,\
+                    bcolor, size, pos = d
+                cw.image.draw_textcell(self.image, pygame.Rect(pos, size), text, face,
+                    tsize, color, bold, italic, underline, strike, vertical, bcolor)
+
             else:
-                assert False # TODO textcell, colorcell
+                assert False
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -165,34 +267,6 @@ class BackGround(base.CWPySprite):
             transitspr.add(cw.cwpy.bggrp)
             cw.animation.animate_sprite(transitspr, "transition")
             transitspr.remove(cw.cwpy.bggrp)
-
-    def get_data(self):
-        """現在の背景からBgImagesElementを生成して返す。
-        """
-        data = cw.data.make_element("BgImages")
-        for type, d in self.bgs:
-            if type == BG_IMAGE:
-                path, mask, size, pos, flag = d
-                e = cw.data.make_element("BgImage")
-                e2 = cw.data.make_element("ImagePath")
-                e2.text = path
-                e.append(e2)
-                e.set("mask", str(mask))
-                e2 = cw.data.make_element("Size")
-                e2.set("width", str(size[0]))
-                e2.set("height", str(size[1]))
-                e.append(e2)
-                e2 = cw.data.make_element("Location")
-                e2.set("left", str(pos[0]))
-                e2.set("top", str(pos[1]))
-                e.append(e2)
-                e2 = cw.data.make_element("Flag")
-                e2.text = flag
-                e.append(e2)
-                data.append(e)
-            else:
-                assert False # TODO textcell, colorcell
-        return data
 
 class Curtain(base.SelectableSprite):
     def __init__(self, spritegrp, size=(632, 420), pos=(0, 0), alpha=128):

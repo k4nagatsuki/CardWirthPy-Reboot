@@ -18,6 +18,7 @@ class MessageWindow(base.CWPySprite):
                  backlog=False, result=None, versionhint=""):
         base.CWPySprite.__init__(self)
         self.backlog = backlog
+        self._barspchr = True
 
         # クラシックスタイルか
         self.classicstyletext = cw.cwpy.setting.classicstyletext
@@ -62,7 +63,8 @@ class MessageWindow(base.CWPySprite):
         if not self.backlog:
             self.versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
 
-        self._init_nametable()
+        if not self.name_table:
+            self.name_table = _create_nametable(True, self.talker)
 
         # 話者画像
         if talkerimage:
@@ -157,6 +159,9 @@ class MessageWindow(base.CWPySprite):
             x, y = self.selection_pos
 
             for index, name in enumerate(self.names):
+                # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
+                if self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+                    name = (name[0], self.rpl_specialstr(False, name[1]))
                 pos = (x, 25 * index + y)
                 selected = 1 < len(self.names) and self.backlog and self.result == index
                 sbar = SelectionBar(name, pos, backlog=self.backlog, selected=selected)
@@ -165,7 +170,7 @@ class MessageWindow(base.CWPySprite):
 
     def create_charimgs(self, pos=(15, 11)):
         if self.talker_image:
-            self.text = self.rpl_specialstr(self.text)
+            self.text = self.rpl_specialstr(True, self.text)
             self.text = cw.util.txtwrap(self.text, 2)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if self.backlog:
@@ -178,14 +183,19 @@ class MessageWindow(base.CWPySprite):
                 w = 74
             posp = pos = pos[0] + 26 + w, pos[1]
         else:
-            self.text = self.rpl_specialstr(self.text)
+            self.text = self.rpl_specialstr(True, self.text)
             self.text = cw.util.txtwrap(self.text, 3)
             posp = pos
 
-        r_join = re.compile(u"[―─～]")          # 左右で接続する文字の集合
-        r_halfwidth = re.compile(u"[ -~｡-ﾟ]")    # 半角文字の集合
-        r_specialfont = re.compile("#.")     # 特殊文字(#)の集合
-        r_changecolour = re.compile("&[a-z]")    # 文字色変更文字(&)の集合
+        r_join = re.compile(u"[―─～]") # 左右で接続する文字の集合
+        r_halfwidth = re.compile(u"[ -~｡-ﾟ]") # 半角文字の集合
+        r_specialfont = re.compile("#.") # 特殊文字(#)の集合
+        # 文字色変更文字(&)の集合
+        # 互換動作: 1.30以前はO,P,L,Dの各色が無い
+        if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+            r_changecolour = re.compile("&[wrbgy]")
+        else:
+            r_changecolour = re.compile("&[wrbgyopld]")
         # フォントデータ
         font = cw.cwpy.rsrc.fonts["message"]
         colour = (255, 255, 255)
@@ -336,39 +346,17 @@ class MessageWindow(base.CWPySprite):
 
         return images
 
-    def _init_nametable(self):
-        if self.name_table:
-            return
-
-        random = cw.cwpy.event.get_targetmember("Random")
-        random = random.name if random else ""
-        selected = cw.cwpy.event.get_targetmember("Selected")
-        selected = selected.name if selected else ""
-        unselected = cw.cwpy.event.get_targetmember("Unselected")
-        unselected = unselected.name if unselected else ""
-        inusecard = cw.cwpy.event.get_targetmember("Inusecard")
-        inusecard = inusecard.name if inusecard else ""
-        talker = self.talker.name if self.talker else ""
-        party = cw.cwpy.ydata.party.name if cw.cwpy.ydata.party else ""
-        yado = cw.cwpy.ydata.name
-
-        self.name_table = {
-             "#c" : inusecard,  # 使用カード名(カード使用イベント時のみ)
-             "#i" : talker,     # 話者の名前(表示イメージのキャラやカード名)
-             "#m" : selected,   # 選択中のキャラ名(#i=#m というわけではない)
-             "#r" : random,     # ランダム選択キャラ名
-             "#u" : unselected, # 非選択中キャラ名
-             "#y" : yado,       # 宿の名前
-             "#t" : party       # パーティの名前
-        }
-
-    def rpl_specialstr(self, s):
+    def rpl_specialstr(self, full, s):
         """
         特殊文字列(#, $)を置換した文字列を返す
         """
         for key, value in self.name_table.iteritems():
-            if key in cw.cwpy.rsrc.specialchars:
-                continue
+            if full:
+                if key in cw.cwpy.rsrc.specialchars:
+                    continue
+            else:
+                if not key in ("#m", "#r", "#u", "#y", "#t"):
+                    continue
 
             s = s.replace(key, value)
             s = s.replace(key.upper(), value)
@@ -425,6 +413,14 @@ class MessageWindow(base.CWPySprite):
             return (255, 255,   0)
         elif s == "w":
             return (255, 255, 255)
+        elif s == "o": # 1.50
+            return (255, 165, 0)
+        elif s == "p": # 1.50
+            return (204, 136, 255)
+        elif s == "l": # 1.50
+            return (169, 169, 169)
+        elif s == "d": # 1.50
+            return (105, 105, 105)
         else:
             return (255, 255, 255)
 
@@ -432,6 +428,7 @@ class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos=(81, 50), size=(470, 38), backlog=False, result=None):
         base.CWPySprite.__init__(self)
         self.backlog = backlog
+        self._barspchr = False
         self.name_table = {}
         self.flag_table = {}
         self.step_table = {}
@@ -694,6 +691,66 @@ def get_pointlist(size, pos=(0, 0)):
     pos4 = (size[0]-1, pos[1])
     pos5 = pos
     return (pos1, pos2, pos3, pos4, pos5)
+
+def rpl_specialstr(s):
+    """
+    テキストセルや選択肢のテキスト内の
+    特殊文字列(#, $)を置換した文字列を返す。
+    """
+    name_table = _create_nametable(False, None)
+    for key, value in name_table.iteritems():
+        s = s.replace(key, value)
+        s = s.replace(key.upper(), value)
+
+    # ステップ変数名の置換
+    r_step = re.compile(r"\$(.*?)\$")  # ステップ変数参照($)の集合
+    s = r_step.sub(_rpl_stepvalue, s)
+    # フラグ変数名の置換
+    r_flag = re.compile(r"\%(.*?)\%")  # フラグ変数参照(%)の集合
+    s = r_flag.sub(_rpl_flagvalue, s)
+    return s
+
+def _create_nametable(full, talker):
+    random = cw.cwpy.event.get_targetmember("Random")
+    random = random.name if random else ""
+    selected = cw.cwpy.event.get_targetmember("Selected")
+    selected = selected.name if selected else ""
+    unselected = cw.cwpy.event.get_targetmember("Unselected")
+    unselected = unselected.name if unselected else ""
+    if full:
+        inusecard = cw.cwpy.event.get_targetmember("Inusecard")
+        inusecard = inusecard.name if inusecard else ""
+        talker = talker.name if talker else ""
+    party = cw.cwpy.ydata.party.name if cw.cwpy.ydata.party else ""
+    yado = cw.cwpy.ydata.name
+
+    name_table = {
+        "#m" : selected,   # 選択中のキャラ名(#i=#m というわけではない)
+        "#r" : random,     # ランダム選択キャラ名
+        "#u" : unselected, # 非選択中キャラ名
+        "#y" : yado,       # 宿の名前
+        "#t" : party       # パーティの名前
+    }
+    if full:
+        name_table["#c"] = inusecard # 使用カード名(カード使用イベント時のみ)
+        name_table["#i"] = talker    # 話者の名前(表示イメージのキャラやカード名)
+    return name_table
+
+def _rpl_stepvalue(m):
+    key = m.group(1)
+    if key in cw.cwpy.sdata.steps:
+        s = cw.cwpy.sdata.steps[key].get_valuename()
+    else:
+        s = ""
+    return s
+
+def _rpl_flagvalue(m):
+    key = m.group(1)
+    if key in cw.cwpy.sdata.flags:
+        s = cw.cwpy.sdata.flags[key].get_valuename()
+    else:
+        s = ""
+    return s
 
 def main():
     pass

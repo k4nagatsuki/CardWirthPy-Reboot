@@ -674,7 +674,7 @@ class CWBinaryBase(object):
     def conv_target_scope_coupon(self, n):
         """引数の値から、「適用範囲」の種類を返す(1.30～のクーポン分岐)。
         0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
-        2:Party(パーティの全員), 3:FieldCasts(フィールド全体のキャスト)
+        2:Party(パーティの全員), 3:Field(フィールド全体)
         """
         if n == 0:
             return "Selected"
@@ -729,6 +729,35 @@ class CWBinaryBase(object):
                 raise ValueError(n)
         return value
 
+    def conv_keycoderange(self, n):
+        """引数の値から、「キーコード取得範囲」の種類を返す(1.50～のキーコード所持分岐)。
+        0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
+        2:Backpack(荷物袋), 3:PartyAndBackpack(全体(荷物袋含む))
+        """
+        if n == 0:
+            return "Selected"
+        elif n == 1:
+            return "Random"
+        elif n == 2:
+            return "Backpack"
+        elif n == 3:
+            return "PartyAndBackpack"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_keycoderange(data):
+        if n == "Selected":
+            return 0
+        elif n == "Random":
+            return 1
+        elif n == "Backpack":
+            return 2
+        elif n == "PartyAndBackpack":
+            return 3
+        else:
+            raise ValueError(n)
+
 #-------------------------------------------------------------------------------
 # コンテント系
 #-------------------------------------------------------------------------------
@@ -759,6 +788,12 @@ class CWBinaryBase(object):
         10:Bind(呪縛), 11:Paralyze(麻痺・石化)
         以降は1.30～
         12:Confuse(混乱), 13:Overheat(激昂), 14:Brave(勇敢), 15:Panic(恐慌)
+        以降は1.50～
+        16:Silence(沈黙), 17:FaceUp(暴露), 18:AntiMagic(魔法無効化),
+        19:UpAction(行動力上昇), 20:UpAvoid(回避力上昇),
+        21:UpResist(抵抗力上昇), 22:UpDefense(防御力上昇),
+        23:DownAction(行動力低下), 24:DownAvoid(回避力低下),
+        25:DownResist(抵抗力低下), 26:DownDefense(防御力低下)
         """
         if n == 0:
             return "Active"
@@ -792,6 +827,28 @@ class CWBinaryBase(object):
             return "Brave"
         elif n == 15:
             return "Panic"
+        elif n == 16:
+            return "Silence"
+        elif n == 17:
+            return "FaceUp"
+        elif n == 18:
+            return "AntiMagic"
+        elif n == 19:
+            return "UpAction"
+        elif n == 20:
+            return "UpAvoid"
+        elif n == 21:
+            return "UpResist"
+        elif n == 22:
+            return "UpDefense"
+        elif n == 23:
+            return "DownAction"
+        elif n == 24:
+            return "DownAvoid"
+        elif n == 25:
+            return "DownResist"
+        elif n == 26:
+            return "DownDefense"
         else:
             raise ValueError(self.fpath)
 
@@ -829,6 +886,109 @@ class CWBinaryBase(object):
             return 14
         elif n == "Panic":
             return 15
+        elif n == "Silence":
+            return 16
+        elif n == "FaceUp":
+            return 17
+        elif n == "AntiMagic":
+            return 18
+        elif n == "UpAction":
+            return 19
+        elif n == "UpAvoid":
+            return 20
+        elif n == "UpResist":
+            return 21
+        elif n == "UpDefense":
+            return 22
+        elif n == "DownAction":
+            return 23
+        elif n == "DownAvoid":
+            return 24
+        elif n == "DownResist":
+            return 25
+        elif n == "DownDefense":
+            return 26
+        else:
+            raise ValueError(n)
+
+    def conv_effectcardtype(self, n):
+        """引数の値から、「カード種別」を返す(1.50～のキーコード所持分岐)。
+        0:All(全種類), 1:Skill(特殊技能), 2:Item(アイテム), 3:Beast(召喚獣)
+        """
+        if n == 0:
+            return "All"
+        elif n == 1:
+            return "Skill"
+        elif n == 2:
+            return "Item"
+        elif n == 3:
+            return "Beast"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_effectcardtype(data):
+        if n == "All":
+            return 0
+        elif n == "Skill":
+            return 1
+        elif n == "Item":
+            return 2
+        elif n == "Beast":
+            return 3
+        else:
+            raise ValueError(n)
+
+    def conv_comparison4(self, n):
+        """引数の値から、「4路選択条件」を返す(1.50～のステップ判定)。
+        0:=(条件値と一致), 1:<>(条件値と不一致),
+        2:<(条件値より大きい), 3:>(条件値より小さい)
+        """
+        if n == 0:
+            return "="
+        elif n == 1:
+            return "<>"
+        elif n == 2:
+            return "<"
+        elif n == 3:
+            return ">"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_comparison4(data):
+        if n == "=":
+            return 0
+        elif n == "<>":
+            return 1
+        elif n == "<":
+            return 2
+        elif n == ">":
+            return 3
+        else:
+            raise ValueError(n)
+
+    def conv_comparison3(self, n):
+        """引数の値から、「3路選択条件」を返す(1.50～のラウンド判定)。
+        0:=(条件値と一致), 1:<(条件値より大きい), 2:>(条件値より小さい)
+        """
+        if n == 0:
+            return "="
+        elif n == 1:
+            return "<"
+        elif n == 2:
+            return ">"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_comparison3(data):
+        if n == "=":
+            return 0
+        elif n == "<":
+            return 1
+        elif n == ">":
+            return 2
         else:
             raise ValueError(n)
 
@@ -987,6 +1147,8 @@ class CWBinaryBase(object):
                 return "DealConfuseCard"          # 混乱
             elif n == 7:
                 return "DealSkillCard"            # 特殊技能
+            elif n == 8:
+                return "CancelAction"            # 行動キャンセル(1.50)
             else:
                 raise ValueError(self.fpath)
 
@@ -1084,6 +1246,8 @@ class CWBinaryBase(object):
             return 7, 6
         elif n == "DealSkillCard":
             return 7, 7
+        elif n == "CancelAction": # 1.50
+            return 7, 8
 
         elif n == "SummonBeast":
             return 8, 0
@@ -1473,6 +1637,82 @@ class CWBinaryBase(object):
             return 2
         elif n == "ReplaceDot":
             return 3
+        else:
+            raise ValueError(n)
+
+#-------------------------------------------------------------------------------
+#　特殊セル関連(1.50～)
+#-------------------------------------------------------------------------------
+
+    def conv_borderingtype(self, n):
+        """引数の値から、テキストセルの縁取り方式を返す。
+        0:縁取り形式1, 1:縁取り形式2
+        """
+        if n == 0:
+            return "Outline"
+        elif n == 1:
+            return "Inline"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_borderingtype(n):
+        if n == "Outline":
+            return 0
+        elif n == "Inline":
+            return 1
+        else:
+            raise ValueError(n)
+
+    def conv_blendmode(self, n):
+        """引数の値から、カラーセルの合成方法を返す。
+        0,1:上書き, 2:加算, 3:減算, 4:乗算
+        """
+        if n in (0, 1):
+            return "Normal"
+        elif n == 2:
+            return "Add"
+        elif n == 3:
+            return "Subtract"
+        elif n == 4:
+            return "Multiply"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_blendmode(n):
+        if n == "Normal":
+            return 0
+        elif n == "Add":
+            return 2
+        elif n == "Subtract":
+            return 3
+        elif n == "Multiply":
+            return 4
+        else:
+            raise ValueError(n)
+
+    def conv_gradientdir(self, n):
+        """引数の値から、グラデーション方向を返す。
+        0: グラデーション無し, 1:左から右, 2: 上から下
+        """
+        if n == 0:
+            return "None"
+        elif n == 1:
+            return "LeftToRight"
+        elif n == 2:
+            return "TopToBottom"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_gradientdir(n):
+        if n == "None":
+            return 0
+        elif n == "LeftToRight":
+            return 1
+        elif n == "TopToBottom":
+            return 2
         else:
             raise ValueError(n)
 

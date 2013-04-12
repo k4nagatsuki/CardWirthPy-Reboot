@@ -1552,6 +1552,36 @@ class Party(object):
         else:
             cw.util.sort_by_attr(self.backpack, "order")
 
+    def get_backpackkeycodes(self, skill=True, item=True, beast=True):
+        """荷物袋内のキーコード一覧を返す。"""
+        s = set()
+        for header in self.backpack:
+            if not skill and header.type == "SkillCard":
+                continue
+            elif not item and header.type == "ItemCard":
+                continue
+            elif not beast and header.type == "BeastCard":
+                continue
+            s.update(header.keycodes)
+
+        s.discard("")
+        return s
+
+    def has_keycode(self, keycode, skill=True, item=True, beast=True):
+        """指定されたキーコードを所持しているか。"""
+        for header in self.backpack:
+            if not skill and header.type == "SkillCard":
+                continue
+            elif not item and header.type == "ItemCard":
+                continue
+            elif not beast and header.type == "BeastCard":
+                continue
+
+            if keycode in header.keycodes:
+                return True
+
+        return False
+
     def get_relpath(self):
         ppath = os.path.dirname(self.path)
         if ppath.lower().startswith("yado"):

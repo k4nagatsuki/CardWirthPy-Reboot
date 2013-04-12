@@ -26,7 +26,15 @@ class Event(base.CWBinaryBase):
             e = cw.data.make_element("Ignitions")
             e.append(cw.data.make_element("Number", cw.util.encodetextlist([str(i) for i in self.ignitions])
                                                     if self.ignitions else ""))
-            e.append(cw.data.make_element("KeyCodes", self.keycodes))
+            keycodes = cw.util.decodetextlist(self.keycodes)
+            if keycodes and keycodes[0] == "MatchingType=All":
+                # 1.50
+                matching = "And"
+                keycodes = keycodes[1:]
+            else:
+                matching = "Or"
+            e.set("keyCodeMatchingType", matching)
+            e.append(cw.data.make_element("KeyCodes", cw.util.encodetextlist(keycodes)))
             self.data.append(e)
             e = cw.data.make_element("Contents")
             for content in self.contents:
@@ -42,12 +50,18 @@ class Event(base.CWBinaryBase):
 
         for e in data:
             if e.tag == "Ignitions":
+                matching = e.get("keyCodeMatchingType", "Or")
                 for ig in e:
                     if ig.tag == "Number":
                         for num in cw.util.decodetextlist(ig.text):
                             ignitions.append(int(num))
                     elif ig.tag == "KeyCodes":
-                        keycodes = ig.text
+                        if matching == "And":
+                            array = ["MatchingType=All"]
+                            array.extend(cw.util.decodetextlist(ig.text))
+                            keycodes = cw.util.encodetextlist(array)
+                        else:
+                            keycodes = ig.text
             elif e.tag == "Contents":
                 contents = e
 

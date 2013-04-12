@@ -390,11 +390,13 @@ class CharacterCardImage(CardImage):
 # 背景セル関係
 #-------------------------------------------------------------------------------
 
-def create_type2textcell(text, size, face, color,
-        bold, italic, sline, uline, vertical,
-        w, h, bcolor, bwidth):
+def create_type2textcell(text, face, size, color,
+        bold, italic, uline, sline, vertical,
+        cellsize, bcolor, bwidth):
     """縁取りType2のテキストセルを作成する。
     """
+    w = cellsize[0]
+    h = cellsize[1]
     wxbmp = wx.EmptyBitmap(w, h)
     wxdc = wx.MemoryDC(wxbmp)
 
@@ -445,8 +447,8 @@ def create_type2textcell(text, size, face, color,
 
     return conv2surface(wxbmp)
 
-def draw_textcell(image, rect, text, size, face, color,
-        bold, italic, sline, uline, vertical, bcolor=None):
+def draw_textcell(image, rect, text, face, size, color,
+        bold, italic, uline, sline, vertical, bcolor=None):
     """縁取りType2以外のテキストセルを描画する。
     """
     clip = rect.clip(pygame.Rect((0, 0), image.get_rect().size))

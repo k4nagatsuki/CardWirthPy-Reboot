@@ -917,6 +917,15 @@ class EffectMotion(object):
             return True
         return False
 
+    def cancelaction_motion(self, target, success_res):
+        """
+        行動キャンセル(1.50)。
+        """
+        if target.actiondata:
+            target.clear_action()
+            return True
+        return True
+
     #-----------------------------------------------------------------------
     #「召喚」関連効果
     #-----------------------------------------------------------------------
@@ -1028,6 +1037,7 @@ checkingmethod_dict = {"Heal" : ("is_injured", True),
                        "DealDistanceCard" : ("is_active", True),
                        "DealConfuseCard" : ("is_active", True),
                        "DealSkillCard" : ("is_active", True),
+                       "CancelAction" : ("is_active", True), # 1.50
                        "SummonBeast" : ("can_addbeast", True),
 
                        # 能力修正に限り、値が0なら特別に解除効果として扱う

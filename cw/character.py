@@ -167,6 +167,41 @@ class Character(object):
 
         return tuple(cardpocket)
 
+    def get_keycodes(self, skill=True, item=True, beast=True):
+        """所持カードのキーコード一覧を返す。"""
+        s = set()
+        seq = []
+        if skill:
+            seq.append(self.get_pocketcards(cw.POCKET_SKILL))
+        if item:
+            seq.append(self.get_pocketcards(cw.POCKET_ITEM))
+        if beast:
+            seq.append(self.get_pocketcards(cw.POCKET_BEAST))
+
+        for header in seq:
+            s.update(header.keycodes)
+
+        s.discard("")
+        return s
+
+    def has_keycode(self, keycode, skill=True, item=True, beast=True):
+        """指定されたキーコードを所持しているか。"""
+        seq = []
+        if skill:
+            for header in self.get_pocketcards(cw.POCKET_SKILL):
+                if keycode in header.keycodes:
+                    return True
+        if item:
+            for header in self.get_pocketcards(cw.POCKET_ITEM):
+                if keycode in header.keycodes:
+                    return True
+        if beast:
+            for header in self.get_pocketcards(cw.POCKET_BEAST):
+                if keycode in header.keycodes:
+                    return True
+
+        return False
+
     def lost(self):
         """
         対象消去やゲームオーバー時に呼ばれる。
@@ -365,6 +400,30 @@ class Character(object):
 
     def is_enhanced_def(self):
         return self.enhance_def <> 0 and 0 < self.enhance_def_dur
+
+    def is_upaction(self):
+        return self.enhance_act > 0 and 0 < self.enhance_act_dur
+
+    def is_upresist(self):
+        return self.enhance_res > 0 and 0 < self.enhance_res_dur
+
+    def is_upavoid(self):
+        return self.enhance_avo > 0 and 0 < self.enhance_avo_dur
+
+    def is_updefense(self):
+        return self.enhance_def > 0 and 0 < self.enhance_def_dur
+
+    def is_downaction(self):
+        return self.enhance_act < 0 and 0 < self.enhance_act_dur
+
+    def is_downresist(self):
+        return self.enhance_res < 0 and 0 < self.enhance_res_dur
+
+    def is_downavoid(self):
+        return self.enhance_avo < 0 and 0 < self.enhance_avo_dur
+
+    def is_downdefense(self):
+        return self.enhance_def < 0 and 0 < self.enhance_def_dur
 
     #---------------------------------------------------------------------------
     #　カード操作

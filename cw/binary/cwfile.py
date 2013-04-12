@@ -60,6 +60,12 @@ class CWFile(io.BufferedReader):
         data = struct.unpack("b", raw_data)
         return data[0]
 
+    def ubyte(self):
+        """符号無しbyteの値を符号付きで返す。"""
+        raw_data = self.read(1)
+        data = struct.unpack("B", raw_data)
+        return data[0]
+
     def dword(self):
         """dwordの値(4byte)を符号付きで返す。リトルエンディアン。"""
         raw_data = self.read(4)
@@ -119,6 +125,9 @@ class CWFileWriter(io.BufferedWriter):
 
     def write_byte(self, b):
         self.write(struct.pack("b", b))
+
+    def write_ubyte(self, b):
+        self.write(struct.pack("B", b))
 
     def write_dword(self, dw):
         self.write(struct.pack("<l", dw))

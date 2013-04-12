@@ -283,6 +283,17 @@ class BranchContent(EventContentBase):
         "overheat" : u"激昂", # 1.30
         "brave" : u"勇敢", # 1.30
         "panic" : u"恐慌", # 1.30
+        "silence" : u"沈黙", # 1.50
+        "faceup" : u"暴露", # 1.50
+        "antimagic" : u"魔法無効化", # 1.50
+        "upaction" : u"行動力上昇", # 1.50
+        "upavoid" : u"回避力上昇", # 1.50
+        "upresist" : u"抵抗力上昇", # 1.50
+        "updefense" : u"防御力上昇", # 1.50
+        "downaction" : u"行動力低下", # 1.50
+        "downavoid" : u"回避力低下", # 1.50
+        "downresist" : u"抵抗力低下", # 1.50
+        "downdefense" : u"防御力低下", # 1.50
     }
 
 class BranchSkillContent(BranchContent):

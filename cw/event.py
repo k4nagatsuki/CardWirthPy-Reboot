@@ -353,12 +353,42 @@ class EventEngine(object):
                     cw.cwpy.index = index
 
     def check_keycodes(self, keycodes):
+        kcset = set(keycodes)
+        kcset.discard("")
         for event in self.events:
-            for keycode in event.keycodes:
-                if keycode and keycode in keycodes:
+            igkeycodes = event.keycodes
+            matching = event.keycode_matching
+            # 互換動作: 1.30以前では"MatchingType=All"は普通のキーコード
+            if matching == "And" and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_AREA)):
+                array = ["MatchingType=All"]
+                array.extend(igkeycodes)
+                igkeycodes = array
+                maching = "Or"
+
+            if matching == "And":
+                match = True
+                for keycode in igkeycodes:
+                    if keycode and not self.check_keycode(keycode, kcset):
+                        match = False
+                        break
+                if match:
                     return event
+            else:
+                for keycode in igkeycodes:
+                    if keycode and self.check_keycode(keycode, kcset):
+                        return event
 
         return None
+
+    def check_keycode(self, keycode, keycodes):
+        # 互換動作: 1.30以前では"！"で始まっていても普通のキーコード
+        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_AREA)):
+            return keycode in keycodes
+        else:
+            if keycode.startswith(u"！"):
+                return not keycode[1:] in keycodes
+            else:
+                return keycode in keycodes
 
     def check_keynum(self, keynum):
         for event in self.events:
@@ -395,6 +425,8 @@ class Event(object):
         self.keynums = []
         # 発火キーコード(文字列)
         self.keycodes = []
+        # キーコード発火条件("Or":どれか一つが存在する, "And":全て存在する)
+        self.keycode_matching = "Or"
         # 終了時実行関数。F9用
         self.exit_func = None
 
@@ -406,6 +438,8 @@ class Event(object):
             if event.hasfind("Ignitions//KeyCodes"):
                 s = event.gettext("Ignitions//KeyCodes", "")
                 self.keycodes = [i for i in cw.util.decodetextlist(s) if i]
+            # 1.50
+            self.keycode_matching = event.getattr("Ignitions", "keyCodeMatchingType", "Or")
 
             for content in event.getfind("Contents"):
                 name = content.get("name")

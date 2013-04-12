@@ -284,10 +284,20 @@ def create_scenariolog(sdata, path, recording):
     e_bgimgs = cw.data.make_element("BgImages")
     element.append(e_bgimgs)
 
+    def make_colorelement(color):
+        e = cw.data.make_element("Color", attrs={"r": str(color[0]),
+                                                 "g": str(color[1]),
+                                                 "b": str(color[2])})
+        if 4 <= len(color):
+            e.set("a", color[3])
+        else:
+            e.set("a", "255")
+        return e
+
     for type, d in cw.cwpy.background.bgs:
         if type == cw.sprite.background.BG_IMAGE:
             fpath, mask, size, pos, flag, visible = d
-            e_bgimg  = cw.data.make_element("BgImage", attrs={"mask": str(mask)})
+            e_bgimg = cw.data.make_element("BgImage", attrs={"mask": str(mask)})
 
             if fpath.startswith(cw.cwpy.skindir):
                 fpath = fpath.replace(cw.cwpy.skindir + "/", "", 1)
@@ -296,17 +306,57 @@ def create_scenariolog(sdata, path, recording):
 
             e = cw.data.make_element("ImagePath", fpath)
             e_bgimg.append(e)
-            e = cw.data.make_element("Flag", flag)
+
+        elif type == cw.sprite.background.BG_TEXT:
+            text, face, tsize, color, bold, italic, underline, strike, vertical,\
+                btype, bcolor, bwidth, size, pos, flag, visible = d
+            e_bgimg = cw.data.make_element("TextCell")
+
+            e = cw.data.make_element("Text", text)
             e_bgimg.append(e)
-            e = cw.data.make_element("Location",
-                            attrs={"left": str(pos[0]), "top": str(pos[1])})
+            e = cw.data.make_element("Font", face, attrs={"size": str(tsize),
+                                                          "bold": str(bold),
+                                                          "italic": str(italic),
+                                                          "underline": str(underline),
+                                                          "strike": str(strike)})
             e_bgimg.append(e)
-            e = cw.data.make_element("Size",
-                            attrs={"width": str(size[0]), "height": str(size[1])})
+            e = cw.data.make_element("Vertical", str(vertical))
             e_bgimg.append(e)
-            e_bgimgs.append(e_bgimg)
+            e = make_colorelement("Color", color)
+            e_bgimg.append(e)
+
+            if btype <> "None":
+                e = cw.data.make_element("Bordering", attrs={"type": btype,
+                                                             "width": str(bwidth)})
+                e.append(make_colorelement("Color", bcolor))
+                e_bgimg.append(e)
+
+        elif type == cw.sprite.background.BG_COLOR:
+            blend, color1, gradient, color2, size, pos, flag, visible = d
+            e_bgimg = cw.data.make_element("ColorCell")
+
+            e = cw.data.make_element("BlendMode", blend)
+            e_bgimg.append(e)
+            e = make_colorelement("Color", color1)
+            e_bgimg.append(e)
+
+            if gradient <> "None":
+                e = cw.data.make_element("Gradient", attrs={"direction": gradient})
+                e.append(make_colorelement("EndColor", color2))
+                e_bgimg.append(e)
+
         else:
-            assert False # TODO textcell, colorcell
+            assert False
+
+        e = cw.data.make_element("Flag", flag)
+        e_bgimg.append(e)
+        e = cw.data.make_element("Location",
+                        attrs={"left": str(pos[0]), "top": str(pos[1])})
+        e_bgimg.append(e)
+        e = cw.data.make_element("Size",
+                        attrs={"width": str(size[0]), "height": str(size[1])})
+        e_bgimg.append(e)
+        e_bgimgs.append(e_bgimg)
 
     # flag
     e_flag = cw.data.make_element("Flags")
