@@ -204,7 +204,16 @@ class Content(base.CWBinaryBase):
             f.dword() # 得点(不使用)
             self.properties["targets"] = self.conv_target_scope(f.byte())
         elif self.tag == "Talk" and self.type == "Dialog":
-            self.properties["targetm"] = self.conv_target_member(f.byte())
+            member = self.conv_target_member_dialog(f.byte())
+            self.properties["targetm"] = member
+            if member == "Valued":
+                coupons_num = f.dword()
+                self.coupons = [cw.binary.coupon.Coupon(self, f) for cnt in xrange(coupons_num)]
+                if self.coupons and self.coupons[0].name == "":
+                    self.properties["initialValue"] = self.coupons[0].value
+                    self.coupons = self.coupons[1:]
+                else:
+                    self.properties["initialValue"] = 0
             dialogs_num = f.dword()
             self.dialogs = [cw.binary.dialog.Dialog(self, f) for cnt in xrange(dialogs_num)]
         elif self.tag == "Set" and self.type == "StepUp":
@@ -314,6 +323,11 @@ class Content(base.CWBinaryBase):
                     e.append(motion.get_data())
                 self.data.append(e)
             elif self.tag == "Talk" and self.type == "Dialog":
+                if self.properties["targetm"] == "Valued":
+                    e = cw.data.make_element("Coupons")
+                    for coupon in self.coupons:
+                        e.append(coupon.get_data())
+                    self.data.append(e)
                 e = cw.data.make_element("Dialogs")
                 for dialog in self.dialogs:
                     e.append(dialog.get_data())
@@ -484,7 +498,19 @@ class Content(base.CWBinaryBase):
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
         elif tag == "Talk" and type == "Dialog":
-            f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
+            targetm = data.get("targetm")
+            f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm))
+            if targetm == "Valued":
+                coupons = []
+                initvalue = data.get("initialValue", "0")
+                coupons.append(cw.data.make_element("Coupon", "", attrs={"value": initvalue}))
+                for e in data:
+                    if e.tag == "Coupons":
+                        for e_coupon in e:
+                            coupons.append(e_coupon)
+                f.write_dword(len(coupons))
+                for coupon in coupons:
+                    cw.binary.coupon.Coupon.unconv(f, coupon)
             dialogs = []
             for e in data:
                 if e.tag == "Dialogs":

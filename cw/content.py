@@ -2198,7 +2198,10 @@ class TalkDialogContent(TalkContent):
         names = self.get_selections_and_indexes()
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
-        talker = cw.cwpy.event.get_targetmember(targetm)
+        if targetm == "Valued":
+            talker = self.get_valuedmember()
+        else:
+            talker = cw.cwpy.event.get_targetmember(targetm)
 
         # 対象メンバが存在しなかったら処理中止
         if not talker or isinstance(talker, list):
@@ -2228,13 +2231,40 @@ class TalkDialogContent(TalkContent):
 
         return index
 
+    def get_valuedmember(self):
+        """評価値が最大になるメンバを返す(1.50)。"""
+        values = {}
+        initvalue = self.data.getint(".", "initialValue", 0)
+        maxvalue = 0
+        for pcard in cw.cwpy.get_pcards("unreversed"):
+            if not pcard.is_active():
+                continue
+            value = initvalue
+            for e in self.data.getfind("Coupons"):
+                if pcard.has_coupon(e.text):
+                    value += e.getint(".", "value", 0)
+            values[pcard] = value
+            maxvalue = max(value, maxvalue)
+
+        if maxvalue <= 0:
+            return []
+
+        seq = []
+        for pcard, value in values.iteritems():
+            if value == maxvalue:
+                seq.append(pcard)
+        return cw.cwpy.dice.choice(seq)
+
     def can_action(self):
         """台詞を表示可能であればTrueを返す。
         Falseが返される状況の場合、台詞は飛ばされる。
         """
         # 対象メンバ取得
         targetm = self.data.get("targetm", "")
-        talker = cw.cwpy.event.get_targetmember(targetm)
+        if targetm == "Valued":
+            talker = self.get_valuedmember()
+        else:
+            talker = cw.cwpy.event.get_targetmember(targetm)
 
         # 対象メンバが存在しなかったらスキップ
         if not talker or isinstance(talker, list):

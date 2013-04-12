@@ -633,6 +633,37 @@ class CWBinaryBase(object):
         else:
             raise ValueError(n)
 
+    def conv_target_member_dialog(self, n):
+        """引数の値から、台詞コンテントの話者を返す。
+        0:Selected(現在選択中のメンバ), 1:Random(ランダムメンバ),
+        2:Unselected(現在選択中以外のメンバ)
+        以降は1.50～
+        3:Valued(評価メンバ)
+        """
+        if n == 0:
+            return "Selected"
+        elif n == 1:
+            return "Random"
+        elif n == 2:
+            return "Unselected"
+        elif n == 3:
+            return "Valued"
+        else:
+            raise ValueError(self.fpath)
+
+    @staticmethod
+    def unconv_target_member_dialog(n):
+        if n == "Selected":
+            return 0
+        elif n == "Random":
+            return 1
+        elif n == "Unselected":
+            return 2
+        elif n == "Valued":
+            return 3
+        else:
+            raise ValueError(n)
+
     def conv_target_scope(self, n):
         """引数の値から、「適用範囲」の種類を返す。
         0:Selected(現在選択中のメンバ), 1:Random(パーティの誰か一人),
