@@ -1003,6 +1003,8 @@ class EventTreeCtrl(wx.TreeCtrl):
     def __init__(self, parent):
         wx.TreeCtrl.__init__(
             self, parent, style=wx.TR_HIDE_ROOT|wx.TR_NO_BUTTONS)
+        # 現在実行中のイベントツリー
+        self.current_tree = None
         # 現在実行中のContent(item)
         self.activeitem = None
         # itemの辞書(keyはコンテントデータ)
@@ -1072,21 +1074,24 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.SetItemTextColour(self.activeitem, wx.RED)
 
     def refresh_tree(self):
-        self.Parent.statusbar.SetStatusText("", 1)
-        self.activeitem = None
-        self.items = {}
-        self.DeleteAllItems()
         event = cw.cwpy.event.get_event()
 
-        if event:
-            root = self.AddRoot("Event Root")
-            self.SetPyData(root, None)
+        if self.current_tree <> event:
+            self.current_tree = event
+            self.Parent.statusbar.SetStatusText("", 1)
+            self.activeitem = None
+            self.items = {}
+            self.DeleteAllItems()
 
-            for name in event.treekeys:
-                tree = event.trees[name]
-                self.set_content(root, tree, name)
+            if self.current_tree:
+                root = self.AddRoot("Event Root")
+                self.SetPyData(root, None)
 
-        self.ExpandAll()
+                for name in self.current_tree.treekeys:
+                    tree = self.current_tree.trees[name]
+                    self.set_content(root, tree, name)
+
+            self.ExpandAll()
 
     def set_content(self, parentitem, content, name):
         item = self.AppendItem(parentitem, name)

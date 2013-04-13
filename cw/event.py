@@ -36,23 +36,19 @@ class EventInterface(object):
 
     def pop_event(self):
         event = self._nowrunningevents.pop()
-        self.refresh_tree()
         return event
 
     def remove_event(self, event):
         self._nowrunningevents.remove(event)
-        self.refresh_tree()
 
     def append_event(self, event):
         self._nowrunningevents.append(event)
-        self.refresh_tree()
 
         if len(self._nowrunningevents) == 1:
             self.refresh_tools()
 
     def clear_events(self):
         self._nowrunningevents = []
-        self.refresh_tree()
 
     def get_event(self):
         """現在起動中のEventを返す。"""
@@ -75,6 +71,7 @@ class EventInterface(object):
         self._stoped = False
         self._targetstack = -1
         self.refresh_tools()
+        self.refresh_activeitem()
 
     def set_inusecard(self, header):
         """使用中カードを変更する。
@@ -234,15 +231,11 @@ class EventInterface(object):
             func = cw.cwpy.frame.debugger.refresh_areaname
             cw.cwpy.frame.exec_func(func)
 
-    def refresh_tree(self):
-        """デバッガのイベントツリーの表示を更新する。"""
-        if cw.cwpy.is_showingdebugger():
-            func = cw.cwpy.frame.debugger.view_tree.refresh_tree
-            cw.cwpy.frame.exec_func(func)
-
     def refresh_activeitem(self):
         """デバッガのイベントツリーの実行中コンテントを更新する。"""
         if cw.cwpy.is_showingdebugger():
+            func = cw.cwpy.frame.debugger.view_tree.refresh_tree
+            cw.cwpy.frame.exec_func(func)
             func = cw.cwpy.frame.debugger.view_tree.refresh_activeitem
             cw.cwpy.frame.exec_func(func)
 
@@ -273,6 +266,9 @@ class EventInterface(object):
 
             if self._step:
                 self._paused = True
+
+            if self._paused or 0 < cw.cwpy.frame.debugger.sc_waittime.GetValue():
+                self.refresh_activeitem()
 
             tick = pygame.time.get_ticks()
             tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100
@@ -505,7 +501,8 @@ class Event(object):
 
         while cw.cwpy.is_running() and nextcontents and not self.index < 0:
             self.cur_content = nextcontents[self.index]
-            cw.cwpy.event.refresh_activeitem()
+            if cw.cwpy.is_showingdebugger() and self.cur_content.tag in ("Talk", "Wait"):
+                cw.cwpy.event.refresh_activeitem()
             cw.cwpy.event.wait()
             self.action()
             nextcontents = self.get_nextcontents()
