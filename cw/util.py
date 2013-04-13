@@ -959,6 +959,8 @@ def encodetextlist(arr):
 def decodetextlist(s):
     return decodewrap(s).split("\n")
 
+WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
+
 def txtwrap(s, mode, width=30, wrapschars=""):
     """引数の文字列を任意の文字数で改行する(全角は2文字として数える)。
     mode=1: カード解説。
@@ -969,7 +971,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     mode=6: メッセージダイアログ用。
     """
     if mode == 1:
-        wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
+        wrapschars = WRAPS_CHARS
         width = 37
     elif mode == 2:
         wrapschars = ""
@@ -978,13 +980,13 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         wrapschars = ""
         width = 43
     elif mode == 4:
-        wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
+        wrapschars = WRAPS_CHARS
         width = 36
     elif mode == 5:
-        wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
+        wrapschars = WRAPS_CHARS
         width = 24
     elif mode == 6:
-        wrapschars = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
+        wrapschars = WRAPS_CHARS
         width = 48
 
     # \\nを改行コードに戻す
@@ -1054,7 +1056,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
                 asciicnt = 0
                 wraped = False
 
-    return "".join(seq)
+    return "".join(seq).rstrip()
 
 def get_char(s, index):
     try:

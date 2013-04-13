@@ -23,6 +23,7 @@ class AdventurerDataComp(wx.Dialog):
         self.bmp = wx.StaticBitmap(self, -1, bmp)
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
+        s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
         self.text_message = wx.StaticText(self, -1, s)
         self.box = wx.StaticBox(self, -1)
         self.text_name = wx.StaticText(self, -1, ccard.name)
