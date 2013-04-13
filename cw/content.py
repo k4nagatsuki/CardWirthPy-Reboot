@@ -1517,7 +1517,7 @@ class EndBadEndContent(EventContentBase):
         ゲームオーバ画面に遷移する。
         """
         cw.cwpy.exec_func(cw.cwpy.set_gameover)
-        raise cw.event.ScenarioEndError()
+        raise cw.event.ScenarioBadEndError()
 
     def get_status(self):
         return u"ゲームオーバー"

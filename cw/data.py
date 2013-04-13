@@ -12,6 +12,8 @@ import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
 from xml.etree.ElementTree import _ElementInterface
 
+import pygame
+
 import cw
 import cw.scenariodb
 
@@ -122,7 +124,8 @@ class SystemData(object):
         if not cw.cwpy.is_dealing() and not cw.cwpy.battle:
             cw.cwpy.statusbar.change()
             cw.cwpy.disposition_pcards()
-            cw.cwpy.show_party()
+            if not (pygame.event.peek(pygame.locals.USEREVENT)):
+                cw.cwpy.show_party()
 
     def check_bginhrt(self, elements=[]):
         """

@@ -413,6 +413,9 @@ class AreaChangeError(EventError):
 class ScenarioEndError(EventError):
     pass
 
+class ScenarioBadEndError(EventError):
+    pass
+
 class EffectBreakError(EventError):
     pass
 
@@ -520,7 +523,7 @@ class Event(object):
 
     def end(self):
         """共通終了処理。"""
-        if not isinstance(self.error, AreaChangeError):
+        if not (isinstance(self.error, AreaChangeError) or isinstance(self.error, ScenarioBadEndError)):
             cw.cwpy.show_party()
 
         cw.cwpy.event.clear()
