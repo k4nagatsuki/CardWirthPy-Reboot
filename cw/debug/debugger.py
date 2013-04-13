@@ -34,6 +34,7 @@ ID_STEPOVER = wx.NewId()
 ID_STEPIN = wx.NewId()
 ID_PAUSE = wx.NewId()
 ID_STOP = wx.NewId()
+ID_ROUND = wx.NewId()
 
 
 class Debugger(wx.Frame):
@@ -42,7 +43,7 @@ class Debugger(wx.Frame):
             self, parent, -1, u"CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.SIMPLE_BORDER|wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
-        self.SetClientSize((550, 450))
+        self.SetClientSize((560, 450))
         # set icon
         cw.cwpy.frame.set_icon(self)
         # aui manager
@@ -144,6 +145,11 @@ class Debugger(wx.Frame):
                          u"情報カードの取得・破棄を行います。")
         self.mi_info.SetBitmap(rsrc["INFO"])
         scenario_menu.AppendItem(self.mi_info)
+        scenario_menu.AppendSeparator()
+        self.mi_round = wx.MenuItem(scenario_menu, ID_ROUND, u"ラウンド(&T)",
+                         u"バトルラウンドを変更します。")
+        self.mi_round.SetBitmap(rsrc["ROUND"])
+        scenario_menu.AppendItem(self.mi_round)
 
         self.mi_stepreturn = wx.MenuItem(run_menu, ID_STEPRETURN, u"ステップリターン(&R)\tCtrl+Shift+F11",
                          u"イベントのサブルーチンを抜けます。")
@@ -225,6 +231,10 @@ class Debugger(wx.Frame):
         self.tl_info = self.tb2.AddLabelTool(
             ID_INFO, u"情報", rsrc["INFO"],
             shortHelp=u"情報カードの取得・破棄を行います。")
+        self.tb2.AddSeparator()
+        self.tl_round = self.tb2.AddLabelTool(
+            ID_ROUND, u"ラウンド", rsrc["ROUND"],
+            shortHelp=u"バトルラウンドを変更します。")
         self.tb2.AddSeparator()
         self.tb2.SetToolBitmapSize(wx.Size(20, 20))
         self.tl_save = self.tb2.AddLabelTool(
@@ -369,6 +379,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
         self.Bind(wx.EVT_MENU, self.OnCardTool, id=ID_CARD)
+        self.Bind(wx.EVT_MENU, self.OnRoundTool, id=ID_ROUND)
         self.Bind(wx.EVT_MENU, self.OnMemberTool, id=ID_MEMBER)
         self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
@@ -427,6 +438,19 @@ class Debugger(wx.Frame):
         dlg = cw.debug.cardedit.CardEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+
+    def OnRoundTool(self, event):
+        if not cw.cwpy.is_battlestatus():
+            return
+        dlg = cw.dialog.edit.NumberEditDialog(self, u"バトルラウンドの変更",
+                                              cw.cwpy.battle.round, 1, 1000)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            def func(value):
+                cw.cwpy.battle.round = value
+                cw.cwpy.statusbar.change()
+                cw.cwpy.draw()
+            cw.cwpy.exec_func(func, dlg.value)
 
     def OnSaveTool(self, event):
         if not cw.cwpy.is_playingscenario():
@@ -684,6 +708,7 @@ class Debugger(wx.Frame):
             mwin.result = 0
 
     def OnStepOverTool(self, event):
+        cw.cwpy.event.breakwait = True
         cw.cwpy.event._targetstack = cw.cwpy.event.get_currentstack()
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
@@ -694,6 +719,7 @@ class Debugger(wx.Frame):
             mwin.result = 0
 
     def OnStepInTool(self, event):
+        cw.cwpy.event.breakwait = True
         cw.cwpy.event._targetstack = -1
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
@@ -705,6 +731,7 @@ class Debugger(wx.Frame):
 
     def OnPauseTool(self, event):
         # メッセージウィンドウ表示中の場合は一時停止できない
+        cw.cwpy.event.breakwait = True
         cw.cwpy.event._paused = not cw.cwpy.event._paused
         cw.cwpy.event._step = False
 
@@ -820,6 +847,8 @@ class Debugger(wx.Frame):
         self.tl_friend.Enable(False)
         self.mi_info.Enable(False)
         self.tl_info.Enable(False)
+        self.mi_round.Enable(False)
+        self.tl_round.Enable(False)
         self.mi_save.Enable(False)
         self.tl_save.Enable(False)
         self.mi_load.Enable(False)
@@ -871,6 +900,9 @@ class Debugger(wx.Frame):
                     self.tl_save.Enable(True)
                     self.mi_load.Enable(True)
                     self.tl_load.Enable(True)
+                else:
+                    self.mi_round.Enable(True)
+                    self.tl_round.Enable(True)
 
                 if not cw.cwpy.battle or not cw.cwpy.battle.is_running():
                     self.mi_status.Enable(True)
