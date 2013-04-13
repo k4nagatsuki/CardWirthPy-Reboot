@@ -1205,7 +1205,9 @@ class PlayerSelect(Select):
                 # Image
                 path = cw.util.join_yadodir(header.imgpath)
                 bmp = cw.util.load_wxbmp(path, True)
+                dc.SetClippingRect((88, 90, 74, 94))
                 dc.DrawBitmap(bmp, 88, 90, True)
+                dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
                 s = cw.cwpy.msgs["character_age"] % (header.get_age())
@@ -1252,7 +1254,9 @@ class PlayerSelect(Select):
                     bmp = cw.util.load_wxbmp(path, True)
                     ix = x + (rw - 72) / 2
                     iy = y + 5
+                    dc.SetClippingRect((ix, iy, 74, 94))
                     dc.DrawBitmap(bmp, ix, iy, True)
+                    dc.DestroyClippingRegion()
 
                     # Name
                     s = header.name
