@@ -541,10 +541,10 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.ydata.party:
             areaid = 2
+            self.ydata.party.remove_numbercoupon()
         else:
             areaid = 1
 
-        self.ydata.party.remove_numbercoupon()
         self.change_area(areaid)
 
     def set_scenario(self, header=None, lastscenario=[]):

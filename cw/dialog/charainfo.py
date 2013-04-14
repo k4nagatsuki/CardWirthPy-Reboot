@@ -268,19 +268,21 @@ class TopPanel(wx.Panel):
 
     def draw(self, update=False):
         # クーポンにある各種変数取得
-        ages = set(cw.cwpy.setting.periodcoupons)
-        sexs = set(cw.cwpy.setting.sexcoupons)
-        self.sex = cw.cwpy.setting.sexes[0].name
-        self.age = cw.cwpy.setting.periods[0].name
-        self.ep = "0"
+        if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or\
+                isinstance(self.ccard, cw.sprite.card.FriendCard)):
+            ages = set(cw.cwpy.setting.periodcoupons)
+            sexs = set(cw.cwpy.setting.sexcoupons)
+            self.sex = cw.cwpy.setting.sexes[0].name
+            self.age = cw.cwpy.setting.periods[0].name
+            self.ep = "0"
 
-        for coupon in self.ccard.data.getfind("Property/Coupons"):
-            if coupon.text in ages:
-                self.age = coupon.text.replace(u"＿", "", 1)
-            elif coupon.text in sexs:
-                self.sex = coupon.text.replace(u"＿", "", 1)
-            elif coupon.text == u"＠ＥＰ":
-                self.ep = coupon.get("value")
+            for coupon in self.ccard.data.getfind("Property/Coupons"):
+                if coupon.text in ages:
+                    self.age = coupon.text.replace(u"＿", "", 1)
+                elif coupon.text in sexs:
+                    self.sex = coupon.text.replace(u"＿", "", 1)
+                elif coupon.text == u"＠ＥＰ":
+                    self.ep = coupon.get("value")
 
         if update:
             dc = wx.ClientDC(self)
@@ -318,19 +320,22 @@ class TopPanel(wx.Panel):
 
         dc.SetTextForeground(wx.BLACK)
         dc.DrawText(s, 5, 5)
-        # EP
-        s = "EP: " + self.ep
-        dc.DrawText(s, 8, 82)
         # 名前
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
         s = self.ccard.name
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, 295 - w, 3)
-        # 年代
-        s = self.age + self.sex
-        w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, 295 - w, 80)
-        dc.EndDrawing()
+
+        if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or\
+                isinstance(self.ccard, cw.sprite.card.FriendCard)):
+            # EP
+            s = "EP: " + self.ep
+            dc.DrawText(s, 8, 82)
+            # 年代
+            s = self.age + self.sex
+            w = dc.GetTextExtent(s)[0]
+            dc.DrawText(s, 295 - w, 80)
+            dc.EndDrawing()
 
         # 親ウィンドウの再描画を行える場合は呼び出し
         if self.redrawfunc:
