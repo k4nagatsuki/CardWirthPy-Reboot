@@ -2083,6 +2083,7 @@ class ScenarioSelect(Select):
                         if subprocess.call(s.encode(encoding), shell=True) == 0:
                             for dpath2, dnames, fnames in os.walk(dpath):
                                 for fname in fnames:
+                                    fname = cw.util.decode_zipname(fname)
                                     if fname.lower().endswith(".txt"):
                                         dpath2 = cw.util.decode_zipname(dpath2)
                                         with open(cw.util.join_paths(dpath2, fname), "r") as f:
