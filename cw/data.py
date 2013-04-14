@@ -1630,7 +1630,6 @@ class Party(object):
         pos = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
         pcard = cw.sprite.card.PlayerCard(data, pos, status="deal")
         cw.animation.animate_sprite(pcard, "deal")
-        self.set_numbercoupon()
 
     def remove(self, pcard):
         """
@@ -1646,8 +1645,6 @@ class Party(object):
             s = os.path.splitext(s)[0]
             e = self.data.make_element("Member", s)
             self.data.append("Property/Members", e)
-
-        self.set_numbercoupon()
 
     def set_name(self, name):
         """
@@ -1676,6 +1673,13 @@ class Party(object):
             pcard.remove_numbercoupon()
             pcard.set_coupon(names[index], 0)
             pcard.set_coupon(u"＠ＭＰ３", 0) # 1.29
+
+    def remove_numbercoupon(self):
+        """
+        番号クーポンを除去する。
+        """
+        for pcard in cw.cwpy.get_pcards():
+            pcard.remove_numbercoupon()
 
     def write(self):
         self.data.write_xml()

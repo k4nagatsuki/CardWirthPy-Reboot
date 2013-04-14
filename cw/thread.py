@@ -544,6 +544,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             areaid = 1
 
+        self.ydata.party.remove_numbercoupon()
         self.change_area(areaid)
 
     def set_scenario(self, header=None, lastscenario=[]):
@@ -566,8 +567,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.party.set_lastscenario(lastscenario)
 
             if not loaded:
-                # CardWirthは番号クーポンを手がかりにF9処理を行うので、
-                # 逆変換のためにここで番号クーポンをつけなおす必要がある
                 self.ydata.party.set_numbercoupon()
 
             if musicpath is None or\
@@ -621,7 +620,6 @@ class CWPy(_Singleton, threading.Thread):
             cw.animation.animate_sprite(pcard, "deal")
 
         # 番号クーポン設定
-        self.ydata.party.set_numbercoupon()
         self.ydata.party._loading = False
 
         self.set_yado()
@@ -785,7 +783,6 @@ class CWPy(_Singleton, threading.Thread):
                 cw.sprite.card.PlayerCard(e, pos)
 
             # 番号クーポン設定
-            self.ydata.party.set_numbercoupon()
             self.ydata.party._loading = False
 
         # キャンプ画面のときはFriendCardもスプライトグループに追加
