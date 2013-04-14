@@ -428,7 +428,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.lclick_event()
 
-        elif cw.cwpy.list and (len(cw.cwpy.list) == 1 or cw.cwpy.index >= 0):
+        elif cw.cwpy.list and (len(cw.cwpy.list) == 1 or cw.cwpy.index >= 0) and\
+                cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
             if cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 sbar = cw.cwpy.list[cw.cwpy.index]
