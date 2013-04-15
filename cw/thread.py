@@ -230,6 +230,7 @@ class CWPy(_Singleton, threading.Thread):
         if not self.statusbar.showbuttons:
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
+                self.event.refresh_activeitem()
 
     def draw(self, mainloop=False):
         if self.has_inputevent or not mainloop:
@@ -359,6 +360,7 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_selection()
 
         while self.is_running() and mwin.result is None:
+            self.event.refresh_activeitem()
             self.update()
 
             if mwin.result is None:

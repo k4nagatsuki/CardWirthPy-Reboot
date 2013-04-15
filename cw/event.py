@@ -71,7 +71,6 @@ class EventInterface(object):
         self._stoped = False
         self._targetstack = -1
         self.refresh_tools()
-        self.refresh_activeitem()
 
     def set_inusecard(self, header):
         """使用中カードを変更する。
@@ -501,8 +500,6 @@ class Event(object):
 
         while cw.cwpy.is_running() and nextcontents and not self.index < 0:
             self.cur_content = nextcontents[self.index]
-            if cw.cwpy.is_showingdebugger() and self.cur_content.tag in ("Talk", "Wait"):
-                cw.cwpy.event.refresh_activeitem()
             cw.cwpy.event.wait()
             self.action()
             nextcontents = self.get_nextcontents()

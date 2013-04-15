@@ -471,6 +471,15 @@ class NumberEditor(wx.Panel):
         self._do_layout()
         self._bind()
 
+    def set_value(self, value):
+        self.slider.SetValue(value)
+
+    def set_max(self, value):
+        self.slider.SetMax(value)
+
+    def set_min(self, value):
+        self.slider.SetMin(value)
+
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
@@ -573,38 +582,168 @@ class ComboEditDialog(wx.Dialog):
 #  レベル調節ダイアログ
 #-------------------------------------------------------------------------------
 
-class LevelEditDialog(NumberEditDialog):
-    def __init__(self, parent, ccard):
-        if ccard:
-            self.ccard = ccard
-        else:
-            self.ccard = cw.cwpy.selection
+class LevelEditDialog(wx.Dialog):
+    def __init__(self, parent, list, selected):
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
+                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+
+        self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
+
+        self.list = list
+
+        # 対象者
+        self.targets = [u"全員"]
+        for ccard in self.list:
+            self.targets.append(ccard.get_name())
+        self.target = wx.ComboBox(self.panel, -1, choices=self.targets, style=wx.CB_READONLY)
+        self.target.Select(max(selected, -1) + 1)
+        # smallleft
+        bmp = cw.cwpy.rsrc.buttons["LSMALL"]
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (20, 20), bmp=bmp)
+        # smallright
+        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (20, 20), bmp=bmp)
 
         minvalue = 1
-        maxvalue = self.ccard.level
-        coupons = self.ccard.get_specialcoupons()
-        if u"＠レベル原点" in coupons:
-            maxvalue = coupons[u"＠レベル原点"]
+        maxvalue = self.get_maxlevel()
 
-        NumberEditDialog.__init__(self, parent, cw.cwpy.msgs["regulate_level_title"],
-                self.ccard.level, minvalue, maxvalue)
+        # スライダ
+        self.slider = NumberEditor(self.panel, maxvalue, minvalue, maxvalue)
+
+        # btn
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                      (100, 30), cw.cwpy.msgs["entry_decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        (100, 30), cw.cwpy.msgs["entry_cancel"])
+
+        self._select_target()
+
+        self._do_layout()
+        self._bind()
+
+    def get_selected(self):
+        index = self.target.GetSelection()
+        if index <= 0:
+            return self.list
+        else:
+            return [self.list[index-1]]
+
+    def get_currentlevel(self):
+        level = None
+
+        for ccard in self.get_selected():
+            if level is None:
+                level = ccard.level
+            elif level <> ccard.level:
+                level = None
+                break
+
+        if level is None:
+            return self.get_maxlevel()
+        else:
+            return level
+
+    def get_maxlevel(self):
+        maxvalue = 0
+        for ccard in self.get_selected():
+            maxvalue = max(maxvalue, ccard.get_limitlevel())
+
+        return maxvalue
+
+    def _select_target(self):
+        self.slider.set_max(self.get_maxlevel())
+        self.slider.set_value(self.get_currentlevel())
+
+    def _bind(self):
+        self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
+        self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
+
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def _do_layout(self):
+        sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
+        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
+        sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
+
+        sizer_panel = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel.Add(sizer_combo, 0, wx.EXPAND|wx.ALL, 5)
+        sizer_panel.Add(self.slider, 1, wx.BOTTOM|wx.ALL, 5)
+        self.panel.SetSizer(sizer_panel)
+
+        sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_btn.Add(self.okbtn, 0, 0, 0)
+        sizer_btn.Add(self.cnclbtn, 0, wx.LEFT, 30)
+
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, 5)
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, 10)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sizer_v1, 0, wx.ALL, 15)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnSelectTarget(self, event):
+        self._select_target()
+
+    def OnLeftBtn(self, event):
+        index = self.target.GetSelection()
+        if index <= 0:
+            self.target.SetSelection(len(self.pcards))
+        else:
+            self.target.SetSelection(index - 1)
+        self._select_target()
+
+    def OnRightBtn(self, event):
+        index = self.target.GetSelection()
+        if len(self.pcards) <= index:
+            self.target.SetSelection(0)
+        else:
+            self.target.SetSelection(index + 1)
+        self._select_target()
+
+    def OnPaint(self, evt):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        def func(ccard, level):
-            cw.cwpy.sounds["harvest"].play()
-            if ccard.level <> level:
-                ccard.set_level(level, regulate=True)
-                ccard.is_edited = True
-            if hasattr(ccard, "cardimg"):
-                cw.animation.animate_sprite(ccard, "hide")
-                ccard.cardimg.set_levelimg(ccard.level)
-                ccard.update_image()
-                cw.animation.animate_sprite(ccard, "deal")
+        def func(seq, level):
+            update = False
+            for ccard in seq:
+                clevel = min(level, ccard.get_limitlevel())
+                if ccard.level == clevel:
+                    continue
 
-        cw.cwpy.exec_func(func, self.ccard, self.slider.slider.GetValue())
+                ccard.set_level(clevel, regulate=True)
+                ccard.is_edited = True
+                if hasattr(ccard, "cardimg"):
+                    update = True
+                    cw.cwpy.sounds["harvest"].play()
+                    cw.animation.animate_sprite(ccard, "hide")
+                    ccard.cardimg.set_levelimg(ccard.level)
+                    ccard.update_image()
+                    cw.animation.animate_sprite(ccard, "deal")
+
+            if not update:
+                cw.cwpy.sounds["harvest"].play()
+
+        cw.cwpy.exec_func(func, self.get_selected(), self.slider.slider.GetValue())
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
 
 #-------------------------------------------------------------------------------
 # 宿情報編集ダイアログ

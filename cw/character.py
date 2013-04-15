@@ -919,7 +919,7 @@ class Character(object):
             if data:
                 return data[0]
             else:
-                return 0
+                return None
 
     def has_coupon(self, coupon):
         """
@@ -1128,6 +1128,14 @@ class Character(object):
     #　レベル変更用
     #---------------------------------------------------------------------------
 
+    def get_limitlevel(self):
+        """レベルの調節範囲の最大値を返す。"""
+        l = self.get_couponvalue(u"＠レベル原点", raiseerror=False)
+        if not l is None:
+            return max(self.level, l)
+        else:
+            return self.level
+
     def check_levelup(self):
         coupons = self.get_specialcoupons()
         level = coupons[u"＠レベル原点"]
@@ -1155,10 +1163,8 @@ class Character(object):
         """
         if regulate:
             # 調節前のレベル
-            coupons = self.get_specialcoupons()
-            limit = self.level
-            if u"＠レベル原点" in coupons:
-                limit = coupons[u"＠レベル原点"]
+            limit = self.get_limitlevel()
+            value = min(value, limit)
 
         # レベル
         uplevel = value - self.level
@@ -1170,12 +1176,12 @@ class Character(object):
         if vit < 1:
             vit = 1
 
-        min = self.physical.get("min")
+        minval = self.physical.get("min")
 
-        if min < 1:
-            min = 1
+        if minval < 1:
+            minval = 1
 
-        maxlife = (vit / 2 + 4) * (self.level + 1) + min / 2
+        maxlife = (vit / 2 + 4) * (self.level + 1) + minval / 2
         self.maxlife += maxlife - self.maxlife
         self.data.edit("Property/Life", str(self.maxlife), "max")
         self.set_life(self.maxlife)

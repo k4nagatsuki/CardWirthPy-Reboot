@@ -2586,6 +2586,7 @@ class WaitContent(EventContentBase):
             if breakflag or keyin[K_RETURN] > cw.cwpy.keyevent.threshold or cw.cwpy.event.breakwait:
                 break
 
+            cw.cwpy.event.refresh_activeitem()
             cw.cwpy.sbargrp.update(cw.cwpy.scr)
             cw.cwpy.draw()
             cw.cwpy.input()

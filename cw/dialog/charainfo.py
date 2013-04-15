@@ -47,7 +47,7 @@ class CharaInfo(wx.Dialog):
             self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
-            self.editpanel = EditPanel(self.notebook, self.ccard)
+            self.editpanel = EditPanel(self.notebook, self.list, self.ccard)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["edit"])
 
         # 各種所持カード
@@ -497,12 +497,13 @@ class EditButton():
         self.negaflag = False
 
 class EditPanel(wx.Panel):
-    def __init__(self, parent, ccard):
+    def __init__(self, parent, list, ccard):
         wx.Panel.__init__(self, parent, -1, size=(292, 200), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
+        self.list = list
         self.ccard = ccard
         # ボタン
         self.headers = []
@@ -531,7 +532,8 @@ class EditPanel(wx.Panel):
                 else:
                     # レベルを調節する
                     cw.cwpy.sounds["click"].play()
-                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, self.ccard)
+                    selected = self.list.index(self.ccard)
+                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=self.list, selected=selected)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
                         self.ccard.data.write_xml()
