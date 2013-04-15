@@ -71,6 +71,7 @@ class EventInterface(object):
         self._stoped = False
         self._targetstack = -1
         self.refresh_tools()
+        self.refresh_activeitem()
 
     def set_inusecard(self, header):
         """使用中カードを変更する。

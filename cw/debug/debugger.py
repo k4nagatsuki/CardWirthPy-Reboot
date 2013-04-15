@@ -1035,8 +1035,9 @@ class EventTreeCtrl(wx.TreeCtrl):
     def __init__(self, parent):
         wx.TreeCtrl.__init__(
             self, parent, style=wx.TR_HIDE_ROOT|wx.TR_NO_BUTTONS)
-        # 現在実行中のイベントツリー
+        # 現在実行中のイベントツリーとイベント
         self.current_tree = None
+        self.current_content = None
         # 現在実行中のContent(item)
         self.activeitem = None
         # itemの辞書(keyはコンテントデータ)
@@ -1085,10 +1086,14 @@ class EventTreeCtrl(wx.TreeCtrl):
             cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data)
 
     def refresh_activeitem(self):
-        self.UnselectAll()
         event = cw.cwpy.event.get_event()
 
         if event and event.cur_content in self.items:
+            if self.current_content == event.cur_content:
+                return
+            self.current_content = event.cur_content
+
+            self.UnselectAll()
             if self.activeitem:
                 content = self.GetItemPyData(self.activeitem)
                 parent = self.GetItemParent(self.activeitem)
@@ -1104,6 +1109,8 @@ class EventTreeCtrl(wx.TreeCtrl):
             s = self.GetItemText(self.activeitem) + u" // ACTIVE!"
             self.SetItemText(self.activeitem, s)
             self.SetItemTextColour(self.activeitem, wx.RED)
+        else:
+            self.current_content = None
 
     def refresh_tree(self):
         event = cw.cwpy.event.get_event()
