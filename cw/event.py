@@ -267,15 +267,13 @@ class EventInterface(object):
             if self._step:
                 self._paused = True
 
-            if self._paused or 0 < cw.cwpy.frame.debugger.sc_waittime.GetValue():
-                self.refresh_activeitem()
-
             tick = pygame.time.get_ticks()
             tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                         pygame.time.get_ticks() < tick:
                 if not self._nowrunningevents[-1].force_nextcontent is None:
                     break
+                self.refresh_activeitem()
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1)
@@ -287,6 +285,7 @@ class EventInterface(object):
                     break
                 if not self._nowrunningevents[-1].force_nextcontent is None:
                     break
+                self.refresh_activeitem()
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1)
