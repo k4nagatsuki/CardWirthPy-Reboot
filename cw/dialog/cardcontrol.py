@@ -39,7 +39,8 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.s((20, 20)), bmp=bmp)
         # sort
-        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((60, 20)), style=wx.CB_READONLY)
+        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])
@@ -48,7 +49,8 @@ class CardControl(wx.Dialog):
         if not sort:
             self.sort.Freeze()
         # sendto
-        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((110, 20)), style=wx.CB_READONLY)
+        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((115, 20)), style=wx.CB_READONLY)
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         if not sendto:
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
@@ -103,7 +105,7 @@ class CardControl(wx.Dialog):
         sortsize = self.sort.GetSize()
         combosize = self.combo.GetSize()
         sizer_topbar.SetMinSize(combosize)
-        sizer_topbar.Add((cw.s(500)-combosize[0]-cw.s(60)-sortsize[0]-cw.s(40), 0), 0, 0, 0)
+        sizer_topbar.Add((cw.s(500)-combosize[0]-cw.s(65)-sortsize[0]-cw.s(40), 0), 0, 0, 0)
         sizer_topbar.Add(self.sort, 0, 0, 0)
         sizer_topbar.Add(cw.s((60, 0)), 0, 0, 0)
         sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
@@ -305,11 +307,11 @@ class CardControl(wx.Dialog):
         if not self.sort.IsFrozen():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["sort_title"]
-            dc.DrawText(s, cw.s(190), cw.s(3))
+            dc.DrawText(s, cw.s(180), cw.s(3))
         if self.combo.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["send_to"]
-            dc.DrawText(s, cw.s(300), cw.s(3))
+            dc.DrawText(s, cw.s(295), cw.s(3))
         return dc
 
     def draw_cards(self, dc, update, mode):

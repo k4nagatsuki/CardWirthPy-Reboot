@@ -796,6 +796,7 @@ class PlayerSelect(Select):
 
         # sort
         self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((60, 20)), style=wx.CB_READONLY)
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])
@@ -1412,6 +1413,7 @@ class ScenarioSelect(Select):
         # ツリー表示用のビュー
         self.tree = wx.TreeCtrl(self, -1, size=cw.s((400, 370)),
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
+        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.tree.Hide()
         self.tree.imglist = wx.ImageList(cw.s(16), cw.s(16))
         self.tree.imgidx_summary = self.tree.imglist.Add(cw.s(cw.cwpy.rsrc.debugs["SUMMARY"]))
