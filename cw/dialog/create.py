@@ -632,7 +632,7 @@ class AdventurerCreaterPage(wx.Panel):
         # 共通背景
         path = "Table/Book" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path)
+        bmp = cw.s(cw.util.load_wxbmp(path))
         dc.DrawBitmap(bmp, 0, 0, False)
         return dc
 
@@ -1439,7 +1439,7 @@ class DesignPanel(AdventurerCreaterPage):
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path)
+        bmp = cw.s(cw.util.load_wxbmp(path))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 

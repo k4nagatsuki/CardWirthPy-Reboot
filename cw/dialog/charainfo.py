@@ -912,7 +912,7 @@ class SkillPanel(wx.Panel):
             bmp = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(bmp, pos[0]+cw.s(85), pos[1]-cw.s(1), True)
             # 使用回数
-            key = "HAND%s" % (header.get_uselimit_level() + cw.s(5))
+            key = "HAND%s" % (header.get_uselimit_level() + 5)
             bmp = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(bmp, pos[0]+cw.s(100), pos[1]-cw.s(1), True)
 

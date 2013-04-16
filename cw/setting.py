@@ -357,7 +357,7 @@ class Resource(object):
         font.set_italic(True)
         fonts["pcard_level"] = font
         # メッセージウィンドウのテキスト描画用
-        font = pygame.font.Font(self.fontpaths["gothic"], cw.s(22))
+        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(22))
         fonts["message"] = font
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             # メッセージウィンドウのテキスト描画用(クラシック)

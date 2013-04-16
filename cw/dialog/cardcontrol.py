@@ -284,13 +284,13 @@ class CardControl(wx.Dialog):
         # ライン
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
         dc.SetPen(wx.Pen(colour, cw.s(1), wx.SOLID))
-        dc.DrawLine(cw.s(1), cw.s(209), cw.s(499), cw.s(20))
+        dc.DrawLine(cw.s(1), cw.s(20), cw.s(499), cw.s(20))
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW)
         dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
         dc.DrawLine(cw.s(1), cw.s(21), cw.s(499), cw.s(21))
         # 移動モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(11)))
         if self.callname == "INFOVIEW" or\
             (self.callname == "CARDPOCKET" and isinstance(self.selection, cw.character.Friend)) or\
             (self.callname == "HANDVIEW" and not cw.cwpy.debug and isinstance(self.selection, (cw.character.Enemy, cw.character.Friend))):
@@ -1192,15 +1192,15 @@ def get_poslist(num, mode=1):
 
         if num < 5:
             x = (w - cw.s(83) * num) / 2 + leftm
-            y = 77
+            y = cw.s(77)
             poslist = [(x + (cw.s(83) * cnt), y) for cnt in xrange(num)]
         else:
             row1, row2 = num / 2 + num % 2, num / 2
             x = (w - cw.s(83) * row1) / 2 + leftm
-            y = 27
+            y = cw.s(27)
             row1list = [(x + (cw.s(83) * cnt), y) for cnt in xrange(row1)]
             x = (w - cw.s(83) * row2) / 2 + leftm
-            y = 141
+            y = cw.s(141)
             row2list = [(x + (cw.s(83) * cnt), y) for cnt in xrange(row2)]
             poslist = row1list + row2list
 
@@ -1210,15 +1210,15 @@ def get_poslist(num, mode=1):
 
         if num < 6:
             x = (w - cw.s(83) * num) / 2
-            y = 77
+            y = cw.s(77)
             poslist = [(x + (cw.s(83) * cnt), y) for cnt in xrange(num)]
         else:
             row1, row2 = num / 2 + num % 2, num / 2
             x = (w - cw.s(83) * row1) / 2
-            y = 27
+            y = cw.s(27)
             row1list = [(x + (cw.s(83) * cnt), y) for cnt in xrange(row1)]
             x = (w - cw.s(83) * row2) / 2
-            y = 141
+            y = cw.s(141)
             row2list = [(x + (cw.s(83) * cnt), y) for cnt in xrange(row2)]
             poslist = row1list + row2list
 

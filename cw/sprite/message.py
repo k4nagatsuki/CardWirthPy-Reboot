@@ -26,7 +26,7 @@ class MessageWindow(base.CWPySprite):
         self._barspchr = True
 
         # クラシックスタイルか
-        self.classicstyletext = cw.cwpy.setting.classicstyletext
+        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext
         # クラシックスタイルのテキスト描画用
         if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
             self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
@@ -298,6 +298,8 @@ class MessageWindow(base.CWPySprite):
                 # CardWirthPy形式
                 image = font.render(char, True, colour)
                 image2 = font.render(char, True, (0, 0, 0))
+                join_left = False
+                join_right = False
 
                 # u"ー"の場合、左右の線が繋がるように補完する
                 if char == u"―":
@@ -324,6 +326,8 @@ class MessageWindow(base.CWPySprite):
 
                         image = image.subsurface(rect)
                         image2 = (image2.subsurface(rect), (join_left, join_right))
+                    else:
+                        image2 = (image2, (join_left, join_right))
 
                 # u"…"の場合、両脇を1ピクセル詰める
                 elif char == u"…":
@@ -342,6 +346,10 @@ class MessageWindow(base.CWPySprite):
                     subimg = image2.subsurface(rect).copy()
                     image2.fill((0, 0, 0, 0), rect)
                     image2.blit(subimg, (w - cw.s(7), 0))
+                    image2 = (image2, (join_left, join_right))
+
+                else:
+                    image2 = (image2, (join_left, join_right))
 
             images.append((pos, image, image2))
 
@@ -449,7 +457,7 @@ class SelectWindow(MessageWindow):
         self.backlog_versionhint = ""
 
         # クラシックスタイルか
-        self.classicstyletext = cw.cwpy.setting.classicstyletext
+        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext
         # クラシックスタイルのテキスト描画用
         if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
             self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
