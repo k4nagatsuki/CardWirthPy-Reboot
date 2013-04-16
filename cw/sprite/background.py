@@ -40,6 +40,9 @@ class BackGround(base.CWPySprite):
             return None, False
         anime = False
 
+        if cw.cwpy.is_playingscenario() and (path, size, mask) in cw.cwpy.sdata.cache:
+            return cw.cwpy.sdata.cache[(path, size, mask)], False
+
         # 画像読み込み
         ext = os.path.splitext(path)[1].lower()
 
@@ -51,7 +54,7 @@ class BackGround(base.CWPySprite):
             image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
             anime = True
         else:
-            image = cw.s(cw.util.load_image(path, mask))
+            image = cw.util.load_image(path, mask)
 
         # 指定したサイズに拡大縮小する
         if not image.get_size() in (size, cw.s((0, 0))):
@@ -59,6 +62,9 @@ class BackGround(base.CWPySprite):
                 image = pygame.transform.smoothscale(image, size)
             else:
                 image = pygame.transform.scale(image, size)
+
+        if not anime and cw.cwpy.is_playingscenario():
+            cw.cwpy.sdata.cache[(path, size, mask)] = image
 
         return image, anime
 
