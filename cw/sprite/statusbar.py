@@ -11,14 +11,14 @@ import base
 class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
-        wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(632, 33)
+        wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(cw.s(632), cw.s(33))
         subimg = cw.image.conv2surface(wxbmp)
-        image = pygame.Surface((632, 33))
+        image = pygame.Surface(cw.s((632, 33)))
         image.fill((255, 255, 255))
-        image.blit(subimg, (0, 0))
+        image.blit(subimg, cw.s((0, 0)))
         self.image = image
         self.rect = self.image.get_rect()
-        self.rect.topleft = (0, 420)
+        self.rect.topleft = cw.s((0, 420))
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
         self.showbuttons = False
@@ -30,33 +30,33 @@ class StatusBar(base.CWPySprite):
 
         self.showbuttons = showbuttons
 
-        left = 602
-        rmargin = 0
-        SettingsButton(self, (left, 3))
+        left = cw.s(602)
+        rmargin = cw.s(0)
+        SettingsButton(self, (left, cw.s(3)))
 
-        left -= 28
-        rmargin += 27
+        left -= cw.s(28)
+        rmargin += cw.s(27)
         hasbacklog = cw.cwpy.is_playingscenario()
-        BacklogButton(self, (left, 3), hasbacklog)
+        BacklogButton(self, (left, cw.s(3)), hasbacklog)
 
         if cw.cwpy.is_debugmode():
-            left -= 28
-            rmargin += 27
-            DebuggerButton(self, (left, 3))
+            left -= cw.s(28)
+            rmargin += cw.s(27)
+            DebuggerButton(self, (left, cw.s(3)))
 
         if cw.cwpy.status == "Yado":
-            YadoMoneyPanel(self, (10, 6))
-            PartyMoneyPanel(self, (474 - rmargin, 6))
+            YadoMoneyPanel(self, cw.s((10, 6)))
+            PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
-                CampButton(self, (10, 6))
-                TableButton(self, (133, 6))
-            PartyMoneyPanel(self, (474 - rmargin, 6))
+                CampButton(self, cw.s((10, 6)))
+                TableButton(self, cw.s((133, 6)))
+            PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.is_battlestatus():
             if showbuttons:
-                ActionButton(self, (10, 6))
-                RunAwayButton(self, (133, 6))
-            RoundCounterPanel(self, (474 - rmargin, 6))
+                ActionButton(self, cw.s((10, 6)))
+                RunAwayButton(self, cw.s((133, 6)))
+            RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
 
         # デバッガのツールが使用可能かどうかを更新
         cw.cwpy.event.refresh_tools()
@@ -66,23 +66,25 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.sbargrp.remove_sprites_of_layer("button")
 
 class StatusBarPanel(base.CWPySprite):
-    def __init__(self, parent, color, pos, size=(120, 22), icon=None):
+    def __init__(self, parent, color, pos, size=None, icon=None):
+        if size is None:
+            size = cw.s((120, 22))
         base.CWPySprite.__init__(self)
         self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
         # panelimg
         self.panelimg = pygame.Surface(size).convert()
         self.panelimg.fill((0, 0, 0))
         rect = self.panelimg.get_rect()
-        rect.topleft = (1, 1)
-        rect.size = (size[0] - 2, size[1] - 2)
+        rect.topleft = cw.s((1, 1))
+        rect.size = (size[0] - cw.s(2), size[1] - cw.s(2))
         self.panelimg.fill(color, rect)
 
         if icon:
-            self.panelimg.blit(icon, (3, 3))
+            self.panelimg.blit(icon, cw.s((3, 3)))
 
         # image
         self.image = self.panelimg.copy()
-        self.noimg = pygame.Surface((0, 0)).convert()
+        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
         # rect
         self.rect = self.image.get_rect()
         self.rect.top = parent.rect.top + pos[1]
@@ -110,7 +112,7 @@ class YadoMoneyPanel(StatusBarPanel):
 
         image = self.font.render(s, True, (255, 255, 255))
         rect = image.get_rect()
-        rect.left = self.rect.w - (rect.w + 5)
+        rect.left = self.rect.w - (rect.w + cw.s(5))
         rect.top = (self.rect.h - rect.h) / 2
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
@@ -162,8 +164,10 @@ class RoundCounterPanel(YadoMoneyPanel):
         self.image.blit(image, rect.topleft)
 
 class StatusBarButton(base.SelectableSprite):
-    def __init__(self, parent, name, pos, size=(120, 22),
+    def __init__(self, parent, name, pos, size=None,
                  toggle=False, icon=None, enabled=True):
+        if size is None:
+            size = cw.s((120, 22))
         base.SelectableSprite.__init__(self)
         # 各種データ
         self.name = name
@@ -188,7 +192,7 @@ class StatusBarButton(base.SelectableSprite):
         self.rect.left = parent.rect.left + pos[0]
         # image
         self.image = self.btnimg
-        self.noimg = pygame.Surface((0, 0)).convert()
+        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
 
         # ボタンアイコン・ラベル
         if icon:
@@ -202,8 +206,8 @@ class StatusBarButton(base.SelectableSprite):
         rect.centery = self.rect.centery - self.rect.top
         self.btnimg.blit(image, rect.topleft)
         self.btnimg3.blit(image, rect.topleft)
-        rect.top += 1
-        rect.left += 1
+        rect.top += cw.s(1)
+        rect.left += cw.s(1)
         self.btnimg2.blit(image, rect.topleft)
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="button")
@@ -346,7 +350,7 @@ class SettingsButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["SETTINGS"])
         name = u"設定"
-        StatusBarButton.__init__(self, parent, name, pos, (27, 27), icon=image)
+        StatusBarButton.__init__(self, parent, name, pos, cw.s((27, 27)), icon=image)
         self._selectable_on_event = True
 
     def lclick_event(self):
@@ -357,7 +361,7 @@ class DebuggerButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["STATUS12"])
         name = u"デバッガ"
-        StatusBarButton.__init__(self, parent, name, pos, (27, 27), icon=image)
+        StatusBarButton.__init__(self, parent, name, pos, cw.s((27, 27)), icon=image)
         self._selectable_on_event = True
 
     def lclick_event(self):
@@ -367,11 +371,11 @@ class DebuggerButton(StatusBarButton):
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos, enabled):
         self.enabled = enabled
-        image = cw.image.conv2surface(cw.cwpy.rsrc.debugs["BACKLOG"])
+        image = cw.s(cw.image.conv2surface(cw.cwpy.rsrc.debugs["BACKLOG"]))
         if not self.enabled:
             image = cw.imageretouch.to_binaryformat(image, 0)
         name = u"バックログ"
-        StatusBarButton.__init__(self, parent, name, pos, (27, 27), icon=image, enabled=enabled)
+        StatusBarButton.__init__(self, parent, name, pos, cw.s((27, 27)), icon=image, enabled=enabled)
         self._selectable_on_event = enabled
 
     def lclick_event(self):

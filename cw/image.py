@@ -52,12 +52,12 @@ class CardImage(Image):
         # プレミア画像
         if self.premium == "Rare":
             subimg = cw.cwpy.rsrc.cardbgs["RARE"]
-            image.blit(subimg, (64, 5))
-            image.blit(subimg, (5, 64))
+            image.blit(subimg, cw.s((64, 5)))
+            image.blit(subimg, cw.s((5, 64)))
         elif self.premium == "Premium":
             subimg = cw.cwpy.rsrc.cardbgs["PREMIER"]
-            image.blit(subimg, (64, 5))
-            image.blit(subimg, (5, 41))
+            image.blit(subimg, cw.s((64, 5)))
+            image.blit(subimg, cw.s((5, 41)))
 
         if cw.binary.image.path_is_code(self.path):
             path = self.path
@@ -67,18 +67,18 @@ class CardImage(Image):
         if not path:
             path = self.path
 
-        subimg = cw.util.load_image(path, True)
-        image.blit(subimg, (3, 13))
+        subimg = cw.s(cw.util.load_image(path, True))
+        image.blit(subimg, cw.s((3, 13)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         subimg = font.render(self.name, True, (0, 0, 0))
         w, h = subimg.get_size()
 
-        left = 5
+        left = cw.s(5)
         if w + left > self.rect.w:
             size = (self.rect.w - left*2, h)
             subimg = pygame.transform.scale(subimg, size)
 
-        image.blit(subimg, (left, 5))
+        image.blit(subimg, (left, cw.s(5)))
         return image
 
     def get_cardimg(self, header):
@@ -98,7 +98,7 @@ class CardImage(Image):
                 font = cw.cwpy.rsrc.fonts["card_uselimit"]
                 s = str(uselimit)
                 subimg = font.render(s, False, (0, 0, 0))
-                pos = 5, 90
+                pos = cw.s((5, 90))
                 image.blit(subimg, (pos[0]+1, pos[1]))
                 image.blit(subimg, (pos[0]-1, pos[1]))
                 image.blit(subimg, (pos[0], pos[1]+1))
@@ -117,23 +117,23 @@ class CardImage(Image):
             # 適性値
             key = "HAND" + str(header.get_vocation_level(owner))
             subimg = cw.cwpy.rsrc.stones[key]
-            image.blit(subimg, (60, 90))
+            image.blit(subimg, cw.s((60, 90)))
 
             # 使用回数(画像)
             if header.type == "SkillCard":
                 key = "HAND" + str(header.get_uselimit_level() + 5)
                 subimg = cw.cwpy.rsrc.stones[key]
-                image.blit(subimg, (60, 75))
+                image.blit(subimg, cw.s((60, 75)))
 
             # ホールド
             if header.hold:
                 subimg = cw.cwpy.rsrc.cardbgs["HOLD"]
-                image.blit(subimg, (0, 0))
+                image.blit(subimg, cw.s((0, 0)))
 
             # ペナルティ
             if header.penalty:
                 subimg = cw.cwpy.rsrc.cardbgs["PENALTY"]
-                image.blit(subimg, (0, 0))
+                image.blit(subimg, cw.s((0, 0)))
 
         return image
 
@@ -171,24 +171,24 @@ class LargeCardImage(CardImage):
         # プレミア画像
         if self.premium == "Rare":
             subimg = cw.cwpy.rsrc.cardbgs["RARE"]
-            image.blit(subimg, (64, 5))
-            image.blit(subimg, (5, 64))
+            image.blit(subimg, cw.s((64, 5)))
+            image.blit(subimg, cw.s((5, 64)))
         elif self.premium == "Premium":
             subimg = cw.cwpy.rsrc.cardbgs["PREMIER"]
-            image.blit(subimg, (64, 5))
-            image.blit(subimg, (5, 41))
+            image.blit(subimg, cw.s((64, 5)))
+            image.blit(subimg, cw.s((5, 41)))
 
-        subimg = cw.util.load_image(self.path, True)
-        image.blit(subimg, (10, 23))
+        subimg = cw.s(cw.util.load_image(self.path, True))
+        image.blit(subimg, cw.s((10, 23)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         subimg = font.render(self.name, True, (0, 0, 0))
         w, h = subimg.get_size()
 
-        if w + 3 > self.rect.w:
-            size = (self.rect.w - 12, h)
+        if w + cw.s(3) > self.rect.w:
+            size = (self.rect.w - cw.s(12), h)
             subimg = pygame.transform.smoothscale(subimg, size)
 
-        image.blit(subimg, (6, 6))
+        image.blit(subimg, cw.s((6, 6)))
         return image
 
 class CharacterCardImage(CardImage):
@@ -200,35 +200,35 @@ class CharacterCardImage(CardImage):
         # フォント画像(レベル)
         self.set_levelimg(ccard.level)
         # ライフバー画像
-        self.lifeimg = pygame.Surface((79, 13)).convert()
+        self.lifeimg = pygame.Surface(cw.s((79, 13))).convert()
         self.lifeguage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
         self.lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
-        self.lifeimg.set_colorkey(self.lifeguage.get_at((0,0)), RLEACCEL)
+        self.lifeimg.set_colorkey(self.lifeguage.get_at((0, 0)), RLEACCEL)
         # rect
-        self.rect = pygame.Rect(pos, (95, 130))
+        self.rect = pygame.Rect(pos, cw.s((95, 130)))
 
     def set_faceimg(self, path):
         self.path = path
-        self.cardimg = cw.util.load_image(path, True)
+        self.cardimg = cw.s(cw.util.load_image(path, True))
 
     def set_nameimg(self, name):
         font = cw.cwpy.rsrc.fonts["pcard_name"]
         self.nameimg = font.render(name, True, (0, 0, 0))
         w, h = self.nameimg.get_size()
 
-        if w + 14 > 95:
-            size = (95 - 14, h)
+        if w + cw.s(14) > cw.s(95):
+            size = (cw.s(95 - 14), h)
             self.nameimg = pygame.transform.smoothscale(self.nameimg, size)
 
     def set_levelimg(self, level):
         font = cw.cwpy.rsrc.fonts["pcard_level"]
         s = str(level)
-        size = (15 * (len(s)-1) + 20, font.size(s)[1])
+        size = (cw.s(15 * (len(s)-1) + 20), font.size(s)[1])
         self.levelimg = pygame.Surface(size, SRCALPHA).convert_alpha()
 
         for index, char in enumerate(s):
             subimg = font.render(char, True, (0, 0, 0))
-            self.levelimg.blit(subimg, (15 * index, 0))
+            self.levelimg.blit(subimg, cw.s((15 * index, 0)))
 
         for x in xrange(size[0]):
             for y in xrange(size[1]):
@@ -244,15 +244,15 @@ class CharacterCardImage(CardImage):
 
         # レベル
         if ccard.is_analyzable():
-            self.image.blit(self.levelimg, (90 - self.levelimg.get_width(), 2))
+            self.image.blit(self.levelimg, (cw.s(90) - self.levelimg.get_width(), cw.s(2)))
 
         # カード画像
-        insets_n = 18
-        insets_e = 10
-        insets_s = 18
-        insets_w = 10
-        bw = 95 - insets_w - insets_e
-        bh = 130 - insets_n - insets_s
+        insets_n = cw.s(18)
+        insets_e = cw.s(10)
+        insets_s = cw.s(18)
+        insets_w = cw.s(10)
+        bw = cw.s(95) - insets_w - insets_e
+        bh = cw.s(130) - insets_n - insets_s
         dw = self.cardimg.get_width()
         dh = self.cardimg.get_height()
         x = insets_w + (bw - dw) / 2
@@ -260,14 +260,14 @@ class CharacterCardImage(CardImage):
         self.image.blit(self.cardimg, (x, y))
 
         # 名前
-        self.image.blit(self.nameimg, (7, 4))
+        self.image.blit(self.nameimg, cw.s((7, 4)))
 
         # ライフ
         if ccard.is_analyzable():
             lifeper = ccard.get_lifeper()
-            self.lifeimg.blit(self.lifebar, (int(0.79 * (lifeper - 100)), 1))
-            self.lifeimg.blit(self.lifeguage, (0, 0))
-            self.image.blit(self.lifeimg, (9, 111))
+            self.lifeimg.blit(self.lifebar, cw.s((int(0.79 * (lifeper - 100)), 1)))
+            self.lifeimg.blit(self.lifeguage, cw.s((0, 0)))
+            self.image.blit(self.lifeimg, cw.s((9, 111)))
 
         # ステータス画像追加
         self.update_statusimg(ccard)
@@ -276,7 +276,7 @@ class CharacterCardImage(CardImage):
             # 適性表示(カード移動時)
             key = "HAND" + str(header.get_vocation_level(ccard))
             subimg = cw.cwpy.rsrc.stones[key]
-            self.image.blit(subimg, (73, 95))
+            self.image.blit(subimg, cw.s((73, 95)))
 
     def update_statusimg(self, ccard):
         seq = []
@@ -285,7 +285,7 @@ class CharacterCardImage(CardImage):
         if beastnum: # 召喚獣所持(付帯召喚以外)
             image = cw.cwpy.rsrc.statuses["SUMMON"].copy()
             font = cw.cwpy.rsrc.fonts["statusimg"]
-            pos = 8, 4
+            pos = cw.s((8, 4))
             s = str(beastnum)
             subimg = font.render(s, False, (0, 0, 0))
             image.blit(subimg, (pos[0]+1, pos[1]))
@@ -328,15 +328,15 @@ class CharacterCardImage(CardImage):
         elif ccard.enhance_def < 0: # 防御力弱化
             self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def)
 
-        x = 7
+        x = cw.s(7)
         if ccard.is_analyzable():
-            y = 92
+            y = cw.s(92)
         else:
-            y = 107
+            y = cw.s(107)
 
         index = 0
         for subimg in seq:
-            pos = (x + index / 5 * 17, y - index * 17 + index / 5 * 85)
+            pos = (x + index / 5 * cw.s(17), y - index * cw.s(17) + index / 5 * cw.s(85))
             if type(subimg) is pygame.Surface:
                 self.image.blit(subimg, pos)
                 index += 1
@@ -537,7 +537,7 @@ def set_textcellfont(wxdc, size, face, color, bold, italic,
     if vertical and not face.startswith("@"):
         face = "@" + face
 
-    font = wx.Font(12, family, style, weight, uline, face, encoding)
+    font = wx.Font(cw.s(12), family, style, weight, uline, face, encoding)
     font.SetPixelSize((0, size))
     wxdc.SetFont(font)
     te = wxdc.GetTextExtent("#")

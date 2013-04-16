@@ -16,19 +16,19 @@ class Message(wx.Dialog):
     mode=1だと「はい」「いいえ」。mode=2だと「閉じる」。
     """
     def __init__(self, parent, name, text, mode=2):
-        wx.Dialog.__init__(self, parent, -1, name, size=(355, 120),
+        wx.Dialog.__init__(self, parent, -1, name, size=cw.s((355, 120)),
                             style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.SetClientSize((349, 96))
+        self.SetClientSize(cw.s((349, 96)))
         self.text = cw.util.txtwrap(text, mode=6)
         self.mode = mode
 
         if self.mode == 1:
             # yes and no
-            self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, (120, 30), cw.cwpy.msgs["yes"])
-            self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (120, 30), cw.cwpy.msgs["no"])
+            self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_OK, cw.s((120, 30)), cw.cwpy.msgs["yes"])
+            self.nobtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.s((120, 30)), cw.cwpy.msgs["no"])
         elif self.mode == 2:
             # close
-            self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (120, 30), cw.cwpy.msgs["close"])
+            self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.s((120, 30)), cw.cwpy.msgs["close"])
 
         # layout
         self.__do_layout()
@@ -50,12 +50,12 @@ class Message(wx.Dialog):
         # massage
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic"))
-        dc.DrawLabel(self.text, (0, 0, csize[0], 50), wx.ALIGN_CENTER)
+        dc.DrawLabel(self.text, (0, 0, csize[0], cw.s(50)), wx.ALIGN_CENTER)
 
     def __do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add((0, 55), 0, 0, 0)
+        sizer_1.Add(cw.s((0, 55)), 0, 0, 0)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
         csize = self.GetClientSize()
 

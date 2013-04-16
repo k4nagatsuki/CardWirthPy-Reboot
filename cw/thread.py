@@ -41,7 +41,7 @@ class CWPy(_Singleton, threading.Thread):
         self.setting = setting  # 設定
 
         # pygame初期化
-        self.scr, self.clock = cw.util.init(cw.SIZE_SCR)
+        self.scr, self.clock = cw.util.init(cw.s(cw.SIZE_SCR))
         # キー入力捕捉用インスタンス(キー入力は全てwx側で捕捉)
         self.keyevent = cw.eventrelay.KeyEventRelay()
         # Diceインスタンス(いろいろなランダム処理に使う)
@@ -149,7 +149,7 @@ class CWPy(_Singleton, threading.Thread):
             # ステータスバークリップ
             self.sbargrp.set_clip(self.statusbar.rect)
             # FPS描画用フォント
-            self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], 14)
+            self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], cw.s(14))
             self.fpsfont.set_bold(True)
 
         except cw.setting.NoFontError, ex:
@@ -251,7 +251,7 @@ class CWPy(_Singleton, threading.Thread):
             # FPS描画
             if self.setting.showfps:
                 sur = self.fpsfont.render(str(int(self.clock.get_fps())), False, (0, 255, 255))
-                pos = (600, 5)
+                pos = cw.s((600, 5))
                 dirty_rects.append(self.scr.blit(sur, pos))
 
             # 画面更新
@@ -337,11 +337,11 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         if flag:
-            self.scr = pygame.display.set_mode(cw.SIZE_SCR, FULLSCREEN)
+            self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), FULLSCREEN)
             func = self.frame.ShowFullScreen
             self.frame.exec_func(func, True, wx.FULLSCREEN_ALL)
         else:
-            self.scr = pygame.display.set_mode(cw.SIZE_SCR, 0)
+            self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), 0)
             func = self.frame.ShowFullScreen
             self.frame.exec_func(func, False, self.frame.style)
 
@@ -459,16 +459,16 @@ class CWPy(_Singleton, threading.Thread):
         self.music.stop()
         ext = self.rsrc.ext_img
         path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
-        card1 = cw.sprite.background.TitleCell(path, 1, 120, True)
+        card1 = cw.sprite.background.TitleCell(path, 1, cw.s(120), True)
         path = cw.util.join_paths(resdir, "TITLE_CARD2") + ext
-        card2 = cw.sprite.background.TitleCell(path, 1, 120, True)
+        card2 = cw.sprite.background.TitleCell(path, 1, cw.s(120), True)
         path = cw.util.join_paths(resdir, "TITLE_CELL1") + ext
-        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False)
+        cell1 = cw.sprite.background.TitleCell(path, 2, cw.s(195), False)
         path = cw.util.join_paths(resdir, "TITLE_CELL2") + ext
-        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False)
+        cell2 = cw.sprite.background.TitleCell(path, 2, cw.s(195), False)
         path = cw.util.join_paths(resdir, "TITLE_CELL3") + ext
-        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False)
-        white = cw.sprite.background.TitleCell("white", 3, 0, False)
+        cell3 = cw.sprite.background.TitleCell(path, 2, cw.s(160), False)
+        white = cw.sprite.background.TitleCell("white", 3, cw.s(0), False)
         self.selection = white
 
         cw.cwpy.bggrp.add(card1, layer="title")
@@ -612,7 +612,7 @@ class CWPy(_Singleton, threading.Thread):
                 cw.animation.animate_sprite(pcard, "hide")
                 self.pcardgrp.remove(pcard)
 
-            pos = (95 * idx + 9 * (idx + 1), 285)
+            pos = cw.s((95 * idx + 9 * (idx + 1), 285))
             pcard = cw.sprite.card.PlayerCard(data, pos)
             pcard.rect.topleft = pos
             pcard._rect.topleft = pos
@@ -780,7 +780,7 @@ class CWPy(_Singleton, threading.Thread):
         # プレイヤカードスプライト作成
         if self.ydata and self.ydata.party and not self.get_pcards():
             for idx, e in enumerate(self.ydata.party.members):
-                pos = (95 * idx + 9 * (idx + 1), 285)
+                pos = cw.s((95 * idx + 9 * (idx + 1), 285))
                 cw.sprite.card.PlayerCard(e, pos)
 
             # 番号クーポン設定
@@ -790,7 +790,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.areaid == cw.AREA_CAMP:
             for index, fcard in enumerate(self.get_fcards()):
                 index = 5 - index
-                pos = (95 * index + 9 * (index + 1), 5)
+                pos = cw.s((95 * index + 9 * (index + 1), 5))
                 fcard.set_pos(pos)
                 fcard.clear_image()
                 fcard.status = "hidden"
@@ -804,16 +804,16 @@ class CWPy(_Singleton, threading.Thread):
         anime: カードを一旦消去してから再配置するならTrue。
         """
         def set_mcardpos(mcards, (maxw, maxh), y):
-            n = maxw + 5
-            x = (632 - n * len(mcards) + 5) / 2
+            n = maxw + cw.s(5)
+            x = (cw.s(632) - n * len(mcards) + cw.s(5)) / 2
 
             for mcard in mcards:
                 w, h = mcard._rect.size
                 mcard.set_pos((x + maxw - w, y + maxh - h))
                 x += n
 
-        maxw = 0
-        maxh = 0
+        maxw = cw.s(0)
+        maxh = cw.s(0)
 
         for mcard in mcards:
             w, h = mcard._rect.size
@@ -830,14 +830,14 @@ class CWPy(_Singleton, threading.Thread):
         n = len(mcards)
 
         if campwithfriend:
-            y = (145 - maxh) / 2 + 140 - 2
+            y = (cw.s(145) - maxh) / 2 + cw.s(140) - cw.s(2)
             set_mcardpos(mcards, (maxw, maxh), y)
         elif n <= maxcol:
-            y = (285 - maxh) / 2 - 2
+            y = (cw.s(285) - maxh) / 2 - cw.s(2)
             set_mcardpos(mcards, (maxw, maxh), y)
         else:
-            y = (285 - maxh * 2) / 2
-            y2 = y + maxh + 5
+            y = (cw.s(285) - maxh * 2) / 2
+            y2 = y + maxh + cw.s(5)
             p = n / 2 + n % 2
             set_mcardpos(mcards[:p], (maxw, maxh), y)
             set_mcardpos(mcards[p:], (maxw, maxh), y2)
@@ -861,10 +861,10 @@ class CWPy(_Singleton, threading.Thread):
 
         for index, e in enumerate(elements):
             if stype == "Auto":
-                pos = (0, 0)
+                pos = cw.s((0, 0))
             else:
-                left = e.getint("Property/Location", "left")
-                top = e.getint("Property/Location", "top")
+                left = cw.s(e.getint("Property/Location", "left"))
+                top = cw.s(e.getint("Property/Location", "top"))
                 pos = (left, top)
 
             if e.tag == "EnemyCard":
@@ -878,7 +878,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         for index, pcard in enumerate(self.get_pcards()):
             assert not pcard.zoomimgs
-            x = 9 + 95 * index + 9 * index
+            x = cw.s(9 + 95 * index + 9 * index)
             pcard.rect[0] = x
             pcard._rect[0] = x
             pcard.cardimg.rect[0] = x
@@ -1168,8 +1168,8 @@ class CWPy(_Singleton, threading.Thread):
     def set_curtain(self, target="Both"):
         """Curtainスプライトをセットする。"""
         if not self.is_curtained():
-            size, pos = (632, 284), (0, 0)
-            size2, pos2 = (632, 136), (0, 284)
+            size, pos = cw.s((632, 284)), cw.s((0, 0))
+            size2, pos2 = cw.s((632, 136)), cw.s((0, 284))
             curtain = cw.sprite.background.Curtain
 
             if self.areaid < 0 or target == "Both":
@@ -1238,7 +1238,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             e = self.ydata.party.members[0]
             pcardsnum = len(self.ydata.party.members) - 1
-            pos = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
+            pos = cw.s((9 + 95 * pcardsnum + 9 * pcardsnum, 285))
             pcard = cw.sprite.card.PlayerCard(e, pos)
             pcard.rect.topleft = pos
             pcard._rect.topleft = pos
@@ -1253,6 +1253,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if pcard:
             self.sounds["page"].play()
+            pcard.remove_numbercoupon()
             cw.animation.animate_sprite(pcard, "delete")
             pcard.data.write_xml()
             self.ydata.add_standbys(pcard.data.fpath)
@@ -1875,7 +1876,7 @@ class CWPy(_Singleton, threading.Thread):
 class ShowMenuCards(object):
     def __init__(self, cwpy):
         self.cwpy = cwpy
-        self.rect = pygame.Rect((0, 0), cw.SIZE_AREA)
+        self.rect = pygame.Rect(cw.s((0, 0)), cw.s(cw.SIZE_AREA))
 
     def lclick_event(self):
         cw.cwpy.wait_showcards = False

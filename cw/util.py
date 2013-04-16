@@ -65,7 +65,7 @@ class MusicInterface(object):
                 rpath = "DefReset" + cw.cwpy.rsrc.ext_bgm
                 rpath = join_paths(cw.cwpy.setting.skindir, "Bgm", rpath)
                 if os.path.normcase(fpath) == os.path.normcase(rpath):
-                    # DefReset.midを繰り返し流すとシステムが不安定になる
+                    # FIXME: DefReset.midを繰り返し流すとシステムが不安定になる
                     pygame.mixer.music.play(0)
                 elif os.path.splitext(fpath)[1].lower() == ".mp3":
                     # 互換動作: 1.28以前はMP3がループ再生されない
@@ -172,8 +172,11 @@ class SoundInterface(object):
 #　汎用関数
 #-------------------------------------------------------------------------------
 
-def init(size=(640, 480), title=""):
+def init(size=None, title=""):
     """pygame初期化。"""
+    if size is None:
+        size = cw.SIZE_SCR
+    size = cw.s(size)
     pygame.mixer.pre_init(22050, -16, 2, 1024)
     pygame.init()
     scr = pygame.display.set_mode(size)
@@ -872,7 +875,6 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
                 shutil.rmtree(dstdir2)
 
     return dstdir
-
 
 def cab_hasfile(cab, file):
     """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""

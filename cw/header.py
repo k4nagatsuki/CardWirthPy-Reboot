@@ -149,7 +149,7 @@ class CardHeader(object):
             self.scedir = ""
         # 画像設定
         self._cardimg = None
-        self.rect = pygame.Rect(0, 0, 80, 110)
+        self.rect = cw.s(pygame.Rect(0, 0, 80, 110))
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
@@ -877,11 +877,11 @@ class ScenarioHeader(object):
         if not self._wxbmp:
             if self.image:
                 f = io.BytesIO(str(self.image))
-                image = wx.ImageFromStream(f)
+                image = cw.s(wx.ImageFromStream(f))
                 f.close()
-                self._wxbmp = cw.util.load_wxbmp(image=image, mask=mask)
+                self._wxbmp = cw.s(cw.util.load_wxbmp(image=image, mask=mask))
             else:
-                self._wxbmp = wx.EmptyBitmap(0, 0)
+                self._wxbmp = wx.EmptyBitmap(cw.s(0), cw.s(0))
         return self._wxbmp
 
 class PartyHeader(object):

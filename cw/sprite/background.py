@@ -23,7 +23,7 @@ class BackGround(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
         self.bgs = []
-        self.image = pygame.Surface(cw.SIZE_AREA).convert()
+        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
         # spritegroupに追加
         cw.cwpy.bggrp.add(self)
@@ -51,10 +51,10 @@ class BackGround(base.CWPySprite):
             image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
             anime = True
         else:
-            image = cw.util.load_image(path, mask)
+            image = cw.s(cw.util.load_image(path, mask))
 
         # 指定したサイズに拡大縮小する
-        if not image.get_size() in (size, (0, 0)):
+        if not image.get_size() in (size, cw.s((0, 0))):
             if cw.cwpy.setting.smoothscale_bg:
                 image = pygame.transform.smoothscale(image, size)
             else:
@@ -181,7 +181,7 @@ class BackGround(base.CWPySprite):
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime):
         path, mask, size, pos, flag, visible = d
-        image, anime = self.load_surface(path, mask, size, flag, doanime=doanime)
+        image, anime = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 
         if image:
             blitlist.append((BG_IMAGE, (image, pos, 0)))
@@ -202,9 +202,9 @@ class BackGround(base.CWPySprite):
             text = cw.sprite.message.rpl_specialstr(text)
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
-                image = cw.image.create_type2textcell(text, face, tsize, color,
+                image = cw.image.create_type2textcell(text, face, cw.s(tsize), color,
                     bold, italic, underline, strike, vertical,
-                    size, bcolor, bwidth)
+                    cw.s(size), bcolor, bwidth)
                 blitlist.append((BG_IMAGE, (image, pos, 0)))
             else:
                 # アンチエイリアスの関係で後から描画
@@ -241,20 +241,20 @@ class BackGround(base.CWPySprite):
     def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
         if not bginhrt:
-            self.image = pygame.Surface(cw.SIZE_SCR).convert()
+            self.image = pygame.Surface(cw.s(cw.SIZE_SCR)).convert()
 
         for type, d in blitlist:
             if type == BG_IMAGE:
                 # 背景画像、カラーセル、縁取り形式2のテキストセル
                 image, pos, flag = d
-                self.image.blit(image, pos, None, flag)
+                self.image.blit(image, cw.s(pos), None, flag)
 
             elif type == BG_TEXT:
                 # 縁取り形式2以外のテキストセル
                 text, face, tsize, color, bold, italic, underline, strike, vertical,\
                     bcolor, size, pos = d
-                cw.image.draw_textcell(self.image, pygame.Rect(pos, size), text, face,
-                    tsize, color, bold, italic, underline, strike, vertical, bcolor)
+                cw.image.draw_textcell(self.image, cw.s(pygame.Rect(pos, size)), text, face,
+                    cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
 
             else:
                 assert False
@@ -269,13 +269,17 @@ class BackGround(base.CWPySprite):
             transitspr.remove(cw.cwpy.bggrp)
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, spritegrp, size=(632, 420), pos=(0, 0), alpha=128):
+    def __init__(self, spritegrp, size=None, pos=None, alpha=128):
         """半透明のブルーバックスプライト。右クリックで解除。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         size: スプライトのサイズ。
         pos: 表示位置。
         alpha: 透明度。
         """
+        if size is None:
+            size = cw.s((632, 420))
+        if pos is None:
+            pos = cw.s((0, 0))
         base.SelectableSprite.__init__(self)
         self.image = pygame.Surface(size).convert()
         self.image.fill((0, 0, 80))
@@ -307,7 +311,7 @@ class BattleCardImage(card.CWPyCard):
         image = cardimg.get_image()
         self.image = self._image = self.image_unzoomed = image
         self.rect = self._rect = self.image.get_rect()
-        self.set_pos(center=(316, 142))
+        self.set_pos(center=cw.s((316, 142)))
         self.clear_image()
         self.highspeed = True
         # spritegroupに追加
@@ -316,15 +320,15 @@ class BattleCardImage(card.CWPyCard):
     def update_battlestart(self):
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
-        self.zoomsize = (8, 12)
+        self.zoomsize = cw.s((8, 12))
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
-        self.zoomsize = (28, 40)
+        self.zoomsize = cw.s((28, 40))
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
-        self.zoomsize = (56, 80)
+        self.zoomsize = cw.s((56, 80))
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
         waitrate = cw.cwpy.setting.dealspeed * 4
@@ -346,7 +350,7 @@ class InuseCardImage(card.CWPyCard):
         center: 画面中央に表示するかどうか。
         """
         card.CWPyCard.__init__(self, status)
-        self.zoomsize = (32, 42)
+        self.zoomsize = cw.s((32, 42))
         image = header.get_cardimg()
         self.image = self._image = image
         self.rect = self._rect = image.get_rect()
@@ -357,7 +361,7 @@ class InuseCardImage(card.CWPyCard):
             self.rect.size = self.image.get_size()
 
         if center:
-            self.set_pos(center=(316, 142))
+            self.set_pos(center=cw.s((316, 142)))
         else:
             self.set_pos(center=user.rect.center)
 
@@ -381,7 +385,7 @@ class TargetArrow(base.CWPySprite):
         base.CWPySprite.__init__(self)
         self.image = cw.cwpy.rsrc.statuses["TARGET"]
         self.rect = self.image.get_rect()
-        self.rect.topleft = (target.rect.right - 30, target.rect.bottom - 30)
+        self.rect.topleft = (target.rect.right - cw.s(30), target.rect.bottom - cw.s(30))
         # spritegroupに追加
         cw.cwpy.pcardgrp.add(self, layer="targetarrow")
 
@@ -414,12 +418,12 @@ class TitleCell(base.CWPySprite):
         base.CWPySprite.__init__(self)
         self.layer = layer
         if path == "white":
-            self._image = pygame.surface.Surface(cw.SIZE_AREA).convert()
+            self._image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
             self._image.fill((255, 255, 255))
         else:
-            self._image = cw.util.load_image(path, True)
+            self._image = cw.s(cw.util.load_image(path, True))
         self._rect = self._image.get_rect()
-        x = (cw.SIZE_AREA[0] - self._rect.width) / 2
+        x = (cw.s(cw.SIZE_AREA[0]) - self._rect.width) / 2
         self._rect.topleft = (x, y)
 
         if iscard:

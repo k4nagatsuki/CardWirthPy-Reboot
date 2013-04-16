@@ -13,10 +13,15 @@ import base
 
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
-                 pos=(81, 50), size=(470, 180), talkerimage=None,
+                 pos=None, size=None, talkerimage=None,
                  nametable={}, flagtable={}, steptable={},
                  backlog=False, result=None, versionhint=""):
         base.CWPySprite.__init__(self)
+        if pos is None:
+            pos = cw.s((81, 50))
+        if size is None:
+            size = cw.s((470, 180))
+
         self.backlog = backlog
         self._barspchr = True
 
@@ -24,7 +29,7 @@ class MessageWindow(base.CWPySprite):
         self.classicstyletext = cw.cwpy.setting.classicstyletext
         # クラシックスタイルのテキスト描画用
         if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
-            self.wxcanvas = wx.EmptyBitmap(22, 22)
+            self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
             self.wxdc = wx.MemoryDC(self.wxcanvas)
             self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
         else:
@@ -51,7 +56,7 @@ class MessageWindow(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         # 外枠描画
-        draw_frame(self.image, size, (0, 0), self.backlog)
+        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
         # 話者(CardHeader or Character)
         self.talker = talker
 
@@ -70,13 +75,13 @@ class MessageWindow(base.CWPySprite):
         if talkerimage:
             self.talker_image = talkerimage
         elif self.path:
-            self.talker_image = cw.util.load_image(self.path, True)
+            self.talker_image = cw.s(cw.util.load_image(self.path, True))
         else:
             self.talker_image = None
 
         if self.talker_image:
             y = (self.rect.height - self.talker_image.get_height()) / 2
-            self.image.blit(self.talker_image, (15, y))
+            self.image.blit(self.talker_image, (cw.s(15), y))
 
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs()
@@ -86,7 +91,7 @@ class MessageWindow(base.CWPySprite):
         self.speed = cw.cwpy.setting.messagespeed
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos = (80, 230)
+        self.selection_pos = cw.s((80, 230))
         # frame
         self.frame = 0
         if not self.backlog:
@@ -162,13 +167,15 @@ class MessageWindow(base.CWPySprite):
                 # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
                 if self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                     name = (name[0], self.rpl_specialstr(False, name[1]))
-                pos = (x, 25 * index + y)
+                pos = (x, cw.s(25) * index + y)
                 selected = 1 < len(self.names) and self.backlog and self.result == index
                 sbar = SelectionBar(name, pos, backlog=self.backlog, selected=selected)
                 self.selections.append(sbar)
                 sbar.update()
 
-    def create_charimgs(self, pos=(15, 11)):
+    def create_charimgs(self, pos=None):
+        if pos is None:
+            pos = cw.s((15, 11))
         if self.talker_image:
             self.text = self.rpl_specialstr(True, self.text)
             self.text = cw.util.txtwrap(self.text, 2)
@@ -180,8 +187,8 @@ class MessageWindow(base.CWPySprite):
             if cw.cwpy.sct.lessthan("1.28", versionhint):
                 w = self.talker_image.get_width()
             else:
-                w = 74
-            posp = pos = pos[0] + 26 + w, pos[1]
+                w = cw.s(74)
+            posp = pos = pos[0] + cw.s(26) + w, pos[1]
         else:
             self.text = self.rpl_specialstr(True, self.text)
             self.text = cw.util.txtwrap(self.text, 3)
@@ -231,7 +238,7 @@ class MessageWindow(base.CWPySprite):
 
                     if userfont:
                         images.append((pos, charimg, None))
-                        pos = pos[0] + 20, pos[1]
+                        pos = pos[0] + cw.s(20), pos[1]
                         skip = True
                         continue
 
@@ -239,9 +246,9 @@ class MessageWindow(base.CWPySprite):
                     image = pygame.Surface(size).convert()
                     image.fill(colour)
                     image.blit(charimg, (0, 0))
-                    image.set_colorkey(image.get_at((0,0)), RLEACCEL)
+                    image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
                     images.append((pos, image, None))
-                    pos = pos[0] + 20, pos[1]
+                    pos = pos[0] + cw.s(20), pos[1]
                     skip = True
                     continue
 
@@ -306,14 +313,14 @@ class MessageWindow(base.CWPySprite):
 
                     if join_left or join_right:
                         rect = image.get_rect()
-                        size = (rect.w + 20, rect.h)
+                        size = (rect.w + cw.s(20), rect.h)
                         image = pygame.transform.scale(image, size)
                         image2 = pygame.transform.scale(image2, size)
 
                         if join_left and join_right:
-                            rect.left += 10
+                            rect.left += cw.s(10)
                         elif join_left:
-                            rect.left += 20
+                            rect.left += cw.s(20)
 
                         image = image.subsurface(rect)
                         image2 = (image2.subsurface(rect), (join_left, join_right))
@@ -321,28 +328,28 @@ class MessageWindow(base.CWPySprite):
                 # u"…"の場合、両脇を1ピクセル詰める
                 elif char == u"…":
                     w, h = image.get_size()
-                    rect = pygame.Rect((0, 0), (6, h))
+                    rect = pygame.Rect((0, 0), (cw.s(6), h))
                     subimg = image.subsurface(rect).copy()
                     image.fill((0, 0, 0, 0), rect)
-                    image.blit(subimg, (1, 0))
+                    image.blit(subimg, cw.s((1, 0)))
                     subimg = image2.subsurface(rect).copy()
                     image2.fill((0, 0, 0, 0), rect)
-                    image2.blit(subimg, (1, 0))
-                    rect = pygame.Rect((w - 6, 0), (6, h))
+                    image2.blit(subimg, cw.s((1, 0)))
+                    rect = pygame.Rect((w - cw.s(6), 0), (cw.s(6), h))
                     subimg = image.subsurface(rect).copy()
                     image.fill((0, 0, 0, 0), rect)
-                    image.blit(subimg, (w - 7, 0))
+                    image.blit(subimg, (w - cw.s(7), 0))
                     subimg = image2.subsurface(rect).copy()
                     image2.fill((0, 0, 0, 0), rect)
-                    image2.blit(subimg, (w - 7, 0))
+                    image2.blit(subimg, (w - cw.s(7), 0))
 
             images.append((pos, image, image2))
 
             # 半角文字だったら文字幅は半分にする
             if r_halfwidth.match(char):
-                pos = pos[0] + 10, pos[1]
+                pos = pos[0] + cw.s(10), pos[1]
             else:
-                pos = pos[0] + 20, pos[1]
+                pos = pos[0] + cw.s(20), pos[1]
 
         return images
 
@@ -425,8 +432,13 @@ class MessageWindow(base.CWPySprite):
             return (255, 255, 255)
 
 class SelectWindow(MessageWindow):
-    def __init__(self, names, text="", pos=(81, 50), size=(470, 38), backlog=False, result=None):
+    def __init__(self, names, text="", pos=None, size=None, backlog=False, result=None):
         base.CWPySprite.__init__(self)
+        if pos is None:
+            pos = cw.s((81, 50))
+        if size is None:
+            size = cw.s((470, 38))
+
         self.backlog = backlog
         self._barspchr = False
         self.name_table = {}
@@ -440,7 +452,7 @@ class SelectWindow(MessageWindow):
         self.classicstyletext = cw.cwpy.setting.classicstyletext
         # クラシックスタイルのテキスト描画用
         if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
-            self.wxcanvas = wx.EmptyBitmap(22, 22)
+            self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
             self.wxdc = wx.MemoryDC(self.wxcanvas)
             self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
         else:
@@ -465,9 +477,9 @@ class SelectWindow(MessageWindow):
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         # 外枠描画
-        draw_frame(self.image, size, (0, 0), self.backlog)
+        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
         # 描画する文字画像のリスト作成
-        self.charimgs = self.create_charimgs((15, 9))
+        self.charimgs = self.create_charimgs(cw.s((15, 9)))
         # frame
         self.frame = 0
         # メッセージスピード
@@ -476,7 +488,7 @@ class SelectWindow(MessageWindow):
         self.is_drawing = True
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos = (80, 88)
+        self.selection_pos = cw.s((80, 88))
         # メッセージ全て表示
         self.draw_all()
         # spritegroupに追加
@@ -489,7 +501,11 @@ class SelectWindow(MessageWindow):
         pass
 
 class MemberSelectWindow(SelectWindow):
-    def __init__(self, pcards, pos=(80, 50), size=(470, 38)):
+    def __init__(self, pcards, pos=None, size=None):
+        if pos is None:
+            pos = cw.s((80, 50))
+        if size is None:
+            size = cw.s((470, 38))
         self.selectmembers = pcards
         names = [(index, pcard.name)
                         for index, pcard in enumerate(self.selectmembers)]
@@ -498,8 +514,10 @@ class MemberSelectWindow(SelectWindow):
         SelectWindow.__init__(self, names, text, pos, size)
 
 class SelectionBar(base.SelectableSprite):
-    def __init__(self, name, pos, size=(470, 25), backlog=False, selected=False):
+    def __init__(self, name, pos, size=None, backlog=False, selected=False):
         base.SelectableSprite.__init__(self)
+        if size is None:
+            size = cw.s((470, 25))
         self._selectable_on_event = True
         # 各種データ
         self.backlog = backlog
@@ -548,11 +566,11 @@ class SelectionBar(base.SelectableSprite):
         軽く下に押すアニメーション。
         """
         if self.frame == 0:
-            self.rect.move_ip(0, +1)
+            self.rect.move_ip(cw.s(0), cw.s(+1))
             self.status = "click"
         elif self.frame == 6:
             self.status = "normal"
-            self.rect.move_ip(0, -1)
+            self.rect.move_ip(cw.s(0), cw.s(-1))
             self.frame = 0
             return
 
@@ -566,13 +584,13 @@ class SelectionBar(base.SelectableSprite):
             colour = cw.cwpy.setting.mwincolour
         image.fill(colour)
         # 外枠描画
-        draw_frame(image, size, pos=(0, 0), backlog=self.backlog)
+        draw_frame(image, size, pos=cw.s((0, 0)), backlog=self.backlog)
         # 選択肢描画
         font = cw.cwpy.rsrc.fonts["selectionbar"]
         nameimg = font.render(self.name, True, (255, 255, 255))
         nameimg2 = font.render(self.name, True, (0, 0, 0))
         w, h = nameimg.get_size()
-        pos = (470-w)/2, (25-h)/2
+        pos = (cw.s(470)-w)/2, (cw.s(25)-h)/2
         image.blit(nameimg2, (pos[0]+1, pos[1]))
         image.blit(nameimg2, (pos[0]-1, pos[1]))
         image.blit(nameimg2, (pos[0], pos[1]+1))
@@ -648,13 +666,17 @@ class BacklogData:
                                 True, self.result, self.versionhint)
 
 class BacklogCurtain(base.CWPySprite):
-    def __init__(self, spritegrp, size=(632, 420), pos=(0, 0), alpha=192):
+    def __init__(self, spritegrp, size=None, pos=None, alpha=192):
         """バックログ用の半透明黒背景スプライト。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         size: スプライトのサイズ。
         pos: 表示位置。
         alpha: 透明度。
         """
+        if size is None:
+            size = cw.s((632, 420))
+        if pos is None:
+            pos = cw.s((0, 0))
         base.CWPySprite.__init__(self)
         self.image = pygame.Surface(size).convert()
         self.image.fill((0, 0, 0))
@@ -664,20 +686,22 @@ class BacklogCurtain(base.CWPySprite):
         # spritegroupに追加
         spritegrp.add(self, layer="curtain")
 
-def draw_frame(image, size, pos=(0, 0), backlog=False):
+def draw_frame(image, size, pos=None, backlog=False):
     """
     引数のサーフェスにメッセージウィンドウの外枠を描画。
     """
-    pointlist = get_pointlist(size, (0, 0))
+    if pos is None:
+        pos = cw.s((0, 0))
+    pointlist = get_pointlist(size, cw.s((0, 0)))
     colour = (0, 0, 0, 255)
     pygame.draw.lines(image, colour, False, pointlist)
     if backlog:
         colour = cw.cwpy.setting.blwinframecolour
     else:
         colour = cw.cwpy.setting.mwinframecolour
-    pointlist = get_pointlist((size[0]-1, size[1]-1), (1, 1))
+    pointlist = get_pointlist((size[0]-cw.s(1), size[1]-cw.s(1)), cw.s((1, 1)))
     pygame.draw.lines(image, colour, False, pointlist)
-    pointlist = get_pointlist((size[0]-2, size[1]-2), (2, 2))
+    pointlist = get_pointlist((size[0]-cw.s(2), size[1]-cw.s(2)), cw.s((2, 2)))
     colour = (0, 0, 0, 255)
     pygame.draw.lines(image, colour, False, pointlist)
 
@@ -686,9 +710,9 @@ def get_pointlist(size, pos=(0, 0)):
     外枠描画のためのポイントリストを返す。
     """
     pos1 = pos
-    pos2 = (pos[0], size[1]-1)
-    pos3 = (size[0]-1, size[1]-1)
-    pos4 = (size[0]-1, pos[1])
+    pos2 = (pos[0], size[1]-cw.s(1))
+    pos3 = (size[0]-cw.s(1), size[1]-cw.s(1))
+    pos4 = (size[0]-cw.s(1), pos[1])
     pos5 = pos
     return (pos1, pos2, pos3, pos4, pos5)
 

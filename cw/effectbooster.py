@@ -196,7 +196,7 @@ class _JpySubImage(cw.image.Image):
         image = self.get_image()
 
         # 画像がない場合、加工しない
-        if image.get_size() == (0, 0):
+        if image.get_size() == cw.s((0, 0)):
             return
 
         # RGB入れ替え
@@ -311,7 +311,7 @@ class _JpySubImage(cw.image.Image):
             height = self.height if self.height > 0 else image.get_height()
             size = (width, height)
 
-            if not size == image.get_size() and not size == (0, 0):
+            if not size == image.get_size() and not size == cw.s((0, 0)):
                 if self.smooth:
                     image = pygame.transform.smoothscale(image, size)
                 else:
@@ -368,15 +368,15 @@ class _JpySubImage(cw.image.Image):
                 image = JptxImage(path, self.transparent).get_image()
             # その他画像ファイル
             else:
-                image = cw.util.load_image(path, self.transparent)
+                image = cw.s(cw.util.load_image(path, self.transparent))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
             image = self.cache.load_image(self.loadcache)
         # 背景画像作成 for JpyBackgroundImage
         elif hasattr(self, "backcolor"):
-            width = self.width if self.width > 0 else cw.SIZE_AREA[0]
-            height = self.height if self.height > 0 else cw.SIZE_AREA[1]
+            width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
+            height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
             size = (width, height)
             image = pygame.Surface(size).convert()
             image.fill(self.backcolor)
@@ -386,8 +386,8 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
-            width = self.width if self.width > 0 else cw.SIZE_AREA[0]
-            height = self.height if self.height > 0 else cw.SIZE_AREA[1]
+            width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
+            height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
             size = (width, height)
 
             if not size == image.get_size():
@@ -441,9 +441,9 @@ class _JpySubImage(cw.image.Image):
 class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache):
         _JpySubImage.__init__(self, config, section, cache)
-        self.height = config.get_int(section, "height", -1)
-        self.width = config.get_int(section, "width", -1)
-        self.position = config.get_ints(section, "position", 2, (0, 0))
+        self.height = cw.s(config.get_int(section, "height", -1))
+        self.width = cw.s(config.get_int(section, "width", -1))
+        self.position = cw.s(config.get_ints(section, "position", 2, (0, 0)))
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
         self.transparent = config.get_bool(section, "transparent", True)
@@ -452,10 +452,10 @@ class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache):
         _JpySubImage.__init__(self, config, "init", cache)
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
-        self.width = config.get_int("init", "backwidth", -1)
-        self.height = config.get_int("init", "backheight", -1)
+        self.width = cw.s(config.get_int("init", "backwidth", -1))
+        self.height = cw.s(config.get_int("init", "backheight", -1))
         self.transparent = config.get_bool("init", "transparent", False)
-        self.position = (0, 0)
+        self.position = cw.s((0, 0))
         self.savecache = 0
         self.visible = False
 
@@ -498,7 +498,7 @@ class JpyCache(object):
         if self.pos:
             return self.pos
         else:
-            return (0, 0)
+            return cw.s((0, 0))
 
     def save_image(self, n, image):
         self.img[n] = image
@@ -509,16 +509,16 @@ class JpyCache(object):
         if image:
             image = image.copy()
         else:
-            image = pygame.Surface((0, 0)).convert()
+            image = pygame.Surface(cw.s((0, 0))).convert()
 
         return image
 
 class JpdcImage(cw.image.Image):
     def __init__(self, mask, path):
         config = EffectBoosterConfig(path)
-        x, y, w, h = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
+        x, y, w, h = cw.s(config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420)))
         rect = pygame.Rect(x, y, w, h)
-        self.image = pygame.Surface(cw.SIZE_AREA)
+        self.image = pygame.Surface(cw.s(cw.SIZE_AREA))
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
         if not copymode:
@@ -579,11 +579,11 @@ class JptxImage(cw.image.Image):
         config = EffectBoosterConfig(path)
         # parameters
         backcolor = config.get_color("jptx:init", "backcolor", (0, 0, 0))
-        backwidth = config.get_int("jptx:init", "backwidth", -1)
-        backheight = config.get_int("jptx:init", "backheight", -1)
+        backwidth = cw.s(config.get_int("jptx:init", "backwidth", -1))
+        backheight = cw.s(config.get_int("jptx:init", "backheight", -1))
         autoline = config.get_bool("jptx:init", "autoline", True)
         lineheight = config.get_int("jptx:init", "lineheight", 100)
-        fontpixels = config.get_int("jptx:init", "fontpixels", 12)
+        fontpixels = cw.s(config.get_int("jptx:init", "fontpixels", 12))
         fontcolor = config.get_color("jptx:init", "fontcolor", (255, 255, 255))
         fontface = config.get("jptx:init", "fontface", u"ＭＳ Ｐゴシック")
         antialias = config.get_bool("jptx:init", "antialias", False)
@@ -595,8 +595,8 @@ class JptxImage(cw.image.Image):
 
         text = re.sub(r"<[bB][rR]>", "\n", text)
         # image
-        width = backwidth if backwidth > 0 else cw.SIZE_AREA[0]
-        height = backheight if backheight > 0 else cw.SIZE_AREA[0]
+        width = backwidth if backwidth > cw.s(0) else cw.s(cw.SIZE_AREA[0])
+        height = backheight if backheight > cw.s(0) else cw.s(cw.SIZE_AREA[0])
         self.image = pygame.Surface((width, height)).convert()
         self.image.fill(backcolor)
 
@@ -607,7 +607,7 @@ class JptxImage(cw.image.Image):
             fontcolor = backcolor
 
         # text rendering
-        self.wxcanvas = wx.EmptyBitmap(10, 10)
+        self.wxcanvas = wx.EmptyBitmap(cw.s(10), cw.s(10))
         self.wxdc = wx.MemoryDC(self.wxcanvas)
         bold = False
         underline = False
@@ -618,7 +618,7 @@ class JptxImage(cw.image.Image):
                 font = pygame.font.Font(fontpath, fontpixels)
             else:
                 # pygameで描画できないフォント
-                font = wx.Font(12,
+                font = wx.Font(cw.s(12),
                                wx.FONTFAMILY_DEFAULT,
                                wx.FONTSTYLE_NORMAL,
                                wx.FONTWEIGHT_NORMAL,
@@ -661,7 +661,7 @@ class JptxImage(cw.image.Image):
                 return font.get_height()
             else:
                 w, h, lh = self.wxdc.GetMultiLineTextExtent("#")
-                return lh + 2
+                return lh + cw.s(2)
         def font_render(font, char, antialias, fontcolor):
             if isinstance(font, pygame.font.Font):
                 subimg = font.render(char, antialias, fontcolor)
@@ -698,7 +698,7 @@ class JptxImage(cw.image.Image):
             if char == "\n":
                 x = 0 + shiftx
                 if nolinedata or not tagonly:
-                    y += get_height(font) * lineheight / 100 - 2 + shifty
+                    y += get_height(font) * lineheight / 100 - cw.s(2) + shifty
                 h = y
                 nolinedata = True
                 tagonly = True
@@ -724,11 +724,11 @@ class JptxImage(cw.image.Image):
                 elif name == "s":
                     strike = start
                 elif name == "shiftx":
-                    n = int(attrs["shiftx"])
+                    n = cw.s(int(attrs["shiftx"]))
                     x += n
                     shiftx = n
                 elif name == "shifty":
-                    n = int(attrs["shifty"])
+                    n = cw.s(int(attrs["shifty"]))
                     y += n
                     shifty = n
                 elif name == "lineheight":
@@ -738,8 +738,8 @@ class JptxImage(cw.image.Image):
                 elif name.startswith("font"):
                     if start:
                         oldfonts.append((fontface, fontpixels, fontcolor))
-                        fontpixels = int(attrs.get("fontpixels", fontpixels))
-                        fontpixels = int(attrs.get("pixels", fontpixels))
+                        fontpixels = cw.s(int(attrs.get("fontpixels", cw.ds(fontpixels))))
+                        fontpixels = cw.s(int(attrs.get("pixels", cw.ds(fontpixels))))
                         fontface = attrs.get("fontface", face_def)
                         fontface = attrs.get("face", fontface)
                         font = create_font(fontface, fontpixels)
@@ -766,9 +766,9 @@ class JptxImage(cw.image.Image):
                 # 取消線
                 if strike:
                     subimg2, width = font_render(font, u"―", antialias, fontcolor)
-                    size = (subimg.get_width() + 10, get_height(font))
+                    size = (subimg.get_width() + cw.s(10), get_height(font))
                     subimg2 = pygame.transform.scale(subimg2, size)
-                    subimg.blit(subimg2, (-5, 0))
+                    subimg.blit(subimg2, cw.s((-5, 0)))
 
                 self.image.blit(subimg, (x, y))
                 x += width

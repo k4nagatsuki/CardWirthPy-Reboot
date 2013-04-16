@@ -62,10 +62,10 @@ def to_negative_for_card(image):
     """
     w, h = image.get_size()
 
-    if w < 3 or h < 3:
+    if w < cw.s(3) or h < cw.s(3):
         return image.copy()
 
-    rect = pygame.Rect((1, 1), (w - 2, h - 2))
+    rect = pygame.Rect(cw.s((1, 1)), (w - cw.s(2), h - cw.s(2)))
     outimage = image.copy()
 
     if image.get_flags() & SRCALPHA:
@@ -73,7 +73,7 @@ def to_negative_for_card(image):
     else:
         outimage.fill((255, 255, 255), rect)
 
-    outimage.blit(image.subsurface(rect), (1, 1), None, BLEND_RGB_SUB)
+    outimage.blit(image.subsurface(rect), cw.s((1, 1)), None, BLEND_RGB_SUB)
     return outimage
 
 def add_lightness(image, value):

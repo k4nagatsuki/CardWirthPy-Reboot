@@ -17,13 +17,13 @@ class Transition(base.CWPySprite):
         base.CWPySprite.__init__(self)
         self.image = bgscr
         self.rect = self.image.get_rect()
-        self.rect.topleft = (0, 0)
+        self.rect.topleft = cw.s((0, 0))
         self.status = "hidden"
         self.frame = 0
         self.speed = speed
 
     def clear(self):
-        self.image = pygame.Surface((0, 0)).convert()
+        self.image = pygame.Surface(cw.s((0, 0))).convert()
         self.rect = self.image.get_rect(center=self.rect.center)
         self.status = "hidden"
 
@@ -55,13 +55,13 @@ class PixelDissolve(Transition):
     def __init__(self, bgscr, speed):
         Transition.__init__(self, bgscr, speed)
         self.variation = (11 - self.speed) * 15
-        self.sec_w = 10
-        self.sec_h = 10
+        self.sec_w = cw.s(10)
+        self.sec_h = cw.s(10)
         self.rect_sec = pygame.Rect(0, 0, self.sec_w, self.sec_h)
         self.poslist = []
 
-        for x in xrange(cw.SIZE_GAME[0] / self.sec_w + 1):
-            for y in xrange(cw.SIZE_GAME[1] / self.sec_h + 1):
+        for x in xrange(cw.s(cw.SIZE_GAME[0]) / self.sec_w + 1):
+            for y in xrange(cw.s(cw.SIZE_GAME[1]) / self.sec_h + 1):
                 self.poslist.append((x * self.sec_w, y * self.sec_h))
 
         self.poslist = cw.cwpy.dice.shuffle(self.poslist)
@@ -90,8 +90,8 @@ class Blinds(Transition):
         self.variation = (11 - self.speed)
         self.num_split = 30
         self.poslist = []
-        self.w_blinds = cw.SIZE_GAME[0] / self.num_split
-        self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.SIZE_GAME[1])
+        self.w_blinds = cw.s(cw.SIZE_GAME[0]) / self.num_split
+        self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.s(cw.SIZE_GAME[1]))
 
         for n in xrange(self.num_split + 2):
             self.poslist.append((n * self.w_blinds, 0))
@@ -104,7 +104,7 @@ class Blinds(Transition):
         w = (self.frame * self.variation) / 5
 
         if not self.rect_blinds.w == w:
-            self.rect_blinds.size = (w, cw.SIZE_GAME[1])
+            self.rect_blinds.size = (w, cw.s(cw.SIZE_GAME[1]))
 
             for x, y in self.poslist:
                 self.rect_blinds.topleft = (x - w, y)

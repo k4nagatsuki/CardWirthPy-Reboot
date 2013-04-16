@@ -15,14 +15,14 @@ class CWPyCard(base.SelectableSprite):
         # 状態
         self.status = status
         self.old_status = status
-        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.rect = cw.s(pygame.Rect(0, 0, 0, 0))
         # 前に表示中のカード
         self.inusecardimg = None
         # アニメ用フレーム数
         self.frame = 0
         # ズーム画像のリスト。(Surfaice, Rect)のタプル。
         self.zoomimgs = []
-        self.zoomsize = (16, 21)
+        self.zoomsize = cw.s((16, 21))
         # 裏返し状態か否か
         self.reversed = False
         # カード使用のターゲットか否か
@@ -181,11 +181,11 @@ class CWPyCard(base.SelectableSprite):
 
         if self.frame % 2 == 0:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(5, 0)
+            self.rect.move_ip(cw.s(5), cw.s(0))
             self.frame += 1
         else:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(-5, 0)
+            self.rect.move_ip(cw.s(-5), cw.s(0))
             self.frame += 1
 
     def update_axialvibe(self):
@@ -200,11 +200,11 @@ class CWPyCard(base.SelectableSprite):
 
         if self.frame % 2 == 0:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(0, 5)
+            self.rect.move_ip(cw.s(0), cw.s(5))
             self.frame += 1
         else:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(0, -5)
+            self.rect.move_ip(cw.s(0), cw.s(-5))
             self.frame += 1
 
     def update_zoomin(self):
@@ -315,7 +315,7 @@ class CWPyCard(base.SelectableSprite):
             self.rect = pygame.Rect(self.zoomimgs[-1][1])
 
     def clear_image(self, move=True):
-        self.image = pygame.Surface((0, 0)).convert()
+        self.image = pygame.Surface(cw.s((0, 0))).convert()
         if move:
             self.rect = self.image.get_rect()
             self.rect.topleft = self._rect.topleft
@@ -345,8 +345,10 @@ class CWPyCard(base.SelectableSprite):
 #-------------------------------------------------------------------------------
 
 class PlayerCard(CWPyCard, character.Player):
-    def __init__(self, data, pos=(0, 0), status="hidden"):
+    def __init__(self, data, pos=None, status="hidden"):
         CWPyCard.__init__(self, status)
+        if pos is None:
+            pos = cw.s((0, 0))
         # CWPyElementTreeインスタンス
         self.data = data
         # CharacterCard初期化
@@ -358,11 +360,11 @@ class PlayerCard(CWPyCard, character.Player):
         self.cardimg = cw.image.CharacterCardImage(self, pos)
         self.update_image()
         # 空のイメージ
-        self.image = pygame.Surface((0, 0)).convert()
+        self.image = pygame.Surface(cw.s((0, 0))).convert()
 
         if self.status == "hidden":
             self.rect = pygame.Rect(self._rect)
-            self.rect.move_ip(0, +150)
+            self.rect.move_ip(cw.s(0), cw.s(+150))
 
         # "：Ｒ"クーポンを所持していたら反転フラグON
         if self.has_coupon(u"：Ｒ"):
@@ -411,8 +413,8 @@ class PlayerCard(CWPyCard, character.Player):
             else:
                 self.image = self.get_animeimage()
 
-        shift = int(150.0 / speed * self.frame)
-        y = self._rect[1] + 150 - shift
+        shift = int(float(cw.s(150)) / speed * self.frame)
+        y = self._rect[1] + cw.s(150) - shift
         if self.zoomimgs:
             y += self.zoomimgs[-1][1][1] - self.zoomimgs[0][1][1]
         self.rect = pygame.Rect(self.rect)
@@ -438,7 +440,7 @@ class PlayerCard(CWPyCard, character.Player):
         """上にあげていたカードを下にさげる。"""
         speed = cw.cwpy.setting.dealspeed * 3
 
-        shift = int(150.0 / speed * self.frame)
+        shift = int(float(cw.s(150)) / speed * self.frame)
         y = self._rect[1] + shift
         self.rect = pygame.Rect(self.rect)
         if self.zoomimgs:
@@ -506,8 +508,10 @@ class PlayerCard(CWPyCard, character.Player):
 #-------------------------------------------------------------------------------
 
 class EnemyCard(CWPyCard, character.Enemy):
-    def __init__(self, mcarddata, pos=(0, 0), status="hidden"):
+    def __init__(self, mcarddata, pos=None, status="hidden"):
         CWPyCard.__init__(self, status)
+        if pos is None:
+            pos = cw.s((0, 0))
         self.mcarddata = mcarddata
         self._init_pos = pos
         # フラグ
@@ -526,7 +530,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
         # 表示するまでデータを作らない
         if status == "hidden":
-            self._rect = pygame.Rect(0, 0, 0, 0)
+            self._rect = cw.s(pygame.Rect(0, 0, 0, 0))
             self.clear_image()
         else:
             self.initialize()
@@ -605,7 +609,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 class FriendCard(CWPyCard, character.Friend):
     def __init__(self, castid=None, data=None):
         CWPyCard.__init__(self, "hidden")
-        self.zoomsize = (32, 42)
+        self.zoomsize = cw.s((32, 42))
 
         if castid:
             # Id
@@ -664,10 +668,12 @@ class FriendCard(CWPyCard, character.Friend):
 #-------------------------------------------------------------------------------
 
 class MenuCard(CWPyCard):
-    def __init__(self, data, pos=(0, 0), status="hidden"):
+    def __init__(self, data, pos=None, status="hidden"):
         """
         メニューカード用のスプライトを作成。
         """
+        if pos is None:
+            pos = cw.s((0, 0))
         CWPyCard.__init__(self, status)
         # カード情報
         self.name = data.gettext("Property/Name", "")

@@ -15,20 +15,20 @@ class CardInfo(wx.Dialog):
     """
     def __init__(self, parent):
         # ダイアログボックス
-        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=(380, 200),
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.s((380, 200)),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
         # panel
-        self.toppanel = wx.Panel(self, -1, size=(380, 138))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((380, 138)))
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), cw.cwpy.msgs["close"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((85, 24)), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, (30, 30), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, cw.s((30, 30)), bmp=bmp)
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, (30, 30), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.s((30, 30)), bmp=bmp)
 
         # ボタン無効化
         if len(self.list) == 1:
@@ -80,32 +80,32 @@ class CardInfo(wx.Dialog):
         self.selection.negaflag = negaflag
 
         if isinstance(self.selection.cardimg, cw.image.LargeCardImage):
-            dc.DrawBitmap(bmp, 7, 4, False)
+            dc.DrawBitmap(bmp, cw.s(7), cw.s(4), False)
         else:
-            dc.DrawBitmap(bmp, 14, 14, False)
+            dc.DrawBitmap(bmp, cw.s(14), cw.s(14), False)
 
         # 説明文を囲うボックス
-        cw.util.draw_box(dc, (113, 9), (258, 120))
+        cw.util.draw_box(dc, cw.s((113, 9)), cw.s((258, 120)))
         # カード名
         s = self.selection.name
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=9)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(9))
         dc.SetFont(font)
         size = dc.GetTextExtent(s)
-        dc.SetPen(wx.Pen((255, 255, 255), 1, wx.TRANSPARENT))
+        dc.SetPen(wx.Pen((255, 255, 255), cw.s(1), wx.TRANSPARENT))
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_MENU)
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
-        dc.DrawRectangle(122, 5, size[0], size[1])
-        dc.DrawText(s, 122, 5)
+        dc.DrawRectangle(cw.s(122), cw.s(5), size[0], size[1])
+        dc.DrawText(s, cw.s(122), cw.s(5))
         # 説明文
         s = cw.util.txtwrap(self.selection.desc, 1)
 
         if s.count("\n") > 7:
             s = "\n".join(s.split("\n")[0:8])
 
-        font = cw.cwpy.rsrc.get_wxfont("gothic", size=9, weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(9), weight=wx.NORMAL)
         dc.SetFont(font)
-        dc.DrawLabel(s, (125, 22, 200, 110))
+        dc.DrawLabel(s, cw.s((125, 22, 200, 110)))
 
         # シナリオ・作者名
         scenario = self.selection.scenario
@@ -114,12 +114,12 @@ class CardInfo(wx.Dialog):
         s = scenario + author
 
         if s:
-            font = cw.cwpy.rsrc.get_wxfont("uigothic", size=8,
+            font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(8),
                                                             weight=wx.NORMAL)
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
-            dc.DrawRectangle(365-size[0], 125, size[0], size[1])
-            dc.DrawText(s, 365-size[0], 125)
+            dc.DrawRectangle(cw.s(365)-size[0], cw.s(125), size[0], size[1])
+            dc.DrawText(s, cw.s(365)-size[0], cw.s(125))
 
         if update:
             self.toppanel.Refresh()
@@ -129,11 +129,11 @@ class CardInfo(wx.Dialog):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
-        margin = (self.csize[0] - 145) / 2
-        margin2 = margin + (self.csize[0] - 145) % 2
+        margin = (self.csize[0] - cw.s(145)) / 2
+        margin2 = margin + (self.csize[0] - cw.s(145)) % 2
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, 3)
+        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.s(3))
         sizer_panel.Add((margin2, 0), 0, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)

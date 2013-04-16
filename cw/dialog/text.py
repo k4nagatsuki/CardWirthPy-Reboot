@@ -14,11 +14,11 @@ import cw
 class Text(wx.Dialog):
     def __init__(self, parent, name):
         # ダイアログボックス
-        wx.Dialog.__init__(self, parent, -1, name, size=(500, 290),
+        wx.Dialog.__init__(self, parent, -1, name, size=cw.s((500, 290)),
                             style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
         # panel
-        self.toppanel = wx.Panel(self, -1, size=(500, 245))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((500, 245)))
         self.toppanel.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
@@ -28,22 +28,22 @@ class Text(wx.Dialog):
         else:
             value = ""
 
-        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=(500, 220), style=wx.TE_MULTILINE)
+        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=cw.s((500, 220)), style=wx.TE_MULTILINE)
         self._set_text(value)
         self.textctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.textctrl.SetForegroundColour(wx.WHITE)
-        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", 10, weight=wx.NORMAL))
+        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", cw.s(10), weight=wx.NORMAL))
         self.textctrl.SetEditable(False)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (85, 24), cw.cwpy.msgs["close"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((85, 24)), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, (30, 30), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, cw.s((30, 30)), bmp=bmp)
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, (30, 30), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.s((30, 30)), bmp=bmp)
         # choice
-        self.combo = wx.ComboBox(self.toppanel, size=(140, 20), choices=self.list, style=wx.CB_READONLY)
+        self.combo = wx.ComboBox(self.toppanel, size=cw.s((140, 20)), choices=self.list, style=wx.CB_READONLY)
 
         if self.list:
             self.combo.SetSelection(self.index)
@@ -126,13 +126,13 @@ class Text(wx.Dialog):
 
         self.toppanel.PrepareDC(dc)
         dc.SetTextForeground(wx.LIGHT_GREY)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=11))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(11)))
         s = cw.cwpy.msgs["instructions"]
-        dc.DrawText(s, 10, 2)
+        dc.DrawText(s, cw.s(10), cw.s(2))
         s = cw.cwpy.msgs["referencing_file"]
         w = dc.GetTextExtent(s)[0]
-        w = w + 5 + self.combo.GetSize()[0]
-        dc.DrawText(s, self.csize[0] - w, 2)
+        w = w + cw.s(5) + self.combo.GetSize()[0]
+        dc.DrawText(s, self.csize[0] - w, cw.s(2))
         # no text file
         self.draw_notextfile()
 
@@ -141,7 +141,7 @@ class Text(wx.Dialog):
             dc = wx.ClientDC(self.textctrl)
             self.textctrl.Enable(False)
             dc.SetTextForeground(wx.LIGHT_GREY)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=14))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(14)))
             # 文字
             s = "No Text File"
             size = dc.GetTextExtent(s)
@@ -149,8 +149,8 @@ class Text(wx.Dialog):
             pos = (size2[0]-size[0])/2, (size2[1]-size[1])/2
             dc.DrawText(s, pos[0], pos[1])
             # ボックス
-            size = size[0] + 60, size[1] + 20
-            pos = pos[0] - 30, pos[1] - 10
+            size = size[0] + cw.s(60), size[1] + cw.s(20)
+            pos = pos[0] - cw.s(30), pos[1] - cw.s(10)
             cw.util.draw_box(dc, pos, size)
         else:
             self.textctrl.Enable(True)
@@ -163,17 +163,17 @@ class Text(wx.Dialog):
 
         # トップバー
         size = self.combo.GetSize()
-        sizer_topbar.Add((500-size[0], 0), 0, 0, 0)
+        sizer_topbar.Add((cw.s(500)-size[0], 0), 0, 0, 0)
         sizer_topbar.Add(self.combo, 0, 0, 0)
         sizer_toppanel.Add(sizer_topbar, 0, 0, 0)
         sizer_toppanel.Add(self.textctrl, 0, 0, 0)
         self.toppanel.SetSizer(sizer_toppanel)
 
-        margin = (self.csize[0] - 145) / 2
-        margin2 = margin + (self.csize[0] - 145) % 2
+        margin = (self.csize[0] - cw.s(145)) / 2
+        margin2 = margin + (self.csize[0] - cw.s(145)) % 2
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, 3)
+        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.s(3))
         sizer_panel.Add((margin2, 0), 0, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
@@ -198,6 +198,7 @@ class Text(wx.Dialog):
             self.rightbtn.Disable()
             self.leftbtn.Disable()
             self.closebtn.Disable()
+
 #-------------------------------------------------------------------------------
 #　リードミーダイアログ
 #-------------------------------------------------------------------------------

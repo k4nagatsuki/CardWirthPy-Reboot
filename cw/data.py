@@ -1627,7 +1627,7 @@ class Party(object):
         if not data:
             data = yadoxml2etree(header.fpath)
         self.members.append(data)
-        pos = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
+        pos = cw.s((9 + 95 * pcardsnum + 9 * pcardsnum, 285))
         pcard = cw.sprite.card.PlayerCard(data, pos, status="deal")
         cw.animation.animate_sprite(pcard, "deal")
 

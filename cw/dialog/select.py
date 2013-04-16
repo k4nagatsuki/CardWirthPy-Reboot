@@ -37,16 +37,16 @@ class Select(wx.Dialog):
         self.buttonlist = []
         # leftjump
         bmp = cw.cwpy.rsrc.buttons["LJUMP"]
-        self.left2btn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (30, 30), bmp=bmp)
+        self.left2btn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((30, 30)), bmp=bmp)
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, (30, 30), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, cw.s((30, 30)), bmp=bmp)
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, (30, 30), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.s((30, 30)), bmp=bmp)
         # rightjump
         bmp = cw.cwpy.rsrc.buttons["RJUMP"]
-        self.right2btn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (30, 30), bmp=bmp)
+        self.right2btn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((30, 30)), bmp=bmp)
         # focus
         self.panel.SetFocusIgnoringChildren()
 
@@ -150,14 +150,14 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
 
         # button間のマージン値を求める
-        width = self.toppanel.GetClientSize()[0] - 6
-        btnwidth = 120 + self.buttonlist[0].GetSize()[0] * len(self.buttonlist)
+        width = self.toppanel.GetClientSize()[0] - cw.s(6)
+        btnwidth = cw.s(120) + self.buttonlist[0].GetSize()[0] * len(self.buttonlist)
         margin = (width - btnwidth) / (len(self.buttonlist)+1)
 
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_panel.Add((margin, 0), 0, 0, 0)
-            sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, 3)
+            sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, cw.s(3))
 
         sizer_panel.Add((margin, 0), 0, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
@@ -210,21 +210,21 @@ class YadoSelect(Select):
                 self.index = index
                 break
         # toppanel
-        self.toppanel = wx.Panel(self, -1, size=(400, 370))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((400, 370)))
         # ok
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (50, 24), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, cw.s((50, 24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.okbtn)
         # new
-        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["new"])
+        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((50, 24)), cw.cwpy.msgs["new"])
         self.buttonlist.append(self.newbtn)
         # extend
-        self.extbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), u"変換")
+        self.extbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((50, 24)), u"変換")
         self.buttonlist.append(self.extbtn)
         # extension
-        self.exbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["extension"])
+        self.exbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((50, 24)), cw.cwpy.msgs["extension"])
         self.buttonlist.append(self.exbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (50, 24), cw.cwpy.msgs["entry_cancel"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((50, 24)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
         # enable bottun
         self.enable_btn()
@@ -381,7 +381,7 @@ class YadoSelect(Select):
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path)
+        bmp = cw.s(cw.util.load_wxbmp(path))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -392,30 +392,30 @@ class YadoSelect(Select):
         # 宿画像
         path = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path, True)
-        dc.DrawBitmap(bmp, (bmpw-74)/2, 70, True)
+        bmp = cw.s(cw.util.load_wxbmp(path, True))
+        dc.DrawBitmap(bmp, (bmpw-cw.s(74))/2, cw.s(70), True)
         # 宿名前
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(16)))
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 40)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(40))
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 340)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(340))
         # Adventurers
         s = cw.cwpy.msgs["adventurers"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 175)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(175))
 
         # 所属冒険者
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
         for idx, name in enumerate(self.list2[self.index]):
-            x = (bmpw - 270) / 2 + ((idx % 3) * 95)
-            y = 200 + (idx / 3) * 16
+            x = (bmpw - cw.s(270)) / 2 + ((idx % 3) * cw.s(95))
+            y = cw.s(200) + (idx / 3) * cw.s(16)
             dc.DrawText(name, x, y)
 
     def conv_yado(self, path):
@@ -630,18 +630,18 @@ class PartySelect(Select):
         self.index = 0
         self.names = []
         # toppanel
-        self.toppanel = wx.Panel(self, -1, size=(460, 280))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((460, 280)))
         # ok
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, (75, 24), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, cw.s((75, 24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.okbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (75, 24), cw.cwpy.msgs["information"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((75, 24)), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # edit
-        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (75, 24), cw.cwpy.msgs["members"])
+        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((75, 24)), cw.cwpy.msgs["members"])
         self.buttonlist.append(self.editbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (75, 24), cw.cwpy.msgs["entry_cancel"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((75, 24)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -704,7 +704,7 @@ class PartySelect(Select):
         # 背景
         path = "Table/Book" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path)
+        bmp = cw.s(cw.util.load_wxbmp(path))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -715,14 +715,14 @@ class PartySelect(Select):
         header = self.list[self.index]
         # 見出し
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
         s = cw.cwpy.msgs["adventurers_team"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 25)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(25))
         # 所持金
         s = cw.cwpy.msgs["adventurers_money"] % (header.money)
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 60)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(60))
 
         # メンバ名
         if update:
@@ -732,19 +732,19 @@ class PartySelect(Select):
         else:
             n = (len(self.names), 0)
 
-        w = 90
+        w = cw.s(90)
 
         for index, s in enumerate(self.names):
             if index < 3:
-                dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, 85, w, 15), wx.ALIGN_CENTER)
+                dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, cw.s(85), w, cw.s(15)), wx.ALIGN_CENTER)
             else:
-                dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])/2+w*(index-3), 105, w, 15), wx.ALIGN_CENTER)
+                dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])/2+w*(index-3), cw.s(105), w, cw.s(15)), wx.ALIGN_CENTER)
 
         # パーティ名
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=13))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(13)))
         s = header.name
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 40)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(40))
         # シナリオ・宿画像
         sceheader = header.get_sceheader()
 
@@ -753,12 +753,12 @@ class PartySelect(Select):
         else:
             path = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
-            bmp = cw.util.load_wxbmp(path, True)
+            bmp = cw.s(cw.util.load_wxbmp(path, True))
 
-        dc.DrawBitmap(bmp, (bmpw-74)/2, 125, True)
+        dc.DrawBitmap(bmp, (bmpw-cw.s(74))/2, cw.s(125), True)
 
         # シナリオ・宿名
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=11))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(11)))
 
         if sceheader:
             s = sceheader.name
@@ -766,13 +766,13 @@ class PartySelect(Select):
             s = cw.cwpy.ydata.name
 
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 225)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(225))
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 250)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(250))
 
 #-------------------------------------------------------------------------------
 #　冒険者選択ダイアログ
@@ -791,11 +791,11 @@ class PlayerSelect(Select):
         self.index = 0
         self.views = 1
         # toppanel
-        self.toppanel = wx.Panel(self, -1, size=(460, 280))
-        self.toppanel.SetMinSize((460, 280))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((460, 280)))
+        self.toppanel.SetMinSize(cw.s((460, 280)))
 
         # sort
-        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=(60, 20), style=wx.CB_READONLY)
+        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((60, 20)), style=wx.CB_READONLY)
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])
@@ -807,22 +807,22 @@ class PlayerSelect(Select):
             self.sort.Select(0)
 
         # add
-        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, (50, 24), cw.cwpy.msgs["add_member"])
+        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, cw.s((50, 24)), cw.cwpy.msgs["add_member"])
         self.buttonlist.append(self.addbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["information"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((50, 24)), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # new
-        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["new"])
+        self.newbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((50, 24)), cw.cwpy.msgs["new"])
         self.buttonlist.append(self.newbtn)
         # extension
-        self.exbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["extension"])
+        self.exbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((50, 24)), cw.cwpy.msgs["extension"])
         self.buttonlist.append(self.exbtn)
         # view
-        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (50, 24), cw.cwpy.msgs["member_list"])
+        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((50, 24)), cw.cwpy.msgs["member_list"])
         self.buttonlist.append(self.viewbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (50, 24), cw.cwpy.msgs["close"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((50, 24)), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -839,8 +839,8 @@ class PlayerSelect(Select):
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add((398, 0), 0)
-        sizer.Add(self.sort, 0, wx.TOP, 2)
+        sizer.Add(cw.s((398, 0)), 0)
+        sizer.Add(self.sort, 0, wx.TOP, cw.s(2))
         self.toppanel.SetSizer(sizer)
         self.toppanel.Layout()
 
@@ -994,7 +994,7 @@ class PlayerSelect(Select):
             cw.cwpy.frame.move_dlg(dlg)
         else:
             dlg = cw.dialog.create.AdventurerCreater(self)
-            cw.cwpy.frame.move_dlg(dlg, point=(20, 20))
+            cw.cwpy.frame.move_dlg(dlg, point=cw.s((20, 20)))
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.sounds["page"].play()
@@ -1167,7 +1167,7 @@ class PlayerSelect(Select):
         # 背景
         path = "Table/Book" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path)
+        bmp = cw.s(cw.util.load_wxbmp(path))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1186,56 +1186,56 @@ class PlayerSelect(Select):
                 header = self.list[self.index % len(self.list)]
                 # Level
                 dc.SetTextForeground(wx.BLACK)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 s = cw.cwpy.msgs["character_level"]
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 65, 45)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=22))
+                dc.DrawText(s, cw.s(65), cw.s(45))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(22)))
                 s = str(header.level)
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 110, 31)
+                dc.DrawText(s, cw.s(110), cw.s(31))
                 # Name
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 s = cw.cwpy.msgs["character_class"]
-                dc.DrawText(s, 110 + w + 5, 45)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=18))
+                dc.DrawText(s, cw.s(110) + w + cw.s(5), cw.s(45))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(18)))
                 s = header.name
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 125 - w / 2, 62)
+                dc.DrawText(s, cw.s(125) - w / 2, cw.s(62))
                 # Image
                 path = cw.util.join_yadodir(header.imgpath)
-                bmp = cw.util.load_wxbmp(path, True)
-                dc.SetClippingRect((88, 90, 74, 94))
-                dc.DrawBitmap(bmp, 88, 90, True)
+                bmp = cw.s(cw.util.load_wxbmp(path, True))
+                dc.SetClippingRect(cw.s((88, 90, 74, 94)))
+                dc.DrawBitmap(bmp, cw.s(88), cw.s(90), True)
                 dc.DestroyClippingRegion()
                 # Age
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 s = cw.cwpy.msgs["character_age"] % (header.get_age())
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 127 - w / 2, 195)
+                dc.DrawText(s, cw.s(127) - w / 2, cw.s(195))
                 # Sex
                 s = cw.cwpy.msgs["character_sex"] % (header.get_sex())
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 127 - w / 2, 210)
+                dc.DrawText(s, cw.s(127) - w / 2, cw.s(210))
                 # EP
                 s = cw.cwpy.msgs["character_ep"] % (header.ep)
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 127 - w / 2, 225)
+                dc.DrawText(s, cw.s(127) - w / 2, cw.s(225))
 
                 # クーポン(新しい順から7つ)
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, 320 - w / 2, 65)
+                dc.DrawText(s, cw.s(320) - w / 2, cw.s(65))
                 for index, s in enumerate(header.history):
                     w = dc.GetTextExtent(s)[0]
-                    dc.DrawText(s, 320 - w / 2, 95 + 15 * index)
+                    dc.DrawText(s, cw.s(320) - w / 2, cw.s(95) + cw.s(15) * index)
 
                 # ページ番号
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
                 s = s + "/" + str(len(self.list))
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, (bmpw-w)/2, 250)
+                dc.DrawText(s, (bmpw-w)/2, cw.s(250))
             else:
                 page = self.get_page()
 
@@ -1247,34 +1247,34 @@ class PlayerSelect(Select):
                 rw = size[0] / (self.views / 2)
                 rh = size[1] / 2
                 dc.SetTextForeground(wx.BLACK)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 for i, header in enumerate(list):
                     # Image
                     path = cw.util.join_yadodir(header.imgpath)
-                    bmp = cw.util.load_wxbmp(path, True)
-                    ix = x + (rw - 72) / 2
+                    bmp = cw.s(cw.util.load_wxbmp(path, True))
+                    ix = x + (rw - cw.s(72)) / 2
                     iy = y + 5
-                    dc.SetClippingRect((ix, iy, 74, 94))
+                    dc.SetClippingRect((ix, iy, cw.s(74), cw.s(94)))
                     dc.DrawBitmap(bmp, ix, iy, True)
                     dc.DestroyClippingRegion()
 
                     # Name
                     s = header.name
                     w = dc.GetTextExtent(s)[0]
-                    drawwitharound(dc, s, x + (rw - w) / 2, y + 105)
+                    drawwitharound(dc, s, x + (rw - w) / 2, y + cw.s(105))
                     # Level
                     s1 = cw.cwpy.msgs["character_level"]
                     w1 = dc.GetTextExtent(s1)[0]
                     s2 = str(header.level)
                     w2 = dc.GetTextExtent(s2)[0]
-                    sx = x + (rw - (w1+5+w2)) / 2
-                    sy = y + 120
+                    sx = x + (rw - (w1+cw.s(5)+w2)) / 2
+                    sy = y + cw.s(120)
                     drawwitharound(dc, s1, sx, sy)
-                    drawwitharound(dc, s2, sx + w1 + 5, sy)
+                    drawwitharound(dc, s2, sx + w1 + cw.s(5), sy)
                     # Selected
                     if sindex + i == self.index:
                         bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["TARGET"])
-                        dc.DrawBitmap(bmp, ix + 58, iy + 80)
+                        dc.DrawBitmap(bmp, ix + cw.s(58), iy + cw.s(80))
 
                     if self.views / 2 == i + 1:
                         x = 0
@@ -1283,16 +1283,16 @@ class PlayerSelect(Select):
                         x += rw
 
                 # ページ番号
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 s = str(page+1) if page > 0 else str(-page + 1)
                 s = s + "/" + str(self.get_pagecount())
-                drawwitharound(dc, s, 5, 5)
+                drawwitharound(dc, s, cw.s(5), cw.s(5))
 
         # 整列
         if self.sort:
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=10))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["sort_title"]
-            drawwitharound(dc, s, 358, 5)
+            drawwitharound(dc, s, cw.s(358), cw.s(5))
 
 #-------------------------------------------------------------------------------
 #　アルバムダイアログ
@@ -1313,15 +1313,15 @@ class Album(PlayerSelect):
         self.views = 1
         self.sort = None
         # toppanel
-        self.toppanel = wx.Panel(self, -1, size=(460, 280))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((460, 280)))
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_PROPERTIES, (90, 24), cw.cwpy.msgs["information"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_PROPERTIES, cw.s((90, 24)), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # delete
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DELETE, (90, 24), cw.cwpy.msgs["delete"])
+        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DELETE, cw.s((90, 24)), cw.cwpy.msgs["delete"])
         self.buttonlist.append(self.delbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, (90, 24), cw.cwpy.msgs["close"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((90, 24)), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -1407,37 +1407,37 @@ class ScenarioSelect(Select):
         # 現在進行中のシナリオパスの集合
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
         # toppanel
-        self.toppanel = wx.Panel(self, -1, size=(400, 370))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((400, 370)))
 
         # ツリー表示用のビュー
-        self.tree = wx.TreeCtrl(self, -1, size=(400, 370),
+        self.tree = wx.TreeCtrl(self, -1, size=cw.s((400, 370)),
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
         self.tree.Hide()
-        self.tree.imglist = wx.ImageList(16, 16)
-        self.tree.imgidx_summary = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY"])
-        self.tree.imgidx_complete = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"])
-        self.tree.imgidx_playing = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"])
-        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"])
-        self.tree.imgidx_dir = self.tree.imglist.Add(cw.cwpy.rsrc.debugs["DIRECTORY"])
+        self.tree.imglist = wx.ImageList(cw.s(16), cw.s(16))
+        self.tree.imgidx_summary = self.tree.imglist.Add(cw.s(cw.cwpy.rsrc.debugs["SUMMARY"]))
+        self.tree.imgidx_complete = self.tree.imglist.Add(cw.s(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"]))
+        self.tree.imgidx_playing = self.tree.imglist.Add(cw.s(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"]))
+        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.s(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"]))
+        self.tree.imgidx_dir = self.tree.imglist.Add(cw.s(cw.cwpy.rsrc.debugs["DIRECTORY"]))
         self.tree.root = self.tree.AddRoot(self.scedir)
         self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
         self.tree.SetImageList(self.tree.imglist)
         self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
         # ok
-        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, (55, 24), cw.cwpy.msgs["decide"])
+        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, cw.s((55, 24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.yesbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), cw.cwpy.msgs["description"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((55, 24)), cw.cwpy.msgs["description"])
         self.buttonlist.append(self.infobtn)
         # view
-        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), cw.cwpy.msgs["scenario_tree"])
+        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((55, 24)), cw.cwpy.msgs["scenario_tree"])
         self.buttonlist.append(self.viewbtn)
         # convert
-        ##self.convbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (55, 24), u"変換")
+        ##self.convbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((55, 24)), u"変換")
         ##self.buttonlist.append(self.convbtn)
         # close
-        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_NO, (55, 24), cw.cwpy.msgs["entry_cancel"])
+        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_NO, cw.s((55, 24)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.nobtn)
         # ドロップファイル機能ON
         self.DragAcceptFiles(True)
@@ -1662,7 +1662,7 @@ class ScenarioSelect(Select):
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.util.load_wxbmp(path)
+        bmp = cw.s(cw.util.load_wxbmp(path))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1672,11 +1672,11 @@ class ScenarioSelect(Select):
 
         # ページ番号
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, 340)
+        dc.DrawText(s, (bmpw-w)/2, cw.s(340))
 
         if not isinstance(self.list[self.index], cw.header.ScenarioHeader):
             dpath = self.list[self.index]
@@ -1690,34 +1690,34 @@ class ScenarioSelect(Select):
                 self.updatenames_thr.start()
 
             # ディレクトリ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(16)))
             s = os.path.basename(dpath)
             if s.lower().endswith(".lnk"):
                 s = s[0:-len(".lnk")]
-            dc.DrawText(s, 135, 65)
+            dc.DrawText(s, cw.s(135), cw.s(65))
             # フォルダ画像
             bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
-            dc.DrawBitmap(bmp, 65, 30, True)
+            dc.DrawBitmap(bmp, cw.s(65), cw.s(30), True)
 
             if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
                 # リンクシンボル
                 bmp = cw.cwpy.rsrc.dialogs["LINK"]
-                dc.DrawBitmap(bmp, 63, 65, False)
+                dc.DrawBitmap(bmp, cw.s(63), cw.s(65), False)
 
             # contents
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=9))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(9)))
             s = cw.cwpy.msgs["contents"]
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, 110)
+            dc.DrawText(s, (bmpw-w)/2, cw.s(110))
             # 中身
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
 
             names = self.names
             if len(names) > 13:
                 names = names[0:12]
                 names.append(cw.cwpy.msgs["history_etc"])
 
-            y = 130
+            y = cw.s(130)
             for name in names:
                 if isinstance(name, cw.header.ScenarioHeader):
                     header = name
@@ -1731,7 +1731,7 @@ class ScenarioSelect(Select):
                 size = dc.GetTextExtent(name)
                 x = (bmpw - size[0]) / 2
                 dc.DrawText(name, x, y)
-                y += 15
+                y += cw.s(15)
             self.yesbtn.Enable()
         else:
             header = self.list[self.index]
@@ -1741,25 +1741,24 @@ class ScenarioSelect(Select):
                 bmp = header.get_wxbmp()
                 w = bmp.GetSize()[0]
                 # 左上位置固定(互換性維持)
-                dc.DrawBitmap(bmp, 163, 65, True)
+                dc.DrawBitmap(bmp, cw.s(163), cw.s(65), True)
 
             # シナリオ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=16))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(16)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, 35)
+            dc.DrawText(s, (bmpw-w)/2, cw.s(35))
             # 解説文
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=10))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
             s = header.desc
-            y = 175
+            y = cw.s(175)
             for l in s.splitlines():
-                dc.DrawText(l, 65, y)
-#                dc.DrawLabel(s, wx.Rect(65, 175, 1, 1), wx.ALIGN_LEFT)
-                y += 15
+                dc.DrawText(l, cw.s(65), y)
+                y += cw.s(15)
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho",
-                                            style=wx.FONTSTYLE_ITALIC, size=10))
+                                            style=wx.FONTSTYLE_ITALIC, size=cw.s(10)))
             levelmax = str(header.levelmax) if header.levelmax else ""
             levelmin = str(header.levelmin) if header.levelmin else ""
 
@@ -1770,7 +1769,7 @@ class ScenarioSelect(Select):
                     s = cw.cwpy.msgs["target_level_2"] % (levelmin, levelmax)
 
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, (bmpw-w)/2, 15)
+                dc.DrawText(s, (bmpw-w)/2, cw.s(15))
 
             self.yesbtn.Enable()
 
@@ -1778,21 +1777,21 @@ class ScenarioSelect(Select):
             if self.is_playing(header):
                 bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
                 w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, 152, True)
+                dc.DrawBitmap(bmp, (bmpw-w)/2, cw.s(152), True)
                 if not cw.cwpy.debug:
                     self.yesbtn.Disable()
             # 済み印存在チェック
             elif self.is_complete(header):
                 bmp = cw.cwpy.rsrc.dialogs["COMPLETE"]
                 w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, 175, True)
+                dc.DrawBitmap(bmp, (bmpw-w)/2, cw.s(175), True)
                 if not cw.cwpy.debug:
                     self.yesbtn.Disable()
             # クーポン存在チェック
             elif self.is_invisible(header):
                 bmp = cw.cwpy.rsrc.dialogs["INVISIBLE"]
                 w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, 100, True)
+                dc.DrawBitmap(bmp, (bmpw-w)/2, cw.s(100), True)
                 if not cw.cwpy.debug:
                     self.yesbtn.Disable()
 

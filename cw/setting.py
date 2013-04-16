@@ -324,8 +324,10 @@ class Resource(object):
             WM_FONTCHANGE = 0x001D
             user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
-    def get_wxfont(self, name="uigothic", size=10,
+    def get_wxfont(self, name="uigothic", size=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, flag=0):
+        if size is None:
+            size = cw.s(10)
         if name == "btnfont" and self._msuigothic:
             fontname = "MS UI Gothic"
         else:
@@ -339,35 +341,35 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = {}
         # 所持カードの使用回数描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], 16)
+        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(16))
         font.set_bold(True)
         fonts["card_uselimit"] = font
         # メニューカードの名前描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], 12)
+        font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(12))
         font.set_bold(True)
         fonts["mcard_name"] = font
         # プレイヤカードの名前描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], 14)
+        font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(14))
         font.set_bold(True)
         fonts["pcard_name"] = font
         # プレイヤカードのレベル描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], 36)
+        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(36))
         font.set_italic(True)
         fonts["pcard_level"] = font
         # メッセージウィンドウのテキスト描画用
-        font = pygame.font.Font(self.fontpaths["gothic"], 22)
+        font = pygame.font.Font(self.fontpaths["gothic"], cw.s(22))
         fonts["message"] = font
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             # メッセージウィンドウのテキスト描画用(クラシック)
             # これのみwx.Fontを使用する
-            wxfont = wx.Font(15, wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
+            wxfont = wx.Font(cw.s(15), wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
             fonts["message_classic"] = wxfont
         # メッセージウィンドウの選択肢描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], 15)
+        font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(15))
         font.set_bold(True)
         fonts["selectionbar"] = font
         # ステータスバーパネル描画用
-        font = pygame.font.Font(self.fontpaths["pmincho"], 14)
+        font = pygame.font.Font(self.fontpaths["pmincho"], cw.s(14))
         font.set_bold(True)
         fonts["sbarpanel"] = font
         # ステータスバーボタン描画用
@@ -397,7 +399,7 @@ class Resource(object):
         wxbmp.UseAlpha()
         dc = wx.MemoryDC(wxbmp)
         render = wx.RendererNative.Get()
-        render.DrawPushButton(cw.cwpy.frame, dc, (0, 0, w, h), flags)
+        render.DrawPushButton(cw.cwpy.frame, dc, (cw.s(0), cw.s(0), w, h), flags)
         dc.EndDrawing()
         # RendererNativeがアルファ値を出力しなかった場合
         wximg = wxbmp.ConvertToImage()
@@ -460,7 +462,8 @@ class Resource(object):
         ダイアログのボタン画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        func = cw.util.load_wxbmp
+        def func(path, mask):
+            return cw.s(cw.util.load_wxbmp(path, mask))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -469,7 +472,8 @@ class Resource(object):
         適性・カード残り回数の画像を読み込んで、
         pygameのサーフェスの辞書で返す。
         """
-        func = cw.util.load_image
+        def func(path, mask):
+            return cw.s(cw.util.load_image(path, mask))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -478,7 +482,8 @@ class Resource(object):
         適性・カード残り回数の画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        func = cw.util.load_wxbmp
+        def func(path, mask):
+            return cw.s(cw.util.load_wxbmp(path, mask))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -488,18 +493,19 @@ class Resource(object):
         ("LIFEGUAGE", "TARGET", "LIFE", "UP*", "DOWN*"はマスクする)
         pygameのサーフェスの辞書で返す。
         """
-        func = cw.util.load_image
+        def func(path):
+            return cw.s(cw.util.load_image(path))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
         d = self.get_resources(func, dpath, self.ext_img)
 
         for img in (("LIFEGUAGE", "center"), ("TARGET", "right")):
             name = img[0]
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.util.load_image(path, mask=True, maskpos=img[1])
+            d[name] = cw.s(cw.util.load_image(path, mask=True, maskpos=img[1]))
 
         for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.util.load_image(path, mask=True, maskpos=(1, 1))
+            d[name] = cw.s(cw.util.load_image(path, mask=True, maskpos=(1, 1)))
 
         return d
 
@@ -508,17 +514,18 @@ class Resource(object):
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        func = cw.util.load_wxbmp
+        def func(path, mask):
+            return cw.s(cw.util.load_wxbmp(path, mask))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         d = self.get_resources(func, dpath, self.ext_img, True)
 
         name = "STATUS8"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.util.load_wxbmp(path, mask=True, maskpos="right")
+        d[name] = cw.s(cw.util.load_wxbmp(path, mask=True, maskpos="right"))
 
         for key in ["CAUTION", "INVISIBLE"]:
             path = cw.util.join_paths(dpath, key + self.ext_img)
-            d[key] = cw.util.load_wxbmp(path)
+            d[key] = cw.s(cw.util.load_wxbmp(path))
         return d
 
     def get_debugs(self):
@@ -537,14 +544,15 @@ class Resource(object):
         ("PREMIER", "RARE", "HOLD", "PENALTY"はマスクする)
         の辞書で返す。
         """
-        func = cw.util.load_image
+        def func(path):
+            return cw.s(cw.util.load_image(path))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
         d = self.get_resources(func, dpath, self.ext_img)
 
         for img in (("HOLD", "center"), ("PENALTY", "center"), ("PREMIER", "right"), ("RARE", "right")):
             name = img[0]
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.util.load_image(path, True, maskpos = img[1])
+            d[name] = cw.s(cw.util.load_image(path, True, maskpos = img[1]))
 
         return d
 
@@ -602,7 +610,7 @@ class Resource(object):
 
             if fname.endswith(ext) and fname in ndict:
                 name = ndict[fname]
-                image = cw.util.load_image(fpath)
+                image = cw.s(cw.util.load_image(fpath))
                 image.set_colorkey((255, 255, 255))
                 d[name] = image, False
 

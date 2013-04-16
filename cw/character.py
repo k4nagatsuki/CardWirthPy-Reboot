@@ -454,7 +454,7 @@ class Character(object):
             cw.animation.animate_sprite(inusecardimg, "zoomout")
             cw.animation.animate_sprite(inusecardimg, "hide")
         elif isinstance(self, cw.character.Friend):
-            self.set_pos(center=(316, 142))
+            self.set_pos(center=cw.s((316, 142)))
             self.status == "hidden"
             cw.cwpy.pcardgrp.add(self)
             cw.animation.animate_sprite(self, "deal")
@@ -1518,20 +1518,6 @@ class Character(object):
                     value += cw.cwpy.dice.roll(1, n2)
 
                 self.set_life(-value)
-
-                if self.is_unconscious():
-                    self.set_paralyze(-40)
-                    self.set_poison(-40)
-                    self.set_mentality("Normal", 0)
-                    self.set_bind(0)
-                    self.set_silence(0)
-                    self.set_faceup(0)
-                    self.set_antimagic(0)
-                    self.set_enhance_act(0, 0)
-                    self.set_enhance_avo(0, 0)
-                    self.set_enhance_res(0, 0)
-                    self.set_enhance_def(0, 0)
-                    self.set_beast(vanish=True)
 
                 if self.status <> "reversed" and self.status <> "hidden":
                     cw.animation.animate_sprite(self, "lateralvibe")

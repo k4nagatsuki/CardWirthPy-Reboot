@@ -18,9 +18,9 @@ class Frame(wx.Frame):
                                                             |wx.SIMPLE_BORDER
         wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
         self.thread = threading.currentThread()
-        self.SetClientSize(cw.SIZE_GAME)
+        self.SetClientSize(cw.s(cw.SIZE_GAME))
         # SDLを描画するパネル
-        self.panel = wx.Panel(self, -1, size=cw.SIZE_GAME, style=wx.NO_BORDER)
+        self.panel = wx.Panel(self, -1, size=cw.s(cw.SIZE_GAME), style=wx.NO_BORDER)
         os.environ["SDL_WINDOWID"] = str(self.panel.GetHandle())
 
         if sys.platform == "win32":
@@ -339,7 +339,7 @@ class Frame(wx.Frame):
     def OnBACKPACK(self, event):
         self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK")
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, cw.s((0, -63)))
 
         if not dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
@@ -349,7 +349,7 @@ class Frame(wx.Frame):
     def OnSTOREHOUSE(self, event):
         self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE")
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, cw.s((0, -63)))
 
         if not dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
@@ -359,7 +359,7 @@ class Frame(wx.Frame):
     def OnCARDPOCKET(self, event):
         self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "CARDPOCKET")
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, cw.s((0, -63)))
 
         if dlg.ShowModal() == wx.ID_OK:
             if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
@@ -373,7 +373,7 @@ class Frame(wx.Frame):
     def OnHANDVIEW(self, event):
         self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.HandView(self)
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, cw.s((0, -63)))
 
         if dlg.ShowModal() == wx.ID_OK:
             if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
@@ -386,7 +386,7 @@ class Frame(wx.Frame):
 
     def OnINFOVIEW(self, event):
         dlg = cw.dialog.cardcontrol.InfoView(self)
-        self.move_dlg(dlg, (0, -63))
+        self.move_dlg(dlg, cw.s((0, -63)))
         dlg.ShowModal()
         self.kill_dlg(dlg)
 
@@ -476,8 +476,8 @@ class Frame(wx.Frame):
     def OnBATTLECOMMAND(self, event):
         dlg = cw.dialog.etc.BattleCommand(self)
         # マウスカーソルの位置に行動開始ボタンがくるよう位置調整
-        pos = cw.cwpy.mousepos[0] - 316, cw.cwpy.mousepos[1] - 226
-        pos = pos[0] + 95, pos[1] + 25
+        pos = cw.cwpy.mousepos[0] - cw.s(316), cw.cwpy.mousepos[1] - cw.s(226)
+        pos = pos[0] + cw.s(95), pos[1] + cw.s(25)
         self.move_dlg(dlg, pos)
         dlg.ShowModal()
         self.kill_dlg(dlg)
