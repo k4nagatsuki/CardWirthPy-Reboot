@@ -98,17 +98,25 @@ def s(num):
     elif isinstance(num, tuple):
         if len(num) == 2 and isinstance(num[0], pygame.Surface):
             bmp = num[0]
+            if bmp.get_width() <= 0 or bmp.get_width() <= 0:
+                return bmp
             size = s(num[1])
             return pygame.transform.scale(bmp, size)
         elif len(num) == 2 and isinstance(num[0], wx.Bitmap):
             bmp = num[0]
+            if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
+                return bmp
             size = s(num[1])
             img = bmp.ConvertToImage()
             img = img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
             return img.ConvertToBitmap()
         elif len(num) == 2 and isinstance(num[0], wx.Image):
             img = num[0]
+            if img.GetWidth() <= 0 or img.GetHeight() <= 0:
+                return bmp
             size = s(num[1])
+            if size[0] <= 0 or size[1] <= 0:
+                return img
             return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
         elif len(num) == 4:
             x = int(num[0] * UP_SCR)
@@ -123,17 +131,23 @@ def s(num):
     elif isinstance(num, pygame.Surface):
         w = int(num.get_width() * UP_SCR)
         h = int(num.get_height() * UP_SCR)
+        if w <= 0 or h <= 0:
+            return num
         size = (w, h)
         return pygame.transform.scale(num, size)
     elif isinstance(num, wx.Bitmap):
         img = num.ConvertToImage()
         w = int(img.GetWidth() * UP_SCR)
         h = int(img.GetHeight() * UP_SCR)
+        if w <= 0 or h <= 0:
+            return num
         img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
         return img.ConvertToBitmap()
     elif isinstance(num, wx.Image):
         w = int(num.GetWidth() * UP_SCR)
         h = int(num.GetHeight() * UP_SCR)
+        if w <= 0 or h <= 0:
+            return num
         return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
     return num
 
@@ -141,17 +155,17 @@ def ds(num):
     if UP_SCR == 1:
         return num
     elif isinstance(num, int):
-        return int(num / UP_SCR)
+        return float(num) / UP_SCR
     elif isinstance(num, tuple):
         if len(num) == 4:
-            x = int(num[0] / UP_SCR)
-            y = int(num[1] / UP_SCR)
-            w = int(num[2] / UP_SCR)
-            h = int(num[3] / UP_SCR)
+            x = float(num[0]) / UP_SCR
+            y = float(num[1]) / UP_SCR
+            w = float(num[2]) / UP_SCR
+            h = float(num[3]) / UP_SCR
             return (x, y, w, h)
         elif len(num) == UP_SCR:
-            x = int(num[0] / UP_SCR)
-            y = int(num[1] / UP_SCR)
+            x = float(num[0]) / UP_SCR
+            y = float(num[1]) / UP_SCR
             return (x, y)
     return num
 

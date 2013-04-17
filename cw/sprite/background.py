@@ -224,17 +224,17 @@ class BackGround(base.CWPySprite):
                 d2 = (text, face, tsize, color, bold, italic, underline, strike, vertical,
                       bcolor, size, pos)
                 blitlist.append((BG_TEXT, d2))
-            bgs.append((type, d))
+            bgs.append((BG_TEXT, d))
         else:
-            bgs.append((type, d))
-            oldbgs.append((type, d))
+            bgs.append((BG_TEXT, d))
+            oldbgs.append((BG_TEXT, d))
 
     def _add_colorcell(self, blitlist, bgs, oldbgs, d):
         blend, color1, gradient, color2, size, pos, flag, visible = d
         visible = cw.cwpy.sdata.flags.get(flag, True)
         d = blend, color1, gradient, color2, size, pos, flag, visible
         if visible:
-            image = cw.image.create_colorcell(size, color1, gradient, color2)
+            image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)
             if blend == "Add":
                 blendflag = BLEND_RGBA_ADD
             elif blend == "Subtract":
@@ -244,10 +244,10 @@ class BackGround(base.CWPySprite):
             else:
                 blendflag = 0
             blitlist.append((BG_IMAGE, (image, pos, blendflag)))
-            bgs.append((type, d))
+            bgs.append((BG_COLOR, d))
         else:
-            bgs.append((type, d))
-            oldbgs.append((type, d))
+            bgs.append((BG_COLOR, d))
+            oldbgs.append((BG_COLOR, d))
 
     def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)

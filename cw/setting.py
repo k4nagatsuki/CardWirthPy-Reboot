@@ -366,7 +366,8 @@ class Resource(object):
             fonts["message_classic"] = wxfont
         # メッセージウィンドウの選択肢描画用
         font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(15))
-        font.set_bold(True)
+        if cw.UP_SCR == 1:
+            font.set_bold(True)
         fonts["selectionbar"] = font
         # ステータスバーパネル描画用
         font = pygame.font.Font(self.fontpaths["pmincho"], cw.s(14))

@@ -100,6 +100,9 @@ class SystemData(object):
         """現在有効になっている互換性マークを返す(常に無し)。"""
         return ""
 
+    def update_scale(self):
+        pass
+
     def start(self):
         pass
 
@@ -377,6 +380,21 @@ class ScenarioData(SystemData):
                 id = e.getint("Id")
                 name = e.gettext("Name")
                 self.areas[id] = (name, path)
+
+    def update_scale(self):
+        # 特殊文字の画像パスの集合(正規表現)
+        r_specialchar = re.compile(r"font_(.)[.].*$")
+
+        for dpath, dnames, fnames in os.walk(self.tempdir):
+            for fname in fnames:
+                # "font_*.*"のファイルパスの画像を特殊文字に指定
+                if r_specialchar.match(fname.lower()):
+                    m = r_specialchar.match(fname.lower())
+                    path = cw.util.join_paths(dpath, fname)
+                    image = cw.s(cw.util.load_image(path, True))
+                    name = "#%s" % (m.group(1))
+                    cw.cwpy.rsrc.specialchars[name] = (image, True)
+                    cw.cwpy.rsrc.specialchars_is_changed = True
 
     def _init_flags(self):
         """

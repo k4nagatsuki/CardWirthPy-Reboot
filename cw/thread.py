@@ -182,6 +182,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.statusbar.update_scale()
         self.sbargrp.set_clip(self.statusbar.rect)
+        self.sdata.update_scale()
         for sprite in self.mcardgrp.sprites():
             sprite.update_scale()
         for sprite in self.pcardgrp.sprites():

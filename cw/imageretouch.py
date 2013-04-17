@@ -540,7 +540,7 @@ def add_border(wxdc, wxbmp, textcolor, borderwidth):
         y = points[i+1]
         if borderwidth == 1:
             wxdc.DrawPoint(x, y)
-        elif bw == 2:
+        elif borderwidth == 2:
             wxdc.DrawRectangle(x - 1, y - 1, 2, 2)
         else:
             wxdc.DrawEllipse(x - hbw, y - hbw, borderwidth, borderwidth)
