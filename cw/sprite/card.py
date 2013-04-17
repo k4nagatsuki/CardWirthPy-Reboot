@@ -16,6 +16,8 @@ class CWPyCard(base.SelectableSprite):
         self.status = status
         self.old_status = status
         self.rect = cw.s(pygame.Rect(0, 0, 0, 0))
+        self._pos_noscale = None
+        self._center_noscale = None
         # 前に表示中のカード
         self.inusecardimg = None
         # アニメ用フレーム数
@@ -267,6 +269,28 @@ class CWPyCard(base.SelectableSprite):
                 self.status = self.old_status
                 self.frame = 0
 
+    def update_scale(self):
+        if not self.cardimg:
+            return
+
+        zoom = 0 < len(self.zoomimgs)
+
+        if zoom:
+            self.old_status = self.status
+            self.status == "zoomout"
+            while self.status == "zoomout":
+                self.update_zoomout()
+
+        self.cardimg.update_scale()
+        self.update_image()
+        if self._pos_noscale or self._center_noscale:
+            self.set_pos(cw.s(self._pos_noscale), cw.s(self._center_noscale))
+
+        self.old_status = self.status
+        self.status == "zoomout"
+        while zoom == "zoomin":
+            self.update_zoomin()
+
     def update_image(self):
         """
         画像を再構成する。
@@ -322,8 +346,10 @@ class CWPyCard(base.SelectableSprite):
 
     def set_pos(self, pos=None, center=None):
         if pos:
+            self._pos_noscale = cw.ds(pos)
             self._rect.topleft = pos
         elif center:
+            self._center_noscale = cw.ds(center)
             self._rect.center = center
 
         self.rect.topleft = self._rect.topleft
@@ -361,6 +387,8 @@ class PlayerCard(CWPyCard, character.Player):
         self.update_image()
         # 空のイメージ
         self.image = pygame.Surface(cw.s((0, 0))).convert()
+
+        self.set_pos(pos=pos)
 
         if self.status == "hidden":
             self.rect = pygame.Rect(self._rect)

@@ -47,10 +47,10 @@ class CouponEditDialog(wx.Dialog):
         # リスト
         self.values = EditableListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE)
         self.values.imglist = wx.ImageList(14, 14)
-        self.values.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3"])
-        self.values.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2"])
-        self.values.imgidx_0 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS1"])
-        self.values.imgidx_m1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS0"])
+        self.values.imgidx_2 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS3_dbg"])
+        self.values.imgidx_1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS2_dbg"])
+        self.values.imgidx_0 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS1_dbg"])
+        self.values.imgidx_m1 = self.values.imglist.Add(cw.cwpy.rsrc.dialogs["STATUS0_dbg"])
         self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
         self.values.InsertColumn(0, u"名称")
         self.values.InsertColumn(1, u"得点")
@@ -65,29 +65,29 @@ class CouponEditDialog(wx.Dialog):
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
         self.target.Select(max(selected, -1) + 1)
         # smallleft
-        bmp = cw.cwpy.rsrc.buttons["LSMALL"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["LSMALL_dbg"]
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
         # smallright
-        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
 
         # 追加
-        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_ADD, (-1, -1), name=u"追加")
+        self.addbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_ADD, (-1, -1), name=u"追加")
         # 削除
-        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
+        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
         # 得点
-        self.valbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"得点")
+        self.valbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"得点")
         # 上へ
-        bmp = cw.cwpy.rsrc.buttons["UP"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_UP, (-1, -1), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp)
         # 下へ
-        bmp = cw.cwpy.rsrc.buttons["DOWN"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
 
         # 決定
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
         # 中止
-        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
 
         # 合計得点
         self.total = wx.StaticText(self, -1, "", style=wx.ALIGN_RIGHT|wx.ST_NO_AUTORESIZE)
@@ -449,20 +449,20 @@ class ListEditDialog(wx.Dialog):
         self.values.setResizeColumn(0)
 
         # 追加
-        self.addbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_ADD, (-1, -1), name=u"追加")
+        self.addbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_ADD, (-1, -1), name=u"追加")
         # 削除
-        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
+        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
         # 上へ
-        bmp = cw.cwpy.rsrc.buttons["UP"]
-        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_UP, (-1, -1), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp)
         # 下へ
-        bmp = cw.cwpy.rsrc.buttons["DOWN"]
-        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
 
         # 決定
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
         # 中止
-        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
 
         self._bind()
         self._do_layout()
@@ -598,7 +598,7 @@ class ListEditDialog(wx.Dialog):
 class GossipEditDialog(ListEditDialog):
     def __init__(self, parent):
         ListEditDialog.__init__(self, parent, u"ゴシップの編集",
-            cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP"])
+            cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP_dbg"])
 
     def OnOkBtn(self, event):
         cw.cwpy.sounds["harvest"].play()
@@ -611,7 +611,7 @@ class GossipEditDialog(ListEditDialog):
 class CompStampEditDialog(ListEditDialog):
     def __init__(self, parent):
         ListEditDialog.__init__(self, parent, u"終了印の編集",
-            cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP"])
+            cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP_dbg"])
 
     def OnOkBtn(self, event):
         cw.cwpy.sounds["harvest"].play()

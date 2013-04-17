@@ -303,7 +303,7 @@ class TopPanel(wx.Panel):
             else:
                 path = cw.util.join_yadodir(path)
 
-        bmp = cw.s(cw.util.load_wxbmp(path, True))
+        bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         x = (dc.GetSize()[0] - cw.s(74)) / 2
         dc.DrawBitmap(bmp, x, cw.s(5), True)
         # レベル

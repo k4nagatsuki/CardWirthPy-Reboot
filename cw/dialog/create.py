@@ -19,7 +19,7 @@ class AdventurerDataComp(wx.Dialog):
         self.sex = cw.cwpy.setting.sexcoupons[0]
         self.age = cw.cwpy.setting.periodcoupons[0]
         # 画像
-        bmp = cw.s(cw.util.load_wxbmp(ccard.imgpath, True))
+        bmp = cw.s((cw.util.load_wxbmp(ccard.imgpath, True), cw.SIZE_CARDIMAGE))
         self.bmp = wx.StaticBitmap(self, -1, bmp)
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
@@ -632,7 +632,7 @@ class AdventurerCreaterPage(wx.Panel):
         # 共通背景
         path = "Table/Book" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s(cw.util.load_wxbmp(path))
+        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         dc.DrawBitmap(bmp, 0, 0, False)
         return dc
 
@@ -742,7 +742,7 @@ class NamePage(AdventurerCreaterPage):
         pos = cw.s((365, 170))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        bmp = cw.s(cw.util.load_wxbmp(self.imgpath, True))
+        bmp = cw.s((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
         self.draw_clickablebmp(dc, bmp, cw.s((275, 130)), "Face", None, self.on_mousewheel, True)
 
     def set_sex(self, name):
@@ -921,7 +921,7 @@ class RelationPage(AdventurerCreaterPage):
             path = "Resource/Image/Card/FATHER" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
 
-        bmp = cw.s(cw.util.load_wxbmp(path, True))
+        bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         dc.DrawBitmap(bmp, cw.s(100), cw.s(110), True)
 
         # 母親画像
@@ -931,7 +931,7 @@ class RelationPage(AdventurerCreaterPage):
             path = "Resource/Image/Card/MOTHER" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
 
-        bmp = cw.s(cw.util.load_wxbmp(path, True))
+        bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         dc.DrawBitmap(bmp, cw.s(275), cw.s(110), True)
         # 父親名前
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(11))
@@ -1439,7 +1439,7 @@ class DesignPanel(AdventurerCreaterPage):
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s(cw.util.load_wxbmp(path))
+        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1471,7 +1471,7 @@ class DesignPanel(AdventurerCreaterPage):
         pos = cw.s((260, 150))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        bmp = cw.s(cw.util.load_wxbmp(self.imgpath, True))
+        bmp = cw.s((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
         self.draw_clickablebmp(dc, bmp, ((cwidth - cw.s(74)) / 2, cw.s(116)), "Face", None, self.on_mousewheel, True)
 
     def on_mousewheel(self, name, rotate):

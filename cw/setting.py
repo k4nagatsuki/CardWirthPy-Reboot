@@ -389,6 +389,17 @@ class Resource(object):
 
         return button
 
+    def create_wxbutton_dbg(self, parent, id, size, name=None, bmp=None):
+        if name:
+            button = wx.Button(parent, id, name, size=size)
+            button.SetMinSize(size)
+            button.SetFont(self.get_wxfont("btnfont", size=10))
+        elif bmp:
+            button = wx.BitmapButton(parent, id, bmp)
+            button.SetMinSize(size)
+
+        return button
+
     def create_wxbtnbmp(self, w, h, flags=0):
         """StatusBarで使用するOSネイティブなボタン画像をwx.Bitmapで出力する。
         w: width
@@ -427,7 +438,11 @@ class Resource(object):
                 else:
                     resource = func(fpath)
 
-                d[os.path.splitext(fname)[0]] = resource
+                if isinstance(resource, tuple):
+                    d[os.path.splitext(fname)[0]] = resource[1]
+                    d[os.path.splitext(fname)[0] + "_dbg"] = resource[0]
+                else:
+                    d[os.path.splitext(fname)[0]] = resource
 
         return d
 
@@ -463,7 +478,8 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         def func(path, mask):
-            return cw.s(cw.util.load_wxbmp(path, mask))
+            bmp = cw.util.load_wxbmp(path, mask)
+            return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -473,7 +489,8 @@ class Resource(object):
         pygameのサーフェスの辞書で返す。
         """
         def func(path, mask):
-            return cw.s(cw.util.load_image(path, mask))
+            bmp = cw.util.load_image(path, mask)
+            return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -483,7 +500,8 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         def func(path, mask):
-            return cw.s(cw.util.load_wxbmp(path, mask))
+            bmp = cw.util.load_wxbmp(path, mask)
+            return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -494,18 +512,19 @@ class Resource(object):
         pygameのサーフェスの辞書で返す。
         """
         def func(path):
-            return cw.s(cw.util.load_image(path))
+            bmp = cw.util.load_image(path)
+            return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
         d = self.get_resources(func, dpath, self.ext_img)
 
         for img in (("LIFEGUAGE", "center"), ("TARGET", "right")):
             name = img[0]
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.s(cw.util.load_image(path, mask=True, maskpos=img[1]))
+            d[name] = cw.s((cw.util.load_image(path, mask=True, maskpos=img[1]), get_resourcesize(path)))
 
         for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.s(cw.util.load_image(path, mask=True, maskpos=(1, 1)))
+            d[name] = cw.s((cw.util.load_image(path, mask=True, maskpos=(1, 1)), get_resourcesize(path)))
 
         return d
 
@@ -515,17 +534,18 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         def func(path, mask):
-            return cw.s(cw.util.load_wxbmp(path, mask))
+            bmp = cw.util.load_wxbmp(path, mask)
+            return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         d = self.get_resources(func, dpath, self.ext_img, True)
 
         name = "STATUS8"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s(cw.util.load_wxbmp(path, mask=True, maskpos="right"))
+        d[name] = cw.s((cw.util.load_wxbmp(path, mask=True, maskpos="right"), get_resourcesize(path)))
 
         for key in ["CAUTION", "INVISIBLE"]:
             path = cw.util.join_paths(dpath, key + self.ext_img)
-            d[key] = cw.s(cw.util.load_wxbmp(path))
+            d[key] = cw.s((cw.util.load_wxbmp(path), get_resourcesize(path)))
         return d
 
     def get_debugs(self):
@@ -533,7 +553,9 @@ class Resource(object):
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        func = cw.util.load_wxbmp
+        def func(path, mask):
+            bmp = cw.util.load_wxbmp(path, mask)
+            return bmp, bmp
         dpath = u"Data/Debugger"
         d = self.get_resources(func, dpath, ".png", True)
         return d
@@ -545,14 +567,14 @@ class Resource(object):
         の辞書で返す。
         """
         def func(path):
-            return cw.s(cw.util.load_image(path))
+            return cw.s((cw.util.load_image(path), get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
         d = self.get_resources(func, dpath, self.ext_img)
 
         for img in (("HOLD", "center"), ("PENALTY", "center"), ("PREMIER", "right"), ("RARE", "right")):
             name = img[0]
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.s(cw.util.load_image(path, True, maskpos = img[1]))
+            d[name] = cw.s((cw.util.load_image(path, True, maskpos = img[1]), get_resourcesize(path)))
 
         return d
 
@@ -610,11 +632,128 @@ class Resource(object):
 
             if fname.endswith(ext) and fname in ndict:
                 name = ndict[fname]
-                image = cw.s(cw.util.load_image(fpath))
+                image = cw.s((cw.util.load_image(fpath), SIZE_SPFONT))
                 image.set_colorkey((255, 255, 255))
                 d[name] = image, False
 
         return d
+
+# リソースの標準サイズ
+SIZE_SPFONT = (22, 22)
+SIZE_RESOURCES = {
+    "Button/ARROW": (16, 16),
+    "Button/BEAST": (65, 45),
+    "Button/CAST": (16, 16),
+    "Button/DECK": (16, 16),
+    "Button/DOWN": (14, 14),
+    "Button/ITEM": (65, 45),
+    "Button/LJUMP": (16, 14),
+    "Button/LMOVE": (9, 14),
+    "Button/LSMALL": (9, 9),
+    "Button/RJUMP": (16, 14),
+    "Button/RMOVE": (9, 14),
+    "Button/RSMALL": (9, 9),
+    "Button/SACK": (16, 16),
+    "Button/SHELF": (16, 16),
+    "Button/SKILL": (65, 45),
+    "Button/TRUSH": (16, 16),
+    "Button/UP": (14, 14),
+    "CardBg/ACTION": (80, 110),
+    "CardBg/BEAST": (80, 110),
+    "CardBg/BIND": (95, 130),
+    "CardBg/DANGER": (95, 130),
+    "CardBg/FAINT": (95, 130),
+    "CardBg/HOLD": (80, 110),
+    "CardBg/INFO": (80, 110),
+    "CardBg/INJURY": (95, 130),
+    "CardBg/ITEM": (80, 110),
+    "CardBg/LARGE": (95, 130),
+    "CardBg/NORMAL": (80, 110),
+    "CardBg/OPTION": (80, 110),
+    "CardBg/PARALY": (95, 130),
+    "CardBg/PENALTY": (80, 110),
+    "CardBg/PETRIF": (95, 130),
+    "CardBg/PREMIER": (12, 16),
+    "CardBg/RARE": (12, 40),
+    "CardBg/REVERSE": (95, 130),
+    "CardBg/SKILL": (80, 110),
+    "CardBg/SLEEP": (95, 130),
+    "Dialog/CAUTION": (37, 37),
+    "Dialog/COMPLETE": (100, 100),
+    "Dialog/FIXED": (26, 26),
+    "Dialog/FOLDER": (64, 54),
+    "Dialog/INVISIBLE": (232, 29),
+    "Dialog/LINK": (20, 20),
+    "Dialog/MONEYP": (18, 18),
+    "Dialog/MONEYY": (18, 18),
+    "Dialog/PAD": (226, 132),
+    "Dialog/PLAYING": (68, 146),
+    "Dialog/SELECT": (16, 13),
+    "Dialog/SETTINGS": (16, 16),
+    "Dialog/STATUS": (220, 56),
+    "Dialog/STATUS0": (14, 14),
+    "Dialog/STATUS1": (14, 14),
+    "Dialog/STATUS2": (14, 14),
+    "Dialog/STATUS3": (14, 14),
+    "Dialog/STATUS4": (14, 14),
+    "Dialog/STATUS5": (14, 14),
+    "Dialog/STATUS6": (14, 14),
+    "Dialog/STATUS7": (14, 14),
+    "Dialog/STATUS8": (14, 14),
+    "Dialog/STATUS9": (14, 14),
+    "Dialog/STATUS10": (14, 14),
+    "Dialog/STATUS11": (14, 14),
+    "Dialog/STATUS12": (14, 14),
+    "Dialog/STATUS13": (14, 14),
+    "Dialog/UTILITY": (128, 24),
+    "Other/TITLE": (406, 99),
+    "Other/TITLE_CARD1": (124, 134),
+    "Other/TITLE_CARD2": (124, 134),
+    "Other/TITLE_CELL1": (133, 30),
+    "Other/TITLE_CELL2": (133, 46),
+    "Other/TITLE_CELL3": (406, 99),
+    "Status/BODY0": (16, 16),
+    "Status/BODY1": (16, 16),
+    "Status/DOWN0": (16, 16),
+    "Status/DOWN1": (16, 16),
+    "Status/DOWN2": (16, 16),
+    "Status/DOWN3": (16, 16),
+    "Status/LIFE": (16, 16),
+    "Status/LIFEBAR": (158, 11),
+    "Status/LIFEGUAGE": (79, 13),
+    "Status/MAGIC0": (16, 16),
+    "Status/MAGIC1": (16, 16),
+    "Status/MAGIC2": (16, 16),
+    "Status/MAGIC3": (16, 16),
+    "Status/MIND0": (16, 16),
+    "Status/MIND1": (16, 16),
+    "Status/MIND2": (16, 16),
+    "Status/MIND3": (16, 16),
+    "Status/MIND4": (16, 16),
+    "Status/MIND5": (16, 16),
+    "Status/SUMMON": (16, 16),
+    "Status/TARGET": (24, 22),
+    "Status/UP0": (16, 16),
+    "Status/UP1": (16, 16),
+    "Status/UP2": (16, 16),
+    "Status/UP3": (16, 16),
+    "Stone/HAND0": (14, 14),
+    "Stone/HAND1": (14, 14),
+    "Stone/HAND2": (14, 14),
+    "Stone/HAND3": (14, 14),
+    "Stone/HAND4": (14, 14),
+    "Stone/HAND5": (14, 14),
+    "Stone/HAND6": (14, 14),
+    "Stone/HAND7": (14, 14),
+    "Stone/HAND8": (14, 14),
+    "Stone/HAND9": (14, 14),
+}
+
+def get_resourcesize(path):
+    """指定されたリソースの標準サイズを返す。"""
+    dpath = os.path.basename(os.path.dirname(path))
+    fpath = os.path.splitext(os.path.basename(path))[0]
+    return SIZE_RESOURCES["%s/%s" % (dpath, fpath)]
 
 class RecentHistory(object):
     def __init__(self, data):

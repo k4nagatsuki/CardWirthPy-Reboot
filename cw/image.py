@@ -40,10 +40,14 @@ class CardImage(Image):
         """
         self.name = name
         self.path = path
+        self.bgtype = bgtype
         # FIXME: 画像ファイル読み込みにディスクキャッシュをきかすため。
         cw.util.load_image(path)
         self.premium = premium
-        self.cardbg = cw.cwpy.rsrc.cardbgs[bgtype]
+        self.update_scale()
+
+    def update_scale(self):
+        self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
 
     def get_image(self):
@@ -67,7 +71,7 @@ class CardImage(Image):
         if not path:
             path = self.path
 
-        subimg = cw.s(cw.util.load_image(path, True))
+        subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE))
         image.blit(subimg, cw.s((3, 13)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         subimg = font.render(self.name, True, (0, 0, 0))
@@ -178,7 +182,7 @@ class LargeCardImage(CardImage):
             image.blit(subimg, cw.s((64, 5)))
             image.blit(subimg, cw.s((5, 41)))
 
-        subimg = cw.s(cw.util.load_image(self.path, True))
+        subimg = cw.s((cw.util.load_image(self.path, True), cw.SIZE_CARDIMAGE))
         image.blit(subimg, cw.s((10, 23)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         subimg = font.render(self.name, True, (0, 0, 0))
@@ -193,23 +197,28 @@ class LargeCardImage(CardImage):
 
 class CharacterCardImage(CardImage):
     def __init__(self, ccard, pos=(0, 0)):
+        self.ccard = ccard
+        self._pos_noscale = cw.ds(pos)
+        self.update_scale()
+
+    def update_scale(self):
         # カード画像
-        self.set_faceimg(ccard.imgpath)
+        self.set_faceimg(self.ccard.imgpath)
         # フォント画像(カード名)
-        self.set_nameimg(ccard.name)
+        self.set_nameimg(self.ccard.name)
         # フォント画像(レベル)
-        self.set_levelimg(ccard.level)
+        self.set_levelimg(self.ccard.level)
         # ライフバー画像
         self.lifeimg = pygame.Surface(cw.s((79, 13))).convert()
         self.lifeguage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
         self.lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
         self.lifeimg.set_colorkey(self.lifeguage.get_at((0, 0)), RLEACCEL)
         # rect
-        self.rect = pygame.Rect(pos, cw.s((95, 130)))
+        self.rect = pygame.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
 
     def set_faceimg(self, path):
         self.path = path
-        self.cardimg = cw.s(cw.util.load_image(path, True))
+        self.cardimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE))
 
     def set_nameimg(self, name):
         font = cw.cwpy.rsrc.fonts["pcard_name"]

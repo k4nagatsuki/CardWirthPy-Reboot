@@ -1051,7 +1051,7 @@ class CardHolder(CardControl):
             elif self.callname == "INFOVIEW":
                 path = "Resource/Image/Card/COMMAND8" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
-            bmp = cw.s(cw.util.load_wxbmp(path, True))
+            bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
             dc.DrawBitmap(bmp, cw.s(3), cw.s(85), True)
 
             # カード描画

@@ -216,11 +216,19 @@ class EventHandler(object):
         cw.cwpy.has_inputevent = True
 
         if cw.cwpy.is_showingdebugger() and not cw.cwpy.is_fullscreen():
-            cw.cwpy.sounds["signal"].play()
+            cw.cwpy.sounds["error"].play()
             s = u"デバッガ表示中はフルスクリーン化できません。"
             cw.cwpy.call_dlg("MESSAGE", text=s)
         else:
             cw.cwpy.set_fullscreen(not cw.cwpy.is_fullscreen())
+
+    def update_scale(self):
+        """画面サイズを倍にする。
+        すでに倍になっている場合は元に戻す。"""
+        if cw.UP_SCR == 1:
+            cw.cwpy.update_scale(2)
+        else:
+            cw.cwpy.update_scale(1)
 
     def f2key_event(self):
         """
@@ -500,7 +508,7 @@ class EventHandlerForMessageWindow(EventHandler):
             cw.cwpy.has_inputevent = True
             self.dirkey_event(y=y)
 
-    def shiftkey_event(self, down):
+    def shiftkey_event(self, down, redraw=True):
         """
         シフトキーイベント。
         メッセージウィンドウを一時的に非表示にする。
@@ -509,13 +517,26 @@ class EventHandlerForMessageWindow(EventHandler):
             cw.cwpy.clear_selection()
             cw.cwpy.pcardgrp.remove_sprites_of_layer("message")
             cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
-            cw.cwpy.draw()
+            if redraw:
+                cw.cwpy.draw()
         else:
             if not cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
                 cw.cwpy.pcardgrp.add(self.mwin, layer="message")
                 for sbar in self.mwin.selections:
                     cw.cwpy.pcardgrp.add(sbar, layer="selectionbar")
-                cw.cwpy.draw()
+                if redraw:
+                    cw.cwpy.draw()
+
+    def update_scale(self):
+        hidden = not cw.cwpy.pcardgrp.get_sprites_from_layer("message")
+
+        if hidden:
+            self.shiftkey_event(False, False)
+
+        EventHandler.update_scale(self)
+
+        if hidden:
+            self.shiftkey_event(True, False)
 
 class EventHandlerForBacklog(EventHandler):
     def __init__(self, backlog, index):

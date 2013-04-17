@@ -33,11 +33,11 @@ class CharacterEditDialog(wx.Dialog):
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
         self.target.Select(max(selected, -1) + 1)
         # smallleft
-        bmp = cw.cwpy.rsrc.buttons["LSMALL"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["LSMALL_dbg"]
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
         # smallright
-        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
         if self.create:
             self.target.Hide()
             self.leftbtn.Hide()
@@ -50,14 +50,14 @@ class CharacterEditDialog(wx.Dialog):
         self.note.AddPage(self.pane_sel, u"選択情報")
 
         # 標準
-        self.stdbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"標準")
+        self.stdbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"標準")
         # 自動
-        self.autobtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"自動")
+        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"自動")
 
         # 決定
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
         # 中止
-        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
 
         self._bind()
         self._do_layout()
@@ -356,7 +356,7 @@ class CharaRequirementPanel(wx.Panel):
         self.imgcombo = wx.ComboBox(self, -1, size=(125, -1), style=wx.CB_READONLY)
 
         self.lvlbox = wx.StaticBox(self, -1, u"レベル")
-        self.levelbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"Lv ―")
+        self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"Lv ―")
 
         self.typbox = wx.StaticBox(self, -1, u"能力型")
         self.type = wx.StaticText(self, -1, u"―――", size=(125, -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
@@ -376,7 +376,7 @@ class CharaRequirementPanel(wx.Panel):
         self.natures = wx.RadioBox(self, -1, u"素質", choices=array,
                                    style=wx.RA_VERTICAL, majorDimension=2)
 
-        self.autobtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), u"自動選択")
+        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), u"自動選択")
 
         self._bind()
         self._do_layout()
@@ -670,8 +670,8 @@ class CharaSelectablePanel(wx.Panel):
             check = wx.CheckBox(self, -1, f.name, style=wx.CHK_3STATE)
             self.makings.append(check)
 
-        self.autobtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), u"自動選択")
-        self.clearbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), u"クリア")
+        self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), u"自動選択")
+        self.clearbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), u"クリア")
 
         self._bind()
         self._do_layout()

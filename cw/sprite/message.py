@@ -25,17 +25,6 @@ class MessageWindow(base.CWPySprite):
         self.backlog = backlog
         self._barspchr = True
 
-        # クラシックスタイルか
-        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext
-        # クラシックスタイルのテキスト描画用
-        if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
-            self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
-            self.wxdc = wx.MemoryDC(self.wxcanvas)
-            self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
-        else:
-            self.wxcanvas = None
-            self.wxdc = None
-
         self.name_table = nametable
         self.flag_table = flagtable
         self.step_table = steptable
@@ -46,17 +35,7 @@ class MessageWindow(base.CWPySprite):
         self.names = names
         self.path = path
         self.text = text
-        # image
-        self.image = pygame.Surface(size).convert_alpha()
-        if self.backlog:
-            self.image.fill(cw.cwpy.setting.blwincolour)
-        else:
-            self.image.fill(cw.cwpy.setting.mwincolour)
-        # rect
-        self.rect = self.image.get_rect()
-        self.rect.topleft = pos
-        # 外枠描画
-        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
+
         # 話者(CardHeader or Character)
         self.talker = talker
 
@@ -71,17 +50,9 @@ class MessageWindow(base.CWPySprite):
         if not self.name_table:
             self.name_table = _create_nametable(True, self.talker)
 
-        # 話者画像
-        if talkerimage:
-            self.talker_image = talkerimage
-        elif self.path:
-            self.talker_image = cw.s(cw.util.load_image(self.path, True))
-        else:
-            self.talker_image = None
-
-        if self.talker_image:
-            y = (self.rect.height - self.talker_image.get_height()) / 2
-            self.image.blit(self.talker_image, (cw.s(15), y))
+        self.talker_image_noscale = talkerimage
+        self._init_style()
+        self._init_image(size, pos)
 
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs()
@@ -109,6 +80,57 @@ class MessageWindow(base.CWPySprite):
             cw.cwpy.backloggrp.add(self, layer="backlog")
         else:
             cw.cwpy.pcardgrp.add(self, layer="message")
+
+    def _init_style(self):
+        # クラシックスタイルか
+        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext
+        # クラシックスタイルのテキスト描画用
+        if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
+            self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
+            self.wxdc = wx.MemoryDC(self.wxcanvas)
+            self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
+        else:
+            self.wxcanvas = None
+            self.wxdc = None
+
+    def _init_image(self, size, pos):
+        # image
+        self.image = pygame.Surface(size).convert_alpha()
+        if self.backlog:
+            self.image.fill(cw.cwpy.setting.blwincolour)
+        else:
+            self.image.fill(cw.cwpy.setting.mwincolour)
+        # rect
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+        # 外枠描画
+        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
+        # 話者画像
+        if self.talker_image_noscale:
+            self.talker_image = cw.s(self.talker_image_noscale)
+        elif self.path:
+            self.talker_image_noscale = cw.util.load_image(self.path, True)
+            self.talker_image = cw.s((self.talker_image_noscale, cw.SIZE_CARDIMAGE))
+        else:
+            self.talker_image_noscale = None
+            self.talker_image = None
+
+        if self.talker_image:
+            y = (self.rect.height - self.talker_image.get_height()) / 2
+            self.image.blit(self.talker_image, (cw.s(15), y))
+
+    def update_scale(self):
+        self._init_style()
+        self._init_image(cw.s((470, 180)), cw.s((81, 50)))
+        self.charimgs = self.create_charimgs()
+        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+        cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
+        self.selections = []
+        self.selection_pos = cw.s((80, 230))
+
+        self.is_drawing = True
+        self.frame = 0
+        self.draw_all()
 
     def update(self, scr):
         if self.is_drawing:
@@ -456,16 +478,7 @@ class SelectWindow(MessageWindow):
         self.versionhint = ""
         self.backlog_versionhint = ""
 
-        # クラシックスタイルか
-        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext
-        # クラシックスタイルのテキスト描画用
-        if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
-            self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
-            self.wxdc = wx.MemoryDC(self.wxcanvas)
-            self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
-        else:
-            self.wxcanvas = None
-            self.wxdc = None
+        self._init_style()
 
         # メッセージの選択結果
         self.result = result
@@ -474,18 +487,7 @@ class SelectWindow(MessageWindow):
         self.path = ""
         self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.talker = None
-        # image
-        if self.backlog:
-            colour = cw.cwpy.setting.blwincolour
-        else:
-            colour = cw.cwpy.setting.mwincolour
-        self.image = pygame.Surface(size).convert_alpha()
-        self.image.fill(colour)
-        # rect
-        self.rect = self.image.get_rect()
-        self.rect.topleft = pos
-        # 外枠描画
-        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
+        self._init_image(size, pos)
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs(cw.s((15, 9)))
         # frame
@@ -505,6 +507,33 @@ class SelectWindow(MessageWindow):
         else:
             cw.cwpy.pcardgrp.add(self, layer="message")
 
+    def _init_image(self, size, pos):
+        # image
+        if self.backlog:
+            colour = cw.cwpy.setting.blwincolour
+        else:
+            colour = cw.cwpy.setting.mwincolour
+        self.image = pygame.Surface(size).convert_alpha()
+        self.image.fill(colour)
+        # rect
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+        # 外枠描画
+        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
+
+    def update_scale(self):
+        self._init_style()
+        self._init_image(cw.s((81, 50)), cw.s((470, 38)))
+        self.charimgs = self.create_charimgs()
+        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+        cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
+        self.selections = []
+        self.selection_pos = cw.s((80, 230))
+
+        self.is_drawing = True
+        self.frame = 0
+        self.draw_all()
+
     def update(self, scr):
         pass
 
@@ -522,10 +551,8 @@ class MemberSelectWindow(SelectWindow):
         SelectWindow.__init__(self, names, text, pos, size)
 
 class SelectionBar(base.SelectableSprite):
-    def __init__(self, name, pos, size=None, backlog=False, selected=False):
+    def __init__(self, name, pos, backlog=False, selected=False):
         base.SelectableSprite.__init__(self)
-        if size is None:
-            size = cw.s((470, 25))
         self._selectable_on_event = True
         # 各種データ
         self.backlog = backlog
@@ -533,6 +560,7 @@ class SelectionBar(base.SelectableSprite):
         self.index = name[0]
         self.name = name[1]
         # 通常画像
+        size = cw.s((470, 25))
         self._image = self.get_image(size)
         # rect
         self.rect = self._image.get_rect()
@@ -554,6 +582,9 @@ class SelectionBar(base.SelectableSprite):
 
     def get_selectedimage(self):
         return cw.imageretouch.to_negative(self._image)
+
+    def update_scale(self):
+        pass # MessageWindowのupdate_scaleでremoveされる
 
     def update(self, scr=None):
         if self.backlog:
@@ -652,7 +683,7 @@ class BacklogData:
         self.path = base.path
         lpath = self.path.lower()
         if lpath.startswith("yado") or lpath.startswith("data/temp"):
-            self.talker_image = base.talker_image
+            self.talker_image = base.talker_image_noscale
         else:
             self.talker_image = None
         self.rect = base.rect
@@ -674,25 +705,29 @@ class BacklogData:
                                 True, self.result, self.versionhint)
 
 class BacklogCurtain(base.CWPySprite):
-    def __init__(self, spritegrp, size=None, pos=None, alpha=192):
+    def __init__(self, spritegrp, alpha=192):
         """バックログ用の半透明黒背景スプライト。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         size: スプライトのサイズ。
         pos: 表示位置。
         alpha: 透明度。
         """
-        if size is None:
-            size = cw.s((632, 420))
-        if pos is None:
-            pos = cw.s((0, 0))
         base.CWPySprite.__init__(self)
-        self.image = pygame.Surface(size).convert()
+        self.alpha = alpha
+        self.image = pygame.Surface(cw.s((632, 420))).convert()
         self.image.fill((0, 0, 0))
-        self.image.set_alpha(alpha)
+        self.image.set_alpha(self.alpha)
         self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        self.rect.topleft = cw.s((0, 0))
         # spritegroupに追加
         spritegrp.add(self, layer="curtain")
+
+    def update_scale(self):
+        self.image = pygame.Surface(cw.s((632, 420))).convert()
+        self.image.fill((0, 0, 0))
+        self.image.set_alpha(self.alpha)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
 
 def draw_frame(image, size, pos=None, backlog=False):
     """

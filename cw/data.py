@@ -314,7 +314,7 @@ class ScenarioData(SystemData):
                 if r_specialchar.match(fname.lower()):
                     m = r_specialchar.match(fname.lower())
                     path = cw.util.join_paths(dpath, fname)
-                    image = cw.util.load_image(path, True)
+                    image = cw.s(cw.util.load_image(path, True))
                     name = "#%s" % (m.group(1))
                     cw.cwpy.rsrc.specialchars[name] = (image, True)
                     cw.cwpy.rsrc.specialchars_is_changed = True

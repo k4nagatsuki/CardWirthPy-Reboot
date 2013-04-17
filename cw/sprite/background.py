@@ -28,6 +28,11 @@ class BackGround(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.bggrp.add(self)
 
+    def update_scale(self):
+        self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
+        self.rect = self.image.get_rect()
+        self.reload(doanime=False, ttype=("None", "None"))
+
     def load_surface(self, path, mask, size, flag, doanime):
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
@@ -286,14 +291,24 @@ class Curtain(base.SelectableSprite):
             size = cw.s((632, 420))
         if pos is None:
             pos = cw.s((0, 0))
+        self.alpha = alpha
         base.SelectableSprite.__init__(self)
+        self._pos_noscale = cw.ds(pos)
+        self._size_noscale = cw.ds(size)
         self.image = pygame.Surface(size).convert()
         self.image.fill((0, 0, 80))
-        self.image.set_alpha(alpha)
+        self.image.set_alpha(self.alpha)
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
         # spritegroupに追加
         spritegrp.add(self, layer="curtain")
+
+    def update_scale(self):
+        self.image = pygame.Surface(cw.s(self._size_noscale)).convert()
+        self.image.fill((0, 0, 80))
+        self.image.set_alpha(self.alpha)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = cw.s(self._pos_noscale)
 
     def rclick_event(self):
         cw.cwpy.sounds["click"].play()
@@ -356,8 +371,9 @@ class InuseCardImage(card.CWPyCard):
         center: 画面中央に表示するかどうか。
         """
         card.CWPyCard.__init__(self, status)
+        self.header = header
         self.zoomsize = cw.s((32, 42))
-        image = header.get_cardimg()
+        image = self.header.get_cardimg()
         self.image = self._image = image
         self.rect = self._rect = image.get_rect()
 
@@ -377,6 +393,15 @@ class InuseCardImage(card.CWPyCard):
         # spritegroupに追加
         cw.cwpy.pcardgrp.add(self, layer=layer)
 
+    def update_scale(self):
+        image = self.header.get_cardimg()
+        self.image = self._image = image
+        self.rect = self._rect = image.get_rect()
+        self.set_pos(center=self._noscale_center)
+
+        if status == "hidden":
+            self.clear_image()
+
     def update_image(self):
         pass
 
@@ -389,11 +414,15 @@ class TargetArrow(base.CWPySprite):
         target: Character。
         """
         base.CWPySprite.__init__(self)
-        self.image = cw.cwpy.rsrc.statuses["TARGET"]
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (target.rect.right - cw.s(30), target.rect.bottom - cw.s(30))
+        self.target = target
+        self.update_scale()
         # spritegroupに追加
         cw.cwpy.pcardgrp.add(self, layer="targetarrow")
+
+    def update_scale(self):
+        self.image = cw.cwpy.rsrc.statuses["TARGET"]
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (self.target.rect.right - cw.s(30), self.target.rect.bottom - cw.s(30))
 
 class Jpy1TemporalSprite(base.CWPySprite):
     def __init__(self, image, pos, paintmode):
@@ -427,7 +456,7 @@ class TitleCell(base.CWPySprite):
             self._image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
             self._image.fill((255, 255, 255))
         else:
-            self._image = cw.s(cw.util.load_image(path, True))
+            self._image = cw.s((cw.util.load_image(path, True), cw.setting.get_resourcesize(path)))
         self._rect = self._image.get_rect()
         x = (cw.s(cw.SIZE_AREA[0]) - self._rect.width) / 2
         self._rect.topleft = (x, y)

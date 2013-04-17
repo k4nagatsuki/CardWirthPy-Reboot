@@ -11,6 +11,12 @@ import base
 class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
+        self._init_image()
+        # spritegroupに追加
+        cw.cwpy.sbargrp.add(self)
+        self.showbuttons = False
+
+    def _init_image(self):
         wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(cw.s(632), cw.s(33))
         subimg = cw.image.conv2surface(wxbmp)
         image = pygame.Surface(cw.s((632, 33)))
@@ -19,11 +25,15 @@ class StatusBar(base.CWPySprite):
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
-        # spritegroupに追加
-        cw.cwpy.sbargrp.add(self)
-        self.showbuttons = False
+
+    def update_scale(self):
+        self._init_image()
+        self.change(self.showbuttons)
 
     def change(self, showbuttons=True):
+        if cw.cwpy.status == "Title":
+            return
+
         self.clear()
         if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT) or cw.cwpy.selectedheader):
             showbuttons = False

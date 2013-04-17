@@ -42,12 +42,12 @@ class CardEditDialog(wx.Dialog):
         self.methodbox = wx.StaticBox(self, -1, u"照合方法")
         self.targetsbox = wx.StaticBox(self, -1, u"処理対象")
 
-        self.scenario = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"(シナリオ未選択)")
+        self.scenario = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"(シナリオ未選択)")
 
         self.imglist = wx.ImageList(16, 16)
-        self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
-        self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
-        self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
+        self.imgidx_skill = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL_dbg"])
+        self.imgidx_item = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM_dbg"])
+        self.imgidx_beast = self.imglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
         self.cards = wx.ListCtrl(self, -1, size=(200, 250),
             style=wx.LC_REPORT)
@@ -60,21 +60,21 @@ class CardEditDialog(wx.Dialog):
         self.cards.SetColumnWidth(2, 110)
 
         self.dealtarg = wx.combo.BitmapComboBox(self, -1, style=wx.CB_READONLY)
-        bmp = cw.cwpy.rsrc.buttons["SACK"]
+        bmp = cw.cwpy.rsrc.buttons["SACK_dbg"]
         self.dealtarg.Append(u"荷物袋", bmp)
-        bmp = cw.cwpy.rsrc.buttons["CAST"]
+        bmp = cw.cwpy.rsrc.buttons["CAST_dbg"]
         for member in cw.cwpy.get_pcards():
             self.dealtarg.Append(member.name, bmp)
         self.dealtarg.SetSelection(0)
 
-        self.dtlbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"情報")
-        self.dealbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"配付")
-        self.findbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"検索")
-        self.stopbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"中断")
-        self.updbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"更新")
-        self.delbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"除去")
+        self.dtlbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"情報")
+        self.dealbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"配付")
+        self.findbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"検索")
+        self.stopbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"中断")
+        self.updbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"更新")
+        self.delbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"除去")
 
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), name=u"閉じる")
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), name=u"閉じる")
 
         self.mname = wx.CheckBox(self, -1, u"カード名")
         self.mdesc = wx.CheckBox(self, -1, u"解説")
@@ -82,14 +82,14 @@ class CardEditDialog(wx.Dialog):
         self.mauthor = wx.CheckBox(self, -1, u"作者")
 
         self.timglist = wx.ImageList(16, 16)
-        self.timgidx_storehouse = self.timglist.Add(cw.cwpy.rsrc.buttons["DECK"])
-        self.timgidx_backpack = self.timglist.Add(cw.cwpy.rsrc.buttons["SACK"])
-        self.timgidx_party = self.timglist.Add(cw.cwpy.rsrc.debugs["MEMBER"])
-        self.timgidx_yado = self.timglist.Add(cw.cwpy.rsrc.debugs["YADO"])
-        self.timgidx_member = self.timglist.Add(cw.cwpy.rsrc.buttons["CAST"])
-        self.timgidx_skill = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"])
-        self.timgidx_item = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"])
-        self.timgidx_beast = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"])
+        self.timgidx_storehouse = self.timglist.Add(cw.cwpy.rsrc.buttons["DECK_dbg"])
+        self.timgidx_backpack = self.timglist.Add(cw.cwpy.rsrc.buttons["SACK_dbg"])
+        self.timgidx_party = self.timglist.Add(cw.cwpy.rsrc.debugs["MEMBER_dbg"])
+        self.timgidx_yado = self.timglist.Add(cw.cwpy.rsrc.debugs["YADO_dbg"])
+        self.timgidx_member = self.timglist.Add(cw.cwpy.rsrc.buttons["CAST_dbg"])
+        self.timgidx_skill = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_SKILL_dbg"])
+        self.timgidx_item = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_ITEM_dbg"])
+        self.timgidx_beast = self.timglist.Add(cw.cwpy.rsrc.debugs["EVT_GET_BEAST_dbg"])
 
         self.targets = wx.lib.agw.customtreectrl.CustomTreeCtrl(self, -1, size=(200, -1),
             style=wx.BORDER|wx.TR_DEFAULT_STYLE,

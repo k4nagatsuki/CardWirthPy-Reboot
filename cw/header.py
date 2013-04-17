@@ -186,6 +186,7 @@ class CardHeader(object):
                                                     self.name, self.premium)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
+        self._cardscale = cw.UP_SCR
 
     def get_owner(self):
         if self._owner == "BACKPACK":
@@ -208,7 +209,7 @@ class CardHeader(object):
 
     @property
     def cardimg(self):
-        if not self._cardimg:
+        if not self._cardimg or self._cardscale <> cw.UP_SCR:
             self.set_cardimg(self.imgpath)
         return self._cardimg
 
@@ -877,9 +878,9 @@ class ScenarioHeader(object):
         if not self._wxbmp:
             if self.image:
                 f = io.BytesIO(str(self.image))
-                image = cw.s(wx.ImageFromStream(f))
+                image = cw.s((wx.ImageFromStream(f), cw.SIZE_CARDIMAGE))
                 f.close()
-                self._wxbmp = cw.s(cw.util.load_wxbmp(image=image, mask=mask))
+                self._wxbmp = cw.s((cw.util.load_wxbmp(image=image, mask=mask), cw.SIZE_CARDIMAGE))
             else:
                 self._wxbmp = wx.EmptyBitmap(cw.s(0), cw.s(0))
         return self._wxbmp

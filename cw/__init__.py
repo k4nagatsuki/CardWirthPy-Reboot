@@ -38,13 +38,16 @@ import sprite
 cwpy = None
 
 # アプリケーション情報
-APP_VERSION = (0, 1, 2)
+APP_VERSION = (0, 1, 2, 1)
 APP_NAME = "CardWirthPy"
 
 # サイズ
 SIZE_SCR = (640, 480)
 SIZE_GAME = (632, 453)
 SIZE_AREA = (632, 420)
+SIZE_CARDIMAGE = (74, 94)
+SIZE_BOOK = (460, 280)
+SIZE_BILL = (400, 370)
 
 # 特殊エリアのID
 AREAS_SP = (0, -1, -2, -3, -4, -5)
@@ -77,46 +80,80 @@ HINT_SCENARIO = 3   # シナリオ本体
 # 画面の拡大率
 UP_SCR = 1
 
-def s(size_or_pos_or_image):
+def s(num):
     if UP_SCR == 1:
-        return size_or_pos_or_image
-    elif isinstance(size_or_pos_or_image, int):
-        return size_or_pos_or_image * UP_SCR
-    elif isinstance(size_or_pos_or_image, pygame.Rect):
-        if len(size_or_pos_or_image) == 4:
-            x = size_or_pos_or_image[0] * UP_SCR
-            y = size_or_pos_or_image[1] * UP_SCR
-            w = size_or_pos_or_image[2] * UP_SCR
-            h = size_or_pos_or_image[3] * UP_SCR
+        if isinstance(num, tuple) and len(num) == 2:
+            if isinstance(num[0], pygame.Surface) or isinstance(num[0], wx.Bitmap) or isinstance(num[0], wx.Image):
+                return num[0]
+        return num
+    elif isinstance(num, int):
+        return num * UP_SCR
+    elif isinstance(num, pygame.Rect):
+        if len(num) == 4:
+            x = int(num[0] * UP_SCR)
+            y = int(num[1] * UP_SCR)
+            w = int(num[2] * UP_SCR)
+            h = int(num[3] * UP_SCR)
             return pygame.Rect(x, y, w, h)
-    elif isinstance(size_or_pos_or_image, tuple):
-        if len(size_or_pos_or_image) == 4:
-            x = size_or_pos_or_image[0] * UP_SCR
-            y = size_or_pos_or_image[1] * UP_SCR
-            w = size_or_pos_or_image[2] * UP_SCR
-            h = size_or_pos_or_image[3] * UP_SCR
+    elif isinstance(num, tuple):
+        if len(num) == 2 and isinstance(num[0], pygame.Surface):
+            bmp = num[0]
+            size = s(num[1])
+            return pygame.transform.scale(bmp, size)
+        elif len(num) == 2 and isinstance(num[0], wx.Bitmap):
+            bmp = num[0]
+            size = s(num[1])
+            img = bmp.ConvertToImage()
+            img = img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
+            return img.ConvertToBitmap()
+        elif len(num) == 2 and isinstance(num[0], wx.Image):
+            img = num[0]
+            size = s(num[1])
+            return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
+        elif len(num) == 4:
+            x = int(num[0] * UP_SCR)
+            y = int(num[1] * UP_SCR)
+            w = int(num[2] * UP_SCR)
+            h = int(num[3] * UP_SCR)
             return (x, y, w, h)
-        elif len(size_or_pos_or_image) == UP_SCR:
-            x = size_or_pos_or_image[0] * UP_SCR
-            y = size_or_pos_or_image[1] * UP_SCR
+        elif len(num) == 2:
+            x = int(num[0] * UP_SCR)
+            y = int(num[1] * UP_SCR)
             return (x, y)
-    elif isinstance(size_or_pos_or_image, pygame.Surface):
-        w = size_or_pos_or_image.get_width() * UP_SCR
-        h = size_or_pos_or_image.get_height() * UP_SCR
+    elif isinstance(num, pygame.Surface):
+        w = int(num.get_width() * UP_SCR)
+        h = int(num.get_height() * UP_SCR)
         size = (w, h)
-        return pygame.transform.scale(size_or_pos_or_image, size)
-    elif isinstance(size_or_pos_or_image, wx.Bitmap):
-        img = size_or_pos_or_image.ConvertToImage()
-        w = img.GetWidth() * UP_SCR
-        h = img.GetHeight() * UP_SCR
+        return pygame.transform.scale(num, size)
+    elif isinstance(num, wx.Bitmap):
+        img = num.ConvertToImage()
+        w = int(img.GetWidth() * UP_SCR)
+        h = int(img.GetHeight() * UP_SCR)
         img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
         return img.ConvertToBitmap()
-    return size_or_pos_or_image
+    elif isinstance(num, wx.Image):
+        w = int(num.GetWidth() * UP_SCR)
+        h = int(num.GetHeight() * UP_SCR)
+        return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
+    return num
 
 def ds(num):
     if UP_SCR == 1:
         return num
-    return num / UP_SCR
+    elif isinstance(num, int):
+        return int(num / UP_SCR)
+    elif isinstance(num, tuple):
+        if len(num) == 4:
+            x = int(num[0] / UP_SCR)
+            y = int(num[1] / UP_SCR)
+            w = int(num[2] / UP_SCR)
+            h = int(num[3] / UP_SCR)
+            return (x, y, w, h)
+        elif len(num) == UP_SCR:
+            x = int(num[0] / UP_SCR)
+            y = int(num[1] / UP_SCR)
+            return (x, y)
+    return num
 
 def main():
     pass

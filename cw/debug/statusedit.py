@@ -49,21 +49,21 @@ class StatusEditDialog(wx.Dialog):
         self.target = wx.ComboBox(self, -1, choices=self.targets, style=wx.CB_READONLY)
         self.target.Select(max(selected, -1) + 1)
         # smallleft
-        bmp = cw.cwpy.rsrc.buttons["LSMALL"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["LSMALL_dbg"]
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
         # smallright
-        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (20, 20), bmp=bmp)
+        bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
 
         # 全快
-        self.rcvbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"全快")
+        self.rcvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"全快")
         # 復旧
-        self.restorebtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=u"復旧")
+        self.restorebtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"復旧")
 
         # 決定
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
         # 中止
-        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
 
         self._bind()
         self._do_layout()
@@ -266,12 +266,12 @@ class StatusEditDialog(wx.Dialog):
             duration = self._value(value, status.mentality_dur, (i == 0), 0)
 
         STATUSES = [
-            ("Normal",   u"正常", cw.cwpy.rsrc.statuses["MIND0"]),
-            ("Sleep",    u"眠り", cw.cwpy.rsrc.statuses["MIND1"]),
-            ("Confuse",  u"混乱", cw.cwpy.rsrc.statuses["MIND2"]),
-            ("Overheat", u"激高", cw.cwpy.rsrc.statuses["MIND3"]),
-            ("Brave",    u"勇敢", cw.cwpy.rsrc.statuses["MIND4"]),
-            ("Panic",    u"恐慌", cw.cwpy.rsrc.statuses["MIND5"]),
+            ("Normal",   u"正常", cw.cwpy.rsrc.statuses["MIND0_dbg"]),
+            ("Sleep",    u"眠り", cw.cwpy.rsrc.statuses["MIND1_dbg"]),
+            ("Confuse",  u"混乱", cw.cwpy.rsrc.statuses["MIND2_dbg"]),
+            ("Overheat", u"激高", cw.cwpy.rsrc.statuses["MIND3_dbg"]),
+            ("Brave",    u"勇敢", cw.cwpy.rsrc.statuses["MIND4_dbg"]),
+            ("Panic",    u"恐慌", cw.cwpy.rsrc.statuses["MIND5_dbg"]),
         ]
 
         list = []
@@ -595,7 +595,7 @@ class StatusButton(wx.BitmapButton):
         enable = False
         if self.mode == 0:
             # ライフ
-            image = cw.cwpy.rsrc.statuses["LIFE"]
+            image = cw.cwpy.rsrc.statuses["LIFE_dbg"]
             if not self.value is None:
                 self.text1 = "%s%%" % (self.value)
                 if 0 >= self.value:
@@ -612,34 +612,34 @@ class StatusButton(wx.BitmapButton):
 
         elif self.mode == 1:
             # 中毒
-            image = cw.cwpy.rsrc.statuses["BODY0"]
+            image = cw.cwpy.rsrc.statuses["BODY0_dbg"]
         elif self.mode == 2:
             # 麻痺
-            image = cw.cwpy.rsrc.statuses["BODY1"]
+            image = cw.cwpy.rsrc.statuses["BODY1_dbg"]
         elif self.mode == 3:
             # 精神状態
             if self.value is None or self.value == "Normal":
                 # 正常
-                image = cw.cwpy.rsrc.statuses["MIND0"]
+                image = cw.cwpy.rsrc.statuses["MIND0_dbg"]
             elif self.value == "Sleep":
                 # 眠り
-                image = cw.cwpy.rsrc.statuses["MIND1"]
+                image = cw.cwpy.rsrc.statuses["MIND1_dbg"]
                 self.text1 = u"眠り"
             elif self.value == "Confuse":
                 # 混乱
-                image = cw.cwpy.rsrc.statuses["MIND2"]
+                image = cw.cwpy.rsrc.statuses["MIND2_dbg"]
                 self.text1 = u"混乱"
             elif self.value == "Overheat":
                 # 激高
-                image = cw.cwpy.rsrc.statuses["MIND3"]
+                image = cw.cwpy.rsrc.statuses["MIND3_dbg"]
                 self.text1 = u"激高"
             elif self.value == "Brave":
                 # 勇猛
-                image = cw.cwpy.rsrc.statuses["MIND4"]
+                image = cw.cwpy.rsrc.statuses["MIND4_dbg"]
                 self.text1 = u"勇猛"
             elif self.value == "Panic":
                 # 恐慌
-                image = cw.cwpy.rsrc.statuses["MIND5"]
+                image = cw.cwpy.rsrc.statuses["MIND5_dbg"]
                 self.text1 = u"恐慌"
 
             if not self.duration is None and 0 < self.duration:
@@ -648,40 +648,40 @@ class StatusButton(wx.BitmapButton):
                     enable = True
         elif self.mode == 4:
             # 呪縛
-            image = cw.cwpy.rsrc.statuses["MAGIC0"]
+            image = cw.cwpy.rsrc.statuses["MAGIC0_dbg"]
         elif self.mode == 5:
             # 沈黙
-            image = cw.cwpy.rsrc.statuses["MAGIC1"]
+            image = cw.cwpy.rsrc.statuses["MAGIC1_dbg"]
         elif self.mode == 6:
             # 暴露
-            image = cw.cwpy.rsrc.statuses["MAGIC2"]
+            image = cw.cwpy.rsrc.statuses["MAGIC2_dbg"]
         elif self.mode == 7:
             # 魔法無効
-            image = cw.cwpy.rsrc.statuses["MAGIC3"]
+            image = cw.cwpy.rsrc.statuses["MAGIC3_dbg"]
         elif self.mode == 8:
             # 行動力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP0"]
+                image = cw.cwpy.rsrc.statuses["UP0_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN0"]
+                image = cw.cwpy.rsrc.statuses["DOWN0_dbg"]
         elif self.mode == 9:
             # 回避力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP1"]
+                image = cw.cwpy.rsrc.statuses["UP1_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN1"]
+                image = cw.cwpy.rsrc.statuses["DOWN1_dbg"]
         elif self.mode == 10:
             # 抵抗力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP2"]
+                image = cw.cwpy.rsrc.statuses["UP2_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN2"]
+                image = cw.cwpy.rsrc.statuses["DOWN2_dbg"]
         elif self.mode == 11:
             # 防御力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP3"]
+                image = cw.cwpy.rsrc.statuses["UP3_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN3"]
+                image = cw.cwpy.rsrc.statuses["DOWN3_dbg"]
         assert not image is None, self.mode
 
         if self.mode == 1 or self.mode == 2:

@@ -39,9 +39,14 @@ class CWPy(_Singleton, threading.Thread):
     def init_pygame(self, setting):
         """使用変数等はここ参照。"""
         self.setting = setting  # 設定
+        self.status = "Title"
 
         # pygame初期化
         self.scr, self.clock = cw.util.init(cw.s(cw.SIZE_SCR))
+        # 背景
+        self.background = None
+        # ステータスバー
+        self.statusbar = None
         # キー入力捕捉用インスタンス(キー入力は全てwx側で捕捉)
         self.keyevent = cw.eventrelay.KeyEventRelay()
         # Diceインスタンス(いろいろなランダム処理に使う)
@@ -138,16 +143,20 @@ class CWPy(_Singleton, threading.Thread):
             # アクションカードのデータ(CardHeader)
             self.rsrc.actioncards = self.rsrc.get_actioncards()
             # 背景スプライト
-            self.background = cw.sprite.background.BackGround()
+            if self.background:
+                self.background.update_scale()
+            else:
+                self.background = cw.sprite.background.BackGround()
             self.bggrp.set_clip(self.background.rect)
             self.mcardgrp.set_clip(self.background.rect)
             self.pcardgrp.set_clip(self.background.rect)
             self.topgrp.set_clip(self.background.rect)
             self.backloggrp.set_clip(self.background.rect)
             # ステータスバースプライト
-            self.statusbar = cw.sprite.statusbar.StatusBar()
-            # ステータスバークリップ
-            self.sbargrp.set_clip(self.statusbar.rect)
+            if not self.statusbar:
+                self.statusbar = cw.sprite.statusbar.StatusBar()
+                # ステータスバークリップ
+                self.sbargrp.set_clip(self.statusbar.rect)
             # FPS描画用フォント
             self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], cw.s(14))
             self.fpsfont.set_bold(True)
@@ -159,6 +168,34 @@ class CWPy(_Singleton, threading.Thread):
                 wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_ERROR, cw.cwpy.frame)
                 cw.cwpy.frame.Destroy()
             cw.cwpy.frame.exec_func(func)
+
+    def update_scale(self, scale):
+        """画面の表示倍率を変更する。
+        scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
+        """
+        cw.UP_SCR = scale
+        self._init_resources()
+
+        flags = FULLSCREEN if self.is_fullscreen() else 0
+        self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), flags)
+        cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
+
+        self.statusbar.update_scale()
+        self.sbargrp.set_clip(self.statusbar.rect)
+        for sprite in self.mcardgrp.sprites():
+            sprite.update_scale()
+        for sprite in self.pcardgrp.sprites():
+            sprite.update_scale()
+        for sprite in self.bggrp.sprites():
+            sprite.update_scale()
+        for sprite in self.topgrp.sprites():
+            sprite.update_scale()
+        for sprite in self.backloggrp.sprites():
+            sprite.update_scale()
+
+        self.input()
+        self.update()
+        self.draw()
 
     def run(self):
         try:
@@ -614,8 +651,7 @@ class CWPy(_Singleton, threading.Thread):
 
             pos = cw.s((95 * idx + 9 * (idx + 1), 285))
             pcard = cw.sprite.card.PlayerCard(data, pos)
-            pcard.rect.topleft = pos
-            pcard._rect.topleft = pos
+            pcard.set_pos(pos)
             pcard.set_fullrecovery()
 
             cw.animation.animate_sprite(pcard, "deal")
@@ -1240,8 +1276,7 @@ class CWPy(_Singleton, threading.Thread):
             pcardsnum = len(self.ydata.party.members) - 1
             pos = cw.s((9 + 95 * pcardsnum + 9 * pcardsnum, 285))
             pcard = cw.sprite.card.PlayerCard(e, pos)
-            pcard.rect.topleft = pos
-            pcard._rect.topleft = pos
+            pcard.set_pos(pos)
             cw.animation.animate_sprite(pcard, "deal")
 
     def dissolve_party(self, pcard=None):

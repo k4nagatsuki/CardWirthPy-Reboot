@@ -381,7 +381,7 @@ class YadoSelect(Select):
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s(cw.util.load_wxbmp(path))
+        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -392,7 +392,7 @@ class YadoSelect(Select):
         # 宿画像
         path = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s(cw.util.load_wxbmp(path, True))
+        bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         dc.DrawBitmap(bmp, (bmpw-cw.s(74))/2, cw.s(70), True)
         # 宿名前
         dc.SetTextForeground(wx.BLACK)
@@ -704,7 +704,7 @@ class PartySelect(Select):
         # 背景
         path = "Table/Book" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s(cw.util.load_wxbmp(path))
+        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -753,7 +753,7 @@ class PartySelect(Select):
         else:
             path = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
-            bmp = cw.s(cw.util.load_wxbmp(path, True))
+            bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
 
         dc.DrawBitmap(bmp, (bmpw-cw.s(74))/2, cw.s(125), True)
 
@@ -1168,7 +1168,7 @@ class PlayerSelect(Select):
         # 背景
         path = "Table/Book" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s(cw.util.load_wxbmp(path))
+        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1205,7 +1205,7 @@ class PlayerSelect(Select):
                 dc.DrawText(s, cw.s(125) - w / 2, cw.s(62))
                 # Image
                 path = cw.util.join_yadodir(header.imgpath)
-                bmp = cw.s(cw.util.load_wxbmp(path, True))
+                bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
                 dc.SetClippingRect(cw.s((88, 90, 74, 94)))
                 dc.DrawBitmap(bmp, cw.s(88), cw.s(90), True)
                 dc.DestroyClippingRegion()
@@ -1252,7 +1252,7 @@ class PlayerSelect(Select):
                 for i, header in enumerate(list):
                     # Image
                     path = cw.util.join_yadodir(header.imgpath)
-                    bmp = cw.s(cw.util.load_wxbmp(path, True))
+                    bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
                     ix = x + (rw - cw.s(72)) / 2
                     iy = y + 5
                     dc.SetClippingRect((ix, iy, cw.s(74), cw.s(94)))
@@ -1664,7 +1664,7 @@ class ScenarioSelect(Select):
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s(cw.util.load_wxbmp(path))
+        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
