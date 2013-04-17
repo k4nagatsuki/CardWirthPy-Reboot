@@ -86,8 +86,8 @@ def s(num):
             if isinstance(num[0], pygame.Surface) or isinstance(num[0], wx.Bitmap) or isinstance(num[0], wx.Image):
                 return num[0]
         return num
-    elif isinstance(num, int):
-        return num * UP_SCR
+    elif isinstance(num, int) or isinstance(num, float):
+        return int(num * UP_SCR)
     elif isinstance(num, pygame.Rect):
         if len(num) == 4:
             x = int(num[0] * UP_SCR)

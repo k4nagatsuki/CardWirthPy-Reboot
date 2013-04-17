@@ -383,9 +383,11 @@ class InuseCardImage(card.CWPyCard):
             self.rect.size = self.image.get_size()
 
         if center:
-            self.set_pos(center=cw.s((316, 142)))
+            cpos = cw.s((316, 142))
         else:
-            self.set_pos(center=user.rect.center)
+            cpos = user.rect.center
+        self._noscale_center = cw.ds(cpos)
+        self.set_pos(center=cpos)
 
         if status == "hidden":
             self.clear_image()
@@ -398,9 +400,6 @@ class InuseCardImage(card.CWPyCard):
         self.image = self._image = image
         self.rect = self._rect = image.get_rect()
         self.set_pos(center=self._noscale_center)
-
-        if status == "hidden":
-            self.clear_image()
 
     def update_image(self):
         pass
