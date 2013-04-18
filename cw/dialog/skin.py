@@ -112,10 +112,7 @@ class SkinConversionDialog(wx.Dialog):
         else:
             self.successful = True
             if 1 < cw.frame.get_skincount():
-                if cw.cwpy and cw.cwpy.ydata:
-                    s = u"スキンの自動生成に成功しました。再起動して生成したスキンに切り替えますか？\n再起動の際、保存されていないデータは全て消えてしまいます。"
-                else:
-                    s = u"スキンの自動生成に成功しました。生成したスキンに切り替えますか？"
+                s = u"スキンの自動生成に成功しました。生成したスキンに切り替えますか？"
                 if wx.MessageBox(s, u"メッセージ", wx.YES_NO|wx.ICON_QUESTION, self) == wx.YES:
                     self.select_skin = True
                     self.skindirname = self.conv.skindirname

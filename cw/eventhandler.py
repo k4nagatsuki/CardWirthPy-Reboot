@@ -211,24 +211,9 @@ class EventHandler(object):
 
     def f1key_event(self):
         """
-        F1キーイベント。フルスクリーン化・解除
+        F1キーイベント。拡大表示・解除
         """
-        cw.cwpy.has_inputevent = True
-
-        if cw.cwpy.is_showingdebugger() and not cw.cwpy.is_fullscreen():
-            cw.cwpy.sounds["error"].play()
-            s = u"デバッガ表示中はフルスクリーン化できません。"
-            cw.cwpy.call_dlg("MESSAGE", text=s)
-        else:
-            cw.cwpy.set_fullscreen(not cw.cwpy.is_fullscreen())
-
-    def update_scale(self):
-        """画面サイズを倍にする。
-        すでに倍になっている場合は元に戻す。"""
-        if cw.UP_SCR == 1:
-            cw.cwpy.update_scale(2)
-        else:
-            cw.cwpy.update_scale(1)
+        cw.cwpy.set_expanded(not cw.cwpy.is_expanded())
 
     def f2key_event(self):
         """
@@ -242,8 +227,9 @@ class EventHandler(object):
         """
         F3キーイベント。デバッガを開閉する。
         """
-        cw.cwpy.set_fullscreen(False)
         cw.cwpy.sounds["page"].play()
+        if cw.cwpy.setting.expandmode == "FullScreen":
+            cw.cwpy.set_expanded(False)
 
         if cw.cwpy.frame.debugger:
             cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
@@ -463,6 +449,20 @@ class EventHandlerForMessageWindow(EventHandler):
         elif not cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
             self.shiftkey_event(False)
 
+    def f1key_event(self):
+        """
+        F1キーイベント。
+        """
+        hidden = not cw.cwpy.pcardgrp.get_sprites_from_layer("message")
+
+        if hidden:
+            self.shiftkey_event(False, False)
+
+        EventHandler.f1key_event(self)
+
+        if hidden:
+            self.shiftkey_event(True, False)
+
     def returnkey_event(self, pushing=False):
         """
         リターンキーイベント。
@@ -526,17 +526,6 @@ class EventHandlerForMessageWindow(EventHandler):
                     cw.cwpy.pcardgrp.add(sbar, layer="selectionbar")
                 if redraw:
                     cw.cwpy.draw()
-
-    def update_scale(self):
-        hidden = not cw.cwpy.pcardgrp.get_sprites_from_layer("message")
-
-        if hidden:
-            self.shiftkey_event(False, False)
-
-        EventHandler.update_scale(self)
-
-        if hidden:
-            self.shiftkey_event(True, False)
 
 class EventHandlerForBacklog(EventHandler):
     def __init__(self, backlog, index):

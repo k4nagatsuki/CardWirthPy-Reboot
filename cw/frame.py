@@ -198,10 +198,7 @@ class Frame(wx.Frame):
                 dlg.Bind(wx.EVT_CLOSE, OnClose, dlg)
                 dlg.ShowModal()
                 if dlg.select_skin:
-                    cw.cwpy.setting.skindirname = dlg.skindirname
-                    cw.cwpy.setting.write()
-                    cw.cwpy.setting.init_settings()
-                    cw.cwpy.init_pygame(cw.cwpy.setting)
+                    cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname)
                 break
 
     def OnDestroy(self, event):

@@ -68,8 +68,6 @@ class CWPy(_Singleton, threading.Thread):
         self.wait_showcards = False
         # ダイアログ表示階層
         self._showingdlg = 0
-        # フルスクリーンフラグ
-        self._fullscreen = False
         # カーテンスプライト表示中フラグ
         self._curtained = False
         # 現在カードの表示・非表示アニメ中フラグ
@@ -169,20 +167,32 @@ class CWPy(_Singleton, threading.Thread):
                 cw.cwpy.frame.Destroy()
             cw.cwpy.frame.exec_func(func)
 
+    def update_skin(self, skindirname):
+        self.setting.skindirname = skindirname
+        self.setting.init_skin()
+        self.skindir = self.setting.skindir
+        self.music.play(self.music.path, updatepredata=False)
+        self.update_scale(cw.UP_SCR)
+
     def update_scale(self, scale):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
-        cw.UP_SCR = scale
-        self._init_resources()
+        if cw.UP_SCR <> scale:
+            cw.UP_SCR = scale
 
-        flags = FULLSCREEN if self.is_fullscreen() else 0
-        self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), flags)
-        cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
+            flags = 0
+            if self.is_expanded() and cw.cwpy.setting.expandmode == "FullScreen":
+                flags = FULLSCREEN
+            self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), flags)
+            cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
+
+        self._init_resources()
 
         self.statusbar.update_scale()
         self.sbargrp.set_clip(self.statusbar.rect)
-        self.sdata.update_scale()
+        if self.sdata:
+            self.sdata.update_scale()
         for sprite in self.mcardgrp.sprites():
             sprite.update_scale()
         for sprite in self.pcardgrp.sprites():
@@ -194,7 +204,6 @@ class CWPy(_Singleton, threading.Thread):
         for sprite in self.backloggrp.sprites():
             sprite.update_scale()
 
-        self.input()
         self.update()
         self.draw()
 
@@ -367,26 +376,50 @@ class CWPy(_Singleton, threading.Thread):
                 time.sleep(0.001)
             return result[0]
 
-    def set_fullscreen(self, flag):
-        """フルスクリーン化したり解除したり。
-        flag: Trueならフルスクリーン、Falseなら解除。
+    def set_expanded(self, flag):
+        """拡大表示する。すでに拡大表示されている場合は解除する。
+        flag: Trueなら拡大表示、Falseなら解除。
         """
-        if self.is_fullscreen() == flag:
+        if self.is_expanded() == flag:
+            return
+        if self.setting.expandmode == "None":
             return
 
-        if flag:
-            self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), FULLSCREEN)
-            func = self.frame.ShowFullScreen
-            self.frame.exec_func(func, True, wx.FULLSCREEN_ALL)
+        elif self.setting.expandmode == "FullScreen":
+            # フルスクリーン
+            if self.is_showingdebugger() and flag:
+                self.sounds["error"].play()
+                s = u"デバッガ表示中はフルスクリーン化できません。"
+                self.call_dlg("MESSAGE", text=s)
+            else:
+                self.setting.is_expanded = flag
+                if flag:
+                    self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), FULLSCREEN)
+                    func = self.frame.ShowFullScreen
+                    self.frame.exec_func(func, True, wx.FULLSCREEN_ALL)
+                else:
+                    self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), 0)
+                    func = self.frame.ShowFullScreen
+                    self.frame.exec_func(func, False, self.frame.style)
+
+                while not self.frame.IsFullScreen() == flag:
+                    pass
+
         else:
-            self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), 0)
-            func = self.frame.ShowFullScreen
-            self.frame.exec_func(func, False, self.frame.style)
+            # 拡大
+            try:
+                scale = float(self.setting.expandmode)
+                scale = max(scale, 0.5)
+                scale = min(scale, 8)
+                self.setting.is_expanded = flag
+                if flag:
+                    self.update_scale(scale)
+                else:
+                    self.update_scale(1)
 
-        while not self.frame.IsFullScreen() == flag:
-            pass
+            except Exception, ex:
+                print ex
 
-        self._fullscreen = flag
         self.has_inputevent = True
 
     def show_message(self, mwin):
@@ -497,16 +530,16 @@ class CWPy(_Singleton, threading.Thread):
         self.music.stop()
         ext = self.rsrc.ext_img
         path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
-        card1 = cw.sprite.background.TitleCell(path, 1, cw.s(120), True)
+        card1 = cw.sprite.background.TitleCell(path, 1, 120, True)
         path = cw.util.join_paths(resdir, "TITLE_CARD2") + ext
-        card2 = cw.sprite.background.TitleCell(path, 1, cw.s(120), True)
+        card2 = cw.sprite.background.TitleCell(path, 1, 120, True)
         path = cw.util.join_paths(resdir, "TITLE_CELL1") + ext
-        cell1 = cw.sprite.background.TitleCell(path, 2, cw.s(195), False)
+        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False)
         path = cw.util.join_paths(resdir, "TITLE_CELL2") + ext
-        cell2 = cw.sprite.background.TitleCell(path, 2, cw.s(195), False)
+        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False)
         path = cw.util.join_paths(resdir, "TITLE_CELL3") + ext
-        cell3 = cw.sprite.background.TitleCell(path, 2, cw.s(160), False)
-        white = cw.sprite.background.TitleCell("white", 3, cw.s(0), False)
+        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False)
+        white = cw.sprite.background.TitleCell("white", 3, 0, False)
         self.selection = white
 
         cw.cwpy.bggrp.add(card1, layer="title")
@@ -650,9 +683,9 @@ class CWPy(_Singleton, threading.Thread):
                 cw.animation.animate_sprite(pcard, "hide")
                 self.pcardgrp.remove(pcard)
 
-            pos = cw.s((95 * idx + 9 * (idx + 1), 285))
-            pcard = cw.sprite.card.PlayerCard(data, pos)
-            pcard.set_pos(pos)
+            pos_noscale = (95 * idx + 9 * (idx + 1), 285)
+            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale)
+            pcard.set_pos_noscale(pos_noscale)
             pcard.set_fullrecovery()
 
             cw.animation.animate_sprite(pcard, "deal")
@@ -817,8 +850,8 @@ class CWPy(_Singleton, threading.Thread):
         # プレイヤカードスプライト作成
         if self.ydata and self.ydata.party and not self.get_pcards():
             for idx, e in enumerate(self.ydata.party.members):
-                pos = cw.s((95 * idx + 9 * (idx + 1), 285))
-                cw.sprite.card.PlayerCard(e, pos)
+                pos_noscale = 95 * idx + 9 * (idx + 1), 285
+                cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
 
             # 番号クーポン設定
             self.ydata.party._loading = False
@@ -827,8 +860,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.areaid == cw.AREA_CAMP:
             for index, fcard in enumerate(self.get_fcards()):
                 index = 5 - index
-                pos = cw.s((95 * index + 9 * (index + 1), 5))
-                fcard.set_pos(pos)
+                pos = (95 * index + 9 * (index + 1), 5)
+                fcard.set_pos_noscale(pos)
                 fcard.clear_image()
                 fcard.status = "hidden"
                 self.mcardgrp.add(fcard)
@@ -840,26 +873,34 @@ class CWPy(_Singleton, threading.Thread):
         campwithfriend: キャンプ画面時＆FriendCardが存在しているかどうか。
         anime: カードを一旦消去してから再配置するならTrue。
         """
-        def set_mcardpos(mcards, (maxw, maxh), y):
-            n = maxw + cw.s(5)
-            x = (cw.s(632) - n * len(mcards) + cw.s(5)) / 2
+        def get_size_noscale(mcard):
+            assert hasattr(mcard, "cardimg")
+
+            if isinstance(mcard.cardimg, cw.image.CharacterCardImage) or\
+               isinstance(mcard.cardimg, cw.image.LargeCardImage):
+                return cw.setting.get_resourcesize("CardBg/LARGE")
+            elif isinstance(mcard.cardimg, cw.image.CardImage):
+                return cw.setting.get_resourcesize("CardBg/NORMAL")
+            else:
+                assert False
+
+        def set_mcardpos_noscale(mcards, (maxw, maxh), y):
+            n = maxw + 5
+            x = (632 - n * len(mcards) + 5) / 2
 
             for mcard in mcards:
-                w, h = mcard._rect.size
-                mcard.set_pos((x + maxw - w, y + maxh - h))
+                w, h = get_size_noscale(mcard)
+                mcard.set_pos_noscale((x + maxw - w, y + maxh - h))
                 x += n
 
-        maxw = cw.s(0)
-        maxh = cw.s(0)
+        maxw = 0
+        maxh = 0
 
         for mcard in mcards:
-            w, h = mcard._rect.size
+            w, h = get_size_noscale(mcard)
 
-            if w > maxw:
-                maxw = w
-
-            if h > maxh:
-                maxh = h
+            maxw = max(w, maxw)
+            maxh = max(h, maxh)
 
             if anime:
                 cw.animation.animate_sprite(mcard, "hide")
@@ -867,17 +908,17 @@ class CWPy(_Singleton, threading.Thread):
         n = len(mcards)
 
         if campwithfriend:
-            y = (cw.s(145) - maxh) / 2 + cw.s(140) - cw.s(2)
-            set_mcardpos(mcards, (maxw, maxh), y)
+            y = (145 - maxh) / 2 + 140 - 2
+            set_mcardpos_noscale(mcards, (maxw, maxh), y)
         elif n <= maxcol:
-            y = (cw.s(285) - maxh) / 2 - cw.s(2)
-            set_mcardpos(mcards, (maxw, maxh), y)
+            y = (285 - maxh) / 2 - 2
+            set_mcardpos_noscale(mcards, (maxw, maxh), y)
         else:
-            y = (cw.s(285) - maxh * 2) / 2
-            y2 = y + maxh + cw.s(5)
+            y = (285 - maxh * 2) / 2
+            y2 = y + maxh + 5
             p = n / 2 + n % 2
-            set_mcardpos(mcards[:p], (maxw, maxh), y)
-            set_mcardpos(mcards[p:], (maxw, maxh), y2)
+            set_mcardpos_noscale(mcards[:p], (maxw, maxh), y)
+            set_mcardpos_noscale(mcards[p:], (maxw, maxh), y2)
 
         if anime:
             for mcard in mcards:
@@ -898,16 +939,16 @@ class CWPy(_Singleton, threading.Thread):
 
         for index, e in enumerate(elements):
             if stype == "Auto":
-                pos = cw.s((0, 0))
+                pos_noscale = (0, 0)
             else:
-                left = cw.s(e.getint("Property/Location", "left"))
-                top = cw.s(e.getint("Property/Location", "top"))
-                pos = (left, top)
+                left = e.getint("Property/Location", "left")
+                top = e.getint("Property/Location", "top")
+                pos_noscale = (left, top)
 
             if e.tag == "EnemyCard":
-                cw.sprite.card.EnemyCard(e, pos, status)
+                cw.sprite.card.EnemyCard(e, pos_noscale, status)
             else:
-                cw.sprite.card.MenuCard(e, pos, status)
+                cw.sprite.card.MenuCard(e, pos_noscale, status)
 
     def disposition_pcards(self):
         """プレイヤーカードの位置を補正する。
@@ -1205,24 +1246,30 @@ class CWPy(_Singleton, threading.Thread):
     def set_curtain(self, target="Both"):
         """Curtainスプライトをセットする。"""
         if not self.is_curtained():
-            size, pos = cw.s((632, 284)), cw.s((0, 0))
-            size2, pos2 = cw.s((632, 136)), cw.s((0, 284))
-            curtain = cw.sprite.background.Curtain
+            size_noscale, pos_noscale = (632, 284), (0, 0)
+            size_noscale2, pos_noscale2 = (632, 136), (0, 284)
 
             if self.areaid < 0 or target == "Both":
-                curtain(self.bggrp, size=size, pos=pos)
-                curtain(self.bggrp, size=size2, pos=pos2)
+                cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
+                                             pos_noscale=pos_noscale)
+                cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
+                                             pos_noscale=pos_noscale2)
             elif self.is_playingscenario():
                 if target == "Party":
                     if self.battle:
-                        curtain(self.pcardgrp, size=size, pos=pos)
+                        cw.sprite.background.Curtain(self.pcardgrp, size_noscale=size_noscale,
+                                                     pos_noscale=pos_noscale)
                     else:
-                        curtain(self.bggrp, size=size, pos=pos)
+                        cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
+                                                     pos_noscale=pos_noscale)
 
-                    curtain(self.bggrp, size=size2, pos=pos2)
+                    cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
+                                                 pos_noscale=pos_noscale2)
                 elif target == "Enemy":
-                    curtain(self.bggrp, size=size, pos=pos)
-                    curtain(self.pcardgrp, size=size2, pos=pos2)
+                    cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
+                                                 pos_noscale=pos_noscale)
+                    cw.sprite.background.Curtain(self.pcardgrp, size_noscale=size_noscale2,
+                                                 pos_noscale=pos_noscale2)
 
             self._curtained = True
 
@@ -1275,9 +1322,9 @@ class CWPy(_Singleton, threading.Thread):
         else:
             e = self.ydata.party.members[0]
             pcardsnum = len(self.ydata.party.members) - 1
-            pos = cw.s((9 + 95 * pcardsnum + 9 * pcardsnum, 285))
-            pcard = cw.sprite.card.PlayerCard(e, pos)
-            pcard.set_pos(pos)
+            pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
+            pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
+            pcard.set_pos_noscale(pos_noscale)
             cw.animation.animate_sprite(pcard, "deal")
 
     def dissolve_party(self, pcard=None):
@@ -1784,8 +1831,8 @@ class CWPy(_Singleton, threading.Thread):
     def is_showingdlg(self):
         return 0 < self._showingdlg
 
-    def is_fullscreen(self):
-        return self._fullscreen
+    def is_expanded(self):
+        return self.setting.is_expanded
 
     def is_curtained(self):
         return self._curtained

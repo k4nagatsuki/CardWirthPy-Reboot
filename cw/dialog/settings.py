@@ -59,6 +59,13 @@ class SettingsDialog(wx.Dialog):
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.frame.debugger.Close()
 
+        value = self.pane_gene.ch_expandmode.GetSelection()
+        value = self.pane_gene.expandmodes[value]
+        if value <> cw.cwpy.setting.expandmode:
+            cw.cwpy.setting.expandmode = value
+            if cw.cwpy.is_expanded():
+                cw.cwpy.set_expanded(False)
+
         # 描画
         value = self.pane_draw.cb_smooth_bg.GetValue()
         cw.cwpy.setting.smoothscale_bg = value
@@ -103,34 +110,11 @@ class SettingsDialog(wx.Dialog):
         # スキン
         skin = self.pane_gene.ch_skin.GetSelection()
         skin = self.pane_gene.skins[skin]
+        if cw.cwpy.setting.skindirname <> skin:
+            cw.cwpy.exec_func(cw.cwpy.update_skin, skin)
 
-        if cw.cwpy.setting.skindirname == skin:
-            self.Close()
-        else:
-            if cw.cwpy.status == "Title":
-                self.Close()
-                cw.cwpy.setting.skindirname = skin
-                cw.cwpy.setting.write()
-                cw.cwpy.setting.init_settings()
-                cw.cwpy.init_pygame(cw.cwpy.setting)
-            else:
-                s = (u"スキンの変更にはゲームの中断が必要です。\n"
-                    u"保存されていないデータは全て消えてしまいます。\n"
-                    u"タイトル画面へ戻ってよろしいですか？")
-                dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-                cw.cwpy.frame.move_dlg(dlg)
-                cw.cwpy.sounds["signal"].play()
 
-                if dlg.ShowModal() == wx.ID_OK:
-                    self.Close()
-                    cw.cwpy.setting.skindirname = skin
-                    cw.cwpy.setting.write()
-                    cw.cwpy.setting.init_settings()
-                    cw.cwpy.init_pygame(cw.cwpy.setting)
-                else:
-                    n = self.pane_gene.skins.index(cw.cwpy.setting.skindirname)
-                    self.pane_gene.ch_skin.SetSelection(n)
-                    self.pane_gene.OnSkinChoice(None)
+        self.Close()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -182,6 +166,20 @@ class GeneralSettingPanel(wx.Panel):
         s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
         s = s % self.skin_summarys[cw.cwpy.setting.skindirname]
         self.st_skin = wx.StaticText(self, -1, s)
+
+        # 拡大表示モード
+        self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F1キーで拡大)")
+        self.expandmodes = [
+            "None", "FullScreen", "1.5", "2", "3", "4"]
+        self.choices_expand = [
+            u"拡大しない", u"フルスクリーン", u"1.5倍", u"2倍", u"3倍", u"4倍"]
+        self.ch_expandmode = wx.Choice(
+            self, -1, size=(170, -1), choices=self.choices_expand)
+        n = self.expandmodes.index(cw.cwpy.setting.expandmode)
+        if n == -1:
+            n = 0
+        self.ch_expandmode.SetSelection(n)
+
         self._do_layout()
         self._bind()
 
@@ -209,14 +207,18 @@ class GeneralSettingPanel(wx.Panel):
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
+        bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
         bsizer_skin.SetMinSize((280, 200))
 
+        bsizer_expandmode.Add(self.ch_expandmode, 0, wx.ALL, 5)
+
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_skin, 0, 0, 0)
+        sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_expandmode, 0, 0, 0)
         sizer.Add(sizer_v1, 0, wx.ALL, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -232,7 +234,7 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg)
         # トランジション効果
         self.box_tran = wx.StaticBox(
-            self, -1, u"背景の切り替え方式（速い⇔遅い）")
+            self, -1, u"背景の切り替え方式(速い⇔遅い)")
         self.transitions = [
             "None", "Fade", "PixelDissolve", "Blinds"]
         self.choices_tran = [
@@ -248,14 +250,14 @@ class DrawingSettingPanel(wx.Panel):
         self.sl_tran.SetTickFreq(1, 1)
         # カード描画速度
         self.box_deal = wx.StaticBox(
-            self, -1, u"カード描画速度（速い⇔遅い）")
+            self, -1, u"カード描画速度(速い⇔遅い)")
         self.sl_deal = wx.Slider(
             self, -1, cw.cwpy.setting.dealspeed - 1, 0, 10, size=(250, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_deal.SetTickFreq(1, 1)
         # メッセージ表示速度
         self.box_msgs = wx.StaticBox(
-            self, -1, u"メッセージ表示速度（速い⇔遅い）")
+            self, -1, u"メッセージ表示速度(速い⇔遅い)")
         self.sl_msgs = wx.Slider(
             self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(250, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)

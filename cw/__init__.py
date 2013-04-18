@@ -151,24 +151,6 @@ def s(num):
         return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
     return num
 
-def ds(num):
-    if UP_SCR == 1:
-        return num
-    elif isinstance(num, int):
-        return float(num) / UP_SCR
-    elif isinstance(num, tuple):
-        if len(num) == 4:
-            x = float(num[0]) / UP_SCR
-            y = float(num[1]) / UP_SCR
-            w = float(num[2]) / UP_SCR
-            h = float(num[3]) / UP_SCR
-            return (x, y, w, h)
-        elif len(num) == UP_SCR:
-            x = float(num[0]) / UP_SCR
-            y = float(num[1]) / UP_SCR
-            return (x, y)
-    return num
-
 def main():
     pass
 

@@ -196,9 +196,9 @@ class LargeCardImage(CardImage):
         return image
 
 class CharacterCardImage(CardImage):
-    def __init__(self, ccard, pos=(0, 0)):
+    def __init__(self, ccard, pos_noscale=(0, 0)):
         self.ccard = ccard
-        self._pos_noscale = cw.ds(pos)
+        self._pos_noscale = pos_noscale
         self.update_scale()
 
     def update_scale(self):

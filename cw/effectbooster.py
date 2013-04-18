@@ -738,8 +738,10 @@ class JptxImage(cw.image.Image):
                 elif name.startswith("font"):
                     if start:
                         oldfonts.append((fontface, fontpixels, fontcolor))
-                        fontpixels = cw.s(int(attrs.get("fontpixels", cw.ds(fontpixels))))
-                        fontpixels = cw.s(int(attrs.get("pixels", cw.ds(fontpixels))))
+                        if "fontpixels" in attrs:
+                            fontpixels = cw.s(int(attrs["fontpixels"]))
+                        if "pixels" in attrs:
+                            fontpixels = cw.s(int(attrs["pixels"]))
                         fontface = attrs.get("fontface", face_def)
                         fontface = attrs.get("face", fontface)
                         font = create_font(fontface, fontpixels)

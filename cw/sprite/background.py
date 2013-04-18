@@ -280,26 +280,22 @@ class BackGround(base.CWPySprite):
             transitspr.remove(cw.cwpy.bggrp)
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, spritegrp, size=None, pos=None, alpha=128):
+    def __init__(self, spritegrp, size_noscale, pos_noscale, alpha=128):
         """半透明のブルーバックスプライト。右クリックで解除。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         size: スプライトのサイズ。
         pos: 表示位置。
         alpha: 透明度。
         """
-        if size is None:
-            size = cw.s((632, 420))
-        if pos is None:
-            pos = cw.s((0, 0))
         self.alpha = alpha
         base.SelectableSprite.__init__(self)
-        self._pos_noscale = cw.ds(pos)
-        self._size_noscale = cw.ds(size)
-        self.image = pygame.Surface(size).convert()
+        self._pos_noscale = pos_noscale
+        self._size_noscale = size_noscale
+        self.image = pygame.Surface(cw.s(size_noscale)).convert()
         self.image.fill((0, 0, 80))
         self.image.set_alpha(self.alpha)
         self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        self.rect.topleft = cw.s(pos_noscale)
         # spritegroupに追加
         spritegrp.add(self, layer="curtain")
 
@@ -332,7 +328,7 @@ class BattleCardImage(card.CWPyCard):
         image = cardimg.get_image()
         self.image = self._image = self.image_unzoomed = image
         self.rect = self._rect = self.image.get_rect()
-        self.set_pos(center=cw.s((316, 142)))
+        self.set_pos_noscale(center_noscale=(316, 142))
         self.clear_image()
         self.highspeed = True
         # spritegroupに追加
@@ -371,26 +367,13 @@ class InuseCardImage(card.CWPyCard):
         center: 画面中央に表示するかどうか。
         """
         card.CWPyCard.__init__(self, status)
+        self.status = status
+        self.user = user
         self.header = header
+        self.center = center
         self.zoomsize = cw.s((32, 42))
-        image = self.header.get_cardimg()
-        self.image = self._image = image
-        self.rect = self._rect = image.get_rect()
 
-        if not user.scale == 100 and not center:
-            scale = user.scale / 100.0
-            self.image = pygame.transform.rotozoom(self.image, 0, scale)
-            self.rect.size = self.image.get_size()
-
-        if center:
-            cpos = cw.s((316, 142))
-        else:
-            cpos = user.rect.center
-        self._noscale_center = cw.ds(cpos)
-        self.set_pos(center=cpos)
-
-        if status == "hidden":
-            self.clear_image()
+        self.update_scale()
 
         # spritegroupに追加
         cw.cwpy.pcardgrp.add(self, layer=layer)
@@ -399,7 +382,19 @@ class InuseCardImage(card.CWPyCard):
         image = self.header.get_cardimg()
         self.image = self._image = image
         self.rect = self._rect = image.get_rect()
-        self.set_pos(center=self._noscale_center)
+
+        if not self.user.scale == 100 and not self.center:
+            scale = self.user.scale / 100.0
+            self.image = pygame.transform.rotozoom(self.image, 0, scale)
+            self.rect.size = self.image.get_size()
+
+        if self.center:
+            self.set_pos(center_noscale=(316, 142))
+        else:
+            self.set_pos(center=self.user.rect.center)
+
+        if self.status == "hidden":
+            self.clear_image()
 
     def update_image(self):
         pass
@@ -444,31 +439,20 @@ class Jpy1TemporalSprite(base.CWPySprite):
         cw.cwpy.topgrp.add(self, layer="jpytemporal")
 
 class TitleCell(base.CWPySprite):
-    def __init__(self, path, layer, y, iscard):
+    def __init__(self, path, layer, y_noscale, iscard):
         """起動画面のアニメーションに使用するスプライト。
         path: 表示するイメージのパス。
         y: Y座標。X位置は常に画面中央となる。
         """
         base.CWPySprite.__init__(self)
         self.layer = layer
-        if path == "white":
-            self._image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
-            self._image.fill((255, 255, 255))
-        else:
-            self._image = cw.s((cw.util.load_image(path, True), cw.setting.get_resourcesize(path)))
-        self._rect = self._image.get_rect()
-        x = (cw.s(cw.SIZE_AREA[0]) - self._rect.width) / 2
-        self._rect.topleft = (x, y)
-
-        if iscard:
-            self.clear_image()
-        else:
-            self.image = self._image
-            self.image.set_alpha(0)
-            self.rect = self._rect
-
+        self.path = path
+        self.y_noscale = y_noscale
+        self.iscard = iscard
         self.status = "hidden"
         self.frame = 0
+
+        self.update_scale()
 
         self.animespeed = cw.cwpy.setting.fps / 3
         self.dealing_scales = [
@@ -479,6 +463,24 @@ class TitleCell(base.CWPySprite):
 
         n = 255 / self.animespeed
         self.fade_params = [255 - n * i for i in xrange(self.animespeed + 1) if i]
+
+    def update_scale(self):
+        if self.path == "white":
+            self._image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
+            self._image.fill((255, 255, 255))
+        else:
+            self._image = cw.s((cw.util.load_image(self.path, True), cw.setting.get_resourcesize(self.path)))
+        self._rect = self._image.get_rect()
+        x = (cw.s(cw.SIZE_AREA[0]) - self._rect.width) / 2
+        self._rect.topleft = (x, cw.s(self.y_noscale))
+
+        if self.iscard:
+            if self.status == "hidden":
+                self.clear_image()
+        else:
+            self.image = self._image
+            self.image.set_alpha(0)
+            self.rect = self._rect
 
     def lclick_event(self):
         cw.cwpy.cut_animation = True

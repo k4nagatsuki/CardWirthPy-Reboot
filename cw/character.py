@@ -454,7 +454,7 @@ class Character(object):
             cw.animation.animate_sprite(inusecardimg, "zoomout")
             cw.animation.animate_sprite(inusecardimg, "hide")
         elif isinstance(self, cw.character.Friend):
-            self.set_pos(center=cw.s((316, 142)))
+            self.set_pos_noscale(center_noscale=(316, 142))
             self.status == "hidden"
             cw.cwpy.pcardgrp.add(self)
             cw.animation.animate_sprite(self, "deal")

@@ -283,8 +283,8 @@ class CWPyCard(base.SelectableSprite):
 
         self.cardimg.update_scale()
         self.update_image()
-        if self._pos_noscale or self._center_noscale:
-            self.set_pos(cw.s(self._pos_noscale), cw.s(self._center_noscale))
+        assert self._pos_noscale or self._center_noscale
+        self.set_pos_noscale(self._pos_noscale, self._center_noscale)
 
         self.old_status = self.status
         self.status == "zoomout"
@@ -344,12 +344,21 @@ class CWPyCard(base.SelectableSprite):
             self.rect = self.image.get_rect()
             self.rect.topleft = self._rect.topleft
 
+    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
+        """画面の拡大率を考慮せずに座標を設定する。"""
+        if pos_noscale:
+            self._pos_noscale = pos_noscale
+        elif center_noscale:
+            self._center_noscale = center_noscale
+        pos = cw.s(pos_noscale) if pos_noscale else None
+        center = cw.s(center_noscale) if center_noscale else None
+        self.set_pos(pos, center)
+
     def set_pos(self, pos=None, center=None):
+        """画面の拡大率を反映済みの座標を設定する。"""
         if pos:
-            self._pos_noscale = cw.ds(pos)
             self._rect.topleft = pos
         elif center:
-            self._center_noscale = cw.ds(center)
             self._rect.center = center
 
         self.rect.topleft = self._rect.topleft
@@ -371,10 +380,8 @@ class CWPyCard(base.SelectableSprite):
 #-------------------------------------------------------------------------------
 
 class PlayerCard(CWPyCard, character.Player):
-    def __init__(self, data, pos=None, status="hidden"):
+    def __init__(self, data, pos_noscale=(0, 0), status="hidden"):
         CWPyCard.__init__(self, status)
-        if pos is None:
-            pos = cw.s((0, 0))
         # CWPyElementTreeインスタンス
         self.data = data
         # CharacterCard初期化
@@ -383,12 +390,12 @@ class PlayerCard(CWPyCard, character.Player):
         path = self.data.gettext("Property/ImagePath", "")
         self.imgpath = cw.util.join_yadodir(path)
 
-        self.cardimg = cw.image.CharacterCardImage(self, pos)
+        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale)
         self.update_image()
         # 空のイメージ
         self.image = pygame.Surface(cw.s((0, 0))).convert()
 
-        self.set_pos(pos=pos)
+        self.set_pos_noscale(pos_noscale)
 
         if self.status == "hidden":
             self.rect = pygame.Rect(self._rect)
@@ -536,12 +543,10 @@ class PlayerCard(CWPyCard, character.Player):
 #-------------------------------------------------------------------------------
 
 class EnemyCard(CWPyCard, character.Enemy):
-    def __init__(self, mcarddata, pos=None, status="hidden"):
+    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden"):
         CWPyCard.__init__(self, status)
-        if pos is None:
-            pos = cw.s((0, 0))
         self.mcarddata = mcarddata
-        self._init_pos = pos
+        self._init_pos_noscale = pos_noscale
         # フラグ
         self.flag = mcarddata.gettext("Property/Flag", "")
         # 逃走の有無
@@ -587,7 +592,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.imgpath = path
         else:
             self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-        self.cardimg = cw.image.CharacterCardImage(self, self._init_pos)
+        self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale)
         self.update_image()
         # 空のイメージ
         self.clear_image()
@@ -696,12 +701,10 @@ class FriendCard(CWPyCard, character.Friend):
 #-------------------------------------------------------------------------------
 
 class MenuCard(CWPyCard):
-    def __init__(self, data, pos=None, status="hidden"):
+    def __init__(self, data, pos_noscale=(0, 0), status="hidden"):
         """
         メニューカード用のスプライトを作成。
         """
-        if pos is None:
-            pos = cw.s((0, 0))
         CWPyCard.__init__(self, status)
         # カード情報
         self.name = data.gettext("Property/Name", "")
@@ -742,7 +745,7 @@ class MenuCard(CWPyCard):
 
         self.update_image()
         # pos
-        self.set_pos(pos)
+        self.set_pos_noscale(pos_noscale)
 
         # 空のイメージ
         if self.status == "hidden":

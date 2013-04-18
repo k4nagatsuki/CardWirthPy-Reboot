@@ -68,6 +68,10 @@ def create_settings(setting):
     # 最後に選択した宿
     e = cw.data.make_element("LastYado", setting.lastyado)
     element.append(e)
+    # 拡大モード
+    e = cw.data.make_element("ExpandMode", str(setting.expandmode),
+                             attrs={"expanded": str(setting.is_expanded)})
+    element.append(e)
     # デバッグモードかどうか
     e = cw.data.make_element("DebugMode", str(setting.debug))
     element.append(e)

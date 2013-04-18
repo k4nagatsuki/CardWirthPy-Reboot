@@ -32,6 +32,8 @@ class Setting(object):
         if not os.path.isfile("Settings.xml"):
             self.lastyado = ""
             self.lastscenario = []
+            self.expandmode = "FullScreen"
+            self.is_expanded = False
             self.debug = False
             self.vol_bgm = 1.0
             self.vol_midi = 0.2
@@ -60,6 +62,12 @@ class Setting(object):
         self.lastyado = data.gettext("LastYado", "")
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)
         self.lastscenario = []
+        # 拡大モード
+        self.expandmode = data.gettext("ExpandMode", "FullScreen")
+        if self.expandmode == "None":
+            self.is_expanded = False
+        else:
+            self.is_expanded = data.getbool("ExpandMode", "expanded", False)
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", False)
         # 音楽のボリューム(0～1.0)
@@ -116,8 +124,10 @@ class Setting(object):
 
         # スキン
         self.skindirname = data.gettext("Skin", "Classic")
-        self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
+        self.init_skin()
 
+    def init_skin(self):
+        self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
         if not os.path.isdir(self.skindir):
             self.skindirname = "Classic"
             self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)

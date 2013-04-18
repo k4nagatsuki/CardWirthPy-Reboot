@@ -109,6 +109,11 @@ class SystemData(object):
     def end(self):
         pass
 
+    def remove_log(self):
+        cw.util.remove("Data/Temp/ScenarioLog")
+        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
+        cw.cwpy.ydata.deletedpaths.add(path)
+
     def change_data(self, id):
         if cw.cwpy.is_battlestatus():
             path = self.battles[id][1]
@@ -646,11 +651,6 @@ class ScenarioData(SystemData):
 
         cw.util.compress_zip("Data/Temp/ScenarioLog", path)
         cw.cwpy.ydata.deletedpaths.discard(path)
-
-    def remove_log(self):
-        cw.util.remove("Data/Temp/ScenarioLog")
-        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
-        cw.cwpy.ydata.deletedpaths.add(path)
 
     def load_log(self, path, recording):
         etree = xml2etree(path)
@@ -1645,8 +1645,8 @@ class Party(object):
         if not data:
             data = yadoxml2etree(header.fpath)
         self.members.append(data)
-        pos = cw.s((9 + 95 * pcardsnum + 9 * pcardsnum, 285))
-        pcard = cw.sprite.card.PlayerCard(data, pos, status="deal")
+        pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
+        pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal")
         cw.animation.animate_sprite(pcard, "deal")
 
     def remove(self, pcard):

@@ -39,12 +39,12 @@ class MusicInterface(object):
         self.path = ""
         self.fpath = ""
 
-    def play(self, path):
-        self._play(path)
+    def play(self, path, updatepredata=True):
+        self._play(path, updatepredata)
 
-    def _play(self, path):
+    def _play(self, path, updatepredata=True):
         if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self._play, path)
+            cw.cwpy.exec_func(self._play, path, updatepredata)
             return
 
         assert threading.currentThread() == cw.cwpy
@@ -78,7 +78,7 @@ class MusicInterface(object):
             self.fpath = fpath
             self.path = path
 
-        if cw.cwpy.pre_battleareadata:
+        if updatepredata and cw.cwpy.pre_battleareadata:
             areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
             bgmpath = path
             cw.cwpy.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
