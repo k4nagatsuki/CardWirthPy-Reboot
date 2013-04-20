@@ -713,23 +713,122 @@ class CWPy(_Singleton, threading.Thread):
         """cw.data.ScenarioDataのf9()から呼び出され、
         緊急非難処理の続きを行う。
         """
+        # battle
+        if self.battle and self.battle.is_running:
+            # バトルを強制終了
+            self.battle.end(True, True)
+
+        # party copy
+        fname = os.path.basename(self.ydata.party.data.fpath)
+        dname = os.path.basename(os.path.dirname(self.ydata.party.data.fpath))
+        path = cw.util.join_paths("Data/Temp/ScenarioLog/Party", fname)
+        dstpath = cw.util.join_paths(self.ydata.tempdir, "Party", dname, fname)
+        dpath = os.path.dirname(dstpath)
+
+        if not os.path.isdir(dpath):
+            os.makedirs(dpath)
+
+        shutil.copy2(path, dstpath)
+        # member copy
+        dpath = u"Data/Temp/ScenarioLog/Members"
+
+        for name in os.listdir(dpath):
+            path = cw.util.join_paths(dpath, name)
+
+            if os.path.isfile(path) and path.endswith(".xml"):
+                dstpath = cw.util.join_paths(self.ydata.tempdir,
+                                                        "Adventurer", name)
+
+                dstdir = os.path.dirname(dstpath)
+
+                if not os.path.isdir(dstdir):
+                    os.makedirs(dstdir)
+
+                shutil.copy2(path, dstpath)
+
+        # gossips
+        for key, value in self.sdata.gossips.iteritems():
+            if value:
+                self.ydata.remove_gossip(key)
+            else:
+                self.ydata.set_gossip(key)
+
+        # completestamps
+        for key, value in self.sdata.compstamps.iteritems():
+            if value:
+                self.ydata.remove_compstamp(key)
+            else:
+                self.ydata.set_compstamp(key)
+
+        # scenario
+        self.ydata.party.set_lastscenario([])
+
+        # members
+        self.ydata.party.data = cw.data.yadoxml2etree(self.ydata.party.data.fpath)
+        self.ydata.party.reload()
+
+        # 荷物袋のデータを戻す
+        path = "Data/Temp/ScenarioLog/Backpack.xml"
+        etree = cw.data.xml2etree(path)
+        backpacktable = {}
+        yadodir = self.ydata.party.get_yadodir()
+        tempdir = self.ydata.party.get_tempdir()
+
+        for header in self.ydata.party.backpack + self.ydata.party.backpack_moved:
+            if header.scenariocard:
+                header.contain_xml()
+                continue
+
+            if header.fpath.lower().startswith("yado"):
+                fpath = os.path.relpath(header.fpath, yadodir)
+            else:
+                fpath = os.path.relpath(header.fpath, tempdir)
+            fpath = cw.util.join_paths(fpath)
+            backpacktable[fpath] = header
+
+        self.ydata.party.backpack = []
+        self.ydata.party.backpack_moved = []
+
+        for e in etree.getfind("."):
+            header = backpacktable[e.text]
+            del backpacktable[e.text]
+            if header.moved <> 0:
+                # 削除フラグを除去
+                etree = cw.data.yadoxml2etree(header.fpath)
+                etree.remove("Property", attrname="moved")
+                etree.write()
+                header.moved = 0
+            self.ydata.party.backpack.append(header)
+        for fpath, header in backpacktable.iteritems():
+            if not header.scenariocard:
+                self.remove_xml(header)
+
+        self.sdata.remove_log()
+
+        if not self.areaid > 0:
+            self.areaid = self.pre_areaids[0]
+
         # スプライトを作り直す
         pcards = self.get_pcards()
+        showparty = bool(self.pcardgrp.get_sprites_from_layer(0))
+        if showparty:
+            self.music.stop()
         for idx, data in enumerate(self.ydata.party.members):
-            self.sounds["harvest"].play()
-            if idx < len(pcards):
-                pcard = pcards[idx]
-                cw.animation.animate_sprite(pcard, "hide")
-                self.pcardgrp.remove(pcard)
+            if showparty:
+                self.sounds["harvest"].play()
+                if idx < len(pcards):
+                    pcard = pcards[idx]
+                    cw.animation.animate_sprite(pcard, "hide")
+                    self.pcardgrp.remove(pcard)
 
             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
             pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale)
             pcard.set_pos_noscale(pos_noscale)
             pcard.set_fullrecovery()
 
-            cw.animation.animate_sprite(pcard, "deal")
+            if showparty:
+                cw.animation.animate_sprite(pcard, "deal")
 
-        # 番号クーポン設定
         self.ydata.party._loading = False
 
         self.set_yado()
@@ -758,8 +857,16 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(self.set_scenario, header)
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
-                self.exec_func(self.ydata.load_party, None)
-                self.exec_func(self.set_yado)
+                self.sounds["error"].play()
+                s = (cw.cwpy.msgs["load_scenario_failure"])
+                self.call_modaldlg("YESNO", text=s)
+
+                if self.get_yesnoresult() == wx.ID_OK:
+                    self.exec_func(self.sdata.set_log)
+                    self.exec_func(self.f9)
+                else:
+                    self.exec_func(self.ydata.load_party, None)
+                    self.exec_func(self.set_yado)
             else:
                 self.exec_func(self.set_yado)
 

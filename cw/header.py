@@ -913,10 +913,6 @@ class PartyHeader(object):
         path = os.path.splitext(self.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
 
-    def remove_adventuring(self):
-        path = os.path.splitext(self.fpath)[0] + ".wsl"
-        cw.cwpy.ydata.deletedpaths.add(path)
-
     def get_sceheader(self):
         """
         現在冒険中のシナリオのScenarioHeaderを返す。

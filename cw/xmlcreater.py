@@ -288,12 +288,12 @@ def create_scenariolog(sdata, path, recording):
     e_bgimgs = cw.data.make_element("BgImages")
     element.append(e_bgimgs)
 
-    def make_colorelement(color):
-        e = cw.data.make_element("Color", attrs={"r": str(color[0]),
+    def make_colorelement(name, color):
+        e = cw.data.make_element(name, attrs={"r": str(color[0]),
                                                  "g": str(color[1]),
                                                  "b": str(color[2])})
         if 4 <= len(color):
-            e.set("a", color[3])
+            e.set("a", str(color[3]))
         else:
             e.set("a", "255")
         return e

@@ -38,7 +38,7 @@ class SystemData(object):
         self.deletedpaths = set()
         self.lostadventurers = set()
         self.gossips = {}
-        self.comstamps = {}
+        self.compstamps = {}
         self.friendcards = []
         self.infocards = []
         self.flags = {}
@@ -80,7 +80,7 @@ class SystemData(object):
 
         for key, value in self.areas.iteritems():
             if key in cw.AREAS_TRADE:
-                mcards = cw.cwpy.set_mcards(self.get_mcarddata(key, battlestatus=False), False, addgroup=False)
+                mcards = cw.cwpy.set_mcards(self.get_mcarddata(key, battlestatus=False), False, addgroup=False, setautospread=False)
                 d[key] = mcards
 
         self.sparea_mcards = d
@@ -100,10 +100,42 @@ class SystemData(object):
     def end(self):
         pass
 
+    def set_log(self):
+        """
+        wslファイルの読み込みまたは新規作成を行う。
+        読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
+        """
+        cw.util.remove("Data/Temp/ScenarioLog")
+        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
+        path = cw.util.get_yadofilepath(path)
+
+        if path:
+            cw.util.decompress_zip(path, "Data/Temp", "ScenarioLog")
+            musicpath = self.load_log("Data/Temp/ScenarioLog/ScenarioLog.xml", False)
+            return True, musicpath
+        else:
+            self.create_log()
+            return False, None
+
     def remove_log(self):
         cw.util.remove("Data/Temp/ScenarioLog")
         path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         cw.cwpy.ydata.deletedpaths.add(path)
+
+    def load_log(self, path, recording):
+        etree = xml2etree(path)
+
+        for e in etree.getfind("Gossips"):
+            if e.get("value") == "True":
+                self.gossips[e.text] = True
+            elif e.get("value") == "False":
+                self.gossips[e.text] = False
+
+        for e in etree.getfind("CompleteStamps"):
+            if e.get("value") == "True":
+                self.compstamps[e.text] = True
+            elif e.get("value") == "False":
+                self.compstamps[e.text] = False
 
     def change_data(self, id):
         if cw.cwpy.is_battlestatus():
@@ -499,120 +531,7 @@ class ScenarioData(SystemData):
         シナリオ強制終了。俗に言うファッ○ユー。
         """
         self._playing = False
-        # battle
-        if cw.cwpy.battle and cw.cwpy.battle.is_running:
-            # バトルを強制終了
-            cw.cwpy.exec_func(cw.cwpy.battle.end, True, True)
-
-        # party copy
-        fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
-        dname = os.path.basename(os.path.dirname(cw.cwpy.ydata.party.data.fpath))
-        path = cw.util.join_paths("Data/Temp/ScenarioLog/Party", fname)
-        dstpath = cw.util.join_paths(cw.cwpy.ydata.tempdir, "Party", dname, fname)
-        dpath = os.path.dirname(dstpath)
-
-        if not os.path.isdir(dpath):
-            os.makedirs(dpath)
-
-        shutil.copy2(path, dstpath)
-        # member copy
-        dpath = u"Data/Temp/ScenarioLog/Members"
-
-        for name in os.listdir(dpath):
-            path = cw.util.join_paths(dpath, name)
-
-            if os.path.isfile(path) and path.endswith(".xml"):
-                dstpath = cw.util.join_paths(cw.cwpy.ydata.tempdir,
-                                                        "Adventurer", name)
-
-                dstdir = os.path.dirname(dstpath)
-
-                if not os.path.isdir(dstdir):
-                    os.makedirs(dstdir)
-
-                shutil.copy2(path, dstpath)
-
-        # gossips
-        for key, value in self.gossips.iteritems():
-            if value:
-                cw.cwpy.ydata.remove_gossip(key)
-            else:
-                cw.cwpy.ydata.set_gossip(key)
-
-        # completestamps
-        for key, value in self.compstamps.iteritems():
-            if value:
-                cw.cwpy.ydata.remove_compstamp(key)
-            else:
-                cw.cwpy.ydata.set_compstamp(key)
-
-        # scenario
-        cw.cwpy.ydata.party.set_lastscenario([])
-
-        # members
-        cw.cwpy.ydata.party.data = cw.data.yadoxml2etree(cw.cwpy.ydata.party.data.fpath)
-        cw.cwpy.ydata.party.reload()
-
-        # 荷物袋のデータを戻す
-        path = "Data/Temp/ScenarioLog/Backpack.xml"
-        etree = cw.data.xml2etree(path)
-        backpacktable = {}
-        yadodir = cw.cwpy.ydata.party.get_yadodir()
-        tempdir = cw.cwpy.ydata.party.get_tempdir()
-
-        for header in cw.cwpy.ydata.party.backpack + cw.cwpy.ydata.party.backpack_moved:
-            if header.scenariocard:
-                header.contain_xml()
-                continue
-
-            if header.fpath.lower().startswith("yado"):
-                fpath = os.path.relpath(header.fpath, yadodir)
-            else:
-                fpath = os.path.relpath(header.fpath, tempdir)
-            fpath = cw.util.join_paths(fpath)
-            backpacktable[fpath] = header
-
-        cw.cwpy.ydata.party.backpack = []
-        cw.cwpy.ydata.party.backpack_moved = []
-
-        for e in etree.getfind("."):
-            header = backpacktable[e.text]
-            del backpacktable[e.text]
-            if header.moved <> 0:
-                # 削除フラグを除去
-                etree = cw.data.yadoxml2etree(header.fpath)
-                etree.remove("Property", attrname="moved")
-                etree.write()
-                header.moved = 0
-            cw.cwpy.ydata.party.backpack.append(header)
-        for fpath, header in backpacktable.iteritems():
-            if not header.scenariocard:
-                cw.cwpy.remove_xml(header)
-
-        self.remove_log()
-
-        if not cw.cwpy.areaid > 0:
-            cw.cwpy.areaid = cw.cwpy.pre_areaids[0]
-
-        cw.cwpy.music.stop()
         cw.cwpy.exec_func(cw.cwpy.f9)
-
-    def set_log(self):
-        """
-        wslファイルの読み込みまたは新規作成を行う。
-        読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
-        """
-        cw.util.remove("Data/Temp/ScenarioLog")
-        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
-        path = cw.util.get_yadofilepath(path)
-
-        if path:
-            cw.util.decompress_zip(path, "Data/Temp", "ScenarioLog")
-            musicpath = self.load_log("Data/Temp/ScenarioLog/ScenarioLog.xml", False)
-            return True, musicpath
-        else:
-            self.create_log()
-            return False, None
 
     def create_log(self):
         # log
@@ -1795,10 +1714,6 @@ class Party(object):
     def is_adventuring(self):
         path = os.path.splitext(self.data.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
-
-    def remove_adventuring(self):
-        path = os.path.splitext(self.data.fpath)[0] + ".wsl"
-        cw.cwpy.ydata.deletedpaths.add(path)
 
     def get_sceheader(self):
         """

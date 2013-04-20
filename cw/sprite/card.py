@@ -730,10 +730,12 @@ class MenuCard(CWPyCard):
             pcn = data.gettext("Property/PCNumber", "")
         if pcn:
             # メニューカードにPCの画像を表示(1.30)
-            pcards = cw.cwpy.get_pcards()
+            pcards = cw.cwpy.ydata.party.members
             pi = int(pcn) - 1
             if pi < len(pcards):
-                path = pcards[pi].cardimg.path
+                path = pcards[pi].gettext("Property/ImagePath", "")
+                if path:
+                    path = cw.util.join_yadodir(path)
         elif path and not cw.binary.image.path_is_code(path):
             if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
                 path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
