@@ -131,6 +131,9 @@ class CardHeader(object):
 
         self.vocation = (self.physical, self.mental)
 
+        self._cardscale = cw.UP_SCR
+        self._skindirname = cw.cwpy.setting.skindirname
+
         # スキルカードと召喚獣カードは価格固定
         if self.type == "SkillCard":
             self.price = 400 + self.level * 200
@@ -187,6 +190,7 @@ class CardHeader(object):
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
         self._cardscale = cw.UP_SCR
+        self._skindirname = cw.cwpy.setting.skindirname
 
     def get_owner(self):
         if self._owner == "BACKPACK":
@@ -209,7 +213,8 @@ class CardHeader(object):
 
     @property
     def cardimg(self):
-        if not self._cardimg or self._cardscale <> cw.UP_SCR:
+        if not self._cardimg or self._cardscale <> cw.UP_SCR or\
+                self._skindirname <> cw.cwpy.setting.skindirname:
             self.set_cardimg(self.imgpath)
         return self._cardimg
 

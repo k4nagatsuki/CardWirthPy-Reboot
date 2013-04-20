@@ -168,10 +168,47 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.frame.exec_func(func)
 
     def update_skin(self, skindirname):
+        oldskindirname = self.setting.skindirname
         self.setting.skindirname = skindirname
         self.setting.init_skin()
         self.skindir = self.setting.skindir
         self.music.play(self.music.path, updatepredata=False)
+        oldskindir = cw.util.join_paths("Data/Skin", oldskindirname)
+        newskindir = cw.util.join_paths("Data/Skin", skindirname)
+        self.background.update_skin(oldskindir, newskindir)
+        def repl_cardimg(sprite):
+            if hasattr(sprite, "cardimg"):
+                if sprite.cardimg.path.startswith(oldskindir):
+                    sprite.cardimg.path = sprite.cardimg.path.replace(oldskindir, newskindir)
+        for sprite in self.pcardgrp.sprites():
+            repl_cardimg(sprite)
+
+        if self.sdata:
+            self.sdata._init_xmlpaths()
+            self.sdata._init_sparea_mcards()
+
+        if self.is_battlestatus():
+            self.set_mcards(self.sdata.get_mcarddata(), False, True)
+            self.deal_cards()
+            # TODO アクションカードの更新
+            for ccard in self.get_pcards("unreversed"):
+                ccard.deck.set(ccard)
+                if self.battle.is_ready():
+                    ccard.decide_action()
+            for ccard in self.get_ecards("unreversed"):
+                ccard.deck.set(ccard)
+                if self.battle.is_ready():
+                    ccard.decide_action()
+            for ccard in self.get_fcards():
+                ccard.deck.set(ccard)
+                if self.battle.is_ready():
+                    ccard.decide_action()
+        else:
+            self.mcardgrp.empty()
+            self.sdata.change_data(self.areaid)
+            self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
+            self.deal_cards()
+
         self.update_scale(cw.UP_SCR)
 
     def update_scale(self, scale):
@@ -193,6 +230,9 @@ class CWPy(_Singleton, threading.Thread):
         self.sbargrp.set_clip(self.statusbar.rect)
         if self.sdata:
             self.sdata.update_scale()
+            if self.pre_mcards:
+                mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1])
+                self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
         for sprite in self.mcardgrp.sprites():
             sprite.update_scale()
         for sprite in self.pcardgrp.sprites():
@@ -771,7 +811,7 @@ class CWPy(_Singleton, threading.Thread):
         self._dealing = False
         self.wait_showcards = False
 
-    def hide_cards(self, hideall=False):
+    def hide_cards(self, hideall=False, hideparty=True):
         """
         カードを非表示にする(表示中だったカードはhidden状態になる)。
         各カードのhidecards()の最後に呼ばれる。
@@ -789,7 +829,7 @@ class CWPy(_Singleton, threading.Thread):
                 cw.animation.animate_sprite(mcard, "hide")
 
         # プレイヤカードを下げる
-        if self.ydata:
+        if self.ydata and hideparty:
             if not self.ydata.party or self.ydata.party.is_loading():
                 self.hide_party()
 
@@ -924,18 +964,24 @@ class CWPy(_Singleton, threading.Thread):
             for mcard in mcards:
                 cw.animation.animate_sprite(mcard, "deal")
 
-    def set_mcards(self, (stype, elements), dealanime=True):
+    def set_mcards(self, (stype, elements), dealanime=True, addgroup=True, setautospread=True):
         """メニューカードスプライトを構成する。
+        生成されたカードのlistを返す。
         (stype, elements): (spreadtype, MenuCardElementのリスト)のタプル
         dealanime: True時はカードを最初から表示している。
+        addgroup: True時は現在の画面に即時反映する。
         """
         # カードの並びがAutoの時
         if stype == "Auto":
-            self._autospread = True
+            autospread = True
         else:
-            self._autospread = False
+            autospread = False
+
+        if setautospread:
+            self._autospread = autospread
 
         status = "hidden" if dealanime else "normal"
+        seq = []
 
         for index, e in enumerate(elements):
             if stype == "Auto":
@@ -946,9 +992,11 @@ class CWPy(_Singleton, threading.Thread):
                 pos_noscale = (left, top)
 
             if e.tag == "EnemyCard":
-                cw.sprite.card.EnemyCard(e, pos_noscale, status)
+                mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status, addgroup)
             else:
-                cw.sprite.card.MenuCard(e, pos_noscale, status)
+                mcard = cw.sprite.card.MenuCard(e, pos_noscale, status, addgroup)
+            seq.append(mcard)
+        return seq
 
     def disposition_pcards(self):
         """プレイヤーカードの位置を補正する。
@@ -1136,6 +1184,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.change_data(areaid)
                 self.mcardgrp.remove_sprites_of_layer(0)
                 self.mcardgrp.add(self.pre_mcards.pop())
+                self.deal_cards()
                 self.list = self.get_mcards("visible")
                 self.index = -1
             else:

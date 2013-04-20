@@ -27,13 +27,13 @@ class SystemData(object):
         引数のゲームの状態遷移の情報によって読み込むxmlを変える。
         """
         cw.cwpy.debug = cw.cwpy.setting.debug
+        self.data = None
         self.name = ""
         self.author = ""
         self.tempdir = ""
         self.scedir = ""
         self._init_xmlpaths()
         self._init_sparea_mcards()
-        self.data = None
         self.events = None
         self.deletedpaths = set()
         self.lostadventurers = set()
@@ -77,14 +77,11 @@ class SystemData(object):
         エリア移動時のタイムラグをなくすための操作。
         """
         d = {}
-        areaid = cw.cwpy.areaid
 
         for key, value in self.areas.iteritems():
             if key in cw.AREAS_TRADE:
-                cw.cwpy.areaid = key
-                self.data = xml2etree(value[1])
                 cw.cwpy.mcardgrp.empty()
-                cw.cwpy.set_mcards(self.get_mcarddata(), False)
+                cw.cwpy.set_mcards(self.get_mcarddata(key, battlestatus=False), False)
                 mcards = cw.cwpy.mcardgrp.remove_sprites_of_layer(0)
 
                 if cw.cwpy.is_autospread():
@@ -93,15 +90,15 @@ class SystemData(object):
                 d[key] = mcards
 
         self.sparea_mcards = d
-        cw.cwpy.areaid = areaid
-        self.data = None
 
     def get_versionhint(self, frompos=0):
         """現在有効になっている互換性マークを返す(常に無し)。"""
         return ""
 
     def update_scale(self):
-        pass
+        for key, mcards in self.sparea_mcards.iteritems():
+            for mcard in mcards:
+                mcard.update_scale()
 
     def start(self):
         pass
@@ -165,13 +162,26 @@ class SystemData(object):
         else:
             return []
 
-    def get_mcarddata(self):
+    def get_mcarddata(self, id=None, battlestatus=None):
         """spreadtypeの値("Custom", "Auto")と
         メニューカードのElementのリストをタプルで返す。
+        id: 取得対象のエリア。不指定の場合は現在のエリア。
         """
-        e = self.data.find("MenuCards")
+        if not isinstance(battlestatus, bool):
+            battlestatus = cw.cwpy.is_battlestatus()
+
+        if id is None:
+            data = self.data
+        elif battlestatus:
+            path = self.battles[id][1]
+            data = xml2etree(path)
+        else:
+            path = self.areas[id][1]
+            data = xml2etree(path)
+
+        e = data.find("MenuCards")
         if e is None:
-            e = self.data.find("EnemyCards")
+            e = data.find("EnemyCards")
 
         if e is not None:
             stype = e.get("spreadtype", "Auto")
@@ -188,6 +198,7 @@ class SystemData(object):
 
 class ScenarioData(SystemData):
     def __init__(self, header, cardonly=False):
+        self.data = None
         self._playing = True
         self.fpath = header.get_fpath()
         self.name = header.name
@@ -388,8 +399,9 @@ class ScenarioData(SystemData):
 
     def update_scale(self):
         # 特殊文字の画像パスの集合(正規表現)
-        r_specialchar = re.compile(r"font_(.)[.].*$")
+        SystemData.update_scale(self)
 
+        r_specialchar = re.compile(r"font_(.)[.].*$")
         for dpath, dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 # "font_*.*"のファイルパスの画像を特殊文字に指定

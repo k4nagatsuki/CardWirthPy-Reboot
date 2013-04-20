@@ -543,7 +543,7 @@ class PlayerCard(CWPyCard, character.Player):
 #-------------------------------------------------------------------------------
 
 class EnemyCard(CWPyCard, character.Enemy):
-    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden"):
+    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True):
         CWPyCard.__init__(self, status)
         self.mcarddata = mcarddata
         self._init_pos_noscale = pos_noscale
@@ -568,8 +568,9 @@ class EnemyCard(CWPyCard, character.Enemy):
         else:
             self.initialize()
 
-        # spritegroupに追加
-        cw.cwpy.mcardgrp.add(self)
+        if addgroup:
+            # spritegroupに追加
+            cw.cwpy.mcardgrp.add(self)
 
     def initialize(self):
         if self._init:
@@ -701,7 +702,7 @@ class FriendCard(CWPyCard, character.Friend):
 #-------------------------------------------------------------------------------
 
 class MenuCard(CWPyCard):
-    def __init__(self, data, pos_noscale=(0, 0), status="hidden"):
+    def __init__(self, data, pos_noscale=(0, 0), status="hidden", addgroup=True):
         """
         メニューカード用のスプライトを作成。
         """
@@ -751,8 +752,9 @@ class MenuCard(CWPyCard):
         if self.status == "hidden":
             self.clear_image()
 
-        # spritegroupに追加
-        cw.cwpy.mcardgrp.add(self)
+        if addgroup:
+            # spritegroupに追加
+            cw.cwpy.mcardgrp.add(self)
 
     def lclick_event(self):
         """左クリックイベント。"""

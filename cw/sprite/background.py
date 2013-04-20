@@ -33,6 +33,16 @@ class BackGround(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.reload(doanime=False, ttype=("None", "None"))
 
+    def update_skin(self, oldskindir, newskindir):
+        for i, t in enumerate(self.bgs):
+            type, d = t
+            if type == BG_IMAGE:
+                path, mask, size, pos, flag, visible = d
+                if path.startswith(oldskindir):
+                    path = path.replace(oldskindir, newskindir, 1)
+                d = path, mask, size, pos, flag, visible
+            self.bgs[i] = type, d
+
     def load_surface(self, path, mask, size, flag, doanime):
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
