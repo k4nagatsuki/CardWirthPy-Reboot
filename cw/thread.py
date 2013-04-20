@@ -656,7 +656,6 @@ class CWPy(_Singleton, threading.Thread):
             areaid = 1
 
         self.change_area(areaid)
-        self.ydata._changed = False
 
     def set_scenario(self, header=None, lastscenario=[]):
         """シナリオ画面へ遷移。
@@ -770,6 +769,10 @@ class CWPy(_Singleton, threading.Thread):
 
         else:
             self.exec_func(self.set_yado)
+
+        def clear_changed():
+            self.ydata._changed = False
+        self.exec_func(clear_changed)
 
 #-------------------------------------------------------------------------------
 # エリアチェンジ関係メソッド
