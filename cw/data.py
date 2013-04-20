@@ -849,6 +849,9 @@ class YadoData(object):
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
 
+        # セーブが必要な状況であればTrue
+        self.changed = False
+
         # セーブ時に削除する予定のファイルパスの集合
         self.deletedpaths = YadoDeletedPathSet(self.yadodir, self.tempdir)
         # Environment(CWPyElementTree)
