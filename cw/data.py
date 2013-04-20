@@ -80,13 +80,7 @@ class SystemData(object):
 
         for key, value in self.areas.iteritems():
             if key in cw.AREAS_TRADE:
-                cw.cwpy.mcardgrp.empty()
-                cw.cwpy.set_mcards(self.get_mcarddata(key, battlestatus=False), False)
-                mcards = cw.cwpy.mcardgrp.remove_sprites_of_layer(0)
-
-                if cw.cwpy.is_autospread():
-                    cw.cwpy.set_autospread(mcards)
-
+                mcards = cw.cwpy.set_mcards(self.get_mcarddata(key, battlestatus=False), False, addgroup=False)
                 d[key] = mcards
 
         self.sparea_mcards = d

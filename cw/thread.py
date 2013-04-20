@@ -187,10 +187,7 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata._init_xmlpaths()
             self.sdata._init_sparea_mcards()
 
-        if self.is_battlestatus():
-            self.set_mcards(self.sdata.get_mcarddata(), False, True)
-            self.deal_cards()
-        else:
+        if not self.is_battlestatus():
             self.mcardgrp.empty()
             self.sdata.change_data(self.areaid)
             self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
