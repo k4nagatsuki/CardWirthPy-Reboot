@@ -168,6 +168,8 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.frame.exec_func(func)
 
     def update_skin(self, skindirname):
+        if self.ydata:
+            changed = self.ydata.is_changed()
         oldskindirname = self.setting.skindirname
         self.setting.skindirname = skindirname
         self.setting.init_skin()
@@ -209,10 +211,16 @@ class CWPy(_Singleton, threading.Thread):
                 if self.battle.is_ready():
                     ccard.decide_action()
 
+        if self.ydata:
+            self.ydata._changed = changed
+
     def update_scale(self, scale):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
+        if self.ydata:
+            changed = self.ydata.is_changed()
+
         if cw.UP_SCR <> scale:
             cw.UP_SCR = scale
 
@@ -241,6 +249,9 @@ class CWPy(_Singleton, threading.Thread):
             sprite.update_scale()
         for sprite in self.backloggrp.sprites():
             sprite.update_scale()
+
+        if self.ydata:
+            self.ydata._changed = changed
 
         self.update()
         self.draw()
