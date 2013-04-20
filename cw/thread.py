@@ -208,7 +208,6 @@ class CWPy(_Singleton, threading.Thread):
                 ccard.deck.set(ccard)
                 if self.battle.is_ready():
                     ccard.decide_action()
-            # TODO 敵の姿が見えなくなる
 
     def update_scale(self, scale):
         """画面の表示倍率を変更する。

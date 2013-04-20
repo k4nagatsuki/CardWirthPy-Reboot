@@ -535,7 +535,9 @@ class Resource(object):
 
         for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.s((cw.util.load_image(path, mask=True, maskpos=(1, 1)), get_resourcesize(path)))
+            bmp = cw.util.load_image(path, mask=True, maskpos=(1, 1))
+            d[name + "_dbg"] = bmp
+            d[name] = cw.s((bmp, get_resourcesize(path)))
 
         return d
 
