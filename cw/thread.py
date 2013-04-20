@@ -190,7 +190,15 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_battlestatus():
             self.set_mcards(self.sdata.get_mcarddata(), False, True)
             self.deal_cards()
-            # TODO アクションカードの更新
+        else:
+            self.mcardgrp.empty()
+            self.sdata.change_data(self.areaid)
+            self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
+            self.deal_cards()
+
+        self.update_scale(cw.UP_SCR)
+
+        if self.is_battlestatus():
             for ccard in self.get_pcards("unreversed"):
                 ccard.deck.set(ccard)
                 if self.battle.is_ready():
@@ -203,13 +211,7 @@ class CWPy(_Singleton, threading.Thread):
                 ccard.deck.set(ccard)
                 if self.battle.is_ready():
                     ccard.decide_action()
-        else:
-            self.mcardgrp.empty()
-            self.sdata.change_data(self.areaid)
-            self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
-            self.deal_cards()
-
-        self.update_scale(cw.UP_SCR)
+            # TODO 敵の姿が見えなくなる
 
     def update_scale(self, scale):
         """画面の表示倍率を変更する。
