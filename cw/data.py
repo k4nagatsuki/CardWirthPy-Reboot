@@ -765,8 +765,10 @@ class Flag(object):
             cw.cwpy.hide_cards()
 
     def set(self, value):
-        self.value = value
-        cw.cwpy.event.refresh_variable(self)
+        if self.value <> value:
+            cw.cwpy.ydata.changed()
+            self.value = value
+            cw.cwpy.event.refresh_variable(self)
 
     def reverse(self):
         self.set(not self.value)
@@ -788,8 +790,10 @@ class Step(object):
 
     def set(self, value):
         value = cw.util.numwrap(value, 0, 9)
-        self.value = value
-        cw.cwpy.event.refresh_variable(self)
+        if self.value <> value:
+            cw.cwpy.ydata.changed()
+            self.value = value
+            cw.cwpy.event.refresh_variable(self)
 
     def up(self):
         if not self.value >= 9:
@@ -850,7 +854,7 @@ class YadoData(object):
             os.makedirs(self.tempdir)
 
         # セーブが必要な状況であればTrue
-        self.changed = False
+        self._changed = False
 
         # セーブ時に削除する予定のファイルパスの集合
         self.deletedpaths = YadoDeletedPathSet(self.yadodir, self.tempdir)
@@ -1034,12 +1038,21 @@ class YadoData(object):
                 os.remove(wslpath)
             os.remove(fpath)
 
+    def changed(self):
+        """データの変化を通知する。"""
+        self._changed = True
+
+    def is_changed(self):
+        return self._changed
+
     def load_party(self, header=None):
         """
         header: PartyHeader
         引数のパーティー名のデータを読み込む。
         パーティー名がNoneの場合はパーティーデータは空になる
         """
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         # パーティデータが変更されている場合はxmlをTempに吐き出す
         if self.party:
             self.party.write()
@@ -1065,6 +1078,7 @@ class YadoData(object):
             self.environment.edit("Property/NowSelectingParty", "")
 
     def add_standbys(self, path, sort=True):
+        cw.cwpy.ydata.changed()
         header = self.create_advheader(path)
         header.order = cw.util.new_order(self.standbys)
         self.standbys.append(header)
@@ -1073,12 +1087,14 @@ class YadoData(object):
         return header
 
     def add_album(self, path):
+        cw.cwpy.ydata.changed()
         header = self.create_advheader(path, True)
         self.album.append(header)
         cw.util.sort_by_attr(self.album, "name")
         return header
 
     def add_party(self, party):
+        cw.cwpy.ydata.changed()
         fpath = party.path
         header = self.create_partyheader(fpath)
         header.data = party # 保存時まで記憶しておく
@@ -1121,6 +1137,7 @@ class YadoData(object):
         """新しくパーティを作る。
         header: AdventurerHeader
         """
+        cw.cwpy.ydata.changed()
         path = cw.xmlcreater.create_party(header)
         header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))
         cw.cwpy.load_party(header, chgarea=chgarea)
@@ -1235,6 +1252,7 @@ class YadoData(object):
         yadodb.close()
 
         cw.cwpy.clear_selection()
+        self._changed = False
 
     #---------------------------------------------------------------------------
     # ゴシップ・シナリオ終了印用メソッド
@@ -1282,6 +1300,7 @@ class YadoData(object):
         name: シナリオ名
         """
         if not self.has_compstamp(name):
+            cw.cwpy.ydata.changed()
             e = make_element("CompleteStamp", name)
             self.environment.append("CompleteStamps", e)
 
@@ -1297,6 +1316,7 @@ class YadoData(object):
         name: ゴシップ名
         """
         if not self.has_gossip(name):
+            cw.cwpy.ydata.changed()
             e = make_element("Gossip", name)
             self.environment.append("Gossips", e)
 
@@ -1315,6 +1335,7 @@ class YadoData(object):
                                                             if e.text == name]
 
         for e in elements:
+            cw.cwpy.ydata.changed()
             self.environment.remove("CompleteStamps", e)
 
         if cw.cwpy.is_playingscenario():
@@ -1332,6 +1353,7 @@ class YadoData(object):
                                                             if e.text == name]
 
         for e in elements:
+            cw.cwpy.ydata.changed()
             self.environment.remove("Gossips", e)
 
         if cw.cwpy.is_playingscenario():
@@ -1344,6 +1366,7 @@ class YadoData(object):
         """冒険済みシナリオ印を全て削除する。"""
 
         for e in self.environment.getfind("CompleteStamps"):
+            cw.cwpy.ydata.changed()
             self.environment.remove("CompleteStamps", e)
 
             if cw.cwpy.is_playingscenario():
@@ -1357,6 +1380,7 @@ class YadoData(object):
         """ゴシップを全て削除する。"""
 
         for e in self.environment.getfind("Gossips"):
+            cw.cwpy.ydata.changed()
             self.environment.remove("Gossips", e)
 
             if cw.cwpy.is_playingscenario():
@@ -1370,10 +1394,12 @@ class YadoData(object):
         """金庫に入っている金額を変更する。
         現在の所持金にvalue値をプラスするので注意。
         """
-        self.money += value
-        self.money = cw.util.numwrap(self.money, 0, 9999999)
-        self.environment.edit("Property/Cashbox", str(self.money))
-        cw.cwpy.has_inputevent = True
+        if value <> 0:
+            cw.cwpy.ydata.changed()
+            self.money += value
+            self.money = cw.util.numwrap(self.money, 0, 9999999)
+            self.environment.edit("Property/Cashbox", str(self.money))
+            cw.cwpy.has_inputevent = True
 
     #---------------------------------------------------------------------------
     # パーティ連れ込み
@@ -1384,6 +1410,7 @@ class YadoData(object):
         シナリオのNPCを宿に連れ込む。
         """
         for fcard in cw.cwpy.get_fcards():
+            cw.cwpy.ydata.changed()
             fcard.set_fullrecovery()
 
             # 必須クーポンを所持していなかったら補填
@@ -1633,6 +1660,7 @@ class Party(object):
         return self._loading
 
     def reload(self):
+        cw.cwpy.ydata.changed()
         header = cw.header.PartyHeader(data=self.data.find("Property"))
         header.data = self
         self.__init__(header)
@@ -1647,6 +1675,7 @@ class Party(object):
         if pcardsnum >= 6:
             return
 
+        cw.cwpy.ydata.changed()
         s = os.path.basename(header.fpath)
         s = os.path.splitext(s)[0]
         e = self.data.make_element("Member", s)
@@ -1662,6 +1691,7 @@ class Party(object):
         """
         メンバーを削除する。引数はPlayerCard。
         """
+        cw.cwpy.ydata.changed()
         pcard.remove_numbercoupon()
         self.members.remove(pcard.data)
         cw.cwpy.pcardgrp.remove(pcard)
@@ -1678,6 +1708,7 @@ class Party(object):
         パーティ名を変更する。
         """
         if not self.name == name:
+            cw.cwpy.ydata.changed()
             self.name = name
             self.data.edit("Property/Name", name)
 
@@ -1685,10 +1716,12 @@ class Party(object):
         """
         パーティの所持金を変更する。
         """
-        self.money += value
-        self.money = cw.util.numwrap(self.money, 0, 9999999)
-        self.data.edit("Property/Money", str(self.money))
-        cw.cwpy.has_inputevent = True
+        if value <> 0:
+            cw.cwpy.ydata.changed()
+            self.money += value
+            self.money = cw.util.numwrap(self.money, 0, 9999999)
+            self.data.edit("Property/Money", str(self.money))
+            cw.cwpy.has_inputevent = True
 
     def set_numbercoupon(self):
         """
@@ -1715,6 +1748,7 @@ class Party(object):
             member.write_xml()
 
     def lost(self):
+        cw.cwpy.ydata.changed()
         for pcard in cw.cwpy.get_pcards():
             pcard.lost()
 

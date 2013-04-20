@@ -58,6 +58,7 @@ class Frame(wx.Frame):
             win.SetIcon(icon)
 
     def _bind(self):
+        self.Bind(wx.EVT_CLOSE, self.OnCloseFromFrame)
         self.Bind(wx.EVT_ICONIZE, self.OnIconize)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
@@ -217,8 +218,18 @@ class Frame(wx.Frame):
         else:
             cw.cwpy.music.set_volume()
 
+    def OnCloseFromFrame(self, event):
+        # Escapeキー以外で閉じようとした
+        if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
+            self.OnCLOSE(event)
+        else:
+            self.Destroy()
+
     def OnCLOSE(self, event):
-        s = cw.cwpy.msgs["confirm_quit"]
+        if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
+            s = cw.cwpy.msgs["confirm_quit_changed"]
+        else:
+            s = cw.cwpy.msgs["confirm_quit"]
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.move_dlg(dlg)
 

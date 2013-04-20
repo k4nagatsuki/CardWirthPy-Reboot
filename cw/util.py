@@ -48,6 +48,8 @@ class MusicInterface(object):
             return
 
         assert threading.currentThread() == cw.cwpy
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         fpath = self.get_path(path)
         self.path = path
         if not pygame.mixer:

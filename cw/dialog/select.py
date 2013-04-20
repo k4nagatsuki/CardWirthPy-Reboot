@@ -1109,6 +1109,7 @@ class PlayerSelect(Select):
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.sounds["dump"].play()
+            cw.cwpy.ydata.changed()
             # 手札カードを移動させる
             data = cw.data.yadoxml2etree(header.fpath)
             ccard = cw.character.Character(data)

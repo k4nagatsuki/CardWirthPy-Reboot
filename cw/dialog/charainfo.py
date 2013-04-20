@@ -804,6 +804,7 @@ class SkillPanel(wx.Panel):
                     cw.cwpy.sounds["error"].play()
                     return
                 cw.cwpy.sounds["click"].play()
+                cw.cwpy.ydata.changed()
                 header.hold = not header.hold
                 if isinstance(self.ccard, cw.character.Player):
                     etree = cw.data.CWPyElementTree(element=header.carddata)

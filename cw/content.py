@@ -1675,6 +1675,7 @@ class GetCastContent(GetContent):
             fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == id]
 
             if not fcards and len(cw.cwpy.sdata.friendcards) < 6:
+                cw.cwpy.ydata.changed()
                 fcard = cw.sprite.card.FriendCard(id)
                 cw.cwpy.sdata.friendcards.append(fcard)
 
@@ -1694,6 +1695,7 @@ class GetInfoContent(GetContent):
         id = self.data.getint(".", "id", 0)
 
         if id and id in cw.cwpy.sdata.infos:
+            cw.cwpy.ydata.changed()
             headers = [h for h in cw.cwpy.sdata.infocards if h.id == id]
 
             if headers:
@@ -1975,6 +1977,7 @@ class LoseCastContent(LoseContent):
             fcards = [i for i in cw.cwpy.sdata.friendcards if i.id == id]
 
             if fcards:
+                cw.cwpy.ydata.changed()
                 cw.cwpy.sdata.friendcards.remove(fcards[0])
 
         return 0
@@ -1994,6 +1997,7 @@ class LoseInfoContent(LoseContent):
         id = self.data.getint(".", "id", 0)
 
         if id in cw.cwpy.sdata.infos:
+            cw.cwpy.ydata.changed()
             headers = [h for h in cw.cwpy.sdata.infocards if h.id == id]
 
             if headers:

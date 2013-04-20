@@ -676,6 +676,7 @@ class FriendCard(CWPyCard, character.Friend):
 
     def update_delete(self):
         if self in cw.cwpy.sdata.friendcards:
+            cw.cwpy.ydata.changed()
             cw.cwpy.sdata.friendcards.remove(self)
 
         self.status = "hidden"

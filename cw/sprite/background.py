@@ -89,6 +89,8 @@ class BackGround(base.CWPySprite):
         bginhrt: Trueなら背景継承。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         # 背景処理する前に、トランジション用スプライト作成
         transitspr = cw.sprite.transition.get_transition(ttype)
         oldbgs = list(self.bgs)

@@ -585,6 +585,8 @@
     <Message key="confirm_go_title">タイトル画面に戻ります。保存されていないデータは
 全て消えてしまいます。よろしいですか？</Message>
     <Message key="confirm_quit">カードワースを終了します。よろしいですか？</Message>
+    <Message key="confirm_quit_changed">カードワースを終了します。保存されていないデータは
+全て消えてしまいます。よろしいですか？</Message>
     <Message key="load_scenario_failure">シナリオのロードに失敗しました。
 パーティを宿に帰還させますか？</Message>
     <Message key="f9_message">緊急非難コマンドが発令されました。
