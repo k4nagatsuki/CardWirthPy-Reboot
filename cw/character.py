@@ -1663,6 +1663,7 @@ class Player(Character):
                 fpath = os.path.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
             fpath = cw.util.join_paths(fpath)
             cw.cwpy.sdata.lostadventurers.add(fpath)
+            cw.cwpy.pcardgrp.remove(self)
 
 class Enemy(Character):
     def is_dead(self):

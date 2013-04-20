@@ -1391,6 +1391,7 @@ class CWPy(_Singleton, threading.Thread):
             pcard.remove_numbercoupon()
             cw.animation.animate_sprite(pcard, "delete")
             pcard.data.write_xml()
+            self.pcardgrp.remove(pcard)
             self.ydata.add_standbys(pcard.data.fpath)
 
             if not self.get_pcards():
@@ -1400,6 +1401,7 @@ class CWPy(_Singleton, threading.Thread):
             for pcard in self.get_pcards():
                 pcard.remove_numbercoupon()
                 cw.animation.animate_sprite(pcard, "hide")
+                self.pcardgrp.remove(pcard)
                 pcard.data.write_xml()
 
             p_money = int(self.ydata.party.data.find("Property/Money").text)
