@@ -406,7 +406,7 @@ class InuseCardImage(card.CWPyCard):
             self.rect.size = self.image.get_size()
 
         if self.center:
-            self.set_pos(center_noscale=(316, 142))
+            self.set_pos_noscale(center_noscale=(316, 142))
         else:
             self.set_pos(center=self.user.rect.center)
 
