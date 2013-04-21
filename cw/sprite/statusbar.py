@@ -78,6 +78,7 @@ class StatusBarPanel(base.CWPySprite):
             size = cw.s((120, 22))
         base.CWPySprite.__init__(self)
         self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        self.icon = icon
         # panelimg
         self.panelimg = pygame.Surface(size).convert()
         self.panelimg.fill((0, 0, 0))
@@ -86,8 +87,8 @@ class StatusBarPanel(base.CWPySprite):
         rect.size = (size[0] - cw.s(2), size[1] - cw.s(2))
         self.panelimg.fill(color, rect)
 
-        if icon:
-            self.panelimg.blit(icon, cw.s((3, 3)))
+        if self.icon:
+            self.panelimg.blit(self.icon, cw.s((3, 3)))
 
         # image
         self.image = self.panelimg.copy()
@@ -98,6 +99,15 @@ class StatusBarPanel(base.CWPySprite):
         self.rect.left = parent.rect.left + pos[0]
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="panel")
+
+    def set_backcolor(self, color):
+        rect = self.panelimg.get_rect()
+        size = rect.size
+        rect.topleft = cw.s((1, 1))
+        rect.size = (size[0] - cw.s(2), size[1] - cw.s(2))
+        if self.icon:
+            self.panelimg.blit(self.icon, cw.s((3, 3)))
+        self.panelimg.fill(color, rect)
 
 class YadoMoneyPanel(StatusBarPanel):
     def __init__(self, parent, pos):
@@ -135,6 +145,10 @@ class PartyMoneyPanel(YadoMoneyPanel):
         if cw.cwpy.ydata.party:
             if not self.text == cw.cwpy.ydata.party.money:
                 self.text = cw.cwpy.ydata.party.money
+                if cw.cwpy.ydata.party.money == 0:
+                    self.set_backcolor((128, 0, 0))
+                else:
+                    self.set_backcolor((0, 0, 128))
                 self.update_image()
 
         else:
