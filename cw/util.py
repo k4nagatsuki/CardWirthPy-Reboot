@@ -542,6 +542,11 @@ def change_cursor(name="arrow"):
         cursor = pygame.cursors.compile(s, ".", "#", "o")
         pygame.mouse.set_cursor((24, 24), (7, 7), *cursor)
 
+    # 一度マウスポインタを画面外へ出さないと変更されない
+    pos = pygame.mouse.get_pos()
+    pygame.mouse.set_pos([-1, -1])
+    pygame.mouse.set_pos(pos)
+
 def number_normalization(value, fromvalue, tovalue):
     """数値を範囲内の値に正規化する。
     value: 正規化対象の数値。

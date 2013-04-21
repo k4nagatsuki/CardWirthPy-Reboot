@@ -256,6 +256,12 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata:
             self.ydata._changed = changed
 
+        # 一度マウスポインタを画面外へ出さないと
+        # フォーカスを失うことがある
+        pos = pygame.mouse.get_pos()
+        pygame.mouse.set_pos([-1, -1])
+        pygame.mouse.set_pos(pos)
+
         self.update()
         self.draw()
 
