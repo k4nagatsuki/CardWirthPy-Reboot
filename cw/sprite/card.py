@@ -295,7 +295,7 @@ class CWPyCard(base.SelectableSprite):
 
         if zoom:
             self.old_status = self.status
-            self.status == "zoomout"
+            self.status = "zoomout"
             while self.status == "zoomout":
                 self.update_zoomout()
 
@@ -304,10 +304,14 @@ class CWPyCard(base.SelectableSprite):
         assert self._pos_noscale or self._center_noscale
         self.set_pos_noscale(self._pos_noscale, self._center_noscale)
 
-        self.old_status = self.status
-        self.status == "zoomout"
-        while zoom == "zoomin":
-            self.update_zoomin()
+        if zoom:
+            self.old_status = self.status
+            self.status = "zoomin"
+            while self.status == "zoomin":
+                self.update_zoomin()
+
+        if self.status == "hidden":
+            self.clear_image(False)
 
     def update_image(self):
         """
