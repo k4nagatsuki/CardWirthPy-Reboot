@@ -81,10 +81,6 @@ class CWPyCard(base.SelectableSprite):
         """
         カードをひっくり返す。
         """
-        self._update_reverse(True)
-
-    def _update_reverse(self, draw):
-
         if self.old_status == "hidden":
             self.reversed = not self.reversed
             self._reverse()
@@ -94,15 +90,13 @@ class CWPyCard(base.SelectableSprite):
         self.update_hide()
 
         if self.status == "hidden":
-            if draw:
-                cw.cwpy.draw()
-                cw.cwpy.tick_clock()
+            cw.cwpy.draw()
+            cw.cwpy.tick_clock()
             self.reversed = not self.reversed
 
             self._reverse()
 
-            if draw:
-                cw.animation.animate_sprite(self, "deal")
+            cw.animation.animate_sprite(self, "deal")
 
             if self.reversed:
                 self.status = "reversed"
@@ -119,9 +113,6 @@ class CWPyCard(base.SelectableSprite):
                 image = pygame.transform.rotozoom(image, 0, scale)
 
             self._image = image
-
-            if not self.zoomimgs:
-                self.image = image
         else:
             self.update_image()
 
@@ -368,6 +359,8 @@ class CWPyCard(base.SelectableSprite):
         # リバース状態
         if self.reversed:
             self._reverse()
+            if not self.zoomimgs:
+                self.image = self._image
 
     def clear_image(self, move=True):
         self.image = pygame.Surface(cw.s((0, 0))).convert()

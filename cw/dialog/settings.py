@@ -149,7 +149,7 @@ class GeneralSettingPanel(wx.Panel):
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 self.skins.append(name)
                 try:
-                    e = cw.data.xml2element(skinpath, "Property", targetonly=True)
+                    e = cw.data.xml2element(skinpath, "Property")
                     skintype = e.gettext("Type", "")
                     skinname = e.gettext("Name", "")
                     author = e.gettext("Author", "")

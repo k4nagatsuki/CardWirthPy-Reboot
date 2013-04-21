@@ -2017,11 +2017,7 @@ def xml2etree(path="", tag="", file=None, element=None, nocache=False):
 
     return CWPyElementTree(element=element)
 
-def xml2element(path="", tag="", file=None, nocache=False, targetonly=False):
-    if targetonly:
-        parser = SimpleXmlParser(path, tag, file, targetonly=targetonly)
-        return parser.parse()
-
+def xml2element(path="", tag="", file=None, nocache=False):
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
                path.startswith(cw.cwpy.sdata.tempdir)
@@ -2060,12 +2056,15 @@ def xml2element(path="", tag="", file=None, nocache=False, targetonly=False):
                     versionhint = cw.cwpy.classicdata.versionhint
 
     if data is None:
-        parser = SimpleXmlParser(path, "", file)
-        data = parser.parse()
-
-    basedata = data
-    if tag:
-        data = data.find(tag)
+        if not usecache and tag and not versionhint:
+            parser = SimpleXmlParser(path, tag, file, targetonly=True)
+            return parser.parse()
+        else:
+            parser = SimpleXmlParser(path, "", file)
+            data = parser.parse()
+            basedata = data
+            if tag:
+                data = data.find(tag)
 
     if usecache:
         # キャッシュにデータを保存
