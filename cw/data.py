@@ -2017,7 +2017,11 @@ def xml2etree(path="", tag="", file=None, element=None, nocache=False):
 
     return CWPyElementTree(element=element)
 
-def xml2element(path="", tag="", file=None, nocache=False):
+def xml2element(path="", tag="", file=None, nocache=False, targetonly=False):
+    if targetonly:
+        parser = SimpleXmlParser(path, tag, file, targetonly=targetonly)
+        return parser.parse()
+
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
                path.startswith(cw.cwpy.sdata.tempdir)
@@ -2093,8 +2097,11 @@ def copydata(data):
 
     return e
 
+class EndTargetTagException(Exception):
+    pass
+
 class SimpleXmlParser(object):
-    def __init__(self, fpath, targettag="", file=None):
+    def __init__(self, fpath, targettag="", file=None, targetonly=False):
         """
         targettag: 読み込むタグのロケーションパス。絶対パスは使えない。
             "Property/Name"という風にタグごとに"/"で区切って指定する。
@@ -2105,6 +2112,7 @@ class SimpleXmlParser(object):
         self.fpath = fpath.replace("\\", "/")
         self.file = file
         self.targettag = targettag.strip("/")
+        self.targetonly = targetonly
         self.parsetags = []
         self.currenttags = []
         self._persed = False
@@ -2141,6 +2149,8 @@ class SimpleXmlParser(object):
                 self._persed = True
 
         self.currenttags.pop(-1)
+        if self.targetonly and self.targettag == name:
+            raise EndTargetTagException()
 
     def char_data(self, data):
         """文字データ"""
@@ -2165,6 +2175,8 @@ class SimpleXmlParser(object):
     def parse_file(self, file):
         try:
             self._parse_file(file)
+        except EndTargetTagException, ex:
+            pass
         except xml.parsers.expat.ExpatError, err:
             # エラーになったファイルのパスを付け加える
             s = u". file: " + self.fpath

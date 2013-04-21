@@ -1534,7 +1534,7 @@ class Character(object):
         flag = False
 
         # 中毒
-        if self.is_poison():
+        if self.is_poison() and not self.is_unconscious():
             self.set_poison(-time)
 
             if not self.is_poison():
