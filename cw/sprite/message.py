@@ -708,8 +708,6 @@ class BacklogCurtain(base.CWPySprite):
     def __init__(self, spritegrp, alpha=192):
         """バックログ用の半透明黒背景スプライト。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
-        size: スプライトのサイズ。
-        pos: 表示位置。
         alpha: 透明度。
         """
         base.CWPySprite.__init__(self)
@@ -727,7 +725,7 @@ class BacklogCurtain(base.CWPySprite):
         self.image.fill((0, 0, 0))
         self.image.set_alpha(self.alpha)
         self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        self.rect.topleft = cw.s((0, 0))
 
 def draw_frame(image, size, pos=None, backlog=False):
     """

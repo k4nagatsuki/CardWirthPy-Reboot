@@ -2062,9 +2062,10 @@ def xml2element(path="", tag="", file=None, nocache=False):
         else:
             parser = SimpleXmlParser(path, "", file)
             data = parser.parse()
-            basedata = data
-            if tag:
-                data = data.find(tag)
+
+    basedata = data
+    if tag:
+        data = data.find(tag)
 
     if usecache:
         # キャッシュにデータを保存
