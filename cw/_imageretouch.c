@@ -14,6 +14,8 @@ intwrap(int i, int min, int max)
     return i;
 }
 
+#define colorwrap(i) intwrap(i, 0, 255)
+
 static int
 equals_rgb(unsigned char *data1, size_t index1, int r, int g, int b)
 {
@@ -443,6 +445,98 @@ bordering(PyObject *self, PyObject *args)
     return points;
 }
 
+static PyObject *
+blend_add_1_50(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    size_t dlen, slen;
+    int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
+    unsigned char *dest, *source, *outdata;
+
+    if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
+        return NULL;
+
+    string = PyBytes_FromStringAndSize(NULL, dlen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, &outdata, &dlen);
+
+    for (y = 0; y < h; y++)
+    {
+        for (x = 0; x < w; x++)
+        {
+            dr = (int) dest[0];
+            dg = (int) dest[1];
+            db = (int) dest[2];
+            sr = (int) source[0];
+            sg = (int) source[1];
+            sb = (int) source[2];
+            sa = (int) source[3];
+
+            dr = colorwrap((dr * (255 - sa) >> 8) + (colorwrap(dr + sr) * sa >> 8));
+            dg = colorwrap((dg * (255 - sa) >> 8) + (colorwrap(dg + sg) * sa >> 8));
+            db = colorwrap((db * (255 - sa) >> 8) + (colorwrap(db + sb) * sa >> 8));
+
+            outdata[0] = (char) dr;
+            outdata[1] = (char) dg;
+            outdata[2] = (char) db;
+
+            source += 4;
+            dest += 4;
+            outdata += 4;
+        }
+    }
+    return string;
+}
+
+static PyObject *
+blend_sub_1_50(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    size_t dlen, slen;
+    int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
+    unsigned char *dest, *source, *outdata;
+
+    if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
+        return NULL;
+
+    string = PyBytes_FromStringAndSize(NULL, dlen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, &outdata, &dlen);
+
+    for (y = 0; y < h; y++)
+    {
+        for (x = 0; x < w; x++)
+        {
+            dr = (int) dest[0];
+            dg = (int) dest[1];
+            db = (int) dest[2];
+            sr = (int) source[0];
+            sg = (int) source[1];
+            sb = (int) source[2];
+            sa = (int) source[3];
+
+            dr = max(colorwrap(dr * (255 - sa) >> 8), colorwrap(dr - (sr * sa >> 8)));
+            dg = max(colorwrap(dg * (255 - sa) >> 8), colorwrap(dg - (sg * sa >> 8)));
+            db = max(colorwrap(db * (255 - sa) >> 8), colorwrap(db - (sb * sa >> 8)));
+
+            outdata[0] = (char) dr;
+            outdata[1] = (char) dg;
+            outdata[2] = (char) db;
+
+            source += 4;
+            dest += 4;
+            outdata += 4;
+        }
+    }
+    return string;
+}
+
 static PyMethodDef
 _imageretouchMethods[] =
 {
@@ -462,6 +556,10 @@ _imageretouchMethods[] =
         "filter(rgba_str, size, weight, offset, div)"},
     {"bordering", bordering, METH_VARARGS,
         "bordering(rgba_str, size, color)"},
+    {"blend_add_1_50", blend_add_1_50, METH_VARARGS,
+        "blend_add_1_50(rgba_str, size, rgba_str)"},
+    {"blend_sub_1_50", blend_sub_1_50, METH_VARARGS,
+        "blend_sub_1_50(rgba_str, size, rgba_str)"},
     {NULL, NULL, 0, NULL}
 };
 

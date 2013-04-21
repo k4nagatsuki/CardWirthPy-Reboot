@@ -591,6 +591,85 @@ def _bordering(data, size, textcolor):
                 seq.append(y)
     return seq
 
+def blend_1_50(dest, pos, source, flag):
+    """1.50の挙動に合わせて加算または減算合成を行う。
+    dest: pygame.Surface。
+    pos: 合成位置。
+    image: pygame.Surface。
+    flag: BLEND_ADDまたはBLEND_SUB
+    """
+    w, h = source.get_size()
+    rect = pygame.Rect(pos, (w, h))
+    rect = pygame.Rect((0, 0), dest.get_size()).clip(rect)
+    if rect.w <= 0 or rect.h <= 0:
+        return
+
+    sub = dest.subsurface(rect)
+
+    try:
+        if flag in (BLEND_ADD, BLEND_RGBA_ADD):
+            func = _imageretouch.blend_add_1_50
+        elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
+            func = _imageretouch.blend_sub_1_50
+        else:
+            assert False
+
+        sbuf = pygame.image.tostring(source, "RGBA")
+
+        outimage = _retouch(func, sub, sbuf)
+    except:
+        if flag in (BLEND_ADD, BLEND_RGBA_ADD):
+            func = _blend_add_1_50
+        elif flag in (BLEND_SUB, BLEND_RGBA_SUB):
+            func = _blend_sub_1_50
+        else:
+            assert False
+        outimage = func(sub, source)
+
+    dest.blit(outimage, rect.topleft, None, 0)
+
+def _blend_add_1_50(dest, source):
+    w, h = dest.get_size()
+    dbuf = pygame.image.tostring(dest, "RGBA")
+    sbuf = pygame.image.tostring(source, "RGBA")
+
+    buf = []
+    for i in xrange(0, len(dbuf), 4):
+        dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
+        sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
+
+        dr = colorwrap((dr * (255 - sa) >> 8) + (colorwrap(dr + sr) * sa >> 8))
+        dg = colorwrap((dg * (255 - sa) >> 8) + (colorwrap(dg + sg) * sa >> 8))
+        db = colorwrap((db * (255 - sa) >> 8) + (colorwrap(db + sb) * sa >> 8))
+        da = 255
+
+        buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
+
+    assert len(buf) == len(dbuf)
+    buf = "".join(buf)
+    return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
+
+def _blend_sub_1_50(dest, source):
+    w, h = dest.get_size()
+    dbuf = pygame.image.tostring(dest, "RGBA")
+    sbuf = pygame.image.tostring(source, "RGBA")
+
+    buf = []
+    for i in xrange(0, len(dbuf), 4):
+        dr, dg, db, da = ord(dbuf[i+0]), ord(dbuf[i+1]), ord(dbuf[i+2]), ord(dbuf[i+3])
+        sr, sg, sb, sa = ord(sbuf[i+0]), ord(sbuf[i+1]), ord(sbuf[i+2]), ord(sbuf[i+3])
+
+        dr = max(colorwrap(dr * (255 - sa) >> 8), colorwrap(dr - (sr * sa >> 8)))
+        dg = max(colorwrap(dg * (255 - sa) >> 8), colorwrap(dg - (sg * sa >> 8)))
+        db = max(colorwrap(db * (255 - sa) >> 8), colorwrap(db - (sb * sa >> 8)))
+        da = 255
+
+        buf.extend([chr(dr), chr(dg), chr(db), chr(da)])
+
+    assert len(buf) == len(dbuf)
+    buf = "".join(buf)
+    return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
+
 def hex2color(hexnum):
     """RGBデータの16進数を(r, g, b)のタプルで返す。
     hexnum: 16進数。
@@ -599,6 +678,10 @@ def hex2color(hexnum):
     g = int((hexnum >> 8) & 0xFF)
     r = int((hexnum >> 16) & 0xFF)
     return r, g, b
+
+def colorwrap(num):
+    """numを0～255の値に丸める。"""
+    return cw.util.numwrap(num, 0, 255)
 
 def main():
     pass

@@ -4,7 +4,7 @@
 import os
 import math
 import pygame
-from pygame.locals import BLEND_MIN, BLEND_ADD, BLEND_RGBA_ADD, BLEND_RGBA_SUB, BLEND_RGBA_MULT
+from pygame.locals import BLEND_MIN, BLEND_ADD, BLEND_SUB, BLEND_MULT
 
 import cw
 import base
@@ -248,11 +248,11 @@ class BackGround(base.CWPySprite):
         if visible:
             image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)
             if blend == "Add":
-                blendflag = BLEND_RGBA_ADD
+                blendflag = BLEND_ADD
             elif blend == "Subtract":
-                blendflag = BLEND_RGBA_SUB
+                blendflag = BLEND_SUB
             elif blend == "Multiply":
-                blendflag = BLEND_RGBA_MULT
+                blendflag = BLEND_MULT
             else:
                 blendflag = 0
             blitlist.append((BG_IMAGE, (image, pos, blendflag)))
@@ -270,7 +270,12 @@ class BackGround(base.CWPySprite):
             if type == BG_IMAGE:
                 # 背景画像、カラーセル、縁取り形式2のテキストセル
                 image, pos, flag = d
-                self.image.blit(image, cw.s(pos), None, flag)
+                if flag in (0, BLEND_MULT):
+                    self.image.blit(image, cw.s(pos), None, flag)
+                elif flag in (BLEND_ADD, BLEND_SUB):
+                    cw.imageretouch.blend_1_50(self.image, cw.s(pos), image, flag)
+                else:
+                    assert False
 
             elif type == BG_TEXT:
                 # 縁取り形式2以外のテキストセル

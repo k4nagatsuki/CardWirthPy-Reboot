@@ -588,7 +588,7 @@ def create_colorcell(size, color1, gradient, color2):
             pygame.draw.line(image, (r, g, b, a), (x, 0), (x, h), 1)
     elif gradient == "TopToBottom":
         for y in xrange(h):
-            per = float(y) / h
+            per = float(h - y) / h
             r = calc_per(color1[0], color2[0], per)
             g = calc_per(color1[1], color2[1], per)
             b = calc_per(color1[2], color2[2], per)
