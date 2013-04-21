@@ -84,24 +84,10 @@ class CWPyCard(base.SelectableSprite):
         self._update_reverse(True)
 
     def _update_reverse(self, draw):
-        def reverse():
-            # 表←→裏の画像切り替え
-            if self.reversed:
-                image = cw.cwpy.rsrc.cardbgs["REVERSE"]
-
-                if self.zoomimgs:
-                    image = pygame.transform.scale(image, self.zoomimgs[1][1].size)
-                elif not self.scale == 100:
-                    scale = self.scale / 100.0
-                    image = pygame.transform.rotozoom(image, 0, scale)
-
-                self._image = image
-            else:
-                self.update_image()
 
         if self.old_status == "hidden":
             self.reversed = not self.reversed
-            reverse()
+            self._reverse()
             self.status = "hidden"
             return
 
@@ -113,13 +99,31 @@ class CWPyCard(base.SelectableSprite):
                 cw.cwpy.tick_clock()
             self.reversed = not self.reversed
 
-            reverse()
+            self._reverse()
 
             if draw:
                 cw.animation.animate_sprite(self, "deal")
 
             if self.reversed:
                 self.status = "reversed"
+
+    def _reverse(self):
+        # 表←→裏の画像切り替え
+        if self.reversed:
+            image = cw.cwpy.rsrc.cardbgs["REVERSE"]
+
+            if self.zoomimgs:
+                image = pygame.transform.scale(image, self.zoomimgs[1][1].size)
+            elif not self.scale == 100:
+                scale = self.scale / 100.0
+                image = pygame.transform.rotozoom(image, 0, scale)
+
+            self._image = image
+
+            if not self.zoomimgs:
+                self.image = image
+        else:
+            self.update_image()
 
     def update_click(self):
         """
@@ -363,10 +367,7 @@ class CWPyCard(base.SelectableSprite):
 
         # リバース状態
         if self.reversed:
-            self.reversed = False
-            self.status = "reverse"
-            while self.status == "reverse":
-                self._update_reverse(False)
+            self._reverse()
 
     def clear_image(self, move=True):
         self.image = pygame.Surface(cw.s((0, 0))).convert()
