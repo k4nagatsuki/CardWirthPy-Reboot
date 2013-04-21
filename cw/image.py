@@ -146,12 +146,15 @@ class CardImage(Image):
         image = self.get_image()
         return cw.imageretouch.to_negative_for_card(image)
 
-    def get_clickedimg(self, rect=None):
+    def get_clickedimg(self, rect=None, image=None):
         if not rect:
             rect = self.rect
 
         size = (rect.w * 9 / 10, rect.h * 9 / 10)
-        negaimg = self.get_negaimg()
+        if image:
+            negaimg = image
+        else:
+            negaimg = self.get_negaimg()
         return pygame.transform.scale(negaimg, size)
 
     def get_wxclickedbmp(self):

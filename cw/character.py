@@ -1037,6 +1037,8 @@ class Character(object):
 
             for coupon in list(self.timedcoupons):
                 oldvalue, e = self.coupons[coupon]
+                if oldvalue == 0:
+                    continue
 
                 n = oldvalue + value
                 n = cw.util.numwrap(n, 0, 999)
@@ -1064,8 +1066,7 @@ class Character(object):
 
         # 時限クーポン
         if name.startswith(u"：") or name.startswith(u"；"):
-            if 0 < value:
-                self.timedcoupons.add(name)
+            self.timedcoupons.add(name)
 
         # 隠蔽クーポン
         if name == u"：Ｒ" and not self.is_reversed():
@@ -1084,9 +1085,7 @@ class Character(object):
 
         for coupon, data in self.coupons.iteritems():
             if coupon.startswith(u"：") or coupon.startswith(u"；"):
-                value = data[0]
-                if 0 < value:
-                    s.add(coupon)
+                s.add(coupon)
 
         return s
 
@@ -1114,18 +1113,18 @@ class Character(object):
         if name == u"：Ｒ" and self.is_reversed():
             if update:
                 cw.animation.animate_sprite(self, "reverse")
-                self.reversed = False
+            self.reversed = False
 
         return True
 
     def remove_timedcoupons(self, battleonly=False):
         """
-        時限クーポンを削除する。
+        時限クーポンを削除する。イメージは更新しない。
         battleonly: Trueの場合は"；"の時限クーポンのみ削除。
         """
-        for name in self.timedcoupons:
+        for name in set(self.timedcoupons):
             if not battleonly or name.startswith(u"；"):
-                self.remove_coupon(name)
+                self._remove_coupon(name, False)
 
     def remove_numbercoupon(self):
         """

@@ -979,7 +979,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         width = 37
     elif mode == 2:
         wrapschars = ""
-        width = 33
+        width = 32
     elif mode == 3:
         wrapschars = ""
         width = 43

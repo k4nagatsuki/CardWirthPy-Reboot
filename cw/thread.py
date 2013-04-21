@@ -420,7 +420,7 @@ class CWPy(_Singleton, threading.Thread):
             def func2(result, func, *args, **kwargs):
                 result[0] = func(*args, **kwargs)
                 isrun = False
-            self.exec_func(func2, result, func, args, kwargs)
+            self.exec_func(func2, result, func, *args, **kwargs)
             while isrun and self.frame.IsEnabled() and self.is_running():
                 time.sleep(0.001)
             return result[0]

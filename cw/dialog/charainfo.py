@@ -238,9 +238,15 @@ class ActiveCharaInfo(CharaInfo):
         self.ccard = cw.cwpy.selection
 
         if isinstance(cw.cwpy.selection, cw.character.Player):
-            self.list = cw.cwpy.get_pcards("unreversed")
+            if cw.cwpy.is_debugmode():
+                self.list = cw.cwpy.get_pcards()
+            else:
+                self.list = cw.cwpy.get_pcards("unreversed")
         elif isinstance(cw.cwpy.selection, cw.character.Enemy):
-            self.list = cw.cwpy.get_ecards("unreversed")
+            if cw.cwpy.is_debugmode():
+                self.list = cw.cwpy.get_ecards()
+            else:
+                self.list = cw.cwpy.get_ecards("unreversed")
         else:
             self.list = cw.cwpy.get_fcards()
 
@@ -431,8 +437,16 @@ class HistoryPanel(wx.ScrolledWindow):
         dlg = cw.debug.edit.CouponEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
-            self.draw(True)
-            self.Parent.Parent.toppanel.draw(True)
+            def func(panel):
+                def func(panel):
+                    try:
+                        panel.draw(True)
+                        panel.Parent.Parent.toppanel.draw(True)
+                    except:
+                        pass
+                cw.cwpy.frame.exec_func(func, panel)
+            cw.cwpy.exec_func(func, self)
+
 
     def OnPaint(self, event):
         dc = wx.BufferedPaintDC(self, self.buffer, wx.BUFFER_VIRTUAL_AREA)

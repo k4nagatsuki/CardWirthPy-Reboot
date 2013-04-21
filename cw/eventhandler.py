@@ -120,7 +120,10 @@ class EventHandler(object):
             if isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
                 seq = cw.cwpy.get_mcards("visible")
             else:
-                seq = cw.cwpy.get_pcards("unreversed")
+                if cw.cwpy.is_debugmode() and not cw.cwpy.selectedheader:
+                    seq = cw.cwpy.get_pcards()
+                else:
+                    seq = cw.cwpy.get_pcards("unreversed")
 
             if seq:
                 cw.cwpy.list = seq

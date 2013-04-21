@@ -176,7 +176,9 @@ class EventInterface(object):
         存在しなかったらランダムで選択して返す。
         """
         if not self._selectedmember or\
-                (not isinstance(self._selectedmember, cw.sprite.card.FriendCard) and\
+                (not isinstance(self._selectedmember, cw.sprite.card.EnemyCard) and\
+                 self._selectedmember.is_vanished()) or\
+                (isinstance(self._selectedmember, cw.sprite.card.EnemyCard) and\
                  self._selectedmember.status == "hidden"):
             self.set_selectedmember(self.get_randommember())
 

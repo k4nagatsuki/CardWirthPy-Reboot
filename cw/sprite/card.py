@@ -69,7 +69,10 @@ class CWPyCard(base.SelectableSprite):
         pass
 
     def update_reversed(self):
-        pass
+        # デバッグモード時は反転中でも選択可能
+        # ただしカード使用の選択対象にはならない
+        if cw.cwpy.is_debugmode() and not cw.cwpy.selectedheader:
+            self.update_selection()
 
     def update_hidden(self):
         pass
@@ -78,6 +81,9 @@ class CWPyCard(base.SelectableSprite):
         """
         カードをひっくり返す。
         """
+        self._update_reverse(True)
+
+    def _update_reverse(self, draw):
         def reverse():
             # 表←→裏の画像切り替え
             if self.reversed:
@@ -102,13 +108,15 @@ class CWPyCard(base.SelectableSprite):
         self.update_hide()
 
         if self.status == "hidden":
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock()
+            if draw:
+                cw.cwpy.draw()
+                cw.cwpy.tick_clock()
             self.reversed = not self.reversed
 
             reverse()
 
-            cw.animation.animate_sprite(self, "deal")
+            if draw:
+                cw.animation.animate_sprite(self, "deal")
 
             if self.reversed:
                 self.status = "reversed"
@@ -118,11 +126,14 @@ class CWPyCard(base.SelectableSprite):
         クリック時のアニメーションを呼び出すメソッド。
         """
         if self.frame == 0:
-            self.image = self.cardimg.get_clickedimg(self.get_animerect())
+            if self.reversed:
+                self.image = self.cardimg.get_clickedimg(self.get_animerect(), image=self.image)
+            else:
+                self.image = self.cardimg.get_clickedimg(self.get_animerect())
             self.rect = self.image.get_rect(center=self.get_animerect().center)
             self.status = "click"
         elif self.frame == 3:
-            self.status = "normal"
+            self.status = self.old_status
             self.image = self.get_selectedimage()
             self.rect = pygame.Rect(self.get_animerect())
             self.frame = 0
@@ -137,6 +148,8 @@ class CWPyCard(base.SelectableSprite):
         if self.frame >= len(cw.cwpy.setting.dealing_scales):
             self.status = "normal"
             self.image = self.get_animeimage()
+            if cw.cwpy.selection == self:
+                self.image = cw.imageretouch.to_negative_for_card(self.image)
             self.rect = pygame.Rect(self.get_animerect())
             self.frame = 0
             return
@@ -145,6 +158,11 @@ class CWPyCard(base.SelectableSprite):
         rect = self.get_animerect()
         size = rect.w * n / 100, rect.h
         self.image = pygame.transform.scale(self.get_animeimage(), size)
+
+        # 反転表示中
+        if cw.cwpy.selection == self:
+            self.image = cw.imageretouch.to_negative_for_card(self.image)
+
         self.rect = self.image.get_rect(center=rect.center)
         if self.highspeed:
             self.frame += 2
@@ -165,6 +183,11 @@ class CWPyCard(base.SelectableSprite):
         rect = self.get_animerect()
         size = rect.w * n / 100, rect.h
         self.image = pygame.transform.scale(self.get_animeimage(), size)
+
+        # 反転表示中
+        if cw.cwpy.selection == self:
+            self.image = cw.imageretouch.to_negative_for_card(self.image)
+
         self.rect = self.image.get_rect(center=rect.center)
         if self.highspeed:
             self.frame += 2
@@ -337,6 +360,13 @@ class CWPyCard(base.SelectableSprite):
                 self.zoomimgs[i+1] = image, rect
             self.image = self.zoomimgs[-1][0]
             self.rect = pygame.Rect(self.zoomimgs[-1][1])
+
+        # リバース状態
+        if self.reversed:
+            self.reversed = False
+            self.status = "reverse"
+            while self.status == "reverse":
+                self._update_reverse(False)
 
     def clear_image(self, move=True):
         self.image = pygame.Surface(cw.s((0, 0))).convert()

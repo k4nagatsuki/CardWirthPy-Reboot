@@ -300,16 +300,18 @@ class CouponEditDialog(wx.Dialog):
 
     def OnOkBtn(self, event):
         cw.cwpy.sounds["harvest"].play()
-        for i, pcard in enumerate(self.pcards):
-            list = self.coupons[i]
-            # システムクーポン以外を一旦除去
-            for name in pcard.get_coupons():
-                if not (name.startswith(u"＠") or name in self.syscoupons):
-                    pcard.remove_coupon(name)
-            # クーポン追加
-            list.reverse()
-            for coupon in list:
-                pcard.set_coupon(coupon[0], coupon[1])
+        def func(pcards, coupons, syscoupons):
+            for i, pcard in enumerate(pcards):
+                list = coupons[i]
+                # システムクーポン以外を一旦除去
+                for name in pcard.get_coupons():
+                    if not (name.startswith(u"＠") or name in syscoupons):
+                        pcard.remove_coupon(name)
+                # クーポン追加
+                list.reverse()
+                for coupon in list:
+                    pcard.set_coupon(coupon[0], coupon[1])
+        cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons)
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
@@ -603,8 +605,10 @@ class GossipEditDialog(ListEditDialog):
     def OnOkBtn(self, event):
         cw.cwpy.sounds["harvest"].play()
         cw.cwpy.ydata.clear_gossips()
-        for name in self.list:
-            cw.cwpy.ydata.set_gossip(name)
+        def func(list):
+            for name in list:
+                cw.cwpy.ydata.set_gossip(name)
+        cw.cwpy.exec_func(func, self.list)
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
@@ -616,8 +620,10 @@ class CompStampEditDialog(ListEditDialog):
     def OnOkBtn(self, event):
         cw.cwpy.sounds["harvest"].play()
         cw.cwpy.ydata.clear_compstamps()
-        for name in self.list:
-            cw.cwpy.ydata.set_compstamp(name)
+        def func(list):
+            for name in list:
+                cw.cwpy.ydata.set_compstamp(name)
+        cw.cwpy.exec_func(func, self.list)
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
