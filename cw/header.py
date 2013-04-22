@@ -185,6 +185,7 @@ class CardHeader(object):
                 path = cw.util.join_yadodir(path)
 
         imgpath = path
+        # TODO scaleinfo
         self._cardimg = cw.image.CardImage(imgpath, self.get_bgtype(),
                                                     self.name, self.premium)
         self.rect = pygame.Rect(self.rect)
@@ -580,6 +581,7 @@ class InfoCardHeader(object):
         path = data.gettext("ImagePath", "")
         if not cw.binary.image.path_is_code(path):
             path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        # TODO scaleinfo
         self.cardimg = cw.image.CardImage(path, "INFO", self.name)
         self.rect = self.cardimg.rect
         # cardcontrolダイアログで使うフラグ
@@ -882,10 +884,10 @@ class ScenarioHeader(object):
     def get_wxbmp(self, mask=True):
         if not self._wxbmp:
             if self.image:
-                f = io.BytesIO(str(self.image))
-                image = cw.s((wx.ImageFromStream(f), cw.SIZE_CARDIMAGE))
-                f.close()
-                self._wxbmp = cw.s((cw.util.load_wxbmp(image=image, mask=mask), cw.SIZE_CARDIMAGE))
+                with io.BytesIO(str(self.image)) as f:
+                    # TODO scaleinfo
+                    image = cw.s((wx.ImageFromStream(f), cw.SIZE_CARDIMAGE))
+                self._wxbmp = cw.util.load_wxbmp(image=image, mask=mask)
             else:
                 self._wxbmp = wx.EmptyBitmap(cw.s(0), cw.s(0))
         return self._wxbmp

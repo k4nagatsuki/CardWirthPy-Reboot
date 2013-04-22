@@ -13,12 +13,22 @@ import cw
 
 class Frame(wx.Frame):
     def __init__(self, skindirname=""):
+        # 設定
+        setting = cw.setting.Setting()
+        if setting.is_expanded:
+            if setting.expandmode <> "FullScreen":
+                try:
+                    cw.UP_SCR = float(setting.expandmode)
+                except:
+                    pass
+
         # トップフレーム
         self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU\
                                                             |wx.SIMPLE_BORDER
         wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
         self.thread = threading.currentThread()
         self.SetClientSize(cw.s(cw.SIZE_GAME))
+
         # SDLを描画するパネル
         self.panel = wx.Panel(self, -1, size=cw.s(cw.SIZE_GAME), style=wx.NO_BORDER)
         os.environ["SDL_WINDOWID"] = str(self.panel.GetHandle())
@@ -33,8 +43,6 @@ class Frame(wx.Frame):
         self.set_icon(self)
         # bind
         self._bind()
-        # 設定
-        setting = cw.setting.Setting()
         if skindirname:
             setting.skindirname = skindirname
             setting.write()

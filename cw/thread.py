@@ -42,7 +42,11 @@ class CWPy(_Singleton, threading.Thread):
         self.status = "Title"
 
         # pygame初期化
-        self.scr, self.clock = cw.util.init(cw.s(cw.SIZE_SCR))
+        fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
+        self.scr, self.clock = cw.util.init(cw.SIZE_SCR, "", fullscreen)
+        if fullscreen:
+            func = self.frame.ShowFullScreen
+            self.frame.exec_func(func, True)
         # 背景
         self.background = None
         # ステータスバー
@@ -454,14 +458,20 @@ class CWPy(_Singleton, threading.Thread):
                 if flag:
                     self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), FULLSCREEN)
                     func = self.frame.ShowFullScreen
-                    self.frame.exec_func(func, True, wx.FULLSCREEN_ALL)
+                    self.frame.exec_func(func, True)
                 else:
                     self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), 0)
                     func = self.frame.ShowFullScreen
-                    self.frame.exec_func(func, False, self.frame.style)
+                    self.frame.exec_func(func, False)
 
                 while not self.frame.IsFullScreen() == flag:
                     pass
+
+                # 一度マウスポインタを画面外へ出さないと
+                # フォーカスを失うことがある
+                pos = pygame.mouse.get_pos()
+                pygame.mouse.set_pos([-1, -1])
+                pygame.mouse.set_pos(pos)
 
         else:
             # 拡大

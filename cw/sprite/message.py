@@ -110,6 +110,7 @@ class MessageWindow(base.CWPySprite):
             self.talker_image = cw.s(self.talker_image_noscale)
         elif self.path:
             self.talker_image_noscale = cw.util.load_image(self.path, True)
+            # TODO scaleinfo
             self.talker_image = cw.s((self.talker_image_noscale, cw.SIZE_CARDIMAGE))
         else:
             self.talker_image_noscale = None

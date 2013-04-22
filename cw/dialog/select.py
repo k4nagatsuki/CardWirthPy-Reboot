@@ -2101,17 +2101,15 @@ class ScenarioSelect(Select):
                                 os.remove(file)
 
                 else:
-                    z = zipfile.ZipFile(path, "r")
-                    names = [name for name in z.namelist() if name.lower().endswith(".txt")]
+                    with zipfile.ZipFile(path, "r") as z:
+                        names = [name for name in z.namelist() if name.lower().endswith(".txt")]
 
-                    for name in names:
-                        data = z.read(name)
-                        seq2.append(data)
-                        name = os.path.basename(name)
-                        name = cw.util.decode_zipname(name)
-                        seq.append(name)
-
-                    z.close()
+                        for name in names:
+                            data = z.read(name)
+                            seq2.append(data)
+                            name = os.path.basename(name)
+                            name = cw.util.decode_zipname(name)
+                            seq.append(name)
 
             else:
 

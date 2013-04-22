@@ -299,10 +299,9 @@ def read_summary(path):
         f = None
         try:
             spath = os.path.join(path, "Summary.wsm")
-            f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
-            return read_summary_classic(path, spath, f)
+            with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
+                return read_summary_classic(path, spath, f)
         except:
-            if f: f.close()
             return None
 
     if path.lower().endswith(".cab"):
@@ -318,10 +317,9 @@ def read_summary(path):
                     spath = cw.util.join_paths(dpath, os.listdir(dpath)[0])
                     f = None
                     try:
-                        f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
-                        return read_summary_classic(path, path, f)
+                        with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
+                            return read_summary_classic(path, path, f)
                     finally:
-                        if f: f.close()
                         os.remove(spath)
                 else:
                     return None
@@ -351,9 +349,8 @@ def read_summary(path):
     scedir = os.path.dirname(name)
     scedir = cw.util.decode_zipname(scedir)
     fdata = z.read(name)
-    f = StringIO.StringIO(fdata)
-    e = cw.data.xml2element(path, "Property", file=f)
-    f.close()
+    with StringIO.StringIO(fdata) as f:
+        e = cw.data.xml2element(path, "Property", file=f)
 
     try:
         imgpath, summaryinfos = parse_summarydata(e, TYPE_WSN, True)

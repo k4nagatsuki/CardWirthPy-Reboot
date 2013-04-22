@@ -33,7 +33,7 @@ class Image(object):
 #-------------------------------------------------------------------------------
 
 class CardImage(Image):
-    def __init__(self, path, bgtype, name="", premium=""):
+    def __init__(self, path, bgtype, name="", premium="", scaleinfo=None):
         """
         カード画像と背景画像とカード名を合成・加工し、
         wxPythonとPygame両方で使える画像オブジェクトを生成する。
@@ -44,6 +44,7 @@ class CardImage(Image):
         # FIXME: 画像ファイル読み込みにディスクキャッシュをきかすため。
         cw.util.load_image(path)
         self.premium = premium
+        self.scaleinfo = scaleinfo
         self.update_scale()
 
     def update_scale(self):
@@ -71,7 +72,7 @@ class CardImage(Image):
         if not path:
             path = self.path
 
-        subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE))
+        subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
         image.blit(subimg, cw.s((3, 13)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         subimg = font.render(self.name, True, (0, 0, 0))
@@ -169,8 +170,8 @@ class CardImage(Image):
         pass
 
 class LargeCardImage(CardImage):
-    def __init__(self, path, bgtype, name="", premium=""):
-        CardImage.__init__(self, path, "LARGE", name, premium)
+    def __init__(self, path, bgtype, name="", premium="", scaleinfo=None):
+        CardImage.__init__(self, path, "LARGE", name, premium, scaleinfo)
 
     def get_image(self):
         image = self.cardbg.copy()
@@ -185,7 +186,7 @@ class LargeCardImage(CardImage):
             image.blit(subimg, cw.s((64, 5)))
             image.blit(subimg, cw.s((5, 41)))
 
-        subimg = cw.s((cw.util.load_image(self.path, True), cw.SIZE_CARDIMAGE))
+        subimg = cw.s((cw.util.load_image(self.path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
         image.blit(subimg, cw.s((10, 23)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         subimg = font.render(self.name, True, (0, 0, 0))
@@ -199,9 +200,10 @@ class LargeCardImage(CardImage):
         return image
 
 class CharacterCardImage(CardImage):
-    def __init__(self, ccard, pos_noscale=(0, 0)):
+    def __init__(self, ccard, pos_noscale=(0, 0), scaleinfo=None):
         self.ccard = ccard
         self._pos_noscale = pos_noscale
+        self.scaleinfo = scaleinfo
         self.update_scale()
 
     def update_scale(self):
@@ -221,7 +223,7 @@ class CharacterCardImage(CardImage):
 
     def set_faceimg(self, path):
         self.path = path
-        self.cardimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE))
+        self.cardimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
 
     def set_nameimg(self, name):
         font = cw.cwpy.rsrc.fonts["pcard_name"]

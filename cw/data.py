@@ -253,6 +253,9 @@ class ScenarioData(SystemData):
                 self.tempdir, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
                 materialdir="", image_export=False)
 
+        # 特殊文字の画像パスの集合(正規表現)
+        self._r_specialchar = re.compile(r"font_(.)[.].*$")
+
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
 
@@ -350,19 +353,10 @@ class ScenarioData(SystemData):
         self.skills = {}
         self.beasts = {}
 
-        # 特殊文字の画像パスの集合(正規表現)
-        r_specialchar = re.compile(r"font_(.)[.].*$")
-
         for dpath, dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 # "font_*.*"のファイルパスの画像を特殊文字に指定
-                if r_specialchar.match(fname.lower()):
-                    m = r_specialchar.match(fname.lower())
-                    path = cw.util.join_paths(dpath, fname)
-                    image = cw.s(cw.util.load_image(path, True))
-                    name = "#%s" % (m.group(1))
-                    cw.cwpy.rsrc.specialchars[name] = (image, True)
-                    cw.cwpy.rsrc.specialchars_is_changed = True
+                if self._eat_spchar(dpath, fname):
                     continue
                 else:
                     lf = fname.lower()
@@ -427,17 +421,24 @@ class ScenarioData(SystemData):
         # 特殊文字の画像パスの集合(正規表現)
         SystemData.update_scale(self)
 
-        r_specialchar = re.compile(r"font_(.)[.].*$")
         for dpath, dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
-                # "font_*.*"のファイルパスの画像を特殊文字に指定
-                if r_specialchar.match(fname.lower()):
-                    m = r_specialchar.match(fname.lower())
-                    path = cw.util.join_paths(dpath, fname)
-                    image = cw.s(cw.util.load_image(path, True))
-                    name = "#%s" % (m.group(1))
-                    cw.cwpy.rsrc.specialchars[name] = (image, True)
-                    cw.cwpy.rsrc.specialchars_is_changed = True
+                self._eat_spchar(dpath, fname)
+
+    def _eat_spchar(dpath, fname):
+        # "font_*.*"のファイルパスの画像を特殊文字に指定
+        if self._r_specialchar.match(fname.lower()):
+            m = self._r_specialchar.match(fname.lower())
+            path = cw.util.join_paths(dpath, fname)
+            # TODO scaleinfo
+            image = cw.s(cw.util.load_image(path, True))
+            name = "#%s" % (m.group(1))
+            cw.cwpy.rsrc.specialchars[name] = (image, True)
+            cw.cwpy.rsrc.specialchars_is_changed = True
+            return True
+
+        else:
+            return False
 
     def _init_flags(self):
         """

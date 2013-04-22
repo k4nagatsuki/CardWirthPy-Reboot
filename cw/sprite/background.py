@@ -341,6 +341,7 @@ class BattleCardImage(card.CWPyCard):
         card.CWPyCard.__init__(self, "hidden")
         path = "Resource/Image/Card/BATTLE" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
+        # TODO scaleinfo
         cardimg = cw.image.CardImage(path, "ACTION", u"")
         image = cardimg.get_image()
         self.image = self._image = self.image_unzoomed = image

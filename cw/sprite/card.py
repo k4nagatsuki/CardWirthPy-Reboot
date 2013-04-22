@@ -418,6 +418,7 @@ class PlayerCard(CWPyCard, character.Player):
         path = self.data.gettext("Property/ImagePath", "")
         self.imgpath = cw.util.join_yadodir(path)
 
+        # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale)
         self.update_image()
         # 空のイメージ
@@ -621,6 +622,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.imgpath = path
         else:
             self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale)
         self.update_image()
         # 空のイメージ
@@ -693,6 +695,7 @@ class FriendCard(CWPyCard, character.Friend):
             self.imgpath = path
         else:
             self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self)
         self.update_image()
         # 空のイメージ
@@ -771,8 +774,10 @@ class MenuCard(CWPyCard):
                 path = cw.util.join_paths(cw.cwpy.skindir, path)
 
         if data.tag == "LargeMenuCard":
+            # TODO scaleinfo
             self.cardimg = cw.image.LargeCardImage(path, "NORMAL", self.name)
         else:
+            # TODO scaleinfo
             self.cardimg = cw.image.CardImage(path, "NORMAL", self.name)
 
         self.update_image()

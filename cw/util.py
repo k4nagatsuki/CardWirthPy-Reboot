@@ -174,14 +174,15 @@ class SoundInterface(object):
 #　汎用関数
 #-------------------------------------------------------------------------------
 
-def init(size=None, title=""):
+def init(size_noscale=None, title="", fullscreen=False):
     """pygame初期化。"""
-    if size is None:
-        size = cw.SIZE_SCR
-    size = cw.s(size)
+    size = cw.s(size_noscale)
     pygame.mixer.pre_init(22050, -16, 2, 1024)
     pygame.init()
-    scr = pygame.display.set_mode(size)
+    flags = 0
+    if fullscreen:
+        flags = FULLSCREEN
+    scr = pygame.display.set_mode(size, flags)
     clock = pygame.time.Clock()
 
     if title:
@@ -216,17 +217,13 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None):
         elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
             #return pygame.Surface((0, 0)).convert()
-            f = io.BytesIO(data)
-            image = pygame.image.load(f)
-            f.close()
+            with io.BytesIO(data) as f:
+                image = pygame.image.load(f)
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
-            f = io.BufferedReader(io.FileIO(path))
-            try:
+            with io.BufferedReader(io.FileIO(path)) as f:
                 image = pygame.image.load(f)
-            finally:
-                f.close()
     except:
         print u"画像が読み込めません", path
         return pygame.Surface((0, 0)).convert()
@@ -331,11 +328,8 @@ def load_bgm(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        f = io.BufferedReader(io.FileIO(path))
-        try:
+        with io.BufferedReader(io.FileIO(path)) as f:
             pygame.mixer.music.load(f)
-        finally:
-            f.close()
     except:
         print u"BGMが読み込めません", path
         return
@@ -355,9 +349,8 @@ def load_sound(path):
         if sys.platform == "win32" and path.lower().endswith(".wav"):
             sound = SoundInterface(path)
         else:
-            f = io.BufferedReader(io.FileIO(path))
-            sound = pygame.mixer.Sound(f)
-            f.close()
+            with io.BufferedReader(io.FileIO(path)) as f:
+                sound = pygame.mixer.Sound(f)
             sound = SoundInterface(sound)
     except:
         print u"サウンドが読み込めません", path
@@ -839,12 +832,10 @@ def read_zipdata(zfile, name):
     return data
 
 def get_elementfromzip(zpath, name, tag=""):
-    z = zipfile.ZipFile(zpath, "r")
-    data = read_zipdata(z, name)
-    z.close()
-    f = StringIO.StringIO(data)
-    element = cw.data.xml2element(name, tag, file=f)
-    f.close()
+    with zipfile.ZipFile(zpath, "r") as z:
+        data = read_zipdata(z, name)
+    with StringIO.StringIO(data) as f:
+        element = cw.data.xml2element(name, tag, file=f)
     return element
 
 def decompress_cab(path, dstdir, dname="", avoiddup=False):
@@ -893,8 +884,7 @@ def cab_hasfile(cab, file):
     file = os.path.normcase(file)
     encoding = sys.getfilesystemencoding()
     try:
-        f = io.BufferedReader(io.FileIO(cab, "rb"))
-        try:
+        with io.BufferedReader(io.FileIO(cab, "rb")) as f:
             # ヘッダ
             buf = f.read(36)
             if buf[:4] <> "MSCF":
@@ -919,8 +909,6 @@ def cab_hasfile(cab, file):
                     name = unicode(name, encoding);
                 if file == os.path.normcase(os.path.basename(name)):
                     return True
-        finally:
-            f.close()
     except Exception, ex:
         print ex
     return False
@@ -1091,9 +1079,8 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
                     image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
                 elif cw.binary.image.path_is_code(name):
                     data = cw.binary.image.code_to_data(name)
-                    f = io.BytesIO(data)
-                    image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
-                    f.close()
+                    with io.BytesIO(data) as f:
+                        image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
                 else:
                     image = wx.Image(name, wx.BITMAP_TYPE_ANY, -1)
             except:

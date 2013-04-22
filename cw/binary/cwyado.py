@@ -286,31 +286,30 @@ class CWYado(object):
 
     def load_yadofile(self, path):
         """ファイル("wch", "wcp", "wpl", "wpt", "wyd", "wrm")を読み込む。"""
-        f = cwfile.CWFile(path, "rb")
+        with cwfile.CWFile(path, "rb") as f:
 
-        if path.endswith(".wyd"):
-            data = environment.Environment(None, f, True)
-            data.skintype = self.skintype
-            self.wyd = data
-        elif path.endswith(".wch"):
-            data = adventurer.AdventurerHeader(None, f, True)
-            self.wchs.append(data)
-        elif path.endswith(".wcp"):
-            data = adventurer.AdventurerCard(None, f, True)
-            self.wcps.append(data)
-        elif path.endswith(".wrm"):
-            data = album.Album(None, f, True)
-            self.wrms.append(data)
-        elif path.endswith(".wpl"):
-            data = party.Party(None, f, True)
-            self.wpls.append(data)
-        elif path.endswith(".wpt"):
-            data = party.PartyMembers(None, f, True)
-            self.wpts.append(data)
-        else:
-            raise ValueError(path)
+            if path.endswith(".wyd"):
+                data = environment.Environment(None, f, True)
+                data.skintype = self.skintype
+                self.wyd = data
+            elif path.endswith(".wch"):
+                data = adventurer.AdventurerHeader(None, f, True)
+                self.wchs.append(data)
+            elif path.endswith(".wcp"):
+                data = adventurer.AdventurerCard(None, f, True)
+                self.wcps.append(data)
+            elif path.endswith(".wrm"):
+                data = album.Album(None, f, True)
+                self.wrms.append(data)
+            elif path.endswith(".wpl"):
+                data = party.Party(None, f, True)
+                self.wpls.append(data)
+            elif path.endswith(".wpt"):
+                data = party.PartyMembers(None, f, True)
+                self.wpts.append(data)
+            else:
+                raise ValueError(path)
 
-        f.close()
         return data
 
     def load_cardfile(self, path, d):
@@ -318,21 +317,20 @@ class CWYado(object):
         読み込みに際し、wydファイルから作成できる
         ファイルネームでカードの種類を判別する辞書が必要。
         """
-        f = cwfile.CWFile(path, "rb")
-        # 1:スキル, 2:アイテム, 3:召喚獣
-        fname = os.path.basename(path)
-        type = d.get(os.path.splitext(fname)[0])
+        with cwfile.CWFile(path, "rb") as f:
+            # 1:スキル, 2:アイテム, 3:召喚獣
+            fname = os.path.basename(path)
+            type = d.get(os.path.splitext(fname)[0])
 
-        if type == 1:
-            data = skill.SkillCard(None, f, True)
-        elif type == 2:
-            data = item.ItemCard(None, f, True)
-        elif type == 3:
-            data = beast.BeastCard(None, f, True)
-        else:
-            raise ValueError(path)
+            if type == 1:
+                data = skill.SkillCard(None, f, True)
+            elif type == 2:
+                data = item.ItemCard(None, f, True)
+            elif type == 3:
+                data = beast.BeastCard(None, f, True)
+            else:
+                raise ValueError(path)
 
-        f.close()
         return data
 
     def create_log(self, party, partymembers):
@@ -507,16 +505,13 @@ class UnconvCWYado(object):
         def write_card(header):
             data = cw.data.xml2element(header.fpath)
             fpath = create_fpath(header.name, ".wid")
-            f = cwfile.CWFileWriter(fpath, "wb")
-            try:
+            with cwfile.CWFileWriter(fpath, "wb") as f:
                 if header.type == "SkillCard":
                     skill.SkillCard.unconv(f, data, False)
                 elif header.type == "ItemCard":
                     item.ItemCard.unconv(f, data, False)
                 elif header.type == "BeastCard":
                     beast.BeastCard.unconv(f, data, False)
-            finally:
-                f.close()
             return data, fpath
 
         if not os.path.isdir(self.dir):
@@ -547,18 +542,12 @@ class UnconvCWYado(object):
                 data = cw.data.xml2element(header.fpath)
 
                 ppath = create_fpath(header.name, ".wcp")
-                f = cwfile.CWFileWriter(ppath, "wb")
-                try:
+                with cwfile.CWFileWriter(ppath, "wb") as f:
                     adventurer.AdventurerCard.unconv(f, data)
-                finally:
-                    f.close()
 
                 hpath = create_fpath(header.name, ".wch")
-                f = cwfile.CWFileWriter(hpath, "wb")
-                try:
+                with cwfile.CWFileWriter(hpath, "wb") as f:
                     adventurer.AdventurerHeader.unconv(f, data, ppath)
-                finally:
-                    f.close()
 
             except Exception, ex:
                 print ex
@@ -621,18 +610,12 @@ class UnconvCWYado(object):
                 atbl["adventurers"] = atbl
 
                 fpath = create_fpath(pt.name, ".wpl")
-                f = cwfile.CWFileWriter(fpath, "wb")
-                try:
+                with cwfile.CWFileWriter(fpath, "wb") as f:
                     party.Party.unconv(f, pt.data.find("."), atbl, scenarioname)
-                finally:
-                    f.close()
 
                 fpath = create_fpath(pt.name, ".wpt")
-                f = cwfile.CWFileWriter(fpath, "wb")
-                try:
+                with cwfile.CWFileWriter(fpath, "wb") as f:
                     party.PartyMembers.unconv(f, pt, table, logdir)
-                finally:
-                    f.close()
 
                 if partyheader.fpath.lower().startswith("yado"):
                     relpath = os.path.relpath(partyheader.fpath, yadodir)
@@ -659,11 +642,8 @@ class UnconvCWYado(object):
                 data = cw.data.xml2element(header.fpath)
 
                 fpath = create_fpath(header.name, ".wrm")
-                f = cwfile.CWFileWriter(fpath, "wb")
-                try:
+                with cwfile.CWFileWriter(fpath, "wb") as f:
                     album.Album.unconv(f, data)
-                finally:
-                    f.close()
 
             except Exception, ex:
                 print ex
@@ -676,11 +656,8 @@ class UnconvCWYado(object):
         try:
             data = self.ydata.environment.find(".")
             fpath = cw.util.join_paths(self.dir, "Environment.wyd")
-            f = cwfile.CWFileWriter(fpath, "wb")
-            try:
+            with cwfile.CWFileWriter(fpath, "wb") as f:
                 environment.Environment.unconv(f, data, table)
-            finally:
-                f.close()
 
         except Exception, ex:
             print ex
