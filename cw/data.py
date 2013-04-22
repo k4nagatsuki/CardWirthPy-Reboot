@@ -425,7 +425,7 @@ class ScenarioData(SystemData):
             for fname in fnames:
                 self._eat_spchar(dpath, fname)
 
-    def _eat_spchar(dpath, fname):
+    def _eat_spchar(self, dpath, fname):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         if self._r_specialchar.match(fname.lower()):
             m = self._r_specialchar.match(fname.lower())
