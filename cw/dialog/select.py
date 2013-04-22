@@ -59,10 +59,32 @@ class Select(wx.Dialog):
         def empty(event):
             pass
         self.toppanel.Bind(wx.EVT_ERASE_BACKGROUND, empty)
-        self.toppanel.Bind(wx.EVT_MIDDLE_UP, self.OnSelect)
-        self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnSelect)
+        self.toppanel.Bind(wx.EVT_MIDDLE_UP, self.OnSelectBase)
+        self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnSelectBase)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.toppanel.Bind(wx.EVT_MOTION, self.OnMotion)
+
+    def OnMotion(self, evt):
+        self._update_mousepos()
+
+    def _update_mousepos(self):
+        if not self.can_clickside():
+            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            self.clickmode = 0
+            return
+
+        rect = self.toppanel.GetClientRect()
+        x, y = self.toppanel.ScreenToClient(wx.GetMousePosition())
+        if x < rect.x + rect.width / 4 and self.leftbtn.IsEnabled():
+            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_POINT_LEFT))
+            self.clickmode = wx.LEFT
+        elif rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled():
+            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_POINT_RIGHT))
+            self.clickmode = wx.RIGHT
+        else:
+            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            self.clickmode = 0
 
     def OnClickLeftBtn(self, evt):
         if self.index == 0:
@@ -114,6 +136,17 @@ class Select(wx.Dialog):
         else:
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
             self.ProcessEvent(btnevent)
+
+    def OnSelectBase(self, event):
+        self._update_mousepos()
+        if self.clickmode == wx.LEFT and self.leftbtn.IsEnabled():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
+            self.ProcessEvent(btnevent)
+        elif self.clickmode == wx.RIGHT and self.rightbtn.IsEnabled():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
+            self.ProcessEvent(btnevent)
+        else:
+            self.OnSelect(event)
 
     def OnSelect(self, event):
         if not self.list:
@@ -190,6 +223,10 @@ class Select(wx.Dialog):
 
         for btn in self.buttonlist:
             btn.Enable()
+
+    def can_clickside(self):
+        """パネルの左右クリックでページ切替可能ならTrue。"""
+        return True
 
 #-------------------------------------------------------------------------------
 #　宿選択ダイアログ
@@ -884,9 +921,12 @@ class PlayerSelect(Select):
             cw.cwpy.ydata.sort_standbys()
             self.draw(True)
 
+    def can_clickside(self):
+        return self.views <= 1
+
     def OnLeftDClick(self, event):
         # 一覧表示の場合はダブルクリックで編入
-        if not self.list or len(cw.cwpy.get_pcards()) == 6:
+        if self.views <= 1 or not self.list or len(cw.cwpy.get_pcards()) == 6:
             return
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_ADD)
         self.ProcessEvent(btnevent)
