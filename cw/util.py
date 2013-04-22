@@ -834,8 +834,11 @@ def read_zipdata(zfile, name):
 def get_elementfromzip(zpath, name, tag=""):
     with zipfile.ZipFile(zpath, "r") as z:
         data = read_zipdata(z, name)
-    with StringIO.StringIO(data) as f:
+    f = StringIO.StringIO(data)
+    try:
         element = cw.data.xml2element(name, tag, file=f)
+    finally:
+        f.close()
     return element
 
 def decompress_cab(path, dstdir, dname="", avoiddup=False):

@@ -349,8 +349,11 @@ def read_summary(path):
     scedir = os.path.dirname(name)
     scedir = cw.util.decode_zipname(scedir)
     fdata = z.read(name)
-    with StringIO.StringIO(fdata) as f:
+    f = StringIO.StringIO(fdata)
+    try:
         e = cw.data.xml2element(path, "Property", file=f)
+    finally:
+        f.close()
 
     try:
         imgpath, summaryinfos = parse_summarydata(e, TYPE_WSN, True)
