@@ -915,9 +915,10 @@ class CWPy(_Singleton, threading.Thread):
 # エリアチェンジ関係メソッド
 #-------------------------------------------------------------------------------
 
-    def deal_cards(self):
+    def deal_cards(self, quickdeal=False):
         """hidden状態のMenuCard(対応フラグがFalseだったら表示しない)と
         PlayerCardを全て表示する。
+        quickdeal: 前カードを同時に表示する。
         """
         self._dealing = True
 
@@ -934,13 +935,20 @@ class CWPy(_Singleton, threading.Thread):
             mcards = self.get_mcards("flagtrue")
             flag = bool(self.areaid == cw.AREA_CAMP and self.sdata.friendcards)
             if self.is_battlestatus():
-                self.set_autospread(mcards, 6, flag)
+                self.set_autospread(mcards, 6, flag, anime=False)
             else:
-                self.set_autospread(mcards, 8, flag)
+                self.set_autospread(mcards, 8, flag, anime=False)
 
+        deals = []
         for mcard in mcardsinv:
             if self.sdata.flags.get(mcard.flag, True):
-                cw.animation.animate_sprite(mcard, "deal")
+                if quickdeal:
+                    deals.append(mcard)
+                else:
+                    cw.animation.animate_sprite(mcard, "deal")
+
+        if quickdeal:
+            cw.animation.animate_sprites(deals, "deal")
 
         # list, indexセット
         if not self.is_showingmessage():
@@ -951,7 +959,7 @@ class CWPy(_Singleton, threading.Thread):
         self._dealing = False
         self.wait_showcards = False
 
-    def hide_cards(self, hideall=False, hideparty=True):
+    def hide_cards(self, hideall=False, hideparty=True, quickhide=False):
         """
         カードを非表示にする(表示中だったカードはhidden状態になる)。
         各カードのhidecards()の最後に呼ばれる。
@@ -962,11 +970,15 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_selection()
 
         # メニューカードを下げる
-        for mcard in self.get_mcards("visible"):
+        mcards = self.get_mcards("visible")
+        for mcard in mcards:
             if hideall or not self.sdata.flags.get(mcard.flag, True):
                 if mcard.inusecardimg:
                     self.clear_inusecardimg(mcard)
-                cw.animation.animate_sprite(mcard, "hide")
+                if not quickhide:
+                    cw.animation.animate_sprite(mcard, "hide")
+        if quickhide:
+            cw.animation.animate_sprites(mcards, "hide")
 
         # プレイヤカードを下げる
         if self.ydata and hideparty:
@@ -1150,7 +1162,8 @@ class CWPy(_Singleton, threading.Thread):
             pcard.cardimg.rect[0] = x
 
     def change_area(self, areaid, eventstarting=True,
-                          bginhrt=False, ttype=("Default", "Default")):
+                          bginhrt=False, ttype=("Default", "Default"),
+                          quickdeal=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -1162,7 +1175,7 @@ class CWPy(_Singleton, threading.Thread):
         self.areaid = areaid
         self.sdata.change_data(areaid)
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
-        cw.cwpy.hide_cards(True)
+        cw.cwpy.hide_cards(True, quickhide=quickdeal)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype)
 
         if not self.is_playingscenario() and not self.is_showparty:
@@ -1179,7 +1192,7 @@ class CWPy(_Singleton, threading.Thread):
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
             if not self.wait_showcards:
-                self.deal_cards()
+                self.deal_cards(quickdeal=quickdeal)
             else:
                 self.draw()
 
@@ -1188,7 +1201,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self.sdata.start_event(keynum=1)
         else:
-            self.deal_cards()
+            self.deal_cards(quickdeal=quickdeal)
             self.show_party()
 
     def change_battlearea(self, areaid):
@@ -1258,7 +1271,11 @@ class CWPy(_Singleton, threading.Thread):
 
             # パーティ解散・キャンプエリア移動の場合はエリアチェンジ
             if areaid in (cw.AREA_BREAKUP, cw.AREA_CAMP):
-                self.change_area(areaid)
+                if cw.cwpy.ydata:
+                    changed = cw.cwpy.ydata.is_changed()
+                self.change_area(areaid, quickdeal=True)
+                if cw.cwpy.ydata:
+                    cw.cwpy.ydata._changed = changed
             else:
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
@@ -1331,7 +1348,11 @@ class CWPy(_Singleton, threading.Thread):
                 self.list = self.get_mcards("visible")
                 self.index = -1
             else:
-                self.change_area(areaid)
+                if cw.cwpy.ydata:
+                    changed = cw.cwpy.ydata.is_changed()
+                self.change_area(areaid, quickdeal=True)
+                if cw.cwpy.ydata:
+                    cw.cwpy.ydata._changed = changed
         elif self.is_battlestatus():
             self.clear_curtain()
             self.selectedheader = None
