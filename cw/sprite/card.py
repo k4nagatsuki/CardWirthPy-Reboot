@@ -24,7 +24,7 @@ class CWPyCard(base.SelectableSprite):
         self.frame = 0
         # ズーム画像のリスト。(Surfaice, Rect)のタプル。
         self.zoomimgs = []
-        self.zoomsize = cw.s((16, 21))
+        self.zoomsize_noscale = (16, 21)
         # 裏返し状態か否か
         self.reversed = False
         # カード使用のターゲットか否か
@@ -234,7 +234,7 @@ class CWPyCard(base.SelectableSprite):
         if self.frame == 0:
             self.zoomimgs.append((self.get_animeimage(), pygame.Rect(self.get_animerect())))
 
-        zoom_w, zoom_h = self.zoomsize
+        zoom_w, zoom_h = cw.s(self.zoomsize_noscale)
         maxw = self._rect.w + zoom_w
         maxh = self._rect.h + zoom_h
 
@@ -673,7 +673,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 class FriendCard(CWPyCard, character.Friend):
     def __init__(self, castid=None, data=None):
         CWPyCard.__init__(self, "hidden")
-        self.zoomsize = cw.s((32, 42))
+        self.zoomsize_noscale = (32, 42)
 
         if castid:
             # Id

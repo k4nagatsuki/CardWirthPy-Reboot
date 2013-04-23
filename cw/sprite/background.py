@@ -355,15 +355,15 @@ class BattleCardImage(card.CWPyCard):
     def update_battlestart(self):
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
-        self.zoomsize = cw.s((8, 12))
+        self.zoomsize_noscale = (8, 12)
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
-        self.zoomsize = cw.s((28, 40))
+        self.zoomsize_noscale = (28, 40)
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
-        self.zoomsize = cw.s((56, 80))
+        self.zoomsize_noscale = (56, 80)
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
         waitrate = cw.cwpy.setting.dealspeed * 4
@@ -389,7 +389,7 @@ class InuseCardImage(card.CWPyCard):
         self.user = user
         self.header = header
         self.center = center
-        self.zoomsize = cw.s((32, 42))
+        self.zoomsize_noscale = (32, 42)
 
         self.update_scale()
 
