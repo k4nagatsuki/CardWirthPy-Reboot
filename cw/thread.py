@@ -1202,7 +1202,8 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata.start_event(keynum=1)
         else:
             self.deal_cards(quickdeal=quickdeal)
-            self.show_party()
+            if not pygame.event.peek(pygame.locals.USEREVENT):
+                self.show_party()
 
     def change_battlearea(self, areaid):
         """
