@@ -25,7 +25,7 @@ class BattleCommand(wx.Dialog):
         header.negaflag = False
         self.list.append(header)
 
-        self.toppanel = wx.Panel(self, -1, size=((w+5)*3+cw.s(5), h+cw.s(5)*2))
+        self.toppanel = wx.Panel(self, -1, size=((w+cw.s(5))*3+cw.s(5), h+cw.s(5)*2))
 
         # 逃げる
         path = "Resource/Image/Card/ACTION9" + cw.cwpy.rsrc.ext_img
