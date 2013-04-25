@@ -1012,9 +1012,12 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             chars = char + get_char(s, index + 1)
 
             if r_spchar.match(chars.lower()):
-                seq.append(chars)
-                skip = True
-                continue
+                if not chars.startswith("#") or\
+                   not chars[:2].lower() in cw.cwpy.rsrc.specialchars or\
+                   cw.cwpy.rsrc.specialchars[chars[:2].lower()][1]:
+                    seq.append(chars)
+                    skip = True
+                    continue
 
         # 行頭禁止文字
         if cnt == 0 and not wraped and r_wchar and r_wchar.match(char):
