@@ -566,6 +566,13 @@ class CardHeader(object):
                 return False
         return True
 
+    def get_keycodes(self):
+        # 互換動作: 1.20以前にカード名キーコードは存在しない
+        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            return self.keycodes[:-1]
+        else:
+            return self.keycodes
+
 class InfoCardHeader(object):
     def __init__(self, data):
         """

@@ -184,7 +184,7 @@ class Character(object):
             seq.append(self.get_pocketcards(cw.POCKET_BEAST))
 
         for header in seq:
-            s.update(header.keycodes)
+            s.update(header.get_keycodes())
 
         s.discard("")
         return s
@@ -194,15 +194,15 @@ class Character(object):
         seq = []
         if skill:
             for header in self.get_pocketcards(cw.POCKET_SKILL):
-                if keycode in header.keycodes:
+                if keycode in header.get_keycodes():
                     return True
         if item:
             for header in self.get_pocketcards(cw.POCKET_ITEM):
-                if keycode in header.keycodes:
+                if keycode in header.get_keycodes():
                     return True
         if beast:
             for header in self.get_pocketcards(cw.POCKET_BEAST):
-                if keycode in header.keycodes:
+                if keycode in header.get_keycodes():
                     return True
 
         return False

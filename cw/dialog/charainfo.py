@@ -814,7 +814,7 @@ class SkillPanel(wx.Panel):
             if header.subrect.collidepoint(event.GetPosition()):
                 # ホールド状態切り替え(召喚獣以外)
                 dc = wx.ClientDC(self)
-                if u"ペナルティ" in header.keycodes:
+                if header.penalty:
                     cw.cwpy.sounds["error"].play()
                     return
                 cw.cwpy.sounds["click"].play()
@@ -932,7 +932,7 @@ class SkillPanel(wx.Panel):
             dc.DrawBitmap(bmp, pos[0]+cw.s(100), pos[1]-cw.s(1), True)
 
             # ホールドまたはペナルティ
-            if u"ペナルティ" in header.keycodes:
+            if header.penalty:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
             elif header.hold:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
@@ -991,7 +991,7 @@ class ItemPanel(SkillPanel):
             header.textpos = pos
             header.subrect = pygame.Rect(pos[0] - cw.s(20), pos[1] - cw.s(1), size[0] + cw.s(20), size[1] + cw.s(2))
             # ホールドまたはペナルティ
-            if u"ペナルティ" in header.keycodes:
+            if header.penalty:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
             elif header.hold:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]

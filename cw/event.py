@@ -692,12 +692,12 @@ class CardEvent(Event):
         Event.end(self)
 
     def run_areaevent(self):
-        keycodes = self.inusecard.keycodes
+        keycodes = self.inusecard.get_keycodes()
         cw.cwpy.sdata.events.start(keycodes=keycodes)
 
     def run_enemyevent(self, target):
         if isinstance(target, Enemy) and not (target.is_dead() or target.is_vanished()):
-            keycodes = self.inusecard.keycodes
+            keycodes = self.inusecard.get_keycodes()
             target.events.start(keycodes=keycodes)
 
     def run_deadevent(self, target):
@@ -707,7 +707,7 @@ class CardEvent(Event):
     def run_successevent(self, target, successflag):
         if isinstance(target, Enemy) and not (target.is_dead() or target.is_vanished()):
             keycodes = []
-            for keycode in self.inusecard.keycodes:
+            for keycode in self.inusecard.get_keycodes():
                 if keycode:
                     if successflag:
                         keycodes.append(keycode + u"○")

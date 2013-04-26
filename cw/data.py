@@ -1539,7 +1539,7 @@ class Party(object):
                 continue
             elif not beast and header.type == "BeastCard":
                 continue
-            s.update(header.keycodes)
+            s.update(header.get_keycodes())
 
         s.discard("")
         return s
@@ -1554,7 +1554,7 @@ class Party(object):
             elif not beast and header.type == "BeastCard":
                 continue
 
-            if keycode in header.keycodes:
+            if keycode in header.get_keycodes():
                 return True
 
         return False

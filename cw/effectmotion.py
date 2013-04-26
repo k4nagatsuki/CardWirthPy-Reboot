@@ -108,7 +108,7 @@ class Effect(object):
         cw.cwpy.play_sound(self.soundpath)
         self.animate(target)
         # MenuCardのキーコードイベント発動。発動しなかったら、無効音。
-        keycodes = self.inusecard.keycodes
+        keycodes = self.inusecard.get_keycodes()
         event = target.events.check_keycodes(keycodes)
 
         if event:

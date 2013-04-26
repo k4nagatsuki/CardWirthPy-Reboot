@@ -143,6 +143,7 @@ class CWScenario(object):
         else:
             filetype = f.byte()
             f.seek(0)
+            f.filedata = []
 
             if filetype == 0:
                 data = area.Area(None, f, nameonly=no, materialdir=md, image_export=ie)
