@@ -171,9 +171,10 @@ class CWPy(_Singleton, threading.Thread):
                 cw.cwpy.frame.Destroy()
             cw.cwpy.frame.exec_func(func)
 
-    def update_skin(self, skindirname):
+    def update_skin(self, skindirname, changearea=True):
         if self.ydata:
             changed = self.ydata.is_changed()
+            self.ydata.set_skinname(skindirname)
         oldskindirname = self.setting.skindirname
         self.setting.skindirname = skindirname
         self.setting.init_skin()
@@ -193,13 +194,13 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata._init_xmlpaths()
             self.sdata._init_sparea_mcards()
 
-        if not self.is_battlestatus():
+        if not self.is_battlestatus() and changearea:
             self.mcardgrp.empty()
             self.sdata.change_data(self.areaid)
             self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
             self.deal_cards()
 
-        self.update_scale(cw.UP_SCR)
+        self.update_scale(cw.UP_SCR, changearea)
 
         if self.is_battlestatus():
             for ccard in self.get_pcards("unreversed"):
@@ -233,7 +234,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata:
             self.ydata._changed = changed
 
-    def update_scale(self, scale):
+    def update_scale(self, scale, changearea=True):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
@@ -281,8 +282,9 @@ class CWPy(_Singleton, threading.Thread):
         pygame.mouse.set_pos([-1, -1])
         pygame.mouse.set_pos(pos)
 
-        self.update()
-        self.draw()
+        if changearea:
+            self.update()
+            self.draw()
 
     def run(self):
         try:
@@ -699,6 +701,9 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.party.remove_numbercoupon()
         else:
             areaid = 1
+
+        if self.ydata.skinname <> cw.cwpy.setting.skinname:
+            self.update_skin(self.ydata.skinname, changearea=False)
 
         self.change_area(areaid)
 

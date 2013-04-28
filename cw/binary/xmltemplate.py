@@ -168,6 +168,7 @@ $indent</CastCard>"""
 Environment = """$indent<Environment>
 $indent <Property>
 $indent  <Name>$name</Name>
+$indent  <Skin>$skinname</Skin>
 $indent  <Type>$skintype</Type>
 $indent  <Cashbox>$cashbox</Cashbox>
 $indent  <NowSelectingParty>$selectingparty</NowSelectingParty>

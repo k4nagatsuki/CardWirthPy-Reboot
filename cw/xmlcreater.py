@@ -47,6 +47,7 @@ def create_environment(name, dpath):
     宿のデータを納める"Environment.xml"を作る。
     """
     d = {"name" : name,
+         "skinname" : cw.cwpy.setting.skinname,
          "skintype" : cw.cwpy.setting.skintype,
          "cashbox" : "4000",
          "selectingparty" : "",

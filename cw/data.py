@@ -792,6 +792,17 @@ class YadoData(object):
         # 宿の金庫
         self.money = int(self.environment.getroot().find("Property/Cashbox").text)
 
+        # スキン
+        self.skinname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skinname)
+        if not self.skinname or not os.path.isfile(cw.util.join_paths("Data/Skin", self.skinname, "Skin.xml")):
+            self.skinname = cw.cwpy.setting.skinname
+            e = self.environment.find("Property/Skin")
+            if e is None:
+                e = make_element("Skin", self.skinname)
+                self.environment.append("Property", e)
+            else:
+                self.environment.edit("Property/Skin", self.skinname)
+
         dataversion = self.environment.getattr(".", "dataVersion", 0)
         if dataversion < 1:
             self.update_version()
@@ -964,6 +975,10 @@ class YadoData(object):
 
     def is_changed(self):
         return self._changed
+
+    def set_skinname(self, skinname):
+        self.skinname = skinname
+        self.environment.edit("Property/Skin", skinname)
 
     def load_party(self, header=None):
         """
