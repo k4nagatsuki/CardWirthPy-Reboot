@@ -215,6 +215,10 @@ class AdventurerData(object):
                 f.modulate(self)
                 break
 
+    # デバッグモードでは初期Lvにプレイヤーが設定した値を使用
+    def set_level(self, level):
+        self.level = level
+
     def set_race(self, race):
         self.undead |= race.undead
         self.automaton |= race.automaton

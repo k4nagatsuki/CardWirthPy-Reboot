@@ -313,6 +313,7 @@ class CharaInfo(object):
         data = cw.dialog.create.AdventurerData()
         data.set_name(self.name)
         data.set_age(self.age)
+        data.set_level(self.level)
         data.set_sex(self.sex)
         data.set_image(self.imgpath)
         data.set_race(cw.cwpy.setting.unknown_race)
