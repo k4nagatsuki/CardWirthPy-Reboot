@@ -577,7 +577,7 @@ def dupcheck_plus(path, yado=True):
 
     dpath, basename = os.path.split(path)
     fname, ext = os.path.splitext(basename)
-    fname = fname.strip()
+    fname = cw.binary.util.check_filename(fname.strip())
     ext = ext.strip()
     basename = fname + ext
     count = 2
