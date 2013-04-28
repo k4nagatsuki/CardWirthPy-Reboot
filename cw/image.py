@@ -102,20 +102,26 @@ class CardImage(Image):
             if maxn or (header.type == "BeastCard" and not header.attachment):
                 font = cw.cwpy.rsrc.fonts["card_uselimit"]
                 s = str(uselimit)
-                subimg = font.render(s, False, (0, 0, 0))
                 pos = cw.s((5, 90))
-                image.blit(subimg, (pos[0]+1, pos[1]))
-                image.blit(subimg, (pos[0]-1, pos[1]))
-                image.blit(subimg, (pos[0], pos[1]+1))
-                image.blit(subimg, (pos[0], pos[1]-1))
+                for c in s:
+                    subimg = font.render(c, False, (0, 0, 0))
+                    image.blit(subimg, (pos[0]+1, pos[1]-1))
+                    image.blit(subimg, (pos[0],   pos[1]-1))
+                    image.blit(subimg, (pos[0]-1, pos[1]-1))
+                    image.blit(subimg, (pos[0]-1, pos[1]))
+                    image.blit(subimg, (pos[0]+1, pos[1]))
+                    image.blit(subimg, (pos[0]+1, pos[1]+1))
+                    image.blit(subimg, (pos[0],   pos[1]+1))
+                    image.blit(subimg, (pos[0]-1, pos[1]+1))
 
-                if header.recycle:
-                    colour = (255, 255, 0)
-                else:
-                    colour = (255, 255, 255)
+                    if header.recycle:
+                        colour = (255, 255, 0)
+                    else:
+                        colour = (255, 255, 255)
 
-                subimg = font.render(s, False, colour)
-                image.blit(subimg, pos)
+                    subimg = font.render(c, False, colour)
+                    image.blit(subimg, pos)
+                    pos = pos[0] + cw.s(10), pos[1]
 
         owner = header.get_owner()
         if isinstance(owner, cw.character.Character):
