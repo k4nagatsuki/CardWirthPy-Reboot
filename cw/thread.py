@@ -215,6 +215,21 @@ class CWPy(_Singleton, threading.Thread):
                 if self.battle.is_ready():
                     ccard.decide_action()
 
+        if self.status == "Title":
+            s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
+        elif self.status == "Yado":
+            s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
+            s += self.ydata.name
+        elif self.status == "Scenario":
+            s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
+            s += "%s %s" % (self.ydata.name, self.sdata.name)
+        elif self.status == "GameOver":
+            s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
+            s += os.path.basename(self.yadodir)
+        else:
+            s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
+        self.set_titlebar(s)
+
         if self.ydata:
             self.ydata._changed = changed
 
