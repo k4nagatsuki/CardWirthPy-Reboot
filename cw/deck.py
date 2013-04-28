@@ -218,7 +218,7 @@ class Deck(object):
                 n = cw.cwpy.dice.roll(1, 3) + 3
             self.set_nextcard(n)
         elif ccard.is_brave():
-            n = cw.cwpy.dice.roll(1, 3)
+            n = cw.cwpy.dice.roll(1, 4) - 1
             self.set_nextcard(n)
         elif ccard.is_overheat():
             self.set_nextcard(2)
