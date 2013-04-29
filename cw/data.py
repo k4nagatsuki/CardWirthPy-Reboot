@@ -1777,7 +1777,7 @@ class Party(object):
 
         e.clear()
         for path in lastscenario:
-            e.append(make_element("Path", path))
+            self.data.append("Property/LastScenario", make_element("Path", path))
 
 #-------------------------------------------------------------------------------
 #  CWPyElement
