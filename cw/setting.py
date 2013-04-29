@@ -47,6 +47,9 @@ class Setting(object):
             self.transition = "None"
             self.transitionspeed = 5
             self.smoothscale_bg = False
+            self.caution_beforesaving = True
+            self.store_skinoneachbase = True
+            self.quickdeal = True
             self.skindirname = "Classic"
             self.classicstyletext = True
             self.sort_standbys = "None"
@@ -113,6 +116,12 @@ class Setting(object):
         self.transitionspeed = cw.util.numwrap(self.transitionspeed, 0, 10)
         # 背景のスムーススケーリング
         self.smoothscale_bg = data.getbool("SmoothScaling", "bg", False)
+        # 保存せずに終了しようとしたら警告
+        self.caution_beforesaving = data.getbool("CautionBeforeSaving", True)
+        # 拠点ごとにスキンを記憶
+        self.store_skinoneachbase = data.getbool("StoreSkinOnEachBase", True)
+        # キャンプ等に高速で切り替える
+        self.quickdeal = data.getbool("QuickDeal", True)
         # ソート基準
         self.sort_standbys = data.getattr("SortKey", "standbys", "None")
         self.sort_storehouse = data.getattr("SortKey", "storehouse", "None")

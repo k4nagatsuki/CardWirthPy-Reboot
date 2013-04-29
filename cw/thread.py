@@ -286,6 +286,20 @@ class CWPy(_Singleton, threading.Thread):
             self.update()
             self.draw()
 
+    def set_debug(self, debug):
+        self.setting.debug = debug
+        self.debug = debug
+        self.statusbar.change()
+
+        if self.is_battlestatus():
+            # 敵の状態の暴露・非暴露切り替え
+            for sprite in self.mcardgrp.sprites():
+                sprite.update_scale()
+
+        if not debug and self.is_showingdebugger():
+            self.sounds["page"].play()
+            self.frame.exec_func(self.frame.debugger.Close)
+
     def run(self):
         try:
             self._run()
@@ -702,7 +716,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             areaid = 1
 
-        if self.ydata.skinname <> cw.cwpy.setting.skinname:
+        if self.setting.store_skinoneachbase and self.ydata.skinname <> cw.cwpy.setting.skinname:
             self.update_skin(self.ydata.skinname, changearea=False)
 
         self.change_area(areaid)
@@ -940,6 +954,8 @@ class CWPy(_Singleton, threading.Thread):
         PlayerCardを全て表示する。
         quickdeal: 前カードを同時に表示する。
         """
+        if not self.setting.quickdeal:
+            quickdeal = False
         self._dealing = True
 
         mcardsinv = self.get_mcards("invisible")
@@ -985,6 +1001,8 @@ class CWPy(_Singleton, threading.Thread):
         各カードのhidecards()の最後に呼ばれる。
         hideallがTrueだった場合、全てのカードを非表示にする。
         """
+        if not self.setting.quickdeal:
+            quickhide = False
         self._dealing = True
         # 選択を解除する
         self.clear_selection()

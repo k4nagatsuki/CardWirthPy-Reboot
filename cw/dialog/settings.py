@@ -32,6 +32,9 @@ class SettingsDialog(wx.Dialog):
 
     def OnDefault(self, event):
         self.pane_draw.cb_smooth_bg.SetValue(False)
+        self.pane_draw.cb_cautionbeforesaving.SetValue(True)
+        self.pane_draw.cb_storeskinoneachbase.SetValue(True)
+        self.pane_draw.cb_quickdeal.SetValue(True)
         self.pane_draw.sl_deal.SetValue(6)
         self.pane_draw.sl_msgs.SetValue(4)
         self.pane_draw.ch_tran.SetSelection(0)
@@ -51,13 +54,12 @@ class SettingsDialog(wx.Dialog):
         value = self.pane_gene.cb_debug.GetValue()
 
         if not value == cw.cwpy.setting.debug:
-            cw.cwpy.setting.debug = value
-            cw.cwpy.debug = value
-            cw.cwpy.statusbar.change()
+            cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
-            if cw.cwpy.is_showingdebugger():
-                cw.cwpy.sounds["page"].play()
-                cw.cwpy.frame.debugger.Close()
+        value = self.pane_gene.cb_cautionbeforesaving.GetValue()
+        cw.cwpy.setting.caution_beforesaving = value
+        value = self.pane_gene.cb_storeskinoneachbase.GetValue()
+        cw.cwpy.setting.store_skinoneachbase = value
 
         value = self.pane_gene.ch_expandmode.GetSelection()
         value = self.pane_gene.expandmodes[value]
@@ -69,6 +71,8 @@ class SettingsDialog(wx.Dialog):
         # 描画
         value = self.pane_draw.cb_smooth_bg.GetValue()
         cw.cwpy.setting.smoothscale_bg = value
+        value = self.pane_draw.cb_quickdeal.GetValue()
+        cw.cwpy.setting.quickdeal = value
         value = self.pane_draw.sl_deal.GetValue()
         cw.cwpy.setting.set_dealspeed(value)
         value = self.pane_draw.sl_msgs.GetValue()
@@ -113,7 +117,6 @@ class SettingsDialog(wx.Dialog):
         if cw.cwpy.setting.skindirname <> skin:
             cw.cwpy.exec_func(cw.cwpy.update_skin, skin)
 
-
         self.Close()
 
     def _do_layout(self):
@@ -137,6 +140,13 @@ class GeneralSettingPanel(wx.Panel):
         self.box_gene = wx.StaticBox(self, -1, "")
         self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする")
         self.cb_debug.SetValue(cw.cwpy.debug)
+        # 基本的なオプション
+        self.cb_cautionbeforesaving = wx.CheckBox(
+            self, -1, u"保存せずに終了しようとしたら警告する")
+        self.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.store_skinoneachbase)
+        self.cb_storeskinoneachbase = wx.CheckBox(
+            self, -1, u"拠点ごとにスキンを記憶する")
+        self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
         self.skins = []
@@ -184,18 +194,18 @@ class GeneralSettingPanel(wx.Panel):
         self._bind()
 
     def _bind(self):
-        self.cb_debug.Bind(wx.EVT_CHECKBOX, self.OnDebugCheck)
+        ##self.cb_debug.Bind(wx.EVT_CHECKBOX, self.OnDebugCheck)
         self.ch_skin.Bind(wx.EVT_CHOICE, self.OnSkinChoice)
 
-    def OnDebugCheck(self, event):
-        if cw.cwpy.is_playingscenario():
-            self.cb_debug.SetValue(not self.cb_debug.GetValue())
-            dlg = cw.dialog.message.Message(
-                self.Parent.Parent, cw.cwpy.msgs["message"],
-                u"シナリオプレイ中はデバッグモードの切替はできません。")
-            cw.cwpy.frame.move_dlg(dlg)
-            cw.cwpy.sounds["error"].play()
-            dlg.ShowModal()
+    ##def OnDebugCheck(self, event):
+    ##    if cw.cwpy.is_playingscenario():
+    ##        self.cb_debug.SetValue(not self.cb_debug.GetValue())
+    ##        dlg = cw.dialog.message.Message(
+    ##            self.Parent.Parent, cw.cwpy.msgs["message"],
+    ##            u"シナリオプレイ中はデバッグモードの切替はできません。")
+    ##        cw.cwpy.frame.move_dlg(dlg)
+    ##        cw.cwpy.sounds["error"].play()
+    ##        dlg.ShowModal()
 
     def OnSkinChoice(self, event):
         skin = self.skins[self.ch_skin.GetSelection()]
@@ -210,9 +220,12 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.SetMinSize((260, -1))
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
-        bsizer_skin.SetMinSize((280, 200))
+        bsizer_skin.SetMinSize((260, 200))
 
         bsizer_expandmode.Add(self.ch_expandmode, 0, wx.ALL, 5)
 
@@ -232,6 +245,9 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
         self.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg)
+        self.cb_quickdeal = wx.CheckBox(
+            self, -1, u"キャンプモードへ高速で切り替える")
+        self.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -277,6 +293,8 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_msgs = wx.StaticBoxSizer(self.box_msgs, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_quickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.SetMinSize((260, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
         bsizer_tran.Add(self.sl_tran, 0, 0, 0)
         bsizer_deal.Add(self.sl_deal, 0, 0, 0)
