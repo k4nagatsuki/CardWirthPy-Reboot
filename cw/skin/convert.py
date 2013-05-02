@@ -94,7 +94,7 @@ class Converter(threading.Thread):
             return u""
 
     def find_datadir(self):
-        if self.exe:
+        if self.exe and len(self.exebinary) < 2000000:
             key = "\\Midi\\DefReset.mid"
             index = self.exebinary.find(key)
             try:
@@ -104,7 +104,7 @@ class Converter(threading.Thread):
         return u"Data"
 
     def find_scenariodir(self):
-        if self.exe:
+        if self.exe and len(self.exebinary) < 2000000:
             key = "\0\\\0\\\0\\Summary.wsm\0\\\0\\\0.wid\0"
             index = self.exebinary.find(key)
             try:
@@ -135,7 +135,7 @@ class Converter(threading.Thread):
 
     def _get_features(self):
         # バイナリ断片を手がかりにして特性値を探す。
-        if not self.exe:
+        if not self.exe or 2000000 < len(self.exebinary):
             return
         key = "TStatusItem\x81\x89" # "TStatusItem♂"
         index = self.exebinary.find(key) + len(key) - len("\x81\x89")
@@ -179,9 +179,9 @@ class Converter(threading.Thread):
                 index += 2*5
                 e = data.find("./Mental")
                 e.set("aggressive", str(p[0] / 2.0))
-                e.set("cheerful", str(p[1] / 2.0))
+                e.set("cheerful", str(p[3] / 2.0))
                 e.set("brave", str(p[2] / 2.0))
-                e.set("cautious", str(p[3] / 2.0))
+                e.set("cautious", str(p[1] / 2.0))
                 e.set("trickish", str(p[4] / 2.0))
 
                 return index
@@ -246,7 +246,7 @@ class Converter(threading.Thread):
 
     def _get_sounds(self):
         # バイナリ断片を手がかりにして音声ファイル名を探す。
-        if not self.exe:
+        if not self.exe or 2000000 < len(self.exebinary):
             return
         try:
             sounds = self.data.getfind("Sounds")
@@ -307,7 +307,7 @@ class Converter(threading.Thread):
             print exs
 
     def _get_cards(self):
-        if not self.exe:
+        if not self.exe or 2000000 < len(self.exebinary):
             return
         try:
             key = "\0CARD_SKILL\0CARD_ACTION\0IMAGE_ACTION\0"
@@ -424,7 +424,7 @@ class Converter(threading.Thread):
             print ex
 
     def _get_messages(self):
-        if not self.exe:
+        if not self.exe or 2000000 < len(self.exebinary):
             return
         try:
             # ゲームオーバー
@@ -931,6 +931,9 @@ class Converter(threading.Thread):
             # Resource/Image/*
             for resname, target in imgtbl.items():
                 res = self.res.get_bitmap(resname)
+                if res is None:
+                    print resname
+                    continue
                 fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
                 resdir = os.path.dirname(fpath)
                 if not os.path.isdir(resdir):
@@ -938,24 +941,25 @@ class Converter(threading.Thread):
                 with open(fpath, "wb") as f:
                     f.write(res)
                 f = None
-            for respath, target in glyphtbl.items():
-                respaths = respath.split("/")
-                resname = respaths[0]
-                res = self.res.get_tpf0form(resname)
+            if len(self.exebinary) < 2000000:
+                for respath, target in glyphtbl.items():
+                    respaths = respath.split("/")
+                    resname = respaths[0]
+                    res = self.res.get_tpf0form(resname)
 
-                for name in respaths[1:]:
-                    res = res[name]
-                fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
-                resdir = os.path.dirname(fpath)
-                if not os.path.isdir(resdir):
-                    os.makedirs(resdir)
-                if str(res[1:8]) == "TBitmap":
-                    res = str(res[12:])
-                else:
-                    res = str(res[4:])
-                with open(fpath, "wb") as f:
-                    f.write(res)
-                f = None
+                    for name in respaths[1:]:
+                        res = res[name]
+                    fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
+                    resdir = os.path.dirname(fpath)
+                    if not os.path.isdir(resdir):
+                        os.makedirs(resdir)
+                    if str(res[1:8]) == "TBitmap":
+                        res = str(res[12:])
+                    else:
+                        res = str(res[4:])
+                    with open(fpath, "wb") as f:
+                        f.write(res)
+                    f = None
 
             if not os.path.isabs(self.datadir):
                 datadir = cw.util.join_paths(os.path.dirname(self.exe), self.datadir)
@@ -998,6 +1002,7 @@ class Converter(threading.Thread):
             self.complete = True
 
         except Exception, ex:
+            print ex
             self.failure = True
             self.complete = True
             self.errormessage = u"スキンの自動生成に失敗しました。"

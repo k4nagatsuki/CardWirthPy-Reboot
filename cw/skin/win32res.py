@@ -221,7 +221,7 @@ class Win32Res(object):
             elif bit_count == 8:
                 header_size += RGBQUAD_SIZE * (0x01 << 8)
             else:
-                raise Exception("")
+                pass
         else:
             header_size += RGBQUAD_SIZE * clr_used;
         header_size += BITMAPFILEHEADER_SIZE;
