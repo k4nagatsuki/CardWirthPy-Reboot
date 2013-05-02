@@ -1169,7 +1169,7 @@ class Character(object):
             n = (level + upvalue) * (level + upvalue + 1)
         return upvalue
 
-    def set_level(self, value, regulate=False):
+    def set_level(self, value, regulate=False, debugedit=False):
         """レベルを設定する。
         regulate: レベルを調節する場合はTrue。
         """
@@ -1211,7 +1211,7 @@ class Character(object):
                 if e.text == u"＠レベル原点":
                     e.attrib["value"] = str(self.level)
                     self.coupons[e.text] = self.level, e
-                elif e.text == u"＠ＥＰ" and 0 < uplevel and not cw.cwpy.is_debugmode():
+                elif e.text == u"＠ＥＰ" and 0 < uplevel and not debugedit:
                     value = e.getint(".", "value", 0) + uplevel * 10
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e

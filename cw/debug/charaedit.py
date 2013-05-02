@@ -303,7 +303,7 @@ class CharaInfo(object):
             pcard.set_image(self.imgpath)
 
         if updatebase or self.level <> pcard.level:
-            pcard.set_level(self.level)
+            pcard.set_level(self.level, debugedit=True)
 
         return updatebase or updateetc
 
