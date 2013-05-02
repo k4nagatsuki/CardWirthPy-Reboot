@@ -624,6 +624,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
         # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale)
+        self.set_pos_noscale(pos_noscale=self._init_pos_noscale)
         self.update_image()
         # 空のイメージ
         self.clear_image()

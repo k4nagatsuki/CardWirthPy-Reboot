@@ -131,6 +131,15 @@ def create_settings(setting):
     # 背景のスムーススケーリング
     e = cw.data.make_element("SmoothScaling", str(setting.smoothscale_bg))
     element.append(e)
+    # 保存せずに終了しようとしたら警告
+    e = cw.data.make_element("CautionBeforeSaving", str(setting.caution_beforesaving))
+    element.append(e)
+    # 拠点ごとにスキンを記憶
+    e = cw.data.make_element("StoreSkinOnEachBase", str(setting.store_skinoneachbase))
+    element.append(e)
+    # キャンプ等に高速で切り替える
+    e = cw.data.make_element("QuickDeal", str(setting.quickdeal))
+    element.append(e)
     # ソート基準
     e = cw.data.make_element("SortKey")
     e.set("standbys", setting.sort_standbys)

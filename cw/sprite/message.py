@@ -324,14 +324,14 @@ class MessageWindow(base.CWPySprite):
                 join_left = False
                 join_right = False
 
-                # u"ー"の場合、左右の線が繋がるように補完する
-                if char == u"―":
-                    if index > 0 and self.text[index-1] == u"―":
+                # u"―"の場合、左右の線が繋がるように補完する
+                if r_join.match(char):
+                    if index > 0 and r_join.match(self.text[index-1]):
                         join_left = True
                     else:
                         join_left = False
 
-                    if len(chars) > 1 and self.text[index+1] == u"―":
+                    if len(chars) > 1 and r_join.match(self.text[index+1]):
                         join_right = True
                     else:
                         join_right = False

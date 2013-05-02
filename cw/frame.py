@@ -234,14 +234,18 @@ class Frame(wx.Frame):
             self.Destroy()
 
     def OnCLOSE(self, event):
-        if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
-            s = cw.cwpy.msgs["confirm_quit_changed"]
+        if cw.cwpy.setting.caution_beforesaving:
+            if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
+                s = cw.cwpy.msgs["confirm_quit_changed"]
+            else:
+                s = cw.cwpy.msgs["confirm_quit"]
+            dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+            self.move_dlg(dlg)
+            result = dlg.ShowModal()
         else:
-            s = cw.cwpy.msgs["confirm_quit"]
-        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-        self.move_dlg(dlg)
+            result = wx.ID_OK
 
-        if dlg.ShowModal() == wx.ID_OK:
+        if result == wx.ID_OK:
             self.Destroy()
         else:
             self.kill_dlg(dlg)

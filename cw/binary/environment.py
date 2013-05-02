@@ -57,6 +57,8 @@ class Environment(base.CWBinaryBase):
         self.cwpypartyname = ""
         # スキンタイプ。読み込み後に操作する
         self.skintype = ""
+        # スキンディレクトリ。現在の設定を使用
+        self.skinname = cw.cwpy.setting.skinname
         # データの取得に失敗したカード。変換時に追加する
         self.errorcards = []
 
@@ -70,6 +72,8 @@ class Environment(base.CWBinaryBase):
             e = cw.data.make_element("Name", self.name)
             prop.append(e)
             e = cw.data.make_element("Type", self.skintype)
+            prop.append(e)
+            e = cw.data.make_element("Skin", self.skinname)
             prop.append(e)
             e = cw.data.make_element("Cashbox", str(self.money))
             prop.append(e)
