@@ -1464,7 +1464,10 @@ class EndContent(EventContentBase):
 
         # レベルアップと回復処理
         for pcard in cw.cwpy.get_pcards():
-            levelup = pcard.check_levelup()
+            if cw.cwpy.is_debugmode():
+                levelup = 0
+            else:
+                levelup = pcard.check_levelup()
 
             # レベルアップ
             if levelup:
