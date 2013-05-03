@@ -346,7 +346,8 @@ def load_sound(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        if sys.platform == "win32" and path.lower().endswith(".wav"):
+        if sys.platform == "win32" and (path.lower().endswith(".wav") or\
+                                        path.lower().endswith(".mp3")):
             sound = SoundInterface(path)
         else:
             with io.BufferedReader(io.FileIO(path)) as f:
