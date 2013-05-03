@@ -488,6 +488,7 @@ class TitleCell(base.CWPySprite):
             self._image.fill((255, 255, 255))
         else:
             self._image = cw.s((cw.util.load_image(self.path, True), cw.setting.get_resourcesize(self.path)))
+        self._srcalpha = bool(self._image.get_flags() & pygame.locals.SRCALPHA)
         self._rect = self._image.get_rect()
         x = (cw.s(cw.SIZE_AREA[0]) - self._rect.width) / 2
         self._rect.topleft = (x, cw.s(self.y_noscale))
@@ -497,7 +498,7 @@ class TitleCell(base.CWPySprite):
                 self.clear_image()
         else:
             self.image = self._image
-            self.image.set_alpha(0)
+            self.set_imagealpha(0)
             self.rect = self._rect
 
     def lclick_event(self):
@@ -551,12 +552,12 @@ class TitleCell(base.CWPySprite):
         """
         if self.frame == self.animespeed:
             self.status = "normal"
-            self.image.set_alpha(255)
+            self.set_imagealpha(255)
             self.frame = 0
             return
 
         alpha = self.fade_params[::-1][self.frame]
-        self.image.set_alpha(alpha)
+        self.set_imagealpha(alpha)
         self.frame += 1
 
     def update_fadein2(self):
@@ -565,12 +566,12 @@ class TitleCell(base.CWPySprite):
         """
         if self.frame >= self.animespeed:
             self.status = "normal"
-            self.image.set_alpha(255)
+            self.set_imagealpha(255)
             self.frame = 0
             return
 
         alpha = self.fade_params[::-1][self.frame]
-        self.image.set_alpha(alpha)
+        self.set_imagealpha(alpha)
         self.frame += 2
 
     def update_fadeout(self):
@@ -579,12 +580,12 @@ class TitleCell(base.CWPySprite):
         """
         if self.frame == self.animespeed:
             self.status = "hidden"
-            self.image.set_alpha(0)
+            self.set_imagealpha(0)
             self.frame = 0
             return
 
         alpha = self.fade_params[self.frame]
-        self.image.set_alpha(alpha)
+        self.set_imagealpha(alpha)
         self.frame += 1
 
     def update_show(self):
@@ -592,18 +593,25 @@ class TitleCell(base.CWPySprite):
         ウェイト無しで表示する。
         """
         self.status = "normal"
-        self.image.set_alpha(255)
+        self.set_imagealpha(255)
 
     def update_vanish(self):
         """
         ウェイト無しで消去する。
         """
         self.status = "hidden"
-        self.image.set_alpha(0)
+        self.set_imagealpha(0)
 
     def clear_image(self):
         self.image = pygame.Surface((0, 0)).convert()
         self.rect = self.image.get_rect(center=self._rect.center)
+
+    def set_imagealpha(self, alpha):
+        if self._srcalpha:
+            self.image = self._image.copy()
+            self.image.fill((255, 255, 255, alpha), special_flags=pygame.locals.BLEND_RGBA_MIN)
+        else:
+            self.image.set_alpha(alpha)
 
 def main():
     pass
