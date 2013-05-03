@@ -637,12 +637,14 @@ class Debugger(wx.Frame):
             if dlg.ShowModal() == wx.ID_OK:
                 id = seq[dlg.GetSelection()][0]
                 path = cw.cwpy.sdata.packs[id][1]
-                e = cw.data.xml2element(path, "Events")
-                event = cw.event.EventEngine(e)
+                data = cw.data.xml2element(path)
+                e = data.find("Events")
+                engine = cw.event.EventEngine(e)
+                engine.versionhint = data.getattr("Property", "versionHint", "")
 
-                if event.events:
-                    cw.cwpy.event.nowrunningpacks[id] = event
-                    func = event.events[0].start
+                if engine.events:
+                    cw.cwpy.event.nowrunningpacks[id] = (e, engine.versionhint)
+                    func = engine.events[0].start
                     cw.cwpy.exec_func(func)
 
             dlg.Destroy()

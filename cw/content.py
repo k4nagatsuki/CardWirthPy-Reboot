@@ -1231,9 +1231,11 @@ class CallPackageContent(EventContentBase):
                 e = data.find("Events")
                 engine = cw.event.EventEngine(e)
                 engine.versionhint = data.getattr("Property", "versionHint", "")
-                cw.cwpy.event.nowrunningpacks[id] = engine
+                cw.cwpy.event.nowrunningpacks[id] = e, engine.versionhint
             else:
-                engine = cw.cwpy.event.nowrunningpacks[id]
+                e, versionhint = cw.cwpy.event.nowrunningpacks[id]
+                engine = cw.event.EventEngine(e)
+                engine.versionhint = versionhint
 
             events = engine.events
 
@@ -1841,9 +1843,11 @@ class LinkPackageContent(EventContentBase):
                 e = data.find("Events")
                 engine = cw.event.EventEngine(e)
                 engine.versionhint = data.getattr("Property", "versionHint", "")
-                cw.cwpy.event.nowrunningpacks[id] = engine
+                cw.cwpy.event.nowrunningpacks[id] = e, versionhint
             else:
-                engine = cw.cwpy.event.nowrunningpacks[id]
+                e, versionhint = cw.cwpy.event.nowrunningpacks[id]
+                engine = cw.event.EventEngine(e)
+                engine.versionhint = versionhint
 
             events = engine.events
 
