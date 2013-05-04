@@ -493,32 +493,33 @@ class CardHeader(object):
 
     def is_autoselectable(self):
         # 対象無し
-        flag = not bool(self.target == "None")
+        card = self.ref_original()
+        flag = not bool(card.target == "None")
 
         # ペナルティカードは無条件に選択可能
-        if self.type <> "BeastCard" and self.penalty:
+        if card.type <> "BeastCard" and card.penalty:
             return True
 
-        if not self.carddata is None:
+        if not card.carddata is None:
             # 効果無し
-            flag &= not self.carddata.find("Motions/Motion") is None
+            flag &= not card.carddata.find("Motions/Motion") is None
 
-        if self.type <> "BeastCard":
+        if card.type <> "BeastCard":
             # ホールド
-            flag &= not self.hold
+            flag &= not card.hold
 
-            if self.type == "ItemCard":
+            if card.type == "ItemCard":
                 # 使用回数0(リサイクルカードのみ)
-                flag &= not bool(self.recycle and self.uselimit <= 0)
+                flag &= not bool(card.recycle and card.uselimit <= 0)
 
-            owner = self.get_owner()
-            if not self.carddata is None and owner:
+            owner = card.get_owner()
+            if not card.carddata is None and owner:
                 # 沈黙
-                spell = self.carddata.getbool("Property/EffectType", "spell", False)
+                spell = card.carddata.getbool("Property/EffectType", "spell", False)
                 flag &= not (owner.is_silence() and spell)
 
                 # 魔法無効状態
-                effecttype = self.carddata.gettext("Property/EffectType", "")
+                effecttype = card.carddata.gettext("Property/EffectType", "")
                 magic = effecttype in ("Magic", "PhysicalMagic")
                 flag &= not (owner.is_antimagic() and magic)
 
