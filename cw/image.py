@@ -95,6 +95,8 @@ class CardImage(Image):
         if not hasattr(header, "type"):
             return image
 
+        header = header.ref_original()
+
         if header.type in ("ItemCard", "BeastCard"):
             uselimit, maxn = header.get_uselimit()
 
