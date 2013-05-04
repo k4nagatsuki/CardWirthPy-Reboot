@@ -567,6 +567,58 @@ class PlayerCard(CWPyCard, character.Player):
         cw.animation.animate_sprite(self, "click")
         cw.cwpy.call_dlg("CHARAINFO")
 
+    def set_level(self, value, regulate=False, debugedit=False):
+        character.Player.set_level(self, value, regulate, debugedit)
+        self.cardimg.set_levelimg(self.level)
+
+    def adjust_level(self, fromscenario):
+        """経験点を確認し、条件を満たしていれば
+        レベルアップ・ダウン処理を行う。
+        fromscenarioがTrueであれば同時に完全回復も行う。
+        状態が変化すればTrueを返す。
+        """
+        result = False
+        if fromscenario and cw.cwpy.is_debugmode() and\
+                cw.cwpy.setting.no_levelup_in_debugmode:
+            levelup = 0
+        else:
+            levelup = self.check_level()
+            if fromscenario:
+                # シナリオクリア時にはレベルダウンしない
+                levelup = max(0, levelup)
+
+        # レベルアップ
+        if levelup <> 0:
+            n = self.get_specialcoupons()[u"＠レベル原点"] + levelup
+            self.set_level(n)
+            if fromscenario:
+                cw.animation.animate_sprite(self, "levelup")
+
+                if 1 < levelup:
+                    # 複数回レベルアップした場合はその分回転
+                    for i in xrange(levelup - 1):
+                        cw.animation.animate_sprite(self, "hide")
+                        cw.animation.animate_sprite(self, "deal")
+
+        # 回復処理
+        if fromscenario or levelup <> 0:
+            result = True
+            cw.cwpy.sounds["harvest"].play(True)
+            cw.animation.animate_sprite(self, "hide")
+            if fromscenario:
+                self.set_fullrecovery()
+            self.update_image()
+            cw.animation.animate_sprite(self, "deal")
+
+        # レベルアップメッセージ
+        if fromscenario and 0 < levelup:
+            text = cw.util.encodewrap(cw.cwpy.msgs["level_up"])
+            names = [(0, cw.cwpy.msgs["ok"])]
+            mwin = cw.sprite.message.MessageWindow(text, names, self.imgpath, self)
+            cw.cwpy.show_message(mwin)
+
+        return result
+
 #-------------------------------------------------------------------------------
 #　エネミーカードスプライト
 #-------------------------------------------------------------------------------

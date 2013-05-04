@@ -50,12 +50,16 @@ class SettingsDialog(wx.Dialog):
         self.pane_color.cs_blframe.SetColour((128, 128, 128))
 
     def OnOk(self, event):
+        # 設定変更前はレベル上昇が可能な状態だったか
+        can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
+
         # 一般
         value = self.pane_gene.cb_debug.GetValue()
-
         if not value == cw.cwpy.setting.debug:
             cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
+        value = self.pane_gene.cb_nolevelup.GetValue()
+        cw.cwpy.setting.no_levelup_in_debugmode = value
         value = self.pane_gene.cb_cautionbeforesaving.GetValue()
         cw.cwpy.setting.caution_beforesaving = value
         value = self.pane_gene.cb_storeskinoneachbase.GetValue()
@@ -117,6 +121,17 @@ class SettingsDialog(wx.Dialog):
         if cw.cwpy.setting.skindirname <> skin:
             cw.cwpy.exec_func(cw.cwpy.update_skin, skin)
 
+        # レベル調節
+        def check_levelup(can_levelup_old):
+            can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
+            if not can_levelup_old and can_levelup:
+                # レベルアップが可能な設定になったので
+                # レベル上昇処理を行う
+                for pcard in cw.cwpy.get_pcards():
+                    if 0 < pcard.check_level():
+                        pcard.adjust_level(False)
+        cw.cwpy.exec_func(check_levelup, can_levelup)
+
         self.Close()
 
     def _do_layout(self):
@@ -140,6 +155,10 @@ class GeneralSettingPanel(wx.Panel):
         self.box_gene = wx.StaticBox(self, -1, "")
         self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする")
         self.cb_debug.SetValue(cw.cwpy.debug)
+        self.cb_nolevelup = wx.CheckBox(
+            self, -1, u"デバッグ中はレベル上昇を停止する")
+        self.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode)
+
         # 基本的なオプション
         self.cb_cautionbeforesaving = wx.CheckBox(
             self, -1, u"保存せずに終了しようとしたら警告する")
@@ -147,6 +166,7 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_storeskinoneachbase = wx.CheckBox(
             self, -1, u"拠点ごとにスキンを記憶する")
         self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
+
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
         self.skins = []
@@ -220,6 +240,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((260, -1))

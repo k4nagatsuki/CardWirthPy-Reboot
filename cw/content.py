@@ -1465,37 +1465,7 @@ class EndContent(EventContentBase):
         cw.cwpy.ydata.join_npcs()
 
         # レベルアップと回復処理
-        for pcard in cw.cwpy.get_pcards():
-            if cw.cwpy.is_debugmode():
-                levelup = 0
-            else:
-                levelup = pcard.check_levelup()
-
-            # レベルアップ
-            if levelup:
-                n = pcard.get_specialcoupons()[u"＠レベル原点"] + levelup
-                pcard.set_level(n)
-                cw.animation.animate_sprite(pcard, "levelup")
-
-                if 1 < levelup:
-                    # 複数回レベルアップした場合はその分回転
-                    for i in xrange(levelup - 1):
-                        cw.animation.animate_sprite(pcard, "hide")
-                        cw.animation.animate_sprite(pcard, "deal")
-
-            # 回復処理
-            cw.cwpy.sounds["harvest"].play(True)
-            cw.animation.animate_sprite(pcard, "hide")
-            pcard.set_fullrecovery()
-            pcard.update_image()
-            cw.animation.animate_sprite(pcard, "deal")
-
-            # レベルアップメッセージ
-            if 0 < levelup:
-                text = cw.util.encodewrap(cw.cwpy.msgs["level_up"])
-                names = [(0, cw.cwpy.msgs["ok"])]
-                mwin = cw.sprite.message.MessageWindow(text, names, pcard.imgpath, pcard)
-                cw.cwpy.show_message(mwin)
+        cw.cwpy.check_level(fromscenario=True)
 
         # 特殊文字の辞書が変更されていたら、元に戻す
         if cw.cwpy.rsrc.specialchars_is_changed:

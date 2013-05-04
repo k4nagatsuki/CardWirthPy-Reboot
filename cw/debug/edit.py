@@ -299,8 +299,8 @@ class CouponEditDialog(wx.Dialog):
         self._item_selected()
 
     def OnOkBtn(self, event):
-        cw.cwpy.sounds["harvest"].play()
         def func(pcards, coupons, syscoupons):
+            update = False
             for i, pcard in enumerate(pcards):
                 list = coupons[i]
                 # システムクーポン以外を一旦除去
@@ -311,6 +311,14 @@ class CouponEditDialog(wx.Dialog):
                 list.reverse()
                 for coupon in list:
                     pcard.set_coupon(coupon[0], coupon[1])
+
+                # レベル調節
+                if isinstance(pcard, cw.sprite.card.PlayerCard):
+                    update |= pcard.adjust_level(False)
+
+            if not update:
+                cw.cwpy.sounds["harvest"].play()
+
         cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons)
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()

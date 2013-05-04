@@ -1411,6 +1411,14 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(showbuttons)
         self.disposition_pcards()
 
+    def check_level(self, fromscenario):
+        """PCの経験点を確認し、条件を満たしていれば
+        レベルアップ・ダウン処理を行う。
+        fromscenarioがTrueであれば同時に完全回復も行う。
+        """
+        for pcard in self.get_pcards():
+            pcard.adjust_level(fromscenario)
+
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド
 #-------------------------------------------------------------------------------

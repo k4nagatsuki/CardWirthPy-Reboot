@@ -35,6 +35,7 @@ class Setting(object):
             self.expandmode = "FullScreen"
             self.is_expanded = False
             self.debug = False
+            self.no_levelup_in_debugmode = False
             self.vol_bgm = 1.0
             self.vol_midi = 0.2
             self.vol_sound = 1.0
@@ -73,6 +74,8 @@ class Setting(object):
             self.is_expanded = data.getbool("ExpandMode", "expanded", False)
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", False)
+        # デバッグ時はレベル上昇しない
+        self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", False)
         # 音楽のボリューム(0～1.0)
         self.vol_bgm = data.getint("BgmVolume", 100)
         self.vol_bgm = self.wrap_volumevalue(self.vol_bgm)

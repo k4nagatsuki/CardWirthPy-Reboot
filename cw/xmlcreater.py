@@ -76,6 +76,9 @@ def create_settings(setting):
     # デバッグモードかどうか
     e = cw.data.make_element("DebugMode", str(setting.debug))
     element.append(e)
+    # デバッグ時はレベル上昇しない
+    e = cw.data.make_element("NoLevelUpInDebugMode", str(setting.no_levelup_in_debugmode))
+    element.append(e)
     # スキン
     e = cw.data.make_element("Skin", setting.skindirname)
     element.append(e)

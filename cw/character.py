@@ -3,6 +3,7 @@
 
 import os
 import copy
+import math
 import pygame
 
 import cw
@@ -1148,7 +1149,7 @@ class Character(object):
         else:
             return self.level
 
-    def check_levelup(self):
+    def check_level(self):
         coupons = self.get_specialcoupons()
         level = coupons[u"＠レベル原点"]
 
@@ -1161,13 +1162,12 @@ class Character(object):
             limit = 10
             self.set_coupon(u"＠レベル上限", 10)
 
+        # 解の公式で現在の経験点で到達できるレベルを算出
         cnt = self.get_couponsvalue()
-        n = level * (level + 1)
-        upvalue = 0
-        while n <= cnt and (level + upvalue) < limit:
-            upvalue += 1
-            n = (level + upvalue) * (level + upvalue + 1)
-        return upvalue
+        olevel = int((-1 + math.sqrt(1 + 4 * cnt)) / 2.0) + 1
+        olevel = min(limit, olevel)
+
+        return olevel - level
 
     def set_level(self, value, regulate=False, debugedit=False):
         """レベルを設定する。
@@ -1213,6 +1213,7 @@ class Character(object):
                     self.coupons[e.text] = self.level, e
                 elif e.text == u"＠ＥＰ" and 0 < uplevel and not debugedit:
                     value = e.getint(".", "value", 0) + uplevel * 10
+                    value = max(0, value)
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e
 
