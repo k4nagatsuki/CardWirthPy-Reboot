@@ -1813,7 +1813,7 @@ class LinkPackageContent(EventContentBase):
                 e = data.find("Events")
                 engine = cw.event.EventEngine(e)
                 engine.versionhint = data.getattr("Property", "versionHint", "")
-                cw.cwpy.event.nowrunningpacks[id] = e, versionhint
+                cw.cwpy.event.nowrunningpacks[id] = e, engine.versionhint
             else:
                 e, versionhint = cw.cwpy.event.nowrunningpacks[id]
                 engine = cw.event.EventEngine(e)
