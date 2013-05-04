@@ -123,6 +123,9 @@ class SettingsDialog(wx.Dialog):
 
         # レベル調節
         def check_levelup(can_levelup_old):
+            if cw.cwpy.is_playingscenario():
+                return
+
             can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
             if not can_levelup_old and can_levelup:
                 # レベルアップが可能な設定になったので
