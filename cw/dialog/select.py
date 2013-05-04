@@ -70,7 +70,10 @@ class Select(wx.Dialog):
 
     def _update_mousepos(self):
         if not self.can_clickside():
-            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            if self.can_clickcenter():
+                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            else:
+                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
             self.clickmode = 0
             return
 
@@ -83,7 +86,10 @@ class Select(wx.Dialog):
             self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_POINT_RIGHT))
             self.clickmode = wx.RIGHT
         else:
-            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            if self.can_clickcenter():
+                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            else:
+                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
             self.clickmode = 0
 
     def OnClickLeftBtn(self, evt):
@@ -223,6 +229,10 @@ class Select(wx.Dialog):
 
         for btn in self.buttonlist:
             btn.Enable()
+
+    def can_clickcenter(self):
+        """パネルの中央部分をクリックで決定可能ならTrue。"""
+        return True
 
     def can_clickside(self):
         """パネルの左右クリックでページ切替可能ならTrue。"""
@@ -832,7 +842,7 @@ class PlayerSelect(Select):
         self.toppanel.SetMinSize(cw.s((460, 280)))
 
         # sort
-        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((60, 20)), style=wx.CB_READONLY)
+        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
@@ -877,7 +887,7 @@ class PlayerSelect(Select):
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(cw.s((398, 0)), 0)
+        sizer.Add(cw.s((393, 0)), 0)
         sizer.Add(self.sort, 0, wx.TOP, cw.s(2))
         self.toppanel.SetSizer(sizer)
         self.toppanel.Layout()
@@ -920,6 +930,9 @@ class PlayerSelect(Select):
             cw.cwpy.setting.sort_standbys = sorttype
             cw.cwpy.ydata.sort_standbys()
             self.draw(True)
+
+    def can_clickcenter(self):
+        return self.addbtn.IsEnabled()
 
     def can_clickside(self):
         return self.views <= 1
@@ -1335,7 +1348,7 @@ class PlayerSelect(Select):
         if self.sort:
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["sort_title"]
-            drawwitharound(dc, s, cw.s(358), cw.s(5))
+            drawwitharound(dc, s, cw.s(353), cw.s(5))
 
 #-------------------------------------------------------------------------------
 #　アルバムダイアログ
@@ -1374,6 +1387,9 @@ class Album(PlayerSelect):
         self._bind()
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDelBtn, self.delbtn)
+
+    def can_clickcenter(self):
+        return False
 
     def OnClickDelBtn(self, event):
         cw.cwpy.sounds["signal"].play()
@@ -1539,6 +1555,9 @@ class ScenarioSelect(Select):
         if isinstance(pathorheader, cw.header.ScenarioHeader):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
             self.ProcessEvent(btnevent)
+
+    def can_clickcenter(self):
+        return self.yesbtn.IsEnabled()
 
     def get_selected(self):
         """
