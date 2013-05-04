@@ -93,12 +93,17 @@ class EventInterface(object):
         """
         mode = "unreversed" if unreversed else ""
 
+        seq = []
         # 選択中メンバ
         if scope == "Selected":
-            seq = [self.get_selectedmember()]
+            ccard = self.get_selectedmember()
+            if ccard:
+                seq.append(ccard)
         # ランダムメンバ
         elif scope == "Random":
-            seq = [self.get_randommember()]
+            ccard = self.get_randommember()
+            if ccard:
+                seq.append(ccard)
         # パーティ全体
         elif scope == "Party":
             seq = cw.cwpy.get_pcards(mode)
@@ -111,7 +116,9 @@ class EventInterface(object):
             seq.extend([cw.cwpy.ydata.party.backpack])
         # フィールド全体
         elif scope == "Field":
-            seq = [self.get_selectedmember()]
+            ccard = self.get_selectedmember()
+            if ccard:
+                seq.append(ccard)
             seq.extend(cw.cwpy.get_pcards(mode))
             seq.extend([cw.cwpy.ydata.party.backpack])
             seq.extend(cw.cwpy.get_ecards(mode))
@@ -123,7 +130,9 @@ class EventInterface(object):
             seq = cw.cwpy.get_fcards(mode)
         # フィールド全体(キャストのみ)
         elif scope == "FieldCasts":
-            seq = [self.get_selectedmember()]
+            ccard = self.get_selectedmember()
+            if ccard:
+                seq.append(ccard)
             seq.extend(cw.cwpy.get_pcards(mode))
             seq.extend(cw.cwpy.get_ecards(mode))
             seq.extend(cw.cwpy.get_fcards(mode))
