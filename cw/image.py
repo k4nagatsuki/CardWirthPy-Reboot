@@ -95,8 +95,6 @@ class CardImage(Image):
         if not hasattr(header, "type"):
             return image
 
-        header = header.ref_original()
-
         if header.type in ("ItemCard", "BeastCard"):
             uselimit, maxn = header.get_uselimit()
 
@@ -139,7 +137,7 @@ class CardImage(Image):
                 image.blit(subimg, cw.s((60, 75)))
 
             # ホールド
-            if header.hold:
+            if header.ref_original().hold:
                 subimg = cw.cwpy.rsrc.cardbgs["HOLD"]
                 image.blit(subimg, cw.s((0, 0)))
 
