@@ -730,7 +730,8 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(False)
 
         if header and not isinstance(self.sdata, cw.data.ScenarioData):
-            cw.cwpy.ydata.changed()
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
             self.sdata = cw.data.ScenarioData(header)
             loaded, musicpath = self.sdata.set_log()
             self.sdata.start()
@@ -1227,7 +1228,8 @@ class CWPy(_Singleton, threading.Thread):
         self.disposition_pcards()
 
         if 0 < oldareaid and self.ydata:
-            cw.cwpy.ydata.changed()
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
 
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
@@ -1678,7 +1680,8 @@ class CWPy(_Singleton, threading.Thread):
         Getコンテントからこのメソッドを操作する場合は、
         ownerはNoneにする。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         # カード移動操作用データを読み込む
         if self.selectedheader and not header:
             assert self.selectedheader

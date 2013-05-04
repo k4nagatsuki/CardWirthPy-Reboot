@@ -115,7 +115,8 @@ class Character(object):
         return self.data.gettext("Property/ImagePath", "")
 
     def set_image(self, path):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         e = self.data.find("Property/ImagePath")
         dpath = cw.util.join_paths(cw.cwpy.yadodir, os.path.dirname(self.get_imagepath()))
         cw.cwpy.ydata.deletedpaths.add(dpath)
@@ -126,7 +127,8 @@ class Character(object):
         return self.data.gettext("Property/Name", "")
 
     def set_name(self, name):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         e = self.data.find("Property/Name")
         e.text = name
         self.name = name
@@ -135,18 +137,21 @@ class Character(object):
         return cw.util.decodewrap(self.data.gettext("Property/Description", ""))
 
     def set_description(self, desc):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         e = self.data.find("Property/Description")
         e.text = cw.util.encodewrap(desc)
 
     def set_physical(self, name, value):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         e = self.data.find("Property/Ability/Physical")
         e.set(name, str(int(value)))
         self.physical[name] = float(value)
 
     def set_mental(self, name, value):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         e = self.data.find("Property/Ability/Mental")
         e.set(name, str(value))
         self.mental[name] = float(value)
@@ -437,7 +442,8 @@ class Character(object):
 
     def use_card(self, targets, header):
         """targetsにカードを使用する。"""
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if not isinstance(targets, list):
             targets = [targets]
 
@@ -969,7 +975,8 @@ class Character(object):
         return None
 
     def set_sex(self, sex):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         old = self.get_sex()
         if old:
             self.remove_coupon(old)
@@ -983,7 +990,8 @@ class Character(object):
         return None
 
     def set_age(self, age):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         old = self.get_age()
         if old:
             self.remove_coupon(old)
@@ -997,7 +1005,8 @@ class Character(object):
         return None
 
     def set_talent(self, talent):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         old = self.get_talent()
         if old:
             self.remove_coupon(old)
@@ -1014,7 +1023,8 @@ class Character(object):
         return makings
 
     def set_makings(self, makings):
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         for coupon in cw.cwpy.setting.makingcoupons:
             if coupon in self.coupons:
                 self.remove_coupon(coupon)
@@ -1033,7 +1043,8 @@ class Character(object):
         value: 減らす数。
         """
         if self.timedcoupons:
-            cw.cwpy.ydata.changed()
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
             self.data.is_edited = True
 
             for coupon in list(self.timedcoupons):
@@ -1057,7 +1068,8 @@ class Character(object):
         name: クーポン名。
         value: クーポン点数。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         value = int(value)
         value = cw.util.numwrap(value, 0, 999)
         removed = self._remove_coupon(name, False)
@@ -1100,7 +1112,8 @@ class Character(object):
     def _remove_coupon(self, name, update):
         if not name in self.coupons:
             return False
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
 
         value, e = self.coupons[name]
         self.data.remove("Property/Coupons", e)
@@ -1163,7 +1176,7 @@ class Character(object):
             self.set_coupon(u"＠レベル上限", 10)
 
         # 解の公式で現在の経験点で到達できるレベルを算出
-        cnt = self.get_couponsvalue()
+        cnt = max(1, self.get_couponsvalue())
         olevel = int((-1 + math.sqrt(1 + 4 * cnt)) / 2.0) + 1
         olevel = min(limit, olevel)
 
@@ -1183,7 +1196,8 @@ class Character(object):
         if uplevel == 0:
             return
 
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         self.level = value
         self.data.edit("Property/Level", str(self.level))
         # 最大HPとHP
@@ -1267,7 +1281,8 @@ class Character(object):
         """
         現在ライフに引数nの値を足す(nが負だと引き算でダメージ)。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         self.life += value
         self.life = cw.util.numwrap(self.life, 0, self.maxlife)
         self.data.edit("Property/Life", str(int(self.life)))
@@ -1280,7 +1295,8 @@ class Character(object):
         麻痺値を操作する。
         麻痺値は0～40の範囲を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         self.paralyze += value
         self.paralyze = cw.util.numwrap(self.paralyze, 0, 40)
         self.data.edit("Property/Status/Paralyze", str(self.paralyze))
@@ -1291,7 +1307,8 @@ class Character(object):
         中毒値を操作する。
         中毒値は0～40の範囲を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         self.poison += value
         self.poison = cw.util.numwrap(self.poison, 0, 40)
         self.data.edit("Property/Status/Poison", str(self.poison))
@@ -1301,7 +1318,8 @@ class Character(object):
         精神状態とその継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             name = "Normal"
             value = 0
@@ -1328,7 +1346,8 @@ class Character(object):
         束縛状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
         if overwrite:
@@ -1344,7 +1363,8 @@ class Character(object):
         沈黙状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
         if overwrite:
@@ -1359,7 +1379,8 @@ class Character(object):
         暴露状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
         if overwrite:
@@ -1374,7 +1395,8 @@ class Character(object):
         魔法無効状態の継続ラウンド数を操作する。
         継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
         if overwrite:
@@ -1388,7 +1410,8 @@ class Character(object):
         """
         対象消去を行う。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if not self.is_vanished():
             self._vanished = True
             cw.animation.animate_sprite(self, "delete")
@@ -1399,7 +1422,8 @@ class Character(object):
         行動力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
             duration = 0
@@ -1420,7 +1444,8 @@ class Character(object):
         回避力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
             duration = 0
@@ -1441,7 +1466,8 @@ class Character(object):
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
             duration = 0
@@ -1462,7 +1488,8 @@ class Character(object):
         抵抗力強化値とその継続ラウンド数を操作する。
         強化値の範囲は-10～10、継続ラウンド数の範囲は0～999を越えない。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         if self.is_unconscious():
             value = 0
             duration = 0
@@ -1484,7 +1511,8 @@ class Character(object):
         recoveryがTrueだったら、最大値まで回復。
         Falseだったら、0にする。
         """
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         for header in self.get_pocketcards(cw.POCKET_SKILL):
             if recovery:
                 header.set_uselimit(999)
@@ -1527,7 +1555,8 @@ class Character(object):
 
     def set_timeelapse(self, time=1):
         """時間経過。"""
-        cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
         # 時限クーポン処理
         self.count_timedcoupon()
         oldalive = self.is_alive()
@@ -1654,7 +1683,8 @@ class Character(object):
 class Player(Character):
     def lost(self):
         if cw.cwpy.is_playingscenario():
-            cw.cwpy.ydata.changed()
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
             self.data.edit("Property", "True", "lost")
             self.data.write_xml()
             if self.data.fpath.lower().startswith("yado"):
