@@ -1186,6 +1186,8 @@ class CWPy(_Singleton, threading.Thread):
                 mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status, addgroup)
             else:
                 mcard = cw.sprite.card.MenuCard(e, pos_noscale, status, addgroup)
+            if not self.sdata.flags.get(mcard.flag, True):
+                mcard.status = "hidden"
             seq.append(mcard)
         return seq
 
