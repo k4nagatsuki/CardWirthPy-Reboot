@@ -66,14 +66,14 @@ class ItemCard(base.CWBinaryBase):
             self.events = [event.SimpleEvent(self, f) for cnt in xrange(events_num)]
             self.hold = f.bool()
         else:
-            self.premium = 0
             self.scenario_name = ""
             self.scenario_author = ""
             self.events = []
+            self.hold = False
             if 0 < dataversion:
-                self.hold = f.bool()
+                self.premium = f.byte()
             else:
-                self.hold = False
+                self.premium = 0
 
         # 宿データだとここに不明なデータ(4)が付加されている
         if 5 <= dataversion:
