@@ -951,8 +951,8 @@ def get_effectivetargets(header, targets):
     targets: Characters
     """
     motions = header.carddata.getfind("Motions").getchildren()
-    sets = set()
-    setshp = set()
+    sets = []
+    setshp = []
 
     def narrow(targets):
         targets2 = []
@@ -964,8 +964,8 @@ def get_effectivetargets(header, targets):
     if header.type == "ActionCard" and header.id == 7 and len(targets) == 1:
         # 重症時は逃走を優先する
         if targets[0].is_heavyinjured():
-            sets.add(targets[0])
-            setshp.add(targets[0])
+            sets.append(targets[0])
+            setshp.append(targets[0])
     else:
         for motion in motions:
             s = motion.get("type", "")
@@ -976,16 +976,20 @@ def get_effectivetargets(header, targets):
 
             if s in checkingmethod_dict:
                 method, flag = checkingmethod_dict[s]
-                sets.update([t for t in targets if getattr(t, method)() == flag])
+                sets.extend([t for t in targets if getattr(t, method)() == flag])
             else:
-                sets.update(targets)
+                sets.extend(targets)
             if s in highpriority_dict:
                 # 優先度の高い行動
                 method, flag = highpriority_dict[s]
-                ts = set()
+                ts = []
                 for t in targets:
                     if getattr(t, method)() == flag:
-                        ts.add(t)
+                        if header.allrange:
+                            ts.extend(targets)
+                            break
+                        else:
+                            ts.append(t)
                 if cw.cwpy.battle:
                     # すでにその行動のターゲットになっている場合は行わない
                     for s2, tarr, user in cw.cwpy.battle.priorityacts:
@@ -994,7 +998,7 @@ def get_effectivetargets(header, targets):
                                 if t in ts:
                                     ts.remove(t)
                                     break
-                setshp.update(ts)
+                setshp.extend(ts)
 
     return narrow(sets), narrow(setshp)
 
