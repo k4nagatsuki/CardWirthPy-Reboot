@@ -1705,6 +1705,20 @@ class CWPy(_Singleton, threading.Thread):
         elif targettype == "STOREHOUSE":
             target = self.ydata.storehouse
         elif targettype in ("PAWNSHOP", "TRASHBOX"):
+
+            # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
+            if not cw.cwpy.debug and header.premium == "Premium" and not from_event:
+                if targettype == "PAWNSHOP":
+                    self.sounds["error"].play()
+                    s = cw.cwpy.msgs["error_sell_premier_card"]
+                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
+                elif targettype == "TRASHBOX":
+                    self.sounds["error"].play()
+                    s = cw.cwpy.msgs["error_dump_premier_card"] % (header.name)
+                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
+
+                return
+
             if targettype == "PAWNSHOP":
                 def calc_price(header):
                     if header.premium == "Normal":
@@ -1738,19 +1752,6 @@ class CWPy(_Singleton, threading.Thread):
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
                         return
-
-            # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
-            if not cw.cwpy.debug and header.premium == "Premium" and not from_event:
-                if targettype == "PAWNSHOP":
-                    self.sounds["error"].play()
-                    s = cw.cwpy.msgs["error_sell_premier_card"]
-                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
-                elif targettype == "TRASHBOX":
-                    self.sounds["error"].play()
-                    s = cw.cwpy.msgs["error_dump_premier_card"] % (header.name)
-                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
-
-                return
 
             target = None
         else:
