@@ -80,7 +80,11 @@ class SystemData(object):
 
         for key, value in self.areas.iteritems():
             if key in cw.AREAS_TRADE:
-                mcards = cw.cwpy.set_mcards(self.get_mcarddata(key, battlestatus=False), False, addgroup=False, setautospread=False)
+                data = self.get_mcarddata(key, battlestatus=False)
+                areaid = cw.cwpy.areaid
+                cw.cwpy.areaid = key
+                mcards = cw.cwpy.set_mcards(data, False, addgroup=False, setautospread=False)
+                cw.cwpy.areaid = areaid
                 d[key] = mcards
 
         self.sparea_mcards = d
