@@ -177,6 +177,8 @@ class CWScenario(object):
                     data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
             elif filetype == 7:
                 data = skill.SkillCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+            elif filetype == 8:
+                data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
             else:
                 f.close()
                 raise ValueError(path)
