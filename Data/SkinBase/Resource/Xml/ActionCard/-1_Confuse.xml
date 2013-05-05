@@ -15,7 +15,7 @@
     <SuccessRate>0</SuccessRate>
     <VisualEffect>None</VisualEffect>
     <Enhance avoid="-5" resist="-5" defense="0"/>
-    <SoundPath></SoundPath>
+    <SoundPath>Material/システム・装備.wav</SoundPath>
     <SoundPath2></SoundPath2>
     <KeyCodes>ペナルティ\n\n\n\n</KeyCodes>
     <Premium>Normal</Premium>
