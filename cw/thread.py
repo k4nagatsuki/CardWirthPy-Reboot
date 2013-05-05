@@ -172,6 +172,11 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.frame.exec_func(func)
 
     def update_skin(self, skindirname, changearea=True):
+        if self.status == "Title":
+            changearea=False
+            self.mcardgrp.empty()
+            self.background.bgs = []
+
         if self.ydata:
             changed = self.ydata.is_changed()
             self.ydata.set_skinname(skindirname)
@@ -179,7 +184,6 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.skindirname = skindirname
         self.setting.init_skin()
         self.skindir = self.setting.skindir
-        self.music.play(self.music.path, updatepredata=False)
         oldskindir = cw.util.join_paths("Data/Skin", oldskindirname)
         newskindir = cw.util.join_paths("Data/Skin", skindirname)
         self.background.update_skin(oldskindir, newskindir)
@@ -233,6 +237,12 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.ydata:
             self.ydata._changed = changed
+
+        if self.status == "Title":
+            # タイトル画面にいる場合はロゴ表示前まで戻す
+            self.startup()
+        else:
+            self.music.play(self.music.path, updatepredata=False)
 
     def update_scale(self, scale, changearea=True):
         """画面の表示倍率を変更する。
