@@ -94,7 +94,7 @@ class Converter(threading.Thread):
             return u""
 
     def find_datadir(self):
-        if self.exe and len(self.exebinary) < 2000000:
+        if self.exe and len(self.exebinary) < 3000000:
             key = "\\Midi\\DefReset.mid"
             index = self.exebinary.find(key)
             try:
@@ -104,7 +104,7 @@ class Converter(threading.Thread):
         return u"Data"
 
     def find_scenariodir(self):
-        if self.exe and len(self.exebinary) < 2000000:
+        if self.exe and len(self.exebinary) < 3000000:
             key = "\0\\\0\\\0\\Summary.wsm\0\\\0\\\0.wid\0"
             index = self.exebinary.find(key)
             try:
@@ -135,7 +135,7 @@ class Converter(threading.Thread):
 
     def _get_features(self):
         # バイナリ断片を手がかりにして特性値を探す。
-        if not self.exe or 2000000 < len(self.exebinary):
+        if not self.exe or 3000000 < len(self.exebinary):
             return
         key = "TStatusItem\x81\x89" # "TStatusItem♂"
         index = self.exebinary.find(key) + len(key) - len("\x81\x89")
@@ -246,7 +246,7 @@ class Converter(threading.Thread):
 
     def _get_sounds(self):
         # バイナリ断片を手がかりにして音声ファイル名を探す。
-        if not self.exe or 2000000 < len(self.exebinary):
+        if not self.exe or 3000000 < len(self.exebinary):
             return
         try:
             sounds = self.data.getfind("Sounds")
@@ -307,7 +307,7 @@ class Converter(threading.Thread):
             print exs
 
     def _get_cards(self):
-        if not self.exe or 2000000 < len(self.exebinary):
+        if not self.exe or 3000000 < len(self.exebinary):
             return
         try:
             key = "\0CARD_SKILL\0CARD_ACTION\0IMAGE_ACTION\0"
@@ -424,7 +424,7 @@ class Converter(threading.Thread):
             print ex
 
     def _get_messages(self):
-        if not self.exe or 2000000 < len(self.exebinary):
+        if not self.exe or 3000000 < len(self.exebinary):
             return
         try:
             # ゲームオーバー
@@ -941,7 +941,7 @@ class Converter(threading.Thread):
                 with open(fpath, "wb") as f:
                     f.write(res)
                 f = None
-            if len(self.exebinary) < 2000000:
+            if len(self.exebinary) < 3000000:
                 for respath, target in glyphtbl.items():
                     respaths = respath.split("/")
                     resname = respaths[0]
