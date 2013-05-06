@@ -1,4 +1,4 @@
-CardWirthPy ver0.12.1
+﻿CardWirthPy ver0.12.1
   作者: logの中の人
   URL: http://sites.google.com/site/cardwirthpy/
        https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot (暫定)
@@ -140,7 +140,7 @@ engine=1.20
   CardWirthPyはプログラミング言語Pythonで書かれました。
   実行ファイルの作成にはpy2exeを使用しています。
 
-    Python ver2.7.3
+    Python ver2.7.4
       License: Python Software Foundation License
       URL: http://www.python.org/
 
