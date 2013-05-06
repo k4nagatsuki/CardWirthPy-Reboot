@@ -106,13 +106,17 @@ class CWPyCard(base.SelectableSprite):
         if self.reversed:
             image = cw.cwpy.rsrc.cardbgs["REVERSE"]
 
-            if self.zoomimgs:
-                image = pygame.transform.scale(image, self.zoomimgs[1][1].size)
-            elif not self.scale == 100:
+            if not self.scale == 100:
                 scale = self.scale / 100.0
                 image = pygame.transform.rotozoom(image, 0, scale)
 
             self._image = image
+
+            for i, t in enumerate(self.zoomimgs):
+                img, rect = t
+                img = pygame.transform.scale(image, rect.size)
+                self.zoomimgs[i] = (img, rect)
+
         else:
             self.update_image()
 

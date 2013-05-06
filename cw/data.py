@@ -584,14 +584,14 @@ class ScenarioData(SystemData):
 
     def load_log(self, path, recording):
         etree = xml2etree(path)
-        if not recording:
-            cw.cwpy.debug = etree.getbool("Property/Debug")
+        ##if not recording:
+        ##    cw.cwpy.debug = etree.getbool("Property/Debug")
 
-            if not cw.cwpy.debug == cw.cwpy.setting.debug:
-                cw.cwpy.statusbar.change()
+        ##    if not cw.cwpy.debug == cw.cwpy.setting.debug:
+        ##        cw.cwpy.statusbar.change()
 
-                if not cw.cwpy.debug and cw.cwpy.is_showingdebugger():
-                    cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
+        ##        if not cw.cwpy.debug and cw.cwpy.is_showingdebugger():
+        ##            cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
 
         for e in etree.getfind("Flags"):
             if e.text in self.flags:
