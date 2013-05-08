@@ -96,17 +96,16 @@ class _JpySubImage(cw.image.Image):
             animespeed = cw.util.numwrap(self.animespeed, 0, 255)
 
             # 単一描画
+            sprs = cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal")
+            if sprs:
+                background = sprs[0].image
+            else:
+                background = cw.cwpy.background.image.copy()
+                cw.sprite.background.Jpy1TemporalSprite(background)
+
             if not animespeed:
                 if doanime:
-                    image = self.get_image()
-                    image = self.clip_tempimg(image, pos)
-                    spr = cw.sprite.background.Jpy1TemporalSprite(image, pos,
-                                                                    self.paintmode)
-                    cw.cwpy.draw()
-                    self.wait()
-
-                    if not self.animation == 1:
-                        spr.remove(cw.cwpy.topgrp)
+                    self._drawtemp_impl(background, pos)
 
             # 連続描画
             else:
@@ -143,18 +142,28 @@ class _JpySubImage(cw.image.Image):
                                 rest_y = 0
 
                         pos = (x, y)
-                        image = self.get_image()
-                        image = self.clip_tempimg(image, pos)
-                        cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
-                        spr = cw.sprite.background.Jpy1TemporalSprite(image, pos,
-                                                                    self.paintmode)
-                        cw.cwpy.draw()
-                        self.wait()
-
-                        if not self.animation == 1:
-                            spr.remove(cw.cwpy.topgrp)
+                        self._drawtemp_impl(background, pos)
 
             self.cache.save_position(pos)
+
+    def _drawtemp_impl(self, background, pos):
+        """backgroundのposの位置に一時描画。"""
+        image = self.get_image()
+        image = self.clip_tempimg(image, pos)
+
+        rect = pygame.Rect(pos, image.get_size())
+        rect = rect.clip(background.get_rect())
+
+        if 0 < rect[2] and 0 < rect[3]:
+            if not self.animation == 1:
+                before = background.subsurface(rect).copy()
+
+            background.blit(image, pos, special_flags=self.paintmode)
+            cw.cwpy.draw()
+            self.wait()
+
+            if not self.animation == 1:
+                background.blit(before, rect.topleft)
 
     def clip_tempimg(self, image, pos):
         if self.animeclip:

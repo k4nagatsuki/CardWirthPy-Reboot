@@ -437,21 +437,14 @@ class TargetArrow(base.CWPySprite):
         self.rect.topleft = (self.target.rect.right - cw.s(30), self.target.rect.bottom - cw.s(30))
 
 class Jpy1TemporalSprite(base.CWPySprite):
-    def __init__(self, image, pos, paintmode):
+    def __init__(self, background):
         """エフェクトブースターJpy1の一時描画用スプライト。
         Jpy1の読み込みがすべて終了したら、削除される。
         """
         base.CWPySprite.__init__(self)
         # image, rect作成。
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.rect.topleft = pos
-
-        # ブレンドモード設定
-        if paintmode == 1:
-            self.blendmode = BLEND_MIN
-        elif paintmode == 2:
-            self.blendmode = BLEND_ADD
+        self.image = background
+        self.rect = cw.s(pygame.Rect((0, 0), cw.SIZE_AREA))
 
         # spritegroupに追加
         cw.cwpy.topgrp.add(self, layer="jpytemporal")
