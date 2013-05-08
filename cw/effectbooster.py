@@ -59,10 +59,10 @@ class _JpySubImage(cw.image.Image):
         # image temporary draw
         self.waittime = config.get_int(section, "wait", 0)
         self.animation = config.get_int(section, "animation", 0)
-        self.animemove = config.get_ints(section, "animemove", 2, None)
-        self.animeclip = config.get_ints(section, "animeclip", 4, None)
-        self.animespeed = config.get_int(section, "animespeed", 0)
-        self.animeposition = config.get_ints(section, "animeposition", 2, None)
+        self.animemove = cw.s(config.get_ints(section, "animemove", 2, None))
+        self.animeclip = cw.s(config.get_ints(section, "animeclip", 4, None))
+        self.animespeed = cw.s(config.get_int(section, "animespeed", 0))
+        self.animeposition = cw.s(config.get_ints(section, "animeposition", 2, None))
         self.paintmode = config.get_int(section, "paintmode", 0)
 
     def draw2back(self, back):
