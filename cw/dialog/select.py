@@ -970,9 +970,11 @@ class PlayerSelect(Select):
             count = 1
 
         if event.GetWheelRotation() > 0:
-            self.index = cw.util.number_normalization(self.index - count, 0, len(self.list))
+            self.index = cw.util.number_normalization(self.index - count, 0, self.get_pagecount() * self.views)
         else:
-            self.index = cw.util.number_normalization(self.index + count, 0, len(self.list))
+            self.index = cw.util.number_normalization(self.index + count, 0, self.get_pagecount() * self.views)
+        if len(self.list) <= self.index:
+            self.index = len(self.list) - 1
         cw.cwpy.sounds["page"].play()
         self.draw(True)
 
@@ -980,7 +982,9 @@ class PlayerSelect(Select):
         if self.views == 1 or evt.GetEventObject() <> self.leftbtn or len(self.list) <= self.views:
             Select.OnClickLeftBtn(self, evt)
             return
-        self.index = cw.util.number_normalization(self.index - self.views, 0, len(self.list))
+        self.index = cw.util.number_normalization(self.index - self.views, 0, self.get_pagecount() * self.views)
+        if len(self.list) <= self.index:
+            self.index = len(self.list) - 1
         cw.cwpy.sounds["page"].play()
         self.draw(True)
 
@@ -1001,7 +1005,9 @@ class PlayerSelect(Select):
         if self.views == 1 or evt.GetEventObject() <> self.rightbtn or len(self.list) <= self.views:
             Select.OnClickRightBtn(self, evt)
             return
-        self.index = cw.util.number_normalization(self.index + self.views, 0, len(self.list))
+        self.index = cw.util.number_normalization(self.index + self.views, 0, self.get_pagecount() * self.views)
+        if len(self.list) <= self.index:
+            self.index = len(self.list) - 1
         cw.cwpy.sounds["page"].play()
         self.draw(True)
 
