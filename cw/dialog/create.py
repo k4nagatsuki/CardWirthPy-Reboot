@@ -352,7 +352,9 @@ def create_description(talent, attrs):
             s = making[1:]
             n = index % 3 if index else 0
 
-            if n == 2:
+            if len(attrs) == index + 1:
+                pass
+            elif n == 2:
                 s += "\n"
             else:
                 s += u"　" * (7 - len(s))

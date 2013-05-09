@@ -241,14 +241,29 @@ class CharaInfo(object):
                      self.level <> pcard.level
 
         if updatebase:
+            desc_bef = pcard.get_description()
+            desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings())
+            # desc_bef: 変更前の解説
+            # desc_bef_d: 変更前のデフォルト解説（策士型　都会育ち…）
+
             makings = self.get_makingslist()
+            desc_aft_d = cw.dialog.create.create_description(self.talent, makings)
+            # desc_aft_d: 変更後のデフォルト解説
 
             pcard.set_age(self.age)
             pcard.set_sex(self.sex)
             pcard.set_talent(self.talent)
             pcard.set_makings(makings)
-            desc = cw.dialog.create.create_description(self.talent, makings)
-            pcard.set_description(desc)
+
+            # 解説文の変更は、以下に当てはまる場合だけ。該当箇所のみ書き替える
+            # 　変更前の解説文に、デフォ解説が丸ごと、ないし最初の１行残っている
+            # 解説文にプレイヤーの自作文章が入っている場合に上書きして消さないための処置
+            if desc_bef_d in desc_bef:
+                desc_aft = desc_bef.replace(desc_bef_d , desc_aft_d)
+                pcard.set_description(desc_aft)
+            elif desc_bef_d.split("\n")[0] in desc_bef:
+                desc_aft = desc_bef.replace(desc_bef_d.split("\n")[0] , desc_aft_d.split("\n")[0])
+                pcard.set_description(desc_aft)
 
             # 能力値の再計算
             race = pcard.get_race()
