@@ -381,18 +381,23 @@ class CWPy(_Singleton, threading.Thread):
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
 
+    def draw_cards(self, scr):
+        # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+        dirty_rects = []
+        if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            dirty_rects.extend(self.pcardgrp.draw(self.scr))
+            dirty_rects.extend(self.mcardgrp.draw(self.scr))
+        else:
+            dirty_rects.extend(self.mcardgrp.draw(self.scr))
+            dirty_rects.extend(self.pcardgrp.draw(self.scr))
+        return dirty_rects
+
     def draw(self, mainloop=False):
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
             dirty_rects = self.bggrp.draw(self.scr)
 
-            # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                dirty_rects.extend(self.pcardgrp.draw(self.scr))
-                dirty_rects.extend(self.mcardgrp.draw(self.scr))
-            else:
-                dirty_rects.extend(self.mcardgrp.draw(self.scr))
-                dirty_rects.extend(self.pcardgrp.draw(self.scr))
+            dirty_rects.extend(self.draw_cards(self.scr))
 
             dirty_rects.extend(self.topgrp.draw(self.scr))
             dirty_rects.extend(self.backloggrp.draw(self.scr))

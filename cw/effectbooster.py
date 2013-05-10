@@ -93,7 +93,7 @@ class _JpySubImage(cw.image.Image):
             else:
                 pos = self.position
 
-            animespeed = cw.util.numwrap(self.animespeed, 0, 255)
+            animespeed = cw.util.numwrap(self.animespeed, cw.s(0), cw.s(255))
 
             # 単一描画
             sprs = cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal")
@@ -101,6 +101,9 @@ class _JpySubImage(cw.image.Image):
                 background = sprs[0].image
             else:
                 background = cw.cwpy.background.image.copy()
+                for card in cw.cwpy.get_pcards() + cw.cwpy.get_mcards():
+                    if card.status <> "hidden":
+                        background.blit(card.image, card.rect.topleft)
                 cw.sprite.background.Jpy1TemporalSprite(background)
 
             if not animespeed:
@@ -120,10 +123,10 @@ class _JpySubImage(cw.image.Image):
 
                     while rest_x or rest_y:
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
-                        n /= animespeed
+                        n /= cw.s(animespeed)
 
                         if n == 0:
-                            n = 1
+                            n = cw.s(1)
 
                         if rest_x:
                             x = int(pos[0] + round(rest_x / n))
@@ -154,19 +157,26 @@ class _JpySubImage(cw.image.Image):
         rect = pygame.Rect(pos, image.get_size())
         rect = rect.clip(background.get_rect())
 
+        if self.paintmode == 1:
+            blendmode = BLEND_MIN
+        elif self.paintmode == 2:
+            blendmode = BLEND_ADD
+        else:
+            blendmode = 0
+
         if 0 < rect[2] and 0 < rect[3]:
             if redraw:
                 if not self.animation == 1:
                     before = background.subsurface(rect).copy()
 
-                background.blit(image, pos, special_flags=self.paintmode)
+                background.blit(image, pos, special_flags=blendmode)
                 cw.cwpy.draw()
 
                 if not self.animation == 1:
                     background.blit(before, rect.topleft)
             else:
                 if self.animation == 1:
-                    background.blit(image, pos, special_flags=self.paintmode)
+                    background.blit(image, pos, special_flags=blendmode)
                     cw.cwpy.draw()
 
             self.wait()
