@@ -447,6 +447,11 @@ class CWPy(_Singleton, threading.Thread):
             callname = pre_info[0]
 
             if callname == "CARDPOCKET":
+                # ゲームオーバーになった場合は開かない
+                if cw.cwpy.is_gameover():
+                    self.pre_dialogs.pop()
+                    return
+
                 # 手札カードダイアログの選択者が
                 # 対象消去されている場合は開かない
                 indexs = pre_info[1]
