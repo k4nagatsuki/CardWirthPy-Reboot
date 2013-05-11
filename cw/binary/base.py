@@ -650,7 +650,7 @@ class CWBinaryBase(object):
         以降は1.50～
         3:Valued(評価メンバ)
         """
-        if n == 0:
+        if n in (-1, 0): # 稀に-1になっている事がある
             return "Selected"
         elif n == 1:
             return "Random"

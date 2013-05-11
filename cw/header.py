@@ -496,6 +496,10 @@ class CardHeader(object):
         card = self.ref_original()
         flag = not bool(card.target == "None")
 
+        # アクションカードは無条件に選択可能
+        if card.type == "ActionCard":
+            return True
+
         # ペナルティカードは無条件に選択可能
         if card.type <> "BeastCard" and card.penalty:
             return True
