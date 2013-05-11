@@ -263,7 +263,6 @@ class AdventurerData(object):
             self.has_parents = True
             father.made_baby()
             fgene = father.gene
-            fgene = fgene.rotate_right()
             self.set_coupon(cw.cwpy.msgs["father_coupon"] % (father.name), 0)
         else:
             fgene = cw.header.Gene()
@@ -302,12 +301,14 @@ class AdventurerData(object):
                     # 遺伝子の1が0個の場合。例えば凡庸型
                     if n == 0:
                         talent = u"＿" + nature.name
-                elif n >= nature and (0 == len(nature.basenatures)
-                                    or talent[len(u"＿"):] in nature.basenatures):
+                        break
+                elif n >= nature.genecount and (0 == len(nature.basenatures)
+                                    or talent[1:] in nature.basenatures):
                     # 遺伝子の1が素質の条件個数以上の場合
                     # 特定の素質のみから派生する素質も存在する
                     talent = u"＿" + nature.name
                     self.gene.reverse()
+                    break
 
         self.set_coupon(talent, 0)
         self.gene.set_talentbit(talent, oldtalent)
@@ -317,6 +318,8 @@ class AdventurerData(object):
                 nature.modulate(self)
                 self.set_coupon(u"＠レベル上限", nature.levelmax)
                 break
+
+        return talent
 
     def set_attrbutes(self, attrs):
         for attr in attrs:
@@ -512,7 +515,7 @@ class AdventurerCreater(wx.Dialog):
         mother = self.page3.mother
         data.set_parents(father, mother)
         s = self.page4.talent
-        data.set_talent(s)
+        s = data.set_talent(s)
         seq = self.page5.get_coupons()
         data.set_attrbutes(seq)
         data.set_desc(s, seq)
@@ -928,7 +931,8 @@ class RelationPage(AdventurerCreaterPage):
             path = cw.util.join_paths(cw.cwpy.skindir, path)
 
         bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-        dc.DrawBitmap(bmp, cw.s(100), cw.s(110), True)
+        pos = cw.s((100, 110))
+        self.draw_clickablebmp(dc, bmp, pos, "FatherFace", None, self.on_mousewheel, True)
 
         # 母親画像
         if self.mother:
@@ -938,7 +942,9 @@ class RelationPage(AdventurerCreaterPage):
             path = cw.util.join_paths(cw.cwpy.skindir, path)
 
         bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-        dc.DrawBitmap(bmp, cw.s(275), cw.s(110), True)
+        pos = cw.s((275, 110))
+        self.draw_clickablebmp(dc, bmp, pos, "MotherFace", None, self.on_mousewheel, True)
+
         # 父親名前
         font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(11))
         dc.SetFont(font)
@@ -1033,6 +1039,18 @@ class RelationPage(AdventurerCreaterPage):
                 self.mother = self.mothers[0]
 
             self.draw(True)
+
+    def on_mousewheel(self, name, rotate):
+        if name == "FatherFace":
+            if rotate < 0:
+                self.set_prevfather(name)
+            elif 0 < rotate:
+                self.set_nextfather(name)
+        elif name == "MotherFace":
+            if rotate < 0:
+                self.set_prevmother(name)
+            elif 0 < rotate:
+                self.set_nextmother(name)
 
     def set_parents(self):
         def append_header(self, header):

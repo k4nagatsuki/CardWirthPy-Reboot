@@ -717,6 +717,7 @@ class AdventurerHeader(object):
             # 子作り回数加算
             elif r_gene.match(e.text):
                 e.attrib["value"] = str(e.getint(".", "value") + 1)
+                self.gene.count += 1
 
         data.write_xml(True)
 
