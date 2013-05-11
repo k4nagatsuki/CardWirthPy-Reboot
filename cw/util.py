@@ -328,8 +328,8 @@ def load_bgm(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        with io.BufferedReader(io.FileIO(path)) as f:
-            pygame.mixer.music.load(f)
+        f = io.BufferedReader(io.FileIO(path))
+        pygame.mixer.music.load(f)
     except:
         print u"BGMが読み込めません", path
         return
