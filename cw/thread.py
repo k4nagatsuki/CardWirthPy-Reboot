@@ -74,6 +74,9 @@ class CWPy(_Singleton, threading.Thread):
         self._showingdlg = 0
         # カーテンスプライト表示中フラグ
         self._curtained = False
+        # カードの選択可否
+        self.is_pcardsselectable = True
+        self.is_mcardsselectable = True
         # 現在カードの表示・非表示アニメ中フラグ
         self._dealing = False
         # カード自動配置フラグ
@@ -1534,6 +1537,9 @@ class CWPy(_Singleton, threading.Thread):
         if not self.is_curtained():
             size_noscale, pos_noscale = (632, 284), (0, 0)
             size_noscale2, pos_noscale2 = (632, 136), (0, 284)
+            self.is_pcardsselectable = target in ("Both", "Party")
+            self.is_mcardsselectable = not self.is_battlestatus() or\
+                                       target in ("Both", "Enemy")
 
             if self.areaid < 0 or target == "Both":
                 cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
@@ -1566,6 +1572,8 @@ class CWPy(_Singleton, threading.Thread):
             self.mcardgrp.remove_sprites_of_layer("curtain")
             self.pcardgrp.remove_sprites_of_layer("curtain")
             self._curtained = False
+            self.is_pcardsselectable = True
+            self.is_mcardsselectable = True
 
 #-------------------------------------------------------------------------------
 # プレイ用メソッド

@@ -101,7 +101,7 @@ class EventHandler(object):
 
         cw.cwpy.has_inputevent = True
 
-        if sidechange:
+        if sidechange and cw.cwpy.is_pcardsselectable and cw.cwpy.is_mcardsselectable:
             if x < 0 and cw.cwpy.index == 0:
                 x = 0
                 y = -1
@@ -117,13 +117,16 @@ class EventHandler(object):
                 cw.cwpy.change_selection(sprite)
 
         elif y:
+            seq = None
             if isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
-                seq = cw.cwpy.get_mcards("visible")
+                if cw.cwpy.is_mcardsselectable:
+                    seq = cw.cwpy.get_mcards("visible")
             else:
-                if cw.cwpy.is_debugmode() and not cw.cwpy.selectedheader:
-                    seq = cw.cwpy.get_pcards()
-                else:
-                    seq = cw.cwpy.get_pcards("unreversed")
+                if cw.cwpy.is_pcardsselectable:
+                    if cw.cwpy.is_debugmode() and not cw.cwpy.selectedheader:
+                        seq = cw.cwpy.get_pcards()
+                    else:
+                        seq = cw.cwpy.get_pcards("unreversed")
 
             if seq:
                 cw.cwpy.list = seq
