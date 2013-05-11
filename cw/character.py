@@ -512,6 +512,15 @@ class Character(object):
 
             if self.is_alive() and not ishidden and self.status <> "reversed":
                 for targets_b, header_b in beasts[:]:
+                    inarr = False
+                    for targets_c, header_c in self.actiondata[2]:
+                        if header_c == header_b:
+                            inarr = True
+                            break
+                    if not inarr:
+                        # カードの効果で召喚獣カードが
+                        # いなくなっている場合
+                        continue
 
                     self.use_card(targets_b, header_b)
 
@@ -522,13 +531,6 @@ class Character(object):
                     # カードの効果で行動が変わっている可能性がある
                     if not self.actiondata or ishidden or self.status == "reversed":
                         break
-                    inarr = False
-                    for targets_c, header_c in self.actiondata[2]:
-                        if header_c == header_b:
-                            inarr = True
-                            break
-                    if not inarr:
-                        break;
 
             # 手札カードの使用
             if self.actiondata:
