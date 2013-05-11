@@ -906,22 +906,24 @@ class RelationPage(AdventurerCreaterPage):
         # Mother
         s = cw.cwpy.msgs["mother"]
         dc.DrawText(s, cw.s(285), cw.s(92))
-        # PrevFather
-        bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        pos = cw.s((70, 150))
-        self.draw_clickablebmp(dc, bmp, pos, "PrevFather", self.set_prevfather, None)
-        # NextFather
-        bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = cw.s((190, 150))
-        self.draw_clickablebmp(dc, bmp, pos, "NextFather", self.set_nextfather, None)
-        # PrevMother
-        bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        pos = cw.s((250, 150))
-        self.draw_clickablebmp(dc, bmp, pos, "PrevMother", self.set_prevmother, None)
-        # NextMother
-        bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = cw.s((370, 150))
-        self.draw_clickablebmp(dc, bmp, pos, "NextMother", self.set_nextmother, None)
+        if 1 < len(self.fathers):
+            # PrevFather
+            bmp = cw.cwpy.rsrc.buttons["LMOVE"]
+            pos = cw.s((70, 150))
+            self.draw_clickablebmp(dc, bmp, pos, "PrevFather", self.set_prevfather, None)
+            # NextFather
+            bmp = cw.cwpy.rsrc.buttons["RMOVE"]
+            pos = cw.s((190, 150))
+            self.draw_clickablebmp(dc, bmp, pos, "NextFather", self.set_nextfather, None)
+        if 1 < len(self.mothers):
+            # PrevMother
+            bmp = cw.cwpy.rsrc.buttons["LMOVE"]
+            pos = cw.s((250, 150))
+            self.draw_clickablebmp(dc, bmp, pos, "PrevMother", self.set_prevmother, None)
+            # NextMother
+            bmp = cw.cwpy.rsrc.buttons["RMOVE"]
+            pos = cw.s((370, 150))
+            self.draw_clickablebmp(dc, bmp, pos, "NextMother", self.set_nextmother, None)
 
         # 父親画像
         if self.father:
@@ -976,7 +978,7 @@ class RelationPage(AdventurerCreaterPage):
                         ep = period.spendep
                         break
 
-            s = cw.cwpy.msgs["consumption_ep"] % (ep, self.father.ep - ep)
+            s = cw.cwpy.msgs["consumption_ep"] % (ep, self.father.ep)
             cw.util.draw_center(dc, s, cw.s((140, 240)))
 
         # 母親消費EP
@@ -989,11 +991,11 @@ class RelationPage(AdventurerCreaterPage):
                         ep = period.spendep
                         break
 
-            s = cw.cwpy.msgs["consumption_ep"] % (ep, self.mother.ep - ep)
+            s = cw.cwpy.msgs["consumption_ep"] % (ep, self.mother.ep)
             cw.util.draw_center(dc, s, cw.s((315, 240)))
 
     def set_nextfather(self, name):
-        if self.fathers:
+        if 1 < len(self.fathers):
             cw.cwpy.sounds["page"].play()
             index = self.fathers.index(self.father) + 1
 
@@ -1005,7 +1007,7 @@ class RelationPage(AdventurerCreaterPage):
             self.draw(True)
 
     def set_prevfather(self, name):
-        if self.fathers:
+        if 1 < len(self.fathers):
             cw.cwpy.sounds["page"].play()
             index = self.fathers.index(self.father) - 1
 
@@ -1017,7 +1019,7 @@ class RelationPage(AdventurerCreaterPage):
             self.draw(True)
 
     def set_nextmother(self, name):
-        if self.mothers:
+        if 1 < len(self.mothers):
             cw.cwpy.sounds["page"].play()
             index = self.mothers.index(self.mother) + 1
 
@@ -1029,7 +1031,7 @@ class RelationPage(AdventurerCreaterPage):
             self.draw(True)
 
     def set_prevmother(self, name):
-        if self.mothers:
+        if 1 < len(self.mothers):
             cw.cwpy.sounds["page"].play()
             index = self.mothers.index(self.mother) - 1
 
