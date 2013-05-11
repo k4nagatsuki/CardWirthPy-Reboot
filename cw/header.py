@@ -496,8 +496,10 @@ class CardHeader(object):
         card = self.ref_original()
         flag = not bool(card.target == "None")
 
-        # アクションカードは無条件に選択可能
-        if card.type == "ActionCard":
+        # 使用時ボーナス・ペナルティがあるカードは無条件に選択可能
+        if card.enhance_avo_used <> 0 or\
+           card.enhance_res_used <> 0 or\
+           card.enhance_def_used <> 0:
             return True
 
         # ペナルティカードは無条件に選択可能
