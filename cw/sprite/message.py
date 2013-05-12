@@ -467,7 +467,8 @@ class MessageWindow(base.CWPySprite):
             return (255, 255, 255)
 
 class SelectWindow(MessageWindow):
-    def __init__(self, names, text="", pos=None, size=None, backlog=False, result=None):
+    def __init__(self, names, text="", pos=None, size=None,
+                 backlog=False, result=None):
         base.CWPySprite.__init__(self)
         if pos is None:
             pos = cw.s((81, 50))
@@ -707,7 +708,7 @@ class BacklogData:
                                  True, self.result, self.versionhint)
         else:
             return SelectWindow(self.names, self.text, self.rect.topleft, self.rect.size,
-                                True, self.result, self.versionhint)
+                                True, self.result)
 
 class BacklogCurtain(base.CWPySprite):
     def __init__(self, spritegrp, alpha=192):
