@@ -1398,6 +1398,11 @@ class EffectContent(EventContentBase):
         else:
             eff.apply(target, event=True)
 
+        if cw.cwpy.is_gameover():
+            # 効果中断。引き続き
+            # ゲームオーバーイベントが発生する。
+            raise cw.event.EffectBreakError()
+
         return 0
 
     def get_status(self):
