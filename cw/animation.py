@@ -22,7 +22,6 @@ def animate_sprite(sprite, anitype, clearevent=True):
 
     skip = _get_skipstatus(clearevent)
 
-    gc.collect()
     gc.disable()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         sprite.update(cw.cwpy.scr)
@@ -59,7 +58,6 @@ def animate_sprites(sprites, anitype, clearevent=True):
     animating = True
     skip = _get_skipstatus(clearevent)
 
-    gc.collect()
     gc.disable()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
         for sprite in sprites:
@@ -105,7 +103,6 @@ def animate_sprites2(sprandanimes, clearevent=True):
     animating = True
     skip = _get_skipstatus(clearevent)
 
-    gc.collect()
     gc.disable()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
         for sprite, anitype in sprandanimes:

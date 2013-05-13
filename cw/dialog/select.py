@@ -2122,11 +2122,12 @@ class ScenarioSelect(Select):
         """
         指定されたパスがシナリオならTrueを返す。
         """
-        if os.path.isdir(path):
-            spath = cw.util.join_paths(path, "Summary.wsm")
+        ltarg = cw.util.get_linktarget(path)
+        if os.path.isdir(ltarg):
+            spath = cw.util.join_paths(ltarg, "Summary.wsm")
             return os.path.exists(spath)
         else:
-            lpath = path.lower()
+            lpath = ltarg.lower()
             return lpath.endswith(".wsn") or lpath.endswith(".zip") or lpath.endswith(".cab")
 
     def get_texts(self):
