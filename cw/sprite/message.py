@@ -62,7 +62,7 @@ class MessageWindow(base.CWPySprite):
         self.speed = cw.cwpy.setting.messagespeed
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos = cw.s((80, 230))
+        self.selection_pos = cw.s((81, 230))
         # frame
         self.frame = 0
         if not self.backlog:
@@ -127,7 +127,7 @@ class MessageWindow(base.CWPySprite):
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
-        self.selection_pos = cw.s((80, 230))
+        self.selection_pos = cw.s((81, 230))
 
         self.is_drawing = True
         self.frame = 0
@@ -504,7 +504,7 @@ class SelectWindow(MessageWindow):
         self.is_drawing = True
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos = cw.s((80, 88))
+        self.selection_pos = cw.s((81, 88))
         # メッセージ全て表示
         self.draw_all()
         # spritegroupに追加
@@ -534,7 +534,7 @@ class SelectWindow(MessageWindow):
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
-        self.selection_pos = cw.s((80, 230))
+        self.selection_pos = cw.s((81, 230))
 
         self.is_drawing = True
         self.frame = 0
@@ -546,7 +546,7 @@ class SelectWindow(MessageWindow):
 class MemberSelectWindow(SelectWindow):
     def __init__(self, pcards, pos=None, size=None):
         if pos is None:
-            pos = cw.s((80, 50))
+            pos = cw.s((81, 50))
         if size is None:
             size = cw.s((470, 38))
         self.selectmembers = pcards
