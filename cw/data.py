@@ -230,7 +230,7 @@ class ScenarioData(SystemData):
     def __init__(self, header, cardonly=False):
         self.data = None
         self._playing = True
-        self.fpath = header.get_fpath()
+        self.fpath = cw.util.get_linktarget(header.get_fpath())
         self.name = header.name
         self.author = header.author
         self.startid = header.startid

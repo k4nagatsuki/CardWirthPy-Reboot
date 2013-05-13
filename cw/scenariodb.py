@@ -104,9 +104,10 @@ class Scenariodb(object):
 
         for t in data:
             path = "/".join((t[0], t[1]))
+            ltarg = cw.util.get_linktarget(path)
 
-            if not os.path.isfile(path):
-                spath = cw.util.join_paths(path, "Summary.wsm")
+            if not os.path.isfile(ltarg):
+                spath = cw.util.join_paths(ltarg, "Summary.wsm")
                 if os.path.exists(spath):
                     # クラシックなシナリオ
                     dbpaths.append(path)
@@ -118,7 +119,7 @@ class Scenariodb(object):
             else:
                 dbpaths.append(path)
 
-                if os.path.getmtime(path) > t[2]:
+                if os.path.getmtime(ltarg) > t[2]:
                     # 情報を更新
                     self._insert_scenario(path, False)
 
@@ -191,9 +192,10 @@ class Scenariodb(object):
 
         header = cw.header.ScenarioHeader(data)
         path = header.get_fpath()
+        ltarg = cw.util.get_linktarget(path)
 
-        if not os.path.isfile(path):
-            spath = cw.util.join_paths(path, "Summary.wsm")
+        if not os.path.isfile(ltarg):
+            spath = cw.util.join_paths(ltarg, "Summary.wsm")
             if os.path.exists(spath):
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
@@ -208,7 +210,7 @@ class Scenariodb(object):
                     return header
             self.delete(path)
             return None
-        elif os.path.getmtime(path) > header.mtime:
+        elif os.path.getmtime(ltarg) > header.mtime:
             if self._insert_scenario(path):
                 # 更新後の情報を取得
                 header = self._search_path(path)
@@ -249,7 +251,8 @@ class Scenariodb(object):
         self.cur.execute(s, (dpath, fname,))
         data = self.cur.fetchone()
 
-        if not data and os.path.exists(path):
+        ltarg = cw.util.get_linktarget(path)
+        if not data and os.path.exists(ltarg):
             if self._insert_scenario(path):
                 self.cur.execute(s, (dpath, fname,))
                 data = self.cur.fetchone()
@@ -271,9 +274,11 @@ class Scenariodb(object):
 
         for name in os.listdir(unicode(dpath)):
             path = cw.util.join_paths(dpath, name)
+            ltarg = cw.util.get_linktarget(path)
+            name = os.path.basename(ltarg)
 
             lname = name.lower()
-            if not path in dbpaths and os.path.isfile(path)\
+            if not path in dbpaths and os.path.isfile(ltarg)\
                     and (lname.endswith(".wsn") or lname.endswith(".zip") or lname.endswith(".cab")):
                 header = self._search_path(path)
 
@@ -294,13 +299,14 @@ class Scenariodb(object):
     def close(self):
         self.con.close()
 
-def read_summary(path):
+def read_summary(basepath):
+    path = cw.util.get_linktarget(basepath)
     if os.path.isdir(path):
         f = None
         try:
             spath = os.path.join(path, "Summary.wsm")
             with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                return read_summary_classic(path, spath, f)
+                return read_summary_classic(basepath, spath, f)
         except:
             return None
 
@@ -318,7 +324,7 @@ def read_summary(path):
                     f = None
                     try:
                         with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                            return read_summary_classic(path, path, f)
+                            return read_summary_classic(basepath, path, f)
                     finally:
                         os.remove(spath)
                 else:
@@ -356,7 +362,7 @@ def read_summary(path):
         f.close()
 
     try:
-        imgpath, summaryinfos = parse_summarydata(e, TYPE_WSN, True)
+        imgpath, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True)
     except:
         z.close()
         return None
@@ -372,7 +378,7 @@ def read_summary(path):
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
-def parse_summarydata(data, type, archive):
+def parse_summarydata(basepath, data, type, archive):
     e = data.find("ImagePath")
     imgpath = e.text or ""
     e = data.find("Name")
@@ -404,13 +410,14 @@ def parse_summarydata(data, type, archive):
     ctime = time.time()
     mtime = os.path.getmtime(data.fpath)
     if archive:
-        dpath, fname = os.path.split(data.fpath)
+        dpath, fname = os.path.split(basepath)
     else:
-        dpath, fname = os.path.split(os.path.dirname(data.fpath))
+        dpath, fname = os.path.split(os.path.dirname(basepath))
     return (imgpath, [dpath, type, fname, name, author, desc, skintype, levelmin,
                 levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
 
-def read_summary_classic(path, spath, f=None):
+def read_summary_classic(basepath, spath, f=None):
+    path = cw.util.get_linktarget(basepath)
     try:
         if not f:
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
@@ -422,8 +429,8 @@ def read_summary_classic(path, spath, f=None):
     except Exception, ex:
         return None
 
-    summaryinfos = [os.path.dirname(path), TYPE_CLASSIC,
-            os.path.basename(path), s.name, s.author,
+    summaryinfos = [os.path.dirname(basepath), TYPE_CLASSIC,
+            os.path.basename(basepath), s.name, s.author,
             s.description, s.skintype, s.level_min, s.level_max,
             s.required_coupons, s.required_coupons_num,
             s.area_id, s.tags, ctime, mtime]
@@ -437,13 +444,14 @@ def get_scenariopaths(path):
     if not os.path.isdir(path):
         return
     for file in os.listdir(path):
-        file = cw.util.get_linktarget(cw.util.join_paths(path, file))
-        if os.path.isdir(file):
-            fpath = cw.util.join_paths(file, "Summary.wsm")
+        file = cw.util.join_paths(path, file)
+        ltarg = cw.util.get_linktarget(file)
+        if os.path.isdir(ltarg):
+            fpath = cw.util.join_paths(ltarg, "Summary.wsm")
             if os.path.isfile(fpath):
                 yield file
         else:
-            lfile = file.lower()
+            lfile = ltarg.lower()
             if lfile.endswith(".wsn") or lfile.endswith(".zip") or lfile.endswith(".cab"):
                 yield file
 
