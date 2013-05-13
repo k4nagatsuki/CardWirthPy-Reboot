@@ -390,29 +390,11 @@ class MessageWindow(base.CWPySprite):
 
     def rpl_specialstr(self, full, s):
         """
-        特殊文字列(#, $)を置換した文字列を返す
+        特殊文字列(#, $)を置換した文字列を返す。
         """
-        for key, value in self.name_table.iteritems():
-            if full:
-                if key in cw.cwpy.rsrc.specialchars:
-                    continue
-            else:
-                if not key in ("#m", "#r", "#u", "#y", "#t"):
-                    continue
+        return _rpl_specialstr(full, s, self.name_table, self.get_stepvalue, self.get_flagvalue)
 
-            s = s.replace(key, value)
-            s = s.replace(key.upper(), value)
-
-        # ステップ変数名の置換
-        r_step = re.compile(r"\$(.*?)\$")  # ステップ変数参照($)の集合
-        s = r_step.sub(self.rpl_stepvalue, s)
-        # フラグ変数名の置換
-        r_flag = re.compile(r"\%(.*?)\%")  # フラグ変数参照(%)の集合
-        s = r_flag.sub(self.rpl_flagvalue, s)
-        return s
-
-    def rpl_stepvalue(self, m):
-        key = m.group(1)
+    def get_stepvalue(self, key):
         if self.backlog:
             if key in self.step_table:
                 return self.step_table[key]
@@ -427,8 +409,7 @@ class MessageWindow(base.CWPySprite):
         self.step_table[key] = s
         return s
 
-    def rpl_flagvalue(self, m):
-        key = m.group(1)
+    def get_flagvalue(self, key):
         if self.backlog:
             if key in self.flag_table:
                 return self.flag_table[key]
@@ -768,18 +749,7 @@ def rpl_specialstr(s):
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
     """
-    name_table = _create_nametable(False, None)
-    for key, value in name_table.iteritems():
-        s = s.replace(key, value)
-        s = s.replace(key.upper(), value)
-
-    # ステップ変数名の置換
-    r_step = re.compile(r"\$(.*?)\$")  # ステップ変数参照($)の集合
-    s = r_step.sub(_rpl_stepvalue, s)
-    # フラグ変数名の置換
-    r_flag = re.compile(r"\%(.*?)\%")  # フラグ変数参照(%)の集合
-    s = r_flag.sub(_rpl_flagvalue, s)
-    return s
+    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue)
 
 def _create_nametable(full, talker):
     random = cw.cwpy.event.get_targetmember("Random")
@@ -807,21 +777,70 @@ def _create_nametable(full, talker):
         name_table["#i"] = talker    # 話者の名前(表示イメージのキャラやカード名)
     return name_table
 
-def _rpl_stepvalue(m):
-    key = m.group(1)
+def _get_stepvalue(key):
     if key in cw.cwpy.sdata.steps:
         s = cw.cwpy.sdata.steps[key].get_valuename()
     else:
         s = ""
     return s
 
-def _rpl_flagvalue(m):
-    key = m.group(1)
+def _get_flagvalue(key):
     if key in cw.cwpy.sdata.flags:
         s = cw.cwpy.sdata.flags[key].get_valuename()
     else:
         s = ""
     return s
+
+def _rpl_specialstr(full, s, name_table, get_step, get_flag):
+    """
+    特殊文字列(#, $)を置換した文字列を返す。
+    """
+    buf = []
+    skip = 0
+    for i, c in enumerate(s):
+        if 0 < skip:
+            skip -= 1
+            continue
+
+        def get_varvalue(get, c):
+            if i+1 == len(s):
+                return 0
+            next = s[i+1:].find(c)
+            if next < 0:
+                return 0
+            fl = s[i+1:i+1+next]
+            skip = 1 + next
+            buf.append(get(fl))
+            return skip
+
+        if c == '#':
+            if i + 1 == len(s) or s[i+1] == '\n':
+                buf.append(c)
+                continue
+            nc = s[i+1].lower()
+            if full:
+                if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
+                    buf.append(name_table.get("#" + nc, ""))
+                    skip = 1
+                else:
+                    buf.append(c)
+            else:
+                if nc in ('m', 'r', 'u', 't', 'y'):
+                    buf.append(name_table.get("#" + nc, ""))
+                else:
+                    buf.append(c)
+        elif c == '%':
+            skip = get_varvalue(get_flag, '%')
+            if skip == 0:
+                buf.append(c)
+        elif c == '$':
+            skip = get_varvalue(get_step, '$')
+            if skip == 0:
+                buf.append(c)
+        else:
+            buf.append(c)
+
+    return "".join(buf)
 
 def main():
     pass
