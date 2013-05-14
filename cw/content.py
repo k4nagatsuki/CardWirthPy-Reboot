@@ -2733,7 +2733,7 @@ class PostEventContent(EventContentBase):
     methoddict = {
         "MoveToYado": "set_yado",
         "MoveToTitle": "set_title",
-        "Exit": "close",
+        "Exit": "quit",
         "ShowDialog": "call_dlg",
         "MoveCard": "trade",
         "ChangeToSpecialArea": "change_specialarea",

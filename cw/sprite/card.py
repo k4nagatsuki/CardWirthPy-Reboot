@@ -205,11 +205,11 @@ class CWPyCard(base.SelectableSprite):
 
         if self.frame % 2 == 0:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(5), cw.s(0))
+            self.rect.move_ip(cw.s(2), cw.s(0))
             self.frame += 1
         else:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(-5), cw.s(0))
+            self.rect.move_ip(cw.s(-2), cw.s(0))
             self.frame += 1
 
     def update_axialvibe(self):
@@ -224,11 +224,11 @@ class CWPyCard(base.SelectableSprite):
 
         if self.frame % 2 == 0:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(0), cw.s(5))
+            self.rect.move_ip(cw.s(0), cw.s(2))
             self.frame += 1
         else:
             self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(0), cw.s(-5))
+            self.rect.move_ip(cw.s(0), cw.s(-2))
             self.frame += 1
 
     def update_zoomin(self):
