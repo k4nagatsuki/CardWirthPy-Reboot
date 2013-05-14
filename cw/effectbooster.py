@@ -104,9 +104,9 @@ class _JpySubImage(cw.image.Image):
 
                 # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
                 if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                    cards = cw.cwpy.get_pcards() + cw.cwpy.get_mcards()
+                    cards = cw.cwpy.pcardgrp.sprites() + cw.cwpy.mcardgrp.sprites()
                 else:
-                    cards = cw.cwpy.get_mcards() + cw.cwpy.get_pcards()
+                    cards = cw.cwpy.mcardgrp.sprites() + cw.cwpy.pcardgrp.sprites()
 
                 for card in cards:
                     if card.status <> "hidden":
