@@ -101,7 +101,14 @@ class _JpySubImage(cw.image.Image):
                 background = sprs[0].image
             else:
                 background = cw.cwpy.background.image.copy()
-                for card in cw.cwpy.get_pcards() + cw.cwpy.get_mcards():
+
+                # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+                if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+                    cards = cw.cwpy.get_pcards() + cw.cwpy.get_mcards()
+                else:
+                    cards = cw.cwpy.get_mcards() + cw.cwpy.get_pcards()
+
+                for card in cards:
                     if card.status <> "hidden":
                         background.blit(card.image, card.rect.topleft)
                 cw.sprite.background.Jpy1TemporalSprite(background)
