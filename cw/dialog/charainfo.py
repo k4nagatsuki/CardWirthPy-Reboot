@@ -457,7 +457,9 @@ class HistoryPanel(wx.ScrolledWindow):
 
         for coupon in self.ccard.data.getfind("Property/Coupons"):
             if coupon.text and not coupon.text.startswith(u"＠"):
-                if cw.cwpy.debug or not coupon.text.startswith(u"＿"):
+                if cw.cwpy.debug or (not coupon.text.startswith(u"＿") and\
+                                     not coupon.text.startswith(u"：") and\
+                                     not coupon.text.startswith(u"；")):
                     coupons.append((coupon.text, int(coupon.get("value"))))
 
         coupons.reverse()
