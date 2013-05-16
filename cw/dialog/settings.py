@@ -32,8 +32,8 @@ class SettingsDialog(wx.Dialog):
 
     def OnDefault(self, event):
         self.pane_draw.cb_smooth_bg.SetValue(False)
-        self.pane_draw.cb_cautionbeforesaving.SetValue(True)
-        self.pane_draw.cb_storeskinoneachbase.SetValue(True)
+        self.pane_gene.cb_cautionbeforesaving.SetValue(True)
+        self.pane_gene.cb_storeskinoneachbase.SetValue(True)
         self.pane_draw.cb_quickdeal.SetValue(True)
         self.pane_draw.sl_deal.SetValue(6)
         self.pane_draw.sl_msgs.SetValue(4)
