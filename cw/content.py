@@ -968,7 +968,10 @@ class BranchAbilityContent(BranchContent):
         targets = cw.cwpy.event.get_targetmember(targetm)
 
         if not isinstance(targets, list):
-            targets = [targets]
+            if targets is None:
+                targets = []
+            else:
+                targets = [targets]
 
         # 死亡・睡眠者は判定から排除
         targets = [target for target in targets

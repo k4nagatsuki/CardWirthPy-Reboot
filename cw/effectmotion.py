@@ -333,15 +333,13 @@ class Effect(object):
 
     def check_enabledtarget(self, target):
         """
-        表示されていないか(敵のみ)、対象消去されているか、
-        もしくは意識不明で回復モーションが入ってない場合は
+        表示されていないか(敵のみ)、対象消去されている場合は
         有効なターゲットではない。
         """
         if target.status == "hidden" and not isinstance(target, cw.sprite.card.PlayerCard):
             return False
         elif isinstance(target, Character):
             flag  = bool(not target.is_vanished())
-            flag &= bool(not target.is_unconscious() or self.has_motions(CAN_UNCONSCIOUS))
             return flag
         else:
             return True

@@ -774,6 +774,9 @@ class CardEvent(Event):
 
         # 対象メンバに効果モーションを適用
         for target in targets:
+            if target.is_unconscious() and not eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS):
+                continue
+
             if isinstance(target, Enemy) and target.is_alive():
                 self.run_enemyevent(target)
                 target.clear_cardtarget()
