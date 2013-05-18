@@ -13,6 +13,7 @@ class Character(object):
     def __init__(self, data=None):
         if not data is None:
             self.data = data
+        self.reversed = False
 
         # 名前
         self.name = self.data.gettext("Property/Name", "")
@@ -1682,18 +1683,19 @@ class Character(object):
 
 class Player(Character):
     def lost(self):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self.remove_numbercoupon()
+        self.data.edit("Property", "True", "lost")
+        self.data.write_xml()
         if cw.cwpy.is_playingscenario():
-            if cw.cwpy.ydata:
-                cw.cwpy.ydata.changed()
-            self.data.edit("Property", "True", "lost")
-            self.data.write_xml()
             if self.data.fpath.lower().startswith("yado"):
                 fpath = os.path.relpath(self.data.fpath, cw.cwpy.ydata.yadodir)
             else:
                 fpath = os.path.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
             fpath = cw.util.join_paths(fpath)
             cw.cwpy.sdata.lostadventurers.add(fpath)
-            cw.cwpy.pcardgrp.remove(self)
+        cw.cwpy.pcardgrp.remove(self)
 
 class Enemy(Character):
     def is_dead(self):

@@ -1204,7 +1204,10 @@ class PlayerSelect(Select):
     def update_character(self):
         header = self.list[self.index]
         header = cw.cwpy.ydata.create_advheader(header.fpath)
-        cw.cwpy.ydata.standbys[self.index] = header
+        if self.isalbum:
+            cw.cwpy.ydata.album[self.index] = header
+        else:
+            cw.cwpy.ydata.standbys[self.index] = header
         self.list[self.index] = header
         self.draw(True)
 
