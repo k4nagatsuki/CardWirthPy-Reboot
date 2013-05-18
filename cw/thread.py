@@ -1330,6 +1330,16 @@ class CWPy(_Singleton, threading.Thread):
             # BGMを最後に指定されたものに戻す
             self.music.play(bgmpath)
 
+            # 一部ステータスは回復
+            for pcard in self.get_pcards():
+                if pcard.is_bind() or pcard.mentality <> "Normal":
+                    self.sounds["harvest"].play()
+                    pcard.set_bind(0)
+                    pcard.set_mentality("Normal", 0)
+                    cw.animation.animate_sprite(pcard, "hide")
+                    pcard.update_image()
+                    cw.animation.animate_sprite(pcard, "deal")
+
             if areachange:
                 # 戦闘前のエリアに戻る
                 self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
