@@ -126,7 +126,7 @@ class BattleEngine(object):
         勝利時のみここへ来ない。
         """
         # 行動内容のクリア
-        for member in self.members:
+        for member in cw.cwpy.get_pcards():
             member.clear_action()
 
         self._running = False
@@ -205,7 +205,7 @@ class BattleEngine(object):
         強制的に戦闘エリアから離脱する。
         """
         # 行動内容のクリア
-        for member in self.members:
+        for member in cw.cwpy.get_pcards():
             member.clear_action()
 
         cw.cwpy.hide_cards(True)

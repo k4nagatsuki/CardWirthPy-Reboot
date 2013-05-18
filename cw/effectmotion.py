@@ -561,7 +561,13 @@ class EffectMotion(object):
             value = int(value / 2.0 + 0.5)
 
         # 防御修正
-        value = self.calc_defensedvalue(value, target)
+        # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
+        if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+            value = self.calc_defensedvalue(value, target)
+        else:
+            if self.damagetype <> "Max":
+                value = self.calc_defensedvalue(value, target)
+
         target.set_life(-value)
 
         # 睡眠解除
@@ -581,7 +587,13 @@ class EffectMotion(object):
             value = int(value / 2.0 + 0.5)
 
         # 防御修正
-        self.calc_defensedvalue(value, target)
+        # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
+        if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+            value = self.calc_defensedvalue(value, target)
+        else:
+            if self.damagetype <> "Max":
+                value = self.calc_defensedvalue(value, target)
+
         target.set_life(-value)
 
         # 与えたダメージ分、使用者回復
