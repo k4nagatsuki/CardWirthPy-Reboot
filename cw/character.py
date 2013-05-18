@@ -536,7 +536,8 @@ class Character(object):
             if self.actiondata:
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status <> "reversed":
-                    if header in self.deck.hand and not header.type == "ItemCard":
+                    if header in self.deck.hand and not header.type == "ItemCard" and\
+                            not (header.type == "ActionCard" and header.id == 0):
                         self.deck.hand.remove(header)
 
                     self.use_card(targets, header)
