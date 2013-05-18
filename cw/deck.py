@@ -225,6 +225,18 @@ class Deck(object):
         elif ccard.is_confuse():
             self.set_nextcard(-1)
 
+    def use(self, header):
+        """headerを使用する。
+        アイテムカードまたはカード交換は手札に残る。
+        スキルカードは1枚消失する。
+        アクションカードは山札に戻る。
+        """
+        if header in self.hand and not header.type == "ItemCard" and\
+                not (header.type == "ActionCard" and header.id == 0):
+            self.hand.remove(header)
+            if header.type == "ActionCard":
+                self.talon.append(header)
+
 def main():
     pass
 
