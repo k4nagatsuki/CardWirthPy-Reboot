@@ -578,8 +578,8 @@ class CWPy(_Singleton, threading.Thread):
         self.list = self.get_mcards("visible")
         self.index = -1
         # スプライト削除
-        self.pcardgrp.remove_sprites_of_layer("selectionbar")
-        self.pcardgrp.remove_sprites_of_layer("message")
+        self.mcardgrp.remove_sprites_of_layer("selectionbar")
+        self.mcardgrp.remove_sprites_of_layer("message")
 
         # 互換性マーク削除
         if self.is_playingscenario():
@@ -2214,7 +2214,7 @@ class CWPy(_Singleton, threading.Thread):
     def get_messagewindow(self):
         """MessageWindow or SelectWindowインスタンスを返す。"""
         try:
-            return self.pcardgrp.get_sprites_from_layer("message")[0]
+            return self.mcardgrp.get_sprites_from_layer("message")[0]
         except:
             return None
 

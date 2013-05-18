@@ -79,7 +79,7 @@ class MessageWindow(base.CWPySprite):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer="backlog")
         else:
-            cw.cwpy.pcardgrp.add(self, layer="message")
+            cw.cwpy.mcardgrp.add(self, layer="message")
 
     def _init_style(self):
         # クラシックスタイルか
@@ -125,7 +125,7 @@ class MessageWindow(base.CWPySprite):
         self._init_image(cw.s((470, 180)), cw.s((81, 50)))
         self.charimgs = self.create_charimgs()
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
-        cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
+        cw.cwpy.mcardgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
@@ -492,7 +492,7 @@ class SelectWindow(MessageWindow):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer="backlog")
         else:
-            cw.cwpy.pcardgrp.add(self, layer="message")
+            cw.cwpy.mcardgrp.add(self, layer="message")
 
     def _init_image(self, size, pos):
         # image
@@ -513,7 +513,7 @@ class SelectWindow(MessageWindow):
         self._init_image(cw.s((81, 50)), cw.s((470, 38)))
         self.charimgs = self.create_charimgs()
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
-        cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
+        cw.cwpy.mcardgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
@@ -562,7 +562,7 @@ class SelectionBar(base.SelectableSprite):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer="backlogbar")
         else:
-            cw.cwpy.pcardgrp.add(self, layer="selectionbar")
+            cw.cwpy.mcardgrp.add(self, layer="selectionbar")
 
     def get_unselectedimage(self):
         return self._image

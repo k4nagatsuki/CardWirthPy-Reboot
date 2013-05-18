@@ -429,7 +429,7 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.selection.lclick_event()
 
         elif cw.cwpy.list and (len(cw.cwpy.list) == 1 or cw.cwpy.index >= 0) and\
-                cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
+                cw.cwpy.mcardgrp.get_sprites_from_layer("message"):
             if cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 sbar = cw.cwpy.list[cw.cwpy.index]
@@ -452,14 +452,14 @@ class EventHandlerForMessageWindow(EventHandler):
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.rclick_event()
-        elif not cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
+        elif not cw.cwpy.mcardgrp.get_sprites_from_layer("message"):
             self.shiftkey_event(False)
 
     def f1key_event(self):
         """
         F1キーイベント。
         """
-        hidden = not cw.cwpy.pcardgrp.get_sprites_from_layer("message")
+        hidden = not cw.cwpy.mcardgrp.get_sprites_from_layer("message")
 
         if hidden:
             self.shiftkey_event(False, False)
@@ -521,15 +521,15 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         if down:
             cw.cwpy.clear_selection()
-            cw.cwpy.pcardgrp.remove_sprites_of_layer("message")
-            cw.cwpy.pcardgrp.remove_sprites_of_layer("selectionbar")
+            cw.cwpy.mcardgrp.remove_sprites_of_layer("message")
+            cw.cwpy.mcardgrp.remove_sprites_of_layer("selectionbar")
             if redraw:
                 cw.cwpy.draw()
         else:
-            if not cw.cwpy.pcardgrp.get_sprites_from_layer("message"):
-                cw.cwpy.pcardgrp.add(self.mwin, layer="message")
+            if not cw.cwpy.mcardgrp.get_sprites_from_layer("message"):
+                cw.cwpy.mcardgrp.add(self.mwin, layer="message")
                 for sbar in self.mwin.selections:
-                    cw.cwpy.pcardgrp.add(sbar, layer="selectionbar")
+                    cw.cwpy.mcardgrp.add(sbar, layer="selectionbar")
                 if redraw:
                     cw.cwpy.draw()
 
