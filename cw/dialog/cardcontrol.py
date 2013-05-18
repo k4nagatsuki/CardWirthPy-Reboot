@@ -1077,7 +1077,7 @@ class HandView(CardControl):
         elif isinstance(cw.cwpy.selection, cw.character.Player):
             self.list2 = cw.cwpy.get_pcards("unreversed")
         else:
-            self.list2 = cw.cwpy.get_mcards()
+            self.list2 = cw.cwpy.get_ecards("unreversed")
 
         # 前に開いていたときのindex値があったら取得する
         if cw.cwpy.pre_dialogs:
@@ -1106,6 +1106,12 @@ class HandView(CardControl):
         self.set_cardpos(3)
         # 選択中カード色反転
         self.Parent.change_selection(self.selection)
+
+        # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
+        if len(self.list2) == 1:
+            self.rightbtn.Disable()
+            self.leftbtn.Disable()
+
         # layout
         self._do_layout()
         # bind
