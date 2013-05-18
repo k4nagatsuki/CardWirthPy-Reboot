@@ -1032,7 +1032,6 @@ class YadoData(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         header = self.create_advheader(path, True)
-        header.album = True
         self.album.append(header)
         cw.util.sort_by_attr(self.album, "name")
         return header
