@@ -404,7 +404,7 @@ class InuseCardImage(card.CWPyCard):
             for sprite in self.group.sprites()[:]:
                 if sprite == user:
                     top = True
-                elif top:
+                elif top and sprite <> self:
                     self.group.move_to_front(sprite)
 
     def update_scale(self):
