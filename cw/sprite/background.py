@@ -377,7 +377,7 @@ class BattleCardImage(card.CWPyCard):
         pass
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False, layer="inusecard"):
+    def __init__(self, user, header, status="normal", center=False):
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
@@ -394,7 +394,18 @@ class InuseCardImage(card.CWPyCard):
         self.update_scale()
 
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self, layer=layer)
+        if isinstance(user, cw.sprite.card.PlayerCard):
+            self.group = cw.cwpy.pcardgrp
+        else:
+            self.group = cw.cwpy.mcardgrp
+        self.group.add(self)
+        if user:
+            top = False
+            for sprite in self.group.sprites()[:]:
+                if sprite == user:
+                    top = True
+                elif top:
+                    self.group.move_to_front(sprite)
 
     def update_scale(self):
         image = self.header.get_cardimg()

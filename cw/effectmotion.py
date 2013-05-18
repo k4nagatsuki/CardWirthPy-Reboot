@@ -122,6 +122,9 @@ class Effect(object):
         """
         Characterインスタンスに効果モーションを適用する。
         """
+        if target.is_unconscious() and not self.has_motions(CAN_UNCONSCIOUS):
+            return
+
         # 各種判定処理
         allmissed = self.successrate <= -5
         allsuccess = self.successrate >= 5

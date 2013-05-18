@@ -108,6 +108,9 @@ class CWPy(_Singleton, threading.Thread):
         self.topgrp = pygame.sprite.LayeredDirty()
         self.backloggrp = pygame.sprite.LayeredDirty()
         self.sbargrp = pygame.sprite.LayeredDirty()
+        # 使用中カード
+        self.inusecards = []
+        self.guardcards = []
         # エリアID
         self.areaid = 1
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
@@ -801,6 +804,9 @@ class CWPy(_Singleton, threading.Thread):
         """cw.data.ScenarioDataのf9()から呼び出され、
         緊急非難処理の続きを行う。
         """
+        self.clear_inusecardimg()
+        self.clear_guardcardimg()
+
         # battle
         if self.battle and self.battle.is_running:
             # バトルを強制終了
@@ -1347,7 +1353,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
-                self.pre_mcards.append(self.mcardgrp.remove_sprites_of_layer(0))
+                self.pre_mcards.append(self.get_mcards())
                 self.mcardgrp.add(self.sdata.sparea_mcards[areaid])
                 self.list = self.get_mcards("visible")
                 self.index = -1
@@ -1400,6 +1406,9 @@ class CWPy(_Singleton, threading.Thread):
         """特殊エリアに移動する前のエリアに戻る。
         areaidが-3(パーティ解散)の場合はエリアチェンジする。
         """
+        self.clear_inusecardimg()
+        self.clear_guardcardimg()
+
         if self.areaid <= 0:
             self.clear_curtain()
             self.selectedheader = None
@@ -1499,23 +1508,35 @@ class CWPy(_Singleton, threading.Thread):
         if not self.get_inusecardimg():
             inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center)
             owner.inusecardimg = inusecard
+            self.inusecards.append(inusecard)
 
     def clear_inusecardimg(self, user=None):
         """PlayerCardの前の使用中カードの画像を削除。"""
         if user:
             if user.inusecardimg:
-                self.pcardgrp.remove(user.inusecardimg)
+                user.inusecardimg.group.remove(user.inusecardimg)
+                self.inusecards.remove(user.inusecardimg)
         else:
-            self.pcardgrp.remove_sprites_of_layer("inusecard")
+            for card in self.get_pcards():
+                card.inusecardimg = None
+            for card in self.get_ecards():
+                card.inusecardimg = None
+
+            for card in self.inusecards:
+                card.group.remove(card)
+            self.inusecards = []
 
     def set_guardcardimg(self, owner, header):
         """PlayerCardの前に回避・抵抗ボーナスカードの画像を表示。"""
         if not self.get_guardcardimg():
-            cw.sprite.background.InuseCardImage(owner, header, status="normal", center=False, layer="guardcard")
+            card = cw.sprite.background.InuseCardImage(owner, header, status="normal", center=False)
+            self.guardcards.append(card)
 
     def clear_guardcardimg(self):
         """PlayerCardの前の回避・抵抗ボーナスカードの画像を削除。"""
-        self.pcardgrp.remove_sprites_of_layer("guardcard")
+        for card in self.guardcards:
+            card.group.remove(card)
+        self.guardcards = []
 
     def set_targetarrow(self, targets):
         """targets(PlayerCard, MenuCard, CastCard)の前に
@@ -2178,16 +2199,16 @@ class CWPy(_Singleton, threading.Thread):
 
     def get_inusecardimg(self):
         """InuseCardImageインスタンスを返す(仕様カード)。"""
-        try:
-            return self.pcardgrp.get_sprites_from_layer("inusecard")[0]
-        except:
+        if self.inusecards:
+            return self.inusecards[0]
+        else:
             return None
 
     def get_guardcardimg(self):
         """InuseCardImageインスタンスを返す(防御・回避ボーナスカード)。"""
-        try:
-            return self.pcardgrp.get_sprites_from_layer("guardcard")[0]
-        except:
+        if self.guardcards:
+            return self.guardcards[0]
+        else:
             return None
 
     def get_messagewindow(self):
@@ -2201,8 +2222,6 @@ class CWPy(_Singleton, threading.Thread):
         """MenuCardインスタンスのリストを返す。
         mode: "visible" or "invisible" or "visiblemenucards" or "flagtrue"
         """
-        mcards = self.mcardgrp.get_sprites_from_layer(0)
-
         if mode == "visible":
             mcards = [m for m in self.get_mcards() if not m.status == "hidden"]
         elif mode == "invisible":
@@ -2214,6 +2233,10 @@ class CWPy(_Singleton, threading.Thread):
             mcards = [m for m in self.get_mcards()
                             if not isinstance(m, cw.character.Friend)
                                     and self.sdata.flags.get(m.flag, True)]
+        else:
+            mcards = self.mcardgrp.get_sprites_from_layer(0)
+            mcards = [m for m in mcards
+                      if not isinstance(m, cw.sprite.background.InuseCardImage)]
 
         return mcards
 
@@ -2237,12 +2260,14 @@ class CWPy(_Singleton, threading.Thread):
         """PlayerCardインスタンスのリストを返す。
         mode: "unreversed" or "active"
         """
-        pcards = self.pcardgrp.get_sprites_from_layer(0)
-
         if mode == "unreversed":
-            pcards = [pcard for pcard in pcards if not pcard.is_reversed()]
+            pcards = [pcard for pcard in self.get_pcards() if not pcard.is_reversed()]
         elif mode == "active":
-            pcards = [pcard for pcard in pcards if pcard.is_active()]
+            pcards = [pcard for pcard in self.get_pcards() if pcard.is_active()]
+        else:
+            pcards = self.pcardgrp.get_sprites_from_layer(0)
+            pcards = [m for m in pcards
+                      if not isinstance(m, cw.sprite.background.InuseCardImage)]
 
         return pcards
 
