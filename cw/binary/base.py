@@ -221,19 +221,22 @@ class CWBinaryBase(object):
         if not imagepath:
             return None
 
-        if fullpath:
-            fpath = imagepath
+        if cw.binary.image.path_is_code(imagepath):
+            image = cw.binary.image.code_to_data(imagepath)
         else:
-            fpath = cw.util.join_paths(cw.cwpy.sdata.tempdir, imagepath)
-            if not os.path.isfile(fpath):
-                fpath = cw.util.join_paths(cw.cwpy.tempdir, imagepath)
+            if fullpath:
+                fpath = imagepath
+            else:
+                fpath = cw.util.join_paths(cw.cwpy.sdata.tempdir, imagepath)
                 if not os.path.isfile(fpath):
-                    fpath = cw.util.join_paths(cw.cwpy.yadodir, imagepath)
+                    fpath = cw.util.join_paths(cw.cwpy.tempdir, imagepath)
                     if not os.path.isfile(fpath):
-                        return None
+                        fpath = cw.util.join_paths(cw.cwpy.yadodir, imagepath)
+                        if not os.path.isfile(fpath):
+                            return None
 
-        with open(fpath, "rb") as f:
-            image = f.read()
+            with open(fpath, "rb") as f:
+                image = f.read()
 
         if convertbitmap and cw.util.get_imageext(image) <> ".bmp":
             with io.BytesIO(image) as f:
