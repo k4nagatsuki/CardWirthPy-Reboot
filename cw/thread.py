@@ -1364,6 +1364,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
                 self.pre_mcards.append(self.get_mcards())
+                self.mcardgrp.empty()
                 self.mcardgrp.add(self.sdata.sparea_mcards[areaid])
                 self.list = self.get_mcards("visible")
                 self.index = -1
