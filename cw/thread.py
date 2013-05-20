@@ -382,6 +382,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.mcardgrp.update(self.scr)
             self.pcardgrp.update(self.scr)
+        self.topgrp.update(self.scr)
         self.sbargrp.update(self.scr)
         if not self.statusbar.showbuttons:
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
@@ -578,8 +579,8 @@ class CWPy(_Singleton, threading.Thread):
         self.list = self.get_mcards("visible")
         self.index = -1
         # スプライト削除
-        self.mcardgrp.remove_sprites_of_layer("selectionbar")
-        self.mcardgrp.remove_sprites_of_layer("message")
+        self.topgrp.remove_sprites_of_layer("selectionbar")
+        self.topgrp.remove_sprites_of_layer("message")
 
         # 互換性マーク削除
         if self.is_playingscenario():
@@ -2225,7 +2226,7 @@ class CWPy(_Singleton, threading.Thread):
     def get_messagewindow(self):
         """MessageWindow or SelectWindowインスタンスを返す。"""
         try:
-            return self.mcardgrp.get_sprites_from_layer("message")[0]
+            return self.topgrp.get_sprites_from_layer("message")[0]
         except:
             return None
 
