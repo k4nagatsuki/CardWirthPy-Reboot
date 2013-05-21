@@ -774,12 +774,11 @@ class CardEvent(Event):
 
         # 対象メンバに効果モーションを適用
         for target in targets:
-            # 対象メンバがメニューカードではない && 意識不明 && 意識不明に効果がない内容ならスルー
-            if isinstance(target, cw.sprite.card.MenuCard):
-                flag_is_unconscious = False
-            else:
-                flag_is_unconscious = target.is_unconscious()
-            if flag_is_unconscious and not eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS):
+            if not isinstance(target, cw.sprite.card.MenuCard) and\
+                    target.is_unconscious() and\
+                    not eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS):
+                # 意識不明者に有効な効果が含まれていない場合は
+                # イベント発火判定を含め何もしない
                 continue
 
             if isinstance(target, Enemy) and target.is_alive():
