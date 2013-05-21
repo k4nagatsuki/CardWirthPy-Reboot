@@ -432,10 +432,6 @@ class EffectMotion(object):
         """
         value = self.value
 
-        # 弱点属性だったら効果値+10
-        if self.is_weakness(target):
-            value += 10
-
         # ダメージタイプが"Max"の場合、最大HPを実数値として返す
         if self.damagetype == "Max":
             return target.maxlife
@@ -449,6 +445,10 @@ class EffectMotion(object):
             bonus = bonus / 2 + bonus % 2
             value = value * (self.level + bonus)
             value = value / 2 + value % 2
+
+        # 弱点属性だったら効果値+10
+        if self.is_weakness(target):
+            value += 10
 
         # 効果値から実数値を計算
         n = value / 5
