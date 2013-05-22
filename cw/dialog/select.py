@@ -1540,8 +1540,9 @@ class ScenarioSelect(Select):
             return
         index, pathorheader = data
         if isinstance(pathorheader, cw.header.ScenarioHeader):
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
-            self.ProcessEvent(btnevent)
+            if self.yesbtn.Enabled:
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
+                self.ProcessEvent(btnevent)
         else:
             if self.tree.IsExpanded(selitem):
                 cw.cwpy.sounds["page"].play()
@@ -2081,6 +2082,18 @@ class ScenarioSelect(Select):
         if self.list and self.tree.IsShown() and\
                 not isinstance(self.list[self.index], cw.header.ScenarioHeader):
             self.yesbtn.Disable()
+
+        # ツリー表示中の決定ボタン有効・無効判定
+        if self.tree.IsShown():
+            selitem = self.tree.GetSelection()
+            index, pathorheader = self.tree.GetItemPyData(selitem)
+            if isinstance(pathorheader, cw.header.ScenarioHeader):
+                header = pathorheader
+                if not cw.cwpy.is_debugmode()\
+                    and (self.is_playing(header)\
+                     or self.is_complete(header)\
+                     or self.is_invisible(header)):
+                    self.yesbtn.Disable()
 
         # 状況によってボタンのテキストを更新
         if self.tree.IsShown():
