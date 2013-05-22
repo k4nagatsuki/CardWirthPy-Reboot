@@ -1071,6 +1071,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_showparty = True
         self.input(True)
+        self.event.refresh_tools()
 
     def hide_party(self):
         """PlayerCardを非表示にする。"""
@@ -1082,6 +1083,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_showparty = False
         self.input(True)
+        self.event.refresh_tools()
 
     def set_sprites(self, dealanime=True,
                                 bginhrt=False, ttype=("Default", "Default")):

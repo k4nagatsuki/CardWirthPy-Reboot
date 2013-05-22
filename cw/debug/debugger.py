@@ -20,6 +20,8 @@ ID_STATUS = wx.NewId()
 ID_RECOVERY = wx.NewId()
 ID_AREA = wx.NewId()
 ID_SELECTION = wx.NewId()
+ID_SHOW_PARTY = wx.NewId()
+ID_HIDE_PARTY = wx.NewId()
 ID_BREAK = wx.NewId()
 ID_UPDATE = wx.NewId()
 ID_BATTLE = wx.NewId()
@@ -178,6 +180,15 @@ class Debugger(wx.Frame):
                          u"選択中のキャラクターを変更します。")
         self.mi_select.SetBitmap(rsrc["SELECTION"])
         run_menu.AppendItem(self.mi_select)
+        run_menu.AppendSeparator()
+        self.mi_showparty = wx.MenuItem(run_menu, ID_SHOW_PARTY, u"パーティ出現(&P)",
+                         u"パーティを出現させます。")
+        self.mi_showparty.SetBitmap(rsrc["EVT_SHOW_PARTY"])
+        run_menu.AppendItem(self.mi_showparty)
+        self.mi_hideparty = wx.MenuItem(run_menu, ID_HIDE_PARTY, u"パーティ隠蔽(&H)",
+                         u"パーティを隠蔽します。")
+        self.mi_hideparty.SetBitmap(rsrc["EVT_HIDE_PARTY"])
+        run_menu.AppendItem(self.mi_hideparty)
 
         self.SetMenuBar(mb)
 
@@ -308,6 +319,13 @@ class Debugger(wx.Frame):
             self.tb_select, -1, cw.cwpy.event.get_selectedmembername(),
             size=(200, -1))
         self.tb_select.AddControl(self.st_select)
+        self.tb_select.AddSeparator()
+        self.tl_showparty = self.tb_select.AddLabelTool(
+            ID_SHOW_PARTY, u"パーティ出現",
+            rsrc["EVT_SHOW_PARTY"], shortHelp=u"パーティを出現させます。")
+        self.tl_hideparty = self.tb_select.AddLabelTool(
+            ID_HIDE_PARTY, u"パーティ隠蔽",
+            rsrc["EVT_HIDE_PARTY"], shortHelp=u"パーティを隠蔽します。")
         self.tb_select.Realize()
 
         # create variable view
@@ -360,6 +378,8 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_MENU, self.OnAreaTool, id=ID_AREA)
         self.Bind(wx.EVT_MENU, self.OnSelectionTool, id=ID_SELECTION)
+        self.Bind(wx.EVT_MENU, self.OnShowPartyTool, id=ID_SHOW_PARTY)
+        self.Bind(wx.EVT_MENU, self.OnHidePartyTool, id=ID_HIDE_PARTY)
         self.Bind(wx.EVT_MENU, self.OnStepReturnTool, id=ID_STEPRETURN)
         self.Bind(wx.EVT_MENU, self.OnStepOverTool, id=ID_STEPOVER)
         self.Bind(wx.EVT_MENU, self.OnStepInTool, id=ID_STEPIN)
@@ -695,6 +715,12 @@ class Debugger(wx.Frame):
 
             dlg.Destroy()
 
+    def OnShowPartyTool(self, event):
+        cw.cwpy.exec_func(cw.cwpy.show_party)
+
+    def OnHidePartyTool(self, event):
+        cw.cwpy.exec_func(cw.cwpy.hide_party)
+
     def OnStepReturnTool(self, event):
         if cw.cwpy.event.get_currentstack() == 0:
             evt = wx.PyCommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED, ID_PAUSE)
@@ -869,6 +895,10 @@ class Debugger(wx.Frame):
         self.tl_stop.Enable(False)
         self.mi_select.Enable(False)
         self.tl_select.Enable(False)
+        self.mi_showparty.Enable(False)
+        self.tl_showparty.Enable(False)
+        self.mi_hideparty.Enable(False)
+        self.tl_hideparty.Enable(False)
         self.mi_area.Enable(False)
         self.tl_area.Enable(False)
 
@@ -892,6 +922,12 @@ class Debugger(wx.Frame):
             if cw.cwpy.is_runningevent():
                 self.mi_select.Enable(True)
                 self.tl_select.Enable(True)
+                if cw.cwpy.is_showparty:
+                    self.mi_hideparty.Enable(True)
+                    self.tl_hideparty.Enable(True)
+                else:
+                    self.mi_showparty.Enable(True)
+                    self.tl_showparty.Enable(True)
                 self.mi_stop.Enable(True)
                 self.tl_stop.Enable(True)
             else:
