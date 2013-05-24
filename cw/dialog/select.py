@@ -2162,7 +2162,7 @@ class ScenarioSelect(Select):
                     dpath = "Data/Temp/Cab"
                     if not os.path.isdir(dpath):
                         os.makedirs(dpath)
-                    s = "expand %s -f:%s %s" % (path, "*.txt", dpath)
+                    s = "expand \"%s\" -f:%s \"%s\"" % (path, "*.txt", dpath)
                     try:
                         encoding = sys.getfilesystemencoding()
                         if subprocess.call(s.encode(encoding), shell=True) == 0:

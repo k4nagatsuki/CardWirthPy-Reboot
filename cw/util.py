@@ -856,7 +856,7 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
     try:
         if not os.path.isdir(dstdir):
             os.makedirs(dstdir)
-        s = "expand %s -f:* %s" % (path, dstdir)
+        s = "expand \"%s\" -f:* \"%s\"" % (path, dstdir)
         encoding = sys.getfilesystemencoding()
         if subprocess.call(s.encode(encoding), shell=True) <> 0:
             return None

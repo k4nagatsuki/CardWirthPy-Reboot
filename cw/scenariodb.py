@@ -316,7 +316,7 @@ def read_summary(basepath):
                 dpath = "Data/Temp/Cab"
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
-                s = "expand %s -I -f:%s %s" % (path, "Summary.wsm", dpath)
+                s = "expand \"%s\" -I -f:%s \"%s\"" % (path, "Summary.wsm", dpath)
                 encoding = sys.getfilesystemencoding()
                 ret = subprocess.call(s.encode(encoding), shell=True)
                 if ret == 0:
