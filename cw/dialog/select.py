@@ -1762,20 +1762,28 @@ class ScenarioSelect(Select):
                 self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:])
                 self.updatenames_thr.start()
 
-            # ディレクトリ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(16)))
-            s = os.path.basename(dpath)
-            if s.lower().endswith(".lnk"):
-                s = s[0:-len(".lnk")]
-            dc.DrawText(s, cw.s(135), cw.s(65))
-            # フォルダ画像
-            bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
-            dc.DrawBitmap(bmp, cw.s(65), cw.s(30), True)
+            # Folder.bmpチェック
+            scan_folder_bmp = os.path.join(cw.util.get_linktarget(dpath), u"Folder.bmp")
+            if os.path.isfile(scan_folder_bmp):
+                # Folder.bmp表示
+                folder_bmp = cw.util.load_wxbmp(scan_folder_bmp, True)
+                cw.util.draw_center(dc, cw.s(folder_bmp), cw.s((200, 60)), True)
 
-            if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
-                # リンクシンボル
-                bmp = cw.cwpy.rsrc.dialogs["LINK"]
-                dc.DrawBitmap(bmp, cw.s(63), cw.s(65), False)
+            else:
+                # ディレクトリ名
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(16)))
+                s = os.path.basename(dpath)
+                if s.lower().endswith(".lnk"):
+                    s = s[0:-len(".lnk")]
+                dc.DrawText(s, cw.s(135), cw.s(65))
+                # フォルダ画像
+                bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
+                dc.DrawBitmap(bmp, cw.s(65), cw.s(30), True)
+
+                if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
+                    # リンクシンボル
+                    bmp = cw.cwpy.rsrc.dialogs["LINK"]
+                    dc.DrawBitmap(bmp, cw.s(63), cw.s(65), False)
 
             # contents
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(9)))
