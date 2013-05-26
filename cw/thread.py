@@ -305,7 +305,7 @@ class CWPy(_Singleton, threading.Thread):
     def set_debug(self, debug):
         self.setting.debug = debug
         self.debug = debug
-        self.statusbar.change()
+        self.statusbar.change(not self.is_runningevent())
 
         if self.is_battlestatus():
             # 敵の状態の暴露・非暴露切り替え
