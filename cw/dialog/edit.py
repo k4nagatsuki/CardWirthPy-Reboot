@@ -207,6 +207,7 @@ class MoneyViewPanel(wx.Panel):
         # text
         self.text_pmoney = wx.StaticText(self, -1, str(self.value),
                                         size=(cw.s(88), -1), style=wx.SUNKEN_BORDER)
+        self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.text_pmoney.SetBackgroundColour(wx.WHITE)
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
         font = cw.cwpy.rsrc.get_wxfont(size=cw.s(8), weight=wx.NORMAL)
