@@ -700,14 +700,14 @@ class LevelEditDialog(wx.Dialog):
     def OnLeftBtn(self, event):
         index = self.target.GetSelection()
         if index <= 0:
-            self.target.SetSelection(len(self.pcards))
+            self.target.SetSelection(len(self.list))
         else:
             self.target.SetSelection(index - 1)
         self._select_target()
 
     def OnRightBtn(self, event):
         index = self.target.GetSelection()
-        if len(self.pcards) <= index:
+        if len(self.list) <= index:
             self.target.SetSelection(0)
         else:
             self.target.SetSelection(index + 1)
