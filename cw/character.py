@@ -470,13 +470,22 @@ class Character(object):
         elif isinstance(self, cw.character.Friend):
             self.set_pos_noscale(center_noscale=(316, 142))
             self.status == "hidden"
+            # NPC表示
             cw.cwpy.pcardgrp.add(self)
             cw.animation.animate_sprite(self, "deal")
             cw.animation.animate_sprite(self, "zoomin")
+            # カード表示
             cw.cwpy.set_inusecardimg(self, header, center=True)
+            inusecardimg = cw.cwpy.get_inusecardimg()
+            cw.cwpy.topgrp.add(inusecardimg)
+            cw.animation.animate_sprite(inusecardimg, "deal")
             waitrate = cw.cwpy.setting.dealspeed
             cw.cwpy.wait_frame(waitrate)
-            cw.cwpy.clear_inusecardimg(self)
+            # カード消去
+            cw.animation.animate_sprite(inusecardimg, "hide")
+            cw.cwpy.clear_inusecardimg(inusecardimg)
+            cw.cwpy.topgrp.remove(inusecardimg)
+            # NPC消去
             cw.animation.animate_sprite(self, "zoomout")
             cw.animation.animate_sprite(self, "hide")
             cw.cwpy.pcardgrp.remove(self)
