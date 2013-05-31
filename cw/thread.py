@@ -1530,6 +1530,7 @@ class CWPy(_Singleton, threading.Thread):
             if user.inusecardimg:
                 user.inusecardimg.group.remove(user.inusecardimg)
                 self.inusecards.remove(user.inusecardimg)
+                user.inusecardimg = None
         else:
             for card in self.get_pcards():
                 card.inusecardimg = None
