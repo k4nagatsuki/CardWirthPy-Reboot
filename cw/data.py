@@ -1039,7 +1039,11 @@ class YadoData(object):
     def add_party(self, party):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        fpath = party.path
+        temppath = party.path.replace("Yado", "Data/Temp/Yado", 1)
+        if os.path.isfile(temppath):
+            fpath = temppath
+        else:
+            fpath = party.path
         header = self.create_partyheader(fpath)
         header.data = party # 保存時まで記憶しておく
         self.partys.append(header)
