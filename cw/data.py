@@ -1039,11 +1039,7 @@ class YadoData(object):
     def add_party(self, party):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        temppath = party.path.replace("Yado", "Data/Temp/Yado", 1)
-        if os.path.isfile(temppath):
-            fpath = temppath
-        else:
-            fpath = party.path
+        fpath = party.path
         header = self.create_partyheader(fpath)
         header.data = party # 保存時まで記憶しておく
         self.partys.append(header)
@@ -1077,7 +1073,7 @@ class YadoData(object):
         element: PropertyタグのElement。
         """
         if element is None:
-            element = xml2element(path, "Property")
+            element = yadoxml2element(path, "Property")
 
         return cw.header.PartyHeader(element)
 
