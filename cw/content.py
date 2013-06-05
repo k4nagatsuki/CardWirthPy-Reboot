@@ -1130,7 +1130,8 @@ class BranchKeyCodeContent(BranchContent):
         flag = False
         for target in targets:
             if target.has_keycode(keycode, skill, item, beast):
-                selectedmember = target
+                if isinstance(target, cw.character.Character):
+                    selectedmember = target
                 flag = True
                 break
 
