@@ -1129,17 +1129,10 @@ class BranchKeyCodeContent(BranchContent):
         selectedmember = None
         flag = False
         for target in targets:
-            if isinstance(target, cw.character.Character):
-                if target.has_keycode(keycode, skill, item, beast):
-                    selectedmember = target
-                    flag = True
-                    break
-            elif isinstance(target, cw.data.Party):
-                if target.has_backpackkeycode(keycode, skill, item, beast):
-                    flag = True
-                    break
-            else:
-                assert False
+            if target.has_keycode(keycode, skill, item, beast):
+                selectedmember = target
+                flag = True
+                break
 
         # 選択設定
         if selectedmember:
