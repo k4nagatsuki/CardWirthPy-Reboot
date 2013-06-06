@@ -750,7 +750,11 @@ class StatusPanel(wx.ScrolledWindow):
     def _draw_enhance(self, dc, enhname, value, dur, enhimage, pnlimage, height):
         if 0 == value:
             return height
-        if 7 <= value:
+        if 10 <= value:
+            colour = wx.Colour(255, 0, 0)
+            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            msg = u"%s最大ボーナス (%d)" % (enhname, dur)
+        elif 7 <= value:
             colour = wx.Colour(175, 0, 0)
             bmp = cw.cwpy.rsrc.statuses[enhimage]
             msg = u"%s大ボーナス (%d)" % (enhname, dur)
@@ -762,6 +766,10 @@ class StatusPanel(wx.ScrolledWindow):
             colour = wx.Colour(79, 0, 0)
             bmp = cw.cwpy.rsrc.statuses[enhimage]
             msg = u"%s小ボーナス (%d)" % (enhname, dur)
+        elif -10 >= value:
+            colour = wx.Colour(0, 0, 51)
+            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            msg = u"%s最大ペナルティ (%d)" % (enhname, dur)
         elif -7 >= value:
             colour = wx.Colour(0, 0, 85)
             bmp = cw.cwpy.rsrc.statuses[pnlimage]
