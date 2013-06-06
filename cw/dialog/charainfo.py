@@ -775,7 +775,7 @@ class StatusPanel(wx.ScrolledWindow):
             bmp = cw.cwpy.rsrc.statuses[pnlimage]
             msg = u"%s大ペナルティ (%d)" % (enhname, dur)
         elif -4 >= value:
-            colour = wx.Colour(0, 0, 160)
+            colour = wx.Colour(0, 0, 136)
             bmp = cw.cwpy.rsrc.statuses[pnlimage]
             msg = u"%s中ペナルティ (%d)" % (enhname, dur)
         elif -1 >= value:

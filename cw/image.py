@@ -378,7 +378,7 @@ class CharacterCardImage(CardImage):
         elif value <= -7:
             seq.append((pygame.Color(0, 0, 85), size))
         elif value <= -4:
-            seq.append((pygame.Color(0, 0, 160), size))
+            seq.append((pygame.Color(0, 0, 136), size))
         elif value <= -1:
             seq.append((pygame.Color(0, 0, 187), size))
         seq.append(bmp)
