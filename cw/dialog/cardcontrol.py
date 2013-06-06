@@ -312,6 +312,8 @@ class CardControl(wx.Dialog):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["send_to"]
             dc.DrawText(s, cw.s(295), cw.s(3))
+        # カード枚数のフォント設定
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
         return dc
 
     def draw_cards(self, dc, update, mode):
