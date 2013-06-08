@@ -43,7 +43,7 @@ class CharaInfo(wx.Dialog):
         self.historypanel = HistoryPanel(self.notebook, self.ccard, editable)
         self.notebook.AddPage(self.historypanel, cw.cwpy.msgs["history"])
         # 編集または状態
-        if cw.cwpy.is_playingscenario():
+        if self.is_playingscenario:
             self.editpanel = StatusPanel(self.notebook, self.list, self.ccard, editable)
             self.notebook.AddPage(self.editpanel, cw.cwpy.msgs["status"])
         elif editable:
@@ -129,9 +129,12 @@ class CharaInfo(wx.Dialog):
             if data.getroot().tag == "Album":
                 self.ccard = cw.character.AlbumPage(data)
             else:
-                self.ccard = cw.character.Character(data)
+                self.ccard = cw.character.Player(data)
 
-            self.Parent.OnClickLeftBtn(event)
+            if isinstance(self, StandbyPartyCharaInfo):
+                cw.cwpy.sounds["page"].play()
+            else:
+                self.Parent.OnClickLeftBtn(event)
         else:
             cw.cwpy.sounds["page"].play()
             self.ccard = self.list[self.index]
@@ -159,9 +162,12 @@ class CharaInfo(wx.Dialog):
             if data.getroot().tag == "Album":
                 self.ccard = cw.character.AlbumPage(data)
             else:
-                self.ccard = cw.character.Character(data)
+                self.ccard = cw.character.Player(data)
 
-            self.Parent.OnClickRightBtn(event)
+            if isinstance(self, StandbyPartyCharaInfo):
+                cw.cwpy.sounds["page"].play()
+            else:
+                self.Parent.OnClickRightBtn(event)
         else:
             cw.cwpy.sounds["page"].play()
             self.ccard = self.list[self.index]
@@ -218,7 +224,8 @@ class CharaInfo(wx.Dialog):
         self.Layout()
 
 class StandbyCharaInfo(CharaInfo):
-    def __init__(self, parent, headers, index, redrawfunc):
+    def __init__(self, parent, headers, index, redrawfunc, is_playingscenario=False):
+        self.is_playingscenario = is_playingscenario
         self.list = headers
         self.index = index
         header = self.list[self.index]
@@ -228,13 +235,23 @@ class StandbyCharaInfo(CharaInfo):
             self.ccard = cw.character.AlbumPage(data)
             editable = False
         else:
-            self.ccard = cw.character.Character(data)
+            self.ccard = cw.character.Player(data)
             editable = True
 
         CharaInfo.__init__(self, parent, redrawfunc, editable)
 
+class StandbyPartyCharaInfo(StandbyCharaInfo):
+    def __init__(self, parent, partyheader, redrawfunc):
+        party = cw.data.Party(partyheader, True)
+        headers = []
+        for memberpath in party.get_memberpaths():
+            headers.append(cw.cwpy.ydata.create_advheader(memberpath))
+
+        StandbyCharaInfo.__init__(self, parent, headers, 0, redrawfunc, partyheader.is_adventuring())
+
 class ActiveCharaInfo(CharaInfo):
     def __init__(self, parent):
+        self.is_playingscenario = cw.cwpy.is_playingscenario()
         self.ccard = cw.cwpy.selection
 
         if isinstance(cw.cwpy.selection, cw.character.Player):
@@ -548,15 +565,47 @@ class EditPanel(wx.Panel):
                 else:
                     # レベルを調節する
                     cw.cwpy.sounds["click"].play()
-                    selected = self.list.index(self.ccard)
-                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=self.list, selected=selected)
+                    list = self.get_charalist()
+                    selected = list.index(self.ccard)
+                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=selected)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        self.ccard.data.write_xml()
+                        self.update_charalist(list)
                         self.Parent.Parent.toppanel.draw(True)
                     dlg.Destroy()
                 self.draw(True)
                 return
+
+    def get_charalist(self):
+        """編集用のcw.character.Playerのリストを取得する。"""
+        if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
+            seq = []
+            for header in self.list:
+                if self.ccard.data.fpath == header.fpath:
+                    seq.append(self.ccard)
+                else:
+                    data = cw.data.yadoxml2etree(header.fpath)
+                    ccard = cw.character.Player(data)
+                    seq.append(ccard)
+            return seq
+        elif isinstance(self.Parent.Parent, StandbyCharaInfo):
+            return [self.ccard]
+        else:
+            return self.list
+
+    def update_charalist(self, list):
+        """編集結果をヘッダ等に反映する。"""
+        def func(parent, headers, list):
+            if isinstance(parent, StandbyPartyCharaInfo):
+                for i, header in enumerate(headers):
+                    ccard = list[i]
+                    ccard.data.write_xml()
+                    header.level = ccard.level
+            elif isinstance(parent, StandbyCharaInfo):
+                ccard = list[0]
+                ccard.data.write_xml()
+                headers[parent.index].level = ccard.level
+        cw.cwpy.exec_func(func, self.Parent.Parent, self.list, list)
 
     def OnPaint(self, event):
         self.draw()
@@ -640,7 +689,7 @@ class StatusPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
-        if cw.cwpy.debug and editable:
+        if cw.cwpy.debug and editable and not isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
             self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 

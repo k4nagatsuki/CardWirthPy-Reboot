@@ -730,7 +730,7 @@ class LevelEditDialog(wx.Dialog):
 
                 ccard.set_level(clevel, regulate=True)
                 ccard.is_edited = True
-                if hasattr(ccard, "cardimg"):
+                if hasattr(ccard, "cardimg") and hasattr(ccard.cardimg, "set_levelimg"):
                     update = True
                     cw.cwpy.sounds["harvest"].play()
                     cw.animation.animate_sprite(ccard, "hide")

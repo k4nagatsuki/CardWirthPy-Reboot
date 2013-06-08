@@ -722,15 +722,12 @@ class PartySelect(Select):
             self.list[self.index] = header
             cw.cwpy.ydata.partys[self.index] = header
             self.draw(True)
-        header = self.list[self.index]
-        party = cw.data.Party(header, True)
-        headers = []
-        for memberpath in party.get_memberpaths():
-            headers.append(cw.cwpy.ydata.create_advheader(memberpath))
+        partyheader = self.list[self.index]
 
-        dlg = cw.dialog.charainfo.StandbyCharaInfo(self.Parent, headers, 0, redrawfunc)
+        dlg = cw.dialog.charainfo.StandbyPartyCharaInfo(self.Parent, partyheader, redrawfunc)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+        dlg.Destroy()
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
