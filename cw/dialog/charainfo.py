@@ -33,6 +33,10 @@ class CharaInfo(wx.Dialog):
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.s((30, 30)), bmp=bmp)
+        # enabled
+        if len(self.list) <= 1:
+            self.leftbtn.Disable()
+            self.rightbtn.Disable()
         # notebook
         self.notebook = wx.Notebook(self, -1, size=cw.s((300, 220)), style=wx.BK_BOTTOM)
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("btnfont"))
@@ -80,7 +84,21 @@ class CharaInfo(wx.Dialog):
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def OnMouseWheel(self, event):
-        if self.notebook.GetRect().Contains(event.GetPosition()):
+        rect = self.GetClientRect()
+        # ダイアログの上半分でホイールを回した場合は
+        # 表示メンバを交代し、下半分の場合は
+        # 情報タブの切り替えを行う
+        rect = wx.Rect(rect[0], rect[1], rect[2], rect[3] / 2);
+        if rect.Contains(event.GetPosition()) and self.leftbtn.IsEnabled():
+            if event.GetWheelRotation() > 0:
+                if self.leftbtn.IsEnabled():
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+                    self.ProcessEvent(btnevent)
+            else:
+                if self.rightbtn.IsEnabled():
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
+                    self.ProcessEvent(btnevent)
+        else:
             index = self.notebook.GetSelection()
             count = self.notebook.GetPageCount()
             if event.GetWheelRotation() > 0:
@@ -96,15 +114,6 @@ class CharaInfo(wx.Dialog):
             self.notebook.SetSelection(index)
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, self.notebook.GetId())
             self.ProcessEvent(btnevent)
-        else:
-            if event.GetWheelRotation() > 0:
-                if self.leftbtn.IsEnabled():
-                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
-                    self.ProcessEvent(btnevent)
-            else:
-                if self.rightbtn.IsEnabled():
-                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
-                    self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
         cw.cwpy.sounds["click"].play()
