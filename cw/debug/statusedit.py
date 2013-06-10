@@ -714,16 +714,20 @@ class StatusButton(wx.BitmapButton):
 
             colour = wx.Colour(192, 192, 192)
             if not self.value is None:
-                if 7 <= self.value:
+                if 10 <= self.value:
+                    colour = wx.Colour(255, 0, 0)
+                elif 7 <= self.value:
                     colour = wx.Colour(175, 0, 0)
                 elif 4 <= self.value:
                     colour = wx.Colour(127, 0, 0)
                 elif 1 <= self.value:
                     colour = wx.Colour(79, 0, 0)
+                elif -10 >= self.value:
+                    colour = wx.Colour(0, 0, 51)
                 elif -7 >= self.value:
                     colour = wx.Colour(0, 0, 85)
                 elif -4 >= self.value:
-                    colour = wx.Colour(0, 0, 160)
+                    colour = wx.Colour(0, 0, 136)
                 elif -1 >= self.value:
                     colour = wx.Colour(0, 0, 187)
 
