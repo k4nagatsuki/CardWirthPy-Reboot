@@ -112,7 +112,7 @@ class BgImage(base.CWBinaryBase):
             if self.type == cw.sprite.background.BG_IMAGE:
                 self.data = cw.data.make_element("BgImage")
                 self.data.set("mask", str(self.mask))
-                e = cw.data.make_element("ImagePath", self.imgpath)
+                e = cw.data.make_element("ImagePath", self.get_materialpath(self.imgpath))
                 self.data.append(e)
 
             elif self.type == cw.sprite.background.BG_TEXT:
