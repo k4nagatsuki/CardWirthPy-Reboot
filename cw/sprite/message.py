@@ -705,7 +705,7 @@ class BacklogCurtain(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 0))
         # spritegroupに追加
-        spritegrp.add(self, layer="curtain")
+        spritegrp.add(self, layer=0)
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s((632, 420))).convert()

@@ -606,13 +606,12 @@ class CWPy(_Singleton, threading.Thread):
             n = len(self.sdata.backlog) - 1
         index = len(self.sdata.backlog) - 1 - n
 
-        self.topgrp.add(cw.sprite.message.BacklogCurtain(self.topgrp))
+        curtain = cw.sprite.message.BacklogCurtain(self.backloggrp)
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
         self.clear_selection()
         self.statusbar.change(False)
 
         while self.is_running() and eventhandler.mwin:
-            self.topgrp.update(self.scr)
             self.sbargrp.update(self.scr)
             self.draw()
             self.tick_clock()
@@ -620,7 +619,7 @@ class CWPy(_Singleton, threading.Thread):
             eventhandler.run()
 
         # 背景スプライト削除
-        self.topgrp.remove_sprites_of_layer("curtain")
+        self.backloggrp.remove(curtain)
         self.draw()
 
     def set_titlebar(self, s):
