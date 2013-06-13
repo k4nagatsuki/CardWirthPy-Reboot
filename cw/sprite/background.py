@@ -125,7 +125,11 @@ class BackGround(base.CWPySprite):
                 path = e.gettext("ImagePath", "")
 
                 if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
-                    path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+                    sceheader = cw.cwpy.ydata.party.get_sceheader()
+                    if sceheader.type == 1:
+                        path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+                    else:
+                        path = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material", path)
                 else:
                     path = cw.util.join_paths(cw.cwpy.skindir, path)
 
