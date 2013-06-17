@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="6cec67f458818d7546fcfe83da5620b8">1.20</Scenario><!-- 真夜中に、形容し難きものが目を覚ます -->
+  <Scenario md5="bde8a4e122a27d9502436fa108c0a2a0">1.20</Scenario><!-- エクソシスト -->
+  <Scenario md5="e1815910ed9b8323ffbb414b39292ebb">1.20</Scenario><!-- 黄金色の鳥 -->
+  <Scenario md5="d7f7514b11e2edc8267dae3fafbc8f36">1.20</Scenario><!-- 平和への願い -->
+  <Scenario md5="aed114fd138eba226beb2cdfab0905d9">1.20</Scenario><!-- 革命の女神　第一章 -->
+  <Scenario md5="689f289da497c1183dff1ba4bbe46ec0">1.20</Scenario><!-- 革命の女神　第二章 -->
+  <Scenario md5="a3841fc4d94cc5b48a38206b770f9b25">1.20</Scenario><!-- 革命の女神　第三章 -->
+  <Scenario md5="c4bad8346bd0a32065efbd9a2c1c621e">1.20</Scenario><!-- 革命の女神　第四章 -->
+  <Scenario md5="3153e1c7c42d55eac037cfdf7c394e9b">1.20</Scenario><!-- 精霊の竪琴 -->
+  <Scenario md5="0faea7ea4a27c8257bf5236007aa19e9">1.20</Scenario><!-- 魔神の歌　第四章 -->
+  <Scenario md5="3dae1da1fa4059c37e6442bfdc8eec84">1.20</Scenario><!-- 魔神の歌　第五章　前編 -->
+  <Scenario md5="42ee4a49ad8d53fb8e7980a736e5c110">1.20</Scenario><!-- 魔神の歌　第五章　後編 -->
+  <Scenario md5="0eeeb6332786533e0d301a95f66da112">1.20</Scenario><!-- 選んだ道の先に -->
+  <Scenario md5="3e7e31710adbd739a63518e0beae9c72">1.20</Scenario><!-- 娘のリソース20020529版/Item7.wid -->
+  <Scenario md5="9d5fee5d43fb0d79671e108612caa6a1">1.20</Scenario><!-- 娘のリソース20020331版/Item7.wid -->
+  <Scenario md5="5d2a47d511f429a8b5de834f9abbf1de">1.20</Scenario><!-- 娘のリソース20020529版/Beast1.wid -->
+  <Scenario md5="94a5b79feff8721048964a0e61a3fffb">1.20</Scenario><!-- 娘のリソース20020331版/Beast1.wid -->
+  <Scenario md5="693ae19c368ce5d5a5317d7f056940b2">1.20</Scenario><!-- 娘のリソース20020529版/Beast2.wid -->
+  <Scenario md5="d9fe26727ac3fb1f5da0dbbb69b56c2d">1.20</Scenario><!-- 娘のリソース20020331版/Beast2.wid -->
+  <Scenario md5="b3d66ff6f295521e542270d386a9b5d0">1.20</Scenario><!-- 娘のリソース20020529版/Beast3.wid -->
+  <Scenario md5="e7a732ffd0450a97fde72c0e88ef93c2">1.20</Scenario><!-- 娘のリソース20020331版/Beast3.wid -->
+  <Scenario md5="595b949f3f1147b035b14e3296bb8b51">1.20</Scenario><!-- 娘のリソース20020529版/Beast6.wid -->
+  <Scenario md5="910bc42f5c56f0dda91aeebaf8bf1dea">1.20</Scenario><!-- 娘のリソース20020331版/Beast6.wid -->
+  <Scenario md5="1f6acf1117540a4ff8a827dcb48604c5">1.20</Scenario><!-- 娘のリソース20020529版/Beast14.wid -->
+  <Scenario md5="09e6e54fc57b95dbe6310d013d06e23d">1.20</Scenario><!-- 娘のリソース20020331版/Beast14.wid -->
+  <Scenario md5="6986fb18017187197b30985568fb4eb8">1.20</Scenario><!-- 娘のリソース20020529版/Beast22.wid -->
+  <Scenario md5="3ce99dddf9d754f4120fbc3f4d5b5f80">1.20</Scenario><!-- 娘のリソース20020529版/Beast23.wid -->
+  <Scenario md5="9cc5fd148ec7e3631db570622d5394cf">1.20</Scenario><!-- 娘のリソース20020529版/Beast24.wid -->
   <Scenario md5="a892e074c955acba2788f32c0cbab3fb">1.20</Scenario><!-- 竜殺しの墓/Area63.wid -->
   <Scenario md5="7d1f3f88e76bf5d51339dcc631ca54fd">1.28</Scenario><!-- ｸﾞﾘｭｴﾙッ！ -->
 </Compatibility>
