@@ -481,7 +481,7 @@ class Character(object):
             cw.animation.animate_sprite(self, "deal")
             cw.animation.animate_sprite(self, "zoomin")
             # カード表示
-            cw.cwpy.set_inusecardimg(self, header, center=True)
+            cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.cwpy.draw()
             waitrate = cw.cwpy.setting.dealspeed
@@ -1248,7 +1248,7 @@ class Character(object):
             if isinstance(self, cw.sprite.card.PlayerCard):
                 targettype = "BACKPACK"
             else:
-                targettype = "STOREHOUSE"                
+                targettype = "STOREHOUSE"
             for index in range(3):
                 n = len(self.cardpocket[index])
                 maxn = self.get_cardpocketspace()[index]

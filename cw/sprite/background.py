@@ -377,12 +377,13 @@ class BattleCardImage(card.CWPyCard):
         pass
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False):
+    def __init__(self, user, header, status="normal", center=False, spritegrp=None):
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
         status: すぐ表示したくない場合は"hidden"を指定。
         center: 画面中央に表示するかどうか。
+        spritegrp: 追加先のスプライトグループ。Noneの場合は自動選択。
         """
         card.CWPyCard.__init__(self, status)
         self.status = status
@@ -394,7 +395,9 @@ class InuseCardImage(card.CWPyCard):
         self.update_scale()
 
         # spritegroupに追加
-        if isinstance(user, cw.sprite.card.PlayerCard):
+        if spritegrp:
+            self.group = spritegrp
+        elif isinstance(user, cw.sprite.card.PlayerCard):
             self.group = cw.cwpy.pcardgrp
         else:
             self.group = cw.cwpy.mcardgrp
@@ -440,7 +443,11 @@ class TargetArrow(base.CWPySprite):
         self.target = target
         self.update_scale()
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self, layer="targetarrow")
+        # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            cw.cwpy.mcardgrp.add(self, layer="targetarrow")
+        else:
+            cw.cwpy.pcardgrp.add(self, layer="targetarrow")
 
     def update_scale(self):
         self.image = cw.cwpy.rsrc.statuses["TARGET"]

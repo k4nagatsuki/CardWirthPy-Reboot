@@ -1516,10 +1516,10 @@ class CWPy(_Singleton, threading.Thread):
                     elif targets:
                         self.set_targetarrow(targets)
 
-    def set_inusecardimg(self, owner, header, status="normal", center=False):
+    def set_inusecardimg(self, owner, header, status="normal", center=False, spritegrp=None):
         """PlayerCardの前に使用中カードの画像を表示。"""
         if not self.get_inusecardimg():
-            inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center)
+            inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, spritegrp)
             owner.inusecardimg = inusecard
             self.inusecards.append(inusecard)
 
@@ -1556,7 +1556,8 @@ class CWPy(_Singleton, threading.Thread):
         """targets(PlayerCard, MenuCard, CastCard)の前に
         対象選択の指矢印の画像を表示。
         """
-        if not self.pcardgrp.get_sprites_from_layer("targetarrow"):
+        if not self.pcardgrp.get_sprites_from_layer("targetarrow") and\
+            not self.mcardgrp.get_sprites_from_layer("targetarrow"):
             if not isinstance(targets, (list, tuple)):
                 cw.sprite.background.TargetArrow(targets)
             else:
@@ -1565,6 +1566,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def clear_targetarrow(self):
         """対象選択の指矢印の画像を削除。"""
+        self.mcardgrp.remove_sprites_of_layer("targetarrow")
         self.pcardgrp.remove_sprites_of_layer("targetarrow")
 
     def set_curtain(self, target="Both"):
