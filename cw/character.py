@@ -1243,6 +1243,20 @@ class Character(object):
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e
 
+        if uplevel < 0:
+        # 所持可能上限を越えたカードを、荷物袋ないしカード置き場へ移動
+            if isinstance(self, cw.sprite.card.PlayerCard):
+                targettype = "BACKPACK"
+            else:
+                targettype = "STOREHOUSE"                
+            for index in range(3):
+                n = len(self.cardpocket[index])
+                maxn = self.get_cardpocketspace()[index]
+                while n > maxn:
+                    header = self.cardpocket[index][-1]
+                    cw.cwpy.trade(targettype=targettype, header=header, from_event=True)
+                    n -= 1
+
     #---------------------------------------------------------------------------
     #　状態変更用
     #---------------------------------------------------------------------------
