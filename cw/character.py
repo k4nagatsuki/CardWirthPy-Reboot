@@ -1083,7 +1083,7 @@ class Character(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         value = int(value)
-        value = cw.util.numwrap(value, 0, 999)
+        value = cw.util.numwrap(value, -999, 999)
         removed = self._remove_coupon(name, False)
         e = self.data.make_element("Coupon", name, {"value" : str(value)})
         self.data.append("Property/Coupons", e)
