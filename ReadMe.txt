@@ -200,8 +200,30 @@ engine=1.20
   "Data/Skin"の各スキンフォルダにある"ReadMe.txt"を参照してください。
 
 
+貢献者
+--------------------------------------------------------------------------
+(順不同・敬称略)
+
+  https://sites.google.com/site/cardwirthpy/
+  CardWirthPyは logの中の人 によって作成され、ほとんどの
+  主要なコードは原作者によって書かれました。
+
+  https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot
+  k4nagatsuki は開発が停止していたCardWirthPyをフォークし、
+  その時点で未完成だった部分のほとんどを実装しました。
+
+  https://bitbucket.org/takuto_cw/cardwirthpy-reboot
+  takuto_cw はいくつかのバグを修正し、カードダイアログの
+  ボタンに使用する画像を描き起こしました。
+
+  https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
+  TachiGigas はいくつかのバグを修正し、シナリオダイアログ
+  の見逃されていた未実装部分を実装しました。
+
+
 謝辞
 --------------------------------------------------------------------------
+(順不同・敬称略)
 
   CardWirthPyを開発するにあたって、お世話になった方々に、
   心から感謝申し上げます。
