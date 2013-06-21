@@ -571,8 +571,8 @@ class PlayerCard(CWPyCard, character.Player):
         cw.animation.animate_sprite(self, "click")
         cw.cwpy.call_dlg("CHARAINFO")
 
-    def set_level(self, value, regulate=False, debugedit=False):
-        character.Player.set_level(self, value, regulate, debugedit)
+    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None):
+        character.Player.set_level(self, value, regulate, debugedit, backpack_party)
         self.cardimg.set_levelimg(self.level)
 
     def adjust_level(self, fromscenario):

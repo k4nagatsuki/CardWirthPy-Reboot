@@ -588,13 +588,14 @@ class ComboEditDialog(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class LevelEditDialog(wx.Dialog):
-    def __init__(self, parent, list, selected):
+    def __init__(self, parent, list, selected, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
         self.list = list
+        self.party = party
 
         # 対象者
         self.targets = [u"全員"]
@@ -728,7 +729,7 @@ class LevelEditDialog(wx.Dialog):
                 if ccard.level == clevel:
                     continue
 
-                ccard.set_level(clevel, regulate=True)
+                ccard.set_level(clevel, regulate=True, backpack_party=self.party)
                 ccard.is_edited = True
                 if hasattr(ccard, "cardimg") and hasattr(ccard.cardimg, "set_levelimg"):
                     update = True

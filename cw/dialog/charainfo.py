@@ -18,10 +18,11 @@ class CharaInfo(wx.Dialog):
     """
     キャラクター情報ダイアログ
     """
-    def __init__(self, parent, redrawfunc, editable):
+    def __init__(self, parent, redrawfunc, editable, party=None):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=cw.s((300, 355)),
                 style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.party = party
         self.csize = self.GetClientSize()
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -233,7 +234,7 @@ class CharaInfo(wx.Dialog):
         self.Layout()
 
 class StandbyCharaInfo(CharaInfo):
-    def __init__(self, parent, headers, index, redrawfunc, is_playingscenario=False):
+    def __init__(self, parent, headers, index, redrawfunc, is_playingscenario=False, party=None):
         self.is_playingscenario = is_playingscenario
         self.list = headers
         self.index = index
@@ -247,16 +248,17 @@ class StandbyCharaInfo(CharaInfo):
             self.ccard = cw.character.Player(data)
             editable = True
 
-        CharaInfo.__init__(self, parent, redrawfunc, editable)
+        CharaInfo.__init__(self, parent, redrawfunc, editable, party=party)
 
 class StandbyPartyCharaInfo(StandbyCharaInfo):
     def __init__(self, parent, partyheader, redrawfunc):
         party = cw.data.Party(partyheader, True)
+        partyheader.data = party
         headers = []
         for memberpath in party.get_memberpaths():
             headers.append(cw.cwpy.ydata.create_advheader(memberpath))
 
-        StandbyCharaInfo.__init__(self, parent, headers, 0, redrawfunc, partyheader.is_adventuring())
+        StandbyCharaInfo.__init__(self, parent, headers, 0, redrawfunc, partyheader.is_adventuring(), party=party)
 
 class ActiveCharaInfo(CharaInfo):
     def __init__(self, parent):
@@ -576,7 +578,8 @@ class EditPanel(wx.Panel):
                     cw.cwpy.sounds["click"].play()
                     list = self.get_charalist()
                     selected = list.index(self.ccard)
-                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=selected)
+                    party = self.Parent.Parent.party
+                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=selected, party=party)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
                         self.update_charalist(list)

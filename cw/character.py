@@ -1194,9 +1194,13 @@ class Character(object):
 
         return olevel - level
 
-    def set_level(self, value, regulate=False, debugedit=False):
+    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None):
         """レベルを設定する。
         regulate: レベルを調節する場合はTrue。
+        backpack_party: レベルが下がって手札を持ちきれなくなった際、
+                        このパーティの荷物袋へ入れる。
+                        Noneの場合はアクティブなパーティの荷物袋か
+                        カード置場へ入る。
         """
         if regulate:
             # 調節前のレベル
@@ -1244,8 +1248,8 @@ class Character(object):
                     self.coupons[e.text] = value, e
 
         if uplevel < 0:
-        # 所持可能上限を越えたカードを、荷物袋ないしカード置き場へ移動
-            if isinstance(self, cw.sprite.card.PlayerCard):
+            # 所持可能上限を越えたカードを、荷物袋ないしカード置き場へ移動
+            if backpack_party or isinstance(self, cw.sprite.card.PlayerCard):
                 targettype = "BACKPACK"
             else:
                 targettype = "STOREHOUSE"
@@ -1254,7 +1258,7 @@ class Character(object):
                 maxn = self.get_cardpocketspace()[index]
                 while n > maxn:
                     header = self.cardpocket[index][-1]
-                    cw.cwpy.trade(targettype=targettype, header=header, from_event=True)
+                    cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party)
                     n -= 1
 
     #---------------------------------------------------------------------------

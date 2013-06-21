@@ -716,13 +716,14 @@ class PartySelect(Select):
             self.draw(True)
 
     def OnClickEditBtn(self, event):
+        partyheader = self.list[self.index]
         def redrawfunc():
             header = self.list[self.index]
             header = cw.cwpy.ydata.create_partyheader(header.fpath)
+            header.data = partyheader.data
             self.list[self.index] = header
             cw.cwpy.ydata.partys[self.index] = header
             self.draw(True)
-        partyheader = self.list[self.index]
 
         dlg = cw.dialog.charainfo.StandbyPartyCharaInfo(self.Parent, partyheader, redrawfunc)
         cw.cwpy.frame.move_dlg(dlg)
