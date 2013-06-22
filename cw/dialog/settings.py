@@ -34,6 +34,7 @@ class SettingsDialog(wx.Dialog):
         self.pane_gene.cb_nolevelup.SetValue(False)
         self.pane_gene.cb_cautionbeforesaving.SetValue(True)
         self.pane_gene.cb_storeskinoneachbase.SetValue(True)
+        self.pane_gene.cb_revertcardpocket.SetValue(True)
         self.pane_draw.cb_smooth_bg.SetValue(False)
         self.pane_draw.cb_quickdeal.SetValue(True)
         self.pane_draw.sl_deal.SetValue(6)
@@ -65,6 +66,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.caution_beforesaving = value
         value = self.pane_gene.cb_storeskinoneachbase.GetValue()
         cw.cwpy.setting.store_skinoneachbase = value
+        value = self.pane_gene.cb_revertcardpocket.GetValue()
+        cw.cwpy.setting.revert_cardpocket = value
 
         value = self.pane_gene.ch_expandmode.GetSelection()
         value = self.pane_gene.expandmodes[value]
@@ -170,6 +173,9 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_storeskinoneachbase = wx.CheckBox(
             self, -1, u"拠点ごとにスキンを記憶する")
         self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
+        self.cb_revertcardpocket = wx.CheckBox(
+            self, -1, u"レベル調節で手放したカードを自動的に戻す")
+        self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
@@ -247,6 +253,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((260, -1))
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)

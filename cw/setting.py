@@ -50,6 +50,7 @@ class Setting(object):
             self.smoothscale_bg = False
             self.caution_beforesaving = True
             self.store_skinoneachbase = True
+            slef.revert_cardpocket = True
             self.quickdeal = True
             self.skindirname = "Classic"
             self.classicstyletext = True
@@ -123,6 +124,8 @@ class Setting(object):
         self.caution_beforesaving = data.getbool("CautionBeforeSaving", True)
         # 拠点ごとにスキンを記憶
         self.store_skinoneachbase = data.getbool("StoreSkinOnEachBase", True)
+        # レベル調節で手放したカードを自動的に戻す
+        self.revert_cardpocket = data.getbool("RevertCardPocket", True)
         # キャンプ等に高速で切り替える
         self.quickdeal = data.getbool("QuickDeal", True)
         # ソート基準

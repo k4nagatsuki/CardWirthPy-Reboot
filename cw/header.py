@@ -580,6 +580,14 @@ class CardHeader(object):
         else:
             return self.keycodes
 
+    def set_hold(self, hold):
+        self.hold = hold
+        owner = self.get_owner()
+        if isinstance(owner, cw.character.Player):
+            etree = cw.data.CWPyElementTree(element=self.carddata)
+            etree.edit("Property/Hold", str(self.hold))
+            owner.data.is_edited = True
+
 class InfoCardHeader(object):
     def __init__(self, data):
         """

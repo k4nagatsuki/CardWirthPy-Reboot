@@ -1863,6 +1863,8 @@ class CWPy(_Singleton, threading.Thread):
         # 移動元からデータを削除
         #-----------------------------------------------------------------------
 
+        hold = header.hold
+
         # 移動元がCharacterだった場合
         if isinstance(owner, cw.character.Character):
             # 移動元のCardHolderからCardHeaderを削除
@@ -1962,6 +1964,7 @@ class CWPy(_Singleton, threading.Thread):
         if targettype == "PLAYERCARD":
             # cardpocketにCardHeaderを追加
             header.set_owner(target)
+            header.set_hold(hold)
             # 使用回数を設定
             header.get_uselimit()
             if from_event and header.type == "SkillCard":

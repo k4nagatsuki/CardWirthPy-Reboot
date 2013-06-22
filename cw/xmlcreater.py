@@ -139,6 +139,8 @@ def create_settings(setting):
     element.append(e)
     # 拠点ごとにスキンを記憶
     e = cw.data.make_element("StoreSkinOnEachBase", str(setting.store_skinoneachbase))
+    # レベル調節で手放したカードを自動的に戻す
+    e = cw.data.make_element("RevertCardPocket", str(setting.revert_cardpocket))
     element.append(e)
     # キャンプ等に高速で切り替える
     e = cw.data.make_element("QuickDeal", str(setting.quickdeal))

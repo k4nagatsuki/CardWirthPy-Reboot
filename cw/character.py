@@ -1258,8 +1258,75 @@ class Character(object):
                 maxn = self.get_cardpocketspace()[index]
                 while n > maxn:
                     header = self.cardpocket[index][-1]
+                    if regulate:
+                        self.add_cardpocketmemory(header)
                     cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party)
                     n -= 1
+        elif 0 < uplevel:
+            # レベル調節で手放したカードを戻す
+            self.revert_cardpocket(backpack_party)
+
+    def add_cardpocketmemory(self, header):
+        """レベル調節前に所持していたカードを記憶する。"""
+        memories = self.data.find("./CardMemories")
+        if memories is None:
+            memories = cw.data.make_element("CardMemories")
+            self.data.append(".", memories)
+        e = cw.data.make_element("CardMemory")
+        e.append(cw.data.make_element("Type", header.type))
+        e.append(cw.data.make_element("Name", header.name))
+        e.append(cw.data.make_element("Description", header.desc))
+        e.append(cw.data.make_element("Scenario", header.scenario))
+        e.append(cw.data.make_element("Author", header.author))
+        e.append(cw.data.make_element("Hold", str(header.hold)))
+        memories.append(e)
+
+    def revert_cardpocket(self, backpack_party=None):
+        """記憶していたカードを検索し、
+        見つかったら再び所持する。"""
+        if not backpack_party:
+            backpack_party = cw.cwpy.ydata.party
+
+        seq = []
+        if backpack_party:
+            seq.extend(backpack_party.backpack)
+        seq.extend(cw.cwpy.ydata.storehouse)
+
+        maxn = self.get_cardpocketspace()
+        n = [
+             len(self.get_pocketcards(cw.POCKET_SKILL)),
+             len(self.get_pocketcards(cw.POCKET_ITEM)),
+             len(self.get_pocketcards(cw.POCKET_BEAST)),
+        ]
+        for e in reversed(self.data.getfind("./CardMemories", False)[:]):
+            type = e.gettext("./Type")
+            name = e.gettext("./Name")
+            desc = e.gettext("./Description")
+            scenario = e.gettext("./Scenario")
+            author = e.gettext("./Author")
+            if type == "SkillCard":
+                index = cw.POCKET_SKILL
+            elif type == "ItemCard":
+                index = cw.POCKET_ITEM
+            elif type == "BeastCard":
+                index = cw.POCKET_BEAST
+            if n[index] < maxn[index]:
+                for header in seq:
+                    if header.type == type and\
+                            header.name == name and\
+                            header.desc == desc and\
+                            header.scenario == scenario and\
+                            header.author == author:
+                        n[index] += 1
+                        if cw.cwpy.setting.revert_cardpocket:
+                            cw.cwpy.trade("PLAYERCARD", target=self, header=header, from_event=True, party=backpack_party)
+                            hold = e.getbool("./Hold")
+                            header.set_hold(hold)
+                        break
+                # 記憶に残すのは持ちきれなかった場合のみ
+                # 持ちきれる場合はカードが見つからなくても
+                # 記憶から除去する
+                self.data.remove("./CardMemories", e)
 
     #---------------------------------------------------------------------------
     #　状態変更用
