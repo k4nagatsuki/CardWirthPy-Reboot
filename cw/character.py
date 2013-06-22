@@ -1284,6 +1284,9 @@ class Character(object):
     def revert_cardpocket(self, backpack_party=None):
         """記憶していたカードを検索し、
         見つかったら再び所持する。"""
+        if not cw.cwpy.setting.revert_cardpocket:
+            return
+
         if not backpack_party:
             backpack_party = cw.cwpy.ydata.party
 
@@ -1318,10 +1321,9 @@ class Character(object):
                             header.scenario == scenario and\
                             header.author == author:
                         n[index] += 1
-                        if cw.cwpy.setting.revert_cardpocket:
-                            cw.cwpy.trade("PLAYERCARD", target=self, header=header, from_event=True, party=backpack_party)
-                            hold = e.getbool("./Hold")
-                            header.set_hold(hold)
+                        cw.cwpy.trade("PLAYERCARD", target=self, header=header, from_event=True, party=backpack_party)
+                        hold = e.getbool("./Hold")
+                        header.set_hold(hold)
                         break
                 # 記憶に残すのは持ちきれなかった場合のみ
                 # 持ちきれる場合はカードが見つからなくても
