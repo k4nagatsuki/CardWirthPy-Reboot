@@ -50,7 +50,7 @@ class Setting(object):
             self.smoothscale_bg = False
             self.caution_beforesaving = True
             self.store_skinoneachbase = True
-            slef.revert_cardpocket = True
+            self.revert_cardpocket = True
             self.quickdeal = True
             self.skindirname = "Classic"
             self.classicstyletext = True
