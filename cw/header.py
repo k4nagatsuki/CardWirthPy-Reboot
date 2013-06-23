@@ -581,6 +581,9 @@ class CardHeader(object):
             return self.keycodes
 
     def set_hold(self, hold):
+        if self.type == "BeastCard":
+            return
+
         self.hold = hold
         owner = self.get_owner()
         if isinstance(owner, cw.character.Player):

@@ -1278,7 +1278,10 @@ class Character(object):
         e.append(cw.data.make_element("Description", header.desc))
         e.append(cw.data.make_element("Scenario", header.scenario))
         e.append(cw.data.make_element("Author", header.author))
-        e.append(cw.data.make_element("Hold", str(header.hold)))
+        if type <> "BeastCard":
+            e.append(cw.data.make_element("Hold", str(header.hold)))
+        if header.type <> "SkillCard":
+            e.append(cw.data.make_element("UseLimit", str(header.uselimit)))
         memories.append(e)
 
     def revert_cardpocket(self, backpack_party=None):
@@ -1303,27 +1306,34 @@ class Character(object):
         ]
         for e in reversed(self.data.getfind("./CardMemories", False)[:]):
             type = e.gettext("./Type")
-            name = e.gettext("./Name")
-            desc = e.gettext("./Description")
-            scenario = e.gettext("./Scenario")
-            author = e.gettext("./Author")
+            name = e.gettext("./Name", "")
+            desc = e.gettext("./Description", "")
+            scenario = e.gettext("./Scenario", "")
+            author = e.gettext("./Author", "")
             if type == "SkillCard":
                 index = cw.POCKET_SKILL
+                uselimit = -1
             elif type == "ItemCard":
                 index = cw.POCKET_ITEM
+                uselimit = e.getint("./UseLimit", -1)
             elif type == "BeastCard":
                 index = cw.POCKET_BEAST
+                uselimit = e.getint("./UseLimit", -1)
+
             if n[index] < maxn[index]:
                 for header in seq:
                     if header.type == type and\
                             header.name == name and\
                             header.desc == desc and\
                             header.scenario == scenario and\
-                            header.author == author:
+                            header.author == author and\
+                            (uselimit == -1 or uselimit == header.uselimit):
                         n[index] += 1
                         cw.cwpy.trade("PLAYERCARD", target=self, header=header, from_event=True, party=backpack_party)
-                        hold = e.getbool("./Hold")
-                        header.set_hold(hold)
+                        seq.remove(header)
+                        if type <> "BeastCard":
+                            hold = e.getbool("./Hold", False)
+                            header.set_hold(hold)
                         break
                 # 記憶に残すのは持ちきれなかった場合のみ
                 # 持ちきれる場合はカードが見つからなくても

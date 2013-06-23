@@ -872,8 +872,9 @@ class SkillPanel(wx.Panel):
 
     def OnDestroy(self, event):
         for header in self.headers:
-            del header.textpos
-            del header.subrect
+            if hasattr(header, "textpos"):
+                del header.textpos
+                del header.subrect
 
     def OnLeftUp(self, event):
         if not cw.cwpy.debug and not isinstance(self.ccard, cw.character.Player):

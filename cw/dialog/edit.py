@@ -722,14 +722,14 @@ class LevelEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        def func(seq, level):
+        def func(seq, level, party):
             update = False
             for ccard in seq:
                 clevel = min(level, ccard.get_limitlevel())
                 if ccard.level == clevel:
                     continue
 
-                ccard.set_level(clevel, regulate=True, backpack_party=self.party)
+                ccard.set_level(clevel, regulate=True, backpack_party=party)
                 ccard.is_edited = True
                 if hasattr(ccard, "cardimg") and hasattr(ccard.cardimg, "set_levelimg"):
                     update = True
@@ -742,7 +742,9 @@ class LevelEditDialog(wx.Dialog):
             if not update:
                 cw.cwpy.sounds["harvest"].play()
 
-        cw.cwpy.exec_func(func, self.get_selected(), self.slider.slider.GetValue())
+        selected = self.get_selected()
+        level = self.slider.slider.GetValue()
+        cw.cwpy.exec_func(func, selected, level, self.party)
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
