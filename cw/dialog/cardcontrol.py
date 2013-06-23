@@ -367,7 +367,14 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
 
-        owner = header.get_owner()
+        if header in cw.cwpy.sdata.infocards:
+            dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
+            self.Parent.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        else:
+            owner = header.get_owner()
 
         if self.combo.IsShown():
             index = self.combo.GetSelection()
