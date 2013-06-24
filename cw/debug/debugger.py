@@ -45,7 +45,7 @@ class Debugger(wx.Frame):
             self, parent, -1, u"CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.SIMPLE_BORDER|wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
-        self.SetClientSize((560, 450))
+        self.SetClientSize((560, cw.cwpy.frame.GetClientSize()[1]))
         # set icon
         cw.cwpy.frame.set_icon(self)
         # aui manager
