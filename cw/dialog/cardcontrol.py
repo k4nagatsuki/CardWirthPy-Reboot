@@ -376,39 +376,6 @@ class CardControl(wx.Dialog):
         else:
             owner = header.get_owner()
 
-        if self.combo.IsShown():
-            index = self.combo.GetSelection()
-            if index <> self._combo_manual:
-                def func(header):
-                    if index == self._combo_storehouse:
-                        cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self, sound=False)
-                    elif index == self._combo_backpack:
-                        cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self, sound=False)
-                    elif index in self._combo_cast:
-                        target = self.list2[self._combo_cast[index]]
-                        cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self, sound=False)
-                    elif index == self._combo_shelf:
-                        cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self, sound=False)
-                        cw.cwpy.draw(True)
-                    elif index == self._combo_trush:
-                        cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
-                    def func():
-                        self._proc = False
-                        self.draw(True)
-                    cw.cwpy.frame.exec_func(func)
-                self._proc = True
-                cw.cwpy.exec_func(func, header)
-                return
-
-        # カード所持者がPlayerCardじゃない場合はカード情報を表示
-        if isinstance(self.selection, cw.character.Friend) or\
-                (not cw.cwpy.debug and isinstance(owner, (cw.character.Enemy, cw.character.Friend))):
-            dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
-            self.Parent.move_dlg(dlg)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-
         # 付帯召喚じゃない召喚獣の破棄確認
         if cw.cwpy.areaid in cw.AREAS_TRADE and\
                         header.type == "BeastCard" and not header.attachment:
@@ -450,6 +417,39 @@ class CardControl(wx.Dialog):
                     dlg.ShowModal()
                     dlg.Destroy()
                     return
+
+        if self.combo.IsShown():
+            index = self.combo.GetSelection()
+            if index <> self._combo_manual:
+                def func(header):
+                    if index == self._combo_storehouse:
+                        cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self, sound=False)
+                    elif index == self._combo_backpack:
+                        cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self, sound=False)
+                    elif index in self._combo_cast:
+                        target = self.list2[self._combo_cast[index]]
+                        cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self, sound=False)
+                    elif index == self._combo_shelf:
+                        cw.cwpy.trade("PAWNSHOP", header=header, from_event=False, parentdialog=self, sound=False)
+                        cw.cwpy.draw(True)
+                    elif index == self._combo_trush:
+                        cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
+                    def func():
+                        self._proc = False
+                        self.draw(True)
+                    cw.cwpy.frame.exec_func(func)
+                self._proc = True
+                cw.cwpy.exec_func(func, header)
+                return
+
+        # カード所持者がPlayerCardじゃない場合はカード情報を表示
+        if isinstance(self.selection, cw.character.Friend) or\
+                (not cw.cwpy.debug and isinstance(owner, (cw.character.Enemy, cw.character.Friend))):
+            dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
+            self.Parent.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
 
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
