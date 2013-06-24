@@ -606,12 +606,25 @@ class InfoCardHeader(object):
         path = data.gettext("ImagePath", "")
         if not cw.binary.image.path_is_code(path):
             path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-        # TODO scaleinfo
-        self.cardimg = cw.image.CardImage(path, "INFO", self.name)
-        self.rect = self.cardimg.rect
+        self.imgpath = path
+        self.set_cardimg()
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
+
+    def set_cardimg(self):
+        # TODO scaleinfo
+        self._cardimg = cw.image.CardImage(self.imgpath, "INFO", self.name)
+        self.rect = self._cardimg.rect
+        self._cardscale = cw.UP_SCR
+        self._skindirname = cw.cwpy.setting.skindirname
+
+    @property
+    def cardimg(self):
+        if self._cardscale <> cw.UP_SCR or\
+                self._skindirname <> cw.cwpy.setting.skindirname:
+            self.set_cardimg()
+        return self._cardimg
 
     def get_cardwxbmp(self):
         if self.negaflag:
