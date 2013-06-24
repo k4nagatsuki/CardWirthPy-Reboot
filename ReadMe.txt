@@ -49,7 +49,7 @@ CardWirthのデータの引継
   シナリオデータは「貼紙を見る」ダイアログに
   それぞれデータフォルダをドラッグアンドドロップして
   変換してください。
-  
+
   現状、CAB形式で圧縮されたシナリオファイルは読込・変換
   できません。
 
@@ -215,10 +215,14 @@ engine=1.20
   https://bitbucket.org/takuto_cw/cardwirthpy-reboot
   takuto_cw はいくつかのバグを修正し、カードダイアログの
   ボタンに使用する画像を描き起こしました。
+  また、レベル調節でのカードの移動など、新機能についての
+  具体的な提案を行なっています。
 
   https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
   TachiGigas はいくつかのバグを修正し、シナリオダイアログ
   の見逃されていた未実装部分を実装しました。
+  また、アプリケーション全体で使用するフォントに関して
+  大きな提案を行い、試験的な実装を行いました。
 
 
 謝辞
@@ -248,7 +252,7 @@ engine=1.20
 
     CW GURUの投稿者の方々
       URL: http://hp.vector.co.jp/authors/VA016101/cwguru/
-    
+
     gulafu様
       URL: http://www.geocities.co.jp/Playtown/7299/cw/
 
