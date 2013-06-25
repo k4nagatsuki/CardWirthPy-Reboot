@@ -734,7 +734,7 @@ class Debugger(wx.Frame):
         cw.cwpy.exec_func(cw.cwpy.hide_party)
 
     def OnBgmTool(self, event):
-        choices = ["[BGM停止]"]
+        choices = [u"[BGM停止]"]
         choices.extend(cw.cwpy.sdata.get_bgmpaths())
         dlg = wx.SingleChoiceDialog(
             self, u"再生するBGMを選択してください。",
