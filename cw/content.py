@@ -485,6 +485,8 @@ class BranchBattleContent(BranchContent):
         """バトル分岐コンテント。"""
         if cw.cwpy.battle:
             value = str(cw.cwpy.areaid)
+        elif cw.cwpy.winevent_areaid:
+            value = str(cw.cwpy.winevent_areaid)
         else:
             value = None
 

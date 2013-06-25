@@ -64,6 +64,8 @@ class CWPy(_Singleton, threading.Thread):
         self.tempdir = ""
         # BattleEngineインスタンス
         self.battle = None
+        # 勝利時イベント時エリアID
+        self.winevent_areaid = None
         # メインループ中に各種入力イベントがあったかどうかフラグ
         self.has_inputevent = False
         # アニメーションカットフラグ
@@ -1312,6 +1314,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.status == "ScenarioBattle":
             # 勝利イベントを保持しておく
             battleevents = self.sdata.events
+            if win:
+                self.winevent_areaid = self.areaid
 
             for pcard in self.get_pcards():
                 pcard.deck.clear(pcard)
@@ -1349,6 +1353,7 @@ class CWPy(_Singleton, threading.Thread):
             if win:
                 # 勝利イベント開始
                 battleevents.start(keynum=1)
+                self.winevent_areaid = None
 
     def change_specialarea(self, areaid):
         """特殊エリア(エリアIDが負の数)に移動する。"""
