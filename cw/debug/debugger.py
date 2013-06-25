@@ -31,6 +31,7 @@ ID_FRIEND = wx.NewId()
 ID_INFO = wx.NewId()
 ID_SAVE = wx.NewId()
 ID_LOAD = wx.NewId()
+ID_LOAD_YADO = wx.NewId()
 ID_RESET = wx.NewId()
 ID_STEPRETURN = wx.NewId()
 ID_STEPOVER = wx.NewId()
@@ -46,7 +47,7 @@ class Debugger(wx.Frame):
             self, parent, -1, u"CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.SIMPLE_BORDER|wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
-        self.SetClientSize((560, cw.cwpy.frame.GetClientSize()[1]))
+        self.SetClientSize((590, cw.cwpy.frame.GetClientSize()[1]))
         # set icon
         cw.cwpy.frame.set_icon(self)
         # aui manager
@@ -82,6 +83,11 @@ class Debugger(wx.Frame):
                          u"初期状態に戻します。")
         self.mi_reset.SetBitmap(rsrc["RESET"])
         file_menu.AppendItem(self.mi_reset)
+        file_menu.AppendSeparator()
+        self.mi_loadyado = wx.MenuItem(file_menu, ID_LOAD_YADO, u"最終セーブに戻す(&R)\tCtrl+L",
+                         u"最後にセーブした状態に戻します。")
+        self.mi_loadyado.SetBitmap(rsrc["LOAD_YADO"])
+        file_menu.AppendItem(self.mi_loadyado)
         file_menu.AppendSeparator()
         self.mi_break = wx.MenuItem(file_menu, ID_BREAK, u"シナリオ中断(&E)\tCtrl+X",
                          u"シナリオを中断して、冒険者の宿に戻ります。")
@@ -265,6 +271,10 @@ class Debugger(wx.Frame):
             ID_RESET, u"リセット", rsrc["RESET"],
             shortHelp=u"初期状態に戻します。")
         self.tb2.AddSeparator()
+        self.tl_loadyado = self.tb2.AddLabelTool(
+            ID_LOAD_YADO, u"最終セーブに戻す", rsrc["LOAD_YADO"],
+            shortHelp=u"最後にセーブした状態に戻します。")
+        self.tb2.AddSeparator()
         self.tl_break = self.tb2.AddLabelTool(
             ID_BREAK, u"シナリオ中断", rsrc["BREAK"],
             shortHelp=u"シナリオを中断して、冒険者の宿に戻ります。")
@@ -407,6 +417,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnResetTool, id=ID_RESET)
         self.Bind(wx.EVT_MENU, self.OnSaveTool, id=ID_SAVE)
         self.Bind(wx.EVT_MENU, self.OnLoadTool, id=ID_LOAD)
+        self.Bind(wx.EVT_MENU, self.OnLoadYadoTool, id=ID_LOAD_YADO)
         self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
@@ -516,6 +527,9 @@ class Debugger(wx.Frame):
                     self.view_var.refresh_variablelist()
                 cw.cwpy.frame.exec_func(func)
             cw.cwpy.exec_func(func, path)
+
+    def OnLoadYadoTool(self, event):
+        cw.cwpy.exec_func(cw.cwpy.reload_yado)
 
     def OnCompStampTool(self, event):
         dlg = cw.debug.edit.CompStampEditDialog(self)
@@ -911,6 +925,8 @@ class Debugger(wx.Frame):
         self.tl_save.Enable(False)
         self.mi_load.Enable(False)
         self.tl_load.Enable(False)
+        self.mi_loadyado.Enable(False)
+        self.tl_loadyado.Enable(False)
         self.mi_reset.Enable(False)
         self.tl_reset.Enable(False)
         self.mi_stepreturn.Enable(False)
@@ -948,6 +964,8 @@ class Debugger(wx.Frame):
             self.tl_member.Enable(True)
             self.mi_coupon.Enable(True)
             self.tl_coupon.Enable(True)
+            self.mi_loadyado.Enable(True)
+            self.tl_loadyado.Enable(True)
 
         if cw.cwpy.is_playingscenario():
             self.mi_pause.Enable(True)

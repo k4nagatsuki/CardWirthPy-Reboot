@@ -932,6 +932,7 @@ class CWPy(_Singleton, threading.Thread):
     def reload_yado(self):
         """現在の宿をロード。"""
         self._init_resources()
+        self.sdata = cw.data.SystemData()
         self.set_status("Title")
         cw.util.remove_temp()
         self.load_yado(self.yadodir)
