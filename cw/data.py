@@ -222,6 +222,20 @@ class SystemData(object):
 
         return stype, elements
 
+    def get_bgmpaths(self):
+        """現在使用可能なBGMのパスのリストを返す。"""
+        seq = []
+        dpath = cw.util.join_paths(cw.cwpy.skindir, "Bgm")
+        for dpath2, dnames, fnames in os.walk(dpath):
+            for fname in fnames:
+                if os.path.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
+                    if dpath2 == dpath:
+                        dir = ""
+                    else:
+                        dir = os.path.relpath(dpath2, dpath)
+                    seq.append(cw.util.join_paths(dir, fname))
+        return seq
+
 #-------------------------------------------------------------------------------
 #　シナリオデータ
 #-------------------------------------------------------------------------------
@@ -655,6 +669,20 @@ class ScenarioData(SystemData):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
         cw.util.compress_zip("Data/Temp/ScenarioLog", path)
+
+    def get_bgmpaths(self):
+        """現在使用可能なBGMのパスのリストを返す。"""
+        seq = SystemData.get_bgmpaths(self)
+        dpath = self.tempdir
+        for dpath2, dnames, fnames in os.walk(dpath):
+            for fname in fnames:
+                if os.path.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
+                    if dpath2 == dpath:
+                        dir = ""
+                    else:
+                        dir = os.path.relpath(dpath2, dpath)
+                    seq.append(cw.util.join_paths(dir, fname))
+        return seq
 
 class Flag(object):
     def __init__(self, value, name, truename, falsename):

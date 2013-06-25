@@ -22,6 +22,7 @@ ID_AREA = wx.NewId()
 ID_SELECTION = wx.NewId()
 ID_SHOW_PARTY = wx.NewId()
 ID_HIDE_PARTY = wx.NewId()
+ID_BGM = wx.NewId()
 ID_BREAK = wx.NewId()
 ID_UPDATE = wx.NewId()
 ID_BATTLE = wx.NewId()
@@ -189,6 +190,11 @@ class Debugger(wx.Frame):
                          u"パーティを隠蔽します。")
         self.mi_hideparty.SetBitmap(rsrc["EVT_HIDE_PARTY"])
         run_menu.AppendItem(self.mi_hideparty)
+        run_menu.AppendSeparator()
+        self.mi_bgm = wx.MenuItem(run_menu, ID_BGM, u"&BGM変更",
+                         u"BGMを変更します。")
+        self.mi_bgm.SetBitmap(rsrc["EVT_PLAY_BGM"])
+        run_menu.AppendItem(self.mi_bgm)
 
         self.SetMenuBar(mb)
 
@@ -317,7 +323,7 @@ class Debugger(wx.Frame):
         self.tb_select.AddSeparator()
         self.st_select = wx.StaticText(
             self.tb_select, -1, cw.cwpy.event.get_selectedmembername(),
-            size=(200, -1))
+            size=(100, -1))
         self.tb_select.AddControl(self.st_select)
         self.tb_select.AddSeparator()
         self.tl_showparty = self.tb_select.AddLabelTool(
@@ -326,6 +332,11 @@ class Debugger(wx.Frame):
         self.tl_hideparty = self.tb_select.AddLabelTool(
             ID_HIDE_PARTY, u"パーティ隠蔽",
             rsrc["EVT_HIDE_PARTY"], shortHelp=u"パーティを隠蔽します。")
+        self.tb_select.Realize()
+        self.tb_select.AddSeparator()
+        self.tl_bgm = self.tb_select.AddLabelTool(
+            ID_BGM, u"BGM変更",
+            rsrc["EVT_PLAY_BGM"], shortHelp=u"BGMを変更します。")
         self.tb_select.Realize()
 
         # create variable view
@@ -380,6 +391,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnSelectionTool, id=ID_SELECTION)
         self.Bind(wx.EVT_MENU, self.OnShowPartyTool, id=ID_SHOW_PARTY)
         self.Bind(wx.EVT_MENU, self.OnHidePartyTool, id=ID_HIDE_PARTY)
+        self.Bind(wx.EVT_MENU, self.OnBgmTool, id=ID_BGM)
         self.Bind(wx.EVT_MENU, self.OnStepReturnTool, id=ID_STEPRETURN)
         self.Bind(wx.EVT_MENU, self.OnStepOverTool, id=ID_STEPOVER)
         self.Bind(wx.EVT_MENU, self.OnStepInTool, id=ID_STEPIN)
@@ -721,6 +733,24 @@ class Debugger(wx.Frame):
     def OnHidePartyTool(self, event):
         cw.cwpy.exec_func(cw.cwpy.hide_party)
 
+    def OnBgmTool(self, event):
+        choices = ["[BGM停止]"]
+        choices.extend(cw.cwpy.sdata.get_bgmpaths())
+        dlg = wx.SingleChoiceDialog(
+            self, u"再生するBGMを選択してください。",
+            u"BGMの選択", choices)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            func = cw.cwpy.music.play
+            index = dlg.GetSelection()
+            if 0 < index:
+                path = choices[index]
+            else:
+                path = ""
+            cw.cwpy.exec_func(func, path)
+
+        dlg.Destroy()
+
     def OnStepReturnTool(self, event):
         if cw.cwpy.event.get_currentstack() == 0:
             evt = wx.PyCommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED, ID_PAUSE)
@@ -901,6 +931,9 @@ class Debugger(wx.Frame):
         self.tl_hideparty.Enable(False)
         self.mi_area.Enable(False)
         self.tl_area.Enable(False)
+
+        self.mi_bgm.Enable(True)
+        self.tl_bgm.Enable(True)
 
         if cw.cwpy.ydata:
             self.mi_comp.Enable(True)
