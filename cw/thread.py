@@ -1956,7 +1956,8 @@ class CWPy(_Singleton, threading.Thread):
         # 移動先がゴミ箱・下取りだったら
         if targettype in ("PAWNSHOP", "TRASHBOX"):
             # 付帯以外の召喚獣カードの場合
-            if header.type == "BeastCard" and not header.attachment:
+            if header.type == "BeastCard" and not header.attachment and\
+                    isinstance(owner, cw.character.Character):
                 owner.update_image()
             # シナリオで取得したカードじゃない場合、XMLの削除
             elif not header.scenariocard and header.moved == 0:

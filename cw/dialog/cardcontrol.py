@@ -385,7 +385,11 @@ class CardControl(wx.Dialog):
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.sounds["dump"].play()
-                owner.throwaway_card(header)
+                if isinstance(owner, cw.character.Character):
+                    owner.throwaway_card(header)
+                else:
+                # デバッガから配布した召喚獣を、荷物袋から処分する場合
+                    cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
             dlg.Destroy()
             self.draw(True)
