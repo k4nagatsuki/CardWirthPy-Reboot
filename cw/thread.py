@@ -945,10 +945,10 @@ class CWPy(_Singleton, threading.Thread):
         # シナリオを強制終了
         if self.is_playingscenario():
             self.sdata.end()
-        self.sdata = cw.data.SystemData()
 
         self._init_resources()
         self.set_status("Title")
+        self.sdata = cw.data.SystemData()
         cw.util.remove_temp()
         self.load_yado(self.yadodir)
 
