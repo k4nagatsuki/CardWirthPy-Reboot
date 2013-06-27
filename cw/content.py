@@ -1537,7 +1537,7 @@ class GetContent(EventContentBase):
                 etree = cw.data.xml2etree(path, nocache=True)
                 get_card(etree, target)
 
-def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom=""):
+def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom="", fromdebugger=False):
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
     etree: ElementTree or Element
     target: Character or list(Backpack, Storehouse)
@@ -1555,15 +1555,16 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
         etree.getroot().attrib["scenariocard"] = "True"
 
     # 召喚獣カードの場合、付帯属性を操作する
+    # 召喚獣獲得コンテントないしデバッガからの配布であれば、必ず付帯能力に
     if etree.getroot().tag == "BeastCard":
-        if notscenariocard:
+        if not notscenariocard or fromdebugger:
+            etree.edit("Property/UseLimit", "0")
+            s = "True"
+        else:
             if etree.gettext("Property/UseLimit") == "0":
                 etree.edit("Property/UseLimit", "1")
 
             s = "False"
-        else:
-            etree.edit("Property/UseLimit", "0")
-            s = "True"
 
         if etree.hasfind("Property/Attachment"):
             etree.edit("Property/Attachment", s)

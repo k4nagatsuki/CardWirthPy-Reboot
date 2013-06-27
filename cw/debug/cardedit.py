@@ -224,7 +224,7 @@ class CardEditDialog(wx.Dialog):
             notscenariocard = not cw.cwpy.is_playingscenario()
             data = self.datalist[index]
             header = self.list[index]
-            cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir)
+            cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir, fromdebugger=True)
             count += 1
 
         if 0 < count:
