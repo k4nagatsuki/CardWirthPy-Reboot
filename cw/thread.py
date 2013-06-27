@@ -945,14 +945,12 @@ class CWPy(_Singleton, threading.Thread):
         # シナリオを強制終了
         if self.is_playingscenario():
             self.sdata.end()
+        self.sdata = cw.data.SystemData()
 
-        # シナリオを終了(イベント中止を待ち合わせる)
-        def func():
-            self._init_resources()
-            self.set_status("Title")
-            cw.util.remove_temp()
-            self.load_yado(self.yadodir)
-        self.exec_func(func)
+        self._init_resources()
+        self.set_status("Title")
+        cw.util.remove_temp()
+        self.load_yado(self.yadodir)
 
     def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""

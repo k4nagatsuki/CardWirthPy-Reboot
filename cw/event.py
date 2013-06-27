@@ -528,7 +528,9 @@ class Event(object):
 
     def end(self):
         """共通終了処理。"""
-        if not (isinstance(self.error, AreaChangeError) or isinstance(self.error, ScenarioBadEndError)):
+        if not (isinstance(self.error, AreaChangeError) or\
+                isinstance(self.error, ScenarioBadEndError)) and\
+                cw.cwpy.status <> "Title":
             cw.cwpy.show_party()
 
         cw.cwpy.event.clear()
