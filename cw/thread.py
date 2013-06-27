@@ -931,11 +931,28 @@ class CWPy(_Singleton, threading.Thread):
 
     def reload_yado(self):
         """現在の宿をロード。"""
-        self._init_resources()
-        self.sdata = cw.data.SystemData()
-        self.set_status("Title")
-        cw.util.remove_temp()
-        self.load_yado(self.yadodir)
+        # イベントを中止
+        if self.is_showingmessage():
+            mwin = self.get_messagewindow()
+            mwin.result = cw.event.EffectBreakError()
+        else:
+            self.event._stoped = True
+
+        # バトルを強制終了
+        if self.battle and self.battle.is_running:
+            self.battle.end(True, True)
+
+        # シナリオを強制終了
+        if self.is_playingscenario():
+            self.sdata.end()
+
+        # シナリオを終了(イベント中止を待ち合わせる)
+        def func():
+            self._init_resources()
+            self.set_status("Title")
+            cw.util.remove_temp()
+            self.load_yado(self.yadodir)
+        self.exec_func(func)
 
     def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""
