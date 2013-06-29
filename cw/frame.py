@@ -111,7 +111,7 @@ class Frame(wx.Frame):
             "PARTYEDIT",   # パーティ情報ダイアログ
             "BATTLECOMMAND",  # 行動選択ダイアログ
             "SETTINGS",  # 設定ダイアログ
-            "F9",  # 緊急非難ダイアログ
+            "F9",  # 緊急避難ダイアログ
             )
         self.dlgeventtypes = {}
 

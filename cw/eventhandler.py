@@ -278,7 +278,7 @@ class EventHandler(object):
 
     def f9key_event(self):
         """
-        F9キーイベント。緊急非難。
+        F9キーイベント。緊急避難。
         """
         if cw.cwpy.is_playingscenario():
             cw.cwpy.has_inputevent = True

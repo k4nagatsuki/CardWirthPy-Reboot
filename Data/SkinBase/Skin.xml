@@ -589,7 +589,7 @@
 全て消えてしまいます。よろしいですか？</Message>
     <Message key="load_scenario_failure">シナリオのロードに失敗しました。
 パーティを宿に帰還させますか？</Message>
-    <Message key="f9_message">緊急非難コマンドが発令されました。
+    <Message key="f9_message">緊急避難コマンドが発令されました。
 シナリオを強制終了してもよろしいですか？</Message>
     <Message key="table">テーブル</Message>
     <Message key="camp">キャンプ</Message>

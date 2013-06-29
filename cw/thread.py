@@ -804,7 +804,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def f9(self):
         """cw.data.ScenarioDataのf9()から呼び出され、
-        緊急非難処理の続きを行う。
+        緊急避難処理の続きを行う。
         """
         self.clear_inusecardimg()
         self.clear_guardcardimg()
