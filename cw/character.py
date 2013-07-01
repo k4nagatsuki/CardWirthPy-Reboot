@@ -1296,7 +1296,9 @@ class Character(object):
         seq = []
         if backpack_party:
             seq.extend(backpack_party.backpack)
-        if not backpack_party.is_adventuring():
+            if not backpack_party.is_adventuring():
+                seq.extend(cw.cwpy.ydata.storehouse)
+        else:
             seq.extend(cw.cwpy.ydata.storehouse)
 
         maxn = self.get_cardpocketspace()
