@@ -60,12 +60,24 @@ class CardEditDialog(wx.Dialog):
         self.cards.SetColumnWidth(2, 110)
 
         self.dealtarg = wx.combo.BitmapComboBox(self, -1, style=wx.CB_READONLY)
-        bmp = cw.cwpy.rsrc.buttons["SACK_dbg"]
-        self.dealtarg.Append(u"荷物袋", bmp)
+        self.notcast = 0
+        if not (cw.cwpy.ydata.party and\
+                cw.cwpy.ydata.party.is_adventuring()):
+            bmp = cw.cwpy.rsrc.buttons["DECK_dbg"]
+            self.dealtarg.Append(u"カード置場", bmp)
+            self.notcast += 1
+        if cw.cwpy.ydata.party:
+            bmp = cw.cwpy.rsrc.buttons["SACK_dbg"]
+            self.dealtarg.Append(u"荷物袋", bmp)
+            self.notcast += 1
         bmp = cw.cwpy.rsrc.buttons["CAST_dbg"]
         for member in cw.cwpy.get_pcards():
             self.dealtarg.Append(member.name, bmp)
-        self.dealtarg.SetSelection(0)
+        # 配付先のデフォルトは荷物袋。なければカード置場
+        if cw.cwpy.ydata.party:
+            self.dealtarg.SetStringSelection(u"荷物袋")
+        else:
+            self.dealtarg.SetStringSelection(u"カード置場")
 
         self.dtlbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"情報")
         self.dealbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"配付")
@@ -209,11 +221,14 @@ class CardEditDialog(wx.Dialog):
                 self.cards.SetItemState(i, 0, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED)
 
     def OnDealBtn(self, event):
-        cindex = self.dealtarg.GetSelection()
-        if cindex == 0:
+        cname = self.dealtarg.GetStringSelection()
+        if cname == u"カード置場":
+            target = cw.cwpy.ydata.storehouse
+        elif cname == u"荷物袋":
             target = self.party.backpack
         else:
-            target = cw.cwpy.get_pcards()[cindex-1]
+            cindex = self.dealtarg.GetSelection()
+            target = cw.cwpy.get_pcards()[cindex-self.notcast]
 
         index = -1
         count = 0
