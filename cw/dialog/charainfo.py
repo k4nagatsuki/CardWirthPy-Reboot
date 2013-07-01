@@ -549,6 +549,7 @@ class EditPanel(wx.Panel):
         # エレメントオブジェクト
         self.list = list
         self.ccard = ccard
+        self.selected = -1
         # ボタン
         self.headers = []
         # bmp
@@ -577,9 +578,10 @@ class EditPanel(wx.Panel):
                     # レベルを調節する
                     cw.cwpy.sounds["click"].play()
                     list = self.get_charalist()
-                    selected = list.index(self.ccard)
+                    if self.selected == -1:
+                        self.selected = list.index(self.ccard)
                     party = self.Parent.Parent.party
-                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=selected, party=party)
+                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=self.selected, party=party)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
                         self.update_charalist(list)

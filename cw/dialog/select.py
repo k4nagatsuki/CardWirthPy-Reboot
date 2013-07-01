@@ -718,12 +718,14 @@ class PartySelect(Select):
     def OnClickEditBtn(self, event):
         partyheader = self.list[self.index]
         def redrawfunc():
-            header = self.list[self.index]
-            header = cw.cwpy.ydata.create_partyheader(header.fpath)
-            header.data = partyheader.data
-            self.list[self.index] = header
-            cw.cwpy.ydata.partys[self.index] = header
-            self.draw(True)
+            def func():
+                header = self.list[self.index]
+                header = cw.cwpy.ydata.create_partyheader(header.fpath)
+                header.data = partyheader.data
+                self.list[self.index] = header
+                cw.cwpy.ydata.partys[self.index] = header
+                cw.cwpy.frame.exec_func(self.draw, True)
+            cw.cwpy.exec_func(func)
 
         dlg = cw.dialog.charainfo.StandbyPartyCharaInfo(self.Parent, partyheader, redrawfunc)
         cw.cwpy.frame.move_dlg(dlg)
@@ -1200,14 +1202,16 @@ class PlayerSelect(Select):
         dlg.Destroy()
 
     def update_character(self):
-        header = self.list[self.index]
-        header = cw.cwpy.ydata.create_advheader(header.fpath)
-        if self.isalbum:
-            cw.cwpy.ydata.album[self.index] = header
-        else:
-            cw.cwpy.ydata.standbys[self.index] = header
-        self.list[self.index] = header
-        self.draw(True)
+        def func():
+            header = self.list[self.index]
+            header = cw.cwpy.ydata.create_advheader(header.fpath)
+            if self.isalbum:
+                cw.cwpy.ydata.album[self.index] = header
+            else:
+                cw.cwpy.ydata.standbys[self.index] = header
+            self.list[self.index] = header
+            cw.cwpy.frame.exec_func(self.draw, True)
+        cw.cwpy.exec_func(func)
 
     def OnClickViewBtn(self, event):
         cw.cwpy.sounds["equipment"].play()
