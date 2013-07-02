@@ -197,39 +197,76 @@ class CWPyCard(base.SelectableSprite):
         """
         横振動させる。
         """
-        if self.frame == 12:
+        n = cw.cwpy.setting.dealspeed * 3
+        if self.frame >= n:
             self.rect = pygame.Rect(self.get_animerect())
             self.status = "normal"
             self.frame = 0
             return
 
-        if self.frame % 2 == 0:
-            self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(2), cw.s(0))
-            self.frame += 1
-        else:
-            self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(-2), cw.s(0))
-            self.frame += 1
+        # 横位置を変動させる
+        max = 3
+        nb = n / 8.0
+        f = int(round(self.frame / nb))
+        for i in xrange(0, 8):
+            if f <= i+1 or i == 7:
+                nx = (self.frame - nb*i) / nb * max
+                i %= 4
+                if i <= 0:
+                    val = 0 + nx
+                elif i <= 1:
+                    val = max - nx
+                elif i <= 2:
+                    val = 0 - nx
+                elif i <= 3:
+                    val = -max + nx
+                break
+
+        val = int(round(val))
+
+        self.rect = pygame.Rect(self.get_animerect())
+        self.rect.move_ip(cw.s(val), cw.s(0))
+        self.frame += 1
 
     def update_axialvibe(self):
         """
         縦振動させる。
+        実際には横幅の周期的変動によって表現される。
         """
-        if self.frame == 12:
+        n = cw.cwpy.setting.dealspeed * 3
+        if self.frame >= n:
             self.rect = pygame.Rect(self.get_animerect())
             self.status = "normal"
             self.frame = 0
             return
 
-        if self.frame % 2 == 0:
-            self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(0), cw.s(2))
-            self.frame += 1
-        else:
-            self.rect = pygame.Rect(self.get_animerect())
-            self.rect.move_ip(cw.s(0), cw.s(-2))
-            self.frame += 1
+        # 横幅を変動させる
+        max = 8
+        nb = n / 8.0
+        f = int(round(self.frame / nb))
+        for i in xrange(0, 8):
+            if f <= i+1 or i == 7:
+                nx = (self.frame - nb*i) / nb * max
+                i %= 4
+                if i <= 0:
+                    val = 0 + nx
+                elif i <= 1:
+                    val = max - nx
+                elif i <= 2:
+                    val = 0 - nx
+                elif i <= 3:
+                    val = -max + nx
+                break
+
+        val = int(round(val))
+        if val % 2 == 1:
+            # 左右均等に拡縮するため、常に偶数にする
+            val += 1
+
+        self.rect = pygame.Rect(self.get_animerect())
+        self.rect.inflate_ip(cw.s(val), cw.s(0))
+        self.frame += 1
+        self.image = pygame.transform.scale(self.get_animeimage(), self.rect.size)
 
     def update_zoomin(self):
         """
