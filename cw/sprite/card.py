@@ -259,11 +259,6 @@ class CWPyCard(base.SelectableSprite):
         else:
             val = -mx + nx
 
-        str = "-"
-        for i in xrange(-mx, int(val)):
-            str += "-"
-        print str
-
         val = int(round(val))
         if val % 2 == 1:
             # 左右均等に拡縮するため、常に偶数にする
