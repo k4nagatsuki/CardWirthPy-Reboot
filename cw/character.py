@@ -453,9 +453,8 @@ class Character(object):
         cw.cwpy.clear_inusecardimg()
         # TargetArrow削除
         cw.cwpy.clear_targetarrow()
-        # 効果音鳴らす
-        path = data.gettext("Property/SoundPath", "")
-        cw.cwpy.play_sound(path)
+        # 効果音ファイルのパスを取得
+        soundpath = data.gettext("Property/SoundPath", "")
 
         # 使用アニメーション
         if header.type == "BeastCard":
@@ -463,6 +462,8 @@ class Character(object):
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal")
             cw.animation.animate_sprite(inusecardimg, "zoomin")
+            # 効果音を鳴らす
+            cw.cwpy.play_sound(soundpath)
             waitrate = cw.cwpy.setting.dealspeed
             cw.cwpy.wait_frame(waitrate)
             cw.animation.animate_sprite(inusecardimg, "zoomout")
@@ -483,6 +484,8 @@ class Character(object):
             # カード表示
             cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
             inusecardimg = cw.cwpy.get_inusecardimg()
+            # 表示中に効果音を鳴らす
+            cw.cwpy.play_sound(soundpath)
             cw.cwpy.draw()
             waitrate = cw.cwpy.setting.dealspeed
             cw.cwpy.wait_frame(waitrate)
@@ -494,6 +497,8 @@ class Character(object):
         else:
             cw.cwpy.set_inusecardimg(self, header)
             cw.animation.animate_sprite(self, "zoomin")
+            # 効果音を鳴らす
+            cw.cwpy.play_sound(soundpath)
 
         # カードイベント開始
         e = data.find("Events/Event")
