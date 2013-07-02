@@ -205,22 +205,28 @@ class CWPyCard(base.SelectableSprite):
             return
 
         # 横位置を変動させる
-        max = 3
+        # 右へ移動→戻る→左へ移動→戻る
+        # のパターンを2回繰り返す
+        mx = 3 # 最大移動量
         nb = n / 8.0
-        f = int(round(self.frame / nb))
-        for i in xrange(0, 8):
-            if f <= i+1 or i == 7:
-                nx = (self.frame - nb*i) / nb * max
-                i %= 4
-                if i <= 0:
-                    val = 0 + nx
-                elif i <= 1:
-                    val = max - nx
-                elif i <= 2:
-                    val = 0 - nx
-                elif i <= 3:
-                    val = -max + nx
-                break
+        f = max(0, int(round(self.frame / nb)) - 1)
+        nx = (self.frame - nb*f) / nb * mx
+
+        # 滑らかに動きすぎるため中間の値を無くす
+        if nx >= mx / 2.0:
+            nx = mx
+        else:
+            nx = 0
+
+        f %= 4
+        if f <= 0:
+            val = 0 + nx
+        elif f <= 1:
+            val = mx - nx
+        elif f <= 2:
+            val = 0 - nx
+        elif f <= 3:
+            val = -mx + nx
 
         val = int(round(val))
 
@@ -241,22 +247,22 @@ class CWPyCard(base.SelectableSprite):
             return
 
         # 横幅を変動させる
-        max = 8
-        nb = n / 8.0
-        f = int(round(self.frame / nb))
-        for i in xrange(0, 8):
-            if f <= i+1 or i == 7:
-                nx = (self.frame - nb*i) / nb * max
-                i %= 4
-                if i <= 0:
-                    val = 0 + nx
-                elif i <= 1:
-                    val = max - nx
-                elif i <= 2:
-                    val = 0 - nx
-                elif i <= 3:
-                    val = -max + nx
-                break
+        # 縮小→戻る
+        # のパターンを2回繰り返す
+        nb = n / 4.0
+        mx = self._rect.width / 10 # 最大縮小量
+        f = max(0, int(round(self.frame / nb)) - 1)
+        nx = (self.frame - nb*f) / nb * mx
+        f %= 2
+        if f <= 0:
+            val = 0 - nx
+        else:
+            val = -mx + nx
+
+        str = "-"
+        for i in xrange(-mx, int(val)):
+            str += "-"
+        print str
 
         val = int(round(val))
         if val % 2 == 1:
