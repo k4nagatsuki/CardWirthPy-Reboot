@@ -206,17 +206,15 @@ class CWPyCard(base.SelectableSprite):
 
         # 横位置を変動させる
         # 右へ移動→戻る→左へ移動→戻る
-        # のパターンを2回繰り返す
-        mx = 3 # 最大移動量
-        nb = n / 8.0
+        # のパターンを最大6回繰り返す
+        if n < 14:
+            count = 2
+        else:
+            count = 6
+        mx = 2 # 最大移動量
+        nb = n / (count*4.0)
         f = max(0, int(round(self.frame / nb)) - 1)
         nx = (self.frame - nb*f) / nb * mx
-
-        # 滑らかに動きすぎるため中間の値を無くす
-        if nx >= mx / 2.0:
-            nx = mx
-        else:
-            nx = 0
 
         f %= 4
         if f <= 0:
@@ -242,14 +240,20 @@ class CWPyCard(base.SelectableSprite):
         n = cw.cwpy.setting.dealspeed * 3
         if self.frame >= n:
             self.rect = pygame.Rect(self.get_animerect())
+            if self.image.get_size() <> self.rect.size:
+                self.image = pygame.transform.scale(self.get_animeimage(), self.rect.size)
             self.status = "normal"
             self.frame = 0
             return
 
         # 横幅を変動させる
         # 縮小→戻る
-        # のパターンを2回繰り返す
-        nb = n / 4.0
+        # のパターンを最大4回繰り返す
+        if n < 12:
+            count = 2
+        else:
+            count = 4
+        nb = n / (count*2.0)
         mx = self._rect.width / 10 # 最大縮小量
         f = max(0, int(round(self.frame / nb)) - 1)
         nx = (self.frame - nb*f) / nb * mx
@@ -262,10 +266,12 @@ class CWPyCard(base.SelectableSprite):
         val = int(round(val))
         if val % 2 == 1:
             # 左右均等に拡縮するため、常に偶数にする
-            val += 1
+            if val < 0:
+                val -= 1
+            else:
+                val += 1
 
-        self.rect = pygame.Rect(self.get_animerect())
-        self.rect.inflate_ip(cw.s(val), cw.s(0))
+        self.rect = self.get_animerect().inflate(cw.s(val), cw.s(0))
         self.frame += 1
         self.image = pygame.transform.scale(self.get_animeimage(), self.rect.size)
 
