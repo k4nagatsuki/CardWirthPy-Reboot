@@ -1178,17 +1178,16 @@ class YadoData(object):
 
                 shutil.copy2(path, dstpath)
 
-        # 削除予定のファイル削除
-        # Materialディレクトリにある空のフォルダも削除
+        # 削除予定のファイルのうち、素材以外を先に削除
+        # materialpaths: 削除予定の素材pathの集合
         materialdir = cw.util.join_paths(self.yadodir, "Material")
+        materialpaths = set()
 
         for path in self.deletedpaths:
-            cw.util.remove(path)
-            dpath = os.path.dirname(path)
-
-            if dpath.startswith(materialdir) and os.path.isdir(dpath)\
-                                                    and not os.listdir(dpath):
-                cw.util.remove(dpath)
+            if path.startswith(materialdir):
+                materialpaths.add(path)
+            else:
+                cw.util.remove(path)
 
         self.deletedpaths.clear()
         # 宿のtempフォルダを空にする
@@ -1226,6 +1225,58 @@ class YadoData(object):
 
         cw.cwpy.clear_selection()
         self._changed = False
+
+        # pathを参照しているカードがまだ宿にあれば、materialpathsから除外
+        def check_materialpath(mpath):
+
+            def get_materialpath(data):
+                if isinstance(data, cw.header.CardHeader):
+                    header = data
+                    materialpath = header.imgpath
+                else:
+                    e = data.find("Property")
+                    materialpath = e.gettext("ImagePath", "")
+                path = cw.util.join_paths(cw.cwpy.yadodir, materialpath)
+                return path
+
+            # 宿に存在するスキル・アイテム・召喚獣カード全部の path
+            mpath_all = set()
+            if cw.cwpy.ydata.party:
+                for member in cw.cwpy.get_pcards():
+                    for cardpocket in [member.cardpocket[0], member.cardpocket[1], member.cardpocket[2]]:
+                        for header in cardpocket:
+                            mpath_all.add(get_materialpath(header))
+                party = cw.cwpy.ydata.party
+                for header in party.backpack:
+                    mpath_all.add(get_materialpath(header))
+            for header in cw.cwpy.ydata.storehouse:
+                mpath_all.add(get_materialpath(header))
+            for header in cw.cwpy.ydata.standbys:
+                member = cw.data.yadoxml2etree(header.fpath)
+                for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
+                    for data in cardpocket:
+                        mpath_all.add(get_materialpath(data))
+            for partyheader in cw.cwpy.ydata.partys:
+                party = cw.data.Party(partyheader)
+                for index, member in enumerate(party.members):
+                    for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
+                        for data in cardpocket:
+                            mpath_all.add(get_materialpath(data))
+                for header in party.backpack:
+                    mpath_all.add(get_materialpath(header))
+
+            mpath -= mpath_all
+            return mpath
+
+        # 削除予定だった素材を削除
+        if materialpaths:
+            materialpaths = check_materialpath(materialpaths)
+            for path in materialpaths:
+                cw.util.remove(path)
+                dpath = os.path.dirname(path)
+                if dpath.startswith(materialdir) and os.path.isdir(dpath)\
+                                                    and not os.listdir(dpath):
+                    cw.util.remove(dpath)
 
     #---------------------------------------------------------------------------
     # ゴシップ・シナリオ終了印用メソッド
