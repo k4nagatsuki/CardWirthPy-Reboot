@@ -207,7 +207,9 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata._init_sparea_mcards()
 
         if not self.is_battlestatus() and changearea:
-            self.mcardgrp.empty()
+            for sprite in self.mcardgrp.sprites()[:]:
+                if not isinstance(sprite, cw.sprite.card.FriendCard):
+                    self.mcardgrp.remove(sprite)
             self.sdata.change_data(self.areaid)
             self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
             self.deal_cards()
@@ -289,6 +291,8 @@ class CWPy(_Singleton, threading.Thread):
         for sprite in self.topgrp.sprites():
             sprite.update_scale()
         for sprite in self.backloggrp.sprites():
+            sprite.update_scale()
+        for sprite in self.get_fcards():
             sprite.update_scale()
 
         if self.ydata:
