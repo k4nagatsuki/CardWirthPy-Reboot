@@ -191,9 +191,13 @@ class StatusEditDialog(wx.Dialog):
             for i in updates:
                 pcard = pcards[i]
                 cw.cwpy.sounds["harvest"].play()
-                cw.animation.animate_sprite(pcard, "hide")
-                pcard.update_image()
-                cw.animation.animate_sprite(pcard, "deal")
+                if pcard.status == "hidden":
+                    pcard.update_image()
+                    cw.cwpy.wait_frame(12)
+                else:
+                    cw.animation.animate_sprite(pcard, "hide")
+                    pcard.update_image()
+                    cw.animation.animate_sprite(pcard, "deal")
 
                 if cw.cwpy.is_battlestatus() and oldactive[i] <> pcard.is_active():
                     # アクティブ状態が変わったので

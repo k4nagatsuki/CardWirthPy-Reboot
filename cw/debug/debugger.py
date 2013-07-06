@@ -552,14 +552,19 @@ class Debugger(wx.Frame):
         dlg.ShowModal()
 
     def OnRecoveryTool(self, event):
-        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
+        if cw.cwpy.is_playingscenario():
             def recovery_all():
                 for pcard in cw.cwpy.get_pcards("unreversed"):
                     cw.cwpy.sounds["harvest"].play()
-                    cw.animation.animate_sprite(pcard, "hide")
-                    pcard.set_fullrecovery()
-                    pcard.update_image()
-                    cw.animation.animate_sprite(pcard, "deal")
+                    if pcard.status == "hidden":
+                        pcard.set_fullrecovery()
+                        pcard.update_image()
+                        cw.cwpy.wait_frame(12)
+                    else:
+                        cw.animation.animate_sprite(pcard, "hide")
+                        pcard.set_fullrecovery()
+                        pcard.update_image()
+                        cw.animation.animate_sprite(pcard, "deal")
 
             cw.cwpy.exec_func(recovery_all)
 
@@ -970,6 +975,10 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario():
             self.mi_pause.Enable(True)
             self.tl_pause.Enable(True)
+            self.mi_status.Enable(True)
+            self.tl_status.Enable(True)
+            self.mi_recovery.Enable(True)
+            self.tl_recovery.Enable(True)
             if cw.cwpy.is_runningevent():
                 self.mi_select.Enable(True)
                 self.tl_select.Enable(True)
@@ -994,10 +1003,6 @@ class Debugger(wx.Frame):
                     self.tl_round.Enable(True)
 
                 if not cw.cwpy.battle or not cw.cwpy.battle.is_running():
-                    self.mi_status.Enable(True)
-                    self.tl_status.Enable(True)
-                    self.mi_recovery.Enable(True)
-                    self.tl_recovery.Enable(True)
                     self.mi_update.Enable(True)
                     self.tl_update.Enable(True)
                     self.mi_battle.Enable(True)
