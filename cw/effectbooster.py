@@ -421,8 +421,19 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
-            width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
-            height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
+            imagesize = image.get_size()
+            if self.width >= cw.s(0):
+                width = self.width
+            elif 0 < imagesize[0]:
+                width = imagesize[0]
+            else:
+                width = cw.s(cw.SIZE_AREA[0])
+            if 0 < imagesize[1]:
+                height = imagesize[1]
+            elif 0 < image.get_height():
+                height = image.height
+            else:
+                height = cw.s(cw.SIZE_AREA[1])
             size = (width, height)
 
             if not size == image.get_size():
