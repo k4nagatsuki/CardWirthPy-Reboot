@@ -229,6 +229,9 @@ class _JpySubImage(cw.image.Image):
 
         # 画像がない場合、加工しない
         if image.get_size() == cw.s((0, 0)):
+            # キャッシュ (for JpyPartsImage)
+            if 1 <= self.savecache <= 8:
+                self.cache.save_image(self.savecache, image)
             return
 
         # RGB入れ替え
@@ -717,7 +720,9 @@ class JptxImage(cw.image.Image):
         w = 0
         h = 0
         shiftx = 0
+        shiftx_stack = []
         shifty = 0
+        shifty_stack = []
         tag = ""
         nolinedata = True
         tagonly = True
@@ -756,13 +761,25 @@ class JptxImage(cw.image.Image):
                 elif name == "s":
                     strike = start
                 elif name == "shiftx":
-                    n = cw.s(int(attrs["shiftx"]))
-                    x += n
-                    shiftx = n
+                    if start:
+                        n = cw.s(int(attrs["shiftx"]))
+                        x += n
+                        shiftx += n
+                        shiftx_stack.append(n)
+                    elif shiftx_stack:
+                        n = shiftx_stack.pop()
+                        x -= n
+                        shiftx -= n
                 elif name == "shifty":
-                    n = cw.s(int(attrs["shifty"]))
-                    y += n
-                    shifty = n
+                    if start:
+                        n = cw.s(int(attrs["shifty"]))
+                        y += n
+                        shifty += n
+                        shifty_stack.append(n)
+                    elif shifty_stack:
+                        n = shifty_stack.pop()
+                        y -= n
+                        shifty -= n
                 elif name == "lineheight":
                     lineheight = int(attrs["lineheight"])
                 # 本家エフェクトブースターは"<fontcolor="blue">"のようなタグを、
