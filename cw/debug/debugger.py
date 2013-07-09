@@ -25,6 +25,7 @@ ID_HIDE_PARTY = wx.NewId()
 ID_BGM = wx.NewId()
 ID_BREAK = wx.NewId()
 ID_UPDATE = wx.NewId()
+ID_REDISPLAY = wx.NewId()
 ID_BATTLE = wx.NewId()
 ID_PACK = wx.NewId()
 ID_FRIEND = wx.NewId()
@@ -132,6 +133,11 @@ class Debugger(wx.Frame):
                          u"最新の情報に更新します。")
         self.mi_update.SetBitmap(rsrc["UPDATE"])
         scenario_menu.AppendItem(self.mi_update)
+        scenario_menu.AppendSeparator()
+        self.mi_redisplay = wx.MenuItem(scenario_menu, ID_REDISPLAY, u"背景更新(&D)\tCtrl+R",
+                         u"背景を更新します。")
+        self.mi_redisplay.SetBitmap(rsrc["EVT_REDISPLAY"])
+        scenario_menu.AppendItem(self.mi_redisplay)
         scenario_menu.AppendSeparator()
         self.mi_area = wx.MenuItem(scenario_menu, ID_AREA, u"エリア(&A)",
                          u"エリアを選択して場面を変更します。")
@@ -242,12 +248,10 @@ class Debugger(wx.Frame):
             ID_UPDATE, u"再読込", rsrc["UPDATE"],
             shortHelp=u"最新の情報に更新します。")
         self.tb2.AddSeparator()
-        self.tl_battle = self.tb2.AddLabelTool(
-            ID_BATTLE, u"戦闘", rsrc["BATTLE"],
-            shortHelp=u"バトルを選択して戦闘を開始します。")
-        self.tl_pack = self.tb2.AddLabelTool(
-            ID_PACK, u"パッケージ", rsrc["PACK"],
-            shortHelp=u"パッケージを選択してイベントを開始します。")
+        self.tl_redisplay = self.tb2.AddLabelTool(
+            ID_REDISPLAY, u"背景更新", rsrc["EVT_REDISPLAY"],
+            shortHelp=u"背景を更新します。")
+        self.tb2.AddSeparator()
         self.tl_friend = self.tb2.AddLabelTool(
             ID_FRIEND, u"同行者", rsrc["FRIEND"],
             shortHelp=u"同行者カードの取得・破棄を行います。")
@@ -322,6 +326,15 @@ class Debugger(wx.Frame):
         self.st_area = wx.StaticText(
             self.tb_area, -1, cw.cwpy.sdata.get_areaname(), size=(200, -1))
         self.tb_area.AddControl(self.st_area)
+
+        self.tb_area.AddSeparator()
+        self.tl_battle = self.tb_area.AddLabelTool(
+            ID_BATTLE, u"戦闘", rsrc["BATTLE"],
+            shortHelp=u"バトルを選択して戦闘を開始します。")
+        self.tl_pack = self.tb_area.AddLabelTool(
+            ID_PACK, u"パッケージ", rsrc["PACK"],
+            shortHelp=u"パッケージを選択してイベントを開始します。")
+
         self.tb_area.Realize()
 
         # create selection toolbar
@@ -413,6 +426,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnFriendTool, id=ID_FRIEND)
         self.Bind(wx.EVT_MENU, self.OnInfoTool, id=ID_INFO)
         self.Bind(wx.EVT_MENU, self.OnUpdateTool, id=ID_UPDATE)
+        self.Bind(wx.EVT_MENU, self.OnRedisplayTool, id=ID_REDISPLAY)
         self.Bind(wx.EVT_MENU, self.OnBreakTool, id=ID_BREAK)
         self.Bind(wx.EVT_MENU, self.OnResetTool, id=ID_RESET)
         self.Bind(wx.EVT_MENU, self.OnSaveTool, id=ID_SAVE)
@@ -459,6 +473,12 @@ class Debugger(wx.Frame):
                     cw.cwpy.battle.round -= 1
                 cw.cwpy.sounds["signal"].play()
             cw.cwpy.exec_func(func)
+
+    def OnRedisplayTool(self, event):
+        def func():
+            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.background.reload()
+        cw.cwpy.exec_func(func)
 
     def OnGossipTool(self, event):
         dlg = cw.debug.edit.GossipEditDialog(self)
@@ -552,14 +572,19 @@ class Debugger(wx.Frame):
         dlg.ShowModal()
 
     def OnRecoveryTool(self, event):
-        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
+        if cw.cwpy.is_playingscenario():
             def recovery_all():
                 for pcard in cw.cwpy.get_pcards("unreversed"):
                     cw.cwpy.sounds["harvest"].play()
-                    cw.animation.animate_sprite(pcard, "hide")
-                    pcard.set_fullrecovery()
-                    pcard.update_image()
-                    cw.animation.animate_sprite(pcard, "deal")
+                    if pcard.status == "hidden":
+                        pcard.set_fullrecovery()
+                        pcard.update_image()
+                        cw.cwpy.wait_frame(12)
+                    else:
+                        cw.animation.animate_sprite(pcard, "hide")
+                        pcard.set_fullrecovery()
+                        pcard.update_image()
+                        cw.animation.animate_sprite(pcard, "deal")
 
             cw.cwpy.exec_func(recovery_all)
 
@@ -911,6 +936,8 @@ class Debugger(wx.Frame):
         self.tl_break.Enable(False)
         self.mi_update.Enable(False)
         self.tl_update.Enable(False)
+        self.mi_redisplay.Enable(False)
+        self.tl_redisplay.Enable(False)
         self.mi_battle.Enable(False)
         self.tl_battle.Enable(False)
         self.mi_pack.Enable(False)
@@ -970,6 +997,12 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario():
             self.mi_pause.Enable(True)
             self.tl_pause.Enable(True)
+            self.mi_status.Enable(True)
+            self.tl_status.Enable(True)
+            self.mi_recovery.Enable(True)
+            self.tl_recovery.Enable(True)
+            self.mi_redisplay.Enable(True)
+            self.tl_redisplay.Enable(True)
             if cw.cwpy.is_runningevent():
                 self.mi_select.Enable(True)
                 self.tl_select.Enable(True)
@@ -994,10 +1027,6 @@ class Debugger(wx.Frame):
                     self.tl_round.Enable(True)
 
                 if not cw.cwpy.battle or not cw.cwpy.battle.is_running():
-                    self.mi_status.Enable(True)
-                    self.tl_status.Enable(True)
-                    self.mi_recovery.Enable(True)
-                    self.tl_recovery.Enable(True)
                     self.mi_update.Enable(True)
                     self.tl_update.Enable(True)
                     self.mi_battle.Enable(True)
