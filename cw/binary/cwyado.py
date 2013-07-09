@@ -6,6 +6,7 @@ import sys
 import stat
 import shutil
 import traceback
+import copy
 
 import util
 import cw
@@ -255,17 +256,29 @@ class CWYado(object):
                         self.nowadventuringparties.append((wpl, wpt))
                     break
 
+        # 荷物袋・カード置場に同一カードが複数存在する場合
+        # ２枚目以降にはコピーしたデータを渡す。
+        # 同一データを使いまわすと複数カードが同一素材を参照してしまうので
+        dictrecord = set()
+        def get_dictdata(cardname):
+            if cardname in dictrecord:
+                data = copy.copy(carddatadict.get(cardname))
+            else:
+                data = carddatadict.get(cardname)
+                dictrecord.add(cardname)
+            return data
+
         # wplの荷物袋のカードリストにカードデータ(wid)と種類のデータを付与する。
         for wpl in self.wpls:
             for card in wpl.cards:
                 card.type = cardtypes.get(card.fname)
-                card.set_data(carddatadict.get(card.fname))
+                card.set_data(get_dictdata(card.fname))
 
         # wydのカード置き場のカードリストにカードデータ(wid)と
         # 種類のデータを付与する。
         for card in self.wyd.unusedcards:
             card.type = cardtypes.get(card.fname)
-            card.data = carddatadict.get(card.fname)
+            card.data = get_dictdata(card.fname)
 
     #---------------------------------------------------------------------------
     # ここまで
