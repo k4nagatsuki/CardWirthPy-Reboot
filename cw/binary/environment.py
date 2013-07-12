@@ -97,7 +97,11 @@ class Environment(base.CWBinaryBase):
             self.errorcards = []
             for i, unusedcard in enumerate(self.unusedcards):
                 if unusedcard.data:
-                    unusedcard.create_xml2(self.get_dir(), cardorder=i)
+                    try:
+                        unusedcard.create_xml2(self.get_dir(), cardorder=i)
+                    except Exception, ex:
+                        print ex
+                        self.errorcards.append(unusedcard)
                 else:
                     self.errorcards.append(unusedcard)
 
