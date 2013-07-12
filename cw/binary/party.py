@@ -5,6 +5,7 @@ import os
 
 import base
 import adventurer
+import util
 
 import cw
 import bgimage
@@ -24,7 +25,10 @@ class Party(base.CWBinaryBase):
         w = f.word() # 不明(0)
         self.yadoname = f.string()
         f.image() # 宿の埋め込み画像は破棄。
-        self.memberslist = cw.util.decodetextlist(f.string())
+        self.memberslist = []
+        for member in cw.util.decodetextlist(f.string()):
+            if member <> "":
+                self.memberslist.append(util.check_filename(member))
         self.name = f.string()
         self.money = f.dword() # 冒険中の現在値
         self.nowadventuring = f.bool()
@@ -47,8 +51,7 @@ class Party(base.CWBinaryBase):
             prop.append(e)
 
             me = cw.data.make_element("Members")
-            for member in self.memberslist:
-                me.append(cw.data.make_element("Member", member))
+            # メンバーの追加はwpt側で
             prop.append(me)
 
             self.data.append(prop)
@@ -154,6 +157,9 @@ class PartyMembers(base.CWBinaryBase):
         # *.wplにもあるパーティの所持金(冒険中の現在値)
         money = f.dword()
 
+        # 対応する *.wpl
+        self.wpl = None
+
         # ここから先はプレイ中のシナリオの状況が記録されている
         self.money_beforeadventure = f.dword() # 冒険前の所持金。冒険中でなければ0
         self.nowadventuring = f.bool()
@@ -193,8 +199,12 @@ class PartyMembers(base.CWBinaryBase):
 
     def create_xml(self, dpath):
         """adventurercardだけxml化する。"""
-        for adventurer in self.adventurers:
-            adventurer.create_xml(dpath)
+        wpldata = self.wpl.get_data()
+        me = wpldata.find("Property/Members")
+        for i, adventurer in enumerate(self.adventurers):
+            path = adventurer.create_xml(dpath)
+            text = os.path.splitext(os.path.basename(path))[0]
+            me.append(cw.data.make_element("Member", text))
 
     def create_vanisheds_xml(self, dpath):
         for adventurer in self.vanisheds:

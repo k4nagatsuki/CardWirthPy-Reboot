@@ -508,7 +508,16 @@ class Character(object):
         """
         引数のheaderのカードを破棄処理する。
         """
-        cw.cwpy.trade("TRASHBOX", header=header, from_event=from_event)
+        if cw.cwpy.ydata:
+            cw.cwpy.trade("TRASHBOX", header=header, from_event=from_event)
+        else:
+            if header.type == "SkillCard":
+                index = 0
+            elif header.type == "ItemCard" :
+                index = 1
+            elif header.type == "BeastCard":
+                index = 2
+            self.cardpocket[index].remove(header)
 
     #---------------------------------------------------------------------------
     #　戦闘行動関係

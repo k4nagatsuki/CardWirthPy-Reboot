@@ -252,6 +252,7 @@ class CWYado(object):
             for wpl in self.wpls:
                 if wpt.fname == wpl.fname:
                     wpl.cards = wpt.cards
+                    wpt.wpl = wpl
                     if wpt.nowadventuring:
                         self.nowadventuringparties.append((wpl, wpt))
                     break
@@ -287,8 +288,8 @@ class CWYado(object):
         # データリスト作成
         self.datalist = []
         self.datalist.extend(self.wcps)
+        self.datalist.extend(self.wpts) # wptはwplより先に変換する必要がある
         self.datalist.extend(self.wpls)
-        self.datalist.extend(self.wpts)
         self.datalist.extend(self.wrms)
         self.datalist.append(self.wyd)
 

@@ -34,7 +34,8 @@ def check_filename(name):
            ('"', u'”'),
            ('<', u'＜'),
            ('>', u'＞'),
-           ('|', u'｜'))
+           ('|', u'｜'),
+           ('"', u'”'))
 
     for s, s2 in seq:
         name = name.replace(s, s2)

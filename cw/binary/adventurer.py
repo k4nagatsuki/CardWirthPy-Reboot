@@ -270,6 +270,8 @@ class Adventurer(base.CWBinaryBase):
             e = cw.data.make_element("BeastCards")
             for card in self.beasts:
                 if not f9data or card.premium <= 2:
+                    if f9data and card.attachment:
+                        continue
                     card.set_image_export(False, f9data)
                     e.append(card.get_data())
             data.append(e)
