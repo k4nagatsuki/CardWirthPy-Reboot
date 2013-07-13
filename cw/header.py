@@ -878,17 +878,28 @@ class Gene(object):
         bits = [bit1 ^ bit2 for bit1, bit2 in zip(self.bits, gene.bits)]
         return Gene(bits)
 
-    def rotate_right(self):
-        # 母親の遺伝情報のローテートは一周のみ
-        count = cw.util.numwrap(self.count + 1, 1, 10) % 10
-        bits = self.bits[count:]
-        bits.extend(self.bits[:count])
-        return Gene(bits)
-
-    def rotate_left(self):
-        count = self.count + 1 % 10
-        bits = self.bits[count:]
-        bits.extend(self.bits[:count])
+    def rotate(self):
+        # 母親の遺伝情報のローテート
+        n = self.count % 7
+        if n == 0:
+            count = 3
+        elif n == 1:
+            count = 0
+        elif n == 2:
+            count = 4
+        elif n == 3:
+            count = 1
+        elif n == 4:
+            count = 5
+        elif n == 5:
+            count = 2
+        else:
+            count = 6
+        bits_l = self.bits[:7]
+        bits_r = self.bits[7:]
+        bits = bits_l[:count]
+        bits.extend(bits_l[count:])
+        bits.extend(bits_r)
         return Gene(bits)
 
 class ScenarioHeader(object):
