@@ -2088,9 +2088,11 @@ class ScenarioSelect(Select):
         else:
             self._enable_btn()
 
+        selected = self.list[self.index]
+
         # ツリー表示中かつディレクトリ選択中なら決定ボタン無効化
         if self.list and self.tree.IsShown() and\
-                not isinstance(self.list[self.index], cw.header.ScenarioHeader):
+                not isinstance(selected, cw.header.ScenarioHeader):
             self.yesbtn.Disable()
 
         # ツリー表示中の決定ボタン有効・無効判定
@@ -2111,7 +2113,9 @@ class ScenarioSelect(Select):
         else:
             self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_tree"])
 
-        if not self.list or isinstance(self.list[self.index], cw.header.ScenarioHeader) or self.tree.IsShown():
+
+
+        if not self.list or isinstance(selected, cw.header.ScenarioHeader) or self.tree.IsShown():
             self.yesbtn.SetLabel(cw.cwpy.msgs["decide"])
         else:
             self.yesbtn.SetLabel(cw.cwpy.msgs["see"])
@@ -2120,6 +2124,15 @@ class ScenarioSelect(Select):
             self.nobtn.SetLabel(cw.cwpy.msgs["return"])
         else:
             self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
+
+        # 選択中のファイル名またはディレクトリ名を表示
+        if isinstance(selected, cw.header.ScenarioHeader):
+            self.SetTitle(u"貼紙を見る [ %s ]" % (selected.fname))
+        else:
+            dname = os.path.basename(selected)
+            if sys.platform == "win32" and os.path.splitext(dname)[1].lower() == ".lnk":
+                dname = os.path.splitext(dname)[0]
+            self.SetTitle(u"貼紙を見る [ %s ]" % (dname))
 
     def get_dpaths(self, dpath):
         """
