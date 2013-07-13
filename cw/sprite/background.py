@@ -61,15 +61,19 @@ class BackGround(base.CWPySprite):
         # 画像読み込み
         ext = os.path.splitext(path)[1].lower()
 
-        if ext == ".jptx":
-            image = cw.effectbooster.JptxImage(path, mask).get_image()
-        elif ext == ".jpdc":
-            image = cw.effectbooster.JpdcImage(mask, path).get_image()
-        elif ext == ".jpy1":
-            image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
-            anime = True
-        else:
-            image = cw.util.load_image(path, mask)
+        try:
+            if ext == ".jptx":
+                image = cw.effectbooster.JptxImage(path, mask).get_image()
+            elif ext == ".jpdc":
+                image = cw.effectbooster.JpdcImage(mask, path).get_image()
+            elif ext == ".jpy1":
+                image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
+                anime = True
+            else:
+                image = cw.util.load_image(path, mask)
+        except Exception, ex:
+            print ex
+            return None, False
 
         # 指定したサイズに拡大縮小する
         if not image.get_size() in (size, cw.s((0, 0))):

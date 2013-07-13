@@ -992,7 +992,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         width = 48
 
     # \\nを改行コードに戻す
-    s = s.replace("\\n", "\n")
+    s = cw.util.decodewrap(s)
     # 半角文字集合
     r_hwchar = re.compile(u"[ -~]|[｡-ﾟ]")
     # 行頭禁止文字集合
@@ -1003,9 +1003,11 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     asciicnt = 0
     wraped = False
     skip = False
+    spchar = False
     seq = []
 
     for index, char in enumerate(s):
+        spchar = False
         if r_spchar:
             if skip:
                 skip = False
@@ -1020,6 +1022,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
                     seq.append(chars)
                     skip = True
                     continue
+                spchar = True
 
         # 行頭禁止文字
         if cnt == 0 and not wraped and r_wchar and r_wchar.match(char):
@@ -1049,7 +1052,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             asciicnt = 0
 
         # 行折り返し処理
-        if cnt > width:
+        if not spchar and cnt > width:
             if width >= asciicnt > 0:
                 if seq[-asciicnt] <> "\n":
                     seq.insert(-asciicnt, "\n")
