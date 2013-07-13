@@ -359,7 +359,7 @@ class CWPyCard(base.SelectableSprite):
                 self.update_zoomin()
 
         if self.status == "hidden":
-            self.clear_image(False)
+            self.clear_image(True)
 
     def update_image(self):
         """
