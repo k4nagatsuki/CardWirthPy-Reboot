@@ -233,11 +233,28 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None):
     if image.get_flags() & SRCALPHA:
         image = image.convert_alpha()
     else:
+        imageb = image
         image = image.convert()
 
         # GIFなどアルファチャンネルを持たない透過画像を読み込んだ場合は
         # すでにマスクカラーが指定されているので注意
-        if mask and not image.get_colorkey():
+        if mask and image.get_colorkey():
+            # 255色GIFなどでパレットに存在しない色が
+            # マスク色に設定されている事があるので、
+            # その場合は通常通り左上の色をマスク色とする
+            # 将来、もしこの処理の結果問題が起きた場合は
+            # このif文以降の処理を削除する必要がある
+            if imageb.get_bitsize() <= 8:
+                mask = image.get_colorkey()
+                maskok = False
+                for pixel in imageb.get_palette()[:255]:
+                    if pixel == mask:
+                        maskok = True
+                        break
+                if not maskok:
+                    maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
+                    image.set_colorkey(image.get_at(maskpos), RLEACCEL)
+        elif mask and not image.get_colorkey():
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
             image.set_colorkey(image.get_at(maskpos), RLEACCEL)
 
@@ -1098,14 +1115,35 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
                 print u"画像が読み込めません。", name
                 return wx.EmptyBitmap(0, 0)
 
-        if not image.HasAlpha() and not image.HasMask():
+        def set_mask(image, maskpos):
             maskpos = convert_maskpos(maskpos, image.Width, image.Height)
             r = image.GetRed(maskpos[0], maskpos[1])
             g = image.GetGreen(maskpos[0], maskpos[1])
             b = image.GetBlue(maskpos[0], maskpos[1])
             image.SetMaskColour(r, g, b)
 
+        if not image.HasAlpha() and not image.HasMask():
+            set_mask(image, maskpos)
+
         wxbmp = image.ConvertToBitmap()
+
+        # 255色GIFなどでパレットに存在しない色が
+        # マスク色に設定されている事があるので、
+        # その場合は通常通り左上の色をマスク色とする
+        # 将来、もしこの処理の結果問題が起きた場合は
+        # このif文以降の処理を削除する必要がある
+        if mask and image.HasMask() and image.CountColours() <= 255:
+            palette = wxbmp.GetPalette()
+            mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
+            maskok = False
+            for pixel in xrange(palette.GetColoursCount()):
+                if palette.GetRGB(pixel) == mask:
+                    maskok = True
+                    break
+            if not maskok:
+                set_mask(image, maskpos)
+                wxbmp = image.ConvertToBitmap()
+
     elif image:
         wxbmp = image.ConvertToBitmap()
     else:
