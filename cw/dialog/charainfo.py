@@ -375,14 +375,15 @@ class TopPanel(wx.Panel):
         if self.redrawfunc:
             self.redrawfunc()
 
-class DescPanel(wx.Panel):
+class DescPanel(wx.ScrolledWindow):
     """
     解説文を描画するパネル。
     """
     def __init__(self, parent, ccard, editable):
-        wx.Panel.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
+        self.SetScrollRate(cw.s(10), cw.s(10))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
         self.ccard = ccard
@@ -413,6 +414,7 @@ class DescPanel(wx.Panel):
         # 解説文
         self.text = self.ccard.data.gettext("Property/Description", "")
         self.text = cw.util.txtwrap(self.text, 4)
+        csize = self.GetClientSize()
 
         if update:
             dc = wx.ClientDC(self)
@@ -427,8 +429,20 @@ class DescPanel(wx.Panel):
         # 解説文
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(9)))
-        dc.DrawLabel(self.text, cw.s((24, 10, 200, 120)))
+        maxwidth, maxheight, lineheight = dc.GetMultiLineTextExtent(self.text)
+        maxheight += 10
+        x = 24 if maxheight <= csize[1] else 12
+        dc.DrawLabel(self.text, cw.s((x, 10, 200, 120)))
         dc.EndDrawing()
+
+        if maxheight <= csize[1]:
+            self.SetVirtualSize((-1, -1))
+        else:
+            self.SetVirtualSize((-1, maxheight))
+
+        if update:
+            self.Scroll(0, 0)
+            self.Refresh()
 
 class HistoryPanel(wx.ScrolledWindow):
     """
