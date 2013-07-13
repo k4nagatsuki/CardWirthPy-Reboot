@@ -42,9 +42,9 @@ class Environment(base.CWBinaryBase):
         self.bgcolor_message = f.dword()
         self.use_decofont = f.bool()
         self.changetype_bg = f.byte()
-        self.compstamps = f.string()
+        self.compstamps = f.string(True)
         self.scenarioname = f.string()
-        self.gossips = f.string()
+        self.gossips = f.string(True)
         unusedcards_num = f.dword()
         self.unusedcards = [UnusedCard(self, f)
                                     for cnt in xrange(unusedcards_num)]
@@ -178,9 +178,9 @@ class Environment(base.CWBinaryBase):
         f.write_dword(bgcolor_message)
         f.write_bool(use_decofont)
         f.write_byte(changetype_bg)
-        f.write_string(compstamps)
+        f.write_string(compstamps, True)
         f.write_string(scenarioname)
-        f.write_string(gossips)
+        f.write_string(gossips, True)
         unusedcards = table["unusedcards"]
         f.write_dword(len(unusedcards))
         for fname, card in unusedcards:

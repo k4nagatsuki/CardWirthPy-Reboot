@@ -10,7 +10,7 @@ class Dialog(base.CWBinaryBase):
     """台詞データ"""
     def __init__(self, parent, f, yadodata=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        self.coupons = f.string()
+        self.coupons = f.string(True)
         self.text = f.string(True)
 
         self.data = None
@@ -35,7 +35,7 @@ class Dialog(base.CWBinaryBase):
             elif e.tag == "Text":
                 text = e.text
 
-        f.write_string(coupons)
+        f.write_string(coupons, True)
         f.write_string(text, True)
 
 def main():

@@ -16,7 +16,7 @@ class Event(base.CWBinaryBase):
                                             for cnt in xrange(contents_num)]
         ignitions_num = f.dword()
         self.ignitions = [f.dword() for cnt in xrange(ignitions_num)]
-        self.keycodes = f.string()
+        self.keycodes = f.string(True)
 
         self.data = None
 
@@ -71,7 +71,7 @@ class Event(base.CWBinaryBase):
         f.write_dword(len(ignitions))
         for ignition in ignitions:
             f.write_dword(ignition)
-        f.write_string(keycodes)
+        f.write_string(keycodes, True)
 
 class SimpleEvent(base.CWBinaryBase):
     """イベント発火条件なしのイベントデータのクラス。

@@ -33,7 +33,7 @@ class Adventurer(base.CWBinaryBase):
         self.weakness_ice = f.bool()
 
         self.level = f.dword()
-        self.description = f.string().replace("TEXT\\n", "", 1)
+        self.description = f.string(True).replace("TEXT\\n", "", 1)
         self.life = f.dword()
         self.maxlife = f.dword()
 
@@ -488,7 +488,7 @@ class Adventurer(base.CWBinaryBase):
         f.write_bool(weakness_ice)
 
         f.write_dword(level)
-        f.write_string("TEXT\\n" + description)
+        f.write_string("TEXT\n" + description, True)
         f.write_dword(life)
         f.write_dword(maxlife)
 
@@ -617,7 +617,7 @@ class AdventurerHeader(base.CWBinaryBase):
         self.image = f.image()
         self.level = f.byte()
         b = f.byte() # 不明(0)
-        self.coupons = f.string()
+        self.coupons = f.string(True)
         w = f.word() # 不明(0)
         # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
         self.ep = f.byte()
@@ -679,7 +679,7 @@ class AdventurerHeader(base.CWBinaryBase):
         f.write_string(name)
         f.write_image(image)
         f.write_word(level)
-        f.write_string(coupons)
+        f.write_string(coupons, True)
         f.write_word(0) # 不明
         f.write_word(ep)
         f.write_word(dex)

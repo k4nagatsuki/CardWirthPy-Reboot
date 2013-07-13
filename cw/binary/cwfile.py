@@ -41,7 +41,7 @@ class CWFile(io.BufferedReader):
         """
         s = self.rawstring()
 
-        if not self.decodewrap:
+        if multiline and not self.decodewrap:
             s = cw.util.encodewrap(s)
 
         return s
@@ -110,7 +110,7 @@ class CWFileWriter(io.BufferedWriter):
     def write_string(self, s, multiline=False):
         if s is None:
             s = ""
-        if not self.decodewrap:
+        if multiline and not self.decodewrap:
             s = cw.util.decodewrap(s, "\r\n")
         self.write_rawstring(s)
 

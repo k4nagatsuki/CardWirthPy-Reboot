@@ -424,7 +424,7 @@ class CastCard(base.CWBinaryBase):
 
         f.write_dword(level)
         f.write_dword(money)
-        f.write_string("TEXT\\n" + description, True)
+        f.write_string("TEXT\n" + description, True)
         f.write_dword(life)
         f.write_dword(maxlife)
 

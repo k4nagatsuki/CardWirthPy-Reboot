@@ -19,7 +19,7 @@ class Summary(base.CWBinaryBase):
             return
         self.description = f.string()
         self.author = f.string()
-        self.required_coupons = f.string()
+        self.required_coupons = f.string(True)
         self.required_coupons_num = f.dword()
         self.area_id = f.dword()
         if self.area_id < 19999:
@@ -131,7 +131,7 @@ class Summary(base.CWBinaryBase):
         f.write_string(name)
         f.write_string(description)
         f.write_string(author)
-        f.write_string(required_coupons)
+        f.write_string(required_coupons, True)
         f.write_dword(required_coupons_num)
         f.write_dword(area_id + 40000)
         f.write_dword(len(steps))

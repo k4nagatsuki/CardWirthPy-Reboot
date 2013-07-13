@@ -26,7 +26,7 @@ class Party(base.CWBinaryBase):
         self.yadoname = f.string()
         f.image() # 宿の埋め込み画像は破棄。
         self.memberslist = []
-        for member in cw.util.decodetextlist(f.string()):
+        for member in cw.util.decodetextlist(f.string(True)):
             if member <> "":
                 self.memberslist.append(util.check_filename(member))
         self.name = f.string()
@@ -115,7 +115,7 @@ class Party(base.CWBinaryBase):
         f.write_word(0) # 不明
         f.write_string(yadoname)
         f.write_image(image)
-        f.write_string(memberslist)
+        f.write_string(memberslist, True)
         f.write_string(name)
         f.write_dword(money)
         f.write_bool(nowadventuring)

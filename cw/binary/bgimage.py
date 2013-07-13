@@ -41,7 +41,7 @@ class BgImage(base.CWBinaryBase):
                 # テキストセル
                 self.type = cw.sprite.background.BG_TEXT
                 self.mask = f.bool()
-                self.text = f.string()
+                self.text = f.string(True)
                 self.fontface = f.string()
                 self.fontsize = f.dword()
                 r = f.ubyte()
@@ -268,7 +268,7 @@ class BgImage(base.CWBinaryBase):
             f.write_dword(height)
 
             f.write_bool(mask)
-            f.write_string(text)
+            f.write_string(text, True)
             f.write_string(fontface)
             f.write_dword(fontsize)
             f.write_ubyte(color[0])

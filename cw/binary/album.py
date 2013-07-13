@@ -54,7 +54,7 @@ class Album(base.CWBinaryBase):
         self.defense = f.byte()
         f.byte()
         f.dword()
-        self.description = f.string().replace("TEXT\\n", "", 1)
+        self.description = f.string(True).replace("TEXT\\n", "", 1)
         # クーポン
         coupons_num = f.dword()
         self.coupons = [coupon.Coupon(self, f) for cnt in xrange(coupons_num)]
@@ -198,7 +198,7 @@ class Album(base.CWBinaryBase):
         f.write_word(resist)
         f.write_word(defense)
         f.write_dword(0)
-        f.write_string("TEXT\\n" + description)
+        f.write_string("TEXT\n" + description, True)
         f.write_dword(len(coupons))
         for cp in coupons:
             coupon.Coupon.unconv(f, cp)
