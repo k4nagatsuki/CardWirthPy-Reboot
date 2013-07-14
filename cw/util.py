@@ -361,6 +361,9 @@ def load_sound(path):
     if not pygame.mixer or not os.path.isfile(path):
         return SoundInterface()
 
+    if cw.cwpy.is_playingscenario() and path in cw.cwpy.sdata.cache:
+        return cw.cwpy.sdata.cache[path]
+
     try:
         assert threading.currentThread() == cw.cwpy
         if sys.platform == "win32" and (path.lower().endswith(".wav") or\
@@ -373,6 +376,9 @@ def load_sound(path):
     except:
         print u"サウンドが読み込めません", path
         return SoundInterface()
+
+    if cw.cwpy.is_playingscenario():
+        cw.cwpy.sdata.cache[path] = sound
 
     return sound
 
