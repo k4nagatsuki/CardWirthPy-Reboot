@@ -219,9 +219,9 @@ class MessageWindow(base.CWPySprite):
 
         # 左右で接続する文字の集合
         if self.wxdc:
-            r_join = re.compile(u"[―─～]")
+            r_join = re.compile(u"[～―─＿￣]")
         else:
-            r_join = re.compile(u"[―─]")
+            r_join = re.compile(u"[―─＿￣]")
         r_halfwidth = re.compile(u"[ -~｡-ﾟ]") # 半角文字の集合
         r_specialfont = re.compile("#.") # 特殊文字(#)の集合
         # 文字色変更文字(&)の集合
