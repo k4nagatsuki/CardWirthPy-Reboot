@@ -245,7 +245,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None):
             # 将来、もしこの処理の結果問題が起きた場合は
             # このif文以降の処理を削除する必要がある
             if imageb.get_bitsize() <= 8:
-                mask = image.get_colorkey()
+                mask = image.get_masks()
                 maskok = False
                 for pixel in imageb.get_palette()[:255]:
                     if pixel == mask:
