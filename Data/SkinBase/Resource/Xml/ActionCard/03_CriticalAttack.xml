@@ -13,7 +13,7 @@
     <EffectType spell="False">Physic</EffectType>
     <ResistType>Avoid</ResistType>
     <SuccessRate>2</SuccessRate>
-    <VisualEffect>Vertical</VisualEffect>
+    <VisualEffect>Horizontal</VisualEffect>
     <Enhance avoid="0" resist="0" defense="0"/>
     <SoundPath>Material/素振り（会心）.wav</SoundPath>
     <SoundPath2>Material/効果（会心）.wav</SoundPath2>
