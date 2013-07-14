@@ -749,6 +749,7 @@ def rpl_specialstr(s):
     テキストセルや選択肢のテキスト内の
     特殊文字列(#, $)を置換した文字列を返す。
     """
+    name_table = _create_nametable(False, None)
     return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue)
 
 def _create_nametable(full, talker):
