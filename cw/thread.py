@@ -2244,7 +2244,7 @@ class CWPy(_Singleton, threading.Thread):
         """現在のCWPyのステータスが、シナリオバトル中かどうか返す。
         if cw.cwpy.battle:と使い分ける。
         """
-        return bool(self.status == "ScenarioBattle")
+        return cw.cwpy.is_playingscenario() and self.status == "ScenarioBattle"
 
 #-------------------------------------------------------------------------------
 # 各種スプライト取得用メソッド
