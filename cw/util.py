@@ -1340,6 +1340,12 @@ def td_end(key):
         dictimes[key] = time.time() - timer
     timer = time.time()
 
+def t_reset():
+    global times, dictimes
+    for i in xrange(len(times)):
+        times[i] = 0
+    dictimes.clear()
+
 def t_print():
     global times, dictimes
     for i, t in enumerate(times):
