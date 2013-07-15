@@ -785,13 +785,15 @@ class CWPy(_Singleton, threading.Thread):
             if not loaded:
                 self.ydata.party.set_numbercoupon()
 
-            if musicpath is None or\
-                            self.music.path == self.music.get_path(musicpath):
-                self.change_area(areaid, not loaded, loaded)
-            else:
-                self.music.stop()
-                self.change_area(areaid, not loaded, loaded)
-                self.music.play(musicpath)
+            def func(loaded, musicpath, areaid):
+                if musicpath is None or\
+                                self.music.path == self.music.get_path(musicpath):
+                    self.change_area(areaid, not loaded, loaded)
+                else:
+                    self.music.stop()
+                    self.change_area(areaid, not loaded, loaded)
+                    self.music.play(musicpath)
+            self.exec_func(func, loaded, musicpath, areaid)
 
     def set_battle(self):
         """シナリオ戦闘画面へ遷移。"""
