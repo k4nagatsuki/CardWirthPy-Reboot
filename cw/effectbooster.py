@@ -428,10 +428,10 @@ class _JpySubImage(cw.image.Image):
                 width = imagesize[0]
             else:
                 width = cw.s(cw.SIZE_AREA[0])
-            if 0 < imagesize[1]:
+            if self.height >= cw.s(0):
+                height = self.height
+            elif 0 < imagesize[1]:
                 height = imagesize[1]
-            elif 0 < image.get_height():
-                height = image.height
             else:
                 height = cw.s(cw.SIZE_AREA[1])
             size = (width, height)
