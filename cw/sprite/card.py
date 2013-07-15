@@ -577,7 +577,9 @@ class PlayerCard(CWPyCard, character.Player):
     def lclick_event(self):
         """左クリックイベント。"""
         # CARDPOCKETダイアログを開く(通常)
-        if not cw.cwpy.is_curtained():
+        if self.reversed:
+            self.rclick_event()
+        elif not cw.cwpy.is_curtained():
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
 
