@@ -1342,8 +1342,7 @@ def td_end(key):
 
 def t_reset():
     global times, dictimes
-    for i in xrange(len(times)):
-        times[i] = 0
+    times = map(lambda v: 0, times)
     dictimes.clear()
 
 def t_print():

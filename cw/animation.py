@@ -9,7 +9,7 @@ from pygame.locals import *
 import cw
 
 
-def animate_sprite(sprite, anitype, clearevent=True):
+def animate_sprite(sprite, anitype, clearevent=True, background=False):
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
 
@@ -23,12 +23,18 @@ def animate_sprite(sprite, anitype, clearevent=True):
     skip = _get_skipstatus(clearevent)
 
     gc.disable()
+    cw.cwpy.draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
+        clip = sprite.rect
         sprite.update(cw.cwpy.scr)
+        clip = clip.union(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
         if not skip:
-            cw.cwpy.draw()
+            if background:
+                cw.cwpy.draw()
+            else:
+                cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
         if clearevent:
@@ -44,50 +50,15 @@ def animate_sprite(sprite, anitype, clearevent=True):
         cw.cwpy.draw()
 
 def animate_sprites(sprites, anitype, clearevent=True):
-    if threading.currentThread() <> cw.cwpy:
-        raise Exception()
-
-    if [spr for spr in sprites if not hasattr(spr, "update_" + anitype)]:
-        print "Not found " + anitype + " animation."
-        return
-
-    for sprite in sprites:
-        sprite.old_status = sprite.status
-        sprite.status = anitype
-
-    animating = True
-    skip = _get_skipstatus(clearevent)
-
-    gc.disable()
-    while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
-        for sprite in sprites:
-            sprite.update(cw.cwpy.scr)
-
-        skip = _get_skipstatus(clearevent)
-        if not skip:
-            cw.cwpy.draw()
-            cw.cwpy.tick_clock()
-
-        if clearevent:
-            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
-        else:
-            cw.cwpy.mousepos = pygame.mouse.get_pos()
-            cw.cwpy.events = pygame.event.get()
-            cw.cwpy.eventhandler.run()
-
-        animating = False
-
-        for sprite in sprites:
-            if sprite.status == anitype:
-                animating = True
-                break
-
-    gc.enable()
-
-    if skip:
-        cw.cwpy.draw()
+    """spritesに含まれる全てのスプライトをanitypeの
+    アニメーションで動かす。
+    """
+    sprandanimes = map(lambda s: (s, anitype), sprites)
+    animate_sprites2(sprandanimes, clearevent)
 
 def animate_sprites2(sprandanimes, clearevent=True):
+    """スプライト毎にアニメーション内容を指定する。
+    """
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
 
@@ -104,13 +75,20 @@ def animate_sprites2(sprandanimes, clearevent=True):
     skip = _get_skipstatus(clearevent)
 
     gc.disable()
+    cw.cwpy.draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
+        clip = None
         for sprite, anitype in sprandanimes:
+            if clip:
+                clip.union_ip(sprite.rect)
+            else:
+                clip = pygame.Rect(sprite.rect)
             sprite.update(cw.cwpy.scr)
+            clip.union_ip(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
         if not skip:
-            cw.cwpy.draw()
+            cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
         if clearevent:

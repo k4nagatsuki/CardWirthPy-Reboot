@@ -297,8 +297,10 @@ class BackGround(base.CWPySprite):
         # トランジション効果で画面入り
         if not animated and transitspr and not oldbgs == self.bgs:
             transitspr.add(cw.cwpy.bggrp)
-            cw.animation.animate_sprite(transitspr, "transition")
+            cw.animation.animate_sprite(transitspr, "transition", background=True)
             transitspr.remove(cw.cwpy.bggrp)
+        else:
+            cw.cwpy.draw()
 
 class Curtain(base.SelectableSprite):
     def __init__(self, spritegrp, size_noscale, pos_noscale, alpha=128):

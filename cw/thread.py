@@ -405,10 +405,15 @@ class CWPy(_Singleton, threading.Thread):
             dirty_rects.extend(self.pcardgrp.draw(self.scr))
         return dirty_rects
 
-    def draw(self, mainloop=False):
+    def draw(self, mainloop=False, clip=None):
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
-            dirty_rects = self.bggrp.draw(self.scr)
+            self.scr.set_clip(clip)
+            if clip:
+                dirty_rects = []
+                self.scr.blit(self.background.image, clip, clip)
+            else:
+                dirty_rects = self.bggrp.draw(self.scr)
 
             dirty_rects.extend(self.draw_cards(self.scr))
 
@@ -423,7 +428,10 @@ class CWPy(_Singleton, threading.Thread):
                 dirty_rects.append(self.scr.blit(sur, pos))
 
             # 画面更新
-            pygame.display.update(dirty_rects)
+            if clip:
+                pygame.display.update(clip)
+            else:
+                pygame.display.update(dirty_rects)
             self.event.eventtimer = 0
 
     def call_dlg(self, name, **kwargs):
@@ -673,12 +681,12 @@ class CWPy(_Singleton, threading.Thread):
         white = cw.sprite.background.TitleCell("white", 3, 0, False)
         self.selection = white
 
-        cw.cwpy.bggrp.add(card1, layer="title")
-        cw.cwpy.bggrp.add(card2, layer="title")
-        cw.cwpy.bggrp.add(cell1, layer="title")
-        cw.cwpy.bggrp.add(cell2, layer="title")
-        cw.cwpy.bggrp.add(cell3, layer="title")
-        cw.cwpy.bggrp.add(white, layer="title")
+        cw.cwpy.topgrp.add(card1, layer="title")
+        cw.cwpy.topgrp.add(card2, layer="title")
+        cw.cwpy.topgrp.add(cell1, layer="title")
+        cw.cwpy.topgrp.add(cell2, layer="title")
+        cw.cwpy.topgrp.add(cell3, layer="title")
+        cw.cwpy.topgrp.add(white, layer="title")
 
         cw.animation.animate_sprite(card2, "deal", clearevent=False)
         cw.animation.animate_sprite(card2, "hide", clearevent=False)
@@ -709,7 +717,7 @@ class CWPy(_Singleton, threading.Thread):
         self.selection = None
 
         # スプライトを解除する
-        self.bggrp.remove_sprites_of_layer("title")
+        self.topgrp.remove_sprites_of_layer("title")
 
         if self.cut_animation:
             ttype = ("Default", "Default")
