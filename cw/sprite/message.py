@@ -798,6 +798,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
     """
     buf = []
     skip = 0
+    s = cw.util.decodewrap(s)
     for i, c in enumerate(s):
         if 0 < skip:
             skip -= 1
@@ -841,7 +842,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
         else:
             buf.append(c)
 
-    return "".join(buf)
+    return cw.util.encodewrap("".join(buf))
 
 def main():
     pass
