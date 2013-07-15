@@ -339,7 +339,9 @@ class Effect(object):
         表示されていないか(敵のみ)、対象消去されている場合は
         有効なターゲットではない。
         """
-        if target.status == "hidden" and not isinstance(target, cw.sprite.card.PlayerCard):
+        if target.status == "hidden" and\
+                not isinstance(target, cw.sprite.card.PlayerCard) and\
+                not isinstance(target, cw.sprite.card.FriendCard):
             return False
         elif isinstance(target, Character):
             flag  = bool(not target.is_vanished())
