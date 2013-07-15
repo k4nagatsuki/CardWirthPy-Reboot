@@ -254,7 +254,7 @@ class CWPyCard(base.SelectableSprite):
         else:
             count = 4
         nb = n / (count*2.0)
-        mx = self._rect.width / 10 # 最大縮小量
+        mx = self._rect.width / 20 # 最大縮小量
         f = max(0, int(round(self.frame / nb)) - 1)
         nx = (self.frame - nb*f) / nb * mx
         f %= 2
