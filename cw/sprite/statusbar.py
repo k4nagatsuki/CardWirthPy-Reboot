@@ -403,7 +403,7 @@ class BacklogButton(StatusBarButton):
         if not self.enabled:
             return
         StatusBarButton.lclick_event(self)
-        cw.cwpy.eventhandler.f4key_event()
+        cw.cwpy.eventhandler.f5key_event()
 
 def main():
     pass

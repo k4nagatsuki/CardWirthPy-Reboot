@@ -217,9 +217,9 @@ class EventHandler(object):
 
     def f1key_event(self):
         """
-        F1キーイベント。拡大表示・解除
+        F1キーイベント。ヘルプが無いので何もしない。
         """
-        cw.cwpy.set_expanded(not cw.cwpy.is_expanded())
+        pass
 
     def f2key_event(self):
         """
@@ -244,7 +244,13 @@ class EventHandler(object):
 
     def f4key_event(self):
         """
-        F4キーイベント。バックログを開く。
+        F4キーイベント。
+        """
+        cw.cwpy.set_expanded(not cw.cwpy.is_expanded())
+
+    def f5key_event(self):
+        """
+        F5キーイベント。バックログを開く。
         すでに開いている場合は遡る。
         """
         cw.cwpy.sounds["page"].play()
@@ -254,11 +260,6 @@ class EventHandler(object):
         else:
             cw.cwpy.show_backlog()
 
-    def f5key_event(self):
-        """
-        F5キーイベント。
-        """
-        pass
 ##        for ecard in cw.cwpy.get_ecards():
 ##            for h in ecard.deck.talon:
 ##                print h.name, ecard.name
@@ -455,16 +456,16 @@ class EventHandlerForMessageWindow(EventHandler):
         elif not cw.cwpy.topgrp.get_sprites_from_layer("message"):
             self.shiftkey_event(False)
 
-    def f1key_event(self):
+    def f4key_event(self):
         """
-        F1キーイベント。
+        F4キーイベント。
         """
         hidden = not cw.cwpy.topgrp.get_sprites_from_layer("message")
 
         if hidden:
             self.shiftkey_event(False, False)
 
-        EventHandler.f1key_event(self)
+        EventHandler.f4key_event(self)
 
         if hidden:
             self.shiftkey_event(True, False)
