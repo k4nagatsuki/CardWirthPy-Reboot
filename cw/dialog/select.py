@@ -2127,12 +2127,12 @@ class ScenarioSelect(Select):
 
         # 選択中のファイル名またはディレクトリ名を表示
         if isinstance(selected, cw.header.ScenarioHeader):
-            self.SetTitle(u"貼紙を見る [ %s ]" % (selected.fname))
+            fname = selected.fname
         else:
-            dname = os.path.basename(selected)
-            if sys.platform == "win32" and os.path.splitext(dname)[1].lower() == ".lnk":
-                dname = os.path.splitext(dname)[0]
-            self.SetTitle(u"貼紙を見る [ %s ]" % (dname))
+            fname = os.path.basename(selected)
+        if sys.platform == "win32" and os.path.splitext(fname)[1].lower() == ".lnk":
+            fname = os.path.splitext(fname)[0]
+        self.SetTitle(u"貼紙を見る [ %s ]" % (fname))
 
     def get_dpaths(self, dpath):
         """
