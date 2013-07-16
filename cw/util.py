@@ -247,7 +247,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None):
             if imageb.get_bitsize() <= 8:
                 mask = image.get_masks()
                 maskok = False
-                for pixel in imageb.get_palette()[:255]:
+                for pixel in imageb.get_palette():
                     if pixel == mask:
                         maskok = True
                         break
