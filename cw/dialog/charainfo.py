@@ -406,6 +406,7 @@ class DescPanel(wx.ScrolledWindow):
         if dlg.ShowModal() == wx.ID_OK:
             self.Parent.Parent.toppanel.draw(True)
             self.draw(True)
+            self.Parent.Parent.historypanel.draw(True)
 
     def OnPaint(self, event):
         self.draw()
