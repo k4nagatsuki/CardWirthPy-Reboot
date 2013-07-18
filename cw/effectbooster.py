@@ -43,7 +43,7 @@ class _JpySubImage(cw.image.Image):
         self.dirtype = config.get_int(section, "dirtype", 1)
         self.filename = config.get(section, "filename", "")
         self.smooth = config.get_bool(section, "smooth", False)
-        self.clip = config.get_ints(section, "clip", 4, None)
+        self.clip = cw.s(config.get_ints(section, "clip", 4, None))
         self.loadcache = config.get_int(section, "loadcache", 0)
         # image retouch
         self.flip = config.get_bool(section, "flip", False)
@@ -61,7 +61,7 @@ class _JpySubImage(cw.image.Image):
         self.animation = config.get_int(section, "animation", 0)
         self.animemove = cw.s(config.get_ints(section, "animemove", 2, None))
         self.animeclip = cw.s(config.get_ints(section, "animeclip", 4, None))
-        self.animespeed = cw.s(config.get_int(section, "animespeed", 0))
+        self.animespeed = config.get_int(section, "animespeed", 0)
         self.animeposition = cw.s(config.get_ints(section, "animeposition", 2, None))
         self.paintmode = config.get_int(section, "paintmode", 0)
 
@@ -93,7 +93,7 @@ class _JpySubImage(cw.image.Image):
             else:
                 pos = self.position
 
-            animespeed = cw.util.numwrap(self.animespeed, cw.s(0), cw.s(255))
+            animespeed = cw.util.numwrap(self.animespeed, 0, 255)
 
             # 単一描画
             sprs = cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal")
@@ -152,11 +152,11 @@ class _JpySubImage(cw.image.Image):
                                 rest_y = 0
 
                         pos = (x, y)
-                        self._drawtemp_impl(background, pos)
+                        self._drawtemp_impl(background, pos, anime=True)
 
             self.cache.save_position(pos)
 
-    def _drawtemp_impl(self, background, pos, redraw=True):
+    def _drawtemp_impl(self, background, pos, redraw=True, anime=False):
         """backgroundのposの位置に一時描画。"""
         image = self.get_image()
         image = self.clip_tempimg(image, pos)
@@ -186,7 +186,7 @@ class _JpySubImage(cw.image.Image):
                     background.blit(image, pos, special_flags=blendmode)
                     cw.cwpy.draw()
 
-            self.wait()
+            self.wait(anime=anime)
 
     def clip_tempimg(self, image, pos):
         if self.animeclip:
@@ -214,10 +214,13 @@ class _JpySubImage(cw.image.Image):
 
         return image
 
-    def wait(self):
+    def wait(self, anime=False):
         # 指定時間だけ待機
         if self.waittime > 0:
-            wait_effectbooster(self.waittime)
+            if anime:
+                wait_effectbooster(self.waittime / cw.UP_SCR)
+            else:
+                wait_effectbooster(self.waittime)
 
         # 右クリックするまで待機
         elif self.waittime < 0:
@@ -421,7 +424,7 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
-            imagesize = image.get_size()
+            imagesize = cw.s(image.get_size())
             if self.width >= cw.s(0):
                 width = self.width
             elif 0 < imagesize[0]:
@@ -436,7 +439,7 @@ class _JpySubImage(cw.image.Image):
                 height = cw.s(cw.SIZE_AREA[1])
             size = (width, height)
 
-            if not size == image.get_size():
+            if not size == cw.s(image.get_size()):
                 if self.smooth:
                     image = pygame.transform.smoothscale(image, size)
                 else:
