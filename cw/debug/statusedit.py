@@ -458,7 +458,7 @@ class Status(object):
     def __init__(self, pcard):
         # 現在ライフ・最大ライフ
         if hasattr(pcard, "maxlife"):
-            self.life = 100 * pcard.life / pcard.maxlife
+            self.life = int(100 * pcard.life / pcard.maxlife)
         else:
             self.life = pcard.life
         # 精神状態
