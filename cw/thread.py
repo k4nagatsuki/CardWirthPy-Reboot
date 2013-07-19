@@ -409,7 +409,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
             self.scr.set_clip(clip)
-            if clip:
+            if clip and not self.is_curtained():
                 dirty_rects = []
                 self.scr.blit(self.background.image, clip, clip)
             else:
