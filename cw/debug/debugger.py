@@ -731,10 +731,20 @@ class Debugger(wx.Frame):
                 seq = [(key, str(key) + ": " + value[0]) for key, value in
                                 cw.cwpy.sdata.areas.iteritems() if key > 0]
                 seq.sort()
-                choices = [s for key, s in seq]
+                choices = []
+                if cw.cwpy.is_battlestatus():
+                    areaid = cw.cwpy.pre_battleareadata[0]
+                else:
+                    areaid = cw.cwpy.areaid
+                selected = -1
+                for key, s in seq:
+                    if key == areaid:
+                        selected = len(choices)
+                    choices.append(s)
                 dlg = wx.SingleChoiceDialog(
                     self, u"移動するエリアを選択してください。",
                     u"エリアの選択", choices)
+                dlg.SetSelection(selected)
 
                 if dlg.ShowModal() == wx.ID_OK:
                     func = cw.cwpy.change_area
