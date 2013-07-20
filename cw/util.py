@@ -345,11 +345,18 @@ def load_bgm(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        f = io.BufferedReader(io.FileIO(path))
-        pygame.mixer.music.load(f)
-    except:
-        print u"BGMが読み込めません", path
-        return
+        # ファイルパスを渡して読込
+        encoding = sys.getfilesystemencoding()
+        pygame.mixer.music.load(path.encode(encoding))
+    except Exception, ex:
+        print ex
+        try:
+            # ストリームからの読込を試みる
+            f = io.BufferedReader(io.FileIO(path))
+            pygame.mixer.music.load(f)
+        except Exception, ex:
+            print ex
+            print u"BGMが読み込めません", path
 
 def load_sound(path):
     """効果音ファイルを読み込み、SoundInterfaceを返す。
