@@ -10,6 +10,7 @@ import StringIO
 import wx
 import pygame
 import xml.parsers.expat
+import shutil
 
 import cw
 
@@ -386,13 +387,8 @@ class CardHeader(object):
                 if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
-    def write(self, party=None):
-        if self.carddata is None:
-            return
-
-        if self.fpath:
-            path = self.fpath
-        else:
+    def write(self, party=None, move=False):
+        def create_newpath(party):
             fname = cw.util.repl_dischar(self.name) + ".xml"
             if self._owner == "BACKPACK":
                 if not party:
@@ -401,16 +397,47 @@ class CardHeader(object):
             else:
                 dpath = cw.cwpy.yadodir
             path = cw.util.join_paths(dpath, self.type, fname)
-            self.fpath = cw.util.dupcheck_plus(path)
+            return cw.util.dupcheck_plus(path)
 
-        etree = cw.data.xml2etree(element=self.carddata)
-        etree.fpath = self.fpath
+        if move:
+            assert self.fpath
+            cw.cwpy.ydata.deletedpaths.add(self.fpath)
+            topath = create_newpath(party)
 
-        if not self.type == "BeastCard":
-            etree.edit("Property/Hold", "False")
+            if topath.startswith(cw.cwpy.yadodir):
+                topath = topath.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
-        etree.write_xml(True)
-        self.fpath = etree.fpath
+            dpath = os.path.dirname(topath)
+            if not os.path.isdir(dpath):
+                os.makedirs(dpath)
+
+            if self.fpath.startswith(cw.cwpy.tempdir):
+                # すでにtempdirにあるファイルならそのまま移動
+                cw.cwpy.ydata.deletedpaths.discard(self.fpath)
+                shutil.move(self.fpath, topath)
+            else:
+                # yadodirにあるファイルはコピーする必要がある
+                shutil.copy(self.fpath, topath)
+
+            self.fpath = topath
+        else:
+            if self.carddata is None:
+                return
+
+            if self.fpath:
+                path = self.fpath
+            else:
+                path = create_newpath(party)
+                self.fpath = path
+
+            etree = cw.data.xml2etree(element=self.carddata)
+            etree.fpath = self.fpath
+
+            if not self.type == "BeastCard":
+                etree.edit("Property/Hold", "False")
+
+            etree.write_xml(True)
+            self.fpath = etree.fpath
         # self.fpathを削除予定のfpathリストから削除
         cw.cwpy.ydata.deletedpaths.discard(self.fpath)
 

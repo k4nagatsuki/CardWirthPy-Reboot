@@ -1797,6 +1797,12 @@ class CWPy(_Singleton, threading.Thread):
         else:
             owner = header.get_owner()
 
+        # 荷物袋<=>カード置場のため
+        # ファイルの移動だけで済む場合
+        move = (targettype in ("BACKPACK", "STOREHOUSE")) and\
+            ((owner == self.ydata.storehouse) or (party and owner == party.backpack)) and\
+            (not self.is_playingscenario())
+
         # 移動先を設定。
         if targettype == "PLAYERCARD":
             target = target
@@ -1902,6 +1908,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 移動元がCharacterだった場合
         if isinstance(owner, cw.character.Character):
+            assert not move
             # 移動元のCardHolderからCardHeaderを削除
             owner.cardpocket[index].remove(header)
             # 移動元からカードのエレメントを削除
@@ -1964,6 +1971,9 @@ class CWPy(_Singleton, threading.Thread):
                     etree.write_xml()
                     header.moved = moved
                     party.backpack_moved.append(header)
+                elif move:
+                    # ファイルの移動のみ
+                    self.ydata.deletedpaths.add(header.fpath, header.scenariocard)
                 else:
                     # 宿にいる場合はそのまま削除する
                     header.contain_xml()
@@ -1972,10 +1982,15 @@ class CWPy(_Singleton, threading.Thread):
         elif owner == self.ydata.storehouse:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
-            header.contain_xml()
+            if move:
+                # ファイルの移動のみ
+                self.ydata.deletedpaths.add(header.fpath, header.scenariocard)
+            else:
+                header.contain_xml()
 
         # 移動元が存在しない場合(get or loseコンテンツから呼んだ場合)
         else:
+            assert not move
             header.contain_xml()
 
         #-----------------------------------------------------------------------
@@ -1984,6 +1999,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 移動先がゴミ箱・下取りだったら
         if targettype in ("PAWNSHOP", "TRASHBOX"):
+            assert not move
             # 付帯以外の召喚獣カードの場合
             if header.type == "BeastCard" and not header.attachment and\
                     isinstance(owner, cw.character.Character):
@@ -1998,6 +2014,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 移動先がPlayerCardだった場合
         if targettype == "PLAYERCARD":
+            assert not move
             # cardpocketにCardHeaderを追加
             header.set_owner(target)
             header.set_hold(hold)
@@ -2056,6 +2073,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 下取りに出した場合
         elif targettype == "PAWNSHOP":
+            assert not move
             # パーティの所持金または金庫に下取金を追加
             if party:
                 party.set_money(price)
@@ -2064,12 +2082,17 @@ class CWPy(_Singleton, threading.Thread):
 
         if targettype in ("BACKPACK", "STOREHOUSE"):
             # 移動先が荷物袋かカード置場だったら
-            header.fpath = ""
-            etree = cw.data.xml2etree(element=header.carddata)
-            if etree.getint("Property", "moved", 0) <> 0:
-                etree.remove("Property", attrname="moved")
-            header.write(party)
-            header.carddata = None
+            if move:
+                header.write(party, move=True)
+                header.carddata = None
+            else:
+                header.fpath = ""
+                etree = cw.data.xml2etree(element=header.carddata)
+                # F9用に削除フラグを立てる
+                if etree.getint("Property", "moved", 0) <> 0:
+                    etree.remove("Property", attrname="moved")
+                header.write(party)
+                header.carddata = None
 
         # カード選択ダイアログを再び開く(イベントから呼ばれたのでなかったら)
         if not from_event:
