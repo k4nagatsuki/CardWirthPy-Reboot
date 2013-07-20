@@ -503,7 +503,7 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         ホイールイベント。
         """
-        if cw.cwpy.has_inputevent:
+        if cw.cwpy.has_inputevent or not cw.cwpy.is_showingmessage():
             return
 
         if len(cw.cwpy.list) == 1 and y > 0:

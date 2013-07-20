@@ -633,15 +633,15 @@ class SelectionBar(base.SelectableSprite):
         if self.backlog:
             return
 
+        mwin = cw.cwpy.get_messagewindow()
+        if not mwin:
+            return
+
         cw.cwpy.sounds["click"].play(True)
 
         # クリックした時だけ、軽く下に押されるアニメーションを行う
         if not skip:
             cw.animation.animate_sprite(self, "click")
-
-        mwin = cw.cwpy.get_messagewindow()
-        if not mwin:
-            return
 
         # イベント再開(次コンテントへのIndexを渡す)
         if isinstance(mwin, MemberSelectWindow):
