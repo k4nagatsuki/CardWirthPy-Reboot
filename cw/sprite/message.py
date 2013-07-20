@@ -233,7 +233,7 @@ class MessageWindow(base.CWPySprite):
         # フォントデータ
         font = cw.cwpy.rsrc.fonts["message"]
         colour = (255, 255, 255)
-        h = font.get_height() - 1
+        lineheight = font.get_height() - 1
         # 各種変数
         cnt = 0
         skip = False
@@ -243,7 +243,7 @@ class MessageWindow(base.CWPySprite):
             # 改行処理
             if char == "\n":
                 cnt += 1
-                pos = posp[0], h * cnt + posp[1]
+                pos = posp[0], lineheight * cnt + posp[1]
 
                 # 8行以下の文字列は表示しない
                 if cnt > 6:
