@@ -576,7 +576,9 @@ class ScenarioData(SystemData):
         element = cw.data.make_element("BackpackFiles")
         yadodir = cw.cwpy.ydata.party.get_yadodir()
         tempdir = cw.cwpy.ydata.party.get_tempdir()
-        for header in cw.cwpy.ydata.party.backpack:
+        backpack = cw.cwpy.ydata.party.backpack[:]
+        cw.util.sort_by_attr(backpack, "order")
+        for header in backpack:
             if header.fpath.lower().startswith("yado"):
                 fpath = os.path.relpath(header.fpath, yadodir)
             else:
@@ -1139,22 +1141,28 @@ class YadoData(object):
         """宿データをセーブする。"""
         # カード置場の順序を記憶しておく
         cardorder = {}
+        cardtable = {}
         for i, header in enumerate(self.storehouse):
             if header.fpath.lower().startswith("yado"):
                 fpath = os.path.relpath(header.fpath, self.yadodir)
             else:
                 fpath = os.path.relpath(header.fpath, self.tempdir)
+                header.fpath = header.fpath.replace(self.tempdir, self.yadodir)
             fpath = cw.util.join_paths(fpath)
             cardorder[fpath] = header.order
+            cardtable[fpath] = header
         # 宿帳の順序を記憶しておく
         adventurerorder = {}
+        adventurertable = {}
         for i, header in enumerate(self.standbys):
             if header.fpath.lower().startswith("yado"):
                 fpath = os.path.relpath(header.fpath, self.yadodir)
             else:
                 fpath = os.path.relpath(header.fpath, self.tempdir)
+                header.fpath = header.fpath.replace(self.tempdir, self.yadodir)
             fpath = cw.util.join_paths(fpath)
             adventurerorder[fpath] = header.order
+            adventurertable[fpath] = header
 
         # ScenarioLog更新
         if cw.cwpy.is_playingscenario():
@@ -1201,6 +1209,7 @@ class YadoData(object):
             ppath = os.path.dirname(party.path)
             yadodir = party.get_yadodir()
             tempdir = party.get_tempdir()
+            cardtable = {}
             for i, header in enumerate(party.backpack):
                 if header.fpath.lower().startswith("yado"):
                     fpath = os.path.relpath(header.fpath, yadodir)
@@ -1209,8 +1218,9 @@ class YadoData(object):
                     header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
                 fpath = cw.util.join_paths(fpath)
                 cardorder[fpath] = header.order
+                cardtable[fpath] = header
             carddb = cw.yadodb.YadoDB(ppath, mode=cw.yadodb.PARTY)
-            carddb.update(cardorder=cardorder)
+            carddb.update(cards=cardtable, cardorder=cardorder)
             carddb.close()
         if self.party:
             update_backpack(self.party)
@@ -1221,7 +1231,7 @@ class YadoData(object):
 
         # カードデータベースを更新
         yadodb = cw.yadodb.YadoDB(self.yadodir)
-        yadodb.update(cardorder=cardorder, adventurerorder=adventurerorder)
+        yadodb.update(cards=cardtable, adventurers=adventurertable, cardorder=cardorder, adventurerorder=adventurerorder)
         yadodb.close()
 
         cw.cwpy.clear_selection()

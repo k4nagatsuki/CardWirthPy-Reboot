@@ -219,7 +219,7 @@ class YadoDB(object):
     @synclock(_lock)
     def update(self, cards=True, adventurers=True, parties=True, cardorder={}, adventurerorder={}):
         """データベースを更新する。"""
-        def walk(dpath, insert, *args):
+        def walk(dpath, headertable, insert, insertheader, *args):
             dir = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dir):
                 for file in os.listdir(dir):
@@ -227,7 +227,10 @@ class YadoDB(object):
                         continue
                     path = cw.util.join_paths(dpath, file)
                     if not path in dbpaths:
-                        insert(cw.util.join_paths(self.ypath, path), *args)
+                        if isinstance(headertable, dict) and path in headertable:
+                            insertheader(headertable[path], *args)
+                        else:
+                            insert(cw.util.join_paths(self.ypath, path), *args)
 
         if cards:
             s = "SELECT fpath, mtime FROM card"
@@ -242,10 +245,13 @@ class YadoDB(object):
                     dbpaths.add(t[0])
                     if os.path.getmtime(path) > t[1]:
                         # 情報を更新
-                        self._insert_card(path, False)
-            walk("SkillCard", self._insert_card, False)
-            walk("ItemCard", self._insert_card, False)
-            walk("BeastCard", self._insert_card, False)
+                        if isinstance(cards, dict) and path in cards:
+                            self._insert_cardheader(cards[path], False)
+                        else:
+                            self._insert_card(path, False)
+            walk("SkillCard", cards, self._insert_card, self._insert_cardheader, False)
+            walk("ItemCard", cards, self._insert_card, self._insert_cardheader, False)
+            walk("BeastCard", cards, self._insert_card, self._insert_cardheader, False)
             if cardorder:
                 # カードの並び順を登録する
                 s = "DELETE FROM cardorder"
@@ -275,9 +281,12 @@ class YadoDB(object):
                     dbpaths.add(t[0])
                     if os.path.getmtime(path) > t[1]:
                         # 情報を更新
-                        self._insert_adventurer(path, bool(t[2]), False)
-            walk("Adventurer", self._insert_adventurer, False, False)
-            walk("Album", self._insert_adventurer, True, False)
+                        if isinstance(adventurers, dict) and path in adventurers:
+                            self._insert_adventurerheader(adventurers[path], bool(t[2]), False)
+                        else:
+                            self._insert_adventurer(path, bool(t[2]), False)
+            walk("Adventurer", adventurers, self._insert_adventurer, self._insert_adventurerheader, False, False)
+            walk("Album", {}, self._insert_adventurer, self._insert_adventurerheader, True, False)
 
             if adventurerorder:
                 # 冒険者の並び順を登録する
@@ -308,9 +317,12 @@ class YadoDB(object):
                     dbpaths.add(t[0])
                     if os.path.getmtime(path) > t[1]:
                         # 情報を更新
-                        self._insert_party(path, False)
+                        if isinstance(parties, dict) and path in parties:
+                            self._insert_partyheader(parties[path], False)
+                        else:
+                            self._insert_party(path, False)
             for dpath in os.listdir(cw.util.join_paths(self.ypath, "Party")):
-                walk(cw.util.join_paths("Party", dpath), self._insert_party, False)
+                walk(cw.util.join_paths("Party", dpath), parties, self._insert_party, self._insert_partyheader, False)
 
         self.con.commit()
 

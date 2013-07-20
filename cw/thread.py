@@ -899,16 +899,17 @@ class CWPy(_Singleton, threading.Thread):
         self.ydata.party.backpack = []
         self.ydata.party.backpack_moved = []
 
-        for e in etree.getfind("."):
+        for i, e in enumerate(etree.getfind(".")):
             header = backpacktable[e.text]
             del backpacktable[e.text]
             if header.moved <> 0:
                 # 削除フラグを除去
                 etree = cw.data.yadoxml2etree(header.fpath)
                 etree.remove("Property", attrname="moved")
-                etree.write()
+                header.write()
                 header.moved = 0
             self.ydata.party.backpack.append(header)
+            header.order = i
         for fpath, header in backpacktable.iteritems():
             if not header.scenariocard:
                 self.remove_xml(header)
@@ -1803,6 +1804,10 @@ class CWPy(_Singleton, threading.Thread):
             ((owner == self.ydata.storehouse) or (party and owner == party.backpack)) and\
             (not self.is_playingscenario())
 
+        # カード置場・荷物袋内での位置の移動の場合
+        toself = (targettype == "BACKPACK" and party and owner == party.backpack) or\
+                 (targettype == "STOREHOUSE" and owner == self.ydata.storehouse)
+
         # 移動先を設定。
         if targettype == "PLAYERCARD":
             target = target
@@ -1949,7 +1954,10 @@ class CWPy(_Singleton, threading.Thread):
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
 
-            if header.scenariocard:
+            if toself:
+                # 荷物袋内の位置のみ変更
+                pass
+            elif header.scenariocard:
                 # シナリオで入手したカードはそのまま削除してよい
                 header.contain_xml()
             else:
@@ -1982,7 +1990,10 @@ class CWPy(_Singleton, threading.Thread):
         elif owner == self.ydata.storehouse:
             # 移動元のリストからCardHeaderを削除
             owner.remove(header)
-            if move:
+            if toself:
+                # カード置場内の位置のみ変更
+                pass
+            elif move:
                 # ファイルの移動のみ
                 self.ydata.deletedpaths.add(header.fpath, header.scenariocard)
             else:
@@ -2080,7 +2091,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.ydata.set_money(price)
 
-        if targettype in ("BACKPACK", "STOREHOUSE"):
+        if targettype in ("BACKPACK", "STOREHOUSE") and not toself:
             # 移動先が荷物袋かカード置場だったら
             if move:
                 header.write(party, move=True)
@@ -2088,9 +2099,10 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 header.fpath = ""
                 etree = cw.data.xml2etree(element=header.carddata)
-                # F9用に削除フラグを立てる
+                # 削除フラグを除去
                 if etree.getint("Property", "moved", 0) <> 0:
                     etree.remove("Property", attrname="moved")
+                    header.moved = 0
                 header.write(party)
                 header.carddata = None
 
