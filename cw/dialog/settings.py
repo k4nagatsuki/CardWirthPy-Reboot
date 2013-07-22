@@ -208,7 +208,7 @@ class GeneralSettingPanel(wx.Panel):
         self.st_skin = wx.StaticText(self, -1, s)
 
         # 拡大表示モード
-        self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F1キーで拡大)")
+        self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F4キーで拡大)")
         self.expandmodes = [
             "None", "FullScreen", "1.5", "2", "3", "4"]
         self.choices_expand = [
