@@ -90,6 +90,9 @@ class ItemCard(base.CWBinaryBase):
 
     def get_data(self):
         if self.data is None:
+            if 2 < self.premium:
+                # シナリオで入手したカード
+                self.set_image_export(False, True)
             if not self.imgpath:
                 if self.image:
                     self.imgpath = self.export_image()
@@ -137,9 +140,7 @@ class ItemCard(base.CWBinaryBase):
             e = cw.data.make_element("KeyCodes", cw.util.encodetextlist(self.keycodes))
             prop.append(e)
             if 2 < self.premium:
-                # シナリオで入手したカード
                 self.data.set("scenariocard", "True")
-                self.set_image_export(False, True)
                 e = cw.data.make_element("Premium", self.conv_card_premium(self.premium - 2))
             else:
                 e = cw.data.make_element("Premium", self.conv_card_premium(self.premium))
