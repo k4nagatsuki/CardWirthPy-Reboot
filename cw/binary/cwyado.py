@@ -374,6 +374,7 @@ class CWYado(object):
         e_prop.append(e)
         # bgimages
         e_bgimgs = cw.data.make_element("BgImages")
+        partymembers.set_materialdir("")
         for bgimg in partymembers.bgimgs:
             e_bgimgs.append(bgimg.get_data())
         element.append(e_bgimgs)
