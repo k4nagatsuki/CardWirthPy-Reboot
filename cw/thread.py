@@ -919,6 +919,9 @@ class CWPy(_Singleton, threading.Thread):
         if not self.areaid > 0:
             self.areaid = self.pre_areaids[0]
 
+        # Curtainスプライト解除
+        self.clear_curtain()
+
         # スプライトを作り直す
         pcards = self.get_pcards()
         showparty = bool(self.pcardgrp.get_sprites_from_layer(0))
