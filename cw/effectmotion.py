@@ -112,7 +112,10 @@ class Effect(object):
         event = target.events.check_keycodes(keycodes)
 
         if event:
+            lock = cw.cwpy.lock_menucards
+            cw.cwpy.lock_menucards = False
             target.events.start(keycodes=keycodes)
+            cw.cwpy.lock_menucards = lock
             return True
         else:
             cw.cwpy.sounds["ineffective"].play(True)
