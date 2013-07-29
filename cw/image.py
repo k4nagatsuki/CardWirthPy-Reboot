@@ -586,10 +586,8 @@ def create_colorcell(size, color1, gradient, color2):
     def calc_per(mn, mx, per):
         if mn == mx:
             return mn
-        l = min(mn, mx)
-        r = max(mx, mn)
-        c = r - l
-        return min(255, max(0, int(l + c * per)))
+        c = mx - mn
+        return min(255, max(0, int(mn + c * per)))
 
     w = image.get_width()
     h = image.get_height()
