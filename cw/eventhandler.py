@@ -613,8 +613,7 @@ class EventHandlerForBacklog(EventHandler):
         """
         F9キーイベント。緊急非難。
         """
-        self.mwin = None
-        EventHandler.f9key_event()
+        EventHandler.f9key_event(self)
 
     def lclick_event(self):
         """

@@ -625,12 +625,17 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_selection()
         self.statusbar.change(False)
 
-        while self.is_running() and eventhandler.mwin:
+        while self.is_running() and eventhandler.mwin and\
+                cw.cwpy.sdata._playing:
             self.sbargrp.update(self.scr)
             self.draw()
             self.tick_clock()
             self.input()
             eventhandler.run()
+        else:
+            # f9帰還時用
+            if not cw.cwpy.sdata._playing:
+                eventhandler.exit_backlog()
 
         # 背景スプライト削除
         self.backloggrp.remove(curtain)
