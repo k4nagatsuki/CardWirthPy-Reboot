@@ -1659,6 +1659,11 @@ class GetCastContent(GetContent):
                     cw.cwpy.ydata.changed()
                 fcard = cw.sprite.card.FriendCard(id)
                 cw.cwpy.sdata.friendcards.append(fcard)
+                if cw.cwpy.is_battlestatus() and fcard.is_alive():
+                    # 即戦闘に参加する
+                    cw.cwpy.battle.members.append(fcard)
+                    cw.cwpy.battle.set_actionorder()
+                    fcard.decide_action()
 
         return 0
 
@@ -1963,6 +1968,9 @@ class LoseCastContent(LoseContent):
             if fcards:
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()
+                if cw.cwpy.is_battlestatus():
+                    cw.cwpy.battle.members.remove(fcards[0])
+                    fcards[0].clear_action()
                 cw.cwpy.sdata.friendcards.remove(fcards[0])
 
         return 0
