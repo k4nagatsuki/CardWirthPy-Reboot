@@ -1329,7 +1329,7 @@ class CWPy(_Singleton, threading.Thread):
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")
-        sprite.remove(cw.cwpy.pcardgrp)
+        sprite.remove(cw.cwpy.topgrp)
         self.set_battle()
         oldareaid = self.areaid
         oldbgmpath = self.music.path

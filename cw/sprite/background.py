@@ -356,7 +356,7 @@ class BattleCardImage(card.CWPyCard):
         self.clear_image()
         self.highspeed = True
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self, layer="battlecard")
+        cw.cwpy.topgrp.add(self, layer="battlecard")
 
     def update_battlestart(self):
         cw.animation.animate_sprite(self, "deal")
