@@ -408,7 +408,7 @@ class InuseCardImage(card.CWPyCard):
         else:
             self.group = cw.cwpy.mcardgrp
         self.group.add(self)
-        if user:
+        if user and not center:
             top = False
             for sprite in self.group.sprites()[:]:
                 if sprite == user:
