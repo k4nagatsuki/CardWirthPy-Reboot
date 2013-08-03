@@ -213,9 +213,10 @@ class Setting(object):
     def set_dealspeed(self, value):
         self.dealspeed = value + 1
         self.dealspeed = cw.util.numwrap(self.dealspeed, 1, 11)
+        scales_len = int(self.dealspeed * 1.2)
         self.dealing_scales = [
-            int(math.cos(math.radians(90.0 * i / self.dealspeed)) * 100)
-            for i in xrange(self.dealspeed)
+            int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
+            for i in xrange(scales_len)
                 if i
         ]
 
