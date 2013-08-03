@@ -609,12 +609,6 @@ class EventHandlerForBacklog(EventHandler):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 self.executing_event(event)
 
-    def f9key_event(self):
-        """
-        F9キーイベント。緊急非難。
-        """
-        EventHandler.f9key_event(self)
-
     def lclick_event(self):
         """
         左クリックイベント。
