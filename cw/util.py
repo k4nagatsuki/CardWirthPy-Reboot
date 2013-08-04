@@ -63,11 +63,15 @@ class MusicInterface(object):
             self.set_volume()
             if self.fpath <> fpath:
                 load_bgm(fpath)
+                filesize = os.path.getsize(fpath)
 
-                rpath = "DefReset" + cw.cwpy.rsrc.ext_bgm
-                rpath = join_paths(cw.cwpy.setting.skindir, "Bgm", rpath)
-                if os.path.normcase(fpath) == os.path.normcase(rpath):
-                    # FIXME: DefReset.midを繰り返し流すとシステムが不安定になる
+                # FIXME: reset.mid
+                # 繰り返し流すとハングアップ pygame 1.9.1
+                if filesize == 57 and cw.util.get_md5(fpath) == "d11be4c76fc63a6ba299c2f3bd3880b0":
+                    pygame.mixer.music.play(0)
+                elif filesize == 737 and cw.util.get_md5(fpath) == "41b0a6aaa8ffefa9ce6742e80e393075":
+                    # FIXME: DefReset.mid
+                    # 繰り返し流すとシステムが不安定になる pygame 1.9.1
                     pygame.mixer.music.play(0)
                 elif os.path.splitext(fpath)[1].lower() == ".mp3":
                     # 互換動作: 1.28以前はMP3がループ再生されない
