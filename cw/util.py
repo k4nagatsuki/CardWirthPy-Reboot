@@ -63,7 +63,12 @@ class MusicInterface(object):
             self.set_volume()
             if self.fpath <> fpath:
                 load_bgm(fpath)
-                filesize = os.path.getsize(fpath)
+                filesize = 0
+                if os.path.isfile(fpath):
+                    try:
+                        filesize = os.path.getsize(fpath)
+                    except Exception, e:
+                        print e
 
                 # FIXME: reset.mid
                 # 繰り返し流すとハングアップ pygame 1.9.1
