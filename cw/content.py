@@ -822,6 +822,10 @@ class BranchFlagContent(BranchContent):
         if flag in cw.cwpy.sdata.flags:
             flag = cw.cwpy.sdata.flags[flag]
             index = self.get_boolean_index(flag)
+        elif len(self.data.getfind("Contents")):
+            # フラグが存在しない場合は
+            # 常に最初の子コンテントが選ばれる
+            index = 0
         else:
             index = cw.IDX_TREEEND
 
@@ -857,6 +861,10 @@ class BranchStepContent(BranchContent):
         if step in cw.cwpy.sdata.steps:
             flag = bool(cw.cwpy.sdata.steps[step].value >= value)
             index = self.get_boolean_index(flag)
+        elif len(self.data.getfind("Contents")):
+            # ステップｓが存在しない場合は
+            # 常に最初の子コンテントが選ばれる
+            index = 0
         else:
             index = cw.IDX_TREEEND
 
@@ -893,6 +901,10 @@ class BranchMultiStepContent(BranchContent):
         if step in cw.cwpy.sdata.steps:
             value = str(cw.cwpy.sdata.steps[step].value)
             index = self.get_value_index(value)
+        elif len(self.data.getfind("Contents")):
+            # ステップｓが存在しない場合は
+            # 常に最初の子コンテントが選ばれる
+            index = 0
         else:
             index = cw.IDX_TREEEND
 
