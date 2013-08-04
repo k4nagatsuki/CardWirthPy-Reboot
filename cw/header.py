@@ -524,12 +524,13 @@ class CardHeader(object):
         flag = not bool(card.target == "None")
 
         # 使用時ボーナス・ペナルティがあるカードは無条件に選択可能
-        if card.enhance_avo_used <> 0 or\
-           card.enhance_res_used <> 0 or\
-           card.enhance_def_used <> 0:
-            return True
+        if not card.hold:
+            if card.enhance_avo_used <> 0 or\
+               card.enhance_res_used <> 0 or\
+               card.enhance_def_used <> 0:
+                return True
 
-        # ペナルティカードは無条件に選択可能
+        # ペナルティカードは無条件に選択可能(ホールドも不可)
         if card.type <> "BeastCard" and card.penalty:
             return True
 
