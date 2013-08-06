@@ -558,8 +558,6 @@ def set_textcellfont(wxdc, size, face, color, bold, italic,
         weight = wx.FONTWEIGHT_BOLD
     if italic:
         style = wx.FONTSTYLE_ITALIC
-    if vertical and not face.startswith("@"):
-        face = "@" + face
 
     font = wx.Font(cw.s(12), family, style, weight, uline, face, encoding)
     font.SetPixelSize((0, size))
