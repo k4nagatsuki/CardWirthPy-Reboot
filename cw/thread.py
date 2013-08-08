@@ -639,7 +639,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 背景スプライト削除
         self.backloggrp.remove(curtain)
-        self.statusbar.change()
+        self.statusbar.change(not self.is_runningevent())
         self.draw()
 
     def set_titlebar(self, s):
