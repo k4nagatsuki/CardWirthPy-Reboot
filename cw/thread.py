@@ -568,6 +568,8 @@ class CWPy(_Singleton, threading.Thread):
         """
         eventhandler = cw.eventhandler.EventHandlerForMessageWindow(mwin)
         self.clear_selection()
+        locks = self.lock_menucards
+        self.lock_menucards = False
 
         while self.is_running() and mwin.result is None:
             self.event.refresh_activeitem()
@@ -580,6 +582,7 @@ class CWPy(_Singleton, threading.Thread):
             self.input()
             eventhandler.run()
         self.clear_selection()
+        self.lock_menucards = locks
 
         # バックログの保存
         if isinstance(mwin.result, int) and\
@@ -625,6 +628,8 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_selection()
         self.statusbar.change(False)
 
+        locks = self.lock_menucards
+        self.lock_menucards = False
         while self.is_running() and eventhandler.mwin and\
                 cw.cwpy.sdata._playing:
             self.sbargrp.update(self.scr)
@@ -636,6 +641,7 @@ class CWPy(_Singleton, threading.Thread):
             # f9帰還時用
             if not cw.cwpy.sdata._playing:
                 eventhandler.exit_backlog()
+        self.lock_menucards = locks
 
         # 背景スプライト削除
         self.backloggrp.remove(curtain)
