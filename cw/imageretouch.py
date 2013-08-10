@@ -502,17 +502,18 @@ def add_transparentline(image, vline, hline):
     hline: bool値。Trueなら横線を入れる。
     """
     image = image.copy().convert_alpha()
+    color = image.get_at((0, 0))
     w, h = image.get_size()
 
     if vline:
         for cnt in xrange(w / 2 - 1):
             x = cnt * 2
-            pygame.draw.line(image, (0, 0, 0, 0), (x, 0), (x, h))
+            pygame.draw.line(image, color, (x, 0), (x, h))
 
     if hline:
         for cnt in xrange(h / 2 - 1):
             y = cnt * 2
-            pygame.draw.line(image, (0, 0, 0, 0), (0, y), (w, y))
+            pygame.draw.line(image, color, (0, y), (w, y))
 
     return image
 
