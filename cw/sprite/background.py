@@ -31,7 +31,7 @@ class BackGround(base.CWPySprite):
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
-        self.reload(doanime=False, ttype=("None", "None"))
+        self.reload(doanime=False, ttype=("None", "None"), redraw=False)
 
     def update_skin(self, oldskindir, newskindir):
         for i, t in enumerate(self.bgs):
@@ -175,9 +175,9 @@ class BackGround(base.CWPySprite):
             else:
                 assert False
 
-        self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs)
+        self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
 
-    def reload(self, doanime=True, ttype=("Default", "Default")):
+    def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -206,7 +206,7 @@ class BackGround(base.CWPySprite):
                 assert False
 
         self.bgs = bgs
-        self._load_after(False, blitlist, animated, transitspr, oldbgs)
+        self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime):
         path, mask, size, pos, flag, visible = d
@@ -267,7 +267,7 @@ class BackGround(base.CWPySprite):
             bgs.append((BG_COLOR, d))
             oldbgs.append((BG_COLOR, d))
 
-    def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs):
+    def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs, redraw):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
         if not bginhrt:
             self.image = pygame.Surface(cw.s(cw.SIZE_SCR)).convert()
@@ -297,12 +297,13 @@ class BackGround(base.CWPySprite):
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
         # トランジション効果で画面入り
-        if not animated and transitspr and not oldbgs == self.bgs:
-            transitspr.add(cw.cwpy.bggrp)
-            cw.animation.animate_sprite(transitspr, "transition", background=True)
-            transitspr.remove(cw.cwpy.bggrp)
-        else:
-            cw.cwpy.draw()
+        if redraw:
+            if not animated and transitspr and not oldbgs == self.bgs:
+                transitspr.add(cw.cwpy.bggrp)
+                cw.animation.animate_sprite(transitspr, "transition", background=True)
+                transitspr.remove(cw.cwpy.bggrp)
+            else:
+                cw.cwpy.draw()
 
 class Curtain(base.SelectableSprite):
     def __init__(self, spritegrp, size_noscale, pos_noscale, alpha=128):
