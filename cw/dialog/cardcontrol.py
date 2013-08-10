@@ -290,7 +290,7 @@ class CardControl(wx.Dialog):
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW)
         dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
         dc.DrawLine(cw.s(1), cw.s(21), cw.s(499), cw.s(21))
-        # 移動モード見出し
+        # モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(11)))
         if self.callname == "INFOVIEW" or\
@@ -545,7 +545,7 @@ class CardHolder(CardControl):
             name =  cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.bgcolour = wx.Colour(0, 0, 128)
             sendto = (not cw.cwpy.is_playingscenario()\
-                        or cw.cwpy.areaid == cw.AREA_CAMP)\
+                        or cw.cwpy.areaid == cw.AREA_CAMP or cw.cwpy.areaid in cw.AREAS_TRADE)\
                         and isinstance(self.selection, cw.character.Player)
             # self.index3(0:スキル, 1:アイテム, 2:召喚獣)。トグルボタンで切り替える
             self.list = self.selection.cardpocket[self.index3]
