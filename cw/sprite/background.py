@@ -71,6 +71,8 @@ class BackGround(base.CWPySprite):
                 anime = True
             else:
                 image = cw.util.load_image(path, mask)
+        except cw.event.EffectBreakError, ex:
+            raise ex
         except Exception, ex:
             print ex
             return None, False

@@ -18,6 +18,8 @@ class EventHandler(object):
         elif cw.cwpy.keyin[K_RIGHT] > cw.cwpy.keyevent.threshold:
             self.dirkey_event(x=1)
 
+        exception = None
+
         for event in cw.cwpy.events:
             if event.type == KEYDOWN:
                 # ESCAPEキー
@@ -76,7 +78,15 @@ class EventHandler(object):
 
             # ユーザイベント
             elif event.type == USEREVENT and hasattr(event, "func"):
-                self.executing_event(event)
+                try:
+                    self.executing_event(event)
+                except Exception, ex:
+                    # 全てのイベントを確実に実行するため
+                    # 例外はここでキャッチしておき、最後に投げる
+                    exception = ex
+
+        if exception:
+            raise exception
 
     def calc_index(self, value):
         length = len(cw.cwpy.list)
@@ -339,6 +349,8 @@ class EventHandlerForMessageWindow(EventHandler):
         elif cw.cwpy.keyin[K_DOWN] > cw.cwpy.keyevent.threshold:
             self.dirkey_event(y=1)
 
+        exception = None
+
         for event in cw.cwpy.events:
             if event.type == KEYDOWN:
                 # ESCAPEキー
@@ -408,7 +420,15 @@ class EventHandlerForMessageWindow(EventHandler):
 
             # ユーザイベント
             elif event.type == USEREVENT and hasattr(event, "func"):
-                self.executing_event(event)
+                try:
+                    self.executing_event(event)
+                except Exception, ex:
+                    # 全てのイベントを確実に実行するため
+                    # 例外はここでキャッチしておき、最後に投げる
+                    exception = ex
+
+        if exception:
+            raise exception
 
     def mouse_event(self):
         """
@@ -555,6 +575,8 @@ class EventHandlerForBacklog(EventHandler):
         elif cw.cwpy.keyin[K_DOWN] > cw.cwpy.keyevent.threshold:
             self.dirkey_event(y=1)
 
+        exception = None
+
         for event in cw.cwpy.events:
             if event.type == KEYDOWN:
                 # ESCAPEキー
@@ -607,7 +629,15 @@ class EventHandlerForBacklog(EventHandler):
 
             # ユーザイベント
             elif event.type == USEREVENT and hasattr(event, "func"):
-                self.executing_event(event)
+                try:
+                    self.executing_event(event)
+                except Exception, ex:
+                    # 全てのイベントを確実に実行するため
+                    # 例外はここでキャッチしておき、最後に投げる
+                    exception = ex
+
+        if exception:
+            raise exception
 
     def lclick_event(self):
         """
@@ -727,6 +757,8 @@ class EventHandlerForEffectBooster(EventHandler):
         if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
             self.returnkey_event(True)
 
+        exception = None
+
         for event in cw.cwpy.events:
             if event.type == KEYDOWN:
                 # ESCAPEキー
@@ -767,7 +799,15 @@ class EventHandlerForEffectBooster(EventHandler):
 
             # ユーザイベント
             elif event.type == USEREVENT and hasattr(event, "func"):
-                self.executing_event(event)
+                try:
+                    self.executing_event(event)
+                except Exception, ex:
+                    # 全てのイベントを確実に実行するため
+                    # 例外はここでキャッチしておき、最後に投げる
+                    exception = ex
+
+        if exception:
+            raise exception
 
     def rclick_event(self):
         """

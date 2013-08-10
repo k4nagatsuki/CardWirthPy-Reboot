@@ -631,7 +631,7 @@ class CWPy(_Singleton, threading.Thread):
         locks = self.lock_menucards
         self.lock_menucards = False
         while self.is_running() and eventhandler.mwin and\
-                cw.cwpy.sdata._playing:
+                cw.cwpy.sdata.is_playing:
             self.sbargrp.update(self.scr)
             self.draw()
             self.tick_clock()
@@ -639,7 +639,7 @@ class CWPy(_Singleton, threading.Thread):
             eventhandler.run()
         else:
             # f9帰還時用
-            if not cw.cwpy.sdata._playing:
+            if not cw.cwpy.sdata.is_playing:
                 eventhandler.exit_backlog()
         self.lock_menucards = locks
 
@@ -2248,7 +2248,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_playingscenario(self):
         return bool(isinstance(self.sdata, cw.data.ScenarioData)\
-                                                    and self.sdata._playing)
+                                                    and self.sdata.is_playing)
 
     def is_runningevent(self):
         return bool(self.event._nowrunningevents)

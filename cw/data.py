@@ -243,7 +243,7 @@ class SystemData(object):
 class ScenarioData(SystemData):
     def __init__(self, header, cardonly=False):
         self.data = None
-        self._playing = True
+        self.is_playing = True
         self.fpath = cw.util.get_linktarget(header.get_fpath())
         self.name = header.name
         self.author = header.author
@@ -501,7 +501,7 @@ class ScenarioData(SystemData):
         シナリオの開始時の共通処理をまとめたもの。
         荷物袋のカード画像の更新を行う。
         """
-        self._playing = True
+        self.is_playing = True
 
         for header in cw.cwpy.ydata.party.get_allcardheaders():
             header.set_scenariostart()
@@ -511,7 +511,7 @@ class ScenarioData(SystemData):
         シナリオの正規終了時の共通処理をまとめたもの。
         冒険の中断時やF9時には呼ばない。
         """
-        self._playing = False
+        self.is_playing = False
 
         cw.cwpy.ydata.party.set_lastscenario([])
 
@@ -549,7 +549,7 @@ class ScenarioData(SystemData):
         """
         シナリオ強制終了。俗に言うファッ○ユー。
         """
-        self._playing = False
+        self.is_playing = False
         cw.cwpy.pre_dialogs = []
         cw.cwpy.exec_func(cw.cwpy.f9)
 
