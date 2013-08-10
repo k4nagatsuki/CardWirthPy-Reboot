@@ -418,6 +418,13 @@ class _JpySubImage(cw.image.Image):
             size = (width, height)
             image = pygame.Surface(size).convert()
             image.fill(self.backcolor)
+        # 背景画像作成 for JpyPartsImage
+        elif not hasattr(self, "backcolor") and -1 < self.height and -1 < self.width:
+            width = self.width if self.width > cw.s(0) else cw.s(cw.SIZE_AREA[0])
+            height = self.height if self.height > cw.s(0) else cw.s(cw.SIZE_AREA[1])
+            size = (width, height)
+            image = pygame.Surface(size).convert()
+            image.fill(self.color)
         # 画像なし
         else:
             image = pygame.Surface((0, 0)).convert()
@@ -492,6 +499,7 @@ class JpyPartsImage(_JpySubImage):
         _JpySubImage.__init__(self, config, section, cache)
         self.height = cw.s(config.get_int(section, "height", -1))
         self.width = cw.s(config.get_int(section, "width", -1))
+        self.color = config.get_color(section, "color", (0, 0, 0))
         self.position = cw.s(config.get_ints(section, "position", 2, (0, 0)))
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
