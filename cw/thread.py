@@ -781,6 +781,9 @@ class CWPy(_Singleton, threading.Thread):
         self.battle = None
         self.statusbar.change(False)
 
+        if self.setting.store_skinoneachbase and self.ydata.skinname <> cw.cwpy.setting.skinname:
+            self.update_skin(self.ydata.skinname, changearea=False)
+
         if header and not isinstance(self.sdata, cw.data.ScenarioData):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
