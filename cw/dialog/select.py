@@ -2179,6 +2179,7 @@ class ScenarioSelect(Select):
         if isinstance(self.list[self.index], cw.header.ScenarioHeader):
             header = self.list[self.index]
             path = cw.util.join_paths(header.dpath, header.fname)
+            path = cw.util.get_linktarget(path)
             if os.path.isfile(path):
                 # 圧縮ファイル内から取得
                 if path.lower().endswith(".cab"):
