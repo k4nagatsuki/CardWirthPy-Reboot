@@ -80,12 +80,13 @@ class EventHandler(object):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
-                except Exception, ex:
+                except cw.event.EventError, ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
 
         if exception:
+            traceback.format_exc()
             raise exception
 
     def calc_index(self, value):
@@ -422,7 +423,7 @@ class EventHandlerForMessageWindow(EventHandler):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
-                except Exception, ex:
+                except cw.event.EventError, ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
@@ -631,7 +632,7 @@ class EventHandlerForBacklog(EventHandler):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
-                except Exception, ex:
+                except cw.event.EventError, ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
@@ -801,7 +802,7 @@ class EventHandlerForEffectBooster(EventHandler):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
-                except Exception, ex:
+                except cw.event.EventError, ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
                     exception = ex
