@@ -315,7 +315,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.is_battlestatus():
             # 敵の状態の暴露・非暴露切り替え
-            for sprite in self.get_ecards("unreversed"):
+            for sprite in self.get_mcards():
                 sprite.update_scale()
 
         if not debug and self.is_showingdebugger():
