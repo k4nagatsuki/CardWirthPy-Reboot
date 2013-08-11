@@ -63,6 +63,8 @@ class MusicInterface(object):
 
             self.set_volume()
             if self.fpath <> fpath:
+                self.stop()
+                self._winmm = False
                 type = load_bgm(fpath)
                 if type <> -1:
                     filesize = 0
@@ -72,8 +74,6 @@ class MusicInterface(object):
                         except Exception, e:
                             print e
 
-                    self.stop()
-                    self._winmm = False
                     if type == 1:
                         if sys.platform == "win32":
                             name = "cwbgm"
