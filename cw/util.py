@@ -38,6 +38,7 @@ class MusicInterface(object):
     def __init__(self):
         self.path = ""
         self.fpath = ""
+        self._winmm = False
 
     def play(self, path, updatepredata=True):
         self._play(path, updatepredata)
@@ -62,30 +63,42 @@ class MusicInterface(object):
 
             self.set_volume()
             if self.fpath <> fpath:
-                load_bgm(fpath)
-                filesize = 0
-                if os.path.isfile(fpath):
-                    try:
-                        filesize = os.path.getsize(fpath)
-                    except Exception, e:
-                        print e
+                type = load_bgm(fpath)
+                if type <> -1:
+                    filesize = 0
+                    if os.path.isfile(fpath):
+                        try:
+                            filesize = os.path.getsize(fpath)
+                        except Exception, e:
+                            print e
 
-                # FIXME: reset.mid
-                # 繰り返し流すとハングアップ pygame 1.9.1
-                if filesize == 57 and cw.util.get_md5(fpath) == "d11be4c76fc63a6ba299c2f3bd3880b0":
-                    pygame.mixer.music.play(0)
-                elif filesize == 737 and cw.util.get_md5(fpath) == "41b0a6aaa8ffefa9ce6742e80e393075":
-                    # FIXME: DefReset.mid
-                    # 繰り返し流すとシステムが不安定になる pygame 1.9.1
-                    pygame.mixer.music.play(0)
-                elif os.path.splitext(fpath)[1].lower() == ".mp3":
-                    # 互換動作: 1.28以前はMP3がループ再生されない
-                    if cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
+                    self.stop()
+                    self._winmm = False
+                    if type == 1:
+                        if sys.platform == "win32":
+                            name = "cwbgm"
+                            mciSendStringW = ctypes.windll.winmm.mciSendStringW
+                            mciSendStringW(u'open "%s" alias %s' % (fpath, name), 0, 0, 0)
+                            volume = int(cw.cwpy.setting.vol_bgm * 1000)
+                            mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
+                            mciSendStringW(u"play %s" % (name), 0, 0, 0)
+                            self._winmm = True
+                    elif filesize == 57 and cw.util.get_md5(fpath) == "d11be4c76fc63a6ba299c2f3bd3880b0":
+                        # FIXME: reset.mid
+                        # 繰り返し流すとハングアップ pygame 1.9.1
                         pygame.mixer.music.play(0)
+                    elif filesize == 737 and cw.util.get_md5(fpath) == "41b0a6aaa8ffefa9ce6742e80e393075":
+                        # FIXME: DefReset.mid
+                        # 繰り返し流すとシステムが不安定になる pygame 1.9.1
+                        pygame.mixer.music.play(0)
+                    elif os.path.splitext(fpath)[1].lower() == ".mp3":
+                        # 互換動作: 1.28以前はMP3がループ再生されない
+                        if cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
+                            pygame.mixer.music.play(0)
+                        else:
+                            pygame.mixer.music.play(-1)
                     else:
                         pygame.mixer.music.play(-1)
-                else:
-                    pygame.mixer.music.play(-1)
             self.fpath = fpath
             self.path = path
 
@@ -103,7 +116,15 @@ class MusicInterface(object):
             return
 
         assert threading.currentThread() == cw.cwpy
-        pygame.mixer.music.stop()
+
+        if self._winmm:
+            name = "cwbgm"
+            mciSendStringW = ctypes.windll.winmm.mciSendStringW
+            mciSendStringW(u"stop %s" % (name), 0, 0, 0)
+            mciSendStringW(u"close %s" % (name), 0, 0, 0)
+            self._winmm = False
+        else:
+            pygame.mixer.music.stop()
         self.fpath = ""
         self.path = ""
         # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
@@ -345,6 +366,9 @@ def get_facepaths(sexcoupon, agecoupon, rel=False):
 def load_bgm(path):
     """Pathの音楽ファイルをBGMとして読み込む。
     リピートして鳴らす場合は、cw.audio.MusicInterface参照。
+    pygame.mixer.music.load()が成功した場合は0、
+    winmm.dllを利用して再生する場合は1(Windowsのみ)、
+    失敗した場合は-1を返す。
     path: 音楽ファイルのパス。
     """
     if threading.currentThread() <> cw.cwpy:
@@ -352,20 +376,26 @@ def load_bgm(path):
     if not pygame.mixer or not os.path.isfile(path):
         return
 
+    if sys.platform == "win32" and os.path.splitext(path)[1] in (".mpg", ".mpeg"):
+        return 1
+
     try:
         assert threading.currentThread() == cw.cwpy
         # ファイルパスを渡して読込
         encoding = sys.getfilesystemencoding()
         pygame.mixer.music.load(path.encode(encoding))
+        return 0
     except Exception, ex:
         print ex
         try:
             # ストリームからの読込を試みる
             f = io.BufferedReader(io.FileIO(path))
             pygame.mixer.music.load(f)
+            return 0
         except Exception, ex:
             print ex
             print u"BGMが読み込めません", path
+            return -1
 
 def load_sound(path):
     """効果音ファイルを読み込み、SoundInterfaceを返す。
