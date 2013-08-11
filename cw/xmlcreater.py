@@ -280,8 +280,10 @@ def create_scenariolog(sdata, path, recording):
 
     if cw.cwpy.areaid > 0:
         areaid = cw.cwpy.areaid
-    else:
+    elif cw.cwpy.pre_areaids:
         areaid = cw.cwpy.pre_areaids[0]
+    else:
+        areaid = 0
 
     if not recording:
         e = cw.data.make_element("Debug", str(cw.cwpy.debug))
