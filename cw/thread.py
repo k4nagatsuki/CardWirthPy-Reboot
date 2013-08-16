@@ -1637,6 +1637,17 @@ class CWPy(_Singleton, threading.Thread):
             self.is_mcardsselectable = not self.is_battlestatus() or\
                                        target in ("Both", "Enemy")
 
+            if self.is_pcardsselectable:
+                if self.is_debugmode() and not self.selectedheader:
+                    self.list = self.get_pcards()
+                else:
+                    self.list = self.get_pcards("unreversed")
+            elif self.is_mcardsselectable:
+                self.list = self.get_mcards("visible")
+            else:
+                self.list = []
+            self.index = 0
+
             if self.areaid < 0 or target == "Both":
                 cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
                                              pos_noscale=pos_noscale)
@@ -1660,7 +1671,7 @@ class CWPy(_Singleton, threading.Thread):
                         # noscale2と、enemycardとの重なった領域にcurtain描画
                         # curtain どうしが重なるのを防ぐため、この領域をリストに記録
                         rectcliplist = []
-     
+
                         for card in cards:
                             size = size_noscale_castcard
                             if not card.scale == 100:
@@ -1681,7 +1692,7 @@ class CWPy(_Singleton, threading.Thread):
                                     if rectclip.colliderect(clip):
                                         cutarealist.append(rectclip.clip(clip))
                                 cw.sprite.background.Curtain(self.mcardgrp,size_noscale=clip.size,
-                                                            pos_noscale=clip.topleft, 
+                                                            pos_noscale=clip.topleft,
                                                             cutarealist=cutarealist)
                                 rectcliplist.append(clip)
 
