@@ -306,7 +306,7 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.draw()
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, spritegrp, size_noscale, pos_noscale, alpha=128):
+    def __init__(self, spritegrp, size_noscale, pos_noscale, alpha=128, cutarealist=None):
         """半透明のブルーバックスプライト。右クリックで解除。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         size: スプライトのサイズ。
@@ -322,8 +322,19 @@ class Curtain(base.SelectableSprite):
         self.image.set_alpha(self.alpha)
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s(pos_noscale)
+        self.cutarealist = cutarealist
+        self.cut_curtain()
         # spritegroupに追加
         spritegrp.add(self, layer="curtain")
+
+    def cut_curtain(self):
+        if self.cutarealist:
+            self.image.set_colorkey((0, 0, 0))
+            left_whole, top_whole = self.rect.topleft
+            for cutarea in self.cutarealist:
+                left, top, w, h = cw.s((cutarea))
+                left, top = left - left_whole, top - top_whole
+                self.image.fill((0, 0, 0), (left, top, w, h))
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(self._size_noscale)).convert()
@@ -331,6 +342,7 @@ class Curtain(base.SelectableSprite):
         self.image.set_alpha(self.alpha)
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s(self._pos_noscale)
+        self.cut_curtain()
 
     def rclick_event(self):
         cw.cwpy.sounds["click"].play()

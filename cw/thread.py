@@ -1632,6 +1632,7 @@ class CWPy(_Singleton, threading.Thread):
         if not self.is_curtained():
             size_noscale, pos_noscale = (632, 284), (0, 0)
             size_noscale2, pos_noscale2 = (632, 136), (0, 284)
+            size_noscale_castcard = (95, 130)
             self.is_pcardsselectable = target in ("Both", "Party")
             self.is_mcardsselectable = not self.is_battlestatus() or\
                                        target in ("Both", "Enemy")
@@ -1644,19 +1645,59 @@ class CWPy(_Singleton, threading.Thread):
             elif self.is_playingscenario():
                 if target == "Party":
                     if self.battle:
-                        cw.sprite.background.Curtain(self.pcardgrp, size_noscale=size_noscale,
+                        cw.sprite.background.Curtain(self.mcardgrp, size_noscale=size_noscale,
                                                      pos_noscale=pos_noscale)
                     else:
                         cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
                                                      pos_noscale=pos_noscale)
 
-                    cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
-                                                 pos_noscale=pos_noscale2)
+                    if self.battle:
+                        cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
+                                                     pos_noscale=pos_noscale2)
+                        cards = self.get_ecards()
+                        rect_area = pygame.Rect(pos_noscale2, size_noscale2)
+
+                        # noscale2と、enemycardとの重なった領域にcurtain描画
+                        # curtain どうしが重なるのを防ぐため、この領域をリストに記録
+                        rectcliplist = []
+     
+                        for card in cards:
+                            size = size_noscale_castcard
+                            if not card.scale == 100:
+                                scale = card.scale / 100.0
+                                dummyimage = pygame.Surface(size_noscale_castcard)
+                                dummyimage = pygame.transform.rotozoom(dummyimage, 0, scale)
+                                size = dummyimage.get_size()
+
+                            (area2_y, ), (card_y, ), (card_h, ) = \
+                                    pos_noscale2[1:], card._pos_noscale[1:], size[1:]
+                            # pos_noscale2 の領域に enemycard が重なっているか
+                            if area2_y < card_y + card_h:
+                                rect_card = pygame.Rect(card._pos_noscale, size)
+                                clip = rect_area.clip(rect_card)
+                                # curtain が重なって濃くならないよう、透過色で塗るrectのリスト
+                                cutarealist = []
+                                for rectclip in rectcliplist:
+                                    if rectclip.colliderect(clip):
+                                        cutarealist.append(rectclip.clip(clip))
+                                cw.sprite.background.Curtain(self.mcardgrp,size_noscale=clip.size,
+                                                            pos_noscale=clip.topleft, 
+                                                            cutarealist=cutarealist)
+                                rectcliplist.append(clip)
+
+                    else:
+                        cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
+                                                     pos_noscale=pos_noscale2)
                 elif target == "Enemy":
                     cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
                                                  pos_noscale=pos_noscale)
-                    cw.sprite.background.Curtain(self.pcardgrp, size_noscale=size_noscale2,
+                    cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
                                                  pos_noscale=pos_noscale2)
+                    cards = self.get_pcards()
+                    for card in cards:
+                        cw.sprite.background.Curtain(self.pcardgrp,
+                                                     size_noscale=size_noscale_castcard,
+                                                     pos_noscale=card._pos_noscale)
 
             self._curtained = True
 
