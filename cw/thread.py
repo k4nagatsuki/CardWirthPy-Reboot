@@ -270,9 +270,6 @@ class CWPy(_Singleton, threading.Thread):
             self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), flags)
             cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
 
-            while self.frame.GetClientSize() <> cw.s(cw.SIZE_GAME):
-                pass
-
         self._init_resources()
 
         self.statusbar.update_scale()
