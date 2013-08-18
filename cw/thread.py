@@ -971,6 +971,7 @@ class CWPy(_Singleton, threading.Thread):
             mwin.result = cw.event.EffectBreakError()
         else:
             self.event._stoped = True
+        self.sdata.is_playing = False
 
         # バトルを強制終了
         if self.battle and self.battle.is_running:

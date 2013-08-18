@@ -34,6 +34,7 @@ class SystemData(object):
         self.scedir = ""
         self._init_xmlpaths()
         self._init_sparea_mcards()
+        self.is_playing = False
         self.events = None
         self.deletedpaths = set()
         self.lostadventurers = set()
