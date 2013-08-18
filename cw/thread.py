@@ -969,7 +969,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_showingmessage():
             mwin = self.get_messagewindow()
             mwin.result = cw.event.EffectBreakError()
-        else:
+        elif self.is_runningevent():
             self.event._stoped = True
         self.sdata.is_playing = False
 
@@ -1644,7 +1644,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.list = self.get_mcards("visible")
             else:
                 self.list = []
-            self.index = 0
+            self.index = -1
 
             if self.areaid < 0 or target == "Both":
                 cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
