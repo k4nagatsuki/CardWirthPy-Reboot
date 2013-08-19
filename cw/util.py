@@ -160,7 +160,10 @@ class MusicInterface(object):
             volume = self._get_volumevalue()
 
         assert threading.currentThread() == cw.cwpy
-        pygame.mixer.music.set_volume(volume)
+        if self._bass:
+            cw.bassplayer.set_bgmvolume(volume)
+        else:
+            pygame.mixer.music.set_volume(volume)
 
     def get_path(self, path):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
@@ -180,14 +183,18 @@ class SoundInterface(object):
         self._sound = sound
 
     def play(self, from_scenario=False):
-        if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self.play, from_scenario)
-            return
-
         if self._sound:
             if cw.bassplayer.is_alivable():
+                if threading.currentThread() <> cw.cwpy:
+                    cw.cwpy.exec_func(self.play, from_scenario)
+                    return
+                assert threading.currentThread() == cw.cwpy
                 cw.bassplayer.play_sound(self._sound, cw.cwpy.setting.vol_sound, from_scenario)
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
+                if threading.currentThread() == cw.cwpy:
+                    cw.cwpy.exec_func(self.play, from_scenario)
+                    return
+                assert threading.currentThread() <> cw.cwpy
                 if from_scenario:
                     name = "cwsnd1"
                 else:
@@ -201,6 +208,9 @@ class SoundInterface(object):
                 mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                 mciSendStringW(u"play %s" % (name), 0, 0, 0)
             else:
+                if threading.currentThread() <> cw.cwpy:
+                    cw.cwpy.exec_func(self.play, from_scenario)
+                    return
                 assert threading.currentThread() == cw.cwpy
                 if from_scenario:
                     chan = pygame.mixer.Channel(0)

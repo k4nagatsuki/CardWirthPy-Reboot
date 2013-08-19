@@ -195,6 +195,24 @@ def stop_sound(fromscenario=False):
             _bass.BASS_StreamFree(_soundstream2)
             _soundstream2 = 0
 
+def set_bgmvolume(volume):
+    """BGMの音量を変更する。"""
+    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    if not _bass:
+        return
+    if _bgmstream:
+        _bass.BASS_ChannelSetAttribute(_bgmstream, BASS_ATTRIB_VOL, c_float(volume))
+
+def set_soundvolume(volume):
+    """効果音の音量を変更する。"""
+    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    if not _bass:
+        return
+    if _soundstream1:
+        _bass.BASS_ChannelSetAttribute(_soundstream1, BASS_ATTRIB_VOL, c_float(volume))
+    if _soundstream2:
+        _bass.BASS_ChannelSetAttribute(_soundstream2, BASS_ATTRIB_VOL, c_float(volume))
+
 def main():
     import time
     print "Test BASS Audio. Sound Font: %s, File: %s, %s" % (sys.argv[1], sys.argv[2], sys.argv[3])
