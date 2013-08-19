@@ -1,0 +1,13 @@
+TimGM6mb.sf2 は Public Domain です。
+一切の条件を設けず自由に使用する事ができます。
+
+###################################
+http://musescore.org/en/node/1463#comment-9161 より引用:
+
+> Some terrific news from the TimGM6mb.sf2 soundfont creator (Tim Brechbill):
+> "Yes the soundfont is mine and public domain.
+> You are entitled to use it as you please."
+> 
+> We could use the CC public domain (http://creativecommons.org/licenses/publicdomain/)
+> certification to correctly include the soundfont and I'm communicating further with
+> Tim to find out how to attribute him in the release notes.

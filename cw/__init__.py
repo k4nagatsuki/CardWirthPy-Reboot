@@ -28,6 +28,7 @@ import character
 import effectbooster
 import content
 import xmlcreater
+import bassplayer
 
 import dialog
 import debug

@@ -177,6 +177,15 @@ engine=1.20
       License: 一般利用者向けIPAフォント エンド・ユーザ・ライセンス
       URL: http://ossipedia.ipa.go.jp/ipafont/
 
+  CardWirthPyは音声再生用に以下のライブラリを同梱しています。
+  これらはソフトウェアを無償配布する限りは自由に使用できますが、
+  商用利用する場合は商用ライセンスを購入する必要があるのでご注意ください。
+
+    bass.dll
+    bassmidi.dll
+      License: BASS Audioのライセンス
+      URL: http://www.un4seen.com/
+
   CardWirthPyは"CWXEditor"のリソースの画像ファイルを一部改変して
   同梱しています。
 

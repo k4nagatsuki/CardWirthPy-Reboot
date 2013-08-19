@@ -39,6 +39,7 @@ class MusicInterface(object):
         self.path = ""
         self.fpath = ""
         self._winmm = False
+        self._bass = False
 
     def play(self, path, updatepredata=True):
         self._play(path, updatepredata)
@@ -53,7 +54,7 @@ class MusicInterface(object):
             cw.cwpy.ydata.changed()
         fpath = self.get_path(path)
         self.path = path
-        if not pygame.mixer:
+        if not pygame.mixer and not cw.bassplayer.is_alivable():
             return
 
         if not os.path.isfile(fpath):
@@ -65,6 +66,7 @@ class MusicInterface(object):
             if self.fpath <> fpath:
                 self.stop()
                 self._winmm = False
+                self._bass = False
                 type = load_bgm(fpath)
                 if type <> -1:
                     filesize = 0
@@ -74,7 +76,11 @@ class MusicInterface(object):
                         except Exception, e:
                             print e
 
-                    if type == 1:
+                    if type == 2:
+                        volume = self._get_volumevalue()
+                        cw.bassplayer.play_bgm(fpath, volume)
+                        self._bass = True
+                    elif type == 1:
                         if sys.platform == "win32":
                             name = "cwbgm"
                             mciSendStringW = ctypes.windll.winmm.mciSendStringW
@@ -112,25 +118,35 @@ class MusicInterface(object):
             cw.cwpy.exec_func(self.stop)
             return
 
-        if not pygame.mixer:
-            return
-
         assert threading.currentThread() == cw.cwpy
 
-        if self._winmm:
+        if self._bass:
+            if cw.bassplayer.is_alivable():
+                cw.bassplayer.stop_bgm()
+                self._bass = False
+        elif self._winmm:
             name = "cwbgm"
             mciSendStringW = ctypes.windll.winmm.mciSendStringW
             mciSendStringW(u"stop %s" % (name), 0, 0, 0)
             mciSendStringW(u"close %s" % (name), 0, 0, 0)
             self._winmm = False
         else:
-            pygame.mixer.music.stop()
+            if pygame.mixer:
+                pygame.mixer.music.stop()
         self.fpath = ""
         self.path = ""
         # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
         path = "DefReset" + cw.cwpy.rsrc.ext_bgm
         path = join_paths(cw.cwpy.setting.skindir, "Bgm", path)
         load_bgm(path)
+
+    def _get_volumevalue(self):
+        ext = os.path.splitext(self.path)[1].lower()
+
+        if ext == ".mid" or ext == ".midi":
+            return cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
+        else:
+            return cw.cwpy.setting.vol_bgm
 
     def set_volume(self, volume=None):
         if threading.currentThread() <> cw.cwpy:
@@ -141,12 +157,7 @@ class MusicInterface(object):
             return
 
         if volume is None:
-            ext = os.path.splitext(self.path)[1].lower()
-
-            if ext == ".mid" or ext == ".midi":
-                volume = cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
-            else:
-                volume = cw.cwpy.setting.vol_bgm
+            volume = self._get_volumevalue()
 
         assert threading.currentThread() == cw.cwpy
         pygame.mixer.music.set_volume(volume)
@@ -169,11 +180,14 @@ class SoundInterface(object):
         self._sound = sound
 
     def play(self, from_scenario=False):
+        if threading.currentThread() <> cw.cwpy:
+            cw.cwpy.exec_func(self.play, from_scenario)
+            return
+
         if self._sound:
-            if sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
-                if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.frame.exec_func(self.play, from_scenario)
-                    return
+            if cw.bassplayer.is_alivable():
+                cw.bassplayer.play_sound(self._sound, cw.cwpy.setting.vol_sound, from_scenario)
+            elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if from_scenario:
                     name = "cwsnd1"
                 else:
@@ -187,9 +201,6 @@ class SoundInterface(object):
                 mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                 mciSendStringW(u"play %s" % (name), 0, 0, 0)
             else:
-                if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.play, from_scenario)
-                    return
                 assert threading.currentThread() == cw.cwpy
                 if from_scenario:
                     chan = pygame.mixer.Channel(0)
@@ -221,6 +232,11 @@ def init(size_noscale=None, title="", fullscreen=False):
     pygame.mixer.set_num_channels(2)
     pygame.event.set_blocked(None)
     pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
+
+    # BASS Audioを初期化(使用できない事もある)
+    # TODO サウンドフォント選択
+    cw.bassplayer.init_bass(["Data/SoundFont/TimGM6mb.sf2"])
+
     return scr, clock
 
 def convert_maskpos(maskpos, width, height):
@@ -368,6 +384,7 @@ def load_bgm(path):
     リピートして鳴らす場合は、cw.audio.MusicInterface参照。
     pygame.mixer.music.load()が成功した場合は0、
     winmm.dllを利用して再生する場合は1(Windowsのみ)、
+    bass.dllを利用して再生する場合は2、
     失敗した場合は-1を返す。
     path: 音楽ファイルのパス。
     """
@@ -375,6 +392,9 @@ def load_bgm(path):
         raise Exception()
     if not pygame.mixer or not os.path.isfile(path):
         return
+
+    if cw.bassplayer.is_alivable():
+        return 2
 
     if sys.platform == "win32" and os.path.splitext(path)[1] in (".mpg", ".mpeg"):
         return 1
@@ -412,8 +432,13 @@ def load_sound(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        if sys.platform == "win32" and (path.lower().endswith(".wav") or\
+        if cw.bassplayer.is_alivable():
+            # BASSが使用できる場合
+            sound = SoundInterface(path)
+        elif sys.platform == "win32" and (path.lower().endswith(".wav") or\
                                         path.lower().endswith(".mp3")):
+            # WinMMを使用する事でSDL_mixerの問題を避ける
+            # FIXME: mp3効果音をWindows環境でしか再生できない
             sound = SoundInterface(path)
         else:
             with io.BufferedReader(io.FileIO(path)) as f:
