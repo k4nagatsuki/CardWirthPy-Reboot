@@ -93,7 +93,7 @@ class CardInfo(wx.Dialog):
         dc.SetFont(font)
         size = dc.GetTextExtent(s)
         dc.SetPen(wx.Pen((255, 255, 255), cw.s(1), wx.TRANSPARENT))
-        colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_MENU)
+        colour = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         dc.DrawRectangle(cw.s(122), cw.s(5), size[0], size[1])
         dc.DrawText(s, cw.s(122), cw.s(5))
