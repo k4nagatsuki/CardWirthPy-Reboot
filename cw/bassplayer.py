@@ -66,6 +66,10 @@ def init_bass(soundfonts):
             return False
         _sfonts += struct.pack("@iii", sfont, -1, 0)
 
+    if not _sfonts:
+        dispose_bass()
+        return False
+
     return True
 
 def _play(file, volume, loop):
