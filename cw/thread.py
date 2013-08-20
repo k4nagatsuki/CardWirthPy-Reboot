@@ -422,11 +422,14 @@ class CWPy(_Singleton, threading.Thread):
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
             self.scr.set_clip(clip)
-            if clip and not self.is_curtained():
-                dirty_rects = []
-                self.scr.blit(self.background.image, clip, clip)
-            else:
-                dirty_rects = self.bggrp.draw(self.scr)
+            self.bggrp.set_clip(clip)
+            self.pcardgrp.set_clip(clip)
+            self.mcardgrp.set_clip(clip)
+            self.topgrp.set_clip(clip)
+            self.backloggrp.set_clip(clip)
+            self.sbargrp.set_clip(clip)
+
+            dirty_rects = self.bggrp.draw(self.scr)
 
             dirty_rects.extend(self.draw_cards(self.scr))
 
