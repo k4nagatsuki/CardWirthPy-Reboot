@@ -43,7 +43,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
-        self.scr, self.clock = cw.util.init(cw.SIZE_SCR, "", fullscreen)
+        self.scr, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen)
         if fullscreen:
             func = self.frame.ShowFullScreen
             self.frame.exec_func(func, True)
@@ -171,6 +171,8 @@ class CWPy(_Singleton, threading.Thread):
             self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], cw.s(14))
             self.fpsfont.set_bold(True)
 
+            self.init_fullscreenparams()
+
         except cw.setting.NoFontError, ex:
             def func():
                 s = (u"CardWirthPyの実行に必要なフォントがありません。\n"
@@ -261,13 +263,20 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata:
             changed = self.ydata.is_changed()
 
+        initfullparams = False
         if cw.UP_SCR <> scale:
             cw.UP_SCR = scale
 
             flags = 0
-            if self.is_expanded() and cw.cwpy.setting.expandmode == "FullScreen":
-                flags = FULLSCREEN
-            self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), flags)
+            fullscreen = self.is_expanded() and cw.cwpy.setting.expandmode == "FullScreen"
+            pygame.display.quit()
+            if fullscreen:
+                self.scr_fullscreen = pygame.display.set_mode((0, 0), flags)
+                self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
+            else:
+                self.scr_fullscreen = None
+                self.scr = pygame.display.set_mode(cw.s(cw.SIZE_GAME), flags)
+            initfullparams = True
             cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
 
         self._init_resources()
@@ -363,18 +372,27 @@ class CWPy(_Singleton, threading.Thread):
 
     def input(self, eventclear=False):
         self.mousein = pygame.mouse.get_pressed()
-        if pygame.mouse.get_focused():
-            mousepos = pygame.mouse.get_pos()
-        else:
-            mousepos = (-1, -1)
+        mousepos = self.mousepos
+        self.update_mousepos()
         self.mousemotion = False if self.mousepos == mousepos else True
-        self.mousepos = mousepos
         self.keyin = self.keyevent.get_pressed()
 
         if eventclear:
             pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         else:
             self.events = pygame.event.get()
+
+    def update_mousepos(self):
+        if pygame.mouse.get_focused():
+            if self.scr_fullscreen:
+                mousepos = pygame.mouse.get_pos()
+                x = int((mousepos[0] - self.scr_pos[0]) / self.scr_scale)
+                y = int((mousepos[1] - self.scr_pos[1]) / self.scr_scale)
+                self.mousepos = (x, y)
+            else:
+                self.mousepos = pygame.mouse.get_pos()
+        else:
+            self.mousepos = (-1, -1)
 
     def update(self):
         self.bggrp.update(self.scr)
@@ -425,11 +443,43 @@ class CWPy(_Singleton, threading.Thread):
                 dirty_rects.append(self.scr.blit(sur, pos))
 
             # 画面更新
-            if clip:
-                pygame.display.update(clip)
+            if self.scr_fullscreen:
+                scr = pygame.transform.smoothscale(self.scr, self.scr_size)
+                self.scr_fullscreen.blit(scr, self.scr_pos)
+                pygame.display.update()
             else:
-                pygame.display.update(dirty_rects)
+                if clip:
+                    pygame.display.update(clip)
+                else:
+                    pygame.display.update(dirty_rects)
             self.event.eventtimer = 0
+
+    def init_fullscreenparams(self):
+        """フルスクリーン表示用のパラメータを計算する。"""
+        if self.scr_fullscreen:
+            fsize = self.scr_fullscreen.get_size()
+            ssize = cw.s(cw.SIZE_GAME)
+            a = float(fsize[0]) / ssize[0]
+            b = float(fsize[1]) / ssize[1]
+            scale = min(a, b)
+            size = (int(ssize[0] * scale), int(ssize[1] * scale))
+            x = (fsize[0] - size[0]) / 2
+            y = (fsize[1] - size[1]) / 2
+            self.scr_size = size
+            self.scr_scale = scale
+            self.scr_pos = (x, y)
+
+            # 壁紙
+            self.scr_fullscreen.fill((255, 255, 255))
+            wximg = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["PAD"])
+            padsize = wximg.get_size()
+            for x in xrange(0, fsize[0], padsize[0]):
+                for y in xrange(0, fsize[1], padsize[1]):
+                    self.scr_fullscreen.blit(wximg, (x, y))
+        else:
+            self.scr_size = self.scr.get_size()
+            self.scr_scale = 1.0
+            self.scr_pos = (0, 0)
 
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。
@@ -525,13 +575,17 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.setting.is_expanded = flag
                 if flag:
-                    self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), FULLSCREEN)
+                    pygame.display.quit()
+                    self.scr_fullscreen = pygame.display.set_mode((0, 0), 0)
+                    self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, True)
                 else:
-                    self.scr = pygame.display.set_mode(cw.s(cw.SIZE_SCR), 0)
+                    self.scr_fullscreen = None
+                    self.scr = pygame.display.set_mode(cw.s(cw.SIZE_GAME), 0)
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, False)
+                self.init_fullscreenparams()
 
                 while not self.frame.IsFullScreen() == flag:
                     pass

@@ -227,13 +227,16 @@ class SoundInterface(object):
 
 def init(size_noscale=None, title="", fullscreen=False):
     """pygame初期化。"""
-    size = cw.s(size_noscale)
-    pygame.mixer.pre_init(22050, -16, 2, 1024)
+    pygame.mixer.pre_init(44100, -16, 2, 1024)
     pygame.init()
+    size = cw.s(size_noscale)
     flags = 0
     if fullscreen:
-        flags = FULLSCREEN
-    scr = pygame.display.set_mode(size, flags)
+        scr_fullscreen = pygame.display.set_mode((0, 0), flags)
+        scr = pygame.Surface(size).convert()
+    else:
+        scr_fullscreen = None
+        scr = pygame.display.set_mode(size, flags)
     clock = pygame.time.Clock()
 
     if title:
@@ -247,7 +250,7 @@ def init(size_noscale=None, title="", fullscreen=False):
     # TODO サウンドフォント選択
     cw.bassplayer.init_bass(["Data/SoundFont/TimGM6mb.sf2"])
 
-    return scr, clock
+    return scr, scr_fullscreen, clock
 
 def convert_maskpos(maskpos, width, height):
     """maskposが座標ではなくキーワード"center"または"right"

@@ -568,8 +568,9 @@ class Frame(wx.Frame):
             return
 
         if self.IsFullScreen() and dlg.Parent == self:
-            x = (cw.SIZE_GAME[0] - dlg.GetSize()[0]) / 2
-            y = (cw.SIZE_GAME[1] - dlg.GetSize()[1]) / 2
+            carea = self.GetSize()
+            x = (carea[0] - dlg.GetSize()[0]) / 2
+            y = (carea[1] - dlg.GetSize()[1]) / 2
         else:
             x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
             y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
@@ -577,8 +578,8 @@ class Frame(wx.Frame):
             y += dlg.Parent.GetPosition()[1]
 
         # pointの数値だけ中央から移動
-        x += point[0]
-        y += point[1]
+        x += int(point[0] * cw.cwpy.scr_scale)
+        y += int(point[1] * cw.cwpy.scr_scale)
         dlg.MoveXY(x, y)
 
     def kill_dlg(self, dlg=None):

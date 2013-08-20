@@ -40,7 +40,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
         if clearevent:
             pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         else:
-            cw.cwpy.mousepos = pygame.mouse.get_pos()
+            cw.cwpy.update_mousepos()
             cw.cwpy.events = pygame.event.get()
             cw.cwpy.eventhandler.run()
 
@@ -94,7 +94,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
         if clearevent:
             pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         else:
-            cw.cwpy.mousepos = pygame.mouse.get_pos()
+            cw.cwpy.update_mousepos()
             cw.cwpy.events = pygame.event.get()
             cw.cwpy.eventhandler.run()
 
