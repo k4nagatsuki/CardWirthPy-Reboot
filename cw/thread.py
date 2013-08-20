@@ -263,7 +263,6 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata:
             changed = self.ydata.is_changed()
 
-        initfullparams = False
         if cw.UP_SCR <> scale:
             cw.UP_SCR = scale
 
@@ -276,7 +275,6 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.scr_fullscreen = None
                 self.scr = pygame.display.set_mode(cw.s(cw.SIZE_GAME), flags)
-            initfullparams = True
             cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
 
         self._init_resources()
@@ -573,6 +571,9 @@ class CWPy(_Singleton, threading.Thread):
                 s = u"デバッガ表示中はフルスクリーン化できません。"
                 self.call_dlg("MESSAGE", text=s)
             else:
+                pos = pygame.mouse.get_pos()
+                pygame.mouse.set_pos([-1, -1])
+
                 self.setting.is_expanded = flag
                 if flag:
                     pygame.display.quit()
@@ -592,8 +593,6 @@ class CWPy(_Singleton, threading.Thread):
 
                 # 一度マウスポインタを画面外へ出さないと
                 # フォーカスを失うことがある
-                pos = pygame.mouse.get_pos()
-                pygame.mouse.set_pos([-1, -1])
                 pygame.mouse.set_pos(pos)
 
         else:

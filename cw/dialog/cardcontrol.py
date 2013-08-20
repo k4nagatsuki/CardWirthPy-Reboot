@@ -637,10 +637,11 @@ class CardHolder(CardControl):
             self.combo.Select(self.index_combo)
 
         # パーティが組まれていない(カード置き場のみ)か、
-        # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
+        # 使用モードや閲覧モードで大将が一人だけの場合は
+        # 左右ボタンを無効化
         if (self.callname == "INFOVIEW")\
                 or (not cw.cwpy.ydata.party)\
-                or (not sendto and len(cw.cwpy.ydata.party.members) == 1):
+                or (not sendto and len(self.list2) == 1):
             self.rightbtn.Disable()
             self.leftbtn.Disable()
 
