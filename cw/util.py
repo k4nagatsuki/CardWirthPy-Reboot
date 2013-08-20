@@ -403,11 +403,11 @@ def load_bgm(path):
     if not pygame.mixer or not os.path.isfile(path):
         return
 
-    if cw.bassplayer.is_alivable():
-        return 2
-
     if sys.platform == "win32" and os.path.splitext(path)[1] in (".mpg", ".mpeg"):
         return 1
+
+    if cw.bassplayer.is_alivable():
+        return 2
 
     try:
         assert threading.currentThread() == cw.cwpy
