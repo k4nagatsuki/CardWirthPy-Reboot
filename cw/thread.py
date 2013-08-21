@@ -445,9 +445,20 @@ class CWPy(_Singleton, threading.Thread):
 
             # 画面更新
             if self.scr_fullscreen:
-                scr = pygame.transform.smoothscale(self.scr, self.scr_size)
-                self.scr_fullscreen.blit(scr, self.scr_pos)
-                pygame.display.update()
+                if clip:
+                    clx = int(clip.left * self.scr_scale) - 2
+                    cly = int(clip.top * self.scr_scale) - 2
+                    clw = int(clip.width * self.scr_scale) + 5
+                    clh = int(clip.height * self.scr_scale) + 5
+                    scr = pygame.transform.smoothscale(self.scr, self.scr_size)
+                    clip2 = pygame.Rect(clx, cly, clw, clh)
+                    clip3 = pygame.Rect(clx + self.scr_pos[0], cly + self.scr_pos[1], clw, clh)
+                    self.scr_fullscreen.blit(scr, clip3.topleft, clip2)
+                    pygame.display.update(clip3)
+                else:
+                    scr = pygame.transform.smoothscale(self.scr, self.scr_size)
+                    self.scr_fullscreen.blit(scr, self.scr_pos)
+                    pygame.display.update()
             else:
                 if clip:
                     pygame.display.update(clip)

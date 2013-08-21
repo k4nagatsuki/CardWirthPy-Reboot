@@ -514,6 +514,12 @@ class TitleCell(base.CWPySprite):
         n = 255 / self.animespeed
         self.fade_params = [255 - n * i for i in xrange(self.animespeed + 1) if i]
 
+    def get_selectedimage(self):
+        return self.image
+
+    def get_unselectedimage(self):
+        return self.image
+
     def update_scale(self):
         if self.path == "white":
             self._image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
