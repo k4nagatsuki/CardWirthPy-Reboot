@@ -74,7 +74,10 @@ class SettingsDialog(wx.Dialog):
         if value <> cw.cwpy.setting.expandmode:
             cw.cwpy.setting.expandmode = value
             if cw.cwpy.is_expanded():
-                cw.cwpy.exec_func(cw.cwpy.set_expanded, False)
+                # 一旦拡大状態を解除(遅延実行)
+                def func():
+                    cw.cwpy.exec_func(cw.cwpy.set_expanded, False)
+                cw.cwpy.frame.exec_func(func)
 
         # 描画
         value = self.pane_draw.cb_smooth_bg.GetValue()

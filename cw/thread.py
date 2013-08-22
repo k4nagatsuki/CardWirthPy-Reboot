@@ -40,6 +40,7 @@ class CWPy(_Singleton, threading.Thread):
         """使用変数等はここ参照。"""
         self.setting = setting  # 設定
         self.status = "Title"
+        self.expand_mode = "None"
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
@@ -575,10 +576,13 @@ class CWPy(_Singleton, threading.Thread):
         """
         if self.is_expanded() == flag:
             return
-        if self.setting.expandmode == "None":
+
+        expandmode = self.expand_mode if self.is_expanded() else self.setting.expandmode
+
+        if expandmode == "None":
             return
 
-        elif self.setting.expandmode == "FullScreen":
+        elif expandmode == "FullScreen":
             # フルスクリーン
             if self.is_showingdebugger() and flag:
                 self.sounds["error"].play()
@@ -590,12 +594,14 @@ class CWPy(_Singleton, threading.Thread):
 
                 self.setting.is_expanded = flag
                 if flag:
+                    self.expand_mode = expandmode
                     pygame.display.quit()
                     self.scr_fullscreen = pygame.display.set_mode((0, 0), 0)
                     self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, True)
                 else:
+                    self.expand_mode = "None"
                     self.scr_fullscreen = None
                     self.scr = pygame.display.set_mode(cw.s(cw.SIZE_GAME), 0)
                     func = self.frame.ShowFullScreen
@@ -612,13 +618,15 @@ class CWPy(_Singleton, threading.Thread):
         else:
             # 拡大
             try:
-                scale = float(self.setting.expandmode)
+                scale = float(expandmode)
                 scale = max(scale, 0.5)
                 scale = min(scale, 8)
                 self.setting.is_expanded = flag
                 if flag:
+                    self.expand_mode = expandmode
                     self.update_scale(scale)
                 else:
+                    self.expand_mode = "None"
                     self.update_scale(1)
 
             except Exception, ex:
