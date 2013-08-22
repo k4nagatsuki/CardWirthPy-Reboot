@@ -9,13 +9,18 @@ from ctypes import *
 BASS_DEVICE_DEFAULT = 2
 BASS_DEFAULT = 0
 BASS_SAMPLE_LOOP = 4
+BASS_MUSIC_STOPBACK = 0x80000
 BASS_ATTRIB_VOL = 2
 BASS_FILEPOS_CURRENT = 0
 BASS_FILEPOS_END = 2
 MIDI_EVENT_CONTROL = 64
+BASS_SYNC_POS = 0
 BASS_SYNC_END = 2
+BASS_SYNC_MUSICPOS = 10
 BASS_POS_BYTE = 0
 CC111 = 111
+MIDI_EVENT_END = 0
+MIDI_EVENT_END_TRACK = 0x10003
 
 _bass = None
 _bassmidi = None
@@ -28,7 +33,6 @@ SYNCPROC = WINFUNCTYPE(None, c_int, c_int, c_int, c_void_p)
 def _cc111loop(handle, channel, data, pos):
     """CC#111の位置へシークし、再び演奏を始める。"""
     _bass.BASS_ChannelSetPosition(channel, c_longlong(pos), BASS_POS_BYTE)
-    _bass.BASS_ChannelPlay(channel, False)
 CC111LOOP = SYNCPROC(_cc111loop)
 
 def is_alivable():
@@ -81,11 +85,10 @@ def _play(file, volume, loop):
     """
     global _bass, _bassmidi, _sfonts
     encoding = sys.getfilesystemencoding()
-    flag = BASS_SAMPLE_LOOP if loop else BASS_DEFAULT
+    flag = BASS_MUSIC_STOPBACK if loop else BASS_DEFAULT
 
     BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ext = os.path.splitext(file)[1].lower()
-    ##_bass.BASS_SetConfigPtr(BASS_CONFIG_MIDI_DEFFONT, "Default.sf2")
     if ext == ".mid" or ext == ".midi":
         stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, file.encode(encoding), c_longlong(0), c_longlong(0), flag, 44100)
         if stream:
@@ -98,10 +101,10 @@ def _play(file, volume, loop):
 
         # RPGツクールで使用されるループ位置情報(CC#111)を探し、
         # 存在する場合はその位置からループ再生を行う
-        count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, 1, MIDI_EVENT_CONTROL, None)
+        count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
         if count:
             events = "\0" * (count*4*5)
-            count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, 1, MIDI_EVENT_CONTROL, events)
+            count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
             for i in xrange(0, count, 4*5):
                 bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
                 event = bassMidiEvent[0] # 使用しない
@@ -111,7 +114,6 @@ def _play(file, volume, loop):
                 pos = bassMidiEvent[4]
                 if param == CC111: # CC#111があったのでここでループする
                     _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END, c_longlong(0), CC111LOOP, pos)
-                    loop = False
                     break
     else:
         stream = _bass.BASS_StreamCreateFile(False, file.encode(encoding), c_longlong(0), c_longlong(0), flag)
