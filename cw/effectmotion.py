@@ -458,17 +458,17 @@ class EffectMotion(object):
 
         # 効果値から実数値を計算
         n = value / 5
-        value = cw.cwpy.dice.roll(n, 10)
+        out_value = cw.cwpy.dice.roll(n, 10)
         n = value % 5 * 2
 
         if n:
-            value += cw.cwpy.dice.roll(1, n)
+            out_value += cw.cwpy.dice.roll(1, n)
 
         # 最低でも1ダメージとする
-        if value <= 0:
-            value = 1
+        if out_value <= 0:
+            out_value = 1
 
-        return value
+        return out_value
 
     def calc_durationvalue(self, enhance):
         """
