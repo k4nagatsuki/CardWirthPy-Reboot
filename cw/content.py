@@ -2779,6 +2779,9 @@ class PostEventContent(EventContentBase):
                 methodname = self.methoddict[command]
                 method = getattr(cw.cwpy, methodname)
 
+                if methodname == "call_dlg":
+                    cw.cwpy.lock_menucards = True
+
                 if arg:
                     cw.cwpy.exec_func(method, arg)
                 else:
