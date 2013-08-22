@@ -1469,11 +1469,16 @@ class YadoData(object):
 
         for dpath in (self.yadodir, self.tempdir):
             dpath = cw.util.join_paths(dpath, u"Party")
+            if not os.path.isdir(dpath):
+                continue
 
-            if os.path.isdir(dpath):
-                for name in os.listdir(dpath):
-                    path = cw.util.join_paths(dpath, name)
+            for dname in os.listdir(dpath):
+                dpath2 = cw.util.join_paths(dpath, dname)
+                if not os.path.isdir(dpath2):
+                    continue
 
+                for name in os.listdir(dpath2):
+                    path = cw.util.join_paths(dpath2, name)
                     if name.endswith(".wsl") and os.path.isfile(path)\
                                         and not path in self.deletedpaths:
                         e = cw.util.get_elementfromzip(path, "ScenarioLog.xml",

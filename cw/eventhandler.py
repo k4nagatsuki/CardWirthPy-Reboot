@@ -86,7 +86,6 @@ class EventHandler(object):
                     exception = ex
 
         if exception:
-            traceback.format_exc()
             raise exception
 
     def calc_index(self, value):
