@@ -192,7 +192,7 @@ class SoundInterface(object):
                 cw.bassplayer.play_sound(self._sound, cw.cwpy.setting.vol_sound, from_scenario)
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.exec_func(self.play, from_scenario)
+                    cw.cwpy.frame.exec_func(self.play, from_scenario)
                     return
                 assert threading.currentThread() <> cw.cwpy
                 if from_scenario:

@@ -35,7 +35,7 @@ def is_alivable():
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
     """BASS Audioによる演奏が可能な状態であればTrueを返す。
     init_bass()の実行前は必ずFalseを返す。"""
-    return not _bass is None and not _bassmidi is None
+    return not _bass is None and not _bassmidi is None and _sfonts
 
 def init_bass(soundfonts):
     """
@@ -126,7 +126,7 @@ def _play(file, volume, loop):
 def dispose_bass():
     """全ての演奏を停止し、BASS AudioのDLLを解放する。"""
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
-    if not _bass:
+    if not is_alivable():
         return
 
     for i in xrange(0, len(_sfonts), 4*3):
@@ -146,7 +146,7 @@ def play_bgm(file, volume=1.0):
     volume: 音量。0.0～1.0で指定。
     """
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
-    if not _bass:
+    if not is_alivable():
         return False
     stop_bgm()
     _bgmstream = _play(file, volume, True)
@@ -159,7 +159,7 @@ def play_sound(file, volume=1.0, fromscenario=False):
     volume: 音量。0.0～1.0で指定。
     """
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
-    if not _bass:
+    if not is_alivable():
         return False
     stop_sound(fromscenario)
     if fromscenario:
@@ -172,7 +172,7 @@ def play_sound(file, volume=1.0, fromscenario=False):
 def stop_bgm():
     """BGMの再生を停止する。"""
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
-    if not _bass:
+    if not is_alivable():
         return
     if _bgmstream:
         _bass.BASS_ChannelStop(_bgmstream)
@@ -182,7 +182,7 @@ def stop_bgm():
 def stop_sound(fromscenario=False):
     """効果音の再生を停止する。"""
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
-    if not _bass:
+    if not is_alivable():
         return
     if fromscenario:
         if _soundstream1:
@@ -198,7 +198,7 @@ def stop_sound(fromscenario=False):
 def set_bgmvolume(volume):
     """BGMの音量を変更する。"""
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
-    if not _bass:
+    if not is_alivable():
         return
     if _bgmstream:
         _bass.BASS_ChannelSetAttribute(_bgmstream, BASS_ATTRIB_VOL, c_float(volume))
@@ -206,7 +206,7 @@ def set_bgmvolume(volume):
 def set_soundvolume(volume):
     """効果音の音量を変更する。"""
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
-    if not _bass:
+    if not is_alivable():
         return
     if _soundstream1:
         _bass.BASS_ChannelSetAttribute(_soundstream1, BASS_ATTRIB_VOL, c_float(volume))
