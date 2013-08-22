@@ -417,8 +417,8 @@ class EffectMotion(object):
         self.cardheader = header
         # 使用者の適性値(効果コンテントの場合は"4")
         self.vocation_val = header.get_vocation_val(user) if header else 4
-        # 使用者の適性レベル(効果コンテントの場合は"1")
-        self.vocation_level = header.get_vocation_level(user) if header else 1
+        # 使用者の適性レベル(効果コンテントの場合は"2")
+        self.vocation_level = header.get_vocation_level(user) if header else 2
         # 使用者のレベルもしくは効果コンテントの対象レベル
         self.level = user.level if user else targetlevel
 
@@ -431,7 +431,7 @@ class EffectMotion(object):
     def is_effectcontent(self):
         return not bool(self.cardheader)
 
-    def calc_effectvalue(self, target):
+    def calc_effectvalue(self, target, physical=False):
         """
         効果値から実数値を計算して返す。
         効果値が0の場合は実数値も0を返す。
@@ -455,6 +455,10 @@ class EffectMotion(object):
         # 弱点属性だったら効果値+10
         if self.is_weakness(target):
             value += 10
+
+        # 中毒・麻痺なら効果値のまま返す
+        if physical:
+            return value
 
         # 効果値から実数値を計算
         n = value / 5
@@ -480,19 +484,18 @@ class EffectMotion(object):
         else:
             minvalue = 1
 
-        rndval = cw.cwpy.dice.roll(1, 3) - 2
         if self.vocation_level == 0:
-            return cw.util.numwrap(self.duration * 50 / 100 + rndval, minvalue, 999)
+            return cw.util.numwrap(self.duration * 50 / 100, minvalue, 999)
         elif self.vocation_level == 1:
-            return cw.util.numwrap(self.duration * 80 / 100 + rndval, minvalue, 999)
+            return cw.util.numwrap(self.duration * 80 / 100, minvalue, 999)
         elif self.vocation_level == 2:
-            return cw.util.numwrap(self.duration + rndval, minvalue, 999)
+            return cw.util.numwrap(self.duration, minvalue, 999)
         elif self.vocation_level == 3:
-            return cw.util.numwrap(self.duration * 120 / 100 + rndval, minvalue, 999)
+            return cw.util.numwrap(self.duration * 120 / 100, minvalue, 999)
         elif self.vocation_level == 4:
-            return cw.util.numwrap(self.duration * 150 / 100 + rndval, minvalue, 999)
+            return cw.util.numwrap(self.duration * 150 / 100, minvalue, 999)
         else:
-            return cw.util.numwrap(self.duration + rndval, minvalue, 999)
+            return cw.util.numwrap(self.duration, minvalue, 999)
 
     def calc_defensedvalue(self, value, target):
         """
@@ -614,7 +617,7 @@ class EffectMotion(object):
         """
         麻痺状態。抵抗成功で無効化。
         """
-        value = self.calc_effectvalue(target)
+        value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
             value = 40
@@ -626,7 +629,7 @@ class EffectMotion(object):
         """
         麻痺解除。抵抗成功で無効化。
         """
-        value = self.calc_effectvalue(target)
+        value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
             value = 40
@@ -638,7 +641,7 @@ class EffectMotion(object):
         """
         中毒状態。抵抗成功で無効化。
         """
-        value = self.calc_effectvalue(target)
+        value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
             value = 40
@@ -650,7 +653,7 @@ class EffectMotion(object):
         """
         中毒解除。抵抗成功で無効化。
         """
-        value = self.calc_effectvalue(target)
+        value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
             value = 40
