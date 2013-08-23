@@ -85,7 +85,7 @@ def _play(file, volume, loop):
     """
     global _bass, _bassmidi, _sfonts
     encoding = sys.getfilesystemencoding()
-    flag = BASS_MUSIC_STOPBACK if loop else BASS_DEFAULT
+    flag = (BASS_MUSIC_STOPBACK|BASS_SAMPLE_LOOP) if loop else BASS_DEFAULT
 
     BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ext = os.path.splitext(file)[1].lower()

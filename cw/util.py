@@ -41,12 +41,12 @@ class MusicInterface(object):
         self._winmm = False
         self._bass = False
 
-    def play(self, path, updatepredata=True):
-        self._play(path, updatepredata)
+    def play(self, path, updatepredata=True, restart=False):
+        self._play(path, updatepredata, restart)
 
-    def _play(self, path, updatepredata=True):
+    def _play(self, path, updatepredata=True, restart=False):
         if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self._play, path, updatepredata)
+            cw.cwpy.exec_func(self._play, path, updatepredata, restart)
             return
 
         assert threading.currentThread() == cw.cwpy
@@ -63,7 +63,7 @@ class MusicInterface(object):
             assert threading.currentThread() == cw.cwpy
 
             self.set_volume()
-            if self.fpath <> fpath:
+            if restart or self.fpath <> fpath:
                 self.stop()
                 self._winmm = False
                 self._bass = False
@@ -225,7 +225,7 @@ class SoundInterface(object):
 #　汎用関数
 #-------------------------------------------------------------------------------
 
-def init(size_noscale=None, title="", fullscreen=False):
+def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     """pygame初期化。"""
     pygame.mixer.pre_init(44100, -16, 2, 1024)
     pygame.init()
@@ -247,8 +247,9 @@ def init(size_noscale=None, title="", fullscreen=False):
     pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
 
     # BASS Audioを初期化(使用できない事もある)
-    # TODO サウンドフォント選択
-    cw.bassplayer.init_bass(["Data/SoundFont/TimGM6mb.sf2"])
+    if not soundfonts:
+        soundfonts = [cw.DEFAULT_SOUNDFONT]
+    cw.bassplayer.init_bass(soundfonts)
 
     return scr, scr_fullscreen, clock
 

@@ -44,7 +44,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
-        self.scr, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen)
+        self.scr, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts)
         if fullscreen:
             func = self.frame.ShowFullScreen
             self.frame.exec_func(func, True)

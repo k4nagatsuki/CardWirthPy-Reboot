@@ -91,6 +91,12 @@ def create_settings(setting):
     n = int(setting.vol_sound * 100)
     e = cw.data.make_element("SoundVolume", str(n))
     element.append(e)
+    # MIDIサウンドフォント
+    e = cw.data.make_element("SoundFonts")
+    for soundfont in setting.soundfonts:
+        e_soundfont = cw.data.make_element("SoundFont", soundfont)
+        e.append(e_soundfont)
+    element.append(e)
     # メッセージスピード(数字が小さいほど速い)(0～100)
     e = cw.data.make_element("MessageSpeed", str(setting.messagespeed))
     element.append(e)

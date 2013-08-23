@@ -42,8 +42,10 @@ class SettingsDialog(wx.Dialog):
         self.pane_draw.ch_tran.SetSelection(0)
         self.pane_draw.sl_tran.SetValue(5)
         self.pane_sound.sl_sound.SetValue(100)
-        self.pane_sound.sl_midi.SetValue(20)
+        self.pane_sound.sl_midi.SetValue(80)
         self.pane_sound.sl_music.SetValue(100)
+        self.pane_sound.list_soundfont.Clear()
+        self.pane_sound.list_soundfont.Append(cw.DEFAULT_SOUNDFONT)
         self.pane_color.sc_mwin.SetValue(180)
         self.pane_color.cs_mwin.SetColour((0, 0, 80))
         self.pane_color.sc_mframe.SetValue(255)
@@ -104,6 +106,15 @@ class SettingsDialog(wx.Dialog):
         value = cw.cwpy.setting.wrap_volumevalue(value)
         cw.cwpy.setting.vol_bgm = value
         cw.cwpy.music.set_volume()
+        soundfonts = []
+        for soundfont in self.pane_sound.list_soundfont.GetItems():
+            soundfonts.append(soundfont)
+        if cw.cwpy.setting.soundfonts <> soundfonts:
+            cw.cwpy.setting.soundfonts = soundfonts
+            if cw.bassplayer.is_alivable():
+                cw.bassplayer.dispose_bass()
+                cw.bassplayer.init_bass(soundfonts)
+                cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
         # 配色(メッセージ)
         alpha = self.pane_color.sc_mwin.GetValue()
         colour = self.pane_color.cs_mwin.GetColour()
@@ -347,6 +358,7 @@ class DrawingSettingPanel(wx.Panel):
 class AudioSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+
         # 音量
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
         n = int(cw.cwpy.setting.vol_bgm * 100)
@@ -354,6 +366,7 @@ class AudioSettingPanel(wx.Panel):
             self, -1, n, 0, 100, size=(250, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_music.SetTickFreq(10, 1)
+
         # midi音量
         self.box_midi = wx.StaticBox(self, -1, u"MIDIミュージック音量")
         n = int(cw.cwpy.setting.vol_midi * 100)
@@ -361,6 +374,7 @@ class AudioSettingPanel(wx.Panel):
             self, -1, n, 0, 100, size=(250, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_midi.SetTickFreq(10, 1)
+
         # 効果音音量
         self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
         n = int(cw.cwpy.setting.vol_sound * 100)
@@ -368,11 +382,25 @@ class AudioSettingPanel(wx.Panel):
             self, -1, n, 0, 100, size=(250, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_sound.SetTickFreq(10, 1)
+
+        # サウンドフォント
+        self.box_soundfont = wx.StaticBox(self, -1, u"MIDIサウンドフォント")
+        self.btn_addsoundfont = wx.Button(self, -1, u"追加...")
+        self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
+        self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(25, -1))
+        self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(25, -1))
+        self.list_soundfont = wx.ListBox(self, -1, size=(250, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
+        for soundfont in cw.cwpy.setting.soundfonts:
+            self.list_soundfont.Append(soundfont)
+
         self._do_layout()
         self._bind()
 
     def _bind(self):
-        pass
+        self.Bind(wx.EVT_BUTTON, self.OnAddSoundFontBtn, self.btn_addsoundfont)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveSoundFontBtn, self.btn_rmvsoundfont)
+        self.Bind(wx.EVT_BUTTON, self.OnUpSoundFontBtn, self.btn_upsoundfont)
+        self.Bind(wx.EVT_BUTTON, self.OnDownSoundFontBtn, self.btn_downsoundfont)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -380,19 +408,70 @@ class AudioSettingPanel(wx.Panel):
         bsizer_music = wx.StaticBoxSizer(self.box_music, wx.VERTICAL)
         bsizer_midi = wx.StaticBoxSizer(self.box_midi, wx.VERTICAL)
         bsizer_sound = wx.StaticBoxSizer(self.box_sound, wx.VERTICAL)
+        bsizer_soundfont = wx.StaticBoxSizer(self.box_soundfont, wx.VERTICAL)
+
+        sizer_soundfontbtns = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, 5)
+        sizer_soundfontbtns.Add(self.btn_rmvsoundfont, 0, wx.RIGHT, 5)
+        sizer_soundfontbtns.Add(self.btn_upsoundfont, 0, wx.RIGHT, 5)
+        sizer_soundfontbtns.Add(self.btn_downsoundfont, 0, 0, 0)
 
         bsizer_music.Add(self.sl_music, 0, 0, 0)
         bsizer_midi.Add(self.sl_midi, 0, 0, 0)
         bsizer_sound.Add(self.sl_sound, 0, 0, 0)
+        bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.ALL, 5)
+        bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 5)
 
         sizer_v1.Add(bsizer_music, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_midi, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_sound, 0, 0, 0)
+        sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
 
         sizer.Add(sizer_v1, 0, wx.ALL, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def OnAddSoundFontBtn(self, event):
+        dlg = wx.FileDialog(self.GetTopLevelParent(), u"MIDIの演奏に使用するサウンドフォント選択", u"Data/SoundFont", "", "*.sf2", wx.FD_OPEN|wx.FD_MULTIPLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            exists = set()
+            for soundfont in self.list_soundfont.GetItems():
+                exists.add(soundfont.lower())
+            for fname in dlg.GetFilenames():
+                fpath = os.path.join(dlg.GetDirectory(), fname)
+                try:
+                    rel = os.path.relpath(fpath, u"")
+                    if not rel.startswith(u".."):
+                        fpath = rel
+                except Exception, ex:
+                    print ex
+                fpath = cw.util.join_paths(fpath)
+                if fpath.lower() in exists:
+                    continue
+                self.list_soundfont.Append(fpath)
+
+    def OnRemoveSoundFontBtn(self, event):
+        for index in reversed(self.list_soundfont.GetSelections()):
+            self.list_soundfont.Delete(index)
+
+    def OnUpSoundFontBtn(self, event):
+        for index in self.list_soundfont.GetSelections():
+            if index == 0:
+                return
+            item = self.list_soundfont.GetString(index)
+            self.list_soundfont.Delete(index)
+            self.list_soundfont.Insert(item, index - 1)
+            self.list_soundfont.Select(index - 1)
+
+    def OnDownSoundFontBtn(self, event):
+        for index in reversed(self.list_soundfont.GetSelections()):
+            if index + 1 == self.list_soundfont.GetCount():
+                return
+            item = self.list_soundfont.GetString(index)
+            self.list_soundfont.Delete(index)
+            self.list_soundfont.Insert(item, index + 1)
+            self.list_soundfont.Select(index + 1)
 
 class ColorSettingPanel(wx.Panel):
     def __init__(self, parent):

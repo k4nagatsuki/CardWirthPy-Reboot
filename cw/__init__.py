@@ -78,6 +78,9 @@ HINT_CARD = 1       # 使用中のカード
 HINT_AREA = 2       # エリア・バトル・パッケージ
 HINT_SCENARIO = 3   # シナリオ本体
 
+# 標準のサウンドフォント
+DEFAULT_SOUNDFONT = "Data/SoundFont/TimGM6mb.sf2"
+
 # 画面の拡大率
 UP_SCR = 1
 

@@ -37,8 +37,9 @@ class Setting(object):
             self.debug = False
             self.no_levelup_in_debugmode = False
             self.vol_bgm = 1.0
-            self.vol_midi = 0.2
+            self.vol_midi = 0.8
             self.vol_sound = 1.0
+            self.soundfonts = [cw.DEFAULT_SOUNDFONT]
             self.messagespeed = 4
             self.mwincolour = (0, 0, 80, 180)
             self.mwinframecolour = (128, 0, 0, 255)
@@ -81,11 +82,18 @@ class Setting(object):
         self.vol_bgm = data.getint("BgmVolume", 100)
         self.vol_bgm = self.wrap_volumevalue(self.vol_bgm)
         # midi音楽のボリューム(0～1.0)
-        self.vol_midi = data.getint("BgmVolume", "midi", 20)
+        self.vol_midi = data.getint("BgmVolume", "midi", 80)
         self.vol_midi = self.wrap_volumevalue(self.vol_midi)
         # 効果音ボリューム
         self.vol_sound = data.getint("SoundVolume", 100)
         self.vol_sound = self.wrap_volumevalue(self.vol_sound)
+        # MIDIサウンドフォント
+        self.soundfonts = [cw.DEFAULT_SOUNDFONT]
+        elements = data.getfind("SoundFonts", False)
+        if len(elements):
+            self.soundfonts = []
+            for e in elements:
+                self.soundfonts.append(e.text)
         # メッセージスピード(数字が小さいほど速い)(0～100)
         self.messagespeed = data.getint("MessageSpeed", 0)
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)
