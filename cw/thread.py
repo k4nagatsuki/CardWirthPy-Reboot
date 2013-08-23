@@ -40,7 +40,7 @@ class CWPy(_Singleton, threading.Thread):
         """使用変数等はここ参照。"""
         self.setting = setting  # 設定
         self.status = "Title"
-        self.expand_mode = "None"
+        self.expand_mode = setting.expandmode
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
