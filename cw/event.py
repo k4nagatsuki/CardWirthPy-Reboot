@@ -263,7 +263,7 @@ class EventInterface(object):
             return
 
         # 一部のイベント実行
-        if self.eventtimer % 10000 == 0:
+        if self.eventtimer % 1000 == 0:
             cw.cwpy.sbargrp.update(cw.cwpy.scr)
             cw.cwpy.input()
             cw.cwpy.eventhandler.run()
