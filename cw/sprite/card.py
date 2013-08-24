@@ -481,6 +481,7 @@ class PlayerCard(CWPyCard, character.Player):
         # "：Ｒ"クーポンを所持していたら反転フラグON
         if self.has_coupon(u"：Ｒ"):
             self.reversed = True
+            self._reverse()
 
         # spritegroupに追加
         cw.cwpy.pcardgrp.add(self)
