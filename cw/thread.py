@@ -1891,11 +1891,14 @@ class CWPy(_Singleton, threading.Thread):
             self.pre_areaids[-1] = 1
             self.clear_specialarea()
 
-    def play_sound(self, path):
+    def play_sound(self, path, inusecard=None):
         """効果音を再生する。
         シナリオ効果音・スキン効果音を適宜使い分ける。
         """
-        if self.is_playingscenario() and not self.areaid < 0:
+        inusesoundpath = cw.util.get_inusecardmaterialpath(path, inusecard)
+        if os.path.isfile(inusesoundpath):
+            path = inusesoundpath
+        elif self.is_playingscenario() and not self.areaid < 0:
             path = cw.util.join_paths(self.sdata.scedir, path)
         else:
             path = cw.util.join_paths(self.skindir, path)
@@ -2291,17 +2294,28 @@ class CWPy(_Singleton, threading.Thread):
         """XMLElementに記されている
         素材ファイルを削除予定リストに追加する。
         """
-        for e in data.getiterator():
-            if e.tag == "ImagePath" and e.text:
-                path = cw.util.join_paths(self.yadodir, e.text)
-                temppath = cw.util.join_paths(self.tempdir, e.text)
+        e = data.find("Property/Materials")
+        if not e is None:
+            path = cw.util.join_paths(self.yadodir, e.text)
+            temppath = cw.util.join_paths(self.tempdir, e.text)
+            if os.path.isdir(path):
+                self.ydata.deletedpaths.add(path)
+            if os.path.isdir(temppath):
+                self.ydata.deletedpaths.add(temppath)
+        else:
+            # Property/Materialsが無かった頃の互換動作
+            for e in data.getiterator():
+                if e.tag == "ImagePath" and e.text:
+                    path = cw.util.join_paths(self.yadodir, e.text)
+                    temppath = cw.util.join_paths(self.tempdir, e.text)
 
-                if os.path.isfile(path):
-                    self.ydata.deletedpaths.add(path)
+                    if os.path.isfile(path):
+                        self.ydata.deletedpaths.add(path)
 
-                if os.path.isfile(temppath):
-                    self.ydata.deletedpaths.add(temppath)
+                    if os.path.isfile(temppath):
+                        self.ydata.deletedpaths.add(temppath)
 
+    # TODO メッセージ(特殊文字含む)・Jpy1で使用する素材
     def copy_materials(self, data, dstdir, from_scenario=True, scedir=""):
         """
         from_scenario: Trueの場合は開いているシナリオから、
@@ -2312,56 +2326,75 @@ class CWPy(_Singleton, threading.Thread):
         # 同じimgpathを重複して処理しないための辞書
         imgpaths = {}
 
+        e = cw.data.make_element("Materials", dstdir.replace(self.yadodir + "/", "", 1))
+        data.find("Property").append(e)
         for e in data.getiterator():
-            if e.tag == "ImagePath" and e.text:
-                pisc = cw.binary.image.path_is_code(e.text)
-                if pisc:
-                    imgpath = e.text
-                else:
-                    if from_scenario:
-                        if not scedir:
-                            scedir = self.sdata.scedir
-                        imgpath = cw.util.join_paths(scedir, e.text)
-                    else:
-                        imgpath = cw.util.join_yadodir(e.text)
+            if e.tag in ("ImagePath", "SoundPath", "SoundPath2") and e.text:
+                def set_material(text):
+                    e.text = text
+                self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, e.text, set_material)
+            elif e.tag == "Play":
+                path = e.getattr(".", "path", "")
+                if path:
+                    def set_material(text):
+                        e.attrib["path"] = text
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material)
+            elif e.tag == "Effect":
+                path = e.getattr(".", "sound", "")
+                if path:
+                    def set_material(text):
+                        e.attrib["sound"] = text
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material)
 
-                if not (pisc or os.path.isfile(imgpath)):
-                    e.text = ""
-                    continue
+    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material):
+        pisc = e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
+        if pisc:
+            imgpath = materialpath
+        else:
+            if from_scenario:
+                if not scedir:
+                    scedir = self.sdata.scedir
+                imgpath = cw.util.join_paths(scedir, materialpath)
+            else:
+                imgpath = cw.util.join_yadodir(materialpath)
 
-                # 重複チェック。既に処理しているimgpathかどうか
-                if not pisc and imgpath in imgpaths:
-                    # ElementTree編集
-                    e.text = imgpaths[imgpath]
-                else:
-                    # 対象画像のコピー先を作成
-                    if pisc:
-                        idata = cw.binary.image.code_to_data(imgpath)
-                        ext = cw.util.get_imageext(idata)
-                        dname = cw.util.repl_dischar(data.gettext("Property/Name", "simage")) + ext
-                    else:
-                        dname = os.path.basename(imgpath)
-                    imgdst = cw.util.join_paths(dstdir, dname)
-                    imgdst = cw.util.dupcheck_plus(imgdst)
+        if not (pisc or os.path.isfile(imgpath)):
+            set_material("")
+            return
 
-                    if imgdst.startswith("Yado"):
-                        imgdst = imgdst.replace(self.yadodir, self.tempdir, 1)
+        # 重複チェック。既に処理しているimgpathかどうか
+        if not pisc and imgpath in imgpaths:
+            # ElementTree編集
+            set_material(imgpaths[imgpath])
+        else:
+            # 対象画像のコピー先を作成
+            if pisc:
+                idata = cw.binary.image.code_to_data(imgpath)
+                ext = cw.util.get_imageext(idata)
+                dname = cw.util.repl_dischar(data.gettext("Property/Name", "simage")) + ext
+            else:
+                dname = os.path.basename(imgpath)
+            imgdst = cw.util.join_paths(dstdir, dname)
+            imgdst = cw.util.dupcheck_plus(imgdst)
 
-                    # 対象画像コピー
-                    if not os.path.isdir(os.path.dirname(imgdst)):
-                        os.makedirs(os.path.dirname(imgdst))
+            if imgdst.startswith("Yado"):
+                imgdst = imgdst.replace(self.yadodir, self.tempdir, 1)
 
-                    if pisc:
-                        imgdst = cw.util.dupcheck_plus(imgdst, False)
-                        with open(imgdst, "wb") as f:
-                            f.write(idata)
-                    else:
-                        shutil.copy2(imgpath, imgdst)
-                    # ElementTree編集
-                    e.text = imgdst.replace(self.tempdir + "/", "", 1)
-                    if not pisc:
-                        # 重複して処理しないよう辞書に登録
-                        imgpaths[imgpath] = e.text
+            # 対象画像コピー
+            if not os.path.isdir(os.path.dirname(imgdst)):
+                os.makedirs(os.path.dirname(imgdst))
+
+            if pisc:
+                imgdst = cw.util.dupcheck_plus(imgdst, False)
+                with open(imgdst, "wb") as f:
+                    f.write(idata)
+            else:
+                shutil.copy2(imgpath, imgdst)
+            # ElementTree編集
+            set_material(imgdst.replace(self.tempdir + "/", "", 1))
+            if not pisc:
+                # 重複して処理しないよう辞書に登録
+                imgpaths[imgpath] = materialpath
 
 #-------------------------------------------------------------------------------
 # 状態取得用メソッド

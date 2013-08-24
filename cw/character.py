@@ -463,7 +463,7 @@ class Character(object):
             cw.animation.animate_sprite(inusecardimg, "deal")
             cw.animation.animate_sprite(inusecardimg, "zoomin")
             # 効果音を鳴らす
-            cw.cwpy.play_sound(soundpath)
+            cw.cwpy.play_sound(soundpath, header)
             waitrate = cw.cwpy.setting.dealspeed
             cw.cwpy.wait_frame(waitrate)
             cw.animation.animate_sprite(inusecardimg, "zoomout")
@@ -485,7 +485,7 @@ class Character(object):
             cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
             inusecardimg = cw.cwpy.get_inusecardimg()
             # 表示中に効果音を鳴らす
-            cw.cwpy.play_sound(soundpath)
+            cw.cwpy.play_sound(soundpath, header)
             cw.cwpy.draw()
             waitrate = cw.cwpy.setting.dealspeed
             cw.cwpy.wait_frame(waitrate)
@@ -498,7 +498,7 @@ class Character(object):
             cw.cwpy.set_inusecardimg(self, header)
             cw.animation.animate_sprite(self, "zoomin")
             # 効果音を鳴らす
-            cw.cwpy.play_sound(soundpath)
+            cw.cwpy.play_sound(soundpath, header)
 
         # カードイベント開始
         e = data.find("Events/Event")

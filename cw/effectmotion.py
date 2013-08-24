@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import copy
 
 import pygame
@@ -83,7 +84,7 @@ class Effect(object):
         self.successrate = d.get("successrate", 0)
         self.effecttype = d.get("effecttype", "Physic")
         self.resisttype = d.get("resisttype", "Avoid")
-        self.soundpath = d.get("soundpath", "Avoid")
+        self.soundpath = d.get("soundpath", "")
         self.visualeffect = d.get("visualeffect", "None")
 
         if self.user and self.inusecard:

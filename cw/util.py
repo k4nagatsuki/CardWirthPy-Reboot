@@ -166,7 +166,10 @@ class MusicInterface(object):
             pygame.mixer.music.set_volume(volume)
 
     def get_path(self, path):
-        if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
+        inusepath = cw.util.get_inusecardmaterialpath(path)
+        if inusepath:
+            path = inusepath
+        elif cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
             path = join_paths(cw.cwpy.sdata.scedir, path)
         else:
             path = join_paths(cw.cwpy.skindir, path)
@@ -772,13 +775,14 @@ def get_yadofilepath(path):
     else:
         return ""
 
-def get_inusecardmaterialpath(path):
+def get_inusecardmaterialpath(path, inusecard=None):
     """pathが宿からシナリオへ持ち込んだカードの
     素材を指していればそのパスを返す。
     そうでない場合は空文字列を返す。"""
     imgpath = ""
-    if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
-        inusecard = cw.cwpy.event.get_inusecard()
+    if inusecard or (cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard()):
+        if not inusecard:
+            inusecard = cw.cwpy.event.get_inusecard()
         if not inusecard.carddata.getbool(".", "scenariocard", False):
             imgpath = cw.util.join_yadodir(path)
     return imgpath
