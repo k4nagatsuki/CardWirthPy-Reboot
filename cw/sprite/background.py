@@ -130,10 +130,16 @@ class BackGround(base.CWPySprite):
                 mask = e.getbool(".", "mask", False)
                 path = e.gettext("ImagePath", "")
 
-                if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
-                    path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+                # 使用時イベント中なら使用したカードの素材から探す
+                imgpath = cw.util.get_inusecardmaterialpath(path)
+
+                if os.path.isfile(imgpath):
+                    path = imgpath
                 else:
-                    path = cw.util.join_paths(cw.cwpy.skindir, path)
+                    if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
+                        path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+                    else:
+                        path = cw.util.join_paths(cw.cwpy.skindir, path)
 
                 if not os.path.isfile(path):
                     fname = os.path.basename(path)

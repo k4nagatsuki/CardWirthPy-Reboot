@@ -772,6 +772,17 @@ def get_yadofilepath(path):
     else:
         return ""
 
+def get_inusecardmaterialpath(path):
+    """pathが宿からシナリオへ持ち込んだカードの
+    素材を指していればそのパスを返す。
+    そうでない場合は空文字列を返す。"""
+    imgpath = ""
+    if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
+        inusecard = cw.cwpy.event.get_inusecard()
+        if not inusecard.carddata.getbool(".", "scenariocard", False):
+            imgpath = cw.util.join_yadodir(path)
+    return imgpath
+
 def remove_temp():
     """
     "Data/Temp/Yado"を空にする。
