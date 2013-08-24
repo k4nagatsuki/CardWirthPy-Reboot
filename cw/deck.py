@@ -213,9 +213,9 @@ class Deck(object):
         """
         if ccard.is_panic():
             if ccard.escape:
-                n = cw.cwpy.dice.roll(1, 4) + 3
+                n = cw.cwpy.dice.roll(1, 3) + 4
             else:
-                n = cw.cwpy.dice.roll(1, 3) + 3
+                n = cw.cwpy.dice.roll(1, 2) + 4
             self.set_nextcard(n)
         elif ccard.is_brave():
             n = cw.cwpy.dice.roll(1, 4) - 1
