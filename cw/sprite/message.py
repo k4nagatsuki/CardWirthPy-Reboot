@@ -15,7 +15,7 @@ class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
                  pos=None, size=None, talkerimage=None,
                  nametable={}, flagtable={}, steptable={},
-                 backlog=False, result=None, versionhint=""):
+                 backlog=False, result=None, versionhint="", specialchars=None):
         base.CWPySprite.__init__(self)
         if pos is None:
             pos = cw.s((81, 50))
@@ -28,6 +28,7 @@ class MessageWindow(base.CWPySprite):
         self.name_table = nametable
         self.flag_table = flagtable
         self.step_table = steptable
+        self.specialchars = specialchars
 
         # メッセージの選択結果
         self.result = result
@@ -260,8 +261,9 @@ class MessageWindow(base.CWPySprite):
 
             # 特殊文字
             if r_specialfont.match(chars):
-                if chars in cw.cwpy.rsrc.specialchars:
-                    charimg, userfont = cw.cwpy.rsrc.specialchars[chars]
+                specialchars = self.specialchars if self.specialchars else cw.cwpy.rsrc.specialchars
+                if chars in specialchars:
+                    charimg, userfont = specialchars[chars]
 
                     if userfont:
                         images.append((pos, charimg, None))
@@ -679,6 +681,7 @@ class BacklogData:
         self.step_table = base.step_table
         self.result = base.result
         self.versionhint = base.versionhint
+        self.specialchars = cw.cwpy.rsrc.specialchars.copy()
 
     def create_message(self):
         if self.type == 0:
@@ -686,7 +689,7 @@ class BacklogData:
                                  self.rect.topleft, self.rect.size,
                                  self.talker_image,
                                  self.name_table, self.flag_table, self.step_table,
-                                 True, self.result, self.versionhint)
+                                 True, self.result, self.versionhint, self.specialchars)
         else:
             return SelectWindow(self.names, self.text, self.rect.topleft, self.rect.size,
                                 True, self.result)
