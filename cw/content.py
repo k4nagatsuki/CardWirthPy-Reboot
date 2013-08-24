@@ -2373,7 +2373,10 @@ class TalkMessageContent(TalkContent):
         if talker:
             imgpath = talker.imgpath
         elif imgpath:
-            if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
+            inusepath = cw.util.get_inusecardmaterialpath(imgpath)
+            if inusepath:
+                imgpath = inusepath
+            elif cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
                 imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
             else:
                 imgpath = cw.util.join_paths(cw.cwpy.skindir, imgpath)

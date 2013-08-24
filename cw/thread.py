@@ -6,6 +6,7 @@ import os
 import time
 import threading
 import shutil
+import re
 import wx
 import pygame
 from pygame.locals import *
@@ -2315,7 +2316,7 @@ class CWPy(_Singleton, threading.Thread):
                     if os.path.isfile(temppath):
                         self.ydata.deletedpaths.add(temppath)
 
-    # TODO メッセージ(特殊文字含む)・Jpy1で使用する素材
+    # TODO Jpy1で使用する素材
     def copy_materials(self, data, dstdir, from_scenario=True, scedir=""):
         """
         from_scenario: Trueの場合は開いているシナリオから、
@@ -2325,6 +2326,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         # 同じimgpathを重複して処理しないための辞書
         imgpaths = {}
+        r_specialfont = re.compile("#.") # 特殊文字(#)
 
         e = cw.data.make_element("Materials", dstdir.replace(self.yadodir + "/", "", 1))
         data.find("Property").append(e)
@@ -2333,12 +2335,20 @@ class CWPy(_Singleton, threading.Thread):
                 def set_material(text):
                     e.text = text
                 self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, e.text, set_material)
-            elif e.tag == "Play":
+            elif e.tag in ("Play", "Talk"):
                 path = e.getattr(".", "path", "")
                 if path:
                     def set_material(text):
                         e.attrib["path"] = text
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material)
+            elif e.tag == "Text":
+                for spchar in r_specialfont.findall(e.text):
+                    c = "font_" + spchar[1:]
+                    def set_material(text):
+                        pass
+                    for ext in cw.EXTS_IMG:
+                        self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, c + ext, set_material)
+
             elif e.tag == "Effect":
                 path = e.getattr(".", "sound", "")
                 if path:
@@ -2372,6 +2382,8 @@ class CWPy(_Singleton, threading.Thread):
                 idata = cw.binary.image.code_to_data(imgpath)
                 ext = cw.util.get_imageext(idata)
                 dname = cw.util.repl_dischar(data.gettext("Property/Name", "simage")) + ext
+            elif from_scenario:
+                dname = materialpath
             else:
                 dname = os.path.basename(imgpath)
             imgdst = cw.util.join_paths(dstdir, dname)
@@ -2391,7 +2403,8 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 shutil.copy2(imgpath, imgdst)
             # ElementTree編集
-            set_material(imgdst.replace(self.tempdir + "/", "", 1))
+            materialpath = imgdst.replace(self.tempdir + "/", "", 1)
+            set_material(materialpath)
             if not pisc:
                 # 重複して処理しないよう辞書に登録
                 imgpaths[imgpath] = materialpath

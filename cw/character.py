@@ -500,9 +500,25 @@ class Character(object):
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
 
-        # カードイベント開始
-        e = data.find("Events/Event")
-        cw.event.CardEvent(e, header, self, targets).start()
+
+        # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える
+        specialchars = cw.cwpy.rsrc.specialchars
+        specialchars_is_changed = cw.cwpy.rsrc.specialchars_is_changed
+        e_mates = header.carddata.find("Property/Materials")
+        if cw.cwpy.is_playingscenario() and not e_mates is None:
+            specialchars = specialchars.copy()
+            dpath = cw.util.join_yadodir(e_mates.text)
+            for fname in os.listdir(dpath):
+                cw.cwpy.sdata.eat_spchar(dpath, fname)
+
+        try:
+            # カードイベント開始
+            e = data.find("Events/Event")
+            cw.event.CardEvent(e, header, self, targets).start()
+        finally:
+            # 特殊文字を元に戻す
+            cw.cwpy.rsrc.specialchars = specialchars
+            cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
 
     def throwaway_card(self, header, from_event=True):
         """

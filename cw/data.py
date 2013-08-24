@@ -375,7 +375,7 @@ class ScenarioData(SystemData):
         for dpath, dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 # "font_*.*"のファイルパスの画像を特殊文字に指定
-                if self._eat_spchar(dpath, fname):
+                if self.eat_spchar(dpath, fname):
                     continue
                 else:
                     lf = fname.lower()
@@ -442,9 +442,9 @@ class ScenarioData(SystemData):
 
         for dpath, dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
-                self._eat_spchar(dpath, fname)
+                self.eat_spchar(dpath, fname)
 
-    def _eat_spchar(self, dpath, fname):
+    def eat_spchar(self, dpath, fname):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         if self._r_specialchar.match(fname.lower()):
             m = self._r_specialchar.match(fname.lower())
