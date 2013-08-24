@@ -447,7 +447,9 @@ class _JpySubImage(cw.image.Image):
             size = (width, height)
 
             if not size == cw.s(image.get_size()):
-                if self.smooth:
+                if image.get_width() == 0 or image.get_height() == 0:
+                    image = pygame.Surface(size).convert()
+                elif self.smooth:
                     image = pygame.transform.smoothscale(image, size)
                 else:
                     image = pygame.transform.scale(image, size)
@@ -457,42 +459,56 @@ class _JpySubImage(cw.image.Image):
     def get_filepath(self, dirtype=-1):
         """読み込むファイルのパスを取得する。"""
         if self.filename:
-            filename = self.filename
+            if dirtype == -1:
+                dirtype = self.dirtype
+            return get_filepath_s(self.configpath, self.filename, dirtype)
         else:
             return ""
 
-        if dirtype == -1:
-            dirtype = self.dirtype
+def get_filepath_s(configpath, filename, dirtype=-1):
+    """dirtypeに基づいて読み込むファイルのパスを取得する。"""
+    if dirtype == -1:
+        dirtype = 1
 
-        if dirtype == 1:
-            dpath = os.path.dirname(self.configpath)
-            # シナリオ内に存在しなかった場合はTable内
-            if not os.path.isfile(cw.util.join_paths(dpath, filename)):
-                return self.get_filepath(2)
-        elif dirtype == 2:
-            dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
-            filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
-        elif dirtype == 3:
-            dpath = "Data/EffectBooster"
-        elif dirtype == 4:
-            if cw.cwpy.classicdata:
-                dpath = cw.util.join_paths(cw.cwpy.sdata.scedir)
-            else:
-                dpath = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material")
-            # 指定位置に存在しなかった場合は相対位置
-            if not os.path.isfile(cw.util.join_paths(dpath, filename)):
-                return self.get_filepath(1)
-        elif dirtype == 5:
-            dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
-            filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
-        elif dirtype == 6:
-            dpath = os.path.dirname(os.path.dirname(self.configpath))
-        elif dirtype == 7:
-            dpath = ""
+    if dirtype == 1:
+        dpath = os.path.dirname(configpath)
+        # シナリオ内に存在しなかった場合はTable内
+        if not os.path.isfile(cw.util.join_paths(dpath, filename)):
+            return get_filepath_s(configpath, filename, 2)
+    elif dirtype == 2:
+        dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
+        filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
+    elif dirtype == 3:
+        dpath = "Data/EffectBooster"
+    elif dirtype == 4:
+        if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
+            inusecard = cw.cwpy.event.get_inusecard()
+            if not inusecard.carddata.getbool(".", "scenariocard", False):
+                e_mates = inusecard.carddata.find("Property/Materials")
+                if not e_mates is None:
+                    fpath = cw.util.join_paths(e_mates.text, filename)
+                    fpath = cw.util.join_yadodir(fpath)
+                    if os.path.isfile(fpath):
+                        return fpath
+
+        if cw.cwpy.classicdata:
+            dpath = cw.util.join_paths(cw.cwpy.sdata.scedir)
         else:
-            dpath = os.path.dirname(self.configpath)
+            dpath = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material")
+        # 指定位置に存在しなかった場合は相対位置
+        if not os.path.isfile(cw.util.join_paths(dpath, filename)):
+            return get_filepath_s(configpath, filename, 1)
+    elif dirtype == 5:
+        dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
+        filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
+    elif dirtype == 6:
+        dpath = os.path.dirname(os.path.dirname(configpath))
+    elif dirtype == 7:
+        dpath = ""
+    else:
+        dpath = os.path.dirname(configpath)
 
-        return cw.util.join_paths(dpath, filename)
+    return cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
 
 class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache):

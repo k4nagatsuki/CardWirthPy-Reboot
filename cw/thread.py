@@ -2316,7 +2316,6 @@ class CWPy(_Singleton, threading.Thread):
                     if os.path.isfile(temppath):
                         self.ydata.deletedpaths.add(temppath)
 
-    # TODO Jpy1で使用する素材
     def copy_materials(self, data, dstdir, from_scenario=True, scedir=""):
         """
         from_scenario: Trueの場合は開いているシナリオから、
@@ -2357,7 +2356,7 @@ class CWPy(_Singleton, threading.Thread):
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material)
 
     def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material):
-        pisc = e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
+        pisc = not e is None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
         if pisc:
             imgpath = materialpath
         else:
@@ -2371,6 +2370,26 @@ class CWPy(_Singleton, threading.Thread):
         if not (pisc or os.path.isfile(imgpath)):
             set_material("")
             return
+
+        # Jpy1から参照しているイメージを再帰的にコピーする
+        if from_scenario and os.path.splitext(imgpath)[1].lower() == ".jpy1":
+            try:
+                config = cw.effectbooster.EffectBoosterConfig(imgpath)
+                for section in config.sections():
+                    jpy1innnerfile = config.get(section, "filename", "")
+                    if not jpy1innnerfile:
+                        continue
+                    dirtype = config.get_int(section, "dirtype", 1)
+                    innerfpath = cw.effectbooster.get_filepath_s(imgpath, jpy1innnerfile, dirtype)
+                    if not innerfpath.startswith(scedir + "/"):
+                        continue
+                    innerfpath = innerfpath.replace(scedir + "/", "", 1)
+                    def func(text):
+                        pass
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func)
+
+            except Exception, ex:
+                print ex
 
         # 重複チェック。既に処理しているimgpathかどうか
         if not pisc and imgpath in imgpaths:
