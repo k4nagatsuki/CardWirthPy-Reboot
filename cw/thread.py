@@ -2368,7 +2368,6 @@ class CWPy(_Singleton, threading.Thread):
                 imgpath = cw.util.join_yadodir(materialpath)
 
         if not (pisc or os.path.isfile(imgpath)):
-            set_material("")
             return
 
         # Jpy1から参照しているイメージを再帰的にコピーする
