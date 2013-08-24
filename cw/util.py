@@ -167,7 +167,7 @@ class MusicInterface(object):
 
     def get_path(self, path):
         inusepath = cw.util.get_inusecardmaterialpath(path)
-        if inusepath:
+        if os.path.isfile(inusepath):
             path = inusepath
         elif cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
             path = join_paths(cw.cwpy.sdata.scedir, path)

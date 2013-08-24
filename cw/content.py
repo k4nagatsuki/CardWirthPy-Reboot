@@ -2374,7 +2374,7 @@ class TalkMessageContent(TalkContent):
             imgpath = talker.imgpath
         elif imgpath:
             inusepath = cw.util.get_inusecardmaterialpath(imgpath)
-            if inusepath:
+            if os.path.isfile(inusepath):
                 imgpath = inusepath
             elif cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
                 imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
