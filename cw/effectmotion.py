@@ -9,7 +9,6 @@ import pygame
 import cw
 from cw.character import Character
 
-
 # 意識不明の対象に有効な効果。
 CAN_UNCONSCIOUS = (
     "Heal",
@@ -419,7 +418,7 @@ class EffectMotion(object):
         # 使用者の適性値(効果コンテントの場合は"4")
         self.vocation_val = header.get_vocation_val(user) if header else 4
         # 使用者の適性レベル(効果コンテントの場合は"2")
-        self.vocation_level = header.get_vocation_level(user) if header else 2
+        self.vocation_level = header.get_vocation_level(user, enhance_act=True) if header else 2
         # 使用者のレベルもしくは効果コンテントの対象レベル
         self.level = user.level if user else targetlevel
 
@@ -958,6 +957,9 @@ class EffectMotion(object):
         """
         eff = False
         for e in self.beasts:
+            self.duration = e.getint("Property/UseLimit")
+            duration = self.calc_durationvalue(False)
+            e.find("Property/UseLimit").text = str(duration)
             eff |= target.set_beast(e)
         return eff
 

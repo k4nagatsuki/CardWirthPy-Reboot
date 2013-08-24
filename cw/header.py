@@ -226,11 +226,12 @@ class CardHeader(object):
     def get_cardimg(self):
         return self.cardimg.get_cardimg(self)
 
-    def get_vocation_level(self, owner):
+    def get_vocation_level(self, owner, enhance_act=False):
         """
         適性値の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
+        enhance_act : 行動力を加味する場合、True
         """
-        value = self.get_vocation_val(owner)
+        value = self.get_vocation_val(owner, enhance_act)
 
         if value < 3:
             value = 0
@@ -245,9 +246,10 @@ class CardHeader(object):
 
         return value
 
-    def get_vocation_val(self, owner):
+    def get_vocation_val(self, owner, enhance_act=False):
         """
         適性値(身体特性+精神特性の合計値)を返す。
+        enhance_act : 行動力を加味する場合、True
         """
         if not owner:
             owner = self.get_owner()
@@ -259,7 +261,10 @@ class CardHeader(object):
         if self.vocation[1].startswith("un"):
             mental = -mental
 
-        return physical + mental
+        if enhance_act:
+            return physical + mental + owner.data.getint("Property/Enhance/Action")
+        else:
+            return physical + mental
 
     def get_uselimit_level(self):
         """
