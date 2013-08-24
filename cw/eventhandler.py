@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+
 import pygame
 from pygame.locals import *
 
@@ -291,10 +293,13 @@ class EventHandler(object):
         """
         F9キーイベント。緊急避難。
         """
-        if cw.cwpy.is_playingscenario():
-            cw.cwpy.has_inputevent = True
-            cw.cwpy.sounds["signal"].play()
-            cw.cwpy.call_dlg("F9")
+        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_showingdlg() and not pygame.event.peek():
+            fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
+            path = cw.util.join_paths("Data/Temp/ScenarioLog/Party", fname)
+            if os.path.isfile(path):
+                cw.cwpy.has_inputevent = True
+                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.call_dlg("F9")
 
     def returnkey_event(self):
         """
