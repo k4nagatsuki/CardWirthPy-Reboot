@@ -149,10 +149,41 @@ class SystemData(object):
             path = self.areas[id][1]
 
         self.data = xml2etree(path)
+        if id == -5:
+            self._update_tradearea_m5()
+
         if isinstance(self, ScenarioData):
             self.versionhint[cw.HINT_AREA] = self.data.getattr("Property", "versionHint", "")
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
+
+    def _update_tradearea_m5(self):
+        # 過去のデータの修正(～2013-08-25)
+        # 古いバージョンの-5_TradeArea.xmlには
+        # ごみ箱が存在しないため、
+        # ここで追加して上書き保存する
+        e_trademcards = self.data.find("MenuCards")
+        if not e_trademcards is None and len(e_trademcards) == 1 and e_trademcards.attrib.get("spreadtype", "Auto") == "Custom":
+            e_trademcards.attrib["spreadtype"] = "Auto"
+            dpath = cw.util.join_paths(cw.cwpy.skindir, u"Resource/Xml/Yado")
+            e_trade_m1 = None
+            # -1のエリアからごみ箱の要素を取ってコピーする
+            for fname in os.listdir(dpath):
+                path = cw.util.join_paths(dpath, fname)
+                if os.path.isfile(path) and fname.endswith(".xml"):
+                    e = xml2element(path)
+                    id = e.getint("Property/Id")
+                    if id == -1:
+                        e_trade_m1 = e
+                        break
+            e_trushbox = e_trade_m1.find("MenuCards/LargeMenuCard[3]")
+            if e_trushbox.gettext("Property/ImagePath", "").startswith("Resource/Image/Card/TRUSH"):
+                e_trushbox.attrib["debugOnly"] = "True"
+                e_trademcards.append(e_trushbox)
+                self.data.write()
+                self._init_sparea_mcards()
+                if not cw.cwpy.is_debugmode():
+                    self.sparea_mcards[-5][1].hide()
 
     def start_event(self, keynum=None, keycodes=[]):
         cw.cwpy.statusbar.change(False)
