@@ -418,7 +418,8 @@ class EffectMotion(object):
         # 使用者の適性値(効果コンテントの場合は"4")
         self.vocation_val = header.get_vocation_val(user) if header else 4
         # 使用者の適性レベル(効果コンテントの場合は"2")
-        self.vocation_level = header.get_vocation_level(user, enhance_act=True) if header else 2
+        # スキルカードの場合は行動力修正の影響を受ける
+        self.vocation_level = header.get_vocation_level(user, enhance_act=(header.type=="SkillCard")) if header else 2
         # 使用者のレベルもしくは効果コンテントの対象レベル
         self.level = user.level if user else targetlevel
 
