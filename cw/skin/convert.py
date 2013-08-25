@@ -413,7 +413,8 @@ class Converter(threading.Thread):
                 index = get_menucard([(self.yado["-1_TradeArea"], 1),
                                       (self.yado["-2_TradeArea2"], 1)], index)
                 # ごみ箱(カード移動時)
-                index = get_menucard([(self.yado["-1_TradeArea"], 3),
+                index = get_menucard([(self.scenario["-5_TradeArea"], 2),
+                                      (self.yado["-1_TradeArea"], 3),
                                       (self.yado["-2_TradeArea2"], 4)], index)
                 # 売却(カード移動時)
                 index = get_menucard([(self.yado["-1_TradeArea"], 2),

@@ -44,7 +44,7 @@
     <LargeMenuCard debugOnly="True">
       <Property>
         <Name>ごみ箱</Name>
-        <ImagePath>Resource/Image/Card/TRUSH.png</ImagePath>
+        <ImagePath>Resource/Image/Card/TRUSH.bmp</ImagePath>
         <Description>カードを処分します。</Description>
         <Flag></Flag>
         <Location left="385" top="75" />
