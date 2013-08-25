@@ -328,6 +328,8 @@ class CWPy(_Singleton, threading.Thread):
             self.sounds["page"].play()
             self.frame.exec_func(self.frame.debugger.Close)
 
+        cw.data.redraw_cards(debug)
+
     def run(self):
         try:
             self._run()
@@ -1137,7 +1139,8 @@ class CWPy(_Singleton, threading.Thread):
 
         deals = []
         for mcard in mcardsinv:
-            if self.sdata.flags.get(mcard.flag, True):
+            if self.sdata.flags.get(mcard.flag, True) and\
+                    (not mcard.debug_only or self.is_debugmode()):
                 if quickdeal:
                     deals.append(mcard)
                 else:
@@ -1170,7 +1173,9 @@ class CWPy(_Singleton, threading.Thread):
         # メニューカードを下げる
         mcards = self.get_mcards("visible")
         for mcard in mcards:
-            if hideall or not self.sdata.flags.get(mcard.flag, True):
+            if hideall or\
+                    not self.sdata.flags.get(mcard.flag, True) or\
+                    (mcard.debug_only and not self.is_debugmode()):
                 if mcard.inusecardimg:
                     self.clear_inusecardimg(mcard)
                 if not quickhide:
@@ -1347,7 +1352,7 @@ class CWPy(_Singleton, threading.Thread):
                 mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status, addgroup)
             else:
                 mcard = cw.sprite.card.MenuCard(e, pos_noscale, status, addgroup)
-            if not self.sdata.flags.get(mcard.flag, True):
+            if not self.sdata.flags.get(mcard.flag, True) or (mcard.debug_only and not self.is_debugmode()):
                 mcard.status = "hidden"
             seq.append(mcard)
         return seq
@@ -1501,6 +1506,19 @@ class CWPy(_Singleton, threading.Thread):
                 self.pre_mcards.append(self.get_mcards())
                 self.mcardgrp.empty()
                 self.mcardgrp.add(self.sdata.sparea_mcards[areaid])
+                # 特殊エリアのカードはデバッグモードによって
+                # 表示が切り替わる場合がある
+                for mcard in self.sdata.sparea_mcards[areaid]:
+                    if mcard.debug_only and not self.is_debugmode():
+                        if mcard.status <> "hidden":
+                            mcard.hide()
+                    else:
+                        if mcard.status == "hidden":
+                            mcard.deal()
+                if self.is_autospread():
+                    mcards = self.get_mcards("flagtrue")
+                    self.set_autospread(mcards, 6, False, anime=False)
+
                 self.list = self.get_mcards("visible")
                 self.index = -1
                 self.set_curtain()
@@ -1543,9 +1561,7 @@ class CWPy(_Singleton, threading.Thread):
                     owner.set_action(owner, header)
                     self.clear_specialarea()
 
-        showbuttons = not self.is_playingscenario() or\
-            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
-        self.statusbar.change(showbuttons)
+        self.statusbar.change(True)
         self.disposition_pcards()
 
     def clear_specialarea(self):
@@ -1702,6 +1718,20 @@ class CWPy(_Singleton, threading.Thread):
         self.mcardgrp.remove_sprites_of_layer("targetarrow")
         self.pcardgrp.remove_sprites_of_layer("targetarrow")
 
+    def update_selectablelist(self):
+        """状況に応じて矢印キーで選択対象となる
+        カードのリストを更新する。"""
+        if self.is_pcardsselectable:
+            if self.is_debugmode() and not self.selectedheader:
+                self.list = self.get_pcards()
+            else:
+                self.list = self.get_pcards("unreversed")
+        elif self.is_mcardsselectable:
+            self.list = self.get_mcards("visible")
+        else:
+            self.list = []
+        self.index = -1
+
     def set_curtain(self, target="Both"):
         """Curtainスプライトをセットする。"""
         if not self.is_curtained():
@@ -1711,17 +1741,7 @@ class CWPy(_Singleton, threading.Thread):
             self.is_pcardsselectable = target in ("Both", "Party")
             self.is_mcardsselectable = not self.is_battlestatus() or\
                                        target in ("Both", "Enemy")
-
-            if self.is_pcardsselectable:
-                if self.is_debugmode() and not self.selectedheader:
-                    self.list = self.get_pcards()
-                else:
-                    self.list = self.get_pcards("unreversed")
-            elif self.is_mcardsselectable:
-                self.list = self.get_mcards("visible")
-            else:
-                self.list = []
-            self.index = -1
+            self.update_selectablelist()
 
             if self.areaid < 0 or target == "Both":
                 cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
@@ -1796,6 +1816,18 @@ class CWPy(_Singleton, threading.Thread):
             self._curtained = False
             self.is_pcardsselectable = True
             self.is_mcardsselectable = True
+
+    def cancel_cardcontrol(self):
+        """カードの移動や使用の対象選択をキャンセルする。"""
+        if self.is_curtained():
+            self.sounds["click"].play()
+
+            # カード移動選択エリアだったら、事前に開いていたダイアログを開く
+            if self.areaid in cw.AREAS_TRADE:
+                self.call_predlg()
+            # それ以外だったら特殊エリアをクリアする
+            else:
+                self.clear_specialarea()
 
 #-------------------------------------------------------------------------------
 # プレイ用メソッド
@@ -2534,6 +2566,7 @@ class CWPy(_Singleton, threading.Thread):
         elif mode == "flagtrue":
             mcards = [m for m in self.get_mcards()
                             if not isinstance(m, cw.character.Friend)
+                                    and (not m.debug_only or self.is_debugmode())
                                     and self.sdata.flags.get(m.flag, True)]
         else:
             mcards = self.mcardgrp.get_sprites_from_layer(0)

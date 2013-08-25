@@ -12,7 +12,7 @@
       <Size width="632" height="420" />
     </BgImage>
   </BgImages>
-  <MenuCards spreadtype="Custom">
+  <MenuCards spreadtype="Auto">
     <LargeMenuCard>
       <Property>
         <Name>荷物袋</Name>
@@ -32,6 +32,34 @@
             <Start name="メニューイベント">
               <Contents>
                 <Post type="Event" command="MoveCard" arg="BACKPACK">
+                  <Contents>
+                  </Contents>
+                </Post>
+              </Contents>
+            </Start>
+          </Contents>
+        </Event>
+      </Events>
+    </LargeMenuCard>
+    <LargeMenuCard debugOnly="True">
+      <Property>
+        <Name>ごみ箱</Name>
+        <ImagePath>Resource/Image/Card/TRUSH.png</ImagePath>
+        <Description>カードを処分します。</Description>
+        <Flag></Flag>
+        <Location left="385" top="75" />
+        <Size scale="100%" />
+      </Property>
+      <Events>
+        <Event>
+          <Ignitions>
+            <Number>1</Number>
+            <KeyCodes></KeyCodes>
+          </Ignitions>
+          <Contents>
+            <Start name="メニューイベント">
+              <Contents>
+                <Post type="Event" command="MoveCard" arg="TRASHBOX">
                   <Contents>
                   </Contents>
                 </Post>

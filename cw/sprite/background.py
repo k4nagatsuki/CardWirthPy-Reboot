@@ -351,14 +351,7 @@ class Curtain(base.SelectableSprite):
         self.cut_curtain()
 
     def rclick_event(self):
-        cw.cwpy.sounds["click"].play()
-
-        # カード移動選択エリアだったら、事前に開いていたダイアログを開く
-        if cw.cwpy.areaid in cw.AREAS_TRADE:
-            cw.cwpy.call_predlg()
-        # それ以外だったら特殊エリアをクリアする
-        else:
-            cw.cwpy.clear_specialarea()
+        cw.cwpy.cancel_cardcontrol()
 
 class BattleCardImage(card.CWPyCard):
     def __init__(self):

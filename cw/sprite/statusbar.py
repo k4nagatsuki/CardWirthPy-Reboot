@@ -32,7 +32,7 @@ class StatusBar(base.CWPySprite):
 
     def change(self, showbuttons=True):
         self.clear()
-        if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT) or cw.cwpy.selectedheader):
+        if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT)):
             showbuttons = False
 
         self.showbuttons = showbuttons
@@ -51,7 +51,20 @@ class StatusBar(base.CWPySprite):
             rmargin += cw.s(27)
             DebuggerButton(self, (left, cw.s(3)))
 
-        if cw.cwpy.status == "Yado":
+        if cw.cwpy.is_curtained() or cw.cwpy.selectedheader:
+            if cw.cwpy.status == "Yado":
+                YadoMoneyPanel(self, cw.s((10, 6)))
+                if showbuttons:
+                    CancelButton(self, cw.s((133, 6)))
+                PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            else:
+                if showbuttons:
+                    CancelButton(self, cw.s((10, 6)))
+                if cw.cwpy.status == "Scenario":
+                    PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                elif cw.cwpy.is_battlestatus():
+                    RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+        elif cw.cwpy.status == "Yado":
             YadoMoneyPanel(self, cw.s((10, 6)))
             PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Scenario":
@@ -366,6 +379,18 @@ class RunAwayButton(StatusBarButton):
 
         if cw.cwpy.battle and cw.cwpy.battle.is_ready():
             cw.cwpy.call_dlg("RUNAWAY")
+
+class CancelButton(StatusBarButton):
+    def __init__(self, parent, pos):
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["entry_cancel"], pos, toggle=False)
+        self.is_pushed = False
+
+    def update(self, scr):
+        self.update_selection()
+        self.update_image()
+
+    def lclick_event(self):
+        cw.cwpy.cancel_cardcontrol()
 
 class SettingsButton(StatusBarButton):
     def __init__(self, parent, pos):

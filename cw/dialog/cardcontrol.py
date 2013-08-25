@@ -457,6 +457,7 @@ class CardControl(wx.Dialog):
 
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
+        cw.cwpy.exec_func(cw.cwpy.update_selectablelist)
         if cw.cwpy.areaid in cw.AREAS_TRADE:
             # 能力適性表示
             for pcard in cw.cwpy.get_pcards("unreversed"):

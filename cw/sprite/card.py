@@ -14,6 +14,7 @@ class CWPyCard(base.SelectableSprite):
         base.SelectableSprite.__init__(self)
         # 状態
         self.status = status
+        self.debug_only = False
         self.old_status = status
         self.rect = cw.s(pygame.Rect(0, 0, 0, 0))
         self._pos_noscale = None
@@ -145,11 +146,7 @@ class CWPyCard(base.SelectableSprite):
         カード表示時のアニメーションを呼び出すメソッド。
         """
         if self.frame >= len(cw.cwpy.setting.dealing_scales):
-            self.status = "normal"
-            self.image = self.get_animeimage()
-            if cw.cwpy.selection == self:
-                self.image = cw.imageretouch.to_negative_for_card(self.image)
-            self.rect = pygame.Rect(self.get_animerect())
+            self.deal()
             self.frame = 0
             return
 
@@ -168,13 +165,20 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.frame += 1
 
+    def deal(self):
+        """カードをアニメーショ無しで表示する。"""
+        self.status = "normal"
+        self.image = self.get_animeimage()
+        if cw.cwpy.selection == self:
+            self.image = cw.imageretouch.to_negative_for_card(self.image)
+        self.rect = pygame.Rect(self.get_animerect())
+
     def update_hide(self):
         """
         カード非表示時のアニメーションを呼び出すメソッド。
         """
         if self.frame >= len(cw.cwpy.setting.dealing_scales):
-            self.status = "hidden"
-            self.clear_image()
+            self.hide()
             self.frame = 0
             return
 
@@ -192,6 +196,11 @@ class CWPyCard(base.SelectableSprite):
             self.frame += 2
         else:
             self.frame += 1
+
+    def hide(self):
+        """カードをアニメーショ無しで非表示にする。"""
+        self.status = "hidden"
+        self.clear_image()
 
     def update_lateralvibe(self):
         """
@@ -848,6 +857,7 @@ class MenuCard(CWPyCard):
         self.name = data.gettext("Property/Name", "")
         self.desc = data.gettext("Property/Description", "")
         self.flag = data.gettext("Property/Flag", "")
+        self.debug_only = data.getbool(".", "debugOnly", False)
         self.events = cw.event.EventEngine(data.getfind("Events"))
         self.author = ""
         self.scenario = ""

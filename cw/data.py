@@ -700,25 +700,7 @@ class Flag(object):
 
     def redraw_cards(self):
         """対応するメニューカードの再描画処理"""
-        if cw.cwpy.is_autospread():
-            drawflag = False
-
-            for mcard in cw.cwpy.get_mcards():
-                mcardflag = cw.cwpy.sdata.flags.get(mcard.flag, True)
-
-                if mcardflag and mcard.status == "hidden":
-                    drawflag = True
-                elif not mcardflag and not mcard.status == "hidden":
-                    drawflag = True
-
-            if drawflag:
-                cw.cwpy.hide_cards(True)
-                cw.cwpy.deal_cards()
-
-        elif self.value:
-            cw.cwpy.deal_cards()
-        else:
-            cw.cwpy.hide_cards()
+        cw.data.redraw_cards(self.value)
 
     def set(self, value):
         if self.value <> value:
@@ -738,6 +720,29 @@ class Flag(object):
             return self.truename
         else:
             return self.falsename
+
+def redraw_cards(value):
+    """フラグに対応するメニューカードの再描画処理"""
+    if cw.cwpy.is_autospread():
+        drawflag = False
+
+        for mcard in cw.cwpy.get_mcards():
+            mcardflag = cw.cwpy.sdata.flags.get(mcard.flag, True)
+            mcardflag &= (not mcard.debug_only or cw.cwpy.is_debugmode())
+
+            if mcardflag and mcard.status == "hidden":
+                drawflag = True
+            elif not mcardflag and not mcard.status == "hidden":
+                drawflag = True
+
+        if drawflag:
+            cw.cwpy.hide_cards(True)
+            cw.cwpy.deal_cards()
+
+    elif value:
+        cw.cwpy.deal_cards()
+    else:
+        cw.cwpy.hide_cards()
 
 class Step(object):
     def __init__(self, value, name, valuenames):
