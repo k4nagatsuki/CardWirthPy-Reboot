@@ -180,6 +180,9 @@ class CardEditDialog(wx.Dialog):
         self.Layout()
 
     def OnScenario(self, event):
+        """配付や検索の対象となるカードを選択するため、
+        シナリオのデータをロードする。
+        """
         if self.scpath:
             dpath = os.path.dirname(self.scpath)
             fpath = os.path.basename(self.scpath)
@@ -201,6 +204,7 @@ class CardEditDialog(wx.Dialog):
             self._update_cards()
 
     def OnDetailBtn(self, event):
+        """カードの情報を表示する。"""
         if 0 == self.cards.GetItemCount():
             return
         index = self.cards.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -221,6 +225,7 @@ class CardEditDialog(wx.Dialog):
                 self.cards.SetItemState(i, 0, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED)
 
     def OnDealBtn(self, event):
+        """選択したカードを配付する。"""
         cname = self.dealtarg.GetStringSelection()
         if cname == u"カード置場":
             target = cw.cwpy.ydata.storehouse
@@ -246,6 +251,7 @@ class CardEditDialog(wx.Dialog):
             cw.cwpy.sounds["harvest"].play()
 
     def OnFindBtn(self, event):
+        """キャラクター・荷物袋・宿に存在するカードを検索する。"""
         self.targets.DeleteChildren(self.root)
         self._find = True
         self.target_cards = self._get_cards(True)
@@ -442,9 +448,11 @@ class CardEditDialog(wx.Dialog):
         self._update_enable()
 
     def OnStopBtn(self, event):
+        """カードの検索を中止する。"""
         self._find = False
 
     def OnUpdateBtn(self, event):
+        """カードの更新。"""
         writes = set()
         count = 0
         for matcher, infos in self.target_table.items():
@@ -491,6 +499,7 @@ class CardEditDialog(wx.Dialog):
         cw.cwpy.sounds["harvest"].play()
 
     def OnDeleteBtn(self, event):
+        """カードの除去。"""
         writes = set()
         count = 0
         for matcher, infos in self.target_table.items():
@@ -522,6 +531,9 @@ class CardEditDialog(wx.Dialog):
         cw.cwpy.sounds["harvest"].play()
 
     def _indexof(self, matcher, owner, data):
+        """指定されたマッチング条件のカードを
+        ownerがどの位置に持っているかを返す。
+        """
         if isinstance(owner, cw.data.Party):
             o = owner.backpack
         elif isinstance(owner, cw.character.Character):
@@ -545,6 +557,7 @@ class CardEditDialog(wx.Dialog):
         return o.index(data)
 
     def _remove(self, owner, data, index):
+        """ownerから指定するカードを取り除く。"""
         if isinstance(owner, cw.data.Party):
             header = data
             cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True, sort=False, party=owner)
@@ -566,6 +579,7 @@ class CardEditDialog(wx.Dialog):
             assert False
 
     def _write_results(self, writes):
+        """カードを配付した結果をファイル出力する。"""
         for data in writes:
             if isinstance(data, cw.data.Party):
                 data.write()
@@ -575,9 +589,11 @@ class CardEditDialog(wx.Dialog):
                 data.write_xml()
 
     def OnCardSelected(self, event):
+        """カードリストの選択変更時に呼び出される。"""
         self._update_enable()
 
     def OnClose(self, event):
+        """ダイアログを閉じる。"""
         self._find = False
         cw.cwpy.ydata.sort_storehouse()
         if cw.cwpy.ydata.party:
@@ -585,6 +601,9 @@ class CardEditDialog(wx.Dialog):
         self.Destroy()
 
     def _get_matcher(self, data):
+        """チェックに応じたカードのマッチング条件を返す。
+        この戻り値を比較する事でカードの同一性を判断する。
+        """
         type = ""
         name = ""
         desc = ""
@@ -617,6 +636,7 @@ class CardEditDialog(wx.Dialog):
         return (type, name, desc, scenario, author)
 
     def _get_imgidx(self, data):
+        """カードの種類に応じたアイコンのindexを返す。"""
         type = ""
         if isinstance(data, cw.header.CardHeader):
             header = data
@@ -634,6 +654,7 @@ class CardEditDialog(wx.Dialog):
         return None
 
     def _get_cards(self, selected):
+        """リスト内で選択中のカードの一覧を返す。"""
         cards = {}
         index = -1
         if selected:
@@ -649,6 +670,7 @@ class CardEditDialog(wx.Dialog):
         return cards
 
     def _update_cards(self):
+        """シナリオ内のカードの一覧を表示する。"""
         self.cards.DeleteAllItems()
         self.targets.DeleteChildren(self.root)
         self.list = []
@@ -682,6 +704,7 @@ class CardEditDialog(wx.Dialog):
         self._update_enable()
 
     def _update_enable(self):
+        """各ボタンの押下可否を状況に応じて変更する。"""
         selected = -1 < self.cards.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
 
         self.dtlbtn.Enable(0 < len(self.list))
@@ -699,6 +722,7 @@ class CardEditDialog(wx.Dialog):
         self.delbtn.Enable(hascard and not self._find)
 
 def get_scenario(fpath):
+    """fpathのシナリオのデータを生成して返す。"""
     lfpath = fpath.lower()
     if lfpath.endswith(".wsm"):
         t = cw.scenariodb.read_summary(os.path.dirname(fpath))
