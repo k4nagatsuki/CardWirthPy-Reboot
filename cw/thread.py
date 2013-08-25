@@ -773,6 +773,7 @@ class CWPy(_Singleton, threading.Thread):
         cw.cwpy.topgrp.add(cell3, layer="title")
         cw.cwpy.topgrp.add(white, layer="title")
 
+        self.lock_menucards = False
         cw.animation.animate_sprite(card2, "deal", clearevent=False)
         cw.animation.animate_sprite(card2, "hide", clearevent=False)
         cw.animation.animate_sprite(card1, "deal", clearevent=False)
