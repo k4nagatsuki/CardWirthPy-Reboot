@@ -242,7 +242,7 @@ class CardEditDialog(wx.Dialog):
             if index <= -1:
                 break
             notscenariocard = not cw.cwpy.is_playingscenario()
-            data = self.datalist[index]
+            data = copy.deepcopy(self.datalist[index])
             header = self.list[index]
             cw.content.get_card(data, target, notscenariocard=notscenariocard, copymaterialfrom=header.scedir, fromdebugger=True)
             count += 1
