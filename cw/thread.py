@@ -270,9 +270,9 @@ class CWPy(_Singleton, threading.Thread):
 
             flags = 0
             fullscreen = self.is_expanded() and cw.cwpy.setting.expandmode == "FullScreen"
-            pygame.display.quit()
             if fullscreen:
-                self.scr_fullscreen = pygame.display.set_mode((0, 0), flags)
+                rect = wx.DisplaySize()
+                self.scr_fullscreen = pygame.display.set_mode((rect[0], rect[1]), flags)
                 self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
             else:
                 self.scr_fullscreen = None
@@ -573,14 +573,15 @@ class CWPy(_Singleton, threading.Thread):
                 time.sleep(0.001)
             return result[0]
 
-    def set_expanded(self, flag):
+    def set_expanded(self, flag, expandmode=""):
         """拡大表示する。すでに拡大表示されている場合は解除する。
         flag: Trueなら拡大表示、Falseなら解除。
         """
         if self.is_expanded() == flag:
             return
 
-        expandmode = self.expand_mode if self.is_expanded() else self.setting.expandmode
+        if not expandmode:
+            expandmode = self.expand_mode if self.is_expanded() else self.setting.expandmode
 
         if expandmode == "None":
             return
@@ -598,8 +599,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.setting.is_expanded = flag
                 if flag:
                     self.expand_mode = expandmode
-                    pygame.display.quit()
-                    self.scr_fullscreen = pygame.display.set_mode((0, 0), 0)
+                    rect = wx.DisplaySize()
+                    self.scr_fullscreen = pygame.display.set_mode((rect[0], rect[1]), 0)
                     self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, True)
