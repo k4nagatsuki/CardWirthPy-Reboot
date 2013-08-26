@@ -519,7 +519,7 @@ class JpyPartsImage(_JpySubImage):
         self.position = cw.s(config.get_ints(section, "position", 2, (0, 0)))
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
-        self.transparent = config.get_bool(section, "transparent", True)
+        self.transparent = config.get_bool(section, "transparent", False)
 
 class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache):
@@ -537,7 +537,7 @@ class JpyImage(cw.image.Image):
         if not cache:
             cache = JpyCache()
 
-        config = EffectBoosterConfig(path)
+        config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache)
         back.load(doanime)
 
@@ -588,7 +588,7 @@ class JpyCache(object):
 
 class JpdcImage(cw.image.Image):
     def __init__(self, mask, path):
-        config = EffectBoosterConfig(path)
+        config = EffectBoosterConfig(path, "jpdc:init")
         x, y, w, h = cw.s(config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420)))
         rect = pygame.Rect(x, y, w, h)
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA))
@@ -602,15 +602,17 @@ class JpdcImage(cw.image.Image):
 
         if copymode == 3:
             self.image.fill((255, 255, 255))
-        elif copymode == 2:
-            cw.cwpy.bggrp.draw(self.image)
-            cw.cwpy.mcardgrp.draw(self.image)
-            cw.cwpy.pcardgrp.draw(self.image)
-            cw.cwpy.topgrp.draw(self.image)
         else:
             cw.cwpy.bggrp.draw(self.image)
-            cw.cwpy.mcardgrp.draw(self.image)
-            cw.cwpy.pcardgrp.draw(self.image)
+            # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+                cw.cwpy.pcardgrp.draw(self.image)
+                cw.cwpy.mcardgrp.draw(self.image)
+            else:
+                cw.cwpy.mcardgrp.draw(self.image)
+                cw.cwpy.pcardgrp.draw(self.image)
+            if copymode == 2:
+                cw.cwpy.topgrp.draw(self.image)
 
         self.image = self.image.subsurface(rect)
 
@@ -649,7 +651,7 @@ class JpdcImage(cw.image.Image):
 
 class JptxImage(cw.image.Image):
     def __init__(self, path, mask):
-        config = EffectBoosterConfig(path)
+        config = EffectBoosterConfig(path, "jptx:init")
         # parameters
         backcolor = config.get_color("jptx:init", "backcolor", (0, 0, 0))
         backwidth = cw.s(config.get_int("jptx:init", "backwidth", -1))
@@ -965,7 +967,7 @@ class JptxImage(cw.image.Image):
         return start, name, attrs
 
 class EffectBoosterConfig(object):
-    def __init__(self, path):
+    def __init__(self, path, firstsection):
         self.path = path
         r_sec = re.compile(r'\[([^]]+)\]')
         r_opt = re.compile(r'([^:=\s][^:=]*)\s*[:=]\s*(.*)$')
@@ -1013,6 +1015,11 @@ class EffectBoosterConfig(object):
 
         if jptxtxt:
             self._sections["jptx:begin"] = {"jptx:end": "".join(jptxtxt)}
+
+        if not self._sections and firstsection <> "":
+            cur_sec = {}
+            self._sections[firstsection] = cur_sec
+            self._orderedsecs.append(firstsection)
 
     def sections(self):
         return self._orderedsecs

@@ -468,6 +468,15 @@ class CWPy(_Singleton, threading.Thread):
                     pygame.display.update(clip)
                 else:
                     pygame.display.update(dirty_rects)
+
+            self.scr.set_clip(None)
+            self.bggrp.set_clip(None)
+            self.pcardgrp.set_clip(None)
+            self.mcardgrp.set_clip(None)
+            self.topgrp.set_clip(None)
+            self.backloggrp.set_clip(None)
+            self.sbargrp.set_clip(None)
+
             self.event.eventtimer = 0
 
     def init_fullscreenparams(self):
@@ -2407,7 +2416,7 @@ class CWPy(_Singleton, threading.Thread):
         # Jpy1から参照しているイメージを再帰的にコピーする
         if from_scenario and os.path.splitext(imgpath)[1].lower() == ".jpy1":
             try:
-                config = cw.effectbooster.EffectBoosterConfig(imgpath)
+                config = cw.effectbooster.EffectBoosterConfig(imgpath, "init")
                 for section in config.sections():
                     jpy1innnerfile = config.get(section, "filename", "")
                     if not jpy1innnerfile:
