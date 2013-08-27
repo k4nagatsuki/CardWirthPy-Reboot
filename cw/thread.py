@@ -1520,11 +1520,9 @@ class CWPy(_Singleton, threading.Thread):
                 # 表示が切り替わる場合がある
                 for mcard in self.sdata.sparea_mcards[areaid]:
                     if mcard.debug_only and not self.is_debugmode():
-                        if mcard.status <> "hidden":
-                            mcard.hide()
+                        mcard.hide()
                     else:
-                        if mcard.status == "hidden":
-                            mcard.deal()
+                        mcard.deal()
                 if self.is_autospread():
                     mcards = self.get_mcards("flagtrue")
                     self.set_autospread(mcards, 6, False, anime=False)
