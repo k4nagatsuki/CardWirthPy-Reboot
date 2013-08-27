@@ -858,6 +858,8 @@ class Debugger(wx.Frame):
         self.refresh_pausetool()
 
     def refresh_pausetool(self):
+        if cw.cwpy.frame.debugger is None:
+            return
         if cw.cwpy.event._paused:
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PLAY"]
             text = u"イベント実行再開(&P)\tF10"
@@ -896,6 +898,8 @@ class Debugger(wx.Frame):
         self.tb_event.Realize()
 
     def refresh_areaname(self):
+        if cw.cwpy.frame.debugger is None:
+            return
         self.st_area.SetLabel(cw.cwpy.sdata.get_areaname())
 
         # ツールボタンの表示を切り替えるかどうか
@@ -922,10 +926,14 @@ class Debugger(wx.Frame):
             self._mgr.Update()
 
     def refresh_selectedmembername(self):
+        if cw.cwpy.frame.debugger is None:
+            return
         self.st_select.SetLabel(cw.cwpy.event.get_selectedmembername())
         self.tb_select.Refresh()
 
     def refresh_tools(self):
+        if cw.cwpy.frame.debugger is None:
+            return
         self.mi_comp.Enable(False)
         self.tl_comp.Enable(False)
         self.mi_gossip.Enable(False)
@@ -1139,6 +1147,8 @@ class VariableListCtrl(wx.ListCtrl):
         """引数のアイテムのデータを更新する。
         item: Flag or Step
         """
+        if cw.cwpy.frame.debugger is None:
+            return
         try:
             itemid = self.list.index(variable)
             self.RefreshItem(itemid)
@@ -1146,6 +1156,8 @@ class VariableListCtrl(wx.ListCtrl):
             self.refresh_variablelist()
 
     def refresh_variablelist(self):
+        if cw.cwpy.frame.debugger is None:
+            return
         self.list = []
         self.SetItemCount(0)
 
@@ -1214,6 +1226,8 @@ class EventTreeCtrl(wx.TreeCtrl):
             cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data)
 
     def refresh_activeitem(self):
+        if cw.cwpy.frame.debugger is None:
+            return
         event = cw.cwpy.event.get_event()
 
         if event and event.cur_content in self.items:
@@ -1241,6 +1255,8 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.current_content = None
 
     def refresh_tree(self):
+        if cw.cwpy.frame.debugger is None:
+            return
         event = cw.cwpy.event.get_event()
 
         if self.current_tree <> event:

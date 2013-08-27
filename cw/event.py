@@ -214,40 +214,46 @@ class EventInterface(object):
 
     def refresh_tools(self):
         """デバッガのツールが使用可能かどうかを更新する。"""
+        dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            func = cw.cwpy.frame.debugger.refresh_tools
+            func = dbg.refresh_tools
             cw.cwpy.frame.exec_func(func)
 
     def refresh_variablelist(self):
         """デバッガの状態変数のリストを更新する。"""
+        dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            func = cw.cwpy.frame.debugger.view_var.refresh_variablelist
+            func = dbg.view_var.refresh_variablelist
             cw.cwpy.frame.exec_func(func)
 
     def refresh_variable(self, variable):
         """デバッガの状態変数の値を更新する。"""
-        if cw.cwpy.frame.debugger:
-            func = cw.cwpy.frame.debugger.view_var.refresh_variable
+        dbg = cw.cwpy.frame.debugger
+        if cw.cwpy.is_showingdebugger():
+            func = dbg.view_var.refresh_variable
             cw.cwpy.frame.exec_func(func, variable)
 
     def refresh_selectedmembername(self):
         """デバッガの選択メンバツールバーの表示を更新する。"""
+        dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            func = cw.cwpy.frame.debugger.refresh_selectedmembername
+            func = dbg.refresh_selectedmembername
             cw.cwpy.frame.exec_func(func)
 
     def refresh_areaname(self):
         """デバッガのエリアツールバーの表示を更新する。"""
+        dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            func = cw.cwpy.frame.debugger.refresh_areaname
+            func = dbg.refresh_areaname
             cw.cwpy.frame.exec_func(func)
 
     def refresh_activeitem(self):
         """デバッガのイベントツリーの実行中コンテントを更新する。"""
+        dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
-            func = cw.cwpy.frame.debugger.view_tree.refresh_tree
+            func = dbg.view_tree.refresh_tree
             cw.cwpy.frame.exec_func(func)
-            func = cw.cwpy.frame.debugger.view_tree.refresh_activeitem
+            func = dbg.view_tree.refresh_activeitem
             cw.cwpy.frame.exec_func(func)
 
     def wait(self):

@@ -759,7 +759,7 @@ def redraw_cards(value):
 
         for mcard in cw.cwpy.get_mcards():
             mcardflag = cw.cwpy.sdata.flags.get(mcard.flag, True)
-            mcardflag &= (not mcard.debug_only or cw.cwpy.is_debugmode())
+            mcardflag = mcardflag and (not mcard.debug_only or cw.cwpy.is_debugmode())
 
             if mcardflag and mcard.status == "hidden":
                 drawflag = True
