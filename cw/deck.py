@@ -227,7 +227,9 @@ class Deck(object):
         elif ccard.is_overheat():
             self.set_nextcard(2)
         elif ccard.is_confuse():
-            self.set_nextcard(-1)
+            # 混乱時、混乱カードは2/3の確率で配布とする。
+            if cw.cwpy.dice.roll(1, 3)>1:
+                self.set_nextcard(-1)
 
     def use(self, header):
         """headerを使用する。
