@@ -36,7 +36,7 @@ class Deck(object):
 
         return seq
 
-    def set_nextcard(self, id=0):
+    def set_nextcard(self, id=0, brave=False):
         """山札の一番上に指定したIDのアクションカードを置く。
         IDを指定しなかった場合(0の場合)は、スキルカードを置く。
         """
@@ -50,7 +50,11 @@ class Deck(object):
                     break
 
             else:
-                return
+                if brave:
+                    # スキルカードが尽き、かつ勇敢ならば、配布されるカードとして攻撃系を指定
+                    header = cw.cwpy.rsrc.actioncards[cw.cwpy.dice.roll(1, 3)]
+                else:
+                    return
 
         # ペナルティカードじゃなかったら、山札からカードを消す
         if not id < 0 and header in self.talon:
@@ -219,7 +223,7 @@ class Deck(object):
             self.set_nextcard(n)
         elif ccard.is_brave():
             n = cw.cwpy.dice.roll(1, 4) - 1
-            self.set_nextcard(n)
+            self.set_nextcard(n, brave=True)
         elif ccard.is_overheat():
             self.set_nextcard(2)
         elif ccard.is_confuse():
