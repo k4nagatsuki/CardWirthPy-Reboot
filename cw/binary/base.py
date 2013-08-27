@@ -1573,15 +1573,15 @@ class CWBinaryBase(object):
         if n == 0:
             return "Normal"            # 正常状態
         elif n == 1:
-            return "Panic"             # 恐慌状態
+            return "Sleep"             # 睡眠状態
         elif n == 2:
-            return "Brave"             # 勇敢状態
+            return "Confuse"           # 混乱状態
         elif n == 3:
             return "Overheat"          # 激昂状態
         elif n == 4:
-            return "Confuse"           # 混乱状態
+            return "Brave"             # 勇敢状態
         elif n == 5:
-            return "Sleep"             # 睡眠状態
+            return "Panic"             # 恐慌状態
         else:
             raise ValueError(self.fpath)
 
@@ -1589,15 +1589,15 @@ class CWBinaryBase(object):
     def unconv_mentality(n):
         if n == "Normal":
             return 0
-        elif n == "Panic":
+        elif n == "Sleep":
             return 1
-        elif n == "Brave":
+        elif n == "Confuse":
             return 2
         elif n == "Overheat":
             return 3
-        elif n == "Confuse":
+        elif n == "Brave":
             return 4
-        elif n == "Sleep":
+        elif n == "Panic":
             return 5
         else:
             raise ValueError(n)
