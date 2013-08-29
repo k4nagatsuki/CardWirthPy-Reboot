@@ -1429,6 +1429,11 @@ class CWPy(_Singleton, threading.Thread):
         """
         指定するIDの戦闘を開始する。
         """
+        # 対象選択中であれば中止
+        if cw.cwpy.selectedheader:
+            cw.cwpy.pre_dialogs = []
+            cw.cwpy.clear_specialarea()
+
         self.sounds["battle"].play(from_scenario=True)
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
