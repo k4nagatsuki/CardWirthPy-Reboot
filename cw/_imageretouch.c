@@ -537,6 +537,40 @@ blend_sub_1_50(PyObject *self, PyObject *args)
     return string;
 }
 
+static PyObject *
+to_disabledimage(PyObject *self, PyObject *args)
+{
+    size_t dlen;
+    int px, w, h, keyR, keyG, keyB;
+    Py_buffer buf;
+    unsigned char *dest;
+    static const int min = 140;
+    static const int max = 240;
+
+    if (!PyArg_ParseTuple(args, "s*(ii)", &buf, &w, &h))
+        return NULL;
+
+	dest = buf.buf;
+    keyR = dest[0];
+    keyG = dest[1];
+    keyB = dest[2];
+    for (px = 0; px < buf.len; px += 3)
+    {
+        int r = dest[px+0];
+        int g = dest[px+1];
+        int b = dest[px+2];
+        if (r == keyR && g == keyG && b == keyB)
+        {
+            continue;
+        }
+        dest[px+0] = r * (max - min) / 255  + min;
+        dest[px+1] = g * (max - min) / 255  + min;
+        dest[px+2] = b * (max - min) / 255  + min;
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef
 _imageretouchMethods[] =
 {
@@ -560,6 +594,8 @@ _imageretouchMethods[] =
         "blend_add_1_50(rgba_str, size, rgba_str)"},
     {"blend_sub_1_50", blend_sub_1_50, METH_VARARGS,
         "blend_sub_1_50(rgba_str, size, rgba_str)"},
+    {"to_disabledimage", to_disabledimage, METH_VARARGS,
+        "to_disabledimage(char*, size)"},
     {NULL, NULL, 0, NULL}
 };
 

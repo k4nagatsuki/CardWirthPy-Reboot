@@ -673,53 +673,43 @@ def _blend_sub_1_50(dest, source):
 
 def to_disabledimage(wxbmp):
     """
+    通常時のボタン画像からdisabled用の画像を作る。
+    RGB値の範囲を 0～255 から min～max に変更する。
+    wxbmp: wx.Bitmap
+    """
+    try:
+        func = _imageretouch.to_disabledimage
+    except NameError:
+        func = _to_disabledimage
+
+    wximg = wxbmp.ConvertToImage().ConvertToGreyscale()
+    buf = str(wximg.GetDataBuffer())
+    buf = bytearray(buf)
+    w = wximg.GetWidth()
+    h = wximg.GetHeight()
+    func(buf, (w, h))
+
+    wximg = wx.ImageFromBuffer(w, h, buffer(buf))
+    wxbmp = wx.BitmapFromImage(wximg)
+    wxbmp.SetMaskColour((wximg.GetRed(0, 0), wximg.GetGreen(0, 0), wximg.GetBlue(0, 0)))
+    return wxbmp
+
+def _to_disabledimage(buf, size):
+    """
     通常時のボタン画像からdisabled用の画像を作る
     グレイスケール処理後、RGB値の範囲を 0～255 から min～max に変更
     wxbmp: wx.Bitmap
     """
     # 最終的なRGB値の範囲を設定
     min, max = 140, 240
-    # 右下の照り返し色
-    light = (255, 255, 255)
 
-    image = cw.image.conv2surface(wxbmp)
-    image = to_grayscale(image)
-    colorkey = image.get_colorkey()[0:3]
+    colorkey = (buf[0], buf[1], buf[2])
 
-    pxarray = pygame.PixelArray(image)
-    lastseq = []
-
-    # 上・左上・左の３ピクセルが全部、透過色もしくは照り返し色なら
-    # 透過色に。そうでないなら照り返し色に。
-    def check_reflection(neighbor_pixels):
-        for pixel in neighbor_pixels:
-            if not (pixel == colorkey or pixel == light):
-                return light
-
-        return colorkey
-
-    for x, pxs in enumerate(pxarray):
-        seq = []
-
-        for px in pxs:
-            (rgb, ) = hex2color(px)[0:1]
-
-            if (rgb, ) == colorkey[0:1]:
-                if len(seq) == 0 or len(lastseq) == 0:
-                    seq.append(colorkey)
-                else:
-                    L = len(seq)
-                    color = check_reflection((seq[L-1], lastseq[L-1], lastseq[L]))
-                    seq.append(color)
-            else:
-                rgb = rgb * (max - min) / 255  + min
-                seq.append((rgb, rgb, rgb))
-
-        pxarray[x] = seq
-        lastseq = []
-        lastseq = seq
-
-    return cw.image.conv2wxbmp(image)
+    for px in xrange(0, len(buf), 3):
+        if (buf[px], buf[px+1], buf[px+2]) <> colorkey:
+            buf[px+0] = buf[px+0] * (max - min) / 255  + min
+            buf[px+1] = buf[px+1] * (max - min) / 255  + min
+            buf[px+2] = buf[px+2] * (max - min) / 255  + min
 
 def hex2color(hexnum):
     """RGBデータの16進数を(r, g, b)のタプルで返す。
