@@ -125,6 +125,11 @@ class BattleEngine(object):
         """戦闘終了処理。戦闘エリアを解除する。
         勝利時のみここへ来ない。
         """
+        # 対象選択中であれば中止
+        if cw.cwpy.selectedheader:
+            cw.cwpy.pre_dialogs = []
+            cw.cwpy.clear_specialarea()
+
         # 行動内容のクリア
         for member in cw.cwpy.get_pcards():
             member.clear_action()
