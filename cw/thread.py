@@ -1382,12 +1382,17 @@ class CWPy(_Singleton, threading.Thread):
 
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),
-                          quickdeal=False):
+                          quickdeal=False, specialarea=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
         ttype: トランジション効果のデータのタプル((効果名, 速度))
         """
+        # デバッガ等で強制的にエリア移動するときは特殊エリアを解除する
+        if not specialarea and self.is_curtained():
+            self.pre_dialogs = []
+            self.clear_specialarea()
+
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
         oldareaid = self.areaid
@@ -1430,9 +1435,9 @@ class CWPy(_Singleton, threading.Thread):
         指定するIDの戦闘を開始する。
         """
         # 対象選択中であれば中止
-        if cw.cwpy.selectedheader:
-            cw.cwpy.pre_dialogs = []
-            cw.cwpy.clear_specialarea()
+        if self.is_curtained():
+            self.pre_dialogs = []
+            self.clear_specialarea()
 
         self.sounds["battle"].play(from_scenario=True)
         # 戦闘開始アニメーション
@@ -1512,7 +1517,7 @@ class CWPy(_Singleton, threading.Thread):
             if areaid in (cw.AREA_BREAKUP, cw.AREA_CAMP):
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
-                self.change_area(areaid, quickdeal=True)
+                self.change_area(areaid, quickdeal=True, specialarea=True)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
             else:
@@ -1602,20 +1607,20 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 if cw.cwpy.ydata:
                     changed = cw.cwpy.ydata.is_changed()
-                self.change_area(areaid, quickdeal=True)
+                self.change_area(areaid, quickdeal=True, specialarea=True)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
         elif self.is_battlestatus():
             self.clear_curtain()
             self.selectedheader = None
             self.call_predlg()
-        elif self.selectedheader and self.pre_dialogs:
-            # ターゲット選択エリアを解除の場合
-            self.clear_curtain()
-            self.selectedheader = None
-            self.call_predlg()
         elif self.selectedheader:
+            # ターゲット選択エリアを解除の場合
             self.selectedheader = None
+            if self.is_curtained():
+                self.clear_curtain()
+            if self.pre_dialogs:
+                self.call_predlg()
 
         showbuttons = not self.is_playingscenario() or\
             (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)

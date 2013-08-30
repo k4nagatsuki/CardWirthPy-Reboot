@@ -126,7 +126,7 @@ class BattleEngine(object):
         勝利時のみここへ来ない。
         """
         # 対象選択中であれば中止
-        if cw.cwpy.selectedheader:
+        if cw.cwpy.is_curtained():
             cw.cwpy.pre_dialogs = []
             cw.cwpy.clear_specialarea()
 
