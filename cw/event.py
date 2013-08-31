@@ -482,9 +482,7 @@ class Event(object):
         try:
             # デバッガ等で強制的にイベントを実行する時は
             # 特殊エリアを解除する
-            if cw.cwpy.is_curtained():
-                cw.cwpy.pre_dialogs = []
-                cw.cwpy.clear_specialarea()
+            cw.cwpy.clean_specials()
 
             showbuttons = not cw.cwpy.is_playingscenario() or\
                 cw.cwpy.areaid in cw.AREAS_SP

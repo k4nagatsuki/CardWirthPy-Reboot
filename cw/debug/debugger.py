@@ -534,6 +534,8 @@ class Debugger(wx.Frame):
         if not cw.cwpy.is_playingscenario():
             return
 
+        cw.cwpy.exec_func(cw.cwpy.clean_specials)
+
         fpath = cw.binary.util.check_filename(cw.cwpy.sdata.name)
         fpath += ".wstx"
         dlg = wx.FileDialog(self, u"状態の復元", "", fpath,
@@ -549,6 +551,7 @@ class Debugger(wx.Frame):
             cw.cwpy.exec_func(func, path)
 
     def OnLoadYadoTool(self, event):
+        cw.cwpy.exec_func(cw.cwpy.clean_specials)
         cw.cwpy.exec_func(cw.cwpy.reload_yado)
 
     def OnCompStampTool(self, event):
@@ -690,6 +693,7 @@ class Debugger(wx.Frame):
                 u"バトルの選択", choices)
 
             if dlg.ShowModal() == wx.ID_OK:
+                cw.cwpy.exec_func(cw.cwpy.clean_specials)
                 func = cw.cwpy.change_battlearea
                 cw.cwpy.exec_func(func, seq[dlg.GetSelection()][0])
 
@@ -706,6 +710,7 @@ class Debugger(wx.Frame):
                 u"パッケージの選択", choices)
 
             if dlg.ShowModal() == wx.ID_OK:
+                cw.cwpy.exec_func(cw.cwpy.clean_specials)
                 id = seq[dlg.GetSelection()][0]
                 path = cw.cwpy.sdata.packs[id][1]
                 data = cw.data.xml2element(path)
@@ -724,6 +729,7 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             # 戦闘中は戦闘終了
             if cw.cwpy.battle:
+                cw.cwpy.exec_func(cw.cwpy.clean_specials)
                 func = cw.cwpy.battle.end
                 cw.cwpy.exec_func(func)
             # 非戦闘中はエリア移動
@@ -747,6 +753,7 @@ class Debugger(wx.Frame):
                 dlg.SetSelection(selected)
 
                 if dlg.ShowModal() == wx.ID_OK:
+                    cw.cwpy.exec_func(cw.cwpy.clean_specials)
                     func = cw.cwpy.change_area
                     cw.cwpy.exec_func(func, seq[dlg.GetSelection()][0])
 

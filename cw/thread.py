@@ -93,6 +93,8 @@ class CWPy(_Singleton, threading.Thread):
         self.lock_menucards = False
         # パーティカード表示中フラグ
         self.is_showparty = False
+        # バックログ表示中フラグ
+        self._is_showingbacklog = False
         # カード操作用データ(CardHeader)
         self.selectedheader = None
         # デバッグモードかどうか
@@ -708,30 +710,17 @@ class CWPy(_Singleton, threading.Thread):
             n = len(self.sdata.backlog) - 1
         index = len(self.sdata.backlog) - 1 - n
 
-        curtain = cw.sprite.message.BacklogCurtain(self.backloggrp)
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
-        self.clear_selection()
-        self.statusbar.change(False)
-
-        locks = self.lock_menucards
-        self.lock_menucards = False
         while self.is_running() and eventhandler.mwin and\
-                cw.cwpy.sdata.is_playing:
+                cw.cwpy.sdata.is_playing and self._is_showingbacklog:
             self.sbargrp.update(self.scr)
             self.draw()
             self.tick_clock()
             self.input()
             eventhandler.run()
         else:
-            # f9帰還時用
-            if not cw.cwpy.sdata.is_playing:
-                eventhandler.exit_backlog()
-        self.lock_menucards = locks
-
-        # 背景スプライト削除
-        self.backloggrp.remove(curtain)
-        self.statusbar.change(not self.is_runningevent())
-        self.draw()
+            # 表示終了
+            eventhandler.exit_backlog(playsound=False)
 
     def set_titlebar(self, s):
         """タイトルバーテキストを設定する。
@@ -1389,9 +1378,8 @@ class CWPy(_Singleton, threading.Thread):
         ttype: トランジション効果のデータのタプル((効果名, 速度))
         """
         # デバッガ等で強制的にエリア移動するときは特殊エリアを解除する
-        if not specialarea and self.is_curtained():
-            self.pre_dialogs = []
-            self.clear_specialarea()
+        if not specialarea:
+            self.clean_specials()
 
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
@@ -1435,9 +1423,7 @@ class CWPy(_Singleton, threading.Thread):
         指定するIDの戦闘を開始する。
         """
         # 対象選択中であれば中止
-        if self.is_curtained():
-            self.pre_dialogs = []
-            self.clear_specialarea()
+        self.clean_specials()
 
         self.sounds["battle"].play(from_scenario=True)
         # 戦闘開始アニメーション
@@ -1626,6 +1612,17 @@ class CWPy(_Singleton, threading.Thread):
             (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
         self.statusbar.change(showbuttons)
         self.disposition_pcards()
+
+    def clean_specials(self):
+        """デバッガからの強制的なエリア移動等を発生させる時、
+        特殊エリアにいたりバックログを開いていたりした場合は
+        クリアして通常状態へ戻す。
+        """
+        if self.is_showingbacklog():
+            self._is_showingbacklog = False
+        if self.is_curtained():
+            self.pre_dialogs = []
+            self.clear_specialarea()
 
     def check_level(self, fromscenario):
         """PCの経験点を確認し、条件を満たしていれば
@@ -2534,7 +2531,7 @@ class CWPy(_Singleton, threading.Thread):
         return bool(self.frame.debugger)
 
     def is_showingbacklog(self):
-        return self.backloggrp.get_sprites_from_layer("backlog")
+        return self._is_showingbacklog
 
     def is_debugmode(self):
         return self.debug

@@ -567,6 +567,13 @@ class EventHandlerForBacklog(EventHandler):
         self.index = index
         self.mwin = self.backlog[self.index].create_message()
 
+        self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp)
+        self._lock_menucards = cw.cwpy.lock_menucards
+        cw.cwpy.clear_selection()
+        cw.cwpy.statusbar.change(False)
+        cw.cwpy.lock_menucards = False
+        cw.cwpy._is_showingbacklog = True
+
     def run(self):
         cw.cwpy.has_inputevent = False
 
@@ -636,6 +643,8 @@ class EventHandlerForBacklog(EventHandler):
             elif event.type == USEREVENT and hasattr(event, "func"):
                 try:
                     self.executing_event(event)
+                    if not cw.cwpy.is_showingbacklog():
+                        self.exit_backlog(False)
                 except cw.event.EventError, ex:
                     # 全てのイベントを確実に実行するため
                     # 例外はここでキャッチしておき、最後に投げる
@@ -734,12 +743,20 @@ class EventHandlerForBacklog(EventHandler):
 
             self.update_sprites()
 
-    def exit_backlog(self):
-        cw.cwpy.sounds["click"].play()
+    def exit_backlog(self, playsound=True):
+        if playsound:
+            cw.cwpy.sounds["click"].play()
         # バックログ終了
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")
         self.mwin = None
+        cw.cwpy._is_showingbacklog = False
+        cw.cwpy.lock_menucards = self._lock_menucards
+
+        # 背景スプライト削除
+        cw.cwpy.backloggrp.remove(self._curtain)
+        cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
+        cw.cwpy.draw()
 
     def update_sprites(self):
         # スプライト削除
