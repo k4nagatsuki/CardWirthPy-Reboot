@@ -397,7 +397,7 @@ class _JpySubImage(cw.image.Image):
                 image = pygame.Surface((0, 0)).convert()
             # Jpy1ファイル
             elif ext == ".jpy1":
-                image = JpyImage(path, cache=self.cache).get_image()
+                image = JpyImage(path, cache=self.cache, doanime=doanime).get_image()
             # Jpdcファイル
             elif ext == ".jpdc":
                 image = JpdcImage(self.transparent, path).get_image()
