@@ -401,9 +401,9 @@ class Debugger(wx.Frame):
 
         self._mgr.Update()
         # ボタン更新
-        self.refresh_tools()
-        self.refresh_areaname()
-        self.refresh_pausetool()
+        self._refresh_tools()
+        self._refresh_areaname()
+        self._refresh_pausetool()
         # bind
         self._bind()
 
@@ -860,6 +860,9 @@ class Debugger(wx.Frame):
     def refresh_pausetool(self):
         if cw.cwpy.frame.debugger is None:
             return
+        self._refresh_pausetool()
+
+    def _refresh_pausetool(self):
         if cw.cwpy.event._paused:
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PLAY"]
             text = u"イベント実行再開(&P)\tF10"
@@ -900,6 +903,9 @@ class Debugger(wx.Frame):
     def refresh_areaname(self):
         if cw.cwpy.frame.debugger is None:
             return
+        self._refresh_areaname()
+
+    def _refresh_areaname(self):
         self.st_area.SetLabel(cw.cwpy.sdata.get_areaname())
 
         # ツールボタンの表示を切り替えるかどうか
@@ -934,6 +940,9 @@ class Debugger(wx.Frame):
     def refresh_tools(self):
         if cw.cwpy.frame.debugger is None:
             return
+        self._refresh_tools()
+
+    def _refresh_tools(self):
         self.mi_comp.Enable(False)
         self.tl_comp.Enable(False)
         self.mi_gossip.Enable(False)
