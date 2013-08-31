@@ -115,17 +115,17 @@ class MoneyEditPanel(wx.Panel):
         # パーティ所持金変更スライダ
         self.slider = wx.Slider(self, -1, self.value, minvalue, maxvalue,
             size=(cw.s(165), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
+        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(11)-1, weight=wx.NORMAL))
         n = maxvalue / 10 if maxvalue else 0
         self.slider.SetTickFreq(n, 1)
         # パーティ所持金変更スピン
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.s(88), -1))
-        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
+        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(11)-1, weight=wx.NORMAL))
         self.spinctrl.SetRange(minvalue, maxvalue)
         self.spinctrl.SetValue(self.value)
         # 宿金庫変更スピン
         self.spinctrl2 = wx.SpinCtrl(self, -1, "", size=(cw.s(88), -1))
-        self.spinctrl2.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
+        self.spinctrl2.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(11)-1, weight=wx.NORMAL))
         self.spinctrl2.SetRange(minvalue, maxvalue)
         self.spinctrl2.SetValue(cw.cwpy.ydata.money)
         # bmp
@@ -464,7 +464,7 @@ class NumberEditor(wx.Panel):
         # スライダ
         self.slider = wx.Slider(self, -1, value, minvalue, maxvalue,
             size=(cw.s(200), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
+        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(11)-1, weight=wx.NORMAL))
         self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
