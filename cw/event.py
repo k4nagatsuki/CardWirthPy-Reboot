@@ -480,10 +480,6 @@ class Event(object):
 
     def start(self):
         try:
-            # デバッガ等で強制的にイベントを実行する時は
-            # 特殊エリアを解除する
-            cw.cwpy.clean_specials()
-
             showbuttons = not cw.cwpy.is_playingscenario() or\
                 cw.cwpy.areaid in cw.AREAS_SP
             cw.cwpy.statusbar.change(showbuttons)
