@@ -78,8 +78,11 @@ class MusicInterface(object):
 
                     if type == 2:
                         volume = self._get_volumevalue()
-                        cw.bassplayer.play_bgm(fpath, volume)
-                        self._bass = True
+                        try:
+                            cw.bassplayer.play_bgm(fpath, volume)
+                            self._bass = True
+                        except Exception, ex:
+                            print ex
                     elif type == 1:
                         if sys.platform == "win32":
                             name = "cwbgm"
@@ -192,7 +195,10 @@ class SoundInterface(object):
                     cw.cwpy.exec_func(self.play, from_scenario)
                     return
                 assert threading.currentThread() == cw.cwpy
-                cw.bassplayer.play_sound(self._sound, cw.cwpy.setting.vol_sound, from_scenario)
+                try:
+                    cw.bassplayer.play_sound(self._sound, cw.cwpy.setting.vol_sound, from_scenario)
+                except Exception, ex:
+                    print ex
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
                     cw.cwpy.frame.exec_func(self.play, from_scenario)
