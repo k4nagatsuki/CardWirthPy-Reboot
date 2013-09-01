@@ -2284,7 +2284,7 @@ class StartBattleContent(StartContent):
         if areaid in cw.cwpy.sdata.battles:
             cw.cwpy.exec_func(cw.cwpy.change_battlearea, areaid)
             cw.cwpy._dealing = True
-            raise cw.event.AreaChangeError()
+            raise cw.event.StartBattleError()
         else:
             return 0
 

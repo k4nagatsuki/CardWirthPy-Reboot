@@ -739,7 +739,6 @@ class CWPy(_Singleton, threading.Thread):
     def set_status(self, name):
         self.status = name
         self.hide_cards(True)
-        self.pre_battleareadata = None
         self.pre_areaids = []
         self.pre_dialogs = []
         self.pre_mcards = []
@@ -1430,22 +1429,21 @@ class CWPy(_Singleton, threading.Thread):
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")
         sprite.remove(cw.cwpy.topgrp)
-        self.set_battle()
         oldareaid = self.areaid
         oldbgmpath = self.music.path
+        if self.pre_battleareadata:
+            oldareaid = self.pre_battleareadata[0]
+            oldbgmpath = self.pre_battleareadata[1]
+        self.set_battle()
         self.change_area(areaid, False, ttype=("None", "Default"))
         # 戦闘音楽を流す
         path = self.sdata.data.gettext("Property/MusicPath", "")
         self.music.play(path)
 
-        if self.pre_battleareadata:
-            oldareaid = self.pre_battleareadata[0]
-            oldbgmpath = self.pre_battleareadata[1]
-
         self.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
         self.battle = cw.battle.BattleEngine()
 
-    def clear_battlearea(self, areachange=True, win=False):
+    def clear_battlearea(self, areachange=True, win=False, startnextbattle=False):
         """戦闘状態を解除して戦闘前のエリアに戻る。
         areachangeがFalseだったら、戦闘前のエリアには戻らない
         (戦闘イベントで、エリア移動コンテント等が発動した時用)。
@@ -1469,7 +1467,8 @@ class CWPy(_Singleton, threading.Thread):
                     fcard.remove_timedcoupons(True)
 
             areaid, bgmpath, battlebgmpath = self.pre_battleareadata
-            self.pre_battleareadata = None
+            if not startnextbattle:
+                self.pre_battleareadata = None
             self.set_scenario()
 
             # BGMを最後に指定されたものに戻す

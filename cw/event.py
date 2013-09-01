@@ -422,6 +422,9 @@ class EventError(Exception):
 class AreaChangeError(EventError):
     pass
 
+class StartBattleError(AreaChangeError):
+    pass
+
 class ScenarioEndError(EventError):
     pass
 
@@ -552,6 +555,9 @@ class Event(object):
             # 敗北処理
             if cw.cwpy.is_gameover():
                 raise cw.battle.BattleDefeatError()
+            # 別の戦闘を開始する場合は、戦闘終了
+            elif isinstance(self.error, StartBattleError):
+                raise cw.battle.BattleStartBattleError()
             # エリア移動が起こったら、戦闘終了
             elif isinstance(self.error, AreaChangeError):
                 raise cw.battle.BattleAreaChangeError()

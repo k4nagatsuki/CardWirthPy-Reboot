@@ -10,6 +10,9 @@ class BattleError(Exception):
 class BattleAreaChangeError(BattleError):
     pass
 
+class BattleStartBattleError(BattleError):
+    pass
+
 class BattleWinError(BattleError):
     pass
 
@@ -61,6 +64,8 @@ class BattleEngine(object):
     def start(self):
         try:
             self.run()
+        except BattleStartBattleError:
+            self.end(False, startnextbattle=True)
         except BattleAreaChangeError:
             self.end(False)
         except BattleWinError:
@@ -121,7 +126,7 @@ class BattleEngine(object):
         # 次ターン準備
         self.ready()
 
-    def end(self, areachange=True, f9=False):
+    def end(self, areachange=True, f9=False, startnextbattle=False):
         """戦闘終了処理。戦闘エリアを解除する。
         勝利時のみここへ来ない。
         """
@@ -137,7 +142,7 @@ class BattleEngine(object):
         if f9:
             self.pre_battleareadata = None
         else:
-            cw.cwpy.clear_battlearea(areachange=areachange)
+            cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle)
 
     def ready(self):
         """戦闘行動の準備を行う。
@@ -170,6 +175,8 @@ class BattleEngine(object):
             # 逃走イベント開始
             try:
                 cw.cwpy.sdata.start_event(keynum=2)
+            except BattleStartBattleError:
+                self.end(False, startnextbattle=True)
             except BattleAreaChangeError:
                 self.end(False)
             except BattleDefeatError:
@@ -236,6 +243,8 @@ class BattleEngine(object):
             # 敗北イベント開始
             try:
                 cw.cwpy.sdata.start_event(keynum=3)
+            except BattleStartBattleError:
+                self.end(False, startnextbattle=True)
             except BattleAreaChangeError:
                 self.end(False)
             except BattleDefeatError:
