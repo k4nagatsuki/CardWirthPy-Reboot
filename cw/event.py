@@ -720,8 +720,8 @@ class CardEvent(Event):
         keycodes = self.inusecard.get_keycodes()
         cw.cwpy.sdata.events.start(keycodes=keycodes)
 
-    def run_enemyevent(self, target):
-        if isinstance(target, Enemy) and not (target.is_dead() or target.is_vanished()):
+    def run_enemyevent(self, target, can_unconscious):
+        if isinstance(target, Enemy) and (can_unconscious or not (target.is_dead() or target.is_vanished())):
             keycodes = self.inusecard.get_keycodes()
             target.events.start(keycodes=keycodes)
 
@@ -729,8 +729,8 @@ class CardEvent(Event):
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
             target.events.start(1)
 
-    def run_successevent(self, target, successflag):
-        if isinstance(target, Enemy) and not (target.is_dead() or target.is_vanished()):
+    def run_successevent(self, target, successflag, can_unconscious):
+        if isinstance(target, Enemy) and (can_unconscious or not (target.is_dead() or target.is_vanished())):
             keycodes = []
             for keycode in self.inusecard.get_keycodes():
                 if keycode:
@@ -797,17 +797,21 @@ class CardEvent(Event):
                 # イベント発火判定を含め何もしない
                 continue
 
-            if isinstance(target, Enemy) and target.is_alive():
-                self.run_enemyevent(target)
+            unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and target.is_unconscious()
+
+            if isinstance(target, Enemy) and (target.is_alive() or unconscious_flag):
+                self.run_enemyevent(target, unconscious_flag)
                 target.clear_cardtarget()
 
                 if eff.apply(target):
-                    self.run_successevent(target, True)
+                    self.run_successevent(target, True, unconscious_flag)
                 else:
-                    self.run_successevent(target, False)
+                    self.run_successevent(target, False, unconscious_flag)
                     cw.cwpy.draw()
 
-                self.run_deadevent(target)
+                # 最初から意識不明なら死亡イベント発生なし
+                if not unconscious_flag:
+                    self.run_deadevent(target)
             else:
                 target.clear_cardtarget()
 
