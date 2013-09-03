@@ -522,7 +522,7 @@ class Debugger(wx.Frame):
         fpath = cw.binary.util.check_filename(cw.cwpy.sdata.name)
         fpath += ".wstx"
         dlg = wx.FileDialog(self, u"状態の保存", "", fpath,
-                        "CardWirthPyシナリオ状態ファイル (*.wstx)|*.wstx|すべてのファイル (*.*)|*.*",
+                        u"CardWirthPyシナリオ状態ファイル (*.wstx)|*.wstx|すべてのファイル (*.*)|*.*",
                         wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -539,7 +539,7 @@ class Debugger(wx.Frame):
         fpath = cw.binary.util.check_filename(cw.cwpy.sdata.name)
         fpath += ".wstx"
         dlg = wx.FileDialog(self, u"状態の復元", "", fpath,
-                        "CardWirthPyシナリオ状態ファイル (*.wstx)|*.wstx|すべてのファイル (*.*)|*.*",
+                        u"CardWirthPyシナリオ状態ファイル (*.wstx)|*.wstx|すべてのファイル (*.*)|*.*",
                         wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -922,14 +922,14 @@ class Debugger(wx.Frame):
             if cw.cwpy.is_battlestatus():
                 bmp = cw.cwpy.rsrc.debugs["BATTLECANCEL"]
                 self.mi_area.SetBitmap(bmp)
-                self.mi_area.SetText("戦闘中断(&A)")
+                self.mi_area.SetText(u"戦闘中断(&A)")
                 self.tl_area.SetBitmap1(bmp)
                 self.tl_area.SetShortHelp(u"戦闘を中断します。")
                 self.tl_area._battletool = True
             else:
                 bmp = cw.cwpy.rsrc.debugs["AREA"]
                 self.mi_area.SetBitmap(bmp)
-                self.mi_area.SetText("エリア(&A)")
+                self.mi_area.SetText(u"エリア(&A)")
                 self.tl_area.SetBitmap1(bmp)
                 self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area._battletool = False

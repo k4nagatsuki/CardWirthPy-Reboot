@@ -687,7 +687,7 @@ def dupcheck_plus(path, yado=True):
         elif path.startswith("Data/Temp/Yado"):
             temppath = path.replace("Data/Temp/Yado", "Yado", 1)
         else:
-            print "宿パスの重複チェック失敗", path
+            print u"宿パスの重複チェック失敗", path
             temppath = ""
 
     else:
@@ -710,7 +710,7 @@ def dupcheck_plus(path, yado=True):
             elif path.startswith("Data/Temp/Yado"):
                 temppath = path.replace("Data/Temp/Yado", "Yado", 1)
             else:
-                print "宿パスの重複チェック失敗", path
+                print u"宿パスの重複チェック失敗", path
                 temppath = ""
 
         count += 1

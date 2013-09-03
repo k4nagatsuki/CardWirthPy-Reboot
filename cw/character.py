@@ -982,21 +982,18 @@ class Character(object):
         """
         return coupon in self.coupons
 
-    def get_couponsvalue_max(self):
+    def get_couponsvalue(self):
         """
-        全ての所持クーポンの点数を順番に加算、加算値の最大値を返す
+        全ての所持クーポンの点数を合計した値を返す。
         """
         cnt = 0
-        cnt_max = 0
 
         for coupon, data in self.coupons.iteritems():
             if coupon and not coupon.startswith(u"＠"):
                 value = data[0]
                 cnt += value
-                if cnt_max < cnt:
-                    cnt_max = cnt
 
-        return cnt_max
+        return cnt
 
     def get_specialcoupons(self):
         """
@@ -1221,7 +1218,7 @@ class Character(object):
             self.set_coupon(u"＠レベル上限", 10)
 
         # 解の公式で現在の経験点で到達できるレベルを算出
-        cnt = max(1, self.get_couponsvalue_max())
+        cnt = max(1, self.get_couponsvalue())
         olevel = int((-1 + math.sqrt(1 + 4 * cnt)) / 2.0) + 1
         olevel = min(limit, olevel)
 
