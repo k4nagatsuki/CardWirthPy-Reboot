@@ -56,6 +56,8 @@ class CharacterEditDialog(wx.Dialog):
 
         # 決定
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        if create:
+            self.okbtn.Disable()
         # 中止
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
 
@@ -453,7 +455,7 @@ class CharaRequirementPanel(wx.Panel):
         self.Parent.Parent.okbtn.Enable(False)
         for info in self._get_infos():
             info.name = self.name.GetValue()
-            self.Parent.Parent.okbtn.Enable(0 < len(info.name))
+            self.Parent.Parent.okbtn.Enable(0 < len(info.name.strip()))
 
     def OnLevelBtn(self, event):
         infos = self._get_infos()
