@@ -2373,9 +2373,13 @@ class CWPy(_Singleton, threading.Thread):
         # 同じimgpathを重複して処理しないための辞書
         imgpaths = {}
         r_specialfont = re.compile("#.") # 特殊文字(#)
+        if data.tag == "Property":
+            prop = data
+        else:
+            prop = data.find("Property")
 
         e = cw.data.make_element("Materials", dstdir.replace(self.yadodir + "/", "", 1))
-        data.find("Property").append(e)
+        prop.append(e)
         for e in data.getiterator():
             if e.tag in ("ImagePath", "SoundPath", "SoundPath2") and e.text:
                 def set_material(text):

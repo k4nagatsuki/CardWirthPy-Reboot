@@ -24,22 +24,27 @@ class AdventurerDataComp(wx.Dialog):
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
         s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(8))
         self.text_message = wx.StaticText(self, -1, s)
+        self.text_message.SetFont(font)
+        font = cw.cwpy.rsrc.get_wxfont()
         self.box = wx.StaticBox(self, -1)
         self.text_name = wx.StaticText(self, -1, ccard.name)
-        font = cw.cwpy.rsrc.get_wxfont()
         self.text_name.SetFont(font)
         self.text_caution = wx.StaticText(self, -1, cw.cwpy.msgs["coution"])
         self.text_caution.SetForegroundColour(wx.RED)
         font = cw.cwpy.rsrc.get_wxfont(size=cw.s(14), style=wx.ITALIC)
         self.text_caution.SetFont(font)
         # ラジオボックス
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(8))
         seq = cw.cwpy.setting.sexnames
         self.rb_sex = wx.RadioBox(self, -1, cw.cwpy.msgs["sex"],
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
+        self.rb_sex.SetFont(font)
         seq = cw.cwpy.setting.periodnames
         self.rb_age = wx.RadioBox(self, -1, cw.cwpy.msgs["age"],
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
+        self.rb_age.SetFont(font)
         # OKボタン
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.s((120, 30)), cw.cwpy.msgs["decide"])
         self._do_layout()
