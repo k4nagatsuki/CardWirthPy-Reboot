@@ -2314,10 +2314,10 @@ class CWPy(_Singleton, threading.Thread):
         """
         if isinstance(target, cw.character.Player):
             self.ydata.deletedpaths.add(target.data.fpath)
-            self.remove_materials(target.data)
+            self.remove_materials(target.data.find("Property"))
         elif isinstance(target, cw.header.AdventurerHeader):
             self.ydata.deletedpaths.add(target.fpath)
-            data = cw.data.yadoxml2etree(target.fpath)
+            data = cw.data.yadoxml2element(target.fpath, "Property")
             self.remove_materials(data)
         elif isinstance(target, cw.header.CardHeader):
             if target.fpath:
@@ -2326,7 +2326,7 @@ class CWPy(_Singleton, threading.Thread):
             if target.carddata is not None:
                 data = target.carddata
             else:
-                data = cw.data.yadoxml2etree(target.fpath).getroot()
+                data = cw.data.yadoxml2element(target.fpath).getroot()
 
             self.remove_materials(data)
         elif isinstance(target, cw.data.Party):
@@ -2335,7 +2335,7 @@ class CWPy(_Singleton, threading.Thread):
         elif isinstance(target, (str, unicode)):
             if target.endswith(".xml"):
                 self.ydata.deletedpaths.add(target)
-                data = cw.data.yadoxml2etree(target)
+                data = cw.data.yadoxml2element(target)
                 self.remove_materials(data)
 
     def remove_materials(self, data):
