@@ -1133,7 +1133,7 @@ class CWPy(_Singleton, threading.Thread):
             if self.is_battlestatus():
                 self.set_autospread(mcards, 6, flag, anime=False)
             else:
-                self.set_autospread(mcards, 8, flag, anime=False)
+                self.set_autospread(mcards, 7, flag, anime=False)
 
         deals = []
         for mcard in mcardsinv:
