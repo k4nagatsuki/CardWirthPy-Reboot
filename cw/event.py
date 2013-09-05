@@ -797,7 +797,9 @@ class CardEvent(Event):
                 # イベント発火判定を含め何もしない
                 continue
 
-            unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and target.is_unconscious()
+            unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and\
+                not isinstance(target, cw.sprite.card.MenuCard) and\
+                target.is_unconscious()
 
             if isinstance(target, Enemy) and (target.is_alive() or unconscious_flag):
                 self.run_enemyevent(target, unconscious_flag)
