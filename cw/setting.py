@@ -434,6 +434,8 @@ class Resource(object):
         elif bmp:
             button = wx.BitmapButton(parent, id, bmp)
             button.SetMinSize(size)
+            bmp = cw.imageretouch.to_disabledimage(bmp)
+            button.SetBitmapDisabled(bmp)
 
         return button
 
