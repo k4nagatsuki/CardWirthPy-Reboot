@@ -212,8 +212,8 @@ def create_albumpage(path, lost=False, nocoupon=False):
             s = cw.cwpy.msgs["lost_coupon_1"]
         else:
             s = cw.cwpy.msgs["lost_coupon_2"]
-        element = etree.make_element("Coupon", s, {"value": "0"})
-        etree.append("Property/Coupons", element)
+        ce = etree.make_element("Coupon", s, {"value": "0"})
+        etree.append("Property/Coupons", ce)
 
     # 画像コピー
     name = etree.gettext("Property/Name", "noname")

@@ -2370,6 +2370,9 @@ class CWPy(_Singleton, threading.Thread):
         XMLElementに記されている
         素材ファイルをdstdirにコピーする。
         """
+        if isinstance(data, cw.data.CWPyElementTree):
+            data = data.getroot()
+
         # 同じimgpathを重複して処理しないための辞書
         imgpaths = {}
         r_specialfont = re.compile("#.") # 特殊文字(#)
