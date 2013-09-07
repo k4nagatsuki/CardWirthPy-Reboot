@@ -1108,7 +1108,7 @@ class VariableListCtrl(wx.ListCtrl):
         self.InsertColumn(1, u"現在値")
         self.SetColumnWidth(0, 120)
         self.SetColumnWidth(1, 80)
-        self.refresh_variablelist()
+        self._refresh_variablelist()
         self._bind()
 
     def _bind(self):
@@ -1174,6 +1174,9 @@ class VariableListCtrl(wx.ListCtrl):
     def refresh_variablelist(self):
         if cw.cwpy.frame.debugger is None:
             return
+        self._refresh_variablelist()
+
+    def _refresh_variablelist(self):
         self.list = []
         self.SetItemCount(0)
 
