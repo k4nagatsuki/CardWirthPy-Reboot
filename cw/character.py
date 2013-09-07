@@ -1271,9 +1271,8 @@ class Character(object):
                 if e.text == u"＠レベル原点":
                     e.attrib["value"] = str(self.level)
                     self.coupons[e.text] = self.level, e
-                elif e.text == u"＠ＥＰ" and 0 < uplevel and not debugedit:
+                elif e.text == u"＠ＥＰ":
                     value = e.getint(".", "value", 0) + uplevel * 10
-                    value = max(0, value)
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e
 
