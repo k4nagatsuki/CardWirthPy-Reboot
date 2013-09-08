@@ -729,7 +729,10 @@ def repl_dischar(fname):
     for key, value in d.iteritems():
         fname = fname.replace(key, value)
 
-    return fname.strip()
+    fname = fname.strip()
+    if fname == "":
+        fname = "noname"
+    return fname
 
 def check_dischar(s):
     """

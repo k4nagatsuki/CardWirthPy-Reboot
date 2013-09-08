@@ -454,8 +454,8 @@ class CharaRequirementPanel(wx.Panel):
             return
         self.Parent.Parent.okbtn.Enable(False)
         for info in self._get_infos():
-            info.name = self.name.GetValue()
-            self.Parent.Parent.okbtn.Enable(0 < len(info.name.strip()))
+            info.name = self.name.GetValue().strip()
+            self.Parent.Parent.okbtn.Enable(0 < len(info.name))
 
     def OnLevelBtn(self, event):
         infos = self._get_infos()
