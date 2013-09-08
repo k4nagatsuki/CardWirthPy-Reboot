@@ -59,7 +59,7 @@ class CWYado(object):
             path = util.join_paths(self.path, name)
 
             if os.path.isfile(path):
-                ext = os.path.splitext(name)[1].lstrip(".").lower()
+                ext = cw.util.splitext(name)[1].lstrip(".").lower()
 
                 if name == "Environment.wyd" and not self.environmentpath:
                     self.environmentpath = path
@@ -115,7 +115,7 @@ class CWYado(object):
                 fpath = data.create_xml(self.dir)
 
                 if isinstance(data, party.Party) and\
-                        self.wyd.partyname == os.path.splitext(os.path.basename(data.fpath))[0]:
+                        self.wyd.partyname == cw.util.splitext(os.path.basename(data.fpath))[0]:
                     fpath = os.path.relpath(fpath, self.dir)
                     fpath = cw.util.join_paths(fpath)
                     self.wyd.cwpypartyname = fpath
@@ -334,7 +334,7 @@ class CWYado(object):
         with cwfile.CWFile(path, "rb") as f:
             # 1:スキル, 2:アイテム, 3:召喚獣
             fname = os.path.basename(path)
-            type = d.get(os.path.splitext(fname)[0])
+            type = d.get(cw.util.splitext(fname)[0])
 
             if type == 1:
                 data = skill.SkillCard(None, f, True)
@@ -454,7 +454,7 @@ class CWYado(object):
         e_prop.append(e_members)
         for adventurer in partymembers.adventurers + partymembers.vanisheds:
             fpath = os.path.basename(adventurer.xmlpath)
-            fpath = os.path.splitext(fpath)[0]
+            fpath = cw.util.splitext(fpath)[0]
             e = cw.data.make_element("LostAdventurer", fpath)
             e_members.append(e)
 
@@ -482,7 +482,7 @@ class CWYado(object):
         etree.write(path)
 
         # create_zip
-        path = os.path.splitext(party.xmlpath)[0] + ".wsl"
+        path = cw.util.splitext(party.xmlpath)[0] + ".wsl"
         cw.util.compress_zip("Data/Temp/ScenarioLog", path)
         cw.util.remove("Data/Temp/ScenarioLog")
 
@@ -603,7 +603,7 @@ class UnconvCWYado(object):
                 # log
                 if os.path.isdir("Data/Temp/ScenarioLog"):
                     cw.util.remove("Data/Temp/ScenarioLog")
-                path = os.path.splitext(pt.data.fpath)[0] + ".wsl"
+                path = cw.util.splitext(pt.data.fpath)[0] + ".wsl"
                 if os.path.isfile(path):
                     cw.util.decompress_zip(path, "Data/Temp", "ScenarioLog")
                     etree = cw.data.xml2etree("Data/Temp/ScenarioLog/ScenarioLog.xml")
@@ -637,7 +637,7 @@ class UnconvCWYado(object):
                 else:
                     relpath = os.path.relpath(partyheader.fpath, tempdir)
                 relpath = cw.util.join_paths(relpath)
-                partytable[relpath] = os.path.splitext(os.path.basename(fpath))[0]
+                partytable[relpath] = cw.util.splitext(os.path.basename(fpath))[0]
 
                 if logdir:
                     cw.util.remove("Data/Temp/ScenarioLog")

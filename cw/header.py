@@ -995,14 +995,14 @@ class PartyHeader(object):
         self.data = None
 
     def is_adventuring(self):
-        path = os.path.splitext(self.fpath)[0] + ".wsl"
+        path = cw.util.splitext(self.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
 
     def get_sceheader(self):
         """
         現在冒険中のシナリオのScenarioHeaderを返す。
         """
-        path = os.path.splitext(self.fpath)[0] + ".wsl"
+        path = cw.util.splitext(self.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
 
         if path:

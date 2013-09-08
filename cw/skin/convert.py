@@ -69,7 +69,7 @@ class Converter(threading.Thread):
         rsrc = {}
         for path in os.listdir(dir):
             if path.lower().endswith(".xml"):
-                name = os.path.splitext(path)[0]
+                name = cw.util.splitext(path)[0]
                 path = cw.util.join_paths(dir, path)
                 rsrc[name] = cw.data.xml2etree(path)
         return rsrc
@@ -82,7 +82,7 @@ class Converter(threading.Thread):
     def find_skinname(self):
         if self.exe:
             exebasename = os.path.basename(self.exe)
-            return os.path.splitext(exebasename)[0]
+            return cw.util.splitext(exebasename)[0]
         else:
             return "Default"
 
@@ -117,7 +117,7 @@ class Converter(threading.Thread):
     def find_type(self):
         if self.exe:
             file = os.path.basename(self.exe).lower()
-            file = os.path.splitext(file)[0]
+            file = cw.util.splitext(file)[0]
             if file == "s_c_wirth":
                 return "School"
             elif file == "modernwirth":

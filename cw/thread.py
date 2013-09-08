@@ -1954,7 +1954,7 @@ class CWPy(_Singleton, threading.Thread):
         if os.path.isfile(path):
             cw.util.load_sound(path).play(True)
         else:
-            name = os.path.splitext(os.path.basename(path))[0]
+            name = cw.util.splitext(os.path.basename(path))[0]
 
             if name in self.skinsounds:
                 self.skinsounds[name].play(True)
@@ -1968,7 +1968,7 @@ class CWPy(_Singleton, threading.Thread):
         if os.path.isfile(path):
             return True
         else:
-            name = os.path.splitext(os.path.basename(path))[0]
+            name = cw.util.splitext(os.path.basename(path))[0]
             return name in self.skinsounds
 
 #-------------------------------------------------------------------------------
@@ -2425,7 +2425,7 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         # Jpy1から参照しているイメージを再帰的にコピーする
-        if from_scenario and os.path.splitext(imgpath)[1].lower() == ".jpy1":
+        if from_scenario and cw.util.splitext(imgpath)[1].lower() == ".jpy1":
             try:
                 config = cw.effectbooster.EffectBoosterConfig(imgpath, "init")
                 for section in config.sections():

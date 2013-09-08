@@ -203,7 +203,7 @@ class PartyMembers(base.CWBinaryBase):
         me = wpldata.find("Property/Members")
         for i, adventurer in enumerate(self.adventurers):
             path = adventurer.create_xml(dpath)
-            text = os.path.splitext(os.path.basename(path))[0]
+            text = cw.util.splitext(os.path.basename(path))[0]
             me.append(cw.data.make_element("Member", text))
 
     def create_vanisheds_xml(self, dpath):
@@ -370,7 +370,7 @@ class BackpackCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, fname, mine):
-        f.write_rawstring(os.path.splitext(fname)[0])
+        f.write_rawstring(cw.util.splitext(fname)[0])
         f.write_dword(int(data.findtext("Property/UseLimit", "0")))
         f.write_bool(mine)
 

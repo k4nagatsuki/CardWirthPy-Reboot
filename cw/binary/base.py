@@ -62,7 +62,7 @@ class CWBinaryBase(object):
 
     def get_fname(self):
         fname = os.path.basename(self.fpath)
-        return os.path.splitext(fname)[0]
+        return cw.util.splitext(fname)[0]
 
     def is_root(self):
         return bool(self == self.get_root())

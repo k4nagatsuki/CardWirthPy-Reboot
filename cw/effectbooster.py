@@ -384,7 +384,7 @@ class _JpySubImage(cw.image.Image):
 
         # ファイル読み込み
         if os.path.isfile(path):
-            ext = os.path.splitext(path)[1].lower()
+            ext = cw.util.splitext(path)[1].lower()
 
             # 効果音ファイル
             if ext in cw.EXTS_SND:
@@ -477,7 +477,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
             return get_filepath_s(configpath, filename, 2)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
-        filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
+        filename = cw.util.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
     elif dirtype == 3:
         dpath = "Data/EffectBooster"
     elif dirtype == 4:
@@ -500,7 +500,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
             return get_filepath_s(configpath, filename, 1)
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
-        filename = os.path.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
+        filename = cw.util.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
     elif dirtype == 6:
         dpath = os.path.dirname(os.path.dirname(configpath))
     elif dirtype == 7:

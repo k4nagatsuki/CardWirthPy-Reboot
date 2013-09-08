@@ -59,7 +59,7 @@ class BackGround(base.CWPySprite):
             return cw.cwpy.sdata.cache[(path, size, mask)], False
 
         # 画像読み込み
-        ext = os.path.splitext(path)[1].lower()
+        ext = cw.util.splitext(path)[1].lower()
 
         try:
             if ext == ".jptx":
@@ -143,7 +143,7 @@ class BackGround(base.CWPySprite):
 
                 if not os.path.isfile(path):
                     fname = os.path.basename(path)
-                    fname = os.path.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
+                    fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
                     path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
 
                 d = (path, mask, size, pos, flag, visible)

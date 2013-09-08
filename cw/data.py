@@ -111,7 +111,7 @@ class SystemData(object):
         読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
         """
         cw.util.remove("Data/Temp/ScenarioLog")
-        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
+        path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
 
         if path:
@@ -124,7 +124,7 @@ class SystemData(object):
 
     def remove_log(self):
         cw.util.remove("Data/Temp/ScenarioLog")
-        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
+        path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         cw.cwpy.ydata.deletedpaths.add(path)
 
     def load_log(self, path, recording):
@@ -260,7 +260,7 @@ class SystemData(object):
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Bgm")
         for dpath2, dnames, fnames in os.walk(dpath):
             for fname in fnames:
-                if os.path.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
+                if cw.util.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
                     if dpath2 == dpath:
                         dir = ""
                     else:
@@ -623,7 +623,7 @@ class ScenarioData(SystemData):
         etree.write(path)
 
         # create_zip
-        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
+        path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
 
         if path.startswith(cw.cwpy.yadodir):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
@@ -698,7 +698,7 @@ class ScenarioData(SystemData):
 
     def update_log(self):
         cw.xmlcreater.create_scenariolog(self, "Data/Temp/ScenarioLog/ScenarioLog.xml", False)
-        path = os.path.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
+        path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
 
         if path.startswith("Yado"):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
@@ -711,7 +711,7 @@ class ScenarioData(SystemData):
         dpath = self.tempdir
         for dpath2, dnames, fnames in os.walk(dpath):
             for fname in fnames:
-                if os.path.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
+                if cw.util.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
                     if dpath2 == dpath:
                         dir = ""
                     else:
@@ -940,11 +940,11 @@ class YadoData(object):
             # ディレクトリ方式に変換する
 
             # 変換後のディレクトリ
-            dpath = os.path.splitext(fpath)[0]
+            dpath = cw.util.splitext(fpath)[0]
             dpath = cw.binary.util.check_duplicate(dpath)
             os.makedirs(dpath)
 
-            if nowparty == os.path.splitext(os.path.basename(fpath))[0]:
+            if nowparty == cw.util.splitext(os.path.basename(fpath))[0]:
                 pname = cw.util.join_paths("Party", os.path.basename(dpath), "Party.xml")
                 self.environment.edit("Property/NowSelectingParty", pname)
 
@@ -953,7 +953,7 @@ class YadoData(object):
             order = 0
 
             # シナリオログ
-            wslpath = os.path.splitext(fpath)[0] + ".wsl"
+            wslpath = cw.util.splitext(fpath)[0] + ".wsl"
             haswsl = os.path.isfile(wslpath)
             if haswsl:
                 cw.util.decompress_zip(wslpath, "Data/Temp", "ScenarioLog")
@@ -1713,7 +1713,7 @@ class Party(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         s = os.path.basename(header.fpath)
-        s = os.path.splitext(s)[0]
+        s = cw.util.splitext(s)[0]
         e = self.data.make_element("Member", s)
         self.data.append("Property/Members", e)
         if not data:
@@ -1736,7 +1736,7 @@ class Party(object):
 
         for index, pcard in enumerate(cw.cwpy.get_pcards()):
             s = os.path.basename(pcard.data.fpath)
-            s = os.path.splitext(s)[0]
+            s = cw.util.splitext(s)[0]
             e = self.data.make_element("Member", s)
             self.data.append("Property/Members", e)
 
@@ -1834,14 +1834,14 @@ class Party(object):
         return seq
 
     def is_adventuring(self):
-        path = os.path.splitext(self.data.fpath)[0] + ".wsl"
+        path = cw.util.splitext(self.data.fpath)[0] + ".wsl"
         return bool(cw.util.get_yadofilepath(path))
 
     def get_sceheader(self):
         """
         現在冒険中のシナリオのScenarioHeaderを返す。
         """
-        path = os.path.splitext(self.data.fpath)[0] + ".wsl"
+        path = cw.util.splitext(self.data.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
 
         if path:

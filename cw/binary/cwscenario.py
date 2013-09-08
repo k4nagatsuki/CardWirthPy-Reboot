@@ -62,7 +62,7 @@ class CWScenario(object):
             path = util.join_paths(self.path, name)
 
             if os.path.isfile(path):
-                ext = os.path.splitext(name)[1].lstrip(".").lower()
+                ext = cw.util.splitext(name)[1].lstrip(".").lower()
 
                 if name == "Summary.wsm" and not self.summarypath:
                     self.summarypath = path

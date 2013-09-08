@@ -6,6 +6,8 @@ import sys
 import struct
 from ctypes import *
 
+import cw
+
 BASS_DEVICE_DEFAULT = 2
 BASS_DEFAULT = 0
 BASS_SAMPLE_LOOP = 4
@@ -88,7 +90,7 @@ def _play(file, volume, loop):
     flag = (BASS_MUSIC_STOPBACK|BASS_SAMPLE_LOOP) if loop else BASS_DEFAULT
 
     BASS_CONFIG_MIDI_DEFFONT = 0x10403
-    ext = os.path.splitext(file)[1].lower()
+    ext = cw.util.splitext(file)[1].lower()
     if ext == ".mid" or ext == ".midi":
         stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, file.encode(encoding), c_longlong(0), c_longlong(0), flag, 44100)
         if stream:

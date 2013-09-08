@@ -100,7 +100,7 @@ class MusicInterface(object):
                         # FIXME: DefReset.mid
                         # 繰り返し流すとシステムが不安定になる pygame 1.9.1
                         pygame.mixer.music.play(0)
-                    elif os.path.splitext(fpath)[1].lower() == ".mp3":
+                    elif cw.util.splitext(fpath)[1].lower() == ".mp3":
                         # 互換動作: 1.28以前はMP3がループ再生されない
                         if cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
                             pygame.mixer.music.play(0)
@@ -144,7 +144,7 @@ class MusicInterface(object):
         load_bgm(path)
 
     def _get_volumevalue(self):
-        ext = os.path.splitext(self.path)[1].lower()
+        ext = cw.util.splitext(self.path)[1].lower()
 
         if ext == ".mid" or ext == ".midi":
             return cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
@@ -178,7 +178,7 @@ class MusicInterface(object):
             path = join_paths(cw.cwpy.skindir, path)
 
         if not os.path.isfile(path):
-            fname = os.path.splitext(os.path.basename(path))[0]
+            fname = cw.util.splitext(os.path.basename(path))[0]
             fname = fname + cw.cwpy.rsrc.ext_bgm
             path = join_paths(cw.cwpy.skindir, "Bgm", fname)
 
@@ -416,7 +416,7 @@ def load_bgm(path):
     if not pygame.mixer or not os.path.isfile(path):
         return
 
-    if sys.platform == "win32" and os.path.splitext(path)[1] in (".mpg", ".mpeg"):
+    if sys.platform == "win32" and cw.util.splitext(path)[1] in (".mpg", ".mpeg"):
         return 1
 
     if cw.bassplayer.is_alivable():
@@ -511,6 +511,17 @@ def join_paths(*paths):
     *paths: パス結合する文字列
     """
     return "/".join(paths).replace("\\", "/").strip("/")
+
+def splitext(p):
+    """パスの拡張子以外の部分と拡張子部分の分割。
+    os.path.splitext()との違いは、".ext"のような
+    拡張子部分だけのパスの時、(".ext", "")ではなく
+    ("", ".ext")を返す事である。
+    """
+    p = os.path.splitext(p)
+    if p[0].startswith(".") and not p[1]:
+        return (p[1], p[0])
+    return p
 
 def str2bool(s):
     """特定の文字列をbool値にして返す。
@@ -694,7 +705,7 @@ def dupcheck_plus(path, yado=True):
         temppath = ""
 
     dpath, basename = os.path.split(path)
-    fname, ext = os.path.splitext(basename)
+    fname, ext = cw.util.splitext(basename)
     fname = cw.binary.util.check_filename(fname.strip())
     ext = ext.strip()
     basename = fname + ext
@@ -891,7 +902,7 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
         return None
 
     if not dname:
-        dname = os.path.splitext(os.path.basename(path))[0]
+        dname = cw.util.splitext(os.path.basename(path))[0]
 
     dstdir = join_paths(dstdir, dname)
     dstdir = dupcheck_plus(dstdir, False)
@@ -981,7 +992,7 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
     """
 
     if not dname:
-        dname = os.path.splitext(os.path.basename(path))[0]
+        dname = cw.util.splitext(os.path.basename(path))[0]
 
     dstdir = join_paths(dstdir, dname)
     dstdir = dupcheck_plus(dstdir, False)

@@ -32,7 +32,7 @@ def create_party(header):
          "indent": ""}
 
     s = os.path.basename(header.fpath)
-    s = os.path.splitext(s)[0]
+    s = cw.util.splitext(s)[0]
     d["members"] = "\n   <Member>%s</Member>" % (s)
     dname = cw.util.repl_dischar(pname)
     path = cw.util.join_paths(cw.cwpy.yadodir, "Party", dname)
@@ -260,7 +260,7 @@ def write_castimagepath(name, path):
     if os.path.isfile(path):
         dpath = cw.util.join_paths(cw.cwpy.tempdir, "Material/Adventurer", name)
         dpath = cw.util.dupcheck_plus(dpath)
-        ext = os.path.splitext(os.path.basename(path))[1]
+        ext = cw.util.splitext(os.path.basename(path))[1]
         dstpath = cw.util.join_paths(dpath, name + ext)
 
         if not os.path.isdir(dpath):

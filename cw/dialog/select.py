@@ -1903,7 +1903,7 @@ class ScenarioSelect(Select):
             name = os.path.basename(dpath)
             image = self.tree.imgidx_dir
             if sys.platform == "win32" and name.lower().endswith(".lnk"):
-                name = os.path.splitext(name)[0]
+                name = cw.util.splitext(name)[0]
             item = self.tree.AppendItem(treeitem, name, image)
             self.tree.SetItemPyData(item, (index, dpath))
             child = self.tree.AppendItem(item, u"読込中...")
@@ -2130,8 +2130,8 @@ class ScenarioSelect(Select):
             fname = selected.fname
         else:
             fname = os.path.basename(selected)
-        if sys.platform == "win32" and os.path.splitext(fname)[1].lower() == ".lnk":
-            fname = os.path.splitext(fname)[0]
+        if sys.platform == "win32" and cw.util.splitext(fname)[1].lower() == ".lnk":
+            fname = cw.util.splitext(fname)[0]
         self.SetTitle(u"貼紙を見る [ %s ]" % (fname))
 
     def get_dpaths(self, dpath):

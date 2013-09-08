@@ -4,6 +4,8 @@
 import os
 import re
 
+import cw
+
 
 def join_paths(*paths):
     """パス結合。"""
@@ -41,7 +43,7 @@ def check_filename(name):
         name = name.replace(s, s2)
 
     # 両端の空白を削除
-    name, ext = os.path.splitext(name)
+    name, ext = cw.util.splitext(name)
     return name.strip() + ext.strip()
 
 def check_duplicate(path):
@@ -51,7 +53,7 @@ def check_duplicate(path):
     path: チェックするパス。
     """
     dpath, basename = os.path.split(path)
-    fname, ext = os.path.splitext(basename)
+    fname, ext = cw.util.splitext(basename)
     count = 2
 
     while os.path.exists(path):
