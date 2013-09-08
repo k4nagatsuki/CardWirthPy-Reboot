@@ -753,7 +753,7 @@ def rpl_specialstr(s):
     特殊文字列(#, $)を置換した文字列を返す。
     """
     name_table = _create_nametable(False, None)
-    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue)
+    return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue, encodedtext=False)
 
 def _create_nametable(full, talker):
     random = cw.cwpy.event.get_targetmember("Random")
@@ -795,13 +795,14 @@ def _get_flagvalue(key):
         s = ""
     return s
 
-def _rpl_specialstr(full, s, name_table, get_step, get_flag):
+def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
     """
     特殊文字列(#, $)を置換した文字列を返す。
     """
     buf = []
     skip = 0
-    s = cw.util.decodewrap(s)
+    if encodedtext:
+        s = cw.util.decodewrap(s)
     for i, c in enumerate(s):
         if 0 < skip:
             skip -= 1
@@ -845,7 +846,10 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag):
         else:
             buf.append(c)
 
-    return cw.util.encodewrap("".join(buf))
+    if encodedtext:
+        return cw.util.encodewrap("".join(buf))
+    else:
+        return "".join(buf)
 
 def main():
     pass
