@@ -286,12 +286,12 @@ class CardHeader(object):
 
         return value
 
-    def get_uselimit(self):
+    def get_uselimit(self, reset=False):
         """
         (使用回数, 最大使用回数)を返す。
         """
         if self.is_ccardheader() and self.type == "SkillCard"\
-                                                    and not self.maxuselimit:
+                    and (not self.maxuselimit or reset==True):
             owner = self.get_owner()
             level = owner.data.getint("Property/Level")
             value = level - self.level
@@ -312,7 +312,8 @@ class CardHeader(object):
                 self.maxuselimit = 9
 
             if cw.cwpy.status == "Yado" or\
-                    not isinstance(self.get_owner(), cw.character.Player):
+                    not isinstance(self.get_owner(), cw.character.Player)or\
+                    self.uselimit > self.maxuselimit:
                 self.uselimit = self.maxuselimit
 
         return self.uselimit, self.maxuselimit

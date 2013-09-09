@@ -1291,6 +1291,8 @@ class Character(object):
                         self.add_cardpocketmemory(header)
                     cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party)
                     n -= 1
+            for header in self.cardpocket[0]:
+                header.get_uselimit(reset=True)
         elif 0 < uplevel:
             # レベル調節で手放したカードを戻す
             self.revert_cardpocket(backpack_party)
