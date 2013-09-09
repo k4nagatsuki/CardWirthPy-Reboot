@@ -108,7 +108,7 @@ class EventHandler(object):
         """
         方向キーイベント。カードのフォーカスを変更する。
         """
-        if cw.cwpy.is_runningevent() or cw.cwpy.lock_menucards:
+        if cw.cwpy.is_runningevent() or cw.cwpy.lock_menucards or pygame.event.peek(pygame.locals.USEREVENT):
             return
 
         cw.cwpy.has_inputevent = True
