@@ -144,8 +144,12 @@ class SystemData(object):
 
     def change_data(self, id):
         if cw.cwpy.is_battlestatus():
+            if not id in self.battles:
+                return
             path = self.battles[id][1]
         else:
+            if not id in self.areas:
+                return
             path = self.areas[id][1]
 
         self.data = xml2etree(path)
