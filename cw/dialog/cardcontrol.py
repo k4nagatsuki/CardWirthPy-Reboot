@@ -466,7 +466,7 @@ class CardControl(wx.Dialog):
         # 開いていたダイアログの情報
         indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
         cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition()))
-       	# OKボタンイベント
+        # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
