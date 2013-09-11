@@ -136,9 +136,10 @@ class BackGround(base.CWPySprite):
                 if os.path.isfile(imgpath):
                     path = imgpath
                 else:
-                    if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
+                    if cw.cwpy.is_playingscenario():
                         path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-                    else:
+
+                    if not cw.cwpy.is_playingscenario() or not os.path.isfile(path):
                         path = cw.util.join_paths(cw.cwpy.skindir, path)
 
                 if not os.path.isfile(path):

@@ -21,6 +21,7 @@ def load(path):
     if not cw.cwpy.is_playingscenario():
         return
 
+    areaid = cw.cwpy.areaid
     musicpath = cw.cwpy.sdata.load_log(path, True)
 
     # BGM
@@ -28,7 +29,7 @@ def load(path):
 
     # キャンプ画面を開いている場合はエリア再表示
     func = cw.cwpy.change_area
-    if cw.cwpy.areaid == cw.AREA_CAMP:
+    if areaid == cw.AREA_CAMP:
         cw.cwpy.exec_func(func, cw.AREA_CAMP, False, bginhrt=True)
     else:
         cw.cwpy.exec_func(func, cw.cwpy.areaid, False, bginhrt=True)
