@@ -554,7 +554,7 @@ to_disabledimage(PyObject *self, PyObject *args)
     keyR = dest[0];
     keyG = dest[1];
     keyB = dest[2];
-    for (px = 0; px < buf.len; px += 3)
+    for (px = 0; px + 3 <= buf.len; px += 3)
     {
         int r = dest[px+0];
         int g = dest[px+1];
