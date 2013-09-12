@@ -30,6 +30,7 @@ def load(path):
     # キャンプ画面を開いている場合はエリア再表示
     func = cw.cwpy.change_area
     if areaid == cw.AREA_CAMP:
+        cw.cwpy.pre_areaids[-1] = cw.cwpy.areaid
         cw.cwpy.exec_func(func, cw.AREA_CAMP, False, bginhrt=True)
     else:
         cw.cwpy.exec_func(func, cw.cwpy.areaid, False, bginhrt=True)
