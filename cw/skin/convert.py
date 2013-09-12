@@ -296,6 +296,9 @@ class Converter(threading.Thread):
             get_keyafter(sounds[8], key, 14)
             # 効果（混乱）
             get_keyafter(sounds[12], key, 12, than=41)
+            # 効果（呪縛）
+            key = "\x53\x49\x47\x4E\x5F\x50\x45\x4E\x41\x4C\x54\x59\x00\x53\x49\x47\x4E\x5F\x52\x41\x52\x45\x00\x53\x49\x47\x4E\x5F\x50\x52\x45\x4D\x49\x45\x52\x00\x00"
+            get_keyafter(sounds[13], key, 12, than=75)
             # システム・逃走
             key = ".wav\0TITLE_CARD1\0TITLE_CARD1\0TITLE_CARD2\0"
             get_keybefore(sounds[9], key, 14, less=16+5)
