@@ -125,8 +125,8 @@ class CWYado(object):
                         s = errcard.fname
                         s = u"%s は読込できませんでした。\n" % (s)
                         self.write_errorlog(s)
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = os.path.basename(data.fpath)
                 s = u"%s は変換できませんでした。\n" % (s)
                 self.write_errorlog(s)
@@ -140,8 +140,8 @@ class CWYado(object):
             try:
                 self.create_log(partyinfo, partymembers)
 
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = partyinfo.name
                 s = u"%s の冒険中情報は変換できませんでした。\n" % (s)
                 self.write_errorlog(s)
@@ -208,8 +208,8 @@ class CWYado(object):
             self.curnum = self.curnum_n * 50 / self.maxnum
             try:
                 data = self.load_yadofile(path)
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = os.path.basename(path)
                 s = u"%s は読込できませんでした。\n" % (s)
                 self.write_errorlog(s)
@@ -226,8 +226,8 @@ class CWYado(object):
             try:
                 data = self.load_cardfile(path, cardtypes)
                 carddatadict[data.fname] = data
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = os.path.basename(path)
                 s = u"%s は読込できませんでした。\n" % (s)
                 self.write_errorlog(s)
@@ -542,8 +542,8 @@ class UnconvCWYado(object):
                 data, fpath = write_card(header)
                 unusedcards.append((os.path.basename(fpath), data))
                 yadocards[header.fpath] = os.path.basename(fpath), data
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
         table["unusedcards"] = unusedcards
@@ -564,8 +564,8 @@ class UnconvCWYado(object):
                 with cwfile.CWFileWriter(hpath, "wb") as f:
                     adventurer.AdventurerHeader.unconv(f, data, ppath)
 
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
 
@@ -584,8 +584,8 @@ class UnconvCWYado(object):
 
                     yadocards[header.fpath] = os.path.basename(fpath), data
 
-                except Exception, ex:
-                    print ex
+                except Exception:
+                    cw.util.print_ex()
                     s = u"%s の %s は変換できませんでした。\n" % (partyheader.name, header.name)
                     self.write_errorlog(s)
 
@@ -641,8 +641,8 @@ class UnconvCWYado(object):
 
                 if logdir:
                     cw.util.remove("Data/Temp/ScenarioLog")
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (partyheader.name)
                 self.write_errorlog(s)
 
@@ -660,8 +660,8 @@ class UnconvCWYado(object):
                 with cwfile.CWFileWriter(fpath, "wb") as f:
                     album.Album.unconv(f, data)
 
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
 
@@ -674,8 +674,8 @@ class UnconvCWYado(object):
             with cwfile.CWFileWriter(fpath, "wb") as f:
                 environment.Environment.unconv(f, data, table)
 
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
             s = u"宿情報は変換できませんでした。\n"
             self.write_errorlog(s)
 

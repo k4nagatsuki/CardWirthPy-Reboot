@@ -17,6 +17,7 @@ import hashlib
 import subprocess
 import StringIO
 import io
+import traceback
 
 if sys.platform == "win32":
     import win32com.client
@@ -74,15 +75,15 @@ class MusicInterface(object):
                         try:
                             filesize = os.path.getsize(fpath)
                         except Exception, e:
-                            print e
+                            cw.util.print_ex()
 
                     if type == 2:
                         volume = self._get_volumevalue()
                         try:
                             cw.bassplayer.play_bgm(fpath, volume)
                             self._bass = True
-                        except Exception, ex:
-                            print ex
+                        except Exception:
+                            cw.util.print_ex()
                     elif type == 1:
                         if sys.platform == "win32":
                             name = "cwbgm"
@@ -198,7 +199,7 @@ class SoundInterface(object):
                 try:
                     cw.bassplayer.play_sound(self._sound, cw.cwpy.setting.vol_sound, from_scenario)
                 except Exception, ex:
-                    print ex
+                    cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
                     cw.cwpy.frame.exec_func(self.play, from_scenario)
@@ -428,15 +429,15 @@ def load_bgm(path):
         encoding = sys.getfilesystemencoding()
         pygame.mixer.music.load(path.encode(encoding))
         return 0
-    except Exception, ex:
-        print ex
+    except Exception:
+        cw.util.print_ex()
         try:
             # ストリームからの読込を試みる
             f = io.BufferedReader(io.FileIO(path))
             pygame.mixer.music.load(f)
             return 0
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
             print u"BGMが読み込めません", path
             return -1
 
@@ -682,6 +683,15 @@ def number_normalization(value, fromvalue, tovalue):
     if value < fromvalue:
         value += tovalue;
     return value;
+
+def print_ex():
+    """例外の内容を標準出力に書き足す。
+    ex: 例外のデータ
+    """
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+    print
+    return
 
 #-------------------------------------------------------------------------------
 #　ファイル操作関連
@@ -1004,8 +1014,8 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
         encoding = sys.getfilesystemencoding()
         if subprocess.call(s.encode(encoding), shell=True) <> 0:
             return None
-    except Exception, ex:
-        print ex
+    except Exception:
+        cw.util.print_ex()
         return None
 
     if avoiddup:
@@ -1057,8 +1067,8 @@ def cab_hasfile(cab, file):
                     name = unicode(name, encoding);
                 if file == os.path.normcase(os.path.basename(name)):
                     return True
-    except Exception, ex:
-        print ex
+    except Exception:
+        cw.util.print_ex()
     return False
 
 #-------------------------------------------------------------------------------

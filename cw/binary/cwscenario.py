@@ -89,8 +89,8 @@ class CWScenario(object):
             self.versionhint = conf.get("Compatibility", "engine")
             if self.versionhint:
                 self.hasmodeini = True
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
 
     def is_convertible(self):
         if not self.summarypath:
@@ -203,8 +203,8 @@ class CWScenario(object):
 
             try:
                 data.create_xml(self.dir)
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
                 s = os.path.basename(data.fpath)
                 s = u"%s は変換できませんでした。\n" % (s)
                 self.write_errorlog(s)

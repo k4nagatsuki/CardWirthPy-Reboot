@@ -644,8 +644,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.expand_mode = "None"
                     self.update_scale(1)
 
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
 
         self.has_inputevent = True
 
@@ -2441,8 +2441,8 @@ class CWPy(_Singleton, threading.Thread):
                         pass
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func)
 
-            except Exception, ex:
-                print ex
+            except Exception:
+                cw.util.print_ex()
 
         # 重複チェック。既に処理しているimgpathかどうか
         if not pisc and imgpath in imgpaths:

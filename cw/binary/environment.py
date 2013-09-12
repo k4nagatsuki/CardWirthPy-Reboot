@@ -99,8 +99,8 @@ class Environment(base.CWBinaryBase):
                 if unusedcard.data:
                     try:
                         unusedcard.create_xml2(self.get_dir(), cardorder=i)
-                    except Exception, ex:
-                        print ex
+                    except Exception:
+                        cw.util.print_ex()
                         self.errorcards.append(unusedcard)
                 else:
                     self.errorcards.append(unusedcard)

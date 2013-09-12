@@ -492,8 +492,8 @@ class YadoDB(object):
             header = cw.header.CardHeader(carddata=data)
             header.fpath = path
             return self._insert_cardheader(header, commit, cardorder)
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
 
     def get_cards(self):
         s = """
@@ -674,8 +674,8 @@ class YadoDB(object):
             header = cw.header.AdventurerHeader(e, album=album)
             header.fpath = path
             return self._insert_adventurerheader(header, commit, adventurerorder)
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
 
     def get_adventurers(self, album):
         if album:
@@ -769,8 +769,8 @@ class YadoDB(object):
             header = cw.header.PartyHeader(e)
             header.fpath = path
             return self._insert_partyheader(header, commit)
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
 
     def get_parties(self):
         s = "SELECT * FROM party ORDER BY name"

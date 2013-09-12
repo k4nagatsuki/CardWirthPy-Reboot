@@ -73,8 +73,8 @@ class BackGround(base.CWPySprite):
                 image = cw.util.load_image(path, mask)
         except cw.event.EffectBreakError, ex:
             raise ex
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
             return None, False
 
         # 指定したサイズに拡大縮小する

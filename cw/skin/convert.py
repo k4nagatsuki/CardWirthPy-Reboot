@@ -241,8 +241,8 @@ class Converter(threading.Thread):
                 e = self.data.find("Natures/Nature[6]/Description")
                 e.text = typesheet["Type5Label"]["Caption"]
 
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
 
     def _get_sounds(self):
         # バイナリ断片を手がかりにして音声ファイル名を探す。
@@ -303,8 +303,8 @@ class Converter(threading.Thread):
             # "\0を捨てます。よろしいですか？\0"
             key = "\x00\x82\xF0\x8E\xCC\x82\xC4\x82\xDC\x82\xB7\x81\x42\x82\xE6\x82\xEB\x82\xB5\x82\xA2\x82\xC5\x82\xB7\x82\xA9\x81\x48\x00"
             get_keyafter(sounds[10], key, 14)
-        except Exception, ex:
-            print exs
+        except Exception:
+            cw.util.print_ex()
 
     def _get_cards(self):
         if not self.exe or 3000000 < len(self.exebinary):
@@ -421,8 +421,8 @@ class Converter(threading.Thread):
                                       (self.yado["-2_TradeArea2"], 3)], index)
                 # 解散
                 index = get_menucard([(self.yado["-3_PartyBreakup"], 1)], index)
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
 
     def _get_messages(self):
         if not self.exe or 3000000 < len(self.exebinary):
@@ -730,8 +730,8 @@ class Converter(threading.Thread):
                 if key in msgtable:
                     e.text = msgtable[key]
 
-        except Exception, ex:
-            print ex
+        except Exception:
+            cw.util.print_ex()
 
     def _get_text(self, index, cutzero=False):
         end = self.exebinary.find('\0', index)
@@ -1003,7 +1003,7 @@ class Converter(threading.Thread):
             self.complete = True
 
         except Exception, ex:
-            print ex
+            cw.util.print_ex()
             self.failure = True
             self.complete = True
             self.errormessage = u"スキンの自動生成に失敗しました。"

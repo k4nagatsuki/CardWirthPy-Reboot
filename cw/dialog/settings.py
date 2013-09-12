@@ -212,9 +212,9 @@ class GeneralSettingPanel(wx.Panel):
                     desc = e.gettext("Description", "")
                     desc = cw.util.txtwrap(desc, 1)
                     self.skin_summarys[name] = (skintype, skinname, author, desc)
-                except Exception, ex:
+                except Exception:
                     # エラーのあるスキンは無視
-                    print ex
+                    cw.util.print_ex()
 
         self.ch_skin = wx.Choice(self, -1, size=(120, -1), choices=self.skins)
         n = self.skins.index(cw.cwpy.setting.skindirname)
@@ -446,8 +446,8 @@ class AudioSettingPanel(wx.Panel):
                     rel = os.path.relpath(fpath, u"")
                     if not rel.startswith(u".."):
                         fpath = rel
-                except Exception, ex:
-                    print ex
+                except Exception:
+                    cw.util.print_ex()
                 fpath = cw.util.join_paths(fpath)
                 if fpath.lower() in exists:
                     continue

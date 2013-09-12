@@ -811,8 +811,8 @@ class YadoEditDialog(wx.Dialog):
                 try:
                     os.rename(self.yadodir, yadodir)
                     self.yadodir = yadodir
-                except Exception, ex:
-                    print ex
+                except Exception:
+                    cw.util.print_ex()
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
