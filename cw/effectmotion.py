@@ -245,7 +245,7 @@ class Effect(object):
         # 吸収効果があったら、使用者のカードを回転させて更新する。
         if self.user and self.count_motion("absorb")\
                      and self.user.is_injured():
-            cw.cwpy.play_sound(u"効果（呪縛）.ogg")
+            cw.cwpy.sounds["bind"].play(True)
             cw.animation.animate_sprite(self.user, "hide")
             self.user.update_image()
             cw.animation.animate_sprite(self.user, "deal")
