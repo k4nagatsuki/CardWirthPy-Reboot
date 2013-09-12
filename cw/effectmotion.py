@@ -133,6 +133,7 @@ class Effect(object):
         allsuccess = self.successrate >= 5
         success_res = False
         success_avo = False
+        injured = self.user and self.user.is_injured()
         if allmissed:
             # 完全失敗
             noeffect = self.check_noeffect(target)
@@ -241,6 +242,14 @@ class Effect(object):
                 target.set_unconsciousstatus()
 
             self.animate(target, True)
+
+        # 吸収効果があったら、使用者のカードを回転させて更新する。
+        if self.user and self.count_motion("absorb")\
+                     and injured:
+            cw.cwpy.sounds["bind"].play(True)
+            cw.animation.animate_sprite(self.user, "hide")
+            self.user.update_image()
+            cw.animation.animate_sprite(self.user, "deal")
 
         return True
 
