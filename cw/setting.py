@@ -280,6 +280,12 @@ class Resource(object):
         # "MS UI GOTHIC"が使えるかどうか
         self._msuigothic = bool("MS UI Gothic" in
                                         wx.FontEnumerator.GetFacenames())
+        # StatusBarで使用するボタンイメージ
+        self._wxbtnbmp0 = self._create_wxbtnbmp(cw.s(120), cw.s(22), 0)
+        self._wxbtnbmp1 = self._create_wxbtnbmp(cw.s(27), cw.s(27), 0)
+        self._wxbtnbmp1pressed = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_PRESSED)
+        self._wxbtnbmp1current = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
+        self._wxbtnbmp2 = self._create_wxbtnbmp(cw.s(632), cw.s(33), 0)
 
     def get_fontpaths(self):
         """
@@ -439,12 +445,7 @@ class Resource(object):
 
         return button
 
-    def create_wxbtnbmp(self, w, h, flags=0):
-        """StatusBarで使用するOSネイティブなボタン画像をwx.Bitmapで出力する。
-        w: width
-        h: height
-        flags: wx.CONTROL_PRESSED, wx.CONTROL_CURRENT and wx.CONTROL_ISDEFAULT
-        """
+    def _create_wxbtnbmp(self, w, h, flags=0):
         wxbmp = wx.EmptyBitmap(w, h)
         wxbmp.UseAlpha()
         dc = wx.MemoryDC(wxbmp)
@@ -460,6 +461,26 @@ class Resource(object):
             wxbmp = wximg.ConvertToBitmap()
 
         return wxbmp
+
+    def get_wxbtnbmp(self, sizetype, flags=0):
+        """StatusBarで使用するOSネイティブなボタン画像を取得する。
+        sizetype: 0=(120, 22), 1=(27, 27), 2=(632, 33)
+        flags: 0, wx.CONTROL_PRESSED, wx.CONTROL_CURRENT
+               sizetype=1の時のみ有効
+        """
+        if sizetype == 0:
+            return self._wxbtnbmp0
+        elif sizetype == 1:
+            if flags == wx.CONTROL_PRESSED:
+                return self._wxbtnbmp1pressed
+            elif flags == wx.CONTROL_CURRENT:
+                return self._wxbtnbmp1current
+            else:
+                return self._wxbtnbmp1
+        elif sizetype == 2:
+            return self._wxbtnbmp2
+
+        return None
 
     def get_resources(self, func, dpath, ext, mask=False):
         """

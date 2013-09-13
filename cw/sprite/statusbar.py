@@ -17,7 +17,7 @@ class StatusBar(base.CWPySprite):
         self.showbuttons = False
 
     def _init_image(self):
-        wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(cw.s(632), cw.s(33))
+        wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(2)
         subimg = cw.image.conv2surface(wxbmp)
         image = pygame.Surface(cw.s((632, 33)))
         image.fill((255, 255, 255))
@@ -198,10 +198,8 @@ class RoundCounterPanel(YadoMoneyPanel):
         self.image.blit(image, rect.topleft)
 
 class StatusBarButton(base.SelectableSprite):
-    def __init__(self, parent, name, pos, size=None,
+    def __init__(self, parent, name, pos, sizetype=0,
                  toggle=False, icon=None, enabled=True):
-        if size is None:
-            size = cw.s((120, 22))
         base.SelectableSprite.__init__(self)
         # 各種データ
         self.name = name
@@ -209,13 +207,12 @@ class StatusBarButton(base.SelectableSprite):
         self.frame = 0
         self.is_pushed = False
         # ボタン画像
-        w, h = size
-        wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h)
+        wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype)
         self.btnimg = cw.image.conv2surface(wxbmp)
         if enabled:
-            wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h, wx.CONTROL_PRESSED)
+            wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype, wx.CONTROL_PRESSED)
             self.btnimg2 = cw.image.conv2surface(wxbmp)
-            wxbmp = cw.cwpy.rsrc.create_wxbtnbmp(w, h, wx.CONTROL_CURRENT)
+            wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype, wx.CONTROL_CURRENT)
             self.btnimg3 = cw.image.conv2surface(wxbmp)
         else:
             self.btnimg2 = self.btnimg
@@ -396,7 +393,7 @@ class SettingsButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["SETTINGS"])
         name = u"設定"
-        StatusBarButton.__init__(self, parent, name, pos, cw.s((27, 27)), icon=image)
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
         self._selectable_on_event = True
 
     def lclick_event(self):
@@ -407,7 +404,7 @@ class DebuggerButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["STATUS12"])
         name = u"デバッガ"
-        StatusBarButton.__init__(self, parent, name, pos, cw.s((27, 27)), icon=image)
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
         self._selectable_on_event = True
 
     def lclick_event(self):
@@ -421,7 +418,7 @@ class BacklogButton(StatusBarButton):
         if not self.enabled:
             image = cw.imageretouch.to_binaryformat(image, 0)
         name = u"バックログ"
-        StatusBarButton.__init__(self, parent, name, pos, cw.s((27, 27)), icon=image, enabled=enabled)
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
         self._selectable_on_event = enabled
 
     def lclick_event(self):
