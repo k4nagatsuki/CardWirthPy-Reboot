@@ -421,6 +421,7 @@ def create_type2textcell(text, face, size, color,
     """
     w = cellsize[0]
     h = cellsize[1]
+    # TODO pygame側での生成を避ける
     wxbmp = wx.EmptyBitmap(w, h)
     wxdc = wx.MemoryDC(wxbmp)
 
@@ -481,6 +482,7 @@ def draw_textcell(image, rect, text, face, size, color,
     if clip.width <= 0 or clip.height <= 0:
         return
 
+    # TODO pygame側での生成を避ける
     wxbmp = wx.EmptyBitmap(clip.width, clip.height)
     wxdc = wx.MemoryDC(wxbmp)
     wxdc.DrawBitmap(conv2wxbmp(image.subsurface(clip)), 0, 0)

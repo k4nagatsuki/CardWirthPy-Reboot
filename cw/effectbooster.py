@@ -682,6 +682,7 @@ class JptxImage(cw.image.Image):
             fontcolor = backcolor
 
         # text rendering
+        # TODO pygame側での生成を避ける
         self.wxcanvas = wx.EmptyBitmap(cw.s(10), cw.s(10))
         self.wxdc = wx.MemoryDC(self.wxcanvas)
         bold = False
@@ -703,6 +704,7 @@ class JptxImage(cw.image.Image):
                 font.SetPixelSize((0, fontpixels))
                 self.wxdc.SetFont(font)
                 size = self.wxdc.GetTextExtent("##")
+                # TODO pygame側での生成を避ける
                 self.wxcanvas = wx.EmptyBitmap(size[0] * 2, size[1] * 2)
                 self.wxdc = wx.MemoryDC(self.wxcanvas)
                 self.wxdc.SetFont(font)

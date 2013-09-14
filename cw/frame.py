@@ -157,21 +157,21 @@ class Frame(wx.Frame):
         if self.thread == threading.currentThread():
             return func(*args, **kwargs)
         else:
-            result = None
-            running = True
+            self._sync_result = None
+            self._sync_running = True
             def func2(*args, **kwargs):
                 try:
-                    result = func(*args, **kwargs)
+                    self._sync_result = func(*args, **kwargs)
                 finally:
-                    running = False
+                    self._sync_running = False
             event = wx.PyCommandEvent(self._EVTTYPE_EXECFUNC)
             event.func = func2
             event.args = args
             event.kwargs = kwargs
             self.AddPendingEvent(event)
-            while cw.cwpy.is_running() and self.IsEnabled() and running:
+            while cw.cwpy.is_running() and self.IsEnabled() and self._sync_running:
                 time.sleep(0)
-            return result
+            return self._sync_result
 
     def OnEXECFUNC(self, event):
         try:

@@ -87,6 +87,7 @@ class MessageWindow(base.CWPySprite):
         self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext
         # クラシックスタイルのテキスト描画用
         if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
+            # TODO pygame側での生成を避ける
             self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
             self.wxdc = wx.MemoryDC(self.wxcanvas)
             self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
