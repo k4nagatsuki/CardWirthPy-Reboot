@@ -46,6 +46,9 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
 
     gc.enable()
 
+    cw.cwpy.input()
+    cw.cwpy.eventhandler.run()
+
     if skip:
         cw.cwpy.draw()
 
@@ -106,6 +109,9 @@ def animate_sprites2(sprandanimes, clearevent=True):
                 break
 
     gc.enable()
+
+    cw.cwpy.input()
+    cw.cwpy.eventhandler.run()
 
     if skip:
         cw.cwpy.draw()
