@@ -1454,6 +1454,8 @@ class CWPy(_Singleton, threading.Thread):
             if win:
                 self.winevent_areaid = self.areaid
 
+            cw.cwpy.battle = None
+
             for pcard in self.get_pcards():
                 pcard.deck.clear(pcard)
 
