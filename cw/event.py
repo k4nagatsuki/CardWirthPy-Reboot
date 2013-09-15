@@ -64,7 +64,6 @@ class EventInterface(object):
         return len(self._nowrunningevents) - 1 + len(self._nowrunningevents[-1].nowrunningcontents)
 
     def clear(self):
-        self.set_selectedmember(None)
         self.set_inusecard(None)
         self.clear_events()
         self.nowrunningpacks = {}
@@ -543,6 +542,9 @@ class Event(object):
                 isinstance(self.error, ScenarioBadEndError)) and\
                 cw.cwpy.status <> "Title":
             cw.cwpy.show_party()
+
+        if not isinstance(self.error, AreaChangeError):
+            cw.cwpy.event.set_selectedmember(None)
 
         cw.cwpy.event.clear()
 
