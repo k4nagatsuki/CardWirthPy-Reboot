@@ -2406,7 +2406,7 @@ class CWPy(_Singleton, threading.Thread):
                     def set_material(text):
                         e.attrib["path"] = text
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material)
-            elif e.tag == "Text":
+            elif e.tag == "Text" and e.text:
                 for spchar in r_specialfont.findall(e.text):
                     c = "font_" + spchar[1:]
                     def set_material(text):
