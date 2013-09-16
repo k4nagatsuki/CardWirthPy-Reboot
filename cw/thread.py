@@ -374,7 +374,7 @@ class CWPy(_Singleton, threading.Thread):
         for i in xrange(count):
             self.tick_clock()
 
-    def input(self, eventclear=False):
+    def input(self, eventclear=False, inputonly=False):
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
         self.update_mousepos()
@@ -383,6 +383,8 @@ class CWPy(_Singleton, threading.Thread):
 
         if eventclear:
             pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+        elif inputonly:
+            self.events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         else:
             self.events = pygame.event.get()
 

@@ -37,16 +37,14 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
                 cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
-        if clearevent:
-            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
-        else:
+        if not clearevent:
             cw.cwpy.update_mousepos()
             cw.cwpy.events = pygame.event.get()
             cw.cwpy.eventhandler.run()
 
     gc.enable()
 
-    cw.cwpy.input()
+    cw.cwpy.input(inputonly=True)
     cw.cwpy.eventhandler.run()
 
     if skip:
@@ -94,9 +92,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
             cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
-        if clearevent:
-            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
-        else:
+        if not clearevent:
             cw.cwpy.update_mousepos()
             cw.cwpy.events = pygame.event.get()
             cw.cwpy.eventhandler.run()
@@ -110,7 +106,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
 
     gc.enable()
 
-    cw.cwpy.input()
+    cw.cwpy.input(inputonly=True)
     cw.cwpy.eventhandler.run()
 
     if skip:
