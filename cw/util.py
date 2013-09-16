@@ -1422,22 +1422,29 @@ def synclock(l):
 #  ショートカット関係
 #-------------------------------------------------------------------------------
 
+# WScript.Shell
+wsh = None
+
 def get_linktarget(file):
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
+    global wsh
     if sys.platform == "win32" and file.lower().endswith(".lnk"):
-        pythoncom.CoInitialize()
-        wsh = win32com.client.Dispatch("WScript.Shell")
+        if not wsh:
+            pythoncom.CoInitialize()
+            wsh = win32com.client.Dispatch("WScript.Shell")
         if wsh and os.path.isfile(file) and file.lower().endswith(".lnk"):
             shortcut = wsh.CreateShortcut(file)
-            return join_paths(shortcut.TargetPath)
+            file = join_paths(shortcut.TargetPath)
     return file
 
 def create_link(path, target):
+    global wsh
     if sys.platform == "win32":
-        pythoncom.CoInitialize()
-        wsh = win32com.client.Dispatch("WScript.Shell")
+        if not wsh:
+            pythoncom.CoInitialize()
+            wsh = win32com.client.Dispatch("WScript.Shell")
         dpath = os.path.dirname(path)
         if not os.path.exists(dpath):
             os.makedirs(dpath)
