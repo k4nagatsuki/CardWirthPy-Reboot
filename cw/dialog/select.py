@@ -2141,11 +2141,14 @@ class ScenarioSelect(Select):
         """
         seq = []
 
-        dir = cw.util.get_linktarget(dpath)
-        for dname in os.listdir(dir):
-            path = cw.util.join_paths(dir, dname)
-            if self.is_listitem(path) and not self.is_scenario(path):
-                seq.append(path)
+        try:
+            dir = cw.util.get_linktarget(dpath)
+            for dname in os.listdir(dir):
+                path = cw.util.join_paths(dir, dname)
+                if self.is_listitem(path) and not self.is_scenario(path):
+                    seq.append(path)
+        except Exception:
+            cw.util.print_ex()
 
         return seq
 
