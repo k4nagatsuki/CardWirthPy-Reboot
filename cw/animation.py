@@ -17,6 +17,10 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
         print "Not found " + anitype + " animation."
         return
 
+    if clearevent:
+        lock_menucards = cw.cwpy.lock_menucards
+        cw.cwpy.lock_menucards = True
+
     sprite.old_status = sprite.status
     sprite.status = anitype
 
@@ -50,6 +54,9 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
     if skip:
         cw.cwpy.draw()
 
+    if clearevent:
+        cw.cwpy.lock_menucards = lock_menucards
+
 def animate_sprites(sprites, anitype, clearevent=True):
     """spritesに含まれる全てのスプライトをanitypeの
     アニメーションで動かす。
@@ -67,6 +74,10 @@ def animate_sprites2(sprandanimes, clearevent=True):
         if not hasattr(spr, "update_" + anitype):
             print "Not found " + anitype + " animation."
             return
+
+    if clearevent:
+        lock_menucards = cw.cwpy.lock_menucards
+        cw.cwpy.lock_menucards = True
 
     for sprite, anitype in sprandanimes:
         sprite.old_status = sprite.status
@@ -111,6 +122,9 @@ def animate_sprites2(sprandanimes, clearevent=True):
 
     if skip:
         cw.cwpy.draw()
+
+    if clearevent:
+        cw.cwpy.lock_menucards = lock_menucards
 
 def _get_skipstatus(clearevent):
     if not clearevent:

@@ -385,6 +385,8 @@ class CWPy(_Singleton, threading.Thread):
             pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         elif inputonly:
             self.events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            if self.events:
+                self.events = [self.events[-1]]
         else:
             self.events = pygame.event.get()
 
@@ -2511,7 +2513,9 @@ class CWPy(_Singleton, threading.Thread):
                                                     and self.sdata.is_playing)
 
     def is_runningevent(self):
-        return bool(self.event._nowrunningevents)
+        return self.event._nowrunningevents or\
+            pygame.event.peek(USEREVENT) or\
+            (self.is_battlestatus() and not (self.battle and self.battle.is_ready()))
 
     def is_showingdlg(self):
         return 0 < self._showingdlg
