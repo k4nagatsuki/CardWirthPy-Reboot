@@ -352,7 +352,7 @@ class EventEngine(object):
                 cw.cwpy.clear_selection()
 
             # イベント実行
-            if cw.cwpy.is_runningevent():
+            if cw.cwpy.event._nowrunningevents:
                 event.run()
             else:
                 event.start()
