@@ -2372,6 +2372,8 @@ class TalkMessageContent(TalkContent):
 
         if talker:
             imgpath = talker.imgpath
+            if not talker.scenariocard:
+                imgpath = cw.util.join_yadodir(imgpath)
         elif imgpath:
             inusepath = cw.util.get_inusecardmaterialpath(imgpath)
             if os.path.isfile(inusepath):
