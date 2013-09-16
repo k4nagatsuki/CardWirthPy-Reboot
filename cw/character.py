@@ -1288,12 +1288,12 @@ class Character(object):
                 maxn = self.get_cardpocketspace()[index]
                 while n > maxn:
                     header = self.cardpocket[index][-1]
-                    if regulate:
-                        self.add_cardpocketmemory(header)
-                    if index == 2 and not header.attachment:
+                    if index == cw.POCKET_BEAST and not header.attachment:
                         targettype = "TRASHBOX"
                     else:
                         targettype = targettype_original
+                    if regulate and targettype <> "TRASHBOX":
+                        self.add_cardpocketmemory(header)
                     cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party)
                     n -= 1
             for header in self.cardpocket[0]:
