@@ -1282,6 +1282,7 @@ class Character(object):
                 targettype = "BACKPACK"
             else:
                 targettype = "STOREHOUSE"
+            targettype_original = targettype
             for index in range(3):
                 n = len(self.cardpocket[index])
                 maxn = self.get_cardpocketspace()[index]
@@ -1289,6 +1290,10 @@ class Character(object):
                     header = self.cardpocket[index][-1]
                     if regulate:
                         self.add_cardpocketmemory(header)
+                    if index == 2 and not header.attachment:
+                        targettype = "TRASHBOX"
+                    else:
+                        targettype = targettype_original
                     cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party)
                     n -= 1
             for header in self.cardpocket[0]:
