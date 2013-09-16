@@ -2344,6 +2344,7 @@ class TalkMessageContent(TalkContent):
         names = self.get_selections_and_indexes()
         # 画像パス取得
         imgpath = self.data.get("path", "")
+        talkeriscard = False
 
         # ランダム
         if imgpath.endswith("??Random"):
@@ -2362,6 +2363,7 @@ class TalkMessageContent(TalkContent):
         # 使用中カード
         elif imgpath.endswith("??Card"):
             talker = cw.cwpy.event.get_targetmember("Inusecard")
+            talkeriscard = True
 
             # 使用中カードがなかったらスキップ
             if not talker:
@@ -2373,8 +2375,10 @@ class TalkMessageContent(TalkContent):
 
         if talker:
             imgpath = talker.imgpath
-            if not cw.binary.image.path_is_code(imgpath) and not talker.scenariocard:
-                imgpath = cw.util.join_yadodir(imgpath)
+            if talkeriscard:
+                if not cw.binary.image.path_is_code(imgpath) and\
+                        (not hasattr(talker, "scenariocard") or not talker.scenariocard):
+                    imgpath = cw.util.join_yadodir(imgpath)
         elif imgpath:
             inusepath = cw.util.get_inusecardmaterialpath(imgpath)
             if os.path.isfile(inusepath):
