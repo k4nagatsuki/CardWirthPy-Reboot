@@ -585,8 +585,6 @@ class ScenarioData(SystemData):
         """
         シナリオ強制終了。俗に言うファッ○ユー。
         """
-        self.is_playing = False
-        cw.cwpy.pre_dialogs = []
         cw.cwpy.exec_func(cw.cwpy.f9)
 
     def create_log(self):

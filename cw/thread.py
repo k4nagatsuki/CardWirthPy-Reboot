@@ -915,6 +915,12 @@ class CWPy(_Singleton, threading.Thread):
         """cw.data.ScenarioDataのf9()から呼び出され、
         緊急避難処理の続きを行う。
         """
+        if not self.is_playingscenario():
+            return
+
+        self.sdata.is_playing = False
+        self.pre_dialogs = []
+
         self.clear_inusecardimg()
         self.clear_guardcardimg()
 
