@@ -489,6 +489,7 @@ class CardHeader(object):
             cw.cwpy.copy_materials(self.carddata, dstdir)
             # 画像更新
             path = self.carddata.gettext("Property/ImagePath", "")
+            self.imgpath = path
             self.set_cardimg(path)
             if self.is_backpackheader():
                 self.write()

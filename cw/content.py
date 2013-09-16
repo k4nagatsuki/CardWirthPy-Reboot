@@ -1613,6 +1613,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
                                         "Material", header.type, name)
             dstdir = cw.util.dupcheck_plus(dstdir)
             cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom)
+            header.imgpath = etree.gettext("Property/ImagePath", header.imgpath)
 
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party)
 
@@ -2372,7 +2373,7 @@ class TalkMessageContent(TalkContent):
 
         if talker:
             imgpath = talker.imgpath
-            if not talker.scenariocard:
+            if not cw.binary.image.path_is_code(imgpath) and not talker.scenariocard:
                 imgpath = cw.util.join_yadodir(imgpath)
         elif imgpath:
             inusepath = cw.util.get_inusecardmaterialpath(imgpath)
