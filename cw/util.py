@@ -20,6 +20,8 @@ import io
 import traceback
 
 if sys.platform == "win32":
+    import pythoncom
+    import win32com.shell.shell
     import win32com.client
     import ctypes
 
@@ -1422,35 +1424,39 @@ def synclock(l):
 #  ショートカット関係
 #-------------------------------------------------------------------------------
 
-# WScript.Shell
-wsh = None
-
 def get_linktarget(file):
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
-    global wsh
-    if sys.platform == "win32" and file.lower().endswith(".lnk"):
-        if not wsh:
-            pythoncom.CoInitialize()
-            wsh = win32com.client.Dispatch("WScript.Shell")
-        if wsh and os.path.isfile(file) and file.lower().endswith(".lnk"):
-            shortcut = wsh.CreateShortcut(file)
-            file = join_paths(shortcut.TargetPath)
-    return file
+    if sys.platform <> "win32" or not file.lower().endswith(".lnk"):
+        return file
+    t_start()
+    shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
+                                          pythoncom.CLSCTX_INPROC_SERVER,
+                                          win32com.shell.shell.IID_IShellLink)
+    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file)
+    encoding = sys.getfilesystemencoding()
+    file = shortcut.GetPath(win32com.shell.shell.SLGP_UNCPRIORITY)[0].decode(encoding)
+    t_end(0)
+    print file
+    return join_paths(file)
 
-def create_link(path, target):
-    global wsh
-    if sys.platform == "win32":
-        if not wsh:
-            pythoncom.CoInitialize()
-            wsh = win32com.client.Dispatch("WScript.Shell")
-        dpath = os.path.dirname(path)
-        if not os.path.exists(dpath):
-            os.makedirs(dpath)
-        shortcut = wsh.CreateShortcut(path)
-        shortcut.TargetPath = target
-        shortcut.save()
+def create_link(shortcutpath, targetpath):
+    """targetpathへのショートカットを
+    shortcutpathに作成する。
+    """
+    if sys.platform <> "win32":
+        return
+    dpath = os.path.dirname(shortcutpath)
+    if not os.path.exists(dpath):
+        os.makedirs(dpath)
+    targetpath = os.path.abspath(targetpath)
+    shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
+                                          pythoncom.CLSCTX_INPROC_SERVER,
+                                          win32com.shell.shell.IID_IShellLink)
+    encoding = sys.getfilesystemencoding()
+    shortcut.SetPath(targetpath.encode(encoding))
+    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
 
 #-------------------------------------------------------------------------------
 #  パフォーマンスカウンタ
