@@ -1424,32 +1424,41 @@ def synclock(l):
 #  ショートカット関係
 #-------------------------------------------------------------------------------
 
+cominit_table = set()
+
 def get_linktarget(file):
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
+    global cominit_table
     if sys.platform <> "win32" or not file.lower().endswith(".lnk"):
         return file
-    t_start()
+    thr = threading.currentThread()
+    if not thr in cominit_table:
+        pythoncom.CoInitialize()
+        cominit_table.add(thr)
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32com.shell.shell.IID_IShellLink)
     shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file)
     encoding = sys.getfilesystemencoding()
     file = shortcut.GetPath(win32com.shell.shell.SLGP_UNCPRIORITY)[0].decode(encoding)
-    t_end(0)
-    print file
     return join_paths(file)
 
 def create_link(shortcutpath, targetpath):
     """targetpathへのショートカットを
     shortcutpathに作成する。
     """
+    global cominit_table
     if sys.platform <> "win32":
         return
     dpath = os.path.dirname(shortcutpath)
     if not os.path.exists(dpath):
         os.makedirs(dpath)
+    thr = threading.currentThread()
+    if not thr in cominit_table:
+        pythoncom.CoInitialize()
+        cominit_table.add(thr)
     targetpath = os.path.abspath(targetpath)
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
