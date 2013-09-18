@@ -1424,19 +1424,31 @@ def synclock(l):
 #  ショートカット関係
 #-------------------------------------------------------------------------------
 
-cominit_table = set()
+# CoInitialize()を呼び出し終えたスレッドのset
+_cominit_table = set()
+
+def _co_initialize():
+    """スレッドごとにCoInitialize()を呼び出す。"""
+    global _cominit_table
+    if sys.platform <> "win32":
+        return
+    thr = threading.currentThread()
+    if thr in _cominit_table:
+        return # 呼び出し済み
+    pythoncom.CoInitialize()
+    _cominit_table.add(thr)
+    # 終了したスレッドがあれば除去
+    for thr2 in _cominit_table.copy():
+        if not thr2.isAlive():
+            _cominit_table.remove(thr2)
 
 def get_linktarget(file):
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
-    global cominit_table
     if sys.platform <> "win32" or not file.lower().endswith(".lnk"):
         return file
-    thr = threading.currentThread()
-    if not thr in cominit_table:
-        pythoncom.CoInitialize()
-        cominit_table.add(thr)
+    _co_initialize()
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32com.shell.shell.IID_IShellLink)
@@ -1449,16 +1461,12 @@ def create_link(shortcutpath, targetpath):
     """targetpathへのショートカットを
     shortcutpathに作成する。
     """
-    global cominit_table
     if sys.platform <> "win32":
         return
     dpath = os.path.dirname(shortcutpath)
     if not os.path.exists(dpath):
         os.makedirs(dpath)
-    thr = threading.currentThread()
-    if not thr in cominit_table:
-        pythoncom.CoInitialize()
-        cominit_table.add(thr)
+    _co_initialize()
     targetpath = os.path.abspath(targetpath)
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
