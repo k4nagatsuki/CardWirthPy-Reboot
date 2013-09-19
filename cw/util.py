@@ -1452,8 +1452,8 @@ def get_linktarget(file):
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32com.shell.shell.IID_IShellLink)
-    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file)
     encoding = sys.getfilesystemencoding()
+    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file.encode(encoding))
     file = shortcut.GetPath(win32com.shell.shell.SLGP_UNCPRIORITY)[0].decode(encoding)
     return join_paths(file)
 
@@ -1473,7 +1473,7 @@ def create_link(shortcutpath, targetpath):
                                           win32com.shell.shell.IID_IShellLink)
     encoding = sys.getfilesystemencoding()
     shortcut.SetPath(targetpath.encode(encoding))
-    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath, 0)
+    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath.encode(encoding), 0)
 
 #-------------------------------------------------------------------------------
 #  パフォーマンスカウンタ
