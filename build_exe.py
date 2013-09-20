@@ -16,8 +16,18 @@ try:
     import operator
     import time
     import zipfile
+    import py2exe.mf
+    import win32com
 except ImportError, message:
     raise SystemExit,  "Unable to load module. %s" % message
+
+for p in win32com.__path__[1:]:
+    py2exe.mf.AddPackagePath("win32com", p)
+for extra in ["win32com.shell"]:
+    __import__(extra)
+    m = sys.modules[extra]
+    for p in m.__path__[1:]:
+        py2exe.mf.AddPackagePath(extra, p)
 
 
 class BuildExe(object):
@@ -79,7 +89,7 @@ class BuildExe(object):
             "Data/EffectBooster"]
 
         #Additional modules
-        self.includes = ["win32com.client"]
+        self.includes = ["win32com.shell.shell", "win32com.client"]
 
         self.dllincludes_ex = [
             "jpeg.dll",
