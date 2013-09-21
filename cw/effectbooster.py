@@ -511,7 +511,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
     return cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
 
 class JpyPartsImage(_JpySubImage):
-    def __init__(self, config, section, cache):
+    def __init__(self, config, section, cache, mask):
         _JpySubImage.__init__(self, config, section, cache)
         self.height = cw.s(config.get_int(section, "height", -1))
         self.width = cw.s(config.get_int(section, "width", -1))
@@ -519,15 +519,15 @@ class JpyPartsImage(_JpySubImage):
         self.position = cw.s(config.get_ints(section, "position", 2, (0, 0)))
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
-        self.transparent = config.get_bool(section, "transparent", False)
+        self.transparent = config.get_bool(section, "transparent", mask)
 
 class JpyBackGroundImage(_JpySubImage):
-    def __init__(self, config, cache):
+    def __init__(self, config, cache, mask):
         _JpySubImage.__init__(self, config, "init", cache)
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
         self.width = cw.s(config.get_int("init", "backwidth", -1))
         self.height = cw.s(config.get_int("init", "backheight", -1))
-        self.transparent = config.get_bool("init", "transparent", False)
+        self.transparent = config.get_bool("init", "transparent", mask)
         self.position = cw.s((0, 0))
         self.savecache = 0
         self.visible = False
@@ -538,12 +538,12 @@ class JpyImage(cw.image.Image):
             cache = JpyCache()
 
         config = EffectBoosterConfig(path, "init")
-        back = JpyBackGroundImage(config, cache)
+        back = JpyBackGroundImage(config, mask, cache)
         back.load(doanime)
 
         for section in config.sections():
             if not section == "init":
-                parts = JpyPartsImage(config, section, cache)
+                parts = JpyPartsImage(config, section, cache, back.transparent)
                 parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
