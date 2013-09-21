@@ -895,7 +895,7 @@ class CWPy(_Singleton, threading.Thread):
     def set_battle(self):
         """シナリオ戦闘画面へ遷移。"""
         self.set_status("ScenarioBattle")
-        self.statusbar.change()
+        self.statusbar.change(False)
 
     def set_gameover(self):
         """ゲームオーバー画面へ遷移。"""
@@ -1380,7 +1380,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),
-                          quickdeal=False, specialarea=False):
+                          quickdeal=False, specialarea=False, startbattle=False):
         """ゲームエリアチェンジ。
         eventstarting: Falseならエリアイベントは起動しない。
         bginhrt: 背景継承を行うかどうかのbool値。
@@ -1424,7 +1424,7 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata.start_event(keynum=1)
         else:
             self.deal_cards(quickdeal=quickdeal)
-            if not pygame.event.peek(pygame.locals.USEREVENT):
+            if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
                 self.show_party()
 
     def change_battlearea(self, areaid):
@@ -1445,7 +1445,7 @@ class CWPy(_Singleton, threading.Thread):
             oldareaid = self.pre_battleareadata[0]
             oldbgmpath = self.pre_battleareadata[1]
         self.set_battle()
-        self.change_area(areaid, False, ttype=("None", "Default"))
+        self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
         # 戦闘音楽を流す
         path = self.sdata.data.gettext("Property/MusicPath", "")
         self.music.play(path)
@@ -1489,12 +1489,17 @@ class CWPy(_Singleton, threading.Thread):
             # 一部ステータスは回復
             for pcard in self.get_pcards():
                 if pcard.is_bind() or pcard.mentality <> "Normal":
-                    self.sounds["harvest"].play()
-                    pcard.set_bind(0)
-                    pcard.set_mentality("Normal", 0)
-                    cw.animation.animate_sprite(pcard, "hide")
-                    pcard.update_image()
-                    cw.animation.animate_sprite(pcard, "deal")
+                    if pcard.status == "hidden" or not pcard.reversed:
+                        pcard.set_bind(0)
+                        pcard.set_mentality("Normal", 0)
+                        pcard.update_image()
+                    else:
+                        self.sounds["harvest"].play()
+                        pcard.set_bind(0)
+                        pcard.set_mentality("Normal", 0)
+                        cw.animation.animate_sprite(pcard, "hide")
+                        pcard.update_image()
+                        cw.animation.animate_sprite(pcard, "deal")
 
             if areachange:
                 # 戦闘前のエリアに戻る

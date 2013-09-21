@@ -163,6 +163,8 @@ class BattleEngine(object):
                 cw.cwpy.set_autospread(ecards, 6, False, anime=True)
         cw.cwpy.disposition_pcards()
         cw.cwpy.statusbar.change()
+        cw.cwpy.show_party()
+        cw.cwpy.draw()
 
     def runaway(self):
         """逃走処理。逃走イベントが存在する場合は、

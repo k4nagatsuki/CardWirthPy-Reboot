@@ -849,7 +849,7 @@ class Debugger(wx.Frame):
         cw.cwpy.event._paused = not cw.cwpy.event._paused
         cw.cwpy.event._step = False
 
-        step = cw.cwpy.event._paused and cw.cwpy.is_runningevent()
+        step = bool(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
         self.mi_stepreturn.Enable(step)
         self.tl_stepreturn.Enable(step)
         self.mi_stepover.Enable(step)
@@ -1079,7 +1079,7 @@ class Debugger(wx.Frame):
             self.mi_pause.Enable(True)
             self.tl_pause.Enable(True)
 
-        step = cw.cwpy.event._paused and cw.cwpy.is_runningevent()
+        step = bool(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
         self.mi_stepreturn.Enable(step)
         self.tl_stepreturn.Enable(step)
         self.mi_stepover.Enable(step)
