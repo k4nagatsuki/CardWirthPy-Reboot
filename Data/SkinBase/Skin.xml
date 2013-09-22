@@ -599,6 +599,7 @@
     <Message key="runaway">逃げる</Message>
     <Message key="confirm_runaway">逃走します。よろしいですか？</Message>
     <Message key="round">Round %s</Message>
+    <Message key="encounter">Encounter</Message>
     <Message key="ok">ＯＫ</Message>
     <Message key="select_member_message">メンバーを選択してください。</Message>
     <Message key="select_message">どれか一つを選択してください。</Message>

@@ -30,7 +30,7 @@ class StatusBar(base.CWPySprite):
         self._init_image()
         self.change(self.showbuttons)
 
-    def change(self, showbuttons=True):
+    def change(self, showbuttons=True, encounter=False):
         self.clear()
         if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT)):
             showbuttons = False
@@ -51,7 +51,9 @@ class StatusBar(base.CWPySprite):
             rmargin += cw.s(27)
             DebuggerButton(self, (left, cw.s(3)))
 
-        if cw.cwpy.is_curtained() or cw.cwpy.selectedheader:
+        if encounter:
+            EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+        elif cw.cwpy.is_curtained() or cw.cwpy.selectedheader:
             if cw.cwpy.status == "Yado":
                 YadoMoneyPanel(self, cw.s((10, 6)))
                 if showbuttons:
@@ -167,6 +169,27 @@ class PartyMoneyPanel(YadoMoneyPanel):
         else:
             self.image = self.noimg
             self.text = None
+
+class EncounterPanel(StatusBarPanel):
+    def __init__(self, parent, pos):
+        StatusBarPanel.__init__(self, parent, (0, 0, 128), pos)
+        self.text = None
+        self.update(None)
+
+    def update(self, scr):
+        if not self.text == cw.cwpy.msgs["encounter"]:
+            self.text = cw.cwpy.msgs["encounter"]
+            self.update_image()
+
+    def update_image(self):
+        s = cw.cwpy.msgs["encounter"]
+
+        image = self.font.render(s, True, (255, 255, 255))
+        rect = image.get_rect()
+        rect.left = (self.rect.w - rect.w) / 2
+        rect.top = (self.rect.h - rect.h) / 2
+        self.image = self.panelimg.copy()
+        self.image.blit(image, rect.topleft)
 
 class RoundCounterPanel(YadoMoneyPanel):
     def __init__(self, parent, pos):

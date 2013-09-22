@@ -895,7 +895,6 @@ class CWPy(_Singleton, threading.Thread):
     def set_battle(self):
         """シナリオ戦闘画面へ遷移。"""
         self.set_status("ScenarioBattle")
-        self.statusbar.change(False)
 
     def set_gameover(self):
         """ゲームオーバー画面へ遷移。"""
@@ -1435,6 +1434,7 @@ class CWPy(_Singleton, threading.Thread):
         self.clean_specials()
 
         self.sounds["battle"].play(from_scenario=True)
+        self.statusbar.change(False, encounter=True)
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")
