@@ -2151,7 +2151,7 @@ def xml2element(path="", tag="", file=None, nocache=False):
     # キャッシュからデータを取得
     if usecache and path in cw.cwpy.sdata.cache:
         cachedata = cw.cwpy.sdata.cache[path]
-        if cachedata.mtime <= mtime:
+        if mtime <= cachedata.mtime:
             data = cachedata.data
             if tag:
                 data = data.find(tag)

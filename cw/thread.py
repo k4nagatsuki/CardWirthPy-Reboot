@@ -2343,7 +2343,7 @@ class CWPy(_Singleton, threading.Thread):
             if target.carddata is not None:
                 data = target.carddata
             else:
-                data = cw.data.yadoxml2element(target.fpath).getroot()
+                data = cw.data.yadoxml2element(target.fpath)
 
             self.remove_materials(data)
         elif isinstance(target, cw.data.Party):
