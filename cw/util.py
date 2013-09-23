@@ -1452,9 +1452,13 @@ def get_linktarget(file):
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
                                           win32com.shell.shell.IID_IShellLink)
-    encoding = sys.getfilesystemencoding()
-    shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file.encode(encoding))
-    file = shortcut.GetPath(win32com.shell.shell.SLGP_UNCPRIORITY)[0].decode(encoding)
+    try:
+        encoding = sys.getfilesystemencoding()
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file.encode(encoding))
+        file = shortcut.GetPath(win32com.shell.shell.SLGP_UNCPRIORITY)[0].decode(encoding)
+    except Exception:
+        print_ex()
+        return file
     return join_paths(file)
 
 def create_link(shortcutpath, targetpath):
