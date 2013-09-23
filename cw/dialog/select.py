@@ -2079,6 +2079,8 @@ class ScenarioSelect(Select):
             self._disable_btn()
             ##self.convbtn.Enable()
             self.nobtn.Enable()
+            self.SetTitle(u"貼紙を見る")
+            return
         elif len(self.list) == 1:
             self._enable_btn()
             self.rightbtn.Disable()
