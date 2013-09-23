@@ -912,11 +912,11 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change()
         self.change_area(1)
 
-    def f9(self):
+    def f9(self, load_failure=False):
         """cw.data.ScenarioDataのf9()から呼び出され、
         緊急避難処理の続きを行う。
         """
-        if not self.is_playingscenario():
+        if load_failure == False and not self.is_playingscenario():
             return
 
         self.sdata.is_playing = False
@@ -1096,7 +1096,7 @@ class CWPy(_Singleton, threading.Thread):
 
                 if self.get_yesnoresult() == wx.ID_OK:
                     self.exec_func(self.sdata.set_log)
-                    self.exec_func(self.f9)
+                    self.exec_func(self.f9, True)
                 else:
                     self.exec_func(self.ydata.load_party, None)
                     self.exec_func(self.set_yado)
