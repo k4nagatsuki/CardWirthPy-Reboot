@@ -1051,7 +1051,7 @@ def cab_hasfile(cab, file):
                 return False
 
             cofffiles = dword.unpack(buf[16:20])[0]
-            cfiles = dword.unpack(buf[28:32])[0]
+            cfiles = word.unpack(buf[28:30])[0]
             f.seek(cofffiles)
 
             for i in xrange(cfiles):
