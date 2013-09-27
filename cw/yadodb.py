@@ -268,7 +268,7 @@ class YadoDB(object):
                         orderc,
                     ))
 
-        if self.mode == YADO and adventurers:
+        if self.mode == YADO and (isinstance(adventurers, dict) or adventurers):
             s = "SELECT fpath, mtime, album FROM adventurer"
             self.cur.execute(s)
             data = self.cur.fetchall()
