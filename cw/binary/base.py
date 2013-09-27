@@ -163,6 +163,7 @@ class CWBinaryBase(object):
             imgdir = basedir
         elif self.xmltype == "BeastCard" and self.summoneffect:
             imgdir = self.get_imgdir()
+            basedir = self.get_root().materialbasedir
 
             if not imgdir:
                 root = self.get_root()

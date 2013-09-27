@@ -263,7 +263,7 @@ class CWYado(object):
         dictrecord = set()
         def get_dictdata(cardname):
             if cardname in dictrecord:
-                data = copy.copy(carddatadict.get(cardname))
+                data = copy.deepcopy(carddatadict.get(cardname))
             else:
                 data = carddatadict.get(cardname)
                 dictrecord.add(cardname)
