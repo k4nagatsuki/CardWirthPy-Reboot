@@ -216,7 +216,7 @@ class PartyMembers(base.CWBinaryBase):
     def join_variables(data):
         seq = []
         for e in data:
-            name = cw.util.decodewrap(e.text)
+            name = e.text
             value = e.get("value")
             if value == "True":
                 value = "1"
