@@ -1132,7 +1132,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         width = 37
     elif mode == 2:
         wrapschars = ""
-        width = 32
+        width = 33
     elif mode == 3:
         wrapschars = ""
         width = 43
@@ -1163,6 +1163,9 @@ def txtwrap(s, mode, width=30, wrapschars=""):
 
     for index, char in enumerate(s):
         spchar = False
+        # 行末に半角スペースがあると折り返し位置が変わる
+        # (イベントによるメッセージのみ)
+        width2 = width
         if r_spchar:
             if skip:
                 skip = False
@@ -1192,6 +1195,8 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             wraped = False
         # 半角文字
         elif r_hwchar.match(char):
+            if char == " " and mode in (2, 3):
+                width2 += 1
             seq.append(char)
             cnt += 1
 
@@ -1207,8 +1212,8 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             asciicnt = 0
 
         # 行折り返し処理
-        if not spchar and cnt > width:
-            if width >= asciicnt > 0:
+        if not spchar and cnt > width2:
+            if width2 >= asciicnt > 0:
                 if seq[-asciicnt] <> "\n":
                     seq.insert(-asciicnt, "\n")
                 cnt = asciicnt
