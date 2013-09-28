@@ -555,6 +555,7 @@ class UnconvCWYado(object):
                 self.curnum += 1
 
                 data = cw.data.xml2element(header.fpath)
+                cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
 
                 ppath = create_fpath(header.name, ".wcp")
                 with cwfile.CWFileWriter(ppath, "wb") as f:
