@@ -541,6 +541,7 @@ class PlayerCard(CWPyCard, character.Player):
             y += self.zoomimgs[-1][1][1] - self.zoomimgs[0][1][1]
         self.rect = pygame.Rect(self.rect)
         self.rect.topleft = (self.rect[0], y)
+        self.rect.size = self.image.get_size()
 
         for image, rect in self.zoomimgs:
             if not rect is self.rect:
@@ -565,6 +566,7 @@ class PlayerCard(CWPyCard, character.Player):
         shift = int(float(cw.s(150)) / speed * self.frame)
         y = self._rect[1] + shift
         self.rect = pygame.Rect(self.rect)
+        self.rect.size = self.image.get_size()
         if self.zoomimgs:
             image, zrect = self.zoomimgs[0]
             topleft = (zrect[0], y)
