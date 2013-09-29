@@ -34,14 +34,7 @@ class BackGround(base.CWPySprite):
         self.reload(doanime=False, ttype=("None", "None"), redraw=False)
 
     def update_skin(self, oldskindir, newskindir):
-        for i, t in enumerate(self.bgs):
-            type, d = t
-            if type == BG_IMAGE:
-                path, mask, size, pos, flag, visible = d
-                if path.startswith(oldskindir):
-                    path = path.replace(oldskindir, newskindir, 1)
-                d = path, mask, size, pos, flag, visible
-            self.bgs[i] = type, d
+        pass
 
     def load_surface(self, path, mask, size, flag, doanime):
         """背景サーフェスを作成。
@@ -131,23 +124,13 @@ class BackGround(base.CWPySprite):
                 path = e.gettext("ImagePath", "")
 
                 # 使用時イベント中なら使用したカードの素材から探す
-                imgpath = cw.util.get_inusecardmaterialpath(path)
-
-                if os.path.isfile(imgpath):
-                    path = imgpath
+                if e.getbool("ImagePath", "inusecard", False):
+                    inusecard = True
                 else:
-                    if cw.cwpy.is_playingscenario():
-                        path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+                    imgpath = cw.util.get_inusecardmaterialpath(path)
+                    inusecard = os.path.isfile(imgpath)
 
-                    if not cw.cwpy.is_playingscenario() or not os.path.isfile(path):
-                        path = cw.util.join_paths(cw.cwpy.skindir, path)
-
-                if not os.path.isfile(path):
-                    fname = os.path.basename(path)
-                    fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
-                    path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
-
-                d = (path, mask, size, pos, flag, visible)
+                d = (path, inusecard, mask, size, pos, flag, visible)
                 animated |= self._add_imagecell(blitlist, self.bgs, oldbgs, d, doanime)
 
             elif e.tag == "TextCell":
@@ -216,15 +199,31 @@ class BackGround(base.CWPySprite):
         self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime):
-        path, mask, size, pos, flag, visible = d
+        path, inusecard, mask, size, pos, flag, visible = d
+        basepath = path
+
+        if inusecard:
+            path = cw.util.join_yadodir(path)
+        else:
+            if cw.cwpy.is_playingscenario():
+                path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+
+            if not cw.cwpy.is_playingscenario() or not os.path.isfile(path):
+                path = cw.util.join_paths(cw.cwpy.skindir, path)
+
+        if not os.path.isfile(path):
+            fname = os.path.basename(path)
+            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
+            path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
+
         image, anime = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 
         if image:
             blitlist.append((BG_IMAGE, (image, pos, 0)))
-            bgs.append((BG_IMAGE, (path, mask, size, pos, flag, True)))
+            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True)))
         else:
-            bgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
-            oldbgs.append((BG_IMAGE, (path, mask, size, pos, flag, False)))
+            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
+            oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
 
         return anime
 

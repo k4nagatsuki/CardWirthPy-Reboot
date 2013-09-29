@@ -324,15 +324,13 @@ def create_scenariolog(sdata, path, recording):
 
     for type, d in cw.cwpy.background.bgs:
         if type == cw.sprite.background.BG_IMAGE:
-            fpath, mask, size, pos, flag, visible = d
+            fpath, inusecard, mask, size, pos, flag, visible = d
             e_bgimg = cw.data.make_element("BgImage", attrs={"mask": str(mask)})
 
-            if fpath.startswith(cw.cwpy.skindir):
-                fpath = fpath.replace(cw.cwpy.skindir + "/", "", 1)
+            if inusecard:
+                e = cw.data.make_element("ImagePath", fpath, attrs={"inusecard":str(inusecard)})
             else:
-                fpath = fpath.replace(sdata.scedir + "/", "", 1)
-
-            e = cw.data.make_element("ImagePath", fpath)
+                e = cw.data.make_element("ImagePath", fpath)
             e_bgimg.append(e)
 
         elif type == cw.sprite.background.BG_TEXT:
