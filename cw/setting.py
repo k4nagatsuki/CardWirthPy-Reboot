@@ -515,6 +515,8 @@ class Resource(object):
         for key, sound in setting.sounds.items():
             if sound in skinsounds:
                 d[key] = skinsounds[sound]
+            else:
+                d[key] = cw.util.SoundInterface("")
         return d
 
     def get_skinsounds(self):
