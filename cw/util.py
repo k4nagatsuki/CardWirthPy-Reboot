@@ -18,6 +18,7 @@ import subprocess
 import StringIO
 import io
 import traceback
+import datetime
 
 if sys.platform == "win32":
     import pythoncom
@@ -688,11 +689,30 @@ def number_normalization(value, fromvalue, tovalue):
 
 def print_ex():
     """例外の内容を標準出力に書き足す。
-    ex: 例外のデータ
     """
     exc_type, exc_value, exc_traceback = sys.exc_info()
     traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
     print
+    return
+
+def screenshot():
+    """スクリーンショットを書き出す。
+    """
+    date = datetime.datetime.today()
+
+    if not os.path.isdir("ScreenShot"):
+        os.mkdir("ScreenShot")
+
+    filename = os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
+    pygame.image.save(cw.cwpy.scr, filename)
+
+    # スクリーンショット用のサウンドがあれば鳴らす
+    # なければsignalを鳴らす
+    if cw.cwpy.sounds.get("screenshot"):
+        cw.cwpy.sounds["screenshot"].play()
+    else:
+        cw.cwpy.sounds["signal"].play()
+
     return
 
 #-------------------------------------------------------------------------------

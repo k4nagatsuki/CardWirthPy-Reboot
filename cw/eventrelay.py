@@ -30,6 +30,7 @@ class KeyEventRelay(object):
             wx.WXK_DOWN : K_DOWN,
             wx.WXK_LEFT : K_LEFT,
             wx.WXK_RIGHT : K_RIGHT,
+            wx.WXK_SNAPSHOT : K_PRINT,
             wx.WXK_SHIFT : K_LSHIFT}
         # キー入力(pygame用)
         self.keyin = [0 for cnt in xrange(322)]

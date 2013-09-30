@@ -8,7 +8,6 @@ from pygame.locals import *
 
 import cw
 
-
 class EventHandler(object):
     def run(self):
         cw.cwpy.has_inputevent = False
@@ -60,6 +59,11 @@ class EventHandler(object):
                 # 右方向キー
                 elif event.key == K_RIGHT:
                     self.dirkey_event(x=1)
+
+            elif event.type == KEYUP:
+                # PrintScreenキー
+                if event.key == K_PRINT:
+                    self.printkey_event()
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリックイベント
@@ -319,6 +323,12 @@ class EventHandler(object):
             # メニューカードの表示を待っている場合は表示
             cw.cwpy.deal_cards()
 
+    def printkey_event(self):
+        """
+        PrintScreenキーイベント。
+        """
+        cw.util.screenshot()
+
     def wheel_event(self, y=0):
         """
         ホイールイベント。
@@ -391,6 +401,11 @@ class EventHandlerForMessageWindow(EventHandler):
                 # Shiftキー
                 elif event.key == K_RSHIFT or event.key == K_LSHIFT:
                     self.shiftkey_event(True)
+
+            elif event.type == KEYUP:
+                # PrintScreenキー
+                if event.key == K_PRINT:
+                    self.printkey_event()
 
             elif event.type == KEYUP:
                 # Shiftキー
@@ -622,6 +637,11 @@ class EventHandlerForBacklog(EventHandler):
                 elif event.key == K_DOWN:
                     self.dirkey_event(y=1)
 
+            elif event.type == KEYUP:
+                # PrintScreenキー
+                if event.key == K_PRINT:
+                    self.printkey_event()
+
             elif event.type == MOUSEBUTTONUP:
                 # 左クリック
                 if event.button == 1:
@@ -807,6 +827,11 @@ class EventHandlerForEffectBooster(EventHandler):
                 # リターンキー
                 elif event.key == K_RETURN:
                     self.returnkey_event()
+
+            elif event.type == KEYUP:
+                # PrintScreenキー
+                if event.key == K_PRINT:
+                    self.printkey_event()
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリック

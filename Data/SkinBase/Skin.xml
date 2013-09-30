@@ -424,6 +424,7 @@
     <Sound key="ineffective">システム・無効</Sound>
     <Sound key="confuse">効果（混乱）</Sound>
     <Sound key="bind">効果（呪縛）</Sound>
+    <Sound key="screenshot">システム・スクリーンショット</Sound>
   </Sounds>
   <Messages>
     <Message key="message">メッセージ</Message>
