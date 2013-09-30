@@ -703,10 +703,10 @@ def screenshot():
     if not os.path.isdir("ScreenShot"):
         os.mkdir("ScreenShot")
 
+    cw.cwpy.sounds["screenshot"].play()
+
     filename = os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
     pygame.image.save(cw.cwpy.scr, filename)
-
-    cw.cwpy.sounds["screenshot"].play()
 
     return
 
