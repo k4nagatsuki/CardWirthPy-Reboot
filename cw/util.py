@@ -706,8 +706,6 @@ def screenshot():
     filename = os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
     pygame.image.save(cw.cwpy.scr, filename)
 
-    # スクリーンショット用のサウンドがあれば鳴らす
-    # なければsignalを鳴らす
     cw.cwpy.sounds["screenshot"].play()
 
     return
