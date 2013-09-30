@@ -708,10 +708,7 @@ def screenshot():
 
     # スクリーンショット用のサウンドがあれば鳴らす
     # なければsignalを鳴らす
-    if cw.cwpy.sounds.get("screenshot"):
-        cw.cwpy.sounds["screenshot"].play()
-    else:
-        cw.cwpy.sounds["signal"].play()
+    cw.cwpy.sounds["screenshot"].play()
 
     return
 
