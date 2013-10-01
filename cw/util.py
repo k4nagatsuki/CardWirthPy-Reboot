@@ -1174,6 +1174,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     wraped = False
     skip = False
     spchar = False
+    wrapafter = False
     seq = []
 
     for index, char in enumerate(s):
@@ -1196,18 +1197,23 @@ def txtwrap(s, mode, width=30, wrapschars=""):
                     skip = True
                     continue
                 spchar = True
+                if not chars.startswith("&"):
+                    wrapafter = False
 
         # 行頭禁止文字
         if cnt == 0 and not wraped and r_wchar and r_wchar.match(char):
             seq.insert(-1, char)
             asciicnt = 0
             wraped = True
+            wrapafter = False
         # 改行記号
         elif char == "\n":
-            seq.append(char)
+            if not wrapafter:
+                seq.append(char)
             cnt = 0
             asciicnt = 0
             wraped = False
+            wrapafter = False
         # 半角文字
         elif r_hwchar.match(char):
             if char == " " and mode in (2, 3):
@@ -1219,12 +1225,14 @@ def txtwrap(s, mode, width=30, wrapschars=""):
                 asciicnt = 0
             else:
                 asciicnt += 1
+            wrapafter = False
 
         # 行頭禁止文字・改行記号・半角文字以外
         else:
             seq.append(char)
             cnt += 2
             asciicnt = 0
+            wrapafter = False
 
         # 行折り返し処理
         if not spchar and cnt > width2:
@@ -1235,6 +1243,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             elif not get_char(s, index + 1) == "\n":
                 if not get_char(s, index + 2) == "\n":
                     seq.append("\n")
+                    wrapafter = True
                 cnt = 0
                 asciicnt = 0
                 wraped = False
