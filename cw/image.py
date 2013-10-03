@@ -81,7 +81,7 @@ class CardImage(Image):
         left = cw.s(5)
         if w + left > self.rect.w:
             size = (self.rect.w - left*2, h)
-            subimg = pygame.transform.scale(subimg, size)
+            subimg = pygame.transform.smoothscale(subimg, size)
 
         image.blit(subimg, (left, cw.s(5)))
         return image

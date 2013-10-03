@@ -127,7 +127,12 @@ def s(num):
                 # スケール情報のあるpygame.Surface
                 # TODO scaleinfo
                 size = s(num[1])
-                return pygame.transform.scale(bmp, size)
+                if size[0] % num[1] == 0:
+                    return pygame.transform.scale(bmp, size)
+                else:
+                    if not (bmp.get_flags() & pygame.locals.SRCALPHA) and bmp.get_colorkey():
+                        bmp = bmp.convert_alpha()
+                    return pygame.transform.smoothscale(bmp, size)
             else:
                 # スケール情報の無いpygame.Surface(単純拡大)
                 return s(bmp)
@@ -139,7 +144,11 @@ def s(num):
                 # スケール情報のあるwx.Image
                 # TODO scaleinfo
                 size = s(num[1])
-                return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
+                if size[0] % num[1] == 0:
+                    return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
+                else:
+                    # Rescale(wx.IMAGE_QUALITY_HIGH)よりも速い
+                    return image.conv2wxbmp(s(image.conv2surface(img.ConvertToBitmap()))).ConvertToImage()
             else:
                 # スケール情報の無いwx.Image(単純拡大)
                 return s(img)
@@ -149,7 +158,7 @@ def s(num):
                 return bmp
             # wx.Bitmap
             size = num[1]
-            return s((bmp.ConvertToImage(), size, scaleinfo)).ConvertToBitmap()
+            return image.conv2wxbmp(s(image.conv2surface(bmp)))
 
         elif len(num) == 4:
             # 矩形
@@ -171,7 +180,12 @@ def s(num):
         if w <= 0 or h <= 0:
             return num
         size = (w, h)
-        return pygame.transform.scale(num, size)
+        if UP_SCR % 1 == 0:
+            return pygame.transform.scale(num, size)
+        else:
+            if not (num.get_flags() & pygame.locals.SRCALPHA) and num.get_colorkey():
+                num = num.convert_alpha()
+            return pygame.transform.smoothscale(num, size)
 
     elif isinstance(num, wx.Image):
         # スケール情報の無いwx.Image(単純拡大)
@@ -179,17 +193,20 @@ def s(num):
         h = int(num.GetHeight() * UP_SCR)
         if w <= 0 or h <= 0:
             return num
-        return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
+
+        if UP_SCR % 1 == 0:
+            return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
+        else:
+            # Rescale(wx.IMAGE_QUALITY_HIGH)よりも速い
+            return image.conv2wxbmp(s(image.conv2surface(num.ConvertToBitmap()))).ConvertToImage()
 
     elif isinstance(num, wx.Bitmap):
         # スケール情報の無いwx.Bitmap(単純拡大)
-        img = num.ConvertToImage()
-        w = int(img.GetWidth() * UP_SCR)
-        h = int(img.GetHeight() * UP_SCR)
+        w = int(num.GetWidth() * UP_SCR)
+        h = int(num.GetHeight() * UP_SCR)
         if w <= 0 or h <= 0:
             return num
-        img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
-        return img.ConvertToBitmap()
+        return image.conv2wxbmp(s(image.conv2surface(num)))
 
     return num
 

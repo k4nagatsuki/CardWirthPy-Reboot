@@ -73,6 +73,8 @@ class BackGround(base.CWPySprite):
         # 指定したサイズに拡大縮小する
         if not image.get_size() in (size, cw.s((0, 0))):
             if cw.cwpy.setting.smoothscale_bg:
+                if not (image.get_flags() & pygame.locals.SRCALPHA) and image.get_colorkey():
+                    image = image.convert_alpha()
                 image = pygame.transform.smoothscale(image, size)
             else:
                 image = pygame.transform.scale(image, size)
