@@ -153,7 +153,7 @@ class Converter(threading.Thread):
                     name = n[:i]
                 else:
                     name = n
-                data.find("./Name").text = unicode(name, "mbcs").strip(" 　")
+                data.find("./Name").text = unicode(name, "mbcs").strip(u" 　")
 
                 # 身体能力
                 p = physical.unpack(self.exebinary[index:index+2*6])
@@ -540,7 +540,7 @@ class Converter(threading.Thread):
                     if table:
                         for repl in repls:
                             table = table.replace(repl[0], repl[1])
-                        msgtable[key] = table.strip(" 　")
+                        msgtable[key] = table.strip(u" 　")
 
             # バイナリ断片を手がかりにメッセージを取得
             # (key, 0=keyの前方を探す/1=後方を探す, index移動量, Prefix)
@@ -574,7 +574,7 @@ class Converter(threading.Thread):
                     s, index = self._get_text(index)
                     if len(data) >= 4:
                         s = data[3] + s
-                    msgtable[key] = s.strip(" 　")
+                    msgtable[key] = s.strip(u" 　")
 
             # 一分テキストの調整
             for key in ("cards_backpack", "cards_storehouse", "info_card"):
@@ -695,7 +695,7 @@ class Converter(threading.Thread):
                 "character_age": msglist5[9] + ":%s",
                 "character_sex": msglist5[14] + ":%s",
                 "character_ep": msglist5[16] + ":%s",
-                "character_history": "【" + msglist5[21] + "】",
+                "character_history": u"【" + msglist5[21] + u"】",
                 "history_etc": msglist5[20],
                 "confirm_grow": msglist5[32] + "%s" + msglist5[33] + msglist5[34].replace(msglist6[2][1:], "%s").replace(msglist6[3][1:], "%s") + msglist5[38],
                 "confirm_die": msglist5[32] + "%s" + msglist5[33] + msglist5[37] + msglist5[38],
@@ -704,7 +704,7 @@ class Converter(threading.Thread):
                 "resume_adventure": msglist5[64],
                 "select_scenario_title": msglist3[20],
                 "target_level_1": msglist3[49] + " %s",
-                "target_level_2": msglist3[49] + " %s～%s",
+                "target_level_2": msglist3[49] + u" %s～%s",
                 "contents": msglist3[61],
                 "confirm_save": msglist1[52],
                 "saved": msglist1[54],
@@ -726,7 +726,7 @@ class Converter(threading.Thread):
                 "extension_title": msglist9[2] + "%s" + msglist9[3],
             }
             for key, msg in cribs2.iteritems():
-                msgtable[key] = msg.strip(" 　")
+                msgtable[key] = msg.strip(u" 　")
 
             for e in self.data.getfind("Messages"):
                 key = e.get("key")
