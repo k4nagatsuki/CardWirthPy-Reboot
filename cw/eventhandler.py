@@ -406,10 +406,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 # PrintScreenキー
                 if event.key == K_PRINT:
                     self.printkey_event()
-
-            elif event.type == KEYUP:
                 # Shiftキー
-                if event.key == K_RSHIFT or event.key == K_LSHIFT:
+                elif event.key == K_RSHIFT or event.key == K_LSHIFT:
                     self.shiftkey_event(False)
 
             elif event.type == MOUSEBUTTONDOWN:

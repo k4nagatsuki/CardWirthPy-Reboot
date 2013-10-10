@@ -12,6 +12,7 @@ syntax: regexp
 ^Data/Skin/.*
 ^Data/Temp/.*
 ^Scenario/.*
+^ScreenShot/.*
 ^UnregisteredScenario/.*
 ^Yado/.*
 ^Settings\.xml$
