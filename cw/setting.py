@@ -60,6 +60,8 @@ class Setting(object):
             self.sort_backpack = "None"
             self.backlogmax = 100
             self.showfps = False
+            self.selectscenariofromtype = True
+            self.folderoftype = []
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -144,6 +146,16 @@ class Setting(object):
         self.backlogmax = data.getint("MessageLogMax", 100)
 
         self.showfps = False
+
+        # スキンによってシナリオの選択開始位置を変更する
+        self.selectscenariofromtype = data.getbool("SelectScenarioFromType", True)
+    
+        # シナリオフォルダ(スキンタイプ別)
+        self.folderoftype = []
+        for e_folder in data.getfind("ScenarioFolderOfSkinType", False):
+            skintype = e_folder.getattr(".", "skintype", "")
+            folder = e_folder.gettext(".", "")
+            self.folderoftype.append((skintype, folder))
 
         # スキン
         self.skindirname = data.gettext("Skin", "Classic")

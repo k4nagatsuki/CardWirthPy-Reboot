@@ -46,10 +46,11 @@ class Converter(threading.Thread):
 
         self.datadir = self.find_datadir()
         self.scenariodir = self.find_scenariodir()
+        self.skintype = self.find_type()
 
         self.data = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
         self.data.find("Property/Name").text = self.find_skinname()
-        self.data.find("Property/Type").text = self.find_type()
+        self.data.find("Property/Type").text = self.skintype
         self.data.find("Property/Author").text = self.find_author()
         self.data.find("Property/Description").text = cw.util.encodewrap(self.find_description())
 
@@ -973,22 +974,42 @@ class Converter(threading.Thread):
             # Bgm
             self.curnum = 20
             self.message = u"BGMフォルダをコピー中..."
-            shutil.copytree(cw.util.join_paths(datadir, u"Midi"), cw.util.join_paths(dir, u"Bgm"))
+            folder = cw.util.join_paths(datadir, u"Midi")
+            target = cw.util.join_paths(dir, u"Bgm")
+            if os.path.isdir(folder):
+                shutil.copytree(folder, target)
+            else:
+                os.makedirs(target)
 
             # Face
             self.curnum = 30
             self.message = u"カード画像フォルダをコピー中..."
-            shutil.copytree(cw.util.join_paths(datadir, u"Face"), cw.util.join_paths(dir, u"Face"))
+            folder = cw.util.join_paths(datadir, u"Face")
+            target = cw.util.join_paths(dir, u"Face")
+            if os.path.isdir(folder):
+                shutil.copytree(folder, target)
+            else:
+                os.makedirs(target)
 
             # Wave
             self.curnum = 40
             self.message = u"効果音フォルダをコピー中..."
-            shutil.copytree(cw.util.join_paths(datadir, u"Wave"), cw.util.join_paths(dir, u"Sound"))
+            folder = cw.util.join_paths(datadir, u"Wave")
+            target = cw.util.join_paths(dir, u"Sound")
+            if os.path.isdir(folder):
+                shutil.copytree(folder, target)
+            else:
+                os.makedirs(target)
 
             # Table
             self.curnum = 50
             self.message = u"背景画像フォルダをコピー中..."
-            shutil.copytree(cw.util.join_paths(datadir, u"Table"), cw.util.join_paths(dir, u"Table"))
+            folder = cw.util.join_paths(datadir, u"Table")
+            target = cw.util.join_paths(dir, u"Table")
+            if os.path.isdir(folder):
+                shutil.copytree(folder, target)
+            else:
+                os.makedirs(target)
 
             # リソースオーバーライド
             self.curnum = 60

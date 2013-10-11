@@ -1453,6 +1453,11 @@ class ScenarioSelect(Select):
         Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
         # シナリオディレクトリ
         self.scedir = u"Scenario"
+        # 設定に応じて初期位置を変更する
+        if cw.cwpy.setting.selectscenariofromtype:
+            for skintype, folder in cw.cwpy.setting.folderoftype:
+                if skintype == cw.cwpy.setting.skintype:
+                    self.scedir = folder
         # 現在開いているディレクトリ
         self.nowdir = self.scedir
         # 開いたディレクトリの階層
@@ -1460,7 +1465,7 @@ class ScenarioSelect(Select):
         # シナリオデータベース
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
-        self.db.update()
+        self.db.update(self.nowdir)
         headers = self.db.search_dpath(self.nowdir)
         # nowdirにあるディレクトリリスト
         dpaths = self.get_dpaths(self.nowdir)

@@ -15,9 +15,11 @@ class SettingsDialog(wx.Dialog):
         self.pane_gene = GeneralSettingPanel(self.note)
         self.pane_draw = DrawingSettingPanel(self.note)
         self.pane_sound = AudioSettingPanel(self.note)
+        self.pane_scenario = ScenarioSettingPanel(self.note)
         self.note.AddPage(self.pane_gene, u"一般")
         self.note.AddPage(self.pane_draw, u"描画")
         self.note.AddPage(self.pane_sound, u"オーディオ")
+        self.note.AddPage(self.pane_scenario, u"シナリオ")
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
         self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
@@ -50,6 +52,8 @@ class SettingsDialog(wx.Dialog):
         self.pane_draw.cs_mframe.SetColour((128, 0, 0))
         self.pane_draw.cs_blwin.SetColour((80, 80, 80))
         self.pane_draw.cs_blframe.SetColour((128, 128, 128))
+        self.pane_scenario.cb_selectscenariofromtype.SetValue(True)
+        # スキン毎のシナリオ開始位置の設定は変更しない
 
     def OnOk(self, event):
         # 設定変更前はレベル上昇が可能な状態だったか
@@ -152,6 +156,15 @@ class SettingsDialog(wx.Dialog):
                     if 0 < pcard.check_level():
                         pcard.adjust_level(False)
         cw.cwpy.exec_func(check_levelup, can_levelup)
+
+        # シナリオ
+        value = self.pane_scenario.cb_selectscenariofromtype.GetValue()
+        cw.cwpy.setting.selectscenariofromtype = value
+        cw.cwpy.setting.folderoftype = []
+        for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
+            skintype = self.pane_scenario.grid_folderoftype.GetCellValue(row, 0)
+            folder = self.pane_scenario.grid_folderoftype.GetCellValue(row, 1)
+            cw.cwpy.setting.folderoftype.append((skintype, folder))
 
         self.Close()
 
@@ -433,7 +446,7 @@ class AudioSettingPanel(wx.Panel):
         self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(25, -1))
-        self.list_soundfont = wx.ListBox(self, -1, size=(250, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
+        self.list_soundfont = wx.ListBox(self, -1, size=(240, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
         for soundfont in cw.cwpy.setting.soundfonts:
             self.list_soundfont.Append(soundfont)
 
@@ -516,6 +529,134 @@ class AudioSettingPanel(wx.Panel):
             self.list_soundfont.Delete(index)
             self.list_soundfont.Insert(item, index + 1)
             self.list_soundfont.Select(index + 1)
+
+class ScenarioSettingPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+
+        # シナリオのオプション
+        self.box_gene = wx.StaticBox(self, -1, u"")
+        self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
+        self.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype)
+
+        # スキンタイプ毎の初期フォルダ
+        self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
+        self.btn_reffolder = wx.Button(self, -1, u"参照...")
+        self.btn_removefolder = wx.Button(self, -1, u"削除")
+        self.btn_upfolder = wx.Button(self, -1, u"↑", size=(25, -1))
+        self.btn_downfolder = wx.Button(self, -1, u"↓", size=(25, -1))
+        self.grid_folderoftype = wx.grid.Grid(self, -1, style=wx.BORDER)
+        self.grid_folderoftype.CreateGrid(len(cw.cwpy.setting.folderoftype) + 1, 2)
+        #self.grid_folderoftype.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
+        self.grid_folderoftype.SetColLabelSize(0)
+        self.grid_folderoftype.SetRowLabelSize(0)
+        self.grid_folderoftype.SetColSize(0, 100)
+        self.grid_folderoftype.SetColSize(1, 120)
+
+        types = set()
+        for name, t in self.Parent.Parent.pane_gene.skin_summarys.iteritems():
+            skintype, skinname, author, desc = t
+            types.add(skintype)
+
+        types = list(types)
+        types.sort()
+
+        colattr = wx.grid.GridCellAttr()
+        colattr.SetEditor(wx.grid.GridCellChoiceEditor(types, allowOthers=True))
+        self.grid_folderoftype.SetColAttr(0, colattr)
+
+        for row in xrange(self.grid_folderoftype.GetNumberRows() - 1):
+            skintype, folder = cw.cwpy.setting.folderoftype[row]
+            self.grid_folderoftype.SetCellValue(row, 0, skintype)
+            self.grid_folderoftype.SetCellValue(row, 1, folder)
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnRefFolderBtn, self.btn_reffolder)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveFolderBtn, self.btn_removefolder)
+        self.Bind(wx.EVT_BUTTON, self.OnUpFolderBtn, self.btn_upfolder)
+        self.Bind(wx.EVT_BUTTON, self.OnDownFolderBtn, self.btn_downfolder)
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnGridCellChange, self.grid_folderoftype)
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+
+        bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        bsizer_folderoftype = wx.StaticBoxSizer(self.box_folderoftype, wx.VERTICAL)
+
+        bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.ALL, 3)
+        bsizer_gene.SetMinSize((260, -1))
+
+        sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, 5)
+        sizer_folderbtns.Add(self.btn_removefolder, 0, wx.RIGHT, 5)
+        sizer_folderbtns.Add(self.btn_upfolder, 0, wx.RIGHT, 5)
+        sizer_folderbtns.Add(self.btn_downfolder, 0, 0, 0)
+
+        bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.ALL, 5)
+        bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 5)
+
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_folderoftype, 1, wx.EXPAND, 0)
+
+        sizer.Add(sizer_v1, 1, wx.ALL, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnGridCellChange(self, event):
+        if event.Col == 0 and event.Row + 1 == self.grid_folderoftype.GetNumberRows() and\
+                self.grid_folderoftype.GetCellValue(event.Row, 0):
+            self.grid_folderoftype.AppendRows(1)
+
+    def OnRefFolderBtn(self, event):
+        row = self.grid_folderoftype.GetGridCursorRow()
+        if row == -1:
+            return
+
+        type = self.grid_folderoftype.GetCellValue(row, 0)
+        if not type:
+            type = u"(指定無し)"
+
+        dpath = os.path.abspath("Scenario")
+        dlg = wx.DirDialog(self.TopLevelParent, u"「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (type), dpath, style=wx.DD_DIR_MUST_EXIST)
+        if dlg.ShowModal() == wx.ID_OK:
+            dpath = dlg.GetPath()
+            relpath = os.path.relpath(dpath, ".")
+            if not relpath.startswith(".."):
+                dpath = relpath
+            self.grid_folderoftype.SetCellValue(row, 1, cw.util.join_paths(dpath))
+
+    def OnRemoveFolderBtn(self, event):
+        row = self.grid_folderoftype.GetGridCursorRow()
+        if row == -1 or row + 1 == self.grid_folderoftype.GetNumberRows():
+            return
+        self.grid_folderoftype.DeleteRows(row)
+
+    def OnUpFolderBtn(self, event):
+        row = self.grid_folderoftype.GetGridCursorRow()
+        if row == -1 or row == 0:
+            return
+        for col in xrange(self.grid_folderoftype.GetNumberCols()):
+            value1 = self.grid_folderoftype.GetCellValue(row, col)
+            value2 = self.grid_folderoftype.GetCellValue(row - 1, col)
+            self.grid_folderoftype.SetCellValue(row, col, value2)
+            self.grid_folderoftype.SetCellValue(row - 1, col, value1)
+        self.grid_folderoftype.SetGridCursor(row - 1, self.grid_folderoftype.GetGridCursorCol())
+
+    def OnDownFolderBtn(self, event):
+        row = self.grid_folderoftype.GetGridCursorRow()
+        if row == -1 or self.grid_folderoftype.GetNumberRows() <= row + 2:
+            return
+        for col in xrange(self.grid_folderoftype.GetNumberCols()):
+            value1 = self.grid_folderoftype.GetCellValue(row, col)
+            value2 = self.grid_folderoftype.GetCellValue(row + 1, col)
+            self.grid_folderoftype.SetCellValue(row, col, value2)
+            self.grid_folderoftype.SetCellValue(row + 1, col, value1)
+        self.grid_folderoftype.SetGridCursor(row + 1, self.grid_folderoftype.GetGridCursorCol())
 
 def main():
     pass

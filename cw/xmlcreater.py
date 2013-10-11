@@ -162,6 +162,17 @@ def create_settings(setting):
     e = cw.data.make_element("MessageLogMax", str(setting.backlogmax))
     element.append(e)
 
+    # スキンによってシナリオの選択開始位置を変更する
+    e = cw.data.make_element("SelectScenarioFromType", str(setting.selectscenariofromtype))
+    element.append(e)
+
+    # シナリオフォルダ(スキンタイプ別)
+    e = cw.data.make_element("ScenarioFolderOfSkinType")
+    for type, folder in setting.folderoftype:
+        e_folder = cw.data.make_element("Folder", folder, {"skintype": type})
+        e.append(e_folder)
+    element.append(e)
+
     # シナリオ履歴
     if not hasattr(setting, "recenthistory"):
         e = cw.data.make_element("RecentHistory", "", {"limit": "5"})

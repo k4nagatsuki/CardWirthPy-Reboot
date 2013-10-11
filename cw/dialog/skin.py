@@ -103,6 +103,15 @@ class SkinConversionDialog(wx.Dialog):
                     link = cw.util.join_paths(u"Scenario", link + ".lnk")
                     link = cw.binary.util.check_duplicate(link)
                     cw.util.create_link(link, targ)
+
+                for skintype, folder in cw.cwpy.setting.folderoftype:
+                    if skintype == self.conv.skintype:
+                        break # 登録済み
+                else:
+                    scpath = os.path.relpath(path1, ".")
+                    if scpath.startswith(".."):
+                        scpath = path1
+                    cw.cwpy.setting.folderoftype.append((self.conv.skintype, cw.util.join_paths(scpath)))
             except:
                 pass
 

@@ -25,14 +25,18 @@ TYPE_CLASSIC = 1
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
 
-    def __init__(self, vacuum=False):
+    def __init__(self, setting, vacuum=False):
         threading.Thread.__init__(self)
+        self.setting = setting
         self._vacuum = vacuum
 
     def run(self):
         type(self)._finished = False
         db = Scenariodb()
         db.update()
+        for skintype, folder in self.setting.folderoftype:
+            if folder <> u"Scenario":
+                db.update(folder)
 
         if self._vacuum:
             db.vacuum()
