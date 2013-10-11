@@ -15,11 +15,9 @@ class SettingsDialog(wx.Dialog):
         self.pane_gene = GeneralSettingPanel(self.note)
         self.pane_draw = DrawingSettingPanel(self.note)
         self.pane_sound = AudioSettingPanel(self.note)
-        self.pane_color = ColorSettingPanel(self.note)
         self.note.AddPage(self.pane_gene, u"一般")
         self.note.AddPage(self.pane_draw, u"描画")
         self.note.AddPage(self.pane_sound, u"オーディオ")
-        self.note.AddPage(self.pane_color, u"配色")
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
         self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
@@ -46,12 +44,12 @@ class SettingsDialog(wx.Dialog):
         self.pane_sound.sl_music.SetValue(100)
         self.pane_sound.list_soundfont.Clear()
         self.pane_sound.list_soundfont.Append(cw.DEFAULT_SOUNDFONT)
-        self.pane_color.sc_mwin.SetValue(180)
-        self.pane_color.cs_mwin.SetColour((0, 0, 80))
-        self.pane_color.sc_mframe.SetValue(255)
-        self.pane_color.cs_mframe.SetColour((128, 0, 0))
-        self.pane_color.cs_blwin.SetColour((80, 80, 80))
-        self.pane_color.cs_blframe.SetColour((128, 128, 128))
+        self.pane_draw.sc_mwin.SetValue(180)
+        self.pane_draw.cs_mwin.SetColour((0, 0, 80))
+        self.pane_draw.sc_mframe.SetValue(255)
+        self.pane_draw.cs_mframe.SetColour((128, 0, 0))
+        self.pane_draw.cs_blwin.SetColour((80, 80, 80))
+        self.pane_draw.cs_blframe.SetColour((128, 128, 128))
 
     def OnOk(self, event):
         # 設定変更前はレベル上昇が可能な状態だったか
@@ -118,21 +116,21 @@ class SettingsDialog(wx.Dialog):
                 cw.bassplayer.init_bass(soundfonts)
                 cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
         # 配色(メッセージ)
-        alpha = self.pane_color.sc_mwin.GetValue()
-        colour = self.pane_color.cs_mwin.GetColour()
+        alpha = self.pane_draw.sc_mwin.GetValue()
+        colour = self.pane_draw.cs_mwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
         cw.cwpy.setting.mwincolour = colour
-        alpha = self.pane_color.sc_mframe.GetValue()
-        colour = self.pane_color.cs_mframe.GetColour()
+        alpha = self.pane_draw.sc_mframe.GetValue()
+        colour = self.pane_draw.cs_mframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
         cw.cwpy.setting.mwinframecolour = colour
         # 配色(バックログ)
-        alpha = self.pane_color.sc_mwin.GetValue()
-        colour = self.pane_color.cs_blwin.GetColour()
+        alpha = self.pane_draw.sc_mwin.GetValue()
+        colour = self.pane_draw.cs_blwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
         cw.cwpy.setting.blwincolour = colour
-        alpha = self.pane_color.sc_mframe.GetValue()
-        colour = self.pane_color.cs_blframe.GetColour()
+        alpha = self.pane_draw.sc_mframe.GetValue()
+        colour = self.pane_draw.cs_blframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
         cw.cwpy.setting.blwinframecolour = colour
         # スキン
@@ -326,6 +324,32 @@ class DrawingSettingPanel(wx.Panel):
             self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(250, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_msgs.SetTickFreq(1, 1)
+
+        # メッセージウィンドウ背景色
+        self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
+        self.st_mwin = wx.StaticText(self, -1, u"カラー:")
+        self.cs_mwin = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.mwincolour)
+        self.st_blwin = wx.StaticText(self, -1, u"ログ:")
+        self.cs_blwin = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.blwincolour)
+        self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値:")
+        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_mwin.SetRange(0, 255)
+        self.sc_mwin.SetValue(cw.cwpy.setting.mwincolour[3])
+        # メッセージウィンドウ枠色
+        self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
+        self.st_mframe = wx.StaticText(self, -1, u"カラー:")
+        self.cs_mframe = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.mwinframecolour)
+        self.st_blframe = wx.StaticText(self, -1, u"ログ:")
+        self.cs_blframe = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.blwinframecolour)
+        self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値:")
+        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_mframe.SetRange(0, 255)
+        self.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour[3])
+
         self._do_layout()
         self._bind()
 
@@ -348,10 +372,28 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_deal.Add(self.sl_deal, 0, 0, 0)
         bsizer_msgs.Add(self.sl_msgs, 0, 0, 0)
 
+        bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
+        bsizer_mframe = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
+
+        bsizer_mwin.Add(self.st_mwin, 0, wx.CENTER|wx.RIGHT|wx.LEFT, 3)
+        bsizer_mwin.Add(self.cs_mwin, 0, wx.RIGHT, 15)
+        bsizer_mwin.Add(self.st_blwin, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_mwin.Add(self.cs_blwin, 0, wx.RIGHT, 15)
+        bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
+        bsizer_mwin.Add(self.sc_mwin, 0, wx.RIGHT, 3)
+        bsizer_mframe.Add(self.st_mframe, 0, wx.CENTER|wx.RIGHT|wx.LEFT, 3)
+        bsizer_mframe.Add(self.cs_mframe, 0, wx.RIGHT, 15)
+        bsizer_mframe.Add(self.st_blframe, 0, wx.CENTER|wx.RIGHT, 3)
+        bsizer_mframe.Add(self.cs_blframe, 0, wx.RIGHT, 15)
+        bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
+        bsizer_mframe.Add(self.sc_mframe, 0, wx.RIGHT, 3)
+
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_deal, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_msgs, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_mwin, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_mframe, 0, 0, 0)
         sizer.Add(sizer_v1, 0, wx.ALL, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -474,65 +516,6 @@ class AudioSettingPanel(wx.Panel):
             self.list_soundfont.Delete(index)
             self.list_soundfont.Insert(item, index + 1)
             self.list_soundfont.Select(index + 1)
-
-class ColorSettingPanel(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-        # メッセージウィンドウ背景色
-        self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
-        self.st_mwin = wx.StaticText(self, -1, u"カラー:")
-        self.cs_mwin = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.mwincolour)
-        self.st_blwin = wx.StaticText(self, -1, u"ログ:")
-        self.cs_blwin = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.blwincolour)
-        self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値:")
-        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(50, -1))
-        self.sc_mwin.SetRange(0, 255)
-        self.sc_mwin.SetValue(cw.cwpy.setting.mwincolour[3])
-        # メッセージウィンドウ枠色
-        self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
-        self.st_mframe = wx.StaticText(self, -1, u"カラー:")
-        self.cs_mframe = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.mwinframecolour)
-        self.st_blframe = wx.StaticText(self, -1, u"ログ:")
-        self.cs_blframe = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.blwinframecolour)
-        self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値:")
-        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(50, -1))
-        self.sc_mframe.SetRange(0, 255)
-        self.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour[3])
-        self._do_layout()
-        self._bind()
-
-    def _bind(self):
-        pass
-
-    def _do_layout(self):
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
-        bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
-        bsizer_mframe = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
-
-        bsizer_mwin.Add(self.st_mwin, 0, wx.CENTER|wx.RIGHT|wx.LEFT, 3)
-        bsizer_mwin.Add(self.cs_mwin, 0, wx.RIGHT, 15)
-        bsizer_mwin.Add(self.st_blwin, 0, wx.CENTER|wx.RIGHT, 3)
-        bsizer_mwin.Add(self.cs_blwin, 0, wx.RIGHT, 15)
-        bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_mwin.Add(self.sc_mwin, 0, wx.RIGHT, 3)
-        bsizer_mframe.Add(self.st_mframe, 0, wx.CENTER|wx.RIGHT|wx.LEFT, 3)
-        bsizer_mframe.Add(self.cs_mframe, 0, wx.RIGHT, 15)
-        bsizer_mframe.Add(self.st_blframe, 0, wx.CENTER|wx.RIGHT, 3)
-        bsizer_mframe.Add(self.cs_blframe, 0, wx.RIGHT, 15)
-        bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_mframe.Add(self.sc_mframe, 0, wx.RIGHT, 3)
-
-        sizer_v1.Add(bsizer_mwin, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_mframe, 0, 0, 0)
-        sizer.Add(sizer_v1, 0, wx.ALL, 10)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-        self.Layout()
 
 def main():
     pass
