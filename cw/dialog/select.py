@@ -1457,7 +1457,10 @@ class ScenarioSelect(Select):
         if cw.cwpy.setting.selectscenariofromtype:
             for skintype, folder in cw.cwpy.setting.folderoftype:
                 if skintype == cw.cwpy.setting.skintype:
-                    self.scedir = folder
+                    folder = cw.util.get_linktarget(folder)
+                    if os.path.isdir(folder):
+                        self.scedir = folder
+                    break
         # 現在開いているディレクトリ
         self.nowdir = self.scedir
         # 開いたディレクトリの階層
