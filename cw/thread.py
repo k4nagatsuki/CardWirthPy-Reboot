@@ -1244,8 +1244,8 @@ class CWPy(_Singleton, threading.Thread):
             bginhrt |= self.sdata.check_bginhrt()
             self.background.load(self.sdata.get_bgdata(), bginhrt, True, ttype)
 
-        # 特殊エリア(メンバー解散)だったら背景にカーテンを追加。
-        if self.areaid == cw.AREA_BREAKUP:
+        # 特殊エリア(キャンプ・メンバー解散)だったら背景にカーテンを追加。
+        if self.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
             self.set_curtain()
 
         # メニューカードスプライト作成
@@ -1592,10 +1592,13 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_guardcardimg()
 
         if self.areaid <= 0:
-            self.clear_curtain()
             self.selectedheader = None
             oldareaid = self.areaid
             areaid = self.pre_areaids.pop()
+
+            # キャンプ時は常にカーテン表示
+            if areaid <> cw.AREA_CAMP:
+                self.clear_curtain()
 
             # カード移動操作エリアを解除の場合
             if oldareaid in cw.AREAS_TRADE:

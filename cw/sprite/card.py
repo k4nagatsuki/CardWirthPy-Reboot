@@ -588,9 +588,10 @@ class PlayerCard(CWPyCard, character.Player):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        # CARDPOCKETダイアログを開く(通常)
         if self.reversed:
             self.rclick_event()
+
+        # CARDPOCKETダイアログを開く(通常)
         elif not cw.cwpy.is_curtained():
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
@@ -601,9 +602,10 @@ class PlayerCard(CWPyCard, character.Player):
                 cw.cwpy.call_dlg("CARDPOCKET")
 
         # カード移動操作
-        elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
+        elif cw.cwpy.areaid in (-1, -2) and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
             cw.cwpy.trade("PLAYERCARD", self)
+
         # カード使用。USECARDダイアログを開く
         elif cw.cwpy.selectedheader:
             cw.cwpy.sounds["click"].play()
@@ -622,6 +624,12 @@ class PlayerCard(CWPyCard, character.Player):
         elif cw.cwpy.areaid == -3:
             cw.animation.animate_sprite(self, "click")
             cw.cwpy.dissolve_party(self)
+
+        # キャンプ
+        elif cw.cwpy.areaid == cw.AREA_CAMP:
+            cw.cwpy.sounds["click"].play()
+            cw.animation.animate_sprite(self, "click")
+            cw.cwpy.call_dlg("CARDPOCKET")
 
     def rclick_event(self):
         """右クリックイベント。"""
@@ -762,7 +770,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         cw.animation.animate_sprite(self, "click")
 
         # CARDPOCKETダイアログを開く(通常)
-        if not cw.cwpy.is_curtained() and self.is_analyzable():
+        if (not cw.cwpy.is_curtained() and self.is_analyzable()) or cw.cwpy.areaid == cw.AREA_CAMP:
             if cw.cwpy.is_battlestatus():
                 cw.cwpy.call_dlg("HANDVIEW")
 
@@ -833,7 +841,7 @@ class FriendCard(CWPyCard, character.Friend):
         cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
 
-        if not cw.cwpy.is_curtained() and self.is_analyzable():
+        if (not cw.cwpy.is_curtained() and self.is_analyzable()) or cw.cwpy.areaid == cw.AREA_CAMP:
             if not cw.cwpy.is_battlestatus():
                 cw.cwpy.call_dlg("CARDPOCKET")
 
@@ -936,8 +944,8 @@ class MenuCard(CWPyCard):
                 header.get_owner().set_action(self, header)
                 cw.cwpy.clear_specialarea()
 
-        # パーティ解散
-        elif cw.cwpy.areaid == -3:
+        # キャンプ・パーティ解散
+        elif cw.cwpy.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
             cw.cwpy.sounds["page"].play()
             cw.animation.animate_sprite(self, "click")
             self.events.start(keynum=1)
