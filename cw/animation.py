@@ -50,7 +50,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
     if skip:
         cw.cwpy.draw()
 
-    if clearevent:
+    if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
 
 def animate_sprites(sprites, anitype, clearevent=True):
@@ -116,7 +116,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
     if skip:
         cw.cwpy.draw()
 
-    if clearevent:
+    if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
 
 def _get_skipstatus(clearevent):

@@ -769,7 +769,8 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")
         self.mwin = None
         cw.cwpy._is_showingbacklog = False
-        cw.cwpy.lock_menucards = self._lock_menucards
+        if cw.cwpy.lock_menucards:
+            cw.cwpy.lock_menucards = self._lock_menucards
 
         # 背景スプライト削除
         cw.cwpy.backloggrp.remove(self._curtain)
