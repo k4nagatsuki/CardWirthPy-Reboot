@@ -602,7 +602,7 @@ class PlayerCard(CWPyCard, character.Player):
                 cw.cwpy.call_dlg("CARDPOCKET")
 
         # カード移動操作
-        elif cw.cwpy.areaid in (-1, -2) and cw.cwpy.selectedheader:
+        elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
             cw.cwpy.trade("PLAYERCARD", self)
 
@@ -770,7 +770,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         cw.animation.animate_sprite(self, "click")
 
         # CARDPOCKETダイアログを開く(通常)
-        if (not cw.cwpy.is_curtained() and self.is_analyzable()) or cw.cwpy.areaid == cw.AREA_CAMP:
+        if (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if cw.cwpy.is_battlestatus():
                 cw.cwpy.call_dlg("HANDVIEW")
 
@@ -841,7 +841,7 @@ class FriendCard(CWPyCard, character.Friend):
         cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
 
-        if (not cw.cwpy.is_curtained() and self.is_analyzable()) or cw.cwpy.areaid == cw.AREA_CAMP:
+        if (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if not cw.cwpy.is_battlestatus():
                 cw.cwpy.call_dlg("CARDPOCKET")
 
