@@ -1389,6 +1389,10 @@ class CWPy(_Singleton, threading.Thread):
         if not specialarea:
             self.clean_specials()
 
+        # 冒険の中断で宿に戻った場合、キャンプ時のカーテン消去
+        if not self.is_playingscenario():
+            self.clear_curtain()
+
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
         oldareaid = self.areaid
