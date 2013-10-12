@@ -53,7 +53,7 @@ class StatusBar(base.CWPySprite):
 
         if encounter:
             EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
-        elif cw.cwpy.is_curtained() or cw.cwpy.selectedheader:
+        elif (cw.cwpy.is_curtained() and cw.cwpy.areaid <> cw.AREA_CAMP) or cw.cwpy.selectedheader:
             if cw.cwpy.status == "Yado":
                 YadoMoneyPanel(self, cw.s((10, 6)))
                 if showbuttons:
