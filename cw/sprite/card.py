@@ -946,7 +946,10 @@ class MenuCard(CWPyCard):
 
         # キャンプ・パーティ解散
         elif cw.cwpy.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
-            cw.cwpy.sounds["page"].play()
+            if cw.cwpy.areaid == cw.AREA_BREAKUP:
+                cw.cwpy.sounds["page"].play()
+            else:
+                cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
             self.events.start(keynum=1)
 
