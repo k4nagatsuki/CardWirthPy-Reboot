@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import threading
-import gc
 import pygame
 from pygame.locals import *
 
@@ -26,7 +25,6 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
 
     skip = _get_skipstatus(clearevent)
 
-    gc.disable()
     cw.cwpy.draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         clip = sprite.rect
@@ -45,8 +43,6 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
             cw.cwpy.update_mousepos()
             cw.cwpy.events = pygame.event.get()
             cw.cwpy.eventhandler.run()
-
-    gc.enable()
 
     cw.cwpy.input(inputonly=True)
     cw.cwpy.eventhandler.run()
@@ -86,7 +82,6 @@ def animate_sprites2(sprandanimes, clearevent=True):
     animating = True
     skip = _get_skipstatus(clearevent)
 
-    gc.disable()
     cw.cwpy.draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
         clip = None
@@ -114,8 +109,6 @@ def animate_sprites2(sprandanimes, clearevent=True):
             if sprite.status == anitype:
                 animating = True
                 break
-
-    gc.enable()
 
     cw.cwpy.input(inputonly=True)
     cw.cwpy.eventhandler.run()
