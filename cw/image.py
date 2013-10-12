@@ -602,10 +602,10 @@ def create_colorcell(size, color1, gradient, color2):
     elif gradient == "TopToBottom":
         for y in xrange(h):
             per = float(h - y) / h
-            r = calc_per(color1[0], color2[0], per)
-            g = calc_per(color1[1], color2[1], per)
-            b = calc_per(color1[2], color2[2], per)
-            a = calc_per(color1[3], color2[3], per)
+            r = calc_per(color2[0], color1[0], per) # 縦グラデーションは色の方向が逆
+            g = calc_per(color2[1], color1[1], per)
+            b = calc_per(color2[2], color1[2], per)
+            a = calc_per(color2[3], color1[3], per)
             pygame.draw.line(image, (r, g, b, a), (0, y), (w, y), 1)
     else:
         image.fill(color1)
