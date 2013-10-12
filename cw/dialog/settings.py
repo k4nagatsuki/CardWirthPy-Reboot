@@ -53,6 +53,9 @@ class SettingsDialog(wx.Dialog):
         self.pane_draw.cs_blwin.SetColour((80, 80, 80))
         self.pane_draw.cs_blframe.SetColour((128, 128, 128))
         self.pane_scenario.cb_selectscenariofromtype.SetValue(True)
+        self.pane_scenario.cb_showunfitnessscenario.SetValue(True)
+        self.pane_scenario.cb_showcompletedscenario.SetValue(True)
+        self.pane_scenario.cb_showinvisiblescenario.SetValue(False)
         # スキン毎のシナリオ開始位置の設定は変更しない
 
     def OnOk(self, event):
@@ -160,6 +163,13 @@ class SettingsDialog(wx.Dialog):
         # シナリオ
         value = self.pane_scenario.cb_selectscenariofromtype.GetValue()
         cw.cwpy.setting.selectscenariofromtype = value
+        value = self.pane_scenario.cb_showunfitnessscenario.GetValue()
+        cw.cwpy.setting.show_unfitnessscenario = value
+        value = self.pane_scenario.cb_showcompletedscenario.GetValue()
+        cw.cwpy.setting.show_completedscenario = value
+        value = self.pane_scenario.cb_showinvisiblescenario.GetValue()
+        cw.cwpy.setting.show_invisiblescenario = value
+
         cw.cwpy.setting.folderoftype = []
         for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
             skintype = self.pane_scenario.grid_folderoftype.GetCellValue(row, 0)
@@ -538,6 +548,12 @@ class ScenarioSettingPanel(wx.Panel):
         self.box_gene = wx.StaticBox(self, -1, u"")
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
         self.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype)
+        self.cb_showunfitnessscenario = wx.CheckBox(self, -1, u"適正レベル以外のシナリオを表示する")
+        self.cb_showunfitnessscenario.SetValue(cw.cwpy.setting.show_unfitnessscenario)
+        self.cb_showcompletedscenario = wx.CheckBox(self, -1, u"終了済シナリオを表示する")
+        self.cb_showcompletedscenario.SetValue(cw.cwpy.setting.show_completedscenario)
+        self.cb_showinvisiblescenario = wx.CheckBox(self, -1, u"隠蔽シナリオを表示する")
+        self.cb_showinvisiblescenario.SetValue(cw.cwpy.setting.show_invisiblescenario)
 
         # スキンタイプ毎の初期フォルダ
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
@@ -588,6 +604,9 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype = wx.StaticBoxSizer(self.box_folderoftype, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_showunfitnessscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        bsizer_gene.Add(self.cb_showcompletedscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+        bsizer_gene.Add(self.cb_showinvisiblescenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.SetMinSize((260, -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)

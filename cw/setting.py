@@ -61,6 +61,9 @@ class Setting(object):
             self.backlogmax = 100
             self.showfps = False
             self.selectscenariofromtype = True
+            self.show_unfitnessscenario = True
+            self.show_completedscenario = True
+            self.show_invisiblescenario = False
             self.folderoftype = []
             self.write()
 
@@ -149,7 +152,13 @@ class Setting(object):
 
         # スキンによってシナリオの選択開始位置を変更する
         self.selectscenariofromtype = data.getbool("SelectScenarioFromType", True)
-    
+        # 適正レベル以外のシナリオを表示する
+        self.show_unfitnessscenario = data.getbool("ShowUnfitnessScenario", True)
+        # 隠蔽シナリオを表示する
+        self.show_completedscenario = data.getbool("ShowCompletedScenario", True)
+        # 終了済シナリオを表示する
+        self.show_invisiblescenario = data.getbool("ShowInvisibleScenario", False)
+
         # シナリオフォルダ(スキンタイプ別)
         self.folderoftype = []
         for e_folder in data.getfind("ScenarioFolderOfSkinType", False):

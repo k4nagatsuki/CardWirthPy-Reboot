@@ -1472,9 +1472,6 @@ class ScenarioSelect(Select):
         headers = self.db.search_dpath(self.nowdir)
         # nowdirにあるディレクトリリスト
         dpaths = self.get_dpaths(self.nowdir)
-        # 選択リスト
-        self.list = dpaths + headers
-        self.index = 0
         # nowdirがディレクトリだった場合の内容リスト
         self.names = []
         self.updatenames_thr = None
@@ -1484,6 +1481,11 @@ class ScenarioSelect(Select):
         self.coupons = cw.cwpy.ydata.party.get_coupontable()
         # 現在進行中のシナリオパスの集合
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
+
+        # 選択リスト
+        self.list = dpaths + self._narrow_scenario(headers)
+        self.index = 0
+
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.s((400, 370)))
 
@@ -1608,7 +1610,7 @@ class ScenarioSelect(Select):
             self.dirstack = []
             dpaths = self.get_dpaths(self.nowdir)
             headers = self.db.search_dpath(self.nowdir)
-            self.list = dpaths + headers
+            self.list = dpaths + self._narrow_scenario(headers)
         else:
             parent = self.scedir
             self.dirstack = []
@@ -1619,7 +1621,7 @@ class ScenarioSelect(Select):
             self.nowdir = parent
             dpaths = self.get_dpaths(self.nowdir)
             headers = self.db.search_dpath(self.nowdir)
-            self.list = dpaths + headers
+            self.list = dpaths + self._narrow_scenario(headers)
             self.index = 0
 
             fname = os.path.normcase(spaths[-1])
@@ -1671,7 +1673,7 @@ class ScenarioSelect(Select):
             self.nowdir = cw.util.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
-            self.list = dpaths + headers if headers else dpaths
+            self.list = dpaths + self._narrow_scenario(headers) if headers else dpaths
             self.index = 0
             self.enable_btn()
             self.draw(True)
@@ -1687,7 +1689,7 @@ class ScenarioSelect(Select):
             self.nowdir, selname = self.dirstack.pop()
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
-            self.list = dpaths + headers if headers else dpaths
+            self.list = dpaths + self._narrow_scenario(headers) if headers else dpaths
             self.index = 0
             selname = os.path.normcase(selname)
             for index, name in enumerate(self.list):
@@ -1920,7 +1922,7 @@ class ScenarioSelect(Select):
             itemlist.append(item)
             index += 1
 
-        for header in self.db.search_dpath(nowdir):
+        for header in self._narrow_scenario(self.db.search_dpath(nowdir)):
             name = header.name
             image = self.tree.imgidx_summary
             if self.is_playing(header):
@@ -2012,7 +2014,7 @@ class ScenarioSelect(Select):
 
         dpaths = self.get_dpaths(self.nowdir)
         headers = self.db.search_dpath(self.nowdir)
-        self.list = dpaths + headers
+        self.list = dpaths + self._narrow_scenario(headers)
 
         self.dirstack = self.get_dirstack(paritem)
 
@@ -2080,6 +2082,26 @@ class ScenarioSelect(Select):
         if item and item.IsOk():
             # ディレクトリの内容を表示
             self.create_treeitems(item)
+
+    def _narrow_scenario(self, headers):
+        """設定に応じて表示しないシナリオを除去する。"""
+        if not cw.cwpy.setting.show_unfitnessscenario:
+            pcards = cw.cwpy.get_pcards("unreversed")
+            level = sum([pcard.level for pcard in pcards]) / len(pcards)
+
+        seq = []
+        for header in headers:
+            if not cw.cwpy.setting.show_unfitnessscenario and\
+                    ((header.levelmin <> 0 and level < header.levelmin) or\
+                     (header.levelmax <> 0 and header.levelmax < level)):
+                continue
+            if not cw.cwpy.setting.show_completedscenario and self.is_complete(header):
+                continue
+            if not cw.cwpy.setting.show_invisiblescenario and self.is_invisible(header):
+                continue
+            seq.append(header)
+
+        return seq
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -2410,7 +2432,7 @@ class UpdateNamesThread(threading.Thread):
                 path = path[0:-len(".lnk")]
             dname = "[%s]" % os.path.basename(path)
             dnames.append(dname)
-        self.dlg.names = dnames + headers
+        self.dlg.names = dnames + self.dlg._narrow_scenario(headers)
         if self.quit: return
         wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack)
         self.dlg.updatenames_thr = None

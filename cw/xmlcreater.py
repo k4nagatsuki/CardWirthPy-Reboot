@@ -165,6 +165,15 @@ def create_settings(setting):
     # スキンによってシナリオの選択開始位置を変更する
     e = cw.data.make_element("SelectScenarioFromType", str(setting.selectscenariofromtype))
     element.append(e)
+    # 適正レベル以外のシナリオを表示する
+    e = cw.data.make_element("ShowUnfitnessScenario", str(setting.show_unfitnessscenario))
+    element.append(e)
+    # 隠蔽シナリオを表示する
+    e = cw.data.make_element("ShowCompletedScenario", str(setting.show_completedscenario))
+    element.append(e)
+    # 終了済シナリオを表示する
+    e = cw.data.make_element("ShowInvisibleScenario", str(setting.show_invisiblescenario))
+    element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)
     e = cw.data.make_element("ScenarioFolderOfSkinType")
