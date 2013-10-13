@@ -838,6 +838,8 @@ class CWPy(_Singleton, threading.Thread):
         s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
         s += self.ydata.name
         self.set_titlebar(s)
+        # 冒険の中断やF9時のためにカーテン消去
+        self.clear_curtain()
         self.statusbar.change()
 
         if self.ydata.party:
@@ -924,6 +926,9 @@ class CWPy(_Singleton, threading.Thread):
 
         self.clear_inusecardimg()
         self.clear_guardcardimg()
+
+        # 対象選択画面でF9しても、中止ボタンを宿まで持ち越さないように
+        self.selectedheader = None
 
         # battle
         if self.battle and self.battle.is_running:
@@ -1020,9 +1025,6 @@ class CWPy(_Singleton, threading.Thread):
 
         if not self.areaid > 0:
             self.areaid = self.pre_areaids[0]
-
-        # Curtainスプライト解除
-        self.clear_curtain()
 
         # スプライトを作り直す
         pcards = self.get_pcards()
@@ -1388,10 +1390,6 @@ class CWPy(_Singleton, threading.Thread):
         # デバッガ等で強制的にエリア移動するときは特殊エリアを解除する
         if not specialarea:
             self.clean_specials()
-
-        # 冒険の中断で宿に戻った場合、キャンプ時のカーテン消去
-        if not self.is_playingscenario():
-            self.clear_curtain()
 
         # 背景継承を行うかどうかのbool値
         bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
