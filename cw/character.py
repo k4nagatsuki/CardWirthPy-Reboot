@@ -313,13 +313,13 @@ class Character(object):
         """
         重傷状態かどうかをbool値で返す
         """
-        return bool(self.get_lifeper() < 20)
+        return bool(self.get_lifeper() < 20 and not self.is_unconscious())
 
     def is_injured(self):
         """
         負傷状態かどうかをbool値で返す
         """
-        return bool(self.get_lifeper() < 100)
+        return bool(self.get_lifeper() < 100 and not self.is_heavyinjured() and not self.is_unconscious())
 
     def is_inactive(self):
         """
