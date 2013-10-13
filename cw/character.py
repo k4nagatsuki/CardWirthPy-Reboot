@@ -325,7 +325,7 @@ class Character(object):
         """
         負傷状態かどうかをbool値で返す
         """
-        return bool(self.get_lifeper() < 100 and not self.is_unconscious())
+        return bool(self.get_lifeper() < 100)
 
     def is_inactive(self):
         """
