@@ -317,9 +317,15 @@ class Character(object):
 
     def is_injured(self):
         """
-        負傷状態かどうかをbool値で返す
+        軽傷状態かどうかをbool値で返す
         """
         return bool(self.get_lifeper() < 100 and not self.is_heavyinjured() and not self.is_unconscious())
+
+    def is_injuredall(self):
+        """
+        負傷状態かどうかをbool値で返す
+        """
+        return bool(self.get_lifeper() < 100 and not self.is_unconscious())
 
     def is_inactive(self):
         """
@@ -357,7 +363,7 @@ class Character(object):
         """
         健康状態かどうかをbool値で返す
         """
-        return not self.is_injured()
+        return not self.is_injuredall() and not self.is_unconscious()
 
     def is_analyzable(self):
         """

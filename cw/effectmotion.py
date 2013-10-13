@@ -1045,7 +1045,7 @@ def get_effectivetargets(header, targets):
     return narrow(sets), narrow(setshp)
 
 # key: モーション名, value: チェック用メソッド名の辞書
-checkingmethod_dict = {"Heal" : ("is_injured", True),
+checkingmethod_dict = {"Heal" : ("is_injuredall", True),
                        "Damage" : ("is_unconscious", False),
                        "Absorb" : ("is_unconscious", False),
                        "Paralyze" : ("is_unconscious", False),
