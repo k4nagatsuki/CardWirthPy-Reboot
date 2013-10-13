@@ -194,10 +194,15 @@ class EventInterface(object):
 
     def get_unselectedmember(self):
         """選択外のPlayerCardインスタンスを返す。"""
-        pcards = cw.cwpy.get_pcards("unreversed")
-
         selectedmember = self.get_selectedmember()
+
+        pcards = cw.cwpy.get_pcards("active")
         pcards = [pcard for pcard in pcards if not pcard == selectedmember]
+
+        if not pcards:
+            pcards = cw.cwpy.get_pcards("unreversed")
+            pcards = [pcard for pcard in pcards if not pcard == selectedmember]
+
         return cw.cwpy.dice.choice(pcards)
 
     def get_inusecard(self):
