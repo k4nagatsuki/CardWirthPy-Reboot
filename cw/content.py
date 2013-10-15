@@ -1450,8 +1450,6 @@ class EndContent(EventContentBase):
         宿画面に遷移する。completeがTrueだったら済み印をつける。
         """
         complete = self.data.getbool(".", "complete", False)
-        # BGMストップ
-        cw.cwpy.music.stop()
         # メニューカード全て非表示
         cw.cwpy.hide_cards(True)
 
@@ -1489,6 +1487,10 @@ class EndContent(EventContentBase):
 
         cw.cwpy.sdata.end()
         cw.cwpy.ydata.party.write()
+
+        # BGMストップ
+        cw.cwpy.music.stop()
+
         # 宿画面に遷移
         cw.cwpy.exec_func(cw.cwpy.set_yado)
         cw.cwpy._dealing = True
