@@ -2086,23 +2086,23 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         i = "\n" + " " * depth
 
         if len(element):
-            if not element.text or not element.text.strip():
+            if not element.text:
                 element.text = i + " "
 
-            if not element.tail or not element.tail.strip():
+            if not element.tail:
                 element.tail = i if depth else None
 
             for element in element:
                 self.form_element(element, depth + 1)
 
-            if not element.tail or not element.tail.strip():
+            if not element.tail:
                 element.tail = i
 
         else:
             if not element.text:
                 element.text = None
 
-            if not element.tail or not element.tail.strip():
+            if not element.tail:
                 element.tail = i if depth else None
 
 #-------------------------------------------------------------------------------
@@ -2279,7 +2279,7 @@ class SimpleXmlParser(object):
     def char_data(self, data):
         """文字データ"""
         if self.parsetags:
-            if data.strip():
+            if data:
                 element = self.node_stack[-1]
 
                 if element.text:
