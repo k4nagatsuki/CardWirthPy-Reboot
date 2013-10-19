@@ -85,7 +85,10 @@ class _JpySubImage(cw.image.Image):
                 self.wait()
         # 一時描画
         elif self.animation:
-            if self.animeposition:
+            if self.animeposition and self.animemove:
+                pos = self.animeposition
+                pos = (pos[0] + self.animemove[0], pos[1] + self.animemove[1])
+            elif self.animeposition:
                 pos = self.animeposition
             elif self.animemove:
                 pos = self.cache.load_position()
