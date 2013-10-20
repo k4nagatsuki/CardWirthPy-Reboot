@@ -434,7 +434,7 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyBackgroundImage
         if hasattr(self, "backcolor"):
-            imagesize = cw.s(image.get_size())
+            imagesize = image.get_size()
             if self.width >= cw.s(0):
                 width = self.width
             elif 0 < imagesize[0]:
@@ -449,7 +449,7 @@ class _JpySubImage(cw.image.Image):
                 height = cw.s(cw.SIZE_AREA[1])
             size = (width, height)
 
-            if not size == cw.s(image.get_size()):
+            if not size == image.get_size():
                 if image.get_width() == 0 or image.get_height() == 0:
                     image = pygame.Surface(size).convert()
                 elif self.smooth:
