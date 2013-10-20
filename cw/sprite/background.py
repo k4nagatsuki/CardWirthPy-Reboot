@@ -150,6 +150,8 @@ class BackGround(base.CWPySprite):
                 bcolor = getcolor(e, "Bordering/Color", 255, 255, 255, 255)
                 bwidth = e.getint("Bordering", "width", 1)
 
+                text = cw.sprite.message.rpl_specialstr(cw.util.decodewrap(text))
+
                 d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
                      btype, bcolor, bwidth, size, pos, flag, visible)
                 self._add_textcell(blitlist, self.bgs, oldbgs, d)
@@ -236,7 +238,6 @@ class BackGround(base.CWPySprite):
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
              btype, bcolor, bwidth, size, pos, flag, visible)
         if visible:
-            text = cw.sprite.message.rpl_specialstr(cw.util.decodewrap(text))
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
                 image = cw.image.create_type2textcell(text, face, cw.s(tsize), color,
