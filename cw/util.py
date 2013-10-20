@@ -1168,7 +1168,12 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     # 行頭禁止文字集合
     r_wchar = re.compile(wrapschars) if not mode in (2, 3) and wrapschars else None
     # 特殊文字記号集合
-    r_spchar = re.compile("#[a-z]|&[a-z]") if mode in (2, 3) else None
+    # 互換動作: 1.30以前はO,P,L,Dの各色が無い
+    if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+        re_color = "&[wrbgy]"
+    else:
+        re_color = "&[wrbgyopld]"
+    r_spchar = re.compile("#[abdefghjklnopqsvwxz]|" + re_color) if mode in (2, 3) else None
     cnt = 0
     asciicnt = 0
     wraped = False
