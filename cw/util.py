@@ -890,6 +890,21 @@ def remove_tree(treepath, retry=0):
 #　ZIPファイル関連
 #-------------------------------------------------------------------------------
 
+def zip_file(path, mode):
+    """zipfile.ZipFileのインスタンスを生成する。
+    FIXME: Python 2.7のzipfile.ZipFileはアーカイブ内の
+    ファイル名にあるディレクトリセパレータを'/'に置換してしまうため、
+    「ソ」などのいわゆるShift JISの0x5C問題に引っかかって
+    正しいファイル名が得られなくなってしまう。
+    まったくスレッドセーフではない悪い方法だが、
+    それを回避するには一時的にos.sepを'/'にして凌ぐしかない。"""
+    sep = os.sep
+    os.sep = "/"
+    try:
+        return zipfile.ZipFile(path, mode)
+    finally:
+        os.sep = sep
+
 def compress_zip(path, zpath):
     """pathのデータをzpathで指定したzipファイルに圧縮する。
     path: 圧縮するディレクトリパス
@@ -924,7 +939,7 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
     解凍したディレクトリのpathを返す。
     """
     try:
-        z = zipfile.ZipFile(path, "r")
+        z = zip_file(path, "r")
     except:
         return None
 
@@ -1004,7 +1019,7 @@ def read_zipdata(zfile, name):
     return data
 
 def get_elementfromzip(zpath, name, tag=""):
-    with zipfile.ZipFile(zpath, "r") as z:
+    with zip_file(zpath, "r") as z:
         data = read_zipdata(z, name)
     f = StringIO.StringIO(data)
     try:

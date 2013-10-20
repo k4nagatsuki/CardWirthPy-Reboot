@@ -2243,7 +2243,7 @@ class ScenarioSelect(Select):
                                 os.remove(file)
 
                 else:
-                    with zipfile.ZipFile(path, "r") as z:
+                    with cw.util.zip_file(path, "r") as z:
                         names = [name for name in z.namelist() if name.lower().endswith(".txt")]
 
                         for name in names:

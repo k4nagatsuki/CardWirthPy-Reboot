@@ -339,7 +339,7 @@ def read_summary(basepath):
             return None
 
     try:
-        z = zipfile.ZipFile(path, "r")
+        z = cw.util.zip_file(path, "r")
     except:
         return None
 
