@@ -2283,7 +2283,7 @@ class SimpleXmlParser(object):
                 element = self.node_stack[-1]
 
                 if element.text:
-                    element.text += data
+                    pass
                 else:
                     element.text = data
 
