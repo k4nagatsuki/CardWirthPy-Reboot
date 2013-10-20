@@ -541,7 +541,7 @@ class JpyImage(cw.image.Image):
             cache = JpyCache()
 
         config = EffectBoosterConfig(path, "init")
-        back = JpyBackGroundImage(config, mask, cache)
+        back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
 
         for section in config.sections():
