@@ -104,10 +104,10 @@ class BgImage(base.CWBinaryBase):
     def get_data(self):
         if self.data is None:
             def makecolor(tag, color):
-                return cw.data.make_element(tag, attrs={"r":color[0],
-                                                        "g":color[1],
-                                                        "b":color[2],
-                                                        "a":color[3]})
+                return cw.data.make_element(tag, attrs={"r":str(color[0]),
+                                                        "g":str(color[1]),
+                                                        "b":str(color[2]),
+                                                        "a":str(color[3])})
 
             if self.type == cw.sprite.background.BG_IMAGE:
                 self.data = cw.data.make_element("BgImage")

@@ -834,6 +834,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
             else:
                 if nc in ('m', 'r', 'u', 't', 'y'):
                     buf.append(name_table.get("#" + nc, ""))
+                    skip = 1
                 else:
                     buf.append(c)
         elif c == '%':
