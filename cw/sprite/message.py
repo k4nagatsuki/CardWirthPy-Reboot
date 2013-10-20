@@ -190,7 +190,7 @@ class MessageWindow(base.CWPySprite):
 
             for index, name in enumerate(self.names):
                 # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
-                if self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+                if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                     name = (name[0], self.rpl_specialstr(False, name[1]))
                 pos = (x, cw.s(25) * index + y)
                 selected = 1 < len(self.names) and self.backlog and self.result == index
@@ -202,8 +202,9 @@ class MessageWindow(base.CWPySprite):
         if pos is None:
             pos = cw.s((15, 11))
         if self.talker_image:
-            self.text = self.rpl_specialstr(True, self.text)
-            self.text = cw.util.txtwrap(self.text, 2)
+            if not self.backlog:
+                self.text = self.rpl_specialstr(True, self.text)
+                self.text = cw.util.txtwrap(self.text, 2)
             # 互換動作: 1.28以前は話者画像のサイズによって本文の位置がずれる
             if self.backlog:
                 versionhint = self.backlog_versionhint
@@ -215,8 +216,9 @@ class MessageWindow(base.CWPySprite):
                 w = cw.s(74)
             posp = pos = pos[0] + cw.s(26) + w, pos[1]
         else:
-            self.text = self.rpl_specialstr(True, self.text)
-            self.text = cw.util.txtwrap(self.text, 3)
+            if not self.backlog:
+                self.text = self.rpl_specialstr(True, self.text)
+                self.text = cw.util.txtwrap(self.text, 3)
             posp = pos
 
         # 左右で接続する文字の集合
