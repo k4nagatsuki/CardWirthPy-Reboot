@@ -584,10 +584,12 @@ class JpyCache(object):
 
         if image:
             image = image.copy()
+            image2 = pygame.Surface(image.get_size()).convert()
+            image2.blit(image, (0, 0))
+            return image2
         else:
             image = pygame.Surface(cw.s((0, 0))).convert()
-
-        return image
+            return image
 
 class JpdcImage(cw.image.Image):
     def __init__(self, mask, path):
