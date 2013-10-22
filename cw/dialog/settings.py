@@ -76,8 +76,12 @@ class SettingsDialog(wx.Dialog):
         value = self.pane_gene.cb_revertcardpocket.GetValue()
         cw.cwpy.setting.revert_cardpocket = value
 
-        value = self.pane_gene.ch_expandmode.GetSelection()
-        value = self.pane_gene.expandmodes[value]
+        if self.pane_gene.cb_fullscreen.IsChecked():
+            value = "FullScreen"
+        elif self.pane_gene.sl_expand.GetValue() == 10:
+            value = "None"
+        else:
+            value = float(self.pane_gene.sl_expand.GetValue())/10
         if value <> cw.cwpy.setting.expandmode:
             if cw.cwpy.is_expanded():
                 # 一旦拡大状態を解除
@@ -246,16 +250,27 @@ class GeneralSettingPanel(wx.Panel):
 
         # 拡大表示モード
         self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F4キーで拡大)")
-        self.expandmodes = [
-            "None", "FullScreen", "1.5", "2", "3", "4"]
-        self.choices_expand = [
-            u"拡大しない", u"フルスクリーン", u"1.5倍", u"2倍", u"3倍", u"4倍"]
-        self.ch_expandmode = wx.Choice(
-            self, -1, size=(170, -1), choices=self.choices_expand)
-        n = self.expandmodes.index(cw.cwpy.setting.expandmode)
-        if n == -1:
-            n = 0
-        self.ch_expandmode.SetSelection(n)
+        x, y = wx.DisplaySize()
+        x = 10 * x / cw.SIZE_SCR[0]
+        y = 10 * y / cw.SIZE_SCR[1]
+        if cw.cwpy.setting.expandmode == "FullScreen" or cw.cwpy.setting.expandmode == "None":
+            n = 10 # FullScreenの場合は1.0倍
+        else:
+            n = int(10 * float(cw.cwpy.setting.expandmode))
+        max = x if x < y else y
+        if max < 10:
+            max = 10
+        if max < n:
+            n = max
+
+        self.sl_expand = wx.Slider(
+            self, -1, n, 10, max, size=(120, -1),
+            style=wx.SL_HORIZONTAL)
+        self.st_expand = wx.StaticText(self, -1)
+        self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
+        self.cb_fullscreen.SetValue(cw.cwpy.setting.expandmode == "FullScreen")
+
+        self.makeExpandInfo()
 
         self._do_layout()
         self._bind()
@@ -263,6 +278,8 @@ class GeneralSettingPanel(wx.Panel):
     def _bind(self):
         ##self.cb_debug.Bind(wx.EVT_CHECKBOX, self.OnDebugCheck)
         self.ch_skin.Bind(wx.EVT_CHOICE, self.OnSkinChoice)
+        self.sl_expand.Bind(wx.EVT_SLIDER, self.OnExpandChange)
+        self.cb_fullscreen.Bind(wx.EVT_CHECKBOX, self.OnExpandChange)
 
     ##def OnDebugCheck(self, event):
     ##    if cw.cwpy.is_playingscenario():
@@ -279,12 +296,28 @@ class GeneralSettingPanel(wx.Panel):
         s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
         self.st_skin.SetLabel(s % self.skin_summarys[skin])
 
+    def makeExpandInfo(self):
+        if self.cb_fullscreen.IsChecked():
+            self.sl_expand.Disable()
+            self.st_expand.SetLabel(u"")
+        else:
+            self.sl_expand.Enable()
+            n = self.sl_expand.GetValue()
+            x = cw.SIZE_GAME[0] * n / 10
+            y = cw.SIZE_GAME[1] * n / 10
+            s = u"%d.%d倍 (%dx%d)" % (n/10, n%10, x, y)
+            self.st_expand.SetLabel(s)
+
+    def OnExpandChange(self, event):
+        self.makeExpandInfo()
+
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
+        bsizer_expandmode_in = wx.BoxSizer(wx.HORIZONTAL)
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -296,7 +329,11 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
         bsizer_skin.SetMinSize((260, 200))
 
-        bsizer_expandmode.Add(self.ch_expandmode, 0, wx.ALL, 5)
+        bsizer_expandmode_in.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_expandmode_in.Add(self.st_expand, 0, wx.LEFT, 3)
+        bsizer_expandmode.Add(bsizer_expandmode_in, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_expandmode.SetMinSize((260, -1))
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM, 5)
