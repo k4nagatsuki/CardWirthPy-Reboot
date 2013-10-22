@@ -361,6 +361,8 @@ class _JpySubImage(cw.image.Image):
         # マスク
         if self.transparent:
             image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
+        else:
+            image.set_colorkey(None)
 
         # 透過ライン
         if self.mask:
@@ -584,12 +586,10 @@ class JpyCache(object):
 
         if image:
             image = image.copy()
-            image2 = pygame.Surface(image.get_size()).convert()
-            image2.blit(image, (0, 0))
-            return image2
         else:
             image = pygame.Surface(cw.s((0, 0))).convert()
-            return image
+
+        return image
 
 class JpdcImage(cw.image.Image):
     def __init__(self, mask, path):
