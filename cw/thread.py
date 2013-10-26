@@ -430,6 +430,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def draw(self, mainloop=False, clip=None):
         if self.has_inputevent or not mainloop:
+            # FIXME: 描画領域を絞り込むと時々カードの描画中に
+            #        次に表示される背景が映り込んでしまう
+            clip = None
             # SpriteGroup描画
             self.scr.set_clip(clip)
             self.bggrp.set_clip(clip)
