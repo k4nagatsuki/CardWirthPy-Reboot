@@ -389,29 +389,37 @@ class _JpySubImage(cw.image.Image):
 
         # ファイル読み込み
         if os.path.isfile(path):
-            ext = cw.util.splitext(path)[1].lower()
 
-            # 効果音ファイル
-            if ext in cw.EXTS_SND:
-                if doanime:
-                    sound = cw.util.load_sound(path)
-
-                    if sound:
-                        sound.play(True)
-
-                image = pygame.Surface((0, 0)).convert()
-            # Jpy1ファイル
-            elif ext == ".jpy1":
-                image = JpyImage(path, cache=self.cache, doanime=doanime).get_image()
-            # Jpdcファイル
-            elif ext == ".jpdc":
-                image = JpdcImage(self.transparent, path).get_image()
-            # Jptxファイル
-            elif ext == ".jptx":
-                image = JptxImage(path, self.transparent).get_image()
-            # その他画像ファイル
+            cachekey = (_JpySubImage, cw.UP_SCR, path)
+            if cw.cwpy.is_playingscenario() and cachekey in cw.cwpy.sdata.cache:
+                image = cw.cwpy.sdata.cache[cachekey]
             else:
-                image = cw.s(cw.util.load_image(path, self.transparent))
+                ext = cw.util.splitext(path)[1].lower()
+    
+                # 効果音ファイル
+                if ext in cw.EXTS_SND:
+                    if doanime:
+                        sound = cw.util.load_sound(path)
+    
+                        if sound:
+                            sound.play(True)
+    
+                    image = pygame.Surface((0, 0)).convert()
+                # Jpy1ファイル
+                elif ext == ".jpy1":
+                    image = JpyImage(path, cache=self.cache, doanime=doanime).get_image()
+                # Jpdcファイル
+                elif ext == ".jpdc":
+                    image = JpdcImage(self.transparent, path).get_image()
+                    cw.cwpy.sdata.cache[cachekey] = image.copy()
+                # Jptxファイル
+                elif ext == ".jptx":
+                    image = JptxImage(path, self.transparent).get_image()
+                    cw.cwpy.sdata.cache[cachekey] = image.copy()
+                # その他画像ファイル
+                else:
+                    image = cw.s(cw.util.load_image(path, self.transparent))
+                    cw.cwpy.sdata.cache[cachekey] = image.copy()
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
@@ -541,6 +549,7 @@ class JpyImage(cw.image.Image):
     def __init__(self, path, mask=False, cache=None, doanime=True):
         if not cache:
             cache = JpyCache()
+        mask = True
 
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
