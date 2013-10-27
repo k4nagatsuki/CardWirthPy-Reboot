@@ -133,10 +133,11 @@ class _JpySubImage(cw.image.Image):
 
                     while rest_x or rest_y:
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
-                        n /= cw.s(animespeed)
+                        n /= animespeed
+                        n /= cw.UP_SCR * cw.UP_SCR
 
                         if n == 0:
-                            n = cw.s(1)
+                            n = 1
 
                         if rest_x:
                             x = int(pos[0] + round(rest_x / n))
