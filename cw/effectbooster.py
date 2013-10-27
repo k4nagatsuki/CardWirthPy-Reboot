@@ -386,33 +386,50 @@ class _JpySubImage(cw.image.Image):
     def load(self, doanime):
         """画像作成。"""
         path = self.get_filepath()
+        ext = cw.util.splitext(path)[1].lower()
+        if ext == ".jptx":
+            self.transparent = True
 
         # ファイル読み込み
         if os.path.isfile(path):
-            ext = cw.util.splitext(path)[1].lower()
+            image = None
+            mtime = 0
+            if os.path.isfile(path):
+                mtime = os.path.getmtime(path)
 
-            # 効果音ファイル
-            if ext in cw.EXTS_SND:
-                if doanime:
-                    sound = cw.util.load_sound(path)
+            cachekey = (_JpySubImage, cw.UP_SCR, self.transparent, path)
 
-                    if sound:
-                        sound.play(True)
+            if cw.cwpy.is_playingscenario() and cachekey in cw.cwpy.sdata.cache:
+                image, cachemtime = cw.cwpy.sdata.cache[cachekey]
+                if cachemtime < mtime:
+                    image = None
 
-                image = pygame.Surface((0, 0)).convert()
-            # Jpy1ファイル
-            elif ext == ".jpy1":
-                image = JpyImage(path, cache=self.cache, doanime=doanime, mask=self.transparent).get_image()
-            # Jpdcファイル
-            elif ext == ".jpdc":
-                image = JpdcImage(self.transparent, path).get_image()
-            # Jptxファイル
-            elif ext == ".jptx":
-                image = JptxImage(path, self.transparent).get_image()
-                self.transparent = True
-            # その他画像ファイル
-            else:
-                image = cw.s(cw.util.load_image(path, self.transparent))
+            if image is None:
+    
+                # 効果音ファイル
+                if ext in cw.EXTS_SND:
+                    if doanime:
+                        sound = cw.util.load_sound(path)
+    
+                        if sound:
+                            sound.play(True)
+    
+                    image = pygame.Surface((0, 0)).convert()
+                # Jpy1ファイル
+                elif ext == ".jpy1":
+                    image = JpyImage(path, cache=self.cache, doanime=doanime, mask=self.transparent).get_image()
+                    # 変化するためキャッシュ不可
+                # Jpdcファイル
+                elif ext == ".jpdc":
+                    image = JpdcImage(self.transparent, path).get_image()
+                    # 重くならないのでキャッシュ不要
+                # Jptxファイル
+                elif ext == ".jptx":
+                    image = JptxImage(path, self.transparent).get_image()
+                    cw.cwpy.sdata.cache[cachekey] = (image.copy(), mtime)
+                # その他画像ファイル
+                else:
+                    image = cw.s(cw.util.load_image(path, self.transparent))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
