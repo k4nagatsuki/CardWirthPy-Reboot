@@ -76,13 +76,16 @@ class SettingsDialog(wx.Dialog):
         value = self.pane_gene.cb_revertcardpocket.GetValue()
         cw.cwpy.setting.revert_cardpocket = value
 
+        # 拡大倍率
         if self.pane_gene.cb_fullscreen.IsChecked():
             value = "FullScreen"
-        elif self.pane_gene.sl_expand.GetValue() == 10:
+        elif self.pane_gene.sl_expand.GetValue() == 10: # 1倍 == 拡大なし
             value = "None"
+        elif self.pane_gene.sl_expand.GetValue() % 10 == 0: # 整数倍
+            value = self.pane_gene.sl_expand.GetValue() / 10
         else:
-            value = float(self.pane_gene.sl_expand.GetValue())/10
-        if value <> cw.cwpy.setting.expandmode:
+            value = float(self.pane_gene.sl_expand.GetValue()) / 10
+        if str(value) <> str(cw.cwpy.setting.expandmode):
             if cw.cwpy.is_expanded():
                 # 一旦拡大状態を解除
                 def func(value):
@@ -250,11 +253,13 @@ class GeneralSettingPanel(wx.Panel):
 
         # 拡大表示モード
         self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F4キーで拡大)")
+
+        # 最大倍率を概算
         x, y = wx.DisplaySize()
         x = 10 * x / cw.SIZE_SCR[0]
         y = 10 * y / cw.SIZE_SCR[1]
         if cw.cwpy.setting.expandmode == "FullScreen" or cw.cwpy.setting.expandmode == "None":
-            n = 10 # FullScreenの場合は1.0倍
+            n = 10 # FullScreen中はスライドを1.0倍に仮設定
         else:
             n = int(10 * float(cw.cwpy.setting.expandmode))
         max = x if x < y else y
