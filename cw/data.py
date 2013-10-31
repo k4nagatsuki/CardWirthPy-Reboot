@@ -2211,6 +2211,9 @@ class CacheData(object):
         self.mtime = mtime
 
 def copydata(data):
+    if isinstance(data, CWPyElementTree):
+        return CWPyElementTree(element=copydata(data.getroot()))
+
     if data.tag in ("Motions", "Events"):
         # 不変
         return data

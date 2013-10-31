@@ -484,11 +484,10 @@ class CardEditDialog(wx.Dialog):
                     assert False
 
                 self.targets.SetItemText(item, u"%s[更新]" % (name))
-                data = data.getroot()
 
                 if toplevel:
                     writes.add(toplevel)
-                infos[item] = (toplevel, owner, data)
+                infos[item] = (toplevel, owner, self._get_list(matcher, owner)[index], notscenariocard)
                 count += 1
 
         self._write_results(writes)
@@ -530,10 +529,7 @@ class CardEditDialog(wx.Dialog):
         self._update_enable()
         cw.cwpy.sounds["harvest"].play()
 
-    def _indexof(self, matcher, owner, data):
-        """指定されたマッチング条件のカードを
-        ownerがどの位置に持っているかを返す。
-        """
+    def _get_list(self, matcher, owner):
         if isinstance(owner, cw.data.Party):
             o = owner.backpack
         elif isinstance(owner, cw.character.Character):
@@ -554,7 +550,13 @@ class CardEditDialog(wx.Dialog):
                 o = list(o)
         else:
             o = list(owner)
-        return o.index(data)
+        return o
+
+    def _indexof(self, matcher, owner, data):
+        """指定されたマッチング条件のカードを
+        ownerがどの位置に持っているかを返す。
+        """
+        return self._get_list(matcher, owner).index(data)
 
     def _remove(self, owner, data, index):
         """ownerから指定するカードを取り除く。"""
