@@ -1062,12 +1062,13 @@ class GetName(object):
     def end_element(self, name):
         if self.stack[1:] == ["Property"]:
             raise Exception()
+        if self.stack[1:] == ["Property", "Name"]:
+            raise Exception()
         self.stack.pop()
 
     def character_data(self, data):
         if self.stack[1:] == ["Property", "Name"]:
-            self.name = data
-            raise Exception()
+            self.name += data
 
 class RaceHeader(object):
     def __init__(self, data):
