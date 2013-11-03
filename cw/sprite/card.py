@@ -597,9 +597,9 @@ class PlayerCard(CWPyCard, character.Player):
             cw.animation.animate_sprite(self, "click")
 
             if cw.cwpy.is_battlestatus():
-                cw.cwpy.call_dlg("HANDVIEW")
+                cw.cwpy.call_modaldlg("HANDVIEW")
             else:
-                cw.cwpy.call_dlg("CARDPOCKET")
+                cw.cwpy.call_modaldlg("CARDPOCKET")
 
         # カード移動操作
         elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
@@ -613,7 +613,7 @@ class PlayerCard(CWPyCard, character.Player):
 
             # USECARDダイアログを開く
             if cw.cwpy.status == "Scenario":
-                cw.cwpy.call_dlg("USECARD")
+                cw.cwpy.call_modaldlg("USECARD")
             # 戦闘行動を設定する。
             elif cw.cwpy.status == "ScenarioBattle":
                 header = cw.cwpy.selectedheader
@@ -629,13 +629,13 @@ class PlayerCard(CWPyCard, character.Player):
         elif cw.cwpy.areaid == cw.AREA_CAMP:
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
-            cw.cwpy.call_dlg("CARDPOCKET")
+            cw.cwpy.call_modaldlg("CARDPOCKET")
 
     def rclick_event(self):
         """右クリックイベント。"""
         cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
-        cw.cwpy.call_dlg("CHARAINFO")
+        cw.cwpy.call_modaldlg("CHARAINFO")
 
     def set_level(self, value, regulate=False, debugedit=False, backpack_party=None):
         character.Player.set_level(self, value, regulate, debugedit, backpack_party)
@@ -772,7 +772,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         # CARDPOCKETダイアログを開く(通常)
         if (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if cw.cwpy.is_battlestatus():
-                cw.cwpy.call_dlg("HANDVIEW")
+                cw.cwpy.call_modaldlg("HANDVIEW")
 
         # カード使用。戦闘行動を設定する。
         elif cw.cwpy.selectedheader:
@@ -787,7 +787,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         cw.animation.animate_sprite(self, "click")
 
         if self.is_analyzable():
-            cw.cwpy.call_dlg("CHARAINFO")
+            cw.cwpy.call_modaldlg("CHARAINFO")
 
 #-------------------------------------------------------------------------------
 #　フレンドカードスプライト
@@ -843,7 +843,7 @@ class FriendCard(CWPyCard, character.Friend):
 
         if (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if not cw.cwpy.is_battlestatus():
-                cw.cwpy.call_dlg("CARDPOCKET")
+                cw.cwpy.call_modaldlg("CARDPOCKET")
 
     def rclick_event(self):
         """右クリックイベント。"""
@@ -851,7 +851,7 @@ class FriendCard(CWPyCard, character.Friend):
         cw.animation.animate_sprite(self, "click")
 
         if self.is_analyzable():
-            cw.cwpy.call_dlg("CHARAINFO")
+            cw.cwpy.call_modaldlg("CHARAINFO")
 
 #-------------------------------------------------------------------------------
 #　メニューカードスプライト
@@ -937,7 +937,7 @@ class MenuCard(CWPyCard):
 
             # USECARDダイアログを開く
             if cw.cwpy.status == "Scenario":
-                cw.cwpy.call_dlg("USECARD")
+                cw.cwpy.call_modaldlg("USECARD")
             # 戦闘行動を設定する
             elif cw.cwpy.status == "ScenarioBattle":
                 header = cw.cwpy.selectedheader
@@ -958,7 +958,7 @@ class MenuCard(CWPyCard):
         if not cw.cwpy.is_showingdlg():
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
-            cw.cwpy.call_dlg("MENUCARDINFO")
+            cw.cwpy.call_modaldlg("MENUCARDINFO")
 
 def main():
     pass

@@ -206,14 +206,14 @@ class EventHandler(object):
                 cw.cwpy.sounds["click"].play()
 
                 if cw.cwpy.areaid == 1:
-                    cw.cwpy.call_dlg("RETURNTITLE")
+                    cw.cwpy.call_modaldlg("RETURNTITLE")
                 if cw.cwpy.areaid == 2:
                     cw.cwpy.exec_func(cw.cwpy.load_party, None)
 
             # シナリオ戦闘時、戦闘行動選択ダイアログ表示
             elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
                 cw.cwpy.sounds["click"].play()
-                cw.cwpy.call_dlg("BATTLECOMMAND")
+                cw.cwpy.call_modaldlg("BATTLECOMMAND")
 
         elif cw.cwpy.wait_showcards:
             # メニューカードの表示を待っている場合は表示
@@ -229,7 +229,7 @@ class EventHandler(object):
         else:
             cw.cwpy.has_inputevent = True
             cw.cwpy.sounds["click"].play()
-            cw.cwpy.call_dlg("CLOSE")
+            cw.cwpy.call_modaldlg("CLOSE")
 
     def f1key_event(self):
         """
@@ -243,7 +243,7 @@ class EventHandler(object):
         """
         cw.cwpy.has_inputevent = True
         cw.cwpy.sounds["click"].play()
-        cw.cwpy.call_dlg("SETTINGS")
+        cw.cwpy.call_modaldlg("SETTINGS")
 
     def f3key_event(self):
         """
@@ -303,7 +303,7 @@ class EventHandler(object):
             if os.path.isfile(path):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.sounds["signal"].play()
-                cw.cwpy.call_dlg("F9")
+                cw.cwpy.call_modaldlg("F9")
 
     def returnkey_event(self):
         """

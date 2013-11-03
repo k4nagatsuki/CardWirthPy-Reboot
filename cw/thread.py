@@ -346,11 +346,15 @@ class CWPy(_Singleton, threading.Thread):
         self._running = True
 
         while self._running:
-            self.tick_clock()         # FPS調整
-            self.input()              # 各種入力イベント取得
-            self.eventhandler.run()   # イベントハンドラ
-            self.update()             # スプライトの更新
-            self.draw(True)           # スプライトの描画
+            self.main_loop(True)
+
+    def main_loop(self, update):
+        self.tick_clock()         # FPS調整
+        self.input()              # 各種入力イベント取得
+        self.eventhandler.run()   # イベントハンドラ
+        if update:
+            self.update()         # スプライトの更新
+        self.draw(True)           # スプライトの描画
 
     def quit(self):
         # トップフレームから閉じて終了。cw.frame.OnDestroy参照。
@@ -540,7 +544,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if threading.currentThread() == self:
             while self.is_running() and stack < self._showingdlg:
-                pass
+                self.main_loop(False)
 
     def call_predlg(self):
         """直前に開いていたダイアログを再び開く。"""
@@ -563,7 +567,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.pre_dialogs.pop()
                     return
 
-            self.call_dlg(callname)
+            self.call_modaldlg(callname)
 
     def exec_func(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行する。
@@ -609,7 +613,7 @@ class CWPy(_Singleton, threading.Thread):
             if self.is_showingdebugger() and flag:
                 self.sounds["error"].play()
                 s = u"デバッガ表示中はフルスクリーン化できません。"
-                self.call_dlg("MESSAGE", text=s)
+                self.call_modaldlg("MESSAGE", text=s)
             else:
                 pos = pygame.mouse.get_pos()
                 pygame.mouse.set_pos([-1, -1])
@@ -1581,7 +1585,7 @@ class CWPy(_Singleton, threading.Thread):
             elif cardtarget == "User" or cardtarget == "None":
                 if self.status == "Scenario":
                     self.change_selection(owner)
-                    self.call_dlg("USECARD")
+                    self.call_modaldlg("USECARD")
                 elif self.is_battlestatus():
                     owner.set_action(owner, header)
                     self.clear_specialarea()
@@ -2045,11 +2049,11 @@ class CWPy(_Singleton, threading.Thread):
                 if targettype == "PAWNSHOP":
                     self.sounds["error"].play()
                     s = cw.cwpy.msgs["error_sell_premier_card"]
-                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
+                    self.call_modaldlg("MESSAGE", text=s, parentdialog=parentdialog)
                 elif targettype == "TRASHBOX":
                     self.sounds["error"].play()
                     s = cw.cwpy.msgs["error_dump_premier_card"] % (header.name)
-                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
+                    self.call_modaldlg("MESSAGE", text=s, parentdialog=parentdialog)
 
                 return
 
@@ -2115,7 +2119,7 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     self.sounds["error"].play()
                     s = cw.cwpy.msgs["error_hand_be_full"] % target.name
-                    self.call_dlg("MESSAGE", text=s, parentdialog=parentdialog)
+                    self.call_modaldlg("MESSAGE", text=s, parentdialog=parentdialog)
 
                 return
 

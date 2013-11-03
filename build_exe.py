@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
 # This will create a dist directory containing the executable file, all the data
 # directories. All Libraries will be bundled in executable file.
 #
@@ -287,6 +290,15 @@ def compress_src(zpath):
 if __name__ == '__main__':
     if operator.lt(len(sys.argv), 2):
         sys.argv.append('py2exe')
-    BuildExe().run() #Run generation
-    raw_input("\nPress any key to continue") #Pause to let user see that things ends
 
+    nokey = False # 終了時にキー入力を求めるか
+    if "-nokey" in sys.argv:
+        nokey = True
+        sys.argv.remove("-nokey")
+
+    BuildExe().run() #Run generation
+
+    if not nokey:
+        raw_input("\nPress any key to continue") #Pause to let user see that things ends
+    else:
+        print "\nCompleted build."

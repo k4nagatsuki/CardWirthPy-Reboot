@@ -398,7 +398,7 @@ class RunAwayButton(StatusBarButton):
         StatusBarButton.lclick_event(self)
 
         if cw.cwpy.battle and cw.cwpy.battle.is_ready():
-            cw.cwpy.call_dlg("RUNAWAY")
+            cw.cwpy.call_modaldlg("RUNAWAY")
 
 class CancelButton(StatusBarButton):
     def __init__(self, parent, pos):
