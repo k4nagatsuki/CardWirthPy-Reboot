@@ -459,10 +459,12 @@ class CardControl(wx.Dialog):
         cw.cwpy.selectedheader = header
         cw.cwpy.exec_func(cw.cwpy.update_selectablelist)
         if cw.cwpy.areaid in cw.AREAS_TRADE:
-            # 能力適性表示
-            for pcard in cw.cwpy.get_pcards("unreversed"):
-                pcard.test_aptitude = header
-                pcard.update_image()
+            def test_aptitude(header):
+                # 能力適性表示
+                for pcard in cw.cwpy.get_pcards("unreversed"):
+                    pcard.test_aptitude = header
+                    pcard.update_image()
+            cw.cwpy.exec_func(test_aptitude, header)
         # 開いていたダイアログの情報
         indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
         cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition()))
