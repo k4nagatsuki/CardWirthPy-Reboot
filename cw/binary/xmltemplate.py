@@ -371,8 +371,6 @@ def get_xmltemplate(name):
 
 def get_xmltext(name, d):
     s = get_xmltemplate(name)
-    for key, value in d.iteritems():
-        d[key] = util.repl_escapechar(value)
     return Template(s).safe_substitute(d)
 
 def main():

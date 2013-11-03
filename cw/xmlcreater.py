@@ -26,13 +26,14 @@ def create_party(header):
     """
     pname = cw.cwpy.msgs["default_party_name"] % (header.name)
 
-    d = {"name" : pname,
+    d = {"name" : cw.binary.util.repl_escapechar(pname),
          "money" : "0",
          "backpack" : "",
          "indent": ""}
 
     s = os.path.basename(header.fpath)
     s = cw.util.splitext(s)[0]
+    s = cw.binary.util.repl_escapechar(s)
     d["members"] = "\n   <Member>%s</Member>" % (s)
     dname = cw.util.repl_dischar(pname)
     path = cw.util.join_paths(cw.cwpy.yadodir, "Party", dname)
@@ -252,20 +253,22 @@ def create_adventurer(data):
     冒険者のXMLを新しく作成する。
     _create_xmlは不使用。
     """
-    def get_coupon(name, value):
-        d = {"name": name, "value": value, "indent": "   "}
-        s = cw.binary.xmltemplate.get_xmltext("Coupon", d)
-        return s
-
     d = data.get_d()
-    # クーポン
-    coupons = [get_coupon(name, value) for name, value in data.coupons]
-    d["coupons"] = "\n" + "\n".join(coupons)
     # 画像パス
     path = d["imgpath"]
     name = cw.util.repl_dischar(d["name"])
-
     d["imgpath"] = write_castimagepath(name, path)
+
+    for key, value in d.items():
+        d[key] = cw.binary.util.repl_escapechar(value)
+
+    # クーポン
+    def get_coupon(name, value):
+        d = {"name": cw.binary.util.repl_escapechar(name), "value": value, "indent": "   "}
+        s = cw.binary.xmltemplate.get_xmltext("Coupon", d)
+        return s
+    coupons = [get_coupon(name, value) for name, value in data.coupons]
+    d["coupons"] = "\n" + "\n".join(coupons)
 
     # XML作成
     path = cw.util.join_paths(cw.cwpy.tempdir, "Adventurer", name + ".xml")
