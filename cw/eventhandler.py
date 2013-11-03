@@ -12,8 +12,11 @@ class EventHandler(object):
     def run(self):
         cw.cwpy.has_inputevent = False
 
+        # リターンキー押しっぱなし
+        if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+            self.returnkey_event()
         # 左方向キー押しっぱなし
-        if cw.cwpy.keyin[K_LEFT] > cw.cwpy.keyevent.threshold:
+        elif cw.cwpy.keyin[K_LEFT] > cw.cwpy.keyevent.threshold:
             self.dirkey_event(x=-1)
         # 右方向キー押しっぱなし
         elif cw.cwpy.keyin[K_RIGHT] > cw.cwpy.keyevent.threshold:
