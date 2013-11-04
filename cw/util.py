@@ -1503,7 +1503,8 @@ def get_linktarget(file):
                                           win32com.shell.shell.IID_IShellLink)
     try:
         encoding = sys.getfilesystemencoding()
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file.encode(encoding))
+        STGM_READ = 0x00000000
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file.encode(encoding), STGM_READ)
         file = shortcut.GetPath(win32com.shell.shell.SLGP_UNCPRIORITY)[0].decode(encoding)
     except Exception:
         print_ex()
