@@ -13,14 +13,14 @@ import base
 
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
-                 pos=None, size=None, talkerimage=None,
+                 pos_noscale=None, size_noscale=None, talkerimage=None,
                  nametable={}, flagtable={}, steptable={},
                  backlog=False, result=None, versionhint="", specialchars=None):
         base.CWPySprite.__init__(self)
-        if pos is None:
-            pos = cw.s((81, 50))
-        if size is None:
-            size = cw.s((470, 180))
+        if pos_noscale is None:
+            pos_noscale = (81, 50)
+        if size_noscale is None:
+            size_noscale = (470, 180)
 
         self.backlog = backlog
         self._barspchr = True
@@ -53,7 +53,7 @@ class MessageWindow(base.CWPySprite):
 
         self.talker_image_noscale = talkerimage
         self._init_style()
-        self._init_image(size, pos)
+        self._init_image(size_noscale, pos_noscale)
 
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs()
@@ -95,18 +95,18 @@ class MessageWindow(base.CWPySprite):
             self.wxcanvas = None
             self.wxdc = None
 
-    def _init_image(self, size, pos):
+    def _init_image(self, size_noscale, pos_noscale):
         # image
-        self.image = pygame.Surface(size).convert_alpha()
+        self.image = pygame.Surface(cw.s(size_noscale)).convert_alpha()
         if self.backlog:
             self.image.fill(cw.cwpy.setting.blwincolour)
         else:
             self.image.fill(cw.cwpy.setting.mwincolour)
         # rect
-        self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        self.rect_noscale = pygame.Rect(pos_noscale, size_noscale)
+        self.rect = cw.s(self.rect_noscale)
         # 外枠描画
-        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
+        draw_frame(self.image, cw.s(size_noscale), cw.s((0, 0)), self.backlog)
         # 話者画像
         if self.talker_image_noscale:
             self.talker_image = cw.s(self.talker_image_noscale)
@@ -124,7 +124,7 @@ class MessageWindow(base.CWPySprite):
 
     def update_scale(self):
         self._init_style()
-        self._init_image(cw.s((470, 180)), cw.s((81, 50)))
+        self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
@@ -453,13 +453,13 @@ class MessageWindow(base.CWPySprite):
             return (255, 255, 255)
 
 class SelectWindow(MessageWindow):
-    def __init__(self, names, text="", pos=None, size=None,
+    def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
                  backlog=False, result=None):
         base.CWPySprite.__init__(self)
-        if pos is None:
-            pos = cw.s((81, 50))
-        if size is None:
-            size = cw.s((470, 38))
+        if pos_noscale is None:
+            pos_noscale = (81, 50)
+        if size_noscale is None:
+            size_noscale = (470, 38)
 
         self.backlog = backlog
         self._barspchr = False
@@ -479,7 +479,7 @@ class SelectWindow(MessageWindow):
         self.path = ""
         self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.talker = None
-        self._init_image(size, pos)
+        self._init_image(size_noscale, pos_noscale)
         # 描画する文字画像のリスト作成
         self.charimgs = self.create_charimgs(cw.s((15, 9)))
         # frame
@@ -499,23 +499,23 @@ class SelectWindow(MessageWindow):
         else:
             cw.cwpy.topgrp.add(self, layer="message")
 
-    def _init_image(self, size, pos):
+    def _init_image(self, size_noscale, pos_noscale):
         # image
         if self.backlog:
             colour = cw.cwpy.setting.blwincolour
         else:
             colour = cw.cwpy.setting.mwincolour
-        self.image = pygame.Surface(size).convert_alpha()
+        self.image = pygame.Surface(cw.s(size_noscale)).convert_alpha()
         self.image.fill(colour)
         # rect
-        self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        self.rect_noscale = pygame.Rect(pos_noscale, size_noscale)
+        self.rect = cw.s(self.rect_noscale)
         # 外枠描画
-        draw_frame(self.image, size, cw.s((0, 0)), self.backlog)
+        draw_frame(self.image, cw.s(size_noscale), cw.s((0, 0)), self.backlog)
 
     def update_scale(self):
         self._init_style()
-        self._init_image(cw.s((81, 50)), cw.s((470, 38)))
+        self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
@@ -530,17 +530,17 @@ class SelectWindow(MessageWindow):
         pass
 
 class MemberSelectWindow(SelectWindow):
-    def __init__(self, pcards, pos=None, size=None):
-        if pos is None:
-            pos = cw.s((81, 50))
-        if size is None:
-            size = cw.s((470, 38))
+    def __init__(self, pcards, pos_noscale=None, size_noscale=None):
+        if pos_noscale is None:
+            pos_noscale = (81, 50)
+        if size_noscale is None:
+            size_noscale = (470, 38)
         self.selectmembers = pcards
         names = [(index, pcard.name)
                         for index, pcard in enumerate(self.selectmembers)]
         names.append((len(names), cw.cwpy.msgs["cancel"]))
         text = cw.cwpy.msgs["select_member_message"]
-        SelectWindow.__init__(self, names, text, pos, size)
+        SelectWindow.__init__(self, names, text, pos_noscale, size_noscale)
 
 class SelectionBar(base.SelectableSprite):
     def __init__(self, name, pos, backlog=False, selected=False):
@@ -678,7 +678,7 @@ class BacklogData:
             self.talker_image = base.talker_image_noscale
         else:
             self.talker_image = None
-        self.rect = base.rect
+        self.rect_noscale = base.rect_noscale
         self.name_table = base.name_table
         self.flag_table = base.flag_table
         self.step_table = base.step_table
@@ -689,12 +689,12 @@ class BacklogData:
     def create_message(self):
         if self.type == 0:
             return MessageWindow(self.text, self.names, self.path, None,
-                                 self.rect.topleft, self.rect.size,
+                                 self.rect_noscale.topleft, self.rect_noscale.size,
                                  self.talker_image,
                                  self.name_table, self.flag_table, self.step_table,
                                  True, self.result, self.versionhint, self.specialchars)
         else:
-            return SelectWindow(self.names, self.text, self.rect.topleft, self.rect.size,
+            return SelectWindow(self.names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
                                 True, self.result)
 
 class BacklogCurtain(base.CWPySprite):
