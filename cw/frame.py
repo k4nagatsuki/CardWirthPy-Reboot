@@ -469,7 +469,7 @@ class Frame(wx.Frame):
         header = cw.cwpy.selectedheader
         owner = header.get_owner()
 
-        if header.allrange and header.target == "Party" and\
+        if header.allrange and (header.target == "Party" or header.target == "Both") and\
                 isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
             # 味方全員が対象
             cw.cwpy.clear_selection()
