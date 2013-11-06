@@ -286,6 +286,9 @@ class YadoSelect(Select):
         self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
 
+    def can_clickcenter(self):
+        return self.okbtn.IsEnabled()
+
     def enable_btn(self):
         # リストが空だったらボタンを無効化
         if not self.list:
@@ -731,6 +734,9 @@ class PartySelect(Select):
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
+
+    def can_clickcenter(self):
+        return self.okbtn.IsEnabled()
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
