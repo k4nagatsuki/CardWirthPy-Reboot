@@ -687,7 +687,7 @@ class BranchLevelContent(BranchContent):
         if child.get("name", "") == u"○":
             return u"%sがレベル%s以上" % (s, self.data.get("value", ""))
         else:
-            return u"%sがレベル%s以上" % (s, self.data.get("value", ""))
+            return u"%sがレベル%s未満" % (s, self.data.get("value", ""))
 
 class BranchCouponContent(BranchContent):
     def action(self):
