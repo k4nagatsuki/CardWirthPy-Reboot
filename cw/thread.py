@@ -1014,16 +1014,19 @@ class CWPy(_Singleton, threading.Thread):
         self.ydata.party.backpack_moved = []
 
         for i, e in enumerate(etree.getfind(".")):
-            header = backpacktable[e.text]
-            del backpacktable[e.text]
-            if header.moved <> 0:
-                # 削除フラグを除去
-                etree = cw.data.yadoxml2etree(header.fpath)
-                etree.remove("Property", attrname="moved")
-                header.write()
-                header.moved = 0
-            self.ydata.party.backpack.append(header)
-            header.order = i
+            try:
+                header = backpacktable[e.text]
+                del backpacktable[e.text]
+                if header.moved <> 0:
+                    # 削除フラグを除去
+                    etree = cw.data.yadoxml2etree(header.fpath)
+                    etree.remove("Property", attrname="moved")
+                    header.write()
+                    header.moved = 0
+                self.ydata.party.backpack.append(header)
+                header.order = i
+            except Exception, ex:
+                cw.util.print_ex()
         for fpath, header in backpacktable.iteritems():
             if not header.scenariocard:
                 self.remove_xml(header)
