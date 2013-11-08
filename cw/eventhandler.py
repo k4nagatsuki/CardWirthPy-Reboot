@@ -165,7 +165,8 @@ class EventHandler(object):
         左クリックイベント。
         """
         if cw.cwpy.is_runningevent() and\
-                not isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton):
+                not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
+                     cw.cwpy.selection._selectable_on_event):
             return
 
         if cw.cwpy.selection:
@@ -183,7 +184,8 @@ class EventHandler(object):
         右クリックイベント。
         """
         if cw.cwpy.is_runningevent() and\
-                not isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton):
+                not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
+                     cw.cwpy.selection._selectable_on_event):
             return
 
         if cw.cwpy.selection:
@@ -313,7 +315,8 @@ class EventHandler(object):
         リターンキーイベント。
         """
         if cw.cwpy.is_runningevent() and\
-                not isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton):
+                not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
+                     cw.cwpy.selection._selectable_on_event):
             return
 
         if cw.cwpy.selection:
