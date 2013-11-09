@@ -128,7 +128,7 @@ class CardHeader(object):
             # Image
             self.imgpath = data.gettext("ImagePath", "")
             # 互換性マーク
-            self.versionhint = data.getattr(".", "versionhint", "")
+            self.versionhint = data.getattr(".", "versionHint", "")
 
         self.vocation = (self.physical, self.mental)
 
@@ -724,7 +724,7 @@ class AdventurerHeader(object):
             self.history = []
             self.race = ""
             # 互換性マーク
-            self.versionhint = data.getattr(".", "versionhint", "")
+            self.versionhint = data.getattr(".", "versionHint", "")
 
             for e in reversed(data.getfind("Coupons").getchildren()):
                 if not e.text:

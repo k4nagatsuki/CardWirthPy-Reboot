@@ -2062,6 +2062,10 @@ class CWPy(_Singleton, threading.Thread):
 
             if targettype == "PAWNSHOP":
                 def calc_price(header):
+                    # 互換動作: 1.30以前ではカードの売値は常に半額
+                    if cw.cwpy.sct.lessthan("1.30", header.versionhint):
+                        return header.price / 2
+
                     if header.premium == "Normal":
                         return header.price / 2
                     else:
