@@ -1064,26 +1064,37 @@ class CWPy(_Singleton, threading.Thread):
     def reload_yado(self):
         """現在の宿をロード。"""
         # イベントを中止
-        if self.is_showingmessage():
-            mwin = self.get_messagewindow()
-            mwin.result = cw.event.EffectBreakError()
-        elif self.is_runningevent():
-            self.event._stoped = True
-        self.sdata.is_playing = False
+        self.event._stoped = True
+        self.event.breakwait = True
+        def func1():
+            if self.is_showingmessage():
+                mwin = self.get_messagewindow()
+                mwin.result = cw.event.EffectBreakError()
+            elif self.is_runningevent():
+                self.event._stoped = True
+            self.sdata.is_playing = False
 
-        # バトルを強制終了
-        if self.battle and self.battle.is_running:
-            self.battle.end(True, True)
+        def func2():
+            # バトルを強制終了
+            if self.battle and self.battle.is_running:
+                self.battle.end(True, True)
 
-        # シナリオを強制終了
-        if self.is_playingscenario():
-            self.sdata.end()
+        def func3():
+            # シナリオを強制終了
+            if self.is_playingscenario():
+                self.sdata.end()
 
-        self._init_resources()
-        self.set_status("Title")
-        self.sdata = cw.data.SystemData()
-        cw.util.remove_temp()
-        self.load_yado(self.yadodir)
+        def func4():
+            self._init_resources()
+            self.set_status("Title")
+            self.sdata = cw.data.SystemData()
+            cw.util.remove_temp()
+            self.load_yado(self.yadodir)
+
+        self.exec_func(func1)
+        self.exec_func(func2)
+        self.exec_func(func3)
+        self.exec_func(func4)
 
     def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""

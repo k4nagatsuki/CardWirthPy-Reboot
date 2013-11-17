@@ -576,6 +576,9 @@ class Event(object):
         self.nowrunningcontents = []
 
     def action(self):
+        if cw.cwpy.event._stoped:
+            raise EffectBreakError()
+
         if self.skip_action:
             self.skip_action = False
             return
@@ -591,6 +594,9 @@ class Event(object):
             (self.cur_content.tag == "Set" and self.cur_content.get("type") == "Coupon") or\
             (self.cur_content.tag == "Elapse" and self.cur_content.get("type") == "Time"):
             self.check_gameover()
+
+        if cw.cwpy.event._stoped:
+            raise EffectBreakError()
 
     def get_nextcontents(self):
         """self.cur_contentの子コンテントのリストを返す。"""
