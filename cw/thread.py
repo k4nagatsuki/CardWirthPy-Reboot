@@ -1085,6 +1085,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.end()
 
         def func4():
+            self.event._stoped = False
+            self.event.breakwait = False
             self._init_resources()
             self.set_status("Title")
             self.sdata = cw.data.SystemData()
