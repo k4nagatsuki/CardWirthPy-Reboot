@@ -87,6 +87,7 @@ class Character(object):
         self.deck = cw.deck.Deck(self)
         # 戦闘行動(Target, CardHeader)
         self.actiondata = None
+        self.actionautoselected = False
         # 行動順位を決定する数値
         self.actionorder = 0
 
@@ -595,12 +596,14 @@ class Character(object):
         if auto:
             self.clear_action()
             self.actiondata = (target, header, beasts)
+            self.actionautoselected = auto
         else:
             if self.actiondata:
                 beasts = self.actiondata[2]
 
             self.clear_action()
             self.actiondata = (target, header, beasts)
+            self.actionautoselected = auto
             cw.cwpy.sounds["page"].play()
             assert cw.cwpy.pre_dialogs
             if cw.cwpy.pre_dialogs:
@@ -636,6 +639,7 @@ class Character(object):
 
     def clear_action(self):
         self.actiondata = None
+        self.actionautoselected = False
         if cw.cwpy.battle:
             for key, target, user in cw.cwpy.battle.priorityacts[:]:
                 if user == self:
