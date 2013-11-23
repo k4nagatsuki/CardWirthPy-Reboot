@@ -127,8 +127,9 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.setting.soundfonts = soundfonts
             if cw.bassplayer.is_alivable():
                 cw.bassplayer.dispose_bass()
+            if soundfonts:
                 cw.bassplayer.init_bass(soundfonts)
-                cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
+            cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
         # 配色(メッセージ)
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_mwin.GetColour()
@@ -553,7 +554,7 @@ class AudioSettingPanel(wx.Panel):
                     rel = os.path.relpath(fpath, u"")
                     if not rel.startswith(u".."):
                         fpath = rel
-                except Exception:
+                except:
                     cw.util.print_ex()
                 fpath = cw.util.join_paths(fpath)
                 if fpath.lower() in exists:

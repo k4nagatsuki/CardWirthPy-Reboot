@@ -260,7 +260,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
 
     # BASS Audioを初期化(使用できない事もある)
-    if not soundfonts:
+    if soundfonts is None:
         soundfonts = [cw.DEFAULT_SOUNDFONT]
     cw.bassplayer.init_bass(soundfonts)
 

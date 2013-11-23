@@ -95,7 +95,7 @@ class Setting(object):
         # MIDIサウンドフォント
         self.soundfonts = [cw.DEFAULT_SOUNDFONT]
         elements = data.getfind("SoundFonts", False)
-        if len(elements):
+        if not elements is None:
             self.soundfonts = []
             for e in elements:
                 self.soundfonts.append(e.text)
