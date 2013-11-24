@@ -1093,8 +1093,14 @@ class HandView(CardControl):
             self.list2 = cw.cwpy.get_pcards("unreversed")
         elif isinstance(cw.cwpy.selection, cw.character.Player):
             self.list2 = cw.cwpy.get_pcards("unreversed")
-        else:
-            self.list2 = cw.cwpy.get_ecards("unreversed")
+        else: # EnemyCard
+            if cw.cwpy.is_debugmode():
+                self.list2 = cw.cwpy.get_ecards("unreversed")
+            else:
+                self.list2 = []
+                for card in cw.cwpy.get_ecards("unreversed"):
+                    if card.is_analyzable():
+                        self.list2.append(card)
 
         # 前に開いていたときのindex値があったら取得する
         if cw.cwpy.pre_dialogs:

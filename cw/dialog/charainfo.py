@@ -274,7 +274,10 @@ class ActiveCharaInfo(CharaInfo):
             if cw.cwpy.is_debugmode():
                 self.list = cw.cwpy.get_ecards()
             else:
-                self.list = cw.cwpy.get_ecards("unreversed")
+                self.list = []
+                for card in cw.cwpy.get_ecards("unreversed"):
+                    if card.is_analyzable():
+                        self.list.append(card)
         else:
             self.list = cw.cwpy.get_fcards()
 
