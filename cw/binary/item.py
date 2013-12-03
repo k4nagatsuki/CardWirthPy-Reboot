@@ -86,6 +86,10 @@ class ItemCard(base.CWBinaryBase):
         self.enhance_resist2 = f.dword()
         self.enhance_defense2 = f.dword()
 
+        # 稀に無限使用可能なのに最大使用回数が設定されている事がある
+        if self.limit == 0 and not u"リサイクル" in self.keycodes:
+            self.limit_max = 0
+
         self.data = None
 
     def get_data(self):
