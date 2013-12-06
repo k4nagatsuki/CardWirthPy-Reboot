@@ -256,8 +256,8 @@ def create_adventurer(data):
     d = data.get_d()
     # 画像パス
     path = d["imgpath"]
-    name = cw.util.repl_dischar(d["name"])
-    d["imgpath"] = write_castimagepath(name, path)
+    advname = cw.util.repl_dischar(d["name"])
+    d["imgpath"] = write_castimagepath(advname, path)
 
     for key, value in d.items():
         d[key] = cw.binary.util.repl_escapechar(value)
@@ -271,7 +271,7 @@ def create_adventurer(data):
     d["coupons"] = "\n" + "\n".join(coupons)
 
     # XML作成
-    path = cw.util.join_paths(cw.cwpy.tempdir, "Adventurer", name + ".xml")
+    path = cw.util.join_paths(cw.cwpy.tempdir, "Adventurer", advname + ".xml")
     path = cw.util.dupcheck_plus(path)
     _create_xml("Adventurer", path, d)
     return path
