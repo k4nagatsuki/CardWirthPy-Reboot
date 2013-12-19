@@ -515,8 +515,9 @@ class Character(object):
         if cw.cwpy.is_playingscenario() and not e_mates is None:
             specialchars = specialchars.copy()
             dpath = cw.util.join_yadodir(e_mates.text)
-            for fname in os.listdir(dpath):
-                cw.cwpy.sdata.eat_spchar(dpath, fname)
+            if os.path.isdir(dpath):
+                for fname in os.listdir(dpath):
+                    cw.cwpy.sdata.eat_spchar(dpath, fname)
 
         try:
             # カードイベント開始
