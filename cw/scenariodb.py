@@ -264,7 +264,7 @@ class Scenariodb(object):
         return self.create_header(data)
 
     @synclock(_lock)
-    def search_dpath(self, dpath):
+    def search_dpath(self, dpath, create=False):
         dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
         s = "SELECT * FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (dpath,))
@@ -274,7 +274,10 @@ class Scenariodb(object):
         dbpaths = set([h.get_fpath() for h in headers])
 
         if not os.path.exists(dpath):
-            os.makedirs(dpath)
+            if create:
+                os.makedirs(dpath)
+            else:
+                return []
 
         for name in os.listdir(unicode(dpath)):
             path = cw.util.join_paths(dpath, name)

@@ -1475,7 +1475,7 @@ class ScenarioSelect(Select):
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
         self.db.update(self.nowdir)
-        headers = self.db.search_dpath(self.nowdir)
+        headers = self.db.search_dpath(self.nowdir, create=True)
         # nowdirにあるディレクトリリスト
         dpaths = self.get_dpaths(self.nowdir)
         # nowdirがディレクトリだった場合の内容リスト
@@ -1831,7 +1831,8 @@ class ScenarioSelect(Select):
                 x = (bmpw - size[0]) / 2
                 dc.DrawText(name, x, y)
                 y += cw.s(15)
-            self.yesbtn.Enable()
+            if os.path.isdir(cw.util.get_linktarget(dpath)):
+                self.yesbtn.Enable()
         else:
             header = self.list[self.index]
 
@@ -2132,6 +2133,11 @@ class ScenarioSelect(Select):
         if self.list and self.tree.IsShown() and\
                 not isinstance(selected, cw.header.ScenarioHeader):
             self.yesbtn.Disable()
+
+        # ショートカットのリンク先が無い場合
+        if self.list and isinstance(selected, (str, unicode)):
+            if not os.path.isdir(cw.util.get_linktarget(selected)):
+                self.yesbtn.Disable()
 
         # ツリー表示中の決定ボタン有効・無効判定
         if self.tree.IsShown():
