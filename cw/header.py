@@ -211,6 +211,8 @@ class CardHeader(object):
             self._owner = owner
 
     def get_bgtype(self):
+        if self.type == "BeastCard" and self.attachment:
+            return "OPTION"
         return self.type.upper().replace("CARD", "")
 
     @property
