@@ -380,7 +380,7 @@ class CardHeader(object):
                 cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
         # 召喚獣カード。
-        elif header.type == "BeastCard" and not self.attachment:
+        elif header.type == "BeastCard" and not header.maxuselimit == 0:
             header.uselimit += value
             header.uselimit = cw.util.numwrap(header.uselimit, 0, 999)
             e = header.carddata.getfind("Property/UseLimit")
