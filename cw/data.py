@@ -580,6 +580,7 @@ class ScenarioData(SystemData):
                 else:
                     # どこかで所有しているので素材は消さない
                     header.contain_xml()
+            cw.cwpy.ydata.party.backpack_moved = []
 
     def f9(self):
         """
