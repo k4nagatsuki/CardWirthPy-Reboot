@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import struct
 import wx
 import pygame
 from pygame.locals import *
@@ -663,6 +664,47 @@ def conv2surface(wxbmp):
         image.set_colorkey(wximg.GetOrFindMaskColour(), RLEACCEL)
 
     return image
+
+#-------------------------------------------------------------------------------
+# ユーティリティ
+#-------------------------------------------------------------------------------
+
+def fix_cwnext16bitbitmap(data):
+    """一部バージョンのCardWirthNextが生成するBitmap(16 bit)は
+    bfOffBitsが壊れているので予め訂正する。
+    FIXME: 末尾に余計なデータがついている画像は却って上手くいかない可能性があるが、
+           非常にレアなケースなのでまず問題にはならないと思われる。
+    """
+    if len(data) < 14 + 40:
+        return data
+    s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
+    if s[0] <> ord('B'):
+        return data
+    if s[1] <> ord('M'):
+        return data
+    bfSize = s[2]
+    bfReserved1 = s[3]
+    bfReserved2 = s[4]
+    bfOffBits = s[5]
+    if bfOffBits == 0:
+        return data
+    biSize = s[6]
+    if biSize <> 40:
+        return data
+    biWidth = s[7]
+    biHeight = s[8]
+    biPlanes = s[9]
+    biBitCount = s[10]
+    if biBitCount <> 16:
+        return data
+    lineSize = ((biWidth * biBitCount + 31) / 32) * 4;
+    height = -biHeight if biHeight < 0 else biHeight;
+    if len(data) - bfOffBits <> lineSize * height: 
+        # bfOffBitsをヘッダ直後に修正
+        bfOffBits = 14 + 40;
+        b = struct.pack("<I", bfOffBits)
+        data = data[0:10] + b + data[14:]
+    return data
 
 def main():
     pass

@@ -279,7 +279,7 @@ def convert_maskpos(maskpos, width, height):
             raise Exception("Invalid maskpos: %s" % (maskpos))
     return maskpos
 
-def load_image(path, mask=False, maskpos=(0, 0), f=None):
+def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -290,15 +290,32 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None):
         elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
             #return pygame.Surface((0, 0)).convert()
-            with io.BytesIO(data) as f:
-                image = pygame.image.load(f)
+            with io.BytesIO(data) as f2:
+                image = pygame.image.load(f2)
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
-            with io.BufferedReader(io.FileIO(path)) as f:
-                image = pygame.image.load(f)
+            with io.BufferedReader(io.FileIO(path)) as f2:
+                image = pygame.image.load(f2)
     except:
-        print u"画像が読み込めません", path
+        print u"画像が読み込めません(load_image)。リトライします", path
+        if retry:
+            try:
+                if f:
+                    f.seek(0)
+                    data = f.read()
+                elif cw.binary.image.path_is_code(path):
+                    data = cw.binary.image.code_to_data(path)
+                else:
+                    if not os.path.isfile(path):
+                        return pygame.Surface((0, 0)).convert()
+                    with open(path, "rb") as f2:
+                        data = f2.read()
+                data = cw.image.fix_cwnext16bitbitmap(data)
+                with io.BytesIO(data) as f2:
+                    return load_image(path, mask, maskpos, f2, False)
+            except:
+                print u"画像が読み込めません(リトライ後)", path
         return pygame.Surface((0, 0)).convert()
 
     # アルファチャンネルを持った透過画像を読み込んだ場合は
@@ -1282,7 +1299,7 @@ def get_char(s, index):
 # wx汎用関数
 #-------------------------------------------------------------------------------
 
-def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
+def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
     if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
         return wx.EmptyBitmap(0, 0)
@@ -1291,15 +1308,20 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
         if not image:
             try:
                 if f:
-                    image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
+                    data = f.read()
                 elif cw.binary.image.path_is_code(name):
                     data = cw.binary.image.code_to_data(name)
-                    with io.BytesIO(data) as f:
-                        image = wx.ImageFromStream(f, wx.BITMAP_TYPE_ANY, -1)
                 else:
-                    image = wx.Image(name, wx.BITMAP_TYPE_ANY, -1)
+                    if not os.path.isfile(name):
+                        return wx.EmptyBitmap(0, 0)
+                    with open(name, "rb") as f2:
+                        data = f2.read()
+
+                data = cw.image.fix_cwnext16bitbitmap(data)
+                with io.BytesIO(data) as f2:
+                    image = wx.ImageFromStream(f2, wx.BITMAP_TYPE_ANY, -1)
             except:
-                print u"画像が読み込めません。", name
+                print u"画像が読み込めません(load_wxbmp)", name
                 return wx.EmptyBitmap(0, 0)
 
         def set_mask(image, maskpos):
@@ -1337,7 +1359,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None):
         try:
             wxbmp = wx.Bitmap(name)
         except:
-            print u"画像が読み込めません。", name
+            print u"画像が読み込めません(load_wxbmp)", name
             return wx.EmptyBitmap(0, 0)
 
     return wxbmp
