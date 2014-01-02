@@ -204,7 +204,7 @@ engine=1.20
   CardWirthPyはプログラミング言語Pythonで書かれました。
   実行ファイルの作成にはpy2exeを使用しています。
 
-    Python ver2.7.5
+    Python ver2.7.6
       License: Python Software Foundation License
       URL: http://www.python.org/
 
