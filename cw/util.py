@@ -1277,8 +1277,8 @@ def txtwrap(s, mode, width=30, wrapschars=""):
                 if seq[-asciicnt] <> "\n":
                     seq.insert(-asciicnt, "\n")
                 cnt = asciicnt
-            elif not get_char(s, index + 1) == "\n":
-                if not get_char(s, index + 2) == "\n":
+            elif index + 1 <= len(s) or not get_char(s, index + 1) == "\n":
+                if index + 2 <= len(s) or not get_char(s, index + 2) == "\n":
                     seq.append("\n")
                     wrapafter = True
                 cnt = 0
