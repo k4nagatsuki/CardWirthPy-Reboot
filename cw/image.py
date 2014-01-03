@@ -697,11 +697,20 @@ def fix_cwnext16bitbitmap(data):
     biBitCount = s[10]
     if biBitCount <> 16:
         return data
-    lineSize = ((biWidth * biBitCount + 31) / 32) * 4;
-    height = -biHeight if biHeight < 0 else biHeight;
+    biCompression = s[11]
+    biSizeImage = s[12]
+    biXPixPerMeter = s[13]
+    biYPixPerMeter = s[14]
+    biClrUsed = s[15]
+    biClrImporant = s[16]
+    lineSize = ((biWidth * biBitCount + 31) / 32) * 4
+    height = -biHeight if biHeight < 0 else biHeight
     if len(data) - bfOffBits <> lineSize * height: 
         # bfOffBitsをヘッダ直後に修正
-        bfOffBits = 14 + 40;
+        bfOffBits = 14 + 40
+        if biCompression == 3:
+            # ビットフィールド情報がある場合
+            bfOffBits += 4 * 3
         b = struct.pack("<I", bfOffBits)
         data = data[0:10] + b + data[14:]
     return data
