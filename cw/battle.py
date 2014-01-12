@@ -47,13 +47,24 @@ class BattleEngine(object):
         if cw.cwpy.is_autospread():
             self._numenemy = len(cw.cwpy.get_mcards("flagtrue"))
 
-        # バトル開始イベント(1.50)
-        # このイベントの終了時点では勝利・敗北は発生しない
         cw.cwpy.battle = self
-        cw.cwpy.sdata.start_event(keynum=5)
 
-        # 行動準備
-        self.ready()
+        try:
+            # バトル開始イベント(1.50)
+            # このイベントの終了時点では勝利・敗北は発生しない
+            cw.cwpy.sdata.start_event(keynum=5)
+
+            # 行動準備
+            self.ready()
+
+        except BattleStartBattleError:
+            self.end(False, startnextbattle=True)
+        except BattleAreaChangeError:
+            self.end(False)
+        except BattleWinError:
+            self.win(runevent=False)
+        except BattleDefeatError:
+            self.defeat(runevent=False)
 
     def is_running(self):
         return self._running
@@ -212,7 +223,7 @@ class BattleEngine(object):
                 cw.cwpy.sounds["error"].play()
                 self.start()
 
-    def win(self):
+    def win(self, runevent=True):
         """勝利処理。勝利イベント終了後も戦闘が続行していたら、
         強制的に戦闘エリアから離脱する。
         """
@@ -223,10 +234,15 @@ class BattleEngine(object):
         cw.cwpy.hide_cards(True)
         cw.cwpy.mcardgrp.empty()
 
-        # 勝利イベント実行時は元のエリアに戻る
-        cw.cwpy.clear_battlearea(True, eventkeynum=1)
+        if runevent:
+            eventkeynum = 1
+        else:
+            eventkeynum = 0
 
-    def defeat(self):
+        # 勝利イベント実行時は元のエリアに戻る
+        cw.cwpy.clear_battlearea(True, eventkeynum=eventkeynum)
+
+    def defeat(self, runevent=True):
         """敗北処理。敗北イベント後、
         パーティが全滅状態だったら、ゲームオーバ画面に遷移。
         """
@@ -235,7 +251,10 @@ class BattleEngine(object):
             member.clear_action()
 
         self._running = False
-        event = cw.cwpy.sdata.events.check_keynum(3)
+        if runevent:
+            event = cw.cwpy.sdata.events.check_keynum(3)
+        else:
+            event = None
 
         if event:
             cw.cwpy.hide_cards(True)
