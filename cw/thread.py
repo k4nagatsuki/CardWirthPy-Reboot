@@ -1478,7 +1478,7 @@ class CWPy(_Singleton, threading.Thread):
         self.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
         self.battle = cw.battle.BattleEngine()
 
-    def clear_battlearea(self, areachange=True, win=False, startnextbattle=False):
+    def clear_battlearea(self, areachange=True, eventkeynum=0, startnextbattle=False):
         """戦闘状態を解除して戦闘前のエリアに戻る。
         areachangeがFalseだったら、戦闘前のエリアには戻らない
         (戦闘イベントで、エリア移動コンテント等が発動した時用)。
@@ -1486,7 +1486,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.status == "ScenarioBattle":
             # 勝利イベントを保持しておく
             battleevents = self.sdata.events
-            if win:
+            if eventkeynum:
                 self.winevent_areaid = self.areaid
 
             cw.cwpy.battle = None
@@ -1530,9 +1530,9 @@ class CWPy(_Singleton, threading.Thread):
                 # 戦闘前のエリアに戻る
                 self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
 
-            if win:
+            if eventkeynum:
                 # 勝利イベント開始
-                battleevents.start(keynum=1)
+                battleevents.start(keynum=eventkeynum)
                 self.winevent_areaid = None
 
     def change_specialarea(self, areaid):

@@ -127,8 +127,8 @@ class BattleEngine(object):
         self.ready()
 
     def end(self, areachange=True, f9=False, startnextbattle=False):
-        """戦闘終了処理。戦闘エリアを解除する。
-        勝利時のみここへ来ない。
+        """勝利・敗北以外の戦闘終了処理。
+        戦闘エリアを解除する。
         """
         # 対象選択中であれば中止
         cw.cwpy.clean_specials()
@@ -224,7 +224,7 @@ class BattleEngine(object):
         cw.cwpy.mcardgrp.empty()
 
         # 勝利イベント実行時は元のエリアに戻る
-        cw.cwpy.clear_battlearea(True, win=True)
+        cw.cwpy.clear_battlearea(True, eventkeynum=1)
 
     def defeat(self):
         """敗北処理。敗北イベント後、
@@ -242,19 +242,8 @@ class BattleEngine(object):
             cw.cwpy.mcardgrp.empty()
             cw.cwpy._gameover = False
 
-            # 敗北イベント開始
-            try:
-                cw.cwpy.sdata.start_event(keynum=3)
-            except BattleStartBattleError:
-                self.end(False, startnextbattle=True)
-            except BattleAreaChangeError:
-                self.end(False)
-            except BattleDefeatError:
-                cw.cwpy.set_gameover()
-            except BattleError:
-                self.end()
-            else:
-                self.end()
+            # 戦闘前のエリアに戻り、敗北イベント開始
+            cw.cwpy.clear_battlearea(True, eventkeynum=3)
 
         else:
             cw.cwpy.set_gameover()
