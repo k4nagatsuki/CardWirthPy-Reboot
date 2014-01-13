@@ -453,9 +453,13 @@ class EffectMotion(object):
         # ダメージタイプが"Max"の場合、最大HPを実数値として返す
         if self.damagetype == "Max":
             return target.maxlife
-        # 効果値0以下の場合、0を実数値として返す
         elif value <= 0:
-            return 0
+            # 効果値0以下の場合、0を実数値として返す
+            # (ダメージ・回復・吸収を除く)
+            if self.type in ("Heal", "Damage", "Absorb"):
+                return 1
+            else:
+                return 0
 
         # レベル比の効果値を計算(レベル比じゃない場合はそのままの効果値)
         if self.damagetype == "LevelRatio":
