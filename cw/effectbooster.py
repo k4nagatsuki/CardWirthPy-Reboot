@@ -1036,6 +1036,8 @@ class EffectBoosterConfig(object):
                 if m:
                     opt = m.group(1).strip().lower()
                     val = m.group(2).strip()
+                    if val.startswith('"') and val.startswith('"'):
+                        val = val[1:-1]
                     cur_sec[opt] = val
                     continue
 
