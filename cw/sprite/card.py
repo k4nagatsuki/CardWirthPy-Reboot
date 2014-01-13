@@ -473,7 +473,7 @@ class PlayerCard(CWPyCard, character.Player):
         character.Player.__init__(self)
         # カード画像
         path = self.data.gettext("Property/ImagePath", "")
-        self.imgpath = cw.util.join_yadodir(path)
+        self.imgpath = cw.util.join_paths(cw.cwpy.yadodir, path)
 
         # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale)
@@ -501,7 +501,7 @@ class PlayerCard(CWPyCard, character.Player):
 
     def set_image(self, path):
         character.Player.set_image(self, path)
-        self.imgpath = cw.util.join_yadodir(self.get_imagepath())
+        self.imgpath = cw.util.join_paths(cw.cwpy.yadodir, self.get_imagepath())
         self.cardimg.set_faceimg(self.imgpath)
 
     def update_levelup(self):
