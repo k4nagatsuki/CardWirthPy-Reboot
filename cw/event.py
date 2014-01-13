@@ -522,6 +522,9 @@ class Event(object):
         nextcontents = self.get_nextcontents()
 
         while cw.cwpy.is_running() and nextcontents and not self.index < 0:
+            if len(nextcontents) <= self.index:
+                # デバッガによって処理フローが変わった場合
+                self.index = 0
             self.cur_content = nextcontents[self.index]
             cw.cwpy.event.wait()
             self.action()
