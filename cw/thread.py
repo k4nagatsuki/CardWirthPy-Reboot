@@ -2334,9 +2334,9 @@ class CWPy(_Singleton, threading.Thread):
             assert not move
             # パーティの所持金または金庫に下取金を追加
             if party:
-                party.set_money(price)
+                self.exec_func(party.set_money, price)
             else:
-                self.ydata.set_money(price)
+                self.exec_func(self.ydata.set_money, price)
 
         if targettype in ("BACKPACK", "STOREHOUSE") and not toself:
             # 移動先が荷物袋かカード置場だったら

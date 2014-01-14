@@ -1430,6 +1430,7 @@ class YadoData(object):
             self.money += value
             self.money = cw.util.numwrap(self.money, 0, 9999999)
             self.environment.edit("Property/Cashbox", str(self.money))
+            cw.cwpy.statusbar.change()
             cw.cwpy.has_inputevent = True
 
     #---------------------------------------------------------------------------
@@ -1763,6 +1764,7 @@ class Party(object):
             self.money += value
             self.money = cw.util.numwrap(self.money, 0, 9999999)
             self.data.edit("Property/Money", str(self.money))
+            cw.cwpy.statusbar.change()
             cw.cwpy.has_inputevent = True
 
     def set_numbercoupon(self):
