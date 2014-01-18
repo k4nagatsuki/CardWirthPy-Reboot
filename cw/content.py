@@ -544,6 +544,19 @@ class BranchStatusContent(BranchContent):
         """状態分岐コンテント。"""
         targetm = self.data.get("targetm")
         status = self.data.get("status")
+
+        # 互換動作: 1.20では状態判定分岐のうち、呪縛・睡眠・中毒・麻痺がずれて判定される
+        #           (呪縛→睡眠、睡眠→中毒、中毒→麻痺、麻痺→呪縛)
+        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
+            if status == "Poison":
+                status = "Sleep"
+            elif status == "Sleep":
+                status = "Bind"
+            elif status == "Bind":
+                status = "Paralyze"
+            elif status == "Paralyze":
+                status = "Poison"
+
         methodname = "is_%s" % status.lower()
 
         # 対象範囲修正
@@ -763,16 +776,16 @@ class BranchSelectContent(BranchContent):
         else:
             pcards = cw.cwpy.get_pcards("active")
 
-        if random:
-            pcard = cw.cwpy.dice.choice(pcards)
-            cw.cwpy.event.set_selectedmember(pcard)
-            index = 0
-        else:
-            if pcards:
-                mwin = cw.sprite.message.MemberSelectWindow(pcards)
-                index = cw.cwpy.show_message(mwin)
+        index = -1
+        if pcards:
+            if random:
+                pcard = cw.cwpy.dice.choice(pcards)
+                cw.cwpy.event.set_selectedmember(pcard)
+                index = 0
             else:
-                raise cw.event.EffectBreakError()
+                if pcards:
+                    mwin = cw.sprite.message.MemberSelectWindow(pcards)
+                    index = cw.cwpy.show_message(mwin)
 
         flag = bool(index == 0)
         return self.get_boolean_index(flag)
