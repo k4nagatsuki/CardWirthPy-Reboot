@@ -347,7 +347,7 @@ def read_summary(basepath):
         return None
 
     names = z.namelist()
-    seq = [name for name in names if name.endswith("Summary.xml") or name.endswith("Summary.wsm")]
+    seq = [name for name in names if name.lower().endswith("summary.xml") or name.lower().endswith("summary.wsm")]
 
     if not seq:
         z.close()

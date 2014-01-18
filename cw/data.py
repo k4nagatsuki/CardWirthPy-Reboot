@@ -423,7 +423,7 @@ class ScenarioData(SystemData):
 
                 path = cw.util.join_paths(dpath, fname)
 
-                if (fname == "Summary.xml" or fname == "Summary.wsm") and not self.summary:
+                if (lf == "summary.xml" or lf == "summary.wsm") and not self.summary:
                     self.scedir = dpath.replace("\\", "/")
                     self.summary = xml2etree(path)
                     continue
@@ -439,21 +439,22 @@ class ScenarioData(SystemData):
                     id = wdata.id
                     name = wdata.name
 
-                if dpath.endswith("Area") or fname.startswith("Area"):
+                ldpath = dpath.lower()
+                if ldpath.endswith("area") or lf.startswith("area"):
                     self.areas[id] = (name, path)
-                elif dpath.endswith("Battle") or fname.startswith("Battle"):
+                elif ldpath.endswith("battle") or lf.startswith("battle"):
                     self.battles[id] = (name, path)
-                elif dpath.endswith("Package") or fname.startswith("Package"):
+                elif ldpath.endswith("package") or lf.startswith("package"):
                     self.packs[id] = (name, path)
-                elif dpath.endswith("CastCard") or fname.startswith("Mate"):
+                elif ldpath.endswith("castcard") or lf.startswith("mate"):
                     self.casts[id] = (name, path)
-                elif dpath.endswith("InfoCard") or fname.startswith("Info"):
+                elif ldpath.endswith("infocard") or lf.startswith("info"):
                     self.infos[id] = (name, path)
-                elif dpath.endswith("ItemCard") or fname.startswith("Item"):
+                elif ldpath.endswith("itemcard") or lf.startswith("item"):
                     self.items[id] = (name, path)
-                elif dpath.endswith("SkillCard") or fname.startswith("Skill"):
+                elif ldpath.endswith("skillcard") or lf.startswith("skill"):
                     self.skills[id] = (name, path)
-                elif dpath.endswith("BeastCard") or fname.startswith("Beast"):
+                elif ldpath.endswith("beastcard") or lf.startswith("beast"):
                     self.beasts[id] = (name, path)
 
         if not self.summary:

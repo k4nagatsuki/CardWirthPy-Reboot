@@ -64,7 +64,7 @@ class CWScenario(object):
             if os.path.isfile(path):
                 ext = cw.util.splitext(name)[1].lstrip(".").lower()
 
-                if name == "Summary.wsm" and not self.summarypath:
+                if name.lower() == "summary.wsm" and not self.summarypath:
                     self.summarypath = path
                     self.cwfiles.append(path)
                 elif ext == "wid":
