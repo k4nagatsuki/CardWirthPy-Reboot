@@ -570,6 +570,10 @@ class BranchStatusContent(BranchContent):
         # 対象メンバ取得
         targets = cw.cwpy.event.get_targetmember(targetm)
 
+        if targets is None:
+            # 対象が存在しない場合は無条件に失敗
+            return self.get_boolean_index(False)
+
         if not isinstance(targets, list):
             targets = [targets]
 
