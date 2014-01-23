@@ -734,9 +734,10 @@ class BranchCouponContent(BranchContent):
         selectedmember = None
 
         # BUG: CW1.28～1.50のバグ？：判定対象がないと否応なくTrue？
+        # 選択メンバで分岐した際に限り、全員隠蔽 = 選択メンバがいないと常に失敗
         # FIXME: 確実な仕様求ム
         if len(targets) == 0:
-            return self.get_boolean_index(True)
+            return self.get_boolean_index(scope <> "Selected")
 
         for target in targets:
             if not isinstance(target, list):
