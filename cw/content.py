@@ -728,14 +728,15 @@ class BranchCouponContent(BranchContent):
             someone = True
             unreversed = True
 
-        # 「：Ｒ」での分岐なら隠蔽PCも対象
-        if coupon == u"：Ｒ":
-            unreversed = False
-
         # 所持判定
         targets = cw.cwpy.event.get_targetscope(scope, unreversed)
         flag = False
         selectedmember = None
+
+        # BUG: CW1.28～1.50のバグ？：判定対象がないと否応なくTrue？
+        # FIXME: 確実な仕様求ム
+        if len(targets) == 0:
+            return self.get_boolean_index(True)
 
         for target in targets:
             if not isinstance(target, list):
