@@ -726,7 +726,7 @@ class BranchCouponContent(BranchContent):
             unreversed = True
         else:
             someone = True
-            unreversed = True
+            unreversed = False
 
         # 所持判定
         targets = cw.cwpy.event.get_targetscope(scope, unreversed)
