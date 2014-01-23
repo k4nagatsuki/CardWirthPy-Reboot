@@ -728,6 +728,10 @@ class BranchCouponContent(BranchContent):
             someone = True
             unreversed = True
 
+        # 「：Ｒ」での分岐なら隠蔽PCも対象
+        if coupon == u"：Ｒ":
+            unreversed = False
+
         # 所持判定
         targets = cw.cwpy.event.get_targetscope(scope, unreversed)
         flag = False
