@@ -240,8 +240,8 @@ class Deck(object):
         if header in self.hand and not header.type == "ItemCard" and\
                 not (header.type == "ActionCard" and header.id == 0):
             self.hand.remove(header)
-            if header.type == "ActionCard":
-                self.talon.append(header)
+            if header.type == "ActionCard" and 0 <= header.id:
+                self.talon.insert(0, header)
 
 def main():
     pass
