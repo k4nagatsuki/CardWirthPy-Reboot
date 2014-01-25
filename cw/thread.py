@@ -1741,7 +1741,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             for card in self.get_pcards():
                 card.inusecardimg = None
-            for card in self.get_ecards():
+            for card in self.get_mcards():
                 card.inusecardimg = None
 
             for card in self.inusecards:
