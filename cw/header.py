@@ -973,8 +973,7 @@ class ScenarioHeader(object):
             if self.image:
                 with io.BytesIO(str(self.image)) as f:
                     # TODO scaleinfo
-                    image = wx.ImageFromStream(f)
-                self._wxbmp = cw.s((cw.util.load_wxbmp(image=image, mask=mask), cw.SIZE_CARDIMAGE))
+                    self._wxbmp = cw.s((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE))
             else:
                 self._wxbmp = wx.EmptyBitmap(cw.s(0), cw.s(0))
         return self._wxbmp
