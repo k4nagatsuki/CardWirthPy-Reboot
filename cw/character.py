@@ -577,13 +577,18 @@ class Character(object):
                     # 戦闘勝利チェック
                     if cw.cwpy.battle.check_win():
                         raise cw.battle.BattleWinError()
+        
+                    # 手札カードの使用
+                    if isinstance(self, cw.sprite.card.FriendCard):
+                        ishidden = self._vanished
+                    else:
+                        ishidden = self.status == "hidden"
 
                     # カードの効果で行動が変わっている可能性がある
                     if not self.actiondata or ishidden or self.status == "reversed":
                         break
 
-            # 手札カードの使用
-            if self.actiondata:
+            if self.is_alive() and not ishidden and self.status <> "reversed" and self.actiondata:
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status <> "reversed":
                     self.deck.use(header)
