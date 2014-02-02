@@ -577,8 +577,7 @@ class Character(object):
                     # 戦闘勝利チェック
                     if cw.cwpy.battle.check_win():
                         raise cw.battle.BattleWinError()
-        
-                    # 手札カードの使用
+
                     if isinstance(self, cw.sprite.card.FriendCard):
                         ishidden = self._vanished
                     else:
