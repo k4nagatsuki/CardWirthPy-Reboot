@@ -587,6 +587,7 @@ class Character(object):
                     if not self.actiondata or ishidden or self.status == "reversed":
                         break
 
+            # 手札カードの使用
             if self.is_alive() and not ishidden and self.status <> "reversed" and self.actiondata:
                 targets, header, beasts = self.actiondata
                 if header and self.is_active() and not ishidden and self.status <> "reversed":
