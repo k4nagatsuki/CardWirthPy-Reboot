@@ -277,12 +277,12 @@ class CardHeader(object):
 
         if limitper == 100:
             value = 4
-        elif 100 > limitper >=  66:
-            value = 3
-        elif 66 > limitper >= 33:
-            value = 2
-        elif 33 > limitper > 0:
+        elif limit == 1: # MAX状態以外で残り1回なら
             value = 1
+        elif limitper > 50:
+            value = 3
+        elif 50 >= limitper > 0:
+            value = 2
         elif limitper ==   0:
             value = 0
 
