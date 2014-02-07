@@ -111,7 +111,13 @@ class MessageWindow(base.CWPySprite):
         if self.talker_image_noscale:
             self.talker_image = cw.s(self.talker_image_noscale)
         elif self.path:
-            self.talker_image_noscale = cw.util.load_image(self.path, True)
+            path = self.path
+            if not cw.binary.image.path_is_code(self.path):
+                lpath = path.lower()
+                if lpath.startswith(cw.cwpy.yadodir.lower()) or\
+                        lpath.startswith(cw.cwpy.tempdir.lower()):
+                    path = cw.util.get_yadofilepath(path)
+            self.talker_image_noscale = cw.util.load_image(path, True)
             # TODO scaleinfo
             self.talker_image = cw.s((self.talker_image_noscale, cw.SIZE_CARDIMAGE))
         else:
