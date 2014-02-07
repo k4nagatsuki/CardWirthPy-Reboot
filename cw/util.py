@@ -1469,6 +1469,32 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
     parent.Bind(wx.EVT_BUTTON, OnOpen, button)
     return button
 
+class CWPyStaticBitmap(wx.Panel):
+    """wx.StaticBitmapはアルファチャンネル付きの画像を
+    正しく表示できない場合があるので代替する。
+    """
+    def __init__(self, parent, id, bmp, size=None):
+        if not size and bmp:
+            s = bmp.GetSize()
+            size = (s[0], s[1])
+        wx.Panel.__init__(self, parent, id, size=size)
+        self.bmp = bmp
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(self.bmp, 0, 0, True)
+
+    def SetBitmap(self, bmp):
+        self.bmp = bmp
+        self.Refresh()
+
+    def GetBitmap(self, bmp):
+        return self.bmp
+
 #-------------------------------------------------------------------------------
 #  スレッド関係
 #-------------------------------------------------------------------------------

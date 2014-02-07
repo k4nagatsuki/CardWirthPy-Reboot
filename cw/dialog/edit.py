@@ -130,9 +130,9 @@ class MoneyEditPanel(wx.Panel):
         self.spinctrl2.SetValue(cw.cwpy.ydata.money)
         # bmp
         bmp = cw.cwpy.rsrc.dialogs["MONEYP"]
-        self.bmp_pmoney = wx.StaticBitmap(self, -1, bmp)
+        self.bmp_pmoney = cw.util.CWPyStaticBitmap(self, -1, bmp)
         bmp = cw.cwpy.rsrc.dialogs["MONEYY"]
-        self.bmp_ymoney = wx.StaticBitmap(self, -1, bmp)
+        self.bmp_ymoney = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # text
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
         font = cw.cwpy.rsrc.get_wxfont(size=cw.s(8), weight=wx.NORMAL)
@@ -203,7 +203,7 @@ class MoneyViewPanel(wx.Panel):
         self.value = party.money
         # bmp
         bmp = cw.cwpy.rsrc.dialogs["MONEYP"]
-        self.bmp_pmoney = wx.StaticBitmap(self, -1, bmp)
+        self.bmp_pmoney = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # text
         self.text_pmoney = wx.StaticText(self, -1, str(self.value),
                                         size=(cw.s(88), -1), style=wx.SUNKEN_BORDER)

@@ -20,7 +20,7 @@ class AdventurerDataComp(wx.Dialog):
         self.age = cw.cwpy.setting.periodcoupons[0]
         # 画像
         bmp = cw.s((cw.util.load_wxbmp(ccard.imgpath, True), cw.SIZE_CARDIMAGE))
-        self.bmp = wx.StaticBitmap(self, -1, bmp)
+        self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
         s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
