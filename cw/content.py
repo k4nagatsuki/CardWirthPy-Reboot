@@ -1239,8 +1239,8 @@ class CallStartContent(EventContentBase):
         trees = cw.cwpy.event.get_trees()
 
         if startname in trees:
-            next = self.data.find("Contents")
-            if 0 < len(next):
+            event = cw.cwpy.event.get_event()
+            if event.nowrunningcontents or 0 < len(self.data.find("Contents")):
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
                     cw.cwpy.sounds["error"].play()
                     s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
@@ -1265,8 +1265,8 @@ class CallPackageContent(EventContentBase):
         パッケージのツリーイベントをコールする。
         """
         id = self.data.getint(".", "call", 0)
-        next = self.data.find("Contents")
-        call_package(id, 0 < len(next))
+        event = cw.cwpy.event.get_event()
+        call_package(id, event.nowrunningcontents or 0 < len(self.data.find("Contents")))
         return 0
 
     def get_status(self):
