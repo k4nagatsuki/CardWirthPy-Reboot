@@ -1878,7 +1878,8 @@ class LinkPackageContent(EventContentBase):
     def action(self):
         """パッケージのツリーイベントに移動する。"""
         id = self.data.getint(".", "link", 0)
-        call_package(id, False)
+        event = cw.cwpy.event.get_event()
+        call_package(id, not event.nowrunningcontents is None)
         return 0
 
     def get_status(self):
