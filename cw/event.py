@@ -365,11 +365,13 @@ class EventEngine(object):
         """
         self.events = [Event(e) for e in data.getchildren()]
 
-    def start(self, keynum=None, keycodes=[]):
+    def start(self, keynum=None, keycodes=[], isinsideevent=False):
         """発火条件に適合するイベント
         (リストのindexが若いほど優先順位が高い)を起動させる。
         keynum: 発火キーナンバー。
         keycodes: 発火キーコードのリスト。
+        isinsideevent: 一連のイベント処理の内側にあるイベントであればTrue。
+        Trueの場合はイベントフロー例外をキャッチせず伝播させる。
         """
         if keycodes:
             event = self.check_keycodes(keycodes)
@@ -390,7 +392,7 @@ class EventEngine(object):
                 cw.cwpy.clear_selection()
 
             # イベント実行
-            if cw.cwpy.event.get_event():
+            if cw.cwpy.event.get_event() or isinsideevent:
                 event.run()
             else:
                 event.start()
@@ -808,16 +810,16 @@ class CardEvent(Event):
 
     def run_areaevent(self):
         keycodes = self.inusecard.get_keycodes()
-        cw.cwpy.sdata.events.start(keycodes=keycodes)
+        cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
 
     def run_enemyevent(self, target, can_unconscious):
         if isinstance(target, Enemy) and (can_unconscious or not (target.is_dead() or target.is_vanished())):
             keycodes = self.inusecard.get_keycodes()
-            target.events.start(keycodes=keycodes)
+            target.events.start(keycodes=keycodes, isinsideevent=True)
 
     def run_deadevent(self, target):
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
-            target.events.start(1)
+            target.events.start(1, isinsideevent=True)
 
     def run_successevent(self, target, successflag, can_unconscious):
         if isinstance(target, Enemy) and (can_unconscious or not (target.is_dead() or target.is_vanished())):
@@ -829,7 +831,7 @@ class CardEvent(Event):
                     else:
                         keycodes.append(keycode + u"×")
 
-            target.events.start(keycodes=keycodes)
+            target.events.start(keycodes=keycodes, isinsideevent=True)
 
     def effect_cardmotion(self):
         """カード効果発動。イベント実行の最後に行う。"""
