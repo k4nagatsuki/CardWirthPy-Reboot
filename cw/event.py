@@ -27,6 +27,9 @@ class EventInterface(object):
         # イベント実行中に操作を受け付けるためのタイマ
         self.eventtimer = 1
 
+        # カードイベントの実行中はTrue
+        self.in_cardevent = False
+
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
         try:
@@ -42,26 +45,52 @@ class EventInterface(object):
         self._nowrunningevents.remove(event)
 
     def append_event(self, event):
+        if cw.LIMIT_RECURSE <= self.get_currentstack():
+            cw.cwpy.sounds["error"].play()
+            s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
+            cw.cwpy.call_modaldlg("MESSAGE", text=s)
+            raise cw.event.EffectBreakError()
+
         self._nowrunningevents.append(event)
 
         if len(self._nowrunningevents) == 1:
             self.refresh_tools()
+
+    def replace_event(self, event):
+        """パッケージへのリンクによって
+        実行中のイベントを置換する。
+        """
+        self._nowrunningevents[-1].copy_from(event)
 
     def clear_events(self):
         self._nowrunningevents = []
 
     def get_event(self):
         """現在起動中のEventを返す。"""
-        try:
-            return self._nowrunningevents[-1]
-        except:
+        if self._nowrunningevents:
+            return self._nowrunningevents[0]
+        else:
             return None
 
     def get_events(self):
         return self._nowrunningevents
 
     def get_currentstack(self):
-        return len(self._nowrunningevents) - 1 + len(self._nowrunningevents[-1].nowrunningcontents)
+        if not self._nowrunningevents:
+            return 0
+        return len(self._nowrunningevents) - 1 + len(self.get_event().nowrunningcontents)
+
+    def get_trees(self):
+        if self._nowrunningevents:
+            return self._nowrunningevents[-1].trees
+        else:
+            return None
+
+    def get_treekeys(self):
+        if self._nowrunningevents:
+            return self._nowrunningevents[-1].treekeys
+        else:
+            return []
 
     def clear(self):
         self.set_inusecard(None)
@@ -220,6 +249,13 @@ class EventInterface(object):
             func = dbg.refresh_tools
             cw.cwpy.frame.exec_func(func)
 
+    def refresh_showpartytools(self):
+        """デバッガのツールのうち、パーティ表示に関するものを更新する。"""
+        dbg = cw.cwpy.frame.debugger
+        if cw.cwpy.is_showingdebugger():
+            func = dbg.refresh_showpartytools
+            cw.cwpy.frame.exec_func(func)
+
     def refresh_variablelist(self):
         """デバッガの状態変数のリストを更新する。"""
         dbg = cw.cwpy.frame.debugger
@@ -261,9 +297,9 @@ class EventInterface(object):
         """デバッガのイベントコントロールバーで指定した分だけ、
         イベントの実行を待機する。
         """
-        if not self._nowrunningevents:
+        if not self.get_event():
             return
-        cur_content= self._nowrunningevents[-1].cur_content
+        cur_content= self.get_event().cur_content
         if cur_content.tag == "Talk":
             # メッセージの場合は表示後に待機するので
             # ここでは待ち合わせない
@@ -289,7 +325,7 @@ class EventInterface(object):
             tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                         pygame.time.get_ticks() < tick:
-                if not self._nowrunningevents[-1].force_nextcontent is None:
+                if not self.get_event().force_nextcontent is None:
                     break
                 self.refresh_activeitem()
                 cw.cwpy.input()
@@ -301,7 +337,7 @@ class EventInterface(object):
                                             self._paused and not self._stoped:
                 if 0 <= self._targetstack and self._targetstack < self.get_currentstack():
                     break
-                if not self._nowrunningevents[-1].force_nextcontent is None:
+                if not self.get_event().force_nextcontent is None:
                     break
                 self.refresh_activeitem()
                 cw.cwpy.input()
@@ -312,14 +348,14 @@ class EventInterface(object):
                 raise EffectBreakError()
 
     def set_curcontent(self, content):
-        if not self._nowrunningevents:
+        if not self.get_event():
             return
-        self._nowrunningevents[-1].force_nextcontent = content
+        self.get_event().force_nextcontent = content
         mwin = cw.cwpy.get_messagewindow()
         if mwin:
             mwin.result = 0
         else:
-            self._nowrunningevents[-1].skip_action = True
+            self.get_event().skip_action = True
             self.refresh_activeitem()
 
 class EventEngine(object):
@@ -354,7 +390,7 @@ class EventEngine(object):
                 cw.cwpy.clear_selection()
 
             # イベント実行
-            if cw.cwpy.event._nowrunningevents:
+            if cw.cwpy.event.get_event():
                 event.run()
             else:
                 event.start()
@@ -437,6 +473,7 @@ class EffectBreakError(EventError):
 
 class Event(object):
     def __init__(self, event):
+        self.base = None
         self.inusecard = None
         # 次の子コンテンツインデックス。Contentの戻り値で設定される。
         self.index = 0
@@ -446,6 +483,8 @@ class Event(object):
         self.trees = {}
         self.treekeys = []
         self.starttree = self.cur_content = None
+        # (パッケージ, 呼出前のcur_content, 呼出前のversionhint)
+        # パッケージがNoneならスタートの呼び出し
         self.nowrunningcontents = []
         # 発火条件(数字)
         self.keynums = []
@@ -482,6 +521,21 @@ class Event(object):
         self.force_nextcontent = None
         self.skip_action = False
 
+    def copy_from(self, event):
+        """実行中の処理をパッケージのイベントに差し替えるため、
+        eventの情報をこのEventへコピーする。
+        """
+        # イベント終了時に元に戻すため、元のデータを保存
+        if not self.base:
+            self.base = Event(None)
+            self.base._copy_from(self)
+        self._copy_from(event)
+
+    def _copy_from(self, event):
+        self.trees = event.trees
+        self.treekeys = event.treekeys
+        self.starttree = event.starttree
+
     def start(self):
         try:
             showbuttons = not cw.cwpy.is_playingscenario() or\
@@ -511,31 +565,40 @@ class Event(object):
             cw.cwpy.event.remove_event(event)
             event.clear()
 
-    def run(self, restart=False, perf=False):
+    def run(self, perf=False):
         """イベント実行。子コンテンツを順番に実行する。
-        restart: スタートコールコンテントを呼んだところから再開時、True。
+        実行対象のイベントコンテント・イベントツリーは
+        このイベントに属すものではない事がある。
+        例えばパッケージのコール中は、実行の流れをrun()
+        からは出さないまま、実行するイベントツリーのみを
+        当該パッケージのものに置換する。
+        これは不自然だが、際限の無い再帰を避けるために
+        必要な処置である。
         """
-        if not restart:
-            cw.cwpy.event.append_event(self)
+        cw.cwpy.event.append_event(self)
 
-        self.index = 0
-        nextcontents = self.get_nextcontents()
-
-        while cw.cwpy.is_running() and nextcontents and not self.index < 0:
-            if len(nextcontents) <= self.index:
-                # デバッガによって処理フローが変わった場合
-                self.index = 0
-            self.cur_content = nextcontents[self.index]
-            cw.cwpy.event.wait()
-            self.action()
+        while True:
+            self.index = 0
             nextcontents = self.get_nextcontents()
-
-        # スタートコールコンテントを呼んでいた場合、呼んだところから再開
-        if self.nowrunningcontents:
-            self.cur_content = self.nowrunningcontents.pop()
-            self.run(True)
-        else:
-            self.run_exit()
+    
+            while cw.cwpy.is_running() and nextcontents and not self.index < 0:
+                if len(nextcontents) <= self.index:
+                    # デバッガによって処理フローが変わった場合
+                    self.index = 0
+                self.cur_content = nextcontents[self.index]
+                cw.cwpy.event.wait()
+                self.action()
+                nextcontents = self.get_nextcontents()
+    
+            # コールコンテントを呼んでいた場合、呼んだところから再開
+            if self.nowrunningcontents:
+                packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
+                if packevent:
+                    packevent.run_exit()
+                    cw.cwpy.sdata.versionhint[cw.HINT_AREA] = versionhint
+            else:
+                self.run_exit()
+                break
 
     def run_exit(self):
         cw.cwpy.event.pop_event()
@@ -543,6 +606,11 @@ class Event(object):
 
     def end(self):
         """共通終了処理。"""
+        if self.base:
+            self._copy_from(self.base)
+            self.clear()
+            self.base = None
+
         if not (isinstance(self.error, AreaChangeError) or\
                 isinstance(self.error, ScenarioBadEndError)) and\
                 cw.cwpy.status <> "Title":
@@ -686,18 +754,23 @@ class CardEvent(Event):
         """イベント実行の最後に行う終了処理。
         カード効果発動・効果中断コンテントに対応。
         """
-        if cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
-
-        # エリアのキーコードイベント
-        if isinstance(self.user, cw.sprite.card.PlayerCard):
-            self.run_areaevent()
-
-        # カード効果
-        self.effect_cardmotion()
-
         # イベント終了
-        Event.run_exit(self)
+        cw.cwpy.event.in_cardevent = True
+        try:
+            Event.run_exit(self)
+    
+            if cw.cwpy.is_playingscenario():
+                cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
+    
+            # エリアのキーコードイベント
+            if isinstance(self.user, cw.sprite.card.PlayerCard):
+                self.run_areaevent()
+    
+            # カード効果
+            self.effect_cardmotion()
+
+        finally:
+            cw.cwpy.event.in_cardevent = False
 
     def end(self):
         if cw.cwpy.is_playingscenario():

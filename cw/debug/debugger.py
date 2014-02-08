@@ -712,16 +712,7 @@ class Debugger(wx.Frame):
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clean_specials)
                 id = seq[dlg.GetSelection()][0]
-                path = cw.cwpy.sdata.packs[id][1]
-                data = cw.data.xml2element(path)
-                e = data.find("Events")
-                engine = cw.event.EventEngine(e)
-                engine.versionhint = data.getattr("Property", "versionHint", "")
-
-                if engine.events:
-                    cw.cwpy.event.nowrunningpacks[id] = (e, engine.versionhint)
-                    func = engine.events[0].start
-                    cw.cwpy.exec_func(func)
+                cw.cwpy.exec_func(cw.content.call_package, id, False)
 
             dlg.Destroy()
 
@@ -1094,6 +1085,29 @@ class Debugger(wx.Frame):
         self.tb_event.Realize()
         self._mgr.Update()
 
+    def refresh_showpartytools(self):
+        if cw.cwpy.frame.debugger is None:
+            return
+        self._refresh_showpartytools()
+
+    def _refresh_showpartytools(self):
+        self.mi_showparty.Enable(False)
+        self.tl_showparty.Enable(False)
+        self.mi_hideparty.Enable(False)
+        self.tl_hideparty.Enable(False)
+
+        if cw.cwpy.is_playingscenario():
+            if cw.cwpy.is_runningevent():
+                if cw.cwpy.is_showparty:
+                    self.mi_hideparty.Enable(True)
+                    self.tl_hideparty.Enable(True)
+                else:
+                    self.mi_showparty.Enable(True)
+                    self.tl_showparty.Enable(True)
+
+        self.tb_select.Realize()
+        self._mgr.Update()
+
 class VariableListCtrl(wx.ListCtrl):
     def __init__(self, parent):
         wx.ListCtrl.__init__(
@@ -1277,9 +1291,10 @@ class EventTreeCtrl(wx.TreeCtrl):
         if cw.cwpy.frame.debugger is None:
             return
         event = cw.cwpy.event.get_event()
+        trees = cw.cwpy.event.get_trees()
 
-        if self.current_tree <> event:
-            self.current_tree = event
+        if self.current_tree <> trees:
+            self.current_tree = trees
             self.Parent.statusbar.SetStatusText("", 1)
             self.activeitem = None
             self.items = {}
@@ -1289,8 +1304,8 @@ class EventTreeCtrl(wx.TreeCtrl):
                 root = self.AddRoot("Event Root")
                 self.SetPyData(root, None)
 
-                for name in self.current_tree.treekeys:
-                    tree = self.current_tree.trees[name]
+                for name in cw.cwpy.event.get_treekeys():
+                    tree = trees[name]
                     self.set_content(root, tree, name)
 
             self.ExpandAll()
