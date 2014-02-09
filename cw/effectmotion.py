@@ -94,7 +94,7 @@ class Effect(object):
                                                             for e in motions]
 
     def apply(self, target, event=False):
-        if isinstance(target, Character) and self.check_enabledtarget(target):
+        if isinstance(target, Character) and self.check_enabledtarget(target, event):
             return self.apply_charactercard(target, event=event)
         elif isinstance(target, cw.sprite.card.MenuCard):
             return self.apply_menucard(target)
@@ -125,6 +125,10 @@ class Effect(object):
         """
         Characterインスタンスに効果モーションを適用する。
         """
+        # 反転状態だったら処理中止
+        if not event and target.is_reversed():
+            return
+
         if target.is_unconscious() and not self.has_motions(CAN_UNCONSCIOUS):
             return
 
@@ -349,17 +353,18 @@ class Effect(object):
             if cw.cwpy.has_sound(self.soundpath):
                 cw.cwpy.wait_frame(12)
 
-    def check_enabledtarget(self, target):
+    def check_enabledtarget(self, target, event=False):
         """
-        表示されていないか(敵のみ)、対象消去されている場合は
-        有効なターゲットではない。
+        表示されていないか(敵のみ)、対象消去されている場合、
+        反転している場合(イベント除く)は有効なターゲットではない。
         """
         if target.status == "hidden" and\
                 not isinstance(target, cw.sprite.card.PlayerCard) and\
                 not isinstance(target, cw.sprite.card.FriendCard):
             return False
         elif isinstance(target, Character):
-            flag  = bool(not target.is_vanished())
+            flag = bool(not target.is_vanished())
+            flag &= event or not target.is_reversed()
             return flag
         else:
             return True

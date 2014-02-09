@@ -857,7 +857,7 @@ class CardEvent(Event):
 
         # ターゲット色反転＆ウェイト
         if len(self.targets) == 1:
-            if eff.check_enabledtarget(self.targets[0]):
+            if eff.check_enabledtarget(self.targets[0], False):
                 self.targets[0].set_cardtarget()
                 cw.cwpy.draw()
                 waitrate = cw.cwpy.setting.dealspeed * 2
@@ -870,7 +870,7 @@ class CardEvent(Event):
             targets = []
 
             for target in self.targets:
-                if eff.check_enabledtarget(target):
+                if eff.check_enabledtarget(target, False):
                     target.set_cardtarget()
                     cw.cwpy.draw()
                     cw.cwpy.play_sound(path)
