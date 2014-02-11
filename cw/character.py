@@ -655,31 +655,29 @@ class Character(object):
     #　判定用
     #---------------------------------------------------------------------------
 
-    def decide_outcome(self, level, vocation, thresholdbonus=4, subbonus=0):
+    def decide_outcome(self, level, vocation, thresholdbonus=3, enhance=0, subbonus=0):
         """
         行為判定を行う。成功ならTrue。失敗ならFalseを返す。
         level: 判定レベル。
         vocation: 適性データ。(身体適性名, 精神適性名)のタプル。
-        thresholdbonus: アクション元の適性値+行動力強化値。効果コンテントだと4。
-        subbonus: 各種判定のサブボーナス(回避判定なら回避力強化値をあてる等)。
+        thresholdbonus: アクション元の適性値+行動力強化値。効果コンテントだと3。
+        enhance: 回避・抵抗判定の場合はボーナス値。
+        subbonus: 各種判定のサブボーナス(現在は成功率修正のみ)。
         """
         dice = cw.cwpy.dice.roll(2)
-
         if dice == 12:
             return True
         elif dice == 2:
             return False
 
-        bonus = self.get_bonus(vocation) + subbonus
-        bonus = bonus / 2 + bonus % 2
-        n = dice + self.level + bonus
-        thresholdbonus = thresholdbonus / 2 + thresholdbonus % 2
-        threshold = cw.cwpy.dice.roll(2) + level + thresholdbonus
+        udice = cw.cwpy.dice.roll(2)
+        tdice = cw.cwpy.dice.roll(2)
 
-        if n > threshold:
-            return True
-        else:
-            return False
+        thresholdbonus = int(thresholdbonus + subbonus * 2)
+        bonus = int(self.get_vocation_val(vocation) + enhance)
+        uvalue = (thresholdbonus+1) / 2 + level + udice
+        tvalue = (bonus+1) / 2 + self.level + tdice
+        return uvalue < tvalue
 
     def decide_misfire(self, level):
         """

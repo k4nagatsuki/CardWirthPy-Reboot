@@ -275,12 +275,11 @@ class Effect(object):
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation)
             else:
-                userbonus = 4
+                userbonus = 3
 
             vocation = ("agl", "cautious")
-            subbonus = targetbonus - self.successrate
             level = self.user.level if self.user else self.level
-            return target.decide_outcome(level, vocation, userbonus, subbonus)
+            return target.decide_outcome(level, vocation, userbonus, targetbonus, self.successrate)
 
         return False
 
@@ -296,12 +295,11 @@ class Effect(object):
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation)
             else:
-                userbonus = 4
+                userbonus = 3
 
             vocation = ("min", "brave")
-            subbonus = targetbonus - self.successrate
             level = self.user.level if self.user else self.level
-            return target.decide_outcome(level, vocation, userbonus, subbonus)
+            return target.decide_outcome(level, vocation, userbonus, targetbonus, self.successrate)
 
         return False
 
@@ -524,7 +522,7 @@ class EffectMotion(object):
             return 0
         elif enhance_def <= -10:
             return value * 4
-        return max(1, (value * (10 - enhance_def)) / 10)
+        return max(1, (value * (100 - enhance_def * 10)) / 100)
 
     def is_noeffect(self, target):
         """
