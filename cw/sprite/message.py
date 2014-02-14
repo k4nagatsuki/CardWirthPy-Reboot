@@ -275,7 +275,8 @@ class MessageWindow(base.CWPySprite):
                     charimg, userfont = specialchars[chars]
 
                     if userfont:
-                        images.append((pos, charimg, None))
+                        # TODO scaleinfo
+                        images.append((pos, cw.s(charimg), None))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
                         continue
@@ -285,7 +286,7 @@ class MessageWindow(base.CWPySprite):
                     image.fill(colour)
                     image.blit(charimg, (0, 0))
                     image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
-                    images.append((pos, image, None))
+                    images.append((pos, cw.s((image, cw.setting.SIZE_SPFONT)), None))
                     pos = pos[0] + cw.s(20), pos[1]
                     skip = True
                     continue

@@ -221,10 +221,12 @@ class CharacterCardImage(CardImage):
         # フォント画像(レベル)
         self.set_levelimg(self.ccard.level)
         # ライフバー画像
-        self.lifeimg = pygame.Surface(cw.s((79, 13))).convert()
-        self.lifeguage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
+        guagesize = cw.setting.SIZE_RESOURCES["Status/LIFEGUAGE"]
+        self.lifeimg = pygame.Surface(guagesize).convert()
+        guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
+        self.lifeguage = guage
         self.lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
-        self.lifeimg.set_colorkey(self.lifeguage.get_at((0, 0)), RLEACCEL)
+        self.lifeimg.set_colorkey(guage.get_at((0, 0)), RLEACCEL)
         # rect
         self.rect = pygame.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
 
@@ -287,10 +289,11 @@ class CharacterCardImage(CardImage):
 
         # ライフ
         if ccard.is_analyzable():
+            guagesize = cw.setting.SIZE_RESOURCES["Status/LIFEGUAGE"]
             lifeper = ccard.get_lifeper()
-            self.lifeimg.blit(self.lifebar, cw.s((int(0.79 * (lifeper - 100)), 1)))
-            self.lifeimg.blit(self.lifeguage, cw.s((0, 0)))
-            self.image.blit(self.lifeimg, cw.s((9, 111)))
+            self.lifeimg.blit(self.lifebar, (int(0.79 * (lifeper - 100)), 1))
+            self.lifeimg.blit(self.lifeguage, (0, 0))
+            self.image.blit(cw.s((self.lifeimg, guagesize)), cw.s((9, 111)))
 
         # ステータス画像追加
         self.update_statusimg(ccard)

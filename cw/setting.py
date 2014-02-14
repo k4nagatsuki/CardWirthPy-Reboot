@@ -600,16 +600,23 @@ class Resource(object):
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
         d = self.get_resources(func, dpath, self.ext_img)
 
-        for img in (("LIFEGUAGE", "center"), ("TARGET", "right")):
-            name = img[0]
-            path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.s((cw.util.load_image(path, mask=True, maskpos=img[1]), get_resourcesize(path)))
-
         for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
             path = cw.util.join_paths(dpath, name + self.ext_img)
             bmp = cw.util.load_image(path, mask=True, maskpos=(1, 1))
             d[name + "_dbg"] = bmp
             d[name] = cw.s((bmp, get_resourcesize(path)))
+
+        name = "TARGET"
+        path = cw.util.join_paths(dpath, name + self.ext_img)
+        d[name] = cw.s((cw.util.load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
+
+        name = "LIFEGUAGE"
+        path = cw.util.join_paths(dpath, name + self.ext_img)
+        d[name] = cw.util.load_image(path, mask=True, maskpos="center")
+
+        name = "LIFEBAR"
+        path = cw.util.join_paths(dpath, name + self.ext_img)
+        d[name] = cw.util.load_image(path)
 
         return d
 
@@ -725,7 +732,7 @@ class Resource(object):
 
             if fname.endswith(ext) and fname in ndict:
                 name = ndict[fname]
-                image = cw.s((cw.util.load_image(fpath), SIZE_SPFONT))
+                image = cw.util.load_image(fpath)
                 image.set_colorkey((255, 255, 255))
                 d[name] = image, False
 
