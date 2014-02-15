@@ -1221,6 +1221,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
 
         if r_spchar:
             if skip:
+                seq.append(char)
                 skip = False
                 continue
 
@@ -1230,12 +1231,13 @@ def txtwrap(s, mode, width=30, wrapschars=""):
                 if not chars.startswith("#") or\
                    not chars[:2].lower() in cw.cwpy.rsrc.specialchars or\
                    cw.cwpy.rsrc.specialchars[chars[:2].lower()][1]:
-                    seq.append(chars)
+                    seq.append(char)
                     skip = True
                     continue
                 spchar = True
                 if not chars.startswith("&"):
                     wrapafter = False
+                    skip = True
 
         # 行頭禁止文字
         if cnt == 0 and not wraped and r_wchar and r_wchar.match(char):
