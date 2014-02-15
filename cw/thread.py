@@ -32,6 +32,7 @@ class CWPy(_Singleton, threading.Thread):
     def __init__(self, setting, frame=None):
         if frame and not hasattr(self, "frame"):
             threading.Thread.__init__(self)
+            self.rsrc = None
             self.frame = frame   # 親フレーム
             self.sct = cw.setting.ScenarioCompatibilityTable() # 互換性データベース
             self._running = False
@@ -147,6 +148,7 @@ class CWPy(_Singleton, threading.Thread):
         try:
             """スキンが関わるリソースの初期化"""
             # リソース(辞書)
+            rsrc = self.rsrc
             self.rsrc = cw.setting.Resource(self.setting)
             # システム効果音(辞書)
             self.sounds = self.rsrc.sounds
@@ -155,7 +157,11 @@ class CWPy(_Singleton, threading.Thread):
             # システムメッセージ(辞書)
             self.msgs = self.rsrc.msgs
             # アクションカードのデータ(CardHeader)
-            self.rsrc.actioncards = self.rsrc.get_actioncards()
+            # スケールのみの変更ではリセットしない
+            if rsrc:
+                self.rsrc.actioncards = rsrc.actioncards
+            else:
+                self.rsrc.actioncards = self.rsrc.get_actioncards()
             # 背景スプライト
             if self.background:
                 self.background.update_scale()
@@ -220,6 +226,7 @@ class CWPy(_Singleton, threading.Thread):
             self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
             self.deal_cards()
 
+        self.rsrc = None
         self.update_scale(cw.UP_SCR, changearea)
 
         if self.is_battlestatus():
