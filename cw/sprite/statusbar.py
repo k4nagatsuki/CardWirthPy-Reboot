@@ -120,9 +120,9 @@ class StatusBarPanel(base.CWPySprite):
         size = rect.size
         rect.topleft = cw.s((1, 1))
         rect.size = (size[0] - cw.s(2), size[1] - cw.s(2))
+        self.panelimg.fill(color, rect)
         if self.icon:
             self.panelimg.blit(self.icon, cw.s((3, 3)))
-        self.panelimg.fill(color, rect)
 
 class YadoMoneyPanel(StatusBarPanel):
     def __init__(self, parent, pos):
