@@ -42,6 +42,7 @@ class MusicInterface(object):
     def __init__(self):
         self.path = ""
         self.fpath = ""
+        self.mastervolume = 100
         self._winmm = False
         self._bass = False
 
@@ -151,9 +152,11 @@ class MusicInterface(object):
         ext = cw.util.splitext(self.path)[1].lower()
 
         if ext == ".mid" or ext == ".midi":
-            return cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
+            volume = cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
         else:
-            return cw.cwpy.setting.vol_bgm
+            volume = cw.cwpy.setting.vol_bgm
+
+        return volume * self.mastervolume / 100
 
     def set_volume(self, volume=None):
         if threading.currentThread() <> cw.cwpy:
@@ -171,6 +174,14 @@ class MusicInterface(object):
             cw.bassplayer.set_bgmvolume(volume)
         else:
             pygame.mixer.music.set_volume(volume)
+
+    def set_mastervolume(self, volume):
+        if threading.currentThread() <> cw.cwpy:
+            cw.cwpy.exec_func(self.set_mastervolume, volume)
+            return
+
+        self.mastervolume = volume
+        self.set_volume()
 
     def get_path(self, path):
         inusepath = cw.util.get_inusecardmaterialpath(path)
