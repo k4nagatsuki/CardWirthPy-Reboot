@@ -561,6 +561,7 @@ class EditButton():
 class EditPanel(wx.Panel):
     def __init__(self, parent, list, ccard):
         wx.Panel.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
+        self._destroy = False
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
@@ -578,6 +579,10 @@ class EditPanel(wx.Panel):
         self.Bind(wx.EVT_MOTION, self.OnMove)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+    def OnDestroy(self, event):
+        self._destroy = True
 
     def OnLeftUp(self, event):
         for header in self.headers:
@@ -589,8 +594,11 @@ class EditPanel(wx.Panel):
                     dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        self.Parent.Parent.toppanel.draw(True)
-                        self.Parent.Parent.descpanel.draw(True)
+                        def func(panel):
+                            if panel:
+                                panel.Parent.Parent.toppanel.draw(True)
+                                panel.Parent.Parent.descpanel.draw(True)
+                        cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
                 else:
                     # レベルを調節する
@@ -602,8 +610,11 @@ class EditPanel(wx.Panel):
                     dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=self.selected, party=party)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
-                        self.update_charalist(list)
-                        self.Parent.Parent.toppanel.draw(True)
+                        def func(panel):
+                            if panel:
+                                panel.update_charalist(list)
+                                panel.Parent.Parent.toppanel.draw(True)
+                        cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
                 self.draw(True)
                 return
