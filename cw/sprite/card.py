@@ -754,7 +754,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.set_skillpower()
 
     def update(self, scr):
-        if not self._init:
+        if self.status <> "hidden" and not self._init:
             self.initialize()
         CWPyCard.update(self, scr)
 
