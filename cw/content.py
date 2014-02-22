@@ -1071,6 +1071,7 @@ class BranchRandomSelectContent(BranchContent):
                 targets.extend(cw.cwpy.event.get_targetscope(scope, False))
 
         # レベル・状態判定
+        targets2 = []
         selectedmember = None
         for target in targets:
             if status and not (hasattr(target, methodname) and getattr(target, methodname)()):
@@ -1080,8 +1081,9 @@ class BranchRandomSelectContent(BranchContent):
             if 0 < maxlevel and maxlevel < target.level:
                 continue
 
-            selectedmember = target
-            break
+            targets2.append(target)
+
+        selectedmember = cw.cwpy.dice.choice(targets2)
 
         # 選択設定
         if selectedmember:
