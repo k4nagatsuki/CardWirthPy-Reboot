@@ -604,8 +604,7 @@ class EditPanel(wx.Panel):
                     # レベルを調節する
                     cw.cwpy.sounds["click"].play()
                     list = self.get_charalist()
-                    if self.selected == -1:
-                        self.selected = list.index(self.ccard)
+                    self.selected = list.index(self.ccard)
                     party = self.Parent.Parent.party
                     dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=self.selected, party=party)
                     cw.cwpy.frame.move_dlg(dlg)
