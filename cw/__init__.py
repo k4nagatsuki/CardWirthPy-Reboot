@@ -34,13 +34,15 @@ import dialog
 import debug
 import sprite
 
-
 # CWPyThread
 cwpy = None
 
 # アプリケーション情報
 APP_VERSION = (0, 1, 2, 1)
 APP_NAME = "CardWirthPy"
+
+# コール系イベントの再期限界回数
+LIMIT_RECURSE = 1000000000
 
 # サイズ
 SIZE_SCR = (640, 480)

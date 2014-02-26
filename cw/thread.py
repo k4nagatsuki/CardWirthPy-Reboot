@@ -1237,7 +1237,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_showparty = True
         self.input(True)
-        self.event.refresh_tools()
+        self.event.refresh_showpartytools()
 
     def hide_party(self):
         """PlayerCardを非表示にする。"""
@@ -1249,7 +1249,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_showparty = False
         self.input(True)
-        self.event.refresh_tools()
+        self.event.refresh_showpartytools()
 
     def set_sprites(self, dealanime=True,
                                 bginhrt=False, ttype=("Default", "Default")):
@@ -2550,7 +2550,8 @@ class CWPy(_Singleton, threading.Thread):
                                                     and self.sdata.is_playing)
 
     def is_runningevent(self):
-        return self.event._nowrunningevents or\
+        return self.event.get_event() or\
+            self.event.in_cardevent or\
             pygame.event.peek(USEREVENT) or\
             (self.is_battlestatus() and not (self.battle and self.battle.is_ready()))
 

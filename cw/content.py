@@ -1236,10 +1236,18 @@ class CallStartContent(EventContentBase):
         """
         startname = self.data.get("call")
         event = cw.cwpy.event.get_event()
+        trees = cw.cwpy.event.get_trees()
 
-        if startname in event.trees:
-            event.nowrunningcontents.append(event.cur_content)
-            event.cur_content = event.trees[startname]
+        if startname in trees:
+            event = cw.cwpy.event.get_event()
+            if event.nowrunningcontents or 0 < len(self.data.find("Contents")):
+                if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
+                    cw.cwpy.sounds["error"].play()
+                    s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
+                    cw.cwpy.call_modaldlg("MESSAGE", text=s)
+                    raise cw.event.EffectBreakError()
+                event.nowrunningcontents.append((None, event.cur_content, None))
+            event.cur_content = trees[startname]
 
         return 0
 
@@ -1257,33 +1265,8 @@ class CallPackageContent(EventContentBase):
         パッケージのツリーイベントをコールする。
         """
         id = self.data.getint(".", "call", 0)
-
-        if id and id in cw.cwpy.sdata.packs:
-            if not id in cw.cwpy.event.nowrunningpacks:
-                path = cw.cwpy.sdata.packs[id][1]
-                data = cw.data.xml2element(path)
-                e = data.find("Events")
-                engine = cw.event.EventEngine(e)
-                engine.versionhint = data.getattr("Property", "versionHint", "")
-                cw.cwpy.event.nowrunningpacks[id] = e, engine.versionhint
-            else:
-                e, versionhint = cw.cwpy.event.nowrunningpacks[id]
-                engine = cw.event.EventEngine(e)
-                engine.versionhint = versionhint
-
-            events = engine.events
-
-            if events:
-                if cw.cwpy.is_playingscenario():
-                    versionhint = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
-                    cw.cwpy.sdata.versionhint[cw.HINT_AREA] = engine.versionhint
-                    try:
-                        events[0].run()
-                    finally:
-                        cw.cwpy.sdata.versionhint[cw.HINT_AREA] = versionhint
-                else:
-                    events[0].run()
-
+        event = cw.cwpy.event.get_event()
+        call_package(id, event.nowrunningcontents or 0 < len(self.data.find("Contents")))
         return 0
 
     def get_status(self):
@@ -1293,6 +1276,46 @@ class CallPackageContent(EventContentBase):
             return u"パッケージ『%s』コール" % (cw.cwpy.sdata.packs[id][0])
         else:
             return u"パッケージが指定されていません"
+
+def call_package(id, call):
+    """パッケージを実行する。
+    call: コールならTrue、リンクならFalse。
+    """
+    if not (id and id in cw.cwpy.sdata.packs):
+        return
+
+    if not id in cw.cwpy.event.nowrunningpacks:
+        path = cw.cwpy.sdata.packs[id][1]
+        data = cw.data.xml2etree(path)
+        versionhint = data.getattr("Property", "versionHint", "")
+        e = data.find("Events/Event")
+        if e is None:
+            return 0
+        cw.cwpy.event.nowrunningpacks[id] = e, versionhint
+    else:
+        e, versionhint = cw.cwpy.event.nowrunningpacks[id]
+
+    packevent = cw.event.Event(e)
+    if packevent.starttree is None:
+        return
+
+    if not cw.cwpy.event.get_event():
+        # 実行中のイベントが無い場合は直接実行する
+        cw.cwpy.event.append_event(packevent)
+        cw.cwpy.event.get_event().start()
+        return
+
+    event = cw.cwpy.event.get_event()
+    versionhint_base = cw.cwpy.sdata.versionhint[cw.HINT_AREA]
+    if call:
+        event.nowrunningcontents.append((packevent, event.cur_content, versionhint_base))
+        cw.cwpy.event.append_event(packevent)
+    else:
+        cw.cwpy.event.replace_event(packevent)
+        event = cw.cwpy.event.get_event()
+    event.cur_content = packevent.starttree
+    if cw.cwpy.is_playingscenario():
+        cw.cwpy.sdata.versionhint[cw.HINT_AREA] = versionhint
 
 #-------------------------------------------------------------------------------
 # Change系コンテント
@@ -1836,9 +1859,10 @@ class LinkStartContent(EventContentBase):
         """別のスタートコンテントのツリーイベントに移動する。"""
         startname = self.data.get("link")
         event = cw.cwpy.event.get_event()
+        trees = cw.cwpy.event.get_trees()
 
-        if startname in event.trees:
-            event.cur_content = event.trees[startname]
+        if startname in trees:
+            event.cur_content = trees[startname]
 
         return 0
 
@@ -1854,28 +1878,9 @@ class LinkPackageContent(EventContentBase):
     def action(self):
         """パッケージのツリーイベントに移動する。"""
         id = self.data.getint(".", "link", 0)
-
-        if id in cw.cwpy.sdata.packs:
-            if not id in cw.cwpy.event.nowrunningpacks:
-                path = cw.cwpy.sdata.packs[id][1]
-                data = cw.data.xml2element(path)
-                e = data.find("Events")
-                engine = cw.event.EventEngine(e)
-                engine.versionhint = data.getattr("Property", "versionHint", "")
-                cw.cwpy.event.nowrunningpacks[id] = e, engine.versionhint
-            else:
-                e, versionhint = cw.cwpy.event.nowrunningpacks[id]
-                engine = cw.event.EventEngine(e)
-                engine.versionhint = versionhint
-
-            events = engine.events
-
-            if events:
-                if cw.cwpy.is_playingscenario():
-                    cw.cwpy.sdata.versionhint[cw.HINT_AREA] = engine.versionhint
-                events[0].run()
-
-        return cw.IDX_TREEEND
+        event = cw.cwpy.event.get_event()
+        call_package(id, not event.nowrunningcontents is None)
+        return 0
 
     def get_status(self):
         id = self.data.getint(".", "link", 0)
