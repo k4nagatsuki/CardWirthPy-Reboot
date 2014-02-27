@@ -279,7 +279,7 @@ class Effect(object):
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation)
             else:
-                userbonus = 3
+                userbonus = 4
 
             vocation = ("agl", "cautious")
             level = self.user.level if self.user else self.level
@@ -299,7 +299,7 @@ class Effect(object):
                 uservocation = self.inusecard.vocation
                 userbonus =  self.user.get_bonus(uservocation)
             else:
-                userbonus = 3
+                userbonus = 4
 
             vocation = ("min", "brave")
             level = self.user.level if self.user else self.level

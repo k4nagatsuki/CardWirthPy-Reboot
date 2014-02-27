@@ -356,12 +356,16 @@ class CWPy(_Singleton, threading.Thread):
             self.main_loop(True)
 
     def main_loop(self, update):
-        self.tick_clock()         # FPS調整
-        self.input()              # 各種入力イベント取得
-        self.eventhandler.run()   # イベントハンドラ
-        if update:
-            self.update()         # スプライトの更新
-        self.draw(True)           # スプライトの描画
+        if pygame.event.peek(USEREVENT):
+            self.input()              # 各種入力イベント取得
+            self.eventhandler.run()   # イベントを消化
+        else:
+            self.tick_clock()         # FPS調整
+            self.input()              # 各種入力イベント取得
+            self.eventhandler.run()   # イベントハンドラ
+            if update:
+                self.update()         # スプライトの更新
+            self.draw(True)           # スプライトの描画
 
     def quit(self):
         # トップフレームから閉じて終了。cw.frame.OnDestroy参照。

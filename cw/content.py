@@ -1019,7 +1019,7 @@ class BranchAbilityContent(BranchContent):
         selectedmember = None
 
         for target in targets:
-            flag = target.decide_outcome(level, vocation)
+            flag = target.decide_outcome(level, vocation, enhance=target.get_enhance_act())
 
             if flag and someone:
                 selectedmember = target

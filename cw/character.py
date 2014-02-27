@@ -655,12 +655,12 @@ class Character(object):
     #　判定用
     #---------------------------------------------------------------------------
 
-    def decide_outcome(self, level, vocation, thresholdbonus=3, enhance=0, subbonus=0):
+    def decide_outcome(self, level, vocation, thresholdbonus=4, enhance=0, subbonus=0):
         """
         行為判定を行う。成功ならTrue。失敗ならFalseを返す。
         level: 判定レベル。
         vocation: 適性データ。(身体適性名, 精神適性名)のタプル。
-        thresholdbonus: アクション元の適性値+行動力強化値。効果コンテントだと3。
+        thresholdbonus: アクション元の適性値+行動力強化値。効果コンテントだと4。
         enhance: 回避・抵抗判定の場合はボーナス値。
         subbonus: 各種判定のサブボーナス(現在は成功率修正のみ)。
         """
@@ -673,9 +673,9 @@ class Character(object):
         udice = cw.cwpy.dice.roll(2)
         tdice = cw.cwpy.dice.roll(2)
 
-        thresholdbonus = int(thresholdbonus + subbonus * 2)
+        thresholdbonus = int(thresholdbonus)
         bonus = int(self.get_vocation_val(vocation) + enhance)
-        uvalue = (thresholdbonus+1) / 2 + level + udice
+        uvalue = (thresholdbonus+1) / 2 + level + subbonus + udice
         tvalue = (bonus+1) / 2 + self.level + tdice
         return uvalue < tvalue
 
