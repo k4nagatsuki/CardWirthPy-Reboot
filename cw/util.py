@@ -1623,12 +1623,20 @@ def t_reset():
 
 def t_print():
     global times, dictimes
+    lines = []
     for i, t in enumerate(times):
         if 0 < t:
-            print "time[%s] = %s" % (i, t)
+            s = "time[%s] = %s" % (i, t)
+            lines.append(s)
+            print s
     for key, t in dictimes.iteritems():
         if 0 < t:
-            print "time[%s] = %s" % (key, t)
+            s = "time[%s] = %s" % (key, t)
+            lines.append(s)
+            print s
+    if lines:
+        with open("performance.txt", "w") as f:
+            f.write("\n".join(lines))
 
 def main():
     pass
