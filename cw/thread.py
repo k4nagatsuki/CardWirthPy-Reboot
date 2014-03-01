@@ -1038,9 +1038,6 @@ class CWPy(_Singleton, threading.Thread):
                 header.order = i
             except Exception, ex:
                 cw.util.print_ex()
-        for fpath, header in backpacktable.iteritems():
-            if not header.scenariocard:
-                self.remove_xml(header)
 
         self.sdata.remove_log()
 
