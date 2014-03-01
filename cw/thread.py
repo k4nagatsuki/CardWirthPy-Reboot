@@ -1030,13 +1030,19 @@ class CWPy(_Singleton, threading.Thread):
                 del backpacktable[e.text]
                 if header.moved <> 0:
                     # 削除フラグを除去
-                    if header.carddata:
+                    if not header.carddata is None:
                         etree = cw.data.xml2etree(element=header.carddata)
                         etree.remove("Property", attrname="moved")
                         header.write()
                     header.moved = 0
                 self.ydata.party.backpack.append(header)
                 header.order = i
+                header.set_owner("BACKPACK")
+                # 荷物袋にある場合はcarddata無し、特殊技能の使用回数無し
+                header.carddata = None
+                if header.type == "SkillCard":
+                    header.maxuselimit = 0
+                    header.uselimit = 0
             except Exception, ex:
                 cw.util.print_ex()
 
