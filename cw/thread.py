@@ -1030,9 +1030,10 @@ class CWPy(_Singleton, threading.Thread):
                 del backpacktable[e.text]
                 if header.moved <> 0:
                     # 削除フラグを除去
-                    etree = cw.data.yadoxml2etree(header.fpath)
-                    etree.remove("Property", attrname="moved")
-                    header.write()
+                    if header.carddata:
+                        etree = cw.data.xml2etree(element=header.carddata)
+                        etree.remove("Property", attrname="moved")
+                        header.write()
                     header.moved = 0
                 self.ydata.party.backpack.append(header)
                 header.order = i
