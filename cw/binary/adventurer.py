@@ -420,11 +420,11 @@ class Adventurer(base.CWBinaryBase):
                                 vit = int(ae.get("vit"))
                                 min = int(ae.get("min"))
                             elif ae.tag == "Mental":
-                                aggressive = int(ae.get("aggressive"))
-                                cheerful = int(ae.get("cheerful"))
-                                brave = int(ae.get("brave"))
-                                cautious = int(ae.get("cautious"))
-                                trickish = int(ae.get("trickish"))
+                                aggressive = int(float(ae.get("aggressive")))
+                                cheerful = int(float(ae.get("cheerful")))
+                                brave = int(float(ae.get("brave")))
+                                cautious = int(float(ae.get("cautious")))
+                                trickish = int(float(ae.get("trickish")))
                             elif ae.tag == "Enhance":
                                 avoid = int(ae.get("avoid"))
                                 resist = int(ae.get("resist"))
