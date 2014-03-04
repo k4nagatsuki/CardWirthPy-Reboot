@@ -1028,7 +1028,7 @@ class Character(object):
             if coupon in self.coupons:
                 return coupon
 
-        return None
+        return cw.cwpy.setting.sexcoupons[0]
 
     def set_sex(self, sex):
         if cw.cwpy.ydata:
@@ -1043,7 +1043,7 @@ class Character(object):
             if coupon in self.coupons:
                 return coupon
 
-        return None
+        return cw.cwpy.setting.periodcoupons[0]
 
     def set_age(self, age):
         if cw.cwpy.ydata:
@@ -1058,7 +1058,7 @@ class Character(object):
             if coupon in self.coupons:
                 return coupon
 
-        return None
+        return cw.cwpy.setting.naturecoupons[0]
 
     def set_talent(self, talent):
         if cw.cwpy.ydata:

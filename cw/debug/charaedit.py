@@ -130,9 +130,9 @@ class CharacterEditDialog(wx.Dialog):
         if dlg.ShowModal() == wx.ID_OK:
             cindex = self.target.GetSelection()
             if 0 < dlg.selected:
-                type = list[dlg.selected]
+                type = cw.cwpy.setting.sampletypes[dlg.selected-1]
             else:
-                type = ""
+                type = None
             if cindex == 0:
                 for info in self.infos:
                     info.type = type
@@ -178,6 +178,7 @@ class CharaInfo(object):
     def __init__(self, pcard):
         if pcard:
             self.name = pcard.name
+            self.race = pcard.get_race()
             self.imgpath = pcard.get_imagepath()
             if self.imgpath:
                 self.imgpath = cw.util.join_yadodir(self.imgpath)
@@ -192,6 +193,7 @@ class CharaInfo(object):
             self.mental = pcard.mental
         else:
             self.name = ""
+            self.race = cw.cwpy.setting.unknown_race
             self.imgpath = ""
             self.imgpath_base = ""
             self.level = 1
@@ -199,38 +201,38 @@ class CharaInfo(object):
             self.age = cw.cwpy.setting.periodcoupons[0]
             self.talent = cw.cwpy.setting.naturecoupons[0]
             self.makings = set()
-            self.type = ""
+            self.type = None
             self.physical = {
-                "agl":6.0,
-                "dex":6.0,
-                "int":6.0,
-                "min":6.0,
-                "str":6.0,
-                "vit":6.0
+                "agl":self.race.agl,
+                "dex":self.race.dex,
+                "int":self.race.int,
+                "min":self.race.min,
+                "str":self.race.str,
+                "vit":self.race.vit
             }
             self.mental = {
-                "aggressive":0.0,
-                "brave":0.0,
-                "cautious":0.0,
-                "cheerful":0.0,
-                "trickish":0.0
+                "aggressive":self.race.aggressive,
+                "brave":self.race.brave,
+                "cautious":self.race.cautious,
+                "cheerful":self.race.cheerful,
+                "trickish":self.race.trickish
             }
 
     def get_paramtype(self, info):
         for type in cw.cwpy.setting.sampletypes:
-            if type.aglbonus == info.physical["agl"] and\
-               type.dexbonus == info.physical["dex"] and\
-               type.intbonus == info.physical["int"] and\
-               type.minbonus == info.physical["min"] and\
-               type.strbonus == info.physical["str"] and\
-               type.vitbonus == info.physical["vit"] and\
-               type.aggressive == info.mental["aggressive"] and\
-               type.brave      == info.mental["brave"] and\
-               type.cautious   == info.mental["cautious"] and\
-               type.cheerful   == info.mental["cheerful"] and\
-               type.trickish   == info.mental["trickish"]:
-                return type.name
-        return ""
+            if self.race.agl + type.aglbonus == info.physical["agl"] and\
+               self.race.dex + type.dexbonus == info.physical["dex"] and\
+               self.race.int + type.intbonus == info.physical["int"] and\
+               self.race.min + type.minbonus == info.physical["min"] and\
+               self.race.str + type.strbonus == info.physical["str"] and\
+               self.race.vit + type.vitbonus == info.physical["vit"] and\
+               self.race.aggressive + type.aggressive == info.mental["aggressive"] and\
+               self.race.brave      + type.brave      == info.mental["brave"] and\
+               self.race.cautious   + type.cautious   == info.mental["cautious"] and\
+               self.race.cheerful   + type.cheerful   == info.mental["cheerful"] and\
+               self.race.trickish   + type.trickish   == info.mental["trickish"]:
+                return type
+        return None
 
     def put_params(self, pcard):
         updatebase = self.sex <> pcard.get_sex() or\
@@ -275,31 +277,45 @@ class CharaInfo(object):
             self.maxstr = race.str + 6
             self.maxvit = race.vit + 6
             self.maxmin = race.min + 6
-            self.agl = self.physical["agl"]
-            self.dex = self.physical["dex"]
-            self.int = self.physical["int"]
-            self.min = self.physical["min"]
-            self.str = self.physical["str"]
-            self.vit = self.physical["vit"]
-            self.aggressive = self.mental["aggressive"]
-            self.brave      = self.mental["brave"]
-            self.cautious   = self.mental["cautious"]
-            self.cheerful   = self.mental["cheerful"]
-            self.trickish   = self.mental["trickish"]
-            for f in cw.cwpy.setting.sexes:
-                if self.sex == u"＿" + f.name:
-                    break
-            for f in cw.cwpy.setting.periods:
-                if self.age == u"＿" + f.name:
-                    f.modulate(self)
-                    break
-            for f in cw.cwpy.setting.natures:
-                if self.talent == u"＿" + f.name:
-                    f.modulate(self)
-                    break
-            for f in cw.cwpy.setting.makings:
-                if u"＿" + f.name in self.makings:
-                    f.modulate(self)
+            if self.type:
+                self.agl = race.agl + self.type.aglbonus
+                self.dex = race.dex + self.type.dexbonus
+                self.int = race.int + self.type.intbonus
+                self.min = race.min + self.type.minbonus
+                self.str = race.str + self.type.strbonus
+                self.vit = race.vit + self.type.vitbonus
+                self.aggressive = self.race.aggressive + self.type.aggressive
+                self.brave      = self.race.brave      + self.type.brave
+                self.cautious   = self.race.cautious   + self.type.cautious
+                self.cheerful   = self.race.cheerful   + self.type.cheerful
+                self.trickish   = self.race.trickish   + self.type.trickish
+            else:
+                self.agl = race.agl
+                self.dex = race.dex
+                self.int = race.int
+                self.min = race.min
+                self.str = race.str
+                self.vit = race.vit
+                self.aggressive = race.aggressive
+                self.brave      = race.brave
+                self.cautious   = race.cautious
+                self.cheerful   = race.cheerful
+                self.trickish   = race.trickish
+                for f in cw.cwpy.setting.sexes:
+                    if self.sex == u"＿" + f.name:
+                        f.modulate(self)
+                        break
+                for f in cw.cwpy.setting.periods:
+                    if self.age == u"＿" + f.name:
+                        f.modulate(self)
+                        break
+                for f in cw.cwpy.setting.natures:
+                    if self.talent == u"＿" + f.name:
+                        f.modulate(self)
+                        break
+                for f in cw.cwpy.setting.makings:
+                    if u"＿" + f.name in self.makings:
+                        f.modulate(self)
             cw.features.wrap_ability(self)
             pcard.set_physical("agl", self.agl)
             pcard.set_physical("dex", self.dex)
@@ -333,10 +349,22 @@ class CharaInfo(object):
         data.set_level(self.level)
         data.set_sex(self.sex)
         data.set_image(self.imgpath)
-        data.set_race(cw.cwpy.setting.unknown_race)
+        data.set_race(self.race)
         data.set_parents(None, None)
         data.set_talent(self.talent)
         data.set_attrbutes(makings)
+        if self.type:
+            data.agl = self.race.agl + self.type.aglbonus
+            data.dex = self.race.dex + self.type.dexbonus
+            data.int = self.race.int + self.type.intbonus
+            data.min = self.race.min + self.type.minbonus
+            data.str = self.race.str + self.type.strbonus
+            data.vit = self.race.vit + self.type.vitbonus
+            data.aggressive = self.race.aggressive + self.type.aggressive
+            data.brave      = self.race.brave      + self.type.brave
+            data.cautious   = self.race.cautious   + self.type.cautious
+            data.cheerful   = self.race.cheerful   + self.type.cheerful
+            data.trickish   = self.race.trickish   + self.type.trickish
         data.set_desc(self.talent, makings)
         data.set_specialcoupon()
         data.set_life()
@@ -576,7 +604,7 @@ class CharaRequirementPanel(wx.Panel):
         name = ""
         level = u"―"
         imgpath = ""
-        type = u"―――"
+        type = None
         sex = ""
         age = ""
         talent = ""
@@ -585,12 +613,11 @@ class CharaRequirementPanel(wx.Panel):
 
         for i, info in enumerate(infos):
             force = (i == 0)
-            infotype = info.get_paramtype(info)
             if force:
                 name = info.name
                 level = str(info.level)
                 imgpath = info.imgpath
-                type = infotype
+                type = info.type
                 sex = info.sex
                 age = info.age
                 talent = info.talent
@@ -601,7 +628,7 @@ class CharaRequirementPanel(wx.Panel):
                     level = u"―"
                 if imgpath <> info.imgpath:
                     imgpath = ""
-                if type <> infotype:
+                if type <> info.type:
                     type = u"―――"
                 if sex <> info.sex:
                     sex = ""
@@ -622,7 +649,9 @@ class CharaRequirementPanel(wx.Panel):
             self.imgcombo.SetValue(fpath)
         else:
             self.imgcombo.SetSelection(0)
-        if type:
+        if isinstance(type, cw.features.SampleType):
+            self.type.SetLabel(type.name)
+        elif type:
             self.type.SetLabel(type)
         else:
             self.type.SetLabel(u"カスタム")
