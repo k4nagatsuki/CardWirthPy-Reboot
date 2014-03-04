@@ -1,8 +1,8 @@
-SkinBase �ύX����
+SkinBase 変更履歴
 =================
 
-2014�N3��3��(dataVersion=2)
+2014年3月3日(dataVersion=2)
 ---------------------------
 
- * SampleType�ȊO�ŁA�e�����̐��_�C���l�̐T�d-��_(cautious)�ƎЌ�-����(cheerful)�̒l������ւ���Ă����̂��C��
- * SampleType�Ő��_�C���l�̒l��1/2�ɂȂ��Ă����̂��C��
+ * SampleType以外で、各特性の精神修正値の慎重-大胆(cautious)と社交-内向(cheerful)の値が入れ替わっていたのを修正
+ * SampleTypeで精神修正値の値が1/2になっていたのを修正
