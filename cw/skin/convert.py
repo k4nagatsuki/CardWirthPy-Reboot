@@ -145,7 +145,7 @@ class Converter(threading.Thread):
         mental = struct.Struct("<hhhhh")
 
         try:
-            def set_params(data, index, isnature):
+            def set_params(data, index, isnature, slist=("aggressive", "cautious", "brave", "cheerful", "trickish"), sperb=2.0):
                 # 特性名
                 n = self.exebinary[index:index+20]
                 index += 20
@@ -179,11 +179,11 @@ class Converter(threading.Thread):
                 p = mental.unpack(self.exebinary[index:index+2*5])
                 index += 2*5
                 e = data.find("./Mental")
-                e.set("aggressive", str(p[0] / 2.0))
-                e.set("cheerful", str(p[3] / 2.0))
-                e.set("brave", str(p[2] / 2.0))
-                e.set("cautious", str(p[1] / 2.0))
-                e.set("trickish", str(p[4] / 2.0))
+                e.set(slist[0], str(p[0] / sperb))
+                e.set(slist[1], str(p[3] / sperb))
+                e.set(slist[2], str(p[2] / sperb))
+                e.set(slist[3], str(p[1] / sperb))
+                e.set(slist[4], str(p[4] / sperb))
 
                 return index
 
@@ -200,7 +200,7 @@ class Converter(threading.Thread):
 
             # デバグ宿で簡易生成を行う際の能力型
             for e in self.data.getfind("SampleTypes"):
-                index = set_params(e, index, True)
+                index = set_params(e, index, True, sperb=1.0)
 
             # 型の派生元を設定
             # 英明型 <- 標準型,万能型

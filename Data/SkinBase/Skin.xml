@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Skin dataVersion="1">
+<Skin dataVersion="2">
   <Property>
     <Name></Name>
     <Type></Type>
@@ -17,14 +17,14 @@
     </Sex>
     <Sex father="False" mother="True" subName="Female">
       <Physical agl="0" dex="1" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>♀</Name>
     </Sex>
   </Sexes>
   <Periods>
     <Period abbr="CHD" firstSelect="False" level="1" spendEP="0" subName="Child">
       <Physical agl="1" dex="1" int="0" min="0" str="-1" vit="-1" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.5" trickish="0.0" />
       <Name>子供</Name>
       <Coupons />
     </Period>
@@ -36,7 +36,7 @@
     </Period>
     <Period abbr="ADT" firstSelect="False" level="2" spendEP="30" subName="Adult">
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="-1" />
-      <Mental aggressive="-0.5" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="-0.5" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>大人</Name>
       <Coupons>
         <Coupon value="2">熟練</Coupon>
@@ -44,7 +44,7 @@
     </Period>
     <Period abbr="OLD" firstSelect="False" level="2" spendEP="20" subName="Old">
       <Physical agl="-1" dex="-1" int="1" min="1" str="-1" vit="-1" />
-      <Mental aggressive="-0.5" brave="-0.5" cautious="0.0" cheerful="0.5" trickish="0.5" />
+      <Mental aggressive="-0.5" brave="-0.5" cautious="0.5" cheerful="0.0" trickish="0.5" />
       <Name>老人</Name>
       <Coupons>
         <Coupon value="4">老獪</Coupon>
@@ -54,14 +54,14 @@
   <Natures>
     <Nature geneCount="0" genePattern="1000000000" levelMax="10" special="False">
       <Physical agl="0" dex="0" int="0" min="1" str="0" vit="0" />
-      <Mental aggressive="-0.5" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="-0.5" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>標準型</Name>
       <Description>バランスのよい肉体を意志力が支える</Description>
       <BaseNatures />
     </Nature>
     <Nature geneCount="0" genePattern="0100000000" levelMax="10" special="False">
       <Physical agl="1" dex="1" int="0" min="-1" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
       <Name>万能型</Name>
       <Description>抜け目のなさであらゆる局面に対応</Description>
       <BaseNatures />
@@ -75,28 +75,28 @@
     </Nature>
     <Nature geneCount="0" genePattern="0001000000" levelMax="10" special="False">
       <Physical agl="-1" dex="-2" int="-2" min="-1" str="3" vit="1" />
-      <Mental aggressive="0.5" brave="0.5" cautious="0.0" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.5" brave="0.5" cautious="-0.5" cheerful="0.0" trickish="0.0" />
       <Name>豪傑型</Name>
       <Description>全てを正面突破する戦車の如き勇者</Description>
       <BaseNatures />
     </Nature>
     <Nature geneCount="0" genePattern="0000100000" levelMax="10" special="False">
       <Physical agl="0" dex="0" int="2" min="0" str="-1" vit="-1" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>知将型</Name>
       <Description>理性と智力に裏打ちされた実力</Description>
       <BaseNatures />
     </Nature>
     <Nature geneCount="0" genePattern="0000010000" levelMax="10" special="False">
       <Physical agl="-1" dex="0" int="3" min="0" str="-2" vit="-2" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.5" />
       <Name>策士型</Name>
       <Description>知性一つを武器にあらゆる存在と渡り合う</Description>
       <BaseNatures />
     </Nature>
     <Nature geneCount="0" genePattern="0000001111" levelMax="12" special="True">
       <Physical agl="-2" dex="-2" int="-2" min="-2" str="-2" vit="-2" />
-      <Mental aggressive="0.0" brave="-0.5" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="-0.5" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>凡庸型</Name>
       <BaseNatures />
     </Nature>
@@ -120,7 +120,7 @@
     </Nature>
     <Nature geneCount="6" genePattern="0000000001" levelMax="10" special="True">
       <Physical agl="0" dex="1" int="3" min="2" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.5" />
       <Name>天才型</Name>
       <BaseNatures>
         <BaseNature>知将型</BaseNature>
@@ -129,7 +129,7 @@
     </Nature>
     <Nature geneCount="8" genePattern="0000000000" levelMax="12" special="True">
       <Physical agl="1" dex="1" int="2" min="2" str="2" vit="1" />
-      <Mental aggressive="0.0" brave="0.5" cautious="0.5" cheerful="0.0" trickish="-0.5" />
+      <Mental aggressive="0.0" brave="0.5" cautious="0.0" cheerful="0.5" trickish="-0.5" />
       <Name>英雄型</Name>
       <BaseNatures />
     </Nature>
@@ -143,12 +143,12 @@
   <Makings>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="-1" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
       <Name>秀麗</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="1" />
-      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.0" />
       <Name>醜悪</Name>
     </Making>
     <Making>
@@ -158,12 +158,12 @@
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.5" />
       <Name>下賎の出</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="1" min="0" str="0" vit="-1" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.5" />
       <Name>都会育ち</Name>
     </Making>
     <Making>
@@ -188,7 +188,7 @@
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.5" />
       <Name>不心得者</Name>
     </Making>
     <Making>
@@ -203,17 +203,17 @@
     </Making>
     <Making>
       <Physical agl="-1" dex="0" int="1" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.5" />
       <Name>冷静沈着</Name>
     </Making>
     <Making>
       <Physical agl="1" dex="0" int="0" min="-1" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.0" />
       <Name>猪突猛進</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="-1" str="0" vit="1" />
-      <Mental aggressive="0.5" brave="-0.5" cautious="0.0" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.5" brave="-0.5" cautious="-0.5" cheerful="0.0" trickish="0.0" />
       <Name>貪欲</Name>
     </Making>
     <Making>
@@ -228,7 +228,7 @@
     </Making>
     <Making>
       <Physical agl="1" dex="-1" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.5" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.5" />
+      <Mental aggressive="0.5" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.5" />
       <Name>利己的</Name>
     </Making>
     <Making>
@@ -243,17 +243,17 @@
     </Making>
     <Making>
       <Physical agl="1" dex="0" int="0" min="0" str="0" vit="-1" />
-      <Mental aggressive="0.0" brave="0.5" cautious="0.0" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.5" cautious="-0.5" cheerful="0.0" trickish="0.0" />
       <Name>進取派</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="1" str="-1" vit="0" />
-      <Mental aggressive="-0.5" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="-0.5" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>保守派</Name>
     </Making>
     <Making>
       <Physical agl="1" dex="0" int="0" min="0" str="-1" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="-0.5" trickish="0.0" />
       <Name>神経質</Name>
     </Making>
     <Making>
@@ -268,27 +268,27 @@
     </Making>
     <Making>
       <Physical agl="-1" dex="0" int="0" min="1" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.0" />
       <Name>無頓着</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="1" vit="-1" />
-      <Mental aggressive="0.5" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.5" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.0" />
       <Name>過激</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="-0.5" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="-0.5" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>穏健</Name>
     </Making>
     <Making>
       <Physical agl="-1" dex="1" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.5" cautious="0.0" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.5" cautious="-0.5" cheerful="0.0" trickish="0.0" />
       <Name>楽観的</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="1" min="-1" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="-0.5" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="-0.5" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>悲観的</Name>
     </Making>
     <Making>
@@ -298,12 +298,12 @@
     </Making>
     <Making>
       <Physical agl="0" dex="1" int="-1" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.5" />
       <Name>遊び人</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
       <Name>陽気</Name>
     </Making>
     <Making>
@@ -313,7 +313,7 @@
     </Making>
     <Making>
       <Physical agl="1" dex="0" int="-1" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.5" trickish="0.0" />
       <Name>派手</Name>
     </Making>
     <Making>
@@ -323,32 +323,32 @@
     </Making>
     <Making>
       <Physical agl="0" dex="-1" int="0" min="1" str="0" vit="0" />
-      <Mental aggressive="0.5" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.5" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.0" />
       <Name>高慢</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="-1" int="1" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>謙虚</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="1" min="0" str="-1" vit="0" />
-      <Mental aggressive="-0.5" brave="0.0" cautious="0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="-0.5" brave="0.0" cautious="0.0" cheerful="0.5" trickish="0.0" />
       <Name>上品</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="-1" min="0" str="1" vit="0" />
-      <Mental aggressive="0.5" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.5" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.0" />
       <Name>粗野</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="-1" int="0" min="0" str="1" vit="0" />
-      <Mental aggressive="0.0" brave="0.5" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.5" cautious="0.0" cheerful="-0.5" trickish="0.0" />
       <Name>武骨</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="1" int="0" min="0" str="-1" vit="0" />
-      <Mental aggressive="0.0" brave="-0.5" cautious="0.0" cheerful="0.5" trickish="0.0" />
+      <Mental aggressive="0.0" brave="-0.5" cautious="0.5" cheerful="0.0" trickish="0.0" />
       <Name>繊細</Name>
     </Making>
     <Making>
@@ -358,22 +358,22 @@
     </Making>
     <Making>
       <Physical agl="0" dex="1" int="0" min="-1" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="-0.5" cautious="0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="-0.5" cautious="0.0" cheerful="0.5" trickish="0.0" />
       <Name>軟派</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="0.5" cheerful="0.0" trickish="-0.5" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="0.5" trickish="-0.5" />
       <Name>お人好し</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.0" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="0.0" brave="0.0" cautious="0.0" cheerful="-0.5" trickish="0.0" />
       <Name>ひねくれ者</Name>
     </Making>
     <Making>
       <Physical agl="0" dex="0" int="0" min="0" str="0" vit="0" />
-      <Mental aggressive="0.0" brave="0.5" cautious="0.0" cheerful="-0.5" trickish="-0.5" />
+      <Mental aggressive="0.0" brave="0.5" cautious="-0.5" cheerful="0.0" trickish="-0.5" />
       <Name>名誉こそ命</Name>
     </Making>
     <Making>
@@ -390,22 +390,22 @@
     </SampleType>
     <SampleType>
       <Physical agl="0" dex="-3" int="-3" min="0" str="4" vit="2" />
-      <Mental aggressive="0.5" brave="0.5" cautious="-0.5" cheerful="0.0" trickish="0.0" />
+      <Mental aggressive="1.0" brave="1.0" cautious="-1.0" cheerful="0.0" trickish="0.0" />
       <Name>ファイター</Name>
     </SampleType>
     <SampleType>
       <Physical agl="3" dex="3" int="-1" min="-3" str="0" vit="-2" />
-      <Mental aggressive="0.0" brave="-0.5" cautious="0.5" cheerful="0.0" trickish="0.5" />
+      <Mental aggressive="0.0" brave="-1.0" cautious="1.0" cheerful="0.0" trickish="1.0" />
       <Name>シーフ</Name>
     </SampleType>
     <SampleType>
       <Physical agl="-3" dex="-3" int="2" min="4" str="0" vit="0" />
-      <Mental aggressive="-0.5" brave="0.0" cautious="0.0" cheerful="0.5" trickish="-0.5" />
+      <Mental aggressive="-1.0" brave="0.0" cautious="0.0" cheerful="1.0" trickish="-1.0" />
       <Name>プリースト</Name>
     </SampleType>
     <SampleType>
       <Physical agl="0" dex="0" int="4" min="2" str="-3" vit="-3" />
-      <Mental aggressive="0.5" brave="0.0" cautious="0.5" cheerful="-0.5" trickish="0.0" />
+      <Mental aggressive="1.0" brave="0.0" cautious="1.0" cheerful="-1.0" trickish="0.0" />
       <Name>メイジ</Name>
     </SampleType>
   </SampleTypes>

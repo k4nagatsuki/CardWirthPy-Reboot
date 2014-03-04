@@ -193,6 +193,7 @@ class Setting(object):
         basedata = cw.data.xml2etree(path)
         path = cw.util.join_paths(self.skindir, "Skin.xml")
         data = cw.data.xml2etree(path)
+        self._update_skin(data)
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
         self.skinexts = data.getfind("Property/Extension").attrib
@@ -238,6 +239,65 @@ class Setting(object):
         # 未指定種族
         self.unknown_race = cw.header.UnknownRaceHeader(self)
         self.races.append(self.unknown_race)
+
+    def _update_skin(self, data):
+        """旧バージョンのデータの誤りを訂正する。
+        """
+        skinversion = float(data.getattr(".", "dataVersion", "0"))
+        update = False
+
+        if skinversion <= 1:
+            # dataVersion=1まで
+            #  * 社交-内向と慎重-大胆の値が入れ替わっていた
+            #  * SampleTypeで精神特性の値が1/2になっていた
+            #  * SkinBaseの情報を上書きしていない場合に限り、SampleTypeで
+            #    社交-内向と慎重-大胆の入れ替わりは発生していない
+            update = True
+            def update_mental(e):
+                me = e.find("Mental")
+                cautious = me.getattr(".", "cautious")
+                cheerful = me.getattr(".", "cheerful")
+                me.attrib["cautious"] = cheerful
+                me.attrib["cheerful"] = cautious
+            for e in data.getfind("Sexes"):
+                update_mental(e)
+            for e in data.getfind("Periods"):
+                update_mental(e)
+            for e in data.getfind("Natures"):
+                update_mental(e)
+            for e in data.getfind("Makings"):
+                update_mental(e)
+            ste = data.getfind("SampleTypes")
+            def check_sampletype(ste, name, cautious, cheerful):
+                # SampleTypeがSkinBaseの内容そのままかチェックする
+                return ste.gettext("Name") == name and\
+                       ste.getfloat("Mental", "cautious") == cautious and\
+                       ste.getfloat("Mental", "cheerful") == cheerful
+            if len(ste) <> 5 or\
+               not check_sampletype(ste[0], u"バランス", 0.0, 0.0) or\
+               not check_sampletype(ste[1], u"ファイター", -0.5, 0.0) or\
+               not check_sampletype(ste[2], u"シーフ", 0.5, 0.0) or\
+               not check_sampletype(ste[3], u"プリースト", 0.0, 0.5) or\
+               not check_sampletype(ste[4], u"メイジ", 0.5, -0.5):
+                # SkinBaseの内容そのままでない場合は入れ替え発生
+                for e in ste:
+                    update_mental(e)
+            for e in ste:
+                me = e.find("Mental")
+                aggressive = me.getfloat(".", "aggressive")
+                brave = me.getfloat(".", "brave")
+                cautious = me.getfloat(".", "cautious")
+                cheerful = me.getfloat(".", "cheerful")
+                trickish = me.getfloat(".", "trickish")
+                me.attrib["aggressive"] = str(aggressive * 2)
+                me.attrib["brave"] = str(brave * 2)
+                me.attrib["cautious"] = str(cautious * 2)
+                me.attrib["cheerful"] = str(cheerful * 2)
+                me.attrib["trickish"] = str(trickish * 2)
+
+        if update:
+            data.edit(".", "2", "dataVersion")
+            data.write()
 
     def set_dealspeed(self, value):
         self.dealspeed = value + 1
