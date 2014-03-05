@@ -464,6 +464,7 @@ class YadoSelect(Select):
         # 所属冒険者
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
         for idx, name in enumerate(self.list2[self.index]):
+            name = cw.util.set_ellipsis_to_longstr(dc, name, cw.s(90), cw.s(75))
             x = (bmpw - cw.s(270)) / 2 + ((idx % 3) * cw.s(95))
             y = cw.s(200) + (idx / 3) * cw.s(16)
             dc.DrawText(name, x, y)
@@ -788,6 +789,7 @@ class PartySelect(Select):
         w = cw.s(90)
 
         for index, s in enumerate(self.names):
+            s = cw.util.set_ellipsis_to_longstr(dc, s, cw.s(90), cw.s(75))
             if index < 3:
                 dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, cw.s(85), w, cw.s(15)), wx.ALIGN_CENTER)
             else:

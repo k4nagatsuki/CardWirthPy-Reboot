@@ -1509,6 +1509,20 @@ class CWPyStaticBitmap(wx.Panel):
     def GetBitmap(self, bmp):
         return self.bmp
 
+def set_ellipsis_to_longstr(dc, str, w1, w2):
+    """ClientDCを使って長い文字列を省略して末尾に三点リーダを付ける。
+    dc: ClientDC
+    str: 編集対象の文字列
+    w1: 目標文字列長(pixel)
+    w2: 三点リーダを抜きにした目標文字列長(pixel)
+    """
+    width = dc.GetTextExtent(str)[0]
+    if width > w1:
+        while dc.GetTextExtent(str)[0] > w2:
+            str = str[0:len(str)-1]
+        str += u"…"
+    return str
+
 #-------------------------------------------------------------------------------
 #  スレッド関係
 #-------------------------------------------------------------------------------
