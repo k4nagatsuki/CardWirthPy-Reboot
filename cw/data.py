@@ -1231,7 +1231,24 @@ class YadoData(object):
         # Materialディレクトリにある空のフォルダも削除
         materialdir = cw.util.join_paths(self.yadodir, "Material")
 
+        # 安全のためこれらのパスは削除の際に無視する
+        ignores = set()
+        for ipath in (cw.cwpy.yadodir, cw.cwpy.tempdir,
+                      os.path.join(cw.cwpy.yadodir, "Adventurer"),
+                      os.path.join(cw.cwpy.yadodir, "Party"),
+                      os.path.join(cw.cwpy.yadodir, "Album"),
+                      os.path.join(cw.cwpy.yadodir, "CastCard"),
+                      os.path.join(cw.cwpy.yadodir, "SkillCard"),
+                      os.path.join(cw.cwpy.yadodir, "ItemCard"),
+                      os.path.join(cw.cwpy.yadodir, "BeastCard"),
+                      os.path.join(cw.cwpy.yadodir, "InfoCard"),
+                      os.path.join(cw.cwpy.yadodir, "Material")):
+            ignores.add(os.path.normpath(os.path.normcase(ipath)))
+
+        # 削除実行
         for path in self.deletedpaths:
+            if os.path.normpath(os.path.normcase(path)) in ignores:
+                continue
             cw.util.remove(path)
             dpath = os.path.dirname(path)
 

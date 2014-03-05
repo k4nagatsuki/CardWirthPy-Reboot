@@ -120,8 +120,9 @@ class Character(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         e = self.data.find("Property/ImagePath")
-        dpath = cw.util.join_paths(cw.cwpy.yadodir, os.path.dirname(self.get_imagepath()))
-        cw.cwpy.ydata.deletedpaths.add(dpath)
+        if self.get_imagepath():
+            dpath = cw.util.join_paths(cw.cwpy.yadodir, os.path.dirname(self.get_imagepath()))
+            cw.cwpy.ydata.deletedpaths.add(dpath)
         newpath = cw.xmlcreater.write_castimagepath(self.get_name(), path)
         self.data.edit("Property/ImagePath", newpath)
 
