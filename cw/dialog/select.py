@@ -1622,25 +1622,31 @@ class ScenarioSelect(Select):
         else:
             parent = self.scedir
             self.dirstack = []
+            exists = True
             for fname in spaths[:-1]:
-                self.dirstack.append((parent, fname))
-                parent = cw.util.join_paths(parent, fname)
-                parent = cw.util.get_linktarget(parent)
+                parent2 = cw.util.join_paths(parent, fname)
+                if os.path.exists(parent2):
+                    self.dirstack.append((parent, fname))
+                    parent = cw.util.get_linktarget(parent2)
+                else:
+                    exists = False
+                    break
             self.nowdir = parent
             dpaths = self.get_dpaths(self.nowdir)
             headers = self.db.search_dpath(self.nowdir)
             self.list = dpaths + self._narrow_scenario(headers)
             self.index = 0
 
-            fname = os.path.normcase(spaths[-1])
-            for index, sel in enumerate(self.list):
-                if isinstance(sel, cw.header.ScenarioHeader):
-                    name = sel.fname
-                else:
-                    name = os.path.basename(sel)
-                if os.path.normcase(name) == fname:
-                    self.index = index
-                    break
+            if exists:
+                fname = os.path.normcase(spaths[-1])
+                for index, sel in enumerate(self.list):
+                    if isinstance(sel, cw.header.ScenarioHeader):
+                        name = sel.fname
+                    else:
+                        name = os.path.basename(sel)
+                    if os.path.normcase(name) == fname:
+                        self.index = index
+                        break
 
         self.draw(True)
         self.enable_btn()
