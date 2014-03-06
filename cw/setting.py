@@ -332,7 +332,8 @@ class Resource(object):
         self.ext_snd = setting.skinexts.get("sound")
         # システムフォントテーブルの設定(wxダイアログ用)
         self.fontpaths = self.get_fontpaths()
-        self.fontnames = self.set_systemfonttable()
+        # wxスレッドから初期化
+        self.fontnames = {}
         # その他のスキン付属効果音(辞書)
         self.skinsounds = self.get_skinsounds()
         # システム効果音(辞書)
@@ -340,13 +341,18 @@ class Resource(object):
         # システムメッセージ(辞書)
         self.msgs = self.get_msgs(setting)
         # wxダイアログのボタン画像(辞書)
-        self.buttons = self.get_buttons()
+        # wxスレッドから初期化
+        self.buttons = {}
         # カード背景画像(辞書)
         self.cardbgs = self.get_cardbgs()
         # wxダイアログで使う画像(辞書)
-        self.dialogs = self.get_dialogs()
+        self.pygamedialogs = self.get_dialogs(cw.util.load_image)
+        # wx版。wxスレッドから初期化
+        self.dialogs = {}
         # デバッガで使う画像(辞書)
-        self.debugs = self.get_debugs()
+        self.pygamedebugs = self.get_debugs(cw.util.load_image)
+        # wx版。wxスレッドから初期化
+        self.debugs = {}
         # 特殊文字の画像(辞書)
         self.specialchars_is_changed = False
         self.specialchars = self.get_specialchars()
@@ -354,10 +360,40 @@ class Resource(object):
         self.statuses = self.get_statuses()
         # 適性値・使用回数値画像(辞書)
         self.stones = self.get_stones()
-        self.wxstones = self.get_wxstones()
+        # wx版。wxスレッドから初期化
+        self.wxstones = {}
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
-        # 新規作成すると重いのであらかじめ用意しておく。
+        # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
         self.fonts = self.create_fonts()
+        # "MS UI GOTHIC"が使えるかどうか
+        self._msuigothic = False
+        # StatusBarで使用するボタンイメージ
+        # wxスレッドから初期化
+        self._wxbtnbmp0 = None
+        self._wxbtnbmp1 = None
+        self._wxbtnbmp1pressed = None
+        self._wxbtnbmp1current = None
+        self._wxbtnbmp2 = None
+
+        if sys.platform == "win32":
+            self.init_wxresources()
+        else:
+            cw.cwpy.frame.exec_func(self.init_wxresources)
+
+    def init_wxresources(self):
+        """wx側のリソースを初期化。"""
+        # システムフォントテーブルの設定(wxダイアログ用)
+        self.fontnames = self.set_systemfonttable()
+        # wxダイアログのボタン画像(辞書)
+        self.buttons = self.get_buttons()
+        # wxダイアログで使う画像(辞書)
+        self.dialogs = self.get_dialogs(cw.util.load_wxbmp)
+        # デバッガで使う画像(辞書)
+        self.debugs = self.get_debugs(cw.util.load_wxbmp)
+        # 適性値・使用回数値画像(辞書)
+        self.wxstones = self.get_wxstones()
+        # 使用フォント(辞書)
+        self.fonts.update(self.create_wxfonts())
         # "MS UI GOTHIC"が使えるかどうか
         self._msuigothic = bool("MS UI Gothic" in
                                         wx.FontEnumerator.GetFacenames())
@@ -420,11 +456,11 @@ class Resource(object):
                     raise ValueError("Failed to get facename from %s" % name)
 
         else:
-            d["gothic"] = u"IPAGothic"
-            d["uigothic"] = u"IPAUIGothic"
-            d["mincho"] = u"IPAMincho"
-            d["pmincho"] = u"IPAPMincho"
-            d["pgothic"] = u"IPAPGothic"
+            d["gothic"] = u"IPAゴシック"
+            d["uigothic"] = u"IPA UIゴシック"
+            d["mincho"] = u"IPA明朝"
+            d["pmincho"] = u"IPA P明朝"
+            d["pgothic"] = u"IPA Pゴシック"
             facenames = wx.FontEnumerator().GetFacenames()
 
             for value in d.itervalues():
@@ -449,8 +485,11 @@ class Resource(object):
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, flag=0):
         if size is None:
             size = cw.s(10)
-        if name == "btnfont" and self._msuigothic:
-            fontname = "MS UI Gothic"
+        if name == "btnfont":
+            if self._msuigothic:
+                fontname = "MS UI Gothic"
+            else:
+                fontname = "IPA UIゴシック"
         else:
             fontname = self.fontnames[name]
 
@@ -480,11 +519,6 @@ class Resource(object):
         # メッセージウィンドウのテキスト描画用
         font = pygame.font.Font(self.fontpaths["mincho"], cw.s(22))
         fonts["message"] = font
-        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-            # メッセージウィンドウのテキスト描画用(クラシック)
-            # これのみwx.Fontを使用する
-            wxfont = wx.Font(cw.s(15), wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
-            fonts["message_classic"] = wxfont
         # メッセージウィンドウの選択肢描画用
         font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(15))
         if cw.UP_SCR == 1:
@@ -498,6 +532,17 @@ class Resource(object):
         fonts["sbarbtn"] = fonts["mcard_name"]
         # ステータス画像の召喚回数描画用
         fonts["statusimg"] = fonts["mcard_name"]
+        return fonts
+
+    def create_wxfonts(self):
+        """ゲーム内で頻繁に使用するwx.Fontはここで設定する。"""
+        # 使用フォント(辞書)
+        fonts = {}
+        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+            # メッセージウィンドウのテキスト描画用(クラシック)
+            # これのみwx.Fontを使用する
+            wxfont = wx.Font(cw.s(15), wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
+            fonts["message_classic"] = wxfont
         return fonts
 
     def create_wxbutton(self, parent, id, size, name=None, bmp=None):
@@ -541,7 +586,7 @@ class Resource(object):
             wximg.SetAlphaData("\xFF" * pixel_num)
             wxbmp = wximg.ConvertToBitmap()
 
-        return wxbmp
+        return cw.image.conv2surface(wxbmp)
 
     def get_wxbtnbmp(self, sizetype, flags=0):
         """StatusBarで使用するOSネイティブなボタン画像を取得する。
@@ -550,16 +595,16 @@ class Resource(object):
                sizetype=1の時のみ有効
         """
         if sizetype == 0:
-            return self._wxbtnbmp0
+            return self._wxbtnbmp0.copy()
         elif sizetype == 1:
             if flags == wx.CONTROL_PRESSED:
-                return self._wxbtnbmp1pressed
+                return self._wxbtnbmp1pressed.copy()
             elif flags == wx.CONTROL_CURRENT:
-                return self._wxbtnbmp1current
+                return self._wxbtnbmp1current.copy()
             else:
-                return self._wxbtnbmp1
+                return self._wxbtnbmp1.copy()
         elif sizetype == 2:
-            return self._wxbtnbmp2
+            return self._wxbtnbmp2.copy()
 
         return None
 
@@ -680,41 +725,41 @@ class Resource(object):
 
         return d
 
-    def get_dialogs(self):
+    def get_dialogs(self, load_image):
         """
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
         def func(path, mask):
-            bmp = cw.util.load_wxbmp(path, mask)
+            bmp = load_image(path, mask)
             return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         d = self.get_resources(func, dpath, self.ext_img, True)
 
         name = "LINK"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s((cw.util.load_wxbmp(path, mask=False), get_resourcesize(path)))
+        d[name] = cw.s((load_image(path, mask=False), get_resourcesize(path)))
 
         name = "MONEYY"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s((cw.util.load_wxbmp(path, mask=False), get_resourcesize(path)))
+        d[name] = cw.s((load_image(path, mask=False), get_resourcesize(path)))
 
         name = "STATUS8"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s((cw.util.load_wxbmp(path, mask=True, maskpos="right"), get_resourcesize(path)))
+        d[name] = cw.s((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
 
         for key in ["CAUTION", "INVISIBLE"]:
             path = cw.util.join_paths(dpath, key + self.ext_img)
-            d[key] = cw.s((cw.util.load_wxbmp(path), get_resourcesize(path)))
+            d[key] = cw.s((load_image(path), get_resourcesize(path)))
         return d
 
-    def get_debugs(self):
+    def get_debugs(self, load_image):
         """
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
         def func(path, mask):
-            bmp = cw.util.load_wxbmp(path, mask)
+            bmp = load_image(path, mask)
             return bmp, bmp
         dpath = u"Data/Debugger"
         d = self.get_resources(func, dpath, ".png", True)

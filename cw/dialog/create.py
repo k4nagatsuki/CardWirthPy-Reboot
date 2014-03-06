@@ -408,6 +408,7 @@ class AdventurerCreater(wx.Dialog):
         self.page4.set_next(self.page5)
         self.page5.set_prev(self.page4)
         self.page1.Thaw()
+        self.page1.Show()
         self.page = self.page1
 
     def _do_layout(self):
@@ -478,8 +479,10 @@ class AdventurerCreater(wx.Dialog):
         if nextpage:
             cw.cwpy.sounds["page"].play()
             self.page.Freeze()
+            self.page.Hide()
             self.page = nextpage
             self.page.Thaw()
+            self.page.Show()
             self.enable_btn()
 
     def OnClickPrevBtn(self, event):
@@ -488,8 +491,10 @@ class AdventurerCreater(wx.Dialog):
         if prevpage:
             cw.cwpy.sounds["page"].play()
             self.page.Freeze()
+            self.page.Hide()
             self.page = prevpage
             self.page.Thaw()
+            self.page.Show()
             self.enable_btn()
 
     def OnClickPostBtn(self, event):
@@ -544,6 +549,7 @@ class AdventurerCreaterPage(wx.Panel):
         self.clickables = {}
         if freeze:
             self.Freeze()
+            self.Hide()
 
     def _bind(self):
         self.Bind(wx.EVT_PAINT, self.OnPaint)

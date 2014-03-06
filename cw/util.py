@@ -11,7 +11,6 @@ import threading
 import struct
 import zipfile
 import operator
-import pythoncom
 import threading
 import hashlib
 import subprocess
@@ -295,6 +294,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
     """
+    #assert threading.currentThread() == cw.cwpy
     try:
         if f:
             image = pygame.image.load(f, path)
@@ -1017,7 +1017,7 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
 def decode_zipname(name):
     if not isinstance(name, unicode):
         try:
-            name = name.decode("mbcs")
+            name = name.decode(cw.MBCS)
         except UnicodeDecodeError:
             try:
                 name = name.decode("euc-jp")
@@ -1034,7 +1034,7 @@ def read_zipdata(zfile, name):
         data = zfile.read(name)
     except KeyError:
         try:
-            data = zfile.read(name.encode("mbcs"))
+            data = zfile.read(name.encode(cw.MBCS))
         except KeyError:
             try:
                 data = zfile.read(name.encode("euc-jp"))
@@ -1315,6 +1315,8 @@ def get_char(s, index):
 
 def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
+    if sys.platform <> "win32":
+        assert threading.currentThread() <> cw.cwpy
     if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
         return wx.EmptyBitmap(0, 0)
 
@@ -1355,7 +1357,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         # その場合は通常通り左上の色をマスク色とする
         # 将来、もしこの処理の結果問題が起きた場合は
         # このif文以降の処理を削除する必要がある
-        if mask and image.HasMask() and image.CountColours() <= 255:
+        if mask and image.HasMask() and image.CountColours() <= 255 and wxbmp.GetPalette():
             palette = wxbmp.GetPalette()
             mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
             maskok = False

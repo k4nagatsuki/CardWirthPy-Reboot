@@ -273,6 +273,8 @@ class CWPy(_Singleton, threading.Thread):
         """
         if self.ydata:
             changed = self.ydata.is_changed()
+        else:
+            changed = False
 
         if cw.UP_SCR <> scale:
             cw.UP_SCR = scale
@@ -289,7 +291,11 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
 
         self._init_resources()
+        def func(scale, changearea, changed):
+            self.exec_func(self._update_scale2, scale, changearea, changed)
+        self.frame.exec_func(func, scale, changearea, changed)
 
+    def _update_scale2(self, scale, changearea, changed):
         self.statusbar.update_scale()
         self.sbargrp.set_clip(self.statusbar.rect)
         if self.sdata:
@@ -392,8 +398,8 @@ class CWPy(_Singleton, threading.Thread):
     def input(self, eventclear=False, inputonly=False):
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
-        self.update_mousepos()
-        self.mousemotion = False if self.mousepos == mousepos else True
+        if self.update_mousepos():
+            self.mousemotion = False if self.mousepos == mousepos else True
         self.keyin = self.keyevent.get_pressed()
 
         if eventclear:
@@ -406,6 +412,8 @@ class CWPy(_Singleton, threading.Thread):
             self.events = pygame.event.get()
 
     def update_mousepos(self):
+        if sys.platform <> "win32" and not pygame.mouse.get_focused():
+            return False
         if pygame.mouse.get_focused():
             if self.scr_fullscreen:
                 mousepos = pygame.mouse.get_pos()
@@ -416,6 +424,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.mousepos = pygame.mouse.get_pos()
         else:
             self.mousepos = (-1, -1)
+        return True
 
     def update(self):
         self.bggrp.update(self.scr)
@@ -541,8 +550,9 @@ class CWPy(_Singleton, threading.Thread):
         event.args = kwargs
         if threading.currentThread() == self:
             self.frame.AddPendingEvent(event)
-            while self.is_running() and self.frame.IsEnabled():
-                pass
+            if sys.platform == "win32":
+                while self.is_running() and self.frame.IsEnabled():
+                    pass
         else:
             self.frame.ProcessEvent(event)
 
@@ -1103,15 +1113,20 @@ class CWPy(_Singleton, threading.Thread):
             self.event._stoped = False
             self.event.breakwait = False
             self._init_resources()
-            self.set_status("Title")
-            self.sdata = cw.data.SystemData()
-            cw.util.remove_temp()
-            self.load_yado(self.yadodir)
+
+        def func5():
+            def func():
+                self.set_status("Title")
+                self.sdata = cw.data.SystemData()
+                cw.util.remove_temp()
+                self.load_yado(self.yadodir)
+            self.exec_func(func)
 
         self.exec_func(func1)
         self.exec_func(func2)
         self.exec_func(func3)
         self.exec_func(func4)
+        self.frame.exec_func(func5)
 
     def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""
@@ -1812,6 +1827,7 @@ class CWPy(_Singleton, threading.Thread):
             size_noscale, pos_noscale = (632, 284), (0, 0)
             size_noscale2, pos_noscale2 = (632, 136), (0, 284)
             size_noscale_castcard = (95, 130)
+
             self.is_pcardsselectable = target in ("Both", "Party")
             self.is_mcardsselectable = not self.is_battlestatus() or\
                                        target in ("Both", "Enemy")

@@ -1008,7 +1008,7 @@ class EffectBoosterConfig(object):
                 if line[0] in '#;':
                     continue
 
-                line = line.decode("mbcs").replace("\r\n", "\n")
+                line = line.decode(cw.MBCS).replace("\r\n", "\n")
 
                 # jptxテキスト
                 if line == "[jptx:end]\n" or line == "[jptx:end]":
