@@ -269,7 +269,7 @@ class _JpySubImage(cw.image.Image):
             elif self.filter == 6:
                 image = cw.imageretouch.filter_electrical(image)
             elif self.filter == 7:
-                image = cw.imageretouch.to_binaryformat(image, 128)
+                image = cw.imageretouch.to_binaryformat(image, -1)
             elif self.filter == 8:
                 image = cw.imageretouch.spread_pixels(image)
             elif self.filter == 9:

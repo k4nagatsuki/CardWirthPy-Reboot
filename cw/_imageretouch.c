@@ -80,7 +80,7 @@ to_binaryformat(PyObject *self, PyObject *args)
         return NULL;
 
     PyBytes_AsStringAndSize(string, &outdata, &len);
-    val = intwrap(val, 0, 255);
+    val = intwrap(val, -1, 255);
 
     for (y = 0; y < h; y++)
     {
@@ -90,7 +90,7 @@ to_binaryformat(PyObject *self, PyObject *args)
             g = data[1];
             b = data[2];
 
-            if (r <= val && g <= val && b <= val)
+            if (val == -1 ? (r < 255 || g < 255 || b < 255) : (r <= val && g <= val && b <= val))
             {
                 outdata[0] = 0;
                 outdata[1] = 0;
