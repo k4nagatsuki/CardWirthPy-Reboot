@@ -913,7 +913,11 @@ def get_resourcesize(path):
     """指定されたリソースの標準サイズを返す。"""
     dpath = os.path.basename(os.path.dirname(path))
     fpath = os.path.splitext(os.path.basename(path))[0]
-    return SIZE_RESOURCES["%s/%s" % (dpath, fpath)]
+    key = "%s/%s" % (dpath, fpath)
+    if key in SIZE_RESOURCES:
+        return SIZE_RESOURCES[key]
+    else:
+        return None
 
 class RecentHistory(object):
     def __init__(self, data):
