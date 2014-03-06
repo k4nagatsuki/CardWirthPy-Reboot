@@ -280,6 +280,7 @@ class ScenarioData(SystemData):
     def __init__(self, header, cardonly=False):
         self.data = None
         self.is_playing = True
+        self.in_f9 = False
         self.fpath = cw.util.get_linktarget(header.get_fpath())
         self.name = header.name
         self.author = header.author
@@ -586,6 +587,7 @@ class ScenarioData(SystemData):
         """
         シナリオ強制終了。俗に言うファッ○ユー。
         """
+        self.in_f9 = True
         cw.cwpy.exec_func(cw.cwpy.f9)
 
     def create_log(self):
