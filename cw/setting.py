@@ -363,6 +363,8 @@ class Resource(object):
                                         wx.FontEnumerator.GetFacenames())
         # StatusBarで使用するボタンイメージ
         self._wxbtnbmp0 = self._create_wxbtnbmp(cw.s(120), cw.s(22), 0)
+        self._wxbtnbmp0pressed = self._create_wxbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_PRESSED)
+        self._wxbtnbmp0current = self._create_wxbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_CURRENT)
         self._wxbtnbmp1 = self._create_wxbtnbmp(cw.s(27), cw.s(27), 0)
         self._wxbtnbmp1pressed = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_PRESSED)
         self._wxbtnbmp1current = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
@@ -550,7 +552,12 @@ class Resource(object):
                sizetype=1の時のみ有効
         """
         if sizetype == 0:
-            return self._wxbtnbmp0
+            if flags == wx.CONTROL_PRESSED:
+                return self._wxbtnbmp0pressed
+            elif flags == wx.CONTROL_CURRENT:
+                return self._wxbtnbmp0current
+            else:
+                return self._wxbtnbmp0
         elif sizetype == 1:
             if flags == wx.CONTROL_PRESSED:
                 return self._wxbtnbmp1pressed
