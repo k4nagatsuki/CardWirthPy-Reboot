@@ -2052,7 +2052,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True, party=None):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True, party=None, from_getcontent=False):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -2166,7 +2166,9 @@ class CWPy(_Singleton, threading.Thread):
             if n + 1 > maxn:
                 if from_event:
                     if isinstance(target, cw.character.Player):
-                        self.trade("BACKPACK", header=header, from_event=True, sort=sort, party=party)
+                        # 互換動作: 1.20以前では手札が一杯でも荷物袋に入らない
+                        if not (from_getcontent and cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
+                            self.trade("BACKPACK", header=header, from_event=True, sort=sort, party=party)
 
                 else:
                     self.sounds["error"].play()

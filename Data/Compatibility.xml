@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="d0217270f4cc6ed26928b1e99d9f505a">1.20</Scenario><!-- シュバリエの館/Area4.wid -->
   <Scenario md5="e5dc2514c68cf5d2bab538aabfad4eab">1.20</Scenario><!-- アマンダの館/Package7.wid -->
   <Scenario md5="6cec67f458818d7546fcfe83da5620b8">1.20</Scenario><!-- 真夜中に、形容し難きものが目を覚ます -->
   <Scenario md5="bde8a4e122a27d9502436fa108c0a2a0">1.20</Scenario><!-- エクソシスト -->
