@@ -24,7 +24,10 @@ class EventHandler(object):
 
         exception = None
 
-        for event in cw.cwpy.events:
+        while True:
+            event = cw.cwpy.get_nextevent()
+            if not event:
+                break
             if event.type == KEYDOWN:
                 # ESCAPEキー
                 if event.key == K_ESCAPE:
@@ -372,7 +375,10 @@ class EventHandlerForMessageWindow(EventHandler):
 
         exception = None
 
-        for event in cw.cwpy.events:
+        while True:
+            event = cw.cwpy.get_nextevent()
+            if not event:
+                break
             if event.type == KEYDOWN:
                 # ESCAPEキー
                 if event.key == K_ESCAPE:
@@ -608,7 +614,10 @@ class EventHandlerForBacklog(EventHandler):
 
         exception = None
 
-        for event in cw.cwpy.events:
+        while True:
+            event = cw.cwpy.get_nextevent()
+            if not event:
+                break
             if event.type == KEYDOWN:
                 # ESCAPEキー
                 if event.key == K_ESCAPE:
@@ -806,7 +815,10 @@ class EventHandlerForEffectBooster(EventHandler):
 
         exception = None
 
-        for event in cw.cwpy.events:
+        while True:
+            event = cw.cwpy.get_nextevent()
+            if not event:
+                break
             if event.type == KEYDOWN:
                 # ESCAPEキー
                 if event.key == K_ESCAPE:

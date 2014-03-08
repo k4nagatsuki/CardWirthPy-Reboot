@@ -391,6 +391,14 @@ class CWPy(_Singleton, threading.Thread):
         for i in xrange(count):
             self.tick_clock()
 
+    def get_nextevent(self):
+        if self.events:
+            e = self.events[0]
+            self.events = self.events[1:]
+            return e
+        else:
+            return None
+
     def input(self, eventclear=False, inputonly=False):
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
@@ -941,6 +949,13 @@ class CWPy(_Singleton, threading.Thread):
         if load_failure == False and not self.is_playingscenario():
             return
 
+        if cw.cwpy.is_runningevent():
+            self.exec_func(self._f9impl())
+            raise cw.event.EffectBreakError()
+        else:
+            self._f9impl()
+
+    def _f9impl(self):
         self.sdata.is_playing = False
         self.pre_dialogs = []
 
