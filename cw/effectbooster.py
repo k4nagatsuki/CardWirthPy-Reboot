@@ -20,14 +20,17 @@ def wait_effectbooster(waittime):
         tick = 0
         cw.util.change_cursor("mouse")
 
+    up_scr = cw.UP_SCR
+
     try:
         eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
         while cw.cwpy.is_running() and\
                 (not tick or pygame.time.get_ticks() < tick) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
-            cw.cwpy.sbargrp.update(cw.cwpy.scr)
-            cw.cwpy.tick_clock(1000)
+            if up_scr == cw.UP_SCR:
+                cw.cwpy.sbargrp.update(cw.cwpy.scr)
+                cw.cwpy.tick_clock(1000)
             cw.cwpy.input()
             eventhandler.run()
 
@@ -37,6 +40,7 @@ def wait_effectbooster(waittime):
 
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
+        self.up_scr = cw.UP_SCR
         self.configpath = config.path
         self.cache = cache
         # image load
@@ -85,6 +89,9 @@ class _JpySubImage(cw.image.Image):
                 self.wait()
         # 一時描画
         elif self.animation:
+            if cw.UP_SCR <> self.up_scr:
+                return # 中断
+
             if self.animeposition and self.animemove:
                 pos = self.animeposition
                 pos = (pos[0] + self.animemove[0], pos[1] + self.animemove[1])
@@ -561,17 +568,29 @@ class JpyImage(cw.image.Image):
         if not cache:
             cache = JpyCache()
 
+        # スケール変更時には中断する
+        up_scr = cw.UP_SCR
+        self.breaked = False
+
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
 
         for section in config.sections():
+            if cw.UP_SCR <> up_scr:
+                self.breaked = True
+                return # 中断
+
             if not section == "init":
                 parts = JpyPartsImage(config, section, cache, back.transparent)
                 parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
                 parts.draw2back(back)
+
+        if cw.UP_SCR <> up_scr:
+            self.breaked = True
+            return # 中断
 
         back.retouch()
         back.drawtemp(doanime)
