@@ -41,6 +41,7 @@ def wait_effectbooster(waittime):
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
         self.up_scr = cw.UP_SCR
+        self.breaked = False
         self.configpath = config.path
         self.cache = cache
         # image load
@@ -90,6 +91,7 @@ class _JpySubImage(cw.image.Image):
         # 一時描画
         elif self.animation:
             if cw.UP_SCR <> self.up_scr:
+                self.breaked = True
                 return # 中断
 
             if self.animeposition and self.animemove:
@@ -139,6 +141,9 @@ class _JpySubImage(cw.image.Image):
                     ydir = bool(rest_y > -1)
 
                     while rest_x or rest_y:
+                        if cw.UP_SCR <> self.up_scr:
+                            self.breaked = True
+                            return # 中断
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
                         n /= animespeed
                         n /= cw.UP_SCR * cw.UP_SCR
@@ -425,7 +430,11 @@ class _JpySubImage(cw.image.Image):
                     image = pygame.Surface((0, 0)).convert()
                 # Jpy1ファイル
                 elif ext == ".jpy1":
-                    image = JpyImage(path, cache=self.cache, doanime=doanime, mask=self.transparent).get_image()
+                    jpy1 = JpyImage(path, cache=self.cache, doanime=doanime, mask=self.transparent)
+                    if jpy1.breaked:
+                        self.breaked = True
+                        return
+                    image = jpy1.get_image()
                     # 変化するためキャッシュ不可
                 # Jpdcファイル
                 elif ext == ".jpdc":
@@ -570,31 +579,38 @@ class JpyImage(cw.image.Image):
 
         # スケール変更時には中断する
         up_scr = cw.UP_SCR
-        self.breaked = False
+        self.breaked = True
 
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
+        if back.breaked:
+            return # 中断
 
         for section in config.sections():
             if cw.UP_SCR <> up_scr:
-                self.breaked = True
                 return # 中断
 
             if not section == "init":
                 parts = JpyPartsImage(config, section, cache, back.transparent)
                 parts.load(doanime)
+                if parts.breaked:
+                    return # 中断
                 parts.retouch()
                 parts.drawtemp(doanime)
+                if parts.breaked:
+                    return # 中断
                 parts.draw2back(back)
 
         if cw.UP_SCR <> up_scr:
-            self.breaked = True
             return # 中断
 
         back.retouch()
         back.drawtemp(doanime)
+        if back.breaked:
+            return # 中断
         self.image = back.get_image()
+        self.breaked = False
         if mask:
             self.image.set_colorkey(self.image.get_at((0, 0)))
 
