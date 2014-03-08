@@ -39,13 +39,13 @@ class BackGround(base.CWPySprite):
         if self._in_playing:
             # Jpy1アニメーション中の場合は再実行
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+            elements = self._elements
+            bginhrt = self._bginhrt
+            doanime = self._doanime
+            ttype = self._ttype
             def func():
-                elements = self._elements
-                bginhrt = self._bginhrt
-                doanime = self._doanime
-                ttype = self._ttype
                 # アニメーション前の背景を復元
-                self.reload(doanime=False, ttype=("None", "None"), redraw=False)
+                self.reload(doanime=False, ttype=("None", "None"), redraw=True)
                 # 再実行
                 self.load(elements, bginhrt, doanime=doanime, ttype=ttype)
             cw.cwpy.exec_func(func)
