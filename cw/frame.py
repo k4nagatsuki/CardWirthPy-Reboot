@@ -312,7 +312,7 @@ class Frame(wx.Frame):
 
             if cw.cwpy.is_showingdebugger():
                 func = cw.cwpy.frame.debugger.refresh_tools
-                cw.cwpy.exec_func(func)
+                cw.cwpy.frame.exec_func(func)
 
         self.kill_dlg(dlg)
 
