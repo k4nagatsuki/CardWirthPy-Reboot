@@ -34,6 +34,7 @@ class Text(wx.Dialog):
         self.textctrl.SetForegroundColour(wx.WHITE)
         self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", cw.s(10), weight=wx.NORMAL))
         self.textctrl.SetEditable(False)
+        self.textctrl.ShowPosition(0)
         # close
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((85, 24)), cw.cwpy.msgs["close"])
         # left
@@ -66,6 +67,7 @@ class Text(wx.Dialog):
             self.textctrl.SetValue(value)
         except:
             self.textctrl.SetValue(cw.util.decode_zipname(value))
+        self.textctrl.ShowPosition(0)
 
     def OnCombobox(self, event):
         self.index = self.combo.GetSelection()

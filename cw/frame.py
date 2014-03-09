@@ -242,7 +242,7 @@ class Frame(wx.Frame):
 
     def OnMotion(self, event):
         pos = (event.GetX(), event.GetY())
-        if not (self.IsActive() or self.debugger.IsActive()):
+        if not (self.IsActive() or (self.debugger and self.debugger.IsActive())):
             pos = (-1, -1)
         if pos <> cw.cwpy.mousepos:
             cw.cwpy.mousemotion = True

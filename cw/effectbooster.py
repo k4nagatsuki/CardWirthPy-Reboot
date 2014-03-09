@@ -548,7 +548,9 @@ def get_filepath_s(configpath, filename, dirtype=-1):
     else:
         dpath = os.path.dirname(configpath)
 
-    return cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
+    path = cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
+    path = cw.cwpy.rsrc.get_filepath(path)
+    return path
 
 class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache, mask):
@@ -771,7 +773,8 @@ class JptxImage(cw.image.Image):
             else:
                 if not fontface in cw.cwpy.rsrc.facenames:
                     fontface = self.get_fontface(fontface)
-                fontface = fontface.encode("euc-jp")
+                encoding = sys.getfilesystemencoding()
+                fontface = fontface.encode(encoding)
                 font = pygame.font.SysFont(fontface, fontpixels)
             return font
         def set_bold(font, start):

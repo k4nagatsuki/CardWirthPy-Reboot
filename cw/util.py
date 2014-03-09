@@ -58,8 +58,11 @@ class MusicInterface(object):
             cw.cwpy.ydata.changed()
         fpath = self.get_path(path)
         self.path = path
-        if not pygame.mixer and not cw.bassplayer.is_alivable():
+        if not pygame.mixer and not cw.bassplayer.is_alivablewithpath(path):
             return
+
+        if cw.cwpy.rsrc:
+            fpath = cw.cwpy.rsrc.get_filepath(fpath)
 
         if not os.path.isfile(fpath):
             self.stop()
@@ -128,7 +131,7 @@ class MusicInterface(object):
         assert threading.currentThread() == cw.cwpy
 
         if self._bass:
-            if cw.bassplayer.is_alivable():
+            if cw.bassplayer.is_alivablewithpath(self.path):
                 cw.bassplayer.stop_bgm()
                 self._bass = False
         elif self._winmm:
@@ -204,7 +207,7 @@ class SoundInterface(object):
 
     def play(self, from_scenario=False):
         if self._sound:
-            if cw.bassplayer.is_alivable():
+            if cw.bassplayer.is_alivablewithpath(self._sound):
                 if threading.currentThread() <> cw.cwpy:
                     cw.cwpy.exec_func(self.play, from_scenario)
                     return
@@ -295,6 +298,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
     """
     #assert threading.currentThread() == cw.cwpy
+    if cw.cwpy.rsrc:
+        path = cw.cwpy.rsrc.get_filepath(path)
     try:
         if f:
             image = pygame.image.load(f, path)
@@ -445,13 +450,17 @@ def load_bgm(path):
     """
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
+
+    if cw.cwpy.rsrc:
+        path = cw.cwpy.rsrc.get_filepath(path)
+
     if not pygame.mixer or not os.path.isfile(path):
         return
 
     if sys.platform == "win32" and cw.util.splitext(path)[1] in (".mpg", ".mpeg"):
         return 1
 
-    if cw.bassplayer.is_alivable():
+    if cw.bassplayer.is_alivablewithpath(path):
         return 2
 
     try:
@@ -479,6 +488,10 @@ def load_sound(path):
     """
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
+
+    if cw.cwpy.rsrc:
+        path = cw.cwpy.rsrc.get_filepath(path)
+
     if not pygame.mixer or not os.path.isfile(path):
         return SoundInterface()
 
@@ -487,7 +500,7 @@ def load_sound(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        if cw.bassplayer.is_alivable():
+        if cw.bassplayer.is_alivablewithpath(path):
             # BASSが使用できる場合
             sound = SoundInterface(path)
         elif sys.platform == "win32" and (path.lower().endswith(".wav") or\
@@ -1320,6 +1333,8 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
         return wx.EmptyBitmap(0, 0)
 
+    if cw.cwpy.rsrc:
+        name = cw.cwpy.rsrc.get_filepath(name)
     if mask:
         if not image:
             try:

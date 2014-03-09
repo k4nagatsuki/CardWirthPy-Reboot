@@ -506,6 +506,7 @@ class CardHolder(CardControl):
     def __init__(self, parent, callname):
         # タイプ判別
         self.callname = callname
+        self.selection = None
 
         # 適性表示を除去
         for pcard in cw.cwpy.get_pcards():
@@ -516,14 +517,12 @@ class CardHolder(CardControl):
         # タイプ別初期化(キャストの手札の場合はindex復元後)
         if self.callname == "BACKPACK":
             name = cw.cwpy.msgs["cards_backpack"]
-            self.selection = None
             self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 0, 128)
             self.list = cw.cwpy.ydata.party.backpack
             sendto = True
         elif self.callname == "STOREHOUSE":
             name = cw.cwpy.msgs["cards_storehouse"]
-            self.selection = None
             self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse

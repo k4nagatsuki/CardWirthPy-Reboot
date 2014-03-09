@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+
 import wx
 
 import cw
@@ -45,6 +47,11 @@ class CardInfo(wx.Dialog):
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
         # focus
         self.panel.SetFocusIgnoringChildren()
+
+        if sys.platform <> "win32":
+            # BUG: SetBackgroundColour()を呼ばないと色が変わってしまう(Gtk)
+            self.toppanel.SetBackgroundColour(self.toppanel.GetBackgroundColour())
+            self.SetBackgroundColour(self.GetBackgroundColour())
 
     def OnMouseWheel(self, event):
         if len(self.list) == 1:

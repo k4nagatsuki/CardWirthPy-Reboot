@@ -377,10 +377,35 @@ class Resource(object):
         self._wxbtnbmp1current = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
         self._wxbtnbmp2 = self._create_wxbtnbmp(cw.s(632), cw.s(33), 0)
 
+        self.ignorecase_table = {}
+
         if sys.platform == "win32":
             self.init_wxresources()
         else:
             cw.cwpy.frame.exec_func(self.init_wxresources)
+            # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
+            #        取得に失敗する事があるので、すべて小文字のパスをキーにして
+            #        真のファイル名へのマッピングをしておく。
+            #        主にこの問題は手書きされる'*.jpy1'内で発生する。
+            for res in ("Table", "Bgm", "Sound"):
+                resdir = cw.util.join_paths(self.skindir, res)
+                for dpath, dnames, fnames in os.walk(resdir):
+                    for fname in fnames:
+                        path = cw.util.join_paths(dpath, fname)
+                        self.ignorecase_table[path.lower()] = path
+
+    def get_filepath(self, fpath):
+        if not fpath or os.path.isfile(fpath) or cw.binary.image.path_is_code(fpath):
+            return fpath
+
+        if self.ignorecase_table or (cw.cwpy.sdata and cw.cwpy.sdata.ignorecase_table):
+            lpath = fpath.lower()
+            if lpath in self.ignorecase_table:
+                fpath = self.ignorecase_table.get(lpath, fpath)
+            elif cw.cwpy.sdata and cw.cwpy.sdata.ignorecase_table:
+                fpath = cw.cwpy.sdata.ignorecase_table.get(lpath, fpath)
+
+        return fpath
 
     def init_wxresources(self):
         """wx側のリソースを初期化。"""
