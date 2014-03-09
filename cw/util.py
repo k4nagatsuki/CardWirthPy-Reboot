@@ -41,9 +41,11 @@ class MusicInterface(object):
     def __init__(self):
         self.path = ""
         self.fpath = ""
+        self.movie_scr = None
         self.mastervolume = 100
         self._winmm = False
         self._bass = False
+        self._movie = None
 
     def play(self, path, updatepredata=True, restart=False):
         self._play(path, updatepredata, restart)
@@ -99,6 +101,16 @@ class MusicInterface(object):
                             mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                             mciSendStringW(u"play %s" % (name), 0, 0, 0)
                             self._winmm = True
+                        elif cw.util.splitext(fpath)[1].lower() in (".mpg", ".mpeg"):
+                            try:
+                                encoding = sys.getfilesystemencoding()
+                                self._movie = pygame.movie.Movie(fpath.encode(encoding))
+                                self._movie.set_volume(self._get_volumevalue())
+                                self.movie_scr = pygame.Surface(self._movie.get_size()).convert()
+                                self._movie.set_display(self.movie_scr)
+                                self._movie.play()
+                            except Exception:
+                                cw.util.print_ex()
                     elif filesize == 57 and cw.util.get_md5(fpath) == "d11be4c76fc63a6ba299c2f3bd3880b0":
                         # FIXME: reset.mid
                         # 繰り返し流すとハングアップ pygame 1.9.1
@@ -140,6 +152,11 @@ class MusicInterface(object):
             mciSendStringW(u"stop %s" % (name), 0, 0, 0)
             mciSendStringW(u"close %s" % (name), 0, 0, 0)
             self._winmm = False
+        elif self._movie:
+            assert self.movie_scr
+            self._movie.stop()
+            self._movie = None
+            self.movie_scr = None
         else:
             if pygame.mixer:
                 pygame.mixer.music.stop()
@@ -174,6 +191,8 @@ class MusicInterface(object):
         assert threading.currentThread() == cw.cwpy
         if self._bass:
             cw.bassplayer.set_bgmvolume(volume)
+        elif self._movie:
+            self._movie.set_volume(volume)
         else:
             pygame.mixer.music.set_volume(volume)
 
@@ -457,7 +476,7 @@ def load_bgm(path):
     if not pygame.mixer or not os.path.isfile(path):
         return
 
-    if sys.platform == "win32" and cw.util.splitext(path)[1] in (".mpg", ".mpeg"):
+    if cw.util.splitext(path)[1].lower() in (".mpg", ".mpeg"):
         return 1
 
     if cw.bassplayer.is_alivablewithpath(path):

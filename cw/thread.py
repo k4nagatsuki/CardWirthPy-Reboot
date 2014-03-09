@@ -474,6 +474,8 @@ class CWPy(_Singleton, threading.Thread):
 
             dirty_rects.extend(self.topgrp.draw(self.scr))
             dirty_rects.extend(self.backloggrp.draw(self.scr))
+            if self.music.movie_scr:
+                self.scr.blit(self.music.movie_scr, (0, 0))
             dirty_rects.extend(self.sbargrp.draw(self.scr))
 
             # FPS描画
