@@ -20,14 +20,17 @@ def wait_effectbooster(waittime):
         tick = 0
         cw.util.change_cursor("mouse")
 
+    up_scr = cw.UP_SCR
+
     try:
         eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
         while cw.cwpy.is_running() and\
                 (not tick or pygame.time.get_ticks() < tick) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
-            cw.cwpy.sbargrp.update(cw.cwpy.scr)
-            cw.cwpy.tick_clock(1000)
+            if up_scr == cw.UP_SCR:
+                cw.cwpy.sbargrp.update(cw.cwpy.scr)
+                cw.cwpy.tick_clock(1000)
             cw.cwpy.input()
             eventhandler.run()
 
@@ -37,6 +40,7 @@ def wait_effectbooster(waittime):
 
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
+        self.up_scr = cw.UP_SCR
         self.configpath = config.path
         self.cache = cache
         # image load
@@ -85,6 +89,9 @@ class _JpySubImage(cw.image.Image):
                 self.wait()
         # 一時描画
         elif self.animation:
+            if cw.UP_SCR <> self.up_scr:
+                return # 中断
+
             if self.animeposition and self.animemove:
                 pos = self.animeposition
                 pos = (pos[0] + self.animemove[0], pos[1] + self.animemove[1])
@@ -269,7 +276,7 @@ class _JpySubImage(cw.image.Image):
             elif self.filter == 6:
                 image = cw.imageretouch.filter_electrical(image)
             elif self.filter == 7:
-                image = cw.imageretouch.to_binaryformat(image, 128)
+                image = cw.imageretouch.to_binaryformat(image, -1)
             elif self.filter == 8:
                 image = cw.imageretouch.spread_pixels(image)
             elif self.filter == 9:
@@ -561,17 +568,29 @@ class JpyImage(cw.image.Image):
         if not cache:
             cache = JpyCache()
 
+        # スケール変更時には中断する
+        up_scr = cw.UP_SCR
+        self.breaked = False
+
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
 
         for section in config.sections():
+            if cw.UP_SCR <> up_scr:
+                self.breaked = True
+                return # 中断
+
             if not section == "init":
                 parts = JpyPartsImage(config, section, cache, back.transparent)
                 parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
                 parts.draw2back(back)
+
+        if cw.UP_SCR <> up_scr:
+            self.breaked = True
+            return # 中断
 
         back.retouch()
         back.drawtemp(doanime)
@@ -707,8 +726,9 @@ class JptxImage(cw.image.Image):
 
         # text rendering
         # TODO pygame側での生成を避ける
-        self.wxcanvas = wx.EmptyBitmap(cw.s(10), cw.s(10))
-        self.wxdc = wx.MemoryDC(self.wxcanvas)
+        if sys.platform == "win32":
+            self.wxcanvas = wx.EmptyBitmap(cw.s(10), cw.s(10))
+            self.wxdc = wx.MemoryDC(self.wxcanvas)
         bold = False
         underline = False
         italic = False
@@ -716,7 +736,7 @@ class JptxImage(cw.image.Image):
             if fontface in cw.cwpy.rsrc.fontnames.values():
                 fontpath = self.get_fontpath(fontface)
                 font = pygame.font.Font(fontpath, fontpixels)
-            else:
+            elif sys.platform == "win32":
                 # pygameで描画できないフォント
                 font = wx.Font(cw.s(12),
                                wx.FONTFAMILY_DEFAULT,
@@ -732,11 +752,16 @@ class JptxImage(cw.image.Image):
                 self.wxcanvas = wx.EmptyBitmap(size[0] * 2, size[1] * 2)
                 self.wxdc = wx.MemoryDC(self.wxcanvas)
                 self.wxdc.SetFont(font)
+            else:
+                if not fontface in cw.cwpy.rsrc.facenames:
+                    fontface = self.get_fontface(fontface)
+                fontface = fontface.encode("euc-jp")
+                font = pygame.font.SysFont(fontface, fontpixels)
             return font
         def set_bold(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_bold(start)
-            else:
+            elif sys.platform == "win32":
                 if start:
                     font.SetWeight(wx.FONTWEIGHT_BOLD)
                 else:
@@ -745,13 +770,13 @@ class JptxImage(cw.image.Image):
         def set_underline(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_underline(start)
-            else:
+            elif sys.platform == "win32":
                 font.SetUnderlined(start)
                 self.wxdc.SetFont(font)
         def set_italic(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_italic(start)
-            else:
+            elif sys.platform == "win32":
                 if start:
                     font.SetStyle(wx.FONTSTYLE_ITALIC)
                 else:
@@ -760,14 +785,14 @@ class JptxImage(cw.image.Image):
         def get_height(font):
             if isinstance(font, pygame.font.Font):
                 return font.get_height()
-            else:
+            elif sys.platform == "win32":
                 w, h, lh = self.wxdc.GetMultiLineTextExtent("#")
                 return lh + cw.s(2)
         def font_render(font, char, antialias, fontcolor):
             if isinstance(font, pygame.font.Font):
                 subimg = font.render(char, antialias, fontcolor)
                 return subimg, subimg.get_width()
-            else:
+            elif sys.platform == "win32":
                 backcolor = (0, 0, 0)
                 if fontcolor[:3] == backcolor:
                     backcolor = (255, 255, 255)
@@ -894,10 +919,26 @@ class JptxImage(cw.image.Image):
         if backheight < 0 or backwidth < 0:
             w = w if backwidth < 0 else backwidth
             h = h if backheight < 0 else backheight
-            self.image = self.image.subsurface(pygame.Rect(0, 0, w, h))
+            rect = self.image.get_rect()
+            self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, w, h)))
 
-        self.wxcanvas = None
-        self.wxdc = None
+        if sys.platform == "win32":
+            self.wxcanvas = None
+            self.wxdc = None
+
+    def get_fontface(self, fontface):
+        if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
+            return cw.cwpy.rsrc.fontnames["pgothic"]
+        elif fontface in (u"ＭＳ Ｐ明朝", "MS PMincho"):
+            return cw.cwpy.rsrc.fontnames["pmincho"]
+        elif fontface in (u"ＭＳ ゴシック", "MS Gothic"):
+            return cw.cwpy.rsrc.fontnames["gothic"]
+        elif fontface in (u"ＭＳ 明朝", "MS Mincho"):
+            return cw.cwpy.rsrc.fontnames["mincho"]
+        elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
+            return cw.cwpy.rsrc.fontnames["uigothic"]
+        else:
+            return fontface
 
     def get_fontpath(self, fontface):
         if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):

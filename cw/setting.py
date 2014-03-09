@@ -369,11 +369,13 @@ class Resource(object):
         self._msuigothic = False
         # StatusBarで使用するボタンイメージ
         # wxスレッドから初期化
-        self._wxbtnbmp0 = None
-        self._wxbtnbmp1 = None
-        self._wxbtnbmp1pressed = None
-        self._wxbtnbmp1current = None
-        self._wxbtnbmp2 = None
+        self._wxbtnbmp0 = self._create_wxbtnbmp(cw.s(120), cw.s(22), 0)
+        self._wxbtnbmp0pressed = self._create_wxbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_PRESSED)
+        self._wxbtnbmp0current = self._create_wxbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_CURRENT)
+        self._wxbtnbmp1 = self._create_wxbtnbmp(cw.s(27), cw.s(27), 0)
+        self._wxbtnbmp1pressed = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_PRESSED)
+        self._wxbtnbmp1current = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
+        self._wxbtnbmp2 = self._create_wxbtnbmp(cw.s(632), cw.s(33), 0)
 
         if sys.platform == "win32":
             self.init_wxresources()
@@ -397,12 +399,6 @@ class Resource(object):
         # "MS UI GOTHIC"が使えるかどうか
         self._msuigothic = bool("MS UI Gothic" in
                                         wx.FontEnumerator.GetFacenames())
-        # StatusBarで使用するボタンイメージ
-        self._wxbtnbmp0 = self._create_wxbtnbmp(cw.s(120), cw.s(22), 0)
-        self._wxbtnbmp1 = self._create_wxbtnbmp(cw.s(27), cw.s(27), 0)
-        self._wxbtnbmp1pressed = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_PRESSED)
-        self._wxbtnbmp1current = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
-        self._wxbtnbmp2 = self._create_wxbtnbmp(cw.s(632), cw.s(33), 0)
 
     def get_fontpaths(self):
         """
@@ -461,10 +457,10 @@ class Resource(object):
             d["mincho"] = u"IPA明朝"
             d["pmincho"] = u"IPA P明朝"
             d["pgothic"] = u"IPA Pゴシック"
-            facenames = wx.FontEnumerator().GetFacenames()
+            self.facenames = set(wx.FontEnumerator().GetFacenames())
 
             for value in d.itervalues():
-                if not value in facenames:
+                if not value in self.facenames:
                     raise ValueError("IPA font not found.")
 
         return d
@@ -572,30 +568,84 @@ class Resource(object):
         return button
 
     def _create_wxbtnbmp(self, w, h, flags=0):
-        wxbmp = wx.EmptyBitmap(w, h)
-        wxbmp.UseAlpha()
-        dc = wx.MemoryDC(wxbmp)
-        render = wx.RendererNative.Get()
-        render.DrawPushButton(cw.cwpy.frame, dc, (cw.s(0), cw.s(0), w, h), flags)
-        dc.EndDrawing()
-        # RendererNativeがアルファ値を出力しなかった場合
-        wximg = wxbmp.ConvertToImage()
-        pixel_num = w * h
+        if sys.platform == "win32":
+            wxbmp = wx.EmptyBitmap(w, h)
+            wxbmp.UseAlpha()
+            dc = wx.MemoryDC(wxbmp)
+            render = wx.RendererNative.Get()
+            render.DrawPushButton(cw.cwpy.frame, dc, (cw.s(0), cw.s(0), w, h), flags)
+            dc.EndDrawing()
+            # RendererNativeがアルファ値を出力しなかった場合
+            wximg = wxbmp.ConvertToImage()
+            pixel_num = w * h
 
-        if wximg.GetAlphaData() == "\x00" * pixel_num:
-            wximg.SetAlphaData("\xFF" * pixel_num)
-            wxbmp = wximg.ConvertToBitmap()
+            if wximg.GetAlphaData() == "\x00" * pixel_num:
+                wximg.SetAlphaData("\xFF" * pixel_num)
+                wxbmp = wximg.ConvertToBitmap()
 
-        return cw.image.conv2surface(wxbmp)
+            return wxbmp
+        else:
+            bmp = pygame.Surface((w, h)).convert()
+            c1 = 240
+            c2 = 224
+            mid = h / 2
+            for y in xrange(0, mid+1, 1):
+                bmp.fill((c1-y, c1-y, c1-y), pygame.Rect(0, mid-y, w, 1))
+                bmp.fill((c2-y, c2-y, c2-y), pygame.Rect(0, mid+y, w, 1))
+
+            r = 4
+            r2 = r*2
+
+            if (flags & wx.CONTROL_CURRENT) <> 0:
+                color = (240, 240, 240)
+                bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
+                bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
+                pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
+                pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
+                pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
+                pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
+
+            if (flags & wx.CONTROL_PRESSED) <> 0:
+                color = (196, 196, 196)
+                bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
+                bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
+                pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
+                pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
+                pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
+                pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
+
+            color = (128, 128, 128)
+
+            pygame.draw.line(bmp, color, (r, 1), (w-r-1, 1))
+            pygame.draw.line(bmp, color, (r, h-2), (w-r-1, h-2))
+            pygame.draw.line(bmp, color, (1, r), (1, h-r-1))
+            pygame.draw.line(bmp, color, (w-2, r), (w-2, h-r-1))
+
+            r0 = math.radians(0)
+            r90 = math.radians(90)
+            r180 = math.radians(180)
+            r270 = math.radians(270)
+            r360 = math.radians(360)
+            pygame.draw.arc(bmp, color, (w-r2-2, 1, r2, r2), 0, r90)
+            pygame.draw.arc(bmp, color, (1, 1, r2, r2), r90, r180)
+            pygame.draw.arc(bmp, color, (1, h-r2-2, r2, r2), r180, r270)
+            pygame.draw.arc(bmp, color, (w-r2-2, h-r2-2, r2, r2), r270, r360)
+
+            return bmp
 
     def get_wxbtnbmp(self, sizetype, flags=0):
         """StatusBarで使用するOSネイティブなボタン画像を取得する。
         sizetype: 0=(120, 22), 1=(27, 27), 2=(632, 33)
         flags: 0, wx.CONTROL_PRESSED, wx.CONTROL_CURRENT
-               sizetype=1の時のみ有効
+               sizetype=または1の時のみ有効
         """
         if sizetype == 0:
-            return self._wxbtnbmp0.copy()
+            if flags == wx.CONTROL_PRESSED:
+                return self._wxbtnbmp0pressed.copy()
+            elif flags == wx.CONTROL_CURRENT:
+                return self._wxbtnbmp0current.copy()
+            else:
+                return self._wxbtnbmp0.copy()
         elif sizetype == 1:
             if flags == wx.CONTROL_PRESSED:
                 return self._wxbtnbmp1pressed.copy()
@@ -958,7 +1008,11 @@ def get_resourcesize(path):
     """指定されたリソースの標準サイズを返す。"""
     dpath = os.path.basename(os.path.dirname(path))
     fpath = os.path.splitext(os.path.basename(path))[0]
-    return SIZE_RESOURCES["%s/%s" % (dpath, fpath)]
+    key = "%s/%s" % (dpath, fpath)
+    if key in SIZE_RESOURCES:
+        return SIZE_RESOURCES[key]
+    else:
+        return None
 
 class RecentHistory(object):
     def __init__(self, data):

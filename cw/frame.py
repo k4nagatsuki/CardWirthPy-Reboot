@@ -83,6 +83,7 @@ class Frame(wx.Frame):
         else:
             # Windowsではこれらのイベントはpygame側で取れる
             self.panel.Bind(wx.EVT_MOTION, self.OnMotion)
+            self.panel.Bind(wx.EVT_LEAVE_WINDOW, self.OnMotion)
             self.panel.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
             self.panel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
             self.panel.Bind(wx.EVT_MIDDLE_UP, self.OnMiddleUp)
@@ -241,6 +242,8 @@ class Frame(wx.Frame):
 
     def OnMotion(self, event):
         pos = (event.GetX(), event.GetY())
+        if not (self.IsActive() or self.debugger.IsActive()):
+            pos = (-1, -1)
         if pos <> cw.cwpy.mousepos:
             cw.cwpy.mousemotion = True
             cw.cwpy.mousepos = pos
@@ -384,7 +387,7 @@ class Frame(wx.Frame):
 
             if cw.cwpy.is_showingdebugger():
                 func = cw.cwpy.frame.debugger.refresh_tools
-                cw.cwpy.exec_func(func)
+                cw.cwpy.frame.exec_func(func)
 
         self.kill_dlg(dlg)
 

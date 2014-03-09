@@ -163,15 +163,9 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.rsrc.actioncards = self.rsrc.get_actioncards()
             # 背景スプライト
-            if self.background:
-                self.background.update_scale()
-            else:
+            if not self.background:
                 self.background = cw.sprite.background.BackGround()
-            self.bggrp.set_clip(self.background.rect)
-            self.mcardgrp.set_clip(self.background.rect)
-            self.pcardgrp.set_clip(self.background.rect)
-            self.topgrp.set_clip(self.background.rect)
-            self.backloggrp.set_clip(self.background.rect)
+            self._update_clip()
             # ステータスバースプライト
             if not self.statusbar:
                 self.statusbar = cw.sprite.statusbar.StatusBar()
@@ -190,6 +184,13 @@ class CWPy(_Singleton, threading.Thread):
                 wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_ERROR, cw.cwpy.frame)
                 cw.cwpy.frame.Destroy()
             cw.cwpy.frame.exec_func(func)
+
+    def _update_clip(self):
+        self.bggrp.set_clip(self.background.rect)
+        self.mcardgrp.set_clip(self.background.rect)
+        self.pcardgrp.set_clip(self.background.rect)
+        self.topgrp.set_clip(self.background.rect)
+        self.backloggrp.set_clip(self.background.rect)
 
     def update_skin(self, skindirname, changearea=True):
         if self.status == "Title":
@@ -315,6 +316,7 @@ class CWPy(_Singleton, threading.Thread):
             sprite.update_scale()
         for sprite in self.get_fcards():
             sprite.update_scale()
+        self._update_clip()
 
         if self.ydata:
             self.ydata._changed = changed
@@ -412,7 +414,7 @@ class CWPy(_Singleton, threading.Thread):
             self.events = pygame.event.get()
 
     def update_mousepos(self):
-        if sys.platform <> "win32" and not pygame.mouse.get_focused():
+        if sys.platform <> "win32":
             return False
         if pygame.mouse.get_focused():
             if self.scr_fullscreen:
@@ -1160,7 +1162,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if self.is_showingdebugger():
                 func = self.frame.debugger.refresh_tools
-                self.exec_func(func)
+                self.frame.exec_func(func)
 
         else:
             self.exec_func(self.set_yado)
@@ -2366,6 +2368,7 @@ class CWPy(_Singleton, threading.Thread):
             # パーティの所持金または金庫に下取金を追加
             if party:
                 self.exec_func(party.set_money, price)
+
             else:
                 self.exec_func(self.ydata.set_money, price)
 
@@ -2546,6 +2549,7 @@ class CWPy(_Singleton, threading.Thread):
 
             # 対象画像コピー
             if not os.path.isdir(os.path.dirname(imgdst)):
+
                 os.makedirs(os.path.dirname(imgdst))
 
             if pisc:

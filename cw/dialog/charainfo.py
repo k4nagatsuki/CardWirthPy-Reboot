@@ -151,7 +151,7 @@ class CharaInfo(wx.Dialog):
             self.Parent.change_selection(self.list[self.index])
 
         self.toppanel.ccard = self.ccard
-        self.toppanel.draw(True)
+        self.toppanel.Refresh()
 
         for win in self.notebook.GetChildren():
             win.ccard = self.ccard
@@ -184,7 +184,7 @@ class CharaInfo(wx.Dialog):
             self.Parent.change_selection(self.list[self.index])
 
         self.toppanel.ccard = self.ccard
-        self.toppanel.draw(True)
+        self.toppanel.Refresh()
 
         for win in self.notebook.GetChildren():
             win.ccard = self.ccard
@@ -407,7 +407,7 @@ class DescPanel(wx.ScrolledWindow):
         dlg = cw.debug.charaedit.CharacterEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
-            self.Parent.Parent.toppanel.draw(True)
+            self.Parent.Parent.toppanel.Refresh()
             self.draw(True)
             self.Parent.Parent.historypanel.draw(True)
 
@@ -487,7 +487,7 @@ class HistoryPanel(wx.ScrolledWindow):
                 def func(panel):
                     try:
                         panel.draw(True)
-                        panel.Parent.Parent.toppanel.draw(True)
+                        panel.Parent.Parent.toppanel.Refresh()
                     except:
                         pass
                 cw.cwpy.frame.exec_func(func, panel)
@@ -596,7 +596,7 @@ class EditPanel(wx.Panel):
                     if wx.ID_OK == dlg.ShowModal():
                         def func(panel):
                             if panel:
-                                panel.Parent.Parent.toppanel.draw(True)
+                                panel.Parent.Parent.toppanel.Refresh()
                                 panel.Parent.Parent.descpanel.draw(True)
                         cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
@@ -612,7 +612,7 @@ class EditPanel(wx.Panel):
                         def func(panel):
                             if panel:
                                 panel.update_charalist(list)
-                                panel.Parent.Parent.toppanel.draw(True)
+                                panel.Parent.Parent.toppanel.Refresh()
                         cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
                 self.draw(True)

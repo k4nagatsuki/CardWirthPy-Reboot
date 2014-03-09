@@ -16,13 +16,7 @@ class StatusBar(base.CWPySprite):
         self.image = pygame.Surface(cw.s((632, 33)))
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
-        if sys.platform == "win32":
-            self._init_image()
-        else:
-            # self._init_imageを遅延実効
-            def func():
-                cw.cwpy.exec_func(self._init_image)
-            cw.cwpy.frame.exec_func(func)
+        self._init_image()
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
         self.showbuttons = False
@@ -36,16 +30,8 @@ class StatusBar(base.CWPySprite):
         self.rect.topleft = cw.s((0, 420))
 
     def update_scale(self):
-        if sys.platform == "win32":
-            self._init_image()
-            self.change(self.showbuttons)
-        else:
-            def func():
-                def func():
-                    self._init_image()
-                    self.change(self.showbuttons)
-                cw.cwpy.exec_func(func)
-            cw.cwpy.frame.exec_func(func)
+        self._init_image()
+        self.change(self.showbuttons)
 
     def change(self, showbuttons=True, encounter=False):
         self.clear()

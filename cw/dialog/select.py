@@ -464,7 +464,7 @@ class YadoSelect(Select):
         # 所属冒険者
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
         for idx, name in enumerate(self.list2[self.index]):
-            name = cw.util.set_ellipsis_to_longstr(dc, name, cw.s(90), cw.s(75))
+            name = cw.util.abbr_longstr(dc, name, cw.s(90), cw.s(75))
             x = (bmpw - cw.s(270)) / 2 + ((idx % 3) * cw.s(95))
             y = cw.s(200) + (idx / 3) * cw.s(16)
             dc.DrawText(name, x, y)
@@ -789,7 +789,7 @@ class PartySelect(Select):
         w = cw.s(90)
 
         for index, s in enumerate(self.names):
-            s = cw.util.set_ellipsis_to_longstr(dc, s, cw.s(90), cw.s(75))
+            s = cw.util.abbr_longstr(dc, s, cw.s(90), cw.s(75))
             if index < 3:
                 dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, cw.s(85), w, cw.s(15)), wx.ALIGN_CENTER)
             else:
@@ -1622,25 +1622,31 @@ class ScenarioSelect(Select):
         else:
             parent = self.scedir
             self.dirstack = []
+            exists = True
             for fname in spaths[:-1]:
-                self.dirstack.append((parent, fname))
-                parent = cw.util.join_paths(parent, fname)
-                parent = cw.util.get_linktarget(parent)
+                parent2 = cw.util.join_paths(parent, fname)
+                if os.path.exists(parent2):
+                    self.dirstack.append((parent, fname))
+                    parent = cw.util.get_linktarget(parent2)
+                else:
+                    exists = False
+                    break
             self.nowdir = parent
             dpaths = self.get_dpaths(self.nowdir)
             headers = self.db.search_dpath(self.nowdir)
             self.list = dpaths + self._narrow_scenario(headers)
             self.index = 0
 
-            fname = os.path.normcase(spaths[-1])
-            for index, sel in enumerate(self.list):
-                if isinstance(sel, cw.header.ScenarioHeader):
-                    name = sel.fname
-                else:
-                    name = os.path.basename(sel)
-                if os.path.normcase(name) == fname:
-                    self.index = index
-                    break
+            if exists:
+                fname = os.path.normcase(spaths[-1])
+                for index, sel in enumerate(self.list):
+                    if isinstance(sel, cw.header.ScenarioHeader):
+                        name = sel.fname
+                    else:
+                        name = os.path.basename(sel)
+                    if os.path.normcase(name) == fname:
+                        self.index = index
+                        break
 
         self.draw(True)
         self.enable_btn()

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
+import threading
 import wx
 import wx.aui
 import wx.lib.mixins.listctrl as listmix
@@ -46,7 +48,7 @@ class Debugger(wx.Frame):
     def __init__(self, parent):
         wx.Frame.__init__(
             self, parent, -1, u"CardWirthPy Debugger", size=wx.DefaultSize,
-            style=wx.SIMPLE_BORDER|wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
+            style=wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         self.SetClientSize((590, cw.cwpy.frame.GetClientSize()[1]))
         # set icon
@@ -183,6 +185,7 @@ class Debugger(wx.Frame):
         bmp1 = rsrc["EVTCTRL_PLAY"]
         bmp2 = rsrc["EVTCTRL_PAUSE"]
         self.mi_pause.SetBitmaps(bmp1, bmp2)
+        self.mi_pause.SetCheckable(False)
         run_menu.AppendItem(self.mi_pause)
         self.mi_stop = wx.MenuItem(run_menu, ID_STOP, u"イベント強制終了(&E)\tF12",
                          u"イベントを強制終了します。")
@@ -856,11 +859,13 @@ class Debugger(wx.Frame):
         self.refresh_pausetool()
 
     def refresh_pausetool(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self._refresh_pausetool()
 
     def _refresh_pausetool(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.event._paused:
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PLAY"]
             text = u"イベント実行再開(&P)\tF10"
@@ -899,11 +904,13 @@ class Debugger(wx.Frame):
         self.tb_event.Realize()
 
     def refresh_areaname(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self._refresh_areaname()
 
     def _refresh_areaname(self):
+        assert threading.currentThread() <> cw.cwpy
         self.st_area.SetLabel(cw.cwpy.sdata.get_areaname())
 
         # ツールボタンの表示を切り替えるかどうか
@@ -930,17 +937,20 @@ class Debugger(wx.Frame):
             self._mgr.Update()
 
     def refresh_selectedmembername(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self.st_select.SetLabel(cw.cwpy.event.get_selectedmembername())
         self.tb_select.Refresh()
 
     def refresh_tools(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self._refresh_tools()
 
     def _refresh_tools(self):
+        assert threading.currentThread() <> cw.cwpy
         self.mi_comp.Enable(False)
         self.tl_comp.Enable(False)
         self.mi_gossip.Enable(False)
@@ -1086,11 +1096,13 @@ class Debugger(wx.Frame):
         self._mgr.Update()
 
     def refresh_showpartytools(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self._refresh_showpartytools()
 
     def _refresh_showpartytools(self):
+        assert threading.currentThread() <> cw.cwpy
         self.mi_showparty.Enable(False)
         self.tl_showparty.Enable(False)
         self.mi_hideparty.Enable(False)
@@ -1177,6 +1189,7 @@ class VariableListCtrl(wx.ListCtrl):
         """引数のアイテムのデータを更新する。
         item: Flag or Step
         """
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         try:
@@ -1186,11 +1199,13 @@ class VariableListCtrl(wx.ListCtrl):
             self.refresh_variablelist()
 
     def refresh_variablelist(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self._refresh_variablelist()
 
     def _refresh_variablelist(self):
+        assert threading.currentThread() <> cw.cwpy
         self.list = []
         self.SetItemCount(0)
 
@@ -1259,6 +1274,7 @@ class EventTreeCtrl(wx.TreeCtrl):
             cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data)
 
     def refresh_activeitem(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         event = cw.cwpy.event.get_event()
@@ -1288,6 +1304,7 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.current_content = None
 
     def refresh_tree(self):
+        assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         event = cw.cwpy.event.get_event()
@@ -1311,6 +1328,7 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.ExpandAll()
 
     def set_content(self, parentitem, content, name):
+        assert threading.currentThread() <> cw.cwpy
         item = self.AppendItem(parentitem, name)
         self.SetPyData(item, content)
         s = "EVT_" + content.tag.upper()
@@ -1328,6 +1346,7 @@ class EventTreeCtrl(wx.TreeCtrl):
 
     def get_contentname(self, parent, child):
         """分岐コンテントの子コンテント見出し取得。"""
+        assert threading.currentThread() <> cw.cwpy
         content = cw.content.get_content(parent)
 
         if content:

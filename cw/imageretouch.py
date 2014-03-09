@@ -139,7 +139,7 @@ def to_binaryformat(image, value):
     return _retouch(func, image, value)
 
 def _to_binaryformat(image, value):
-    value = cw.util.numwrap(value, 0, 255)
+    value = cw.util.numwrap(value, -1, 255)
     image = image.copy()
 
     if not value:
@@ -153,10 +153,16 @@ def _to_binaryformat(image, value):
         for px in pxs:
             r, g, b = hex2color(px)
 
-            if r <= value and g <= value and b <= value:
-                seq.append(0x0)
+            if value == -1:
+                if r < 255 or g < 255 or b < 255:
+                    seq.append(0x0)
+                else:
+                    seq.append(0xFFFFFF)
             else:
-                seq.append(0xFFFFFF)
+                if r <= value and g <= value and b <= value:
+                    seq.append(0x0)
+                else:
+                    seq.append(0xFFFFFF)
 
         pxarray[x] = seq
 
