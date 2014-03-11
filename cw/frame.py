@@ -522,6 +522,9 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
+            if cw.cwpy.pre_dialogs:
+                cw.cwpy.pre_dialogs.pop()
+
             if cw.cwpy.is_showingmessage():
                 mwin = cw.cwpy.get_messagewindow()
                 mwin.result = cw.event.EffectBreakError()
