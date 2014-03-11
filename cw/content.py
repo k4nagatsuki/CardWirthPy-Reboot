@@ -1336,6 +1336,11 @@ class ChangeBgImageContent(EventContentBase):
         cw.cwpy.tick_clock(framerate=30)
         cw.cwpy.input()
         cw.cwpy.eventhandler.run()
+        while pygame.event.peek(pygame.locals.USEREVENT):
+            # ユーザ操作によりスケール変更のイベントが発生する可能性があるため
+            # 後続のイベントへ進む前に全て消化
+            cw.cwpy.input()
+            cw.cwpy.eventhandler.run()
         return 0
 
     def get_status(self):
@@ -2171,6 +2176,11 @@ class RedisplayContent(EventContentBase):
         cw.cwpy.tick_clock(framerate=30)
         cw.cwpy.input()
         cw.cwpy.eventhandler.run()
+        while pygame.event.peek(pygame.locals.USEREVENT):
+            # ユーザ操作によりスケール変更のイベントが発生する可能性があるため
+            # 後続のイベントへ進む前に全て消化
+            cw.cwpy.input()
+            cw.cwpy.eventhandler.run()
         return 0
 
     def get_status(self):

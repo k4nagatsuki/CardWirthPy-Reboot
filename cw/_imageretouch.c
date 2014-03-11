@@ -44,6 +44,10 @@ add_mosaic(PyObject *self, PyObject *args)
 
     PyBytes_AsStringAndSize(string, &outdata, &len);
     val = intwrap(val, 0, 255);
+    if (!val)
+    {
+        return string;
+    }
 
     for (y = 0; y < h; y++)
     {
@@ -130,6 +134,11 @@ add_noise(PyObject *self, PyObject *args)
 
     PyBytes_AsStringAndSize(string, &outdata, &len);
     val = intwrap(val, -1, 255);
+    if (!val)
+    {
+        return string;
+    }
+
     randmax = (val < 0) ? 256 : (val * 2 + 1);
     srand((unsigned) time(NULL));
 
