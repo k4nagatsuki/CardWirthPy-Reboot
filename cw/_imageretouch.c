@@ -612,8 +612,16 @@ _imageretouchMethods[] =
     {NULL, NULL, 0, NULL}
 };
 
+#ifdef __x86_64__
 PyMODINIT_FUNC
-init_imageretouch(void)
+init_imageretouch64(void)
 {
-    (void) Py_InitModule("_imageretouch", _imageretouchMethods);
+    (void) Py_InitModule("_imageretouch64", _imageretouchMethods);
 }
+#else
+init_imageretouch32(void)
+{
+    (void) Py_InitModule("_imageretouch32", _imageretouchMethods);
+}
+#endif
+

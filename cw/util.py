@@ -228,12 +228,13 @@ class MusicInterface(object):
         return path
 
 class SoundInterface(object):
-    def __init__(self, sound=None):
+    def __init__(self, sound=None, path=""):
         self._sound = sound
+        self._path = path
 
     def play(self, from_scenario=False):
         if self._sound:
-            if cw.bassplayer.is_alivablewithpath(self._sound):
+            if cw.bassplayer.is_alivablewithpath(self._path):
                 if threading.currentThread() <> cw.cwpy:
                     cw.cwpy.exec_func(self.play, from_scenario)
                     return
@@ -528,16 +529,16 @@ def load_sound(path):
         assert threading.currentThread() == cw.cwpy
         if cw.bassplayer.is_alivablewithpath(path):
             # BASSが使用できる場合
-            sound = SoundInterface(path)
+            sound = SoundInterface(path, path)
         elif sys.platform == "win32" and (path.lower().endswith(".wav") or\
                                         path.lower().endswith(".mp3")):
             # WinMMを使用する事でSDL_mixerの問題を避ける
             # FIXME: mp3効果音をWindows環境でしか再生できない
-            sound = SoundInterface(path)
+            sound = SoundInterface(path, path)
         else:
             with io.BufferedReader(io.FileIO(path)) as f:
                 sound = pygame.mixer.Sound(f)
-            sound = SoundInterface(sound)
+            sound = SoundInterface(sound, path)
     except:
         print u"サウンドが読み込めません", path
         return SoundInterface()
@@ -1157,6 +1158,7 @@ def cab_hasfile(cab, file):
                 name = []
                 while True:
                     c = str(f.read(1))
+
                     if c == '\0':
                         break
                     name.append(c)

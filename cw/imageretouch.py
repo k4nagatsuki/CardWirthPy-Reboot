@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import random
 import wx
 import pygame
@@ -9,7 +10,10 @@ from pygame.locals import *
 import cw
 
 try:
-    import _imageretouch
+    if sys.maxsize == 0x7fffffff:
+        import _imageretouch32 as _imageretouch
+    elif sys.maxsize == 0x7fffffffffffffff:
+        import _imageretouch64 as _imageretouch
 except ImportError, ex:
     print "failed to load _imageretouch module. %s" % (ex.message)
 

@@ -486,7 +486,7 @@ class Resource(object):
 
             for value in d.itervalues():
                 if not value in self.facenames:
-                    raise ValueError("IPA font not found.")
+                    raise ValueError(u"IPA font not found: " + value)
 
         return d
 
@@ -717,7 +717,7 @@ class Resource(object):
             if sound in skinsounds:
                 d[key] = skinsounds[sound]
             else:
-                d[key] = cw.util.SoundInterface("")
+                d[key] = cw.util.SoundInterface(None, "")
         return d
 
     def get_skinsounds(self):
