@@ -317,6 +317,7 @@ class CWPy(_Singleton, threading.Thread):
         for sprite in self.get_fcards():
             sprite.update_scale()
         self._update_clip()
+        self.music.update_scale()
 
         if self.ydata:
             self.ydata._changed = changed

@@ -47,6 +47,12 @@ class MusicInterface(object):
         self._bass = False
         self._movie = None
 
+    def update_scale(self):
+        if self._movie:
+            self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
+            rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
+            self._movie.set_display(self.movie_scr, rect)
+
     def play(self, path, updatepredata=True, restart=False):
         self._play(path, updatepredata, restart)
 
@@ -106,8 +112,9 @@ class MusicInterface(object):
                                 encoding = sys.getfilesystemencoding()
                                 self._movie = pygame.movie.Movie(fpath.encode(encoding))
                                 self._movie.set_volume(self._get_volumevalue())
-                                self.movie_scr = pygame.Surface(self._movie.get_size()).convert()
-                                self._movie.set_display(self.movie_scr)
+                                self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
+                                rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
+                                self._movie.set_display(self.movie_scr, rect)
                                 self._movie.play()
                             except Exception:
                                 cw.util.print_ex()
