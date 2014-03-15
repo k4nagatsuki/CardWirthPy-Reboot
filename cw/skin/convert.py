@@ -1002,7 +1002,6 @@ class Converter(threading.Thread):
                 os.makedirs(target)
 
             # Table
-
             self.curnum = 50
             self.message = u"背景画像フォルダをコピー中..."
             folder = cw.util.join_paths(datadir, u"Table")

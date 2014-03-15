@@ -581,7 +581,7 @@ def join_paths(*paths):
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     *paths: パス結合する文字列
     """
-    return "/".join(paths).replace("\\", "/").strip("/")
+    return "/".join(paths).replace("\\", "/").rstrip("/")
 
 def splitext(p):
     """パスの拡張子以外の部分と拡張子部分の分割。

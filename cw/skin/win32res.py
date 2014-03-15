@@ -4,6 +4,8 @@
 import sys
 import struct
 
+import cw
+
 
 if sys.platform == "win32":
     _winapi = True
