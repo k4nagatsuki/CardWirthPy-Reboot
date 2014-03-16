@@ -109,6 +109,7 @@ class MusicInterface(object):
                             self._winmm = True
                         elif cw.util.splitext(fpath)[1].lower() in (".mpg", ".mpeg"):
                             try:
+                                pygame.mixer.quit()
                                 encoding = sys.getfilesystemencoding()
                                 self._movie = pygame.movie.Movie(fpath.encode(encoding))
                                 self._movie.set_volume(self._get_volumevalue())
@@ -164,6 +165,7 @@ class MusicInterface(object):
             self._movie.stop()
             self._movie = None
             self.movie_scr = None
+            pygame.mixer.init(44100, -16, 2, 1024)
         else:
             if pygame.mixer:
                 pygame.mixer.music.stop()
