@@ -263,8 +263,8 @@ class StatusBarButton(base.SelectableSprite):
         rect.centery = self.rect.centery - self.rect.top
         self.btnimg.blit(image, rect.topleft)
         self.btnimg3.blit(image, rect.topleft)
-        rect.top += cw.s(1)
-        rect.left += cw.s(1)
+        rect.top += 1
+        rect.left += 1
         self.btnimg2.blit(image, rect.topleft)
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="button")

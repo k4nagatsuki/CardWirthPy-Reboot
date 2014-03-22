@@ -250,7 +250,7 @@ class CardControl(wx.Dialog):
                 self.draw_card(dc, header)
 
     def OnEnter(self, event):
-        self.Refresh()
+        self._refresh()
 
     def OnLeave(self, event):
         if self.IsActive():
@@ -375,12 +375,17 @@ class CardControl(wx.Dialog):
     def get_headers(self):
         pass
 
+    def _refresh(self):
+        self.draw_cards()
+        if sys.platform == "win32":
+            self.draw(update=True)
+        else:
+            self.Refresh()
+
     def animate_click(self, header):
         # クリックアニメーション。4フレーム分。
         header.clickedflag = True
-        self.draw_cards()
-        if sys.platform <> "win32":
-            self.Refresh()
+        self._refresh()
         cw.cwpy.wait_frame(4)
         header.clickedflag = False
         dc = wx.ClientDC(self.toppanel)
@@ -416,8 +421,7 @@ class CardControl(wx.Dialog):
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
             dlg.Destroy()
-            self.draw_cards()
-            self.Refresh()
+            self._refresh()
             return
         elif not cw.cwpy.areaid in cw.AREAS_TRADE and isinstance(owner, cw.character.Character):
             # 行動不能だったら処理中止
@@ -465,8 +469,7 @@ class CardControl(wx.Dialog):
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
                     def func():
                         self._proc = False
-                        self.draw_cards()
-                        self.Refresh()
+                        self._refresh()
                     cw.cwpy.frame.exec_func(func)
                 self._proc = True
                 cw.cwpy.exec_func(func, header)
@@ -802,15 +805,13 @@ class CardHolder(CardControl):
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_backpack = sorttype
                 cw.cwpy.ydata.party.sort_backpack()
-                self.draw_cards()
-                self.Refresh()
+                self._refresh()
         elif self.callname == "STOREHOUSE":
             if cw.cwpy.setting.sort_storehouse <> sorttype:
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_storehouse = sorttype
                 cw.cwpy.ydata.sort_storehouse()
-                self.draw_cards()
-                self.Refresh()
+                self._refresh()
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -846,8 +847,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
-        self.draw_cards()
-        self.Refresh()
+        self._refresh()
 
     def _change_callname(self, old_callname):
         if self.callname == old_callname:
@@ -919,8 +919,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
-        self.draw_cards()
-        self.Refresh()
+        self._refresh()
 
     def OnClickToggleBtn(self, event):
         cw.cwpy.sounds["click"].play()
@@ -934,8 +933,7 @@ class CardHolder(CardControl):
             else:
                 btn.SetToggle(False)
 
-        self.draw_cards()
-        self.Refresh()
+        self._refresh()
 
     def OnUp(self, event):
         if self.callname == "CARDPOCKET":
@@ -984,8 +982,7 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
-        self.draw_cards()
-        self.Refresh()
+        self._refresh()
 
     def OnClickDownBtn(self, event):
         cw.cwpy.sounds["click"].play()
@@ -1008,8 +1005,7 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
-        self.draw_cards()
-        self.Refresh()
+        self._refresh()
 
     def OnMouseWheel(self, event):
         mousepos = event.GetPosition()
@@ -1195,8 +1191,7 @@ class HandView(CardControl):
 
         self.selection = self.list2[self.index2]
         self.Parent.change_selection(self.selection)
-        self.draw_cards()
-        self.Refresh()
+        self._refresh()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -1208,8 +1203,7 @@ class HandView(CardControl):
 
         self.selection = self.list2[self.index2]
         self.Parent.change_selection(self.selection)
-        self.draw_cards()
-        self.Refresh()
+        self._refresh()
 
     def draw(self, update=False):
         dc = CardControl.draw(self, update)
