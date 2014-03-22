@@ -151,7 +151,7 @@ class CharaInfo(wx.Dialog):
             self.Parent.change_selection(self.list[self.index])
 
         self.toppanel.ccard = self.ccard
-        self.toppanel.draw(True)
+        self.toppanel.Refresh()
 
         for win in self.notebook.GetChildren():
             win.ccard = self.ccard
@@ -184,7 +184,7 @@ class CharaInfo(wx.Dialog):
             self.Parent.change_selection(self.list[self.index])
 
         self.toppanel.ccard = self.ccard
-        self.toppanel.draw(True)
+        self.toppanel.Refresh()
 
         for win in self.notebook.GetChildren():
             win.ccard = self.ccard
@@ -212,6 +212,8 @@ class CharaInfo(wx.Dialog):
                 dc.SetTextForeground(wx.WHITE)
             else:
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
+        if update:
+            self.Refresh()
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -378,6 +380,9 @@ class TopPanel(wx.Panel):
         if self.redrawfunc:
             self.redrawfunc()
 
+        if update:
+            self.Refresh()
+
 class DescPanel(wx.ScrolledWindow):
     """
     解説文を描画するパネル。
@@ -407,7 +412,7 @@ class DescPanel(wx.ScrolledWindow):
         dlg = cw.debug.charaedit.CharacterEditDialog(parent, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
-            self.Parent.Parent.toppanel.draw(True)
+            self.Parent.Parent.toppanel.Refresh()
             self.draw(True)
             self.Parent.Parent.historypanel.draw(True)
 
@@ -487,7 +492,7 @@ class HistoryPanel(wx.ScrolledWindow):
                 def func(panel):
                     try:
                         panel.draw(True)
-                        panel.Parent.Parent.toppanel.draw(True)
+                        panel.Parent.Parent.toppanel.Refresh()
                     except:
                         pass
                 cw.cwpy.frame.exec_func(func, panel)
@@ -596,7 +601,7 @@ class EditPanel(wx.Panel):
                     if wx.ID_OK == dlg.ShowModal():
                         def func(panel):
                             if panel:
-                                panel.Parent.Parent.toppanel.draw(True)
+                                panel.Parent.Parent.toppanel.Refresh()
                                 panel.Parent.Parent.descpanel.draw(True)
                         cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
@@ -612,7 +617,7 @@ class EditPanel(wx.Panel):
                         def func(panel):
                             if panel:
                                 panel.update_charalist(list)
-                                panel.Parent.Parent.toppanel.draw(True)
+                                panel.Parent.Parent.toppanel.Refresh()
                         cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
                 self.draw(True)
@@ -664,6 +669,7 @@ class EditPanel(wx.Panel):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
+        self.Refresh()
 
     def OnMove(self, event):
         dc = wx.ClientDC(self)
@@ -681,6 +687,7 @@ class EditPanel(wx.Panel):
             elif header.negaflag:
                 header.negaflag = False
                 dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+        self.Refresh()
 
     def draw(self, update=False):
         if update:
@@ -714,6 +721,9 @@ class EditPanel(wx.Panel):
             header.textpos = (cw.s(32), height)
             header.subrect = pygame.Rect(cw.s(12), height - cw.s(1), cw.s(20) + size[0], bmp.Height)
             height += cw.s(17)
+
+        if update:
+            self.Refresh()
 
 class StatusPanel(wx.ScrolledWindow):
     def __init__(self, parent, list, ccard, editable):
@@ -836,6 +846,7 @@ class StatusPanel(wx.ScrolledWindow):
         bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses[imgname])
         dc.DrawBitmap(bmp, cw.s(12), height - cw.s(1))
         dc.DrawText(msg, cw.s(32), height)
+        self.Refresh()
         return height + cw.s(17)
 
     def _draw_enhance(self, dc, enhname, value, dur, enhimage, pnlimage, height):
@@ -878,6 +889,7 @@ class StatusPanel(wx.ScrolledWindow):
         dc.DrawRectangle(cw.s(12), height - cw.s(1), bmp.Width, bmp.Height)
         dc.DrawBitmap(bmp, cw.s(12), height - cw.s(1))
         dc.DrawText(msg, cw.s(32), height)
+        self.Refresh()
         return height + cw.s(17)
 
 class SkillPanel(wx.Panel):
@@ -928,6 +940,7 @@ class SkillPanel(wx.Panel):
                 else:
                     bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
                 dc.DrawBitmap(bmp, header.subrect.left, header.subrect.top, True)
+                self.Refresh()
                 return
 
     def _open_cardinfo(self, mousepos):
@@ -962,6 +975,7 @@ class SkillPanel(wx.Panel):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
+        self.Refresh()
 
     def OnMove(self, event):
         dc = wx.ClientDC(self)
@@ -979,6 +993,7 @@ class SkillPanel(wx.Panel):
             elif header.negaflag:
                 header.negaflag = False
                 dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+        self.Refresh()
 
     def OnPaint(self, event):
         self.draw()
@@ -1048,6 +1063,9 @@ class SkillPanel(wx.Panel):
         dc.DrawText(s, cw.s(10), cw.s(10))
         dc.EndDrawing()
 
+        if update:
+            self.Refresh()
+
 class ItemPanel(SkillPanel):
     def draw(self, update=False):
         if update:
@@ -1106,6 +1124,9 @@ class ItemPanel(SkillPanel):
         s = cw.cwpy.msgs["card_number"] % (n, maxn)
         dc.DrawText(s, cw.s(10), cw.s(10))
         dc.EndDrawing()
+
+        if update:
+            self.Refresh()
 
 class BeastPanel(SkillPanel):
     def OnLeftUp(self, event):
@@ -1170,6 +1191,9 @@ class BeastPanel(SkillPanel):
         s = cw.cwpy.msgs["card_number"] % (n, maxn)
         dc.DrawText(s, cw.s(10), cw.s(10))
         dc.EndDrawing()
+
+        if update:
+            self.Refresh()
 
 def main():
     pass

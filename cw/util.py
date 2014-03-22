@@ -11,7 +11,6 @@ import threading
 import struct
 import zipfile
 import operator
-import pythoncom
 import threading
 import hashlib
 import subprocess
@@ -42,9 +41,17 @@ class MusicInterface(object):
     def __init__(self):
         self.path = ""
         self.fpath = ""
+        self.movie_scr = None
         self.mastervolume = 100
         self._winmm = False
         self._bass = False
+        self._movie = None
+
+    def update_scale(self):
+        if self._movie:
+            self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
+            rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
+            self._movie.set_display(self.movie_scr, rect)
 
     def play(self, path, updatepredata=True, restart=False):
         self._play(path, updatepredata, restart)
@@ -59,8 +66,11 @@ class MusicInterface(object):
             cw.cwpy.ydata.changed()
         fpath = self.get_path(path)
         self.path = path
-        if not pygame.mixer and not cw.bassplayer.is_alivable():
+        if not pygame.mixer and not cw.bassplayer.is_alivablewithpath(path):
             return
+
+        if cw.cwpy.rsrc:
+            fpath = cw.cwpy.rsrc.get_filepath(fpath)
 
         if not os.path.isfile(fpath):
             self.stop()
@@ -97,6 +107,18 @@ class MusicInterface(object):
                             mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                             mciSendStringW(u"play %s" % (name), 0, 0, 0)
                             self._winmm = True
+                        elif cw.util.splitext(fpath)[1].lower() in (".mpg", ".mpeg"):
+                            try:
+                                pygame.mixer.quit()
+                                encoding = sys.getfilesystemencoding()
+                                self._movie = pygame.movie.Movie(fpath.encode(encoding))
+                                self._movie.set_volume(self._get_volumevalue())
+                                self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
+                                rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
+                                self._movie.set_display(self.movie_scr, rect)
+                                self._movie.play()
+                            except Exception:
+                                cw.util.print_ex()
                     elif filesize == 57 and cw.util.get_md5(fpath) == "d11be4c76fc63a6ba299c2f3bd3880b0":
                         # FIXME: reset.mid
                         # 繰り返し流すとハングアップ pygame 1.9.1
@@ -129,7 +151,7 @@ class MusicInterface(object):
         assert threading.currentThread() == cw.cwpy
 
         if self._bass:
-            if cw.bassplayer.is_alivable():
+            if cw.bassplayer.is_alivablewithpath(self.path):
                 cw.bassplayer.stop_bgm()
                 self._bass = False
         elif self._winmm:
@@ -138,6 +160,12 @@ class MusicInterface(object):
             mciSendStringW(u"stop %s" % (name), 0, 0, 0)
             mciSendStringW(u"close %s" % (name), 0, 0, 0)
             self._winmm = False
+        elif self._movie:
+            assert self.movie_scr
+            self._movie.stop()
+            self._movie = None
+            self.movie_scr = None
+            pygame.mixer.init(44100, -16, 2, 1024)
         else:
             if pygame.mixer:
                 pygame.mixer.music.stop()
@@ -172,6 +200,8 @@ class MusicInterface(object):
         assert threading.currentThread() == cw.cwpy
         if self._bass:
             cw.bassplayer.set_bgmvolume(volume)
+        elif self._movie:
+            self._movie.set_volume(volume)
         else:
             pygame.mixer.music.set_volume(volume)
 
@@ -200,12 +230,13 @@ class MusicInterface(object):
         return path
 
 class SoundInterface(object):
-    def __init__(self, sound=None):
+    def __init__(self, sound=None, path=""):
         self._sound = sound
+        self._path = path
 
     def play(self, from_scenario=False):
         if self._sound:
-            if cw.bassplayer.is_alivable():
+            if cw.bassplayer.is_alivablewithpath(self._path):
                 if threading.currentThread() <> cw.cwpy:
                     cw.cwpy.exec_func(self.play, from_scenario)
                     return
@@ -295,6 +326,9 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
     """
+    #assert threading.currentThread() == cw.cwpy
+    if cw.cwpy.rsrc:
+        path = cw.cwpy.rsrc.get_filepath(path)
     try:
         if f:
             image = pygame.image.load(f, path)
@@ -445,13 +479,17 @@ def load_bgm(path):
     """
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
+
+    if cw.cwpy.rsrc:
+        path = cw.cwpy.rsrc.get_filepath(path)
+
     if not pygame.mixer or not os.path.isfile(path):
         return
 
-    if sys.platform == "win32" and cw.util.splitext(path)[1] in (".mpg", ".mpeg"):
+    if cw.util.splitext(path)[1].lower() in (".mpg", ".mpeg"):
         return 1
 
-    if cw.bassplayer.is_alivable():
+    if cw.bassplayer.is_alivablewithpath(path):
         return 2
 
     try:
@@ -479,6 +517,10 @@ def load_sound(path):
     """
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
+
+    if cw.cwpy.rsrc:
+        path = cw.cwpy.rsrc.get_filepath(path)
+
     if not pygame.mixer or not os.path.isfile(path):
         return SoundInterface()
 
@@ -487,18 +529,18 @@ def load_sound(path):
 
     try:
         assert threading.currentThread() == cw.cwpy
-        if cw.bassplayer.is_alivable():
+        if cw.bassplayer.is_alivablewithpath(path):
             # BASSが使用できる場合
-            sound = SoundInterface(path)
+            sound = SoundInterface(path, path)
         elif sys.platform == "win32" and (path.lower().endswith(".wav") or\
                                         path.lower().endswith(".mp3")):
             # WinMMを使用する事でSDL_mixerの問題を避ける
             # FIXME: mp3効果音をWindows環境でしか再生できない
-            sound = SoundInterface(path)
+            sound = SoundInterface(path, path)
         else:
             with io.BufferedReader(io.FileIO(path)) as f:
                 sound = pygame.mixer.Sound(f)
-            sound = SoundInterface(sound)
+            sound = SoundInterface(sound, path)
     except:
         print u"サウンドが読み込めません", path
         return SoundInterface()
@@ -542,7 +584,7 @@ def join_paths(*paths):
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     *paths: パス結合する文字列
     """
-    return "/".join(paths).replace("\\", "/").strip("/")
+    return "/".join(paths).replace("\\", "/").rstrip("/")
 
 def splitext(p):
     """パスの拡張子以外の部分と拡張子部分の分割。
@@ -1017,7 +1059,7 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
 def decode_zipname(name):
     if not isinstance(name, unicode):
         try:
-            name = name.decode("mbcs")
+            name = name.decode(cw.MBCS)
         except UnicodeDecodeError:
             try:
                 name = name.decode("euc-jp")
@@ -1034,7 +1076,7 @@ def read_zipdata(zfile, name):
         data = zfile.read(name)
     except KeyError:
         try:
-            data = zfile.read(name.encode("mbcs"))
+            data = zfile.read(name.encode(cw.MBCS))
         except KeyError:
             try:
                 data = zfile.read(name.encode("euc-jp"))
@@ -1323,9 +1365,13 @@ def get_char(s, index):
 
 def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=True):
     """pos(0,0)にある色でマスクしたwxBitmapを返す。"""
+    if sys.platform <> "win32":
+        assert threading.currentThread() <> cw.cwpy
     if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
         return wx.EmptyBitmap(0, 0)
 
+    if cw.cwpy.rsrc:
+        name = cw.cwpy.rsrc.get_filepath(name)
     if mask:
         if not image:
             try:
@@ -1363,7 +1409,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         # その場合は通常通り左上の色をマスク色とする
         # 将来、もしこの処理の結果問題が起きた場合は
         # このif文以降の処理を削除する必要がある
-        if mask and image.HasMask() and image.CountColours() <= 255:
+        if mask and image.HasMask() and image.CountColours() <= 255 and wxbmp.GetPalette():
             palette = wxbmp.GetPalette()
             mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
             maskok = False

@@ -276,6 +276,8 @@ class CWPy(_Singleton, threading.Thread):
         """
         if self.ydata:
             changed = self.ydata.is_changed()
+        else:
+            changed = False
 
         if cw.UP_SCR <> scale:
             cw.UP_SCR = scale
@@ -313,6 +315,7 @@ class CWPy(_Singleton, threading.Thread):
         for sprite in self.get_fcards():
             sprite.update_scale()
         self._update_clip()
+        self.music.update_scale()
 
         if self.ydata:
             self.ydata._changed = changed
@@ -404,8 +407,8 @@ class CWPy(_Singleton, threading.Thread):
     def input(self, eventclear=False, inputonly=False):
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
-        self.update_mousepos()
-        self.mousemotion = False if self.mousepos == mousepos else True
+        if self.update_mousepos():
+            self.mousemotion = False if self.mousepos == mousepos else True
         self.keyin = self.keyevent.get_pressed()
 
         if eventclear:
@@ -418,6 +421,8 @@ class CWPy(_Singleton, threading.Thread):
             self.events = pygame.event.get()
 
     def update_mousepos(self):
+        if sys.platform <> "win32":
+            return False
         if pygame.mouse.get_focused():
             if self.scr_fullscreen:
                 mousepos = pygame.mouse.get_pos()
@@ -428,6 +433,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.mousepos = pygame.mouse.get_pos()
         else:
             self.mousepos = (-1, -1)
+        return True
 
     def update(self):
         self.bggrp.update(self.scr)
@@ -475,6 +481,8 @@ class CWPy(_Singleton, threading.Thread):
 
             dirty_rects.extend(self.topgrp.draw(self.scr))
             dirty_rects.extend(self.backloggrp.draw(self.scr))
+            if self.music.movie_scr:
+                self.scr.blit(self.music.movie_scr, (0, 0))
             dirty_rects.extend(self.sbargrp.draw(self.scr))
 
             # FPS描画
@@ -553,8 +561,9 @@ class CWPy(_Singleton, threading.Thread):
         event.args = kwargs
         if threading.currentThread() == self:
             self.frame.AddPendingEvent(event)
-            while self.is_running() and self.frame.IsEnabled():
-                pass
+            if sys.platform == "win32":
+                while self.is_running() and self.frame.IsEnabled():
+                    pass
         else:
             self.frame.ProcessEvent(event)
 
@@ -1122,15 +1131,20 @@ class CWPy(_Singleton, threading.Thread):
             self.event._stoped = False
             self.event.breakwait = False
             self._init_resources()
-            self.set_status("Title")
-            self.sdata = cw.data.SystemData()
-            cw.util.remove_temp()
-            self.load_yado(self.yadodir)
+
+        def func5():
+            def func():
+                self.set_status("Title")
+                self.sdata = cw.data.SystemData()
+                cw.util.remove_temp()
+                self.load_yado(self.yadodir)
+            self.exec_func(func)
 
         self.exec_func(func1)
         self.exec_func(func2)
         self.exec_func(func3)
         self.exec_func(func4)
+        self.frame.exec_func(func5)
 
     def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""

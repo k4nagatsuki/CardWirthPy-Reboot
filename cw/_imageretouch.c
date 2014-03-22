@@ -1,3 +1,4 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <stdlib.h>
 #include <math.h>
@@ -17,7 +18,7 @@ intwrap(int i, int min, int max)
 #define colorwrap(i) intwrap(i, 0, 255)
 
 static int
-equals_rgb(unsigned char *data1, size_t index1, int r, int g, int b)
+equals_rgb(char *data1, size_t index1, int r, int g, int b)
 {
     if (data1[index1 + 0] != r) return 0;
     if (data1[index1 + 1] != g) return 0;
@@ -31,7 +32,7 @@ add_mosaic(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, x2, y2, val;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
     unsigned long idx;
 
     if (!PyArg_ParseTuple(args, "s#(ii)i", &data, &len, &w, &h, &val))
@@ -73,7 +74,8 @@ to_binaryformat(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, val;
-    unsigned char *data, *outdata, r, g, b;
+    char *data, *outdata;
+    unsigned char r, g, b;
 
     if (!PyArg_ParseTuple(args, "s#(ii)i", &data, &len, &w, &h, &val))
         return NULL;
@@ -121,7 +123,7 @@ add_noise(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int r, g, b, w, h, x, y, val, randmax, i, colornoise = 0;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)i|i", &data, &len, &w, &h, &val,
                 &colornoise))
@@ -199,7 +201,8 @@ exchange_rgbcolor(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y;
-    unsigned char *data, *outdata, *colormodel, r, g, b;
+    char *data, *outdata, *colormodel;
+    char r, g, b;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s", &data, &len, &w, &h, &colormodel))
         return NULL;
@@ -262,7 +265,7 @@ to_sepiatone(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, r, g, b, tone_r, tone_g, tone_b, bright;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)(iii)", &data, &len, &w, &h,
                 &tone_r, &tone_g, &tone_b))
@@ -303,7 +306,7 @@ spread_pixels(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, x2, y2;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
     unsigned long idx;
 
     if (!PyArg_ParseTuple(args, "s#(ii)", &data, &len, &w, &h))
@@ -340,7 +343,7 @@ filter(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int r, g, b, w, h, x, y, wt[3][3], offset, div, i, i2, x2, y2;
-    unsigned char *data, *outdata;
+    char *data, *outdata;
     unsigned long idx;
 
     if (!PyArg_ParseTuple(args, "s#(ii)((iii)(iii)(iii))ii",
@@ -395,8 +398,8 @@ bordering(PyObject *self, PyObject *args)
     PyObject *points = NULL;
     size_t len;
     int w, h, x, y, r, g, b, text_r, text_g, text_b;
-    unsigned char *data;
-    unsigned char *data_lt, *data_mt, *data_rt, *data_lm, *data_rm, *data_lb, *data_mb, *data_rb;
+    char *data;
+    char *data_lt, *data_mt, *data_rt, *data_lm, *data_rm, *data_lb, *data_mb, *data_rb;
     int find;
 
     if (!PyArg_ParseTuple(args, "s#(ii)(iii)", &data, &len, &w, &h,
@@ -460,7 +463,7 @@ blend_add_1_50(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t dlen, slen;
     int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
-    unsigned char *dest, *source, *outdata;
+    char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
         return NULL;
@@ -500,13 +503,17 @@ blend_add_1_50(PyObject *self, PyObject *args)
     return string;
 }
 
+#ifndef max
+    #define max(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
 static PyObject *
 blend_sub_1_50(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     size_t dlen, slen;
-    int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
-    unsigned char *dest, *source, *outdata;
+    int w, h, x, y, dr, dg, db, sr, sg, sb, sa, a, b;
+    char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
         return NULL;
@@ -530,9 +537,15 @@ blend_sub_1_50(PyObject *self, PyObject *args)
             sb = (int) source[2];
             sa = (int) source[3];
 
-            dr = max(colorwrap(dr * (255 - sa) >> 8), colorwrap(dr - (sr * sa >> 8)));
-            dg = max(colorwrap(dg * (255 - sa) >> 8), colorwrap(dg - (sg * sa >> 8)));
-            db = max(colorwrap(db * (255 - sa) >> 8), colorwrap(db - (sb * sa >> 8)));
+            a = colorwrap(dr * (255 - sa) >> 8);
+            b = colorwrap(dr - (sr * sa >> 8));
+            dr = max(a, b);
+            a = colorwrap(dg * (255 - sa) >> 8);
+            b = colorwrap(dg - (sg * sa >> 8));
+            dg = max(a, b);
+            a = colorwrap(db * (255 - sa) >> 8);
+            b = colorwrap(db - (sb * sa >> 8));
+            db = max(a, b);
 
             outdata[0] = (char) dr;
             outdata[1] = (char) dg;
@@ -552,7 +565,7 @@ to_disabledimage(PyObject *self, PyObject *args)
     size_t dlen;
     int px, w, h, keyR, keyG, keyB;
     Py_buffer buf;
-    unsigned char *dest;
+    char *dest;
     static const int min = 140;
     static const int max = 240;
 
@@ -608,8 +621,17 @@ _imageretouchMethods[] =
     {NULL, NULL, 0, NULL}
 };
 
+#ifdef __x86_64__
 PyMODINIT_FUNC
-init_imageretouch(void)
+init_imageretouch64(void)
 {
-    (void) Py_InitModule("_imageretouch", _imageretouchMethods);
+    (void) Py_InitModule("_imageretouch64", _imageretouchMethods);
 }
+#else
+PyMODINIT_FUNC
+init_imageretouch32(void)
+{
+    (void) Py_InitModule("_imageretouch32", _imageretouchMethods);
+}
+#endif
+

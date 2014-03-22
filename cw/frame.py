@@ -14,25 +14,29 @@ import cw
 class Frame(wx.Frame):
     def __init__(self, skindirname=""):
         # 設定
-        setting = cw.setting.Setting()
-        if setting.is_expanded:
-            if setting.expandmode <> "FullScreen":
+        self._setting = cw.setting.Setting()
+        if self._setting.is_expanded:
+            if self._setting.expandmode <> "FullScreen":
                 try:
-                    cw.UP_SCR = float(setting.expandmode)
+                    cw.UP_SCR = float(self._setting.expandmode)
                 except:
                     pass
 
         # トップフレーム
-        self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU\
-                                                            |wx.SIMPLE_BORDER
+        self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU
         wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
         self.thread = threading.currentThread()
         self.SetClientSize(cw.s(cw.SIZE_GAME))
+        self._skindirname = skindirname;
 
         # SDLを描画するパネル
         self.panel = wx.Panel(self, -1, size=cw.s(cw.SIZE_GAME), style=wx.NO_BORDER)
-        os.environ["SDL_WINDOWID"] = str(self.panel.GetHandle())
 
+        if sys.platform <> "win32":
+            # Xではウィンドウが表示されるまでウィンドウハンドルが取れない
+            self.Show()
+
+        os.environ["SDL_WINDOWID"] = str(self.panel.GetHandle())
         if sys.platform == "win32":
             os.environ["SDL_VIDEODRIVER"] = "windib"
 ##            os.environ["SDL_AUDIODRIVER"] = "waveout"
@@ -43,17 +47,17 @@ class Frame(wx.Frame):
         self.set_icon(self)
         # bind
         self._bind()
-        if skindirname:
-            setting.skindirname = skindirname
-            setting.write()
-            setting.init_settings()
+        if self._skindirname:
+            self._setting.skindirname = self._skindirname
+            self._setting.write()
+            self._setting.init_settings()
         # 起動直後のスレッド数を記憶
         self.initialThreadCount = threading.activeCount()
         # CWPyサブスレッド
-        cw.cwpy = cw.thread.CWPy(setting, self)
+        cw.cwpy = cw.thread.CWPy(self._setting, self)
         cw.cwpy.start()
         # データベースファイル更新をサブスレッドで実行
-        dbupdater = cw.scenariodb.ScenariodbUpdatingThread(setting)
+        dbupdater = cw.scenariodb.ScenariodbUpdatingThread(self._setting)
         dbupdater.start()
 
         # スキン自動生成のためのドロップ受付
@@ -73,7 +77,46 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
-        self.panel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+
+        if sys.platform == "win32":
+            self.panel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+        else:
+            # Windowsではこれらのイベントはpygame側で取れる
+            self.panel.Bind(wx.EVT_MOTION, self.OnMotion)
+            self.panel.Bind(wx.EVT_LEAVE_WINDOW, self.OnMotion)
+            self.panel.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+            self.panel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+            self.panel.Bind(wx.EVT_MIDDLE_UP, self.OnMiddleUp)
+            self.panel.Bind(wx.EVT_MIDDLE_DOWN, self.OnMiddleDown)
+            self.panel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+            self.panel.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
+            self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+            self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
+            # BUG: 以降の処理はwxPythonのバグでFrameがフォーカスを
+            #      上手く取れない事への対策
+            self._keybind = True
+            def panel_setfocus(event):
+                if not self._keybind:
+                    self._keybind = True
+                    self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+                    self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+            self.panel.Bind(wx.EVT_SET_FOCUS, panel_setfocus)
+            def panel_killfocus(event):
+                if self._keybind:
+                    self._keybind = False
+                    self.panel.Unbind(wx.EVT_KEY_UP, handler=self.OnKeyUp)
+                    self.panel.Unbind(wx.EVT_KEY_DOWN, handler=self.OnKeyDown)
+            self.panel.Bind(wx.EVT_KILL_FOCUS, panel_killfocus)
+            def activate(event):
+                self.SetFocus()
+                self.panel.SetFocus()
+                if not self._keybind:
+                    self._keybind = True
+                    self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+                    self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+            self.Bind(wx.EVT_ACTIVATE, activate)
+
         self._bind_customevent()
 
     def _bind_customevent(self):
@@ -196,6 +239,38 @@ class Frame(wx.Frame):
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
         cw.cwpy.keyevent.keydown(keycode)
+
+    def OnMotion(self, event):
+        pos = (event.GetX(), event.GetY())
+        if not (self.IsActive() or (self.debugger and self.debugger.IsActive())):
+            pos = (-1, -1)
+        if pos <> cw.cwpy.mousepos:
+            cw.cwpy.mousemotion = True
+            cw.cwpy.mousepos = pos
+
+    def OnLeftUp(self, event):
+        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
+        pygame.event.post(evt)
+
+    def OnLeftDown(self, event):
+        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=1)
+        pygame.event.post(evt)
+
+    def OnMiddleUp(self, event):
+        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=2)
+        pygame.event.post(evt)
+
+    def OnMiddleDown(self, event):
+        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=2)
+        pygame.event.post(evt)
+
+    def OnRightUp(self, event):
+        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=3)
+        pygame.event.post(evt)
+
+    def OnRightDown(self, event):
+        evt = pygame.event.Event(pygame.locals.MOUSEBUTTONDOWN, button=3)
+        pygame.event.post(evt)
 
     def OnMouseWheel(self, event):
         if event.GetWheelRotation() > 0:

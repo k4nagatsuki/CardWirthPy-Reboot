@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+
 import wx
 import wx.combo
 import wx.lib.buttons
@@ -39,6 +41,7 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.s((20, 20)), bmp=bmp)
         # sort
+        self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
         self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
@@ -48,6 +51,7 @@ class CardControl(wx.Dialog):
         self.sort.Append(cw.cwpy.msgs["sort_price"])
         if not sort:
             self.sort.Freeze()
+            self.sort.Hide()
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((115, 20)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
@@ -99,20 +103,11 @@ class CardControl(wx.Dialog):
         """
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_toppanel = wx.GridBagSizer(1, 1)
-        sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         # トップバー
-        sortsize = self.sort.GetSize()
-        combosize = self.combo.GetSize()
-        sizer_topbar.SetMinSize(combosize)
-        sizer_topbar.Add((cw.s(500)-combosize[0]-cw.s(65)-sortsize[0]-cw.s(40), 0), 0, 0, 0)
-        sizer_topbar.Add(self.sort, 0, 0, 0)
-        sizer_topbar.Add(cw.s((60, 0)), 0, 0, 0)
-        sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
-        sizer_topbar.Add(self.combo, 0, 0, 0)
-        sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
+        self._re_layout_topbar()
         # トップパネルにトップバーとレフトバーを設定
-        sizer_toppanel.Add(sizer_topbar, (0,0), (1,2), wx.EXPAND)
+        sizer_toppanel.Add(self._sizer_topbar, (0,0), (1,2), wx.EXPAND)
         sizer_toppanel.Add(sizer_leftbar, (1,0), (1,1), wx.EXPAND)
         sizer_toppanel.Add(cw.s((420, 235)), (1,1), (1,1), wx.EXPAND)
         self.toppanel.SetSizer(sizer_toppanel)
@@ -132,6 +127,21 @@ class CardControl(wx.Dialog):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def _re_layout_topbar(self):
+        sortsize = self.sort.GetSize()
+        combosize = self.combo.GetSize()
+        self._sizer_topbar.Clear()
+        self._sizer_topbar.SetMinSize(combosize)
+        self._sizer_topbar.Add((cw.s(500)-combosize[0]-cw.s(65)-sortsize[0]-cw.s(40), 0), 0, 0, 0)
+        if self.sort.IsShown():
+            self._sizer_topbar.Add(self.sort, 0, 0, 0)
+        else:
+            self._sizer_topbar.Add(self.sort.GetSize(), 0, 0, 0)
+        self._sizer_topbar.Add(cw.s((60, 0)), 0, 0, 0)
+        self._sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
+        self._sizer_topbar.Add(self.combo, 0, 0, 0)
+        self._sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
 
     def OnSort(self, event):
         pass
@@ -240,7 +250,7 @@ class CardControl(wx.Dialog):
                 self.draw_card(dc, header)
 
     def OnEnter(self, event):
-        self.draw(True)
+        self._refresh()
 
     def OnLeave(self, event):
         if self.IsActive():
@@ -304,7 +314,7 @@ class CardControl(wx.Dialog):
         else:
             s = cw.cwpy.msgs["mode_use"]
         dc.DrawText(s, cw.s(8), cw.s(2))
-        if not self.sort.IsFrozen():
+        if self.sort.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["sort_title"]
             dc.DrawText(s, cw.s(180), cw.s(3))
@@ -316,7 +326,16 @@ class CardControl(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
         return dc
 
-    def draw_cards(self, dc, update, mode):
+    def draw_cards(self, dc=None, update=True, mode=-1):
+        if mode == -1:
+            if self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE"):
+                mode = 1
+            elif self.callname == "CARDPOCKET":
+                mode = 2
+            elif self.callname == "HANDVIEW":
+                mode = 3
+            else:
+                assert False, self.callname
         poslist = get_poslist(len(self.get_headers()), mode)
 
         for pos, header in zip(poslist, self.get_headers()):
@@ -331,6 +350,9 @@ class CardControl(wx.Dialog):
                     header.negaflag = True
             elif header.negaflag:
                 header.negaflag = False
+
+        if not dc:
+            return
 
         pos = header.rect.topleft
         bmp = header.get_cardwxbmp()
@@ -353,10 +375,17 @@ class CardControl(wx.Dialog):
     def get_headers(self):
         pass
 
+    def _refresh(self):
+        self.draw_cards()
+        if sys.platform == "win32":
+            self.draw(update=True)
+        else:
+            self.Refresh()
+
     def animate_click(self, header):
         # クリックアニメーション。4フレーム分。
         header.clickedflag = True
-        self.draw(True)
+        self._refresh()
         cw.cwpy.wait_frame(4)
         header.clickedflag = False
         dc = wx.ClientDC(self.toppanel)
@@ -392,7 +421,7 @@ class CardControl(wx.Dialog):
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
             dlg.Destroy()
-            self.draw(True)
+            self._refresh()
             return
         elif not cw.cwpy.areaid in cw.AREAS_TRADE and isinstance(owner, cw.character.Character):
             # 行動不能だったら処理中止
@@ -440,7 +469,7 @@ class CardControl(wx.Dialog):
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
                     def func():
                         self._proc = False
-                        self.draw(True)
+                        self._refresh()
                     cw.cwpy.frame.exec_func(func)
                 self._proc = True
                 cw.cwpy.exec_func(func, header)
@@ -480,6 +509,7 @@ class CardHolder(CardControl):
     def __init__(self, parent, callname):
         # タイプ判別
         self.callname = callname
+        self.selection = None
 
         # 適性表示を除去
         for pcard in cw.cwpy.get_pcards():
@@ -490,14 +520,12 @@ class CardHolder(CardControl):
         # タイプ別初期化(キャストの手札の場合はindex復元後)
         if self.callname == "BACKPACK":
             name = cw.cwpy.msgs["cards_backpack"]
-            self.selection = None
             self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 0, 128)
             self.list = cw.cwpy.ydata.party.backpack
             sendto = True
         elif self.callname == "STOREHOUSE":
             name = cw.cwpy.msgs["cards_storehouse"]
-            self.selection = None
             self.list2 = cw.cwpy.get_pcards("unreversed")
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
@@ -640,7 +668,7 @@ class CardHolder(CardControl):
             self.combo.Select(self.index_combo)
 
         # パーティが組まれていない(カード置き場のみ)か、
-        # 使用モードや閲覧モードで大将が一人だけの場合は
+        # 使用モードや閲覧モードで対象が一人だけの場合は
         # 左右ボタンを無効化
         if (self.callname == "INFOVIEW")\
                 or (not cw.cwpy.ydata.party)\
@@ -716,23 +744,24 @@ class CardHolder(CardControl):
                 self.itembtn.Hide()
                 self.beastbtn.Hide()
 
-        self._sizer_leftbar.Layout()
-
         # ソート条件
         if self.callname == "STOREHOUSE":
-            if self.sort.IsFrozen():
+            if not self.sort.IsShown():
                 self.sort.Thaw()
+                self.sort.Show()
             sorttype = cw.cwpy.setting.sort_storehouse
         elif self.callname == "BACKPACK":
-            if self.sort.IsFrozen():
+            if not self.sort.IsShown():
                 self.sort.Thaw()
+                self.sort.Show()
             sorttype = cw.cwpy.setting.sort_backpack
         else:
-            if not self.sort.IsFrozen():
+            if self.sort.IsShown():
                 self.sort.Freeze()
+                self.sort.Hide()
             sorttype = None
 
-        if not self.sort.IsFrozen():
+        if self.sort.IsShown():
             if sorttype == "Name":
                 self.sort.Select(1)
             elif sorttype == "Level":
@@ -741,6 +770,12 @@ class CardHolder(CardControl):
                 self.sort.Select(3)
             else:
                 self.sort.Select(0)
+
+        self._re_layout_topbar()
+
+        self._sizer_topbar.Layout()
+        self._sizer_leftbar.Layout()
+        self.Layout()
 
     def _do_layout(self):
         self._sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
@@ -770,13 +805,13 @@ class CardHolder(CardControl):
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_backpack = sorttype
                 cw.cwpy.ydata.party.sort_backpack()
-                self.draw(True)
+                self._refresh()
         elif self.callname == "STOREHOUSE":
             if cw.cwpy.setting.sort_storehouse <> sorttype:
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_storehouse = sorttype
                 cw.cwpy.ydata.sort_storehouse()
-                self.draw(True)
+                self._refresh()
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -812,7 +847,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
-        self.draw(True)
+        self._refresh()
 
     def _change_callname(self, old_callname):
         if self.callname == old_callname:
@@ -843,6 +878,7 @@ class CardHolder(CardControl):
         else:
             self.upbtn.Enable()
             self.downbtn.Enable()
+        self.Layout()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -883,7 +919,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
-        self.draw(True)
+        self._refresh()
 
     def OnClickToggleBtn(self, event):
         cw.cwpy.sounds["click"].play()
@@ -897,7 +933,7 @@ class CardHolder(CardControl):
             else:
                 btn.SetToggle(False)
 
-        self.draw(True)
+        self._refresh()
 
     def OnUp(self, event):
         if self.callname == "CARDPOCKET":
@@ -946,7 +982,7 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
-        self.draw(True)
+        self._refresh()
 
     def OnClickDownBtn(self, event):
         cw.cwpy.sounds["click"].play()
@@ -969,14 +1005,14 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
-        self.draw(True)
+        self._refresh()
 
     def OnMouseWheel(self, event):
         mousepos = event.GetPosition()
         lpos = self._sizer_leftbar.GetPosition()
         lsize = self._sizer_leftbar.GetSize()
         lwidth = lsize[0] + lpos[0] * 2;
-        if not self.sort.IsFrozen() and self.sort.GetRect().Contains(mousepos):
+        if self.sort.IsShown() and self.sort.GetRect().Contains(mousepos):
             index = self.sort.GetSelection()
             count = self.sort.GetCount()
             if event.GetWheelRotation() > 0:
@@ -1045,11 +1081,6 @@ class CardHolder(CardControl):
             dc.DrawText(s, cw.s(40)-w/2, cw.s(220))
 
             # カード描画
-            if update:
-                self.list = self.selection.cardpocket[self.index3]
-                s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
-                self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
-
             self.draw_cards(dc, update, 2)
         else:
             # カード置き場、荷物袋、情報カード
@@ -1073,6 +1104,13 @@ class CardHolder(CardControl):
 
             # カード描画
             self.draw_cards(dc, update, 1)
+
+    def draw_cards(self, dc=None, update=True, mode=-1):
+        CardControl.draw_cards(self, dc, update, mode)
+        if self.selection:
+            self.list = self.selection.cardpocket[self.index3]
+            s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
+            self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
 
     def get_headers(self):
         li = self.index * 10
@@ -1153,7 +1191,7 @@ class HandView(CardControl):
 
         self.selection = self.list2[self.index2]
         self.Parent.change_selection(self.selection)
-        self.draw(True)
+        self._refresh()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -1165,18 +1203,20 @@ class HandView(CardControl):
 
         self.selection = self.list2[self.index2]
         self.Parent.change_selection(self.selection)
-        self.draw(True)
+        self._refresh()
 
     def draw(self, update=False):
         dc = CardControl.draw(self, update)
 
         # カード描画
-        if update:
+        self.draw_cards(dc, update, 3)
+
+    def draw_cards(self, dc=None, update=True, mode=-1):
+        CardControl.draw_cards(self, dc, update, mode)
+        if self.selection:
             self.list = self.selection.deck.hand
             s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
-
-        self.draw_cards(dc, update, 3)
 
     def get_headers(self):
         return self.list

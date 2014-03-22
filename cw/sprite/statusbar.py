@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+
 import wx
 import pygame
 
@@ -11,18 +13,19 @@ import base
 class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
+        self.image = pygame.Surface(cw.s((632, 33)))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = cw.s((0, 420))
         self._init_image()
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
         self.showbuttons = False
 
     def _init_image(self):
-        wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(2)
-        subimg = cw.image.conv2surface(wxbmp)
-        image = pygame.Surface(cw.s((632, 33)))
-        image.fill((255, 255, 255))
-        image.blit(subimg, cw.s((0, 0)))
-        self.image = image
+        self.image = pygame.Surface(cw.s((632, 33)))
+        subimg = cw.cwpy.rsrc.get_wxbtnbmp(2)
+        self.image.fill((255, 255, 255))
+        self.image.blit(subimg, cw.s((0, 0)))
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
 
@@ -126,7 +129,7 @@ class StatusBarPanel(base.CWPySprite):
 
 class YadoMoneyPanel(StatusBarPanel):
     def __init__(self, parent, pos):
-        image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["MONEYY"])
+        image = cw.cwpy.rsrc.pygamedialogs["MONEYY"]
         StatusBarPanel.__init__(self, parent, (0, 69, 0), pos, icon=image)
         self.text = None
         self.update(None)
@@ -151,7 +154,7 @@ class YadoMoneyPanel(StatusBarPanel):
 
 class PartyMoneyPanel(YadoMoneyPanel):
     def __init__(self, parent, pos):
-        image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["MONEYP"])
+        image = cw.cwpy.rsrc.pygamedialogs["MONEYP"]
         StatusBarPanel.__init__(self, parent, (0, 0, 128), pos, icon=image)
         self.text = None
         self.update(None)
@@ -231,12 +234,12 @@ class StatusBarButton(base.SelectableSprite):
         self.is_pushed = False
         # ボタン画像
         wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype)
-        self.btnimg = cw.image.conv2surface(wxbmp)
+        self.btnimg = wxbmp
         if enabled:
             wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype, wx.CONTROL_PRESSED)
-            self.btnimg2 = cw.image.conv2surface(wxbmp)
+            self.btnimg2 = wxbmp
             wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype, wx.CONTROL_CURRENT)
-            self.btnimg3 = cw.image.conv2surface(wxbmp)
+            self.btnimg3 = wxbmp
         else:
             self.btnimg2 = self.btnimg
             self.btnimg3 = self.btnimg
@@ -260,8 +263,8 @@ class StatusBarButton(base.SelectableSprite):
         rect.centery = self.rect.centery - self.rect.top
         self.btnimg.blit(image, rect.topleft)
         self.btnimg3.blit(image, rect.topleft)
-        rect.top += cw.s(1)
-        rect.left += cw.s(1)
+        rect.top += 1
+        rect.left += 1
         self.btnimg2.blit(image, rect.topleft)
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="button")
@@ -414,7 +417,7 @@ class CancelButton(StatusBarButton):
 
 class SettingsButton(StatusBarButton):
     def __init__(self, parent, pos):
-        image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["SETTINGS"])
+        image = cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
         name = u"設定"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
         self._selectable_on_event = True
@@ -425,7 +428,7 @@ class SettingsButton(StatusBarButton):
 
 class DebuggerButton(StatusBarButton):
     def __init__(self, parent, pos):
-        image = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["STATUS12"])
+        image = cw.cwpy.rsrc.pygamedialogs["STATUS12"]
         name = u"デバッガ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
         self._selectable_on_event = True
@@ -437,7 +440,7 @@ class DebuggerButton(StatusBarButton):
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos, enabled):
         self.enabled = enabled
-        image = cw.s(cw.image.conv2surface(cw.cwpy.rsrc.debugs["BACKLOG"]))
+        image = cw.s(cw.cwpy.rsrc.pygamedebugs["BACKLOG"])
         if not self.enabled:
             image = cw.imageretouch.to_binaryformat(image, 0)
         name = u"バックログ"

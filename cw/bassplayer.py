@@ -31,7 +31,11 @@ _bgmstream = 0
 _soundstream1 = 0
 _soundstream2 = 0
 
-SYNCPROC = WINFUNCTYPE(None, c_int, c_int, c_int, c_void_p)
+if sys.platform == "win32":
+    SYNCPROC = WINFUNCTYPE(None, c_int, c_int, c_int, c_void_p)
+else:
+    SYNCPROC = CFUNCTYPE(None, c_int, c_int, c_int, c_void_p)
+
 def _cc111loop(handle, channel, data, pos):
     """CC#111の位置へシークし、再び演奏を始める。"""
     _bass.BASS_ChannelSetPosition(channel, c_longlong(pos), BASS_POS_BYTE)
@@ -41,7 +45,18 @@ def is_alivable():
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
     """BASS Audioによる演奏が可能な状態であればTrueを返す。
     init_bass()の実行前は必ずFalseを返す。"""
-    return not _bass is None and not _bassmidi is None and _sfonts
+    return not _bass is None
+
+def is_alivablemidi():
+    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    return _bassmidi and _sfonts
+
+def is_alivablewithpath(path):
+    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    if os.path.splitext(path)[1].lower() in (".mid", ".midi"):
+        return is_alivablemidi()
+    else:
+        return is_alivable()
 
 def init_bass(soundfonts):
     """
@@ -51,30 +66,39 @@ def init_bass(soundfonts):
     """
     global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
 
-    if sys.platform <> "win32":
-        return False
-
     if _bass:
         # 初期化済み
         return True
 
-    _bass = windll.LoadLibrary("bass.dll")
-    _bassmidi = windll.LoadLibrary("bassmidi.dll")
+    try:
+        if sys.platform == "win32":
+            _bass = windll.LoadLibrary("bass.dll")
+            _bassmidi = windll.LoadLibrary("bassmidi.dll")
+        else:
+            _bass = pydll.LoadLibrary("./libbass.so")
+            _bassmidi = pydll.LoadLibrary("./libbassmidi.so")
+    except Exception:
+        cw.util.print_ex()
+
+    if not _bass:
+        return
+
     _bass.BASS_Init(-1, 44100, BASS_DEVICE_DEFAULT, None, None)
 
     # サウンドフォントのロード
     _sfonts = ""
     encoding = sys.getfilesystemencoding()
-    for soundfont in soundfonts:
-        sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
-        if not sfont:
-            print "BASS_MIDI_FontInit() failure: %s" % (soundfont)
-            return False
-        _sfonts += struct.pack("@iii", sfont, -1, 0)
+    if _bassmidi:
+        for soundfont in soundfonts:
+            sfont = _bassmidi.BASS_MIDI_FontInit(soundfont.encode(encoding), 0)
+            if not sfont:
+                print "BASS_MIDI_FontInit() failure: %s" % (soundfont)
+                return False
+            _sfonts += struct.pack("@iii", sfont, -1, 0)
 
-    if not _sfonts:
-        dispose_bass()
-        return False
+        if not _sfonts:
+            dispose_bass()
+            return False
 
     return True
 
@@ -92,6 +116,8 @@ def _play(file, volume, loop):
     BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ext = cw.util.splitext(file)[1].lower()
     if ext == ".mid" or ext == ".midi":
+        if not is_alivablemidi():
+            return
         stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, file.encode(encoding), c_longlong(0), c_longlong(0), flag, 44100)
         if stream:
             if _sfonts:
@@ -133,9 +159,10 @@ def dispose_bass():
     if not is_alivable():
         return
 
-    for i in xrange(0, len(_sfonts), 4*3):
-        sfont = struct.unpack("@Iii", _sfonts[i:i+4*3])
-        _bassmidi.BASS_MIDI_FontFree(sfont[0])
+    if _bassmidi:
+        for i in xrange(0, len(_sfonts), 4*3):
+            sfont = struct.unpack("@Iii", _sfonts[i:i+4*3])
+            _bassmidi.BASS_MIDI_FontFree(sfont[0])
 
     _bass.BASS_Free()
     del _bass

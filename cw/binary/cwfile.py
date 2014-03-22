@@ -50,7 +50,7 @@ class CWFile(io.BufferedReader):
         dword = self.dword()
 
         if dword:
-            return unicode(self.read(dword), "mbcs").strip("\x00")
+            return unicode(self.read(dword), cw.MBCS).strip("\x00")
         else:
             return ""
 
@@ -116,7 +116,7 @@ class CWFileWriter(io.BufferedWriter):
 
     def write_rawstring(self, s):
         if s:
-            s = (s + "\x00").encode("mbcs")
+            s = (s + "\x00").encode(cw.MBCS)
             self.write_dword(len(s))
             self.write(s)
         else:

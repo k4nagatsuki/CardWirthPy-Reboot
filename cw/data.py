@@ -45,6 +45,7 @@ class SystemData(object):
         self.flags = {}
         self.steps = {}
         self.labels = {}
+        self.ignorecase_table = {}
         # refresh debugger
         self._init_debugger()
 
@@ -357,6 +358,16 @@ class ScenarioData(SystemData):
 
         if cw.cwpy.classicdata:
             self.versionhint[cw.HINT_SCENARIO] = cw.cwpy.classicdata.versionhint
+
+        self.ignorecase_table = {}
+        # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
+        #        取得に失敗する事があるので、すべて小文字のパスをキーにして
+        #        真のファイル名へのマッピングをしておく。
+        #        主にこの問題は手書きされる'*.jpy1'内で発生する。
+        for dpath, dnames, fnames in os.walk(self.tempdir):
+            for fname in fnames:
+                path = cw.util.join_paths(dpath, fname)
+                self.ignorecase_table[path.lower()] = path
 
     def get_versionhint(self, frompos=0):
         """現在有効になっている互換性マークを返す。"""

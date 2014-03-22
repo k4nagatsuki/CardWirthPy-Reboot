@@ -500,7 +500,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
     if dirtype == 1:
         dpath = os.path.dirname(configpath)
         # シナリオ内に存在しなかった場合はTable内
-        if not os.path.isfile(cw.util.join_paths(dpath, filename)):
+        if not os.path.isfile(cw.cwpy.rsrc.get_filepath(cw.util.join_paths(dpath, filename))):
             return get_filepath_s(configpath, filename, 2)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
@@ -535,7 +535,9 @@ def get_filepath_s(configpath, filename, dirtype=-1):
     else:
         dpath = os.path.dirname(configpath)
 
-    return cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
+    path = cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
+    path = cw.cwpy.rsrc.get_filepath(path)
+    return path
 
 class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache, mask):
@@ -710,8 +712,9 @@ class JptxImage(cw.image.Image):
 
         # text rendering
         # TODO pygame側での生成を避ける
-        self.wxcanvas = wx.EmptyBitmap(cw.s(10), cw.s(10))
-        self.wxdc = wx.MemoryDC(self.wxcanvas)
+        if sys.platform == "win32":
+            self.wxcanvas = wx.EmptyBitmap(cw.s(10), cw.s(10))
+            self.wxdc = wx.MemoryDC(self.wxcanvas)
         bold = False
         underline = False
         italic = False
@@ -719,7 +722,7 @@ class JptxImage(cw.image.Image):
             if fontface in cw.cwpy.rsrc.fontnames.values():
                 fontpath = self.get_fontpath(fontface)
                 font = pygame.font.Font(fontpath, fontpixels)
-            else:
+            elif sys.platform == "win32":
                 # pygameで描画できないフォント
                 font = wx.Font(cw.s(12),
                                wx.FONTFAMILY_DEFAULT,
@@ -735,11 +738,17 @@ class JptxImage(cw.image.Image):
                 self.wxcanvas = wx.EmptyBitmap(size[0] * 2, size[1] * 2)
                 self.wxdc = wx.MemoryDC(self.wxcanvas)
                 self.wxdc.SetFont(font)
+            else:
+                if not fontface in cw.cwpy.rsrc.facenames:
+                    fontface = self.get_fontface(fontface)
+                encoding = sys.getfilesystemencoding()
+                fontface = fontface.encode(encoding)
+                font = pygame.font.SysFont(fontface, fontpixels)
             return font
         def set_bold(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_bold(start)
-            else:
+            elif sys.platform == "win32":
                 if start:
                     font.SetWeight(wx.FONTWEIGHT_BOLD)
                 else:
@@ -748,13 +757,13 @@ class JptxImage(cw.image.Image):
         def set_underline(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_underline(start)
-            else:
+            elif sys.platform == "win32":
                 font.SetUnderlined(start)
                 self.wxdc.SetFont(font)
         def set_italic(font, start):
             if isinstance(font, pygame.font.Font):
                 font.set_italic(start)
-            else:
+            elif sys.platform == "win32":
                 if start:
                     font.SetStyle(wx.FONTSTYLE_ITALIC)
                 else:
@@ -763,14 +772,14 @@ class JptxImage(cw.image.Image):
         def get_height(font):
             if isinstance(font, pygame.font.Font):
                 return font.get_height()
-            else:
+            elif sys.platform == "win32":
                 w, h, lh = self.wxdc.GetMultiLineTextExtent("#")
                 return lh + cw.s(2)
         def font_render(font, char, antialias, fontcolor):
             if isinstance(font, pygame.font.Font):
                 subimg = font.render(char, antialias, fontcolor)
                 return subimg, subimg.get_width()
-            else:
+            elif sys.platform == "win32":
                 backcolor = (0, 0, 0)
                 if fontcolor[:3] == backcolor:
                     backcolor = (255, 255, 255)
@@ -897,10 +906,26 @@ class JptxImage(cw.image.Image):
         if backheight < 0 or backwidth < 0:
             w = w if backwidth < 0 else backwidth
             h = h if backheight < 0 else backheight
-            self.image = self.image.subsurface(pygame.Rect(0, 0, w, h))
+            rect = self.image.get_rect()
+            self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, w, h)))
 
-        self.wxcanvas = None
-        self.wxdc = None
+        if sys.platform == "win32":
+            self.wxcanvas = None
+            self.wxdc = None
+
+    def get_fontface(self, fontface):
+        if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
+            return cw.cwpy.rsrc.fontnames["pgothic"]
+        elif fontface in (u"ＭＳ Ｐ明朝", "MS PMincho"):
+            return cw.cwpy.rsrc.fontnames["pmincho"]
+        elif fontface in (u"ＭＳ ゴシック", "MS Gothic"):
+            return cw.cwpy.rsrc.fontnames["gothic"]
+        elif fontface in (u"ＭＳ 明朝", "MS Mincho"):
+            return cw.cwpy.rsrc.fontnames["mincho"]
+        elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
+            return cw.cwpy.rsrc.fontnames["uigothic"]
+        else:
+            return fontface
 
     def get_fontpath(self, fontface):
         if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
@@ -1011,7 +1036,7 @@ class EffectBoosterConfig(object):
                 if line[0] in '#;':
                     continue
 
-                line = line.decode("mbcs").replace("\r\n", "\n")
+                line = line.decode(cw.MBCS).replace("\r\n", "\n")
 
                 # jptxテキスト
                 if line == "[jptx:end]\n" or line == "[jptx:end]":
