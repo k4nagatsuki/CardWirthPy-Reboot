@@ -251,7 +251,7 @@ class CWPy(_Singleton, threading.Thread):
         elif self.status == "Yado":
             s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
             s += self.ydata.name
-        elif self.status == "Scenario":
+        elif self.status.startswith("Scenario"):
             s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
             s += "%s %s" % (self.ydata.name, self.sdata.name)
         elif self.status == "GameOver":
