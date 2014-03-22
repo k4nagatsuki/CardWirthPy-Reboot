@@ -141,6 +141,8 @@ class CWPy(_Singleton, threading.Thread):
         self.classicdata = None
         # イベントハンドラ
         self.eventhandler = cw.eventhandler.EventHandler()
+        # 設定ダイアログのタブ位置
+        self.settingtab = 0
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
 

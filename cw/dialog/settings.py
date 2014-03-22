@@ -23,11 +23,14 @@ class SettingsDialog(wx.Dialog):
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
         self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
+        self.note.SetSelection(cw.cwpy.settingtab)
         self._do_layout()
         self._bind()
 
     def _bind(self):
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.OnDefault, id=wx.ID_DEFAULT)
 
     def OnDefault(self, event):
@@ -185,6 +188,11 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.setting.folderoftype.append((skintype, folder))
 
         self.Close()
+
+    def OnClose(self, event):
+        # 開いたタブを記憶
+        cw.cwpy.settingtab = self.note.GetSelection()
+        self.Destroy()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
