@@ -41,7 +41,7 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.s((20, 20)), bmp=bmp)
         # sort
-        self.sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
+        self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
         self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
@@ -107,7 +107,7 @@ class CardControl(wx.Dialog):
         # トップバー
         self._re_layout_topbar()
         # トップパネルにトップバーとレフトバーを設定
-        sizer_toppanel.Add(self.sizer_topbar, (0,0), (1,2), wx.EXPAND)
+        sizer_toppanel.Add(self._sizer_topbar, (0,0), (1,2), wx.EXPAND)
         sizer_toppanel.Add(sizer_leftbar, (1,0), (1,1), wx.EXPAND)
         sizer_toppanel.Add(cw.s((420, 235)), (1,1), (1,1), wx.EXPAND)
         self.toppanel.SetSizer(sizer_toppanel)
@@ -131,17 +131,17 @@ class CardControl(wx.Dialog):
     def _re_layout_topbar(self):
         sortsize = self.sort.GetSize()
         combosize = self.combo.GetSize()
-        self.sizer_topbar.Clear()
-        self.sizer_topbar.SetMinSize(combosize)
-        self.sizer_topbar.Add((cw.s(500)-combosize[0]-cw.s(65)-sortsize[0]-cw.s(40), 0), 0, 0, 0)
+        self._sizer_topbar.Clear()
+        self._sizer_topbar.SetMinSize(combosize)
+        self._sizer_topbar.Add((cw.s(500)-combosize[0]-cw.s(65)-sortsize[0]-cw.s(40), 0), 0, 0, 0)
         if self.sort.IsShown():
-            self.sizer_topbar.Add(self.sort, 0, 0, 0)
+            self._sizer_topbar.Add(self.sort, 0, 0, 0)
         else:
-            self.sizer_topbar.Add(self.sort.GetSize(), 0, 0, 0)
-        self.sizer_topbar.Add(cw.s((60, 0)), 0, 0, 0)
-        self.sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
-        self.sizer_topbar.Add(self.combo, 0, 0, 0)
-        self.sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
+            self._sizer_topbar.Add(self.sort.GetSize(), 0, 0, 0)
+        self._sizer_topbar.Add(cw.s((60, 0)), 0, 0, 0)
+        self._sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
+        self._sizer_topbar.Add(self.combo, 0, 0, 0)
+        self._sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
 
     def OnSort(self, event):
         pass
@@ -379,7 +379,8 @@ class CardControl(wx.Dialog):
         # クリックアニメーション。4フレーム分。
         header.clickedflag = True
         self.draw_cards()
-        self.Refresh()
+        if sys.platform <> "win32":
+            self.Refresh()
         cw.cwpy.wait_frame(4)
         header.clickedflag = False
         dc = wx.ClientDC(self.toppanel)
@@ -740,9 +741,6 @@ class CardHolder(CardControl):
                 self.itembtn.Hide()
                 self.beastbtn.Hide()
 
-        self._sizer_leftbar.Layout()
-        self.Layout()
-
         # ソート条件
         if self.callname == "STOREHOUSE":
             if not self.sort.IsShown():
@@ -771,6 +769,10 @@ class CardHolder(CardControl):
                 self.sort.Select(0)
 
         self._re_layout_topbar()
+
+        self._sizer_topbar.Layout()
+        self._sizer_leftbar.Layout()
+        self.Layout()
 
     def _do_layout(self):
         self._sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
