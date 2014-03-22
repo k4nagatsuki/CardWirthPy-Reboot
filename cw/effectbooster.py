@@ -500,7 +500,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
     if dirtype == 1:
         dpath = os.path.dirname(configpath)
         # シナリオ内に存在しなかった場合はTable内
-        if not os.path.isfile(cw.util.join_paths(dpath, filename)):
+        if not os.path.isfile(cw.cwpy.rsrc.get_filepath(cw.util.join_paths(dpath, filename))):
             return get_filepath_s(configpath, filename, 2)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")

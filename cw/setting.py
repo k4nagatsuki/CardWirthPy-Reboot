@@ -662,7 +662,7 @@ class Resource(object):
         """StatusBarで使用するOSネイティブなボタン画像を取得する。
         sizetype: 0=(120, 22), 1=(27, 27), 2=(632, 33)
         flags: 0, wx.CONTROL_PRESSED, wx.CONTROL_CURRENT
-               sizetype=または1の時のみ有効
+               sizetype=0または1の時のみ有効
         """
         if sizetype == 0:
             if flags == wx.CONTROL_PRESSED:

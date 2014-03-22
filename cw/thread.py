@@ -292,11 +292,6 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
 
         self._init_resources()
-        def func(scale, changearea, changed):
-            self.exec_func(self._update_scale2, scale, changearea, changed)
-        self.frame.exec_func(func, scale, changearea, changed)
-
-    def _update_scale2(self, scale, changearea, changed):
         self.statusbar.update_scale()
         self.sbargrp.set_clip(self.statusbar.rect)
         if self.sdata:
@@ -397,6 +392,14 @@ class CWPy(_Singleton, threading.Thread):
         self.event.eventtimer = 0
         for i in xrange(count):
             self.tick_clock()
+
+    def get_nextevent(self):
+        if self.events:
+            e = self.events[0]
+            self.events = self.events[1:]
+            return e
+        else:
+            return None
 
     def input(self, eventclear=False, inputonly=False):
         self.mousein = pygame.mouse.get_pressed()
@@ -954,6 +957,13 @@ class CWPy(_Singleton, threading.Thread):
         if load_failure == False and not self.is_playingscenario():
             return
 
+        if cw.cwpy.is_runningevent():
+            self.exec_func(self._f9impl())
+            raise cw.event.EffectBreakError()
+        else:
+            self._f9impl()
+
+    def _f9impl(self):
         self.sdata.is_playing = False
         self.pre_dialogs = []
 
@@ -1832,7 +1842,6 @@ class CWPy(_Singleton, threading.Thread):
             size_noscale, pos_noscale = (632, 284), (0, 0)
             size_noscale2, pos_noscale2 = (632, 136), (0, 284)
             size_noscale_castcard = (95, 130)
-
             self.is_pcardsselectable = target in ("Both", "Party")
             self.is_mcardsselectable = not self.is_battlestatus() or\
                                        target in ("Both", "Enemy")

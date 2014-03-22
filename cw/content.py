@@ -1602,9 +1602,9 @@ class GetContent(EventContentBase):
         for cnt in xrange(num):
             for target in cw.cwpy.event.get_targetscope(scope):
                 etree = cw.data.xml2etree(path, nocache=True)
-                get_card(etree, target)
+                get_card(etree, target, from_getcontent=True)
 
-def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom="", fromdebugger=False):
+def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom="", fromdebugger=False, from_getcontent=False):
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
     etree: ElementTree or Element
     target: Character or list(Backpack, Storehouse)
@@ -1669,7 +1669,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
             cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom)
             header.imgpath = etree.gettext("Property/ImagePath", header.imgpath)
 
-    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party)
+    cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party, from_getcontent=from_getcontent)
 
 class GetSkillContent(GetContent):
     def action(self):

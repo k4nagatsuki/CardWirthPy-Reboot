@@ -205,7 +205,6 @@ class CardControl(wx.Dialog):
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
                 self.ProcessEvent(btnevent)
 
-
     def OnLeftUp(self, event):
         if self._proc:
             return
