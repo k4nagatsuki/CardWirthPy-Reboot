@@ -161,6 +161,7 @@ class MessageWindow(base.CWPySprite):
         font = cw.cwpy.rsrc.fonts["message"]
         lineheight = font.get_height()
         chridx = self.frame / self.speed
+        sbold = not (cw.cwpy.setting.classicstyletext and self.wxdc) and lineheight <= 24
         if chridx < len(self.charimgs):
             pos, txtimg, txtimg2 = self.charimgs[chridx]
 
@@ -170,7 +171,7 @@ class MessageWindow(base.CWPySprite):
                     for x in xrange(pos[0]-1, pos[0]+2):
                         for y in xrange(pos[1]-1, pos[1]+2):
                             self.image.blit(txtimg2[0], (x, y))
-                            if not cw.cwpy.setting.classicstyletext and lineheight <= 24:
+                            if sbold:
                                 self.image.blit(txtimg2[0], (x+1, y))
                 # u"―"描画時の処理。両脇の影を描画するかどうか。
                 else:
@@ -188,7 +189,7 @@ class MessageWindow(base.CWPySprite):
                     self.image.blit(txtimg2, (pos[0], pos[1] - 1))
 
             self.image.blit(txtimg, pos)
-            if not cw.cwpy.setting.classicstyletext and lineheight <= 24:
+            if sbold:
                 self.image.blit(txtimg, (pos[0]+1, pos[1]))
             self.frame += 1
         else:
@@ -645,6 +646,7 @@ class SelectionBar(base.SelectableSprite):
         image.blit(nameimg2, (pos[0], pos[1]-1))
         image.blit(nameimg, pos)
         if self.selected:
+
             image = cw.imageretouch.to_negative(image)
         return image
 
@@ -871,6 +873,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
         return cw.util.encodewrap("".join(buf))
     else:
         return "".join(buf)
+
 
 def main():
     pass
