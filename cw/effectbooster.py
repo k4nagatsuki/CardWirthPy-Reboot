@@ -13,6 +13,9 @@ from pygame.locals import *
 import cw
 
 
+class ScreenRescale(Exception):
+    pass
+
 def wait_effectbooster(waittime):
     if 0 < waittime:
         tick = pygame.time.get_ticks() + waittime
@@ -20,17 +23,14 @@ def wait_effectbooster(waittime):
         tick = 0
         cw.util.change_cursor("mouse")
 
-    up_scr = cw.UP_SCR
-
     try:
         eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
         while cw.cwpy.is_running() and\
                 (not tick or pygame.time.get_ticks() < tick) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
-            if up_scr == cw.UP_SCR:
-                cw.cwpy.sbargrp.update(cw.cwpy.scr)
-                cw.cwpy.tick_clock(1000)
+            cw.cwpy.sbargrp.update(cw.cwpy.scr)
+            cw.cwpy.tick_clock(1000)
             cw.cwpy.input()
             eventhandler.run()
 
@@ -40,8 +40,6 @@ def wait_effectbooster(waittime):
 
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
-        self.up_scr = cw.UP_SCR
-        self.breaked = False
         self.configpath = config.path
         self.cache = cache
         # image load
@@ -90,10 +88,6 @@ class _JpySubImage(cw.image.Image):
                 self.wait()
         # 一時描画
         elif self.animation:
-            if cw.UP_SCR <> self.up_scr:
-                self.breaked = True
-                return # 中断
-
             if self.animeposition and self.animemove:
                 pos = self.animeposition
                 pos = (pos[0] + self.animemove[0], pos[1] + self.animemove[1])
@@ -141,9 +135,6 @@ class _JpySubImage(cw.image.Image):
                     ydir = bool(rest_y > -1)
 
                     while rest_x or rest_y:
-                        if cw.UP_SCR <> self.up_scr:
-                            self.breaked = True
-                            return # 中断
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
                         n /= animespeed
                         n /= cw.UP_SCR * cw.UP_SCR
@@ -351,9 +342,9 @@ class _JpySubImage(cw.image.Image):
             x, y, w, h = self.clip
             rect = pygame.Rect((x, y), (w, h))
 
-            try:
+            if pygame.Rect((0, 0), image.get_size()).contains(rect):
                 image = image.subsurface(rect)
-            except:
+            else:
                 w = image.get_width() if image.get_width() > w + x else w + x
                 h = image.get_height() if image.get_height() > h + y else h + y
                 image = pygame.transform.scale(image, (w, h))
@@ -430,11 +421,7 @@ class _JpySubImage(cw.image.Image):
                     image = pygame.Surface((0, 0)).convert()
                 # Jpy1ファイル
                 elif ext == ".jpy1":
-                    jpy1 = JpyImage(path, cache=self.cache, doanime=doanime, mask=self.transparent)
-                    if jpy1.breaked:
-                        self.breaked = True
-                        return
-                    image = jpy1.get_image()
+                    image = JpyImage(path, cache=self.cache, doanime=doanime, mask=self.transparent).get_image()
                     # 変化するためキャッシュ不可
                 # Jpdcファイル
                 elif ext == ".jpdc":
@@ -579,40 +566,21 @@ class JpyImage(cw.image.Image):
         if not cache:
             cache = JpyCache()
 
-        # スケール変更時には中断する
-        up_scr = cw.UP_SCR
-        self.breaked = True
-
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
-        if back.breaked:
-            return # 中断
 
         for section in config.sections():
-            if cw.UP_SCR <> up_scr:
-                return # 中断
-
             if not section == "init":
                 parts = JpyPartsImage(config, section, cache, back.transparent)
                 parts.load(doanime)
-                if parts.breaked:
-                    return # 中断
                 parts.retouch()
                 parts.drawtemp(doanime)
-                if parts.breaked:
-                    return # 中断
                 parts.draw2back(back)
-
-        if cw.UP_SCR <> up_scr:
-            return # 中断
 
         back.retouch()
         back.drawtemp(doanime)
-        if back.breaked:
-            return # 中断
         self.image = back.get_image()
-        self.breaked = False
         if mask:
             self.image.set_colorkey(self.image.get_at((0, 0)))
 
@@ -1022,7 +990,7 @@ class JptxImage(cw.image.Image):
                 g = (value >> 8) & 0xff
                 b = (value >> 0) & 0xff
                 return (r, g, b)
-            except:
+            except ValueError:
                 return default
         else:
             return default
@@ -1122,11 +1090,14 @@ class EffectBoosterConfig(object):
 
     def get_int(self, section, option, default=None):
         try:
-            value = self.get(section, option, default).strip()
+            value = self.get(section, option, default)
+            if value == default:
+                return default
+            value = value.strip()
             if value.endswith("px"):
                 return int(value[:-2])
             return int(value)
-        except:
+        except ValueError:
             return default
 
     def get_bool(self, section, option, default=None):
@@ -1135,16 +1106,20 @@ class EffectBoosterConfig(object):
     def get_color(self, section, option, default=None):
         try:
             s = self.get(section, option, default)
+            if s == default:
+                return default
             r = int(s[1:3], 16)
             g = int(s[3:5], 16)
             b = int(s[5:7], 16)
             return (r, g, b)
-        except:
+        except ValueError:
             return default
 
     def get_ints(self, section, option, length, default=None):
         try:
             s = self.get(section, option, default)
+            if s == default:
+                return default
             seq = [int(i.strip()) for i in s.split(",")]
 
             if len(seq) == length:
@@ -1152,7 +1127,7 @@ class EffectBoosterConfig(object):
             else:
                 raise ValueError()
 
-        except:
+        except ValueError:
             return default
 
 def main():

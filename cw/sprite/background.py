@@ -26,7 +26,7 @@ class BackGround(base.CWPySprite):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
         self._in_playing = False
-        self._elements = None
+        self._elements = []
         self._bginhrt = False
         self._doanime = False
         self._ttype = ("None", "None")
@@ -38,7 +38,6 @@ class BackGround(base.CWPySprite):
         self.rect = self.image.get_rect()
         if self._in_playing:
             # Jpy1アニメーション中の場合は再実行
-            cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
             elements = self._elements
             bginhrt = self._bginhrt
             doanime = self._doanime
@@ -46,8 +45,12 @@ class BackGround(base.CWPySprite):
             def func():
                 # アニメーション前の背景を復元
                 self.reload(doanime=False, ttype=("None", "None"), redraw=True)
-                # 再実行
-                self.load(elements, bginhrt, doanime=doanime, ttype=ttype)
+                if elements:
+                    # 再実行
+                    self.load(elements, bginhrt, doanime=doanime, ttype=ttype)
+                else:
+                    # 再実行
+                    self.reload(doanime=doanime, ttype=ttype, redraw=True)
             cw.cwpy.exec_func(func)
         else:
             self.reload(doanime=self._doanime, ttype=("None", "None"), redraw=False)
@@ -79,14 +82,15 @@ class BackGround(base.CWPySprite):
             elif ext == ".jpdc":
                 image = cw.effectbooster.JpdcImage(mask, path).get_image()
             elif ext == ".jpy1":
-                jpy1 = cw.effectbooster.JpyImage(path, mask, doanime=doanime)
-                if jpy1.breaked:
-                    return None
-                image = jpy1.get_image()
+                image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
                 anime = True
             else:
                 image = cw.util.load_image(path, mask)
         except cw.event.EffectBreakError, ex:
+            raise ex
+        except cw.effectbooster.ScreenRescale, ex:
+            cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+            self._in_playing = True
             raise ex
         except Exception:
             cw.util.print_ex()
@@ -112,6 +116,9 @@ class BackGround(base.CWPySprite):
         bginhrt: Trueなら背景継承。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
+        if self._in_playing:
+            return
+
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         # 背景処理する前に、トランジション用スプライト作成
@@ -121,7 +128,6 @@ class BackGround(base.CWPySprite):
         self._bginhrt = bginhrt
         self._doanime = doanime
         self._ttype = ttype
-        self._in_playing = True
 
         # 背景継承するか否か
         if not bginhrt:
@@ -130,13 +136,7 @@ class BackGround(base.CWPySprite):
         # 背景構築
         animated = False
         blitlist = []
-        up_scr = cw.UP_SCR
         for e in elements:
-            if up_scr <> cw.UP_SCR:
-                self._in_playing = False
-                self._doanime = False
-                return
-
             left = e.getint("Location", "left")
             top = e.getint("Location", "top")
             pos = (left, top)
@@ -166,7 +166,10 @@ class BackGround(base.CWPySprite):
                     inusecard = os.path.isfile(imgpath)
 
                 d = (path, inusecard, mask, size, pos, flag, visible)
-                animated |= self._add_imagecell(blitlist, self.bgs, oldbgs, d, doanime)
+                try:
+                    animated |= self._add_imagecell(blitlist, self.bgs, oldbgs, d, doanime)
+                except cw.effectbooster.ScreenRescale:
+                    return # 中断
 
             elif e.tag == "TextCell":
                 # テキストセル
@@ -203,7 +206,7 @@ class BackGround(base.CWPySprite):
                 assert False
 
         self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
-        self._elements = None
+        self._elements = []
         self._bginhrt = False
         self._doanime = False
         self._ttype = ("None", "None")
@@ -221,18 +224,17 @@ class BackGround(base.CWPySprite):
 
         animated = False
         blitlist = []
-        up_scr = cw.UP_SCR
         if doanime:
             self._doanime = doanime
+            self._ttype = ttype
 
         for type, d in self.bgs:
-            if up_scr <> cw.UP_SCR:
-                self._doanime = False
-                return
-
             if type == BG_IMAGE:
                 # 背景画像
-                animated |= self._add_imagecell(blitlist, bgs, oldbgs, d, doanime)
+                try:
+                    animated |= self._add_imagecell(blitlist, bgs, oldbgs, d, doanime)
+                except cw.effectbooster.ScreenRescale:
+                    return # 中断
 
             elif type == BG_TEXT:
                 # テキストセル
@@ -246,6 +248,8 @@ class BackGround(base.CWPySprite):
                 assert False
 
         self._doanime = False
+        self._ttype = ("None", "None")
+        self._in_playing = False
         self.bgs = bgs
         self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
 
@@ -267,20 +271,16 @@ class BackGround(base.CWPySprite):
             fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
 
-        tuple = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
+        image, anime = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 
-        if tuple:
-            image, anime = tuple
-            if image:
-                blitlist.append((BG_IMAGE, (image, pos, 0)))
-                bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True)))
-            else:
-                bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
-                oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
-
-            return anime
+        if image:
+            blitlist.append((BG_IMAGE, (image, pos, 0)))
+            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True)))
         else:
-            return False
+            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
+            oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
+
+        return anime
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\

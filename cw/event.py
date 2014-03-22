@@ -306,7 +306,7 @@ class EventInterface(object):
             return
 
         # 一部のイベント実行
-        if self.eventtimer % 1000 == 0:
+        if pygame.event.peek(pygame.locals.USEREVENT) or (self.eventtimer % 1000 == 0 and pygame.event.peek()):
             cw.cwpy.sbargrp.update(cw.cwpy.scr)
             cw.cwpy.input()
             cw.cwpy.eventhandler.run()

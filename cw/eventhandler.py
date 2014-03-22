@@ -884,6 +884,13 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         self.running = False
 
+    def f4key_event(self):
+        """
+        F4キーイベント。
+        """
+        cw.cwpy.exec_func(EventHandler.f4key_event, self)
+        raise cw.effectbooster.ScreenRescale()
+
 def main():
     pass
 
