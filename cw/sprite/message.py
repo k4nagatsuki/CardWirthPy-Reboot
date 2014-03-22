@@ -166,7 +166,7 @@ class MessageWindow(base.CWPySprite):
                     for x in xrange(pos[0]-1, pos[0]+2):
                         for y in xrange(pos[1]-1, pos[1]+2):
                             self.image.blit(txtimg2[0], (x, y))
-                            if lineheight <= 24:
+                            if not cw.cwpy.setting.classicstyletext and lineheight <= 24:
                                 self.image.blit(txtimg2[0], (x+1, y))
                 # u"―"描画時の処理。両脇の影を描画するかどうか。
                 else:
@@ -184,7 +184,7 @@ class MessageWindow(base.CWPySprite):
                     self.image.blit(txtimg2, (pos[0], pos[1] - 1))
 
             self.image.blit(txtimg, pos)
-            if lineheight <= 24:
+            if not cw.cwpy.setting.classicstyletext and lineheight <= 24:
                 self.image.blit(txtimg, (pos[0]+1, pos[1]))
             self.frame += 1
         else:

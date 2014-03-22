@@ -185,7 +185,8 @@ class Debugger(wx.Frame):
         bmp1 = rsrc["EVTCTRL_PLAY"]
         bmp2 = rsrc["EVTCTRL_PAUSE"]
         self.mi_pause.SetBitmaps(bmp1, bmp2)
-        self.mi_pause.SetCheckable(False)
+        if sys.platform <> "win32":
+            self.mi_pause.SetCheckable(False)
         run_menu.AppendItem(self.mi_pause)
         self.mi_stop = wx.MenuItem(run_menu, ID_STOP, u"イベント強制終了(&E)\tF12",
                          u"イベントを強制終了します。")

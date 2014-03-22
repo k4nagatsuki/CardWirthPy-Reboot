@@ -628,6 +628,7 @@ init_imageretouch64(void)
     (void) Py_InitModule("_imageretouch64", _imageretouchMethods);
 }
 #else
+PyMODINIT_FUNC
 init_imageretouch32(void)
 {
     (void) Py_InitModule("_imageretouch32", _imageretouchMethods);

@@ -608,7 +608,7 @@ class Resource(object):
                 wximg.SetAlphaData("\xFF" * pixel_num)
                 wxbmp = wximg.ConvertToBitmap()
 
-            return wxbmp
+            return cw.image.conv2surface(wxbmp)
         else:
             bmp = pygame.Surface((w, h)).convert()
             c1 = 240
