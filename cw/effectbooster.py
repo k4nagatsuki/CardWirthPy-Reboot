@@ -569,6 +569,9 @@ class JpyImage(cw.image.Image):
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
+        if config.get("init", "transparent", None) is None:
+            # [init]にtransparentの定義が無い場合は一時描画時に透過色無効
+            back.transparent = False
 
         for section in config.sections():
             if not section == "init":
