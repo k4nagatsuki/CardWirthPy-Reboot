@@ -391,7 +391,7 @@ class _JpySubImage(cw.image.Image):
         """画像作成。"""
         path = self.get_filepath()
         ext = cw.util.splitext(path)[1].lower()
-        if ext == ".jptx":
+        if ext == ".jptx" and not self.has_transparent:
             self.transparent = True
 
         # ファイル読み込み
@@ -549,6 +549,7 @@ class JpyPartsImage(_JpySubImage):
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
         self.transparent = config.get_bool(section, "transparent", mask)
+        self.has_transparent = not config.get(section, "transparent", None) is None
 
 class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache, mask):
