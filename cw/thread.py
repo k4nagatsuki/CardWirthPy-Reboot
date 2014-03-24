@@ -274,6 +274,8 @@ class CWPy(_Singleton, threading.Thread):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
+        self.clear_selection()
+
         if self.ydata:
             changed = self.ydata.is_changed()
         else:
