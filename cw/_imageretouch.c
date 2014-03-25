@@ -18,7 +18,7 @@ intwrap(int i, int min, int max)
 #define colorwrap(i) intwrap(i, 0, 255)
 
 static int
-equals_rgb(char *data1, size_t index1, int r, int g, int b)
+equals_rgb(unsigned char *data1, size_t index1, int r, int g, int b)
 {
     if (data1[index1 + 0] != r) return 0;
     if (data1[index1 + 1] != g) return 0;
@@ -32,7 +32,7 @@ add_mosaic(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, x2, y2, val;
-    char *data, *outdata;
+    unsigned char *data, *outdata;
     unsigned long idx;
 
     if (!PyArg_ParseTuple(args, "s#(ii)i", &data, &len, &w, &h, &val))
@@ -74,7 +74,7 @@ to_binaryformat(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, val;
-    char *data, *outdata;
+    unsigned char *data, *outdata;
     unsigned char r, g, b;
 
     if (!PyArg_ParseTuple(args, "s#(ii)i", &data, &len, &w, &h, &val))
@@ -123,7 +123,7 @@ add_noise(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int r, g, b, w, h, x, y, val, randmax, i, colornoise = 0;
-    char *data, *outdata;
+    unsigned char *data, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)i|i", &data, &len, &w, &h, &val,
                 &colornoise))
@@ -201,8 +201,8 @@ exchange_rgbcolor(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y;
-    char *data, *outdata, *colormodel;
-    char r, g, b;
+    unsigned char *data, *outdata, *colormodel;
+    unsigned char r, g, b;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s", &data, &len, &w, &h, &colormodel))
         return NULL;
@@ -265,7 +265,7 @@ to_sepiatone(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, r, g, b, tone_r, tone_g, tone_b, bright;
-    char *data, *outdata;
+    unsigned char *data, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)(iii)", &data, &len, &w, &h,
                 &tone_r, &tone_g, &tone_b))
@@ -306,7 +306,7 @@ spread_pixels(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int w, h, x, y, x2, y2;
-    char *data, *outdata;
+    unsigned char *data, *outdata;
     unsigned long idx;
 
     if (!PyArg_ParseTuple(args, "s#(ii)", &data, &len, &w, &h))
@@ -343,7 +343,7 @@ filter(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t len;
     int r, g, b, w, h, x, y, wt[3][3], offset, div, i, i2, x2, y2;
-    char *data, *outdata;
+    unsigned char *data, *outdata;
     unsigned long idx;
 
     if (!PyArg_ParseTuple(args, "s#(ii)((iii)(iii)(iii))ii",
@@ -398,8 +398,8 @@ bordering(PyObject *self, PyObject *args)
     PyObject *points = NULL;
     size_t len;
     int w, h, x, y, r, g, b, text_r, text_g, text_b;
-    char *data;
-    char *data_lt, *data_mt, *data_rt, *data_lm, *data_rm, *data_lb, *data_mb, *data_rb;
+    unsigned char *data;
+    unsigned char *data_lt, *data_mt, *data_rt, *data_lm, *data_rm, *data_lb, *data_mb, *data_rb;
     int find;
 
     if (!PyArg_ParseTuple(args, "s#(ii)(iii)", &data, &len, &w, &h,
@@ -463,7 +463,7 @@ blend_add_1_50(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t dlen, slen;
     int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
-    char *dest, *source, *outdata;
+    unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
         return NULL;
@@ -513,7 +513,7 @@ blend_sub_1_50(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     size_t dlen, slen;
     int w, h, x, y, dr, dg, db, sr, sg, sb, sa, a, b;
-    char *dest, *source, *outdata;
+    unsigned char *dest, *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s#", &dest, &dlen, &w, &h, &source, &slen))
         return NULL;
@@ -565,7 +565,7 @@ to_disabledimage(PyObject *self, PyObject *args)
     size_t dlen;
     int px, w, h, keyR, keyG, keyB;
     Py_buffer buf;
-    char *dest;
+    unsigned char *dest;
     static const int min = 140;
     static const int max = 240;
 
