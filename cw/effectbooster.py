@@ -734,7 +734,7 @@ class JptxImage(cw.image.Image):
                                wx.FONTWEIGHT_NORMAL,
                                0,
                                fontface,
-                               wx.FONTFLAG_NOT_ANTIALIASED)
+                               wx.FONTENCODING_SYSTEM)
                 font.SetPixelSize((0, fontpixels))
                 self.wxdc.SetFont(font)
                 size = self.wxdc.GetTextExtent("##")

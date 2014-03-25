@@ -503,7 +503,7 @@ class Resource(object):
             user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
     def get_wxfont(self, name="uigothic", size=None,
-                        family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, flag=0):
+                        family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM):
         if size is None:
             size = cw.s(10)
         if name == "btnfont":
@@ -514,7 +514,7 @@ class Resource(object):
         else:
             fontname = self.fontnames[name]
 
-        wxfont = wx.Font(size, family, style, weight, 0, fontname, flag)
+        wxfont = wx.Font(size, family, style, weight, 0, fontname, encoding)
         return wxfont
 
     def create_fonts(self):
@@ -562,7 +562,7 @@ class Resource(object):
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             # メッセージウィンドウのテキスト描画用(クラシック)
             # これのみwx.Fontを使用する
-            wxfont = wx.Font(cw.s(15), wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTFLAG_NOT_ANTIALIASED)
+            wxfont = wx.Font(cw.s(15), wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTENCODING_SYSTEM)
             fonts["message_classic"] = wxfont
         return fonts
 
