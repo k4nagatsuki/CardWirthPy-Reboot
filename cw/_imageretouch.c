@@ -43,7 +43,7 @@ add_mosaic(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &len);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &len);
     val = intwrap(val, 0, 255);
     if (!val)
     {
@@ -85,7 +85,7 @@ to_binaryformat(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &len);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &len);
     val = intwrap(val, -1, 255);
 
     for (y = 0; y < h; y++)
@@ -134,7 +134,7 @@ add_noise(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &len);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &len);
     val = intwrap(val, -1, 255);
     if (!val)
     {
@@ -212,7 +212,7 @@ exchange_rgbcolor(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &len);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &len);
 
     for (y = 0; y < h; y++)
     {
@@ -276,7 +276,7 @@ to_sepiatone(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &len);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &len);
 
     for (y = 0; y < h; y++)
     {
@@ -317,7 +317,7 @@ spread_pixels(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &len);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &len);
     srand((unsigned) time(NULL));
 
     for (y = 0; y < h; y++)
@@ -357,7 +357,7 @@ filter(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &len);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &len);
 
     for (y = 0; y < h; y++)
     {
@@ -473,7 +473,7 @@ blend_add_1_50(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &dlen);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
 
     for (y = 0; y < h; y++)
     {
@@ -523,7 +523,7 @@ blend_sub_1_50(PyObject *self, PyObject *args)
     if (!string)
         return NULL;
 
-    PyBytes_AsStringAndSize(string, &outdata, &dlen);
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &dlen);
 
     for (y = 0; y < h; y++)
     {
