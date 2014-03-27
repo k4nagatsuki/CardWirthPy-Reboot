@@ -510,7 +510,7 @@ class Resource(object):
             if self._msuigothic:
                 fontname = "MS UI Gothic"
             else:
-                fontname = "IPA UIゴシック"
+                fontname = u"IPA UIゴシック"
         else:
             fontname = self.fontnames[name]
 
