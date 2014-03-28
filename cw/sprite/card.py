@@ -426,8 +426,9 @@ class CWPyCard(base.SelectableSprite):
     def clear_image(self, move=True):
         self.image = pygame.Surface(cw.s((0, 0))).convert()
         if move:
+            topleft = self.rect.topleft
             self.rect = self.image.get_rect()
-            self.rect.topleft = self._rect.topleft
+            self.rect.topleft = topleft
 
     def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
         """画面の拡大率を考慮せずに座標を設定する。"""
@@ -446,9 +447,10 @@ class CWPyCard(base.SelectableSprite):
         elif center:
             self._rect.center = center
 
-        self.rect.topleft = self._rect.topleft
-        if hasattr(self, "cardimg"):
-            self.cardimg.rect.topleft = self._rect.topleft
+        if not self.status in ("hidden", "shiftup"):
+            self.rect.topleft = self._rect.topleft
+            if hasattr(self, "cardimg"):
+                self.cardimg.rect.topleft = self._rect.topleft
 
     def set_cardtarget(self):
         if not self.cardtarget:
