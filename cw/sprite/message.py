@@ -136,8 +136,10 @@ class MessageWindow(base.CWPySprite):
         self._init_style()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
-        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
-        cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
+        if self.backlog:
+            cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+        else:
+            cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
@@ -535,8 +537,10 @@ class SelectWindow(MessageWindow):
         self._init_style()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
-        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
-        cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
+        if self.backlog:
+            cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+        else:
+            cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
