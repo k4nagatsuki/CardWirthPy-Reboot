@@ -978,6 +978,10 @@ class CWPy(_Singleton, threading.Thread):
         # 対象選択画面でF9しても、中止ボタンを宿まで持ち越さないように
         self.selectedheader = None
 
+        # 特殊文字の辞書が変更されていたら、元に戻す
+        if self.rsrc.specialchars_is_changed:
+            self.rsrc.specialchars = self.rsrc.get_specialchars()
+
         # battle
         if self.battle and self.battle.is_running:
             # バトルを強制終了
