@@ -813,7 +813,7 @@ class CardEvent(Event):
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
 
     def run_enemyevent(self, target, can_unconscious):
-        if isinstance(target, Enemy) and (can_unconscious or not (target.is_dead() or target.is_vanished())):
+        if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
             keycodes = self.inusecard.get_keycodes()
             target.events.start(keycodes=keycodes, isinsideevent=True)
 
@@ -893,7 +893,7 @@ class CardEvent(Event):
                 not isinstance(target, cw.sprite.card.MenuCard) and\
                 target.is_unconscious()
 
-            if isinstance(target, Enemy) and (target.is_alive() or unconscious_flag):
+            if isinstance(target, Enemy) and (not target.is_unconscious() or unconscious_flag):
                 self.run_enemyevent(target, unconscious_flag)
                 target.clear_cardtarget()
 
