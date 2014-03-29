@@ -447,10 +447,9 @@ class CWPyCard(base.SelectableSprite):
         elif center:
             self._rect.center = center
 
-        if not self.status in ("hidden", "shiftup"):
-            self.rect.topleft = self._rect.topleft
-            if hasattr(self, "cardimg"):
-                self.cardimg.rect.topleft = self._rect.topleft
+        self.rect.topleft = self._rect.topleft
+        if hasattr(self, "cardimg"):
+            self.cardimg.rect.topleft = self._rect.topleft
 
     def set_cardtarget(self):
         if not self.cardtarget:
@@ -496,6 +495,17 @@ class PlayerCard(CWPyCard, character.Player):
 
         # spritegroupに追加
         cw.cwpy.pcardgrp.add(self)
+
+    def set_pos(self, pos=None, center=None):
+        if pos:
+            self._rect.topleft = pos
+        elif center:
+            self._rect.center = center
+
+        if not self.status in ("hidden", "shiftup"):
+            self.rect.topleft = self._rect.topleft
+            if hasattr(self, "cardimg"):
+                self.cardimg.rect.topleft = self._rect.topleft
 
     def set_name(self, name):
         character.Player.set_name(self, name)
