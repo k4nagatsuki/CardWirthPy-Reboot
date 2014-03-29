@@ -247,6 +247,10 @@ engine=1.20
 
     bass.dll
     bassmidi.dll
+    bass32.so
+    bassmidi32.so
+    bass64.so
+    bassmidi64.so
       License: BASS Audioのライセンス
       URL: http://www.un4seen.com/
 
