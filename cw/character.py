@@ -1024,6 +1024,30 @@ class Character(object):
 
         return d
 
+    def replace_allcoupons(self, list, syscoupons={}):
+        """システムクーポン以外の全てのクーポンを
+        listの内容に入れ替える。
+        list: クーポン情報のタプル(name, value)のリスト。
+        syscoupons: このコレクション内にあるクーポンは
+                    システムクーポンとして処理対象外にする
+        """
+        revcoupon_old = False
+        revcoupon_new = False
+        # システムクーポン以外を一旦除去
+        for name in self.get_coupons():
+            if not (name.startswith(u"＠") or name in syscoupons):
+                self._remove_coupon(name, False)
+            revcoupon_old |= (name == u"：Ｒ")
+        # クーポン追加
+        for coupon in reversed(list):
+            self._set_coupon(coupon[0], coupon[1], False)
+            revcoupon_new |= (coupon[0] == u"：Ｒ")
+
+        # 隠蔽クーポン
+        if revcoupon_old <> revcoupon_new:
+            self.reversed = revcoupon_old
+            cw.animation.animate_sprite(self, "reverse")
+
     def get_sex(self):
         for coupon in cw.cwpy.setting.sexcoupons:
             if coupon in self.coupons:
@@ -1125,6 +1149,9 @@ class Character(object):
         name: クーポン名。
         value: クーポン点数。
         """
+        self._set_coupon(name, value, True)
+
+    def _set_coupon(self, name, value, update):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         value = int(value)
@@ -1140,7 +1167,7 @@ class Character(object):
 
         # 隠蔽クーポン
         if name == u"：Ｒ" and not self.is_reversed():
-            if not removed:
+            if update and not removed:
                 cw.animation.animate_sprite(self, "reverse")
             self.reversed = True
 

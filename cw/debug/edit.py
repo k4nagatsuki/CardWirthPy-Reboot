@@ -302,16 +302,7 @@ class CouponEditDialog(wx.Dialog):
         def func(pcards, coupons, syscoupons):
             update = False
             for i, pcard in enumerate(pcards):
-                list = coupons[i]
-                # システムクーポン以外を一旦除去
-                for name in pcard.get_coupons():
-                    if not (name.startswith(u"＠") or name in syscoupons):
-                        pcard.remove_coupon(name)
-                # クーポン追加
-                list.reverse()
-                for coupon in list:
-                    pcard.set_coupon(coupon[0], coupon[1])
-
+                pcard.replace_allcoupons(coupons[i], syscoupons)
                 # レベル調節
                 if isinstance(pcard, cw.sprite.card.PlayerCard):
                     update |= pcard.adjust_level(False)
