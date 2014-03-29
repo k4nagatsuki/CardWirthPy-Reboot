@@ -1503,6 +1503,19 @@ class EndContent(EventContentBase):
         宿画面に遷移する。completeがTrueだったら済み印をつける。
         """
         complete = self.data.getbool(".", "complete", False)
+
+        if cw.cwpy.battle and cw.cwpy.battle.is_running:
+            # バトルを強制終了
+            cw.cwpy.battle.end(False, True)
+
+        # 使用時イベント等ではズームインしている
+        # PCがいる可能性があるのでズームアウト
+        for pcard in cw.cwpy.get_pcards():
+            if pcard.zoomimgs:
+                cw.animation.animate_sprite(pcard, "zoomout")
+        cw.cwpy.clear_inusecardimg()
+        cw.cwpy.clear_guardcardimg()
+
         # メニューカード全て非表示
         cw.cwpy.hide_cards(True)
 

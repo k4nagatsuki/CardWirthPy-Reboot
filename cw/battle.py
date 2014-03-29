@@ -111,6 +111,8 @@ class BattleEngine(object):
         for member in self.members:
 
             member.action()
+            if not self._running:
+                return
 
             # 勝利チェック
             if self.check_win():
