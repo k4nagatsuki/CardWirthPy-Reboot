@@ -76,11 +76,11 @@ def init_bass(soundfonts):
             _bassmidi = windll.LoadLibrary("bassmidi.dll")
         else:
             if sys.maxsize == 0x7fffffff:
-                _bass = CDLL("./libbass32.so", mode=RTLD_GLOBAL)
-                _bassmidi = CDLL("./libbassmidi32.so")
+                _bass = CDLL("./lib/libbass32.so", mode=RTLD_GLOBAL)
+                _bassmidi = CDLL("./lib/libbassmidi32.so")
             elif sys.maxsize == 0x7fffffffffffffff:
-                _bass = CDLL("./libbass64.so", mode=RTLD_GLOBAL)
-                _bassmidi = CDLL("./libbassmidi64.so")
+                _bass = CDLL("./lib/libbass64.so", mode=RTLD_GLOBAL)
+                _bassmidi = CDLL("./lib/libbassmidi64.so")
     except Exception:
         cw.util.print_ex()
 
