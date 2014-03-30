@@ -497,15 +497,10 @@ class PlayerCard(CWPyCard, character.Player):
         cw.cwpy.pcardgrp.add(self)
 
     def set_pos(self, pos=None, center=None):
-        if pos:
-            self._rect.topleft = pos
-        elif center:
-            self._rect.center = center
-
-        if not self.status in ("hidden", "shiftup"):
-            self.rect.topleft = self._rect.topleft
-            if hasattr(self, "cardimg"):
-                self.cardimg.rect.topleft = self._rect.topleft
+        CWPyCard.set_pos(self, pos, center)
+        if self.status == "hidden":
+            self.rect = pygame.Rect(self._rect)
+            self.rect.move_ip(cw.s(0), cw.s(+150))
 
     def set_name(self, name):
         character.Player.set_name(self, name)
