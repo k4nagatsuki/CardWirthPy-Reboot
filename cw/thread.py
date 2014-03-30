@@ -1231,6 +1231,9 @@ class CWPy(_Singleton, threading.Thread):
                     deals.append(mcard)
                 else:
                     cw.animation.animate_sprite(mcard, "deal")
+                    if self.is_playingscenario() and self.sdata.in_f9:
+                        # カード描画中にF9された場合はここへ来る
+                        return
 
         if quickdeal:
             cw.animation.animate_sprites(deals, "deal")
@@ -1495,6 +1498,10 @@ class CWPy(_Singleton, threading.Thread):
                 self.deal_cards(quickdeal=quickdeal)
             else:
                 self.draw()
+
+            if self.is_playingscenario() and self.sdata.in_f9:
+                # カード描画中にF9された場合はここへ来る
+                return
 
             if self.areaid > 0 and self.status == "Scenario":
                 self.elapse_time()

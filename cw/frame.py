@@ -597,6 +597,7 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
+            cw.cwpy.sdata.in_f9 = True
             if cw.cwpy.pre_dialogs:
                 cw.cwpy.pre_dialogs.pop()
 
