@@ -736,6 +736,7 @@ class JptxImage(cw.image.Image):
                                fontface,
                                wx.FONTENCODING_SYSTEM)
                 font.SetPixelSize((0, fontpixels))
+                font.SetNoAntiAliasing(True)
                 self.wxdc.SetFont(font)
                 size = self.wxdc.GetTextExtent("##")
                 # TODO pygame側での生成を避ける
@@ -784,9 +785,9 @@ class JptxImage(cw.image.Image):
                 subimg = font.render(char, antialias, fontcolor)
                 return subimg, subimg.get_width()
             elif sys.platform == "win32":
-                backcolor = (0, 0, 0)
-                if fontcolor[:3] == backcolor:
-                    backcolor = (255, 255, 255)
+                backcolor = (min(fontcolor[0]+1, 255), min(fontcolor[1]+1+1, 255), min(fontcolor[2]+1+1, 255))
+                if fontcolor == backcolor:
+                    backcolor = (max(fontcolor[0]-1, 0), max(fontcolor[1]-1, 0), max(fontcolor[2]-1, 0))
                 self.wxdc.SetPen(wx.Pen(backcolor))
                 self.wxdc.SetBrush(wx.Brush(backcolor))
                 self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
