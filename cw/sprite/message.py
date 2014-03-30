@@ -542,7 +542,7 @@ class SelectWindow(MessageWindow):
         else:
             cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
-        self.selection_pos = cw.s((81, 230))
+        self.selection_pos = cw.s((81, 88))
 
         self.is_drawing = True
         self.frame = 0
