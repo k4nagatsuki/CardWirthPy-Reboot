@@ -622,7 +622,8 @@ class JpyCache(object):
 class JpdcImage(cw.image.Image):
     def __init__(self, mask, path):
         config = EffectBoosterConfig(path, "jpdc:init")
-        x, y, w, h = cw.s(config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420)))
+        x_noscale, y_noscale, w_noscale, h_noscale = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
+        x, y, w, h = cw.s((x_noscale, y_noscale, w_noscale, h_noscale))
         rect = pygame.Rect(x, y, w, h)
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA))
         copymode = config.get_int("jpdc:init", "copymode", 0)
@@ -666,9 +667,16 @@ class JpdcImage(cw.image.Image):
             else:
                 cw.cwpy.set_titlebar(filename)
 
+            saveimage = self.image
+            if cw.UP_SCR <> 1:
+                if cw.UP_SCR % 1 == 0:
+                    saveimage = pygame.transform.scale(saveimage, (w_noscale, h_noscale))
+                else:
+                    saveimage = pygame.transform.smoothscale(saveimage, (w_noscale, h_noscale))
+
             path = cw.util.join_paths(os.path.dirname(path), filename)
             encoding = sys.getfilesystemencoding()
-            pygame.image.save(self.image, path.encode(encoding))
+            pygame.image.save(saveimage, path.encode(encoding))
             self.wait()
             s = "%s %s - %s %s" % (cw.APP_NAME, cw.cwpy.setting.skinname,
                     os.path.basename(cw.cwpy.yadodir), cw.cwpy.sdata.name)

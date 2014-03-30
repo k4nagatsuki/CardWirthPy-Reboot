@@ -17,8 +17,8 @@ class BattleCommand(wx.Dialog):
         path = cw.util.join_paths(cw.cwpy.skindir, path)
         # TODO scaleinfo
         header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"])
-        w = header.cardbg.get_width()
-        h = header.cardbg.get_height()
+        w = header.rect.width
+        h = header.rect.height
         header.rect = pygame.Rect(cw.s(5), cw.s(5), w, h)
         header.clickedflag = False
         header.lclick_event = self.start
