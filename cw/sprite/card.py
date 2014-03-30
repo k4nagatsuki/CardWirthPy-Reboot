@@ -150,6 +150,9 @@ class CWPyCard(base.SelectableSprite):
             self.frame = 0
             return
 
+        if self.frame == 0 and self.cardimg.is_modifiedfile():
+            self.update_image()
+
         n = cw.cwpy.setting.dealing_scales[::-1][self.frame]
         rect = self.get_animerect()
         size = rect.w * n / 100, rect.h
@@ -167,6 +170,8 @@ class CWPyCard(base.SelectableSprite):
 
     def deal(self):
         """カードをアニメーショ無しで表示する。"""
+        if self.cardimg.is_modifiedfile():
+            self.update_image()
         self.status = "normal"
         self.image = self.get_animeimage()
         if cw.cwpy.selection == self:

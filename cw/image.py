@@ -42,8 +42,7 @@ class CardImage(Image):
         self.name = name
         self.path = path
         self.bgtype = bgtype
-        # FIXME: 画像ファイル読み込みにディスクキャッシュをきかすため。
-        cw.util.load_image(path)
+        self.image_mtime = 0
         self.premium = premium
         self.scaleinfo = scaleinfo
         self.update_scale()
@@ -51,6 +50,19 @@ class CardImage(Image):
     def update_scale(self):
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
+
+    def is_modifiedfile(self):
+        if cw.binary.image.path_is_code(self.path):
+            return False
+        else:
+            path = cw.util.get_yadofilepath(self.path)
+
+        if not path:
+            path = self.path
+        if not os.path.isfile(path):
+            return False
+
+        return self.image_mtime <> os.path.getmtime(path)
 
     def get_image(self):
         image = self.cardbg.copy()
@@ -65,13 +77,19 @@ class CardImage(Image):
             image.blit(subimg, cw.s((64, 5)))
             image.blit(subimg, cw.s((5, 41)))
 
-        if cw.binary.image.path_is_code(self.path):
+        pisc = cw.binary.image.path_is_code(self.path)
+        if pisc:
             path = self.path
         else:
             path = cw.util.get_yadofilepath(self.path)
 
         if not path:
             path = self.path
+
+        if not pisc and os.path.isfile(path):
+            self.image_mtime = os.path.getmtime(path)
+        else:
+            self.image_mtime = 0
 
         subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
         image.blit(subimg, cw.s((3, 13)))
