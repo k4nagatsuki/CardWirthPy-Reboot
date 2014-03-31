@@ -229,6 +229,7 @@ class CharacterCardImage(CardImage):
         self.ccard = ccard
         self._pos_noscale = pos_noscale
         self.scaleinfo = scaleinfo
+        self.image_mtime = 0
         self.update_scale()
 
     def update_scale(self):
