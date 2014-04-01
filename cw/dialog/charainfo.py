@@ -332,7 +332,7 @@ class TopPanel(wx.Panel):
 
         dc.BeginDrawing()
         # カード画像の後ろにある羽みたいなの
-        cw.util.draw_height(dc, self.wing, cw.s(25))
+        cw.util.draw_center(dc, self.wing, cw.s((150, 50)))
         # カード画像
         path = self.ccard.data.gettext("Property/ImagePath", "")
         if not cw.binary.image.path_is_code(path):
