@@ -197,7 +197,7 @@ class Setting(object):
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
         self.skinexts = data.getfind("Property/Extension").attrib
-        self.classicstyletext = data.gettext("Property/ClassicStyleText", True)
+        self.classicstyletext = data.getbool("Property/ClassicStyleText", True)
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("Races")]
 
