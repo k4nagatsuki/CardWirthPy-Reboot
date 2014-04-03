@@ -980,6 +980,8 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(False)
             e.find("Property/UseLimit").text = str(duration)
             eff |= target.set_beast(e)
+            # 対象全体の場合のためにduration値を戻す
+            e.find("Property/UseLimit").text = str(self.duration)
         return eff
 
 #-------------------------------------------------------------------------------
