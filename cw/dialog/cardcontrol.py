@@ -512,10 +512,13 @@ class CardHolder(CardControl):
         self.selection = None
 
         # 適性表示を除去
-        for pcard in cw.cwpy.get_pcards():
-            if pcard.test_aptitude:
-                pcard.test_aptitude = None
-                pcard.update_image()
+        def func():
+            for pcard in cw.cwpy.get_pcards():
+                if pcard.test_aptitude:
+                    pcard.test_aptitude = None
+                    pcard.update_image()
+            cw.cwpy.draw()
+        cw.cwpy.exec_func(func)
 
         # タイプ別初期化(キャストの手札の場合はindex復元後)
         if self.callname == "BACKPACK":
