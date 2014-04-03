@@ -972,8 +972,8 @@ class EffectMotion(object):
         召喚獣召喚。
         """
         eff = False
-        beasts = [cw.data.copydata(e) for e in self.beasts]
-        for e in beasts:
+        for e in self.beasts:
+            e = cw.data.copydata(e)
             self.duration = e.getint("Property/UseLimit")
             duration = self.calc_durationvalue(False)
             e.find("Property/UseLimit").text = str(duration)
