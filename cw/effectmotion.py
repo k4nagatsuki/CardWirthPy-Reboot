@@ -420,10 +420,7 @@ class EffectMotion(object):
         self.duration = int(data.get("duration", "0"))
 
         # 召喚獣
-        if data.hasfind("Beasts"):
-            self.beasts = [cw.data.copydata(e) for e in data.getfind("Beasts")]
-        else:
-            self.beasts = []
+        self.beasts = data.getfind("Beasts", raiseerror=False)
 
         # 使用者(PlayerCard, EnemyCard)
         self.user = user
@@ -975,13 +972,12 @@ class EffectMotion(object):
         召喚獣召喚。
         """
         eff = False
-        for e in self.beasts:
+        beasts = [cw.data.copydata(e) for e in self.beasts]
+        for e in beasts:
             self.duration = e.getint("Property/UseLimit")
             duration = self.calc_durationvalue(False)
             e.find("Property/UseLimit").text = str(duration)
             eff |= target.set_beast(e)
-            # 対象全体の場合のためにduration値を戻す
-            e.find("Property/UseLimit").text = str(self.duration)
         return eff
 
 #-------------------------------------------------------------------------------
