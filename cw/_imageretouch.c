@@ -73,11 +73,11 @@ to_binaryformat(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     size_t len;
-    int w, h, x, y, val;
+    int w, h, x, y, val, br, bg, bb;
     unsigned char *data, *outdata;
     unsigned char r, g, b;
 
-    if (!PyArg_ParseTuple(args, "s#(ii)i", &data, &len, &w, &h, &val))
+    if (!PyArg_ParseTuple(args, "s#(ii)i(iii)", &data, &len, &w, &h, &val, &br, &bg, &bb))
         return NULL;
 
     string = PyBytes_FromStringAndSize(NULL, len);
@@ -96,7 +96,7 @@ to_binaryformat(PyObject *self, PyObject *args)
             g = data[1];
             b = data[2];
 
-            if (val == -1 ? (r < 255 || g < 255 || b < 255) : (r <= val && g <= val && b <= val))
+            if (val == -1 ? (r != br || g != bg || b != bb) : (r <= val && g <= val && b <= val))
             {
                 outdata[0] = 0;
                 outdata[1] = 0;
@@ -599,7 +599,7 @@ _imageretouchMethods[] =
     {"add_mosaic", add_mosaic, METH_VARARGS,
         "add_mosaic(rgba_str, size, val)"},
     {"to_binaryformat", to_binaryformat, METH_VARARGS,
-        "to_binaryformat(rgba_str, size, val)"},
+        "to_binaryformat(rgba_str, size, val, color)"},
     {"add_noise", add_noise, METH_VARARGS,
         "add_noise(rgba_str, size, val, colornoise=False)"},
     {"exchange_rgbcolor", exchange_rgbcolor, METH_VARARGS,

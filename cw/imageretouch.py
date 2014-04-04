@@ -130,19 +130,20 @@ def _add_mosaic(image, value):
 
     return image
 
-def to_binaryformat(image, value):
+def to_binaryformat(image, value, basecolor=(255, 255, 255)):
     """二値化する。
     image: pygame.Surface
-    value: 閾値(0～255)
+    value: 閾値(-1～255)。-1の場合はbasecolor以外が黒になる
+    basecolor: 閾値が-1の時に使用され、この色以外が黒になる
     """
     try:
         func = _imageretouch.to_binaryformat
     except NameError:
-        return _to_binaryformat(image, value)
+        return _to_binaryformat(image, value, basecolor)
 
-    return _retouch(func, image, value)
+    return _retouch(func, image, value, basecolor)
 
-def _to_binaryformat(image, value):
+def _to_binaryformat(image, value, basecolor):
     value = cw.util.numwrap(value, -1, 255)
     image = image.copy()
 
@@ -158,10 +159,10 @@ def _to_binaryformat(image, value):
             r, g, b = hex2color(px)
 
             if value == -1:
-                if r < 255 or g < 255 or b < 255:
-                    seq.append(0x0)
-                else:
+                if (r, g, b) == basecolor:
                     seq.append(0xFFFFFF)
+                else:
+                    seq.append(0x0)
             else:
                 if r <= value and g <= value and b <= value:
                     seq.append(0x0)
