@@ -38,6 +38,8 @@ class CWPyCard(base.SelectableSprite):
         self.escape = False
         # Trueなら高速でアニメーションする
         self.highspeed = False
+        # Trueの間はカード消去で使用中カードをクリアしない
+        self.hide_inusecardimg = True
 
     def get_unselectedimage(self):
         return self.get_animeimage()
@@ -88,7 +90,9 @@ class CWPyCard(base.SelectableSprite):
             self.status = "hidden"
             return
 
+        self.hide_inusecardimg = False
         self.update_hide()
+        self.hide_inusecardimg = True
 
         if self.status == "hidden":
             cw.cwpy.draw()
@@ -206,6 +210,8 @@ class CWPyCard(base.SelectableSprite):
         """カードをアニメーショ無しで非表示にする。"""
         self.status = "hidden"
         self.clear_image()
+        if self.hide_inusecardimg:
+            cw.cwpy.clear_inusecardimg(self)
 
     def update_lateralvibe(self):
         """
@@ -349,6 +355,63 @@ class CWPyCard(base.SelectableSprite):
                 self.status = self.old_status
                 self.frame = 0
 
+    def update_shiftup(self):
+        """下にさげていたカードを上にあげる。"""
+        speed = cw.cwpy.setting.dealspeed * 3
+        if self.frame == 0:
+            self.image = self.get_animeimage()
+
+        shift = int(float(cw.s(150)) / speed * self.frame)
+        y = self._rect[1] + cw.s(150) - shift
+        if self.zoomimgs:
+            y += self.zoomimgs[-1][1][1] - self.zoomimgs[0][1][1]
+        self.rect = pygame.Rect(self.rect)
+        self.rect.topleft = (self.rect[0], y)
+        self.rect.size = self.image.get_size()
+
+        for image, rect in self.zoomimgs:
+            if not rect is self.rect:
+                rect.center = self.rect.center
+
+        if self.frame == speed:
+            if self.reversed:
+                self.status = "reversed"
+            else:
+                self.status = "normal"
+
+            self.rect.topleft = self.get_animerect().topleft
+            self.frame = 0
+
+        else:
+            self.frame += 1
+
+    def update_shiftdown(self):
+        """上にあげていたカードを下にさげる。"""
+        speed = cw.cwpy.setting.dealspeed * 3
+
+        shift = int(float(cw.s(150)) / speed * self.frame)
+        y = self._rect[1] + shift
+        self.rect = pygame.Rect(self.rect)
+        self.rect.size = self.image.get_size()
+        if self.zoomimgs:
+            image, zrect = self.zoomimgs[0]
+            topleft = (zrect[0], y)
+            zrect.topleft = topleft
+            for image, rect in self.zoomimgs[1:]:
+                rect.center = zrect.center
+            self.rect.center = zrect.center
+        else:
+            topleft = (self.rect[0], y)
+            self.rect.topleft = topleft
+
+        if self.frame == speed:
+            self.image = pygame.Surface((0, 0)).convert()
+            self.status = "hidden"
+            self.frame = 0
+
+        else:
+            self.frame += 1
+
     def update_scale(self):
         if not (hasattr(self, "cardimg") and self.cardimg):
             return
@@ -427,6 +490,9 @@ class CWPyCard(base.SelectableSprite):
             self._reverse()
             if not self.zoomimgs:
                 self.image = self._image
+
+        if self.status == "hidden":
+            self.clear_image(False)
 
     def clear_image(self, move=True):
         self.image = pygame.Surface(cw.s((0, 0))).convert()
@@ -537,66 +603,6 @@ class PlayerCard(CWPyCard, character.Player):
 
         if self.frame == 0:
             cw.cwpy.ydata.party.remove(self)
-
-    def update_shiftup(self):
-        """下にさげていたカードを上にあげる。"""
-        speed = cw.cwpy.setting.dealspeed * 3
-        if self.frame == 0:
-            if self.is_reversed():
-                self.image = cw.cwpy.rsrc.cardbgs["REVERSE"]
-            else:
-                self.image = self.get_animeimage()
-
-        shift = int(float(cw.s(150)) / speed * self.frame)
-        y = self._rect[1] + cw.s(150) - shift
-        if self.zoomimgs:
-            y += self.zoomimgs[-1][1][1] - self.zoomimgs[0][1][1]
-        self.rect = pygame.Rect(self.rect)
-        self.rect.topleft = (self.rect[0], y)
-        self.rect.size = self.image.get_size()
-
-        for image, rect in self.zoomimgs:
-            if not rect is self.rect:
-                rect.center = self.rect.center
-
-        if self.frame == speed:
-            if self.is_reversed():
-                self.status = "reversed"
-            else:
-                self.status = "normal"
-
-            self.rect.topleft = self.get_animerect().topleft
-            self.frame = 0
-
-        else:
-            self.frame += 1
-
-    def update_shiftdown(self):
-        """上にあげていたカードを下にさげる。"""
-        speed = cw.cwpy.setting.dealspeed * 3
-
-        shift = int(float(cw.s(150)) / speed * self.frame)
-        y = self._rect[1] + shift
-        self.rect = pygame.Rect(self.rect)
-        self.rect.size = self.image.get_size()
-        if self.zoomimgs:
-            image, zrect = self.zoomimgs[0]
-            topleft = (zrect[0], y)
-            zrect.topleft = topleft
-            for image, rect in self.zoomimgs[1:]:
-                rect.center = zrect.center
-            self.rect.center = zrect.center
-        else:
-            topleft = (self.rect[0], y)
-            self.rect.topleft = topleft
-
-        if self.frame == speed:
-            self.image = pygame.Surface((0, 0)).convert()
-            self.status = "hidden"
-            self.frame = 0
-
-        else:
-            self.frame += 1
 
     def lclick_event(self):
         """左クリックイベント。"""

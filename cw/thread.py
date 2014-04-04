@@ -1290,7 +1290,11 @@ class CWPy(_Singleton, threading.Thread):
         pcards = [i for i in self.get_pcards() if i.status == "hidden"]
 
         if pcards:
-            cw.animation.animate_sprites(pcards, "shiftup")
+            seq = []
+            for pcard in pcards:
+                if pcard.inusecardimg:
+                    seq.append(pcard.inusecardimg)
+            cw.animation.animate_sprites(pcards + seq, "shiftup")
 
         self.is_showparty = True
         self.input(True)
@@ -1301,8 +1305,11 @@ class CWPy(_Singleton, threading.Thread):
         pcards = [i for i in self.get_pcards() if not i.status == "hidden"]
 
         if pcards:
-            self.clear_inusecardimg()
-            cw.animation.animate_sprites(pcards, "shiftdown")
+            seq = []
+            for pcard in pcards:
+                if pcard.inusecardimg:
+                    seq.append(pcard.inusecardimg)
+            cw.animation.animate_sprites(pcards + seq, "shiftdown")
 
         self.is_showparty = False
         self.input(True)

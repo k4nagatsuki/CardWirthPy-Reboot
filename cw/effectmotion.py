@@ -336,7 +336,9 @@ class Effect(object):
                 target.update_image()
         # 反転
         elif self.visualeffect == "Reverse":
+            target.hide_inusecardimg = False
             cw.animation.animate_sprite(target, "hide")
+            target.hide_inusecardimg = True
 
             if update_image:
                 target.update_image()
