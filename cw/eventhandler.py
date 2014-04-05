@@ -277,11 +277,11 @@ class EventHandler(object):
         F5キーイベント。バックログを開く。
         すでに開いている場合は遡る。
         """
-        cw.cwpy.sounds["page"].play()
         if cw.cwpy.is_showingbacklog():
             event = pygame.event.Event(KEYDOWN, key=K_UP)
             pygame.event.post(event)
         else:
+            cw.cwpy.sounds["page"].play()
             cw.cwpy.show_backlog()
 
 ##        for ecard in cw.cwpy.get_ecards():
