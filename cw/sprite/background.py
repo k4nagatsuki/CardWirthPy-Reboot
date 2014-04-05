@@ -542,7 +542,7 @@ class Jpy1TemporalSprite(base.CWPySprite):
         cw.cwpy.topgrp.add(self, layer="jpytemporal")
 
 class TitleCell(base.CWPySprite):
-    def __init__(self, path, layer, y_noscale, iscard):
+    def __init__(self, path, layer, y_noscale, iscard, isselectable):
         """起動画面のアニメーションに使用するスプライト。
         path: 表示するイメージのパス。
         y: Y座標。X位置は常に画面中央となる。
@@ -552,6 +552,7 @@ class TitleCell(base.CWPySprite):
         self.path = path
         self.y_noscale = y_noscale
         self.iscard = iscard
+        self.isselectable = isselectable
         self.status = "hidden"
         self.frame = 0
 
@@ -591,6 +592,9 @@ class TitleCell(base.CWPySprite):
             self.image = self._image
             self.set_imagealpha(0)
             self.rect = self._rect
+
+        if self.isselectable:
+            cw.cwpy.selection = self
 
     def lclick_event(self):
         cw.cwpy.cut_animation = True

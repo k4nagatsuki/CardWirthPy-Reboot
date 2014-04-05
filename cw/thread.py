@@ -799,17 +799,16 @@ class CWPy(_Singleton, threading.Thread):
         self.music.stop()
         ext = self.rsrc.ext_img
         path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
-        card1 = cw.sprite.background.TitleCell(path, 1, 120, True)
+        card1 = cw.sprite.background.TitleCell(path, 1, 120, True, False)
         path = cw.util.join_paths(resdir, "TITLE_CARD2") + ext
-        card2 = cw.sprite.background.TitleCell(path, 1, 120, True)
+        card2 = cw.sprite.background.TitleCell(path, 1, 120, True, False)
         path = cw.util.join_paths(resdir, "TITLE_CELL1") + ext
-        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False)
+        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False, False)
         path = cw.util.join_paths(resdir, "TITLE_CELL2") + ext
-        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False)
+        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False, False)
         path = cw.util.join_paths(resdir, "TITLE_CELL3") + ext
-        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False)
-        white = cw.sprite.background.TitleCell("white", 3, 0, False)
-        self.selection = white
+        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, False)
+        white = cw.sprite.background.TitleCell("white", 3, 0, False, True)
 
         cw.cwpy.topgrp.add(card1, layer="title")
         cw.cwpy.topgrp.add(card2, layer="title")
