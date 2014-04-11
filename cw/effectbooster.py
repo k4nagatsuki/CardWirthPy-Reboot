@@ -745,6 +745,12 @@ class JptxImage(cw.image.Image):
                                wx.FONTENCODING_SYSTEM)
                 font.SetPixelSize((0, fontpixels))
                 font.SetNoAntiAliasing(True)
+                self.wxdc.SetFont(font)
+                size = self.wxdc.GetTextExtent("##")
+                # TODO pygame側での生成を避ける
+                self.wxcanvas = wx.EmptyBitmap(size[0] * 2, size[1] * 2)
+                self.wxdc = wx.MemoryDC(self.wxcanvas)
+                self.wxdc.SetFont(font)
             else:
                 if not fontface in cw.cwpy.rsrc.facenames:
                     fontface = self.get_fontface(fontface)
@@ -782,31 +788,23 @@ class JptxImage(cw.image.Image):
             elif sys.platform == "win32":
                 w, h, lh = self.wxdc.GetMultiLineTextExtent("#")
                 return lh + cw.s(2)
-        def font_render(font, chars, antialias, fontcolor):
+        def font_render(font, char, antialias, fontcolor):
             if isinstance(font, pygame.font.Font):
-                subimg = font.render(chars, antialias, fontcolor)
+                subimg = font.render(char, antialias, fontcolor)
                 return subimg, subimg.get_width()
             elif sys.platform == "win32":
                 backcolor = (min(fontcolor[0]+1, 255), min(fontcolor[1]+1+1, 255), min(fontcolor[2]+1+1, 255))
                 if fontcolor == backcolor:
                     backcolor = (max(fontcolor[0]-1, 0), max(fontcolor[1]-1, 0), max(fontcolor[2]-1, 0))
 
-                self.wxdc.SetFont(font)
-                size = self.wxdc.GetTextExtent(chars)
-                if self.wxcanvas.Width < size[0] or self.wxcanvas.Height < size[1]:
-                    # TODO pygame側での生成を避ける
-                    self.wxcanvas = wx.EmptyBitmap(size[0] * 2, size[1] * 2)
-                    self.wxdc = wx.MemoryDC(self.wxcanvas)
-                    self.wxdc.SetFont(font)
-
                 self.wxdc.SetPen(wx.Pen(backcolor))
                 self.wxdc.SetBrush(wx.Brush(backcolor))
                 self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
                 self.wxdc.SetTextForeground(fontcolor)
-                self.wxdc.DrawText(chars, 0, 0)
+                self.wxdc.DrawText(char, 0, 0)
                 image = cw.image.conv2surface(self.wxcanvas)
                 image.set_colorkey(backcolor, RLEACCEL)
-                return image, size[0]
+                return image, self.wxdc.GetTextExtent(char)[0]
         font = create_font(fontface, fontpixels)
         oldfonts = []
         x = 0
@@ -824,29 +822,9 @@ class JptxImage(cw.image.Image):
         face_def = fontface
         pixels_def = fontpixels
         color_def = fontcolor
-        chars = ""
-
-        def render_line(chars, x, w):
-            if not chars:
-                return chars, x, w
-
-            subimg, width = font_render(font, chars, antialias, fontcolor)
-
-            # 取消線
-            if strike:
-                subimg2, width = font_render(font, u"―", antialias, fontcolor)
-                size = (subimg.get_width() + cw.s(10), get_height(font))
-                subimg2 = pygame.transform.scale(subimg2, size)
-                subimg.blit(subimg2, cw.s((-5, 0)))
-
-            self.image.blit(subimg, (x, y))
-            x += width
-            w = x if x > w else w
-            return "", x, w
 
         for char in text:
             if char == "\n":
-                chars, x, w = render_line(chars, x, w)
                 x = 0 + shiftx
                 if nolinedata or not tagonly:
                     y += get_height(font) * lineheight / 100 - cw.s(2) + shifty
@@ -854,11 +832,9 @@ class JptxImage(cw.image.Image):
                 nolinedata = True
                 tagonly = True
             elif char == "<":
-                chars, x, w = render_line(chars, x, w)
                 nolinedata = False
                 tag += char
             elif char == ">":
-                chars, x, w = render_line(chars, x, w)
                 nolinedata = False
                 tag += char
                 tag = tag.lower()
@@ -924,14 +900,21 @@ class JptxImage(cw.image.Image):
 
                 tag = ""
             elif tag:
-                chars, x, w = render_line(chars, x, w)
                 tag += char
             else:
                 nolinedata = False
                 tagonly = False
-                chars += char
+                subimg, width = font_render(font, char, antialias, fontcolor)
+                # 取消線
+                if strike:
+                    subimg2, width = font_render(font, u"―", antialias, fontcolor)
+                    size = (subimg.get_width() + cw.s(10), get_height(font))
+                    subimg2 = pygame.transform.scale(subimg2, size)
+                    subimg.blit(subimg2, cw.s((-5, 0)))
 
-        chars, x, w = render_line(chars, x, w)
+                self.image.blit(subimg, (x, y))
+                x += width
+                w = x if x > w else w
 
         if backheight < 0 or backwidth < 0:
             w = w if backwidth < 0 else backwidth
