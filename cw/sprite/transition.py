@@ -65,8 +65,8 @@ class PixelDissolve(Transition):
                 self.poslist.append((x * self.sec_w, y * self.sec_h))
 
         self.poslist = cw.cwpy.dice.shuffle(self.poslist)
-        self.image.set_colorkey((255, 255, 255))
-        self.changecolor = (255, 255, 255)
+        self.image = self.image.convert_alpha()
+        self.changecolor = (255, 255, 255, 0)
 
     def update_transition(self, scr):
         self.frame += 1
@@ -88,27 +88,27 @@ class Blinds(Transition):
     def __init__(self, bgscr, speed):
         Transition.__init__(self, bgscr, speed)
         self.variation = (11 - self.speed)
-        self.num_split = cw.s(30)
+        self.num_split = 30
         self.poslist = []
-        self.w_blinds = cw.s(cw.SIZE_GAME[0]) / self.num_split
-        self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.s(cw.SIZE_GAME[1]))
+        self.w_blinds = cw.SIZE_GAME[0] / self.num_split
+        self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.SIZE_GAME[1])
 
         for n in xrange(self.num_split + 2):
             self.poslist.append((n * self.w_blinds, 0))
 
-        self.image.set_colorkey((255, 255, 255))
-        self.changecolor = (255, 255, 255)
+        self.image = self.image.convert_alpha()
+        self.changecolor = (255, 255, 255, 0)
 
     def update_transition(self, scr):
         self.frame += 1
         w = (self.frame * self.variation) / 5
 
         if not self.rect_blinds.w == w:
-            self.rect_blinds.size = (w, cw.s(cw.SIZE_GAME[1]))
+            self.rect_blinds.size = (w, cw.SIZE_GAME[1])
 
             for x, y in self.poslist:
                 self.rect_blinds.topleft = (x - w, y)
-                self.image.fill(self.changecolor, self.rect_blinds)
+                self.image.fill(self.changecolor, cw.s(self.rect_blinds))
 
             if w >= self.w_blinds:
                 self.frame = 0
