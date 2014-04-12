@@ -426,8 +426,8 @@ class CWPyCard(base.SelectableSprite):
 
         self.cardimg.update_scale()
         self.update_image()
-        assert self._pos_noscale or self._center_noscale
-        self.set_pos_noscale(self._pos_noscale, self._center_noscale)
+        if self._pos_noscale or self._center_noscale:
+            self.set_pos_noscale(self._pos_noscale, self._center_noscale)
 
         if zoom:
             self.old_status = self.status
