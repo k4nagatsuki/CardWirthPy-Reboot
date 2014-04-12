@@ -88,7 +88,7 @@ class Blinds(Transition):
     def __init__(self, bgscr, speed):
         Transition.__init__(self, bgscr, speed)
         self.variation = (11 - self.speed)
-        self.num_split = 30
+        self.num_split = cw.s(30)
         self.poslist = []
         self.w_blinds = cw.s(cw.SIZE_GAME[0]) / self.num_split
         self.rect_blinds = pygame.Rect(0, 0, self.w_blinds, cw.s(cw.SIZE_GAME[1]))
