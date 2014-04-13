@@ -608,7 +608,7 @@ class CWBinaryBase(object):
     def conv_target_member(self, n):
         """引数の値から、「適用メンバ」の種類を返す。
         0:Selected(現在選択中のメンバ), 1:Random(ランダムメンバ),
-        2:Unselected(現在選択中以外のメンバ)
+        2:Party(現在選択中以外のメンバ)
         睡眠者有効ならば＋3で、返り値の文字列の後ろに"Sleep"を付ける。
         さらに6:Party(パーティの全員。効果コンテントの時に使う)
         """
@@ -617,14 +617,14 @@ class CWBinaryBase(object):
         elif n == 1:
             return "Random"
         elif n == 2:
-            return "Unselected"
+            return "Party"
         elif n == 3:
             return "SelectedSleep"
         elif n == 4:
             return "RandomSleep"
         elif n == 5:
             return "PartySleep"
-        elif n == 6:
+        elif n == 6: # 存在するか不明だが残しておく
             return "Party"
         else:
             raise ValueError(self.fpath)
@@ -635,7 +635,7 @@ class CWBinaryBase(object):
             return 0
         elif n == "Random":
             return 1
-        elif n == "Unselected":
+        elif n == "Unselected": # 存在するか不明だが残しておく
             return 2
         elif n == "SelectedSleep":
             return 3
@@ -644,7 +644,7 @@ class CWBinaryBase(object):
         elif n == "PartySleep":
             return 5
         elif n == "Party":
-            return 6
+            return 2
         else:
             raise ValueError(n)
 
