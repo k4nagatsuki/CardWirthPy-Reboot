@@ -86,7 +86,14 @@ class Content(base.CWBinaryBase):
             self.properties["random"] = f.bool()
         elif self.tag == "Branch" and self.type == "Ability":
             self.properties["value"] = f.dword()
-            self.properties["targetm"] = self.conv_target_member(f.byte())
+            targetm = f.byte()
+
+            # 能力判定分岐の適用メンバには"選択中以外のメンバ"は存在しない。
+            # 代わりに"パーティ全体"となる。
+            if targetm == 2:
+                targetm = 6
+
+            self.properties["targetm"] = self.conv_target_member(targetm)
             self.properties["physical"] = self.conv_card_physicalability(f.dword())
             self.properties["mental"] = self.conv_card_mentalability(f.dword())
         elif self.tag == "Branch" and self.type == "Random":
@@ -232,7 +239,14 @@ class Content(base.CWBinaryBase):
             self.properties["value"] = f.dword()
         elif self.tag == "Branch" and self.type == "Status":
             self.properties["status"] = self.conv_statustype(f.byte())
-            self.properties["targetm"] = self.conv_target_member(f.byte())
+            targetm = f.byte()
+
+            # 状態判定分岐の適用メンバには"選択中以外のメンバ"は存在しない。
+            # 代わりに"パーティ全体"となる。
+            if targetm == 2:
+                targetm = 6
+
+            self.properties["targetm"] = self.conv_target_member(targetm)
         elif self.tag == "Branch" and self.type == "PartyNumber":
             self.properties["value"] = f.dword()
         elif self.tag == "Show" and self.type == "Party":
