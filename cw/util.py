@@ -1409,7 +1409,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         # その場合は通常通り左上の色をマスク色とする
         # 将来、もしこの処理の結果問題が起きた場合は
         # このif文以降の処理を削除する必要がある
-        if mask and image.HasMask() and image.CountColours() <= 255 and wxbmp.GetPalette():
+        if mask and image.HasMask() and image.CountColours() <= 255:
             palette = wxbmp.GetPalette()
             mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
             maskok = False
