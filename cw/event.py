@@ -798,15 +798,15 @@ class CardEvent(Event):
         if self.user.zoomimgs:
             cw.animation.animate_sprite(self.user, "zoomout")
 
-        # 特殊エリア解除・カード選択ダイアログを開く
-        cw.cwpy.clear_specialarea()
-
         # 互換性マークを削除
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.versionhint[cw.HINT_CARD] = ""
 
         # 通常イベントの終了処理
         Event.end(self)
+
+        # 特殊エリア解除・カード選択ダイアログを開く
+        cw.cwpy.clear_specialarea()
 
     def run_areaevent(self):
         keycodes = self.inusecard.get_keycodes()
