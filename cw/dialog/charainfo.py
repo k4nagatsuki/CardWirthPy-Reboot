@@ -402,7 +402,7 @@ class DescPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
         if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
-            self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def OnLeftUp(self, event):
@@ -478,7 +478,7 @@ class HistoryPanel(wx.ScrolledWindow):
         self.draw()
 
         if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
-            self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def OnLeftUp(self, event):
@@ -742,7 +742,7 @@ class StatusPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.Parent.OnCancel)
 
         if cw.cwpy.debug and editable and not isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            self.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def OnLeftUp(self, event):

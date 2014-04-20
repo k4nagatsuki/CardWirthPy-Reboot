@@ -71,25 +71,25 @@ class Select(wx.Dialog):
     def _update_mousepos(self):
         if not self.can_clickside():
             if self.can_clickcenter():
-                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
             else:
-                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+                self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
             self.clickmode = 0
             return
 
         rect = self.toppanel.GetClientRect()
         x, y = self.toppanel.ScreenToClient(wx.GetMousePosition())
         if x < rect.x + rect.width / 4 and self.leftbtn.IsEnabled():
-            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_POINT_LEFT))
+            self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_BACK"])
             self.clickmode = wx.LEFT
         elif rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled():
-            self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_POINT_RIGHT))
+            self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FORE"])
             self.clickmode = wx.RIGHT
         else:
             if self.can_clickcenter():
-                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
             else:
-                self.toppanel.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+                self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
             self.clickmode = 0
 
     def OnClickLeftBtn(self, evt):

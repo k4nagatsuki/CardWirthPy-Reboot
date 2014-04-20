@@ -353,6 +353,9 @@ class Resource(object):
         self.pygamedebugs = self.get_debugs(cw.util.load_image)
         # wx版。wxスレッドから初期化
         self.debugs = {}
+        # ダイアログで使うカーソル(辞書)
+        # wxスレッドから初期化
+        self.cursors = {}
         # 特殊文字の画像(辞書)
         self.specialchars_is_changed = False
         self.specialchars = self.get_specialchars()
@@ -417,6 +420,8 @@ class Resource(object):
         self.dialogs = self.get_dialogs(cw.util.load_wxbmp)
         # デバッガで使う画像(辞書)
         self.debugs = self.get_debugs(cw.util.load_wxbmp)
+        # ダイアログで使うカーソル(辞書)
+        self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
         self.wxstones = self.get_wxstones()
         # 使用フォント(辞書)
@@ -745,6 +750,25 @@ class Resource(object):
             return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
         return self.get_resources(func, dpath, self.ext_img, True)
+
+    def get_cursors(self):
+        """
+        ダイアログで使用されるカーソルを読み込んで、
+        wxCursorのインスタンスの辞書で返す。
+        """
+        d = {}
+        d["CURSOR_BACK"] = wx.StockCursor(wx.CURSOR_POINT_LEFT)
+        d["CURSOR_FORE"] = wx.StockCursor(wx.CURSOR_POINT_RIGHT)
+        d["CURSOR_FINGER"] = wx.StockCursor(wx.CURSOR_HAND)
+        d["CURSOR_ARROW"] = wx.StockCursor(wx.CURSOR_ARROW)
+
+        dpath = cw.util.join_paths(self.skindir, "Resource/Image/Cursor")
+        if os.path.isdir(dpath):
+            for fname in os.listdir(dpath):
+                if fname.endswith(".cur"):
+                    fpath = cw.util.join_paths(dpath, fname)
+                    d[os.path.splitext(fname)[0]] = wx.Cursor(fpath, wx.BITMAP_TYPE_CUR)
+        return d
 
     def get_stones(self):
         """

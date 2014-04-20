@@ -196,9 +196,56 @@ class Win32Res(object):
                     return table[name]
         return None
 
+    def get_cursor(self, number):
+        ICONDIR_SIZE = 6
+        ICONDIRENTRY_SIZE = 16
+
+        data = self.get_rcdata(RT_CURSOR, number)
+        if not data:
+            return None
+
+        cursorcomponent = struct.Struct("<HH")
+        xhotspot, yhotspot = cursorcomponent.unpack(data[:4])
+        uint32 = struct.Struct("<I")
+        int32 = struct.Struct("<i")
+        uint16 = struct.Struct("<H")
+        uint8 = struct.Struct("<B")
+        data = data[4:]
+
+        header_size = uint32.unpack(data[:4])[0]
+        if header_size <> 40:
+            raise Exception(header_size)
+
+        width = uint32.unpack(data[4:8])[0]
+        height = abs(int32.unpack(data[8:12])[0])
+        bcbitcount = uint16.unpack(data[14:16])[0]
+        copmression = uint32.unpack(data[16:20])[0]
+        clrimportant = uint32.unpack(data[36:40])[0]
+
+        if bcbitcount == 1 and copmression == 0 and clrimportant == 0:
+            # bcbitcount == 1の場合はXORマスクとANDマスクが
+            # 縦に並んでいるため、高さが2倍になっている
+            height /= 2
+            bcbitcount = 0
+
+        size = len(data)
+
+        iconfileheader = uint16.pack(0) + uint16.pack(2) + uint16.pack(1)
+
+        icondirentry = uint8.pack(width) +\
+                       uint8.pack(height) +\
+                       uint8.pack(bcbitcount) +\
+                       uint8.pack(0) +\
+                       uint16.pack(xhotspot) +\
+                       uint16.pack(yhotspot) +\
+                       uint32.pack(size) +\
+                       uint32.pack(ICONDIR_SIZE + ICONDIRENTRY_SIZE)
+
+        return iconfileheader + icondirentry + data
+
     def get_bitmap(self, name):
-        BITMAPFILEHEADER_SIZE = 14;
-        RGBQUAD_SIZE = 4;
+        BITMAPFILEHEADER_SIZE = 14
+        RGBQUAD_SIZE = 4
 
         data = self.get_rcdata(RT_BITMAP, name)
         if not data:
