@@ -944,17 +944,39 @@ def remove_tree(treepath, retry=0):
             for dpath, dnames, fnames in os.walk(treepath):
                 for dname in dnames:
                     path = join_paths(dpath, dname)
-                    os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
+                    if os.path.isdir(path):
+                        try:
+                            os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
+                        except WindowsError, err:
+                            remove_tree2(treepath)
+                            return
 
                 for fname in fnames:
                     path = join_paths(dpath, fname)
-                    os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
+                    if os.path.isfile(path):
+                        try:
+                            os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
+                        except WindowsError, err:
+                            remove_tree2(treepath)
+                            return
 
             remove_tree(treepath, retry + 1)
         elif retry < 5:
             remove_tree(treepath, retry + 1)
         else:
-            raise err
+            remove_tree2(treepath)
+
+def remove_tree2(treepath):
+    # shutil.rmtree()で権限付与時にエラーになる事があるので
+    # 削除方法を変えてみる
+    for dpath, dnames, fnames in os.walk(treepath, topdown=False):
+        for dname in dnames:
+            path = join_paths(dpath, dname)
+            os.rmdir(path)
+        for fname in fnames:
+            path = join_paths(dpath, fname)
+            os.remove(path)
+    os.rmdir(treepath)
 
 #-------------------------------------------------------------------------------
 #　ZIPファイル関連
@@ -1052,7 +1074,7 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
                 dstdir2 = dupcheck_plus(dstdir, False)
                 os.rename(dstdir, dstdir2)
                 os.rename(os.path.join(dstdir2, list[0]), dstdir)
-                shutil.rmtree(dstdir2)
+                cw.util.remove(dstdir2)
 
     return dstdir
 
@@ -1130,7 +1152,7 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
                 dstdir2 = dupcheck_plus(dstdir, False)
                 os.rename(dstdir, dstdir2)
                 os.rename(os.path.join(dstdir2, list[0]), dstdir)
-                shutil.rmtree(dstdir2)
+                cw.util.remove(dstdir2)
 
     return dstdir
 

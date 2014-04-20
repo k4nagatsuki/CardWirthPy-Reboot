@@ -1011,7 +1011,7 @@ class YadoData(object):
 
                 wslpath2 = cw.util.join_paths(dpath, "Party.wsl")
                 cw.util.compress_zip("Data/Temp/ScenarioLog", wslpath2)
-                shutil.rmtree("Data/Temp/ScenarioLog")
+                cw.util.remove("Data/Temp/ScenarioLog")
 
             # 現状のパーティデータ
             data = xml2etree(fpath)

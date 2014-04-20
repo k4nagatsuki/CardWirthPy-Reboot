@@ -2257,10 +2257,7 @@ class ScenarioSelect(Select):
                         for file in os.listdir(dpath):
                             file = cw.util.decode_zipname(file)
                             file = cw.util.join_paths(dpath, file)
-                            if os.path.isdir(file):
-                                shutil.rmtree(file)
-                            else:
-                                os.remove(file)
+                            cw.util.remove(file)
 
                 else:
                     with cw.util.zip_file(path, "r") as z:
