@@ -944,6 +944,7 @@ class CWPy(_Singleton, threading.Thread):
         self._gameover = False
         self.battle = None
         pygame.event.clear()
+        self.hide_party()
         self.ydata.party.lost()
         self.sdata.end()
         self.ydata.load_party(None)
