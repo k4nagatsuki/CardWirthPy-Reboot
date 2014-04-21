@@ -811,8 +811,6 @@ class JptxImage(cw.image.Image):
         y = 0
         w = 0
         h = 0
-        shiftx = 0
-        shifty = 0
         tag = ""
         nolinedata = True
         tagonly = True
@@ -823,8 +821,6 @@ class JptxImage(cw.image.Image):
 
         for char in text:
             if char == "\n":
-                shiftx = 0
-                shifty = 0
                 x = 0
                 if nolinedata or not tagonly:
                     y += get_height(font) * lineheight / 100 - cw.s(2)
@@ -856,18 +852,10 @@ class JptxImage(cw.image.Image):
                     if start:
                         n = cw.s(int(attrs["shiftx"]))
                         x += n
-                        shiftx = n
-                    elif shiftx:
-                        x -= shiftx
-                        shiftx = 0
                 elif name == "shifty":
                     if start:
                         n = cw.s(int(attrs["shifty"]))
                         y += n
-                        shifty = n
-                    elif shifty:
-                        y -= shifty
-                        shifty = 0
                 elif name == "lineheight":
                     lineheight = int(attrs["lineheight"])
                 # 本家エフェクトブースターは"<fontcolor="blue">"のようなタグを、
