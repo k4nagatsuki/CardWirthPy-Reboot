@@ -978,6 +978,25 @@ def remove_tree2(treepath):
             os.remove(path)
     os.rmdir(treepath)
 
+def rename_file(path, dstpath):
+    """pathをdstpathへ移動する。
+    すでにdstpathがある場合は上書きされる。
+    """
+    if not os.path.isdir(os.path.dirname(dstpath)):
+        os.makedirs(os.path.dirname(dstpath))
+    if os.path.isfile(dstpath):
+        remove_file(dstpath)
+    try:
+        os.rename(path, dstpath)
+    except OSError:
+        # ファイルシステムが異なっていると失敗する
+        # 可能性があるのでコピー&削除を試みる
+        cw.util.print_ex()
+        with open(path, "rb") as f1:
+            with open(dstpath, "wb") as f2:
+                f2.write(f1.read())
+        remove_file(path)
+
 #-------------------------------------------------------------------------------
 #　ZIPファイル関連
 #-------------------------------------------------------------------------------

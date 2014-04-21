@@ -1234,11 +1234,7 @@ class YadoData(object):
             for fname in fnames:
                 path = cw.util.join_paths(dpath, fname)
                 dstpath = path.replace(self.tempdir, self.yadodir, 1)
-
-                if not os.path.isdir(os.path.dirname(dstpath)):
-                    os.makedirs(os.path.dirname(dstpath))
-
-                shutil.copy2(path, dstpath)
+                cw.util.rename_file(path, dstpath)
 
         # 削除予定のファイル削除
         # Materialディレクトリにある空のフォルダも削除
