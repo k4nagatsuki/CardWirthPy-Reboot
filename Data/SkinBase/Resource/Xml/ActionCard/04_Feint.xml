@@ -15,7 +15,7 @@
     <SuccessRate>2</SuccessRate>
     <VisualEffect>Vertical</VisualEffect>
     <Enhance avoid="0" resist="0" defense="0"/>
-    <SoundPath>Material/効果（付与）.wav</SoundPath>
+    <SoundPath>Material/システム・回避.wav</SoundPath>
     <SoundPath2>Material/効果（混乱）.wav</SoundPath2>
     <KeyCodes>攻撃\n撹乱\n\n\n</KeyCodes>
     <Premium>Normal</Premium>
