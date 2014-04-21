@@ -6,7 +6,7 @@
   </Property>
   <BgImages>
     <BgImage mask="False">
-      <ImagePath>Table/Black.bmp</ImagePath>
+      <ImagePath />
       <Flag></Flag>
       <Location left="0" top="0" />
       <Size width="632" height="420" />
@@ -14,7 +14,7 @@
     <BgImage mask="False">
       <ImagePath>Table/GameOver.bmp</ImagePath>
       <Flag></Flag>
-      <Location left="116" top="15" />
+      <Location left="116" top="55" />
       <Size width="400" height="260" />
     </BgImage>
   </BgImages>
@@ -33,23 +33,35 @@
               <Contents>
                 <Wait value="50">
                   <Contents>
-                    <Talk type="Message" path="Resource/Image/Card/OVER.bmp">
-                      <Text>\n\n\nパーティは全滅しました…</Text>
+                    <Change type="BgImage">
+                      <BgImages>
+                        <BgImage mask="False">
+                          <ImagePath>Table/Black.bmp</ImagePath>
+                          <Flag />
+                          <Location top="0" left="0" />
+                          <Size width="632" height="420" />
+                        </BgImage>
+                      </BgImages>
                       <Contents>
-                        <Post type="Event" name="続ける" command="MoveToYado">
-                          <Contents />
-                        </Post>
-                        <Post type="Event" name="ロード" command="Load">
-                          <Contents />
-                        </Post>
-                        <Post type="Event" name="タイトルに戻る" command="MoveToTitle">
-                          <Contents />
-                        </Post>
-                        <Post type="Event" name="終了" command="Exit">
-                          <Contents />
-                        </Post>
+                        <Talk type="Message" path="Resource/Image/Card/OVER.bmp">
+                          <Text>\n\n\nパーティは全滅しました…</Text>
+                          <Contents>
+                            <Post type="Event" name="続ける" command="MoveToYado">
+                              <Contents />
+                            </Post>
+                            <Post type="Event" name="ロード" command="Load">
+                              <Contents />
+                            </Post>
+                            <Post type="Event" name="タイトルに戻る" command="MoveToTitle">
+                              <Contents />
+                            </Post>
+                            <Post type="Event" name="終了" command="Exit">
+                              <Contents />
+                            </Post>
+                          </Contents>
+                        </Talk>
                       </Contents>
-                    </Talk>
+                    </Change>
                   </Contents>
                 </Wait>
               </Contents>
