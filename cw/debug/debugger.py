@@ -312,6 +312,8 @@ class Debugger(wx.Frame):
             self.tb_event, -1, u"イベント待機時間", size=(40, 20))
         self.sc_waittime.SetRange(0, 99)
         self.sc_waittime.SetValue(0)
+        st = wx.StaticText(self.tb_event, -1, u"ウェイト")
+        self.tb_event.AddControl(st)
         self.tb_event.AddControl(self.sc_waittime)
         st = wx.StaticText(self.tb_event, -1, u" (1=0.1秒)")
         self.tb_event.AddControl(st)
