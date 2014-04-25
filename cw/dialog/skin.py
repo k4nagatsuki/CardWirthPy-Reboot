@@ -117,7 +117,20 @@ class SkinConversionDialog(wx.Dialog):
                     scpath = os.path.relpath(path1, ".")
                     if scpath.startswith(".."):
                         scpath = path1
-                    setting.folderoftype.append((self.conv.skintype, cw.util.join_paths(scpath)))
+
+                    for skindir in os.listdir(u"Data/Skin"):
+                        dpath = cw.util.join_paths(u"Data/Skin", skindir)
+                        if not os.path.isdir(dpath):
+                            continue
+                        fpath = cw.util.join_paths(dpath, "Skin.xml")
+                        if not os.path.isfile(fpath):
+                            continue
+                        type = cw.header.GetName(fpath, tagname="Type").name
+                        if self.conv.skintype == type:
+                            # 同タイプの既存スキンが./Scenarioを参照している
+                            break
+                    else:
+                        setting.folderoftype.append((self.conv.skintype, cw.util.join_paths(scpath)))
 
                 setting.write()
 

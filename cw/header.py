@@ -1042,7 +1042,8 @@ class PartyHeader(object):
 
 class GetName(object):
     """XMLファイル中のProperty/Nameの内容を読む。"""
-    def __init__(self, fpath):
+    def __init__(self, fpath, tagname="Name"):
+        self.tagname = tagname
         self.name = ""
         self.stack = []
 
@@ -1063,12 +1064,12 @@ class GetName(object):
     def end_element(self, name):
         if self.stack[1:] == ["Property"]:
             raise Exception()
-        if self.stack[1:] == ["Property", "Name"]:
+        if self.stack[1:] == ["Property", self.tagname]:
             raise Exception()
         self.stack.pop()
 
     def character_data(self, data):
-        if self.stack[1:] == ["Property", "Name"]:
+        if self.stack[1:] == ["Property", self.tagname]:
             self.name += data
 
 class RaceHeader(object):
