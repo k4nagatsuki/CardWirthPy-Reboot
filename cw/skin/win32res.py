@@ -200,16 +200,24 @@ class Win32Res(object):
         ICONDIR_SIZE = 6
         ICONDIRENTRY_SIZE = 16
 
+        uint32 = struct.Struct("<I")
+        int32 = struct.Struct("<i")
+        uint16 = struct.Struct("<H")
+        uint8 = struct.Struct("<B")
+
+        if isinstance(number, (str, unicode)):
+            data = self.get_rcdata(RT_GROUP_CURSOR, number)
+            if not data:
+                return None
+            number = uint16.unpack(data[18:20])[0]
+
         data = self.get_rcdata(RT_CURSOR, number)
+
         if not data:
             return None
 
         cursorcomponent = struct.Struct("<HH")
         xhotspot, yhotspot = cursorcomponent.unpack(data[:4])
-        uint32 = struct.Struct("<I")
-        int32 = struct.Struct("<i")
-        uint16 = struct.Struct("<H")
-        uint8 = struct.Struct("<B")
         data = data[4:]
 
         header_size = uint32.unpack(data[:4])[0]

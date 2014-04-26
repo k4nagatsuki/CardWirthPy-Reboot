@@ -932,20 +932,12 @@ class Converter(threading.Thread):
                 "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
                 "TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
             }
-            if len(self.exebinary) < 3000000:
-                curtbl = {
-                    3:"Cursor/CURSOR_BACK",
-                    7:"Cursor/CURSOR_DRIVER",
-                    8:"Cursor/CURSOR_FINGER",
-                    9:"Cursor/CURSOR_FORE",
-                }
-            else:
-                curtbl = {
-                    8:"Cursor/CURSOR_BACK",
-                    9:"Cursor/CURSOR_DRIVER",
-                    10:"Cursor/CURSOR_FINGER",
-                    11:"Cursor/CURSOR_FORE",
-                }
+            curtbl = {
+                "CURSOR_BACK":"Cursor/CURSOR_BACK",
+                "CURSOR_DRIVER":"Cursor/CURSOR_DRIVER",
+                "CURSOR_FINGER":"Cursor/CURSOR_FINGER",
+                "CURSOR_FORE":"Cursor/CURSOR_FORE",
+            }
 
             # Resource/Image/*
             for resname, target in imgtbl.iteritems():
@@ -960,10 +952,10 @@ class Converter(threading.Thread):
                 with open(fpath, "wb") as f:
                     f.write(res)
                 f = None
-            for number, target in curtbl.iteritems():
-                res = self.res.get_cursor(number)
+            for resname, target in curtbl.iteritems():
+                res = self.res.get_cursor(resname)
                 if res is None:
-                    print "Cursor: %s" % (number)
+                    print "Cursor: %s" % (resname)
                     continue
                 fpath = cw.util.join_paths(dir, "Resource/Image", target + ".cur")
                 resdir = os.path.dirname(fpath)
@@ -972,25 +964,6 @@ class Converter(threading.Thread):
                 with open(fpath, "wb") as f:
                     f.write(res)
                 f = None
-            if len(self.exebinary) < 3000000:
-                for respath, target in glyphtbl.iteritems():
-                    respaths = respath.split("/")
-                    resname = respaths[0]
-                    res = self.res.get_tpf0form(resname)
-
-                    for name in respaths[1:]:
-                        res = res[name]
-                    fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
-                    resdir = os.path.dirname(fpath)
-                    if not os.path.isdir(resdir):
-                        os.makedirs(resdir)
-                    if str(res[1:8]) == "TBitmap":
-                        res = str(res[12:])
-                    else:
-                        res = str(res[4:])
-                    with open(fpath, "wb") as f:
-                        f.write(res)
-                    f = None
 
             if not os.path.isabs(self.datadir):
                 datadir = cw.util.join_paths(os.path.dirname(self.exe), self.datadir)
@@ -1046,8 +1019,8 @@ class Converter(threading.Thread):
                 if os.path.isfile(fpath):
                     dist = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
                     shutil.copyfile(fpath, dist)
-            for target in curtbl.itervalues():
-                fpath = cw.util.join_paths(resdir, os.path.basename(target) + ".cur")
+            for key, target in curtbl.iteritems():
+                fpath = cw.util.join_paths(resdir, key + ".cur")
                 if os.path.isfile(fpath):
                     dist = cw.util.join_paths(dir, "Resource/Image", target + ".cur")
                     shutil.copyfile(fpath, dist)
