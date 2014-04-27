@@ -1354,7 +1354,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         elif r_hwchar.match(char):
             seq.append(char)
             cnt += 1
-            if not (mode == 1 and index+1 < len(s) and not r_hwchar.match(s[index+1])):
+            if not (mode in (2, 3)) and not (mode == 1 and index+1 < len(s) and not r_hwchar.match(s[index+1])):
                 asciicnt += 1
             width2 += 1
             wrapafter = False
@@ -1371,7 +1371,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         # 行末に半角スペースがあると折り返し位置が変わる
         # (イベントによるメッセージのみ)
         if not wrapafter2 and index+1 < len(s) and s[index+1] == " " and mode in (2, 3):
-            width2 += 2
+            width2 += 1
             asciicnt = 0
 
         # 行折り返し処理
