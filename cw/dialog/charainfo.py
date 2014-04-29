@@ -616,8 +616,8 @@ class EditPanel(wx.Panel):
                     if wx.ID_OK == dlg.ShowModal():
                         def func(panel):
                             if panel:
-                                panel.update_charalist(list)
                                 panel.Parent.Parent.toppanel.Refresh()
+                        self.update_charalist(list)
                         cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
                 self.draw(True)
@@ -642,17 +642,19 @@ class EditPanel(wx.Panel):
 
     def update_charalist(self, list):
         """編集結果をヘッダ等に反映する。"""
-        def func(parent, headers, list):
-            if isinstance(parent, StandbyPartyCharaInfo):
-                for i, header in enumerate(headers):
+        if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
+            def func(parentheaders, list):
+                for i, header in enumerate(parentheaders):
                     ccard = list[i]
                     ccard.data.write_xml()
                     header.level = ccard.level
-            elif isinstance(parent, StandbyCharaInfo):
+            cw.cwpy.exec_func(func, self.list, list)
+        elif isinstance(self.Parent.Parent, StandbyCharaInfo):
+            def func(index, headers, list):
                 ccard = list[0]
                 ccard.data.write_xml()
-                headers[parent.index].level = ccard.level
-        cw.cwpy.exec_func(func, self.Parent.Parent, self.list, list)
+                headers[index].level = ccard.level
+            cw.cwpy.exec_func(func, self.Parent.Parent.index, self.list, list)
 
     def OnPaint(self, event):
         self.draw()

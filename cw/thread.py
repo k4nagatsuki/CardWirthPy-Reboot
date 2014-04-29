@@ -416,11 +416,12 @@ class CWPy(_Singleton, threading.Thread):
         if eventclear:
             pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         elif inputonly:
-            self.events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
-            if self.events:
-                self.events = [self.events[-1]]
+            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            if events:
+                events = [events[-1]]
+            self.events.extend(events)
         else:
-            self.events = pygame.event.get()
+            self.events.extend(pygame.event.get())
 
     def update_mousepos(self):
         if sys.platform <> "win32":
