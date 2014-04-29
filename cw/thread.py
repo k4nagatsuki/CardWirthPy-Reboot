@@ -925,6 +925,7 @@ class CWPy(_Singleton, threading.Thread):
                 if not self.sdata.startid in self.sdata.areas:
                     # 開始エリアが存在しない(帰還)
                     self.check_level(True)
+                    self.sdata.end()
                     self.set_yado()
                 elif musicpath is None or\
                                 self.music.path == self.music.get_path(musicpath):
