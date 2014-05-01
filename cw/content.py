@@ -1742,7 +1742,6 @@ class GetCastContent(GetContent):
                 if cw.cwpy.is_battlestatus() and fcard.is_alive():
                     # 即戦闘に参加する
                     cw.cwpy.battle.members.append(fcard)
-                    cw.cwpy.battle.set_actionorder()
                     fcard.decide_action()
 
         return 0

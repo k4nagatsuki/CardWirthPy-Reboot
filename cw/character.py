@@ -90,6 +90,8 @@ class Character(object):
         self.actionautoselected = False
         # 行動順位を決定する数値
         self.actionorder = 0
+        # ラウンド処理中で行動開始前ならTrue
+        self.actionend = True
 
         # クーポン一覧
         self.coupons = {}
@@ -600,6 +602,7 @@ class Character(object):
         戦闘行動を設定。
         auto: 自動手札選択から設定されたかどうか。
         """
+        self.actionend = False
         if auto:
             self.clear_action()
             self.actiondata = (target, header, beasts)
@@ -647,6 +650,7 @@ class Character(object):
     def clear_action(self):
         self.actiondata = None
         self.actionautoselected = False
+        self.actionend = True
         if cw.cwpy.battle:
             for key, target, user in cw.cwpy.battle.priorityacts[:]:
                 if user == self:

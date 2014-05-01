@@ -109,7 +109,10 @@ class BattleEngine(object):
 
         # 戦闘行動ループ
         for member in self.members:
-
+            member.actionend = False
+        for member in self.members:
+            if member.actionend:
+                continue
             member.action()
             if not self._running:
                 return
