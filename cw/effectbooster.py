@@ -1101,10 +1101,32 @@ class EffectBoosterConfig(object):
         return bool(self.get_int(section, option, default))
 
     def get_color(self, section, option, default=None):
+        # 仕様にはないがCardWirthの実装では次の名称が有効
+        colortable = {
+                       "black":   (0x00, 0x00, 0x00),
+                       "maroon":  (0x80, 0x00, 0x00),
+                       "green":   (0x00, 0x80, 0x00),
+                       "olive":   (0x80, 0x80, 0x00),
+                       "navy":    (0x00, 0x00, 0x80),
+                       "purple":  (0x80, 0x00, 0x80),
+                       "teal":    (0x00, 0x80, 0x80),
+                       "gray":    (0x80, 0x80, 0x80),
+                       "silver":  (0xC0, 0xC0, 0xC0),
+                       "red":     (0xFF, 0x00, 0x00),
+                       "lime":    (0x00, 0xFF, 0x00),
+                       "yellow":  (0xFF, 0xFF, 0x00),
+                       "blue":    (0x00, 0x00, 0xFF),
+                       "fuchsia": (0xFF, 0x00, 0xFF),
+                       "aqua":    (0x00, 0xFF, 0xFF),
+                       "white":   (0xFF, 0xFF, 0xFF),
+                      }
         try:
             s = self.get(section, option, default)
             if s == default:
                 return default
+            s = s.lower()
+            if s in colortable:
+                return colortable[s]
             r = int(s[1:3], 16)
             g = int(s[3:5], 16)
             b = int(s[5:7], 16)
