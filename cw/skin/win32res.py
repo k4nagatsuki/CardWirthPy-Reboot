@@ -302,6 +302,7 @@ class Win32Res(object):
         table = {}
         stack = [table]
         int8 = struct.Struct("b") # int8
+        uint8 = struct.Struct("B") # uint8
         uint16 = struct.Struct("<H") # uint16(little endian)
         uint32 = struct.Struct("<I") # uint32(little endian)
 
@@ -330,10 +331,18 @@ class Win32Res(object):
                 data = data[1:]
                 if type == 0x01: # strings
                     value = []
-                    while ord(data[0]) == 6:
-                        length = ord(data[1])
-                        value.append(unicode(data[2:2+length], cw.MBCS))
-                        data = data[2+length:]
+                    while ord(data[0]) in (2, 3, 6):
+                        dt = data[0]
+                        if ord(dt) == 2:
+                            value.append(uint8.unpack(data[1:2])[0])
+                            data = data[2:]
+                        elif ord(dt) == 3:
+                            value.append(uint16.unpack(data[1:3])[0])
+                            data = data[3:]
+                        elif ord(dt) == 6:
+                            length = ord(data[1])
+                            value.append(unicode(data[2:2+length], cw.MBCS))
+                            data = data[2+length:]
                     data = data[1:]
                 elif type == 0x02: # signed byte
                     value = int8.unpack(data[0])[0]
@@ -364,6 +373,11 @@ class Win32Res(object):
                         value.append(data[1:1+length])
                         data = data[1+length:]
                     data = data[1:]
+                elif type == 0x12: # unknown (utf-16 string?)
+                    length = uint32.unpack(data[:4])[0]
+                    length *= 2
+                    value = data[4:4+length].decode("utf-16")
+                    data = data[4+length:]
                 else:
                     raise Exception("value type: %s (%s, %s)" % (name, key, type))
                 stack[-1][key] = value

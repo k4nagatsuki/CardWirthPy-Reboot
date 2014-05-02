@@ -924,14 +924,26 @@ class Converter(threading.Thread):
                 "STONE_HAND8":"Stone/HAND8",
                 "STONE_HAND9":"Stone/HAND9",
             }
-            glyphtbl = {
-                "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
-                "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
-                "TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data":"Button/SKILL",
-                "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
-                "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
-                "TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
-            }
+
+            if 3000000 < len(self.exebinary):
+                glyphtbl = {
+                    "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
+                    "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
+                    "TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data":"Button/SKILL",
+                    "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
+                    "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
+                    "TMAINWINDOW/MainWindow/BottomBar/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                }
+            else:
+                glyphtbl = {
+                    "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
+                    "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
+                    "TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data":"Button/SKILL",
+                    "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
+                    "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
+                    "TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                }
+
             curtbl = {
                 "CURSOR_BACK":"Cursor/CURSOR_BACK",
                 "CURSOR_DRIVER":"Cursor/CURSOR_DRIVER",
@@ -943,7 +955,7 @@ class Converter(threading.Thread):
             for resname, target in imgtbl.iteritems():
                 res = self.res.get_bitmap(resname)
                 if res is None:
-                    print resname
+                    print "Resource not found: %s" % (resname)
                     continue
                 fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
                 resdir = os.path.dirname(fpath)
@@ -955,7 +967,7 @@ class Converter(threading.Thread):
             for resname, target in curtbl.iteritems():
                 res = self.res.get_cursor(resname)
                 if res is None:
-                    print "Cursor: %s" % (resname)
+                    print "Cursor not found: %s" % (resname)
                     continue
                 fpath = cw.util.join_paths(dir, "Resource/Image", target + ".cur")
                 resdir = os.path.dirname(fpath)
@@ -965,25 +977,29 @@ class Converter(threading.Thread):
                     f.write(res)
                 f = None
 
-            if len(self.exebinary) < 3000000:
-                for respath, target in glyphtbl.iteritems():
-                    respaths = respath.split("/")
-                    resname = respaths[0]
-                    res = self.res.get_tpf0form(resname)
+            for respath, target in glyphtbl.iteritems():
+                respaths = respath.split("/")
+                resname = respaths[0]
+                res = self.res.get_tpf0form(resname)
 
-                    for name in respaths[1:]:
-                        res = res[name]
-                    fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
-                    resdir = os.path.dirname(fpath)
-                    if not os.path.isdir(resdir):
-                        os.makedirs(resdir)
-                    if str(res[1:8]) == "TBitmap":
-                        res = str(res[12:])
-                    else:
-                        res = str(res[4:])
-                    with open(fpath, "wb") as f:
-                        f.write(res)
-                    f = None
+                for name in respaths[1:]:
+                    if not (name in res):
+                        res = None
+                        break
+                    res = res[name]
+                if not res:
+                    continue
+                fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
+                resdir = os.path.dirname(fpath)
+                if not os.path.isdir(resdir):
+                    os.makedirs(resdir)
+                if str(res[1:8]) == "TBitmap":
+                    res = str(res[12:])
+                else:
+                    res = str(res[4:])
+                with open(fpath, "wb") as f:
+                    f.write(res)
+                f = None
 
             if not os.path.isabs(self.datadir):
                 datadir = cw.util.join_paths(os.path.dirname(self.exe), self.datadir)
