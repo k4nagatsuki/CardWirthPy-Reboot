@@ -1382,7 +1382,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
                     seq.insert(index, "\n")
                 cnt = 1
             elif width2 >= asciicnt > 0 and not defspchar2:
-                if seq[-asciicnt] <> "\n":
+                if not get_char(s, index + 1) == "\n" and seq[-asciicnt] <> "\n":
                     seq.insert(-asciicnt, "\n")
                 cnt = asciicnt
             elif index + 1 <= len(s) or not get_char(s, index + 1) == "\n":
