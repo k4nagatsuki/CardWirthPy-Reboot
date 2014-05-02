@@ -965,6 +965,26 @@ class Converter(threading.Thread):
                     f.write(res)
                 f = None
 
+            if len(self.exebinary) < 3000000:
+                for respath, target in glyphtbl.iteritems():
+                    respaths = respath.split("/")
+                    resname = respaths[0]
+                    res = self.res.get_tpf0form(resname)
+
+                    for name in respaths[1:]:
+                        res = res[name]
+                    fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
+                    resdir = os.path.dirname(fpath)
+                    if not os.path.isdir(resdir):
+                        os.makedirs(resdir)
+                    if str(res[1:8]) == "TBitmap":
+                        res = str(res[12:])
+                    else:
+                        res = str(res[4:])
+                    with open(fpath, "wb") as f:
+                        f.write(res)
+                    f = None
+
             if not os.path.isabs(self.datadir):
                 datadir = cw.util.join_paths(os.path.dirname(self.exe), self.datadir)
             else:
