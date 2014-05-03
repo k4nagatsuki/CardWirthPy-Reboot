@@ -1066,9 +1066,12 @@ class CWPy(_Singleton, threading.Thread):
                 del backpacktable[e.text]
                 if header.moved <> 0:
                     # 削除フラグを除去
+                    # 荷物袋から移動された場合は使用されている
+                    # 可能性があるので上書き
                     if not header.carddata is None:
-                        etree = cw.data.xml2etree(element=header.carddata)
+                        etree = cw.data.yadoxml2etree(path=header.fpath)
                         etree.remove("Property", attrname="moved")
+                        header = cw.header.CardHeader(carddata=etree.getroot())
                         header.write()
                     header.moved = 0
                 self.ydata.party.backpack.append(header)
