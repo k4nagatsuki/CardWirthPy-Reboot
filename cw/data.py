@@ -1391,7 +1391,7 @@ class YadoData(object):
                 cw.cwpy.ydata.changed()
             self.environment.remove("CompleteStamps", e)
 
-        if cw.cwpy.is_playingscenario():
+        if elements and cw.cwpy.is_playingscenario():
             if cw.cwpy.sdata.compstamps.get(name) is True:
                 cw.cwpy.sdata.compstamps.pop(name)
             else:
@@ -1410,7 +1410,7 @@ class YadoData(object):
                 cw.cwpy.ydata.changed()
             self.environment.remove("Gossips", e)
 
-        if cw.cwpy.is_playingscenario():
+        if elements and cw.cwpy.is_playingscenario():
             if cw.cwpy.sdata.gossips.get(name) is True:
                 cw.cwpy.sdata.gossips.pop(name)
             else:
