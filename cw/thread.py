@@ -2300,7 +2300,9 @@ class CWPy(_Singleton, threading.Thread):
                     etree.edit("Property", str(moved), "moved")
                     etree.write_xml()
                     header.moved = moved
-                    party.backpack_moved.append(header)
+                    header2 = cw.header.CardHeader(carddata=header.carddata)
+                    header2.fpath = header.fpath
+                    party.backpack_moved.append(header2)
                 elif move:
                     # ファイルの移動のみ
                     self.ydata.deletedpaths.add(header.fpath, header.scenariocard)
