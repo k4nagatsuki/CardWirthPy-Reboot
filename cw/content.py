@@ -2029,7 +2029,7 @@ class LoseCastContent(LoseContent):
             if fcards:
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()
-                if cw.cwpy.is_battlestatus():
+                if cw.cwpy.is_battlestatus() and fcards[0] in cw.cwpy.battle.members:
                     cw.cwpy.battle.members.remove(fcards[0])
                     fcards[0].clear_action()
                 cw.cwpy.sdata.friendcards.remove(fcards[0])
