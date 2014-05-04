@@ -98,7 +98,7 @@ class CardImage(Image):
         w, h = subimg.get_size()
 
         left = cw.s(5)
-        if w + left > self.rect.w:
+        if w + left*2 > self.rect.w:
             size = (self.rect.w - left*2, h)
             subimg = pygame.transform.smoothscale(subimg, size)
 
