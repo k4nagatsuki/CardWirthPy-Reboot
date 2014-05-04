@@ -27,9 +27,13 @@ class Summary(base.CWBinaryBase):
         elif self.area_id < 39999:
             self.version = 2
             self.area_id = self.area_id - 20000
-        else:
+        elif self.area_id < 49999:
             self.version = 4
             self.area_id = self.area_id - 40000
+        else:
+            # version 5～6は存在しない
+            self.version = 7
+            self.area_id = self.area_id - 70000
         steps_num = f.dword()
         self.steps = [Step(self, f) for cnt in xrange(steps_num)]
         flags_num = f.dword()

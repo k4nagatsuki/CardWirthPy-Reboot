@@ -429,6 +429,8 @@ def read_summary_classic(basepath, spath, f=None):
         if not f:
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
         s = cw.binary.summary.Summary(None, f, nameonly=False, materialdir="", image_export=False)
+        if 4 < s.version:
+            return None
         s.skintype = ""
         imgbuf = s.image
         ctime = time.time()

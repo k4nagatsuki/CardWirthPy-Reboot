@@ -448,6 +448,8 @@ class ScenarioData(SystemData):
                 else:
                     # クラシックなシナリオの基本要素一覧情報
                     wdata, filedata = cw.cwpy.classicdata.load_file(path, nameonly=True)
+                    if wdata is None:
+                        continue
                     id = wdata.id
                     name = wdata.name
 
@@ -2198,6 +2200,8 @@ def xml2element(path="", tag="", file=None, nocache=False):
         lpath = path.lower()
         if lpath.endswith(".wsm") or lpath.endswith(".wid"):
             cdata, filedata = cw.cwpy.classicdata.load_file(path)
+            if cdata is None:
+                return None
             data = cdata.get_data()
 
             # 互換性マーク付与

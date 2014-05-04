@@ -98,13 +98,12 @@ class CWScenario(object):
 
         try:
             data, filedata = self.load_file(self.summarypath)
+            if data is None or 4 < data.version:
+                return False
         except:
             return False
 
-        if data.version >= 4:
-            return True
-        else:
-            return False
+        return True
 
     def write_errorlog(self, s):
         self.errorlog += s + "\n"
@@ -118,7 +117,12 @@ class CWScenario(object):
         for path in self.cwfiles:
             try:
                 data, filedata = self.load_file(path)
-                self.datalist.append(data)
+                if data is None:
+                    s = os.path.basename(path)
+                    s = u"%s は読込できませんでした。\n" % (s)
+                    self.write_errorlog(s)
+                else:
+                    self.datalist.append(data)
             except:
                 s = os.path.basename(path)
                 s = u"%s は読込できませんでした。\n" % (s)
@@ -131,64 +135,68 @@ class CWScenario(object):
 
     def load_file(self, path, nameonly=False, decodewrap=False):
         """引数のファイル(wid, wsmファイル)を読み込む。"""
-        f = cwfile.CWFile(path, "rb", decodewrap=decodewrap)
-
-        no = nameonly
-        md = self.materialdir
-        ie = self.image_export
-
-        if path.lower().endswith(".wsm"):
-            data = summary.Summary(None, f, nameonly=no, materialdir=md, image_export=ie)
-            data.skintype = self.skintype
-        else:
-            filetype = f.byte()
-            f.seek(0)
-            f.filedata = []
-
-            if filetype == 0:
-                data = area.Area(None, f, nameonly=no, materialdir=md, image_export=ie)
-            elif filetype == 1:
-                data = battle.Battle(None, f, nameonly=no, materialdir=md, image_export=ie)
-            elif filetype == 2:
-                if os.path.basename(path).lower().startswith("battle"):
-                    data = battle.Battle(None, f, nameonly=no, materialdir=md, image_export=ie)
-                else:
-                    data = cast.CastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-            elif filetype == 3:
-                data = item.ItemCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-            elif filetype == 4:
-                lpath = os.path.basename(path).lower()
-                if lpath.startswith("package"):
-                    data = package.Package(None, f, nameonly=no, materialdir=md, image_export=ie)
-                elif lpath.startswith("mate"):
-                    data = cast.CastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-                else:
-                    data = info.InfoCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-
-            elif filetype == 5:
-                if os.path.basename(path).lower().startswith("item"):
-                    data = item.ItemCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-                else:
-                    data = skill.SkillCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-            elif filetype == 6:
-                if os.path.basename(path).lower().startswith("info"):
-                    data = info.InfoCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-                else:
-                    data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-            elif filetype == 7:
-                data = skill.SkillCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-            elif filetype == 8:
-                data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+        try:
+            f = cwfile.CWFile(path, "rb", decodewrap=decodewrap)
+    
+            no = nameonly
+            md = self.materialdir
+            ie = self.image_export
+    
+            if path.lower().endswith(".wsm"):
+                data = summary.Summary(None, f, nameonly=no, materialdir=md, image_export=ie)
+                data.skintype = self.skintype
             else:
-                f.close()
-                raise ValueError(path)
-
-        if not nameonly:
-            # 読み残し分を全て読み込む
-            f.read()
-
-        f.close()
-        return data, "".join(f.filedata)
+                filetype = f.byte()
+                f.seek(0)
+                f.filedata = []
+    
+                if filetype == 0:
+                    data = area.Area(None, f, nameonly=no, materialdir=md, image_export=ie)
+                elif filetype == 1:
+                    data = battle.Battle(None, f, nameonly=no, materialdir=md, image_export=ie)
+                elif filetype == 2:
+                    if os.path.basename(path).lower().startswith("battle"):
+                        data = battle.Battle(None, f, nameonly=no, materialdir=md, image_export=ie)
+                    else:
+                        data = cast.CastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                elif filetype == 3:
+                    data = item.ItemCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                elif filetype == 4:
+                    lpath = os.path.basename(path).lower()
+                    if lpath.startswith("package"):
+                        data = package.Package(None, f, nameonly=no, materialdir=md, image_export=ie)
+                    elif lpath.startswith("mate"):
+                        data = cast.CastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                    else:
+                        data = info.InfoCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+    
+                elif filetype == 5:
+                    if os.path.basename(path).lower().startswith("item"):
+                        data = item.ItemCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                    else:
+                        data = skill.SkillCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                elif filetype == 6:
+                    if os.path.basename(path).lower().startswith("info"):
+                        data = info.InfoCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                    else:
+                        data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                elif filetype == 7:
+                    data = skill.SkillCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                elif filetype == 8:
+                    data = beast.BeastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
+                else:
+                    f.close()
+                    raise ValueError(path)
+    
+            if not nameonly:
+                # 読み残し分を全て読み込む
+                f.read()
+    
+            f.close()
+            return data, "".join(f.filedata)
+        except:
+            cw.util.print_ex()
+            return None, None
 
     def convert(self):
         if not self.datalist:
