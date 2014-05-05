@@ -1071,8 +1071,10 @@ class CWPy(_Singleton, threading.Thread):
                     if not header.carddata is None:
                         etree = cw.data.yadoxml2etree(path=header.fpath)
                         etree.remove("Property", attrname="moved")
-                        header = cw.header.CardHeader(carddata=etree.getroot())
-                        header.write()
+                        header2 = cw.header.CardHeader(carddata=etree.getroot())
+                        header2.fpath = header.fpath
+                        header2.write()
+                        header = header2
                     header.moved = 0
                 self.ydata.party.backpack.append(header)
                 header.order = i
