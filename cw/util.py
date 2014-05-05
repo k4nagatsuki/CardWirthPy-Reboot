@@ -932,6 +932,7 @@ def remove_file(path, retry=0):
             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
             remove_file(path, retry + 1)
         elif retry < 5:
+            time.sleep(1)
             remove_tree(treepath, retry + 1)
         else:
             raise err
@@ -948,6 +949,7 @@ def remove_tree(treepath, retry=0):
                         try:
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
                         except WindowsError, err:
+                            time.sleep(1)
                             remove_tree2(treepath)
                             return
 
@@ -957,11 +959,13 @@ def remove_tree(treepath, retry=0):
                         try:
                             os.chmod(path, stat.S_IWRITE|stat.S_IREAD)
                         except WindowsError, err:
+                            time.sleep(1)
                             remove_tree2(treepath)
                             return
 
             remove_tree(treepath, retry + 1)
         elif retry < 5:
+            time.sleep(1)
             remove_tree(treepath, retry + 1)
         else:
             remove_tree2(treepath)

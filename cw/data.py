@@ -2057,9 +2057,19 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         if dpath and not os.path.isdir(dpath):
             os.makedirs(dpath)
 
-        with open(path, "wb") as f:
-            f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
-            ElementTree.write(self, f, "utf-8")
+        retry = 0
+        while retry < 5:
+            try:
+                with open(path, "wb") as f:
+                    f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
+                    ElementTree.write(self, f, "utf-8")
+                    break
+            except IOError, ex:
+                if 5 <= retry:
+                    raise ex
+                cw.util.print_ex()
+                retry += 1
+                time.sleep(1)
 
     def write_xml(self, nocheck_edited=False):
         """エレメントが編集されていたら、
