@@ -719,8 +719,6 @@ def fix_cwnext16bitbitmap(data):
     biHeight = s[8]
     biPlanes = s[9]
     biBitCount = s[10]
-    if biBitCount <> 16:
-        return data
     biCompression = s[11]
     biSizeImage = s[12]
     biXPixPerMeter = s[13]
