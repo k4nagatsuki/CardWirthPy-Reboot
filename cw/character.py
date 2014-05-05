@@ -602,7 +602,6 @@ class Character(object):
         戦闘行動を設定。
         auto: 自動手札選択から設定されたかどうか。
         """
-        self.actionend = False
         if auto:
             self.clear_action()
             self.actiondata = (target, header, beasts)
@@ -630,6 +629,8 @@ class Character(object):
                     t = e.get("type", "")
                     if t:
                         cw.cwpy.battle.priorityacts.append((t, target, self))
+
+        self.actionend = False
 
     def adjust_action(self):
         """
