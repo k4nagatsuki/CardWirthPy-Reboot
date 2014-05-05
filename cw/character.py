@@ -1468,7 +1468,7 @@ class Character(object):
         self.set_beast(vanish=True)
 
         # 行動を再選択する
-        if cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_running() and cw.cwpy.battle.is_ready():
+        if cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready():
             self.deck.set(self)
             self.decide_action()
 
