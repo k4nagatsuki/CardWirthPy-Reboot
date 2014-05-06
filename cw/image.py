@@ -727,7 +727,7 @@ def fix_cwnext16bitbitmap(data):
     biClrImporant = s[16]
     lineSize = ((biWidth * biBitCount + 31) / 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
-    if len(data) - bfOffBits <> lineSize * height: 
+    if len(data) - bfOffBits < lineSize * height: 
         # bfOffBitsをヘッダ直後に修正
         bfOffBits = 14 + 40
         if biCompression == 3:
