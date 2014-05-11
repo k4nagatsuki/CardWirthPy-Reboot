@@ -25,6 +25,7 @@ def wait_effectbooster(waittime):
 
     try:
         eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
+        cw.cwpy.clear_selection()
         while cw.cwpy.is_running() and\
                 (not tick or pygame.time.get_ticks() < tick) and\
                 eventhandler.running and\
