@@ -102,6 +102,8 @@ class CWPy(_Singleton, threading.Thread):
         self.debug = self.setting.debug
         # 選択中スキンのディレクトリ
         self.skindir = self.setting.skindir
+        # 宿ロード直後であればTrue
+        self._clear_changed = False
         # シナリオ履歴(起動してから開いたシナリオのデータを管理するクラス)
         self.recenthistory = self.setting.recenthistory
         # MusicInterfaceインスタンス
@@ -375,6 +377,11 @@ class CWPy(_Singleton, threading.Thread):
             if update:
                 self.update()         # スプライトの更新
             self.draw(True)           # スプライトの描画
+
+        if self._clear_changed:
+            if self.ydata:
+                self.ydata._changed = False
+            self._clear_changed = False
 
     def quit(self):
         # トップフレームから閉じて終了。cw.frame.OnDestroy参照。
@@ -1196,9 +1203,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.exec_func(self.set_yado)
 
-        def clear_changed():
-            self.ydata._changed = False
-        self.exec_func(clear_changed)
+        self._clear_changed = True
 
 #-------------------------------------------------------------------------------
 # エリアチェンジ関係メソッド
@@ -2101,8 +2106,6 @@ class CWPy(_Singleton, threading.Thread):
         Getコンテントからこのメソッドを操作する場合は、
         ownerはNoneにする。
         """
-        if cw.cwpy.ydata:
-            cw.cwpy.ydata.changed()
         # カード移動操作用データを読み込む
         if self.selectedheader and not header:
             assert self.selectedheader
@@ -2228,6 +2231,10 @@ class CWPy(_Singleton, threading.Thread):
                 self.sounds["signal"].play()
             elif sound:
                 self.sounds["page"].play()
+
+        # 宿状態の変化を通知
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
 
         #-----------------------------------------------------------------------
         # 移動元からデータを削除
