@@ -653,6 +653,7 @@ class Frame(wx.Frame):
         dlg: wx.Window
         point: 中央以外の位置に移動させたい場合、指定する。
         """
+        self.Iconize(False)
         if hasattr(dlg, "pre_pos") and dlg.pre_pos:
             dlg.SetPosition(dlg.pre_pos)
             return
