@@ -1476,7 +1476,7 @@ class YadoData(object):
             fcard.set_fullrecovery()
 
             # 必須クーポンを所持していなかったら補填
-            if not fcard.get_age() or not fcard.get_sex():
+            if not fcard.has_age() or not fcard.has_sex():
                 cw.cwpy.sounds["signal"].play()
                 cw.cwpy.call_modaldlg("DATACOMP", ccard=fcard)
 

@@ -1068,6 +1068,13 @@ class Character(object):
             self.remove_coupon(old)
         self.set_coupon(sex, 0)
 
+    def has_sex(self):
+        for coupon in cw.cwpy.setting.sexcoupons:
+            if coupon in self.coupons:
+                return True
+
+        return False
+
     def get_age(self):
         for coupon in cw.cwpy.setting.periodcoupons:
             if coupon in self.coupons:
@@ -1083,6 +1090,13 @@ class Character(object):
             self.remove_coupon(old)
         self.set_coupon(age, 0)
 
+    def has_age(self):
+        for coupon in cw.cwpy.setting.periodcoupons:
+            if coupon in self.coupons:
+                return True
+
+        return False
+
     def get_talent(self):
         for coupon in cw.cwpy.setting.naturecoupons:
             if coupon in self.coupons:
@@ -1097,6 +1111,13 @@ class Character(object):
         if old:
             self.remove_coupon(old)
         self.set_coupon(talent, 0)
+
+    def has_talent(self):
+        for coupon in cw.cwpy.setting.naturecoupons:
+            if coupon in self.coupons:
+                return True
+
+        return False
 
     def get_makings(self):
         """

@@ -16,8 +16,14 @@ class AdventurerDataComp(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["insufficiency_title"],
                             style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU)
         self.ccard = ccard
-        self.sex = cw.cwpy.setting.sexcoupons[0]
-        self.age = cw.cwpy.setting.periodcoupons[0]
+        if self.ccard.has_sex():
+            self.sex = self.ccard.get_sex()
+        else:
+            self.sex = cw.cwpy.setting.sexcoupons[0]
+        if self.ccard.has_age():
+            self.age = self.ccard.get_age()
+        else:
+            self.age = cw.cwpy.setting.periodcoupons[0]
         # 画像
         bmp = cw.s((cw.util.load_wxbmp(ccard.imgpath, True), cw.SIZE_CARDIMAGE))
         self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmp)
@@ -45,6 +51,17 @@ class AdventurerDataComp(wx.Dialog):
         self.rb_age = wx.RadioBox(self, -1, cw.cwpy.msgs["age"],
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
         self.rb_age.SetFont(font)
+
+        # 初期値設定
+        for index, coupon in enumerate(cw.cwpy.setting.sexcoupons):
+            if self.sex == coupon:
+                self.rb_sex.SetSelection(index)
+                break
+        for index, coupon in enumerate(cw.cwpy.setting.periodcoupons):
+            if self.age == coupon:
+                self.rb_age.SetSelection(index)
+                break
+
         # OKボタン
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.s((120, 30)), cw.cwpy.msgs["decide"])
         self._do_layout()
@@ -86,8 +103,8 @@ class AdventurerDataComp(wx.Dialog):
         self.Layout()
 
     def OnClickOkBtn(self, event):
-        self.ccard.set_coupon(self.sex, 0)
-        self.ccard.set_coupon(self.age, 0)
+        self.ccard.set_sex(self.sex)
+        self.ccard.set_age(self.age)
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
@@ -95,15 +112,17 @@ class AdventurerDataComp(wx.Dialog):
         s = event.GetString()
 
         for index, name in enumerate(cw.cwpy.setting.sexnames):
-            self.sex = cw.cwpy.setting.sexcoupons[index]
-            break
+            if name == s:
+                self.sex = cw.cwpy.setting.sexcoupons[index]
+                break
 
     def OnClickRbAge(self, event):
         s = event.GetString()
 
         for index, name in enumerate(cw.cwpy.setting.periodnames):
-            self.age = cw.cwpy.setting.periodcoupons[index]
-            break
+            if name == s:
+                self.age = cw.cwpy.setting.periodcoupons[index]
+                break
 
 #-------------------------------------------------------------------------------
 # 冒険者の登録ダイアログ
