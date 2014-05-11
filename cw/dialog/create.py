@@ -20,10 +20,12 @@ class AdventurerDataComp(wx.Dialog):
             self.sex = self.ccard.get_sex()
         else:
             self.sex = cw.cwpy.setting.sexcoupons[0]
+            self.ccard.set_sex(self.sex)
         if self.ccard.has_age():
             self.age = self.ccard.get_age()
         else:
             self.age = cw.cwpy.setting.periodcoupons[0]
+            self.ccard.set_age(self.age)
         # 画像
         bmp = cw.s((cw.util.load_wxbmp(ccard.imgpath, True), cw.SIZE_CARDIMAGE))
         self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmp)
