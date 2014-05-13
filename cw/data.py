@@ -1296,6 +1296,8 @@ class YadoData(object):
         for party in self.partys:
             if party.data:
                 update_backpack(party.data)
+                if party.fpath.lower().startswith(self.tempdir.lower()):
+                    party.fpath = party.fpath.replace(self.tempdir, self.yadodir, 1)
                 party.data = None
 
         # カードデータベースを更新
