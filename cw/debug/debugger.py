@@ -893,11 +893,6 @@ class Debugger(wx.Frame):
             else:
                 cw.cwpy.event._stoped = True
 
-            self.mi_pause.Check(False)
-            # SetToggleが効かないため
-            if self.tl_pause.IsToggled():
-                self.tl_pause.Toggle()
-
         self.mi_stepreturn.Enable(False)
         self.tl_stepreturn.Enable(False)
         self.mi_stepover.Enable(False)
