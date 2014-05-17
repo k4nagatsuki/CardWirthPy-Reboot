@@ -152,6 +152,8 @@ class BattleEngine(object):
         # 行動内容のクリア
         for member in cw.cwpy.get_pcards():
             member.clear_action()
+        # NPCの状態を初期化
+        cw.cwpy.sdata.reset_fcards()
 
         self._running = False
 
@@ -235,6 +237,8 @@ class BattleEngine(object):
         # 行動内容のクリア
         for member in cw.cwpy.get_pcards():
             member.clear_action()
+        # NPCの状態を初期化
+        cw.cwpy.sdata.reset_fcards()
 
         cw.cwpy.hide_cards(True)
         cw.cwpy.mcardgrp.empty()
@@ -254,6 +258,8 @@ class BattleEngine(object):
         # 行動内容のクリア
         for member in self.members:
             member.clear_action()
+        # NPCの状態を初期化
+        cw.cwpy.sdata.reset_fcards()
 
         self._running = False
         if runevent:

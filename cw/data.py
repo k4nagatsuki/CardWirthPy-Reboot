@@ -737,6 +737,14 @@ class ScenarioData(SystemData):
                     seq.append(cw.util.join_paths(dir, fname))
         return seq
 
+    def reset_fcards(self):
+        """同行中のNPCの状態を初期化する。"""
+        seq = []
+        for fcard in self.friendcards:
+            fcard = cw.sprite.card.FriendCard(castid=fcard.id)
+            seq.append(fcard)
+        self.friendcards = seq
+
 class Flag(object):
     def __init__(self, value, name, truename, falsename):
         self.value = value
