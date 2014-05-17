@@ -696,6 +696,8 @@ class CardHolder(CardControl):
                 # 選択中カード色反転
                 self.Parent.change_selection(self.selection)
 
+        cw.cwpy.exec_func(cw.cwpy.draw)
+
         # layout
         self._do_layout()
         # bind
