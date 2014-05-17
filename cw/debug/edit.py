@@ -602,9 +602,9 @@ class GossipEditDialog(ListEditDialog):
             cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP_dbg"])
 
     def OnOkBtn(self, event):
-        cw.cwpy.sounds["harvest"].play()
-        cw.cwpy.ydata.clear_gossips()
         def func(list):
+            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.ydata.clear_gossips()
             for name in list:
                 cw.cwpy.ydata.set_gossip(name)
         cw.cwpy.exec_func(func, self.list)
@@ -617,9 +617,9 @@ class CompStampEditDialog(ListEditDialog):
             cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP_dbg"])
 
     def OnOkBtn(self, event):
-        cw.cwpy.sounds["harvest"].play()
-        cw.cwpy.ydata.clear_compstamps()
         def func(list):
+            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.ydata.clear_compstamps()
             for name in list:
                 cw.cwpy.ydata.set_compstamp(name)
         cw.cwpy.exec_func(func, self.list)

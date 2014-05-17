@@ -1431,7 +1431,7 @@ class YadoData(object):
     def clear_compstamps(self):
         """冒険済みシナリオ印を全て削除する。"""
 
-        for e in self.environment.getfind("CompleteStamps"):
+        for e in list(self.environment.getfind("CompleteStamps")):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.environment.remove("CompleteStamps", e)
@@ -1442,11 +1442,12 @@ class YadoData(object):
                     cw.cwpy.sdata.compstamps.pop(name)
                 else:
                     cw.cwpy.sdata.compstamps[name] = False
+        assert len(self.environment.getfind("CompleteStamps")) == 0
 
     def clear_gossips(self):
         """ゴシップを全て削除する。"""
 
-        for e in self.environment.getfind("Gossips"):
+        for e in list(self.environment.getfind("Gossips")):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.environment.remove("Gossips", e)
@@ -1457,6 +1458,7 @@ class YadoData(object):
                     cw.cwpy.sdata.gossips.pop(name)
                 else:
                     cw.cwpy.sdata.gossips[name] = False
+        assert len(self.environment.getfind("Gossips")) == 0
 
     def set_money(self, value):
         """金庫に入っている金額を変更する。

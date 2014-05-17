@@ -1043,10 +1043,29 @@ class Character(object):
             if not (name.startswith(u"＠") or name in syscoupons):
                 self._remove_coupon(name, False)
             revcoupon_old |= (name == u"：Ｒ")
+
+        sexcoupons = set(cw.cwpy.setting.sexcoupons)
+        periodcoupons = set(cw.cwpy.setting.periodcoupons)
+        naturecoupons = set(cw.cwpy.setting.naturecoupons)
+
         # クーポン追加
         for coupon in reversed(list):
-            self._set_coupon(coupon[0], coupon[1], False)
-            revcoupon_new |= (coupon[0] == u"：Ｒ")
+            name = coupon[0]
+            if name in sexcoupons:
+                old = self.get_sex()
+                if old:
+                    self.remove_coupon(old)
+            if name in periodcoupons:
+                old = self.get_age()
+                if old:
+                    self.remove_coupon(old)
+            if name in naturecoupons:
+                old = self.get_talent()
+                if old:
+                    self.remove_coupon(old)
+
+            self._set_coupon(name, coupon[1], False)
+            revcoupon_new |= (name == u"：Ｒ")
 
         # 隠蔽クーポン
         if revcoupon_old <> revcoupon_new:
