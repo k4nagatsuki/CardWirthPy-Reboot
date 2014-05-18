@@ -838,12 +838,12 @@ class AdventurerHeader(object):
         m.set("cautious",   str(data.cautious))
         m.set("trickish",   str(data.trickish))
 
-        self.age = nextage
         for e in data.getfind("Property/Coupons"):
             if e.text <> self.age:
                 continue
             # 年代クーポンを上書き
             e.text = nextage
+        self.age = nextage
 
         data.write_xml(True)
 
