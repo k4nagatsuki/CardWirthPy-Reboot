@@ -1314,6 +1314,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
     seq = []
 
     for index, char in enumerate(s):
+        spchar2 = spchar
         spchar = False
         width2 = width
         wrapafter2 = wrapafter
@@ -1360,7 +1361,8 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             cnt += 1
             if not (mode in (2, 3)) and not (mode == 1 and index+1 < len(s) and not r_hwchar.match(s[index+1])):
                 asciicnt += 1
-            width2 += 1
+            if spchar2 or not (mode in (2, 3)) or len(s) <= index+1 or r_hwchar.match(s[index+1]):
+                width2 += 1
             wrapafter = False
 
         # 行頭禁止文字・改行記号・半角文字以外
