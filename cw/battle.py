@@ -216,11 +216,11 @@ class BattleEngine(object):
             # パーティ全員で敏捷・狡猾の行為判定
             # 半分以上が判定成功したら、逃走成功
             pcards = cw.cwpy.get_pcards("active")
-            successes = [pcard.decide_outcome(level, vocation, enemybonus)
-                                                        for pcard in pcards]
+            success = [pcard.decide_outcome(level, vocation, enemybonus)
+                                                        for pcard in pcards].count(True)
 
             # 逃走成功・失敗時の処理
-            if pcards and len(successes) > len(pcards) / 2:
+            if pcards and success > len(pcards) / 2:
                 # 行動内容のクリア
                 for member in self.members:
                     member.clear_action()
