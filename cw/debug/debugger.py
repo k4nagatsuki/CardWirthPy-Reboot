@@ -473,8 +473,12 @@ class Debugger(wx.Frame):
             def func():
                 cw.cwpy.sounds["click"].play()
                 cw.cwpy.sdata.reload()
-                cw.cwpy.change_area(cw.cwpy.areaid, False, True)
+                if 0 <= cw.cwpy.areaid and not cw.cwpy.selectedheader:
+                    # キャンプ等
+                    cw.cwpy.change_area(cw.cwpy.areaid, False, True)
+
                 if cw.cwpy.battle:
+                    # バトル中
                     cw.cwpy.battle.ready()
                     cw.cwpy.battle.round -= 1
                 cw.cwpy.sounds["signal"].play()
