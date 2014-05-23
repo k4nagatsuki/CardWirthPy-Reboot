@@ -248,11 +248,7 @@ class MessageWindow(base.CWPySprite):
         r_halfwidth = re.compile(u"[ -~｡-ﾟ]") # 半角文字の集合
         r_specialfont = re.compile("#.") # 特殊文字(#)の集合
         # 文字色変更文字(&)の集合
-        # 互換動作: 1.30以前はO,P,L,Dの各色が無い
-        if cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-            r_changecolour = re.compile("&[wrbgy]")
-        else:
-            r_changecolour = re.compile("&[wrbgyopld]")
+        r_changecolour = re.compile("&[\x20-\x7E\n]")
         # フォントデータ
         font = cw.cwpy.rsrc.fonts["message"]
         colour = (255, 255, 255)
@@ -307,7 +303,8 @@ class MessageWindow(base.CWPySprite):
             # 文字色変更
             elif r_changecolour.match(chars):
                 colour = self.get_fontcolour(chars[1])
-                skip = True
+                if chars[1] <> '\n':
+                    skip = True
                 continue
 
             # 通常文字
@@ -461,16 +458,19 @@ class MessageWindow(base.CWPySprite):
             return (255, 255,   0)
         elif s == "w":
             return (255, 255, 255)
-        elif s == "o": # 1.50
-            return (255, 165, 0)
-        elif s == "p": # 1.50
-            return (204, 136, 255)
-        elif s == "l": # 1.50
-            return (169, 169, 169)
-        elif s == "d": # 1.50
-            return (105, 105, 105)
-        else:
-            return (255, 255, 255)
+
+        # 互換動作: 1.30以前はO,P,L,Dの各色が無い
+        if not cw.cwpy.sct.lessthan("1.50", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+            if s == "o": # 1.50
+                return (255, 165, 0)
+            elif s == "p": # 1.50
+                return (204, 136, 255)
+            elif s == "l": # 1.50
+                return (169, 169, 169)
+            elif s == "d": # 1.50
+                return (105, 105, 105)
+
+        return (255, 255, 255)
 
 class SelectWindow(MessageWindow):
     def __init__(self, names, text="", pos_noscale=None, size_noscale=None,
