@@ -250,7 +250,7 @@ class YadoSelect(Select):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_base_title"])
         # 宿情報
-        self.names, self.list, self.list2 = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.extimgs = self.get_yadolist()
         self.index = 0
         for index, name in enumerate(self.names):
             if cw.cwpy.setting.lastyado == name:
@@ -428,9 +428,13 @@ class YadoSelect(Select):
 
     def draw(self, update=False):
         dc = Select.draw(self, update)
+
+        skindir = self.skins[self.index]
+        extimg = self.extimgs[self.index]
+
         # 背景
-        path = "Table/Bill" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Table/Bill" + extimg
+        path = cw.util.join_paths(skindir, path)
         bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
@@ -440,8 +444,8 @@ class YadoSelect(Select):
             return
 
         # 宿画像
-        path = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Resource/Image/Card/COMMAND0" + extimg
+        path = cw.util.join_paths(skindir, path)
         bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         dc.DrawBitmap(bmp, (bmpw-cw.s(74))/2, cw.s(70), True)
         # 宿名前
@@ -614,7 +618,7 @@ class YadoSelect(Select):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        self.names, self.list, self.list2 = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.extimgs = self.get_yadolist()
 
         try:
             self.index = self.list.index(yadodir)
@@ -628,18 +632,44 @@ class YadoSelect(Select):
         """Yadoにある宿のpathリストと冒険者リストを返す。"""
         names = []
         yadodirs = []
+        skins = []
+        extimgs = []
+
+        skinexttable = {}
 
         if not os.path.exists(u"Yado"):
             os.makedirs(u"Yado")
 
         for dname in os.listdir(u"Yado"):
-            path  = cw.util.join_paths(u"Yado", dname, "Environment.xml")
+            path  = cw.util.join_paths(u"Yado", dname, u"Environment.xml")
 
             if os.path.isfile(path):
-                name = cw.header.GetName(path).name
+                prop = cw.header.GetProperty(path)
+                name = prop.properties.get(u"Name", u"")
                 if not name:
                     name = os.path.basename(dname)
                 names.append(name)
+
+                if cw.cwpy.setting.store_skinoneachbase:
+                    skin = prop.properties.get(u"Skin", u"Classic")
+                    skin = cw.util.join_paths(u"Data/Skin", skin)
+                    skinxml = cw.util.join_paths(skin, u"Skin.xml")
+                    if os.path.isfile(skinxml):
+                        skins.append(skin)
+                        if skin in skinexttable:
+                            extimgs.append(skinexttable[skin])
+                        else:
+                            skinprop = cw.header.GetProperty(skinxml)
+                            extimg = skinprop.attrs.get("Extension", {}).get("image", cw.cwpy.rsrc.ext_img)
+                            extimgs.append(extimg)
+                            skinexttable[skin] = extimg
+                    else:
+                        skins.append(cw.cwpy.skindir)
+                        extimgs.append(cw.cwpy.rsrc.ext_img)
+                else:
+                    skins.append(cw.cwpy.skindir)
+                    extimgs.append(cw.cwpy.rsrc.ext_img)
+
                 path  = cw.util.join_paths(u"Yado", dname)
                 yadodirs.append(path)
 
@@ -663,7 +693,7 @@ class YadoSelect(Select):
             yadodb.close()
             advnames.append(seq)
 
-        return names, yadodirs, advnames
+        return names, yadodirs, advnames, skins, extimgs
 
 #-------------------------------------------------------------------------------
 #　パーティ選択ダイアログ

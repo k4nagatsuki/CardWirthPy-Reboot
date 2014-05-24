@@ -1072,6 +1072,42 @@ class GetName(object):
         if self.stack[1:] == ["Property", self.tagname]:
             self.name += data
 
+class GetProperty(object):
+    """XMLファイル中のProperty以下の内容を読む。"""
+    def __init__(self, fpath):
+        self.properties = {}
+        self.attrs = {}
+        self.stack = []
+
+        parser = xml.parsers.expat.ParserCreate()
+        parser.StartElementHandler = self.start_element
+        parser.EndElementHandler = self.end_element
+        parser.CharacterDataHandler = self.character_data
+
+        with open(fpath) as f:
+            try:
+                parser.ParseFile(f)
+            except Exception, ex:
+                pass
+
+    def start_element(self, name, attrs):
+        self.stack.append(name)
+        if 3 == len(self.stack) and self.stack[1] == "Property":
+            element = self.stack[2]
+            self.attrs[name] = attrs
+
+    def end_element(self, name):
+        if self.stack[1:] == ["Property"]:
+            raise Exception()
+        self.stack.pop()
+
+    def character_data(self, data):
+        if 2 < len(self.stack) and self.stack[1] == "Property":
+            element = self.stack[2]
+            if not element in self.properties:
+                self.properties[element] = ""
+            self.properties[element] += data
+
 class RaceHeader(object):
     def __init__(self, data):
         self.name = data.gettext("Name", "")
