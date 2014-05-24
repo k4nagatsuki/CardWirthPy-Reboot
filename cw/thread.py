@@ -1593,6 +1593,10 @@ class CWPy(_Singleton, threading.Thread):
         areachangeがFalseだったら、戦闘前のエリアには戻らない
         (戦闘イベントで、エリア移動コンテント等が発動した時用)。
         """
+        if not cw.cwpy.is_playingscenario():
+            cw.cwpy.battle = None
+            return
+
         if self.status == "ScenarioBattle":
             # 勝利イベントを保持しておく
             battleevents = self.sdata.events
