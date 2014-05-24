@@ -473,41 +473,71 @@ class NumberEditor(wx.Panel):
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.s((20, 40)), bmp=bmp)
 
+        # スピン
+        self.spinlabel = wx.StaticText(self, -1, u"直接入力:")
+        self.spinlabel.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(11)-1, weight=wx.NORMAL))
+        self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.s(80), -1))
+        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(11)-1, weight=wx.NORMAL))
+        self.spinctrl.SetRange(minvalue, maxvalue)
+        self.spinctrl.SetValue(value)
+
         self._do_layout()
         self._bind()
 
     def set_value(self, value):
         self.slider.SetValue(value)
+        self.spinctrl.SetValue(value)
 
     def set_max(self, value):
         self.slider.SetMax(value)
+        self.spinctrl.SetRange(self.spinctrl.GetMin(), value)
 
     def set_min(self, value):
         self.slider.SetMin(value)
+        self.spinctrl.SetRange(value, self.spinctrl.GetMax())
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
+        self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
+        self.spinctrl.Bind(wx.EVT_SPINCTRL, self.OnSpinCtrl)
 
     def _do_layout(self):
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
-        sizer.Add(self.slider, 1, wx.LEFT|wx.RIGHT|wx.ALL, cw.s(5))
-        sizer.Add(self.rightbtn, 0, wx.ALIGN_CENTER)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
+        sizer_slider = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_slider.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
+        sizer_slider.Add(self.slider, 1, wx.LEFT|wx.RIGHT|wx.ALL, cw.s(5))
+        sizer_slider.Add(self.rightbtn, 0, wx.ALIGN_CENTER)
+
+        sizer_spinctrl = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_spinctrl.Add(self.spinlabel, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.s(5))
+        sizer_spinctrl.Add(self.spinctrl, 0, 0, cw.s(0))
+
+        sizer_v1.Add(sizer_slider, 0, wx.BOTTOM, cw.s(5))
+        sizer_v1.Add(sizer_spinctrl, 0, wx.ALIGN_RIGHT, cw.s(0))
+
+        self.SetSizer(sizer_v1)
+        sizer_v1.Fit(self)
         self.Layout()
 
     def OnLeftBtn(self, evt):
         value = self.slider.GetValue()
         if self.slider.GetMin() < value:
             self.slider.SetValue(value-1)
+            self.spinctrl.SetValue(value-1)
 
     def OnRightBtn(self, evt):
         value = self.slider.GetValue()
         if value < self.slider.GetMax():
             self.slider.SetValue(value+1)
+            self.spinctrl.SetValue(value+1)
+
+    def OnSlider(self, evt):
+        self.spinctrl.SetValue(self.slider.GetValue())
+
+    def OnSpinCtrl(self, evt):
+        self.slider.SetValue(self.spinctrl.GetValue())
 
 class ComboEditDialog(wx.Dialog):
 
