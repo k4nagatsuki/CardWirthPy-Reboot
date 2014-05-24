@@ -443,7 +443,7 @@ class CWPy(_Singleton, threading.Thread):
             self.events.extend(pygame.event.get())
 
     def _in_partyarea(self, mousepos):
-        return (290-5) <= mousepos[1] and mousepos[1] < cw.SIZE_AREA[1]
+        return cw.s(290-5) <= mousepos[1] and mousepos[1] < cw.s(cw.SIZE_AREA[1])
 
     def update_mousepos(self):
         if sys.platform <> "win32":
