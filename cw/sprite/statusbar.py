@@ -46,7 +46,7 @@ class StatusBar(base.CWPySprite):
 
         left -= cw.s(28)
         rmargin += cw.s(27)
-        hasbacklog = cw.cwpy.is_playingscenario()
+        hasbacklog = cw.cwpy.has_backlog()
         BacklogButton(self, (left, cw.s(3)), hasbacklog)
 
         if cw.cwpy.is_debugmode():

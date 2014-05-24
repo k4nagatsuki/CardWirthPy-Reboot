@@ -280,7 +280,7 @@ class EventHandler(object):
         if cw.cwpy.is_showingbacklog():
             event = pygame.event.Event(KEYDOWN, key=K_UP)
             pygame.event.post(event)
-        else:
+        elif cw.cwpy.has_backlog():
             cw.cwpy.sounds["page"].play()
             cw.cwpy.show_backlog()
 
@@ -777,9 +777,10 @@ class EventHandlerForBacklog(EventHandler):
             self.update_sprites()
         else:
             # バックログを遡る
-            cw.cwpy.sounds["page"].play()
             if self.index <= 0:
+                cw.cwpy.sounds["error"].play()
                 return
+            cw.cwpy.sounds["page"].play()
             self.index -= 1
 
             self.update_sprites()

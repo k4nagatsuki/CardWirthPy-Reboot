@@ -746,6 +746,7 @@ class CWPy(_Singleton, threading.Thread):
             if self.setting.backlogmax <= len(self.sdata.backlog):
                 self.sdata.backlog.pop(0)
             self.sdata.backlog.append(cw.sprite.message.BacklogData(mwin))
+            self.statusbar.change(False)
 
         # cwpylist, index 初期化
         self.list = self.get_mcards("visible")
@@ -765,13 +766,17 @@ class CWPy(_Singleton, threading.Thread):
         else:
             return mwin.result
 
+    def has_backlog(self):
+        """表示可能なメッセージログがあるか。"""
+        return isinstance(self.sdata, cw.data.ScenarioData) and self.sdata.backlog
+
     def show_backlog(self, n=0):
         """直近から過去に遡ってn回目のメッセージを表示する。
         n: 遡る量。0なら最後に閉じたメッセージ。
         もっとも古いメッセージよりも大きな値の場合は
         もっとも古いメッセージを表示する。
         """
-        if not (isinstance(self.sdata, cw.data.ScenarioData) and self.sdata.backlog):
+        if not self.has_backlog():
             return
 
         if len(self.sdata.backlog) <= n:
