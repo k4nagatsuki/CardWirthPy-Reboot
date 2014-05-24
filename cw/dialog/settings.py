@@ -44,6 +44,7 @@ class SettingsDialog(wx.Dialog):
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
             self.pane_draw.cb_quickdeal.SetValue(True)
+            self.pane_draw.cb_showallselectedcards.SetValue(True)
             self.pane_draw.sl_deal.SetValue(6)
             self.pane_draw.sl_msgs.SetValue(4)
             self.pane_draw.ch_tran.SetSelection(0)
@@ -109,6 +110,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.smoothscale_bg = value
         value = self.pane_draw.cb_quickdeal.GetValue()
         cw.cwpy.setting.quickdeal = value
+        value = self.pane_draw.cb_showallselectedcards.GetValue()
+        cw.cwpy.setting.show_allselectedcards = value
         value = self.pane_draw.sl_deal.GetValue()
         cw.cwpy.setting.set_dealspeed(value)
         value = self.pane_draw.sl_msgs.GetValue()
@@ -385,6 +388,9 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_quickdeal = wx.CheckBox(
             self, -1, u"キャンプモードへ高速で切り替える")
         self.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal)
+        self.cb_showallselectedcards = wx.CheckBox(
+            self, -1, u"戦闘行動を全員分表示する")
+        self.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -456,7 +462,8 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_msgs = wx.StaticBoxSizer(self.box_msgs, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
-        bsizer_gene.Add(self.cb_quickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_quickdeal, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((260, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
         bsizer_tran.Add(self.sl_tran, 0, 0, 0)

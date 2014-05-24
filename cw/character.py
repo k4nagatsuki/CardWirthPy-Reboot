@@ -468,7 +468,6 @@ class Character(object):
 
         # 使用アニメーション
         if header.type == "BeastCard":
-            cw.cwpy.set_inusecardimg(self, header, "hidden", center=True)
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal")
             cw.animation.animate_sprite(inusecardimg, "zoomin")
@@ -492,8 +491,7 @@ class Character(object):
             cw.animation.animate_sprite(self, "deal")
             cw.animation.animate_sprite(self, "zoomin")
             # カード表示
-            cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
-            inusecardimg = cw.cwpy.get_inusecardimg()
+            inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
             # 表示中に効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
             cw.cwpy.draw()

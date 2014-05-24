@@ -451,7 +451,7 @@ class BattleCardImage(card.CWPyCard):
         pass
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False, spritegrp=None):
+    def __init__(self, user, header, status="normal", center=False, spritegrp=None, alpha=255):
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
@@ -465,6 +465,7 @@ class InuseCardImage(card.CWPyCard):
         self.header = header
         self.center = center
         self.zoomsize_noscale = (32, 42)
+        self.alpha = alpha
 
         self.update_scale()
 
@@ -475,17 +476,21 @@ class InuseCardImage(card.CWPyCard):
             self.group = cw.cwpy.pcardgrp
         else:
             self.group = cw.cwpy.mcardgrp
-        self.group.add(self)
         if user and not center:
             top = False
-            for sprite in self.group.sprites()[:]:
-                if sprite == user:
-                    top = True
-                elif top and sprite <> self:
-                    self.group.move_to_front(sprite)
+            sprites = self.group.sprites()[:]
+            self.group.empty()
+            index = sprites.index(user)
+            self.group.add(sprites[:index+1])
+            self.group.add(self)
+            self.group.add(sprites[index+1:])
+        else:
+            self.group.add(self)
 
     def update_scale(self):
         image = self.header.get_cardimg()
+        if self.alpha < 255:
+            image.set_alpha(self.alpha)
         self.image = self._image = image
         self.rect = self._rect = image.get_rect()
 

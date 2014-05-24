@@ -3,6 +3,7 @@
 
 import sys
 import os
+import itertools
 import time
 import threading
 import shutil
@@ -1803,24 +1804,32 @@ class CWPy(_Singleton, threading.Thread):
         sprite.image = sprite.get_selectedimage()
         self.selection = sprite
 
-        if isinstance(sprite, cw.character.Character)\
-                            and sprite.actiondata and sprite.is_analyzable():
-            if not self.selectedheader:
-                targets, header, beasts = self.selection.actiondata
+        if not self.is_runningevent()\
+                and not self.selectedheader\
+                and isinstance(sprite, cw.character.Character)\
+                and sprite.is_analyzable():
+            for sprite in itertools.chain(self.get_pcards("unreversed"), self.get_ecards("unreversed")):
+                if not (isinstance(sprite, cw.character.Character)\
+                        and sprite.actiondata and sprite.is_analyzable()):
+                    continue
+                targets, header, beasts = sprite.actiondata
                 if header:
-                    self.set_inusecardimg(sprite, header)
+                    if self.selection == sprite:
+                        self.set_inusecardimg(sprite, header)
+                        if header.target == "None":
+                            self.set_targetarrow([sprite])
+                        elif targets:
+                            self.set_targetarrow(targets)
+                    elif self.setting.show_allselectedcards:
+                        self.set_inusecardimg(sprite, header, alpha=160)
 
-                    if header.target == "None":
-                        self.set_targetarrow([sprite])
-                    elif targets:
-                        self.set_targetarrow(targets)
-
-    def set_inusecardimg(self, owner, header, status="normal", center=False, spritegrp=None):
+    def set_inusecardimg(self, owner, header, status="normal", center=False, spritegrp=None, alpha=255):
         """PlayerCardの前に使用中カードの画像を表示。"""
-        if not self.get_inusecardimg():
-            inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, spritegrp)
+        if not owner.inusecardimg:
+            inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, spritegrp, alpha=alpha)
             owner.inusecardimg = inusecard
             self.inusecards.append(inusecard)
+        return owner.inusecardimg
 
     def clear_inusecardimg(self, user=None):
         """PlayerCardの前の使用中カードの画像を削除。"""
@@ -2702,7 +2711,7 @@ class CWPy(_Singleton, threading.Thread):
 #-------------------------------------------------------------------------------
 
     def get_inusecardimg(self):
-        """InuseCardImageインスタンスを返す(仕様カード)。"""
+        """InuseCardImageインスタンスを返す(使用カード)。"""
         if self.inusecards:
             return self.inusecards[0]
         else:

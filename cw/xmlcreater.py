@@ -178,6 +178,9 @@ def create_settings(setting):
     # マウスホイールを上回転させた時の挙動
     e = cw.data.make_element("WheelUpOperation", setting.wheelup_operation)
     element.append(e)
+    # 戦闘行動を全員分表示する
+    e = cw.data.make_element("ShowAllSelectedCards", str(setting.show_allselectedcards))
+    element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)
     e = cw.data.make_element("ScenarioFolderOfSkinType")

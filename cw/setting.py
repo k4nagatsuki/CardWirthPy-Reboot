@@ -69,6 +69,7 @@ class Setting(object):
             self.show_completedscenario = True
             self.show_invisiblescenario = False
             self.wheelup_operation = WHEEL_SHOWLOG
+            self.show_allselectedcards = True
             self.folderoftype = []
             self.write()
 
@@ -166,6 +167,8 @@ class Setting(object):
 
         # マウスホイールを上回転させた時の挙動
         self.wheelup_operation = data.gettext("WheelUpOperation", WHEEL_SHOWLOG)
+        # 戦闘行動を全員分表示する
+        self.show_allselectedcards = data.getbool("ShowAllSelectedCards", True)
 
         # シナリオフォルダ(スキンタイプ別)
         self.folderoftype = []
