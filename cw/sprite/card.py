@@ -883,7 +883,7 @@ class MenuCard(CWPyCard):
         CWPyCard.__init__(self, status)
         # カード情報
         self._data = data
-        self._pos_noscale = pos_noscale
+        self._pos_noscale2 = pos_noscale
         self.name = data.gettext("Property/Name", "")
         self.desc = data.gettext("Property/Description", "")
         self.flag = data.gettext("Property/Flag", "")
@@ -948,11 +948,11 @@ class MenuCard(CWPyCard):
 
         self.update_image()
         # pos
-        self.set_pos_noscale(self._pos_noscale)
+        self.set_pos_noscale(self._pos_noscale2)
 
         # 初期化後は不要
         self._data = None
-        self._pos_noscale = None
+        self._pos_noscale2 = None
 
     @property
     def cardimg(self):
