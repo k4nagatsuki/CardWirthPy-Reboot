@@ -1456,13 +1456,23 @@ class CWPy(_Singleton, threading.Thread):
                 top = e.getint("Property/Location", "top")
                 pos_noscale = (left, top)
 
+            status2 = status
+            if status2 <> "hidden":
+                flag = e.gettext("Property/Flag", "")
+                flagvalue = self.sdata.flags.get(flag, True)
+                if not flagvalue:
+                    status2 = "hidden"
+
             if e.tag == "EnemyCard":
-                mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status, addgroup)
+                mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status2, addgroup)
             else:
-                mcard = cw.sprite.card.MenuCard(e, pos_noscale, status, addgroup)
-            if not self.sdata.flags.get(mcard.flag, True) or (mcard.debug_only and not self.is_debugmode()):
+                mcard = cw.sprite.card.MenuCard(e, pos_noscale, status2, addgroup)
+
+            if mcard.debug_only and not self.is_debugmode():
                 mcard.status = "hidden"
+
             seq.append(mcard)
+
         return seq
 
     def disposition_pcards(self):

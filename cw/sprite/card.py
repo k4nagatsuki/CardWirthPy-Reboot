@@ -882,11 +882,12 @@ class MenuCard(CWPyCard):
         """
         CWPyCard.__init__(self, status)
         # カード情報
+        self._data = data
+        self._pos_noscale = pos_noscale
         self.name = data.gettext("Property/Name", "")
         self.desc = data.gettext("Property/Description", "")
         self.flag = data.gettext("Property/Flag", "")
         self.debug_only = data.getbool(".", "debugOnly", False)
-        self.events = cw.event.EventEngine(data.getfind("Events"))
         self.author = ""
         self.scenario = ""
 
@@ -897,11 +898,33 @@ class MenuCard(CWPyCard):
             s = data.getattr("Property/Size", "scale", "100%")
             self.scale = int(s.rstrip("%"))
 
+        self._init = False
+
+        # 表示するまでデータを作らない
+        if status == "hidden":
+            self._rect = cw.s(pygame.Rect(0, 0, 0, 0))
+            self.clear_image()
+        else:
+            self.initialize()
+
+        if addgroup:
+            # spritegroupに追加
+            cw.cwpy.mcardgrp.add(self)
+
+    def initialize(self):
+        if self._init:
+            return
+
+        self._init = True
+
+        # イベント
+        self.events = cw.event.EventEngine(self._data.getfind("Events"))
+
         # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成。
-        path = data.gettext("Property/ImagePath", "")
+        path = self._data.gettext("Property/ImagePath", "")
         pcn = ""
         if not path:
-            pcn = data.gettext("Property/PCNumber", "")
+            pcn = self._data.gettext("Property/PCNumber", "")
         if pcn:
             # メニューカードにPCの画像を表示(1.30)
             pcards = cw.cwpy.ydata.party.members
@@ -916,24 +939,31 @@ class MenuCard(CWPyCard):
             else:
                 path = cw.util.join_paths(cw.cwpy.skindir, path)
 
-        if data.tag == "LargeMenuCard":
+        if self._data.tag == "LargeMenuCard":
             # TODO scaleinfo
-            self.cardimg = cw.image.LargeCardImage(path, "NORMAL", self.name)
+            self._cardimg = cw.image.LargeCardImage(path, "NORMAL", self.name)
         else:
             # TODO scaleinfo
-            self.cardimg = cw.image.CardImage(path, "NORMAL", self.name)
+            self._cardimg = cw.image.CardImage(path, "NORMAL", self.name)
 
         self.update_image()
         # pos
-        self.set_pos_noscale(pos_noscale)
+        self.set_pos_noscale(self._pos_noscale)
 
-        # 空のイメージ
-        if self.status == "hidden":
-            self.clear_image()
+        # 初期化後は不要
+        self._data = None
+        self._pos_noscale = None
 
-        if addgroup:
-            # spritegroupに追加
-            cw.cwpy.mcardgrp.add(self)
+    @property
+    def cardimg(self):
+        if not self._init:
+            self.initialize()
+        return self._cardimg
+
+    def update(self, scr):
+        if self.status <> "hidden" and not self._init:
+            self.initialize()
+        CWPyCard.update(self, scr)
 
     def lclick_event(self):
         """左クリックイベント。"""
