@@ -93,6 +93,8 @@ class CWPy(_Singleton, threading.Thread):
         self.selection = None
         # Trueの間は選択中のスプライトのクリックを行えない
         self.lock_menucards = False
+        # 選択中のメンバ以外の戦闘行動が表示されている時はTrue
+        self._show_allselectedcards = False
         # パーティカード表示中フラグ
         self.is_showparty = False
         # バックログ表示中フラグ
@@ -420,6 +422,14 @@ class CWPy(_Singleton, threading.Thread):
         mousepos = self.mousepos
         if self.update_mousepos():
             self.mousemotion = False if self.mousepos == mousepos else True
+
+        if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and self.battle.is_ready():
+            # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
+            if self.mousemotion and self._in_partyarea(mousepos) <> self._in_partyarea(self.mousepos):
+                self._show_allselectedcards = True
+                self.change_selection(self.selection)
+                self.draw()
+
         self.keyin = self.keyevent.get_pressed()
 
         if eventclear:
@@ -431,6 +441,9 @@ class CWPy(_Singleton, threading.Thread):
             self.events.extend(events)
         else:
             self.events.extend(pygame.event.get())
+
+    def _in_partyarea(self, mousepos):
+        return (290-5) <= mousepos[1] and mousepos[1] < cw.SIZE_AREA[1]
 
     def update_mousepos(self):
         if sys.platform <> "win32":
@@ -1774,18 +1787,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def clear_selection(self):
         """全ての選択状態を解除する。"""
-        if self.selection:
-            self.has_inputevent = True
-
-            # カードイベント中にtargetarrow, inusecardimgを消さないため
-            if not self.is_runningevent():
-                self.clear_targetarrow()
-                self.clear_inusecardimg()
-
-            self.selection.image = self.selection.get_unselectedimage()
-
-        self.selection = None
-        self.index = -1
+        self.change_selection(None)
 
     def change_selection(self, sprite):
         """引数のスプライトを選択状態にする。
@@ -1793,25 +1795,40 @@ class CWPy(_Singleton, threading.Thread):
         """
         self.has_inputevent = True
 
+        # 現在全員の戦闘行動を表示中か
+        show_allselectedcards = self._show_allselectedcards
+        if sprite:
+            # 特定の誰かが選択された場合は表示を更新
+            show_allselectedcards = False
+        elif not self._in_partyarea(self.mousepos):
+            # パーティ領域より上へマウスカーソルが行ったら表示をクリア
+            show_allselectedcards = False
+
         if self.selection:
             self.selection.image = self.selection.get_unselectedimage()
 
-            # カードイベント中にtargetarrow, inusecardimgを消さないため
-            if not self.is_runningevent():
-                self.clear_targetarrow()
-                self.clear_inusecardimg()
+        # カードイベント中にtargetarrow, inusecardimgを消さないため
+        if not self.is_runningevent():
+            self.clear_targetarrow()
+            self.clear_inusecardimg()
 
-        sprite.image = sprite.get_selectedimage()
+        if sprite:
+            sprite.image = sprite.get_selectedimage()
+        else:
+            self.index = -1
+
         self.selection = sprite
 
-        if not self.is_runningevent()\
+        if (not self.is_runningevent()\
                 and not self.selectedheader\
                 and isinstance(sprite, cw.character.Character)\
-                and sprite.is_analyzable():
+                and sprite.is_analyzable()) or\
+                show_allselectedcards:
             for sprite in itertools.chain(self.get_pcards("unreversed"), self.get_ecards("unreversed")):
                 if not (isinstance(sprite, cw.character.Character)\
                         and sprite.actiondata and sprite.is_analyzable()):
                     continue
+                self.clear_inusecardimg(sprite)
                 targets, header, beasts = sprite.actiondata
                 if header:
                     if self.selection == sprite:
@@ -1822,6 +1839,10 @@ class CWPy(_Singleton, threading.Thread):
                             self.set_targetarrow(targets)
                     elif self.setting.show_allselectedcards:
                         self.set_inusecardimg(sprite, header, alpha=160)
+                        if isinstance(sprite, cw.sprite.card.PlayerCard):
+                            show_allselectedcards = True
+
+        self._show_allselectedcards = show_allselectedcards
 
     def set_inusecardimg(self, owner, header, status="normal", center=False, spritegrp=None, alpha=255):
         """PlayerCardの前に使用中カードの画像を表示。"""
@@ -1833,6 +1854,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def clear_inusecardimg(self, user=None):
         """PlayerCardの前の使用中カードの画像を削除。"""
+        self._show_allselectedcards = False
         if user:
             if user.inusecardimg:
                 user.inusecardimg.group.remove(user.inusecardimg)
