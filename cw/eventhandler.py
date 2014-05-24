@@ -342,6 +342,10 @@ class EventHandler(object):
         """
         ホイールイベント。
         """
+        if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
+            self.f5key_event()
+            return
+
         self.dirkey_event(x=y, sidechange=True)
 
     def executing_event(self, event):
@@ -553,6 +557,10 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         ホイールイベント。
         """
+        if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
+            self.f5key_event()
+            return
+
         if cw.cwpy.has_inputevent or not cw.cwpy.is_showingmessage():
             return
 

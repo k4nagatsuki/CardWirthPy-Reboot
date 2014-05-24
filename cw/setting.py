@@ -16,6 +16,10 @@ import cw
 class NoFontError(ValueError):
     pass
 
+# マウスホイールを上回転させた時の挙動
+WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ
+WHEEL_SHOWLOG   = "ShowLog"   # バックログを表示
+
 class Setting(object):
     def __init__(self):
         # フレームレート
@@ -64,6 +68,7 @@ class Setting(object):
             self.show_unfitnessscenario = True
             self.show_completedscenario = True
             self.show_invisiblescenario = False
+            self.wheelup_operation = WHEEL_SHOWLOG
             self.folderoftype = []
             self.write()
 
@@ -158,6 +163,9 @@ class Setting(object):
         self.show_completedscenario = data.getbool("ShowCompletedScenario", True)
         # 終了済シナリオを表示する
         self.show_invisiblescenario = data.getbool("ShowInvisibleScenario", False)
+
+        # マウスホイールを上回転させた時の挙動
+        self.wheelup_operation = data.gettext("WheelUpOperation", WHEEL_SHOWLOG)
 
         # シナリオフォルダ(スキンタイプ別)
         self.folderoftype = []

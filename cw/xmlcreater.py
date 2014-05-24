@@ -175,6 +175,9 @@ def create_settings(setting):
     # 終了済シナリオを表示する
     e = cw.data.make_element("ShowInvisibleScenario", str(setting.show_invisiblescenario))
     element.append(e)
+    # マウスホイールを上回転させた時の挙動
+    e = cw.data.make_element("WheelUpOperation", setting.wheelup_operation)
+    element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)
     e = cw.data.make_element("ScenarioFolderOfSkinType")

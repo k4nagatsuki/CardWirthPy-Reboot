@@ -34,32 +34,38 @@ class SettingsDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnDefault, id=wx.ID_DEFAULT)
 
     def OnDefault(self, event):
-        self.pane_gene.cb_nolevelup.SetValue(False)
-        self.pane_gene.cb_cautionbeforesaving.SetValue(True)
-        self.pane_gene.cb_storeskinoneachbase.SetValue(True)
-        self.pane_gene.cb_revertcardpocket.SetValue(True)
-        self.pane_draw.cb_smooth_bg.SetValue(False)
-        self.pane_draw.cb_quickdeal.SetValue(True)
-        self.pane_draw.sl_deal.SetValue(6)
-        self.pane_draw.sl_msgs.SetValue(4)
-        self.pane_draw.ch_tran.SetSelection(0)
-        self.pane_draw.sl_tran.SetValue(5)
-        self.pane_sound.sl_sound.SetValue(100)
-        self.pane_sound.sl_midi.SetValue(80)
-        self.pane_sound.sl_music.SetValue(100)
-        self.pane_sound.list_soundfont.Clear()
-        self.pane_sound.list_soundfont.Append(cw.DEFAULT_SOUNDFONT)
-        self.pane_draw.sc_mwin.SetValue(180)
-        self.pane_draw.cs_mwin.SetColour((0, 0, 80))
-        self.pane_draw.sc_mframe.SetValue(255)
-        self.pane_draw.cs_mframe.SetColour((128, 0, 0))
-        self.pane_draw.cs_blwin.SetColour((80, 80, 80))
-        self.pane_draw.cs_blframe.SetColour((128, 128, 128))
-        self.pane_scenario.cb_selectscenariofromtype.SetValue(True)
-        self.pane_scenario.cb_showunfitnessscenario.SetValue(True)
-        self.pane_scenario.cb_showcompletedscenario.SetValue(True)
-        self.pane_scenario.cb_showinvisiblescenario.SetValue(False)
-        # スキン毎のシナリオ開始位置の設定は変更しない
+        selpane = self.note.GetSelection()
+        if selpane == 0:
+            self.pane_gene.cb_nolevelup.SetValue(False)
+            self.pane_gene.cb_cautionbeforesaving.SetValue(True)
+            self.pane_gene.cb_storeskinoneachbase.SetValue(True)
+            self.pane_gene.cb_revertcardpocket.SetValue(True)
+            self.pane_gene.cb_showlogwithwheelup.SetValue(True)
+        elif selpane == 1:
+            self.pane_draw.cb_smooth_bg.SetValue(False)
+            self.pane_draw.cb_quickdeal.SetValue(True)
+            self.pane_draw.sl_deal.SetValue(6)
+            self.pane_draw.sl_msgs.SetValue(4)
+            self.pane_draw.ch_tran.SetSelection(0)
+            self.pane_draw.sl_tran.SetValue(5)
+            self.pane_draw.sc_mwin.SetValue(180)
+            self.pane_draw.cs_mwin.SetColour((0, 0, 80))
+            self.pane_draw.sc_mframe.SetValue(255)
+            self.pane_draw.cs_mframe.SetColour((128, 0, 0))
+            self.pane_draw.cs_blwin.SetColour((80, 80, 80))
+            self.pane_draw.cs_blframe.SetColour((128, 128, 128))
+        elif selpane == 2:
+            self.pane_sound.sl_sound.SetValue(100)
+            self.pane_sound.sl_midi.SetValue(80)
+            self.pane_sound.sl_music.SetValue(100)
+            self.pane_sound.list_soundfont.Clear()
+            self.pane_sound.list_soundfont.Append(cw.DEFAULT_SOUNDFONT)
+        elif selpane == 3:
+            # スキン毎のシナリオ開始位置の設定は変更しない
+            self.pane_scenario.cb_selectscenariofromtype.SetValue(True)
+            self.pane_scenario.cb_showunfitnessscenario.SetValue(True)
+            self.pane_scenario.cb_showcompletedscenario.SetValue(True)
+            self.pane_scenario.cb_showinvisiblescenario.SetValue(False)
 
     def OnOk(self, event):
         # 設定変更前はレベル上昇が可能な状態だったか
@@ -187,6 +193,13 @@ class SettingsDialog(wx.Dialog):
             folder = self.pane_scenario.grid_folderoftype.GetCellValue(row, 1)
             cw.cwpy.setting.folderoftype.append((skintype, folder))
 
+        # 操作
+        value = self.pane_gene.cb_showlogwithwheelup.GetValue()
+        if value:
+            cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SHOWLOG
+        else:
+            cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SELECTION
+
         self.Close()
 
     def OnClose(self, event):
@@ -229,6 +242,9 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
         self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
+        self.cb_showlogwithwheelup = wx.CheckBox(
+            self, -1, u"マウスホイールを上に回すとログを表示")
+        self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
@@ -338,6 +354,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((260, -1))
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
