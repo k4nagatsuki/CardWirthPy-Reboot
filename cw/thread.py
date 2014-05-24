@@ -307,7 +307,8 @@ class CWPy(_Singleton, threading.Thread):
                 mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1])
                 self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
         for sprite in self.mcardgrp.sprites():
-            sprite.update_scale()
+            if sprite.is_initialized():
+                sprite.update_scale()
         for sprite in self.pcardgrp.sprites():
             sprite.update_scale()
         for sprite in self.bggrp.sprites():

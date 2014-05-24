@@ -41,6 +41,9 @@ class CWPyCard(base.SelectableSprite):
         # Trueの間はカード消去で使用中カードをクリアしない
         self.hide_inusecardimg = True
 
+    def is_initialized(self):
+        return True
+
     def get_unselectedimage(self):
         return self.get_animeimage()
 
@@ -771,6 +774,9 @@ class EnemyCard(CWPyCard, character.Enemy):
         # 精神力回復
         self.set_skillpower()
 
+    def is_initialized(self):
+        return self._init
+
     def update(self, scr):
         if self.status <> "hidden" and not self._init:
             self.initialize()
@@ -959,6 +965,9 @@ class MenuCard(CWPyCard):
         if not self._init:
             self.initialize()
         return self._cardimg
+
+    def is_initialized(self):
+        return self._init
 
     def update(self, scr):
         if self.status <> "hidden" and not self._init:
