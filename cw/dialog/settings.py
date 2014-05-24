@@ -462,7 +462,7 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_msgs = wx.StaticBoxSizer(self.box_msgs, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
-        bsizer_gene.Add(self.cb_quickdeal, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_quickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((260, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
