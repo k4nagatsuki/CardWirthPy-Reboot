@@ -83,6 +83,12 @@ def create_settings(setting):
     # スキン
     e = cw.data.make_element("Skin", setting.skindirname)
     element.append(e)
+    # 音楽を再生する
+    e = cw.data.make_element("PlayBgm", str(setting.play_bgm))
+    element.append(e)
+    # 効果音を再生する
+    e = cw.data.make_element("PlaySound", str(setting.play_sound))
+    element.append(e)
     # 音楽のボリューム(0～1.0)
     n = int(setting.vol_bgm * 100)
     n2 = int(setting.vol_midi * 100)

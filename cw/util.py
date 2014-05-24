@@ -177,6 +177,9 @@ class MusicInterface(object):
         load_bgm(path)
 
     def _get_volumevalue(self):
+        if not cw.cwpy.setting.play_bgm:
+            return 0
+
         ext = cw.util.splitext(self.path)[1].lower()
 
         if ext == ".mid" or ext == ".midi":
@@ -236,13 +239,18 @@ class SoundInterface(object):
 
     def play(self, from_scenario=False):
         if self._sound:
+            if cw.cwpy.setting.play_sound:
+                volume = cw.cwpy.setting.vol_sound * cw.cwpy.music.mastervolume
+            else:
+                volume = 0
+
             if cw.bassplayer.is_alivablewithpath(self._path):
                 if threading.currentThread() <> cw.cwpy:
                     cw.cwpy.exec_func(self.play, from_scenario)
                     return
                 assert threading.currentThread() == cw.cwpy
                 try:
-                    cw.bassplayer.play_sound(self._sound, cw.cwpy.setting.vol_sound, from_scenario)
+                    cw.bassplayer.play_sound(self._sound, volume, from_scenario)
                 except Exception, ex:
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
@@ -259,7 +267,7 @@ class SoundInterface(object):
                 mciSendStringW(u"stop %s" % (name), 0, 0, 0)
                 mciSendStringW(u"close %s" % (name), 0, 0, 0)
                 mciSendStringW(u'open "%s" alias %s' % (self._sound, name), 0, 0, 0)
-                volume = int(cw.cwpy.setting.vol_sound * 1000)
+                volume = int(volume * 1000)
                 mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                 mciSendStringW(u"play %s" % (name), 0, 0, 0)
             else:
@@ -272,7 +280,7 @@ class SoundInterface(object):
                 else:
                     chan = pygame.mixer.Channel(1)
 
-                self._sound.set_volume(cw.cwpy.setting.vol_sound)
+                self._sound.set_volume(volume)
                 chan.stop()
                 chan.play(self._sound)
 

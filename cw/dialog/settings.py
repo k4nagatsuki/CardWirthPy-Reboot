@@ -56,6 +56,8 @@ class SettingsDialog(wx.Dialog):
             self.pane_draw.cs_blwin.SetColour((80, 80, 80))
             self.pane_draw.cs_blframe.SetColour((128, 128, 128))
         elif selpane == 2:
+            self.pane_sound.cb_playbgm.SetValue(True)
+            self.pane_sound.cb_playsound.SetValue(True)
             self.pane_sound.sl_sound.SetValue(100)
             self.pane_sound.sl_midi.SetValue(80)
             self.pane_sound.sl_music.SetValue(100)
@@ -122,6 +124,10 @@ class SettingsDialog(wx.Dialog):
         value = self.pane_draw.sl_tran.GetValue()
         cw.cwpy.setting.transitionspeed = value
         # オーディオ
+        value = self.pane_sound.cb_playbgm.GetValue()
+        cw.cwpy.setting.play_bgm = value
+        value = self.pane_sound.cb_playsound.GetValue()
+        cw.cwpy.setting.play_sound = value
         value = self.pane_sound.sl_sound.GetValue()
         value = cw.cwpy.setting.wrap_volumevalue(value)
         cw.cwpy.setting.vol_sound = value
@@ -380,8 +386,8 @@ class GeneralSettingPanel(wx.Panel):
 class DrawingSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        # 背景拡大縮小補正
         self.box_gene = wx.StaticBox(self, -1, "")
+        # 背景拡大縮小補正
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
         self.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg)
@@ -501,6 +507,16 @@ class AudioSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
+        self.box_gene = wx.StaticBox(self, -1, "")
+        # 音楽を再生する
+        self.cb_playbgm = wx.CheckBox(
+            self, -1, u"音楽を再生する")
+        self.cb_playbgm.SetValue(cw.cwpy.setting.play_bgm)
+        # 効果音を再生する
+        self.cb_playsound = wx.CheckBox(
+            self, -1, u"効果音を再生する")
+        self.cb_playsound.SetValue(cw.cwpy.setting.play_sound)
+
         # 音量
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
         n = int(cw.cwpy.setting.vol_bgm * 100)
@@ -547,10 +563,15 @@ class AudioSettingPanel(wx.Panel):
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_music = wx.StaticBoxSizer(self.box_music, wx.VERTICAL)
         bsizer_midi = wx.StaticBoxSizer(self.box_midi, wx.VERTICAL)
         bsizer_sound = wx.StaticBoxSizer(self.box_sound, wx.VERTICAL)
         bsizer_soundfont = wx.StaticBoxSizer(self.box_soundfont, wx.VERTICAL)
+
+        bsizer_gene.Add(self.cb_playbgm, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_playsound, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.SetMinSize((260, -1))
 
         sizer_soundfontbtns = wx.BoxSizer(wx.HORIZONTAL)
         sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, 5)
@@ -564,6 +585,7 @@ class AudioSettingPanel(wx.Panel):
         bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.ALL, 5)
         bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 5)
 
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_music, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_midi, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM, 5)
