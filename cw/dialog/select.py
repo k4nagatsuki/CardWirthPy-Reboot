@@ -429,8 +429,12 @@ class YadoSelect(Select):
     def draw(self, update=False):
         dc = Select.draw(self, update)
 
-        skindir = self.skins[self.index]
-        extimg = self.extimgs[self.index]
+        if self.list:
+            skindir = self.skins[self.index]
+            extimg = self.extimgs[self.index]
+        else:
+            skindir = cw.cwpy.skindir
+            extimg = cw.cwpy.rsrc.ext_img
 
         # 背景
         path = "Table/Bill" + extimg
