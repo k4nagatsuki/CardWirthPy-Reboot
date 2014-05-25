@@ -580,6 +580,7 @@ class CWPy(_Singleton, threading.Thread):
         """ダイアログを開く。
         name: ダイアログ名。cw.frame参照。
         """
+        stack = self._showingdlg
         self.lock_menucards = True
         self._showingdlg += 1
         self.keyevent.clear() # キー入力初期化
@@ -588,7 +589,7 @@ class CWPy(_Singleton, threading.Thread):
         if threading.currentThread() == self:
             self.frame.AddPendingEvent(event)
             if sys.platform == "win32":
-                while self.is_running() and self.frame.IsEnabled():
+                while self.is_running() and self.frame.IsEnabled() and stack < self._showingdlg:
                     pass
         else:
             self.frame.ProcessEvent(event)

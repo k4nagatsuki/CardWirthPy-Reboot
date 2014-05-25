@@ -72,6 +72,7 @@ class Setting(object):
             self.show_invisiblescenario = False
             self.wheelup_operation = WHEEL_SHOWLOG
             self.show_allselectedcards = True
+            self.confirm_beforesaving = True
             self.show_savedmessage = True
             self.folderoftype = []
             self.write()
@@ -176,6 +177,8 @@ class Setting(object):
         self.wheelup_operation = data.gettext("WheelUpOperation", WHEEL_SHOWLOG)
         # 戦闘行動を全員分表示する
         self.show_allselectedcards = data.getbool("ShowAllSelectedCards", True)
+        # セーブ前に確認ダイアログを表示
+        self.confirm_beforesaving = data.getbool("ConfirmBeforeSaving", True)
         # セーブ完了時に確認ダイアログを表示
         self.show_savedmessage = data.getbool("ShowSavedMessage", True)
 

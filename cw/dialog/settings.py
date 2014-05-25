@@ -41,6 +41,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.cb_storeskinoneachbase.SetValue(True)
             self.pane_gene.cb_revertcardpocket.SetValue(True)
             self.pane_gene.cb_showlogwithwheelup.SetValue(True)
+            self.pane_gene.cb_confirmbeforesaving.SetValue(True)
             self.pane_gene.cb_showsavedmessage.SetValue(True)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
@@ -88,6 +89,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.store_skinoneachbase = value
         value = self.pane_gene.cb_revertcardpocket.GetValue()
         cw.cwpy.setting.revert_cardpocket = value
+        value = self.pane_gene.cb_confirmbeforesaving.GetValue()
+        cw.cwpy.setting.confirm_beforesaving = value
         value = self.pane_gene.cb_showsavedmessage.GetValue()
         cw.cwpy.setting.show_savedmessage = value
 
@@ -257,6 +260,9 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_showlogwithwheelup = wx.CheckBox(
             self, -1, u"マウスホイールを上に回すとログを表示")
         self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
+        self.cb_confirmbeforesaving = wx.CheckBox(
+            self, -1, u"セーブ前に確認ダイアログを表示")
+        self.cb_confirmbeforesaving.SetValue(cw.cwpy.setting.confirm_beforesaving)
         self.cb_showsavedmessage = wx.CheckBox(
             self, -1, u"セーブ完了時に確認ダイアログを表示")
         self.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage)
@@ -370,6 +376,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((260, -1))
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)

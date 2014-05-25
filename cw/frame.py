@@ -514,15 +514,21 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnSAVE(self, event):
-        s = cw.cwpy.msgs["confirm_save"]
-        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-        self.move_dlg(dlg)
+        if cw.cwpy.setting.confirm_beforesaving:
+            s = cw.cwpy.msgs["confirm_save"]
+            dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+            self.move_dlg(dlg)
+            save = (dlg.ShowModal() == wx.ID_OK)
+        else:
+            dlg = None
+            save = True
 
-        if dlg.ShowModal() == wx.ID_OK:
-            dlg.Destroy()
+        if save:
             cw.cwpy.ydata.save()
             cw.cwpy.sounds["signal"].play()
             if cw.cwpy.setting.show_savedmessage:
+                if dlg:
+                    dlg.Destroy()
                 s = cw.cwpy.msgs["saved"]
                 dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
                 self.move_dlg(dlg)
@@ -675,7 +681,8 @@ class Frame(wx.Frame):
         dlg.MoveXY(x, y)
 
     def kill_dlg(self, dlg=None):
-        dlg.Destroy()
+        if dlg:
+            dlg.Destroy()
         cw.cwpy.mousepos = (-1, -1)
 
         cw.cwpy._showingdlg -= 1

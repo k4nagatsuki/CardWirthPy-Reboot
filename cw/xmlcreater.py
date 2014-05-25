@@ -187,6 +187,9 @@ def create_settings(setting):
     # 戦闘行動を全員分表示する
     e = cw.data.make_element("ShowAllSelectedCards", str(setting.show_allselectedcards))
     element.append(e)
+    # セーブ前に確認ダイアログを表示
+    e = cw.data.make_element("ConfirmBeforeSaving", str(setting.confirm_beforesaving))
+    element.append(e)
     # セーブ完了時に確認ダイアログを表示
     e = cw.data.make_element("ShowSavedMessage", str(setting.show_savedmessage))
     element.append(e)
