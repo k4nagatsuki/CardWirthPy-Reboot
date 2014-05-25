@@ -634,6 +634,11 @@ class PlayerCard(CWPyCard, character.Player):
 
             # USECARDダイアログを開く
             if cw.cwpy.status == "Scenario":
+                if cw.cwpy.selectedheader.allrange:
+                    cw.cwpy.set_targetarrow(cw.cwpy.get_pcards("unreversed"))
+                else:
+                    cw.cwpy.set_targetarrow([self])
+                cw.cwpy.draw()
                 cw.cwpy.call_modaldlg("USECARD")
             # 戦闘行動を設定する。
             elif cw.cwpy.status == "ScenarioBattle":
@@ -994,6 +999,8 @@ class MenuCard(CWPyCard):
 
             # USECARDダイアログを開く
             if cw.cwpy.status == "Scenario":
+                cw.cwpy.set_targetarrow([self])
+                cw.cwpy.draw()
                 cw.cwpy.call_modaldlg("USECARD")
             # 戦闘行動を設定する
             elif cw.cwpy.status == "ScenarioBattle":

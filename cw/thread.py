@@ -1717,6 +1717,9 @@ class CWPy(_Singleton, threading.Thread):
             elif cardtarget == "User" or cardtarget == "None":
                 if self.status == "Scenario":
                     self.change_selection(owner)
+                    if cardtarget == "User":
+                        self.set_targetarrow([owner])
+                        self.draw()
                     self.call_modaldlg("USECARD")
                 elif self.is_battlestatus():
                     owner.set_action(owner, header)
@@ -1772,6 +1775,9 @@ class CWPy(_Singleton, threading.Thread):
             (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
         self.statusbar.change(showbuttons)
         self.disposition_pcards()
+
+        self.change_selection(self.selection)
+        self.draw()
 
     def clean_specials(self):
         """デバッガからの強制的なエリア移動等を発生させる時、
