@@ -567,6 +567,9 @@ class Resource(object):
         if cw.UP_SCR == 1:
             font.set_bold(True)
         fonts["selectionbar"] = font
+        # メッセージログのページ表示描画用
+        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(20))
+        fonts["backlog_page"] = font
         # ステータスバーパネル描画用
         font = pygame.font.Font(self.fontpaths["pmincho"], cw.s(14))
         font.set_bold(True)

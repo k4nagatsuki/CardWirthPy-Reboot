@@ -600,6 +600,7 @@ class EventHandlerForBacklog(EventHandler):
         self.index = index
         self.mwin = self.backlog[self.index].create_message()
 
+        self._page = cw.sprite.message.BacklogPage(self.index+1, len(self.backlog), cw.cwpy.backloggrp)
         self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp)
         self._lock_menucards = cw.cwpy.lock_menucards
         cw.cwpy.clear_selection()
@@ -798,6 +799,7 @@ class EventHandlerForBacklog(EventHandler):
 
         # 背景スプライト削除
         cw.cwpy.backloggrp.remove(self._curtain)
+        cw.cwpy.backloggrp.remove(self._page)
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
         cw.cwpy.draw()
 
@@ -807,6 +809,7 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")
         # 次のバックログ
         self.mwin = self.backlog[self.index].create_message()
+        self._page.update_page(self.index+1, len(self.backlog))
 
 class EventHandlerForEffectBooster(EventHandler):
     def __init__(self):

@@ -743,6 +743,41 @@ class BacklogCurtain(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 0))
 
+class BacklogPage(base.CWPySprite):
+    def __init__(self, page, max, spritegrp):
+        """バックログの何ページ目を見ているかを表示するスプライト。
+        page: 現在見ているページ。
+        max: ページの最大数。
+        spritegrp: 登録するSpriteGroup。"backlogpage"レイヤに追加される。
+        """
+        base.CWPySprite.__init__(self)
+        self.update_page(page, max)
+        # spritegroupに追加
+        spritegrp.add(self, layer="backlogpage")
+
+    def update_page(self, page, max):
+        """バックログの何ページ目を見ているかの情報を更新する。
+        page: 現在見ているページ。
+        max: ページの最大数。
+        """
+        self.page = page
+        self.max = max
+        self.update_scale()
+
+    def update_scale(self):
+        font = cw.cwpy.rsrc.fonts["backlog_page"]
+        s = "%s/%s" % (self.page, self.max)
+        h = font.get_height()
+        w = h/2+cw.s(4)
+        self.image = pygame.Surface((w*len(s), h)).convert_alpha()
+        self.image.fill((0, 0, 0, 0))
+        for i, c in enumerate(s):
+            subimg = font.render(c, True, (255, 255, 255))
+            self.image.blit(subimg, (i*w, cw.s(0)))
+        self.rect = self.image.get_rect()
+        pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - cw.s(10), cw.s(10))
+        self.rect.topleft = pos
+
 def draw_frame(image, size, pos=None, backlog=False):
     """
     引数のサーフェスにメッセージウィンドウの外枠を描画。

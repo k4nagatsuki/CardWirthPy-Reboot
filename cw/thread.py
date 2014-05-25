@@ -280,6 +280,7 @@ class CWPy(_Singleton, threading.Thread):
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
         self.clear_selection()
+        self.mousepos = (-1, -1)
 
         if self.ydata:
             changed = self.ydata.is_changed()
