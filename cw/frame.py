@@ -561,12 +561,22 @@ class Frame(wx.Frame):
 
         cw.cwpy.exec_func(cw.cwpy.clear_curtain)
         cw.cwpy.exec_func(cw.cwpy.set_inusecardimg, owner, header)
-        cw.cwpy.exec_func(cw.cwpy.set_targetarrow, targets)
-        s = cw.cwpy.msgs["confirm_use_card"] % header.name
-        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-        self.move_dlg(dlg)
+        if not cw.cwpy.setting.confirm_beforeusingcard or header.target == "None":
+            cw.cwpy.exec_func(cw.cwpy.clear_targetarrow)
+        else:
+            cw.cwpy.exec_func(cw.cwpy.set_targetarrow, targets)
+        cw.cwpy.exec_func(cw.cwpy.draw)
 
-        if dlg.ShowModal() == wx.ID_OK:
+        if cw.cwpy.setting.confirm_beforeusingcard:
+            s = cw.cwpy.msgs["confirm_use_card"] % header.name
+            dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+            self.move_dlg(dlg)
+            use = (dlg.ShowModal() == wx.ID_OK)
+        else:
+            dlg = None
+            use = True
+
+        if use:
             cw.cwpy.exec_func(owner.use_card, targets, header)
             cw.cwpy._runningevent = True
         else:

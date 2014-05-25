@@ -1717,9 +1717,6 @@ class CWPy(_Singleton, threading.Thread):
             elif cardtarget == "User" or cardtarget == "None":
                 if self.status == "Scenario":
                     self.change_selection(owner)
-                    if cardtarget == "User":
-                        self.set_targetarrow([owner])
-                        self.draw()
                     self.call_modaldlg("USECARD")
                 elif self.is_battlestatus():
                     owner.set_action(owner, header)
