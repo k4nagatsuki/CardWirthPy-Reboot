@@ -49,6 +49,10 @@ class Select(wx.Dialog):
         self.right2btn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.s((30, 30)), bmp=bmp)
         # focus
         self.panel.SetFocusIgnoringChildren()
+        # ダブルクリックとマウスアップを競合させないため
+        # toppanelの上でマウスダウンしてからアップで
+        # 初めてOnSelectBase()が呼ばれるようにする
+        self._downbutton = -1
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
@@ -59,6 +63,8 @@ class Select(wx.Dialog):
         def empty(event):
             pass
         self.toppanel.Bind(wx.EVT_ERASE_BACKGROUND, empty)
+        self.toppanel.Bind(wx.EVT_MIDDLE_DOWN, self.OnMouseDown)
+        self.toppanel.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         self.toppanel.Bind(wx.EVT_MIDDLE_UP, self.OnSelectBase)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnSelectBase)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
@@ -143,7 +149,15 @@ class Select(wx.Dialog):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
             self.ProcessEvent(btnevent)
 
+    def OnMouseDown(self, event):
+        self._downbutton = event.GetButton()
+
     def OnSelectBase(self, event):
+        if self._downbutton <> event.GetButton():
+            self._downbutton = -1
+            return
+        self._downbutton = -1
+
         self._update_mousepos()
         if self.clickmode == wx.LEFT and self.leftbtn.IsEnabled():
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
@@ -1586,6 +1600,9 @@ class ScenarioSelect(Select):
         self.draw(True)
 
     def OnLeftDClick(self, event):
+        if not (self.tree.HitTest(event.GetPosition())[1] & wx.TREE_HITTEST_ONITEM):
+            return
+
         selitem = self.tree.GetSelection()
         if not selitem:
             return
@@ -1594,8 +1611,8 @@ class ScenarioSelect(Select):
             return
         index, pathorheader = data
         if isinstance(pathorheader, cw.header.ScenarioHeader):
-            if self.yesbtn.Enabled:
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
+            if self.viewbtn.Enabled:
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.viewbtn.GetId())
                 self.ProcessEvent(btnevent)
         else:
             if self.tree.IsExpanded(selitem):
@@ -1762,6 +1779,7 @@ class ScenarioSelect(Select):
             self.show_tree()
             self.toppanel.Hide()
             self.tree.Show()
+            self.tree.SetFocus()
 
         self.enable_btn()
 
