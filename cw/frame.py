@@ -522,10 +522,11 @@ class Frame(wx.Frame):
             dlg.Destroy()
             cw.cwpy.ydata.save()
             cw.cwpy.sounds["signal"].play()
-            s = cw.cwpy.msgs["saved"]
-            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
-            self.move_dlg(dlg)
-            dlg.ShowModal()
+            if cw.cwpy.setting.show_savedmessage:
+                s = cw.cwpy.msgs["saved"]
+                dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
+                self.move_dlg(dlg)
+                dlg.ShowModal()
 
         self.kill_dlg(dlg)
 
