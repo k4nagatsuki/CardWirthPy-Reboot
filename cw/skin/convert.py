@@ -59,6 +59,7 @@ class Converter(threading.Thread):
         self.scenario = self._get_resources(u"Scenario")
         self.title = self._get_resources(u"Title")
         self.yado = self._get_resources(u"Yado")
+        self.specialcard = self._get_resources(u"SpecialCard")
 
         self._get_features()
         self._get_sounds()
@@ -773,6 +774,7 @@ class Converter(threading.Thread):
             self._write_data(dir, self.scenario)
             self._write_data(dir, self.title)
             self._write_data(dir, self.yado)
+            self._write_data(dir, self.specialcard)
 
             imgtbl = {
                 "BUTTON_ARROW":"Button/ARROW",

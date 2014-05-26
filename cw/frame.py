@@ -140,6 +140,7 @@ class Frame(wx.Frame):
             "BACKPACK",  # 荷物袋ダイアログ
             "STOREHOUSE",  # カード置場ダイアログ
             "CARDPOCKET",  # プレイヤ所持カードダイアログ
+            "CARDPOCKETB",  # プレイヤ所持カードダイアログ(荷物袋から使用)
             "HANDVIEW",  # 戦闘手札カードダイアログ
             "INFOVIEW",  # 情報カードダイアログ
             "CHARAINFO",  # キャラクタ情報ダイアログ
@@ -444,8 +445,8 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnBACKPACK(self, event):
-        self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK")
+        areaid = self.change_cardcontrolarea()
+        dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", areaid=areaid)
         self.move_dlg(dlg, cw.s((0, -63)))
 
         if not dlg.ShowModal() == wx.ID_OK:
@@ -454,8 +455,8 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnSTOREHOUSE(self, event):
-        self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE")
+        areaid = self.change_cardcontrolarea()
+        dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", areaid=areaid)
         self.move_dlg(dlg, cw.s((0, -63)))
 
         if not dlg.ShowModal() == wx.ID_OK:
@@ -463,9 +464,15 @@ class Frame(wx.Frame):
 
         self.kill_dlg(dlg)
 
+    def OnCARDPOCKETB(self, event):
+        self._cardpocket_impl("CARDPOCKETB")
+
     def OnCARDPOCKET(self, event):
-        self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "CARDPOCKET")
+        self._cardpocket_impl("CARDPOCKET")
+
+    def _cardpocket_impl(self, callname):
+        areaid = self.change_cardcontrolarea()
+        dlg = cw.dialog.cardcontrol.CardHolder(self, callname, areaid=areaid)
         self.move_dlg(dlg, cw.s((0, -63)))
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -478,7 +485,7 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnHANDVIEW(self, event):
-        self.change_cardcontrolarea()
+        areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.HandView(self)
         self.move_dlg(dlg, cw.s((0, -63)))
 
@@ -710,12 +717,16 @@ class Frame(wx.Frame):
     def change_cardcontrolarea(self):
         """カード移動操作を行う特殊エリアに移動。"""
         if cw.cwpy.areaid in cw.AREAS_TRADE:
-            return
+            return cw.cwpy.areaid
         elif cw.cwpy.status == "Yado":
             func = cw.cwpy.change_specialarea
-            cw.cwpy.exec_func(func, -cw.cwpy.areaid)
+            areaid = -cw.cwpy.areaid
+            cw.cwpy.exec_func(func, areaid)
+            return areaid
         elif cw.cwpy.is_playingscenario() and cw.cwpy.areaid == cw.AREA_CAMP:
             cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.AREA_TRADE3)
+            return cw.AREA_TRADE3
+        return cw.cwpy.areaid
 
     def GetClientPosition(self):
         size = self.GetSize()

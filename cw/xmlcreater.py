@@ -196,6 +196,9 @@ def create_settings(setting):
     # セーブ完了時に確認ダイアログを表示
     e = cw.data.make_element("ShowSavedMessage", str(setting.show_savedmessage))
     element.append(e)
+    # 荷物袋のカードを一時的に取り出して使えるようにする
+    e = cw.data.make_element("ShowBackpackCard", str(setting.show_backpackcard))
+    element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)
     e = cw.data.make_element("ScenarioFolderOfSkinType")

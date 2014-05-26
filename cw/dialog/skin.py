@@ -649,6 +649,14 @@ class SkinCardPanel(wx.Panel):
             name = e.gettext("Property/Name", "")
             self.grid.SetRowLabelValue(row, u"アクション:" + name)
             row += 1
+        self.grid.InsertRows(row, len(baseconv.specialcard), False)
+        keys = baseconv.specialcard.keys()
+        keys.sort()
+        for key in keys:
+            e = baseconv.specialcard[key]
+            name = e.gettext("Property/Name", "")
+            self.grid.SetRowLabelValue(row, u"特殊カード:" + name)
+            row += 1
 
         def put_areacards(table, row):
             keys = table.keys()
@@ -688,6 +696,15 @@ class SkinCardPanel(wx.Panel):
             self.grid.SetCellValue(row, 0, name)
             self.grid.SetCellValue(row, 1, desc)
             row += 1
+        keys = conv.specialcard.keys()
+        keys.sort()
+        for key in keys:
+            e = conv.specialcard[key]
+            name = e.gettext("Property/Name", "")
+            desc = e.gettext("Property/Description", "")
+            self.grid.SetCellValue(row, 0, name)
+            self.grid.SetCellValue(row, 1, desc)
+            row += 1
 
         def put_areacards(table, row):
             keys = table.keys()
@@ -714,6 +731,15 @@ class SkinCardPanel(wx.Panel):
         keys.sort()
         for key in keys:
             e = conv.actioncard[key]
+            name = self.grid.GetCellValue(row, 0)
+            desc = self.grid.GetCellValue(row, 1)
+            name = e.find("Property/Name").text = name
+            desc = e.find("Property/Description").text = desc
+            row += 1
+        keys = conv.specialcard.keys()
+        keys.sort()
+        for key in keys:
+            e = conv.specialcard[key]
             name = self.grid.GetCellValue(row, 0)
             desc = self.grid.GetCellValue(row, 1)
             name = e.find("Property/Name").text = name

@@ -75,6 +75,7 @@ class Setting(object):
             self.confirm_beforeusingcard = True
             self.confirm_beforesaving = True
             self.show_savedmessage = True
+            self.show_backpackcard = True
             self.folderoftype = []
             self.write()
 
@@ -184,6 +185,9 @@ class Setting(object):
         self.confirm_beforesaving = data.getbool("ConfirmBeforeSaving", True)
         # セーブ完了時に確認ダイアログを表示
         self.show_savedmessage = data.getbool("ShowSavedMessage", True)
+
+        # 荷物袋のカードを一時的に取り出して使えるようにする
+        self.show_backpackcard = data.getbool("ShowBackpackCard", True)
 
         # シナリオフォルダ(スキンタイプ別)
         self.folderoftype = []
@@ -914,7 +918,7 @@ class Resource(object):
     def get_actioncards(self):
         """
         "Resource/Xml/ActionCard"にあるアクションカードを読み込み、
-        CWPyElementTreeインスタンスの辞書で返す。
+        cw.header.CardHeaderインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Xml/ActionCard")
         ext = ".xml"
@@ -927,6 +931,29 @@ class Resource(object):
                 header = cw.header.CardHeader(carddata=carddata)
                 d[header.id] = header
 
+        return d
+
+    def get_backpackcards(self):
+        """
+        "Resource/Xml/SpecialCard/UseCardInBackpack.xml"のカードを読み込み、
+        cw.header.CardHeaderインスタンスの辞書で返す。
+        """
+        fpath = cw.util.join_paths(self.skindir, "Resource/Xml/SpecialCard/UseCardInBackpack.xml")
+        if not os.path.isfile(fpath):
+            # 旧バージョンのスキンには存在しないのでSkinBaseを使用
+            fpath = u"Data/SkinBase/Resource/Xml/SpecialCard/UseCardInBackpack.xml"
+            carddata = cw.data.xml2element(fpath)
+            # 拡張子をスキンに合わせて差し替える
+            imgpath = carddata.gettext("Property/ImagePath", "")
+            if imgpath:
+                imgpath = os.path.splitext(imgpath)[0] + self.ext_img
+                carddata.find("Property/ImagePath").text = imgpath
+        else:
+            carddata = cw.data.xml2element(fpath)
+
+        d = {}
+        for type in ("ItemCard", "BeastCard"):
+            d[type] = cw.header.CardHeader(carddata=carddata, bgtype=type.upper().replace("CARD", ""))
         return d
 
     def get_specialchars(self):

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<UseCardInBackpack>
+  <Property>
+    <Id>0</Id>
+    <Name>荷物袋</Name>
+    <ImagePath>Resource/Image/Card/COMMAND7.bmp</ImagePath>
+    <Description>特殊行動カード。荷物袋から一時的にカードを取り出して使用し、その後荷物袋へ戻す。</Description>
+    <Scenario></Scenario>
+    <Author></Author>
+    <Level>0</Level>
+    <Ability physical="None" mental="None" />
+    <Target allrange="False">User</Target>
+    <EffectType spell="False">Normal</EffectType>
+    <ResistType>Unfail</ResistType>
+    <SuccessRate>0</SuccessRate>
+    <VisualEffect>None</VisualEffect>
+    <Enhance avoid="0" resist="0" defense="0"/>
+    <SoundPath></SoundPath>
+    <SoundPath2></SoundPath2>
+    <KeyCodes></KeyCodes>
+    <Premium>Normal</Premium>
+    <UseLimit>0</UseLimit>
+    <Hold>False</Hold>
+  </Property>
+  <Motions/>
+  <Events/>
+</UseCardInBackpack>

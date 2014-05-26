@@ -16,7 +16,7 @@ import cw
 
 
 class CardHeader(object):
-    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None, dbowner="STOREHOUSE"):
+    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None, dbowner="STOREHOUSE", bgtype=""):
         self.ref_original = weakref.ref(self)
         self.order = -1
         if dbrec:
@@ -71,12 +71,12 @@ class CardHeader(object):
             self.author = data.gettext("Author", "")
             self.keycodes = data.gettext("KeyCodes", "")
             self.keycodes = cw.util.decodetextlist(self.keycodes) if self.keycodes else []
-            self.uselimit = data.getint("UseLimit")
-            self.target = data.gettext("Target")
-            self.allrange = data.getbool("Target", "allrange")
-            self.premium = data.gettext("Premium")
-            self.physical = data.getattr("Ability", "physical").lower()
-            self.mental = data.getattr("Ability", "mental").lower()
+            self.uselimit = data.getint("UseLimit", 0)
+            self.target = data.gettext("Target", "None")
+            self.allrange = data.getbool("Target", "allrange", False)
+            self.premium = data.gettext("Premium", "Normal")
+            self.physical = data.getattr("Ability", "physical", "None").lower()
+            self.mental = data.getattr("Ability", "mental", "None").lower()
             # カードの種類ごとに違う処理
             self.level = 9999
             self.maxuselimit = 0
@@ -130,6 +130,8 @@ class CardHeader(object):
             # 互換性マーク
             self.versionhint = data.getattr(".", "versionHint", "")
 
+        self.bgtype = bgtype
+
         self.vocation = (self.physical, self.mental)
 
         self._cardscale = cw.UP_SCR
@@ -177,7 +179,7 @@ class CardHeader(object):
 
     def set_cardimg(self, path):
         if not cw.binary.image.path_is_code(path):
-            if self.type == "ActionCard":
+            if self.type in ("ActionCard", "UseCardInBackpack"):
                 path = cw.util.join_paths(cw.cwpy.skindir, path)
             elif self.scenariocard:
                 if not cw.binary.image.path_is_code(path):
@@ -211,6 +213,8 @@ class CardHeader(object):
             self._owner = owner
 
     def get_bgtype(self):
+        if self.bgtype:
+            return self.bgtype
         if self.type == "BeastCard" and self.attachment:
             return "OPTION"
         return self.type.upper().replace("CARD", "")
@@ -257,8 +261,8 @@ class CardHeader(object):
             owner = self.get_owner()
         physical = self.vocation[0]
         mental = self.vocation[1].replace("un", "", 1)
-        physical = owner.data.getint("Property/Ability/Physical", physical)
-        mental = owner.data.getint("Property/Ability/Mental", mental)
+        physical = owner.data.getint("Property/Ability/Physical", physical, 0)
+        mental = owner.data.getint("Property/Ability/Mental", mental, 0)
 
         if self.vocation[1].startswith("un"):
             mental = -mental

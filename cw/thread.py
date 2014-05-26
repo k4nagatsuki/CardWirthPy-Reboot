@@ -123,6 +123,8 @@ class CWPy(_Singleton, threading.Thread):
         # 使用中カード
         self.inusecards = []
         self.guardcards = []
+        # 一時的に荷物袋から取り出して使用中のカード
+        self.card_takenouttemporarily = None
         # エリアID
         self.areaid = 1
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
@@ -167,8 +169,10 @@ class CWPy(_Singleton, threading.Thread):
             # スケールのみの変更ではリセットしない
             if rsrc:
                 self.rsrc.actioncards = rsrc.actioncards
+                self.rsrc.backpackcards = rsrc.backpackcards
             else:
                 self.rsrc.actioncards = self.rsrc.get_actioncards()
+                self.rsrc.backpackcards = self.rsrc.get_backpackcards()
             # 背景スプライト
             if not self.background:
                 self.background = cw.sprite.background.BackGround()
@@ -472,9 +476,22 @@ class CWPy(_Singleton, threading.Thread):
             self.pcardgrp.update(self.scr)
         self.topgrp.update(self.scr)
         self.sbargrp.update(self.scr)
+
         if not self.statusbar.showbuttons:
+            # 通常エリアで操作可能な状態であればステータスバーのボタンを表示
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
+
+        # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
+        # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
+        self.return_takenoutcard()
+
+    def return_takenoutcard(self):
+        # 一時的に荷物袋から出したカードを戻す(消滅していなければ)
+        if self.card_takenouttemporarily and not self.selectedheader and not self.is_runningevent() and not self.is_battlestatus():
+            if self.card_takenouttemporarily.get_owner():
+                cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None, sound=False, call_predlg=False)
+            cw.cwpy.card_takenouttemporarily = None
 
     def draw_cards(self, scr):
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
@@ -607,6 +624,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def call_predlg(self):
         """直前に開いていたダイアログを再び開く。"""
+        self.return_takenoutcard()
         if self.pre_dialogs:
             pre_info = self.pre_dialogs[-1]
             callname = pre_info[0]
@@ -974,6 +992,7 @@ class CWPy(_Singleton, threading.Thread):
         self.set_status("GameOver")
         self._gameover = False
         self.battle = None
+        self.card_takenouttemporarily = None
         pygame.event.clear()
         self.hide_party()
         self.ydata.party.lost()
@@ -2156,7 +2175,7 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True, party=None, from_getcontent=False):
+    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True, party=None, from_getcontent=False, call_predlg=True):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -2496,7 +2515,7 @@ class CWPy(_Singleton, threading.Thread):
                 header.carddata = None
 
         # カード選択ダイアログを再び開く(イベントから呼ばれたのでなかったら)
-        if not from_event:
+        if not from_event and call_predlg:
             self.call_predlg()
 
     def remove_xml(self, target):
