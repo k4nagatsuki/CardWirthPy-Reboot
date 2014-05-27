@@ -630,9 +630,10 @@ class CardHolder(CardControl):
                 assert self.callname == "CARDPOCKETB"
                 self._set_backpacklist()
 
-        # カード移動でページ数が減っていたらself.indexを-1
-        if len(self.list) % 10 == 0 and len(self.list) / 10 == indexs[0]:
-            self.index -= 1
+        # カード移動等でページ数が減っていた場合はself.indexを補正
+        if self.callname <> "CARDPOCKET":
+            if (len(self.list)+9) / 10 <= self.index:
+                self.index = (len(self.list)+9) / 10 - 1
 
         # 左右ボタンでの移動先の有無(情報カードは左右移動無し)
         if self.callname <> "INFOVIEW":
