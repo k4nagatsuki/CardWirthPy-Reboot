@@ -208,6 +208,10 @@ class EventInterface(object):
 
         return cw.cwpy.dice.choice(pcards)
 
+    def has_selectedmember(self):
+        """選択メンバが存在する場合はTrueを返す。"""
+        return bool(self._selectedmember)
+
     def get_selectedmember(self):
         """選択中のPlayerCardインスタンスを返す。
         存在しなかったらランダムで選択して返す。

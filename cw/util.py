@@ -1382,11 +1382,12 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             if mode in (1, 2, 3) and index+1 < len(s) and r_hwchar.match(s[index+1]):
                 width2 += 1
 
-        # 行末に半角スペースがあると折り返し位置が変わる
-        # (イベントによるメッセージのみ)
-        if not wrapafter2 and index+1 < len(s) and s[index+1] == " " and mode in (2, 3):
-            width2 += 1
-            asciicnt = 0
+        # 互換動作: 1.28以降は行末に半角スペースがあると折り返し位置が変わる
+        #           (イベントによるメッセージのみ)
+        if cw.cwpy.sdata and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
+            if not wrapafter2 and index+1 < len(s) and s[index+1] == " " and mode in (2, 3):
+                width2 += 1
+                asciicnt = 0
 
         # 行折り返し処理
         if not spchar and cnt > width2:

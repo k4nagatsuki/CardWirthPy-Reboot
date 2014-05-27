@@ -728,6 +728,13 @@ class BranchCouponContent(BranchContent):
             someone = True
             unreversed = False
 
+        # 互換動作: 1.20では選択中のメンバがいない状態で
+        #           選択中のメンバでの所持判定を行うと
+        #           「誰か一人」のように動作する
+        if not cw.cwpy.event.has_selectedmember() and scope == "Selected":
+            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
+                scope = "Party"
+
         # 所持判定
         targets = cw.cwpy.event.get_targetscope(scope, unreversed)
         flag = False
