@@ -647,6 +647,8 @@ class CardHolder(CardControl):
         # ダイアログ作成
         sort = self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB")
         CardControl.__init__(self, parent, name, sendto, sort, areaid=areaid)
+        if self.callname == "CARDPOCKETB":
+            self.closebtn.SetLabel(cw.cwpy.msgs["return"])
 
         # キャストの手札カード用のコントロール
         # 情報カードダイアログの場合は切り替えが無いため不要
@@ -1009,6 +1011,11 @@ class CardHolder(CardControl):
             self.upbtn.Enable()
             self.downbtn.Enable()
         self.Layout()
+
+        if self.callname == "CARDPOCKETB":
+            self.closebtn.SetLabel(cw.cwpy.msgs["return"])
+        else:
+            self.closebtn.SetLabel(cw.cwpy.msgs["close"])
 
     def _set_backpacklist(self):
         if self.index3 == cw.POCKET_SKILL:
