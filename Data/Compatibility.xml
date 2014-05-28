@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="0092491155a1b4bad2b17f8ff835eed1">1.20</Scenario><!-- ミスティック・ミステリィ -->
   <Scenario md5="3bfcc536a58b22295d3c9926a4c8f4f4">1.20</Scenario><!-- YOUKAI VILLAGE -->
   <Scenario md5="104cb93ca61264052d140bedb2a9c72d">1.20</Scenario><!-- 流れ星の詩 -->
   <Scenario md5="d0217270f4cc6ed26928b1e99d9f505a">1.20</Scenario><!-- シュバリエの館/Area4.wid -->
