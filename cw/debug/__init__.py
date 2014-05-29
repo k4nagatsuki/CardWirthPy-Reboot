@@ -7,6 +7,7 @@ import cardedit
 import charaedit
 import statusedit
 import recording
+import event
 
 
 def main():

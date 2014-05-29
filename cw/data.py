@@ -2225,6 +2225,7 @@ def xml2element(path="", tag="", file=None, nocache=False):
             if cdata is None:
                 return None
             data = cdata.get_data()
+            data.fpath = path
 
             # 互換性マーク付与
             if cw.cwpy.classicdata.hasmodeini:

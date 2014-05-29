@@ -42,6 +42,7 @@ ID_STEPIN = wx.NewId()
 ID_PAUSE = wx.NewId()
 ID_STOP = wx.NewId()
 ID_ROUND = wx.NewId()
+ID_STARTEVENT = wx.NewId()
 
 
 class Debugger(wx.Frame):
@@ -59,6 +60,9 @@ class Debugger(wx.Frame):
         # create status bar
         self.statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
         self.statusbar.SetStatusWidths([0, -1])
+
+        # 最後に強制実行したイベントが属するファイルパス
+        self._currentfpath = ""
 
         rsrc = cw.cwpy.rsrc.debugs
 
@@ -168,6 +172,11 @@ class Debugger(wx.Frame):
         self.mi_round.SetBitmap(rsrc["ROUND"])
         scenario_menu.AppendItem(self.mi_round)
 
+        self.mi_startevent = wx.MenuItem(run_menu, ID_STARTEVENT, u"イベントの実行(&E)",
+                         u"イベントを選択して実行します。")
+        self.mi_startevent.SetBitmap(rsrc["EVENT"])
+        run_menu.AppendItem(self.mi_startevent)
+        run_menu.AppendSeparator()
         self.mi_stepreturn = wx.MenuItem(run_menu, ID_STEPRETURN, u"ステップリターン(&R)\tCtrl+Shift+F11",
                          u"イベントのサブルーチンを抜けます。")
         self.mi_stepreturn.SetBitmap(rsrc["EVTCTRL_STEPRETURN"])
@@ -291,6 +300,11 @@ class Debugger(wx.Frame):
         # create event control bar
         self.tb_event = wx.ToolBar(self, -1, style=wx.TB_FLAT|wx.TB_NODIVIDER)
         self.tb_event.SetToolBitmapSize(wx.Size(20, 20))
+
+        self.tl_startevent = self.tb_event.AddLabelTool(
+            ID_STARTEVENT, u"イベントの実行", rsrc["EVENT"],
+            shortHelp=u"イベントを選択して実行します。")
+        self.tb_event.AddSeparator()
         self.tl_stepreturn = self.tb_event.AddLabelTool(
             ID_STEPRETURN, u"ステップリターン", rsrc["EVTCTRL_STEPRETURN"],
             shortHelp=u"イベントのサブルーチンを抜けます。")
@@ -446,6 +460,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMemberTool, id=ID_MEMBER)
         self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
+        self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
 
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
@@ -808,6 +823,21 @@ class Debugger(wx.Frame):
 
         dlg.Destroy()
 
+    def OnStartEventTool(self, event):
+        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent() and\
+                (not cw.cwpy.is_battlestatus() or cw.cwpy.battle.is_ready()):
+            if self._currentfpath and os.path.isfile(self._currentfpath):
+                currentfpath = self._currentfpath
+            elif cw.cwpy.sdata.data:
+                currentfpath = cw.cwpy.sdata.data.fpath
+            else:
+                currentfpath = ""
+            dlg = cw.debug.event.EventListDialog(self, currentfpath)
+            if dlg.ShowModal() == wx.ID_OK:
+                cw.cwpy.exec_func(dlg.events.get_selectedevent().start)
+                self._currentfpath = dlg.events.get_currentfpath()
+            dlg.Destroy()
+
     def OnStepReturnTool(self, event):
         if cw.cwpy.event.get_currentstack() == 0:
             evt = wx.PyCommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED, ID_PAUSE)
@@ -1011,6 +1041,8 @@ class Debugger(wx.Frame):
         self.tl_hideparty.Enable(False)
         self.mi_area.Enable(False)
         self.tl_area.Enable(False)
+        self.mi_startevent.Enable(False)
+        self.tl_startevent.Enable(False)
 
         self.mi_bgm.Enable(True)
         self.tl_bgm.Enable(True)
@@ -1078,6 +1110,9 @@ class Debugger(wx.Frame):
                     self.tl_reset.Enable(True)
                     self.mi_area.Enable(True)
                     self.tl_area.Enable(True)
+                    self.mi_startevent.Enable(True)
+                    self.tl_startevent.Enable(True)
+
         else:
             self.mi_pause.Enable(True)
             self.tl_pause.Enable(True)
