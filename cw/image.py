@@ -327,53 +327,49 @@ class CharacterCardImage(CardImage):
 
     def update_statusimg(self, ccard):
         seq = []
-        beastnum = ccard.has_beast()
+        az = ccard.is_analyzable()
 
+        beastnum = ccard.has_beast()
         if beastnum: # 召喚獣所持(付帯召喚以外)
-            image = cw.cwpy.rsrc.statuses["SUMMON"].copy()
-            font = cw.cwpy.rsrc.fonts["statusimg"]
-            pos = cw.s((8, 4))
-            s = str(beastnum)
-            subimg = font.render(s, False, (0, 0, 0))
-            image.blit(subimg, (pos[0]+1, pos[1]))
-            image.blit(subimg, (pos[0]-1, pos[1]))
-            image.blit(subimg, (pos[0], pos[1]+1))
-            image.blit(subimg, (pos[0], pos[1]-1))
-            subimg = font.render(s, False, (255, 255, 255))
-            image.blit(subimg, pos)
-            seq.append(image)
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["SUMMON"], beastnum, True))
         if ccard.is_poison(): # 中毒
-            seq.append(cw.cwpy.rsrc.statuses["BODY0"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["BODY0"], ccard.poison if az else 0))
+        if cw.cwpy.setting.show_statustime and ccard.is_paralyze(): # 麻痺
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["BODY1"], ccard.paralyze if az else 0))
+        if cw.cwpy.setting.show_statustime and ccard.is_sleep(): # 睡眠
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND1"], ccard.mentality_dur if az else 0))
         if ccard.is_confuse(): # 混乱
-            seq.append(cw.cwpy.rsrc.statuses["MIND2"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND2"], ccard.mentality_dur if az else 0))
         elif ccard.is_overheat(): # 激昂
-            seq.append(cw.cwpy.rsrc.statuses["MIND3"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND3"], ccard.mentality_dur if az else 0))
         elif ccard.is_brave(): # 勇敢
-            seq.append(cw.cwpy.rsrc.statuses["MIND4"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND4"], ccard.mentality_dur if az else 0))
         elif ccard.is_panic(): # 恐慌
-            seq.append(cw.cwpy.rsrc.statuses["MIND5"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MIND5"], ccard.mentality_dur if az else 0))
+        if cw.cwpy.setting.show_statustime and ccard.is_bind(): # 呪縛
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC0"], ccard.bind if az else 0))
         if ccard.is_silence(): # 沈黙
-            seq.append(cw.cwpy.rsrc.statuses["MAGIC1"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC1"], ccard.silence if az else 0))
         if ccard.is_faceup(): # 暴露
-            seq.append(cw.cwpy.rsrc.statuses["MAGIC2"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC2"], ccard.faceup if az else 0))
         if ccard.is_antimagic(): # 魔法無効化
-            seq.append(cw.cwpy.rsrc.statuses["MAGIC3"])
+            seq.append(self._put_number(cw.cwpy.rsrc.statuses["MAGIC3"], ccard.antimagic if az else 0))
         if ccard.enhance_act > 0: # 行動力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP0"], ccard.enhance_act)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP0"], ccard.enhance_act, ccard.enhance_act_dur if az else 0)
         elif ccard.enhance_act < 0: # 行動力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN0"], ccard.enhance_act)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN0"], ccard.enhance_act, ccard.enhance_act_dur if az else 0)
         if ccard.enhance_avo > 0: # 回避力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP1"], ccard.enhance_avo)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP1"], ccard.enhance_avo, ccard.enhance_avo_dur if az else 0)
         elif ccard.enhance_avo < 0: # 回避力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN1"], ccard.enhance_avo)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN1"], ccard.enhance_avo, ccard.enhance_avo_dur if az else 0)
         if ccard.enhance_res > 0: # 抵抗力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP2"], ccard.enhance_res)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP2"], ccard.enhance_res, ccard.enhance_res_dur if az else 0)
         elif ccard.enhance_res < 0: # 抵抗力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN2"], ccard.enhance_res)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN2"], ccard.enhance_res, ccard.enhance_res_dur if az else 0)
         if ccard.enhance_def > 0: # 防御力強化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP3"], ccard.enhance_def)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["UP3"], ccard.enhance_def, ccard.enhance_def_dur if az else 0)
         elif ccard.enhance_def < 0: # 防御力弱化
-            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def)
+            self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def, ccard.enhance_def_dur if az else 0)
 
         x = cw.s(7)
         if ccard.is_analyzable():
@@ -390,7 +386,38 @@ class CharacterCardImage(CardImage):
             else:
                 self.image.fill(subimg[0], pygame.Rect(pos, subimg[1]))
 
-    def _put_enhanceimg(self, seq, bmp, value):
+    def _put_number(self, image, num, always=False):
+        if (always or cw.cwpy.setting.show_statustime) and num:
+            image = image.copy()
+            s = str(num)
+            if len(s) == 1:
+                font = cw.cwpy.rsrc.fonts["statusimg1"]
+            elif len(s) == 2:
+                font = cw.cwpy.rsrc.fonts["statusimg2"]
+            else:
+                font = cw.cwpy.rsrc.fonts["statusimg3"]
+            h = font.get_height()
+            w = (h+1) / 2
+            subimg = pygame.Surface((len(s)*w, h)).convert_alpha()
+            subimg.fill((0, 0, 0, 0))
+            x = image.get_width() - subimg.get_width() - cw.s(1)
+            y = image.get_height() - subimg.get_height()
+            pos = (x, y)
+            for i, c in enumerate(s):
+                cimg = font.render(c, False, (0, 0, 0))
+                image.blit(cimg, (pos[0]+1 + i*w, pos[1]+1))
+                image.blit(cimg, (pos[0]+1 + i*w, pos[1]-1))
+                image.blit(cimg, (pos[0]-1 + i*w, pos[1]+1))
+                image.blit(cimg, (pos[0]-1 + i*w, pos[1]-1))
+                image.blit(cimg, (pos[0]+1 + i*w, pos[1]))
+                image.blit(cimg, (pos[0]-1 + i*w, pos[1]))
+                image.blit(cimg, (pos[0] + i*w, pos[1]+1))
+                image.blit(cimg, (pos[0] + i*w, pos[1]-1))
+                cimg = font.render(c, False, (255, 255, 255))
+                image.blit(cimg, (pos[0] + i*w, pos[1]))
+        return image
+
+    def _put_enhanceimg(self, seq, bmp, value, duration):
         size = (bmp.get_width(), bmp.get_height())
         if value >= 10:
             seq.append((pygame.Color(255, 0, 0), size))
@@ -408,6 +435,7 @@ class CharacterCardImage(CardImage):
             seq.append((pygame.Color(0, 0, 136), size))
         elif value <= -1:
             seq.append((pygame.Color(0, 0, 187), size))
+        bmp = self._put_number(bmp, duration)
         seq.append(bmp)
 
     def get_cardbgname(self, ccard):

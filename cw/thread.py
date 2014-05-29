@@ -2056,6 +2056,9 @@ class CWPy(_Singleton, threading.Thread):
         for ccard in ccards:
             ccard.set_timeelapse()
 
+        if ccards:
+            self.draw()
+
     def interrupt_adventure(self):
         """冒険の中断。宿画面に遷移する。"""
         if self.status == "Scenario":

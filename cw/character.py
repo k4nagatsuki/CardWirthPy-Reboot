@@ -1793,7 +1793,8 @@ class Character(object):
         # 時限クーポン処理
         self.count_timedcoupon()
         oldalive = self.is_alive()
-        flag = False
+        flag = False # 反転しながら画像を更新する場合はTrue
+        updateimage = False # 反転せずに画像を更新する場合はTrue
 
         # 中毒
         if self.is_poison() and not self.is_unconscious():
@@ -1815,36 +1816,46 @@ class Character(object):
 
                 if self.status <> "reversed" and self.status <> "hidden":
                     cw.animation.animate_sprite(self, "lateralvibe")
-                self.update_image()
+                updateimage = True
 
         # 麻痺
         if self.is_paralyze() and not self.is_petrified():
             self.set_paralyze(-time)
             flag |= not self.is_paralyze()
+            if self.is_analyzable():
+                updateimage = True
 
         # 束縛
         if self.is_bind():
             value = self.bind - time
             self.set_bind(value)
             flag |= not self.is_bind()
+            if self.is_analyzable():
+                updateimage = True
 
         # 沈黙
         if self.is_silence():
             value = self.silence - time
             self.set_silence(value)
             flag |= not self.is_silence()
+            if self.is_analyzable():
+                updateimage = True
 
         # 暴露
         if self.is_faceup():
             value = self.faceup - time
             self.set_faceup(value)
             flag |= not self.is_faceup()
+            if self.is_analyzable():
+                updateimage = True
 
         # 魔法無効化
         if self.is_antimagic():
             value = self.antimagic - time
             self.set_antimagic(value)
             flag |= not self.is_antimagic()
+            if self.is_analyzable():
+                updateimage = True
 
         # 精神状態
         if self.mentality_dur > 0:
@@ -1856,6 +1867,9 @@ class Character(object):
                 self.set_mentality("Normal", 0)
                 flag = True
 
+            if self.is_analyzable():
+                updateimage = True
+
         # 行動力
         if self.enhance_act_dur > 0:
             value = self.enhance_act_dur - time
@@ -1865,6 +1879,9 @@ class Character(object):
             else:
                 self.set_enhance_act(0, 0)
                 flag = True
+
+            if self.is_analyzable():
+                updateimage = True
 
         # 回避力
         if self.enhance_avo_dur > 0:
@@ -1876,6 +1893,9 @@ class Character(object):
                 self.set_enhance_avo(0, 0)
                 flag = True
 
+            if self.is_analyzable():
+                updateimage = True
+
         # 抵抗力
         if self.enhance_res_dur > 0:
             value = self.enhance_res_dur - time
@@ -1885,6 +1905,9 @@ class Character(object):
             else:
                 self.set_enhance_res(0, 0)
                 flag = True
+
+            if self.is_analyzable():
+                updateimage = True
 
         # 防御力
         if self.enhance_def_dur > 0:
@@ -1896,6 +1919,9 @@ class Character(object):
                 self.set_enhance_def(0, 0)
                 flag = True
 
+            if self.is_analyzable():
+                updateimage = True
+
         # 中毒効果で死亡していたら、ステータスを元に戻す
         if self.is_unconscious():
             self.set_unconsciousstatus()
@@ -1905,11 +1931,14 @@ class Character(object):
             self.events.start(1)
 
         # 画像更新
-        if flag:
+        if flag or updateimage:
             if self.status <> "reversed" and self.status <> "hidden":
-                cw.animation.animate_sprite(self, "hide")
-                self.update_image()
-                cw.animation.animate_sprite(self, "deal")
+                if flag:
+                    cw.animation.animate_sprite(self, "hide")
+                    self.update_image()
+                    cw.animation.animate_sprite(self, "deal")
+                else:
+                    self.update_image()
             else:
                 self.update_image()
 

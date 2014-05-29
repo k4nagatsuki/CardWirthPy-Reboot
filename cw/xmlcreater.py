@@ -199,6 +199,9 @@ def create_settings(setting):
     # 荷物袋のカードを一時的に取り出して使えるようにする
     e = cw.data.make_element("ShowBackpackCard", str(setting.show_backpackcard))
     element.append(e)
+    # 各種ステータスの残り時間を表示する
+    e = cw.data.make_element("ShowStatusTime", str(setting.show_statustime))
+    element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)
     e = cw.data.make_element("ScenarioFolderOfSkinType")
