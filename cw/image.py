@@ -125,7 +125,7 @@ class CardImage(Image):
                 s = str(uselimit)
                 pos = cw.s((5, 90))
                 for c in s:
-                    subimg = font.render(c, False, (0, 0, 0))
+                    subimg = font.render(c, True, (0, 0, 0))
                     image.blit(subimg, (pos[0]+1, pos[1]-1))
                     image.blit(subimg, (pos[0],   pos[1]-1))
                     image.blit(subimg, (pos[0]-1, pos[1]-1))
@@ -140,7 +140,7 @@ class CardImage(Image):
                     else:
                         colour = (255, 255, 255)
 
-                    subimg = font.render(c, False, colour)
+                    subimg = font.render(c, True, colour)
                     image.blit(subimg, pos)
                     pos = pos[0] + cw.s(10), pos[1]
 
@@ -404,7 +404,7 @@ class CharacterCardImage(CardImage):
             y = image.get_height() - subimg.get_height()
             pos = (x, y)
             for i, c in enumerate(s):
-                cimg = font.render(c, False, (0, 0, 0))
+                cimg = font.render(c, 2 <= cw.UP_SCR, (0, 0, 0))
                 image.blit(cimg, (pos[0]+1 + i*w, pos[1]+1))
                 image.blit(cimg, (pos[0]+1 + i*w, pos[1]-1))
                 image.blit(cimg, (pos[0]-1 + i*w, pos[1]+1))
@@ -413,7 +413,7 @@ class CharacterCardImage(CardImage):
                 image.blit(cimg, (pos[0]-1 + i*w, pos[1]))
                 image.blit(cimg, (pos[0] + i*w, pos[1]+1))
                 image.blit(cimg, (pos[0] + i*w, pos[1]-1))
-                cimg = font.render(c, False, (255, 255, 255))
+                cimg = font.render(c, 2 <= cw.UP_SCR, (255, 255, 255))
                 image.blit(cimg, (pos[0] + i*w, pos[1]))
         return image
 

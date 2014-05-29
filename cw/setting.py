@@ -594,13 +594,13 @@ class Resource(object):
         # ステータスバーボタン描画用
         fonts["sbarbtn"] = fonts["mcard_name"]
         # ステータス画像の召喚回数描画用
-        font = pygame.font.Font(self.fontpaths["gothic"], cw.s(12))
+        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(12))
         font.set_bold(True)
         fonts["statusimg1"] = font
-        font = pygame.font.Font(self.fontpaths["gothic"], cw.s(9))
+        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(10))
         font.set_bold(True)
         fonts["statusimg2"] = font
-        font = pygame.font.Font(self.fontpaths["gothic"], cw.s(7))
+        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(8))
         font.set_bold(True)
         fonts["statusimg3"] = font
         return fonts
