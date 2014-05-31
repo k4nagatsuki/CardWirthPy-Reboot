@@ -1872,8 +1872,9 @@ class CWPy(_Singleton, threading.Thread):
                             self.set_targetarrow(targets)
                     elif self.setting.show_allselectedcards:
                         self.set_inusecardimg(sprite, header, alpha=160)
-                        if isinstance(sprite, cw.sprite.card.PlayerCard):
-                            show_allselectedcards = True
+
+                    if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
+                        show_allselectedcards = True
 
         self._show_allselectedcards = show_allselectedcards
 
