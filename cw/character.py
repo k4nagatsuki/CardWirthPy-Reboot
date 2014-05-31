@@ -468,6 +468,7 @@ class Character(object):
 
         # 使用アニメーション
         if header.type == "BeastCard":
+            cw.cwpy.set_inusecardimg(self, header, "hidden", center=True)
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal")
             cw.animation.animate_sprite(inusecardimg, "zoomin")
