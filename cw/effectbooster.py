@@ -245,6 +245,12 @@ class _JpySubImage(cw.image.Image):
                 self.cache.save_image(self.savecache, image)
             return
 
+        # マスク
+        if self.transparent:
+            image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
+        else:
+            image.set_colorkey(None)
+
         # RGB入れ替え
         if self.exchange:
             if self.exchange == 1:
@@ -363,12 +369,6 @@ class _JpySubImage(cw.image.Image):
                 else:
                     image = pygame.transform.scale(image, size)
 
-        # マスク
-        if self.transparent:
-            image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
-        else:
-            image.set_colorkey(None)
-
         # 透過ライン
         if self.mask:
             if self.mask == 1:
@@ -392,8 +392,6 @@ class _JpySubImage(cw.image.Image):
         """画像作成。"""
         path = self.get_filepath()
         ext = cw.util.splitext(path)[1].lower()
-        if ext == ".jptx" and not self.has_transparent:
-            self.transparent = True
 
         # ファイル読み込み
         if os.path.isfile(path):
@@ -402,7 +400,7 @@ class _JpySubImage(cw.image.Image):
             if os.path.isfile(path):
                 mtime = os.path.getmtime(path)
 
-            cachekey = (_JpySubImage, cw.UP_SCR, self.transparent, path)
+            cachekey = (_JpySubImage, cw.UP_SCR, False, path)
 
             if cw.cwpy.is_playingscenario() and cachekey in cw.cwpy.sdata.cache:
                 image, cachemtime = cw.cwpy.sdata.cache[cachekey]
@@ -422,19 +420,19 @@ class _JpySubImage(cw.image.Image):
                     image = pygame.Surface((0, 0)).convert()
                 # Jpy1ファイル
                 elif ext == ".jpy1":
-                    image = JpyImage(path, cache=self.cache, doanime=doanime, mask=self.transparent).get_image()
+                    image = JpyImage(path, cache=self.cache, doanime=doanime, mask=False).get_image()
                     # 変化するためキャッシュ不可
                 # Jpdcファイル
                 elif ext == ".jpdc":
-                    image = JpdcImage(self.transparent, path).get_image()
+                    image = JpdcImage(False, path).get_image()
                     # 重くならないのでキャッシュ不要
                 # Jptxファイル
                 elif ext == ".jptx":
-                    image = JptxImage(path, self.transparent).get_image()
+                    image = JptxImage(path, False).get_image()
                     cw.cwpy.sdata.cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:
-                    image = cw.s(cw.util.load_image(path, self.transparent))
+                    image = cw.s(cw.util.load_image(path, False))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:
@@ -549,8 +547,7 @@ class JpyPartsImage(_JpySubImage):
         self.position = cw.s(config.get_ints(section, "position", 2, (0, 0)))
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
-        self.transparent = config.get_bool(section, "transparent", mask)
-        self.has_transparent = not config.get(section, "transparent", None) is None
+        self.transparent = config.get_bool(section, "transparent", True)
 
 class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache, mask):
@@ -571,16 +568,14 @@ class JpyImage(cw.image.Image):
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
-        if config.get("init", "transparent", None) is None:
-            # [init]にtransparentの定義が無い場合は一時描画時に透過色無効
-            back.transparent = False
 
-        for section in config.sections():
+        for i, section in enumerate(config.sections()):
             if not section == "init":
-                parts = JpyPartsImage(config, section, cache, back.transparent)
+                parts = JpyPartsImage(config, section, cache, mask)
                 parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
+                image = parts.get_image()
                 parts.draw2back(back)
 
         back.retouch()
@@ -710,6 +705,7 @@ class JptxImage(cw.image.Image):
         if not autoline:
             text = text.replace("\n", "")
 
+        text = text.replace("\t", "")
         text = re.sub(r"<[bB][rR]>\n?", "\n", text)
         # image
         width = backwidth if backwidth > cw.s(0) else cw.s(cw.SIZE_AREA[0])
@@ -1027,22 +1023,25 @@ class EffectBoosterConfig(object):
         self._sections = {}
         cur_sec = {}
         jptxtxt = []
+        in_jptxtxt = False
 
         with open(path, "rb") as f:
 
             for line in f:
-                if line[0] in '#;':
+                if not in_jptxtxt and line[0] in '#;':
                     continue
 
                 line = line.decode(cw.MBCS).replace("\r\n", "\n")
 
                 # jptxテキスト
                 if line == "[jptx:end]\n" or line == "[jptx:end]":
+                    in_jptxtxt = False
                     break
                 elif line == "[jptx:begin]\n":
+                    in_jptxtxt = True
                     jptxtxt.append("")
                     continue
-                elif jptxtxt:
+                elif in_jptxtxt:
                     jptxtxt.append(line)
                     continue
 
