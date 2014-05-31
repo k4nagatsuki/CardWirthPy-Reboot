@@ -738,7 +738,6 @@ class MyApp(wx.App):
     def OnInit(self):
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
-        wx.InitAllImageHandlers()
         skincount = get_skincount()
         exe = u""
         if len(sys.argv) > 1 and sys.argv[1].lower().endswith(".exe"):

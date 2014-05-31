@@ -14,7 +14,7 @@ import cw
 class AdventurerDataComp(wx.Dialog):
     def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["insufficiency_title"],
-                            style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU)
+                            style=wx.CAPTION|wx.SYSTEM_MENU)
         self.ccard = ccard
         if self.ccard.has_sex():
             self.sex = self.ccard.get_sex()
@@ -397,7 +397,7 @@ def create_description(talent, attrs):
 class AdventurerCreater(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["entry_title"],
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.header = None
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
@@ -1254,7 +1254,7 @@ class AttrPage(AdventurerCreaterPage):
 class YadoCreater(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["create_base_title"], size=(318, 180),
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.yadodir = ""
         self.SetClientSize(cw.s((312, 156)))
         self.textctrl = wx.TextCtrl(self, size=cw.s((175, 24)))
@@ -1352,7 +1352,7 @@ class YadoCreater(wx.Dialog):
 class AdventurerDesignDialog(wx.Dialog):
     def __init__(self, parent, ccard):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["design_title"],
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         # buttonlist
         self.buttonlist = []
 

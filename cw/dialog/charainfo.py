@@ -21,7 +21,7 @@ class CharaInfo(wx.Dialog):
     def __init__(self, parent, redrawfunc, editable, party=None):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=cw.s((300, 355)),
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.party = party
         self.csize = self.GetClientSize()
         # panel
@@ -328,7 +328,6 @@ class TopPanel(wx.Panel):
             self.ClearBackground()
         else:
             dc = wx.PaintDC(self)
-            self.PrepareDC(dc)
 
         dc.BeginDrawing()
         # カード画像の後ろにある羽みたいなの
@@ -430,7 +429,6 @@ class DescPanel(wx.ScrolledWindow):
             self.ClearBackground()
         else:
             dc = wx.PaintDC(self)
-            self.PrepareDC(dc)
 
         dc.BeginDrawing()
         # 背景の透かし
@@ -698,7 +696,6 @@ class EditPanel(wx.Panel):
         else:
             dc = wx.PaintDC(self)
 
-        self.PrepareDC(dc)
         dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
@@ -766,7 +763,6 @@ class StatusPanel(wx.ScrolledWindow):
         else:
             dc = wx.PaintDC(self)
 
-        self.PrepareDC(dc)
         dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
@@ -1007,7 +1003,6 @@ class SkillPanel(wx.Panel):
         else:
             dc = wx.PaintDC(self)
 
-        self.PrepareDC(dc)
         dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
@@ -1076,7 +1071,6 @@ class ItemPanel(SkillPanel):
         else:
             dc = wx.PaintDC(self)
 
-        self.PrepareDC(dc)
         dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
@@ -1142,7 +1136,6 @@ class BeastPanel(SkillPanel):
         else:
             dc = wx.PaintDC(self)
 
-        self.PrepareDC(dc)
         dc.BeginDrawing()
         # 背景の透かし
         dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)

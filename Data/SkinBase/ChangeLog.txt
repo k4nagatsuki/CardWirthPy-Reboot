@@ -1,6 +1,10 @@
 SkinBase 変更履歴
 =================
 
+2014年5月31日(dataVersion=4)
+----------------------------
+ * Resource/Xml/SpecialCard/UseCardInBackpack.xmlを追加。
+
 2014年4月21日(dataVersion=3)
 ---------------------------
  * ゲームオーバーの画面処理を修正

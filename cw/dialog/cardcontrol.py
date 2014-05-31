@@ -26,7 +26,7 @@ class CardControl(wx.Dialog):
     def __init__(self, parent, name, sendto, sort, areaid=None):
         # ダイアログ作成
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
 
         if areaid is None:
             self.areaid = cw.cwpy.areaid

@@ -15,7 +15,7 @@ class CouponEditDialog(wx.Dialog):
 
     def __init__(self, parent, selected=-1):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの経歴の編集",
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
 
         # システムクーポンは除外する
         self.syscoupons = set()
@@ -437,7 +437,7 @@ class ListEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, list, image):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.list = list
 
         # リスト

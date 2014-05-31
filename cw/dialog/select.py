@@ -30,7 +30,7 @@ _lockupdatescenario = threading.Lock()
 class Select(wx.Dialog):
     def __init__(self, parent, name):
         wx.Dialog.__init__(self, parent, -1, name,
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # buttonlist

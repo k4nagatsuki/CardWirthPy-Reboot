@@ -14,7 +14,7 @@ import cw
 class PartyEditor(wx.Dialog):
     def __init__(self, parent, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["party_information"],
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         if party:
             self.party = party
         else:
@@ -238,7 +238,7 @@ class NumberEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, value, minvalue, maxvalue):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.value = value
 
         # スライダ
@@ -301,7 +301,7 @@ class Number2EditDialog(wx.Dialog):
                  label1, value1, minvalue1, maxvalue1,
                  label2, value2, minvalue2, maxvalue2):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.value1 = value1
         self.value2 = value2
 
@@ -378,7 +378,7 @@ class NumberComboEditDialog(wx.Dialog):
                  label1, list, selected,
                  label2, value, minvalue, maxvalue):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.selected = value
         self.value = value
 
@@ -543,7 +543,7 @@ class ComboEditDialog(wx.Dialog):
 
     def __init__(self, parent, title, label, list, selected):
         wx.Dialog.__init__(self, parent, -1, title,
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.selected = selected
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -620,7 +620,7 @@ class ComboEditDialog(wx.Dialog):
 class LevelEditDialog(wx.Dialog):
     def __init__(self, parent, list, selected, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
@@ -791,7 +791,7 @@ class LevelEditDialog(wx.Dialog):
 class YadoEditDialog(wx.Dialog):
     def __init__(self, parent, yadodir):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["rename_base_title"], size=cw.s((318, 180)),
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.yadodir = yadodir
         self.path = cw.util.join_paths(yadodir, "Environment.xml")
         self.SetClientSize(cw.s((312, 136)))

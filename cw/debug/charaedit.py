@@ -15,7 +15,7 @@ class CharacterEditDialog(wx.Dialog):
 
     def __init__(self, parent, selected=-1, create=False):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの情報の編集",
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetDoubleBuffered(True)
         self.create = create
 

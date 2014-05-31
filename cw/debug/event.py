@@ -14,7 +14,7 @@ import cw
 class EventListDialog(wx.Dialog):
     def __init__(self, parent, currentfpath):
         wx.Dialog.__init__(self, parent, -1, u"実行するイベントの選択",
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.events = EventList(self, (250, 300), currentfpath)
         self.showallcards = wx.CheckBox(self, -1, u"表示フラグがオフのカードも表示する")
         self.showallcards.SetValue(False)

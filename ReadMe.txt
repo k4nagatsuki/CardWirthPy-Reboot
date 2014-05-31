@@ -213,7 +213,7 @@ engine=1.20
 
   CardWirthPyは以下のPythonの外部モジュールを使用しています。
 
-    wxPython ver2.8.12.1
+    wxPython ver3.0.0.0
       License: wxWindows Library License
       URL: http://www.wxpython.org/
 
@@ -221,7 +221,7 @@ engine=1.20
       License: GNU Lesser General Public License
       URL: http://www.pygame.org/
 
-    Python for Windows extensions Build 218
+    Python for Windows extensions Build 219
       License: Python Software Foundation License
       URL: http://sourceforge.net/projects/pywin32/
 

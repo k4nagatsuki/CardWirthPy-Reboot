@@ -644,8 +644,7 @@ class Resource(object):
 
     def _create_wxbtnbmp(self, w, h, flags=0):
         if sys.platform == "win32":
-            wxbmp = wx.EmptyBitmap(w, h)
-            wxbmp.UseAlpha()
+            wxbmp = wx.EmptyBitmapRGBA(w, h)
             dc = wx.MemoryDC(wxbmp)
             render = wx.RendererNative.Get()
             render.DrawPushButton(cw.cwpy.frame, dc, (cw.s(0), cw.s(0), w, h), flags)

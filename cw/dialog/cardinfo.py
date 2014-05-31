@@ -18,7 +18,7 @@ class CardInfo(wx.Dialog):
     def __init__(self, parent):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.s((380, 200)),
-                style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
         # panel
         self.toppanel = wx.Panel(self, -1, size=cw.s((380, 138)))

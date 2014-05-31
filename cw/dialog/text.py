@@ -15,7 +15,7 @@ class Text(wx.Dialog):
     def __init__(self, parent, name):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, name, size=cw.s((500, 290)),
-                            style=wx.CAPTION|wx.DIALOG_MODAL|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
         # panel
         self.toppanel = wx.Panel(self, -1, size=cw.s((500, 245)))
@@ -126,7 +126,6 @@ class Text(wx.Dialog):
         else:
             dc = wx.PaintDC(self.toppanel)
 
-        self.toppanel.PrepareDC(dc)
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(11)))
         s = cw.cwpy.msgs["instructions"]

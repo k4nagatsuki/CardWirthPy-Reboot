@@ -261,7 +261,7 @@ class GeneralSettingPanel(wx.Panel):
             self, -1, u"拠点ごとにスキンを記憶する")
         self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
         self.cb_showbackpackcard = wx.CheckBox(
-            self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
+            self, -1, u"荷物袋のカードを一時的に取り出して使える\nようにする")
         self.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard)
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
@@ -392,16 +392,16 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_confirmbeforeusingcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((300, -1))
+        bsizer_gene.SetMinSize((310, -1))
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
-        bsizer_skin.SetMinSize((300, 200))
+        bsizer_skin.SetMinSize((310, 200))
 
         bsizer_expandmode_in.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode_in.Add(self.st_expand, 0, wx.LEFT, 3)
         bsizer_expandmode.Add(bsizer_expandmode_in, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_expandmode.SetMinSize((300, -1))
+        bsizer_expandmode.SetMinSize((310, -1))
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM, 5)
@@ -439,44 +439,44 @@ class DrawingSettingPanel(wx.Panel):
         self.ch_tran.SetSelection(n)
         self.sl_tran = wx.Slider(
             self, -1, cw.cwpy.setting.transitionspeed, 0, 10,
-            size=(300-10, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
+            size=(310-10, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_tran.SetTickFreq(1, 1)
         # カード描画速度
         self.box_deal = wx.StaticBox(
             self, -1, u"カード描画速度(速い⇔遅い)")
         self.sl_deal = wx.Slider(
-            self, -1, cw.cwpy.setting.dealspeed - 1, 0, 10, size=(300-10, -1),
+            self, -1, cw.cwpy.setting.dealspeed - 1, 0, 10, size=(310-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_deal.SetTickFreq(1, 1)
         # メッセージ表示速度
         self.box_msgs = wx.StaticBox(
             self, -1, u"メッセージ表示速度(速い⇔遅い)")
         self.sl_msgs = wx.Slider(
-            self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(300-10, -1),
+            self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(310-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_msgs.SetTickFreq(1, 1)
 
         # メッセージウィンドウ背景色
         self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
-        self.st_mwin = wx.StaticText(self, -1, u"カラー:")
+        self.st_mwin = wx.StaticText(self, -1, u"カラー")
         self.cs_mwin = wx.ColourPickerCtrl(
             self, -1, col=cw.cwpy.setting.mwincolour)
-        self.st_blwin = wx.StaticText(self, -1, u"ログ:")
+        self.st_blwin = wx.StaticText(self, -1, u"ログ")
         self.cs_blwin = wx.ColourPickerCtrl(
             self, -1, col=cw.cwpy.setting.blwincolour)
-        self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値:")
+        self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値")
         self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(50, -1))
         self.sc_mwin.SetRange(0, 255)
         self.sc_mwin.SetValue(cw.cwpy.setting.mwincolour[3])
         # メッセージウィンドウ枠色
         self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
-        self.st_mframe = wx.StaticText(self, -1, u"カラー:")
+        self.st_mframe = wx.StaticText(self, -1, u"カラー")
         self.cs_mframe = wx.ColourPickerCtrl(
             self, -1, col=cw.cwpy.setting.mwinframecolour)
-        self.st_blframe = wx.StaticText(self, -1, u"ログ:")
+        self.st_blframe = wx.StaticText(self, -1, u"ログ")
         self.cs_blframe = wx.ColourPickerCtrl(
             self, -1, col=cw.cwpy.setting.blwinframecolour)
-        self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値:")
+        self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値")
         self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(50, -1))
         self.sc_mframe.SetRange(0, 255)
         self.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour[3])
@@ -498,27 +498,31 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_quickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((300, -1))
+        bsizer_gene.SetMinSize((310, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
         bsizer_tran.Add(self.sl_tran, 0, 0, 0)
         bsizer_deal.Add(self.sl_deal, 0, 0, 0)
         bsizer_msgs.Add(self.sl_msgs, 0, 0, 0)
 
         bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
-        bsizer_mframe = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
-
-        bsizer_mwin.Add(self.st_mwin, 0, wx.CENTER|wx.RIGHT|wx.LEFT, 3)
-        bsizer_mwin.Add(self.cs_mwin, 0, wx.RIGHT, 15)
-        bsizer_mwin.Add(self.st_blwin, 0, wx.CENTER|wx.RIGHT, 3)
-        bsizer_mwin.Add(self.cs_blwin, 0, wx.RIGHT, 15)
+        gsizer_mwin = wx.GridBagSizer()
+        gsizer_mwin.Add(self.st_mwin, pos=(0, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mwin.Add(self.cs_mwin, pos=(0, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
+        gsizer_mwin.Add(self.st_blwin, pos=(1, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mwin.Add(self.cs_blwin, pos=(1, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
+        bsizer_mwin.Add(gsizer_mwin, 0, wx.CENTER|wx.LEFT, 5)
         bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_mwin.Add(self.sc_mwin, 0, wx.RIGHT, 3)
-        bsizer_mframe.Add(self.st_mframe, 0, wx.CENTER|wx.RIGHT|wx.LEFT, 3)
-        bsizer_mframe.Add(self.cs_mframe, 0, wx.RIGHT, 15)
-        bsizer_mframe.Add(self.st_blframe, 0, wx.CENTER|wx.RIGHT, 3)
-        bsizer_mframe.Add(self.cs_blframe, 0, wx.RIGHT, 15)
+        bsizer_mwin.Add(self.sc_mwin, 0, wx.CENTER|wx.RIGHT, 3)
+
+        bsizer_mframe = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
+        gsizer_mframe = wx.GridBagSizer()
+        gsizer_mframe.Add(self.st_mframe, pos=(0, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mframe.Add(self.cs_mframe, pos=(0, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
+        gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mframe.Add(self.cs_blframe, pos=(1, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
+        bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER|wx.LEFT, 5)
         bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
-        bsizer_mframe.Add(self.sc_mframe, 0, wx.RIGHT, 3)
+        bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.RIGHT, 3)
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM, 5)
@@ -549,7 +553,7 @@ class AudioSettingPanel(wx.Panel):
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
         n = int(cw.cwpy.setting.vol_bgm * 100)
         self.sl_music = wx.Slider(
-            self, -1, n, 0, 100, size=(300-10, -1),
+            self, -1, n, 0, 100, size=(310-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_music.SetTickFreq(10, 1)
 
@@ -557,7 +561,7 @@ class AudioSettingPanel(wx.Panel):
         self.box_midi = wx.StaticBox(self, -1, u"MIDIミュージック音量")
         n = int(cw.cwpy.setting.vol_midi * 100)
         self.sl_midi = wx.Slider(
-            self, -1, n, 0, 100, size=(300-10, -1),
+            self, -1, n, 0, 100, size=(310-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_midi.SetTickFreq(10, 1)
 
@@ -565,7 +569,7 @@ class AudioSettingPanel(wx.Panel):
         self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
         n = int(cw.cwpy.setting.vol_sound * 100)
         self.sl_sound = wx.Slider(
-            self, -1, n, 0, 100, size=(300-10, -1),
+            self, -1, n, 0, 100, size=(310-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_sound.SetTickFreq(10, 1)
 
@@ -575,7 +579,7 @@ class AudioSettingPanel(wx.Panel):
         self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(25, -1))
-        self.list_soundfont = wx.ListBox(self, -1, size=(-1, 105), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
+        self.list_soundfont = wx.ListBox(self, -1, size=(-1, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
         for soundfont in cw.cwpy.setting.soundfonts:
             self.list_soundfont.Append(soundfont)
 
@@ -599,7 +603,7 @@ class AudioSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_playbgm, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_playsound, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((300, -1))
+        bsizer_gene.SetMinSize((310, -1))
 
         sizer_soundfontbtns = wx.BoxSizer(wx.HORIZONTAL)
         sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, 5)
@@ -619,7 +623,7 @@ class AudioSettingPanel(wx.Panel):
         sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
 
-        sizer.Add(sizer_v1, 0, wx.ALL, 10)
+        sizer.Add(sizer_v1, 1, wx.ALL, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -732,7 +736,7 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_showunfitnessscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.Add(self.cb_showcompletedscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.Add(self.cb_showinvisiblescenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-        bsizer_gene.SetMinSize((300, -1))
+        bsizer_gene.SetMinSize((310, -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)
         sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, 5)
