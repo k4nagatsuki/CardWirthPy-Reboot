@@ -2000,9 +2000,9 @@ class ScenarioSelect(Select):
                 image = self.tree.imgidx_invisible
             if header.levelmin <> 0 or header.levelmax <> 0:
                 if header.levelmin == header.levelmax:
-                    name = "[    %2d] %s" % (header.levelmin, name)
+                    name = u"[    %2d] %s" % (header.levelmin, name)
                 else:
-                    name = "[%2d～%2d] %s" % (header.levelmin, header.levelmax, name)
+                    name = u"[%2d～%2d] %s" % (header.levelmin, header.levelmax, name)
             item = self.tree.AppendItem(treeitem, name, image)
             self.tree.SetItemPyData(item, (index, header))
             itemlist.append(item)
