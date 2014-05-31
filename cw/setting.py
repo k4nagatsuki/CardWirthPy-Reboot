@@ -458,8 +458,6 @@ class Resource(object):
         self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
         self.wxstones = self.get_wxstones()
-        # 使用フォント(辞書)
-        self.fonts.update(self.create_wxfonts())
         # "MS UI GOTHIC"が使えるかどうか
         self._msuigothic = bool("MS UI Gothic" in
                                         wx.FontEnumerator.GetFacenames())
@@ -493,6 +491,7 @@ class Resource(object):
         設定したフォント名をフォントファイル名がkeyの辞書で返す。
         """
         d = {}
+        self.facenames = set(wx.FontEnumerator().GetFacenames())
 
         if sys.platform == "win32":
             gdi32 = ctypes.windll.gdi32
@@ -521,7 +520,6 @@ class Resource(object):
             d["mincho"] = u"IPA明朝"
             d["pmincho"] = u"IPA P明朝"
             d["pgothic"] = u"IPA Pゴシック"
-            self.facenames = set(wx.FontEnumerator().GetFacenames())
 
             for value in d.itervalues():
                 if not value in self.facenames:
@@ -579,6 +577,13 @@ class Resource(object):
         # メッセージウィンドウのテキスト描画用
         font = pygame.font.Font(self.fontpaths["mincho"], cw.s(22))
         fonts["message"] = font
+        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+            fontface = u"ＭＳ 明朝"
+            encoding = sys.getfilesystemencoding()
+            fontface = fontface.encode(encoding)
+            font = cw.imageretouch.Font(fontface, cw.s(22))
+            font.set_bold(True)
+            fonts["message_classic"] = font
         # メッセージウィンドウの選択肢描画用
         font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(15))
         if cw.UP_SCR == 1:
@@ -603,17 +608,6 @@ class Resource(object):
         font = pygame.font.Font(self.fontpaths["mincho"], cw.s(8))
         font.set_bold(True)
         fonts["statusimg3"] = font
-        return fonts
-
-    def create_wxfonts(self):
-        """ゲーム内で頻繁に使用するwx.Fontはここで設定する。"""
-        # 使用フォント(辞書)
-        fonts = {}
-        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-            # メッセージウィンドウのテキスト描画用(クラシック)
-            # これのみwx.Fontを使用する
-            wxfont = wx.Font(cw.s(15), wx.DEFAULT, wx.NORMAL, wx.BOLD, 0, u"ＭＳ 明朝", wx.FONTENCODING_SYSTEM)
-            fonts["message_classic"] = wxfont
         return fonts
 
     def create_wxbutton(self, parent, id, size, name=None, bmp=None):

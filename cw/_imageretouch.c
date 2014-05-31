@@ -397,45 +397,41 @@ bordering(PyObject *self, PyObject *args)
 {
     PyObject *points = NULL;
     size_t len;
-    int w, h, x, y, r, g, b, text_r, text_g, text_b;
+    int w, h, x, y, r, g, b;
     unsigned char *data;
     unsigned char *data_lt, *data_mt, *data_rt, *data_lm, *data_rm, *data_lb, *data_mb, *data_rb;
     int find;
 
-    if (!PyArg_ParseTuple(args, "s#(ii)(iii)", &data, &len, &w, &h,
-                &text_r, &text_g, &text_b))
+    if (!PyArg_ParseTuple(args, "s#(ii)", &data, &len, &w, &h))
         return NULL;
 
     points = PyList_New(0);
     if (!points)
         return NULL;
 
-    data_lt = data - (w + 1) * 3;
-    data_mt = data - w * 3;
-    data_rt = data - (w - 1) * 3;
-    data_lm = data - 3;
-    data_rm = data + 3;
-    data_lb = data + (w + 1) * 3;
-    data_mb = data + w * 3;
-    data_rb = data + (w - 1) * 3;
+    data_lt = data - (w + 1) * 4;
+    data_mt = data - w * 4;
+    data_rt = data - (w - 1) * 4;
+    data_lm = data - 4;
+    data_rm = data + 4;
+    data_lb = data + (w + 1) * 4;
+    data_mb = data + w * 4;
+    data_rb = data + (w - 1) * 4;
     for (y = 0; y < h; y++)
     {
         for (x = 0; x < w; x++)
         {
-            r = (int) data[0];
-            g = (int) data[1];
-            b = (int) data[2];
-            if (text_r != r || text_g != g || text_b != b)
+            if (data[3] != 0)
             {
                 find = 0;
-                find |= 0 < x && 0 < y && equals_rgb(data_lt, 0, text_r, text_g, text_b);
-                find |= 0 < y && equals_rgb(data_mt, 0, text_r, text_g, text_b);
-                find |= x + 1 < w && 0 < y && equals_rgb(data_rt, 0, text_r, text_g, text_b);
-                find |= 0 < x && equals_rgb(data_lm, 0, text_r, text_g, text_b);
-                find |= x + 1 < w && equals_rgb(data_rm, 0, text_r, text_g, text_b);
-                find |= 0 < x && y + 1 < h && equals_rgb(data_lb, 0, text_r, text_g, text_b);
-                find |= y + 1 < h && equals_rgb(data_mb, 0, text_r, text_g, text_b);
-                find |= x + 1 < w && y + 1 < h && equals_rgb(data_rb, 0, text_r, text_g, text_b);
+                find |= 0 < x && 0 < y && data_lt[3] == 0;
+                find |= 0 < y && data_mt[3] == 0;
+                find |= x + 1 < w && 0 < y && data_rt[3] == 0;
+                find |= 0 < x && data_lm[3] == 0;
+                find |= x + 1 < w && data_rm[3] == 0;
+                find |= 0 < x && y + 1 < h && data_lb[3] == 0;
+                find |= y + 1 < h && data_mb[3] == 0;
+                find |= x + 1 < w && y + 1 < h && data_rb[3] == 0;
 
                 if (find)
                 {
@@ -443,15 +439,15 @@ bordering(PyObject *self, PyObject *args)
                     PyList_Append(points, PyInt_FromSize_t(y));
                 }
             }
-            data += 3;
-            data_lt += 3;
-            data_mt += 3;
-            data_rt += 3;
-            data_lm += 3;
-            data_rm += 3;
-            data_lb += 3;
-            data_mb += 3;
-            data_rb += 3;
+            data += 4;
+            data_lt += 4;
+            data_mt += 4;
+            data_rt += 4;
+            data_lm += 4;
+            data_rm += 4;
+            data_lb += 4;
+            data_mb += 4;
+            data_rb += 4;
         }
     }
     return points;
@@ -572,7 +568,7 @@ to_disabledimage(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s*(ii)", &buf, &w, &h))
         return NULL;
 
-	dest = buf.buf;
+    dest = buf.buf;
     keyR = dest[0];
     keyG = dest[1];
     keyB = dest[2];
@@ -593,6 +589,265 @@ to_disabledimage(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+#if defined(_WIN32) || defined(_WIN64)
+
+#include <windows.h>
+
+static PyObject *
+font_height(PyObject *self, PyObject *args)
+{
+    size_t utf8fontlen = 0, bufSize = 0;
+    int size = 0, bold = 0, italic = 0, underline = 0, h = 0;
+    unsigned char *utf8font = NULL;
+
+    HANDLE heap = GetProcessHeap();
+    LPWSTR font = NULL;
+    HFONT hfont = NULL;
+    HDC hdc = NULL;
+    TEXTMETRIC tm = { 0 };
+
+    if (!PyArg_ParseTuple(args, "s#iiii", &utf8font, &utf8fontlen, &size, &bold, &italic, &underline))
+        return NULL;
+
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, NULL, 0);
+    font = HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
+    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, font, bufSize)) goto cleanup;
+
+    hfont = CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic, underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font);
+    if (!hfont) goto cleanup;
+    hdc = CreateCompatibleDC(NULL);
+    if (!hdc) goto cleanup;
+    if (!SelectObject(hdc, hfont)) goto cleanup;
+    if (!GetTextMetrics(hdc, &tm)) goto cleanup;
+
+    h = tm.tmHeight;
+
+cleanup:
+    if (font) HeapFree(heap, 0, font);
+    if (hdc) DeleteDC(hdc);
+    if (hfont) DeleteObject(hfont);
+
+    return Py_BuildValue("i", h);
+}
+
+static PyObject *
+font_size(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    size_t utf8strlen = 0, utf8fontlen = 0, bufSize = 0, outlen = 0;
+    int size = 0, bold = 0, italic = 0, underline = 0;
+    unsigned char *outdata = NULL, *utf8str = NULL, *utf8font = NULL, *buf = NULL;
+
+    HANDLE heap = GetProcessHeap();
+    LPWSTR str = NULL;
+    LPWSTR font = NULL;
+    HFONT hfont = NULL;
+    HDC hdc = NULL;
+    TEXTMETRIC tm = { 0 };
+    GLYPHMETRICS gm = { 0 };
+    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
+    size_t i = 0, w = 0, w2 = 0, h = 0;
+    unsigned char a = 0;
+    UINT format = 0;
+
+    if (!PyArg_ParseTuple(args, "s#s#iiii", &utf8str, &utf8strlen, &utf8font, &utf8fontlen, &size, &bold, &italic, &underline))
+        return NULL;
+
+    format = GGO_BITMAP;
+
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
+    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
+    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, NULL, 0);
+    font = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
+    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, font, bufSize)) goto cleanup;
+
+    hfont = CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic, underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font);
+    if (!hfont) goto cleanup;
+    hdc = CreateCompatibleDC(NULL);
+    if (!hdc) goto cleanup;
+    if (!SelectObject(hdc, hfont)) goto cleanup;
+    if (!GetTextMetrics(hdc, &tm)) goto cleanup;
+
+    h = tm.tmHeight;
+    for (i = 0; str[i]; i++)
+    {
+        if (str[i] == '\n')
+        {
+            w = w2 < w ? w : w2;
+            w2 = 0;
+            h += tm.tmHeight;
+            continue;
+        }
+        bufSize = GetGlyphOutlineW(hdc, str[i], format, &gm, 0, NULL, &mat2);
+        w2 += gm.gmCellIncX;
+    }
+    w = w2 < w ? w : w2;
+
+cleanup:
+    if (str) HeapFree(heap, 0, str);
+    if (font) HeapFree(heap, 0, font);
+    if (hdc) DeleteDC(hdc);
+    if (hfont) DeleteObject(hfont);
+
+    return Py_BuildValue("(ii)", w, h);
+}
+
+static PyObject *
+font_render(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    size_t utf8strlen = 0, utf8fontlen = 0, bufSize = 0, outlen = 0;
+    int r = 0, g = 0, b = 0, size = 0, bold = 0, italic = 0, underline = 0, antialias = 0;
+    unsigned char *outdata = NULL, *utf8str = NULL, *utf8font = NULL, *buf = NULL;
+
+    HANDLE heap = GetProcessHeap();
+    LPWSTR str = NULL;
+    LPWSTR font = NULL;
+    HFONT hfont = NULL;
+    HDC hdc = NULL;
+    TEXTMETRIC tm = { 0 };
+    GLYPHMETRICS gm = { 0 };
+    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
+    size_t i = 0, w = 0, w2 = 0, h = 0, x = 0, y = 0, bpl = 0, xx = 0, yy = 0, p1 = 0, p2 = 0, x0 = 0, y0 = 0, bt = 0;
+    unsigned char a = 0;
+    UINT format = 0;
+
+    if (!PyArg_ParseTuple(args, "s#(iii)s#iiiii", &utf8str, &utf8strlen, &r, &g, &b, &utf8font, &utf8fontlen, &size, &bold, &italic, &underline, &antialias))
+        return NULL;
+
+    format = antialias ? GGO_GRAY8_BITMAP : GGO_BITMAP;
+
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
+    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
+    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, NULL, 0);
+    font = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
+    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, font, bufSize)) goto cleanup;
+
+    hfont = CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic, underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font);
+    if (!hfont) goto cleanup;
+    hdc = CreateCompatibleDC(NULL);
+    if (!hdc) goto cleanup;
+    if (!SelectObject(hdc, hfont)) goto cleanup;
+    if (!GetTextMetrics(hdc, &tm)) goto cleanup;
+
+    h = tm.tmHeight;
+    for (i = 0; str[i]; i++)
+    {
+        if (str[i] == '\n')
+        {
+            w = w2 < w ? w : w2;
+            w2 = 0;
+            h += tm.tmHeight;
+            continue;
+        }
+        bufSize = GetGlyphOutlineW(hdc, str[i], format, &gm, 0, NULL, &mat2);
+        if (str[i+1])
+        {
+            w2 += gm.gmCellIncX;
+        }
+        else
+        {
+            w2 += max(gm.gmCellIncX, gm.gmptGlyphOrigin.x + gm.gmBlackBoxX);
+        }
+    }
+    w = w2 < w ? w : w2;
+
+    outlen = w * h * 4;
+    string = PyBytes_FromStringAndSize(NULL, outlen);
+    if (!string) goto cleanup;
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
+    memset(outdata, 0, outlen);
+
+    for (i = 0; str[i]; i++)
+    {
+        if (str[i] == '\n')
+        {
+            x0 = 0;
+            y0 += h;
+            continue;
+        }
+        bufSize = GetGlyphOutlineW(hdc, str[i], format, &gm, 0, NULL, &mat2);
+        if (!iswspace(str[i]))
+        {
+            buf = (unsigned char*)HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
+            GetGlyphOutlineW(hdc, str[i], format, &gm, bufSize, buf, &mat2);
+            x = x0 + gm.gmptGlyphOrigin.x;
+            y = y0 + (tm.tmAscent - gm.gmptGlyphOrigin.y);
+            if (antialias)
+            {
+                bpl = (gm.gmBlackBoxX + 3) / 4 * 4;
+                for (xx = 0; xx < gm.gmBlackBoxX; xx++)
+                {
+                    if (w <= xx+x) continue;
+                    for (yy = 0; yy < gm.gmBlackBoxY; yy++)
+                    {
+                        if (h <= yy+y) continue;
+                        p1 = (yy * bpl) + xx;
+                        a = buf[p1];
+                        if (a)
+                        {
+                            p2 = (((y + yy) * w) + (x + xx)) * 4;
+                            outdata[p2+0] = (unsigned char)r;
+                            outdata[p2+1] = (unsigned char)g;
+                            outdata[p2+2] = (unsigned char)b;
+                            outdata[p2+3] = min(255, a*4);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                bpl = (gm.gmBlackBoxX + 31) / 32 * 4;
+                for (xx = 0; xx < gm.gmBlackBoxX; xx++)
+                {
+                    if (w <= xx+x) continue;
+                    for (yy = 0; yy < gm.gmBlackBoxY; yy++)
+                    {
+                        if (h <= yy+y) continue;
+                        a = buf[bpl*yy+(xx/8)] & (1 << (7-(xx%8)));
+                        if (a)
+                        {
+                            p2 = (((y + yy) * w) + (x + xx)) * 4;
+                            outdata[p2+0] = (unsigned char)r;
+                            outdata[p2+1] = (unsigned char)g;
+                            outdata[p2+2] = (unsigned char)b;
+                            outdata[p2+3] = a ? 255 : 0;
+                        }
+                    }
+                }
+            }
+            if (underline)
+            {
+                yy = y0 + tm.tmAscent;
+                for (xx = 0; xx < x0 + gm.gmCellIncX; xx++)
+                {
+                    p2 = ((yy * w) + xx) * 4;
+                    outdata[p2+0] = (unsigned char)r;
+                    outdata[p2+1] = (unsigned char)g;
+                    outdata[p2+2] = (unsigned char)b;
+                    outdata[p2+3] = 255;
+                }
+            }
+            HeapFree(heap, 0, buf);
+        }
+        x0 += gm.gmCellIncX;
+    }
+
+cleanup:
+    if (str) HeapFree(heap, 0, str);
+    if (font) HeapFree(heap, 0, font);
+    if (hdc) DeleteDC(hdc);
+    if (hfont) DeleteObject(hfont);
+
+    return Py_BuildValue("O(ii)", string, w, h);
+}
+
+#endif
+
 static PyMethodDef
 _imageretouchMethods[] =
 {
@@ -611,14 +866,22 @@ _imageretouchMethods[] =
     {"filter", filter, METH_VARARGS,
         "filter(rgba_str, size, weight, offset, div)"},
     {"bordering", bordering, METH_VARARGS,
-        "bordering(rgba_str, size, color)"},
+        "bordering(rgba_str, size)"},
     {"blend_add_1_50", blend_add_1_50, METH_VARARGS,
         "blend_add_1_50(rgba_str, size, rgba_str)"},
     {"blend_sub_1_50", blend_sub_1_50, METH_VARARGS,
         "blend_sub_1_50(rgba_str, size, rgba_str)"},
     {"to_disabledimage", to_disabledimage, METH_VARARGS,
         "to_disabledimage(char*, size)"},
+#if defined(_WIN32) || defined(_WIN64)
+    {"font_height", font_height, METH_VARARGS,
+        "font_height(fontname, size, bold, italic, underline)"},
+    {"font_size", font_size, METH_VARARGS,
+        "font_size(text, fontname, size, bold, italic, underline)"},
+    {"font_render", font_render, METH_VARARGS,
+        "font_render(text, color, fontname, size, bold, italic, underline, antialias)"},
     {NULL, NULL, 0, NULL}
+#endif
 };
 
 #ifdef __x86_64__

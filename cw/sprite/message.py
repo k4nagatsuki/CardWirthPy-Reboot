@@ -3,7 +3,6 @@
 
 import os
 import re
-import wx
 import pygame
 from pygame.locals import *
 
@@ -84,16 +83,7 @@ class MessageWindow(base.CWPySprite):
 
     def _init_style(self):
         # クラシックスタイルか
-        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext
-        # クラシックスタイルのテキスト描画用
-        if self.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts:
-            # TODO pygame側での生成を避ける
-            self.wxcanvas = wx.EmptyBitmap(cw.s(22), cw.s(22))
-            self.wxdc = wx.MemoryDC(self.wxcanvas)
-            self.wxdc.SetFont(cw.cwpy.rsrc.fonts["message_classic"])
-        else:
-            self.wxcanvas = None
-            self.wxdc = None
+        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext and "message_classic" in cw.cwpy.rsrc.fonts
 
     def _init_image(self, size_noscale, pos_noscale):
         # image
@@ -163,7 +153,7 @@ class MessageWindow(base.CWPySprite):
         font = cw.cwpy.rsrc.fonts["message"]
         lineheight = font.get_height()
         chridx = self.frame / self.speed
-        sbold = not (cw.cwpy.setting.classicstyletext and self.wxdc) and lineheight <= 24
+        sbold = not cw.cwpy.setting.classicstyletext and lineheight <= 24 and "message_classic" in cw.cwpy.rsrc.fonts
         if chridx < len(self.charimgs):
             pos, txtimg, txtimg2 = self.charimgs[chridx]
 
@@ -198,9 +188,6 @@ class MessageWindow(base.CWPySprite):
             self.is_drawing = False
             cw.cwpy.has_inputevent = True
             self.frame = 0
-
-            if self.wxdc:
-                self.wxdc.EndDrawing()
 
             # SelectionBarを描画
             if not self.backlog:
@@ -241,7 +228,7 @@ class MessageWindow(base.CWPySprite):
             posp = pos
 
         # 左右で接続する文字の集合
-        if self.wxdc:
+        if self.classicstyletext:
             r_join = re.compile(u"[～―─＿￣]")
         else:
             r_join = re.compile(u"[―─＿￣]")
@@ -250,7 +237,10 @@ class MessageWindow(base.CWPySprite):
         # 文字色変更文字(&)の集合
         r_changecolour = re.compile("&[\x20-\x7E\n]")
         # フォントデータ
-        font = cw.cwpy.rsrc.fonts["message"]
+        if self.classicstyletext:
+            font = cw.cwpy.rsrc.fonts["message_classic"]
+        else:
+            font = cw.cwpy.rsrc.fonts["message"]
         colour = (255, 255, 255)
         lineheight = font.get_height() - 1
         # 各種変数
@@ -308,24 +298,10 @@ class MessageWindow(base.CWPySprite):
                 continue
 
             # 通常文字
-            if self.wxdc:
+            if self.classicstyletext:
                 # クラシック形式
-                self.wxdc.SetPen(wx.BLACK_PEN)
-                self.wxdc.SetBrush(wx.BLACK_BRUSH)
-                self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
-                self.wxdc.SetTextForeground(colour)
-                self.wxdc.DrawText(char, 0, 0)
-                image = cw.image.conv2surface(self.wxcanvas)
-                black = pygame.Color(0, 0, 0)
-                image.set_colorkey(wx.BLACK, RLEACCEL)
-
-                self.wxdc.SetPen(wx.Pen(colour))
-                self.wxdc.SetBrush(wx.Brush(colour))
-                self.wxdc.DrawRectangle(0, 0, self.wxcanvas.Width, self.wxcanvas.Height)
-                self.wxdc.SetTextForeground(wx.BLACK)
-                self.wxdc.DrawText(char, 0, 0)
-                image2 = cw.image.conv2surface(self.wxcanvas)
-                image2.set_colorkey(colour, RLEACCEL)
+                image = font.render(char, False, colour)
+                image2 = font.render(char, False, (0, 0, 0))
 
                 # u"―"やu"～"の場合、左右の線が繋がるように補完する
                 join_left = False

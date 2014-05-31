@@ -3,6 +3,7 @@
 
 import os
 import io
+import sys
 import struct
 import threading
 import wx
@@ -474,58 +475,45 @@ def create_type2textcell(text, face, size, color,
         cellsize, bcolor, bwidth):
     """縁取りType2のテキストセルを作成する。
     """
+    # TODO pygame側での生成を避ける
+    img = pygame.Surface(cellsize).convert_alpha()
+    img.fill((0, 0, 0, 0))
+
     w = cellsize[0]
     h = cellsize[1]
-    # TODO pygame側での生成を避ける
-    wxbmp = wx.EmptyBitmap(w, h)
-    wxdc = wx.MemoryDC(wxbmp)
-
-    # mat
-    ni = 1 if color[0] < 128 else -1
-    back = (color[0]+ni, color[1], color[2])
-    while color == back or bcolor == back:
-        back = (back[0]+ni, back[1], back[2])
-
-    wxdc.SetPen(wx.Pen(back, 1, wx.SOLID))
-    wxdc.SetBrush(wx.Brush(back, wx.SOLID))
-    wxdc.DrawRectangle(0, 0, w, h)
 
     # text
-    pen, lineheight = set_textcellfont(wxdc, size, face, color, bold,
-                                       italic, uline, vertical, False)
-    lwidth = pen.GetWidth()
+    font, lineheight = get_textcellfont(size, face, color, bold,
+                                        italic, uline, vertical, False)
 
     lines = text.splitlines()
     if vertical:
         x = w - lineheight
-        y = 0
-        for line in lines:
-            wxdc.DrawRotatedText(line, x, y, -90)
-            if sline:
-                lpos = x - (lineheight + lwidth) / 2
-                wxdc.DrawLine(lpos, y, lpos, y + wxdc.GetTextExtent(line)[0])
-
-            x -= lineheight
     else:
         x = 0
-        y = 0
-        for line in lines:
-            wxdc.DrawText(line, x, y)
-            if sline:
-                lpos = y + (lineheight + lwidth) / 2
-                wxdc.DrawLine(x, lpos, x + wxdc.GetTextExtent(line)[0], lpos)
+    y = 0
+    for line in lines:
+        subimg = font.render(line, True, color)
+        # 取消線
+        if sline:
+            subimg2 = font.render(u"―", False, color)
+            size = (subimg.get_width() + cw.s(10), subimg.get_height())
+            subimg2 = pygame.transform.scale(subimg2, size)
+            subimg.blit(subimg2, cw.s((-5, 0)))
 
+        if vertical:
+            subimg = pygame.transform.rotate(subimg, -90)
+
+        img.blit(subimg, (x, y))
+        if vertical:
+            x -= lineheight
+        else:
             y += lineheight
 
     # border
-    wxdc.SetPen(wx.Pen(bcolor, 1, wx.SOLID))
-    wxdc.SetBrush(wx.Brush(bcolor, wx.SOLID))
-    cw.imageretouch.add_border(wxdc, wxbmp, color, bwidth)
+    cw.imageretouch.add_border(img, bcolor, bwidth)
 
-    wxdc.SelectObject(wx.NullBitmap)
-    wxbmp.SetMaskColour(back)
-
-    return conv2surface(wxbmp)
+    return img
 
 def draw_textcell(image, rect, text, face, size, color,
         bold, italic, uline, sline, vertical, bcolor=None):
@@ -538,94 +526,64 @@ def draw_textcell(image, rect, text, face, size, color,
         return
 
     # TODO pygame側での生成を避ける
-    wxbmp = wx.EmptyBitmap(clip.width, clip.height)
-    wxdc = wx.MemoryDC(wxbmp)
-    wxdc.DrawBitmap(conv2wxbmp(image.subsurface(clip)), 0, 0)
-    pen, lineheight = set_textcellfont(wxdc, size, face, color, bold,
+    img = pygame.Surface(clip.size).convert_alpha()
+    img.fill((0, 0, 0, 0))
+    font, lineheight = get_textcellfont(size, face, color, bold,
                                        italic, uline, vertical, True)
-    lwidth = pen.GetWidth()
-    if bcolor:
-        bpen = wx.Pen(bcolor, lwidth, wx.SOLID)
     lines = text.splitlines()
     if vertical:
         x = clip.width - xm
-        y = -ym
-        for line in lines:
-            if bcolor:
-                wxdc.SetPen(bpen)
-                wxdc.SetTextForeground(bcolor)
-                for xx in xrange(-1, 2):
-                    for yy in xrange(-1, 2):
-                        if xx == 0 and yy == 0:
-                            continue
-                        wxdc.DrawRotatedText(line, x+xx, y+yy, -90)
-                        if sline:
-                            lpos = x - (lineheight + lwidth) / 2
-                            yto = y + wxdc.GetTextExtent(line)[0]
-                            wxdc.DrawLine(lpos+xx, y+yy, lpos+xx, yto+yy)
-                wxdc.SetPen(pen)
-                wxdc.SetTextForeground(color)
-            wxdc.DrawRotatedText(line, x, y, -90)
-            if sline:
-                lpos = x - (lineheight + lwidth) / 2
-                yto = y + wxdc.GetTextExtent(line)[0]
-                wxdc.DrawLine(lpos, y, lpos, yto)
-
-            x -= lineheight
     else:
         x = -xm
-        y = -ym
-        for line in lines:
-            if bcolor:
-                wxdc.SetPen(bpen)
-                wxdc.SetTextForeground(bcolor)
-                for xx in xrange(-1, 2):
-                    for yy in xrange(-1, 2):
-                        if xx == 0 and yy == 0:
-                            continue
-                        wxdc.DrawText(line, x+xx, y+yy)
-                        if sline:
-                            lpos = y + (lineheight + lwidth) / 2
-                            xto = x + wxdc.GetTextExtent(line)[0]
-                            wxdc.DrawLine(x+xx, lpos+yy, xto+xx, lpos+yy)
-                wxdc.SetPen(pen)
-                wxdc.SetTextForeground(color)
-            wxdc.DrawText(line, x, y)
-            if sline:
-                lpos = y + (lineheight + lwidth) / 2
-                xto = x + wxdc.GetTextExtent(line)[0]
-                wxdc.DrawLine(x, lpos, xto, lpos)
+    y = -ym
 
+    for line in lines:
+        if bcolor:
+            subimg = font.render(line, True, bcolor)
+            if sline:
+                subimg2 = font.render(u"―", False, bcolor)
+                size = (subimg.get_width() + cw.s(10), subimg.get_height())
+                subimg2 = pygame.transform.scale(subimg2, size)
+                subimg.blit(subimg2, cw.s((-5, 0)))
+            if vertical:
+                subimg = pygame.transform.rotate(subimg, -90)
+            for xx in xrange(-1, 2):
+                for yy in xrange(-1, 2):
+                    if xx == 0 and yy == 0:
+                        continue
+                    img.blit(subimg, (x+xx, y+yy))
+        subimg = font.render(line, True, color)
+        if sline:
+            subimg2 = font.render(u"―", False, color)
+            size = (subimg.get_width() + cw.s(10), subimg.get_height())
+            subimg2 = pygame.transform.scale(subimg2, size)
+            subimg.blit(subimg2, cw.s((-5, 0)))
+        if vertical:
+            subimg = pygame.transform.rotate(subimg, -90)
+
+        if vertical:
+            x -= lineheight
+
+        img.blit(subimg, (x, y))
+
+        if not vertical:
             y += lineheight
 
-    wxdc.SelectObject(wx.NullBitmap)
-    bmp = conv2surface(wxbmp)
-    image.blit(bmp, clip.topleft)
+    image.blit(img, clip.topleft)
 
-def set_textcellfont(wxdc, size, face, color, bold, italic,
+def get_textcellfont(size, face, color, bold, italic,
                      uline, vertical, antialiased):
-    """テキストセル用のフォントをwxdcへセットし、
-    (pen, lineheight)を返す。
+    """テキストセル用のフォントを生成し、
+    (font, lineheight)を返す。
     """
-    family = wx.FONTFAMILY_DEFAULT
-    style = wx.FONTSTYLE_NORMAL
-    weight = wx.FONTWEIGHT_NORMAL
-    encoding = wx.FONTFLAG_NOT_ANTIALIASED if antialiased else wx.FONTENCODING_DEFAULT
-    if bold:
-        weight = wx.FONTWEIGHT_BOLD
-    if italic:
-        style = wx.FONTSTYLE_ITALIC
 
-    font = wx.Font(cw.s(12), family, style, weight, uline, face, encoding)
-    font.SetPixelSize((0, size))
-    wxdc.SetFont(font)
-    te = wxdc.GetTextExtent("#")
-    lwidth = max(1, size / 15)
+    encoding = sys.getfilesystemencoding()
+    face = face.encode(encoding)
+    font = cw.imageretouch.Font(face, size+cw.s(1), bold, italic)
+    if uline:
+        font.set_underline(True)
 
-    pen = wx.Pen(color, lwidth, wx.SOLID)
-    wxdc.SetTextForeground(color)
-    wxdc.SetPen(pen)
-    return pen, te[1]
+    return font, font.get_height()
 
 def create_colorcell(size, color1, gradient, color2):
     """ブレンド前のカラーセルを生成し、

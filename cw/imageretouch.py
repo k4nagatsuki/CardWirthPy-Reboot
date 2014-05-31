@@ -528,12 +528,11 @@ def add_transparentline(image, vline, hline):
 
     return image
 
-def add_border(wxdc, wxbmp, textcolor, borderwidth):
+def add_border(img, bordercolor, borderwidth):
     """textcolorの領域を縁取りする。
     この処理はwxPythonのインスタンスに対して行う。
-    wxbmp: wx.DC
-    wxbmp: wx.Bitmap
-    textcolor: 色(R,G,B)。
+    img: pygame.Surface。
+    bordercolor: 縁取り色(R,G,B)。
     borderwidth: 縁取りの太さ。
     """
     try:
@@ -541,23 +540,20 @@ def add_border(wxdc, wxbmp, textcolor, borderwidth):
     except NameError:
         func = _bordering
 
-    wximg = wxbmp.ConvertToImage()
-    buf = wximg.GetDataBuffer()
-    w = wximg.GetWidth()
-    h = wximg.GetHeight()
-    points = func(buf, (w, h), textcolor[:3])
+    buf = pygame.image.tostring(img, "RGBA")
+    points = func(buf, img.get_size())
     hbw = borderwidth / 2
     for i in xrange(0, len(points), 2):
         x = points[i+0]
         y = points[i+1]
         if borderwidth == 1:
-            wxdc.DrawPoint(x, y)
+            img.set_at((x, y), bordercolor)
         elif borderwidth == 2:
-            wxdc.DrawRectangle(x - 1, y - 1, 2, 2)
+            img.fill(bordercolor, pygame.Rect(x - 1, y - 1, 2, 2))
         else:
-            wxdc.DrawEllipse(x - hbw, y - hbw, borderwidth, borderwidth)
+            pygame.draw.ellipse(img, bordercolor, pygame.Rect(x - hbw, y - hbw, borderwidth, borderwidth))
 
-def _bordering(data, size, textcolor):
+def _bordering(data, size):
     w = size[0]
     h = size[1]
 
@@ -567,8 +563,8 @@ def _bordering(data, size, textcolor):
     top = h
     bottom = 0
     for i in xrange(w * h):
-        iData = i * 3
-        color[i] = (ord(data[iData+0]), ord(data[iData+1]), ord(data[iData+2])) == textcolor
+        iData = i * 4
+        color[i] = ord(data[iData+3]) == 0
         if color[i]:
             x = i % w
             y = i / w
@@ -734,6 +730,81 @@ def hex2color(hexnum):
 def colorwrap(num):
     """numを0～255の値に丸める。"""
     return cw.util.numwrap(num, 0, 255)
+
+class Font(object):
+    def __init__(self, face, pixels, bold=False, italic=False):
+        if sys.platform == "win32":
+            try:
+                func = _imageretouch.font_render
+                encoding = sys.getfilesystemencoding()
+                face = face.decode(encoding)
+                self.font = None
+                self.face = face
+                self.pixels = pixels
+                self.bold = bold
+                self.italic = italic
+                self.underline = False
+            except:
+                self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
+        else:
+            self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
+        self.height = 0
+
+    def get_bold(self):
+        if self.font:
+            return self.font.get_bold()
+        else:
+            return self.bold
+    def set_bold(self, v):
+        if self.font:
+            self.font.set_bold(v)
+        else:
+            self.bold = v
+
+    def get_italic(self):
+        if self.font:
+            return self.font.get_italic()
+        else:
+            return self.italic
+    def set_italic(self, v):
+        if self.font:
+            self.font.set_italic(v)
+        else:
+            self.italic = v
+
+    def get_underline(self):
+        if self.font:
+            return self.font.get_underline()
+        else:
+            return self.underline
+    def set_underline(self, v):
+        if self.font:
+            self.font.set_underline(v)
+        else:
+            self.underline = v
+
+    def get_height(self):
+        if self.font:
+            self.height = self.font.get_height()
+        else:
+            self.height = _imageretouch.font_height(self.face, self.pixels, self.bold, self.italic, self.underline)
+        return self.height
+
+    def size(self, str):
+        if self.font:
+            return self.font.size(str)
+        else:
+            return _imageretouch.font_size(str, self.face, self.pixels, self.bold, self.italic,\
+                                           self.underline)
+
+    def render(self, str, antialias, colour):
+        if self.font:
+            return self.font.render(str, antialias, colour)
+        else:
+            buf, size = _imageretouch.font_render(str, colour[:3], self.face, self.pixels, self.bold, self.italic,\
+                                                  self.underline, antialias)
+            assert len(buf) == size[0]*size[1]*4
+            return pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
 
 def main():
     pass
