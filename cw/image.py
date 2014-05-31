@@ -577,8 +577,6 @@ def get_textcellfont(size, face, color, bold, italic,
     (font, lineheight)を返す。
     """
 
-    encoding = sys.getfilesystemencoding()
-    face = face.encode(encoding)
     font = cw.imageretouch.Font(face, size+cw.s(1), bold, italic)
     if uline:
         font.set_underline(True)

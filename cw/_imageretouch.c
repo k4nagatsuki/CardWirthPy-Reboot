@@ -753,6 +753,7 @@ font_render(PyObject *self, PyObject *args)
         {
             w2 += max(gm.gmCellIncX, gm.gmptGlyphOrigin.x + gm.gmBlackBoxX);
         }
+        h = max(h, gm.gmptGlyphOrigin.y + gm.gmBlackBoxY)
     }
     w = w2 < w ? w : w2;
 

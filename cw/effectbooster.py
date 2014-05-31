@@ -729,8 +729,6 @@ class JptxImage(cw.image.Image):
             else:
                 if not fontface in cw.cwpy.rsrc.facenames:
                     fontface = self.get_fontface(fontface)
-                encoding = sys.getfilesystemencoding()
-                fontface = fontface.encode(encoding)
                 font = cw.imageretouch.Font(fontface, fontpixels)
             return font
         def set_bold(font, start):

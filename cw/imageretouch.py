@@ -736,8 +736,6 @@ class Font(object):
         if sys.platform == "win32":
             try:
                 func = _imageretouch.font_render
-                encoding = sys.getfilesystemencoding()
-                face = face.decode(encoding)
                 self.font = None
                 self.face = face
                 self.pixels = pixels
@@ -745,8 +743,12 @@ class Font(object):
                 self.italic = italic
                 self.underline = False
             except:
+                encoding = sys.getfilesystemencoding()
+                face = face.encode(encoding)
                 self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
         else:
+            encoding = sys.getfilesystemencoding()
+            face = face.encode(encoding)
             self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
         self.height = 0
 

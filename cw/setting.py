@@ -579,8 +579,6 @@ class Resource(object):
         fonts["message"] = font
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             fontface = u"ＭＳ 明朝"
-            encoding = sys.getfilesystemencoding()
-            fontface = fontface.encode(encoding)
             font = cw.imageretouch.Font(fontface, cw.s(22))
             font.set_bold(True)
             fonts["message_classic"] = font
