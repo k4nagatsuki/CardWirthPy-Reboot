@@ -475,7 +475,6 @@ def create_type2textcell(text, face, size, color,
         cellsize, bcolor, bwidth):
     """縁取りType2のテキストセルを作成する。
     """
-    # TODO pygame側での生成を避ける
     img = pygame.Surface(cellsize).convert_alpha()
     img.fill((0, 0, 0, 0))
 
@@ -519,30 +518,24 @@ def draw_textcell(image, rect, text, face, size, color,
         bold, italic, uline, sline, vertical, bcolor=None):
     """縁取りType2以外のテキストセルを描画する。
     """
-    clip = rect.clip(pygame.Rect((0, 0), image.get_rect().size))
-    xm = clip.x - rect.x
-    ym = clip.y - rect.y
-    if clip.width <= 0 or clip.height <= 0:
-        return
-
-    # TODO pygame側での生成を避ける
-    img = pygame.Surface(clip.size).convert_alpha()
+    img = pygame.Surface(rect.size).convert_alpha()
     img.fill((0, 0, 0, 0))
     font, lineheight = get_textcellfont(size, face, color, bold,
                                        italic, uline, vertical, True)
     lines = text.splitlines()
     if vertical:
-        x = clip.width - xm
+        x = rect.width
+        x -= lineheight
     else:
-        x = -xm
-    y = -ym
+        x = 0
+    y = 0
 
     for line in lines:
         if bcolor:
             subimg = font.render(line, True, bcolor)
             if sline:
                 subimg2 = font.render(u"―", False, bcolor)
-                size = (subimg.get_width() + cw.s(10), subimg.get_height())
+                size = (subimg.get_width() + cw.s(10), lineheight)
                 subimg2 = pygame.transform.scale(subimg2, size)
                 subimg.blit(subimg2, cw.s((-5, 0)))
             if vertical:
@@ -555,7 +548,7 @@ def draw_textcell(image, rect, text, face, size, color,
         subimg = font.render(line, True, color)
         if sline:
             subimg2 = font.render(u"―", False, color)
-            size = (subimg.get_width() + cw.s(10), subimg.get_height())
+            size = (subimg.get_width() + cw.s(10), lineheight)
             subimg2 = pygame.transform.scale(subimg2, size)
             subimg.blit(subimg2, cw.s((-5, 0)))
         if vertical:
@@ -569,7 +562,7 @@ def draw_textcell(image, rect, text, face, size, color,
         if not vertical:
             y += lineheight
 
-    image.blit(img, clip.topleft)
+    image.blit(img, rect.topleft)
 
 def get_textcellfont(size, face, color, bold, italic,
                      uline, vertical, antialiased):

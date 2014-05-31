@@ -593,103 +593,230 @@ to_disabledimage(PyObject *self, PyObject *args)
 
 #include <windows.h>
 
+typedef struct FontInfo_ {
+    HFONT hfont;
+    HDC hdc;
+    LPWSTR face;
+    TEXTMETRIC tm;
+    int pixels;
+    BOOL bold;
+    BOOL italic;
+    BOOL underline;
+} FontInfo;
+
+static void _clear_font(FontInfo *font)
+{
+    if (font->hfont)
+    {
+        DeleteObject(font->hfont);
+        font->hfont = NULL;
+    }
+    if (font->hdc)
+    {
+        DeleteDC(font->hdc);
+        font->hdc = NULL;
+    }
+    memset(&font->tm, 0, sizeof(font->tm));
+}
+
+static void _font_del(FontInfo *font)
+{
+    HANDLE heap = GetProcessHeap();
+
+    if (font)
+    {
+        _clear_font(font);
+        if (font->face) HeapFree(heap, 0, font->face);
+        HeapFree(heap, 0, font);
+    }
+}
+
+static PyObject *
+font_new(PyObject *self, PyObject *args)
+{
+    FontInfo *font = NULL;
+    unsigned char *face;
+    size_t facelen, bufSize;
+    int pixels, bold, italic;
+    HANDLE heap = GetProcessHeap();
+
+    if (!PyArg_ParseTuple(args, "s#iii", &face, &facelen, &pixels, &bold, &italic))
+        return NULL;
+
+    font = (FontInfo*)HeapAlloc(heap, HEAP_ZERO_MEMORY, sizeof(FontInfo));
+    if (!font) goto cleanup;
+
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, face, facelen, NULL, 0);
+    font->face = (LPWSTR)HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
+    if (0 == MultiByteToWideChar(CP_UTF8, 0, face, facelen, font->face, bufSize)) goto cleanup;
+
+    font->pixels = pixels;
+    font->bold = bold;
+    font->italic = italic;
+    font->underline = FALSE;
+
+    return Py_BuildValue("n", font);
+
+cleanup:
+    _font_del(font);
+
+    return NULL;
+}
+
+static void _init_font(FontInfo *font)
+{
+    if (!font)
+        return;
+
+    _clear_font(font);
+
+    font->hfont = CreateFontW(font->pixels, 0, 0, 0, font->bold ? FW_BOLD : FW_NORMAL, font->italic,
+        font->underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font->face);
+    if (!font->hfont) goto cleanup;
+    font->hdc = CreateCompatibleDC(NULL);
+    if (!font->hdc) goto cleanup;
+    if (!SelectObject(font->hdc, font->hfont)) goto cleanup;
+    if (!GetTextMetrics(font->hdc, &font->tm)) goto cleanup;
+
+    return;
+
+cleanup:
+    _clear_font(font);
+}
+
+static PyObject *
+font_del(PyObject *self, PyObject *args)
+{
+    FontInfo *font = NULL;
+
+    if (!PyArg_ParseTuple(args, "n", &font))
+        return NULL;
+
+    if (!font)
+        return NULL;
+
+    _font_del(font);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+font_bold(PyObject *self, PyObject *args)
+{
+    FontInfo *font = NULL;
+    int val;
+
+    if (!PyArg_ParseTuple(args, "ni", &font, &val))
+        return NULL;
+
+    if (!font)
+        return NULL;
+
+    if (font->bold != val)
+        font->bold = val;
+        _clear_font(font);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+font_italic(PyObject *self, PyObject *args)
+{
+    FontInfo *font = NULL;
+    int val;
+
+    if (!PyArg_ParseTuple(args, "ni", &font, &val))
+        return NULL;
+
+    if (!font)
+        return NULL;
+
+    if (font->italic != val)
+        font->italic = val;
+        _clear_font(font);
+
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+font_underline(PyObject *self, PyObject *args)
+{
+    FontInfo *font = NULL;
+    int val;
+
+    if (!PyArg_ParseTuple(args, "ni", &font, &val))
+        return NULL;
+
+    if (!font)
+        return NULL;
+
+    if (font->underline != val)
+        font->underline = val;
+        _clear_font(font);
+
+    Py_RETURN_NONE;
+}
+
 static PyObject *
 font_height(PyObject *self, PyObject *args)
 {
-    size_t utf8fontlen = 0, bufSize = 0;
-    int size = 0, bold = 0, italic = 0, underline = 0, h = 0;
-    unsigned char *utf8font = NULL;
+    FontInfo *font = NULL;
 
-    HANDLE heap = GetProcessHeap();
-    LPWSTR font = NULL;
-    HFONT hfont = NULL;
-    HDC hdc = NULL;
-    TEXTMETRIC tm = { 0 };
-
-    if (!PyArg_ParseTuple(args, "s#iiii", &utf8font, &utf8fontlen, &size, &bold, &italic, &underline))
+    if (!PyArg_ParseTuple(args, "n", &font))
         return NULL;
 
-    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, NULL, 0);
-    font = HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
-    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, font, bufSize)) goto cleanup;
+    if (!font)
+        return NULL;
 
-    hfont = CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic, underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font);
-    if (!hfont) goto cleanup;
-    hdc = CreateCompatibleDC(NULL);
-    if (!hdc) goto cleanup;
-    if (!SelectObject(hdc, hfont)) goto cleanup;
-    if (!GetTextMetrics(hdc, &tm)) goto cleanup;
+    if (!font->hdc)
+        _init_font(font);
 
-    h = tm.tmHeight;
-
-cleanup:
-    if (font) HeapFree(heap, 0, font);
-    if (hdc) DeleteDC(hdc);
-    if (hfont) DeleteObject(hfont);
-
-    return Py_BuildValue("i", h);
+    return Py_BuildValue("i", font->tm.tmHeight);
 }
 
 static PyObject *
 font_size(PyObject *self, PyObject *args)
 {
-    PyObject *string = NULL;
-    size_t utf8strlen = 0, utf8fontlen = 0, bufSize = 0, outlen = 0;
-    int size = 0, bold = 0, italic = 0, underline = 0;
-    unsigned char *outdata = NULL, *utf8str = NULL, *utf8font = NULL, *buf = NULL;
+    FontInfo *font = NULL;
+    size_t utf8strlen = 0, bufSize = 0;
+    unsigned char *utf8str = NULL;
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
-    LPWSTR font = NULL;
-    HFONT hfont = NULL;
-    HDC hdc = NULL;
-    TEXTMETRIC tm = { 0 };
     GLYPHMETRICS gm = { 0 };
     MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
     size_t i = 0, w = 0, w2 = 0, h = 0;
-    unsigned char a = 0;
-    UINT format = 0;
-
-    if (!PyArg_ParseTuple(args, "s#s#iiii", &utf8str, &utf8strlen, &utf8font, &utf8fontlen, &size, &bold, &italic, &underline))
+    UINT format = GGO_BITMAP;
+    if (!PyArg_ParseTuple(args, "ns#", &font, &utf8str, &utf8strlen))
         return NULL;
 
-    format = GGO_BITMAP;
+    if (!utf8str || !font)
+        return NULL;
+
+    if (!font->hdc)
+        _init_font(font);
 
     bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
-    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
+    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
 
-    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, NULL, 0);
-    font = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
-    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, font, bufSize)) goto cleanup;
-
-    hfont = CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic, underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font);
-    if (!hfont) goto cleanup;
-    hdc = CreateCompatibleDC(NULL);
-    if (!hdc) goto cleanup;
-    if (!SelectObject(hdc, hfont)) goto cleanup;
-    if (!GetTextMetrics(hdc, &tm)) goto cleanup;
-
-    h = tm.tmHeight;
+    h = font->tm.tmHeight;
     for (i = 0; str[i]; i++)
     {
         if (str[i] == '\n')
         {
             w = w2 < w ? w : w2;
             w2 = 0;
-            h += tm.tmHeight;
+            h += font->tm.tmHeight;
             continue;
         }
-        bufSize = GetGlyphOutlineW(hdc, str[i], format, &gm, 0, NULL, &mat2);
+        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
         w2 += gm.gmCellIncX;
     }
     w = w2 < w ? w : w2;
 
 cleanup:
     if (str) HeapFree(heap, 0, str);
-    if (font) HeapFree(heap, 0, font);
-    if (hdc) DeleteDC(hdc);
-    if (hfont) DeleteObject(hfont);
 
     return Py_BuildValue("(ii)", w, h);
 }
@@ -698,53 +825,45 @@ static PyObject *
 font_render(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t utf8strlen = 0, utf8fontlen = 0, bufSize = 0, outlen = 0;
-    int r = 0, g = 0, b = 0, size = 0, bold = 0, italic = 0, underline = 0, antialias = 0;
-    unsigned char *outdata = NULL, *utf8str = NULL, *utf8font = NULL, *buf = NULL;
+    FontInfo *font = NULL;
+    size_t utf8strlen = 0, bufSize = 0, outlen = 0;
+    int r = 0, g = 0, b = 0, antialias = 0;
+    unsigned char *outdata = NULL, *utf8str = NULL, *buf = NULL;
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
-    LPWSTR font = NULL;
-    HFONT hfont = NULL;
-    HDC hdc = NULL;
-    TEXTMETRIC tm = { 0 };
     GLYPHMETRICS gm = { 0 };
     MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
-    size_t i = 0, w = 0, w2 = 0, h = 0, x = 0, y = 0, bpl = 0, xx = 0, yy = 0, p1 = 0, p2 = 0, x0 = 0, y0 = 0, bt = 0;
+    size_t i = 0, w = 0, w2 = 0, h = 0, x = 0, y = 0, bpl = 0, xx = 0, yy = 0, p1 = 0, p2 = 0, x0 = 0, y0 = 0;
     unsigned char a = 0;
     UINT format = 0;
 
-    if (!PyArg_ParseTuple(args, "s#(iii)s#iiiii", &utf8str, &utf8strlen, &r, &g, &b, &utf8font, &utf8fontlen, &size, &bold, &italic, &underline, &antialias))
+    if (!PyArg_ParseTuple(args, "ns#i(iii)", &font, &utf8str, &utf8strlen, &antialias, &r, &g, &b))
         return NULL;
+    
+    if (!utf8str || !font)
+        return NULL;
+
+    if (!font->hdc)
+        _init_font(font);
 
     format = antialias ? GGO_GRAY8_BITMAP : GGO_BITMAP;
 
     bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
-    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
+    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
 
-    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, NULL, 0);
-    font = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1)*sizeof(WCHAR));
-    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8font, utf8fontlen, font, bufSize)) goto cleanup;
-
-    hfont = CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic, underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font);
-    if (!hfont) goto cleanup;
-    hdc = CreateCompatibleDC(NULL);
-    if (!hdc) goto cleanup;
-    if (!SelectObject(hdc, hfont)) goto cleanup;
-    if (!GetTextMetrics(hdc, &tm)) goto cleanup;
-
-    h = tm.tmHeight;
+    h = font->tm.tmHeight;
     for (i = 0; str[i]; i++)
     {
         if (str[i] == '\n')
         {
             w = w2 < w ? w : w2;
             w2 = 0;
-            h += tm.tmHeight;
+            h += font->tm.tmHeight;
             continue;
         }
-        bufSize = GetGlyphOutlineW(hdc, str[i], format, &gm, 0, NULL, &mat2);
+        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
         if (str[i+1])
         {
             w2 += gm.gmCellIncX;
@@ -753,7 +872,7 @@ font_render(PyObject *self, PyObject *args)
         {
             w2 += max(gm.gmCellIncX, gm.gmptGlyphOrigin.x + gm.gmBlackBoxX);
         }
-        h = max(h, gm.gmptGlyphOrigin.y + gm.gmBlackBoxY)
+        h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY);
     }
     w = w2 < w ? w : w2;
 
@@ -771,13 +890,13 @@ font_render(PyObject *self, PyObject *args)
             y0 += h;
             continue;
         }
-        bufSize = GetGlyphOutlineW(hdc, str[i], format, &gm, 0, NULL, &mat2);
+        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
+        buf = (unsigned char*)HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
         if (!iswspace(str[i]))
         {
-            buf = (unsigned char*)HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
-            GetGlyphOutlineW(hdc, str[i], format, &gm, bufSize, buf, &mat2);
+            GetGlyphOutlineW(font->hdc, str[i], format, &gm, bufSize, buf, &mat2);
             x = x0 + gm.gmptGlyphOrigin.x;
-            y = y0 + (tm.tmAscent - gm.gmptGlyphOrigin.y);
+            y = y0 + (font->tm.tmAscent - gm.gmptGlyphOrigin.y);
             if (antialias)
             {
                 bpl = (gm.gmBlackBoxX + 3) / 4 * 4;
@@ -821,28 +940,25 @@ font_render(PyObject *self, PyObject *args)
                     }
                 }
             }
-            if (underline)
-            {
-                yy = y0 + tm.tmAscent;
-                for (xx = 0; xx < x0 + gm.gmCellIncX; xx++)
-                {
-                    p2 = ((yy * w) + xx) * 4;
-                    outdata[p2+0] = (unsigned char)r;
-                    outdata[p2+1] = (unsigned char)g;
-                    outdata[p2+2] = (unsigned char)b;
-                    outdata[p2+3] = 255;
-                }
-            }
-            HeapFree(heap, 0, buf);
         }
+        if (font->underline)
+        {
+            yy = y0 + font->tm.tmAscent;
+            for (xx = 0; xx < x0 + gm.gmCellIncX; xx++)
+            {
+                p2 = ((yy * w) + xx) * 4;
+                outdata[p2+0] = (unsigned char)r;
+                outdata[p2+1] = (unsigned char)g;
+                outdata[p2+2] = (unsigned char)b;
+                outdata[p2+3] = 255;
+            }
+        }
+        HeapFree(heap, 0, buf);
         x0 += gm.gmCellIncX;
     }
 
 cleanup:
     if (str) HeapFree(heap, 0, str);
-    if (font) HeapFree(heap, 0, font);
-    if (hdc) DeleteDC(hdc);
-    if (hfont) DeleteObject(hfont);
 
     return Py_BuildValue("O(ii)", string, w, h);
 }
@@ -875,12 +991,22 @@ _imageretouchMethods[] =
     {"to_disabledimage", to_disabledimage, METH_VARARGS,
         "to_disabledimage(char*, size)"},
 #if defined(_WIN32) || defined(_WIN64)
+    {"font_new", font_new, METH_VARARGS,
+        "font_new(face, pixels, bold, italic)"},
+    {"font_del", font_del, METH_VARARGS,
+        "font_del(fontinfo)"},
+    {"font_bold", font_bold, METH_VARARGS,
+        "font_bold(fontinfo, val)"},
+    {"font_italic", font_italic, METH_VARARGS,
+        "font_italic(fontinfo, val)"},
+    {"font_underline", font_underline, METH_VARARGS,
+        "font_underline(fontinfo, val)"},
     {"font_height", font_height, METH_VARARGS,
-        "font_height(fontname, size, bold, italic, underline)"},
+        "font_height(fontinfo)"},
     {"font_size", font_size, METH_VARARGS,
-        "font_size(text, fontname, size, bold, italic, underline)"},
+        "font_size(fontinfo, text)"},
     {"font_render", font_render, METH_VARARGS,
-        "font_render(text, color, fontname, size, bold, italic, underline, antialias)"},
+        "font_render(fontinfo, text, antialias, color)"},
     {NULL, NULL, 0, NULL}
 #endif
 };

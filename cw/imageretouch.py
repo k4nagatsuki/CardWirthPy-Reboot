@@ -735,13 +735,14 @@ class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
         if sys.platform == "win32":
             try:
-                func = _imageretouch.font_render
+                func = _imageretouch.font_new
                 self.font = None
                 self.face = face
                 self.pixels = pixels
                 self.bold = bold
                 self.italic = italic
                 self.underline = False
+                self.fontinfo = _imageretouch.font_new(face, pixels, bold, italic);
             except:
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
@@ -750,7 +751,10 @@ class Font(object):
             encoding = sys.getfilesystemencoding()
             face = face.encode(encoding)
             self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
-        self.height = 0
+
+    def __del__(self):
+        if not self.font:
+            _imageretouch.font_del(self.fontinfo)
 
     def get_bold(self):
         if self.font:
@@ -762,6 +766,7 @@ class Font(object):
             self.font.set_bold(v)
         else:
             self.bold = v
+            _imageretouch.font_bold(self.fontinfo, v)
 
     def get_italic(self):
         if self.font:
@@ -773,6 +778,7 @@ class Font(object):
             self.font.set_italic(v)
         else:
             self.italic = v
+            _imageretouch.font_italic(self.fontinfo, v)
 
     def get_underline(self):
         if self.font:
@@ -784,27 +790,25 @@ class Font(object):
             self.font.set_underline(v)
         else:
             self.underline = v
+            _imageretouch.font_underline(self.fontinfo, v)
 
     def get_height(self):
         if self.font:
-            self.height = self.font.get_height()
+            return self.font.get_height()
         else:
-            self.height = _imageretouch.font_height(self.face, self.pixels, self.bold, self.italic, self.underline)
-        return self.height
+            return _imageretouch.font_height(self.fontinfo)
 
     def size(self, str):
         if self.font:
             return self.font.size(str)
         else:
-            return _imageretouch.font_size(str, self.face, self.pixels, self.bold, self.italic,\
-                                           self.underline)
+            return _imageretouch.font_size(self.fontinfo, str)
 
     def render(self, str, antialias, colour):
         if self.font:
             return self.font.render(str, antialias, colour)
         else:
-            buf, size = _imageretouch.font_render(str, colour[:3], self.face, self.pixels, self.bold, self.italic,\
-                                                  self.underline, antialias)
+            buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
             assert len(buf) == size[0]*size[1]*4
             return pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
 
