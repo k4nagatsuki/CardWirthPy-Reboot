@@ -247,6 +247,7 @@ class _JpySubImage(cw.image.Image):
         # マスク
         if self.transparent:
             image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
+            image = image.convert_alpha()
         else:
             image.set_colorkey(None)
 

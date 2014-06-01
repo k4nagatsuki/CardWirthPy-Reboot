@@ -86,7 +86,7 @@ def add_lightness(image, value):
     value: 明暗値(-255～255)
     """
     value = cw.util.numwrap(value, -255, 255)
-    outimage = image.copy()
+    outimage = image.convert()
 
     if value < 0:
         spcflag = BLEND_RGB_SUB

@@ -385,7 +385,7 @@ filter(PyObject *self, PyObject *args)
             outdata[0] = (unsigned char) r;
             outdata[1] = (unsigned char) g;
             outdata[2] = (unsigned char) b;
-            outdata[3] = data[y * x * 4 + 3];
+            outdata[3] = data[(y*w + x) * 4 + 3];
             outdata += 4;
         }
     }
