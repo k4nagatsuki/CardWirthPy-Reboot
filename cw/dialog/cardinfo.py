@@ -159,7 +159,7 @@ class MenuCardInfo(CardInfo):
     def __init__(self, parent):
         # カード情報
         self.selection = cw.cwpy.selection
-        self.list = cw.cwpy.get_mcards("visiblemenucards")
+        self.list = filter(lambda mcard: mcard.desc, cw.cwpy.get_mcards("visiblemenucards"))
         self.index = self.list.index(self.selection)
         # ダイアログ作成
         CardInfo.__init__(self, parent)

@@ -1015,7 +1015,8 @@ class MenuCard(CWPyCard):
         if not cw.cwpy.is_showingdlg():
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
-            cw.cwpy.call_modaldlg("MENUCARDINFO")
+            if self.desc:
+                cw.cwpy.call_modaldlg("MENUCARDINFO")
 
 def main():
     pass
