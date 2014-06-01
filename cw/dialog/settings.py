@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import itertools
 import wx
 import wx.aui
 
@@ -18,7 +19,7 @@ class SettingsDialog(wx.Dialog):
         self.pane_scenario = ScenarioSettingPanel(self.note)
         self.note.AddPage(self.pane_gene, u"一般")
         self.note.AddPage(self.pane_draw, u"描画")
-        self.note.AddPage(self.pane_sound, u"オーディオ")
+        self.note.AddPage(self.pane_sound, u"音声")
         self.note.AddPage(self.pane_scenario, u"シナリオ")
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
@@ -49,6 +50,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_draw.cb_smooth_bg.SetValue(False)
             self.pane_draw.cb_quickdeal.SetValue(True)
             self.pane_draw.cb_showallselectedcards.SetValue(True)
+            self.pane_draw.cb_showstatustime.SetValue(True)
             self.pane_draw.sl_deal.SetValue(6)
             self.pane_draw.sl_msgs.SetValue(4)
             self.pane_draw.ch_tran.SetSelection(0)
@@ -77,6 +79,7 @@ class SettingsDialog(wx.Dialog):
     def OnOk(self, event):
         # 設定変更前はレベル上昇が可能な状態だったか
         can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
+        updatecardimg = False # カードイメージの更新が必要か
 
         # 一般
         value = self.pane_gene.cb_debug.GetValue()
@@ -126,6 +129,10 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.quickdeal = value
         value = self.pane_draw.cb_showallselectedcards.GetValue()
         cw.cwpy.setting.show_allselectedcards = value
+        value = self.pane_draw.cb_showstatustime.GetValue()
+        if cw.cwpy.setting.show_statustime <> value:
+            cw.cwpy.setting.show_statustime = value
+            updatecardimg = True
         value = self.pane_draw.sl_deal.GetValue()
         cw.cwpy.setting.set_dealspeed(value)
         value = self.pane_draw.sl_msgs.GetValue()
@@ -220,6 +227,15 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SHOWLOG
         else:
             cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SELECTION
+
+        # イメージの更新
+        if updatecardimg:
+            def func():
+                for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"),\
+                                             cw.cwpy.get_ecards("unreversed"),\
+                                             cw.cwpy.get_fcards("unreversed")):
+                    ccard.update_image()
+            cw.cwpy.exec_func(func)
 
         self.Close()
 
@@ -425,6 +441,9 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_showallselectedcards = wx.CheckBox(
             self, -1, u"戦闘行動を全員分表示する")
         self.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards)
+        self.cb_showstatustime = wx.CheckBox(
+            self, -1, u"状態の残り時間をカード上に表示する")
+        self.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -498,6 +517,7 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_quickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_showstatustime, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((310, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
         bsizer_tran.Add(self.sl_tran, 0, 0, 0)
