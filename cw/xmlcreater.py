@@ -159,6 +159,9 @@ def create_settings(setting):
     # キャンプ等に高速で切り替える
     e = cw.data.make_element("QuickDeal", str(setting.quickdeal))
     element.append(e)
+    # 全てのシステムカードを高速表示する
+    e = cw.data.make_element("AllQuickDeal", str(setting.all_quickdeal))
+    element.append(e)
     # ソート基準
     e = cw.data.make_element("SortKey")
     e.set("standbys", setting.sort_standbys)

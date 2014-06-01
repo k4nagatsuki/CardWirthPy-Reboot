@@ -59,6 +59,7 @@ class Setting(object):
             self.store_skinoneachbase = True
             self.revert_cardpocket = True
             self.quickdeal = True
+            self.all_quickdeal = False
             self.skindirname = "Classic"
             self.classicstyletext = True
             self.sort_standbys = "None"
@@ -158,6 +159,8 @@ class Setting(object):
         self.revert_cardpocket = data.getbool("RevertCardPocket", True)
         # キャンプ等に高速で切り替える
         self.quickdeal = data.getbool("QuickDeal", True)
+        # 全てのシステムカードを高速表示する
+        self.all_quickdeal = data.getbool("AllQuickDeal", False)
         # ソート基準
         self.sort_standbys = data.getattr("SortKey", "standbys", "None")
         self.sort_storehouse = data.getattr("SortKey", "storehouse", "None")

@@ -71,6 +71,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_scenario.cb_showinvisiblescenario.SetValue(False)
         elif selpane == 4:
             self.pane_ui.cb_quickdeal.SetValue(True)
+            self.pane_ui.cb_allquickdeal.SetValue(False)
             self.pane_ui.cb_showallselectedcards.SetValue(True)
             self.pane_ui.cb_showstatustime.SetValue(True)
 
@@ -210,6 +211,8 @@ class SettingsDialog(wx.Dialog):
         # 操作
         value = self.pane_ui.cb_quickdeal.GetValue()
         cw.cwpy.setting.quickdeal = value
+        value = self.pane_ui.cb_allquickdeal.GetValue()
+        cw.cwpy.setting.all_quickdeal = value
         value = self.pane_ui.cb_showallselectedcards.GetValue()
         cw.cwpy.setting.show_allselectedcards = value
         value = self.pane_ui.cb_showstatustime.GetValue()
@@ -803,6 +806,9 @@ class UISettingPanel(wx.Panel):
         self.cb_quickdeal = wx.CheckBox(
             self, -1, u"キャンプモードへ高速で切り替える")
         self.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal)
+        self.cb_allquickdeal = wx.CheckBox(
+            self, -1, u"全てのシステムカードを高速表示する")
+        self.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal)
         self.cb_showallselectedcards = wx.CheckBox(
             self, -1, u"戦闘行動を全員分表示する")
         self.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards)
@@ -851,6 +857,7 @@ class UISettingPanel(wx.Panel):
         bsizer_dlg = wx.StaticBoxSizer(self.box_dlg, wx.VERTICAL)
 
         bsizer_draw.Add(self.cb_quickdeal, 0, wx.ALL, 3)
+        bsizer_draw.Add(self.cb_allquickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.Add(self.cb_showstatustime, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.SetMinSize((SETTINGS_WIDTH, -1))

@@ -831,7 +831,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_status(self, name):
         self.status = name
-        self.hide_cards(True)
+        self.hide_cards(True, quickhide=self.setting.all_quickdeal)
         self.pre_areaids = []
         self.pre_dialogs = []
         self.pre_mcards = []
@@ -1532,6 +1532,10 @@ class CWPy(_Singleton, threading.Thread):
         bginhrt: 背景継承を行うかどうかのbool値。
         ttype: トランジション効果のデータのタプル((効果名, 速度))
         """
+        # 宿にいる時は常に高速切替有効
+        if self.setting.all_quickdeal and not self.is_playingscenario():
+            quickdeal = True
+
         # デバッガ等で強制的にエリア移動するときは特殊エリアを解除する
         if not specialarea:
             self.clean_specials()
@@ -2082,6 +2086,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 areaid = 1
             self.change_area(areaid, bginhrt=False)
+            self.draw()
         else:
             e = self.ydata.party.members[0]
             pcardsnum = len(self.ydata.party.members) - 1
