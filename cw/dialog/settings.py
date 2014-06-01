@@ -335,7 +335,7 @@ class GeneralSettingPanel(wx.Panel):
         self.sl_expand = wx.Slider(
             self, -1, n, 10, max, size=(120, -1),
             style=wx.SL_HORIZONTAL)
-        self.st_expand = wx.StaticText(self, -1)
+        self.st_expand = wx.StaticText(self, -1, size=(110, -1))
         self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
         self.cb_fullscreen.SetValue(cw.cwpy.setting.expandmode == "FullScreen")
 
@@ -396,9 +396,9 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
         bsizer_skin.SetMinSize((SETTINGS_WIDTH, 200))
 
-        bsizer_expandmode_in.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_expandmode_in.Add(self.sl_expand, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode_in.Add(self.st_expand, 0, wx.LEFT, 3)
-        bsizer_expandmode.Add(bsizer_expandmode_in, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_expandmode.Add(bsizer_expandmode_in, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
 
