@@ -1927,10 +1927,6 @@ class Character(object):
         if self.is_unconscious():
             self.set_unconsciousstatus()
 
-        # 敵が中毒効果で死亡していたら、死亡イベント開始
-        if isinstance(self, Enemy) and self.is_dead() and oldalive:
-            self.events.start(1)
-
         # 画像更新
         if flag or updateimage:
             if self.status <> "reversed" and self.status <> "hidden":
@@ -1942,6 +1938,10 @@ class Character(object):
                     self.update_image()
             else:
                 self.update_image()
+
+        # 敵が中毒効果で死亡していたら、死亡イベント開始
+        if isinstance(self, Enemy) and self.is_dead() and oldalive:
+            self.events.start(1)
 
 class Player(Character):
     def lost(self):
