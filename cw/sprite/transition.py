@@ -22,6 +22,9 @@ class Transition(base.CWPySprite):
         self.frame = 0
         self.speed = speed
 
+    def update_scale(self):
+        pass
+
     def clear(self):
         self.image = pygame.Surface(cw.s((0, 0))).convert()
         self.rect = self.image.get_rect(center=self.rect.center)
