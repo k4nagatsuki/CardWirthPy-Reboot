@@ -653,7 +653,10 @@ font_new(PyObject *self, PyObject *args)
 
     bufSize = MultiByteToWideChar(CP_UTF8, 0, face, facelen, NULL, 0);
     font->face = (LPWSTR)HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
-    if (0 == MultiByteToWideChar(CP_UTF8, 0, face, facelen, font->face, bufSize)) goto cleanup;
+    if (bufSize)
+    {
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, face, facelen, font->face, bufSize)) goto cleanup;
+    }
 
     font->pixels = pixels;
     font->bold = bold;
@@ -809,7 +812,10 @@ font_size(PyObject *self, PyObject *args)
 
     bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
     str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
-    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+    if (bufSize)
+    {
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+    }
 
     h = font->otm->otmTextMetrics.tmHeight;
     for (i = 0; str[i]; i++)
@@ -852,7 +858,7 @@ font_render(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "ns#i(iii)", &font, &utf8str, &utf8strlen, &antialias, &r, &g, &b))
         return NULL;
-    
+
     if (!utf8str || !font)
         return NULL;
 
@@ -863,7 +869,10 @@ font_render(PyObject *self, PyObject *args)
 
     bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
     str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
-    if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+    if (bufSize)
+    {
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+    }
 
     h = font->otm->otmTextMetrics.tmHeight;
     for (i = 0; str[i]; i++)
@@ -887,6 +896,8 @@ font_render(PyObject *self, PyObject *args)
         h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY);
     }
     w = w2 < w ? w : w2;
+    if (!w) w = 1;
+    if (!h) h = 1;
 
     outlen = w * h * 4;
     string = PyBytes_FromStringAndSize(NULL, outlen);
