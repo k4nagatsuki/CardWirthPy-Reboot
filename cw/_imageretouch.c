@@ -597,7 +597,7 @@ typedef struct FontInfo_ {
     HFONT hfont;
     HDC hdc;
     LPWSTR face;
-    TEXTMETRIC tm;
+    LPOUTLINETEXTMETRIC otm;
     int pixels;
     BOOL bold;
     BOOL italic;
@@ -606,6 +606,8 @@ typedef struct FontInfo_ {
 
 static void _clear_font(FontInfo *font)
 {
+    HANDLE heap = GetProcessHeap();
+
     if (font->hfont)
     {
         DeleteObject(font->hfont);
@@ -616,7 +618,10 @@ static void _clear_font(FontInfo *font)
         DeleteDC(font->hdc);
         font->hdc = NULL;
     }
-    memset(&font->tm, 0, sizeof(font->tm));
+    if (font->otm)
+    {
+        HeapFree(heap, 0, font->otm);
+    }
 }
 
 static void _font_del(FontInfo *font)
@@ -665,6 +670,9 @@ cleanup:
 
 static void _init_font(FontInfo *font)
 {
+    UINT cbData = 0;
+    HANDLE heap = GetProcessHeap();
+
     if (!font)
         return;
 
@@ -676,7 +684,10 @@ static void _init_font(FontInfo *font)
     font->hdc = CreateCompatibleDC(NULL);
     if (!font->hdc) goto cleanup;
     if (!SelectObject(font->hdc, font->hfont)) goto cleanup;
-    if (!GetTextMetrics(font->hdc, &font->tm)) goto cleanup;
+    cbData = GetOutlineTextMetrics(font->hdc, 0, NULL);
+    if (!cbData) goto cleanup;
+    font->otm = (LPOUTLINETEXTMETRIC)HeapAlloc(heap, HEAP_ZERO_MEMORY, cbData*sizeof(OUTLINETEXTMETRIC));
+    if (!GetOutlineTextMetrics(font->hdc, cbData, font->otm)) goto cleanup;
 
     return;
 
@@ -771,7 +782,7 @@ font_height(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    return Py_BuildValue("i", font->tm.tmHeight);
+    return Py_BuildValue("i", font->otm->otmTextMetrics.tmHeight);
 }
 
 static PyObject *
@@ -800,14 +811,14 @@ font_size(PyObject *self, PyObject *args)
     str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
 
-    h = font->tm.tmHeight;
+    h = font->otm->otmTextMetrics.tmHeight;
     for (i = 0; str[i]; i++)
     {
         if (str[i] == '\n')
         {
             w = w2 < w ? w : w2;
             w2 = 0;
-            h += font->tm.tmHeight;
+            h += font->otm->otmTextMetrics.tmHeight;
             continue;
         }
         bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
@@ -827,14 +838,15 @@ font_render(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     FontInfo *font = NULL;
     size_t utf8strlen = 0, bufSize = 0, outlen = 0;
-    int r = 0, g = 0, b = 0, antialias = 0;
+    int r = 0, g = 0, b = 0, antialias = 0, draw = 0;
     unsigned char *outdata = NULL, *utf8str = NULL, *buf = NULL;
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
     GLYPHMETRICS gm = { 0 };
     MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
-    size_t i = 0, w = 0, w2 = 0, h = 0, x = 0, y = 0, bpl = 0, xx = 0, yy = 0, p1 = 0, p2 = 0, x0 = 0, y0 = 0;
+    size_t i = 0, w = 0, w2 = 0, h = 0, x = 0, y = 0;
+    size_t bpl = 0, xx = 0, yy = 0, p1 = 0, p2 = 0, x0 = 0, y0 = 0;
     unsigned char a = 0;
     UINT format = 0;
 
@@ -853,14 +865,14 @@ font_render(PyObject *self, PyObject *args)
     str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
 
-    h = font->tm.tmHeight;
+    h = font->otm->otmTextMetrics.tmHeight;
     for (i = 0; str[i]; i++)
     {
         if (str[i] == '\n')
         {
             w = w2 < w ? w : w2;
             w2 = 0;
-            h += font->tm.tmHeight;
+            h += font->otm->otmTextMetrics.tmHeight;
             continue;
         }
         bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
@@ -890,13 +902,17 @@ font_render(PyObject *self, PyObject *args)
             y0 += h;
             continue;
         }
+        draw = !iswspace(str[i]);
         bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
-        buf = (unsigned char*)HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
-        if (!iswspace(str[i]))
+        if (draw || font->underline)
+        {
+            buf = (unsigned char*)HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
+        }
+        if (draw)
         {
             GetGlyphOutlineW(font->hdc, str[i], format, &gm, bufSize, buf, &mat2);
             x = x0 + gm.gmptGlyphOrigin.x;
-            y = y0 + (font->tm.tmAscent - gm.gmptGlyphOrigin.y);
+            y = y0 + (font->otm->otmTextMetrics.tmAscent - gm.gmptGlyphOrigin.y);
             if (antialias)
             {
                 bpl = (gm.gmBlackBoxX + 3) / 4 * 4;
@@ -943,17 +959,28 @@ font_render(PyObject *self, PyObject *args)
         }
         if (font->underline)
         {
-            yy = y0 + font->tm.tmAscent;
-            for (xx = 0; xx < x0 + gm.gmCellIncX; xx++)
+            for (y = 0; y < font->otm->otmsUnderscoreSize; y++)
             {
-                p2 = ((yy * w) + xx) * 4;
-                outdata[p2+0] = (unsigned char)r;
-                outdata[p2+1] = (unsigned char)g;
-                outdata[p2+2] = (unsigned char)b;
-                outdata[p2+3] = 255;
+                yy = y0 + font->otm->otmTextMetrics.tmHeight
+                    + font->otm->otmsUnderscorePosition + y;
+                if (h <= yy) continue;
+                for (x = 0; x < x0 + gm.gmCellIncX; x++)
+                {
+                    xx = x + gm.gmptGlyphOrigin.x;
+                    if (w <= xx) continue;
+                    p2 = ((yy * w) + xx) * 4;
+                    outdata[p2+0] = (unsigned char)r;
+                    outdata[p2+1] = (unsigned char)g;
+                    outdata[p2+2] = (unsigned char)b;
+                    outdata[p2+3] = 255;
+                }
             }
         }
-        HeapFree(heap, 0, buf);
+        if (buf)
+        {
+            HeapFree(heap, 0, buf);
+            buf = NULL;
+        }
         x0 += gm.gmCellIncX;
     }
 

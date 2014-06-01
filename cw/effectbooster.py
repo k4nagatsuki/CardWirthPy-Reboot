@@ -724,7 +724,8 @@ class JptxImage(cw.image.Image):
         italic = False
 
         class Info(object):
-            def __init__(self, lineheight, fontface, fontpixels, fontcolor):
+            def __init__(self, outer, lineheight, fontface, fontpixels, fontcolor):
+                self.outer = outer
                 self.lineheight = lineheight
                 self.fontpixels = fontpixels
                 self.fontcolor = fontcolor
@@ -740,14 +741,15 @@ class JptxImage(cw.image.Image):
                 self.tagonly = True
                 self.strike = False
                 self.create_font()
+                self.chars = []
 
             def create_font(self):
                 if self.fontface in cw.cwpy.rsrc.fontnames.values():
-                    fontpath = self.get_fontpath(self.fontface)
+                    fontpath = self.outer.get_fontpath(self.fontface)
                     self.font = pygame.font.Font(fontpath, self.fontpixels)
                 else:
                     if not self.fontface in cw.cwpy.rsrc.facenames:
-                        self.fontface = self.get_fontface(self.fontface)
+                        self.fontface = self.outer.get_fontface(self.fontface)
                     self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
 
             def get_height(self):
@@ -755,13 +757,32 @@ class JptxImage(cw.image.Image):
                 height += cw.s(2)
                 return height
 
-        info = Info(lineheight, fontface, fontpixels, fontcolor)
+            def render(self):
+                if not self.chars:
+                    return
+                chars = "".join(self.chars)
+                self.chars = []
+                subimg = info.font.render(chars, antialias, info.fontcolor)
+                width = info.font.size(chars)[0]
+                # 取消線
+                if info.strike:
+                    subimg2 = info.font.render(u"―", False, info.fontcolor)
+                    size = (width + cw.s(10), info.get_height())
+                    subimg2 = pygame.transform.scale(subimg2, size)
+                    subimg.blit(subimg2, cw.s((-5, 0)))
+
+                self.outer.image.blit(subimg, (info.x, info.y))
+                info.x += width
+                info.w = info.x if info.x > info.w else info.w
+
+        info = Info(self, lineheight, fontface, fontpixels, fontcolor)
         face_def = fontface
         pixels_def = fontpixels
         color_def = fontcolor
 
         for char in text:
             if char == "\n":
+                info.render()
                 info.x = 0
                 if info.nolinedata or not info.tagonly:
                     info.y += info.get_height() * info.lineheight / 100 - cw.s(2)
@@ -769,6 +790,7 @@ class JptxImage(cw.image.Image):
                 info.nolinedata = True
                 info.tagonly = True
             elif char == "<":
+                info.render()
                 info.nolinedata = False
                 info.tag += char
             elif char == ">":
@@ -816,7 +838,7 @@ class JptxImage(cw.image.Image):
                         if color:
                             info.fontcolor = self.get_fontcolor(color, color_def)
                     else:
-                        info.fontface, info.fontpixels, color = oldfonts.pop()
+                        info.fontface, info.fontpixels, color = info.oldfonts.pop()
                         info.create_font()
                         info.fontcolor = color
                     info.font.set_bold(bold)
@@ -825,22 +847,14 @@ class JptxImage(cw.image.Image):
 
                 info.tag = ""
             elif info.tag:
+                info.render()
                 info.tag += char
             else:
+                info.chars.append(char)
                 info.nolinedata = False
                 info.tagonly = False
-                subimg = info.font.render(char, antialias, info.fontcolor)
-                width = info.font.size(char)[0]
-                # 取消線
-                if info.strike:
-                    subimg2 = info.font.render(u"―", antialias, info.fontcolor)
-                    size = (width + cw.s(10), info.get_height())
-                    subimg2 = pygame.transform.scale(subimg2, size)
-                    subimg.blit(subimg2, cw.s((-5, 0)))
 
-                self.image.blit(subimg, (info.x, info.y))
-                info.x += width
-                info.w = info.x if info.x > info.w else info.w
+        info.render()
 
         if backheight < 0 or backwidth < 0:
             info.w = info.w if backwidth < 0 else backwidth
