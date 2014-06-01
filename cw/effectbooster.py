@@ -554,7 +554,7 @@ class JpyBackGroundImage(_JpySubImage):
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
         self.width = cw.s(config.get_int("init", "backwidth", -1))
         self.height = cw.s(config.get_int("init", "backheight", -1))
-        self.transparent = config.get_bool("init", "transparent", mask)
+        self.transparent = config.get_bool("init", "transparent", False)
         self.position = cw.s((0, 0))
         self.savecache = 0
         self.visible = False
