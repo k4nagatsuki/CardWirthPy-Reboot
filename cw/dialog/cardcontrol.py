@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import itertools
 
 import wx
 import wx.combo
@@ -90,6 +91,9 @@ class CardControl(wx.Dialog):
         self.toppanel.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
         self.toppanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.panel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp2)
+        for child in itertools.chain(self.toppanel.GetChildren(), self.panel.GetChildren()):
+            child.Bind(wx.EVT_RIGHT_UP, self.OnRightUp2)
 
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
@@ -248,6 +252,12 @@ class CardControl(wx.Dialog):
                 dlg.Destroy()
                 return
 
+        # キャンセルボタンイベント
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
+        self.ProcessEvent(btnevent)
+
+    def OnRightUp2(self, event):
+        cw.cwpy.sounds["click"].play()
         # キャンセルボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
         self.ProcessEvent(btnevent)
