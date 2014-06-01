@@ -9,6 +9,8 @@ import wx.aui
 import cw
 
 
+SETTINGS_WIDTH = 370
+
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, u"設定")
@@ -17,10 +19,12 @@ class SettingsDialog(wx.Dialog):
         self.pane_draw = DrawingSettingPanel(self.note)
         self.pane_sound = AudioSettingPanel(self.note)
         self.pane_scenario = ScenarioSettingPanel(self.note)
+        self.pane_ui = UISettingPanel(self.note)
         self.note.AddPage(self.pane_gene, u"一般")
         self.note.AddPage(self.pane_draw, u"描画")
         self.note.AddPage(self.pane_sound, u"音声")
         self.note.AddPage(self.pane_scenario, u"シナリオ")
+        self.note.AddPage(self.pane_ui, u"操作")
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
         self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
@@ -38,19 +42,9 @@ class SettingsDialog(wx.Dialog):
         selpane = self.note.GetSelection()
         if selpane == 0:
             self.pane_gene.cb_nolevelup.SetValue(False)
-            self.pane_gene.cb_cautionbeforesaving.SetValue(True)
             self.pane_gene.cb_storeskinoneachbase.SetValue(True)
-            self.pane_gene.cb_revertcardpocket.SetValue(True)
-            self.pane_gene.cb_showlogwithwheelup.SetValue(True)
-            self.pane_gene.cb_confirmbeforeusingcard.SetValue(True)
-            self.pane_gene.cb_confirmbeforesaving.SetValue(True)
-            self.pane_gene.cb_showsavedmessage.SetValue(True)
-            self.pane_gene.cb_showbackpackcard.SetValue(True)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
-            self.pane_draw.cb_quickdeal.SetValue(True)
-            self.pane_draw.cb_showallselectedcards.SetValue(True)
-            self.pane_draw.cb_showstatustime.SetValue(True)
             self.pane_draw.sl_deal.SetValue(6)
             self.pane_draw.sl_msgs.SetValue(4)
             self.pane_draw.ch_tran.SetSelection(0)
@@ -75,6 +69,18 @@ class SettingsDialog(wx.Dialog):
             self.pane_scenario.cb_showunfitnessscenario.SetValue(True)
             self.pane_scenario.cb_showcompletedscenario.SetValue(True)
             self.pane_scenario.cb_showinvisiblescenario.SetValue(False)
+        elif selpane == 4:
+            self.pane_ui.cb_quickdeal.SetValue(True)
+            self.pane_ui.cb_showallselectedcards.SetValue(True)
+            self.pane_ui.cb_showstatustime.SetValue(True)
+
+            self.pane_ui.cb_cautionbeforesaving.SetValue(True)
+            self.pane_ui.cb_showbackpackcard.SetValue(True)
+            self.pane_ui.cb_revertcardpocket.SetValue(True)
+            self.pane_ui.cb_showlogwithwheelup.SetValue(True)
+            self.pane_ui.cb_confirmbeforeusingcard.SetValue(True)
+            self.pane_ui.cb_showsavedmessage.SetValue(True)
+            self.pane_ui.cb_confirmbeforesaving.SetValue(True)
 
     def OnOk(self, event):
         # 設定変更前はレベル上昇が可能な状態だったか
@@ -88,20 +94,8 @@ class SettingsDialog(wx.Dialog):
 
         value = self.pane_gene.cb_nolevelup.GetValue()
         cw.cwpy.setting.no_levelup_in_debugmode = value
-        value = self.pane_gene.cb_cautionbeforesaving.GetValue()
-        cw.cwpy.setting.caution_beforesaving = value
         value = self.pane_gene.cb_storeskinoneachbase.GetValue()
         cw.cwpy.setting.store_skinoneachbase = value
-        value = self.pane_gene.cb_revertcardpocket.GetValue()
-        cw.cwpy.setting.revert_cardpocket = value
-        value = self.pane_gene.cb_confirmbeforeusingcard.GetValue()
-        cw.cwpy.setting.confirm_beforeusingcard = value
-        value = self.pane_gene.cb_confirmbeforesaving.GetValue()
-        cw.cwpy.setting.confirm_beforesaving = value
-        value = self.pane_gene.cb_showsavedmessage.GetValue()
-        cw.cwpy.setting.show_savedmessage = value
-        value = self.pane_gene.cb_showbackpackcard.GetValue()
-        cw.cwpy.setting.show_backpackcard = value
 
         # 拡大倍率
         if self.pane_gene.cb_fullscreen.IsChecked():
@@ -125,14 +119,6 @@ class SettingsDialog(wx.Dialog):
         # 描画
         value = self.pane_draw.cb_smooth_bg.GetValue()
         cw.cwpy.setting.smoothscale_bg = value
-        value = self.pane_draw.cb_quickdeal.GetValue()
-        cw.cwpy.setting.quickdeal = value
-        value = self.pane_draw.cb_showallselectedcards.GetValue()
-        cw.cwpy.setting.show_allselectedcards = value
-        value = self.pane_draw.cb_showstatustime.GetValue()
-        if cw.cwpy.setting.show_statustime <> value:
-            cw.cwpy.setting.show_statustime = value
-            updatecardimg = True
         value = self.pane_draw.sl_deal.GetValue()
         cw.cwpy.setting.set_dealspeed(value)
         value = self.pane_draw.sl_msgs.GetValue()
@@ -222,11 +208,33 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.setting.folderoftype.append((skintype, folder))
 
         # 操作
-        value = self.pane_gene.cb_showlogwithwheelup.GetValue()
+        value = self.pane_ui.cb_quickdeal.GetValue()
+        cw.cwpy.setting.quickdeal = value
+        value = self.pane_ui.cb_showallselectedcards.GetValue()
+        cw.cwpy.setting.show_allselectedcards = value
+        value = self.pane_ui.cb_showstatustime.GetValue()
+        if cw.cwpy.setting.show_statustime <> value:
+            cw.cwpy.setting.show_statustime = value
+            updatecardimg = True
+
+        value = self.pane_ui.cb_showlogwithwheelup.GetValue()
         if value:
             cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SHOWLOG
         else:
             cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SELECTION
+
+        value = self.pane_ui.cb_cautionbeforesaving.GetValue()
+        cw.cwpy.setting.caution_beforesaving = value
+        value = self.pane_ui.cb_showbackpackcard.GetValue()
+        cw.cwpy.setting.show_backpackcard = value
+        value = self.pane_ui.cb_revertcardpocket.GetValue()
+        cw.cwpy.setting.revert_cardpocket = value
+        value = self.pane_ui.cb_confirmbeforesaving.GetValue()
+        cw.cwpy.setting.confirm_beforesaving = value
+        value = self.pane_ui.cb_showsavedmessage.GetValue()
+        cw.cwpy.setting.show_savedmessage = value
+        value = self.pane_ui.cb_confirmbeforeusingcard.GetValue()
+        cw.cwpy.setting.confirm_beforeusingcard = value
 
         # イメージの更新
         if updatecardimg:
@@ -270,30 +278,9 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode)
 
         # 基本的なオプション
-        self.cb_cautionbeforesaving = wx.CheckBox(
-            self, -1, u"保存せずに終了しようとしたら警告する")
-        self.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.store_skinoneachbase)
         self.cb_storeskinoneachbase = wx.CheckBox(
             self, -1, u"拠点ごとにスキンを記憶する")
         self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
-        self.cb_showbackpackcard = wx.CheckBox(
-            self, -1, u"荷物袋のカードを一時的に取り出して使える\nようにする")
-        self.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard)
-        self.cb_revertcardpocket = wx.CheckBox(
-            self, -1, u"レベル調節で手放したカードを自動的に戻す")
-        self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
-        self.cb_showlogwithwheelup = wx.CheckBox(
-            self, -1, u"マウスホイールを上に回すとログを表示")
-        self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
-        self.cb_confirmbeforeusingcard = wx.CheckBox(
-            self, -1, u"カード使用時に確認ダイアログを表示")
-        self.cb_confirmbeforeusingcard.SetValue(cw.cwpy.setting.confirm_beforeusingcard)
-        self.cb_confirmbeforesaving = wx.CheckBox(
-            self, -1, u"セーブ前に確認ダイアログを表示")
-        self.cb_confirmbeforesaving.SetValue(cw.cwpy.setting.confirm_beforesaving)
-        self.cb_showsavedmessage = wx.CheckBox(
-            self, -1, u"セーブ完了時に確認ダイアログを表示")
-        self.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage)
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
@@ -400,24 +387,17 @@ class GeneralSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_confirmbeforeusingcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((310, -1))
+        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
-        bsizer_skin.SetMinSize((310, 200))
+        bsizer_skin.SetMinSize((SETTINGS_WIDTH, 200))
 
         bsizer_expandmode_in.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode_in.Add(self.st_expand, 0, wx.LEFT, 3)
         bsizer_expandmode.Add(bsizer_expandmode_in, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_expandmode.SetMinSize((310, -1))
+        bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
         sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM, 5)
@@ -435,15 +415,6 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
         self.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg)
-        self.cb_quickdeal = wx.CheckBox(
-            self, -1, u"キャンプモードへ高速で切り替える")
-        self.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal)
-        self.cb_showallselectedcards = wx.CheckBox(
-            self, -1, u"戦闘行動を全員分表示する")
-        self.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards)
-        self.cb_showstatustime = wx.CheckBox(
-            self, -1, u"状態の残り時間をカード上に表示する")
-        self.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -458,20 +429,20 @@ class DrawingSettingPanel(wx.Panel):
         self.ch_tran.SetSelection(n)
         self.sl_tran = wx.Slider(
             self, -1, cw.cwpy.setting.transitionspeed, 0, 10,
-            size=(310-10, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
+            size=(SETTINGS_WIDTH-10, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_tran.SetTickFreq(1, 1)
         # カード描画速度
         self.box_deal = wx.StaticBox(
             self, -1, u"カード描画速度(速い⇔遅い)")
         self.sl_deal = wx.Slider(
-            self, -1, cw.cwpy.setting.dealspeed - 1, 0, 10, size=(310-10, -1),
+            self, -1, cw.cwpy.setting.dealspeed - 1, 0, 10, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_deal.SetTickFreq(1, 1)
         # メッセージ表示速度
         self.box_msgs = wx.StaticBox(
             self, -1, u"メッセージ表示速度(速い⇔遅い)")
         self.sl_msgs = wx.Slider(
-            self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(310-10, -1),
+            self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_msgs.SetTickFreq(1, 1)
 
@@ -515,10 +486,7 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_msgs = wx.StaticBoxSizer(self.box_msgs, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
-        bsizer_gene.Add(self.cb_quickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_showstatustime, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((310, -1))
+        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
         bsizer_tran.Add(self.sl_tran, 0, 0, 0)
         bsizer_deal.Add(self.sl_deal, 0, 0, 0)
@@ -573,7 +541,7 @@ class AudioSettingPanel(wx.Panel):
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
         n = int(cw.cwpy.setting.vol_bgm * 100)
         self.sl_music = wx.Slider(
-            self, -1, n, 0, 100, size=(310-10, -1),
+            self, -1, n, 0, 100, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_music.SetTickFreq(10, 1)
 
@@ -581,7 +549,7 @@ class AudioSettingPanel(wx.Panel):
         self.box_midi = wx.StaticBox(self, -1, u"MIDIミュージック音量")
         n = int(cw.cwpy.setting.vol_midi * 100)
         self.sl_midi = wx.Slider(
-            self, -1, n, 0, 100, size=(310-10, -1),
+            self, -1, n, 0, 100, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_midi.SetTickFreq(10, 1)
 
@@ -589,7 +557,7 @@ class AudioSettingPanel(wx.Panel):
         self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
         n = int(cw.cwpy.setting.vol_sound * 100)
         self.sl_sound = wx.Slider(
-            self, -1, n, 0, 100, size=(310-10, -1),
+            self, -1, n, 0, 100, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_sound.SetTickFreq(10, 1)
 
@@ -623,7 +591,7 @@ class AudioSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_playbgm, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_playsound, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.SetMinSize((310, -1))
+        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_soundfontbtns = wx.BoxSizer(wx.HORIZONTAL)
         sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, 5)
@@ -716,7 +684,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.grid_folderoftype.SetColLabelSize(0)
         self.grid_folderoftype.SetRowLabelSize(0)
         self.grid_folderoftype.SetColSize(0, 100)
-        self.grid_folderoftype.SetColSize(1, 160)
+        self.grid_folderoftype.SetColSize(1, SETTINGS_WIDTH-140)
 
         types = set()
         for name, t in self.Parent.Parent.pane_gene.skin_summarys.iteritems():
@@ -756,7 +724,7 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_showunfitnessscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.Add(self.cb_showcompletedscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.Add(self.cb_showinvisiblescenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-        bsizer_gene.SetMinSize((310, -1))
+        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)
         sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, 5)
@@ -825,6 +793,86 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row, col, value2)
             self.grid_folderoftype.SetCellValue(row + 1, col, value1)
         self.grid_folderoftype.SetGridCursor(row + 1, self.grid_folderoftype.GetGridCursorCol())
+
+class UISettingPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+
+        # 描画オプション
+        self.box_draw = wx.StaticBox(self, -1, "")
+        self.cb_quickdeal = wx.CheckBox(
+            self, -1, u"キャンプモードへ高速で切り替える")
+        self.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal)
+        self.cb_showallselectedcards = wx.CheckBox(
+            self, -1, u"戦闘行動を全員分表示する")
+        self.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards)
+        self.cb_showstatustime = wx.CheckBox(
+            self, -1, u"状態の残り時間をカード上に表示する")
+        self.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime)
+
+        # インタフェースオプション
+        self.box_gene = wx.StaticBox(self, -1, "")
+        self.cb_showbackpackcard = wx.CheckBox(
+            self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
+        self.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard)
+        self.cb_revertcardpocket = wx.CheckBox(
+            self, -1, u"レベル調節で手放したカードを自動的に戻す")
+        self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
+        self.cb_showlogwithwheelup = wx.CheckBox(
+            self, -1, u"マウスホイールを上に回すとログを表示")
+        self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
+
+        # ダイアログオプション
+        self.box_dlg = wx.StaticBox(self, -1, "")
+        self.cb_cautionbeforesaving = wx.CheckBox(
+            self, -1, u"保存せずに終了しようとしたら警告する")
+        self.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.store_skinoneachbase)
+        self.cb_confirmbeforesaving = wx.CheckBox(
+            self, -1, u"セーブ前に確認ダイアログを表示")
+        self.cb_confirmbeforesaving.SetValue(cw.cwpy.setting.confirm_beforesaving)
+        self.cb_showsavedmessage = wx.CheckBox(
+            self, -1, u"セーブ完了時に確認ダイアログを表示")
+        self.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage)
+        self.cb_confirmbeforeusingcard = wx.CheckBox(
+            self, -1, u"カード使用時に確認ダイアログを表示")
+        self.cb_confirmbeforeusingcard.SetValue(cw.cwpy.setting.confirm_beforeusingcard)
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        pass
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        bsizer_draw = wx.StaticBoxSizer(self.box_draw, wx.VERTICAL)
+        bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        bsizer_dlg = wx.StaticBoxSizer(self.box_dlg, wx.VERTICAL)
+
+        bsizer_draw.Add(self.cb_quickdeal, 0, wx.ALL, 3)
+        bsizer_draw.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_draw.Add(self.cb_showstatustime, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_draw.SetMinSize((SETTINGS_WIDTH, -1))
+
+        bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+
+        bsizer_dlg.Add(self.cb_cautionbeforesaving, 0, wx.ALL, 3)
+        bsizer_dlg.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_dlg.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_dlg.Add(self.cb_confirmbeforeusingcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_dlg.SetMinSize((SETTINGS_WIDTH, -1))
+
+        sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_dlg, 0, 0, 0)
+        sizer.Add(sizer_v1, 0, wx.ALL, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
 
 def main():
     pass
