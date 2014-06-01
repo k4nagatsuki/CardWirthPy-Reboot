@@ -54,7 +54,7 @@ class CardControl(wx.Dialog):
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.s((20, 20)), bmp=bmp)
         # sort
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
-        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
+        self.sort = wx.ComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
@@ -142,8 +142,8 @@ class CardControl(wx.Dialog):
         self.Layout()
 
     def _re_layout_topbar(self):
-        sortsize = self.sort.GetSize()
-        combosize = self.combo.GetSize()
+        sortsize = self.sort.GetSize()[0], cw.s(20)
+        combosize = self.combo.GetSize()[0], cw.s(20)
         self._sizer_topbar.Clear()
         self._sizer_topbar.SetMinSize(combosize)
         if self.combo.IsShown():

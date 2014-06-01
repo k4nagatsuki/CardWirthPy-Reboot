@@ -898,7 +898,7 @@ class PlayerSelect(Select):
         self.toppanel.SetMinSize(cw.s((460, 280)))
 
         # sort
-        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
+        self.sort = wx.ComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
