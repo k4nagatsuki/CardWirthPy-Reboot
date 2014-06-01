@@ -722,132 +722,131 @@ class JptxImage(cw.image.Image):
         bold = False
         underline = False
         italic = False
-        def create_font(fontface, fontpixels):
-            if fontface in cw.cwpy.rsrc.fontnames.values():
-                fontpath = self.get_fontpath(fontface)
-                font = pygame.font.Font(fontpath, fontpixels)
-            else:
-                if not fontface in cw.cwpy.rsrc.facenames:
-                    fontface = self.get_fontface(fontface)
-                font = cw.imageretouch.Font(fontface, fontpixels)
-            return font
-        def set_bold(font, start):
-            font.set_bold(start)
-        def set_underline(font, start):
-            font.set_underline(start)
-        def set_italic(font, start):
-            font.set_italic(start)
-        def get_height(font):
-            height = font.get_height()
-            height += cw.s(2)
-            return height
-        def font_render(font, char, antialias, fontcolor):
-            subimg = font.render(char, antialias, fontcolor)
-            return subimg
-        def font_size(font, char):
-            return font.size(char)
 
-        font = create_font(fontface, fontpixels)
-        oldfonts = []
-        x = 0
-        y = 0
-        w = 0
-        h = 0
-        tag = ""
-        nolinedata = True
-        tagonly = True
-        strike = False
+        class Info(object):
+            def __init__(self, lineheight, fontface, fontpixels, fontcolor):
+                self.lineheight = lineheight
+                self.fontpixels = fontpixels
+                self.fontcolor = fontcolor
+                self.fontface = fontface
+                self.oldfonts = []
+                self.x = 0
+                self.y = 0
+                self.y = 0
+                self.w = 0
+                self.h = 0
+                self.tag = ""
+                self.nolinedata = True
+                self.tagonly = True
+                self.strike = False
+                self.create_font()
+
+            def create_font(self):
+                if self.fontface in cw.cwpy.rsrc.fontnames.values():
+                    fontpath = self.get_fontpath(self.fontface)
+                    self.font = pygame.font.Font(fontpath, self.fontpixels)
+                else:
+                    if not self.fontface in cw.cwpy.rsrc.facenames:
+                        self.fontface = self.get_fontface(self.fontface)
+                    self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
+
+            def get_height(self):
+                height = self.font.get_height()
+                height += cw.s(2)
+                return height
+
+        info = Info(lineheight, fontface, fontpixels, fontcolor)
         face_def = fontface
         pixels_def = fontpixels
         color_def = fontcolor
 
         for char in text:
             if char == "\n":
-                x = 0
-                if nolinedata or not tagonly:
-                    y += get_height(font) * lineheight / 100 - cw.s(2)
-                h = y
-                nolinedata = True
-                tagonly = True
+                info.x = 0
+                if info.nolinedata or not info.tagonly:
+                    info.y += info.get_height() * info.lineheight / 100 - cw.s(2)
+                info.h = info.y
+                info.nolinedata = True
+                info.tagonly = True
             elif char == "<":
-                nolinedata = False
-                tag += char
+                info.nolinedata = False
+                info.tag += char
             elif char == ">":
-                nolinedata = False
-                tag += char
-                tag = tag.lower()
-                start, name, attrs = self.parse_tag(tag)
+                info.nolinedata = False
+                info.tag += char
+                info.tag = info.tag.lower()
+                start, name, attrs = self.parse_tag(info.tag)
                 name = name.lower()
 
                 if name == "b":
                     bold = start
-                    set_bold(font, start)
+                    info.font.set_bold(start)
                 elif name == "u":
                     underline = start
-                    set_underline(font, start)
+                    info.font.set_underline(start)
                 elif name == "i":
                     underline = start
-                    set_italic(font, start)
+                    info.font.set_italic(start)
                 elif name == "s":
-                    strike = start
+                    info.strike = start
                 elif name == "shiftx":
                     if start:
                         n = cw.s(int(attrs["shiftx"]))
-                        x += n
+                        info.x += n
                 elif name == "shifty":
                     if start:
                         n = cw.s(int(attrs["shifty"]))
-                        y += n
+                        info.y += n
                 elif name == "lineheight":
-                    lineheight = int(attrs["lineheight"])
+                    info.lineheight = int(attrs["lineheight"])
                 # 本家エフェクトブースターは"<fontcolor="blue">"のようなタグを、
                 # タグ名=font, 属性color=blueという用に認識してしまうため注意。
                 elif name.startswith("font"):
                     if start:
-                        oldfonts.append((fontface, fontpixels, fontcolor))
+                        info.oldfonts.append((info.fontface, info.fontpixels, info.fontcolor))
                         if "fontpixels" in attrs:
-                            fontpixels = cw.s(int(attrs["fontpixels"]))
+                            info.fontpixels = cw.s(int(attrs["fontpixels"]))
                         if "pixels" in attrs:
-                            fontpixels = cw.s(int(attrs["pixels"]))
-                        fontface = attrs.get("fontface", face_def)
-                        fontface = attrs.get("face", fontface)
-                        font = create_font(fontface, fontpixels)
+                            info.fontpixels = cw.s(int(attrs["pixels"]))
+                        info.fontface = attrs.get("fontface", face_def)
+                        info.fontface = attrs.get("face", info.fontface)
+                        info.create_font()
                         color = attrs.get("fontcolor")
                         color = attrs.get("color", color)
                         if color:
-                            fontcolor = self.get_fontcolor(color, color_def)
+                            info.fontcolor = self.get_fontcolor(color, color_def)
                     else:
-                        fontface, fontpixels, color = oldfonts.pop()
-                        font = create_font(fontface, fontpixels)
-                        fontcolor = color
-                    set_bold(font, bold)
-                    set_italic(font, italic)
-                    set_underline(font, underline)
+                        info.fontface, info.fontpixels, color = oldfonts.pop()
+                        info.create_font()
+                        info.fontcolor = color
+                    info.font.set_bold(bold)
+                    info.font.set_italic(italic)
+                    info.font.set_underline(underline)
 
-                tag = ""
-            elif tag:
-                tag += char
+                info.tag = ""
+            elif info.tag:
+                info.tag += char
             else:
-                nolinedata = False
-                tagonly = False
-                subimg = font_render(font, char, antialias, fontcolor)
-                width = font_size(font, char)[0]
+                info.nolinedata = False
+                info.tagonly = False
+                subimg = info.font.render(char, antialias, info.fontcolor)
+                width = info.font.size(char)[0]
                 # 取消線
-                if strike:
-                    subimg2 = font_render(font, u"―", antialias, fontcolor)
-                    size = (width + cw.s(10), get_height(font))
+                if info.strike:
+                    subimg2 = info.font.render(u"―", antialias, info.fontcolor)
+                    size = (width + cw.s(10), info.get_height())
                     subimg2 = pygame.transform.scale(subimg2, size)
                     subimg.blit(subimg2, cw.s((-5, 0)))
 
-                self.image.blit(subimg, (x, y))
-                x += width
-                w = x if x > w else w
+                self.image.blit(subimg, (info.x, info.y))
+                info.x += width
+                info.w = info.x if info.x > info.w else info.w
 
         if backheight < 0 or backwidth < 0:
-            w = w if backwidth < 0 else backwidth
-            h = h if backheight < 0 else backheight
+            info.w = info.w if backwidth < 0 else backwidth
+            info.h = info.h if backheight < 0 else backheight
             rect = self.image.get_rect()
-            self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, w, h)))
+            self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, info.w, info.h)))
 
     def get_fontface(self, fontface):
         if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
