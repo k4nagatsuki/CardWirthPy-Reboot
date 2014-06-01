@@ -1146,20 +1146,15 @@ class CWPy(_Singleton, threading.Thread):
         if showparty:
             self.music.stop()
         for idx, data in enumerate(self.ydata.party.members):
-            if showparty:
-                self.sounds["harvest"].play()
-                if idx < len(pcards):
-                    pcard = pcards[idx]
-                    cw.animation.animate_sprite(pcard, "hide")
-                    self.pcardgrp.remove(pcard)
+            if idx < len(pcards):
+                pcard = pcards[idx]
+                self.pcardgrp.remove(pcard)
 
             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
-            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale)
+            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal")
             pcard.set_pos_noscale(pos_noscale)
             pcard.set_fullrecovery()
-
-            if showparty:
-                cw.animation.animate_sprite(pcard, "deal")
+            pcard.update_image()
 
         self.ydata.party._loading = False
 
