@@ -745,7 +745,7 @@ class Font(object):
                 self.bold = bold
                 self.italic = italic
                 self.underline = False
-                self.fontinfo = _imageretouch.font_new(face, pixels, bold, italic);
+                self.fontinfo = _imageretouch.font_new(face.encode("utf-8"), pixels, bold, italic);
             except:
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
@@ -805,13 +805,13 @@ class Font(object):
         if self.font:
             return self.font.size(str)
         else:
-            return _imageretouch.font_size(self.fontinfo, str)
+            return _imageretouch.font_size(self.fontinfo, str.encode("utf-8"))
 
     def render(self, str, antialias, colour):
         if self.font:
             return self.font.render(str, antialias, colour)
         else:
-            buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
+            buf, size = _imageretouch.font_render(self.fontinfo, str.encode("utf-8"), antialias, colour[:3])
             assert len(buf) == size[0]*size[1]*4
             return pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
 
