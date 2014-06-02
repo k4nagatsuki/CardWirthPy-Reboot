@@ -795,9 +795,11 @@ def rpl_specialstr(s):
 def _create_nametable(full, talker):
     random = cw.cwpy.event.get_targetmember("Random")
     random = random.name if random else ""
-    selected = cw.cwpy.event.get_targetmember("Selected")
+    selected = cw.cwpy.event.get_targetmember("Selected")\
+               if cw.cwpy.event.has_selectedmember() else u""
     selected = selected.name if selected else ""
-    unselected = cw.cwpy.event.get_targetmember("Unselected")
+    unselected = cw.cwpy.event.get_targetmember("Unselected"\
+                 if cw.cwpy.event.has_selectedmember() else "Random")
     unselected = unselected.name if unselected else ""
     if full:
         inusecard = cw.cwpy.event.get_targetmember("Inusecard")
