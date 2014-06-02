@@ -798,8 +798,7 @@ def _create_nametable(full, talker):
     selected = cw.cwpy.event.get_targetmember("Selected")\
                if cw.cwpy.event.has_selectedmember() else u""
     selected = selected.name if selected else ""
-    unselected = cw.cwpy.event.get_targetmember("Unselected"\
-                 if cw.cwpy.event.has_selectedmember() else "Random")
+    unselected = cw.cwpy.event.get_targetmember("Unselected")
     unselected = unselected.name if unselected else ""
     if full:
         inusecard = cw.cwpy.event.get_targetmember("Inusecard")

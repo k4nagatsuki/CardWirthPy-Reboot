@@ -227,6 +227,9 @@ class EventInterface(object):
 
     def get_unselectedmember(self):
         """選択外のPlayerCardインスタンスを返す。"""
+        if not self.has_selectedmember():
+            return self.get_randommember()
+
         selectedmember = self.get_selectedmember()
 
         pcards = cw.cwpy.get_pcards("active")
