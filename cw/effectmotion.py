@@ -349,9 +349,7 @@ class Effect(object):
             if update_image:
                 target.update_image()
             cw.cwpy.draw()
-
-            if cw.cwpy.has_sound(self.soundpath):
-                cw.cwpy.wait_frame(12)
+            cw.cwpy.wait_frame(1)
 
     def check_enabledtarget(self, target, event=False):
         """
