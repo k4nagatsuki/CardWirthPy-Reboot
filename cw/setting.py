@@ -546,6 +546,12 @@ class Resource(object):
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM):
         if size is None:
             size = cw.s(10)
+
+        # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
+        #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
+        dpi = wx.ScreenDC().GetPPI()[0]
+        size = int((1.0/72 * 96) * size + 0.5)
+
         if name == "btnfont":
             if self._msuigothic:
                 fontname = "MS UI Gothic"
@@ -554,7 +560,7 @@ class Resource(object):
         else:
             fontname = self.fontnames[name]
 
-        wxfont = wx.Font(size, family, style, weight, 0, fontname, encoding)
+        wxfont = wx.FontFromPixelSize((0, size), family, style, weight, 0, fontname, encoding)
         return wxfont
 
     def create_fonts(self):
@@ -638,69 +644,72 @@ class Resource(object):
         return button
 
     def _create_wxbtnbmp(self, w, h, flags=0):
-        if sys.platform == "win32":
-            wxbmp = wx.EmptyBitmapRGBA(w, h)
-            dc = wx.MemoryDC(wxbmp)
-            render = wx.RendererNative.Get()
-            render.DrawPushButton(cw.cwpy.frame, dc, (cw.s(0), cw.s(0), w, h), flags)
-            dc.EndDrawing()
-            # RendererNativeがアルファ値を出力しなかった場合
-            wximg = wxbmp.ConvertToImage()
-            pixel_num = w * h
-
-            if wximg.GetAlphaData() == "\x00" * pixel_num:
-                wximg.SetAlphaData("\xFF" * pixel_num)
+        try:
+            if sys.platform == "win32":
+                wxbmp = wx.EmptyBitmapRGBA(w, h)
+                dc = wx.MemoryDC(wxbmp)
+                render = wx.RendererNative.Get()
+                render.DrawPushButton(cw.cwpy.frame, dc, (cw.s(0), cw.s(0), w, h), flags)
+                dc.EndDrawing()
+                # RendererNativeがアルファ値を出力しなかった場合
+                wximg = wxbmp.ConvertToImage()
+                pixel_num = w * h
+    
+                if wximg.GetAlphaData() == "\x00" * pixel_num:
+                    wximg.SetAlphaData("\xFF" * pixel_num)
                 wxbmp = wximg.ConvertToBitmap()
+    
+                return cw.image.conv2surface(wxbmp)
+        except:
+            pass
 
-            return cw.image.conv2surface(wxbmp)
-        else:
-            bmp = pygame.Surface((w, h)).convert()
-            c1 = 240
-            c2 = 224
-            mid = h / 2
-            for y in xrange(0, mid+1, 1):
-                bmp.fill((c1-y, c1-y, c1-y), pygame.Rect(0, mid-y, w, 1))
-                bmp.fill((c2-y, c2-y, c2-y), pygame.Rect(0, mid+y, w, 1))
+        bmp = pygame.Surface((w, h)).convert()
+        c1 = 240
+        c2 = 224
+        mid = h / 2
+        for y in xrange(0, mid+1, 1):
+            bmp.fill((c1-y, c1-y, c1-y), pygame.Rect(0, mid-y, w, 1))
+            bmp.fill((c2-y, c2-y, c2-y), pygame.Rect(0, mid+y, w, 1))
 
-            r = 4
-            r2 = r*2
+        r = 4
+        r2 = r*2
 
-            if (flags & wx.CONTROL_CURRENT) <> 0:
-                color = (240, 240, 240)
-                bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
-                bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
-                pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
-                pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
-                pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
-                pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
+        if (flags & wx.CONTROL_CURRENT) <> 0:
+            color = (240, 240, 240)
+            bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
+            bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
+            pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
+            pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
+            pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
+            pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
 
-            if (flags & wx.CONTROL_PRESSED) <> 0:
-                color = (196, 196, 196)
-                bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
-                bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
-                pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
-                pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
-                pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
-                pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
+        if (flags & wx.CONTROL_PRESSED) <> 0:
+            color = (196, 196, 196)
+            bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
+            bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
+            pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
+            pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
+            pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
+            pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
 
-            color = (128, 128, 128)
+        color = (128, 128, 128)
 
-            pygame.draw.line(bmp, color, (r, 1), (w-r-1, 1))
-            pygame.draw.line(bmp, color, (r, h-2), (w-r-1, h-2))
-            pygame.draw.line(bmp, color, (1, r), (1, h-r-1))
-            pygame.draw.line(bmp, color, (w-2, r), (w-2, h-r-1))
+        pygame.draw.line(bmp, color, (r, 1), (w-r-1, 1))
+        pygame.draw.line(bmp, color, (r, h-2), (w-r-1, h-2))
+        pygame.draw.line(bmp, color, (1, r), (1, h-r-1))
+        pygame.draw.line(bmp, color, (w-2, r), (w-2, h-r-1))
 
-            r0 = math.radians(0)
-            r90 = math.radians(90)
-            r180 = math.radians(180)
-            r270 = math.radians(270)
-            r360 = math.radians(360)
-            pygame.draw.arc(bmp, color, (w-r2-2, 1, r2, r2), 0, r90)
-            pygame.draw.arc(bmp, color, (1, 1, r2, r2), r90, r180)
-            pygame.draw.arc(bmp, color, (1, h-r2-2, r2, r2), r180, r270)
-            pygame.draw.arc(bmp, color, (w-r2-2, h-r2-2, r2, r2), r270, r360)
+        r0 = math.radians(0)
+        r90 = math.radians(90)
+        r180 = math.radians(180)
+        r270 = math.radians(270)
+        r360 = math.radians(360)
+        pygame.draw.arc(bmp, color, (w-r2-2, 1, r2, r2), 0, r90)
+        pygame.draw.arc(bmp, color, (1, 1, r2, r2), r90, r180)
+        pygame.draw.arc(bmp, color, (1, h-r2-2, r2, r2), r180, r270)
+        pygame.draw.arc(bmp, color, (w-r2-2, h-r2-2, r2, r2), r270, r360)
 
-            return bmp
+        return bmp
 
     def get_wxbtnbmp(self, sizetype, flags=0):
         """StatusBarで使用するOSネイティブなボタン画像を取得する。
