@@ -898,7 +898,7 @@ class PlayerSelect(Select):
         self.toppanel.SetMinSize(cw.s((460, 280)))
 
         # sort
-        self.sort = wx.ComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
+        self.sort = wx.ComboBox(self.toppanel, size=cw.s((75, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
@@ -943,7 +943,7 @@ class PlayerSelect(Select):
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(cw.s((393, 0)), 0)
+        sizer.Add(cw.s((383, 0)), 0)
         sizer.Add(self.sort, 0, wx.TOP, cw.s(2))
         self.toppanel.SetSizer(sizer)
         self.toppanel.Layout()
@@ -1415,7 +1415,7 @@ class PlayerSelect(Select):
         if self.sort:
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["sort_title"]
-            drawwitharound(dc, s, cw.s(353), cw.s(5))
+            drawwitharound(dc, s, cw.s(343), cw.s(5))
 
 #-------------------------------------------------------------------------------
 #　アルバムダイアログ

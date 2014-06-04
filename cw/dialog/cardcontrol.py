@@ -55,7 +55,7 @@ class CardControl(wx.Dialog):
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.s((20, 20)), bmp=bmp)
         # sort
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
-        self.sort = wx.ComboBox(self.toppanel, size=cw.s((65, 20)), style=wx.CB_READONLY)
+        self.sort = wx.ComboBox(self.toppanel, size=cw.s((75, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(10), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
@@ -347,9 +347,9 @@ class CardControl(wx.Dialog):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["sort_title"]
             if self.combo.IsShown():
-                dc.DrawText(s, cw.s(180), cw.s(3))
+                dc.DrawText(s, cw.s(170), cw.s(3))
             else:
-                dc.DrawText(s, cw.s(395), cw.s(3))
+                dc.DrawText(s, cw.s(385), cw.s(3))
         if self.combo.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
             s = cw.cwpy.msgs["send_to"]

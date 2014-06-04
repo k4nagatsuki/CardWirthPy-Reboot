@@ -14,11 +14,10 @@ import cw
 class Text(wx.Dialog):
     def __init__(self, parent, name):
         # ダイアログボックス
-        wx.Dialog.__init__(self, parent, -1, name, size=cw.s((500, 290)),
-                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.csize = self.GetClientSize()
+        wx.Dialog.__init__(self, parent, -1, name, size=cw.s((510, 290)),
+                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         # panel
-        self.toppanel = wx.Panel(self, -1, size=cw.s((500, 245)))
+        self.toppanel = wx.Panel(self, -1, size=cw.s((510, 245)))
         self.toppanel.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
@@ -28,7 +27,8 @@ class Text(wx.Dialog):
         else:
             value = ""
 
-        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=cw.s((500, 220)), style=wx.TE_MULTILINE)
+        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=cw.s((510, 220)), style=wx.TE_MULTILINE|wx.NO_BORDER)
+        self.foreground = self.textctrl.GetForegroundColour()
         self._set_text(value)
         self.textctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.textctrl.SetForegroundColour(wx.WHITE)
@@ -58,6 +58,12 @@ class Text(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_COMBOBOX, self.OnCombobox)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.textctrl.Enable(bool(self.list2))
+        if self.list2:
+            self.textctrl.Show()
+            self.Layout()
+        else:
+            self.textctrl.Hide()
 
     def _set_text(self, value):
         # ZIPアーカイブのファイルエンコーディングと
@@ -75,6 +81,7 @@ class Text(wx.Dialog):
         self._set_text(self.list2[self.index2])
 
     def OnClickLeftBtn(self, event):
+        cw.cwpy.sounds["page"].play()
         self.Parent.OnClickLeftBtn(event)
         self._enable_btn()
         self.list, self.list2 = self.Parent.get_texts()
@@ -93,9 +100,16 @@ class Text(wx.Dialog):
             self.combo.SetSelection(self.index)
 
         # notextfile
-        self.draw_notextfile()
+        self.toppanel.Update()
+        self.textctrl.Enable(bool(self.list2))
+        if self.list2:
+            self.textctrl.Show()
+            self.Layout()
+        else:
+            self.textctrl.Hide()
 
     def OnClickRightBtn(self, event):
+        cw.cwpy.sounds["page"].play()
         self.Parent.OnClickRightBtn(event)
         self._enable_btn()
         self.list, self.list2 = self.Parent.get_texts()
@@ -114,18 +128,19 @@ class Text(wx.Dialog):
             self.combo.SetSelection(self.index)
 
         # notextfile
-        self.draw_notextfile()
+        self.toppanel.Update()
+        self.textctrl.Enable(bool(self.list2))
+        if self.list2:
+            self.textctrl.Show()
+            self.Layout()
+        else:
+            self.textctrl.Hide()
 
     def OnPaint(self, event):
-        self.draw()
-
-    def draw(self, update=False):
-        if update:
-            cw.cwpy.sounds["page"].play()
-            dc = wx.ClientDC(self.toppanel)
-        else:
-            dc = wx.PaintDC(self.toppanel)
-
+        dc = wx.ClientDC(self.toppanel)
+        csize = self.toppanel.GetSize()
+        dc.SetBrush(wx.Brush(wx.Colour(0, 0, 128)))
+        dc.DrawRectangle(0, 0, csize[0], csize[1])
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(11)))
         s = cw.cwpy.msgs["instructions"]
@@ -133,28 +148,23 @@ class Text(wx.Dialog):
         s = cw.cwpy.msgs["referencing_file"]
         w = dc.GetTextExtent(s)[0]
         w = w + cw.s(5) + self.combo.GetSize()[0]
-        dc.DrawText(s, self.csize[0] - w, cw.s(2))
-        # no text file
-        self.draw_notextfile()
-
-    def draw_notextfile(self):
+        dc.DrawText(s, self.GetClientSize()[0] - w, cw.s(2))
+        dc.SetBrush(wx.Brush(wx.LIGHT_GREY))
+        dc.SetPen(wx.Pen(wx.LIGHT_GREY))
+        dc.DrawRectangle(0, self.combo.GetSize()[1], csize[0], 2)
         if not self.list2:
-            dc = wx.ClientDC(self.textctrl)
-            self.textctrl.Enable(False)
             dc.SetTextForeground(wx.LIGHT_GREY)
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(14)))
             # 文字
             s = "No Text File"
             size = dc.GetTextExtent(s)
-            size2 = self.textctrl.GetSize()
+            size2 = self.toppanel.GetSize()
             pos = (size2[0]-size[0])/2, (size2[1]-size[1])/2
             dc.DrawText(s, pos[0], pos[1])
             # ボックス
             size = size[0] + cw.s(60), size[1] + cw.s(20)
             pos = pos[0] - cw.s(30), pos[1] - cw.s(10)
             cw.util.draw_box(dc, pos, size)
-        else:
-            self.textctrl.Enable(True)
 
     def __do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -164,23 +174,22 @@ class Text(wx.Dialog):
 
         # トップバー
         size = self.combo.GetSize()
-        sizer_topbar.Add((cw.s(500)-size[0], 0), 0, 0, 0)
+        sizer_topbar.Add((0, 0), 1, 0, 0)
         sizer_topbar.Add(self.combo, 0, 0, 0)
-        sizer_toppanel.Add(sizer_topbar, 0, 0, 0)
-        sizer_toppanel.Add(self.textctrl, 0, 0, 0)
+        sizer_toppanel.Add(sizer_topbar, 0, wx.EXPAND, 0)
+        sizer_toppanel.Add((0, 3), 0, wx.EXPAND, 0)
+        sizer_toppanel.Add(self.textctrl, 1, wx.EXPAND, 0)
         self.toppanel.SetSizer(sizer_toppanel)
 
-        margin = (self.csize[0] - cw.s(145)) / 2
-        margin2 = margin + (self.csize[0] - cw.s(145)) % 2
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
-        sizer_panel.Add((margin, 0), 0, 0, 0)
+        sizer_panel.Add((0, 0), 1, 0, 0)
         sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.s(3))
-        sizer_panel.Add((margin2, 0), 0, 0, 0)
+        sizer_panel.Add((0, 0), 1, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
 
-        sizer_1.Add(self.toppanel, 1, 0, 0)
-        sizer_1.Add(self.panel, 0, 0, 0)
+        sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
+        sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
