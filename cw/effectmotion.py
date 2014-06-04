@@ -220,7 +220,7 @@ class Effect(object):
         if success_avo:
             cw.cwpy.sounds["avoid"].play(True)
             cw.cwpy.draw()
-            cw.cwpy.wait_frame(12)
+            cw.cwpy.wait_frame(1)
             return False
         elif noeffect or (success_res and not hasdamage):
             cw.cwpy.sounds["ineffective"].play(True)
