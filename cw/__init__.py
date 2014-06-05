@@ -91,15 +91,32 @@ HINT_SCENARIO = 3   # シナリオ本体
 # 標準のサウンドフォント
 DEFAULT_SOUNDFONT = "Data/SoundFont/TimGM6mb.sf2"
 
-# 画面の拡大率
+# ゲーム画面構築の拡大率
 UP_SCR = 1
+# ゲーム画面・ダイアログ描画時の拡大率(UP_SCRが1の時の値)
+UP_WIN = 1
+
+def wins(num):
+    return _s_impl(num, UP_WIN)
 
 def s(num):
+    return _s_impl(num, UP_SCR)
+
+def scr2win_s(num):
+    if UP_WIN == UP_SCR:
+        if isinstance(num, tuple):
+            return num[0]
+        else:
+            return num
+    else:
+        return _s_impl(num, float(UP_WIN) / UP_SCR)
+
+def _s_impl(num, up_scr):
     if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
         # スケール情報無し
-        return s(num[:2])
+        return _s_impl(num[:2], up_scr)
 
-    if UP_SCR == 1 and not (isinstance(num, tuple) and len(num) == 3):
+    if up_scr == 1 and not (isinstance(num, tuple) and len(num) == 3):
         # 拡大率が1倍で、スケール情報も無い
         if isinstance(num, tuple) and len(num) == 2:
             if (isinstance(num[0], pygame.Surface) or\
@@ -112,15 +129,15 @@ def s(num):
 
     if isinstance(num, int) or isinstance(num, float):
         # 単純な数値(座標やサイズ)
-        return int(num * UP_SCR)
+        return int(num * up_scr)
 
     elif isinstance(num, pygame.Rect):
         # pygameの矩形情報
         if len(num) == 4:
-            x = int(num[0] * UP_SCR)
-            y = int(num[1] * UP_SCR)
-            w = int(num[2] * UP_SCR)
-            h = int(num[3] * UP_SCR)
+            x = int(num[0] * up_scr)
+            y = int(num[1] * up_scr)
+            w = int(num[2] * up_scr)
+            h = int(num[3] * up_scr)
             return pygame.Rect(x, y, w, h)
 
     elif isinstance(num, tuple):
@@ -136,7 +153,7 @@ def s(num):
             if scaleinfo:
                 # スケール情報のあるpygame.Surface
                 # TODO scaleinfo
-                size = s(num[1])
+                size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0:
                     return pygame.transform.scale(bmp, size)
                 else:
@@ -145,7 +162,7 @@ def s(num):
                     return pygame.transform.smoothscale(bmp, size)
             else:
                 # スケール情報の無いpygame.Surface(単純拡大)
-                return s(bmp)
+                return _s_impl(bmp, up_scr)
         elif isinstance(num[0], wx.Image):
             img = num[0]
             if img.GetWidth() <= 0 or img.GetHeight() <= 0:
@@ -153,44 +170,44 @@ def s(num):
             if scaleinfo:
                 # スケール情報のあるwx.Image
                 # TODO scaleinfo
-                size = s(num[1])
+                size = _s_impl(num[1], up_scr)
                 if size[0] % num[1] == 0:
                     return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
                 else:
                     # Rescale(wx.IMAGE_QUALITY_HIGH)よりも速い
-                    return image.conv2wxbmp(s(image.conv2surface(img.ConvertToBitmap()))).ConvertToImage()
+                    return image.conv2wxbmp(_s_impl(image.conv2surface(img.ConvertToBitmap())), up_scr).ConvertToImage()
             else:
                 # スケール情報の無いwx.Image(単純拡大)
-                return s(img)
+                return _s_impl(img, up_scr)
         elif isinstance(num[0], wx.Bitmap):
             bmp = num[0]
             if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
                 return bmp
             # wx.Bitmap
             size = num[1]
-            return image.conv2wxbmp(s(image.conv2surface(bmp)))
+            return image.conv2wxbmp(_s_impl(image.conv2surface(bmp), up_scr))
 
         elif len(num) == 4:
             # 矩形
-            x = int(num[0] * UP_SCR)
-            y = int(num[1] * UP_SCR)
-            w = int(num[2] * UP_SCR)
-            h = int(num[3] * UP_SCR)
+            x = int(num[0] * up_scr)
+            y = int(num[1] * up_scr)
+            w = int(num[2] * up_scr)
+            h = int(num[3] * up_scr)
             return (x, y, w, h)
         elif len(num) == 2:
             # 座標
-            x = int(num[0] * UP_SCR)
-            y = int(num[1] * UP_SCR)
+            x = int(num[0] * up_scr)
+            y = int(num[1] * up_scr)
             return (x, y)
 
     elif isinstance(num, pygame.Surface):
         # スケール情報の無いpygame.Surface(単純拡大)
-        w = int(num.get_width() * UP_SCR)
-        h = int(num.get_height() * UP_SCR)
+        w = int(num.get_width() * up_scr)
+        h = int(num.get_height() * up_scr)
         if w <= 0 or h <= 0:
             return num
         size = (w, h)
-        if UP_SCR % 1 == 0:
+        if up_scr % 1 == 0:
             return pygame.transform.scale(num, size)
         else:
             if not (num.get_flags() & pygame.locals.SRCALPHA) and num.get_colorkey():
@@ -199,24 +216,24 @@ def s(num):
 
     elif isinstance(num, wx.Image):
         # スケール情報の無いwx.Image(単純拡大)
-        w = int(num.GetWidth() * UP_SCR)
-        h = int(num.GetHeight() * UP_SCR)
+        w = int(num.GetWidth() * up_scr)
+        h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
             return num
 
-        if UP_SCR % 1 == 0:
+        if up_scr % 1 == 0:
             return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
         else:
             # Rescale(wx.IMAGE_QUALITY_HIGH)よりも速い
-            return image.conv2wxbmp(s(image.conv2surface(num.ConvertToBitmap()))).ConvertToImage()
+            return image.conv2wxbmp(_s_impl(image.conv2surface(num.ConvertToBitmap())), up_scr).ConvertToImage()
 
     elif isinstance(num, wx.Bitmap):
         # スケール情報の無いwx.Bitmap(単純拡大)
-        w = int(num.GetWidth() * UP_SCR)
-        h = int(num.GetHeight() * UP_SCR)
+        w = int(num.GetWidth() * up_scr)
+        h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
             return num
-        return image.conv2wxbmp(s(image.conv2surface(num)))
+        return image.conv2wxbmp(_s_impl(image.conv2surface(num), up_scr))
 
     return num
 

@@ -135,6 +135,7 @@ class CardHeader(object):
         self.vocation = (self.physical, self.mental)
 
         self._cardscale = cw.UP_SCR
+        self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
 
         # スキルカードと召喚獣カードは価格固定
@@ -156,6 +157,7 @@ class CardHeader(object):
         # 画像設定
         self._cardimg = None
         self.rect = cw.s(pygame.Rect(0, 0, 80, 110))
+        self.wxrect = cw.wins(pygame.Rect(0, 0, 80, 110))
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
         self.clickedflag = False
@@ -193,7 +195,9 @@ class CardHeader(object):
                                                     self.name, self.premium)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
+        self.wxrect = pygame.Rect(self.rect)
         self._cardscale = cw.UP_SCR
+        self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
 
     def get_owner(self):
@@ -222,6 +226,7 @@ class CardHeader(object):
     @property
     def cardimg(self):
         if not self._cardimg or self._cardscale <> cw.UP_SCR or\
+                self._wxcardscale <> cw.UP_WIN or\
                 self._skindirname <> cw.cwpy.setting.skindirname:
             self.set_cardimg(self.imgpath)
         return self._cardimg
@@ -657,12 +662,15 @@ class InfoCardHeader(object):
         # TODO scaleinfo
         self._cardimg = cw.image.CardImage(self.imgpath, "INFO", self.name)
         self.rect = self._cardimg.rect
+        self.wxrect = cw.scr2win_s(self._cardimg.rect)
         self._cardscale = cw.UP_SCR
+        self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
 
     @property
     def cardimg(self):
         if self._cardscale <> cw.UP_SCR or\
+                self._wxcardscale <> cw.UP_WIN or\
                 self._skindirname <> cw.cwpy.setting.skindirname:
             self.set_cardimg()
         return self._cardimg

@@ -26,11 +26,11 @@ class Image(object):
 
     def get_wxbmp(self):
         image = self.get_image()
-        return conv2wxbmp(image)
+        return cw.scr2win_s(conv2wxbmp(image))
 
     def get_wxnegabmp(self):
         image = self.get_negaimg()
-        return conv2wxbmp(image)
+        return cw.scr2win_s(conv2wxbmp(image))
 
 #-------------------------------------------------------------------------------
 # カード関係
@@ -188,11 +188,11 @@ class CardImage(Image):
 
     def get_wxclickedbmp(self):
         image = self.get_clickedimg()
-        return conv2wxbmp(image)
+        return cw.scr2win_s(conv2wxbmp(image))
 
     def get_cardwxbmp(self, header):
         image = self.get_cardimg(header)
-        return conv2wxbmp(image)
+        return cw.scr2win_s(conv2wxbmp(image))
 
     def update(self, card):
         pass

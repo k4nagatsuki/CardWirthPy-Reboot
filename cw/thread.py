@@ -580,6 +580,7 @@ class CWPy(_Singleton, threading.Thread):
             self.scr_size = size
             self.scr_scale = scale
             self.scr_pos = (x, y)
+            cw.UP_WIN = scale
 
             # 壁紙
             self.scr_fullscreen.fill((255, 255, 255))
@@ -589,6 +590,7 @@ class CWPy(_Singleton, threading.Thread):
                 for y in xrange(0, fsize[1], padsize[1]):
                     self.scr_fullscreen.blit(wximg, (x, y))
         else:
+            cw.UP_WIN = cw.UP_SCR
             self.scr_size = self.scr.get_size()
             self.scr_scale = 1.0
             self.scr_pos = (0, 0)
@@ -710,6 +712,7 @@ class CWPy(_Singleton, threading.Thread):
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, False)
                 self.init_fullscreenparams()
+                self.rsrc.update_winscale()
 
                 while not self.frame.IsFullScreen() == flag:
                     pass

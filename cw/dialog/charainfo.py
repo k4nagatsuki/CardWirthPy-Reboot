@@ -20,26 +20,26 @@ class CharaInfo(wx.Dialog):
     """
     def __init__(self, parent, redrawfunc, editable, party=None):
         # ダイアログボックス
-        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=cw.s((300, 355)),
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=cw.wins((300, 355)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.party = party
         self.csize = self.GetClientSize()
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.s((85, 24)), cw.cwpy.msgs["close"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((85, 24)), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, cw.s((30, 30)), bmp=bmp)
+        self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_UP, cw.wins((30, 30)), bmp=bmp)
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.s((30, 30)), bmp=bmp)
+        self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.wins((30, 30)), bmp=bmp)
         # enabled
         if len(self.list) <= 1:
             self.leftbtn.Disable()
             self.rightbtn.Disable()
         # notebook
-        self.notebook = wx.Notebook(self, -1, size=cw.s((300, 220)), style=wx.BK_BOTTOM)
+        self.notebook = wx.Notebook(self, -1, size=cw.wins((300, 220)), style=wx.BK_BOTTOM)
         self.notebook.SetFont(cw.cwpy.rsrc.get_wxfont("btnfont"))
         # 解説
         self.descpanel = DescPanel(self.notebook, self.ccard, editable)
@@ -219,11 +219,11 @@ class CharaInfo(wx.Dialog):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
-        margin = (self.csize[0] - cw.s(145)) / 2 + (self.csize[0] - cw.s(145)) % 2
-        margin2 = (self.csize[0] - cw.s(145)) / 2
+        margin = (self.csize[0] - cw.wins(145)) / 2 + (self.csize[0] - cw.wins(145)) % 2
+        margin2 = (self.csize[0] - cw.wins(145)) / 2
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.TOP, cw.s(3))
+        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.TOP, cw.wins(3))
         sizer_panel.Add((margin2, 0), 0, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
@@ -291,7 +291,7 @@ class TopPanel(wx.Panel):
     顔画像などを描画するパネル
     """
     def __init__(self, parent, ccard, redrawfunc):
-        wx.Panel.__init__(self, parent, -1, size=cw.s((300, 100)))
+        wx.Panel.__init__(self, parent, -1, size=cw.wins((300, 100)))
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.ccard = ccard
@@ -331,7 +331,7 @@ class TopPanel(wx.Panel):
 
         dc.BeginDrawing()
         # カード画像の後ろにある羽みたいなの
-        cw.util.draw_center(dc, self.wing, cw.s((150, 50)))
+        cw.util.draw_center(dc, self.wing, cw.wins((150, 50)))
         # カード画像
         path = self.ccard.data.gettext("Property/ImagePath", "")
         if not cw.binary.image.path_is_code(path):
@@ -341,11 +341,11 @@ class TopPanel(wx.Panel):
             else:
                 path = cw.util.join_yadodir(path)
 
-        bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-        x = (dc.GetSize()[0] - cw.s(74)) / 2
-        dc.DrawBitmap(bmp, x, cw.s(5), True)
+        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+        x = (dc.GetSize()[0] - cw.wins(74)) / 2
+        dc.DrawBitmap(bmp, x, cw.wins(5), True)
         # レベル
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10)))
         coupons = self.ccard.get_specialcoupons()
         if u"＠レベル原点" in coupons and self.ccard.level <> coupons[u"＠レベル原点"]:
             s = "Level: %d / %d" % (self.ccard.level, coupons[u"＠レベル原点"])
@@ -354,25 +354,25 @@ class TopPanel(wx.Panel):
             if u"＠レベル上限" in coupons and coupons[u"＠レベル上限"] <= self.ccard.level:
                 # max
                 dc.SetTextForeground(wx.RED)
-                dc.DrawText("max", cw.s(25), cw.s(20))
+                dc.DrawText("max", cw.wins(25), cw.wins(20))
 
         dc.SetTextForeground(wx.BLACK)
-        dc.DrawText(s, cw.s(5), cw.s(5))
+        dc.DrawText(s, cw.wins(5), cw.wins(5))
         # 名前
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(11)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(11)))
         s = self.ccard.name
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, cw.s(295) - w, cw.s(3))
+        dc.DrawText(s, cw.wins(295) - w, cw.wins(3))
 
         if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or\
                 isinstance(self.ccard, cw.sprite.card.FriendCard)):
             # EP
             s = "EP: " + self.ep
-            dc.DrawText(s, cw.s(8), cw.s(82))
+            dc.DrawText(s, cw.wins(8), cw.wins(82))
             # 年代
             s = self.age + self.sex
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, cw.s(295) - w, cw.s(80))
+            dc.DrawText(s, cw.wins(295) - w, cw.wins(80))
             dc.EndDrawing()
 
         # 親ウィンドウの再描画を行える場合は呼び出し
@@ -387,10 +387,10 @@ class DescPanel(wx.ScrolledWindow):
     解説文を描画するパネル。
     """
     def __init__(self, parent, ccard, editable):
-        wx.ScrolledWindow.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=cw.wins((292, 200)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.SetScrollRate(cw.s(10), cw.s(10))
+        self.SetScrollRate(cw.wins(10), cw.wins(10))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
         self.ccard = ccard
@@ -432,14 +432,14 @@ class DescPanel(wx.ScrolledWindow):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
         # 解説文
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(9)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(9)))
         maxwidth, maxheight, lineheight = dc.GetMultiLineTextExtent(self.text)
         maxheight += 10
         x = 24 if maxheight <= csize[1] else 12
-        dc.DrawLabel(self.text, cw.s((x, 10, 200, 120)))
+        dc.DrawLabel(self.text, cw.wins((x, 10, 200, 120)))
         dc.EndDrawing()
 
         if maxheight <= csize[1]:
@@ -456,11 +456,11 @@ class HistoryPanel(wx.ScrolledWindow):
     クーポンを描画するスクロールウィンドウ。
     """
     def __init__(self, parent, ccard, editable):
-        wx.ScrolledWindow.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=cw.wins((292, 200)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.csize = self.GetClientSize()
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.SetScrollRate(cw.s(10), cw.s(10))
+        self.SetScrollRate(cw.wins(10), cw.wins(10))
         # エレメントオブジェクト
         self.ccard = ccard
         # bmp
@@ -514,12 +514,12 @@ class HistoryPanel(wx.ScrolledWindow):
         coupons.reverse()
         # maxheght計算
         h = self.gold.GetSize()[1]
-        maxheight = (h + cw.s(5)) * len(coupons) + cw.s(8)
+        maxheight = (h + cw.wins(5)) * len(coupons) + cw.wins(8)
         maxwidth = 0
 
         # create buffer
         csize = self.csize
-        height = maxheight + cw.s(10) if maxheight + cw.s(10) > csize[1] else csize[1]
+        height = maxheight + cw.wins(10) if maxheight + cw.wins(10) > csize[1] else csize[1]
         self.buffer = wx.EmptyBitmap(csize[0], height)
         dc = wx.BufferedDC(None, self.buffer)
         dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
@@ -527,28 +527,28 @@ class HistoryPanel(wx.ScrolledWindow):
 
         # 背景の透かし
         for cnt in xrange(maxheight / csize[1] + 1):
-            height = ((csize[1] - cw.s(132)) / 2) + csize[1] * cnt
-            dc.DrawBitmap(self.watermark, (csize[0]-cw.s(226)) / 2, height, True)
+            height = ((csize[1] - cw.wins(132)) / 2) + csize[1] * cnt
+            dc.DrawBitmap(self.watermark, (csize[0]-cw.wins(226)) / 2, height, True)
 
         # クーポン
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
 
         for index, coupon in enumerate(coupons):
-            height = cw.s(8) + (h + cw.s(5)) * index
+            height = cw.wins(8) + (h + cw.wins(5)) * index
             text, value = coupon
             maxwidth = max(dc.GetTextExtent(text)[0], maxwidth)
-            dc.DrawText(text, cw.s(32), height)
+            dc.DrawText(text, cw.wins(32), height)
 
             if value > 1:
-                dc.DrawBitmap(self.gold, cw.s(12), height - cw.s(1), True)
+                dc.DrawBitmap(self.gold, cw.wins(12), height - cw.wins(1), True)
             elif value == 1:
-                dc.DrawBitmap(self.silver, cw.s(12), height - cw.s(1), True)
+                dc.DrawBitmap(self.silver, cw.wins(12), height - cw.wins(1), True)
             elif value == 0:
-                dc.DrawBitmap(self.bronze, cw.s(12), height - cw.s(1), True)
+                dc.DrawBitmap(self.bronze, cw.wins(12), height - cw.wins(1), True)
             else:
-                dc.DrawBitmap(self.black, cw.s(12), height - cw.s(1), True)
-        maxwidth += cw.s(32)
+                dc.DrawBitmap(self.black, cw.wins(12), height - cw.wins(1), True)
+        maxwidth += cw.wins(32)
         self.SetVirtualSize((maxwidth, maxheight))
 
         if update:
@@ -563,7 +563,7 @@ class EditButton():
 
 class EditPanel(wx.Panel):
     def __init__(self, parent, list, ccard):
-        wx.Panel.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, -1, size=cw.wins((292, 200)), style=wx.SUNKEN_BORDER)
         self._destroy = False
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
@@ -666,7 +666,7 @@ class EditPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
@@ -674,7 +674,7 @@ class EditPanel(wx.Panel):
     def OnMove(self, event):
         dc = wx.ClientDC(self)
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
         mousepos = event.GetPosition()
 
         for header in self.headers:
@@ -698,15 +698,15 @@ class EditPanel(wx.Panel):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
 
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
         # 編集アイコン
         bmp = cw.cwpy.rsrc.dialogs["STATUS12"]
         # 編集項目名
-        height = cw.s(8)
+        height = cw.wins(8)
         if not self.headers:
             self.headers = (EditButton(cw.cwpy.msgs["edit_design"], 0), EditButton(cw.cwpy.msgs["regulate_level"], 1))
         for header in self.headers:
@@ -715,21 +715,21 @@ class EditPanel(wx.Panel):
             else:
                 dc.SetTextForeground(wx.WHITE)
             size = dc.GetTextExtent(header.name)
-            dc.DrawBitmap(bmp, cw.s(12), height - cw.s(1), True)
-            dc.DrawText(header.name, cw.s(32), height)
-            header.textpos = (cw.s(32), height)
-            header.subrect = pygame.Rect(cw.s(12), height - cw.s(1), cw.s(20) + size[0], bmp.Height)
-            height += cw.s(17)
+            dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1), True)
+            dc.DrawText(header.name, cw.wins(32), height)
+            header.textpos = (cw.wins(32), height)
+            header.subrect = pygame.Rect(cw.wins(12), height - cw.wins(1), cw.wins(20) + size[0], bmp.Height)
+            height += cw.wins(17)
 
         if update:
             self.Refresh()
 
 class StatusPanel(wx.ScrolledWindow):
     def __init__(self, parent, list, ccard, editable):
-        wx.ScrolledWindow.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
+        wx.ScrolledWindow.__init__(self, parent, -1, size=cw.wins((292, 200)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
-        self.SetScrollRate(cw.s(10), cw.s(10))
+        self.SetScrollRate(cw.wins(10), cw.wins(10))
         self.csize = self.GetClientSize()
         self.list = list
         # エレメントオブジェクト
@@ -765,16 +765,16 @@ class StatusPanel(wx.ScrolledWindow):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
 
         # 状態
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
 
-        height = cw.s(8)
+        height = cw.wins(8)
 
         # 生命力の割合
-        bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["LIFE"], maskpos=cw.s((1, 1)))
+        bmp = cw.scr2win_s(cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["LIFE"], maskpos=cw.wins((1, 1))))
         if self.ccard.is_unconscious():
             colour = wx.Colour(0, 0, 128)
             msg = u"意識不明"
@@ -789,10 +789,10 @@ class StatusPanel(wx.ScrolledWindow):
             msg = u"正常"
 
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
-        dc.DrawRectangle(cw.s(12), height - cw.s(1), bmp.Width, bmp.Height)
-        dc.DrawBitmap(bmp, cw.s(12), height - cw.s(1), True)
-        dc.DrawText(msg, cw.s(32), height)
-        height += cw.s(17)
+        dc.DrawRectangle(cw.wins(12), height - cw.wins(1), bmp.Width, bmp.Height)
+        dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1), True)
+        dc.DrawText(msg, cw.wins(32), height)
+        height += cw.wins(17)
 
         # 肉体状態異常
         if self.ccard.is_poison():
@@ -835,17 +835,17 @@ class StatusPanel(wx.ScrolledWindow):
         height = self._draw_enhance(dc, u"防御力", self.ccard.enhance_def,
                                     self.ccard.enhance_def_dur, "UP3", "DOWN3", height)
 
-        self.SetVirtualSize((-1, height - cw.s(17) + cw.s(8)))
+        self.SetVirtualSize((-1, height - cw.wins(17) + cw.wins(8)))
         if update:
             self.Scroll(0, 0)
             self.Refresh()
 
     def _draw_status(self, dc, msg, imgname, height):
-        bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses[imgname])
-        dc.DrawBitmap(bmp, cw.s(12), height - cw.s(1))
-        dc.DrawText(msg, cw.s(32), height)
+        bmp = cw.scr2win_s(cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses[imgname]))
+        dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))
+        dc.DrawText(msg, cw.wins(32), height)
         self.Refresh()
-        return height + cw.s(17)
+        return height + cw.wins(17)
 
     def _draw_enhance(self, dc, enhname, value, dur, enhimage, pnlimage, height):
         if 0 == value:
@@ -882,17 +882,17 @@ class StatusPanel(wx.ScrolledWindow):
             colour = wx.Colour(0, 0, 187)
             bmp = cw.cwpy.rsrc.statuses[pnlimage]
             msg = u"%s小ペナルティ (%d)" % (enhname, dur)
-        bmp = cw.image.conv2wxbmp(bmp, maskpos=cw.s((1, 1)))
+        bmp = cw.scr2win_s(cw.image.conv2wxbmp(bmp, maskpos=cw.wins((1, 1))))
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
-        dc.DrawRectangle(cw.s(12), height - cw.s(1), bmp.Width, bmp.Height)
-        dc.DrawBitmap(bmp, cw.s(12), height - cw.s(1))
-        dc.DrawText(msg, cw.s(32), height)
+        dc.DrawRectangle(cw.wins(12), height - cw.wins(1), bmp.Width, bmp.Height)
+        dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))
+        dc.DrawText(msg, cw.wins(32), height)
         self.Refresh()
-        return height + cw.s(17)
+        return height + cw.wins(17)
 
 class SkillPanel(wx.Panel):
     def __init__(self, parent, ccard):
-        wx.Panel.__init__(self, parent, -1, size=cw.s((292, 200)), style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, -1, size=cw.wins((292, 200)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
@@ -970,7 +970,7 @@ class SkillPanel(wx.Panel):
                 header.negaflag = False
                 dc = wx.ClientDC(self)
                 dc.SetTextForeground(wx.WHITE)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
                 s = header.name
                 dc.DrawText(s, header.textpos[0], header.textpos[1])
         self.Refresh()
@@ -978,7 +978,7 @@ class SkillPanel(wx.Panel):
     def OnMove(self, event):
         dc = wx.ClientDC(self)
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
         mousepos = event.GetPosition()
 
         for header in self.headers:
@@ -1005,19 +1005,19 @@ class SkillPanel(wx.Panel):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
         # 所持スキル
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[cw.POCKET_SKILL]
 
         for index, header in enumerate(self.headers):
             if index < 5:
-                pos = cw.s((30, 30+17*index))
+                pos = cw.wins((30, 30+17*index))
             else:
-                pos = cw.s((170, 30+17*(index-5)))
+                pos = cw.wins((170, 30+17*(index-5)))
 
             # カード名
             s = header.name
@@ -1032,15 +1032,15 @@ class SkillPanel(wx.Panel):
 
             # rect
             header.textpos = pos
-            header.subrect = pygame.Rect(pos[0] - cw.s(20), pos[1] - cw.s(1), size[0] + cw.s(20), size[1] + cw.s(2))
+            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
             # 適性値
             key = "HAND%s" % (header.get_vocation_level(self.ccard))
             bmp = cw.cwpy.rsrc.wxstones[key]
-            dc.DrawBitmap(bmp, pos[0]+cw.s(85), pos[1]-cw.s(1), True)
+            dc.DrawBitmap(bmp, pos[0]+cw.wins(85), pos[1]-cw.wins(1), True)
             # 使用回数
             key = "HAND%s" % (header.get_uselimit_level() + 5)
             bmp = cw.cwpy.rsrc.wxstones[key]
-            dc.DrawBitmap(bmp, pos[0]+cw.s(100), pos[1]-cw.s(1), True)
+            dc.DrawBitmap(bmp, pos[0]+cw.wins(100), pos[1]-cw.wins(1), True)
 
             # ホールドまたはペナルティ
             if header.penalty:
@@ -1049,7 +1049,7 @@ class SkillPanel(wx.Panel):
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
             else:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
-            dc.DrawBitmap(bmp, pos[0]-cw.s(20), pos[1]-cw.s(1), True)
+            dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
 
         # カード枚数
         level = self.ccard.level
@@ -1057,7 +1057,7 @@ class SkillPanel(wx.Panel):
         maxn= level / 2 + 2 if level % 2 == 0 else level / 2 + 3
         maxn = maxn if maxn <= 10 else 10
         s = cw.cwpy.msgs["card_number"] % (n, maxn)
-        dc.DrawText(s, cw.s(10), cw.s(10))
+        dc.DrawText(s, cw.wins(10), cw.wins(10))
         dc.EndDrawing()
 
         if update:
@@ -1073,19 +1073,19 @@ class ItemPanel(SkillPanel):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
         # 所持アイテム
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[cw.POCKET_ITEM]
 
         for index, header in enumerate(self.headers):
             if index < 5:
-                pos = cw.s((30, 30+17*index))
+                pos = cw.wins((30, 30+17*index))
             else:
-                pos = cw.s((170, 30+17*(index-5)))
+                pos = cw.wins((170, 30+17*(index-5)))
 
             # カード名
             s = header.name
@@ -1102,7 +1102,7 @@ class ItemPanel(SkillPanel):
 
             # rect
             header.textpos = pos
-            header.subrect = pygame.Rect(pos[0] - cw.s(20), pos[1] - cw.s(1), size[0] + cw.s(20), size[1] + cw.s(2))
+            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
             # ホールドまたはペナルティ
             if header.penalty:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
@@ -1110,7 +1110,7 @@ class ItemPanel(SkillPanel):
                 bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
             else:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
-            dc.DrawBitmap(bmp, pos[0]-cw.s(20), pos[1]-cw.s(1), True)
+            dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
 
         # カード枚数
         level = self.ccard.level
@@ -1118,7 +1118,7 @@ class ItemPanel(SkillPanel):
         maxn= level / 2 + 2 if level % 2 == 0 else level / 2 + 3
         maxn = maxn if maxn <= 10 else 10
         s = cw.cwpy.msgs["card_number"] % (n, maxn)
-        dc.DrawText(s, cw.s(10), cw.s(10))
+        dc.DrawText(s, cw.wins(10), cw.wins(10))
         dc.EndDrawing()
 
         if update:
@@ -1138,10 +1138,10 @@ class BeastPanel(SkillPanel):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.s(226))/2, (self.csize[1]-cw.s(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
         # 所持召喚獣
         dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(10)))
 
         if not self.headers:
             self.headers = self.ccard.cardpocket[cw.POCKET_BEAST]
@@ -1149,9 +1149,9 @@ class BeastPanel(SkillPanel):
         # 召喚獣アイコン
         for index, header in enumerate(self.headers):
             if index < 5:
-                pos = cw.s((30, 30+17*index))
+                pos = cw.wins((30, 30+17*index))
             else:
-                pos = cw.s((170, 30+17*(index-5)))
+                pos = cw.wins((170, 30+17*(index-5)))
 
             # カード名
             s = header.name
@@ -1168,7 +1168,7 @@ class BeastPanel(SkillPanel):
 
             # rect
             header.textpos = pos
-            header.subrect = pygame.Rect(pos[0] - cw.s(20), pos[1] - cw.s(1), size[0] + cw.s(20), size[1] + cw.s(2))
+            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
 
             # 召喚獣アイコン
             if header.attachment:
@@ -1176,7 +1176,7 @@ class BeastPanel(SkillPanel):
             else:
                 bmp = cw.cwpy.rsrc.dialogs["STATUS11"]
 
-            dc.DrawBitmap(bmp, pos[0]-cw.s(20), pos[1]-cw.s(1), True)
+            dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
 
         # カード枚数
         level = self.ccard.level
@@ -1184,7 +1184,7 @@ class BeastPanel(SkillPanel):
         maxn= (level + 2) / 4 if (level + 2) % 4 == 0 else (level + 2) / 4 + 1
         maxn = maxn if maxn <= 10 else 10
         s = cw.cwpy.msgs["card_number"] % (n, maxn)
-        dc.DrawText(s, cw.s(10), cw.s(10))
+        dc.DrawText(s, cw.wins(10), cw.wins(10))
         dc.EndDrawing()
 
         if update:

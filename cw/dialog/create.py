@@ -27,12 +27,12 @@ class AdventurerDataComp(wx.Dialog):
             self.age = cw.cwpy.setting.periodcoupons[0]
             self.ccard.set_age(self.age)
         # 画像
-        bmp = cw.s((cw.util.load_wxbmp(ccard.imgpath, True), cw.SIZE_CARDIMAGE))
+        bmp = cw.wins((cw.util.load_wxbmp(ccard.imgpath, True), cw.SIZE_CARDIMAGE))
         self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
         s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
-        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(8))
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(8))
         self.text_message = wx.StaticText(self, -1, s)
         self.text_message.SetFont(font)
         font = cw.cwpy.rsrc.get_wxfont()
@@ -41,10 +41,10 @@ class AdventurerDataComp(wx.Dialog):
         self.text_name.SetFont(font)
         self.text_caution = wx.StaticText(self, -1, cw.cwpy.msgs["coution"])
         self.text_caution.SetForegroundColour(wx.RED)
-        font = cw.cwpy.rsrc.get_wxfont(size=cw.s(14), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont(size=cw.wins(14), style=wx.ITALIC)
         self.text_caution.SetFont(font)
         # ラジオボックス
-        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(8))
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(8))
         seq = cw.cwpy.setting.sexnames
         self.rb_sex = wx.RadioBox(self, -1, cw.cwpy.msgs["sex"],
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
@@ -65,7 +65,7 @@ class AdventurerDataComp(wx.Dialog):
                 break
 
         # OKボタン
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.s((120, 30)), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((120, 30)), cw.cwpy.msgs["decide"])
         self._do_layout()
         self._bind()
 
@@ -83,23 +83,23 @@ class AdventurerDataComp(wx.Dialog):
         sizer_rb = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer_rb.Add(self.rb_sex, 0, 0, 0)
-        sizer_rb.Add(self.rb_age, 0, wx.LEFT, cw.s(10))
+        sizer_rb.Add(self.rb_age, 0, wx.LEFT, cw.wins(10))
 
-        w = self.rb_age.GetSize()[0] + self.rb_sex.GetSize()[0] + cw.s(10)
+        w = self.rb_age.GetSize()[0] + self.rb_sex.GetSize()[0] + cw.wins(10)
         sizer_box.SetMinSize((w, 0))
         sizer_box.Add(self.text_name, 0, wx.CENTER, 0)
 
         sizer_v2.Add(sizer_box, 0, 0, 0)
-        sizer_v2.Add(sizer_rb, 0, wx.TOP, cw.s(5))
+        sizer_v2.Add(sizer_rb, 0, wx.TOP, cw.wins(5))
 
         sizer_h1.Add(self.bmp, 0, wx.CENTER, 0)
-        sizer_h1.Add(sizer_v2, 0, wx.LEFT, cw.s(10))
+        sizer_h1.Add(sizer_v2, 0, wx.LEFT, cw.wins(10))
 
         sizer_v1.Add(self.text_caution, 0, wx.CENTER, 0)
-        sizer_v1.Add(self.text_message, 0, wx.CENTER|wx.TOP, cw.s(5))
-        sizer_v1.Add(sizer_h1, 0, wx.TOP, cw.s(5))
-        sizer_v1.Add(self.okbtn, 0, wx.CENTER|wx.TOP, cw.s(10))
-        sizer.Add(sizer_v1, 0, wx.ALL, cw.s(15))
+        sizer_v1.Add(self.text_message, 0, wx.CENTER|wx.TOP, cw.wins(5))
+        sizer_v1.Add(sizer_h1, 0, wx.TOP, cw.wins(5))
+        sizer_v1.Add(self.okbtn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -401,13 +401,13 @@ class AdventurerCreater(wx.Dialog):
         self.header = None
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.s((85, 24)), cw.cwpy.msgs["entry_cancel"])
+                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_cancel"])
         self.postbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.s((85, 24)), cw.cwpy.msgs["entry_decide"])
+                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_decide"])
         self.nextbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.s((85, 24)), cw.cwpy.msgs["entry_next"])
+                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_next"])
         self.prevbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.s((85, 24)), cw.cwpy.msgs["entry_previous"])
+                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_previous"])
         self._init_pages()
         self.enable_btn()
         self.nextbtn.Disable()
@@ -437,15 +437,15 @@ class AdventurerCreater(wx.Dialog):
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
         w = self.closebtn.GetSize()[0] * 4
-        margin = (cw.s(460 - 80) - w) / 3
-        sizer_panel.Add(cw.s((40, 0)), 0, 0, 0)
-        sizer_panel.Add(self.prevbtn, 0, wx.TOP|wx.BOTTOM, cw.s(3))
+        margin = (cw.wins(460 - 80) - w) / 3
+        sizer_panel.Add(cw.wins((40, 0)), 0, 0, 0)
+        sizer_panel.Add(self.prevbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.nextbtn, 0, wx.TOP|wx.BOTTOM, cw.s(3))
+        sizer_panel.Add(self.nextbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.postbtn, 0, wx.TOP|wx.BOTTOM, cw.s(3))
+        sizer_panel.Add(self.postbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.s(3))
+        sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         self.panel.SetSizer(sizer_panel)
 
         sizer_1.Add(self.page, 0, wx.EXPAND, 0)
@@ -562,7 +562,7 @@ class AdventurerCreater(wx.Dialog):
 class AdventurerCreaterPage(wx.Panel):
     def __init__(self, parent, size=None, freeze=True):
         if size is None:
-            size = cw.s((460, 280))
+            size = cw.wins((460, 280))
         wx.Panel.__init__(self, parent, size=size)
         self.next = None
         self.prev = None
@@ -619,8 +619,8 @@ class AdventurerCreaterPage(wx.Panel):
 
         if not name in self.clickables:
             # クリックしにくいのでサイズ拡大
-            size = size[0] + cw.s(4), size[1] + cw.s(4)
-            pos = pos[0] - cw.s(2), pos[1] - cw.s(2)
+            size = size[0] + cw.wins(4), size[1] + cw.wins(4)
+            pos = pos[0] - cw.wins(2), pos[1] - cw.wins(2)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def draw_clickablebmp(self, dc, bmp, pos, name, method, wheelmethod, mask=True):
@@ -629,8 +629,8 @@ class AdventurerCreaterPage(wx.Panel):
 
         if not name in self.clickables:
             # クリックしにくいのでサイズ拡大
-            size = size[0] + cw.s(20), size[1] + cw.s(20)
-            pos = pos[0] - cw.s(10), pos[1] - cw.s(10)
+            size = size[0] + cw.wins(20), size[1] + cw.wins(20)
+            pos = pos[0] - cw.wins(10), pos[1] - cw.wins(10)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def set_next(self, page):
@@ -674,17 +674,17 @@ class AdventurerCreaterPage(wx.Panel):
         # 共通背景
         path = "Table/Book" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
+        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         dc.DrawBitmap(bmp, 0, 0, False)
         return dc
 
 class NamePage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
-        self.textctrl = wx.TextCtrl(self, size=cw.s((125, 18)), style=wx.NO_BORDER)
+        self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
         self.textctrl.SetFocus()
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(11))
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(11))
         self.textctrl.SetFont(font)
         self.name = ""
         self.sex = cw.cwpy.setting.sexcoupons[0]
@@ -713,11 +713,11 @@ class NamePage(AdventurerCreaterPage):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         csize = self.GetClientSize()
-        sizer_1.Add((csize[0], cw.s(90)), 0, 0, 0)
+        sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
         w, h = self.textctrl.GetSize()
         margin = (csize[0] - w) / 2
         sizer_1.Add(self.textctrl, 0, wx.RIGHT|wx.LEFT, margin)
-        margin = csize[1] - cw.s(90) - h
+        margin = csize[1] - cw.wins(90) - h
         sizer_1.Add((csize[0], margin), 0, 0, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
@@ -728,64 +728,64 @@ class NamePage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # welcome to the adventurers inn
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(14), style=wx.ITALIC))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(14), style=wx.ITALIC))
         s = cw.cwpy.msgs["entry_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(35))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # Name
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10))
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10))
         font.SetUnderlined(True)
         dc.SetFont(font)
         s = cw.cwpy.msgs["entry_name"]
-        dc.DrawText(s, cw.s(160), cw.s(72))
+        dc.DrawText(s, cw.wins(160), cw.wins(72))
         # Sex
         s = cw.cwpy.msgs["entry_sex"]
-        dc.DrawText(s, cw.s(85), cw.s(125))
+        dc.DrawText(s, cw.wins(85), cw.wins(125))
         # Age
         s = cw.cwpy.msgs["entry_age"]
-        dc.DrawText(s, cw.s(85), cw.s(175))
+        dc.DrawText(s, cw.wins(85), cw.wins(175))
 
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(9))
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(9))
         dc.SetFont(font)
-        xx = [cw.s(90), cw.s(155)]
+        xx = [cw.wins(90), cw.wins(155)]
 
         # 性別
         x = xx[0]
-        y = cw.s(145)
+        y = cw.wins(145)
         for sex in cw.cwpy.setting.sexes:
             s = sex.subname
             pos = (x, y)
             self.draw_clickabletext(dc, s, pos, u"＿" + sex.name, self.set_sex, None, self.sex)
             if xx[1] == x:
                 x = xx[0]
-                y += cw.s(20)
+                y += cw.wins(20)
             else:
                 x = xx[1]
 
         # 年代
         x = xx[0]
-        y = cw.s(195)
+        y = cw.wins(195)
         for period in cw.cwpy.setting.periods:
             s = period.subname
             pos = (x, y)
             self.draw_clickabletext(dc, s, pos, u"＿" + period.name, self.set_age, None, self.age)
             if xx[1] == x:
                 x = xx[0]
-                y += cw.s(20)
+                y += cw.wins(20)
             else:
                 x = xx[1]
 
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        pos = cw.s((250, 170))
+        pos = cw.wins((250, 170))
         self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = cw.s((365, 170))
+        pos = cw.wins((365, 170))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        bmp = cw.s((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
-        self.draw_clickablebmp(dc, bmp, cw.s((275, 130)), "Face", None, self.on_mousewheel, True)
+        bmp = cw.wins((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
+        self.draw_clickablebmp(dc, bmp, cw.wins((275, 130)), "Face", None, self.on_mousewheel, True)
 
     def set_sex(self, name):
         if not self.sex == name:
@@ -836,7 +836,7 @@ class RacePage(AdventurerCreaterPage):
         AdventurerCreaterPage.__init__(self, parent)
         choices = [h.name for h in cw.cwpy.setting.races]
         self.race = choices[0]
-        self.choice = wx.Choice(self, choices=choices, size=cw.s((125, 18)))
+        self.choice = wx.Choice(self, choices=choices, size=cw.wins((125, 18)))
         self.choice.SetStringSelection(self.race)
         self._bind()
         self._do_layout()
@@ -855,11 +855,11 @@ class RacePage(AdventurerCreaterPage):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         csize = self.GetClientSize()
-        sizer_1.Add((csize[0], cw.s(90)), 0, 0, 0)
+        sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
         w, h = self.choice.GetSize()
         margin = (csize[0] - w) / 2
         sizer_1.Add(self.choice, 0, wx.RIGHT|wx.LEFT, margin)
-        margin = csize[1] - cw.s(90) - h
+        margin = csize[1] - cw.wins(90) - h
         sizer_1.Add((csize[0], margin), 0, 0, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
@@ -870,17 +870,17 @@ class RacePage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 種族
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(14), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(14), style=wx.ITALIC)
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(35))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の種族を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(60))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
         # 説明
         s = self.get_race().desc
         s = cw.util.txtwrap(s, 1)
@@ -888,9 +888,9 @@ class RacePage(AdventurerCreaterPage):
         if s.count("\n") > 7:
             s = "\n".join(s.split("\n")[0:8])
 
-        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(9), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(9), weight=wx.NORMAL)
         dc.SetFont(font)
-        dc.DrawLabel(s, cw.s((125, 130, 200, 110)))
+        dc.DrawLabel(s, cw.wins((125, 130, 200, 110)))
 
     def get_race(self):
         """
@@ -919,43 +919,43 @@ class RelationPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 血縁
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(14), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(14), style=wx.ITALIC)
         dc.SetFont(font)
         s = s = cw.cwpy.msgs["relation_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(35))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 親となる条件を満たしている冒険者が宿にいます。
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(60))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
         # Father
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10), style=wx.ITALIC)
         font.SetUnderlined(True)
         dc.SetFont(font)
         s = cw.cwpy.msgs["father"]
-        dc.DrawText(s, cw.s(110), cw.s(92))
+        dc.DrawText(s, cw.wins(110), cw.wins(92))
         # Mother
         s = cw.cwpy.msgs["mother"]
-        dc.DrawText(s, cw.s(285), cw.s(92))
+        dc.DrawText(s, cw.wins(285), cw.wins(92))
         if 1 < len(self.fathers):
             # PrevFather
             bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-            pos = cw.s((70, 150))
+            pos = cw.wins((70, 150))
             self.draw_clickablebmp(dc, bmp, pos, "PrevFather", self.set_prevfather, None)
             # NextFather
             bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-            pos = cw.s((190, 150))
+            pos = cw.wins((190, 150))
             self.draw_clickablebmp(dc, bmp, pos, "NextFather", self.set_nextfather, None)
         if 1 < len(self.mothers):
             # PrevMother
             bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-            pos = cw.s((250, 150))
+            pos = cw.wins((250, 150))
             self.draw_clickablebmp(dc, bmp, pos, "PrevMother", self.set_prevmother, None)
             # NextMother
             bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-            pos = cw.s((370, 150))
+            pos = cw.wins((370, 150))
             self.draw_clickablebmp(dc, bmp, pos, "NextMother", self.set_nextmother, None)
 
         # 父親画像
@@ -965,8 +965,8 @@ class RelationPage(AdventurerCreaterPage):
             path = "Resource/Image/Card/FATHER" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
 
-        bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-        pos = cw.s((100, 110))
+        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+        pos = cw.wins((100, 110))
         self.draw_clickablebmp(dc, bmp, pos, "FatherFace", None, self.on_mousewheel, True)
 
         # 母親画像
@@ -976,12 +976,12 @@ class RelationPage(AdventurerCreaterPage):
             path = "Resource/Image/Card/MOTHER" + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, path)
 
-        bmp = cw.s((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-        pos = cw.s((275, 110))
+        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+        pos = cw.wins((275, 110))
         self.draw_clickablebmp(dc, bmp, pos, "MotherFace", None, self.on_mousewheel, True)
 
         # 父親名前
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(11))
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(11))
         dc.SetFont(font)
 
         if self.father:
@@ -989,7 +989,7 @@ class RelationPage(AdventurerCreaterPage):
         else:
             s = cw.cwpy.msgs["general_father"]
 
-        cw.util.draw_center(dc, s, cw.s((140, 220)))
+        cw.util.draw_center(dc, s, cw.wins((140, 220)))
 
         # 母親名前
         if self.mother:
@@ -997,9 +997,9 @@ class RelationPage(AdventurerCreaterPage):
         else:
             s = cw.cwpy.msgs["general_mother"]
 
-        cw.util.draw_center(dc, s, cw.s((315, 220)))
+        cw.util.draw_center(dc, s, cw.wins((315, 220)))
         # 父親消費EP
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10))
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10))
         dc.SetFont(font)
 
         if self.father:
@@ -1012,7 +1012,7 @@ class RelationPage(AdventurerCreaterPage):
                         break
 
             s = cw.cwpy.msgs["consumption_ep"] % (ep, self.father.ep)
-            cw.util.draw_center(dc, s, cw.s((140, 240)))
+            cw.util.draw_center(dc, s, cw.wins((140, 240)))
 
         # 母親消費EP
         if self.mother:
@@ -1025,7 +1025,7 @@ class RelationPage(AdventurerCreaterPage):
                         break
 
             s = cw.cwpy.msgs["consumption_ep"] % (ep, self.mother.ep)
-            cw.util.draw_center(dc, s, cw.s((315, 240)))
+            cw.util.draw_center(dc, s, cw.wins((315, 240)))
 
     def set_nextfather(self, name):
         if 1 < len(self.fathers):
@@ -1130,26 +1130,26 @@ class TalentPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 素質
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(14), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(14), style=wx.ITALIC)
         dc.SetFont(font)
         s = s = cw.cwpy.msgs["nature_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(35))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の傾向を選択して下さい。
-        font1 = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10), weight=wx.NORMAL)
-        font2 = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10))
+        font1 = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10), weight=wx.NORMAL)
+        font2 = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10))
         dc.SetFont(font1)
         s = cw.cwpy.msgs["nature_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(60))
-        xx = [cw.s(65), cw.s(255)]
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
+        xx = [cw.wins(65), cw.wins(255)]
         x = xx[0]
-        y = cw.s(92)
+        y = cw.wins(92)
         for nature in cw.cwpy.setting.natures:
             if not nature.special:
                 s = cw.util.txtwrap(nature.description, mode=5)
                 dc.SetFont(font1)
-                dc.DrawLabel(s, (x + cw.s(3), y + cw.s(18), cw.s(145), cw.s(35)))
+                dc.DrawLabel(s, (x + cw.wins(3), y + cw.wins(18), cw.wins(145), cw.wins(35)))
                 dc.SetFont(font2)
                 s = nature.name
                 pos = (x, y)
@@ -1157,7 +1157,7 @@ class TalentPage(AdventurerCreaterPage):
 
                 if x == xx[1]:
                     x = xx[0]
-                    y += cw.s(55)
+                    y += cw.wins(55)
                 else:
                     x = xx[1]
 
@@ -1178,26 +1178,26 @@ class AttrPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 特性
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(14), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(14), style=wx.ITALIC)
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_title"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(20))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(20))
         # 新規冒険者の生まれや性格などの個性を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(45))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(45))
         # 特性
         colour = wx.Colour(128, 128, 128)
         dc.SetTextForeground(colour)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10))
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10))
         dc.SetFont(font)
 
         for index in xrange(0, len(cw.cwpy.setting.makings), 2):
             column = index % 4
-            pos = cw.s((67 + column * 86, 64 + (index / 4) * 16))
+            pos = cw.wins((67 + column * 86, 64 + (index / 4) * 16))
             m1 = cw.cwpy.setting.makings[index]
             s = m1.name
             if index + 1 < len(cw.cwpy.setting.makings):
@@ -1208,7 +1208,7 @@ class AttrPage(AdventurerCreaterPage):
             name = (u"＿" + s, coupons)
             self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
             if index + 1 < len(cw.cwpy.setting.makings):
-                pos = pos[0] + cw.s(86), pos[1]
+                pos = pos[0] + cw.wins(86), pos[1]
                 s = m2.name
                 name = (u"＿" + s, coupons)
                 self.draw_clickabletext(dc, s, pos, name, self.set_coupon, None)
@@ -1227,8 +1227,8 @@ class AttrPage(AdventurerCreaterPage):
 
         if not name in self.clickables:
             # クリックしにくいのでサイズ拡大
-            size = size[0] + cw.s(2), size[1] + cw.s(2)
-            pos = pos[0] - cw.s(1), pos[1] - cw.s(1)
+            size = size[0] + cw.wins(2), size[1] + cw.wins(2)
+            pos = pos[0] - cw.wins(1), pos[1] - cw.wins(1)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
     def set_coupon(self, name):
@@ -1256,16 +1256,16 @@ class YadoCreater(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["create_base_title"], size=(318, 180),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.yadodir = ""
-        self.SetClientSize(cw.s((312, 156)))
-        self.textctrl = wx.TextCtrl(self, size=cw.s((175, 24)))
+        self.SetClientSize(cw.wins((312, 156)))
+        self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(18)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(12))
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(12))
         self.textctrl.SetFont(font)
         self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.s((100, 30)), cw.cwpy.msgs["entry_decide"])
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.s((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self._do_layout()
         self._bind()
 
@@ -1315,12 +1315,12 @@ class YadoCreater(wx.Dialog):
         dc.SetFont(font)
         s = cw.cwpy.msgs["create_base_message_1"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (csize[0]-w)/2, cw.s(10))
+        dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
         font = cw.cwpy.rsrc.get_wxfont("uigothic", weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["create_base_message_2"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (csize[0]-w)/2, cw.s(30))
+        dc.DrawText(s, (csize[0]-w)/2, cw.wins(30))
 
     def _bind(self):
         self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
@@ -1332,10 +1332,10 @@ class YadoCreater(wx.Dialog):
         csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(cw.s((0, 55)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 55)), 0, 0, 0)
         margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
         sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(cw.s((0, 25)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 25)), 0, 0, 0)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
@@ -1363,10 +1363,10 @@ class AdventurerDesignDialog(wx.Dialog):
 
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
-                                                        cw.s((100, 30)), cw.cwpy.msgs["entry_decide"])
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.buttonlist.append(self.okbtn)
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
-                                                        cw.s((100, 30)), cw.cwpy.msgs["entry_cancel"])
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.cnclbtn)
 
         # layout
@@ -1383,7 +1383,7 @@ class AdventurerDesignDialog(wx.Dialog):
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
         # button間のマージン値を求める
-        width = cw.s(400 - 6)
+        width = cw.wins(400 - 6)
         btnwidth = self.buttonlist[0].GetSize()[0] * len(self.buttonlist)
         margin = (width - btnwidth) / (len(self.buttonlist)+1)
         margin2 = margin + (width - btnwidth) % (len(self.buttonlist)+1)
@@ -1391,7 +1391,7 @@ class AdventurerDesignDialog(wx.Dialog):
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_btn.Add((margin, 0), 0, 0, 0)
-            sizer_btn.Add(button, 0, wx.TOP|wx.BOTTOM, cw.s(3))
+            sizer_btn.Add(button, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_btn.Add((margin2, 0), 0, 0, 0)
 
         sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)
@@ -1428,18 +1428,18 @@ class AdventurerDesignDialog(wx.Dialog):
 
 class DesignPanel(AdventurerCreaterPage):
     def __init__(self, parent, ccard):
-        AdventurerCreaterPage.__init__(self, parent, size=cw.s((400, 370)), freeze=False)
-        self.SetMinSize(cw.s((400, 370)))
+        AdventurerCreaterPage.__init__(self, parent, size=cw.wins((400, 370)), freeze=False)
+        self.SetMinSize(cw.wins((400, 370)))
 
         self.ccard = ccard
 
-        self.namectrl = wx.TextCtrl(self, size=cw.s((125, 18)), style=wx.NO_BORDER)
+        self.namectrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.namectrl.SetMaxLength(14)
         self.namectrl.SetFocus()
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.s(11))
+        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(11))
         self.namectrl.SetFont(font)
 
-        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.s(9), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(9), weight=wx.NORMAL)
         self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER|wx.TE_MULTILINE)
         self.descctrl.SetFont(font)
 
@@ -1447,7 +1447,7 @@ class DesignPanel(AdventurerCreaterPage):
         dc.SetFont(self.descctrl.GetFont())
         w = dc.GetTextExtent("#")[0] * 40
         dc.Destroy()
-        self.descctrl.SetClientSize((w, cw.s(107)))
+        self.descctrl.SetClientSize((w, cw.wins(107)))
         self.descctrl.SetInitialSize(self.descctrl.GetSize())
 
         self.imgpath = self.ccard.get_imagepath()
@@ -1482,8 +1482,8 @@ class DesignPanel(AdventurerCreaterPage):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.s(60))
-        sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.s(158))
+        sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(60))
+        sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.wins(158))
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
@@ -1492,13 +1492,13 @@ class DesignPanel(AdventurerCreaterPage):
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
         cwidth = self.GetClientSize()[0]
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.s(10))
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10))
         dc.SetFont(font)
 
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-        bmp = cw.s((cw.util.load_wxbmp(path), cw.SIZE_BILL))
+        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
@@ -1506,32 +1506,32 @@ class DesignPanel(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         s = cw.cwpy.msgs["edit_character_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(15))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(15))
 
         # Name
         s = cw.cwpy.msgs["entry_name"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(45))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(45))
         # Image
         s = cw.cwpy.msgs["entry_image"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(95))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(95))
         # Comment
         s = cw.cwpy.msgs["entry_comment"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.s(220))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(220))
 
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        pos = cw.s((135, 150))
+        pos = cw.wins((135, 150))
         self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = cw.s((260, 150))
+        pos = cw.wins((260, 150))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        bmp = cw.s((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
-        self.draw_clickablebmp(dc, bmp, ((cwidth - cw.s(74)) / 2, cw.s(116)), "Face", None, self.on_mousewheel, True)
+        bmp = cw.wins((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
+        self.draw_clickablebmp(dc, bmp, ((cwidth - cw.wins(74)) / 2, cw.wins(116)), "Face", None, self.on_mousewheel, True)
 
     def on_mousewheel(self, name, rotate):
         if rotate < 0:

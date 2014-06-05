@@ -447,6 +447,9 @@ class Resource(object):
 
         return fpath
 
+    def update_winscale(self):
+        self.init_wxresources()
+
     def init_wxresources(self):
         """wx側のリソースを初期化。"""
         # システムフォントテーブルの設定(wxダイアログ用)
@@ -545,7 +548,7 @@ class Resource(object):
     def get_wxfont(self, name="uigothic", size=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM):
         if size is None:
-            size = cw.s(10)
+            size = cw.wins(10)
 
         # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
@@ -795,7 +798,7 @@ class Resource(object):
         """
         def func(path, mask):
             bmp = cw.util.load_wxbmp(path, mask)
-            return bmp, cw.s((bmp, get_resourcesize(path)))
+            return bmp, cw.wins((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -836,7 +839,7 @@ class Resource(object):
         """
         def func(path, mask):
             bmp = cw.util.load_wxbmp(path, mask)
-            return bmp, cw.s((bmp, get_resourcesize(path)))
+            return bmp, cw.wins((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
         return self.get_resources(func, dpath, self.ext_img, True)
 
@@ -877,27 +880,32 @@ class Resource(object):
         ダイアログで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
+        if load_image == cw.util.load_wxbmp:
+            ss = cw.wins
+        else:
+            ss = cw.s
+
         def func(path, mask):
             bmp = load_image(path, mask)
-            return bmp, cw.s((bmp, get_resourcesize(path)))
+            return bmp, ss((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
         d = self.get_resources(func, dpath, self.ext_img, True)
 
         name = "LINK"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s((load_image(path, mask=False), get_resourcesize(path)))
+        d[name] = ss((load_image(path, mask=False), get_resourcesize(path)))
 
         name = "MONEYY"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s((load_image(path, mask=False), get_resourcesize(path)))
+        d[name] = ss((load_image(path, mask=False), get_resourcesize(path)))
 
         name = "STATUS8"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
+        d[name] = ss((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
 
         for key in ["CAUTION", "INVISIBLE"]:
             path = cw.util.join_paths(dpath, key + self.ext_img)
-            d[key] = cw.s((load_image(path), get_resourcesize(path)))
+            d[key] = ss((load_image(path), get_resourcesize(path)))
         return d
 
     def get_debugs(self, load_image):

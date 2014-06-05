@@ -427,7 +427,7 @@ class DrawingSettingPanel(wx.Panel):
             u"アニメーションなし", u"フェード式",
             u"ピクセルディゾルブ式", u"ブラインド式"]
         self.ch_tran = wx.Choice(
-            self, -1, size=(120, -1), choices=self.choices_tran)
+            self, -1, size=(150, -1), choices=self.choices_tran)
         n = self.transitions.index(cw.cwpy.setting.transition)
         self.ch_tran.SetSelection(n)
         self.sl_tran = wx.Slider(
