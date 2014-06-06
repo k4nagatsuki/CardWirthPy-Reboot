@@ -72,6 +72,7 @@ class Scenariodb(object):
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.cur = self.con.cursor()
+            needcommit = False
 
             # type列が存在しない場合は作成する(旧バージョンとの互換性維持)
             cur = self.con.execute("PRAGMA table_info('scenariodb')")
@@ -84,6 +85,15 @@ class Scenariodb(object):
             if not hastype:
                 self.cur.execute("ALTER TABLE scenariodb ADD COLUMN type INTEGER")
                 self.cur.execute("UPDATE scenariodb SET type=?", (TYPE_WSN,))
+                needcommit = True
+
+            cur = self.con.execute("PRAGMA index_info('scenariodb_index1')")
+            res = cur.fetchall()
+            if not len(res):
+                self.cur.execute("CREATE INDEX scenariodb_index1 ON scenariodb(dpath)")
+                needcommit = True
+
+            if needcommit:
                 self.con.commit()
         else:
             self.con = sqlite3.connect(self.name, timeout=30000)
@@ -97,10 +107,12 @@ class Scenariodb(object):
                    PRIMARY KEY (dpath, fname))"""
 
             self.cur.execute(s)
+            self.cur.execute("CREATE INDEX scenariodb_index1 ON scenariodb(dpath)")
 
     @synclock(_lock)
     def update(self, dpath=u"Scenario"):
         """データベースを更新する。"""
+        cw.util.t_start()
         s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (cw.util.get_linktarget(dpath),))
         data = self.cur.fetchall()
@@ -229,14 +241,16 @@ class Scenariodb(object):
         その際、情報が古くなっている場合は更新する。
         """
         headers = []
+        names = set()
 
         for t in data:
             header = self.create_header(t)
 
             if header:
                 headers.append(header)
+                names.add(header.fname)
 
-        return headers
+        return headers, names
 
     def sort_headers(self, headers):
         cw.util.sort_by_attr(headers, "name")
@@ -269,7 +283,7 @@ class Scenariodb(object):
         s = "SELECT * FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (dpath,))
         data = self.cur.fetchall()
-        headers = self.create_headers(data)
+        headers, names = self.create_headers(data)
         # データベースに登録されていないシナリオファイルがないかチェック
         dbpaths = set([h.get_fpath() for h in headers])
 
@@ -280,6 +294,8 @@ class Scenariodb(object):
                 return []
 
         for name in os.listdir(unicode(dpath)):
+            if name in names:
+                continue
             path = cw.util.join_paths(dpath, name)
             ltarg = cw.util.get_linktarget(path)
             name = os.path.basename(ltarg)
@@ -300,7 +316,7 @@ class Scenariodb(object):
         s = "SELECT * FROM scenariodb WHERE %s LIKE ?" % (column)
         self.cur.execute(s, (q,))
         data = self.cur.fetchall()
-        headers = self.create_headers(data)
+        headers, names = self.create_headers(data)
         return self.sort_headers(headers)
 
     def close(self):
