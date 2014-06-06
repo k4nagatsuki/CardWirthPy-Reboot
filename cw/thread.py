@@ -156,6 +156,8 @@ class CWPy(_Singleton, threading.Thread):
     def _init_resources(self):
         try:
             """スキンが関わるリソースの初期化"""
+            self.init_fullscreenparams()
+
             # リソース(辞書)
             rsrc = self.rsrc
             self.rsrc = cw.setting.Resource(self.setting)
@@ -186,7 +188,7 @@ class CWPy(_Singleton, threading.Thread):
             self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], cw.s(14))
             self.fpsfont.set_bold(True)
 
-            self.init_fullscreenparams()
+            self.init_fullscreenparams_after()
 
         except cw.setting.NoFontError, ex:
             def func():
@@ -582,18 +584,22 @@ class CWPy(_Singleton, threading.Thread):
             self.scr_pos = (x, y)
             cw.UP_WIN = scale
 
-            # 壁紙
-            self.scr_fullscreen.fill((255, 255, 255))
-            wximg = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["PAD"])
-            padsize = wximg.get_size()
-            for x in xrange(0, fsize[0], padsize[0]):
-                for y in xrange(0, fsize[1], padsize[1]):
-                    self.scr_fullscreen.blit(wximg, (x, y))
         else:
             cw.UP_WIN = cw.UP_SCR
             self.scr_size = self.scr.get_size()
             self.scr_scale = 1.0
             self.scr_pos = (0, 0)
+
+    def init_fullscreenparams_after(self):
+        if self.scr_fullscreen:
+            # 壁紙
+            self.scr_fullscreen.fill((255, 255, 255))
+            wximg = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["PAD"])
+            padsize = wximg.get_size()
+            fsize = self.scr_fullscreen.get_size()
+            for x in xrange(0, fsize[0], padsize[0]):
+                for y in xrange(0, fsize[1], padsize[1]):
+                    self.scr_fullscreen.blit(wximg, (x, y))
 
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。
@@ -713,6 +719,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.frame.exec_func(func, False)
                 self.init_fullscreenparams()
                 self.rsrc.update_winscale()
+                self.init_fullscreenparams_after()
 
                 while not self.frame.IsFullScreen() == flag:
                     pass

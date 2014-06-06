@@ -21,6 +21,7 @@ class Frame(wx.Frame):
                     cw.UP_SCR = float(self._setting.expandmode)
                 except:
                     pass
+        cw.UP_WIN = cw.UP_SCR
 
         # トップフレーム
         self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU

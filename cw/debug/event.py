@@ -83,7 +83,7 @@ class EventList(wx.TreeCtrl):
         currentfpath: 最初から選択状態にするエリア等のファイルパス。
         """
         wx.TreeCtrl.__init__(self, parent, -1, size=size, style=wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
-        self.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=10, weight=wx.NORMAL))
+        self.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=14, weight=wx.NORMAL))
         self._showallcards = False
         self.imglist = wx.ImageList(16, 16)
         imgidx_area = self.imglist.Add(cw.cwpy.rsrc.debugs["AREA"])

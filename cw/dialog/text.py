@@ -14,10 +14,10 @@ import cw
 class Text(wx.Dialog):
     def __init__(self, parent, name):
         # ダイアログボックス
-        wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((510, 290)),
+        wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((550, 290)),
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         # panel
-        self.toppanel = wx.Panel(self, -1, size=cw.wins((510, 245)))
+        self.toppanel = wx.Panel(self, -1, size=cw.wins((550, 245)))
         self.toppanel.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
@@ -27,12 +27,12 @@ class Text(wx.Dialog):
         else:
             value = ""
 
-        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=cw.wins((510, 220)), style=wx.TE_MULTILINE|wx.NO_BORDER)
+        self.textctrl = wx.TextCtrl(self.toppanel, -1, "", size=cw.wins((550, 220)), style=wx.TE_MULTILINE|wx.NO_BORDER)
         self.foreground = self.textctrl.GetForegroundColour()
         self._set_text(value)
         self.textctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.textctrl.SetForegroundColour(wx.WHITE)
-        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", cw.wins(10), weight=wx.NORMAL))
+        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.textctrl.SetEditable(False)
         self.textctrl.ShowPosition(0)
         # close
@@ -45,7 +45,7 @@ class Text(wx.Dialog):
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.wins((30, 30)), bmp=bmp)
         # choice
         self.combo = wx.ComboBox(self.toppanel, size=cw.wins((140, 20)), choices=self.list, style=wx.CB_READONLY)
-        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(10), weight=wx.NORMAL))
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
 
         if self.list:
             self.combo.SetSelection(self.index)
@@ -138,12 +138,12 @@ class Text(wx.Dialog):
             self.textctrl.Hide()
 
     def OnPaint(self, event):
-        dc = wx.ClientDC(self.toppanel)
+        dc = wx.PaintDC(self.toppanel)
         csize = self.toppanel.GetSize()
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 128)))
         dc.DrawRectangle(0, 0, csize[0], csize[1])
         dc.SetTextForeground(wx.LIGHT_GREY)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(11)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16)))
         s = cw.cwpy.msgs["instructions"]
         dc.DrawText(s, cw.wins(10), cw.wins(2))
         s = cw.cwpy.msgs["referencing_file"]
@@ -155,7 +155,7 @@ class Text(wx.Dialog):
         dc.DrawRectangle(0, self.combo.GetSize()[1], csize[0], cw.wins(2))
         if not self.list2:
             dc.SetTextForeground(wx.LIGHT_GREY)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(14)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(20)))
             # 文字
             s = "No Text File"
             size = dc.GetTextExtent(s)

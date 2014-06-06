@@ -277,8 +277,8 @@ class ExtensionDialog(wx.Dialog):
             self.buttons.append(btn)
 
         self.panel = wx.Panel(self, -1, style=wx.BORDER)
-        self.desc = wx.StaticText(self.panel, -1, size=cw.wins((205, 150)), style=wx.ST_NO_AUTORESIZE)
-        self.desc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(9)))
+        self.desc = wx.StaticText(self.panel, -1, size=cw.wins((210, 150)), style=wx.ST_NO_AUTORESIZE)
+        self.desc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14)))
 
         self.btn_cncl = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["cancel"])
         self._bind()

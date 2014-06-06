@@ -55,8 +55,8 @@ class CardControl(wx.Dialog):
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
         # sort
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
-        self.sort = wx.ComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
-        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(10), weight=wx.NORMAL))
+        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])
@@ -67,7 +67,7 @@ class CardControl(wx.Dialog):
             self.sort.Hide()
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((115, 20)), style=wx.CB_READONLY)
-        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(10), weight=wx.NORMAL))
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         if not sendto:
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
@@ -270,6 +270,8 @@ class CardControl(wx.Dialog):
         mousepos = event.GetPosition()
 
         for header in self.get_headers():
+            if header.wxrect.topleft == (0, 0):
+                continue
             if header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
                     header.negaflag = True
@@ -332,7 +334,7 @@ class CardControl(wx.Dialog):
         dc.DrawLine(cw.wins(1), cw.wins(21), cw.wins(499), cw.wins(21))
         # モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(11)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(15)))
         mode = self.get_mode()
         if mode == CCMODE_SHOW:
             s = cw.cwpy.msgs["mode_show"]
@@ -344,18 +346,18 @@ class CardControl(wx.Dialog):
             s = cw.cwpy.msgs["mode_use"]
         dc.DrawText(s, cw.wins(8), cw.wins(2))
         if self.sort.IsShown():
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["sort_title"]
             if self.combo.IsShown():
                 dc.DrawText(s, cw.wins(170), cw.wins(3))
             else:
                 dc.DrawText(s, cw.wins(385), cw.wins(3))
         if self.combo.IsShown():
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["send_to"]
             dc.DrawText(s, cw.wins(295), cw.wins(3))
         # カード枚数のフォント設定
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(10)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14)))
         return dc
 
     def get_mode(self):

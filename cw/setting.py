@@ -545,15 +545,16 @@ class Resource(object):
             WM_FONTCHANGE = 0x001D
             user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
-    def get_wxfont(self, name="uigothic", size=None,
+    def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM):
-        if size is None:
-            size = cw.wins(10)
+        if size is None and pixelsize is None:
+            pixelsize = cw.wins(14)
 
         # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
-        dpi = wx.ScreenDC().GetPPI()[0]
-        size = int((1.0/72 * 96) * size + 0.5)
+        if not pixelsize:
+            dpi = wx.ScreenDC().GetPPI()[0]
+            pixelsize = int((1.0/72 * 96) * size + 0.5)
 
         if name == "btnfont":
             if self._msuigothic:
@@ -563,7 +564,7 @@ class Resource(object):
         else:
             fontname = self.fontnames[name]
 
-        wxfont = wx.FontFromPixelSize((0, size), family, style, weight, 0, fontname, encoding)
+        wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
         return wxfont
 
     def create_fonts(self):
@@ -637,7 +638,7 @@ class Resource(object):
         if name:
             button = wx.Button(parent, id, name, size=size)
             button.SetMinSize(size)
-            button.SetFont(self.get_wxfont("btnfont", size=10))
+            button.SetFont(self.get_wxfont("btnfont", pixelsize=14))
         elif bmp:
             button = wx.BitmapButton(parent, id, bmp)
             button.SetMinSize(size)

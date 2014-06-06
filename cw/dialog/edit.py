@@ -24,7 +24,7 @@ class PartyEditor(wx.Dialog):
         self.textctrl = wx.TextCtrl(self, size=cw.wins((240, 24)))
         self.textctrl.SetMaxLength(18)
         self.textctrl.SetValue(self.party.name)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(12))
+        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
 
         # 所持金パネル。
@@ -115,17 +115,17 @@ class MoneyEditPanel(wx.Panel):
         # パーティ所持金変更スライダ
         self.slider = wx.Slider(self, -1, self.value, minvalue, maxvalue,
             size=(cw.wins(165), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(11)-1, weight=wx.NORMAL))
+        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         n = maxvalue / 10 if maxvalue else 0
         self.slider.SetTickFreq(n, 1)
         # パーティ所持金変更スピン
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.wins(88), -1))
-        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(11)-1, weight=wx.NORMAL))
+        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.spinctrl.SetRange(minvalue, maxvalue)
         self.spinctrl.SetValue(self.value)
         # 宿金庫変更スピン
         self.spinctrl2 = wx.SpinCtrl(self, -1, "", size=(cw.wins(88), -1))
-        self.spinctrl2.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(11)-1, weight=wx.NORMAL))
+        self.spinctrl2.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.spinctrl2.SetRange(minvalue, maxvalue)
         self.spinctrl2.SetValue(cw.cwpy.ydata.money)
         # bmp
@@ -135,7 +135,7 @@ class MoneyEditPanel(wx.Panel):
         self.bmp_ymoney = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # text
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
-        font = cw.cwpy.rsrc.get_wxfont(size=cw.wins(8), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont(pixelsize=cw.wins(12), weight=wx.NORMAL)
         self.text_party.SetFont(font)
         self.text_yado = wx.StaticText(self, -1, cw.cwpy.msgs["base_money"])
         self.text_yado.SetFont(font)
@@ -207,10 +207,10 @@ class MoneyViewPanel(wx.Panel):
         # text
         self.text_pmoney = wx.StaticText(self, -1, str(self.value),
                                         size=(cw.wins(88), -1), style=wx.SUNKEN_BORDER)
-        self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(10), weight=wx.NORMAL))
+        self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.text_pmoney.SetBackgroundColour(wx.WHITE)
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
-        font = cw.cwpy.rsrc.get_wxfont(size=cw.wins(8), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont(pixelsize=cw.wins(12), weight=wx.NORMAL)
         self.text_party.SetFont(font)
         self._do_layout()
 
@@ -464,7 +464,7 @@ class NumberEditor(wx.Panel):
         # スライダ
         self.slider = wx.Slider(self, -1, value, minvalue, maxvalue,
             size=(cw.wins(200), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(11)-1, weight=wx.NORMAL))
+        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
@@ -475,9 +475,9 @@ class NumberEditor(wx.Panel):
 
         # スピン
         self.spinlabel = wx.StaticText(self, -1, u"直接入力:")
-        self.spinlabel.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(11)-1, weight=wx.NORMAL))
+        self.spinlabel.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.wins(80), -1))
-        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(11)-1, weight=wx.NORMAL))
+        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.spinctrl.SetRange(minvalue, maxvalue)
         self.spinctrl.SetValue(value)
 
@@ -632,7 +632,7 @@ class LevelEditDialog(wx.Dialog):
         for ccard in self.list:
             self.targets.append(ccard.get_name())
         self.target = wx.ComboBox(self.panel, -1, choices=self.targets, style=wx.CB_READONLY)
-        self.target.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(10), weight=wx.NORMAL))
+        self.target.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.target.Select(max(selected, -1) + 1)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
@@ -797,7 +797,7 @@ class YadoEditDialog(wx.Dialog):
         self.SetClientSize(cw.wins((312, 136)))
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(18)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", size=cw.wins(12))
+        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
         self.name = cw.header.GetName(self.path).name
         if not self.name:
@@ -860,7 +860,7 @@ class YadoEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic")
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
         dc.SetFont(font)
         s = cw.cwpy.msgs["rename_base_message"]
         w = dc.GetTextExtent(s)[0]

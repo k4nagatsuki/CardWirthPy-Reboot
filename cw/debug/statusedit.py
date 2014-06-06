@@ -774,7 +774,7 @@ class StatusButton(wx.BitmapButton):
         dc.SetPen(wx.Pen(colour))
         dc.SetBrush(wx.Brush(colour))
         dc.DrawRectangle(0, 0, canvas.GetWidth(), canvas.GetHeight())
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", size=8))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=12))
 
         SPACER = 4
         height = self.image.GetHeight()

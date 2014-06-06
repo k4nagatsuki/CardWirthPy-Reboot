@@ -96,7 +96,7 @@ class CardInfo(wx.Dialog):
         # カード名
         s = self.selection.name
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(9))
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
         dc.SetFont(font)
         size = dc.GetTextExtent(s)
         dc.SetPen(wx.Pen((255, 255, 255), cw.wins(1), wx.TRANSPARENT))
@@ -110,9 +110,9 @@ class CardInfo(wx.Dialog):
         if s.count("\n") > 7:
             s = "\n".join(s.split("\n")[0:8])
 
-        font = cw.cwpy.rsrc.get_wxfont("gothic", size=cw.wins(9), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(13), weight=wx.NORMAL)
         dc.SetFont(font)
-        dc.DrawLabel(s, cw.wins((125, 22, 200, 110)))
+        dc.DrawLabel(s, cw.wins((127, 22, 200, 110)))
 
         # シナリオ・作者名
         scenario = self.selection.scenario
@@ -121,7 +121,7 @@ class CardInfo(wx.Dialog):
         s = scenario + author
 
         if s:
-            font = cw.cwpy.rsrc.get_wxfont("uigothic", size=cw.wins(8),
+            font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14),
                                                             weight=wx.NORMAL)
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
