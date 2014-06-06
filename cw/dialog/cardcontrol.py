@@ -518,7 +518,7 @@ class CardControl(wx.Dialog):
             cw.cwpy.exec_func(test_aptitude, header)
         # 開いていたダイアログの情報
         indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
-        cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition()))
+        cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition(), cw.UP_WIN))
         # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
@@ -604,6 +604,8 @@ class CardHolder(CardControl):
             self.index2 = indexs[1]
             self.index3 = indexs[2]
             self.index_combo = indexs[3]
+            if cw.UP_WIN <> indexs[4]:
+                self.pre_pos = None
 
             if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
                 self.index = 0
@@ -1310,6 +1312,8 @@ class HandView(CardControl):
             self.index2 = indexs[1]
             self.index3 = indexs[2]
             self.index_combo = indexs[3]
+            if cw.UP_WIN <> indexs[4]:
+                self.pre_pos = None
             self.selection = self.list2[self.index2]
         else:
             self.selection = cw.cwpy.selection
