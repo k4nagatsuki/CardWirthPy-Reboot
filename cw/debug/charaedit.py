@@ -641,7 +641,7 @@ class CharaRequirementPanel(wx.Panel):
         self.levelbtn.SetLabel("Lv %s" % (level))
         if imgpath:
             facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
-            fpath = os.path.relpath(imgpath, facedir)
+            fpath = cw.util.relpath(imgpath, facedir)
             fpath = cw.util.join_paths(fpath)
             # SetValue()を有効にするため一時的に追加
             # _update_images()で上書きされる

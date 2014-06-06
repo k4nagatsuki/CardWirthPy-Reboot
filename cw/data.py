@@ -16,6 +16,10 @@ import pygame
 
 import cw
 import cw.scenariodb
+from cw.util import synclock
+
+
+_lock = threading.Lock()
 
 #-------------------------------------------------------------------------------
 #　システムデータ
@@ -269,7 +273,7 @@ class SystemData(object):
                     if dpath2 == dpath:
                         dir = ""
                     else:
-                        dir = os.path.relpath(dpath2, dpath)
+                        dir = cw.util.relpath(dpath2, dpath)
                     seq.append(cw.util.join_paths(dir, fname))
         return seq
 
@@ -631,9 +635,9 @@ class ScenarioData(SystemData):
         cw.util.sort_by_attr(backpack, "order")
         for header in backpack:
             if header.fpath.lower().startswith("yado"):
-                fpath = os.path.relpath(header.fpath, yadodir)
+                fpath = cw.util.relpath(header.fpath, yadodir)
             else:
-                fpath = os.path.relpath(header.fpath, tempdir)
+                fpath = cw.util.relpath(header.fpath, tempdir)
             fpath = cw.util.join_paths(fpath)
             element.append(cw.data.make_element("File", fpath))
         path = "Data/Temp/ScenarioLog/Backpack.xml"
@@ -733,7 +737,7 @@ class ScenarioData(SystemData):
                     if dpath2 == dpath:
                         dir = ""
                     else:
-                        dir = os.path.relpath(dpath2, dpath)
+                        dir = cw.util.relpath(dpath2, dpath)
                     seq.append(cw.util.join_paths(dir, fname))
         return seq
 
@@ -1006,7 +1010,7 @@ class YadoData(object):
                     carddb.insert_cardheader(header, commit=False, cardorder=order)
                     order += 1
 
-                    path = os.path.relpath(carddata.fpath, dpath)
+                    path = cw.util.relpath(carddata.fpath, dpath)
                     path = cw.util.join_paths(path)
                     files.append(cw.data.make_element("File", path))
 
@@ -1099,9 +1103,9 @@ class YadoData(object):
             if self.party.lastscenario:
                 cw.cwpy.setting.lastscenario = self.party.lastscenario
             if header.fpath.lower().startswith("yado"):
-                name = os.path.relpath(header.fpath, self.yadodir)
+                name = cw.util.relpath(header.fpath, self.yadodir)
             else:
-                name = os.path.relpath(header.fpath, self.tempdir)
+                name = cw.util.relpath(header.fpath, self.tempdir)
             name = cw.util.join_paths(name)
             self.environment.edit("Property/NowSelectingParty", name)
 
@@ -1207,11 +1211,12 @@ class YadoData(object):
         cardorder = {}
         cardtable = {}
         for i, header in enumerate(self.storehouse):
+            cw.util.t_start()
             if header.fpath.lower().startswith("yado"):
-                fpath = os.path.relpath(header.fpath, self.yadodir)
+                fpath = cw.util.relpath(header.fpath, self.yadodir)
             else:
-                fpath = os.path.relpath(header.fpath, self.tempdir)
-                header.fpath = header.fpath.replace(self.tempdir, self.yadodir)
+                fpath = cw.util.relpath(header.fpath, self.tempdir)
+                header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
             fpath = cw.util.join_paths(fpath)
             cardorder[fpath] = header.order
             cardtable[fpath] = header
@@ -1220,10 +1225,10 @@ class YadoData(object):
         adventurertable = {}
         for i, header in enumerate(self.standbys):
             if header.fpath.lower().startswith("yado"):
-                fpath = os.path.relpath(header.fpath, self.yadodir)
+                fpath = cw.util.relpath(header.fpath, self.yadodir)
             else:
-                fpath = os.path.relpath(header.fpath, self.tempdir)
-                header.fpath = header.fpath.replace(self.tempdir, self.yadodir)
+                fpath = cw.util.relpath(header.fpath, self.tempdir)
+                header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
             fpath = cw.util.join_paths(fpath)
             adventurerorder[fpath] = header.order
             adventurertable[fpath] = header
@@ -1289,9 +1294,9 @@ class YadoData(object):
             cardtable = {}
             for i, header in enumerate(party.backpack):
                 if header.fpath.lower().startswith("yado"):
-                    fpath = os.path.relpath(header.fpath, yadodir)
+                    fpath = cw.util.relpath(header.fpath, yadodir)
                 else:
-                    fpath = os.path.relpath(header.fpath, tempdir)
+                    fpath = cw.util.relpath(header.fpath, tempdir)
                     header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
                 fpath = cw.util.join_paths(fpath)
                 cardorder[fpath] = header.order
@@ -1309,9 +1314,13 @@ class YadoData(object):
                 party.data = None
 
         # カードデータベースを更新
-        yadodb = cw.yadodb.YadoDB(self.yadodir)
-        yadodb.update(cards=cardtable, adventurers=adventurertable, cardorder=cardorder, adventurerorder=adventurerorder)
-        yadodb.close()
+        @synclock(_lock)
+        def update_database(yadodir):
+            yadodb = cw.yadodb.YadoDB(yadodir)
+            yadodb.update(cards=cardtable, adventurers=adventurertable, cardorder=cardorder, adventurerorder=adventurerorder)
+            yadodb.close()
+        thr = threading.Thread(target=update_database, kwargs={"yadodir": self.yadodir})
+        thr.start()
 
         cw.cwpy.clear_selection()
         self._changed = False
@@ -1721,9 +1730,9 @@ class Party(object):
     def get_relpath(self):
         ppath = os.path.dirname(self.path)
         if ppath.lower().startswith("yado"):
-            relpath = os.path.relpath(ppath, cw.cwpy.yadodir)
+            relpath = cw.util.relpath(ppath, cw.cwpy.yadodir)
         else:
-            relpath = os.path.relpath(ppath, cw.cwpy.tempdir)
+            relpath = cw.util.relpath(ppath, cw.cwpy.tempdir)
         return cw.util.join_paths(relpath)
 
     def get_yadodir(self):

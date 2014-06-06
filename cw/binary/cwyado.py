@@ -116,7 +116,7 @@ class CWYado(object):
 
                 if isinstance(data, party.Party) and\
                         self.wyd.partyname == cw.util.splitext(os.path.basename(data.fpath))[0]:
-                    fpath = os.path.relpath(fpath, self.dir)
+                    fpath = cw.util.relpath(fpath, self.dir)
                     fpath = cw.util.join_paths(fpath)
                     self.wyd.cwpypartyname = fpath
 
@@ -429,7 +429,7 @@ class CWYado(object):
         partymembers.create_vanisheds_xml(partymembers.get_dir())
         for adventurer in partymembers.vanisheds:
             fpath = adventurer.xmlpath
-            fpath = os.path.relpath(fpath, adventurer.get_dir())
+            fpath = cw.util.relpath(fpath, adventurer.get_dir())
             fpath = cw.util.join_paths(fpath)
             e = cw.data.make_element("LostAdventurer", fpath)
             e_lost.append(e)
@@ -634,9 +634,9 @@ class UnconvCWYado(object):
                     party.PartyMembers.unconv(f, pt, table, logdir)
 
                 if partyheader.fpath.lower().startswith("yado"):
-                    relpath = os.path.relpath(partyheader.fpath, yadodir)
+                    relpath = cw.util.relpath(partyheader.fpath, yadodir)
                 else:
-                    relpath = os.path.relpath(partyheader.fpath, tempdir)
+                    relpath = cw.util.relpath(partyheader.fpath, tempdir)
                 relpath = cw.util.join_paths(relpath)
                 partytable[relpath] = cw.util.splitext(os.path.basename(fpath))[0]
 

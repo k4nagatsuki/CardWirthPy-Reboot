@@ -1952,9 +1952,9 @@ class Player(Character):
         self.data.write_xml()
         if cw.cwpy.is_playingscenario():
             if self.data.fpath.lower().startswith("yado"):
-                fpath = os.path.relpath(self.data.fpath, cw.cwpy.ydata.yadodir)
+                fpath = cw.util.relpath(self.data.fpath, cw.cwpy.ydata.yadodir)
             else:
-                fpath = os.path.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
+                fpath = cw.util.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
             fpath = cw.util.join_paths(fpath)
             cw.cwpy.sdata.lostadventurers.add(fpath)
         cw.cwpy.pcardgrp.remove(self)

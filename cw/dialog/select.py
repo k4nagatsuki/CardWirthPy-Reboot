@@ -2341,7 +2341,7 @@ class ScenarioSelect(Select):
                     with open(fpath, "r") as f:
                         data = f.read()
                     seq2.append(data)
-                    name = os.path.relpath(fpath, path)
+                    name = cw.util.relpath(fpath, path)
                     name = cw.util.join_paths(name)
                     seq.append(name)
 

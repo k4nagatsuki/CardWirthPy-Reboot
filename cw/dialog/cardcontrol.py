@@ -604,7 +604,7 @@ class CardHolder(CardControl):
             self.index2 = indexs[1]
             self.index3 = indexs[2]
             self.index_combo = indexs[3]
-            if cw.UP_WIN <> indexs[4]:
+            if cw.UP_WIN <> pre_info[3]:
                 self.pre_pos = None
 
             if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
@@ -1312,7 +1312,7 @@ class HandView(CardControl):
             self.index2 = indexs[1]
             self.index3 = indexs[2]
             self.index_combo = indexs[3]
-            if cw.UP_WIN <> indexs[4]:
+            if cw.UP_WIN <> pre_info[3]:
                 self.pre_pos = None
             self.selection = self.list2[self.index2]
         else:

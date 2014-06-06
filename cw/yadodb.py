@@ -430,7 +430,7 @@ class YadoDB(object):
             ?
         )
         """
-        fpath = os.path.relpath(header.fpath, self.ypath)
+        fpath = cw.util.relpath(header.fpath, self.ypath)
         fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
@@ -621,7 +621,7 @@ class YadoDB(object):
             ?
         )
         """
-        fpath = os.path.relpath(header.fpath, self.ypath)
+        fpath = cw.util.relpath(header.fpath, self.ypath)
         fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
@@ -741,7 +741,7 @@ class YadoDB(object):
             ?
         )
         """
-        fpath = os.path.relpath(header.fpath, self.ypath)
+        fpath = cw.util.relpath(header.fpath, self.ypath)
         fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)

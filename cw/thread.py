@@ -1109,9 +1109,9 @@ class CWPy(_Singleton, threading.Thread):
                 continue
 
             if header.fpath.lower().startswith("yado"):
-                fpath = os.path.relpath(header.fpath, yadodir)
+                fpath = cw.util.relpath(header.fpath, yadodir)
             else:
-                fpath = os.path.relpath(header.fpath, tempdir)
+                fpath = cw.util.relpath(header.fpath, tempdir)
             fpath = cw.util.join_paths(fpath)
             backpacktable[fpath] = header
 

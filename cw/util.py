@@ -594,6 +594,23 @@ def join_paths(*paths):
     """
     return "/".join(paths).replace("\\", "/").rstrip("/")
 
+def relpath(path, start):
+    if len(start) < len(path) and path.startswith(start):
+        path2 = path[len(start):]
+        if path2[0] == '/' or (sys.platform == "win32" and path2[0] == '\\'):
+            return path2[1:]
+    return os.path.relpath(path, start)
+assert relpath("Data/abc", "Data") == "abc"
+assert relpath("Data/abc/def", "Data").replace("\\", "/") == "abc/def"
+assert relpath("Data/abc/def", "Data/abc/").replace("\\", "/") == "def"
+assert relpath("Data/abc/def", "Data/abc") == os.path.relpath("Data/abc/def", "Data/abc")
+assert relpath("Data/abc/def", "..").replace("\\", "/") == os.path.relpath("Data/abc/def", "..").replace("\\", "/")
+assert relpath(".", "..").replace("\\", "/") == os.path.relpath(".", "..").replace("\\", "/")
+assert relpath("/a", "..").replace("\\", "/") == os.path.relpath("/a", "..").replace("\\", "/")
+assert relpath("a", "../bcde").replace("\\", "/") == os.path.relpath("a", "../bcde").replace("\\", "/")
+assert relpath("../a", "../bcde").replace("\\", "/") == os.path.relpath("../a", "../bcde").replace("\\", "/")
+assert relpath("../a", "../").replace("\\", "/") == os.path.relpath("../a", "../").replace("\\", "/")
+
 def splitext(p):
     """パスの拡張子以外の部分と拡張子部分の分割。
     os.path.splitext()との違いは、".ext"のような
@@ -1575,7 +1592,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
                 dpath = dlg.GetPath()
                 if getbasedir:
                     base = getbasedir()
-                    dpath = os.path.relpath(dpath, base)
+                    dpath = cw.util.relpath(dpath, base)
                 target.SetValue(dpath)
                 if callback:
                     callback(dpath)
@@ -1587,7 +1604,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
                 fpath = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
                 if getbasedir:
                     base = getbasedir()
-                    fpath = os.path.relpath(fpath, base)
+                    fpath = cw.util.relpath(fpath, base)
                 target.SetValue(fpath)
                 if callback:
                     callback(fpath)

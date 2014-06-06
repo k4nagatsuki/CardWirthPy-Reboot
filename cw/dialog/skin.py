@@ -114,7 +114,7 @@ class SkinConversionDialog(wx.Dialog):
                     if skintype == self.conv.skintype:
                         break # 登録済み
                 else:
-                    scpath = os.path.relpath(path1, ".")
+                    scpath = cw.util.relpath(path1, ".")
                     if scpath.startswith(".."):
                         scpath = path1
 

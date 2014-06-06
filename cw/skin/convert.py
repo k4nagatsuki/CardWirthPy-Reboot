@@ -78,7 +78,7 @@ class Converter(threading.Thread):
 
     def _write_data(self, dir, table):
         for data in table.values():
-            data.fpath = cw.util.join_paths(dir, os.path.relpath(data.fpath, u"Data/SkinBase/"))
+            data.fpath = cw.util.join_paths(dir, cw.util.relpath(data.fpath, u"Data/SkinBase/"))
             data.write()
 
     def find_skinname(self):

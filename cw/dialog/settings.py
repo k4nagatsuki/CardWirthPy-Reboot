@@ -628,7 +628,7 @@ class AudioSettingPanel(wx.Panel):
             for fname in dlg.GetFilenames():
                 fpath = os.path.join(dlg.GetDirectory(), fname)
                 try:
-                    rel = os.path.relpath(fpath, u"")
+                    rel = cw.util.relpath(fpath, u"")
                     if not rel.startswith(u".."):
                         fpath = rel
                 except:
@@ -764,7 +764,7 @@ class ScenarioSettingPanel(wx.Panel):
         dlg = wx.DirDialog(self.TopLevelParent, u"「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (type), dpath, style=wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             dpath = dlg.GetPath()
-            relpath = os.path.relpath(dpath, ".")
+            relpath = cw.util.relpath(dpath, ".")
             if not relpath.startswith(".."):
                 dpath = relpath
             self.grid_folderoftype.SetCellValue(row, 1, cw.util.join_paths(dpath))
