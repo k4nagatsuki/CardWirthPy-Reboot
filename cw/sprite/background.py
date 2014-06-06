@@ -205,6 +205,10 @@ class BackGround(base.CWPySprite):
             else:
                 assert False
 
+        if not self.bgs:
+            self.bgs = list(oldbgs)
+            return
+
         self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
         self._elements = []
         self._bginhrt = False
@@ -270,6 +274,9 @@ class BackGround(base.CWPySprite):
             fname = os.path.basename(path)
             fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
+
+        if not os.path.isfile(path):
+            return False
 
         image, anime = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 

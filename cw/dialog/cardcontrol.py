@@ -268,10 +268,11 @@ class CardControl(wx.Dialog):
     def OnMove(self, event):
         dc = wx.ClientDC(self.toppanel)
         mousepos = event.GetPosition()
+        headers = self.get_headers()
+        if headers and headers[0].wxrect.topleft == (0, 0):
+            self.draw(True)
 
         for header in self.get_headers():
-            if header.wxrect.topleft == (0, 0):
-                continue
             if header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
                     header.negaflag = True
