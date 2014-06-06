@@ -597,7 +597,7 @@ typedef struct FontInfo_ {
     HFONT hfont;
     HDC hdc;
     LPWSTR face;
-    LPOUTLINETEXTMETRIC otm;
+    OUTLINETEXTMETRIC otm;
     int pixels;
     BOOL bold;
     BOOL italic;
@@ -617,10 +617,6 @@ static void _clear_font(FontInfo *font)
     {
         DeleteDC(font->hdc);
         font->hdc = NULL;
-    }
-    if (font->otm)
-    {
-        HeapFree(heap, 0, font->otm);
     }
 }
 
@@ -673,7 +669,6 @@ cleanup:
 
 static void _init_font(FontInfo *font)
 {
-    UINT cbData = 0;
     HANDLE heap = GetProcessHeap();
 
     if (!font)
@@ -687,10 +682,7 @@ static void _init_font(FontInfo *font)
     font->hdc = CreateCompatibleDC(NULL);
     if (!font->hdc) goto cleanup;
     if (!SelectObject(font->hdc, font->hfont)) goto cleanup;
-    cbData = GetOutlineTextMetrics(font->hdc, 0, NULL);
-    if (!cbData) goto cleanup;
-    font->otm = (LPOUTLINETEXTMETRIC)HeapAlloc(heap, HEAP_ZERO_MEMORY, cbData*sizeof(OUTLINETEXTMETRIC));
-    if (!GetOutlineTextMetrics(font->hdc, cbData, font->otm)) goto cleanup;
+    if (!GetOutlineTextMetrics(font->hdc, sizeof(font->otm), &font->otm)) goto cleanup;
 
     return;
 
@@ -785,7 +777,7 @@ font_height(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    return Py_BuildValue("i", font->otm->otmTextMetrics.tmHeight);
+    return Py_BuildValue("i", font->otm.otmTextMetrics.tmHeight);
 }
 
 static PyObject *
@@ -817,14 +809,14 @@ font_size(PyObject *self, PyObject *args)
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
     }
 
-    h = font->otm->otmTextMetrics.tmHeight;
+    h = font->otm.otmTextMetrics.tmHeight;
     for (i = 0; str[i]; i++)
     {
         if (str[i] == '\n')
         {
             w = w2 < w ? w : w2;
             w2 = 0;
-            h += font->otm->otmTextMetrics.tmHeight;
+            h += font->otm.otmTextMetrics.tmHeight;
             continue;
         }
         bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
@@ -874,14 +866,14 @@ font_render(PyObject *self, PyObject *args)
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
     }
 
-    h = font->otm->otmTextMetrics.tmHeight;
+    h = font->otm.otmTextMetrics.tmHeight;
     for (i = 0; str[i]; i++)
     {
         if (str[i] == '\n')
         {
             w = w2 < w ? w : w2;
             w2 = 0;
-            h += font->otm->otmTextMetrics.tmHeight;
+            h += font->otm.otmTextMetrics.tmHeight;
             continue;
         }
         bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
@@ -923,7 +915,7 @@ font_render(PyObject *self, PyObject *args)
         {
             GetGlyphOutlineW(font->hdc, str[i], format, &gm, bufSize, buf, &mat2);
             x = x0 + gm.gmptGlyphOrigin.x;
-            y = y0 + (font->otm->otmTextMetrics.tmAscent - gm.gmptGlyphOrigin.y);
+            y = y0 + (font->otm.otmTextMetrics.tmAscent - gm.gmptGlyphOrigin.y);
             if (antialias)
             {
                 bpl = (gm.gmBlackBoxX + 3) / 4 * 4;
@@ -970,10 +962,10 @@ font_render(PyObject *self, PyObject *args)
         }
         if (font->underline)
         {
-            for (y = 0; y < font->otm->otmsUnderscoreSize; y++)
+            for (y = 0; y < font->otm.otmsUnderscoreSize; y++)
             {
-                yy = y0 + font->otm->otmTextMetrics.tmHeight
-                    + font->otm->otmsUnderscorePosition + y;
+                yy = y0 + font->otm.otmTextMetrics.tmHeight
+                    + font->otm.otmsUnderscorePosition + y;
                 if (h <= yy) continue;
                 for (x = 0; x < x0 + gm.gmCellIncX; x++)
                 {
