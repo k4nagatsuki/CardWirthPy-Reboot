@@ -1914,7 +1914,7 @@ class ScenarioSelect(Select):
             s = header.desc
             y = cw.wins(175)
             for l in s.splitlines():
-                dc.DrawText(l, cw.wins(65), y)
+                dc.DrawText(l, cw.wins(60), y)
                 y += cw.wins(15)
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
