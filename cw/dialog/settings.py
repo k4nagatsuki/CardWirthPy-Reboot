@@ -9,7 +9,7 @@ import wx.aui
 import cw
 
 
-SETTINGS_WIDTH = 370
+SETTINGS_WIDTH = 250
 
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent):
@@ -402,10 +402,10 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_expandmode, 0, 0, 0)
-        sizer.Add(sizer_v1, 0, wx.ALL, 10)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_expandmode, 0, wx.EXPAND, 0)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -491,9 +491,9 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
-        bsizer_tran.Add(self.sl_tran, 0, 0, 0)
-        bsizer_deal.Add(self.sl_deal, 0, 0, 0)
-        bsizer_msgs.Add(self.sl_msgs, 0, 0, 0)
+        bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)
+        bsizer_deal.Add(self.sl_deal, 0, wx.EXPAND, 0)
+        bsizer_msgs.Add(self.sl_msgs, 0, wx.EXPAND, 0)
 
         bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
         gsizer_mwin = wx.GridBagSizer()
@@ -515,13 +515,13 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
         bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.RIGHT, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_deal, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_msgs, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_msgs, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_mframe, 0, wx.EXPAND, 0)
-        sizer.Add(sizer_v1, 0, wx.ALL, 10)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -602,19 +602,19 @@ class AudioSettingPanel(wx.Panel):
         sizer_soundfontbtns.Add(self.btn_upsoundfont, 0, wx.RIGHT, 5)
         sizer_soundfontbtns.Add(self.btn_downsoundfont, 0, 0, 0)
 
-        bsizer_music.Add(self.sl_music, 0, 0, 0)
-        bsizer_midi.Add(self.sl_midi, 0, 0, 0)
-        bsizer_sound.Add(self.sl_sound, 0, 0, 0)
+        bsizer_music.Add(self.sl_music, 0, wx.EXPAND, 0)
+        bsizer_midi.Add(self.sl_midi, 0, wx.EXPAND, 0)
+        bsizer_sound.Add(self.sl_sound, 0, wx.EXPAND, 0)
         bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.ALL, 5)
         bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 5)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_music, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_midi, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
 
-        sizer.Add(sizer_v1, 1, wx.ALL, 10)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -687,7 +687,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.grid_folderoftype.SetColLabelSize(0)
         self.grid_folderoftype.SetRowLabelSize(0)
         self.grid_folderoftype.SetColSize(0, 100)
-        self.grid_folderoftype.SetColSize(1, SETTINGS_WIDTH-140)
+        self.grid_folderoftype.SetColSize(1, 150)
 
         types = set()
         for name, t in self.Parent.Parent.pane_gene.skin_summarys.iteritems():
@@ -738,10 +738,10 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.ALL, 5)
         bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 5)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_folderoftype, 1, wx.EXPAND, 0)
 
-        sizer.Add(sizer_v1, 1, wx.ALL, 10)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -873,10 +873,10 @@ class UISettingPanel(wx.Panel):
         bsizer_dlg.Add(self.cb_confirmbeforeusingcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.SetMinSize((SETTINGS_WIDTH, -1))
 
-        sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM, 5)
-        sizer_v1.Add(bsizer_dlg, 0, 0, 0)
-        sizer.Add(sizer_v1, 0, wx.ALL, 10)
+        sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_dlg, 0, wx.EXPAND, 0)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
