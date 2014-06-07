@@ -195,7 +195,7 @@ class CardHeader(object):
                                                     self.name, self.premium)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
-        self.wxrect = pygame.Rect(self.rect)
+        self.wxrect = cw.scr2win_s(pygame.Rect(self.rect))
         self._cardscale = cw.UP_SCR
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
