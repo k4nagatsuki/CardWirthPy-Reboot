@@ -225,7 +225,7 @@ class _JpySubImage(cw.image.Image):
         # 指定時間だけ待機
         if self.waittime > 0:
             if anime:
-                wait_effectbooster(self.waittime / cw.UP_SCR)
+                wait_effectbooster(max(1, self.waittime / cw.UP_SCR))
             else:
                 wait_effectbooster(self.waittime)
 

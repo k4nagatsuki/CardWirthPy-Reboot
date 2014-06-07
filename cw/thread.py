@@ -515,13 +515,14 @@ class CWPy(_Singleton, threading.Thread):
             # SpriteGroup描画
             # FIXME: 描画領域を絞り込むと時々カードの描画中に
             #        次に表示される背景が映り込んでしまう
-            #self.scr_draw.set_clip(clip)
-            #self.bggrp.set_clip(clip)
-            #self.pcardgrp.set_clip(clip)
-            #self.mcardgrp.set_clip(clip)
-            #self.topgrp.set_clip(clip)
-            #self.backloggrp.set_clip(clip)
-            #self.sbargrp.set_clip(clip)
+            if clip:
+                self.scr_draw.set_clip(clip)
+                self.bggrp.set_clip(clip)
+                self.pcardgrp.set_clip(clip)
+                self.mcardgrp.set_clip(clip)
+                self.topgrp.set_clip(clip)
+                self.backloggrp.set_clip(clip)
+                self.sbargrp.set_clip(clip)
 
             dirty_rects = self.bggrp.draw(self.scr_draw)
 
@@ -544,39 +545,45 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 scale = pygame.transform.smoothscale
 
+            def update_clip(scale):
+                clx = int(clip.left * scale) - 2
+                cly = int(clip.top * scale) - 2
+                clw = int(clip.width * scale) + 5
+                clh = int(clip.height * scale) + 5
+                return pygame.Rect(clx, cly, clw, clh)
+
             # 画面更新
             if self.scr_fullscreen:
+                scr = scale(self.scr_draw, self.scr_size)
                 if clip:
-                    clx = int(clip.left * self.scr_scale) - 2
-                    cly = int(clip.top * self.scr_scale) - 2
-                    clw = int(clip.width * self.scr_scale) + 5
-                    clh = int(clip.height * self.scr_scale) + 5
-                    scr = scale(self.scr_draw, self.scr_size)
-                    clip2 = pygame.Rect(clx, cly, clw, clh)
+                    clip2 = update_clip(self.scr_scale)
                     clip3 = pygame.Rect(clx + self.scr_pos[0], cly + self.scr_pos[1], clw, clh)
                     self.scr_fullscreen.blit(scr, clip3.topleft, clip2)
                     pygame.display.update(clip3)
                 else:
-                    scr = scale(self.scr_draw, self.scr_size)
                     self.scr_fullscreen.blit(scr, self.scr_pos)
                     pygame.display.update()
             elif self.scr_draw <> self.scr:
                 scr = scale(self.scr_draw, self.scr.get_size())
-                self.scr.blit(scr, (0, 0))
-                pygame.display.update()
+                if clip:
+                    clip2 = update_clip(float(cw.UP_WIN) / cw.UP_SCR)
+                    self.scr.blit(scr, clip2.topleft, clip2)
+                    pygame.display.update(clip2)
+                else:
+                    self.scr.blit(scr, (0, 0))
+                    pygame.display.update()
             else:
                 if clip:
                     pygame.display.update(clip)
                 else:
                     pygame.display.update(dirty_rects)
 
-            #self.scr_draw.set_clip(None)
-            #self.bggrp.set_clip(None)
-            #self.pcardgrp.set_clip(None)
-            #self.mcardgrp.set_clip(None)
-            #self.topgrp.set_clip(None)
-            #self.backloggrp.set_clip(None)
-            #self.sbargrp.set_clip(None)
+            pos = cw.s((0, 0))
+            size = cw.s(cw.SIZE_AREA)
+            self.scr_draw.set_clip(pygame.Rect(pos, size))
+            self._update_clip()
+            size = cw.s(cw.SIZE_GAME)
+            self.sbargrp.set_clip(pygame.Rect(pos, size))
 
             self.event.eventtimer = 0
 
