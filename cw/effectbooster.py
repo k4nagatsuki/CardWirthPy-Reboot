@@ -246,9 +246,12 @@ class _JpySubImage(cw.image.Image):
 
         # マスク
         if self.transparent:
-            image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
+            colorkey = image.get_at((0, 0))
+            image.set_colorkey(colorkey, RLEACCEL)
             image = image.convert_alpha()
+            image.set_colorkey(colorkey, RLEACCEL)
         else:
+            colorkey = None
             image.set_colorkey(None)
 
         # RGB入れ替え
@@ -380,6 +383,8 @@ class _JpySubImage(cw.image.Image):
 
         # 透明度
         if self.paintmode == 3:
+            if image.get_flags() & pygame.locals.SRCALPHA:
+                image = image.convert()
             image.set_alpha(self.alpha)
 
         # キャッシュ (for JpyPartsImage)
@@ -575,7 +580,6 @@ class JpyImage(cw.image.Image):
                 parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
-                image = parts.get_image()
                 parts.draw2back(back)
 
         back.retouch()
