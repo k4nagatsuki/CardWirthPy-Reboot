@@ -305,7 +305,6 @@ class Frame(wx.Frame):
             pass
 
         cw.util.t_print()
-        sys.exit()
 
     def OnIconize(self, event):
         """最小化イベント。最小化したときBGMの音も消す。"""
@@ -332,11 +331,11 @@ class Frame(wx.Frame):
             result = dlg.ShowModal()
         else:
             result = wx.ID_OK
+            dlg = None
 
+        self.kill_dlg(dlg)
         if result == wx.ID_OK:
             self.Destroy()
-        else:
-            self.kill_dlg(dlg)
 
     def OnSETTINGS(self, event):
         dlg = cw.dialog.settings.SettingsDialog(self)
@@ -610,9 +609,9 @@ class Frame(wx.Frame):
     def OnBATTLECOMMAND(self, event):
         dlg = cw.dialog.etc.BattleCommand(self)
         # マウスカーソルの位置に行動開始ボタンがくるよう位置調整
-        pos = cw.cwpy.mousepos[0] - 316, cw.cwpy.mousepos[1] - 226
-        pos = pos[0] + 95, pos[1] + 25
-        self.move_dlg(dlg, pos)
+        pos = wx.GetMousePosition()
+        pos = pos[0] - cw.wins(50), pos[1] - cw.wins(60)
+        dlg.Move(pos)
         dlg.ShowModal()
         self.kill_dlg(dlg)
 

@@ -104,10 +104,7 @@ def s(num):
 
 def scr2win_s(num):
     if UP_WIN == UP_SCR:
-        if isinstance(num, tuple):
-            return num[0]
-        else:
-            return num
+        return _s_impl(num, 1)
     else:
         return _s_impl(num, float(UP_WIN) / UP_SCR)
 
