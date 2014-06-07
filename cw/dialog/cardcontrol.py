@@ -368,6 +368,21 @@ class CardControl(wx.Dialog):
         if self._leftmark:
             dc.DrawBitmap(self._leftmark, cw.wins(3), cw.wins(85), True)
 
+        if self.callname == "CARDPOCKET":
+            # 所持カード数
+            num = len(self.selection.cardpocket[self.index3])
+            maxnum = self.selection.get_cardpocketspace()[self.index3]
+            s = "Cap " + str(num) + "/" + str(maxnum)
+            w = dc.GetTextExtent(s)[0]
+            dc.DrawText(s, cw.wins(40)-w/2, cw.wins(220))
+        elif self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
+             # カード置き場、荷物袋、情報カード
+             # ページ番号
+             s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
+             s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
+             w = dc.GetTextExtent(s)[0]
+             dc.DrawText(s, cw.wins(40)-w/2, cw.wins(180))
+
         # 保留中のイベントを実施
         if self._after_event:
             cw.cwpy.frame.exec_func(self._after_event)
