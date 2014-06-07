@@ -39,6 +39,7 @@ class Setting(object):
             self.expanddrawing = 1
             self.expandmode = "FullScreen"
             self.is_expanded = False
+            self.smoothexpand = True
             self.debug = False
             self.no_levelup_in_debugmode = False
             self.play_bgm = True
@@ -94,6 +95,7 @@ class Setting(object):
             self.is_expanded = False
         else:
             self.is_expanded = data.getbool("ExpandMode", "expanded", False)
+        self.smoothexpand = data.getbool("ExpandMode", "smooth", True)
         # 描画倍率
         if self.expandmode in ("None", "FullScreen"):
             expanddrawing_def = 1.0

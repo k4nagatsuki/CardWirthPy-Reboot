@@ -75,7 +75,8 @@ def create_settings(setting):
     element.append(e)
     # 拡大モード
     e = cw.data.make_element("ExpandMode", str(setting.expandmode),
-                             attrs={"expanded": str(setting.is_expanded)})
+                             attrs={"expanded": str(setting.is_expanded),
+                                    "smooth":str(setting.smoothexpand)})
     element.append(e)
     # デバッグモードかどうか
     e = cw.data.make_element("DebugMode", str(setting.debug))

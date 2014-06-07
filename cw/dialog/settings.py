@@ -43,6 +43,9 @@ class SettingsDialog(wx.Dialog):
         if selpane == 0:
             self.pane_gene.cb_nolevelup.SetValue(False)
             self.pane_gene.cb_storeskinoneachbase.SetValue(True)
+            self.pane_gene.cb_fullscreen.SetValue(True)
+            self.pane_gene.makeExpandInfo()
+            self.pane_gene.cb_smoothexpand.SetValue(True)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
             self.pane_draw.sl_deal.SetValue(6)
@@ -99,6 +102,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.store_skinoneachbase = value
 
         # 拡大倍率
+        value = self.pane_gene.cb_smoothexpand.GetValue()
+        cw.cwpy.setting.smoothexpand = value
         if self.pane_gene.cb_fullscreen.IsChecked():
             value = "FullScreen"
         elif self.pane_gene.sl_expand.GetValue() == 10: # 1倍 == 拡大なし
@@ -360,6 +365,11 @@ class GeneralSettingPanel(wx.Panel):
 
         self.makeExpandInfo()
 
+        self.ln_expand = wx.StaticLine(self, -1, style=wx.HORIZONTAL)
+        self.cb_smoothexpand = wx.CheckBox(self, -1,
+                                           u"拡大後の画面を滑らかにする")
+        self.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand)
+
         self._do_layout()
         self._bind()
 
@@ -424,6 +434,8 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode.Add(bsizer_expandmode_in, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
+        bsizer_expandmode.Add(self.ln_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_expandmode.Add(self.cb_smoothexpand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)

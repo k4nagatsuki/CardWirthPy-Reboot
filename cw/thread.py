@@ -539,6 +539,11 @@ class CWPy(_Singleton, threading.Thread):
                 pos = cw.s((600, 5))
                 dirty_rects.append(self.scr_draw.blit(sur, pos))
 
+            if not self.setting.smoothexpand or cw.UP_SCR % cw.UP_WIN == 0 or cw.UP_WIN % cw.UP_SCR == 0:
+                scale = pygame.transform.scale
+            else:
+                scale = pygame.transform.smoothscale
+
             # 画面更新
             if self.scr_fullscreen:
                 if clip:
@@ -546,23 +551,17 @@ class CWPy(_Singleton, threading.Thread):
                     cly = int(clip.top * self.scr_scale) - 2
                     clw = int(clip.width * self.scr_scale) + 5
                     clh = int(clip.height * self.scr_scale) + 5
-                    if cw.UP_SCR % cw.UP_WIN == 0 or cw.UP_WIN % cw.UP_SCR == 0:
-                        scr = pygame.transform.scale(self.scr_draw, self.scr_size)
-                    else:
-                        scr = pygame.transform.smoothscale(self.scr_draw, self.scr_size)
+                    scr = scale(self.scr_draw, self.scr_size)
                     clip2 = pygame.Rect(clx, cly, clw, clh)
                     clip3 = pygame.Rect(clx + self.scr_pos[0], cly + self.scr_pos[1], clw, clh)
                     self.scr_fullscreen.blit(scr, clip3.topleft, clip2)
                     pygame.display.update(clip3)
                 else:
-                    scr = pygame.transform.smoothscale(self.scr_draw, self.scr_size)
+                    scr = scale(self.scr_draw, self.scr_size)
                     self.scr_fullscreen.blit(scr, self.scr_pos)
                     pygame.display.update()
             elif self.scr_draw <> self.scr:
-                if cw.UP_SCR % cw.UP_WIN == 0 or cw.UP_WIN % cw.UP_SCR == 0:
-                    scr = pygame.transform.scale(self.scr_draw, self.scr.get_size())
-                else:
-                    scr = pygame.transform.smoothscale(self.scr_draw, self.scr.get_size())
+                scr = scale(self.scr_draw, self.scr.get_size())
                 self.scr.blit(scr, (0, 0))
                 pygame.display.update()
             else:
