@@ -388,6 +388,11 @@ class CardControl(wx.Dialog):
             cw.cwpy.frame.exec_func(self._after_event)
             self._after_event = None
 
+    def draw(self, update=True):
+        if update:
+            self.draw_cards(update)
+        self.toppanel.Refresh()
+
     def get_mode(self):
         if self.callname == "INFOVIEW" or\
             (self.callname == "CARDPOCKET" and isinstance(self.selection, cw.character.Friend)) or\

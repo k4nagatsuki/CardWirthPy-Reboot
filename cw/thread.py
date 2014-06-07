@@ -600,6 +600,15 @@ class CWPy(_Singleton, threading.Thread):
             for x in xrange(0, fsize[0], padsize[0]):
                 for y in xrange(0, fsize[1], padsize[1]):
                     self.scr_fullscreen.blit(wximg, (x, y))
+            width = 16
+            x = self.scr_pos[0] - width/2-1
+            y = self.scr_pos[1] - width/2-1
+            w = self.scr_size[0] + width+1
+            h = self.scr_size[1] + width+1
+            rect = pygame.Rect(x, y, w, h)
+            sur = pygame.Surface((w, h)).convert_alpha()
+            sur.fill((255, 255, 255, 192))
+            self.scr_fullscreen.blit(sur, (x, y))
 
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。
