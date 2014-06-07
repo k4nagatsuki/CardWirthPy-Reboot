@@ -29,7 +29,7 @@ def wait_effectbooster(waittime):
                 (not tick or pygame.time.get_ticks() < tick) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
-            cw.cwpy.sbargrp.update(cw.cwpy.scr)
+            cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
             cw.cwpy.tick_clock(1000)
             cw.cwpy.input()
             eventhandler.run()

@@ -36,6 +36,7 @@ class Setting(object):
         if not os.path.isfile("Settings.xml"):
             self.lastyado = ""
             self.lastscenario = []
+            self.expanddrawing = 1
             self.expandmode = "FullScreen"
             self.is_expanded = False
             self.debug = False
@@ -93,6 +94,17 @@ class Setting(object):
             self.is_expanded = False
         else:
             self.is_expanded = data.getbool("ExpandMode", "expanded", False)
+        # 描画倍率
+        if self.expandmode in ("None", "FullScreen"):
+            expanddrawing_def = 1.0
+        else:
+            try:
+                expanddrawing_def = float(self.expandmode)
+            except:
+                expanddrawing_def = 1.0
+        self.expanddrawing = data.getfloat("ExpandDrawing", expanddrawing_def)
+        if self.expanddrawing % 1 == 0:
+            self.expanddrawing = int(self.expanddrawing)
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", False)
         # デバッグ時はレベル上昇しない

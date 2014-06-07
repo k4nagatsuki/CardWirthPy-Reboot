@@ -70,6 +70,9 @@ def create_settings(setting):
     # 最後に選択した宿
     e = cw.data.make_element("LastYado", setting.lastyado)
     element.append(e)
+    # 描画倍率
+    e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
+    element.append(e)
     # 拡大モード
     e = cw.data.make_element("ExpandMode", str(setting.expandmode),
                              attrs={"expanded": str(setting.is_expanded)})

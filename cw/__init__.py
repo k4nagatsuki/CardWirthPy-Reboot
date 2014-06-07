@@ -108,6 +108,12 @@ def scr2win_s(num):
     else:
         return _s_impl(num, float(UP_WIN) / UP_SCR)
 
+def win2scr_s(num):
+    if UP_WIN == UP_SCR:
+        return _s_impl(num, 1)
+    else:
+        return _s_impl(num, float(UP_SCR) / UP_WIN)
+
 def _s_impl(num, up_scr):
     if isinstance(num, tuple) and len(num) == 3 and num[2] is None:
         # スケール情報無し

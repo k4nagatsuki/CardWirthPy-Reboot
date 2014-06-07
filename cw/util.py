@@ -292,14 +292,19 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     """pygame初期化。"""
     pygame.mixer.pre_init(44100, -16, 2, 1024)
     pygame.init()
-    size = cw.s(size_noscale)
     flags = 0
+    size = cw.s(size_noscale)
     if fullscreen:
         scr_fullscreen = pygame.display.set_mode((0, 0), flags)
         scr = pygame.Surface(size).convert()
+        scr_draw = scr
     else:
         scr_fullscreen = None
-        scr = pygame.display.set_mode(size, flags)
+        scr = pygame.display.set_mode(cw.wins(size_noscale), flags)
+        if cw.UP_WIN == cw.UP_SCR:
+            scr_draw = scr
+        else:
+            scr_draw = pygame.Surface(size).convert()
     clock = pygame.time.Clock()
 
     if title:
@@ -314,7 +319,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
         soundfonts = [cw.DEFAULT_SOUNDFONT]
     cw.bassplayer.init_bass(soundfonts)
 
-    return scr, scr_fullscreen, clock
+    return scr, scr_draw, scr_fullscreen, clock
 
 def convert_maskpos(maskpos, width, height):
     """maskposが座標ではなくキーワード"center"または"right"
@@ -801,7 +806,7 @@ def screenshot():
     cw.cwpy.sounds["screenshot"].play()
 
     filename = os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
-    pygame.image.save(cw.cwpy.scr, filename)
+    pygame.image.save(cw.cwpy.scr_draw, filename)
 
     return
 

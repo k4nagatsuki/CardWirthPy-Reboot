@@ -47,7 +47,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
-        self.scr, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts)
+        self.scr, self.scr_draw, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts)
         if fullscreen:
             func = self.frame.ShowFullScreen
             self.frame.exec_func(func, True)
@@ -241,7 +241,7 @@ class CWPy(_Singleton, threading.Thread):
             self.deal_cards()
 
         self.rsrc = None
-        self.update_scale(cw.UP_SCR, changearea)
+        self.update_scale(cw.UP_WIN, changearea, rsrconly=True)
 
         if self.is_battlestatus():
             for ccard in self.get_pcards("unreversed"):
@@ -281,7 +281,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.music.play(self.music.path, updatepredata=False)
 
-    def update_scale(self, scale, changearea=True):
+    def update_scale(self, scale, changearea=True, rsrconly=False):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
@@ -293,19 +293,23 @@ class CWPy(_Singleton, threading.Thread):
         else:
             changed = False
 
-        if cw.UP_SCR <> scale:
+        if not rsrconly:
             cw.UP_SCR = scale
-
             flags = 0
-            fullscreen = self.is_expanded() and cw.cwpy.setting.expandmode == "FullScreen"
+            fullscreen = self.is_expanded() and self.setting.expandmode == "FullScreen"
             if fullscreen:
                 rect = wx.DisplaySize()
                 self.scr_fullscreen = pygame.display.set_mode((rect[0], rect[1]), flags)
                 self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
+                self.scr_draw = self.scr
             else:
                 self.scr_fullscreen = None
-                self.scr = pygame.display.set_mode(cw.s(cw.SIZE_GAME), flags)
-            cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.s(cw.SIZE_GAME))
+                self.scr = pygame.display.set_mode(cw.wins(cw.SIZE_GAME), flags)
+                if cw.UP_SCR == cw.UP_WIN:
+                    self.scr_draw = self.scr
+                else:
+                    self.scr_draw = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
+                cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
 
         self._init_resources()
 
@@ -462,22 +466,22 @@ class CWPy(_Singleton, threading.Thread):
                 y = int((mousepos[1] - self.scr_pos[1]) / self.scr_scale)
                 self.mousepos = (x, y)
             else:
-                self.mousepos = pygame.mouse.get_pos()
+                self.mousepos = cw.win2scr_s(pygame.mouse.get_pos())
         else:
             self.mousepos = (-1, -1)
         return True
 
     def update(self):
-        self.bggrp.update(self.scr)
+        self.bggrp.update(self.scr_draw)
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
         if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-            self.pcardgrp.update(self.scr)
-            self.mcardgrp.update(self.scr)
+            self.pcardgrp.update(self.scr_draw)
+            self.mcardgrp.update(self.scr_draw)
         else:
-            self.mcardgrp.update(self.scr)
-            self.pcardgrp.update(self.scr)
-        self.topgrp.update(self.scr)
-        self.sbargrp.update(self.scr)
+            self.mcardgrp.update(self.scr_draw)
+            self.pcardgrp.update(self.scr_draw)
+        self.topgrp.update(self.scr_draw)
+        self.sbargrp.update(self.scr_draw)
 
         if not self.statusbar.showbuttons:
             # 通常エリアで操作可能な状態であればステータスバーのボタンを表示
@@ -499,42 +503,41 @@ class CWPy(_Singleton, threading.Thread):
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
         dirty_rects = []
         if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-            dirty_rects.extend(self.pcardgrp.draw(self.scr))
-            dirty_rects.extend(self.mcardgrp.draw(self.scr))
+            dirty_rects.extend(self.pcardgrp.draw(self.scr_draw))
+            dirty_rects.extend(self.mcardgrp.draw(self.scr_draw))
         else:
-            dirty_rects.extend(self.mcardgrp.draw(self.scr))
-            dirty_rects.extend(self.pcardgrp.draw(self.scr))
+            dirty_rects.extend(self.mcardgrp.draw(self.scr_draw))
+            dirty_rects.extend(self.pcardgrp.draw(self.scr_draw))
         return dirty_rects
 
     def draw(self, mainloop=False, clip=None):
         if self.has_inputevent or not mainloop:
+            # SpriteGroup描画
             # FIXME: 描画領域を絞り込むと時々カードの描画中に
             #        次に表示される背景が映り込んでしまう
-            clip = None
-            # SpriteGroup描画
-            self.scr.set_clip(clip)
-            self.bggrp.set_clip(clip)
-            self.pcardgrp.set_clip(clip)
-            self.mcardgrp.set_clip(clip)
-            self.topgrp.set_clip(clip)
-            self.backloggrp.set_clip(clip)
-            self.sbargrp.set_clip(clip)
+            #self.scr_draw.set_clip(clip)
+            #self.bggrp.set_clip(clip)
+            #self.pcardgrp.set_clip(clip)
+            #self.mcardgrp.set_clip(clip)
+            #self.topgrp.set_clip(clip)
+            #self.backloggrp.set_clip(clip)
+            #self.sbargrp.set_clip(clip)
 
-            dirty_rects = self.bggrp.draw(self.scr)
+            dirty_rects = self.bggrp.draw(self.scr_draw)
 
-            dirty_rects.extend(self.draw_cards(self.scr))
+            dirty_rects.extend(self.draw_cards(self.scr_draw))
 
-            dirty_rects.extend(self.topgrp.draw(self.scr))
-            dirty_rects.extend(self.backloggrp.draw(self.scr))
+            dirty_rects.extend(self.topgrp.draw(self.scr_draw))
+            dirty_rects.extend(self.backloggrp.draw(self.scr_draw))
             if self.music.movie_scr:
-                self.scr.blit(self.music.movie_scr, (0, 0))
-            dirty_rects.extend(self.sbargrp.draw(self.scr))
+                self.scr_draw.blit(self.music.movie_scr, (0, 0))
+            dirty_rects.extend(self.sbargrp.draw(self.scr_draw))
 
             # FPS描画
             if self.setting.showfps:
                 sur = self.fpsfont.render(str(int(self.clock.get_fps())), False, (0, 255, 255))
                 pos = cw.s((600, 5))
-                dirty_rects.append(self.scr.blit(sur, pos))
+                dirty_rects.append(self.scr_draw.blit(sur, pos))
 
             # 画面更新
             if self.scr_fullscreen:
@@ -543,28 +546,38 @@ class CWPy(_Singleton, threading.Thread):
                     cly = int(clip.top * self.scr_scale) - 2
                     clw = int(clip.width * self.scr_scale) + 5
                     clh = int(clip.height * self.scr_scale) + 5
-                    scr = pygame.transform.smoothscale(self.scr, self.scr_size)
+                    if cw.UP_SCR % cw.UP_WIN == 0 or cw.UP_WIN % cw.UP_SCR == 0:
+                        scr = pygame.transform.scale(self.scr_draw, self.scr_size)
+                    else:
+                        scr = pygame.transform.smoothscale(self.scr_draw, self.scr_size)
                     clip2 = pygame.Rect(clx, cly, clw, clh)
                     clip3 = pygame.Rect(clx + self.scr_pos[0], cly + self.scr_pos[1], clw, clh)
                     self.scr_fullscreen.blit(scr, clip3.topleft, clip2)
                     pygame.display.update(clip3)
                 else:
-                    scr = pygame.transform.smoothscale(self.scr, self.scr_size)
+                    scr = pygame.transform.smoothscale(self.scr_draw, self.scr_size)
                     self.scr_fullscreen.blit(scr, self.scr_pos)
                     pygame.display.update()
+            elif self.scr_draw <> self.scr:
+                if cw.UP_SCR % cw.UP_WIN == 0 or cw.UP_WIN % cw.UP_SCR == 0:
+                    scr = pygame.transform.scale(self.scr_draw, self.scr.get_size())
+                else:
+                    scr = pygame.transform.smoothscale(self.scr_draw, self.scr.get_size())
+                self.scr.blit(scr, (0, 0))
+                pygame.display.update()
             else:
                 if clip:
                     pygame.display.update(clip)
                 else:
                     pygame.display.update(dirty_rects)
 
-            self.scr.set_clip(None)
-            self.bggrp.set_clip(None)
-            self.pcardgrp.set_clip(None)
-            self.mcardgrp.set_clip(None)
-            self.topgrp.set_clip(None)
-            self.backloggrp.set_clip(None)
-            self.sbargrp.set_clip(None)
+            #self.scr_draw.set_clip(None)
+            #self.bggrp.set_clip(None)
+            #self.pcardgrp.set_clip(None)
+            #self.mcardgrp.set_clip(None)
+            #self.topgrp.set_clip(None)
+            #self.backloggrp.set_clip(None)
+            #self.sbargrp.set_clip(None)
 
             self.event.eventtimer = 0
 
@@ -582,10 +595,14 @@ class CWPy(_Singleton, threading.Thread):
             self.scr_size = size
             self.scr_scale = scale
             self.scr_pos = (x, y)
+
+            ssize = cw.SIZE_GAME
+            a = float(fsize[0]) / ssize[0]
+            b = float(fsize[1]) / ssize[1]
+            scale = min(a, b)
             cw.UP_WIN = scale
 
         else:
-            cw.UP_WIN = cw.UP_SCR
             self.scr_size = self.scr.get_size()
             self.scr_scale = 1.0
             self.scr_pos = (0, 0)
@@ -718,17 +735,19 @@ class CWPy(_Singleton, threading.Thread):
                     rect = wx.DisplaySize()
                     self.scr_fullscreen = pygame.display.set_mode((rect[0], rect[1]), 0)
                     self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
+                    self.scr_draw = self.scr
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, True)
+                    self.update_scale(self.setting.expanddrawing)
                 else:
+                    cw.UP_WIN = 1
                     self.expand_mode = "None"
                     self.scr_fullscreen = None
-                    self.scr = pygame.display.set_mode(cw.s(cw.SIZE_GAME), 0)
+                    self.scr = pygame.display.set_mode(cw.wins(cw.SIZE_GAME), 0)
+                    self.scr_draw = self.scr
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, False)
-                self.init_fullscreenparams()
-                self.rsrc.update_winscale()
-                self.init_fullscreenparams_after()
+                    self.update_scale(1)
 
                 while not self.frame.IsFullScreen() == flag:
                     pass
@@ -742,13 +761,14 @@ class CWPy(_Singleton, threading.Thread):
             try:
                 scale = float(expandmode)
                 scale = max(scale, 0.5)
-                scale = min(scale, 8)
                 self.setting.is_expanded = flag
                 if flag:
                     self.expand_mode = expandmode
-                    self.update_scale(scale)
+                    cw.UP_WIN = scale
+                    self.update_scale(self.setting.expanddrawing)
                 else:
                     self.expand_mode = "None"
+                    cw.UP_WIN = 1
                     self.update_scale(1)
 
             except Exception:
@@ -825,7 +845,7 @@ class CWPy(_Singleton, threading.Thread):
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
         while self.is_running() and eventhandler.mwin and\
                 cw.cwpy.sdata.is_playing and self._is_showingbacklog:
-            self.sbargrp.update(self.scr)
+            self.sbargrp.update(self.scr_draw)
             self.draw()
             self.tick_clock()
             self.input()

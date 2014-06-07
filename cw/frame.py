@@ -16,12 +16,17 @@ class Frame(wx.Frame):
         # 設定
         self._setting = cw.setting.Setting()
         if self._setting.is_expanded:
-            if self._setting.expandmode <> "FullScreen":
-                try:
-                    cw.UP_SCR = float(self._setting.expandmode)
-                except:
-                    pass
-        cw.UP_WIN = cw.UP_SCR
+            try:
+                cw.UP_WIN = float(self._setting.expandmode)
+            except:
+                cw.UP_WIN = 1
+            try:
+                cw.UP_SCR = float(self._setting.expanddrawing)
+            except:
+                cw.UP_SCR = 1
+        else:
+            cw.UP_WIN = 1
+            cw.UP_SCR = 1
 
         # トップフレーム
         self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU

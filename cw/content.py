@@ -2666,7 +2666,7 @@ class WaitContent(EventContentBase):
                 break
 
             cw.cwpy.event.refresh_activeitem()
-            cw.cwpy.sbargrp.update(cw.cwpy.scr)
+            cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
             cw.cwpy.draw()
             breakflag = pygame.event.peek((MOUSEBUTTONUP, KEYUP))
             cw.cwpy.input()

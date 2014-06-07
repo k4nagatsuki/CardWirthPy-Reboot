@@ -28,7 +28,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
     cw.cwpy.draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
         clip = sprite.rect
-        sprite.update(cw.cwpy.scr)
+        sprite.update(cw.cwpy.scr_draw)
         clip = clip.union(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
@@ -90,7 +90,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
                 clip.union_ip(sprite.rect)
             else:
                 clip = pygame.Rect(sprite.rect)
-            sprite.update(cw.cwpy.scr)
+            sprite.update(cw.cwpy.scr_draw)
             clip.union_ip(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
