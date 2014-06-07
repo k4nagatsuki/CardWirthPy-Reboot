@@ -440,11 +440,11 @@ class CardControl(wx.Dialog):
         self._proc = True
 
         header.clickedflag = True
-        self.draw_card(header)
+        self.draw_card(header, fromkeyevent=True)
         def func2():
             cw.cwpy.wait_frame(4)
             header.clickedflag = False
-            self.draw_card(header)
+            self.draw_card(header, fromkeyevent=True)
             header.negaflag = False
             def func3():
                 self._proc = False
@@ -1355,11 +1355,11 @@ class HandView(CardControl):
         self.draw_cards()
 
     def draw_cards(self, update=True, mode=-1):
-        CardControl.draw_cards(self, update, mode)
         if self.selection:
             self.list = self.selection.deck.hand
             s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
             self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
+        CardControl.draw_cards(self, update, mode)
 
     def get_headers(self):
         return self.list
