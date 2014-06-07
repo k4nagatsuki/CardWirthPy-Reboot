@@ -47,6 +47,7 @@ class CardControl(wx.Dialog):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 255)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
+        self.toppanel.SetDoubleBuffered(True)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
         self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
@@ -75,7 +76,13 @@ class CardControl(wx.Dialog):
         # focus
         self.panel.SetFocusIgnoringChildren()
 
+        self._drawlist = {}
+        self._leftmark = None
+        self._after_event = None
+
         self._proc = False
+
+        self.draw_cards()
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, self.closebtn)
@@ -177,7 +184,6 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
 
-        dc = wx.ClientDC(self.toppanel)
         id = event.GetId()
 
         list = None
@@ -185,8 +191,9 @@ class CardControl(wx.Dialog):
             for header in self.get_headers():
                 if header.negaflag:
                     cw.cwpy.sounds["click"].play()
-                    self.animate_click(header)
-                    self.lclick_event(header)
+                    def func():
+                        self.lclick_event(header)
+                    self.animate_click(header, func)
                     return
         elif id == self.leftkeyid:
             list = self.get_headers()[:]
@@ -211,10 +218,10 @@ class CardControl(wx.Dialog):
 
         if c1:
             c1.negaflag = False
-            self.draw_card(dc, c1, True)
+            self.draw_card(c1, True)
         if c2:
             c2.negaflag = True
-            self.draw_card(dc, c2, True)
+            self.draw_card(c2, True)
 
     def OnMouseWheel(self, event):
         if event.GetWheelRotation() > 0:
@@ -233,8 +240,9 @@ class CardControl(wx.Dialog):
         for header in self.get_headers():
             if header.wxrect.collidepoint(event.GetPosition()):
                 cw.cwpy.sounds["click"].play()
-                self.animate_click(header)
-                self.lclick_event(header)
+                def func():
+                    self.lclick_event(header)
+                self.animate_click(header, func)
                 return
 
     def OnRightUp(self, event):
@@ -245,11 +253,12 @@ class CardControl(wx.Dialog):
 
         for header in self.get_headers():
             if header.wxrect.collidepoint(event.GetPosition()):
-                self.animate_click(header)
-                dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
-                self.Parent.move_dlg(dlg)
-                dlg.ShowModal()
-                dlg.Destroy()
+                def func():
+                    dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
+                    self.Parent.move_dlg(dlg)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                self.animate_click(header, func)
                 return
 
         # キャンセルボタンイベント
@@ -266,35 +275,30 @@ class CardControl(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def OnMove(self, event):
-        dc = wx.ClientDC(self.toppanel)
         mousepos = event.GetPosition()
         headers = self.get_headers()
         if headers and headers[0].wxrect.topleft == (0, 0):
-            self.draw(True)
+            self.draw_cards()
 
         for header in self.get_headers():
             if header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
                     header.negaflag = True
-                    self.draw_card(dc, header)
+                    self.draw_card(header)
 
             elif header.negaflag:
                 header.negaflag = False
-                self.draw_card(dc, header)
+                self.draw_card(header)
 
     def OnEnter(self, event):
-        self._refresh()
+        self.OnMove(event)
 
     def OnLeave(self, event):
         if self.IsActive():
             for header in self.get_headers():
                 if header.negaflag:
                     header.negaflag = False
-                    dc = wx.ClientDC(self.toppanel)
-                    self.draw_card(dc, header)
-
-    def OnPaint(self, event):
-        self.draw()
+                    self.draw_card(header)
 
     def OnClickLeftBtn2(self, event):
         count = len(self.combo.GetItems())
@@ -312,12 +316,8 @@ class CardControl(wx.Dialog):
         else:
             self.combo.SetSelection(index + 1)
 
-    def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self.toppanel)
-            dc = wx.BufferedDC(dc, self.toppanel.GetSize())
-        else:
-            dc = wx.PaintDC(self.toppanel)
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self.toppanel)
 
         # 背景色
         dc.SetBrush(wx.Brush(self.bgcolour))
@@ -359,7 +359,19 @@ class CardControl(wx.Dialog):
             dc.DrawText(s, cw.wins(295), cw.wins(3))
         # カード枚数のフォント設定
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14)))
-        return dc
+
+        # カードの描画
+        for bmp, pos, usemask in self._drawlist.itervalues():
+            dc.DrawBitmap(bmp, pos[0], pos[1], usemask)
+
+        # カード置場・荷物袋・情報カードマーク
+        if self._leftmark:
+            dc.DrawBitmap(self._leftmark, cw.wins(3), cw.wins(85), True)
+
+        # 保留中のイベントを実施
+        if self._after_event:
+            cw.cwpy.frame.exec_func(self._after_event)
+            self._after_event = None
 
     def get_mode(self):
         if self.callname == "INFOVIEW" or\
@@ -373,7 +385,8 @@ class CardControl(wx.Dialog):
         else:
             return CCMODE_USE
 
-    def draw_cards(self, dc=None, update=True, mode=-1):
+    def draw_cards(self, update=True, mode=-1):
+        self._drawlist = {}
         if mode == -1:
             if self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
                 mode = 1
@@ -387,9 +400,10 @@ class CardControl(wx.Dialog):
 
         for pos, header in zip(poslist, self.get_headers()):
             header.wxrect.topleft = pos
-            self.draw_card(dc, header)
+            self.draw_card(header)
+        self.toppanel.Refresh()
 
-    def draw_card(self, dc, header, fromkeyevent=False):
+    def draw_card(self, header, fromkeyevent=False):
         if not fromkeyevent and self.IsActive():
             mousepos = self.ScreenToClient(wx.GetMousePosition())
             if header.wxrect.collidepoint(mousepos):
@@ -397,9 +411,6 @@ class CardControl(wx.Dialog):
                     header.negaflag = True
             elif header.negaflag:
                 header.negaflag = False
-
-        if not dc:
-            return
 
         pos = header.wxrect.topleft
         bmp = header.get_cardwxbmp()
@@ -410,8 +421,8 @@ class CardControl(wx.Dialog):
             image = image.Rescale(size[0]/10*9, size[1]/10*9)
             bmp = image.ConvertToBitmap()
             pos = (pos[0]+cw.wins(4), pos[1]+cw.wins(5))
-
-        dc.DrawBitmap(bmp, pos[0], pos[1], False)
+        self._drawlist[header] = (bmp, pos, False)
+        self.toppanel.Refresh(rect=header.wxrect)
 
     def set_cardpos(self, mode):
         poslist = get_poslist(len(self.get_headers()), mode)
@@ -422,22 +433,24 @@ class CardControl(wx.Dialog):
     def get_headers(self):
         pass
 
-    def _refresh(self):
-        self.draw_cards()
-        if sys.platform == "win32":
-            self.draw(update=True)
-        else:
-            self.Refresh()
-
-    def animate_click(self, header):
+    def animate_click(self, header, func):
         # クリックアニメーション。4フレーム分。
+        if self._proc:
+            return
+        self._proc = True
+
         header.clickedflag = True
-        self._refresh()
-        cw.cwpy.wait_frame(4)
-        header.clickedflag = False
-        dc = wx.ClientDC(self.toppanel)
-        self.draw_card(dc, header)
-        header.negaflag = False
+        self.draw_card(header)
+        def func2():
+            cw.cwpy.wait_frame(4)
+            header.clickedflag = False
+            self.draw_card(header)
+            header.negaflag = False
+            def func3():
+                self._proc = False
+                func()
+            self._after_event = func3
+        self._after_event = func2
 
     def lclick_event(self, header):
         if self._proc:
@@ -468,7 +481,7 @@ class CardControl(wx.Dialog):
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
             dlg.Destroy()
-            self._refresh()
+            self.draw_cards()
             return
         elif not self.areaid in cw.AREAS_TRADE and isinstance(owner, cw.character.Character):
             if not self.check_using(owner, header):
@@ -492,7 +505,7 @@ class CardControl(wx.Dialog):
                         cw.cwpy.trade("TRASHBOX", header=header, from_event=False, parentdialog=self, sound=False)
                     def func():
                         self._proc = False
-                        self._refresh()
+                        self.draw_cards()
                     cw.cwpy.frame.exec_func(func)
                 self._proc = True
                 cw.cwpy.exec_func(func, header)
@@ -880,13 +893,13 @@ class CardHolder(CardControl):
                 cw.cwpy.ydata.party.sort_backpack()
                 if self.callname == "CARDPOCKETB":
                     self._set_backpacklist()
-                self._refresh()
+                self.draw_cards()
         elif self.callname == "STOREHOUSE":
             if cw.cwpy.setting.sort_storehouse <> sorttype:
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_storehouse = sorttype
                 cw.cwpy.ydata.sort_storehouse()
-                self._refresh()
+                self.draw_cards()
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -930,7 +943,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
-        self._refresh()
+        self.draw_cards()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -979,7 +992,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
-        self._refresh()
+        self.draw_cards()
 
     def OnCancel(self, event):
         if self.callname == "CARDPOCKETB":
@@ -988,14 +1001,11 @@ class CardHolder(CardControl):
             self.index = 0
             self.callname = "CARDPOCKET"
             self._change_callname(old_callname)
-            self._refresh()
+            self.draw_cards()
         else:
             CardControl.OnCancel(self, event)
 
     def _change_callname(self, old_callname):
-        if self.callname == old_callname:
-            return
-
         if self.callname == "CARDPOCKET":
             self.bgcolour = wx.Colour(0, 0, 128)
             self.toppanel.SetBackgroundColour(self.bgcolour)
@@ -1017,7 +1027,8 @@ class CardHolder(CardControl):
             self.selection = None
 
         self.Parent.change_selection(self.selection)
-        self._re_layout()
+        if self.callname <> old_callname:
+            self._re_layout()
 
         if self.callname == "CARDPOCKET" or len(self.list) <= 10:
             self.upbtn.Disable()
@@ -1058,7 +1069,7 @@ class CardHolder(CardControl):
             self.index = 0
             self.callname = "CARDPOCKETB"
             self._change_callname(old_callname)
-            self._refresh()
+            self.draw_cards()
 
         else:
             CardControl.lclick_event(self, header)
@@ -1075,7 +1086,7 @@ class CardHolder(CardControl):
             else:
                 btn.SetToggle(False)
 
-        self._refresh()
+        self.draw_cards()
 
     def OnUp(self, event):
         if self.callname == "CARDPOCKET":
@@ -1124,7 +1135,7 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
-        self._refresh()
+        self.draw_cards()
 
     def OnClickDownBtn(self, event):
         cw.cwpy.sounds["click"].play()
@@ -1147,7 +1158,7 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
-        self._refresh()
+        self.draw_cards()
 
     def OnMouseWheel(self, event):
         mousepos = event.GetPosition()
@@ -1205,35 +1216,16 @@ class CardHolder(CardControl):
 
         CardControl.OnMouseWheel(self, event)
 
-    def draw(self, update=False):
-        if 0 < self.index and (len(self.list)+9) / 10 <= self.index:
-            # 現ページのカードの移動などで
-            # 最大ページを超えてしまった場合
-            self.index -= 1
+    def draw_cards(self, update=True, mode=-1):
+        if self.selection:
+            self._init_cardpocketlist()
+            s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
+            self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
 
-        dc = CardControl.draw(self, update)
         if self.callname == "CARDPOCKET":
-            # キャストの手札カード
-
-            # 所持カード数
-            num = len(self.selection.cardpocket[self.index3])
-            maxnum = self.selection.get_cardpocketspace()[self.index3]
-            s = "Cap " + str(num) + "/" + str(maxnum)
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, cw.wins(40)-w/2, cw.wins(220))
-
-            # カード描画
-            self.draw_cards(dc, update, 2)
+            self._leftmark = None
         else:
-            # カード置き場、荷物袋、情報カード
-
-            # ページ番号
-            s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
-            s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, cw.wins(40)-w/2, cw.wins(180))
-
-            # イメージ
+            # カード置場・荷物袋・情報カードマーク
             if self.callname == "BACKPACK":
                 path = "Resource/Image/Card/COMMAND7" + cw.cwpy.rsrc.ext_img
             elif self.callname == "STOREHOUSE":
@@ -1243,18 +1235,9 @@ class CardHolder(CardControl):
             elif self.callname == "CARDPOCKETB":
                 path = cw.cwpy.rsrc.backpackcards["ItemCard"].imgpath
             path = cw.util.join_paths(cw.cwpy.skindir, path)
-            bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-            dc.DrawBitmap(bmp, cw.wins(3), cw.wins(85), True)
+            self._leftmark = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
 
-            # カード描画
-            self.draw_cards(dc, update, 1)
-
-    def draw_cards(self, dc=None, update=True, mode=-1):
-        CardControl.draw_cards(self, dc, update, mode)
-        if self.selection:
-            self._init_cardpocketlist()
-            s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
-            self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
+        CardControl.draw_cards(self, update, mode)
 
     def _init_cardpocketlist(self):
         if self.callname <> "CARDPOCKET":
@@ -1357,7 +1340,7 @@ class HandView(CardControl):
 
         self.selection = self.list2[self.index2]
         self.Parent.change_selection(self.selection)
-        self._refresh()
+        self.draw_cards()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -1369,16 +1352,10 @@ class HandView(CardControl):
 
         self.selection = self.list2[self.index2]
         self.Parent.change_selection(self.selection)
-        self._refresh()
+        self.draw_cards()
 
-    def draw(self, update=False):
-        dc = CardControl.draw(self, update)
-
-        # カード描画
-        self.draw_cards(dc, update, 3)
-
-    def draw_cards(self, dc=None, update=True, mode=-1):
-        CardControl.draw_cards(self, dc, update, mode)
+    def draw_cards(self, update=True, mode=-1):
+        CardControl.draw_cards(self, update, mode)
         if self.selection:
             self.list = self.selection.deck.hand
             s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
@@ -1399,6 +1376,9 @@ class InfoView(CardHolder):
     def __init__(self, parent):
         # ダイアログ作成
         CardHolder.__init__(self, parent, "INFOVIEW")
+
+    def OnLeftUp(self, event):
+        self.OnRightUp(event)
 
 def get_poslist(num, mode=1):
     """
