@@ -81,7 +81,7 @@ class CWPy(_Singleton, threading.Thread):
         # カーテンスプライト表示中フラグ
         self._curtained = False
         # カードの選択可否
-        self.is_pcardsselectable = True
+        self.is_pcardsselectable = False
         self.is_mcardsselectable = True
         # 現在カードの表示・非表示アニメ中フラグ
         self._dealing = False
@@ -985,6 +985,8 @@ class CWPy(_Singleton, threading.Thread):
             self.update_skin(self.ydata.skinname, changearea=False)
 
         self.change_area(areaid)
+
+        self.is_pcardsselectable = self.ydata and self.ydata.party
 
     def set_scenario(self, header=None, lastscenario=[]):
         """シナリオ画面へ遷移。
@@ -2079,7 +2081,7 @@ class CWPy(_Singleton, threading.Thread):
             self.mcardgrp.remove_sprites_of_layer("curtain")
             self.pcardgrp.remove_sprites_of_layer("curtain")
             self._curtained = False
-            self.is_pcardsselectable = True
+            self.is_pcardsselectable = self.ydata and self.ydata.party
             self.is_mcardsselectable = True
 
     def cancel_cardcontrol(self):
@@ -2143,6 +2145,8 @@ class CWPy(_Singleton, threading.Thread):
             pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
             pcard.set_pos_noscale(pos_noscale)
             cw.animation.animate_sprite(pcard, "deal")
+
+        self.is_pcardsselectable = self.ydata and self.ydata.party
 
     def dissolve_party(self, pcard=None):
         """現在選択中のパーティからpcardを削除する。
