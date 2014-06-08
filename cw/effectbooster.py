@@ -134,6 +134,8 @@ class _JpySubImage(cw.image.Image):
                     xdir = bool(rest_x > -1)
                     ydir = bool(rest_y > -1)
 
+                    SPF = 8
+                    i = 0
                     while rest_x or rest_y:
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
                         n /= animespeed
@@ -159,11 +161,15 @@ class _JpySubImage(cw.image.Image):
                                 rest_y = 0
 
                         pos = (x, y)
-                        self._drawtemp_impl(background, pos, anime=True)
+                        if SPF <= self.waittime or SPF <= i:
+                            self._drawtemp_impl(background, pos, anime=True, waittime=self.waittime*SPF)
+                            i %= SPF
+                        else:
+                            i += 1
 
             self.cache.save_position(pos)
 
-    def _drawtemp_impl(self, background, pos, redraw=True, anime=False):
+    def _drawtemp_impl(self, background, pos, redraw=True, anime=False, waittime=None):
         """backgroundのposの位置に一時描画。"""
         image = self.get_image()
         image = self.clip_tempimg(image, pos)
@@ -193,7 +199,7 @@ class _JpySubImage(cw.image.Image):
                     background.blit(image, pos, special_flags=blendmode)
                     cw.cwpy.draw()
 
-            self.wait(anime=anime)
+            self.wait(anime=anime, waittime=waittime)
 
     def clip_tempimg(self, image, pos):
         if self.animeclip:
@@ -221,16 +227,16 @@ class _JpySubImage(cw.image.Image):
 
         return image
 
-    def wait(self, anime=False):
+    def wait(self, anime=False, waittime=None):
+        if waittime is None:
+            waittime = self.waittime
+
         # 指定時間だけ待機
-        if self.waittime > 0:
-            if anime:
-                wait_effectbooster(max(1, self.waittime / cw.UP_SCR))
-            else:
-                wait_effectbooster(self.waittime)
+        if waittime > 0:
+            wait_effectbooster(waittime)
 
         # 右クリックするまで待機
-        elif self.waittime < 0:
+        elif waittime < 0:
             wait_effectbooster(0)
 
     def retouch(self):
