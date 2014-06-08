@@ -43,6 +43,7 @@ class SettingsDialog(wx.Dialog):
         if selpane == 0:
             self.pane_gene.cb_nolevelup.SetValue(False)
             self.pane_gene.cb_storeskinoneachbase.SetValue(True)
+            self.pane_gene.ch_expanddrawing.SetSelection(0)
             self.pane_gene.cb_fullscreen.SetValue(True)
             self.pane_gene.makeExpandInfo()
             self.pane_gene.cb_smoothexpand.SetValue(True)
