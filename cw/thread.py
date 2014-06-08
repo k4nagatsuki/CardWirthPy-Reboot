@@ -557,7 +557,7 @@ class CWPy(_Singleton, threading.Thread):
                 scr = scale(self.scr_draw, self.scr_size)
                 if clip:
                     clip2 = update_clip(self.scr_scale)
-                    clip3 = pygame.Rect(clx + self.scr_pos[0], cly + self.scr_pos[1], clw, clh)
+                    clip3 = pygame.Rect(clip2.left + self.scr_pos[0], clip2.top + self.scr_pos[1], clip2.width, clip2.height)
                     self.scr_fullscreen.blit(scr, clip3.topleft, clip2)
                     pygame.display.update(clip3)
                 else:
