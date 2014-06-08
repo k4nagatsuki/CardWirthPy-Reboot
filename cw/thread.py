@@ -1581,6 +1581,9 @@ class CWPy(_Singleton, threading.Thread):
         """
         if self.ydata and not self.is_playingscenario():
             oldchanged = self.ydata.is_changed()
+        else:
+            oldchanged = True
+
         # 宿にいる時は常に高速切替有効
         if self.setting.all_quickdeal and not self.is_playingscenario():
             quickdeal = True

@@ -817,6 +817,12 @@ def _create_nametable(full, talker):
     if full:
         name_table["#c"] = inusecard # 使用カード名(カード使用イベント時のみ)
         name_table["#i"] = talker    # 話者の名前(表示イメージのキャラやカード名)
+
+    if full:
+        # シナリオ内の画像で上書き
+        for key in cw.cwpy.rsrc.specialchars.iterkeys():
+            if key in name_table:
+                del name_table[key]
     return name_table
 
 def _get_stepvalue(key):
@@ -862,6 +868,9 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
                 buf.append(c)
                 continue
             nc = s[i+1].lower()
+            if full and '#' + nc in cw.cwpy.rsrc.specialchars:
+                buf.append(c)
+                continue
             if full:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
                     buf.append(name_table.get("#" + nc, ""))
