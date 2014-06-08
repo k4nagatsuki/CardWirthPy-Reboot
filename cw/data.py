@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import io
 import re
 import copy
 import time
@@ -2081,9 +2082,12 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
         retry = 0
         while retry < 5:
             try:
-                with open(path, "wb") as f:
+                with io.BytesIO() as f:
                     f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
                     ElementTree.write(self, f, "utf-8")
+                    bytes = f.getvalue()
+                with open(path, "wb") as f:
+                    f.write(bytes)
                     break
             except IOError, ex:
                 if 5 <= retry:
