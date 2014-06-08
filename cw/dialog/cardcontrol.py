@@ -184,6 +184,10 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
 
+        headers = self.get_headers()
+        if headers and headers[0].wxrect.topleft == (0, 0):
+            self.set_cardpos()
+
         id = event.GetId()
 
         list = None
@@ -278,7 +282,7 @@ class CardControl(wx.Dialog):
         mousepos = event.GetPosition()
         headers = self.get_headers()
         if headers and headers[0].wxrect.topleft == (0, 0):
-            self.draw_cards()
+            self.set_cardpos()
 
         for header in self.get_headers():
             if header.wxrect.collidepoint(mousepos):
@@ -295,6 +299,9 @@ class CardControl(wx.Dialog):
 
     def OnLeave(self, event):
         if self.IsActive():
+            headers = self.get_headers()
+            if headers and headers[0].wxrect.topleft == (0, 0):
+                self.set_cardpos()
             for header in self.get_headers():
                 if header.negaflag:
                     header.negaflag = False
@@ -444,7 +451,17 @@ class CardControl(wx.Dialog):
         self._drawlist[header] = (bmp, pos, False)
         self.toppanel.Refresh(rect=header.wxrect)
 
-    def set_cardpos(self, mode):
+    def set_cardpos(self, mode=-1):
+        if mode == -1:
+            if self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
+                mode = 1
+            elif self.callname == "CARDPOCKET":
+                mode = 2
+            elif self.callname == "HANDVIEW":
+                mode = 3
+            else:
+                assert False, self.callname
+
         poslist = get_poslist(len(self.get_headers()), mode)
 
         for pos, header in zip(poslist, self.get_headers()):
@@ -458,6 +475,10 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
         self._proc = True
+
+        headers = self.get_headers()
+        if headers and headers[0].wxrect.topleft == (0, 0):
+            self.set_cardpos()
 
         header.clickedflag = True
         self.draw_card(header, fromkeyevent=True)
