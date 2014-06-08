@@ -1178,9 +1178,16 @@ class YadoData(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        path = cw.xmlcreater.create_party(header)
+        if self.money < cw.cwpy.setting.initmoneyamount:
+            money = self.money
+        else:
+            money = cw.cwpy.setting.initmoneyamount
+        self.set_money(-money)
+        path = cw.xmlcreater.create_party(header, moneyamount=money)
         header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))
         cw.cwpy.load_party(header, chgarea=chgarea)
+        cw.cwpy.statusbar.change(False)
+        cw.cwpy.draw()
 
     def sort_standbys(self):
         if cw.cwpy.setting.sort_standbys == "Level":

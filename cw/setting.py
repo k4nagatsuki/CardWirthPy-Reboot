@@ -80,6 +80,7 @@ class Setting(object):
             self.show_savedmessage = True
             self.show_backpackcard = True
             self.show_statustime = True
+            self.initmoneyamount = 4000
             self.folderoftype = []
             self.write()
 
@@ -209,6 +210,9 @@ class Setting(object):
 
         # 各種ステータスの残り時間を表示する
         self.show_statustime = data.getbool("ShowStatusTime", True)
+    
+        # パーティ結成時の持出金額
+        self.initmoneyamount = data.getint("InitialMoneyAmount", 4000)
 
         # シナリオフォルダ(スキンタイプ別)
         self.folderoftype = []

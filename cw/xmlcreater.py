@@ -19,7 +19,7 @@ def _create_xml(name, path, d):
     with open(path, "wb") as f:
         f.write(s.encode("utf-8"))
 
-def create_party(header):
+def create_party(header, moneyamount=0):
     """
     新しくパーティを作る。
     header: AdventurerHeader
@@ -27,7 +27,7 @@ def create_party(header):
     pname = cw.cwpy.msgs["default_party_name"] % (header.name)
 
     d = {"name" : cw.binary.util.repl_escapechar(pname),
-         "money" : "0",
+         "money" : str(moneyamount),
          "backpack" : "",
          "indent": ""}
 
@@ -208,6 +208,9 @@ def create_settings(setting):
     element.append(e)
     # 各種ステータスの残り時間を表示する
     e = cw.data.make_element("ShowStatusTime", str(setting.show_statustime))
+    element.append(e)
+    # パーティ結成時の持出金額
+    e = cw.data.make_element("InitialMoneyAmount", str(setting.initmoneyamount))
     element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)

@@ -1529,8 +1529,6 @@ class ScenarioSelect(Select):
         self.nowdir = self.scedir
         # 開いたディレクトリの階層
         self.dirstack = []
-        self._saved_dirstack = []
-        self._saved_index = 0
         # シナリオデータベース
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
@@ -1590,6 +1588,8 @@ class ScenarioSelect(Select):
         self.DragAcceptFiles(True)
         # リストが空だったらボタンを無効化
         self.enable_btn()
+        # 選択状態を記憶
+        self._update_saveddirstack()
         # layout
         self._do_layout()
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)

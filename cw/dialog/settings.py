@@ -47,6 +47,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.cb_fullscreen.SetValue(True)
             self.pane_gene.makeExpandInfo()
             self.pane_gene.cb_smoothexpand.SetValue(True)
+            self.pane_gene.sc_initmoneyamount.SetValue(4000)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
             self.pane_draw.sl_deal.SetValue(6)
@@ -101,6 +102,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.no_levelup_in_debugmode = value
         value = self.pane_gene.cb_storeskinoneachbase.GetValue()
         cw.cwpy.setting.store_skinoneachbase = value
+        value = self.pane_gene.sc_initmoneyamount.GetValue()
+        cw.cwpy.setting.initmoneyamount = value
 
         # 拡大倍率
         value = self.pane_gene.cb_smoothexpand.GetValue()
@@ -371,6 +374,12 @@ class GeneralSettingPanel(wx.Panel):
                                            u"拡大後の画面を滑らかにする")
         self.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand)
 
+        # 持出金額
+        self.box_party = wx.StaticBox(self, -1, u"パーティ")
+        self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
+        self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(80, -1), min=0, max=999999)
+        self.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount)
+
         self._do_layout()
         self._bind()
 
@@ -425,7 +434,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
         bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
-        bsizer_skin.SetMinSize((SETTINGS_WIDTH, 200))
+        bsizer_skin.SetMinSize((SETTINGS_WIDTH, 180))
 
         bsizer_expandmode_draw.Add(self.st_expandscr, 0, wx.RIGHT|wx.CENTER, 3)
         bsizer_expandmode_draw.Add(self.ch_expanddrawing, 0, wx.CENTER, 0)
@@ -439,9 +448,14 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode.Add(self.cb_smoothexpand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
 
+        bsizer_party = wx.StaticBoxSizer(self.box_party, wx.HORIZONTAL)
+        bsizer_party.Add(self.st_initmoneyamount, 0, wx.ALL|wx.CENTER, 3)
+        bsizer_party.Add(self.sc_initmoneyamount, 0, wx.TOP|wx.BOTTOM|wx.RIGHT|wx.CENTER, 3)
+
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_expandmode, 0, wx.EXPAND, 0)
+        sizer_v1.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_party, 0, wx.EXPAND, 0)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
