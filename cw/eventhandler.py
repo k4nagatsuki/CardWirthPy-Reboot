@@ -47,6 +47,9 @@ class EventHandler(object):
                 # F5キー
                 elif event.key == K_F5:
                     self.f5key_event()
+                # F6キー
+                elif event.key == K_F6:
+                    self.f6key_event()
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
@@ -300,6 +303,17 @@ class EventHandler(object):
 ##        gc.set_debug(gc.DEBUG_LEAK)
 ##        gc.disable()
 ##        gc.collect()
+
+    def f6key_event(self):
+        """
+        F6キーイベント。
+        情報カードビューを表示する。
+        """
+        if cw.cwpy.is_playingscenario() and\
+                not (cw.cwpy.is_runningevent() or cw.cwpy.is_battlestatus()) and\
+                cw.cwpy.sdata.infocards:
+            cw.cwpy.sounds["click"].play()
+            cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
 
     def f9key_event(self):
         """

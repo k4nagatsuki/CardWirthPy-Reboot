@@ -2821,18 +2821,19 @@ class BranchFlagValueContent(BranchContent):
 # 特殊コンテント
 #-------------------------------------------------------------------------------
 
+methoddict = {
+    "MoveToYado": "set_yado",
+    "MoveToTitle": "set_title",
+    "Exit": "quit",
+    "ShowDialog": "call_dlg",
+    "MoveCard": "trade",
+    "ChangeToSpecialArea": "change_specialarea",
+    "LoadParty": "load_party",
+    "InterruptAdventure": "interrupt_adventure",
+    "DissolveParty": "dissolve_party",
+    "Load": "reload_yado"}
+
 class PostEventContent(EventContentBase):
-    methoddict = {
-        "MoveToYado": "set_yado",
-        "MoveToTitle": "set_title",
-        "Exit": "quit",
-        "ShowDialog": "call_dlg",
-        "MoveCard": "trade",
-        "ChangeToSpecialArea": "change_specialarea",
-        "LoadParty": "load_party",
-        "InterruptAdventure": "interrupt_adventure",
-        "DissolveParty": "dissolve_party",
-        "Load": "reload_yado"}
 
     def action(self):
         """CWPyのメソッド実行用コンテント。
@@ -2841,25 +2842,28 @@ class PostEventContent(EventContentBase):
         if not cw.cwpy.is_playingscenario() or cw.cwpy.areaid <= 0:
             command = self.data.get("command")
             arg = self.data.get("arg")
-
-            try:
-                arg = int(arg)
-            except:
-                pass
-
-            if command in self.methoddict:
-                methodname = self.methoddict[command]
-                method = getattr(cw.cwpy, methodname)
-
-                if methodname == "call_dlg":
-                    cw.cwpy.lock_menucards = True
-
-                if arg:
-                    cw.cwpy.exec_func(method, arg)
-                else:
-                    cw.cwpy.exec_func(method)
+            PostEventContent.do_action(command, arg)
 
         return cw.IDX_TREEEND
+
+    @staticmethod
+    def do_action(command, arg):
+        try:
+            arg = int(arg)
+        except:
+            pass
+
+        if command in methoddict:
+            methodname = methoddict[command]
+            method = getattr(cw.cwpy, methodname)
+
+            if methodname == "call_dlg":
+                cw.cwpy.lock_menucards = True
+
+            if arg:
+                cw.cwpy.exec_func(method, arg)
+            else:
+                cw.cwpy.exec_func(method)
 
 #-------------------------------------------------------------------------------
 # コンテント取得用関数

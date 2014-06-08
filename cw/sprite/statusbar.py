@@ -74,9 +74,15 @@ class StatusBar(base.CWPySprite):
             PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
-                CampButton(self, cw.s((10, 6)))
-                TableButton(self, cw.s((133, 6)))
+                lmargin = 10
+                CampButton(self, cw.s((lmargin, 6)))
+                lmargin += 123
+                TableButton(self, cw.s((lmargin, 6)))
+                lmargin += 123
             PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            rmargin += cw.s(34)
+            if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards:
+                InfoCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
             if showbuttons:
                 ActionButton(self, cw.s((10, 6)))
@@ -414,6 +420,16 @@ class CancelButton(StatusBarButton):
 
     def lclick_event(self):
         cw.cwpy.cancel_cardcontrol()
+
+class InfoCardsButton(StatusBarButton):
+    def __init__(self, parent, pos):
+        image = cw.s(cw.cwpy.rsrc.pygamedebugs["INFOVIEW"])
+        name = cw.cwpy.msgs["info_card"]
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
+
+    def lclick_event(self):
+        cw.cwpy.sounds["click"].play()
+        cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
 
 class SettingsButton(StatusBarButton):
     def __init__(self, parent, pos):
