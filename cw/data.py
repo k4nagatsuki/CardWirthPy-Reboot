@@ -1091,8 +1091,6 @@ class YadoData(object):
         引数のパーティー名のデータを読み込む。
         パーティー名がNoneの場合はパーティーデータは空になる
         """
-        if cw.cwpy.ydata:
-            cw.cwpy.ydata.changed()
         # パーティデータが変更されている場合はxmlをTempに吐き出す
         if self.party:
             self.party.write()
@@ -1136,8 +1134,6 @@ class YadoData(object):
         return header
 
     def add_party(self, party):
-        if cw.cwpy.ydata:
-            cw.cwpy.ydata.changed()
         fpath = party.path
         header = self.create_partyheader(fpath)
         header.data = party # 保存時まで記憶しておく

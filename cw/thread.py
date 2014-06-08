@@ -393,7 +393,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.update()         # スプライトの更新
             self.draw(True)           # スプライトの描画
 
-        if self._clear_changed:
+        if not self.is_runningevent() and self._clear_changed:
             if self.ydata:
                 self.ydata._changed = False
             self._clear_changed = False
@@ -1577,6 +1577,8 @@ class CWPy(_Singleton, threading.Thread):
         bginhrt: 背景継承を行うかどうかのbool値。
         ttype: トランジション効果のデータのタプル((効果名, 速度))
         """
+        if self.ydata and not self.is_playingscenario():
+            oldchanged = self.ydata.is_changed()
         # 宿にいる時は常に高速切替有効
         if self.setting.all_quickdeal and not self.is_playingscenario():
             quickdeal = True
@@ -1602,9 +1604,8 @@ class CWPy(_Singleton, threading.Thread):
 
         self.disposition_pcards()
 
-        if 0 < oldareaid and self.ydata:
-            if cw.cwpy.ydata:
-                cw.cwpy.ydata.changed()
+        if 0 < oldareaid and self.ydata and self.is_playingscenario():
+            self.ydata.changed()
 
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid > 0:
@@ -1625,6 +1626,9 @@ class CWPy(_Singleton, threading.Thread):
             self.deal_cards(quickdeal=quickdeal)
             if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
                 self.show_party()
+
+        if self.ydata and not self.is_playingscenario():
+            self.ydata._changed = oldchanged
 
     def change_battlearea(self, areaid):
         """
