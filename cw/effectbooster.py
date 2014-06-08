@@ -384,8 +384,9 @@ class _JpySubImage(cw.image.Image):
         # 透明度
         if self.paintmode == 3:
             if image.get_flags() & pygame.locals.SRCALPHA:
-                image = image.convert()
-            image.set_alpha(self.alpha)
+                image.fill((0, 0, 0, 255 - self.alpha), special_flags=pygame.locals.BLEND_RGBA_SUB)
+            else:
+                image.set_alpha(self.alpha)
 
         # キャッシュ (for JpyPartsImage)
         if 1 <= self.savecache <= 8:
