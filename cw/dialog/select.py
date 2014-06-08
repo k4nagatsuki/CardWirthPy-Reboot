@@ -106,6 +106,7 @@ class Select(wx.Dialog):
 
         cw.cwpy.sounds["page"].play()
         self.draw(True)
+        self.index_changed()
 
     def OnClickLeft2Btn(self, evt):
         if self.index == 0:
@@ -117,6 +118,7 @@ class Select(wx.Dialog):
 
         cw.cwpy.sounds["page"].play()
         self.draw(True)
+        self.index_changed()
 
     def OnClickRightBtn(self, evt):
         if self.index == len(self.list) -1:
@@ -126,6 +128,7 @@ class Select(wx.Dialog):
 
         cw.cwpy.sounds["page"].play()
         self.draw(True)
+        self.index_changed()
 
     def OnClickRight2Btn(self, evt):
         if self.index == len(self.list) -1:
@@ -137,6 +140,10 @@ class Select(wx.Dialog):
 
         cw.cwpy.sounds["page"].play()
         self.draw(True)
+        self.index_changed()
+
+    def index_changed(self):
+        pass
 
     def OnMouseWheel(self, event):
         if not self.list or len(self.list) == 1:
@@ -1522,6 +1529,8 @@ class ScenarioSelect(Select):
         self.nowdir = self.scedir
         # 開いたディレクトリの階層
         self.dirstack = []
+        self._saved_dirstack = []
+        self._saved_index = 0
         # シナリオデータベース
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
@@ -1650,9 +1659,9 @@ class ScenarioSelect(Select):
         if not self.list:
             return seq
 
-        for dpath, selname in self.dirstack:
+        for dpath, selname in self._saved_dirstack:
             seq.append(selname)
-        sel = self.list[self.index]
+        sel = self._saved_list[self._saved_index]
         if isinstance(sel, cw.header.ScenarioHeader):
             seq.append(sel.fname)
         else:
@@ -1702,6 +1711,15 @@ class ScenarioSelect(Select):
 
         self.draw(True)
         self.enable_btn()
+        self._update_saveddirstack()
+
+    def _update_saveddirstack(self):
+        self._saved_dirstack = self.dirstack[:]
+        self._saved_list = self.list[:]
+        self._saved_index = self.index
+
+    def index_changed(self):
+        self._update_saveddirstack()
 
     def OnDropFiles(self, event):
         paths = event.GetFiles()
@@ -1736,6 +1754,7 @@ class ScenarioSelect(Select):
             assert not self.tree.IsShown()
             cw.cwpy.sounds["equipment"].play()
             self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
+            self._update_saveddirstack()
             self.nowdir = cw.util.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
@@ -1744,6 +1763,7 @@ class ScenarioSelect(Select):
             self.enable_btn()
             self.draw(True)
         elif self.yesbtn.GetLabel() == cw.cwpy.msgs["decide"]:
+            self._update_saveddirstack()
             cw.cwpy.sounds["signal"].play()
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
             self.ProcessEvent(btnevent)
@@ -2090,6 +2110,7 @@ class ScenarioSelect(Select):
         self.list = dpaths + self._narrow_scenario(headers)
 
         self.dirstack = self.get_dirstack(paritem)
+        self._update_saveddirstack()
 
         self.enable_btn()
 
