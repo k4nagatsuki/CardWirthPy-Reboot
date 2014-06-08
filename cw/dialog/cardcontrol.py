@@ -679,7 +679,7 @@ class CardHolder(CardControl):
                 self._set_backpacklist()
 
         # カード移動等でページ数が減っていた場合はself.indexを補正
-        if self.callname <> "CARDPOCKET":
+        if self.callname <> "CARDPOCKET" and 0 < self.index:
             if (len(self.list)+9) / 10 <= self.index:
                 self.index = (len(self.list)+9) / 10 - 1
 
