@@ -732,7 +732,6 @@ class CardEvent(Event):
         if cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.versionhint[cw.HINT_CARD] = self.inusecard.versionhint
 
-        cw.cwpy.event.set_selectedmember(self.user)
         cw.cwpy.event.set_inusecard(self.inusecard)
 
         data = self.inusecard.carddata
@@ -757,6 +756,7 @@ class CardEvent(Event):
             self.end()
         else:
             # 使用可能なのでイベント実行
+            cw.cwpy.event.set_selectedmember(self.user)
             Event.start(self)
 
     def run_exit(self):
@@ -817,15 +817,18 @@ class CardEvent(Event):
 
     def run_areaevent(self):
         keycodes = self.inusecard.get_keycodes()
+        cw.cwpy.event.set_selectedmember(self.user)
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
 
     def run_enemyevent(self, target, can_unconscious):
         if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
             keycodes = self.inusecard.get_keycodes()
+            cw.cwpy.event.set_selectedmember(self.user)
             target.events.start(keycodes=keycodes, isinsideevent=True)
 
     def run_deadevent(self, target):
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
+            cw.cwpy.event.set_selectedmember(self.user)
             target.events.start(1, isinsideevent=True)
 
     def run_successevent(self, target, successflag, can_unconscious):
@@ -838,6 +841,7 @@ class CardEvent(Event):
                     else:
                         keycodes.append(keycode + u"×")
 
+            cw.cwpy.event.set_selectedmember(self.user)
             target.events.start(keycodes=keycodes, isinsideevent=True)
 
     def effect_cardmotion(self):
