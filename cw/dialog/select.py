@@ -2230,14 +2230,17 @@ class ScenarioSelect(Select):
         # ツリー表示中の決定ボタン有効・無効判定
         if self.tree.IsShown():
             selitem = self.tree.GetSelection()
-            index, pathorheader = self.tree.GetItemPyData(selitem)
-            if isinstance(pathorheader, cw.header.ScenarioHeader):
-                header = pathorheader
-                if not cw.cwpy.is_debugmode()\
-                    and (self.is_playing(header)\
-                     or self.is_complete(header)\
-                     or self.is_invisible(header)):
-                    self.yesbtn.Disable()
+            if selitem:
+                index, pathorheader = self.tree.GetItemPyData(selitem)
+                if isinstance(pathorheader, cw.header.ScenarioHeader):
+                    header = pathorheader
+                    if not cw.cwpy.is_debugmode()\
+                        and (self.is_playing(header)\
+                         or self.is_complete(header)\
+                         or self.is_invisible(header)):
+                        self.yesbtn.Disable()
+            else:
+                self.yesbtn.Disable()
 
         # 状況によってボタンのテキストを更新
         if self.tree.IsShown():
