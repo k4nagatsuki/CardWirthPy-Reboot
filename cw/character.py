@@ -1330,20 +1330,30 @@ class Character(object):
 
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+
+        vit = max(1, self.physical.get("vit"))
+        minval = max(1, self.physical.get("min"))
+
+        coeff = self.data.getfloat("Property/Life", "coefficient", 0.0)
+        if coeff <= 0.0:
+            maxlife = (vit / 2 + 4) * (self.level + 1) + minval / 2
+            if int(maxlife) == self.maxlife:
+                coeff = 1
+            else:
+                # 最大HP10でレベル10のキャラクタのレベルを9に下げたら
+                # 最大HPが90に増えてしまった、というような問題を
+                # 避けるため、計算上の体力と実際の最大体力が食い違う
+                # 場合は計算用係数を付与する
+                coeff = float(self.maxlife) / int(maxlife)
+                self.data.edit("Property/Life", str(coeff), "coefficient")
+
         self.level = value
         self.data.edit("Property/Level", str(self.level))
         # 最大HPとHP
-        vit = self.physical.get("vit")
-
-        if vit < 1:
-            vit = 1
-
-        minval = self.physical.get("min")
-
-        if minval < 1:
-            minval = 1
-
-        maxlife = (vit / 2 + 4) * (self.level + 1) + minval / 2
+        maxlife = int((vit / 2 + 4) * (self.level + 1) + minval / 2)
+        if coeff <> 1:
+            maxlife = round(maxlife * coeff)
+        maxlife = int(max(1, maxlife))
         self.maxlife += maxlife - self.maxlife
         self.data.edit("Property/Life", str(self.maxlife), "max")
         self.set_life(self.maxlife)
