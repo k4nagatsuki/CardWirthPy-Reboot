@@ -907,6 +907,7 @@ class PlayerSelect(Select):
         # sort
         self.sort = wx.ComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.sort.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])
