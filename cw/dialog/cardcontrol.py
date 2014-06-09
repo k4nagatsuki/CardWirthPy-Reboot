@@ -184,10 +184,6 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
 
-        headers = self.get_headers()
-        if headers and headers[0].wxrect.topleft == (0, 0):
-            self.set_cardpos()
-
         id = event.GetId()
 
         list = None
@@ -219,6 +215,8 @@ class CardControl(wx.Dialog):
                     c1 = header
                     c2 = list[i+1]
                     break
+
+        self.set_cardpos()
 
         if c1:
             c1.negaflag = False
@@ -280,9 +278,8 @@ class CardControl(wx.Dialog):
 
     def OnMove(self, event):
         mousepos = event.GetPosition()
-        headers = self.get_headers()
-        if headers and headers[0].wxrect.topleft == (0, 0):
-            self.set_cardpos()
+
+        self.set_cardpos()
 
         for header in self.get_headers():
             if header.wxrect.collidepoint(mousepos):
@@ -299,9 +296,8 @@ class CardControl(wx.Dialog):
 
     def OnLeave(self, event):
         if self.IsActive():
-            headers = self.get_headers()
-            if headers and headers[0].wxrect.topleft == (0, 0):
-                self.set_cardpos()
+            self.set_cardpos()
+
             for header in self.get_headers():
                 if header.negaflag:
                     header.negaflag = False
@@ -324,6 +320,8 @@ class CardControl(wx.Dialog):
             self.combo.SetSelection(index + 1)
 
     def OnPaint(self, event):
+        self.set_cardpos()
+
         dc = wx.PaintDC(self.toppanel)
 
         # 背景色
@@ -368,8 +366,13 @@ class CardControl(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14)))
 
         # カードの描画
-        for bmp, pos, usemask in self._drawlist.itervalues():
-            dc.DrawBitmap(bmp, pos[0], pos[1], usemask)
+        for header, data in self._drawlist.iteritems():
+            bmp, usemask = data
+            x = header.wxrect.left
+            y = header.wxrect.top
+            x += (header.wxrect.width-bmp.GetWidth()) / 2
+            y += (header.wxrect.height-bmp.GetHeight()) / 2
+            dc.DrawBitmap(bmp, x, y, usemask)
 
         # カード置場・荷物袋・情報カードマーク
         if self._leftmark:
@@ -423,10 +426,10 @@ class CardControl(wx.Dialog):
                 mode = 3
             else:
                 assert False, self.callname
-        poslist = get_poslist(len(self.get_headers()), mode)
 
-        for pos, header in zip(poslist, self.get_headers()):
-            header.wxrect.topleft = pos
+        self.set_cardpos()
+
+        for header in self.get_headers():
             self.draw_card(header)
         self.toppanel.Refresh()
 
@@ -439,16 +442,13 @@ class CardControl(wx.Dialog):
             elif header.negaflag:
                 header.negaflag = False
 
-        pos = header.wxrect.topleft
         bmp = header.get_cardwxbmp()
-
         if header.clickedflag:
             image = bmp.ConvertToImage()
             size = image.GetSize()
             image = image.Rescale(size[0]/10*9, size[1]/10*9)
             bmp = image.ConvertToBitmap()
-            pos = (pos[0]+cw.wins(4), pos[1]+cw.wins(5))
-        self._drawlist[header] = (bmp, pos, False)
+        self._drawlist[header] = (bmp, False)
         self.toppanel.Refresh(rect=header.wxrect)
 
     def set_cardpos(self, mode=-1):
@@ -462,9 +462,10 @@ class CardControl(wx.Dialog):
             else:
                 assert False, self.callname
 
-        poslist = get_poslist(len(self.get_headers()), mode)
+        headers = self.get_headers()
+        poslist = get_poslist(len(headers), mode)
 
-        for pos, header in zip(poslist, self.get_headers()):
+        for pos, header in zip(poslist, headers):
             header.wxrect.topleft = pos
 
     def get_headers(self):
@@ -476,9 +477,7 @@ class CardControl(wx.Dialog):
             return
         self._proc = True
 
-        headers = self.get_headers()
-        if headers and headers[0].wxrect.topleft == (0, 0):
-            self.set_cardpos()
+        self.set_cardpos()
 
         header.clickedflag = True
         self.draw_card(header, fromkeyevent=True)
@@ -804,16 +803,12 @@ class CardHolder(CardControl):
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
 
-            # 最初に開くページのカードのposを設定
-            self.set_cardpos(2)
             # 選択中カード色反転
             self.Parent.change_selection(self.selection)
 
         else:
             # カード置き場、荷物袋、情報カード
 
-            # 最初に開くページのカードのposを設定
-            self.set_cardpos(1)
             if self.callname <> "INFOVIEW":
                 # 選択中カード色反転
                 self.Parent.change_selection(self.selection)
@@ -1353,8 +1348,6 @@ class HandView(CardControl):
         name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
         self.bgcolour = wx.Colour(0, 0, 128)
         CardControl.__init__(self, parent, name, False, False)
-        # 最初に開くページのカードのposを設定
-        self.set_cardpos(3)
         # 選択中カード色反転
         self.Parent.change_selection(self.selection)
 
