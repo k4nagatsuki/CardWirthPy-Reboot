@@ -561,6 +561,7 @@ class CardControl(wx.Dialog):
             return
 
         # カード操作用データ(移動元データ, CardHeader)を設定
+        header.negaflag = False
         cw.cwpy.selectedheader = header
         cw.cwpy.exec_func(cw.cwpy.update_selectablelist)
         if self.areaid in cw.AREAS_TRADE:
@@ -907,6 +908,8 @@ class CardHolder(CardControl):
         CardControl._do_layout(self, self._sizer_leftbar)
 
     def OnDestroy(self, event):
+        for header in self.list:
+            header.negaflag = False
         if self.callname in ("CARDPOCKET", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
             cw.cwpy.lastcardpocket = self.index3
 

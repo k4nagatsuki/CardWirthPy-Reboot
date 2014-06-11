@@ -501,7 +501,7 @@ class InuseCardImage(card.CWPyCard):
             self.group.add(self)
 
     def update_scale(self):
-        image = self.header.cardimg.get_image()
+        image = self.header.get_cardimg()
         if self.alpha < 255:
             image.set_alpha(self.alpha)
         self.image = self._image = image
