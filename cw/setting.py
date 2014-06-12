@@ -80,6 +80,8 @@ class Setting(object):
             self.show_savedmessage = True
             self.show_backpackcard = True
             self.show_statustime = True
+            self.openhandviewalways = False
+            self.noticeimpossibleaction = True
             self.initmoneyamount = 4000
             self.folderoftype = []
             self.write()
@@ -205,12 +207,17 @@ class Setting(object):
         # セーブ完了時に確認ダイアログを表示
         self.show_savedmessage = data.getbool("ShowSavedMessage", True)
 
+        # カードを選択できない時はダイアログを開かない
+        self.openhandviewalways = data.getbool("OpenHandViewAlways", False)
+        # 不可能な行動を選択した時に警告を表示
+        self.noticeimpossibleaction = data.getbool("NoticeImpossibleAction", True)
+
         # 荷物袋のカードを一時的に取り出して使えるようにする
         self.show_backpackcard = data.getbool("ShowBackpackCard", True)
 
         # 各種ステータスの残り時間を表示する
         self.show_statustime = data.getbool("ShowStatusTime", True)
-    
+
         # パーティ結成時の持出金額
         self.initmoneyamount = data.getint("InitialMoneyAmount", 4000)
 

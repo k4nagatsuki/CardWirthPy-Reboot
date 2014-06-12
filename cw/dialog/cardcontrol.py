@@ -623,6 +623,11 @@ class CardHolder(CardControl):
         else:
             self.areaid = areaid
 
+        if cw.cwpy.setting.openhandviewalways or self.areaid in cw.AREAS_TRADE:
+            status = "unreversed"
+        else:
+            status = "active"
+
         # 適性表示を除去
         def func():
             for pcard in cw.cwpy.get_pcards():
@@ -635,13 +640,13 @@ class CardHolder(CardControl):
         # タイプ別初期化(キャストの手札の場合はindex復元後)
         if self.callname == "BACKPACK":
             name = cw.cwpy.msgs["cards_backpack"]
-            self.list2 = cw.cwpy.get_pcards("unreversed")
+            self.list2 = cw.cwpy.get_pcards(status)
             self.bgcolour = wx.Colour(0, 0, 128)
             self.list = cw.cwpy.ydata.party.backpack
             sendto = True
         elif self.callname == "STOREHOUSE":
             name = cw.cwpy.msgs["cards_storehouse"]
-            self.list2 = cw.cwpy.get_pcards("unreversed")
+            self.list2 = cw.cwpy.get_pcards(status)
             self.bgcolour = wx.Colour(0, 69, 0)
             self.list = cw.cwpy.ydata.storehouse
             sendto = True
@@ -664,7 +669,7 @@ class CardHolder(CardControl):
 
             if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
                 self.index = 0
-                self.list2 = cw.cwpy.get_pcards("unreversed")
+                self.list2 = cw.cwpy.get_pcards(status)
                 self.selection = self.index2
 
             else:
@@ -678,7 +683,7 @@ class CardHolder(CardControl):
                 self.selection = cw.cwpy.selection
                 if isinstance(self.selection, cw.character.Player):
                     # パーティの手札カード(リバースメンバを除く)
-                    self.list2 = cw.cwpy.get_pcards("unreversed")
+                    self.list2 = cw.cwpy.get_pcards(status)
                 else:
                     # NPCの手札カード
                     self.list2 = cw.cwpy.get_fcards()
@@ -1313,16 +1318,20 @@ class HandView(CardControl):
         self.owner = cw.cwpy.selection
 
         # カードリスト
+        if cw.cwpy.setting.openhandviewalways:
+            status = "unreversed"
+        else:
+            status = "active"
         if cw.cwpy.pre_dialogs:
-            self.list2 = cw.cwpy.get_pcards("unreversed")
+            self.list2 = cw.cwpy.get_pcards(status)
         elif isinstance(cw.cwpy.selection, cw.character.Player):
-            self.list2 = cw.cwpy.get_pcards("unreversed")
+            self.list2 = cw.cwpy.get_pcards(status)
         else: # EnemyCard
             if cw.cwpy.is_debugmode():
-                self.list2 = cw.cwpy.get_ecards("unreversed")
+                self.list2 = cw.cwpy.get_ecards(status)
             else:
                 self.list2 = []
-                for card in cw.cwpy.get_ecards("unreversed"):
+                for card in cw.cwpy.get_ecards(status):
                     if card.is_analyzable():
                         self.list2.append(card)
 

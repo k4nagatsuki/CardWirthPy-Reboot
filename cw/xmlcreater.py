@@ -209,6 +209,13 @@ def create_settings(setting):
     # 各種ステータスの残り時間を表示する
     e = cw.data.make_element("ShowStatusTime", str(setting.show_statustime))
     element.append(e)
+    # カードを選択できない時はダイアログを開かない
+    e = cw.data.make_element("OpenHandViewAlways", str(setting.openhandviewalways))
+    element.append(e)
+    # 不可能な行動を選択した時に警告を表示
+    e = cw.data.make_element("NoticeImpossibleAction", str(setting.noticeimpossibleaction))
+    element.append(e)
+
     # パーティ結成時の持出金額
     e = cw.data.make_element("InitialMoneyAmount", str(setting.initmoneyamount))
     element.append(e)

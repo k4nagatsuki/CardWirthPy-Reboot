@@ -83,10 +83,12 @@ class SettingsDialog(wx.Dialog):
             self.pane_ui.cb_cautionbeforesaving.SetValue(True)
             self.pane_ui.cb_showbackpackcard.SetValue(True)
             self.pane_ui.cb_revertcardpocket.SetValue(True)
+            self.pane_ui.cb_openhandviewalways.SetValue(True)
             self.pane_ui.cb_showlogwithwheelup.SetValue(True)
             self.pane_ui.cb_confirmbeforeusingcard.SetValue(True)
             self.pane_ui.cb_showsavedmessage.SetValue(True)
             self.pane_ui.cb_confirmbeforesaving.SetValue(True)
+            self.pane_ui.cb_noticeimpossibleaction.SetValue(True)
 
     def OnOk(self, event):
         # 設定変更前はレベル上昇が可能な状態だったか
@@ -244,12 +246,17 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.show_backpackcard = value
         value = self.pane_ui.cb_revertcardpocket.GetValue()
         cw.cwpy.setting.revert_cardpocket = value
+        value = self.pane_ui.cb_openhandviewalways.GetValue()
+        cw.cwpy.setting.openhandviewalways = value
         value = self.pane_ui.cb_confirmbeforesaving.GetValue()
         cw.cwpy.setting.confirm_beforesaving = value
         value = self.pane_ui.cb_showsavedmessage.GetValue()
         cw.cwpy.setting.show_savedmessage = value
         value = self.pane_ui.cb_confirmbeforeusingcard.GetValue()
         cw.cwpy.setting.confirm_beforeusingcard = value
+        value = self.pane_ui.cb_noticeimpossibleaction.GetValue()
+        cw.cwpy.setting.noticeimpossibleaction = value
+
 
         # イメージの更新
         if updatecardimg:
@@ -875,6 +882,9 @@ class UISettingPanel(wx.Panel):
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
         self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
+        self.cb_openhandviewalways = wx.CheckBox(
+            self, -1, u"行動不能でも行動選択ダイアログを開く")
+        self.cb_openhandviewalways.SetValue(cw.cwpy.setting.openhandviewalways)
         self.cb_showlogwithwheelup = wx.CheckBox(
             self, -1, u"マウスホイールを上に回すとログを表示")
         self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
@@ -893,6 +903,9 @@ class UISettingPanel(wx.Panel):
         self.cb_confirmbeforeusingcard = wx.CheckBox(
             self, -1, u"カード使用時に確認ダイアログを表示")
         self.cb_confirmbeforeusingcard.SetValue(cw.cwpy.setting.confirm_beforeusingcard)
+        self.cb_noticeimpossibleaction = wx.CheckBox(
+            self, -1, u"不可能な行動を選択した時に警告を表示")
+        self.cb_noticeimpossibleaction.SetValue(cw.cwpy.setting.noticeimpossibleaction)
 
         self._do_layout()
         self._bind()
@@ -915,6 +928,7 @@ class UISettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_openhandviewalways, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
@@ -922,6 +936,7 @@ class UISettingPanel(wx.Panel):
         bsizer_dlg.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_confirmbeforeusingcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_dlg.Add(self.cb_noticeimpossibleaction, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM|wx.EXPAND, 5)

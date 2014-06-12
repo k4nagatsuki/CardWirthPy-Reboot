@@ -636,9 +636,18 @@ class PlayerCard(CWPyCard, character.Player):
             cw.animation.animate_sprite(self, "click")
 
             if cw.cwpy.is_battlestatus():
-                cw.cwpy.call_modaldlg("HANDVIEW")
+                if not cw.cwpy.setting.openhandviewalways and self.is_inactive():
+                    s = cw.cwpy.msgs["inactive"] % self.name
+                    cw.cwpy.call_modaldlg("ERROR", text=s)
+                else:
+                    cw.cwpy.call_modaldlg("HANDVIEW")
             else:
-                cw.cwpy.call_modaldlg("CARDPOCKET")
+                if not cw.cwpy.setting.openhandviewalways and self.is_inactive() and\
+                        not cw.cwpy.areaid in cw.AREAS_TRADE:
+                    s = cw.cwpy.msgs["inactive"] % self.name
+                    cw.cwpy.call_modaldlg("ERROR", text=s)
+                else:
+                    cw.cwpy.call_modaldlg("CARDPOCKET")
 
         # カード移動操作
         elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
@@ -814,7 +823,11 @@ class EnemyCard(CWPyCard, character.Enemy):
         # CARDPOCKETダイアログを開く(通常)
         if (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if cw.cwpy.is_battlestatus():
-                cw.cwpy.call_modaldlg("HANDVIEW")
+                if not cw.cwpy.setting.openhandviewalways and self.is_inactive():
+                    s = cw.cwpy.msgs["inactive"] % self.name
+                    cw.cwpy.call_modaldlg("ERROR", text=s)
+                else:
+                    cw.cwpy.call_modaldlg("HANDVIEW")
 
         # カード使用。戦闘行動を設定する。
         elif cw.cwpy.selectedheader:
