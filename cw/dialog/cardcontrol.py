@@ -581,11 +581,14 @@ class CardControl(wx.Dialog):
     def check_using(self, owner, header):
         # 行動不能だったら使用不可
         if owner.is_inactive():
-            s = cw.cwpy.msgs["inactive"] % owner.name
-            dlg = message.ErrorMessage(self, s)
-            self.Parent.move_dlg(dlg)
-            dlg.ShowModal()
-            dlg.Destroy()
+            if cw.cwpy.setting.noticeimpossibleaction:
+                s = cw.cwpy.msgs["inactive"] % owner.name
+                dlg = message.ErrorMessage(self, s)
+                self.Parent.move_dlg(dlg)
+                dlg.ShowModal()
+                dlg.Destroy()
+            else:
+                cw.cwpy.sounds["error"].play()
             return False
 
         # 使用回数が0以下だったら処理中止
@@ -595,16 +598,16 @@ class CardControl(wx.Dialog):
                 return False
 
         # 戦闘中にペナルティカードを行動選択していたら処理中止
-        if cw.cwpy.battle and owner.actiondata and owner.actionautoselected and not cw.cwpy.debug:
-            headerp = owner.actiondata[1]
-
-            if headerp and headerp.penalty:
+        if owner.is_autoselectedpenalty() and not cw.cwpy.debug:
+            if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["selected_penalty"]
                 dlg = message.ErrorMessage(self, s)
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-                return False
+            else:
+                cw.cwpy.sounds["error"].play()
+            return False
 
         return True
 
@@ -1334,6 +1337,9 @@ class HandView(CardControl):
                 for card in cw.cwpy.get_ecards(status):
                     if card.is_analyzable():
                         self.list2.append(card)
+
+        if status == "active" and not cw.cwpy.debug and isinstance(self.owner, cw.sprite.card.PlayerCard):
+            self.list2 = filter(lambda pcard: not pcard.is_autoselectedpenalty(), self.list2)
 
         # 前に開いていたときのindex値があったら取得する
         if cw.cwpy.pre_dialogs:

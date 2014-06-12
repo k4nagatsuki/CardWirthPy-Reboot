@@ -155,6 +155,7 @@ class Frame(wx.Frame):
             "USECARD",   # カード使用ダイアログ
             "RUNAWAY",   # 逃走確認ダイアログ
             "ERROR",  # エラーダイアログ
+            "NOTICE",  # 通知ダイアログ
             "MESSAGE",   # メッセージダイアログ
             "YESNO",   # 確認ダイアログ
             "DATACOMP",   # 不足データの補填ダイアログ
@@ -661,6 +662,18 @@ class Frame(wx.Frame):
             self.Destroy()
         else:
             self.kill_dlg(dlg)
+
+    def OnNOTICE(self, event):
+        if cw.cwpy.setting.noticeimpossibleaction:
+            text = event.args.get("text", "")
+            dlg = cw.dialog.message.ErrorMessage(self, text)
+            self.move_dlg(dlg)
+            dlg.ShowModal()
+        else:
+            cw.cwpy.sounds["error"].play()
+            dlg = None
+
+        self.kill_dlg(dlg)
 
     def OnMESSAGE(self, event):
         text = event.args.get("text", "")

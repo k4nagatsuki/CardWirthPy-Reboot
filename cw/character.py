@@ -656,6 +656,13 @@ class Character(object):
                 if user == self:
                     cw.cwpy.battle.priorityacts.remove((key, target, user))
 
+    def is_autoselectedpenalty(self):
+        """戦闘中にペナルティカードを自動選択した状態か。"""
+        if cw.cwpy.battle and self.actiondata and self.actionautoselected:
+            headerp = self.actiondata[1]
+            return headerp and headerp.penalty
+        return False
+
     #---------------------------------------------------------------------------
     #　判定用
     #---------------------------------------------------------------------------
