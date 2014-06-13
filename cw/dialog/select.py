@@ -994,6 +994,7 @@ class PlayerSelect(Select):
             cw.cwpy.setting.sort_standbys = sorttype
             cw.cwpy.ydata.sort_standbys()
             self.draw(True)
+        self.left2btn.SetFocus()
 
     def can_clickcenter(self):
         return self.addbtn.IsEnabled()
