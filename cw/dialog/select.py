@@ -1557,7 +1557,7 @@ class ScenarioSelect(Select):
         # ツリー表示用のビュー
         self.tree = wx.TreeCtrl(self, -1, size=cw.wins((400, 370)),
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
-        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
         self.tree.Hide()
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
         self.tree.imgidx_summary = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"]))
