@@ -1956,7 +1956,10 @@ class LoseContent(EventContentBase):
             if isinstance(target, cw.character.Character):
                 target = target.get_pocketcards(index)
 
-            self.lose_card(name, desc, target, num)
+            headers, losenum = self.lose_card(name, desc, target, num)
+            num -= losenum
+            if num <= 0:
+                break
 
     def lose_card(self, name, desc, target, num):
         headers = []
@@ -1976,8 +1979,10 @@ class LoseContent(EventContentBase):
             for header in headers[:num]:
                 cw.cwpy.trade("TRASHBOX", header=header, from_event=True, sort=False)
                 lose = True
+        else:
+            num = 0
 
-        return headers
+        return headers, num
 
 class LoseSkillContent(LoseContent):
     def action(self):
