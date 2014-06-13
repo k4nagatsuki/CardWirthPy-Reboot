@@ -495,6 +495,7 @@ class CardControl(wx.Dialog):
     def lclick_event(self, header):
         if self._proc:
             return
+        header.negaflag = False
 
         if header in cw.cwpy.sdata.infocards:
             dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
@@ -525,6 +526,7 @@ class CardControl(wx.Dialog):
             return
         elif not self.areaid in cw.AREAS_TRADE and isinstance(owner, cw.character.Character):
             if not self.check_using(owner, header):
+                self.draw_cards()
                 return
 
         if self.combo.IsShown():
@@ -561,7 +563,6 @@ class CardControl(wx.Dialog):
             return
 
         # カード操作用データ(移動元データ, CardHeader)を設定
-        header.negaflag = False
         cw.cwpy.selectedheader = header
         cw.cwpy.exec_func(cw.cwpy.update_selectablelist)
         if self.areaid in cw.AREAS_TRADE:
@@ -583,7 +584,7 @@ class CardControl(wx.Dialog):
         if owner.is_inactive():
             if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["inactive"] % owner.name
-                dlg = message.ErrorMessage(self, s)
+                dlg = message.Message(self, cw.cwpy.msgs["message"], s)
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -601,7 +602,7 @@ class CardControl(wx.Dialog):
         if owner.is_autoselectedpenalty() and not cw.cwpy.debug:
             if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["selected_penalty"]
-                dlg = message.ErrorMessage(self, s)
+                dlg = message.Message(self, cw.cwpy.msgs["message"], s)
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -1101,9 +1102,11 @@ class CardHolder(CardControl):
         self.list = filter(lambda header: header.type == type, cw.cwpy.ydata.party.backpack)
 
     def lclick_event(self, header):
+        header.negaflag = False
+        owner = self.selection
         if self.callname == "CARDPOCKETB":
-            owner = self.selection
             if not self.check_using(owner, header):
+                self.draw_cards()
                 return
 
             # 一時的に取り出す
@@ -1112,6 +1115,17 @@ class CardHolder(CardControl):
             CardControl.lclick_event(self, header)
 
         elif header.type == "UseCardInBackpack":
+            if owner.is_inactive():
+                if cw.cwpy.setting.noticeimpossibleaction:
+                    s = cw.cwpy.msgs["inactive"] % owner.name
+                    dlg = message.Message(self, cw.cwpy.msgs["message"], s)
+                    self.Parent.move_dlg(dlg)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                else:
+                    cw.cwpy.sounds["error"].play()
+                self.draw_cards()
+                return
             old_callname = self.callname
             self.index = 0
             self.callname = "CARDPOCKETB"
