@@ -161,15 +161,19 @@ class _JpySubImage(cw.image.Image):
                                 rest_y = 0
 
                         pos = (x, y)
-                        if SPF <= self.waittime or SPF <= i:
+                        if self.waittime <= 0 or SPF <= self.waittime:
+                            self._drawtemp_impl(background, pos, anime=True, waittime=self.waittime)
+                        elif SPF <= i:
                             self._drawtemp_impl(background, pos, anime=True, waittime=self.waittime*SPF)
                             i %= SPF
                         else:
+                            if self.animation == 1:
+                                self._drawtemp_impl(background, pos, anime=True, nowait=True)
                             i += 1
 
             self.cache.save_position(pos)
 
-    def _drawtemp_impl(self, background, pos, redraw=True, anime=False, waittime=None):
+    def _drawtemp_impl(self, background, pos, redraw=True, anime=False, waittime=None, nowait=False):
         """backgroundのposの位置に一時描画。"""
         image = self.get_image()
         image = self.clip_tempimg(image, pos)
@@ -190,16 +194,19 @@ class _JpySubImage(cw.image.Image):
                     before = background.subsurface(rect).copy()
 
                 background.blit(image, pos, special_flags=blendmode)
-                cw.cwpy.draw()
+                if not nowait:
+                    cw.cwpy.draw()
 
                 if not self.animation == 1:
                     background.blit(before, rect.topleft)
             else:
                 if self.animation == 1:
                     background.blit(image, pos, special_flags=blendmode)
-                    cw.cwpy.draw()
+                    if not nowait:
+                        cw.cwpy.draw()
 
-            self.wait(anime=anime, waittime=waittime)
+            if not nowait:
+                self.wait(anime=anime, waittime=waittime)
 
     def clip_tempimg(self, image, pos):
         if self.animeclip:
