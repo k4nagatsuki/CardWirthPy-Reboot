@@ -902,6 +902,8 @@ class CardEvent(Event):
             unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and\
                 not isinstance(target, cw.sprite.card.MenuCard) and\
                 target.is_unconscious()
+            paralyze_flag = not isinstance(target, cw.sprite.card.MenuCard) and\
+                target.is_paralyze()
 
             if isinstance(target, Enemy) and (not target.is_unconscious() or unconscious_flag):
                 self.run_enemyevent(target, unconscious_flag)
@@ -913,8 +915,8 @@ class CardEvent(Event):
                     self.run_successevent(target, False, unconscious_flag)
                     cw.cwpy.draw()
 
-                # 最初から意識不明なら死亡イベント発生なし
-                if not unconscious_flag:
+                # 最初から意識不明・麻痺なら死亡イベント発生なし
+                if not unconscious_flag and not paralyze_flag:
                     self.run_deadevent(target)
             else:
                 target.clear_cardtarget()
