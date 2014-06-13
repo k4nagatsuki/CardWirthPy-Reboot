@@ -1251,9 +1251,8 @@ class CallStartContent(EventContentBase):
             event = cw.cwpy.event.get_event()
             if event.nowrunningcontents or 0 < len(self.data.find("Contents")):
                 if cw.LIMIT_RECURSE <= cw.cwpy.event.get_currentstack():
-                    cw.cwpy.sounds["error"].play()
                     s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
-                    cw.cwpy.call_modaldlg("MESSAGE", text=s)
+                    cw.cwpy.call_modaldlg("ERROR", text=s)
                     raise cw.event.EffectBreakError()
                 event.nowrunningcontents.append((None, event.cur_content, None))
             event.cur_content = trees[startname]

@@ -46,9 +46,8 @@ class EventInterface(object):
 
     def append_event(self, event):
         if cw.LIMIT_RECURSE <= self.get_currentstack():
-            cw.cwpy.sounds["error"].play()
             s = u"イベントの呼び出しが%s層を超えたので処理を中止します。スタートやパッケージのコールによってイベントが無限ループになっていないか確認してください。" % (cw.LIMIT_RECURSE)
-            cw.cwpy.call_modaldlg("MESSAGE", text=s)
+            cw.cwpy.call_modaldlg("ERROR", text=s)
             raise cw.event.EffectBreakError()
 
         self._nowrunningevents.append(event)

@@ -664,13 +664,13 @@ class Frame(wx.Frame):
             self.kill_dlg(dlg)
 
     def OnNOTICE(self, event):
+        cw.cwpy.sounds["error"].play()
         if cw.cwpy.setting.noticeimpossibleaction:
             text = event.args.get("text", "")
-            dlg = cw.dialog.message.ErrorMessage(self, text)
+            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], text)
             self.move_dlg(dlg)
             dlg.ShowModal()
         else:
-            cw.cwpy.sounds["error"].play()
             dlg = None
 
         self.kill_dlg(dlg)

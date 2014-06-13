@@ -2278,13 +2278,11 @@ class CWPy(_Singleton, threading.Thread):
             # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
             if not cw.cwpy.debug and header.premium == "Premium" and not from_event:
                 if targettype == "PAWNSHOP":
-                    self.sounds["error"].play()
                     s = cw.cwpy.msgs["error_sell_premier_card"]
-                    self.call_modaldlg("MESSAGE", text=s, parentdialog=parentdialog)
+                    self.call_modaldlg("NOTICE", text=s, parentdialog=parentdialog)
                 elif targettype == "TRASHBOX":
-                    self.sounds["error"].play()
                     s = cw.cwpy.msgs["error_dump_premier_card"] % (header.name)
-                    self.call_modaldlg("MESSAGE", text=s, parentdialog=parentdialog)
+                    self.call_modaldlg("NOTICE", text=s, parentdialog=parentdialog)
 
                 return
 
@@ -2354,9 +2352,8 @@ class CWPy(_Singleton, threading.Thread):
                             self.trade("BACKPACK", header=header, from_event=True, sort=sort, party=party)
 
                 else:
-                    self.sounds["error"].play()
                     s = cw.cwpy.msgs["error_hand_be_full"] % target.name
-                    self.call_modaldlg("MESSAGE", text=s, parentdialog=parentdialog)
+                    self.call_modaldlg("NOTICE", text=s, parentdialog=parentdialog)
 
                 return
 

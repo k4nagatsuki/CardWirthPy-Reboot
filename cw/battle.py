@@ -134,10 +134,6 @@ class BattleEngine(object):
         elif self.check_win():
             raise BattleWinError()
 
-        # 山札からカードをドロー
-        for member in self.members:
-            member.deck.draw(member)
-
         self._running = False
         # 次ターン準備
         self.ready()
@@ -171,9 +167,13 @@ class BattleEngine(object):
         # 戦闘参加メンバセット・行動順にソート・手札自動選択
         self.priorityacts = []
         self.set_members()
+        # 山札からカードをドロー
+        for member in self.members:
+            member.deck.draw(member)
         self.set_actionorder()
         self.set_action()
         self._ready = True
+
         if cw.cwpy.is_autospread():
             ecards = cw.cwpy.get_mcards("flagtrue")
             if self._numenemy <> len(ecards):
