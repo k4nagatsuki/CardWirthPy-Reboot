@@ -2048,6 +2048,11 @@ class ScenarioSelect(Select):
                 if not cw.cwpy.debug:
                     self.yesbtn.Disable()
 
+        if update:
+            buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+            if buttonlist:
+                buttonlist[0].SetFocus()
+
     def is_playing(self, header):
         return header.get_fpath() in self.nowplayingpaths
 
