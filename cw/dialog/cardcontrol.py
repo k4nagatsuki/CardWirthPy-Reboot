@@ -66,13 +66,13 @@ class CardControl(wx.Dialog):
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((115, 20)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        # smallright
+        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
+        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
         if not sendto:
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
             self.combo.Hide()
-        # smallright
-        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
         # focus
         self.panel.SetFocusIgnoringChildren()
         self.toppanel.SetFocusIgnoringChildren()
