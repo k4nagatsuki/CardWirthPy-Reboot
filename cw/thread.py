@@ -1030,6 +1030,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.music.play(musicpath)
             self.exec_func(func, loaded, musicpath, areaid)
 
+        self.is_pcardsselectable = self.ydata and self.ydata.party
+
     def set_battle(self):
         """シナリオ戦闘画面へ遷移。"""
         self.set_status("ScenarioBattle")
