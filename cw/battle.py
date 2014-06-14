@@ -88,6 +88,10 @@ class BattleEngine(object):
         """戦闘行動を開始する。1ラウンド分の処理。"""
         cw.cwpy.clear_selection()
 
+        if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+            self.end(f9=True)
+            return
+
         self._running = True
         self._ready = False
 
@@ -100,6 +104,10 @@ class BattleEngine(object):
 
         # ラウンドイベントスタート
         cw.cwpy.sdata.start_event(keynum=-self.round)
+
+        if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+            self.end(f9=True)
+            return
 
         # イベント結果の勝利・敗北チェック
         if self.check_defeat():
@@ -114,6 +122,9 @@ class BattleEngine(object):
             if member.actionend:
                 continue
             member.action()
+            if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+                self.end(f9=True)
+                return
             if not self._running:
                 return
 
@@ -124,6 +135,10 @@ class BattleEngine(object):
         # 行動内容のクリア
         for member in self.members:
             member.clear_action()
+
+        if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
+            self.end(f9=True)
+            return
 
         # 時間経過
         cw.cwpy.elapse_time()
@@ -152,6 +167,7 @@ class BattleEngine(object):
         cw.cwpy.sdata.reset_fcards()
 
         self._running = False
+        self._ready = True
 
         if f9:
             self.pre_battleareadata = None
