@@ -148,8 +148,8 @@ class YadoMoneyPanel(StatusBarPanel):
     def update_image(self):
         s = cw.cwpy.msgs["currency"] % (self.text)
 
-        if len(s) > 9:
-            s = s[-9::]
+        if len(s) > 10:
+            s = s[-10::]
 
         image = self.font.render(s, True, (255, 255, 255))
         rect = image.get_rect()
