@@ -593,11 +593,14 @@ class EventHandlerForMessageWindow(EventHandler):
         メッセージウィンドウを一時的に非表示にする。
         """
         if down:
-            cw.cwpy.clear_selection()
-            cw.cwpy.topgrp.remove_sprites_of_layer("message")
-            cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
-            if redraw:
-                cw.cwpy.draw()
+            if self.mwin.is_drawing:
+                self.mwin.draw_all()
+            else:
+                cw.cwpy.clear_selection()
+                cw.cwpy.topgrp.remove_sprites_of_layer("message")
+                cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
+                if redraw:
+                    cw.cwpy.draw()
         else:
             if not cw.cwpy.topgrp.get_sprites_from_layer("message"):
                 cw.cwpy.topgrp.add(self.mwin, layer="message")
