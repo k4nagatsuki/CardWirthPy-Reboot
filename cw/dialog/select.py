@@ -1450,7 +1450,6 @@ class PlayerSelect(Select):
                 rw = size[0] / (self.views / 2)
                 rh = size[1] / 2
                 dc.SetTextForeground(wx.BLACK)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
                 for i, header in enumerate(list):
                     # Image
                     path = cw.util.join_yadodir(header.imgpath)
@@ -1462,18 +1461,24 @@ class PlayerSelect(Select):
                     dc.DestroyClippingRegion()
 
                     # Name
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
                     s = header.name
                     w = dc.GetTextExtent(s)[0]
                     drawwitharound(dc, s, x + (rw - w) / 2, y + cw.wins(105))
                     # Level
+                    space = cw.wins(5)
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
                     s1 = cw.cwpy.msgs["character_level"]
-                    w1 = dc.GetTextExtent(s1)[0]
+                    w1, h1 = dc.GetTextExtent(s1)
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(17)))
                     s2 = str(header.level)
-                    w2 = dc.GetTextExtent(s2)[0]
-                    sx = x + (rw - (w1+cw.wins(5)+w2)) / 2
+                    w2, h2 = dc.GetTextExtent(s2)
+                    sx = x + (rw - (w1+cw.wins(5)+w2+space)) / 2
                     sy = y + cw.wins(120)
-                    drawwitharound(dc, s1, sx, sy)
-                    drawwitharound(dc, s2, sx + w1 + cw.wins(5), sy)
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                    drawwitharound(dc, s1, sx, sy + (h2-h1))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(17)))
+                    drawwitharound(dc, s2, sx + w1 + space + cw.wins(5), sy)
                     # Selected
                     if sindex + i == self.index:
                         bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["TARGET"])
