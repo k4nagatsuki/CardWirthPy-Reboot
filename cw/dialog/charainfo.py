@@ -74,6 +74,41 @@ class CharaInfo(wx.Dialog):
         # bind
         self._bind()
 
+        self.leftpagekeyid = wx.NewId()
+        self.rightpagekeyid = wx.NewId()
+        self.upkeyid = wx.NewId()
+        self.downkeyid = wx.NewId()
+        self.pageupkeyid = wx.NewId()
+        self.pagedownkeyid = wx.NewId()
+        self.homekeyid = wx.NewId()
+        self.endkeyid = wx.NewId()
+        self.enter = wx.NewId()
+        self.openinfo = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnUp, id=self.upkeyid)
+        self.Bind(wx.EVT_MENU, self.OnDown, id=self.downkeyid)
+        self.Bind(wx.EVT_MENU, self.OnPageUp, id=self.pageupkeyid)
+        self.Bind(wx.EVT_MENU, self.OnPageDown, id=self.pagedownkeyid)
+        self.Bind(wx.EVT_MENU, self.OnHome, id=self.homekeyid)
+        self.Bind(wx.EVT_MENU, self.OnEnd, id=self.endkeyid)
+        self.Bind(wx.EVT_MENU, self.OnEnter, id=self.enter)
+        self.Bind(wx.EVT_MENU, self.OnOpenInfo, id=self.openinfo)
+        seq = [
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_UP, self.upkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_DOWN, self.downkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_PAGEUP, self.pageupkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_PAGEDOWN, self.pagedownkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_HOME, self.homekeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_END, self.endkeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.enter),
+            (wx.ACCEL_CTRL, wx.WXK_RETURN, self.openinfo),
+        ]
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
+
     def _bind(self):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
@@ -83,6 +118,75 @@ class CharaInfo(wx.Dialog):
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def OnEnter(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if isinstance(page, CardPanel):
+            event = wx.PyCommandEvent(wx.wxEVT_RIGHT_UP, wx.ID_UP)
+            page.ProcessEvent(event)
+        else:
+            event = wx.PyCommandEvent(wx.wxEVT_LEFT_UP, wx.ID_UP)
+            page.ProcessEvent(event)
+
+    def OnOpenInfo(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if isinstance(page, CardPanel):
+            event = wx.PyCommandEvent(wx.wxEVT_LEFT_UP, wx.ID_UP)
+            page.ProcessEvent(event)
+
+    def OnUp(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if hasattr(page, "up"):
+            page.up()
+        elif isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            y = page.GetScrollPos(wx.VERTICAL)
+            page.Scroll(x, y - 1)
+
+    def OnPageUp(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            y = page.GetScrollPos(wx.VERTICAL)
+            page.Scroll(x, y - 10)
+
+    def OnHome(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            page.Scroll(x, 0)
+
+    def OnDown(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if hasattr(page, "down"):
+            page.down()
+        elif isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            y = page.GetScrollPos(wx.VERTICAL)
+            page.Scroll(x, y + 1)
+
+    def OnPageDown(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            y = page.GetScrollPos(wx.VERTICAL)
+            page.Scroll(x, y + 10)
+
+    def OnEnd(self, event):
+        page = self.notebook.GetPage(self.notebook.GetSelection())
+        if isinstance(page, wx.ScrolledWindow):
+            x = page.GetScrollPos(wx.HORIZONTAL)
+            page.Scroll(x, page.GetVirtualSize()[1])
+
+    def up(self):
+        x = self.GetScrollPos(wx.HORIZONTAL)
+        y = self.GetScrollPos(wx.VERTICAL)
+        self.Scroll(x, y - 1)
+
+    def down(self):
+        x = self.GetScrollPos(wx.HORIZONTAL)
+        y = self.GetScrollPos(wx.VERTICAL)
+        self.Scroll(x, y + 1)
 
     def OnMouseWheel(self, event):
         rect = self.GetClientRect()
@@ -606,8 +710,7 @@ class EditPanel(wx.Panel):
 
     def OnLeftUp(self, event):
         for header in self.headers:
-            if header.subrect.collidepoint(event.GetPosition()):
-                header.negaflag = False
+            if header.negaflag:
                 if header.type == 0:
                     # デザインを変更する
                     cw.cwpy.sounds["click"].play()
@@ -690,21 +793,59 @@ class EditPanel(wx.Panel):
 
     def OnMove(self, event):
         dc = wx.ClientDC(self)
-        dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
         mousepos = event.GetPosition()
 
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
                 if not header.negaflag:
                     header.negaflag = True
-                    dc.SetTextForeground(wx.RED)
-                    dc.DrawText(header.name, header.textpos[0], header.textpos[1])
-                    dc.SetTextForeground(wx.WHITE)
+                    self.draw_header(dc, header)
             elif header.negaflag:
                 header.negaflag = False
-                dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+                self.draw_header(dc, header)
         self.Refresh()
+
+    def draw_header(self, dc, header):
+        dc.SetTextForeground(wx.WHITE)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        if header.negaflag:
+            dc.SetTextForeground(wx.RED)
+            dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+            dc.SetTextForeground(wx.WHITE)
+        else:
+            dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+
+    def up(self):
+        if not self.headers:
+            return
+        dc = wx.ClientDC(self)
+        for i, header in enumerate(self.headers):
+            if header.negaflag:
+                header.negaflag = False
+                self.draw_header(dc, header)
+                header = self.headers[i-1]
+                header.negaflag = True
+                self.draw_header(dc, header)
+                return
+        header = self.headers[-1]
+        header.negaflag = True
+        self.draw_header(dc, header)
+
+    def down(self):
+        if not self.headers:
+            return
+        dc = wx.ClientDC(self)
+        for i, header in enumerate(self.headers):
+            if header.negaflag:
+                header.negaflag = False
+                self.draw_header(dc, header)
+                header = self.headers[(i+1) % len(self.headers)]
+                header.negaflag = True
+                self.draw_header(dc, header)
+                return
+        header = self.headers[0]
+        header.negaflag = True
+        self.draw_header(dc, header)
 
     def draw(self, update=False):
         if update:
@@ -907,14 +1048,16 @@ class StatusPanel(wx.ScrolledWindow):
         self.Refresh()
         return height + cw.wins(17)
 
-class SkillPanel(wx.Panel):
-    def __init__(self, parent, ccard):
+class CardPanel(wx.Panel):
+    def __init__(self, parent, ccard, pocket):
         wx.Panel.__init__(self, parent, -1, size=cw.wins((292, 200)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
         self.ccard = ccard
+        # 所持カードの種別
+        self.pocket = pocket
         # headers
         self.headers = []
         # bmp
@@ -936,11 +1079,11 @@ class SkillPanel(wx.Panel):
     def OnLeftUp(self, event):
         if not cw.cwpy.debug and not isinstance(self.ccard, cw.character.Player):
             # ホールド不可
-            self._open_cardinfo(event.GetPosition())
+            self._open_cardinfo()
             return
 
         for header in self.headers:
-            if header.subrect.collidepoint(event.GetPosition()):
+            if header.negaflag:
                 # ホールド状態切り替え(召喚獣以外)
                 dc = wx.ClientDC(self)
                 if header.penalty:
@@ -958,23 +1101,20 @@ class SkillPanel(wx.Panel):
                 self.Refresh()
                 return
 
-    def _open_cardinfo(self, mousepos):
+    def _open_cardinfo(self):
         for header in self.headers:
-            if header.subrect.collidepoint(mousepos):
-                header.negaflag = False
+            if header.negaflag:
                 cw.cwpy.sounds["click"].play()
                 dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-                for header in self.headers:
-                    header.negaflag = False
                 self.draw(True)
                 return True
         return False
 
     def OnRightUp(self, event):
-        if self._open_cardinfo(event.GetPosition()):
+        if self._open_cardinfo():
             return
         self.Parent.Parent.OnCancel(event)
 
@@ -994,21 +1134,59 @@ class SkillPanel(wx.Panel):
 
     def OnMove(self, event):
         dc = wx.ClientDC(self)
-        dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
         mousepos = event.GetPosition()
 
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
                 if not header.negaflag:
                     header.negaflag = True
-                    dc.SetTextForeground(wx.RED)
-                    dc.DrawText(header.name, header.textpos[0], header.textpos[1])
-                    dc.SetTextForeground(wx.WHITE)
+                    self.draw_header(dc, header)
             elif header.negaflag:
                 header.negaflag = False
-                dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+                self.draw_header(dc, header)
         self.Refresh()
+
+    def draw_header(self, dc, header):
+        dc.SetTextForeground(wx.WHITE)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        if header.negaflag:
+            dc.SetTextForeground(wx.RED)
+            dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+            dc.SetTextForeground(wx.WHITE)
+        else:
+            dc.DrawText(header.name, header.textpos[0], header.textpos[1])
+
+    def up(self):
+        if not self.headers:
+            return
+        dc = wx.ClientDC(self)
+        for i, header in enumerate(self.headers):
+            if header.negaflag:
+                header.negaflag = False
+                self.draw_header(dc, header)
+                header = self.headers[i-1]
+                header.negaflag = True
+                self.draw_header(dc, header)
+                return
+        header = self.headers[-1]
+        header.negaflag = True
+        self.draw_header(dc, header)
+
+    def down(self):
+        if not self.headers:
+            return
+        dc = wx.ClientDC(self)
+        for i, header in enumerate(self.headers):
+            if header.negaflag:
+                header.negaflag = False
+                self.draw_header(dc, header)
+                header = self.headers[(i+1) % len(self.headers)]
+                header.negaflag = True
+                self.draw_header(dc, header)
+                return
+        header = self.headers[0]
+        header.negaflag = True
+        self.draw_header(dc, header)
 
     def OnPaint(self, event):
         self.draw()
@@ -1028,7 +1206,7 @@ class SkillPanel(wx.Panel):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
 
         if not self.headers:
-            self.headers = self.ccard.cardpocket[cw.POCKET_SKILL]
+            self.headers = self.ccard.cardpocket[self.pocket]
 
         for index, header in enumerate(self.headers):
             if index < 5:
@@ -1039,75 +1217,7 @@ class SkillPanel(wx.Panel):
             # カード名
             s = header.name
             size = dc.GetTextExtent(s)
-
-            if header.negaflag:
-                dc.SetTextForeground(wx.RED)
-                dc.DrawText(s, pos[0], pos[1])
-                dc.SetTextForeground(wx.WHITE)
-            else:
-                dc.DrawText(s, pos[0], pos[1])
-
-            # rect
-            header.textpos = pos
-            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
-            # 適性値
-            key = "HAND%s" % (header.get_vocation_level(self.ccard))
-            bmp = cw.cwpy.rsrc.wxstones[key]
-            dc.DrawBitmap(bmp, pos[0]+cw.wins(85), pos[1]-cw.wins(1), True)
-            # 使用回数
-            key = "HAND%s" % (header.get_uselimit_level() + 5)
-            bmp = cw.cwpy.rsrc.wxstones[key]
-            dc.DrawBitmap(bmp, pos[0]+cw.wins(100), pos[1]-cw.wins(1), True)
-
-            # ホールドまたはペナルティ
-            if header.penalty:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
-            elif header.hold:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
-            else:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
-            dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
-
-        # カード枚数
-        level = self.ccard.level
-        n = len(self.headers)
-        maxn= level / 2 + 2 if level % 2 == 0 else level / 2 + 3
-        maxn = maxn if maxn <= 10 else 10
-        s = cw.cwpy.msgs["card_number"] % (n, maxn)
-        dc.DrawText(s, cw.wins(10), cw.wins(10))
-        dc.EndDrawing()
-
-        if update:
-            self.Refresh()
-
-class ItemPanel(SkillPanel):
-    def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self)
-            self.ClearBackground()
-        else:
-            dc = wx.PaintDC(self)
-
-        dc.BeginDrawing()
-        # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
-        # 所持アイテム
-        dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
-
-        if not self.headers:
-            self.headers = self.ccard.cardpocket[cw.POCKET_ITEM]
-
-        for index, header in enumerate(self.headers):
-            if index < 5:
-                pos = cw.wins((30, 30+17*index))
-            else:
-                pos = cw.wins((170, 30+17*(index-5)))
-
-            # カード名
-            s = header.name
-            size = dc.GetTextExtent(s)
-            if header.uselimit:
+            if header.type in ("ItemCard", "BeastCard") and header.uselimit:
                 s += "(%d)" % header.uselimit
 
             if header.negaflag:
@@ -1120,13 +1230,30 @@ class ItemPanel(SkillPanel):
             # rect
             header.textpos = pos
             header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
-            # ホールドまたはペナルティ
-            if header.penalty:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
-            elif header.hold:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
+            if header.type == "SkillCard":
+                # 適性値
+                key = "HAND%s" % (header.get_vocation_level(self.ccard))
+                bmp = cw.cwpy.rsrc.wxstones[key]
+                dc.DrawBitmap(bmp, pos[0]+cw.wins(85), pos[1]-cw.wins(1), True)
+                # 使用回数
+                key = "HAND%s" % (header.get_uselimit_level() + 5)
+                bmp = cw.cwpy.rsrc.wxstones[key]
+                dc.DrawBitmap(bmp, pos[0]+cw.wins(100), pos[1]-cw.wins(1), True)
+
+            if header.type == "BeastCard":
+                # 召喚獣アイコン
+                if header.attachment:
+                    bmp = cw.cwpy.rsrc.dialogs["STATUS10"]
+                else:
+                    bmp = cw.cwpy.rsrc.dialogs["STATUS11"]
             else:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
+                # ホールドまたはペナルティ
+                if header.penalty:
+                    bmp = cw.cwpy.rsrc.dialogs["STATUS7"]
+                elif header.hold:
+                    bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
+                else:
+                    bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
             dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
 
         # カード枚数
@@ -1140,72 +1267,22 @@ class ItemPanel(SkillPanel):
 
         if update:
             self.Refresh()
+
+class SkillPanel(CardPanel):
+    def __init__(self, parent, ccard):
+        CardPanel.__init__(self, parent, ccard, cw.POCKET_SKILL)
+
+class ItemPanel(CardPanel):
+    def __init__(self, parent, ccard):
+        CardPanel.__init__(self, parent, ccard, cw.POCKET_ITEM)
 
 class BeastPanel(SkillPanel):
+    def __init__(self, parent, ccard):
+        CardPanel.__init__(self, parent, ccard, cw.POCKET_BEAST)
+
     def OnLeftUp(self, event):
         # ホールド不可
-        self._open_cardinfo(event.GetPosition())
-
-    def draw(self, update=False):
-        if update:
-            dc = wx.ClientDC(self)
-            self.ClearBackground()
-        else:
-            dc = wx.PaintDC(self)
-
-        dc.BeginDrawing()
-        # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
-        # 所持召喚獣
-        dc.SetTextForeground(wx.WHITE)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
-
-        if not self.headers:
-            self.headers = self.ccard.cardpocket[cw.POCKET_BEAST]
-
-        # 召喚獣アイコン
-        for index, header in enumerate(self.headers):
-            if index < 5:
-                pos = cw.wins((30, 30+17*index))
-            else:
-                pos = cw.wins((170, 30+17*(index-5)))
-
-            # カード名
-            s = header.name
-            size = dc.GetTextExtent(s)
-            if header.uselimit:
-                s += "(%d)" % header.uselimit
-
-            if header.negaflag:
-                dc.SetTextForeground(wx.RED)
-                dc.DrawText(s, pos[0], pos[1])
-                dc.SetTextForeground(wx.WHITE)
-            else:
-                dc.DrawText(s, pos[0], pos[1])
-
-            # rect
-            header.textpos = pos
-            header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
-
-            # 召喚獣アイコン
-            if header.attachment:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS10"]
-            else:
-                bmp = cw.cwpy.rsrc.dialogs["STATUS11"]
-
-            dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
-
-        # カード枚数
-        level = self.ccard.level
-        n = len(self.headers)
-        maxn= (level + 2) / 4 if (level + 2) % 4 == 0 else (level + 2) / 4 + 1
-        maxn = maxn if maxn <= 10 else 10
-        s = cw.cwpy.msgs["card_number"] % (n, maxn)
-        dc.DrawText(s, cw.wins(10), cw.wins(10))
-        dc.EndDrawing()
-
-        if update:
-            self.Refresh()
+        self._open_cardinfo()
 
 def main():
     pass

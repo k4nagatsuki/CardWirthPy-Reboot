@@ -288,6 +288,8 @@ class ExtensionDialog(wx.Dialog):
         for btn in self.buttons:
             btn.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
             btn.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
+            btn.Bind(wx.EVT_SET_FOCUS, self.OnEnter)
+            btn.Bind(wx.EVT_KILL_FOCUS, self.OnLeave)
             self.Bind(wx.EVT_BUTTON, self.OnBotton, btn)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)

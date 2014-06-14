@@ -48,6 +48,19 @@ class CardInfo(wx.Dialog):
         # focus
         self.panel.SetFocusIgnoringChildren()
 
+        self.leftpagekeyid = wx.NewId()
+        self.rightpagekeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
+        seq = [
+            (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftpagekeyid),
+            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightpagekeyid),
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
+        ]
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
+
         if sys.platform <> "win32":
             # BUG: SetBackgroundColour()を呼ばないと色が変わってしまう(Gtk)
             self.toppanel.SetBackgroundColour(self.toppanel.GetBackgroundColour())

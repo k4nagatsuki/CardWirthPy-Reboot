@@ -54,6 +54,30 @@ class Select(wx.Dialog):
         # 初めてOnSelectBase()が呼ばれるようにする
         self._downbutton = -1
 
+        self.previd = wx.NewId()
+        self.nextid = wx.NewId()
+        self.leftkeyid = wx.NewId()
+        self.rightkeyid = wx.NewId()
+        self.left2keyid = wx.NewId()
+        self.right2keyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnPrevButton, id=self.previd)
+        self.Bind(wx.EVT_MENU, self.OnNextButton, id=self.nextid)
+        self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftkeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightkeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickLeft2Btn, id=self.left2keyid)
+        self.Bind(wx.EVT_MENU, self.OnClickRight2Btn, id=self.right2keyid)
+        seq = [
+            (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.previd),
+            (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.nextid),
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightkeyid),
+            (wx.ACCEL_CTRL|wx.ACCEL_ALT, wx.WXK_LEFT, self.left2keyid),
+            (wx.ACCEL_CTRL|wx.ACCEL_ALT, wx.WXK_RIGHT, self.right2keyid),
+        ]
+        self.accels = seq
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
+
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeft2Btn, self.left2btn)
@@ -70,6 +94,30 @@ class Select(wx.Dialog):
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMotion)
+
+        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        if buttonlist:
+            buttonlist[0].SetFocus()
+
+    def OnPrevButton(self, event):
+        focus = wx.Window.FindFocus()
+        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        if buttonlist:
+            if focus in buttonlist:
+                index = buttonlist.index(focus)
+                buttonlist[index-1].SetFocus()
+            else:
+                buttonlist[-1].SetFocus()
+
+    def OnNextButton(self, event):
+        focus = wx.Window.FindFocus()
+        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        if buttonlist:
+            if focus in buttonlist:
+                index = buttonlist.index(focus)
+                buttonlist[(index+1) % len(buttonlist)].SetFocus()
+            else:
+                buttonlist[0].SetFocus()
 
     def OnMotion(self, evt):
         self._update_mousepos()
@@ -955,6 +1003,28 @@ class PlayerSelect(Select):
         sizer.Add(self.sort, 0, wx.TOP, cw.wins(2))
         self.toppanel.SetSizer(sizer)
         self.toppanel.Layout()
+
+        seq = self.accels
+        self.sortkeydown = []
+        for i in xrange(0, 9):
+            sortkeydown = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
+            seq.append((wx.ACCEL_NORMAL, ord('1')+i, sortkeydown))
+            self.sortkeydown.append(sortkeydown)
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
+
+    def OnNumberKeyDown(self, event):
+        """
+        数値キー'1'～'9'までの押下を処理する。
+        CardControlではソート条件の変更を行う。
+        """
+        if self.sort.IsShown():
+            index = self.sortkeydown.index(event.GetId())
+            if index < self.sort.GetCount():
+                self.sort.SetSelection(index)
+                event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
+                self.ProcessEvent(event)
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化

@@ -48,12 +48,6 @@ class CardControl(wx.Dialog):
         self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 255)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
         self.toppanel.SetDoubleBuffered(True)
-        # smallleft
-        bmp = cw.cwpy.rsrc.buttons["LSMALL"]
-        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
-        # smallright
-        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
         # sort
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
         self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
@@ -66,6 +60,9 @@ class CardControl(wx.Dialog):
         if not sort:
             self.sort.Freeze()
             self.sort.Hide()
+        # smallleft
+        bmp = cw.cwpy.rsrc.buttons["LSMALL"]
+        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((115, 20)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
@@ -73,8 +70,12 @@ class CardControl(wx.Dialog):
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
             self.combo.Hide()
+        # smallright
+        bmp = cw.cwpy.rsrc.buttons["RSMALL"]
+        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
         # focus
         self.panel.SetFocusIgnoringChildren()
+        self.toppanel.SetFocusIgnoringChildren()
 
         self._drawlist = {}
         self._leftmark = None
@@ -107,19 +108,50 @@ class CardControl(wx.Dialog):
         self.upid = wx.NewId()
         self.downid = wx.NewId()
         self.returnkeyid = wx.NewId()
+        self.leftpagekeyid = wx.NewId()
+        self.rightpagekeyid = wx.NewId()
+        self.uptargkeyid = wx.NewId()
+        self.downtargkeyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.leftkeyid)
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.rightkeyid)
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.returnkeyid)
         self.Bind(wx.EVT_MENU, self.OnUp, id=self.upid)
         self.Bind(wx.EVT_MENU, self.OnDown, id=self.downid)
-        accel = wx.AcceleratorTable([
+        self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickLeftBtn2, id=self.uptargkeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickRightBtn2, id=self.downtargkeyid)
+        seq = [
             (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_UP, self.upid),
             (wx.ACCEL_NORMAL, wx.WXK_DOWN, self.downid),
             (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.returnkeyid),
-        ])
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
+            (wx.ACCEL_CTRL, wx.WXK_UP, self.uptargkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downtargkeyid),
+        ]
+        self.sortkeydown = []
+        for i in xrange(0, 9):
+            sortkeydown = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
+            seq.append((wx.ACCEL_NORMAL, ord('1')+i, sortkeydown))
+            self.sortkeydown.append(sortkeydown)
+        accel = wx.AcceleratorTable(seq)
         self.SetAcceleratorTable(accel)
+
+    def OnNumberKeyDown(self, event):
+        """
+        数値キー'1'～'9'までの押下を処理する。
+        CardControlではソート条件の変更を行う。
+        """
+        if self.sort.IsShown():
+            index = self.sortkeydown.index(event.GetId())
+            if index < self.sort.GetCount():
+                self.sort.SetSelection(index)
+                event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
+                self.ProcessEvent(event)
 
     def _do_layout(self, sizer_leftbar):
         """
