@@ -1550,6 +1550,7 @@ class Character(object):
             cw.cwpy.ydata.changed()
         self.paralyze += value
         self.paralyze = cw.util.numwrap(self.paralyze, 0, 40)
+        self.set_mentality("Normal", 0)
         self.data.edit("Property/Status/Paralyze", str(self.paralyze))
         self.adjust_action()
 
@@ -1571,7 +1572,7 @@ class Character(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        if self.is_unconscious():
+        if self.is_unconscious() or self.is_paralyze():
             name = "Normal"
             value = 0
         value = cw.util.numwrap(value, 0, 999)
