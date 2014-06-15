@@ -1961,6 +1961,20 @@ class CWPy(_Singleton, threading.Thread):
                 card.group.remove(card)
             self.inusecards = []
 
+    def clear_inusecardimgfromheader(self, header):
+        """表示中の使用中カードの中にheaderのものが
+        含まれていた場合は削除。
+        """
+        for card in list(self.inusecards):
+            if card.header == header:
+                if card.user:
+                    self.clear_inusecardimg(card.user)
+                    cw.animation.animate_sprite(card.user, "hide")
+                    cw.animation.animate_sprite(card.user, "deal")
+                else:
+                    card.group.remove(card)
+                    self.inusecards.remove(card)
+
     def set_guardcardimg(self, owner, header):
         """PlayerCardの前に回避・抵抗ボーナスカードの画像を表示。"""
         if not self.get_guardcardimg():
@@ -2388,6 +2402,8 @@ class CWPy(_Singleton, threading.Thread):
             owner.data.remove(path, header.carddata)
             # 戦闘中だった場合はデッキからも削除
             owner.deck.remove(owner, header)
+            if target <> owner:
+                self.clear_inusecardimgfromheader(header)
 
             # 行動予定に入っていればキャンセル
             action = owner.actiondata
