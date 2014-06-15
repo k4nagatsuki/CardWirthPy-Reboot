@@ -62,9 +62,28 @@ class Text(wx.Dialog):
         self.textctrl.Enable(bool(self.list2))
         if self.list2:
             self.textctrl.Show()
+            self.combo.Enable()
             self.Layout()
         else:
             self.textctrl.Hide()
+            self.combo.Disable()
+
+        self.leftpagekeyid = wx.NewId()
+        self.rightpagekeyid = wx.NewId()
+        self.upkeyid = wx.NewId()
+        self.downkeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnClickLeftBtn, id=self.leftpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
+        self.Bind(wx.EVT_MENU, self.OnUp, id=self.upkeyid)
+        self.Bind(wx.EVT_MENU, self.OnDown, id=self.downkeyid)
+        seq = [
+            (wx.ACCEL_CTRL, wx.WXK_LEFT, self.leftpagekeyid),
+            (wx.ACCEL_CTRL, wx.WXK_RIGHT, self.rightpagekeyid),
+            (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
+        ]
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
 
     def _set_text(self, value):
         # ZIPアーカイブのファイルエンコーディングと
@@ -105,9 +124,11 @@ class Text(wx.Dialog):
         self.textctrl.Enable(bool(self.list2))
         if self.list2:
             self.textctrl.Show()
+            self.combo.Enable()
             self.Layout()
         else:
             self.textctrl.Hide()
+            self.combo.Disable()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -133,9 +154,32 @@ class Text(wx.Dialog):
         self.textctrl.Enable(bool(self.list2))
         if self.list2:
             self.textctrl.Show()
+            self.combo.Enable()
             self.Layout()
         else:
             self.textctrl.Hide()
+            self.combo.Disable()
+
+    def OnUp(self, event):
+        if self.combo.GetCount() <= 1:
+            return
+        cw.cwpy.sounds["page"].play()
+        index = self.combo.GetSelection()
+        if index <= 0:
+            self.combo.SetSelection(self.combo.GetCount()-1)
+        else:
+            self.combo.SetSelection(index-1)
+        event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
+        self.ProcessEvent(event)
+
+    def OnDown(self, event):
+        if self.combo.GetCount() <= 1:
+            return
+        cw.cwpy.sounds["page"].play()
+        index = self.combo.GetSelection()
+        self.combo.SetSelection((index+1) % self.combo.GetCount())
+        event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())
+        self.ProcessEvent(event)
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self.toppanel)
