@@ -10,6 +10,7 @@ import time
 import threading
 import struct
 import zipfile
+import lhafile
 import operator
 import threading
 import hashlib
@@ -1035,6 +1036,17 @@ def rename_file(path, dstpath):
 #　ZIPファイル関連
 #-------------------------------------------------------------------------------
 
+class _LhafileWrapper(lhafile.Lhafile):
+    def __init__(self, path, mode):
+        lhafile.Lhafile.__init__(self, path)
+
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+    def close(self):
+        pass
+
 def zip_file(path, mode):
     """zipfile.ZipFileのインスタンスを生成する。
     FIXME: Python 2.7のzipfile.ZipFileはアーカイブ内の
@@ -1043,12 +1055,15 @@ def zip_file(path, mode):
     正しいファイル名が得られなくなってしまう。
     まったくスレッドセーフではない悪い方法だが、
     それを回避するには一時的にos.sepを'/'にして凌ぐしかない。"""
-    sep = os.sep
-    os.sep = "/"
-    try:
-        return zipfile.ZipFile(path, mode)
-    finally:
-        os.sep = sep
+    if path.endswith(".lzh"):
+        return _LhafileWrapper(path, mode)
+    else:
+        sep = os.sep
+        os.sep = "/"
+        try:
+            return zipfile.ZipFile(path, mode)
+        finally:
+            os.sep = sep
 
 def compress_zip(path, zpath):
     """pathのデータをzpathで指定したzipファイルに圧縮する。
@@ -1132,6 +1147,7 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
     return dstdir
 
 def decode_zipname(name):
+    name = name.replace('\\', '/')
     if not isinstance(name, unicode):
         try:
             name = name.decode(cw.MBCS)

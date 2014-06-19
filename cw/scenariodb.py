@@ -302,7 +302,10 @@ class Scenariodb(object):
 
             lname = name.lower()
             if not path in dbpaths and os.path.isfile(ltarg)\
-                    and (lname.endswith(".wsn") or lname.endswith(".zip") or lname.endswith(".cab")):
+                    and (lname.endswith(".wsn") or\
+                         lname.endswith(".zip") or\
+                         lname.endswith(".lzh") or\
+                         lname.endswith(".cab")):
                 header = self._search_path(path)
 
                 if header:
@@ -477,7 +480,10 @@ def get_scenariopaths(path):
                 yield file
         else:
             lfile = ltarg.lower()
-            if lfile.endswith(".wsn") or lfile.endswith(".zip") or lfile.endswith(".cab"):
+            if lfile.endswith(".wsn") or\
+               lfile.endswith(".zip") or\
+               lfile.endswith(".lzh") or\
+               lfile.endswith(".cab"):
                 yield file
 
 def main():

@@ -2386,7 +2386,10 @@ class ScenarioSelect(Select):
             return os.path.exists(spath)
         else:
             lpath = ltarg.lower()
-            return lpath.endswith(".wsn") or lpath.endswith(".zip") or lpath.endswith(".cab")
+            return lpath.endswith(".wsn") or\
+                   lpath.endswith(".zip") or\
+                   lpath.endswith(".lzh") or\
+                   lpath.endswith(".cab")
 
     def get_texts(self):
         """

@@ -180,6 +180,9 @@ CardWirthPyは以下のPythonの外部モジュールを使用しています。
 [Python for Windows extensions Build 219](http://sourceforge.net/projects/pywin32/)
  : License: Python Software Foundation License
 
+[lhafile](http://trac.neotitans.net/wiki/lhafile)
+ : License: 修正BSDライセンス
+
 CardWirthPyは以下のMicrosoftのライブラリを同梱しています。
 
 [gdiplus.dll](http://www.microsoft.com/downloads/details.aspx?familyid=6A63AB9C-DF12-4D41-933C-BE590FEAA05A&displaylang=en)
