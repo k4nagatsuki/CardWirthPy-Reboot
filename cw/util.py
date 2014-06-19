@@ -241,7 +241,7 @@ class SoundInterface(object):
     def play(self, from_scenario=False):
         if self._sound:
             if cw.cwpy.setting.play_sound:
-                volume = cw.cwpy.setting.vol_sound * cw.cwpy.music.mastervolume
+                volume = (cw.cwpy.setting.vol_sound * cw.cwpy.music.mastervolume) / 100.0
             else:
                 volume = 0
 
