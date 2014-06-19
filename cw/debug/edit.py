@@ -406,7 +406,7 @@ class CouponEditDialog(wx.Dialog):
             for list in self.coupons:
                 for i, coupon in enumerate(list):
                     if coupon[0] == oldname:
-                        list = (newname, coupon[1])
+                        list[i] = (newname, coupon[1])
                         break
         else:
             # 誰か一人
