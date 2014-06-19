@@ -1110,7 +1110,7 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
     dstdir = dupcheck_plus(dstdir, False)
 
     for zname in z.namelist():
-        name = decode_zipname(zname)
+        name = decode_zipname(zname).replace('\\', '/')
 
         if name.endswith("/"):
             name = name.rstrip("/")
@@ -1147,7 +1147,6 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
     return dstdir
 
 def decode_zipname(name):
-    name = name.replace('\\', '/')
     if not isinstance(name, unicode):
         try:
             name = name.decode(cw.MBCS)
