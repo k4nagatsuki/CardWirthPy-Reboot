@@ -1409,6 +1409,7 @@ class CWPy(_Singleton, threading.Thread):
             cw.animation.animate_sprites(pcards + seq, "shiftdown")
 
         self.is_showparty = False
+        self.selection = None
         self.input(True)
         self.event.refresh_showpartytools()
 

@@ -477,19 +477,16 @@ class Frame(wx.Frame):
         self._cardpocket_impl("CARDPOCKET")
 
     def _cardpocket_impl(self, callname):
-        if cw.cwpy.selection:
-            areaid = self.change_cardcontrolarea()
-            dlg = cw.dialog.cardcontrol.CardHolder(self, callname, areaid=areaid)
-            self.move_dlg(dlg, (0, -63))
-    
-            if dlg.ShowModal() == wx.ID_OK:
-                if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
-                    cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
-    
-            else:
-                cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+        areaid = self.change_cardcontrolarea()
+        dlg = cw.dialog.cardcontrol.CardHolder(self, callname, areaid=areaid)
+        self.move_dlg(dlg, (0, -63))
+
+        if dlg.ShowModal() == wx.ID_OK:
+            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
+                cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
+
         else:
-            dlg = None
+            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
         self.kill_dlg(dlg)
 
