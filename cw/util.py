@@ -93,7 +93,7 @@ class MusicInterface(object):
                             cw.util.print_ex()
 
                     if type == 2:
-                        volume = self._get_volumevalue()
+                        volume = self._get_volumevalue(fpath)
                         try:
                             cw.bassplayer.play_bgm(fpath, volume)
                             self._bass = True
@@ -113,7 +113,7 @@ class MusicInterface(object):
                                 pygame.mixer.quit()
                                 encoding = sys.getfilesystemencoding()
                                 self._movie = pygame.movie.Movie(fpath.encode(encoding))
-                                self._movie.set_volume(self._get_volumevalue())
+                                self._movie.set_volume(self._get_volumevalue(fpath))
                                 self.movie_scr = pygame.Surface(cw.wins(self._movie.get_size())).convert()
                                 rect = cw.wins(pygame.Rect((0, 0), self._movie.get_size()))
                                 self._movie.set_display(self.movie_scr, rect)
@@ -177,11 +177,11 @@ class MusicInterface(object):
         path = join_paths(cw.cwpy.setting.skindir, "Bgm", path)
         load_bgm(path)
 
-    def _get_volumevalue(self):
+    def _get_volumevalue(self, fpath):
         if not cw.cwpy.setting.play_bgm:
             return 0
 
-        ext = cw.util.splitext(self.path)[1].lower()
+        ext = cw.util.splitext(fpath)[1].lower()
 
         if ext == ".mid" or ext == ".midi":
             volume = cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_bgm
@@ -199,7 +199,7 @@ class MusicInterface(object):
             return
 
         if volume is None:
-            volume = self._get_volumevalue()
+            volume = self._get_volumevalue(self.fpath)
 
         assert threading.currentThread() == cw.cwpy
         if self._bass:
