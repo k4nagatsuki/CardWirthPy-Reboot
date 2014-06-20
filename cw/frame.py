@@ -452,27 +452,27 @@ class Frame(wx.Frame):
 
     def OnBACKPACK(self, event):
         if cw.cwpy.selection:
-            dlg = None
-        else:
             areaid = self.change_cardcontrolarea()
             dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", areaid=areaid)
             self.move_dlg(dlg, (0, -63))
     
             if not dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+        else:
+            dlg = None
 
         self.kill_dlg(dlg)
 
     def OnSTOREHOUSE(self, event):
         if cw.cwpy.selection:
-            dlg = None
-        else:
             areaid = self.change_cardcontrolarea()
             dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", areaid=areaid)
             self.move_dlg(dlg, (0, -63))
     
             if not dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+        else:
+            dlg = None
 
         self.kill_dlg(dlg)
 
@@ -484,8 +484,6 @@ class Frame(wx.Frame):
 
     def _cardpocket_impl(self, callname):
         if cw.cwpy.selection:
-            dlg = None
-        else:
             areaid = self.change_cardcontrolarea()
             dlg = cw.dialog.cardcontrol.CardHolder(self, callname, areaid=areaid)
             self.move_dlg(dlg, (0, -63))
@@ -496,6 +494,8 @@ class Frame(wx.Frame):
     
             else:
                 cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+        else:
+            dlg = None
 
         self.kill_dlg(dlg)
 
