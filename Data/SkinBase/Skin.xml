@@ -541,8 +541,7 @@
     <Message key="regulate_level_title">レベル調節</Message>
     <Message key="card_number">カード枚数 %s / %s</Message>
     <Message key="insufficiency_title">不足データの補填</Message>
-    <Message key="insufficiency_message">次の冒険者には必要なデータが不足しています。次の項目
-を入力し、決定ボタンを押してください。</Message>
+    <Message key="insufficiency_message">次の冒険者には必要なデータが不足しています。次の項目を入力し、決定ボタンを押してください。</Message>
     <Message key="select_member_title">宿帳を開く</Message>
     <Message key="album">アルバム</Message>
     <Message key="confirm_delete_character">冒険者%sを削除します。
