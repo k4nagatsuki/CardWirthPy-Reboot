@@ -451,22 +451,28 @@ class Frame(wx.Frame):
         self.kill_dlg(dlg)
 
     def OnBACKPACK(self, event):
-        areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", areaid=areaid)
-        self.move_dlg(dlg, (0, -63))
-
-        if not dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+        if cw.cwpy.selection:
+            dlg = None
+        else:
+            areaid = self.change_cardcontrolarea()
+            dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", areaid=areaid)
+            self.move_dlg(dlg, (0, -63))
+    
+            if not dlg.ShowModal() == wx.ID_OK:
+                cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
         self.kill_dlg(dlg)
 
     def OnSTOREHOUSE(self, event):
-        areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", areaid=areaid)
-        self.move_dlg(dlg, (0, -63))
-
-        if not dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+        if cw.cwpy.selection:
+            dlg = None
+        else:
+            areaid = self.change_cardcontrolarea()
+            dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", areaid=areaid)
+            self.move_dlg(dlg, (0, -63))
+    
+            if not dlg.ShowModal() == wx.ID_OK:
+                cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
         self.kill_dlg(dlg)
 
@@ -477,16 +483,19 @@ class Frame(wx.Frame):
         self._cardpocket_impl("CARDPOCKET")
 
     def _cardpocket_impl(self, callname):
-        areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, callname, areaid=areaid)
-        self.move_dlg(dlg, (0, -63))
-
-        if dlg.ShowModal() == wx.ID_OK:
-            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
-                cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
-
+        if cw.cwpy.selection:
+            dlg = None
         else:
-            cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
+            areaid = self.change_cardcontrolarea()
+            dlg = cw.dialog.cardcontrol.CardHolder(self, callname, areaid=areaid)
+            self.move_dlg(dlg, (0, -63))
+    
+            if dlg.ShowModal() == wx.ID_OK:
+                if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
+                    cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
+    
+            else:
+                cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
         self.kill_dlg(dlg)
 

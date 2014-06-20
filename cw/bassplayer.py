@@ -32,13 +32,13 @@ _soundstream1 = 0
 _soundstream2 = 0
 
 if sys.platform == "win32":
-    SYNCPROC = WINFUNCTYPE(None, c_int, c_int, c_int, c_void_p)
+    SYNCPROC = WINFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
 else:
-    SYNCPROC = CFUNCTYPE(None, c_int, c_int, c_int, c_void_p)
+    SYNCPROC = CFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
 
 def _cc111loop(handle, channel, data, pos):
     """CC#111の位置へシークし、再び演奏を始める。"""
-    _bass.BASS_ChannelSetPosition(channel, c_longlong(pos), BASS_POS_BYTE)
+    _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
 CC111LOOP = SYNCPROC(_cc111loop)
 
 def is_alivable():
@@ -143,7 +143,7 @@ def _play(file, volume, loop):
                 param = bassMidiEvent[1]
                 chan = bassMidiEvent[2] # 使用しない
                 tick = bassMidiEvent[3] # 使用しない
-                pos = bassMidiEvent[4]
+                pos = c_int(bassMidiEvent[4])
                 if param == CC111: # CC#111があったのでここでループする
                     _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END, c_longlong(0), CC111LOOP, pos)
                     break
