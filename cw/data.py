@@ -1287,6 +1287,7 @@ class YadoData(object):
 
         cw.cwpy.statusbar.change(False)
         cw.cwpy.draw()
+        cw.cwpy.ydata.party._loading = False
         return members
 
     def create_advheader(self, path="", album=False, element=None):

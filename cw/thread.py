@@ -2165,7 +2165,6 @@ class CWPy(_Singleton, threading.Thread):
             self.change_area(areaid, bginhrt=False)
             self.draw()
         elif newparty:
-            self.is_showparty = False
             for i, e in enumerate(self.ydata.party.members):
                 pos_noscale = (9 + 95 * i + 9 * i, 285)
                 pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)

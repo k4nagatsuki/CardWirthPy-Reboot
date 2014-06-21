@@ -1036,6 +1036,7 @@ class PlayerSelect(Select):
             self._disable_btn()
             self.newbtn.Enable()
             self.closebtn.Enable()
+            self.exbtn.Enable()
         elif len(self.list) <= self.views:
             self._enable_btn()
             self.rightbtn.Disable()
@@ -1283,13 +1284,19 @@ class PlayerSelect(Select):
         if self._processing:
             return
         cw.cwpy.sounds["click"].play()
-        name = self.list[self.index].name
-        title = cw.cwpy.msgs["extension_title"] % (name)
-        items = [
-            (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer),
-            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer),
-            (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
-        ]
+        if self.list:
+            name = self.list[self.index].name
+            title = cw.cwpy.msgs["extension_title"] % (name)
+            items = [
+                (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer),
+                (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer),
+                (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
+            ]
+        else:
+            title = cw.cwpy.msgs["extension"]
+            items = [
+                (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
+            ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
