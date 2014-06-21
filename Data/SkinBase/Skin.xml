@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Skin dataVersion="4">
+<Skin dataVersion="5">
   <Property>
     <Name></Name>
     <Type></Type>
@@ -614,5 +614,20 @@
 
 #Iはレベルアップした！
 </Message>
+    <Message key="select_party_record">編成記録</Message>
+    <Message key="select_party_record_description">現在のパーティ編成を記録することができます。また、記録を元にしたパーティの再結成もここから行います。</Message>
+    <Message key="new_party_record">&lt;新規記録&gt;</Message>
+    <Message key="party_save">記録</Message>
+    <Message key="party_restore">再結成</Message>
+    <Message key="adventurers_team_record">Recorded Adventurer's Team</Message>
+    <Message key="backpack_record">所有カード</Message>
+    <Message key="delete_party_record">%sの記録を削除します。
+よろしいですか？</Message>
+    <Message key="overwrite_party_record">現在のパーティを%sの記録に上書きします。
+よろしいですか？</Message>
+    <Message key="save_party_record">現在のパーティの情報を記録します。
+よろしいですか？</Message>
+    <Message key="restore_party">現在のパーティを解散して%sを再結成します。
+よろしいですか？</Message>
   </Messages>
 </Skin>

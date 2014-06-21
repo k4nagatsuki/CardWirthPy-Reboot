@@ -238,6 +238,19 @@ $indent <Backpack>$backpack
 $indent </Backpack>
 $indent</Party>"""
 
+PartyRecord = """$indent<PartyRecord>
+$indent <Property>
+$indent  <Name>$name</Name>
+$indent  <Money>$money</Money>
+$indent  <Members>$members
+$indent  </Members>
+$indent </Property>
+$indent <BackpackRecord>$backpack
+$indent </BackpackRecord>
+$indent</PartyRecord>"""
+
+CardRecord = """$indent<CardRecord name="$name" desc="$desc" author="$author" scenario="$scenario" uselimit="$uselimit" />"""
+
 SkillCard = """$indent<SkillCard>
 $indent <Property>
 $indent  <Id>$id</Id>

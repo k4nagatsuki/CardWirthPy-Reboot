@@ -44,8 +44,9 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
             cw.cwpy.events = pygame.event.get()
             cw.cwpy.eventhandler.run()
 
-    cw.cwpy.input(inputonly=True)
-    cw.cwpy.eventhandler.run()
+    if not clearevent:
+        cw.cwpy.input(inputonly=True)
+        cw.cwpy.eventhandler.run()
 
     if skip:
         cw.cwpy.draw()
@@ -110,8 +111,9 @@ def animate_sprites2(sprandanimes, clearevent=True):
                 animating = True
                 break
 
-    cw.cwpy.input(inputonly=True)
-    cw.cwpy.eventhandler.run()
+    if not clearevent:
+        cw.cwpy.input(inputonly=True)
+        cw.cwpy.eventhandler.run()
 
     if skip:
         cw.cwpy.draw()

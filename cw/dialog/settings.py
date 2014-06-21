@@ -48,6 +48,9 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.makeExpandInfo()
             self.pane_gene.cb_smoothexpand.SetValue(True)
             self.pane_gene.sc_initmoneyamount.SetValue(4000)
+            self.pane_gene.cb_autosavepartyrecord.SetValue(True)
+            self.pane_gene.cb_overwritepartyrecord.SetValue(True)
+            self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
             self.pane_draw.sl_deal.SetValue(6)
@@ -106,6 +109,10 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.store_skinoneachbase = value
         value = self.pane_gene.sc_initmoneyamount.GetValue()
         cw.cwpy.setting.initmoneyamount = value
+        value = self.pane_gene.cb_autosavepartyrecord.GetValue()
+        cw.cwpy.setting.autosave_partyrecord = value
+        value = self.pane_gene.cb_overwritepartyrecord.GetValue()
+        cw.cwpy.setting.overwrite_partyrecord = value
 
         # 拡大倍率
         value = self.pane_gene.cb_smoothexpand.GetValue()
@@ -387,6 +394,14 @@ class GeneralSettingPanel(wx.Panel):
         self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(80, -1), min=0, max=999999)
         self.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount)
 
+        self.cb_autosavepartyrecord = wx.CheckBox(
+            self, -1, u"解散時、自動的にパーティ情報を記録する")
+        self.cb_autosavepartyrecord.SetValue(cw.cwpy.setting.autosave_partyrecord)
+        self.cb_overwritepartyrecord = wx.CheckBox(
+            self, -1, u"自動記録時、同名のパーティ記録へ上書きする")
+        self.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord)
+        self.cb_overwritepartyrecord.Enable(cw.cwpy.setting.autosave_partyrecord)
+
         self._do_layout()
         self._bind()
 
@@ -395,6 +410,7 @@ class GeneralSettingPanel(wx.Panel):
         self.ch_skin.Bind(wx.EVT_CHOICE, self.OnSkinChoice)
         self.sl_expand.Bind(wx.EVT_SLIDER, self.OnExpandChange)
         self.cb_fullscreen.Bind(wx.EVT_CHECKBOX, self.OnExpandChange)
+        self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
 
     ##def OnDebugCheck(self, event):
     ##    if cw.cwpy.is_playingscenario():
@@ -426,6 +442,9 @@ class GeneralSettingPanel(wx.Panel):
     def OnExpandChange(self, event):
         self.makeExpandInfo()
 
+    def OnAutoSavePartyRecord(self, event):
+        self.cb_overwritepartyrecord.Enable(self.cb_autosavepartyrecord.GetValue())
+
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
@@ -455,9 +474,13 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode.Add(self.cb_smoothexpand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
 
-        bsizer_party = wx.StaticBoxSizer(self.box_party, wx.HORIZONTAL)
-        bsizer_party.Add(self.st_initmoneyamount, 0, wx.ALL|wx.CENTER, 3)
-        bsizer_party.Add(self.sc_initmoneyamount, 0, wx.TOP|wx.BOTTOM|wx.RIGHT|wx.CENTER, 3)
+        bsizer_party = wx.StaticBoxSizer(self.box_party, wx.VERTICAL)
+        bsizer_partymoney = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_partymoney.Add(self.st_initmoneyamount, 0, wx.RIGHT|wx.CENTER, 3)
+        bsizer_partymoney.Add(self.sc_initmoneyamount, 0, wx.CENTER, 3)
+        bsizer_party.Add(bsizer_partymoney, 0, wx.ALL, 3)
+        bsizer_party.Add(self.cb_autosavepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_party.Add(self.cb_overwritepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM|wx.EXPAND, 5)

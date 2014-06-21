@@ -943,6 +943,7 @@ class PlayerSelect(Select):
     def __init__(self, parent):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_member_title"])
+        self._processing = False
         # 冒険者情報
         self.list = cw.cwpy.ydata.standbys
         self.isalbum = False
@@ -1019,6 +1020,9 @@ class PlayerSelect(Select):
         数値キー'1'～'9'までの押下を処理する。
         CardControlではソート条件の変更を行う。
         """
+        if self._processing:
+            return
+
         if self.sort.IsShown():
             index = self.sortkeydown.index(event.GetId())
             if index < self.sort.GetCount():
@@ -1048,6 +1052,8 @@ class PlayerSelect(Select):
             self.addbtn.Disable()
 
     def OnSort(self, event):
+        if self._processing:
+            return
         if self.isalbum:
             return
 
@@ -1076,10 +1082,14 @@ class PlayerSelect(Select):
         # 一覧表示の場合はダブルクリックで編入
         if self.views <= 1 or not self.list or len(cw.cwpy.get_pcards()) == 6:
             return
+        if self._processing:
+            return
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_ADD)
         self.ProcessEvent(btnevent)
 
     def OnMouseWheel(self, event):
+        if self._processing:
+            return
         if self.sort and self.sort.GetRect().Contains(event.GetPosition()):
             index = self.sort.GetSelection()
             count = self.sort.GetCount()
@@ -1114,6 +1124,8 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickLeftBtn(self, evt):
+        if self._processing:
+            return
         if self.views == 1 or evt.GetEventObject() <> self.leftbtn or len(self.list) <= self.views:
             Select.OnClickLeftBtn(self, evt)
             return
@@ -1124,6 +1136,8 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickLeft2Btn(self, evt):
+        if self._processing:
+            return
         if self.views == 1 or evt.GetEventObject() <> self.left2btn or len(self.list) <= self.views:
             Select.OnClickLeft2Btn(self, evt)
             return
@@ -1137,6 +1151,8 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickRightBtn(self, evt):
+        if self._processing:
+            return
         if self.views == 1 or evt.GetEventObject() <> self.rightbtn or len(self.list) <= self.views:
             Select.OnClickRightBtn(self, evt)
             return
@@ -1147,6 +1163,8 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnClickRight2Btn(self, evt):
+        if self._processing:
+            return
         if self.views == 1 or evt.GetEventObject() <> self.right2btn or len(self.list) <= self.views:
             Select.OnClickRight2Btn(self, evt)
             return
@@ -1160,6 +1178,8 @@ class PlayerSelect(Select):
         self.draw(True)
 
     def OnSelect(self, event):
+        if self._processing:
+            return
         if self.views == 1:
             # 一人だけ表示している場合は編入
             if not self.list or len(cw.cwpy.get_pcards()) == 6:
@@ -1183,6 +1203,8 @@ class PlayerSelect(Select):
                 self.draw(True)
 
     def OnClickNewBtn(self, event):
+        if self._processing:
+            return
         cw.cwpy.sounds["click"].play()
         if cw.cwpy.setting.debug:
             dlg = cw.debug.charaedit.CharacterEditDialog(self, create=True)
@@ -1202,10 +1224,27 @@ class PlayerSelect(Select):
 
         dlg.Destroy()
 
+    def get_selected(self):
+        if self.list:
+            return self.list[self.index]
+        else:
+            return None
+
+    def update_standbys(self, selected):
+        if selected and selected in self.list:
+            self.index = self.list.index(selected)
+        else:
+            if len(self.list):
+                self.index %= len(self.list)
+            else:
+                self.index = 0
+        self.enable_btn()
+        self.draw(True)
+
     def OnClickAddBtn(self, event):
-        # カード表示中の場合は処理中止
-        if cw.cwpy.is_dealing():
+        if self._processing:
             return
+        self._processing = True
 
         cw.cwpy.sounds["harvest"].play()
         header = self.list[self.index]
@@ -1218,11 +1257,16 @@ class PlayerSelect(Select):
                 else:
                     # 追加できなかった
                     cw.cwpy.ydata.standbys.insert(index, header)
+                    def func(panel):
+                        if panel:
+                            panel._processing = False
+                    cw.cwpy.frame.exec_func(func, panel)
                     return
             else:
                 cw.cwpy.ydata.create_party(header, chgarea=False)
             def func(panel):
                 if panel:
+                    panel._processing = False
                     if len(panel.list):
                         panel.index %= len(panel.list)
                     else:
@@ -1236,12 +1280,15 @@ class PlayerSelect(Select):
         """
         拡張。
         """
+        if self._processing:
+            return
         cw.cwpy.sounds["click"].play()
         name = self.list[self.index].name
         title = cw.cwpy.msgs["extension_title"] % (name)
         items = [
             (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer),
+            (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
@@ -1330,7 +1377,16 @@ class PlayerSelect(Select):
 
         dlg.Destroy()
 
+    def select_partyrecord(self):
+        cw.cwpy.sounds["click"].play()
+        dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
+        self.Parent.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
+
     def OnClickInfoBtn(self, event):
+        if self._processing:
+            return
         cw.cwpy.sounds["click"].play()
         dlg = charainfo.StandbyCharaInfo(self, self.list, self.index, self.update_character)
         self.Parent.move_dlg(dlg)
@@ -1350,6 +1406,8 @@ class PlayerSelect(Select):
         cw.cwpy.exec_func(func)
 
     def OnClickViewBtn(self, event):
+        if self._processing:
+            return
         cw.cwpy.sounds["equipment"].play()
         if self.views == 1:
             self.views = 10

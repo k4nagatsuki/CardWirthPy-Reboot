@@ -1391,7 +1391,6 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             seq.insert(-1, char)
             asciicnt = 0
             wraped = True
-            wrapafter = False
         # 改行記号
         elif char == "\n":
             if not wrapafter:

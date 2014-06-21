@@ -942,6 +942,10 @@ class YadoData(object):
         self.storehouse = self.yadodb.get_cards()
         self.sort_storehouse()
 
+        # パーティ記録
+        self.partyrecord = self.yadodb.get_partyrecord()
+        self.sort_partyrecord()
+
         self.yadodb.close()
 
         # 現在選択中のパーティをセット
@@ -1145,6 +1149,146 @@ class YadoData(object):
         cw.util.sort_by_attr(self.partys, "name")
         return header
 
+    def add_partyrecord(self, partyrecord):
+        """パーティ記録を追加する。"""
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        fpath = cw.xmlcreater.create_partyrecord(partyrecord)
+        partyrecord.fpath = fpath
+        header = cw.header.PartyRecordHeader(partyrecord=partyrecord)
+        self.partyrecord.append(header)
+        self.sort_partyrecord()
+        return header
+
+    def replace_partyrecord(self, partyrecord):
+        """partyrecordと同名のパーティ記録を上書きする。
+        同名の情報が無かった場合は、追加する。
+        """
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        for i, header in enumerate(self.partyrecord):
+            if header.name == partyrecord.name:
+                self.set_partyrecord(i, partyrecord)
+                return
+        return self.add_partyrecord(partyrecord)
+
+    def set_partyrecord(self, index, partyrecord):
+        """self.partyrecord[index]をpartyrecordで上書きする。
+        """
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        header = self.partyrecord[index]
+        self.deletedpaths.add(header.fpath)
+        fpath = cw.xmlcreater.create_partyrecord(partyrecord)
+        partyrecord.fpath = fpath
+        header = cw.header.PartyRecordHeader(partyrecord=partyrecord)
+        self.partyrecord[index] = header
+        return header
+
+    def remove_partyrecord(self, header):
+        """パーティ記録を削除する。"""
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self.partyrecord.remove(header)
+        self.deletedpaths.add(header.fpath)
+
+    def can_restoreparty(self, partyrecordheader):
+        """partyrecordheaderが再結成可能であればTrueを返す。
+        """
+        for member in partyrecordheader.members:
+            for standby in self.standbys:
+                if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+                    return True
+            if self.party:
+                # 現在のパーティは再結成の前に解散するため
+                # standbysの中にいるのと同様に扱う
+                for m in self.party.members:
+                    if os.path.splitext(os.path.basename(m.fpath))[0] == member:
+                        return True
+        return False
+
+    def get_restoremembers(self, partyrecordheader):
+        """partyrecordheaderの再結成で
+        待機メンバでなくなるメンバの一覧を返す。
+        """
+        seq = []
+        for member in partyrecordheader.members:
+            for standby in self.standbys:
+                if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+                    seq.append(standby)
+                    break
+        return seq
+
+    def restore_party(self, partyrecordheader):
+        """partyrecordheaderからパーティを再結成する。
+        現在操作中のパーティがいた場合は解散される。
+        結成されたパーティに属するメンバのheaderのlistを返す。
+        所属メンバが宿帳に一人も見つからなかった場合は[]を返す。
+        """
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        if cw.cwpy.ydata.party:
+            cw.cwpy.dissolve_party()
+        assert not cw.cwpy.ydata.party
+        chgarea = cw.cwpy.areaid <> 2
+
+        members = []
+        for member in partyrecordheader.members:
+            for standby in self.standbys:
+                if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+                    members.append(standby)
+                    break
+        if not members:
+            # メンバがいない場合は失敗
+            return members
+
+        for standby in members:
+            self.standbys.remove(standby)
+
+        name = partyrecordheader.name
+        money = partyrecordheader.money
+        if self.money < money:
+            money = self.money
+        self.set_money(-money)
+        path = cw.xmlcreater.create_party(members, moneyamount=money, pname=name)
+        header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))
+
+        cw.cwpy.load_party(header, chgarea=chgarea, newparty=True)
+
+        # 荷物袋の内容を復元。カード置場にない場合は復元不可。
+        # 最初は作者名・シナリオ名・使用回数を使用して検索するが、
+        # それで見つからない場合はカード名と解説のみで検索する。
+        e = yadoxml2etree(partyrecordheader.fpath, tag="BackpackRecord")
+        for ce in reversed(e.getfind(".")):
+            if ce.tag <> "CardRecord":
+                continue
+            get = False
+            name = ce.getattr(".", "name", "")
+            desc = ce.getattr(".", "desc", "")
+            author = ce.getattr(".", "author", "")
+            scenario = ce.getattr(".", "scenario", "")
+            uselimit = ce.getint(".", "uselimit", 0)
+            for cheader in self.storehouse:
+                if cheader.name == name and\
+                   cheader.desc == desc and\
+                   cheader.author == author and\
+                   cheader.scenario == scenario and\
+                   cheader.uselimit == uselimit:
+                    get = True
+                    cw.cwpy.trade(targettype="BACKPACK", header=cheader, sound=False)
+                    break
+            if get:
+                continue
+            for cheader in self.storehouse:
+                if cheader.name == name and\
+                   cheader.desc == desc:
+                    cw.cwpy.trade(targettype="BACKPACK", header=cheader, sound=False)
+                    break
+
+        cw.cwpy.statusbar.change(False)
+        cw.cwpy.draw()
+        return members
+
     def create_advheader(self, path="", album=False, element=None):
         """
         path: xmlのパス。
@@ -1187,7 +1331,7 @@ class YadoData(object):
         else:
             money = cw.cwpy.setting.initmoneyamount
         self.set_money(-money)
-        path = cw.xmlcreater.create_party(header, moneyamount=money)
+        path = cw.xmlcreater.create_party([header], moneyamount=money)
         header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))
         cw.cwpy.load_party(header, chgarea=chgarea)
         cw.cwpy.statusbar.change(False)
@@ -1212,6 +1356,9 @@ class YadoData(object):
             cw.util.sort_by_attr(self.storehouse, "price")
         else:
             cw.util.sort_by_attr(self.storehouse, "order")
+
+    def sort_partyrecord(self):
+        cw.util.sort_by_attr(self.partyrecord, "name")
 
     def save(self):
         """宿データをセーブする。"""
@@ -1321,11 +1468,20 @@ class YadoData(object):
                     party.fpath = party.fpath.replace(self.tempdir, self.yadodir, 1)
                 party.data = None
 
+        partyrecord = {}
+        for header in self.partyrecord:
+            if header.fpath.lower().startswith("yado"):
+                fpath = cw.util.relpath(header.fpath, self.yadodir)
+            else:
+                fpath = cw.util.relpath(header.fpath, self.tempdir)
+                header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
+            partyrecord[fpath] = header
+
         # カードデータベースを更新
         @synclock(_lock)
         def update_database(yadodir):
             yadodb = cw.yadodb.YadoDB(yadodir)
-            yadodb.update(cards=cardtable, adventurers=adventurertable, cardorder=cardorder, adventurerorder=adventurerorder)
+            yadodb.update(cards=cardtable, adventurers=adventurertable, cardorder=cardorder, adventurerorder=adventurerorder, partyrecord=partyrecord)
             yadodb.close()
         thr = threading.Thread(target=update_database, kwargs={"yadodir": self.yadodir})
         thr.start()

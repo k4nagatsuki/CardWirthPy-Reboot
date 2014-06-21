@@ -19,27 +19,65 @@ def _create_xml(name, path, d):
     with open(path, "wb") as f:
         f.write(s.encode("utf-8"))
 
-def create_party(header, moneyamount=0):
+def create_party(headers, moneyamount=0, pname=None):
     """
     新しくパーティを作る。
-    header: AdventurerHeader
+    headers: 初期メンバーのファイル名(拡張子無し)のlist。
     """
-    pname = cw.cwpy.msgs["default_party_name"] % (header.name)
+    if pname is None:
+        pname = cw.cwpy.msgs["default_party_name"] % (headers[0].name)
 
     d = {"name" : cw.binary.util.repl_escapechar(pname),
          "money" : str(moneyamount),
          "backpack" : "",
          "indent": ""}
 
-    s = os.path.basename(header.fpath)
-    s = cw.util.splitext(s)[0]
-    s = cw.binary.util.repl_escapechar(s)
-    d["members"] = "\n   <Member>%s</Member>" % (s)
+    members = []
+    for header in headers:
+        s = os.path.basename(header.fpath)
+        s = cw.util.splitext(s)[0]
+        s = cw.binary.util.repl_escapechar(s)
+        members.append("\n   <Member>%s</Member>" % (s))
+    d["members"] = "".join(members)
     dname = cw.util.repl_dischar(pname)
     path = cw.util.join_paths(cw.cwpy.yadodir, "Party", dname)
     path = cw.util.dupcheck_plus(path)
     path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
     _create_xml("Party", cw.util.join_paths(path, "Party.xml"), d)
+    return path
+
+def create_partyrecord(party):
+    d = {"name" : cw.binary.util.repl_escapechar(party.name),
+         "money" : str(party.money),
+         "members" : "",
+         "backpack": "",
+         "indent": ""}
+
+    members = []
+    for member in party.members:
+        s = os.path.basename(member.fpath)
+        s = cw.util.splitext(s)[0]
+        s = cw.binary.util.repl_escapechar(s)
+        members.append("\n   <Member>%s</Member>" % (s))
+    d["members"] = "".join(members)
+    
+    backpack = []
+    for header in party.backpack:
+        d2 = {"name" : cw.binary.util.repl_escapechar(header.name),
+              "desc" : cw.binary.util.repl_escapechar(header.desc),
+              "author" : cw.binary.util.repl_escapechar(header.author),
+              "scenario" : cw.binary.util.repl_escapechar(header.scenario),
+              "uselimit" : str(header.uselimit),
+              "indent" : ""}
+        s = cw.binary.xmltemplate.get_xmltext("CardRecord", d2)
+        backpack.append("\n   %s" % (s))
+    d["backpack"] = "".join(backpack)
+
+    fname = cw.util.repl_dischar(party.name) + ".xml"
+    path = cw.util.join_paths(cw.cwpy.yadodir, "PartyRecord", fname)
+    path = cw.util.dupcheck_plus(path)
+    path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
+    _create_xml("PartyRecord", path, d)
     return path
 
 def create_environment(name, dpath):
@@ -218,6 +256,13 @@ def create_settings(setting):
 
     # パーティ結成時の持出金額
     e = cw.data.make_element("InitialMoneyAmount", str(setting.initmoneyamount))
+    element.append(e)
+
+    # 解散時、自動的にパーティ情報を記録する
+    e = cw.data.make_element("AutoSavePartyRecord", str(setting.autosave_partyrecord))
+    element.append(e)
+    # 自動記録時、同名のパーティ記録へ上書きする
+    e = cw.data.make_element("OverwritePartyRecord", str(setting.overwrite_partyrecord))
     element.append(e)
 
     # シナリオフォルダ(スキンタイプ別)

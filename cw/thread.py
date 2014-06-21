@@ -150,6 +150,9 @@ class CWPy(_Singleton, threading.Thread):
         self.eventhandler = cw.eventhandler.EventHandler()
         # 設定ダイアログのタブ位置
         self.settingtab = 0
+        # 保存用のパーティ記録
+        # 解散エリアに入った時点で生成される
+        self._stored_partyrecord = None
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
 
@@ -1740,6 +1743,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.change_area(areaid, quickdeal=True, specialarea=True)
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata._changed = changed
+                if areaid == cw.AREA_BREAKUP:
+                    self._store_partyrecord()
             else:
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
@@ -1808,6 +1813,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         self.clear_inusecardimg()
         self.clear_guardcardimg()
+        self._stored_partyrecord = None
 
         if self.areaid <= 0:
             self.selectedheader = None
@@ -2145,7 +2151,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self.set_yado()
 
-    def load_party(self, header=None, chgarea=True):
+    def load_party(self, header=None, chgarea=True, newparty=False):
         """パーティデータをロードする。
         header: PartyHeader。指定しない場合はパーティデータを空にする。
         """
@@ -2158,6 +2164,12 @@ class CWPy(_Singleton, threading.Thread):
                 areaid = 1
             self.change_area(areaid, bginhrt=False)
             self.draw()
+        elif newparty:
+            self.is_showparty = False
+            for i, e in enumerate(self.ydata.party.members):
+                pos_noscale = (9 + 95 * i + 9 * i, 285)
+                pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
+            self.show_party()
         else:
             e = self.ydata.party.members[0]
             pcardsnum = len(self.ydata.party.members) - 1
@@ -2172,10 +2184,11 @@ class CWPy(_Singleton, threading.Thread):
         """現在選択中のパーティからpcardを削除する。
         pcardがない場合はパーティ全体を解散する。
         """
-        if not self.areaid == cw.AREA_BREAKUP:
-            return
+        breakuparea = (self.areaid == cw.AREA_BREAKUP)
 
         if pcard:
+            if not breakuparea:
+                return
             self.sounds["page"].play()
             pcard.remove_numbercoupon()
             cw.animation.animate_sprite(pcard, "delete")
@@ -2187,9 +2200,10 @@ class CWPy(_Singleton, threading.Thread):
                 self.dissolve_party()
 
         else:
-            for pcard in self.get_pcards():
+            pcards = self.get_pcards()
+            cw.animation.animate_sprites(pcards, "hide")
+            for pcard in pcards:
                 pcard.remove_numbercoupon()
-                cw.animation.animate_sprite(pcard, "hide")
                 self.pcardgrp.remove(pcard)
                 pcard.data.write_xml()
 
@@ -2215,8 +2229,38 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.standbys.append(header)
             self.ydata.sort_standbys()
 
-            self.pre_areaids[-1] = 1
-            self.clear_specialarea()
+            if breakuparea:
+                self._save_partyrecord()
+                self.pre_areaids[-1] = 1
+                self.clear_specialarea()
+
+    def get_partyrecord(self):
+        """現在のパーティ情報の記録を生成して返す。"""
+        assert bool(self.ydata.party)
+        class StoredParty(object):
+            def __init__(self, party):
+                self.fpath = ""
+                self.name = party.name
+                self.money = party.money
+                self.members = party.members[:]
+                self.backpack = party.backpack[:]
+        return StoredParty(self.ydata.party)
+
+    def _store_partyrecord(self):
+        """解散操作前にパーティ情報を記録する。"""
+        self._stored_partyrecord = self.get_partyrecord()
+
+    def _save_partyrecord(self):
+        """解散時にパーティ情報をファイルへ記録する。"""
+        if not self._stored_partyrecord:
+            return
+        if not self.setting.autosave_partyrecord:
+            return
+
+        if self.setting.overwrite_partyrecord:
+            self.ydata.replace_partyrecord(self._stored_partyrecord)
+        else:
+            self.ydata.add_partyrecord(self._stored_partyrecord)
 
     def play_sound(self, path, inusecard=None):
         """効果音を再生する。

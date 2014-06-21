@@ -106,6 +106,25 @@ class YadoDB(object):
                     self.cur.execute("UPDATE adventurer SET versionhint=?", ("",))
                     reqcommit = True
 
+            if self.mode == YADO:
+                # partyrecordテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
+                cur = self.con.execute("PRAGMA table_info('partyrecord')")
+                res = cur.fetchall()
+                if not res:
+                    s = """
+                        CREATE TABLE partyrecord (
+                            fpath TEXT,
+                            name TEXT,
+                            money INTEGER,
+                            members TEXT,
+                            backpack TEXT,
+                            ctime INTEGER,
+                            mtime INTEGER,
+                            PRIMARY KEY (fpath)
+                        )
+                    """
+                    self.cur.execute(s)
+
             if reqcommit:
                 self.con.commit()
 
@@ -216,8 +235,23 @@ class YadoDB(object):
                 """
                 self.cur.execute(s)
 
+                # パーティ記録
+                s = """
+                    CREATE TABLE partyrecord (
+                        fpath TEXT,
+                        name TEXT,
+                        money INTEGER,
+                        members TEXT,
+                        backpack TEXT,
+                        ctime INTEGER,
+                        mtime INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
+
     @synclock(_lock)
-    def update(self, cards=True, adventurers=True, parties=True, cardorder={}, adventurerorder={}):
+    def update(self, cards=True, adventurers=True, parties=True, cardorder={}, adventurerorder={}, partyrecord=True):
         """データベースを更新する。"""
         def walk(dpath, headertable, insert, insertheader, *args):
             dir = cw.util.join_paths(self.ypath, dpath)
@@ -324,6 +358,25 @@ class YadoDB(object):
             for dpath in os.listdir(cw.util.join_paths(self.ypath, "Party")):
                 walk(cw.util.join_paths("Party", dpath), parties, self._insert_party, self._insert_partyheader, False)
 
+        if self.mode == YADO and partyrecord:
+            s = "SELECT fpath, mtime FROM partyrecord"
+            self.cur.execute(s)
+            data = self.cur.fetchall()
+            dbpaths = set()
+            for t in data:
+                path = cw.util.join_paths(self.ypath, t[0])
+                if not os.path.isfile(path):
+                    self._delete_partyrecord(t[0], False)
+                else:
+                    dbpaths.add(t[0])
+                    if os.path.getmtime(path) > t[1]:
+                        # 情報を更新
+                        if isinstance(partyrecord, dict) and path in partyrecord:
+                            self._insert_partyrecordheader(partyrecord[path], False)
+                        else:
+                            self._insert_partyrecord(path, False)
+            walk("PartyRecord", partyrecord, self._insert_partyrecord, self._insert_partyrecordheader, False)
+
         self.con.commit()
 
     def vacuum(self, commit=True):
@@ -334,6 +387,8 @@ class YadoDB(object):
             s = "VACUUM adventurer"
             self.cur.execute(s)
             s = "VACUUM party"
+            self.cur.execute(s)
+            s = "VACUUM partyrecord"
             self.cur.execute(s)
 
         if commit:
@@ -353,6 +408,12 @@ class YadoDB(object):
 
     def _delete_party(self, path, commit=True):
         s = "DELETE FROM party WHERE fpath=?"
+        self.cur.execute(s, (path,))
+        if commit:
+            self.con.commit()
+
+    def _delete_partyrecord(self, path, commit=True):
+        s = "DELETE FROM partyrecord WHERE fpath=?"
         self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
@@ -778,6 +839,61 @@ class YadoDB(object):
         headers = []
         for rec in self.cur:
             header = cw.header.PartyHeader(dbrec=rec)
+            header.fpath = cw.util.join_paths(self.ypath, header.fpath)
+            headers.append(header)
+        return headers
+
+    @synclock(_lock)
+    def insert_partyrecordheader(self, header, commit=True):
+        return self._insert_partyrecordheader(header, commit)
+
+    def _insert_partyrecordheader(self, header, commit=True):
+        """データベースにパーティ記録を登録する。"""
+        s = """
+        INSERT OR REPLACE INTO partyrecord VALUES(
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+        """
+        fpath = cw.util.relpath(header.fpath, self.ypath)
+        fpath = cw.util.join_paths(fpath)
+        ctime = time.time()
+        mtime = os.path.getmtime(header.fpath)
+        self.cur.execute(s, (
+            fpath,
+            header.name,
+            header.money,
+            "\n".join(header.members),
+            "\n".join(header.backpack),
+            ctime,
+            mtime,
+        ))
+
+        if commit:
+            self.con.commit()
+
+    @synclock(_lock)
+    def insert_partyrecord(self, path, commit=True):
+        return self._insert_party(path, commit)
+
+    def _insert_partyrecord(self, path, commit=True):
+        try:
+            header = cw.header.PartyRecordHeader(fpath=path)
+            return self._insert_partyrecordheader(header, commit)
+        except Exception:
+            cw.util.print_ex()
+
+    def get_partyrecord(self):
+        s = "SELECT * FROM partyrecord ORDER BY name"
+        self.cur.execute(s)
+        headers = []
+        for rec in self.cur:
+            header = cw.header.PartyRecordHeader(dbrec=rec)
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)
         return headers

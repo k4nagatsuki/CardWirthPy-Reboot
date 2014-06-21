@@ -83,6 +83,8 @@ class Setting(object):
             self.openhandviewalways = False
             self.noticeimpossibleaction = True
             self.initmoneyamount = 4000
+            self.autosave_partyrecord = True
+            self.overwrite_partyrecord = True
             self.folderoftype = []
             self.write()
 
@@ -220,6 +222,11 @@ class Setting(object):
 
         # パーティ結成時の持出金額
         self.initmoneyamount = data.getint("InitialMoneyAmount", 4000)
+
+        # 解散時、自動的にパーティ情報を記録する
+        self.autosave_partyrecord = data.getbool("AutoSavePartyRecord", True)
+        # 自動記録時、同名のパーティ記録へ上書きする
+        self.overwrite_partyrecord = data.getbool("OverwritePartyRecord", True)
 
         # シナリオフォルダ(スキンタイプ別)
         self.folderoftype = []

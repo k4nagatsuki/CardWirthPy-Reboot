@@ -12,6 +12,7 @@ import edit
 import etc
 import settings
 import skin
+import partyrecord
 
 
 def main():

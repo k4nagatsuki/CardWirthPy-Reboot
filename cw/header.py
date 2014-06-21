@@ -1052,6 +1052,59 @@ class PartyHeader(object):
 
         return seq
 
+class PartyRecordHeader(object):
+    def __init__(self, fpath=None, dbrec=None, partyrecord=None):
+        """
+        fpath: ファイルから生成する場合はXMLファイルパス。
+        dbrec: データベースから生成する場合は対象レコード。
+        partyrecord: パーティ記録から生成する場合は対象記録。
+        """
+        if dbrec:
+            self.fpath = dbrec["fpath"]
+            self.name = dbrec["name"]
+            self.money = dbrec["money"]
+            self.members = dbrec["members"].split("\n")
+            self.backpack = dbrec["backpack"].split("\n")
+        elif partyrecord:
+            self.fpath = partyrecord.fpath
+            self.name = partyrecord.name
+            self.money = partyrecord.money
+            self.members = []
+            for member in partyrecord.members:
+                s = os.path.basename(member.fpath)
+                s = cw.util.splitext(s)[0]
+                self.members.append(s)
+            self.backpack = [header.name for header in partyrecord.backpack]
+        else:
+            data = cw.data.xml2etree(fpath)
+            self.fpath = data.fpath
+            self.name = data.gettext("Property/Name")
+            self.money = data.getint("Property/Money", 0)
+            self.members = [e.text for e in data.getfind("Property/Members") if e.text]
+            self.backpack = [e.attrib.get("name", "") for e in data.getfind("BackpackRecord")]
+
+    def get_memberpaths(self):
+        seq = []
+
+        for fname in self.members:
+            fname2 = fname + ".xml"
+            path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
+            if not os.path.isfile(path):
+                # Windowsがファイル名を変えるため前後のスペースを除く
+                fname2 = fname.strip() + ".xml"
+                path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
+            seq.append(path)
+
+        return seq
+
+    def get_membernames(self):
+        seq = []
+
+        for fpath in self.get_memberpaths():
+            seq.append(GetName(fpath).name)
+
+        return seq
+
 class GetName(object):
     """XMLファイル中のProperty/Nameの内容を読む。"""
     def __init__(self, fpath, tagname="Name"):
