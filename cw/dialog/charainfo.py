@@ -524,16 +524,12 @@ class DescPanel(wx.ScrolledWindow):
     def _init_view(self):
         self.text = self.ccard.data.gettext("Property/Description", "")
         self.text = cw.util.txtwrap(self.text, 4)
-        csize = self.GetClientSize()
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
         maxwidth, maxheight, lineheight = dc.GetMultiLineTextExtent(self.text)
-        self.x = cw.wins(18) if maxheight <= csize[1] else cw.wins(12)
+        self.x = cw.wins(18) if maxheight <= self.csize[1] else cw.wins(12)
         maxheight += cw.wins(10)
-        if maxheight <= csize[1]:
-            self.SetVirtualSize((-1, -1))
-        else:
-            self.SetVirtualSize((-1, maxheight))
+        self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
         self.Refresh()
 
@@ -543,7 +539,6 @@ class DescPanel(wx.ScrolledWindow):
 
     def OnPaint(self, event):
         # 解説文
-        csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
         vx *= cw.wins(10)
         vy *= cw.wins(10)
