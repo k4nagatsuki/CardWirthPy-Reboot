@@ -1950,6 +1950,8 @@ class LoseContent(EventContentBase):
         e = cw.data.xml2element(path, "Property")
         name = e.gettext("Name", "")
         desc = e.gettext("Description", "")
+        if num == 0:
+            num = 0x7fffffff
 
         for target in cw.cwpy.event.get_targetscope(scope):
             ccard = target
