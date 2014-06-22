@@ -63,6 +63,9 @@ class SettingsDialog(wx.Dialog):
             self.pane_draw.cs_mframe.SetColour((128, 0, 0))
             self.pane_draw.cs_blwin.SetColour((80, 80, 80))
             self.pane_draw.cs_blframe.SetColour((128, 128, 128))
+            self.pane_draw.ch_fscrbacktype.SetSelection(3)
+            self.pane_draw.tx_fscrbackfile.Enable(self.pane_draw.ch_fscrbacktype.GetSelection() == 1)
+            self.pane_draw.ref_fscrbackfile.Enable(self.pane_draw.ch_fscrbacktype.GetSelection() == 1)
         elif selpane == 2:
             self.pane_sound.cb_playbgm.SetValue(True)
             self.pane_sound.cb_playsound.SetValue(True)
@@ -150,6 +153,23 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.transition = value
         value = self.pane_draw.sl_tran.GetValue()
         cw.cwpy.setting.transitionspeed = value
+        value = self.pane_draw.ch_fscrbacktype.GetSelection()
+        if value == 0:
+            cw.cwpy.setting.fullscreenbackgroundfile = u""
+            cw.cwpy.setting.fullscreenbackgroundtype = 0
+        elif value == 1:
+            cw.cwpy.setting.fullscreenbackgroundfile = self.pane_draw.tx_fscrbackfile.GetValue()
+            cw.cwpy.setting.fullscreenbackgroundtype = 1
+        elif value == 2:
+            cw.cwpy.setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
+            cw.cwpy.setting.fullscreenbackgroundtype = 2
+        elif value == 3:
+            cw.cwpy.setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+            cw.cwpy.setting.fullscreenbackgroundtype = 2
+        def func():
+            cw.cwpy.update_fullscreenbackground()
+        cw.cwpy.exec_func(func)
+
         # オーディオ
         value = self.pane_sound.cb_playbgm.GetValue()
         cw.cwpy.setting.play_bgm = value
@@ -334,7 +354,7 @@ class GeneralSettingPanel(wx.Panel):
                     # エラーのあるスキンは無視
                     cw.util.print_ex()
 
-        self.ch_skin = wx.Choice(self, -1, size=(120, -1), choices=self.skins)
+        self.ch_skin = wx.Choice(self, -1, size=(-1, -1), choices=self.skins)
         n = self.skins.index(cw.cwpy.setting.skindirname)
         self.ch_skin.SetSelection(n)
         s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
@@ -508,7 +528,7 @@ class DrawingSettingPanel(wx.Panel):
             u"アニメーションなし", u"フェード式",
             u"ピクセルディゾルブ式", u"ブラインド式"]
         self.ch_tran = wx.Choice(
-            self, -1, size=(150, -1), choices=self.choices_tran)
+            self, -1, size=(-1, -1), choices=self.choices_tran)
         n = self.transitions.index(cw.cwpy.setting.transition)
         self.ch_tran.SetSelection(n)
         self.sl_tran = wx.Slider(
@@ -555,11 +575,41 @@ class DrawingSettingPanel(wx.Panel):
         self.sc_mframe.SetRange(0, 255)
         self.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour[3])
 
+        # フルスクリーンの背景
+        self.box_fscrback = wx.StaticBox(self, -1, u"フルスクリーンの背景")
+        choices = [u"<背景なし>", u"<ファイルから選択>", u"ダイアログの壁紙", u"スキンのロゴ"]
+        self.ch_fscrbacktype = wx.Choice(self, -1, size=(-1, -1), choices=choices)
+        self.tx_fscrbackfile = wx.TextCtrl(self, -1, size=(150, -1))
+        self.ref_fscrbackfile = cw.util.create_fileselection(self,
+            target=self.tx_fscrbackfile,
+            message=u"フルスクリーンの背景にするファイルを選択",
+            wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
+
+        if cw.cwpy.setting.fullscreenbackgroundtype == 0:
+            self.ch_fscrbacktype.SetSelection(0)
+            self.tx_fscrbackfile.SetValue(u"")
+        elif cw.cwpy.setting.fullscreenbackgroundtype == 1:
+            self.ch_fscrbacktype.SetSelection(1)
+            self.tx_fscrbackfile.SetValue(cw.cwpy.setting.fullscreenbackgroundfile)
+        elif cw.cwpy.setting.fullscreenbackgroundtype == 2:
+            if cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
+                self.ch_fscrbacktype.SetSelection(2)
+                self.tx_fscrbackfile.SetValue(u"")
+            elif cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
+                self.ch_fscrbacktype.SetSelection(3)
+                self.tx_fscrbackfile.SetValue(u"")
+            else:
+                self.ch_fscrbacktype.SetSelection(0)
+                self.tx_fscrbackfile.SetValue(u"")
+
+        self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+        self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+
         self._do_layout()
         self._bind()
 
     def _bind(self):
-        pass
+        self.ch_fscrbacktype.Bind(wx.EVT_CHOICE, self.OnFullScreenBackgroundType, id=self.ch_fscrbacktype.GetId())
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -596,16 +646,28 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
         bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.RIGHT, 3)
 
+        bsizer_fscrback = wx.StaticBoxSizer(self.box_fscrback, wx.VERTICAL)
+        bsizer_fscrback.Add(self.ch_fscrbacktype, 0, wx.ALL, 3)
+        bsizer_fscrbackfile = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_fscrbackfile.Add(self.tx_fscrbackfile, 1, wx.RIGHT|wx.CENTER, 3)
+        bsizer_fscrbackfile.Add(self.ref_fscrbackfile, 0, wx.CENTER, 3)
+        bsizer_fscrback.Add(bsizer_fscrbackfile, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_msgs, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_mframe, 0, wx.EXPAND, 0)
+        sizer_v1.Add(bsizer_mframe, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_fscrback, 0, wx.EXPAND, 0)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def OnFullScreenBackgroundType(self, event):
+        self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+        self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
 
 class AudioSettingPanel(wx.Panel):
     def __init__(self, parent):

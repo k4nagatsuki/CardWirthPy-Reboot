@@ -191,7 +191,7 @@ class CWPy(_Singleton, threading.Thread):
             self.fpsfont = pygame.font.Font(self.rsrc.fontpaths["gothic"], cw.s(14))
             self.fpsfont.set_bold(True)
 
-            self.init_fullscreenparams_after()
+            self.update_fullscreenbackground()
 
         except cw.setting.NoFontError, ex:
             def func():
@@ -616,16 +616,32 @@ class CWPy(_Singleton, threading.Thread):
             self.scr_scale = 1.0
             self.scr_pos = (0, 0)
 
-    def init_fullscreenparams_after(self):
+    def update_fullscreenbackground(self):
         if self.scr_fullscreen:
             # 壁紙
-            self.scr_fullscreen.fill((255, 255, 255))
-            wximg = cw.image.conv2surface(cw.cwpy.rsrc.dialogs["PAD"])
-            padsize = wximg.get_size()
-            fsize = self.scr_fullscreen.get_size()
-            for x in xrange(0, fsize[0], padsize[0]):
-                for y in xrange(0, fsize[1], padsize[1]):
-                    self.scr_fullscreen.blit(wximg, (x, y))
+            if self.setting.fullscreenbackgroundtype == 0:
+                self.scr_fullscreen.fill((0, 0, 0))
+                fname = u""
+            elif self.setting.fullscreenbackgroundtype == 1:
+                self.scr_fullscreen.fill((255, 255, 255))
+                fname = self.setting.fullscreenbackgroundfile
+            elif self.setting.fullscreenbackgroundtype == 2:
+                self.scr_fullscreen.fill((255, 255, 255))
+                fname = self.setting.fullscreenbackgroundfile
+                fname += self.rsrc.ext_img
+                fname = cw.util.join_paths(self.skindir, fname)
+
+            if fname:
+                back = cw.util.load_image(fname)
+                if back.get_width():
+                    if self.setting.fullscreenbackgroundtype == 2:
+                        back = cw.wins(back)
+                    padsize = back.get_size()
+                    fsize = self.scr_fullscreen.get_size()
+                    for x in xrange(0, fsize[0], padsize[0]):
+                        for y in xrange(0, fsize[1], padsize[1]):
+                            self.scr_fullscreen.blit(back, (x, y))
+
             width = 16
             x = self.scr_pos[0] - width/2-1
             y = self.scr_pos[1] - width/2-1

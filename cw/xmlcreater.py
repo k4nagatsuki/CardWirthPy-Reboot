@@ -272,6 +272,12 @@ def create_settings(setting):
         e.append(e_folder)
     element.append(e)
 
+    # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
+    e = cw.data.make_element("FullScreenBackgroundType", str(setting.fullscreenbackgroundtype))
+    element.append(e)
+    e = cw.data.make_element("FullScreenBackgroundFile", setting.fullscreenbackgroundfile)
+    element.append(e)
+
     # シナリオ履歴
     if not hasattr(setting, "recenthistory"):
         e = cw.data.make_element("RecentHistory", "", {"limit": "5"})

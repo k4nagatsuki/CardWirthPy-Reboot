@@ -86,6 +86,8 @@ class Setting(object):
             self.autosave_partyrecord = True
             self.overwrite_partyrecord = True
             self.folderoftype = []
+            self.fullscreenbackgroundtype = 2
+            self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -234,6 +236,11 @@ class Setting(object):
             skintype = e_folder.getattr(".", "skintype", "")
             folder = e_folder.gettext(".", "")
             self.folderoftype.append((skintype, folder))
+
+        # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
+        self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", 2)
+        # フルスクリーン時の背景ファイル
+        self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", u"Resource/Image/Dialog/PAD")
 
         # スキン
         self.skindirname = data.gettext("Skin", "Classic")
