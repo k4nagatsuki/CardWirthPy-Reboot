@@ -1784,6 +1784,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # ターゲット選択エリア
         elif self.selectedheader:
+            self.clear_selection()
             header = self.selectedheader
             owner = header.get_owner()
             cardtarget = header.target
