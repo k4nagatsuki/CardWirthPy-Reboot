@@ -830,8 +830,8 @@ class CardEvent(Event):
             cw.cwpy.event.set_selectedmember(self.user)
             target.events.start(1, isinsideevent=True)
 
-    def run_successevent(self, target, successflag, can_unconscious, deadstatus):
-        if isinstance(target, Enemy) and (can_unconscious or not deadstatus):
+    def run_successevent(self, target, successflag):
+        if isinstance(target, Enemy):
             keycodes = []
             for keycode in self.inusecard.get_keycodes():
                 if keycode:
@@ -898,7 +898,6 @@ class CardEvent(Event):
                 # 意識不明者に有効な効果が含まれていない場合は
                 # イベント発火判定を含め何もしない
                 continue
-            deadstatus = target.is_dead() or target.is_vanished()
 
             unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and\
                 not isinstance(target, cw.sprite.card.MenuCard) and\
@@ -911,9 +910,9 @@ class CardEvent(Event):
                 target.clear_cardtarget()
 
                 if eff.apply(target):
-                    self.run_successevent(target, True, unconscious_flag, deadstatus)
+                    self.run_successevent(target, True)
                 else:
-                    self.run_successevent(target, False, unconscious_flag, deadstatus)
+                    self.run_successevent(target, False)
                     cw.cwpy.draw()
 
                 # 最初から意識不明・麻痺なら死亡イベント発生なし
