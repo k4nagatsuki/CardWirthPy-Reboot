@@ -106,16 +106,27 @@ class SelectPartyRecord(select.Select):
                 dlg.Destroy()
                 return
 
-        def func(header, parent, selected):
+        def func(header, panel, parent, selected):
             cw.cwpy.sounds["harvest"].play()
+            updatelist = bool(cw.cwpy.ydata.party)
+            if updatelist:
+                cw.cwpy.save_partyrecord()
             cw.cwpy.ydata.restore_party(header)
-            def func(parent, selected):
+            def func(panel, parent, selected, updatelist):
+                if panel and updatelist:
+                    header = panel.list[panel.index]
+                    panel.list = cw.cwpy.ydata.partyrecord[:]
+                    panel.list.append(None)
+                    if header in panel.list:
+                        panel.index = panel.list.index(header)
+                if panel:
+                    panel.draw(True)
                 if parent:
                     parent.update_standbys(selected)
                     parent._processing = False
-            cw.cwpy.frame.exec_func(func, parent, selected)
+            cw.cwpy.frame.exec_func(func, panel, parent, selected, updatelist)
         self.Parent._processing = True
-        cw.cwpy.exec_func(func, header, self.Parent, self.Parent.get_selected())
+        cw.cwpy.exec_func(func, header, self, self.Parent, self.Parent.get_selected())
 
     def OnClickDeleteBtn(self, event):
         """パーティ記録の削除。"""

@@ -2278,6 +2278,19 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.ydata.add_partyrecord(self._stored_partyrecord)
 
+    def save_partyrecord(self):
+        """現在のパーティ情報を記録する。"""
+        if not self.setting.autosave_partyrecord:
+            return
+        if not (self.ydata and self.ydata.party):
+            return
+
+        partyrecord = self.get_partyrecord()
+        if self.setting.overwrite_partyrecord:
+            self.ydata.replace_partyrecord(partyrecord)
+        else:
+            self.ydata.add_partyrecord(partyrecord)
+
     def play_sound(self, path, inusecard=None):
         """効果音を再生する。
         シナリオ効果音・スキン効果音を適宜使い分ける。
