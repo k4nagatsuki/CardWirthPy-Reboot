@@ -31,6 +31,7 @@ class Select(wx.Dialog):
     def __init__(self, parent, name):
         wx.Dialog.__init__(self, parent, -1, name,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self._processing = False
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # buttonlist
