@@ -2711,10 +2711,13 @@ class UpdateNamesThread(threading.Thread):
                 path = path[0:-len(".lnk")]
             dname = "[%s]" % os.path.basename(path)
             dnames.append(dname)
-        self.dlg.names = dnames + self.dlg._narrow_scenario(headers)
-        if self.quit: return
-        wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack)
-        self.dlg.updatenames_thr = None
+        def func():
+            if self.dlg:
+                self.dlg.names = dnames + self.dlg._narrow_scenario(headers)
+                if self.quit: return
+                wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack)
+                self.dlg.updatenames_thr = None
+        cw.cwpy.frame.exec_func(func)
 
 def main():
     pass
