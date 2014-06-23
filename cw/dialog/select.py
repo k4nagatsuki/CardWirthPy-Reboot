@@ -779,23 +779,28 @@ class PartySelect(Select):
     def __init__(self, parent):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["resume_adventure"])
+        self._processing = False
         # パーティ情報
         self.list = cw.cwpy.ydata.partys
         self.index = 0
         self.names = []
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))
+        width = 60
         # ok
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, cw.wins((75, 24)), cw.cwpy.msgs["decide"])
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_OK, cw.wins((width, 24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.okbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((75, 24)), cw.cwpy.msgs["information"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((width, 24)), cw.cwpy.msgs["information"])
         self.buttonlist.append(self.infobtn)
         # edit
-        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((75, 24)), cw.cwpy.msgs["members"])
+        self.editbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((width, 24)), cw.cwpy.msgs["members"])
         self.buttonlist.append(self.editbtn)
+        # partyrecord
+        self.partyrecordbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((width, 24)), cw.cwpy.msgs["party_record"])
+        self.buttonlist.append(self.partyrecordbtn)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((75, 24)), cw.cwpy.msgs["entry_cancel"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((width, 24)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.closebtn)
         # enable btn
         self.enable_btn()
@@ -805,8 +810,14 @@ class PartySelect(Select):
         self._bind()
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickEditBtn, self.editbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnClickPartyRecordBtn, self.partyrecordbtn)
 
         self.draw(True)
+
+    def OnSelect(self, event):
+        if self._processing:
+            return
+        Select.OnSelect(self, event)
 
     def OnClickInfoBtn(self, event):
         header = self.list[self.index]
@@ -839,6 +850,24 @@ class PartySelect(Select):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def OnClickPartyRecordBtn(self, event):
+        if self._processing:
+            return
+        cw.cwpy.sounds["click"].play()
+        dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
+        self.Parent.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    def get_selected(self):
+        if self.list:
+            return self.list[self.index]
+        else:
+            return None
+
+    def update_standbys(self, selected):
+        pass
+
     def can_clickcenter(self):
         return self.okbtn.IsEnabled()
 
@@ -846,6 +875,7 @@ class PartySelect(Select):
         # リストが空だったらボタンを無効化
         if not self.list:
             self._disable_btn()
+            self.partyrecordbtn.Enable()
             self.closebtn.Enable()
         elif len(self.list) == 1:
             self._enable_btn()

@@ -615,6 +615,7 @@
 #Iはレベルアップした！
 </Message>
     <Message key="select_party_record">編成記録</Message>
+    <Message key="party_record">記録</Message>
     <Message key="select_party_record_description">現在のパーティ編成を記録することができます。また、記録を元にしたパーティの再結成もここから行います。</Message>
     <Message key="new_party_record">&lt;新規記録&gt;</Message>
     <Message key="party_save">記録</Message>
