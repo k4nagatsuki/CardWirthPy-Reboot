@@ -704,7 +704,7 @@ class JpdcImage(cw.image.Image):
 
             # シナリオフォルダ外に保存しようとした場合は保存不可
             cpath1 = os.path.abspath(os.path.normpath(path))
-            cpath2 = os.path.abspath(os.path.normpath(cw.cwpy.sdata.tempdir))
+            cpath2 = os.path.abspath(os.path.normpath(cw.cwpy.sdata.scedir))
             cpath1 = cw.util.join_paths(cpath1)
             cpath2 = cw.util.join_paths(cpath2) + "/"
             if cpath1.startswith(cpath2):
