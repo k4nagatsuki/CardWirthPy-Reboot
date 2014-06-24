@@ -47,6 +47,7 @@ add_mosaic(PyObject *self, PyObject *args)
     val = intwrap(val, 0, 255);
     if (!val)
     {
+        memmove(outdata, data, len);
         return string;
     }
 
@@ -138,6 +139,7 @@ add_noise(PyObject *self, PyObject *args)
     val = intwrap(val, -1, 255);
     if (!val)
     {
+        memmove(outdata, data, len);
         return string;
     }
 
