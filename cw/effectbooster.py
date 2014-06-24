@@ -701,8 +701,15 @@ class JpdcImage(cw.image.Image):
                     saveimage = pygame.transform.smoothscale(saveimage, (w_noscale, h_noscale))
 
             path = cw.util.join_paths(os.path.dirname(path), filename)
-            encoding = sys.getfilesystemencoding()
-            pygame.image.save(saveimage, path.encode(encoding))
+
+            # シナリオフォルダ外に保存しようとした場合は保存不可
+            cpath1 = os.path.abspath(os.path.normpath(path))
+            cpath2 = os.path.abspath(os.path.normpath(cw.cwpy.sdata.tempdir))
+            cpath1 = cw.util.join_paths(cpath1)
+            cpath2 = cw.util.join_paths(cpath2) + "/"
+            if cpath1.startswith(cpath2):
+                encoding = sys.getfilesystemencoding()
+                pygame.image.save(saveimage, path.encode(encoding))
             cw.cwpy.draw()
             self.wait()
             s = "%s %s - %s %s" % (cw.APP_NAME, cw.cwpy.setting.skinname,
