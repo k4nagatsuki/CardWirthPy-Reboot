@@ -105,9 +105,10 @@ class _JpySubImage(cw.image.Image):
             sprs = cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal")
             if sprs:
                 background = sprs[0].image
+                self.cache.restore()
             else:
                 background = cw.cwpy.background.image.copy()
-
+                self.cache.restore()
                 # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
                 if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                     cards = cw.cwpy.pcardgrp.sprites() + cw.cwpy.mcardgrp.sprites()
@@ -175,6 +176,7 @@ class _JpySubImage(cw.image.Image):
 
     def _drawtemp_impl(self, background, pos, redraw=True, anime=False, waittime=None, nowait=False):
         """backgroundのposの位置に一時描画。"""
+        self.cache.restore()
         image = self.get_image()
         image = self.clip_tempimg(image, pos)
 
@@ -191,14 +193,12 @@ class _JpySubImage(cw.image.Image):
         if 0 < rect[2] and 0 < rect[3]:
             if redraw:
                 if not self.animation == 1:
-                    before = background.subsurface(rect).copy()
-
+                    self.cache.before = background.subsurface(rect).copy()
+                    self.cache.beforeback = background
+                    self.cache.beforerect = rect
                 background.blit(image, pos, special_flags=blendmode)
                 if not nowait:
                     cw.cwpy.draw()
-
-                if not self.animation == 1:
-                    background.blit(before, rect.topleft)
             else:
                 if self.animation == 1:
                     background.blit(image, pos, special_flags=blendmode)
@@ -256,16 +256,6 @@ class _JpySubImage(cw.image.Image):
             if 1 <= self.savecache <= 8:
                 self.cache.save_image(self.savecache, image)
             return
-
-        # マスク
-        if self.transparent:
-            colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey, RLEACCEL)
-            image = image.convert_alpha()
-            image.set_colorkey(colorkey, RLEACCEL)
-        else:
-            colorkey = None
-            image.set_colorkey(None)
 
         # RGB入れ替え
         if self.exchange:
@@ -340,9 +330,14 @@ class _JpySubImage(cw.image.Image):
         if self.mirror or self.flip:
             image = pygame.transform.flip(image, self.mirror, self.flip)
 
+        transparent = self.transparent
+
         # ノイズ
         if self.noise:
             if self.noise == 1:
+                if self.noisepoint in (-255, 255):
+                    # 真っ白・真っ黒にする場合は透明色が無効になる
+                    transparent = False
                 image = cw.imageretouch.add_lightness(image, self.noisepoint)
             elif self.noise == 2:
                 image = cw.imageretouch.to_binaryformat(image, self.noisepoint)
@@ -352,6 +347,14 @@ class _JpySubImage(cw.image.Image):
                 image = cw.imageretouch.add_noise(image, self.noisepoint, True)
             elif self.noise == 5:
                 image = cw.imageretouch.add_mosaic(image, self.noisepoint)
+
+        # マスク
+        if transparent:
+            colorkey = image.get_at((0, 0))
+            image.set_colorkey(colorkey, RLEACCEL)
+        else:
+            colorkey = None
+            image.set_colorkey(None)
 
         # 回転
         if self.turn:
@@ -443,7 +446,7 @@ class _JpySubImage(cw.image.Image):
                     # 変化するためキャッシュ不可
                 # Jpdcファイル
                 elif ext == ".jpdc":
-                    image = JpdcImage(False, path).get_image()
+                    image = JpdcImage(False, path, cache=self.cache).get_image()
                     # 重くならないのでキャッシュ不要
                 # Jptxファイル
                 elif ext == ".jptx":
@@ -597,6 +600,7 @@ class JpyImage(cw.image.Image):
                 parts.draw2back(back)
 
         back.retouch()
+        cache.restore()
         back.drawtemp(doanime)
         self.image = back.get_image()
         if mask:
@@ -610,6 +614,17 @@ class JpyCache(object):
     def __init__(self):
         self.pos = None
         self.img = {}
+        # 一時描画を削除するために描画前背景を保存する
+        self.before = None
+        self.beforeback = None
+        self.beforerect = None # 一時描画された領域
+
+    def restore(self):
+        if self.before:
+            self.beforeback.blit(self.before, self.beforerect.topleft)
+            self.before = None
+            self.beforeback = None
+            self.beforerect = None
 
     def save_position(self, pos):
         self.pos = pos
@@ -634,7 +649,7 @@ class JpyCache(object):
         return image
 
 class JpdcImage(cw.image.Image):
-    def __init__(self, mask, path):
+    def __init__(self, mask, path, cache=None):
         config = EffectBoosterConfig(path, "jpdc:init")
         x_noscale, y_noscale, w_noscale, h_noscale = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
         x, y, w, h = cw.s((x_noscale, y_noscale, w_noscale, h_noscale))
@@ -643,10 +658,7 @@ class JpdcImage(cw.image.Image):
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
         if not copymode:
-            if cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"):
-                copymode = 1
-            else:
-                copymode = 2
+            copymode = 2
 
         if copymode == 3:
             self.image.fill((255, 255, 255))
@@ -717,6 +729,9 @@ class JptxImage(cw.image.Image):
         fontcolor = config.get_color("jptx:init", "fontcolor", (255, 255, 255))
         fontface = config.get("jptx:init", "fontface", u"ＭＳ Ｐゴシック")
         antialias = config.get_bool("jptx:init", "antialias", False)
+        if not antialias and fontface in (u"ＭＳ Ｐ明朝"):
+            # cwconv.dllのバグで常にアンチエイリアスがかかる
+            antialias = True
         fonttransparent = config.get_bool("jptx:init", "fonttransparent", False)
         text = config.get("jptx:begin", "jptx:end", "")
 
@@ -826,7 +841,7 @@ class JptxImage(cw.image.Image):
                     underline = start
                     info.font.set_underline(start)
                 elif name == "i":
-                    underline = start
+                    italic= start
                     info.font.set_italic(start)
                 elif name == "s":
                     info.strike = start
