@@ -70,13 +70,18 @@ class BackGround(base.CWPySprite):
             return None, False
         anime = False
 
-        if cw.cwpy.is_playingscenario() and (path, size, mask) in cw.cwpy.sdata.cache:
-            return cw.cwpy.sdata.cache[(path, size, mask)], False
-
-        # 画像読み込み
-        ext = cw.util.splitext(path)[1].lower()
-
         try:
+            if os.path.isfile(path):
+                mtime = os.path.getmtime(path)
+            else:
+                mtime = 0
+
+            # 画像読み込み
+            ext = cw.util.splitext(path)[1].lower()
+
+            if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask) in cw.cwpy.sdata.cache:
+                return cw.cwpy.sdata.cache[(path, mtime, size, mask)], False
+
             if ext == ".jptx":
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
             elif ext == ".jpdc":
@@ -106,7 +111,7 @@ class BackGround(base.CWPySprite):
                 image = pygame.transform.scale(image, size)
 
         if not anime and cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.cache[(path, size, mask)] = image
+            cw.cwpy.sdata.cache[(path, mtime, size, mask)] = image
 
         return image, anime
 

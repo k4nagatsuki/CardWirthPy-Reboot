@@ -703,6 +703,7 @@ class JpdcImage(cw.image.Image):
             path = cw.util.join_paths(os.path.dirname(path), filename)
             encoding = sys.getfilesystemencoding()
             pygame.image.save(saveimage, path.encode(encoding))
+            cw.cwpy.draw()
             self.wait()
             s = "%s %s - %s %s" % (cw.APP_NAME, cw.cwpy.setting.skinname,
                     os.path.basename(cw.cwpy.yadodir), cw.cwpy.sdata.name)
