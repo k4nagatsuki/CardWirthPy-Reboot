@@ -791,10 +791,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.deck.set(self)
         # カード画像
         path = self.data.gettext("Property/ImagePath", "")
-        if cw.binary.image.path_is_code(path):
-            self.imgpath = path
-        else:
-            self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        self.imgpath = cw.util.get_materialpath(path, cw.M_IMG)
         # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale)
         self.set_pos_noscale(pos_noscale=self._init_pos_noscale)
@@ -872,10 +869,7 @@ class FriendCard(CWPyCard, character.Friend):
         self.deck.set(self)
         # カード画像
         path = self.data.gettext("Property/ImagePath", "")
-        if cw.binary.image.path_is_code(path):
-            self.imgpath = path
-        else:
-            self.imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        self.imgpath = cw.util.get_materialpath(path, cw.M_IMG)
         # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self)
         self.update_image()
@@ -973,11 +967,8 @@ class MenuCard(CWPyCard):
                 path = pcards[pi].gettext("Property/ImagePath", "")
                 if path:
                     path = cw.util.join_yadodir(path)
-        elif path and not cw.binary.image.path_is_code(path):
-            if cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
-                path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-            else:
-                path = cw.util.join_paths(cw.cwpy.skindir, path)
+        elif path:
+            path = cw.util.get_materialpath(path, cw.M_IMG, system=cw.cwpy.areaid < 0)
 
         if self._data.tag == "LargeMenuCard":
             # TODO scaleinfo

@@ -77,6 +77,11 @@ POCKET_BEAST = 2
 # イベント用子コンテンツ特殊インデックス
 IDX_TREEEND = -1
 
+# 素材タイプ
+M_IMG = 0
+M_MSC = 1
+M_SND = 2
+
 # 対応拡張子
 EXTS_IMG = (".bmp", ".jpg", ".jpeg", ".png", ".gif", ".pcx", ".tif", ".xpm")
 EXTS_MSC = (".mid", ".midi", ".mp3", ".ogg")

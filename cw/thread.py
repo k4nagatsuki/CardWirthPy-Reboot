@@ -2295,13 +2295,11 @@ class CWPy(_Singleton, threading.Thread):
         """効果音を再生する。
         シナリオ効果音・スキン効果音を適宜使い分ける。
         """
-        inusesoundpath = cw.util.get_inusecardmaterialpath(path, inusecard)
+        inusesoundpath = cw.util.get_inusecardmaterialpath(path, cw.M_SND, inusecard)
         if os.path.isfile(inusesoundpath):
             path = inusesoundpath
-        elif self.is_playingscenario() and not self.areaid < 0:
-            path = cw.util.join_paths(self.sdata.scedir, path)
         else:
-            path = cw.util.join_paths(self.skindir, path)
+            path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
 
         if os.path.isfile(path):
             cw.util.load_sound(path).play(True)
@@ -2312,10 +2310,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.skinsounds[name].play(True)
 
     def has_sound(self, path):
-        if self.is_playingscenario() and not self.areaid < 0:
-            path = cw.util.join_paths(self.sdata.scedir, path)
-        else:
-            path = cw.util.join_paths(self.skindir, path)
+        path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
 
         if os.path.isfile(path):
             return True
@@ -2781,6 +2776,7 @@ class CWPy(_Singleton, threading.Thread):
                 imgpath = cw.util.join_paths(scedir, materialpath)
             else:
                 imgpath = cw.util.join_yadodir(materialpath)
+            imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
 
         if not (pisc or os.path.isfile(imgpath)):
             return

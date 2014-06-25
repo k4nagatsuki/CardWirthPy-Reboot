@@ -184,8 +184,7 @@ class CardHeader(object):
             if self.type in ("ActionCard", "UseCardInBackpack"):
                 path = cw.util.join_paths(cw.cwpy.skindir, path)
             elif self.scenariocard:
-                if not cw.binary.image.path_is_code(path):
-                    path = cw.util.join_paths(self.scedir, path)
+                path = cw.util.get_materialpath(path, cw.M_IMG, scedir=self.scedir)
             else:
                 path = cw.util.join_yadodir(path)
 
@@ -650,8 +649,7 @@ class InfoCardHeader(object):
         self.author = cw.cwpy.sdata.author
         # 画像
         path = data.gettext("ImagePath", "")
-        if not cw.binary.image.path_is_code(path):
-            path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
+        path = cw.util.get_materialpath(path, cw.M_IMG)
         self.imgpath = path
         self.set_cardimg()
         # cardcontrolダイアログで使うフラグ

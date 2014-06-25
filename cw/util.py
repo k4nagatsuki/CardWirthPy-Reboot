@@ -218,18 +218,11 @@ class MusicInterface(object):
         self.set_volume()
 
     def get_path(self, path):
-        inusepath = cw.util.get_inusecardmaterialpath(path)
+        inusepath = cw.util.get_inusecardmaterialpath(path, cw.M_MSC)
         if os.path.isfile(inusepath):
             path = inusepath
-        elif cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
-            path = join_paths(cw.cwpy.sdata.scedir, path)
         else:
-            path = join_paths(cw.cwpy.skindir, path)
-
-        if not os.path.isfile(path):
-            fname = cw.util.splitext(os.path.basename(path))[0]
-            fname = fname + cw.cwpy.rsrc.ext_bgm
-            path = join_paths(cw.cwpy.skindir, "Bgm", fname)
+            path = get_materialpath(path, cw.M_MSC, system=cw.cwpy.areaid < 0)
 
         return path
 
@@ -923,7 +916,7 @@ def get_yadofilepath(path):
     else:
         return ""
 
-def get_inusecardmaterialpath(path, inusecard=None):
+def get_inusecardmaterialpath(path, type, inusecard=None):
     """pathが宿からシナリオへ持ち込んだカードの
     素材を指していればそのパスを返す。
     そうでない場合は空文字列を返す。"""
@@ -933,7 +926,40 @@ def get_inusecardmaterialpath(path, inusecard=None):
             inusecard = cw.cwpy.event.get_inusecard()
         if not inusecard.carddata.getbool(".", "scenariocard", False):
             imgpath = cw.util.join_yadodir(path)
+            imgpath = get_materialpathfromskin(imgpath, type)
     return imgpath
+
+def get_materialpath(path, type, scedir="", system=False):
+    """pathが指す素材を、シナリオプレイ中はシナリオ内から探し、
+    プレイ中でない場合や存在しない場合はスキンから探す。
+    path: 素材の相対パス。
+    type: 素材のタイプ。cw.M_IMG, cw.M_MSC, cw.M_SNDのいずれか。
+    """
+    if type == cw.M_IMG and cw.binary.image.path_is_code(path):
+        return path
+    if not system and cw.cwpy.is_playingscenario():
+        if not scedir:
+            scedir = cw.cwpy.sdata.scedir
+        path = cw.util.join_paths(scedir, path)
+    elif not os.path.isfile(path):
+        path = cw.util.join_paths(cw.cwpy.skindir, path)
+    return get_materialpathfromskin(path, type)
+
+def get_materialpathfromskin(path, type):
+    if not os.path.isfile(path):
+        if type == cw.M_IMG:
+            fname = os.path.basename(path)
+            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
+            path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
+        elif type == cw.M_MSC:
+            fname = os.path.basename(path)
+            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_bgm
+            path = cw.util.join_paths(cw.cwpy.skindir, "Bgm", fname)
+        elif type == cw.M_SND:
+            fname = os.path.basename(path)
+            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_snd
+            path = cw.util.join_paths(cw.cwpy.skindir, "Sound", fname)
+    return path
 
 def remove_temp():
     """

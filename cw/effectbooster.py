@@ -543,8 +543,19 @@ def get_filepath_s(configpath, filename, dirtype=-1):
             dpath = cw.util.join_paths(cw.cwpy.sdata.scedir)
         else:
             dpath = cw.util.join_paths(cw.cwpy.sdata.scedir, "Material")
+        fpath = cw.util.join_paths(dpath, filename)
+        ext = os.path.splitext(fpath)[1].lower()
+        if ext in cw.EXTS_SND:
+            type = cw.M_SND
+        else:
+            type = cw.M_IMG
+        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, type)
+        if inusecardpath:
+            fpath = inusecardpath
+        else:
+            fpath = cw.util.get_materialpath(fpath, type, scedir=dpath)
         # 指定位置に存在しなかった場合は相対位置
-        if not os.path.isfile(cw.util.join_paths(dpath, filename)):
+        if not os.path.isfile(fpath):
             return get_filepath_s(configpath, filename, 1)
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")

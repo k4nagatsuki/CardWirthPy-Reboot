@@ -2446,13 +2446,12 @@ class TalkMessageContent(TalkContent):
                         (not hasattr(talker, "scenariocard") or not talker.scenariocard):
                     imgpath = cw.util.join_yadodir(imgpath)
         elif imgpath:
-            inusepath = cw.util.get_inusecardmaterialpath(imgpath)
+            inusepath = cw.util.get_inusecardmaterialpath(imgpath, cw.M_IMG)
             if os.path.isfile(inusepath):
                 imgpath = inusepath
-            elif cw.cwpy.is_playingscenario() and not cw.cwpy.areaid < 0:
-                imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
             else:
-                imgpath = cw.util.join_paths(cw.cwpy.skindir, imgpath)
+                imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,\
+                                                   system=cw.cwpy.areaid < 0)
 
         # MessageWindow表示
         if text:

@@ -167,7 +167,7 @@ class BackGround(base.CWPySprite):
                 if e.getbool("ImagePath", "inusecard", False):
                     inusecard = True
                 else:
-                    imgpath = cw.util.get_inusecardmaterialpath(path)
+                    imgpath = cw.util.get_inusecardmaterialpath(path, cw.M_IMG)
                     inusecard = os.path.isfile(imgpath)
 
                 d = (path, inusecard, mask, size, pos, flag, visible)
@@ -268,17 +268,9 @@ class BackGround(base.CWPySprite):
 
         if inusecard:
             path = cw.util.join_yadodir(path)
+            path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
         else:
-            if cw.cwpy.is_playingscenario():
-                path = cw.util.join_paths(cw.cwpy.sdata.scedir, path)
-
-            if not cw.cwpy.is_playingscenario() or not os.path.isfile(path):
-                path = cw.util.join_paths(cw.cwpy.skindir, path)
-
-        if not os.path.isfile(path):
-            fname = os.path.basename(path)
-            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
-            path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
+            path = cw.util.get_materialpath(path, cw.M_IMG)
 
         if not os.path.isfile(path):
             return False
