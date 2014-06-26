@@ -938,9 +938,14 @@ def get_materialpath(path, type, scedir="", system=False):
     if type == cw.M_IMG and cw.binary.image.path_is_code(path):
         return path
     if not system and cw.cwpy.is_playingscenario():
-        if not scedir:
-            scedir = cw.cwpy.sdata.scedir
-        path = cw.util.join_paths(scedir, path)
+        tpath = cw.util.join_paths(u"Data/Temp/ScenarioLog/TempFile", path)
+        if os.path.isfile(tpath):
+            path = tpath
+        else:
+            path = cw.util.join_paths(scedir, path)
+            if not scedir:
+                scedir = cw.cwpy.sdata.scedir
+            path = cw.util.join_paths(scedir, path)
     elif not os.path.isfile(path):
         path = cw.util.join_paths(cw.cwpy.skindir, path)
     return get_materialpathfromskin(path, type)
