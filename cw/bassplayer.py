@@ -38,7 +38,9 @@ else:
 
 def _cc111loop(handle, channel, data, pos):
     """CC#111の位置へシークし、再び演奏を始める。"""
-    _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
+    global _bass
+    if not pos is None:
+        _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
 CC111LOOP = SYNCPROC(_cc111loop)
 
 def is_alivable():
@@ -144,7 +146,7 @@ def _play(file, volume, loop):
                 chan = bassMidiEvent[2] # 使用しない
                 tick = bassMidiEvent[3] # 使用しない
                 pos = c_int(bassMidiEvent[4])
-                if param == CC111: # CC#111があったのでここでループする
+                if param == CC111 and not pos is None: # CC#111があったのでここでループする
                     _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END, c_longlong(0), CC111LOOP, pos)
                     break
     else:
