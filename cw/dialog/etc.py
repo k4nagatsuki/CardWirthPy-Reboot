@@ -163,6 +163,7 @@ class BattleCommand(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
         self.cancel()
 
     def OnMove(self, event):
