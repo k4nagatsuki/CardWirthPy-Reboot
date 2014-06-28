@@ -724,6 +724,22 @@ class Frame(wx.Frame):
         # pointの数値だけ中央から移動
         x += int(point[0] * cw.cwpy.scr_scale)
         y += int(point[1] * cw.cwpy.scr_scale)
+
+        # モニタ内に収める
+        rect = dlg.Parent.GetRect()
+        size = dlg.GetSize()
+        for i in xrange(wx.Display.GetCount()):
+            drect = wx.Display(i).GetClientArea()
+            if rect.Intersects(drect):
+                if drect[0]+drect[2] < x+size[0]:
+                    x -= (x+size[0]) - (drect[0]+drect[2])
+                if drect[1]+drect[3] < y+size[1]:
+                    y -= (y+size[1]) - (drect[1]+drect[3])
+                if x < drect[0]:
+                    x = drect[0]
+                if y < drect[1]:
+                    y = drect[1]
+
         dlg.MoveXY(x, y)
 
     def kill_dlg(self, dlg=None):
