@@ -209,6 +209,8 @@ class Select(wx.Dialog):
         self._downbutton = event.GetButton()
 
     def OnSelectBase(self, event):
+        if self._processing:
+            return
         if self._downbutton <> event.GetButton():
             self._downbutton = -1
             return
@@ -2459,7 +2461,6 @@ class ScenarioSelect(Select):
                     return
 
                 item, cookie = self.tree.GetFirstChild(parent)
-                i = 0
                 delitems = []
                 while item.IsOk():
                     data = self.tree.GetItemPyData(item)
@@ -2469,18 +2470,16 @@ class ScenarioSelect(Select):
                             delitems.append(item)
                         elif self.tree.IsExpanded(item):
                             recurse(item)
-                            i += 1
                     item, cookie = self.tree.GetNextChild(item, cookie)
                 for item in delitems:
                     self.tree.Delete(item)
 
                 for index, header in enumerate(self._narrow_scenario(self.scetable[nowdir])):
                     if isinstance(header, cw.header.ScenarioHeader):
-                        item = self.create_treeitem(i, parent, header)
+                        item = self.create_treeitem(index, parent, header)
                         if isinstance(selected, cw.header.ScenarioHeader) and\
                                 selected.dpath == header.dpath and selected.fname == header.fname:
                             self.tree.SelectItem(item)
-                        i += 1
 
             recurse(self.tree.root)
         else:
@@ -2618,6 +2617,8 @@ class ScenarioSelect(Select):
         self.tree.Collapse(item)
 
     def OnTreeSelChanged(self, event):
+        if self._processing:
+            return
         if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
             return
         selitem = self.tree.GetSelection()
