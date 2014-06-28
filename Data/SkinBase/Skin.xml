@@ -633,5 +633,6 @@
     <Message key="narrow_condition">絞込条件:</Message>
     <Message key="title">タイトル</Message>
     <Message key="author">作者名</Message>
+    <Message key="target_level">対象レベル</Message>
   </Messages>
 </Skin>

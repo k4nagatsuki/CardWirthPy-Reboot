@@ -104,9 +104,7 @@ class Text(wx.Dialog):
         cw.cwpy.sounds["page"].play()
         self.Parent.OnClickLeftBtn(event)
         self._enable_btn()
-        self.list, self.list2 = self.Parent.get_texts()
-        self.index = 0
-        self.index2 = 0
+        self.update_lists()
 
         if self.list2:
             value = self.list2[self.index2]
@@ -134,9 +132,7 @@ class Text(wx.Dialog):
         cw.cwpy.sounds["page"].play()
         self.Parent.OnClickRightBtn(event)
         self._enable_btn()
-        self.list, self.list2 = self.Parent.get_texts()
-        self.index = 0
-        self.index2 = 0
+        self.update_lists()
 
         if self.list2:
             value = self.list2[self.index2]
@@ -254,17 +250,44 @@ class Text(wx.Dialog):
             self.leftbtn.Disable()
             self.closebtn.Disable()
 
+    def upddate_lists(self):
+        pass
+
 #-------------------------------------------------------------------------------
 #　リードミーダイアログ
 #-------------------------------------------------------------------------------
 
 class Readme(Text):
     def __init__(self, parent, name, lists):
-        self.list = lists[0]
+        cw.util.sort_by_attr(lists, "noextname")
+        self.list = []
         self.index = 0
-        self.list2 = lists[1]
+        self.list2 = []
         self.index2 = 0
+        for s in lists:
+            self.list.append(s.name)
+            self.list2.append(s.content)
         Text.__init__(self, parent, name)
+
+    def update_lists(self):
+        lists = self.Parent.get_texts()
+        cw.util.sort_by_attr(lists, "noextname")
+        self.list = []
+        self.index = 0
+        self.list2 = []
+        self.index2 = 0
+        for s in lists:
+            self.list.append(s.name)
+            self.list2.append(s.content)
+
+        self.index = 0
+        self.index2 = 0
+
+class ReadmeData(object):
+    def __init__(self, name, content):
+        self.name = name
+        self.noextname = os.path.splitext(name)[0].split("/").reverse()
+        self.content = content
 
 def main():
     pass

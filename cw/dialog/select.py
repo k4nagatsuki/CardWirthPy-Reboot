@@ -1729,18 +1729,28 @@ class ScenarioSelect(Select):
         font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15), weight=wx.NORMAL)
         self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
         self.narrow_label.SetFont(font)
-        self.narrow = wx.TextCtrl(self, -1)
+        self.narrow = wx.TextCtrl(self, -1, size=(-1, -1))
         self.narrow.SetFont(font)
+        self.narrow.SetValue(cw.cwpy.setting.scenario_narrow)
         choices = (cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["author"])
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
-        self.narrow_type = wx.Choice(self, -1, choices=choices)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.narrow_type = wx.Choice(self, -1, size=(-1, -1), choices=choices)
         self.narrow_type.SetFont(font)
-        self.narrow_type.SetSelection(0)
-
-        self.narrow.SetValue(cw.cwpy.setting.scenario_narrow)
         self.narrow_type.SetSelection(cw.cwpy.setting.scenario_narrowtype)
+
+        # 整列条件
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
+        self.sort_label.SetFont(font)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        choices = (cw.cwpy.msgs["target_level"],
+                   cw.cwpy.msgs["title"],
+                   cw.cwpy.msgs["author"])
+        self.sort = wx.Choice(self, -1, size=(-1, -1), choices=choices)
+        self.sort.SetFont(font)
+        self.sort.SetSelection(cw.cwpy.setting.scenario_sorttype)
 
         # 選択リスト
         self.list = dpaths + headers
@@ -1808,6 +1818,7 @@ class ScenarioSelect(Select):
 
         self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
         self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
+        self.sort.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
 
         self.draw(True)
 
@@ -1817,7 +1828,9 @@ class ScenarioSelect(Select):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
         nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
         nsizer.Add(self.narrow, 1, wx.CENTER, 0)
-        nsizer.Add(self.narrow_type, 0, wx.CENTER, 0)
+        nsizer.Add(self.narrow_type, 0, wx.RIGHT|wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.sort, 0, wx.CENTER, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
@@ -2128,7 +2141,8 @@ class ScenarioSelect(Select):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(110))
             # 中身
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16)))
+            font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
+            font2 = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(12))
 
             names = self._narrow_scenario(self.names)
             if len(names) > 13:
@@ -2137,19 +2151,48 @@ class ScenarioSelect(Select):
 
             y = cw.wins(130)
             for name in names:
+                addition = ""
                 if isinstance(name, cw.header.ScenarioHeader):
                     header = name
                     name = name.name
+                    if self.sort.GetSelection() == 2:
+                        # 整列条件: 作者名
+                        if header.author:
+                            addition = u"(%s)" % (header.author)
+                    elif header.levelmin or header.levelmax:
+                        levelmin = str(header.levelmin) if header.levelmin else " "
+                        levelmax = str(header.levelmax) if header.levelmax else " "
+                        addition = u"[%s～%s]" % (levelmin, levelmax)
                     if self.is_playing(header) or self.is_complete(header) or self.is_invisible(header):
                         dc.SetTextForeground((128, 128, 128))
                     else:
                         dc.SetTextForeground((0, 0, 0))
                 else:
                     dc.SetTextForeground((0, 0, 0))
+
+                dc.SetFont(font)
                 size = dc.GetTextExtent(name)
-                x = (bmpw - size[0]) / 2
+                space = cw.wins(3)
+                if addition:
+                    dc.SetFont(font2)
+                    size2 = dc.GetTextExtent(addition)
+                    x = (bmpw - (size[0]+space+size2[0])) / 2
+                    x += cw.wins(10) # 左に寄って見えるので若干右寄りにする
+                else:
+                    x = (bmpw - size[0]) / 2
+
+                dc.SetFont(font)
                 dc.DrawText(name, x, y)
+
+                if addition:
+                    dc.SetFont(font2)
+                    dc.SetTextForeground((128, 128, 128))
+                    x2 = x + space + size[0]
+                    y2 = y + ((size[1] - size2[1]) / 2) + 1
+                    dc.DrawText(addition, x2, y2)
+
                 y += cw.wins(15)
+
             if os.path.isdir(cw.util.get_linktarget(dpath)):
                 self.yesbtn.Enable()
         else:
@@ -2336,6 +2379,11 @@ class ScenarioSelect(Select):
                 name = u"[    %2d] %s" % (header.levelmin, name)
             else:
                 name = u"[%2d～%2d] %s" % (header.levelmin, header.levelmax, name)
+
+        if self.sort.GetSelection() == 2 and header.author:
+            # 作者名による整列中
+            name = u"%s (%s)" % (name, header.author)
+
         item = self.tree.AppendItem(treeitem, name, image)
         self.tree.SetItemPyData(item, (index, header))
         return item
@@ -2491,6 +2539,7 @@ class ScenarioSelect(Select):
             pcards = cw.cwpy.get_pcards("unreversed")
             level = sum([pcard.level for pcard in pcards]) / len(pcards)
 
+        dseq = []
         seq = []
         narrow = self.narrow.GetValue().lower()
         ntype = self.narrow_type.GetSelection()
@@ -2520,10 +2569,22 @@ class ScenarioSelect(Select):
                             continue
                     else:
                         assert False
+                seq.append(header)
+            else:
+                dseq.append(header)
 
-            seq.append(header)
+        sort = self.sort.GetSelection()
+        if sort == 0:
+            # 対象レベル。最初からソート済み
+            pass
+        elif sort == 1:
+            # タイトル
+            cw.util.sort_by_attr(seq, "name")
+        elif sort == 2:
+            # 作者名
+            cw.util.sort_by_attr(seq, "author")
 
-        return seq
+        return dseq + seq
 
     def enable_btn(self):
         if self._processing:
@@ -2581,8 +2642,6 @@ class ScenarioSelect(Select):
         else:
             self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_tree"])
 
-
-
         if not self.list or isinstance(selected, cw.header.ScenarioHeader) or self.tree.IsShown():
             self.yesbtn.SetLabel(cw.cwpy.msgs["decide"])
         else:
@@ -2596,11 +2655,16 @@ class ScenarioSelect(Select):
         # 選択中のファイル名またはディレクトリ名を表示
         if isinstance(selected, cw.header.ScenarioHeader):
             fname = selected.fname
+            author = selected.author
         else:
             fname = os.path.basename(selected)
+            author = ""
         if sys.platform == "win32" and cw.util.splitext(fname)[1].lower() == ".lnk":
             fname = cw.util.splitext(fname)[0]
-        self.SetTitle(u"貼紙を見る [ %s ]" % (fname))
+        name = u"貼紙を見る [ %s ]" % (fname)
+        if author:
+            name = u"%s (%s)" % (name, author)
+        self.SetTitle(name)
 
     def get_dpaths(self, dpath):
         """
@@ -2649,7 +2713,6 @@ class ScenarioSelect(Select):
         テキストファイルのファイル名とデータのリストを返す。
         """
         seq = []
-        seq2 = []
         if isinstance(self.list[self.index], cw.header.ScenarioHeader):
             header = self.list[self.index]
             path = cw.util.join_paths(header.dpath, header.fname)
@@ -2670,8 +2733,8 @@ class ScenarioSelect(Select):
                                     if fname.lower().endswith(".txt"):
                                         dpath2 = cw.util.decode_zipname(dpath2)
                                         with open(cw.util.join_paths(dpath2, fname), "r") as f:
-                                            seq2.append(f.read())
-                                        seq.append(fname)
+                                            content = f.read()
+                                        seq.append(text.ReadmeData(fname, content))
                     finally:
                         for file in os.listdir(dpath):
                             file = cw.util.decode_zipname(file)
@@ -2684,10 +2747,9 @@ class ScenarioSelect(Select):
 
                         for name in names:
                             data = z.read(name)
-                            seq2.append(data)
                             name = os.path.basename(name)
                             name = cw.util.decode_zipname(name)
-                            seq.append(name)
+                            seq.append(text.ReadmeData(name, data))
 
             else:
 
@@ -2701,12 +2763,11 @@ class ScenarioSelect(Select):
                 for fpath in paths:
                     with open(fpath, "r") as f:
                         data = f.read()
-                    seq2.append(data)
                     name = cw.util.relpath(fpath, path)
                     name = cw.util.join_paths(name)
-                    seq.append(name)
+                    seq.append(text.ReadmeData(name, data))
 
-        return seq, seq2
+        return seq
 
     def conv_scenario(self, path):
         """
@@ -2868,7 +2929,7 @@ class UpdateNamesThread(threading.Thread):
         for path in self.dpaths:
             if path.lower().endswith(".lnk"):
                 path = path[0:-len(".lnk")]
-            dname = "[%s]" % os.path.basename(path)
+            dname = u"[%s]" % os.path.basename(path)
             dnames.append(dname)
         def func():
             if self.dlg:

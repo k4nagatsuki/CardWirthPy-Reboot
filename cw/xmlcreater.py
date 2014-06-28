@@ -295,6 +295,12 @@ def create_settings(setting):
             e_sce.append(e)
             e_history.append(e_sce)
 
+    # シナリオ絞込・整列条件
+    e = cw.data.make_element("ScenarioNarrowType", str(setting.scenario_narrowtype))
+    element.append(e)
+    e = cw.data.make_element("ScenarioSortType", str(setting.scenario_sorttype))
+    element.append(e)
+
     # ファイル書き込み
     path = "Settings.xml"
     etree = cw.data.xml2etree(element=element)

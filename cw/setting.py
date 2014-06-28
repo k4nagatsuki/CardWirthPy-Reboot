@@ -90,6 +90,7 @@ class Setting(object):
             self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
             self.scenario_narrow = ""
             self.scenario_narrowtype = 0
+            self.scenario_sorttype = 0
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -239,9 +240,10 @@ class Setting(object):
             folder = e_folder.gettext(".", "")
             self.folderoftype.append((skintype, folder))
 
-        # シナリオ絞込条件
+        # シナリオ絞込・整列条件
         self.scenario_narrow = ""
-        self.scenario_narrowtype = 0
+        self.scenario_narrowtype = data.getint("ScenarioNarrowType", 0)
+        self.scenario_sorttype = data.getint("ScenarioSortType", 0)
 
         # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
         self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", 2)
