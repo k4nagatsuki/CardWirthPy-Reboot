@@ -630,5 +630,8 @@
 よろしいですか？</Message>
     <Message key="restore_party">現在のパーティを解散して%sを再結成します。
 よろしいですか？</Message>
+    <Message key="narrow_condition">絞込条件:</Message>
+    <Message key="title">タイトル</Message>
+    <Message key="author">作者名</Message>
   </Messages>
 </Skin>

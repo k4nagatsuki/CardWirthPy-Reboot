@@ -88,6 +88,8 @@ class Setting(object):
             self.folderoftype = []
             self.fullscreenbackgroundtype = 2
             self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+            self.scenario_narrow = ""
+            self.scenario_narrowtype = 0
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -236,6 +238,10 @@ class Setting(object):
             skintype = e_folder.getattr(".", "skintype", "")
             folder = e_folder.gettext(".", "")
             self.folderoftype.append((skintype, folder))
+
+        # シナリオ絞込条件
+        self.scenario_narrow = ""
+        self.scenario_narrowtype = 0
 
         # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
         self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", 2)

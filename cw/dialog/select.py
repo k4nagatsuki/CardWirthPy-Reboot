@@ -275,12 +275,16 @@ class Select(wx.Dialog):
 
         self.topsizer = wx.BoxSizer(wx.VERTICAL)
         self.topsizer.Add(self.toppanel, 1, wx.EXPAND, 0)
+        self._add_topsizer()
 
         sizer_1.Add(self.topsizer, 1, wx.EXPAND, 0)
         sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def _add_topsizer(self):
+        pass
 
     def _disable_btn(self):
         self.left2btn.Disable()
@@ -1688,6 +1692,8 @@ class ScenarioSelect(Select):
     def __init__(self, parent, db):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
+        # ディレクトリとシナリオリストの対応
+        self.scetable = {}
         # シナリオディレクトリ
         self.scedir = u"Scenario"
         # 設定に応じて初期位置を変更する
@@ -1719,8 +1725,27 @@ class ScenarioSelect(Select):
         # 現在進行中のシナリオパスの集合
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
 
+        # 絞込条件
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
+        self.narrow_label.SetFont(font)
+        self.narrow = wx.TextCtrl(self, -1)
+        self.narrow.SetFont(font)
+        choices = (cw.cwpy.msgs["title"],
+                   cw.cwpy.msgs["description"],
+                   cw.cwpy.msgs["author"])
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.narrow_type = wx.Choice(self, -1, choices=choices)
+        self.narrow_type.SetFont(font)
+        self.narrow_type.SetSelection(0)
+
+        self.narrow.SetValue(cw.cwpy.setting.scenario_narrow)
+        self.narrow_type.SetSelection(cw.cwpy.setting.scenario_narrowtype)
+
         # 選択リスト
-        self.list = dpaths + self._narrow_scenario(headers)
+        self.list = dpaths + headers
+        self.scetable[self.nowdir] = self.list
+        self.list = self._narrow_scenario(self.list)
         self.index = 0
 
         # toppanel
@@ -1729,6 +1754,7 @@ class ScenarioSelect(Select):
         # ツリー表示用のビュー
         self.tree = wx.TreeCtrl(self, -1, size=cw.wins((400, 370)),
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
+        self.tree.SetDoubleBuffered(True)
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
         self.tree.Hide()
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
@@ -1765,7 +1791,6 @@ class ScenarioSelect(Select):
         self._update_saveddirstack()
         # layout
         self._do_layout()
-        self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
         # bind
         self._bind()
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
@@ -1780,7 +1805,21 @@ class ScenarioSelect(Select):
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
         self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.tree.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+
+        self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
+        self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
+
         self.draw(True)
+
+    def _add_topsizer(self):
+        self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
+
+        nsizer = wx.BoxSizer(wx.HORIZONTAL)
+        nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.narrow, 1, wx.CENTER, 0)
+        nsizer.Add(self.narrow_type, 0, wx.CENTER, 0)
+
+        self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
 
     def OnLeftDClick(self, event):
         if not (self.tree.HitTest(event.GetPosition())[1] & wx.TREE_HITTEST_ONITEM):
@@ -1852,7 +1891,9 @@ class ScenarioSelect(Select):
             self.dirstack = []
             dpaths = self.get_dpaths(self.nowdir)
             headers = self.db.search_dpath(self.nowdir)
-            self.list = dpaths + self._narrow_scenario(headers)
+            self.list = dpaths + headers
+            self.scetable[self.nowdir] = self.list
+            self.list = self._narrow_scenario(self.list)
         else:
             parent = self.scedir
             self.dirstack = []
@@ -1868,7 +1909,9 @@ class ScenarioSelect(Select):
             self.nowdir = parent
             dpaths = self.get_dpaths(self.nowdir)
             headers = self.db.search_dpath(self.nowdir)
-            self.list = dpaths + self._narrow_scenario(headers)
+            self.list = dpaths + headers
+            self.scetable[self.nowdir] = self.list
+            self.list = self._narrow_scenario(self.list)
             self.index = 0
 
             if exists:
@@ -1931,7 +1974,9 @@ class ScenarioSelect(Select):
             self.nowdir = cw.util.get_linktarget(self.list[self.index])
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
-            self.list = dpaths + self._narrow_scenario(headers) if headers else dpaths
+            self.list = dpaths + headers
+            self.scetable[self.nowdir] = self.list
+            self.list = self._narrow_scenario(self.list)
             self.index = 0
             self.enable_btn()
             self.draw(True)
@@ -1948,7 +1993,9 @@ class ScenarioSelect(Select):
             self.nowdir, selname = self.dirstack.pop()
             headers =  self.db.search_dpath(self.nowdir)
             dpaths = self.get_dpaths(self.nowdir)
-            self.list = dpaths + self._narrow_scenario(headers) if headers else dpaths
+            self.list = dpaths + headers
+            self.scetable[self.nowdir] = self.list
+            self.list = self._narrow_scenario(self.list)
             self.index = 0
             selname = os.path.normcase(selname)
             for index, name in enumerate(self.list):
@@ -1994,7 +2041,24 @@ class ScenarioSelect(Select):
     def OnDestroy(self, event):
         self.db.close()
 
+    def OnNarrowCondition(self, event):
+        cw.cwpy.sounds["page"].play()
+        # 日本語入力で一度に何度もイベントが発生する
+        # 事があるので絞り込み実施を遅延する
+        self._reserved_narrowconditin = True
+        def func():
+            if not self._reserved_narrowconditin:
+                return
+            self._reserved_narrowconditin = False
+            cw.cwpy.setting.scenario_narrow = self.narrow.GetValue()
+            cw.cwpy.setting.scenario_narrowtype = self.narrow_type.GetSelection()
+            self.update_narrowcondition()
+        wx.CallAfter(func)
+
     def draw(self, update=False):
+        self._draw_impl(update)
+
+    def _draw_impl(self, update=False, dc=None):
         if update:
             self.enable_btn()
 
@@ -2002,7 +2066,8 @@ class ScenarioSelect(Select):
             self.select_treeitem(self.index)
             return
 
-        dc = Select.draw(self, update)
+        if not dc:
+            dc = Select.draw(self, update)
 
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
@@ -2018,7 +2083,7 @@ class ScenarioSelect(Select):
         # ページ番号
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
-        s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
+        s = str(self.index+1) if self.list else str(0)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(340))
@@ -2065,7 +2130,7 @@ class ScenarioSelect(Select):
             # 中身
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16)))
 
-            names = self.names
+            names = self._narrow_scenario(self.names)
             if len(names) > 13:
                 names = names[0:12]
                 names.append(cw.cwpy.msgs["history_etc"])
@@ -2150,9 +2215,11 @@ class ScenarioSelect(Select):
                     self.yesbtn.Disable()
 
         if update:
-            buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
-            if buttonlist:
-                buttonlist[0].SetFocus()
+            fc = wx.Window.FindFocus()
+            if not fc in (self.narrow, self.narrow_type):
+                buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+                if buttonlist:
+                    buttonlist[0].SetFocus()
 
     def is_playing(self, header):
         return header.get_fpath() in self.nowplayingpaths
@@ -2169,48 +2236,109 @@ class ScenarioSelect(Select):
 
         return num < header.couponsnum
 
+    def update_narrowcondition(self):
+        self._processing = True
+        selected = self.list[self.index] if self.list else None
+        if self.tree.IsShown():
+            def recurse(parent):
+                index, nowdir = self.tree.GetItemPyData(parent)
+                if not nowdir in self.scetable:
+                    return
+
+                item, cookie = self.tree.GetFirstChild(parent)
+                i = 0
+                delitems = []
+                while item.IsOk():
+                    data = self.tree.GetItemPyData(item)
+                    if not data is None:
+                        index, header = data
+                        if isinstance(header, cw.header.ScenarioHeader):
+                            delitems.append(item)
+                        elif self.tree.IsExpanded(item):
+                            recurse(item)
+                            i += 1
+                    item, cookie = self.tree.GetNextChild(item, cookie)
+                for item in delitems:
+                    self.tree.Delete(item)
+
+                for index, header in enumerate(self._narrow_scenario(self.scetable[nowdir])):
+                    if isinstance(header, cw.header.ScenarioHeader):
+                        item = self.create_treeitem(i, parent, header)
+                        if isinstance(selected, cw.header.ScenarioHeader) and\
+                                selected.dpath == header.dpath and selected.fname == header.fname:
+                            self.tree.SelectItem(item)
+                        i += 1
+
+            recurse(self.tree.root)
+        else:
+            self.list = self.scetable[self.nowdir]
+            self.list = self._narrow_scenario(self.list)
+
+        self._processing = False
+
+        # 選択のやり直し
+        if selected and selected in self.list:
+            self.index = self.list.index(selected)
+            if not self.tree.IsShown():
+                dc = wx.ClientDC(self.toppanel)
+                dc = wx.BufferedDC(dc)
+                self._draw_impl(False, dc)
+        else:
+            self.index = max(0, min(self.index, len(self.list)-1))
+            if not self.tree.IsShown():
+                self.draw(True)
+
+        self._update_saveddirstack()
+
     def create_treeitems(self, treeitem):
         self.tree.DeleteChildren(treeitem)
-        i, nowdir = self.tree.GetItemPyData(treeitem)
+        index, nowdir = self.tree.GetItemPyData(treeitem)
         itemlist = []
-        dpaths = self.get_dpaths(nowdir)
-        index = 0
-        for dpath in dpaths:
-            name = os.path.basename(dpath)
-            image = self.tree.imgidx_dir
-            if sys.platform == "win32" and name.lower().endswith(".lnk"):
-                name = cw.util.splitext(name)[0]
-            item = self.tree.AppendItem(treeitem, name, image)
-            self.tree.SetItemPyData(item, (index, dpath))
-            child = self.tree.AppendItem(item, u"読込中...")
-            self.tree.SetItemPyData(child, None)
-            self.tree.Collapse(item)
-            itemlist.append(item)
-            index += 1
+        dpaths = []
 
-        for header in self._narrow_scenario(self.db.search_dpath(nowdir)):
-            name = header.name
-            image = self.tree.imgidx_summary
-            if self.is_playing(header):
-                image = self.tree.imgidx_playing
-            elif self.is_complete(header):
-                image = self.tree.imgidx_complete
-            elif self.is_invisible(header):
-                image = self.tree.imgidx_invisible
-            if header.levelmin <> 0 or header.levelmax <> 0:
-                if header.levelmin == header.levelmax:
-                    name = u"[    %2d] %s" % (header.levelmin, name)
-                else:
-                    name = u"[%2d～%2d] %s" % (header.levelmin, header.levelmax, name)
-            item = self.tree.AppendItem(treeitem, name, image)
-            self.tree.SetItemPyData(item, (index, header))
-            itemlist.append(item)
-            index += 1
+        if not nowdir in self.scetable:
+            self.scetable[nowdir] = self.get_dpaths(nowdir) + self.db.search_dpath(nowdir)
+
+        for index, header in enumerate(self._narrow_scenario(self.scetable[nowdir])):
+            if isinstance(header, cw.header.ScenarioHeader):
+                item = self.create_treeitem(index, treeitem, header)
+                itemlist.append(item)
+            else:
+                dpath = header
+                name = os.path.basename(dpath)
+                image = self.tree.imgidx_dir
+                if sys.platform == "win32" and name.lower().endswith(".lnk"):
+                    name = cw.util.splitext(name)[0]
+                item = self.tree.AppendItem(treeitem, name, image)
+                self.tree.SetItemPyData(item, (index, dpath))
+                child = self.tree.AppendItem(item, u"読込中...")
+                self.tree.SetItemPyData(child, None)
+                self.tree.Collapse(item)
+                itemlist.append(item)
+                dpaths.append(dpath)
 
         if not treeitem is self.tree.root:
             self.tree.Expand(treeitem)
 
         return itemlist, dpaths
+
+    def create_treeitem(self, index, treeitem, header):
+        name = header.name
+        image = self.tree.imgidx_summary
+        if self.is_playing(header):
+            image = self.tree.imgidx_playing
+        elif self.is_complete(header):
+            image = self.tree.imgidx_complete
+        elif self.is_invisible(header):
+            image = self.tree.imgidx_invisible
+        if header.levelmin <> 0 or header.levelmax <> 0:
+            if header.levelmin == header.levelmax:
+                name = u"[    %2d] %s" % (header.levelmin, name)
+            else:
+                name = u"[%2d～%2d] %s" % (header.levelmin, header.levelmax, name)
+        item = self.tree.AppendItem(treeitem, name, image)
+        self.tree.SetItemPyData(item, (index, header))
+        return item
 
     def show_tree(self):
         # ツリーを初期化する
@@ -2285,7 +2413,9 @@ class ScenarioSelect(Select):
 
         dpaths = self.get_dpaths(self.nowdir)
         headers = self.db.search_dpath(self.nowdir)
-        self.list = dpaths + self._narrow_scenario(headers)
+        self.list = dpaths + headers
+        self.scetable[self.nowdir] = self.list
+        self.list = self._narrow_scenario(self.list)
 
         self.dirstack = self.get_dirstack(paritem)
         self._update_saveddirstack()
@@ -2362,20 +2492,42 @@ class ScenarioSelect(Select):
             level = sum([pcard.level for pcard in pcards]) / len(pcards)
 
         seq = []
+        narrow = self.narrow.GetValue().lower()
+        ntype = self.narrow_type.GetSelection()
         for header in headers:
-            if not cw.cwpy.setting.show_unfitnessscenario and\
-                    ((header.levelmin <> 0 and level < header.levelmin) or\
-                     (header.levelmax <> 0 and header.levelmax < level)):
-                continue
-            if not cw.cwpy.setting.show_completedscenario and self.is_complete(header):
-                continue
-            if not cw.cwpy.setting.show_invisiblescenario and self.is_invisible(header):
-                continue
+            if isinstance(header, cw.header.ScenarioHeader):
+                if not cw.cwpy.setting.show_unfitnessscenario and\
+                        ((header.levelmin <> 0 and level < header.levelmin) or\
+                         (header.levelmax <> 0 and header.levelmax < level)):
+                    continue
+                if not cw.cwpy.setting.show_completedscenario and self.is_complete(header):
+                    continue
+                if not cw.cwpy.setting.show_invisiblescenario and self.is_invisible(header):
+                    continue
+
+                if narrow:
+                    if ntype == 0:
+                        # タイトルで絞り込み
+                        if not narrow in header.name.lower():
+                            continue
+                    elif ntype == 1:
+                        # 解説で絞り込み
+                        if not narrow in header.desc.lower():
+                            continue
+                    elif ntype == 2:
+                        # 作者名で絞り込み
+                        if not narrow in header.author.lower():
+                            continue
+                    else:
+                        assert False
+
             seq.append(header)
 
         return seq
 
     def enable_btn(self):
+        if self._processing:
+            return
         # リストが空だったらボタンを無効化
         if not self.list:
             self._disable_btn()
@@ -2408,14 +2560,18 @@ class ScenarioSelect(Select):
         if self.tree.IsShown():
             selitem = self.tree.GetSelection()
             if selitem:
-                index, pathorheader = self.tree.GetItemPyData(selitem)
-                if isinstance(pathorheader, cw.header.ScenarioHeader):
-                    header = pathorheader
-                    if not cw.cwpy.is_debugmode()\
-                        and (self.is_playing(header)\
-                         or self.is_complete(header)\
-                         or self.is_invisible(header)):
-                        self.yesbtn.Disable()
+                data = self.tree.GetItemPyData(selitem)
+                if data:
+                    index, pathorheader = data
+                    if isinstance(pathorheader, cw.header.ScenarioHeader):
+                        header = pathorheader
+                        if not cw.cwpy.is_debugmode()\
+                            and (self.is_playing(header)\
+                             or self.is_complete(header)\
+                             or self.is_invisible(header)):
+                            self.yesbtn.Disable()
+                else:
+                    self.yesbtn.Disable()
             else:
                 self.yesbtn.Disable()
 
@@ -2633,7 +2789,9 @@ class ScenarioSelect(Select):
         self.db.insert_scenario(zpath)
         headers = self.db.search_dpath(self.nowdir)
         dpaths = self.get_dpaths(self.nowdir)
-        self.list = dpaths + headers if headers else dpaths
+        self.list = dpaths + headers
+        self.scetable[self.nowdir] = self.list
+        self.list = self._narrow_scenario(self.list)
         self.index = 0
 
         # 変換したシナリオのインデックスを取得
@@ -2714,7 +2872,7 @@ class UpdateNamesThread(threading.Thread):
             dnames.append(dname)
         def func():
             if self.dlg:
-                self.dlg.names = dnames + self.dlg._narrow_scenario(headers)
+                self.dlg.names = dnames + headers
                 if self.quit: return
                 wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack)
                 self.dlg.updatenames_thr = None
