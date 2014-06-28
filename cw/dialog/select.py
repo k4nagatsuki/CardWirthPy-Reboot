@@ -2065,6 +2065,7 @@ class ScenarioSelect(Select):
             self._reserved_narrowconditin = False
             cw.cwpy.setting.scenario_narrow = self.narrow.GetValue()
             cw.cwpy.setting.scenario_narrowtype = self.narrow_type.GetSelection()
+            cw.cwpy.setting.scenario_sorttype = self.sort.GetSelection()
             self.update_narrowcondition()
         wx.CallAfter(func)
 
