@@ -1055,7 +1055,7 @@ class PlayerSelect(Select):
     def OnNumberKeyDown(self, event):
         """
         数値キー'1'～'9'までの押下を処理する。
-        CardControlではソート条件の変更を行う。
+        PlayerSelectではソート条件の変更を行う。
         """
         if self._processing:
             return
@@ -1831,6 +1831,60 @@ class ScenarioSelect(Select):
 
         self.bookmarkmenu = None
 
+        seq = self.accels
+        upkey = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=upkey)
+        seq.append((wx.ACCEL_NORMAL, wx.WXK_UP, upkey))
+        downkey = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=downkey)
+        seq.append((wx.ACCEL_NORMAL, wx.WXK_DOWN, downkey))
+
+        bookmarkkey = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnBookmark2, id=bookmarkkey)
+        seq.append((wx.ACCEL_CTRL, ord('b'), bookmarkkey))
+
+        self.narrowkeydown = []
+        self.sortkeydown = []
+        for i in xrange(0, 9):
+            narrowkeydown = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=narrowkeydown)
+            seq.append((wx.ACCEL_CTRL, ord('1')+i, narrowkeydown))
+            self.narrowkeydown.append(narrowkeydown)
+            sortkeydown = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
+            seq.append((wx.ACCEL_ALT, ord('1')+i, sortkeydown))
+            self.sortkeydown.append(sortkeydown)
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
+
+    def OnUpKeyDown(self, event):
+        self.narrow.SetFocus()
+
+    def OnDownKeyDown(self, event):
+        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        if buttonlist:
+            buttonlist[0].SetFocus()
+
+    def OnNumberKeyDown(self, event):
+        """
+        数値キー'1'～'9'までの押下を処理する。
+        絞込条件の変更またはソート条件の変更を行う。
+        """
+        if self._processing:
+            return
+
+        id = event.GetId()
+        if id in self.narrowkeydown:
+            index = self.narrowkeydown.index(id)
+            if index < self.narrow_type.GetCount():
+                self.narrow_type.SetSelection(index)
+                self.OnNarrowCondition(event)
+        if id in self.sortkeydown:
+            index = self.sortkeydown.index(id)
+            if index < self.sort.GetCount():
+                self.sort.SetSelection(index)
+                self.OnNarrowCondition(event)
+
     def _add_topsizer(self):
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
 
@@ -1850,6 +1904,13 @@ class ScenarioSelect(Select):
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
         self.bookmark.PopupMenu(self.bookmarkmenu)
+
+    def OnBookmark2(self, event):
+        cw.cwpy.sounds["page"].play()
+        if not self.bookmarkmenu:
+            self.create_bookmarkmenu()
+        size = self.bookmark.GetSize()
+        self.bookmark.PopupMenuXY(self.bookmarkmenu, size[0] / 2, size[1] / 2)
 
     def create_bookmarkmenu(self):
         if self.bookmarkmenu:
