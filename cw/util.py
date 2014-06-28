@@ -1559,7 +1559,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     return wxbmp
 
 def fill_bitmap(dc, bmp, csize):
-    """引数のbmpを塗りつぶす。"""
+    """引数のbmpを敷き詰める。"""
     imgsize = bmp.GetSize()
 
     for cntx in xrange(csize[0] / imgsize[0] + 1):

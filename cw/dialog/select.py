@@ -1758,6 +1758,10 @@ class ScenarioSelect(Select):
         self.list = self._narrow_scenario(self.list)
         self.index = 0
 
+        # ブックマーク
+        bmp = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK"])
+        self.bookmark = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(16)), bmp=bmp)
+
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((400, 370)))
 
@@ -1819,8 +1823,11 @@ class ScenarioSelect(Select):
         self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
         self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
         self.sort.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
+        self.bookmark.Bind(wx.EVT_BUTTON, self.OnBookmark)
 
         self.draw(True)
+
+        self.bookmarkmenu = None
 
     def _add_topsizer(self):
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
@@ -1831,8 +1838,127 @@ class ScenarioSelect(Select):
         nsizer.Add(self.narrow_type, 0, wx.RIGHT|wx.CENTER, cw.wins(3))
         nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
         nsizer.Add(self.sort, 0, wx.CENTER, 0)
+        nsizer.Add(self.bookmark, 0, wx.CENTER|wx.EXPAND, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
+
+    def OnBookmark(self, event):
+        # ブックマークメニューを生成して表示する
+        cw.cwpy.sounds["page"].play()
+        if not self.bookmarkmenu:
+            self.create_bookmarkmenu()
+        self.bookmark.PopupMenu(self.bookmarkmenu)
+
+    def create_bookmarkmenu(self):
+        if self.bookmarkmenu:
+            self.bookmarkmenu.Destroy()
+        menu = wx.Menu()
+        self.bookmarkmenu = menu
+        icon_add = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK"])
+        icon_arrange = cw.wins(cw.cwpy.rsrc.debugs["ARRANGE_BOOKMARK"])
+        icon_summary = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"])
+        icon_complete = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"])
+        icon_playing = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"])
+        icon_invisible = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"])
+        icon_dir = cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"])
+
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(13), weight=wx.NORMAL)
+
+        add = wx.MenuItem(menu, -1, cw.cwpy.msgs["add_bookmark"])
+        add.SetBitmap(icon_add)
+        add.SetFont(font)
+        menu.AppendItem(add)
+        menu.Bind(wx.EVT_MENU, self.OnAddBookmark, add)
+
+        arrange = wx.MenuItem(menu, -1, cw.cwpy.msgs["arrange_bookmark"])
+        arrange.SetBitmap(icon_arrange)
+        arrange.SetFont(font)
+        menu.AppendItem(arrange)
+        menu.Bind(wx.EVT_MENU, self.OnArrangeBookmark, arrange)
+
+        # ブックマークを開くためのユーティリティクラス
+        class OpenBookmark(object):
+            def __init__(self, outer, bookmark):
+                self.outer = outer
+                self.bookmark = bookmark
+            def OnOpen(self, event):
+                cw.cwpy.sounds["equipment"].play()
+                self.outer.set_selected(self.bookmark)
+
+        if cw.cwpy.ydata.bookmarks:
+            menu.AppendSeparator()
+            for bookmark in cw.cwpy.ydata.bookmarks:
+                path = self.scedir
+                for p in bookmark:
+                    path = cw.util.join_paths(path, p)
+                    path = cw.util.get_linktarget(path)
+                header = self.db.get_header(path)
+                if header:
+                    item = wx.MenuItem(menu, -1, header.name)
+                    item.SetFont(font)
+                    if self.is_playing(header):
+                        item.SetBitmap(icon_playing)
+                    elif self.is_complete(header):
+                        item.SetBitmap(icon_complete)
+                    elif self.is_invisible(header):
+                        item.SetBitmap(icon_invisible)
+                    else:
+                        item.SetBitmap(icon_summary)
+                else:
+                    if sys.platform == "win32":
+                        sp = os.path.splitext(p)
+                        if sp[1].lower() == ".lnk":
+                            p = sp[0]
+                    item = wx.MenuItem(menu, -1, p)
+                    item.SetFont(font)
+                    item.SetBitmap(icon_dir)
+
+                open = OpenBookmark(self, bookmark)
+                menu.AppendItem(item)
+                menu.Bind(wx.EVT_MENU, open.OnOpen, item)
+
+    def OnAddBookmark(self, event):
+        cw.cwpy.sounds["signal"].play()
+        self._update_saveddirstack()
+        header = self.list[self.index]
+        if isinstance(header, cw.header.ScenarioHeader):
+            name = header.name
+        else:
+            name = os.path.basename(header)
+            if sys.platform == "win32":
+                sp = os.path.splitext(name)
+                if sp[1].lower() == ".lnk":
+                    name = sp[0]
+        s = cw.cwpy.msgs["add_bookmark_message"] % (name)
+        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        self.Parent.move_dlg(dlg)
+
+        if not dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
+            return
+        dlg.Destroy()
+
+        def func(panel, selected):
+            cw.cwpy.ydata.add_bookmark(selected)
+            cw.cwpy.sounds["harvest"].play()
+            def func(panel):
+                if panel:
+                    panel.bookmarkmenu = None
+            cw.cwpy.frame.exec_func(func, panel)
+        cw.cwpy.exec_func(func, self, self.get_selected())
+
+    def OnArrangeBookmark(self, event):
+        cw.cwpy.sounds["click"].play()
+        dlg = cw.dialog.etc.BookmarkDialog(self, self.scedir, self.db)
+        self.Parent.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
+        def func(panel):
+            def func(panel):
+                if panel:
+                    panel.bookmarkmenu = None
+            cw.cwpy.frame.exec_func(func, panel)
+        cw.cwpy.exec_func(func, self)
 
     def OnLeftDClick(self, event):
         if not (self.tree.HitTest(event.GetPosition())[1] & wx.TREE_HITTEST_ONITEM):
@@ -1898,6 +2024,8 @@ class ScenarioSelect(Select):
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
         """
+        processing = self._processing
+        self._processing = True
         if not spaths:
             self.nowdir = self.scedir
             self.index = 0
@@ -1911,11 +2039,28 @@ class ScenarioSelect(Select):
             parent = self.scedir
             self.dirstack = []
             exists = True
+            treeitem = self.tree.root
             for fname in spaths[:-1]:
                 parent2 = cw.util.join_paths(parent, fname)
                 if os.path.exists(parent2):
                     self.dirstack.append((parent, fname))
                     parent = cw.util.get_linktarget(parent2)
+                    if self.tree.IsShown():
+                        item, cookie = self.tree.GetFirstChild(treeitem)
+                        while item.IsOk():
+                            data = self.tree.GetItemPyData(item)
+                            assert not data is None
+                            index, header = data
+                            if not isinstance(header, cw.header.ScenarioHeader) and\
+                                    os.path.normcase(os.path.basename(header)) ==\
+                                    os.path.normcase(fname):
+                                treeitem = item
+                                if not self.tree.IsExpanded(item) or\
+                                        not self.tree.GetItemPyData(self.tree.GetFirstChild(item)[0]):
+                                    self.tree.Expand(item)
+                                    self.create_treeitems(item)
+                                break
+                            item, cookie = self.tree.GetNextChild(treeitem, cookie)
                 else:
                     exists = False
                     break
@@ -1936,10 +2081,21 @@ class ScenarioSelect(Select):
                         name = os.path.basename(sel)
                     if os.path.normcase(name) == fname:
                         self.index = index
+                        if self.tree.IsShown():
+                            item, cookie = self.tree.GetFirstChild(treeitem)
+                            i = 0
+                            while item.IsOk() and i <> index:
+                                item, cookie = self.tree.GetNextChild(treeitem, cookie)
+                                i += 1
+                            assert item.IsOk()
+                            self.tree.SelectItem(item)
                         break
 
+        self._processing = processing
         self.draw(True)
         self.enable_btn()
+        if self.list:
+            self._enable_btn2(self.list[self.index])
         self._update_saveddirstack()
 
     def _update_saveddirstack(self):
@@ -2053,6 +2209,8 @@ class ScenarioSelect(Select):
 
     def OnDestroy(self, event):
         self.db.close()
+        if self.bookmarkmenu:
+            self.bookmarkmenu.Destroy()
 
     def OnNarrowCondition(self, event):
         cw.cwpy.sounds["page"].play()
@@ -2194,8 +2352,7 @@ class ScenarioSelect(Select):
 
                 y += cw.wins(15)
 
-            if os.path.isdir(cw.util.get_linktarget(dpath)):
-                self.yesbtn.Enable()
+            self._enable_btn2(dpath, dc=dc)
         else:
             header = self.list[self.index]
 
@@ -2234,29 +2391,7 @@ class ScenarioSelect(Select):
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, (bmpw-w)/2, cw.wins(15))
 
-            self.yesbtn.Enable()
-
-            # 進行中チェック
-            if self.is_playing(header):
-                bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
-                w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(152), True)
-                if not cw.cwpy.debug:
-                    self.yesbtn.Disable()
-            # 済み印存在チェック
-            elif self.is_complete(header):
-                bmp = cw.cwpy.rsrc.dialogs["COMPLETE"]
-                w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(175), True)
-                if not cw.cwpy.debug:
-                    self.yesbtn.Disable()
-            # クーポン存在チェック
-            elif self.is_invisible(header):
-                bmp = cw.cwpy.rsrc.dialogs["INVISIBLE"]
-                w = bmp.GetSize()[0]
-                dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(100), True)
-                if not cw.cwpy.debug:
-                    self.yesbtn.Disable()
+            self._enable_btn2(header, dc=dc)
 
         if update:
             fc = wx.Window.FindFocus()
@@ -2264,6 +2399,40 @@ class ScenarioSelect(Select):
                 buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
                 if buttonlist:
                     buttonlist[0].SetFocus()
+
+    def _enable_btn2(self, header, dc=None):
+        enable = True
+        bmpw = self.toppanel.GetClientSize()[0]
+        if isinstance(header, cw.header.ScenarioHeader):
+            # 進行中チェック
+            if self.is_playing(header):
+                if dc:
+                    bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
+                    w = bmp.GetSize()[0]
+                    dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(152), True)
+                if not cw.cwpy.debug:
+                    enable = False
+            # 済み印存在チェック
+            elif self.is_complete(header):
+                if dc:
+                    bmp = cw.cwpy.rsrc.dialogs["COMPLETE"]
+                    w = bmp.GetSize()[0]
+                    dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(175), True)
+                if not cw.cwpy.debug:
+                    enable = False
+            # クーポン存在チェック
+            elif self.is_invisible(header):
+                if dc:
+                    bmp = cw.cwpy.rsrc.dialogs["INVISIBLE"]
+                    w = bmp.GetSize()[0]
+                    dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(100), True)
+                if not cw.cwpy.debug:
+                    enable = False
+        else:
+            dpath = header
+            if not os.path.isdir(cw.util.get_linktarget(dpath)):
+                enable = False
+        self.yesbtn.Enable(enable)
 
     def is_playing(self, header):
         return header.get_fpath() in self.nowplayingpaths
@@ -2418,6 +2587,8 @@ class ScenarioSelect(Select):
 
     def OnTreeItemExpanded(self, event):
         if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
+            return
+        if self._processing:
             return
         selitem = event.GetItem()
         item, cookie = self.tree.GetFirstChild(selitem)

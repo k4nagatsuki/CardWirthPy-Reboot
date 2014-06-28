@@ -948,6 +948,16 @@ class YadoData(object):
 
         self.yadodb.close()
 
+        # ブックマーク
+        self.bookmarks = []
+        for be in self.environment.getfind("Bookmarks", raiseerror=False):
+            if be.tag <> "Bookmark":
+                continue
+            bookmark = []
+            for e in be.getfind("."):
+                bookmark.append(e.text)
+            self.bookmarks.append(bookmark)
+
         # 現在選択中のパーティをセット
         if loadparty:
             self.party = None
@@ -1802,6 +1812,41 @@ class YadoData(object):
                 seq.append(fpath)
 
         return seq
+
+    #---------------------------------------------------------------------------
+    # ブックマーク
+    #---------------------------------------------------------------------------
+
+    def add_bookmark(self, spaths):
+        """シナリオのブックマークを追加する。"""
+        self.bookmarks.append(spaths)
+        be = self.environment.find("Bookmarks")
+        if be is None:
+            be = make_element("Bookmarks")
+            self.environment.append(".", be)
+        e = make_element("Bookmark")
+        for p in spaths:
+            e2 = make_element("Path", p)
+            e.append(e2)
+        be.append(e)
+
+    def set_bookmarks(self, bookmarks):
+        """シナリオのブックマーク群を入れ替える。"""
+        self.bookmarks = bookmarks
+
+        be = self.environment.find("Bookmarks")
+        if be is None:
+            be = make_element("Bookmarks")
+            self.environment.append(".", be)
+        else:
+            be.clear()
+
+        for spaths in bookmarks:
+            e = make_element("Bookmark")
+            for p in spaths:
+                e2 = make_element("Path", p)
+                e.append(e2)
+            be.append(e)
 
 class Party(object):
     def __init__(self, header, partyinfoonly=True):

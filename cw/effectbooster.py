@@ -720,7 +720,7 @@ class JpdcImage(cw.image.Image):
             cpath2 = cw.util.join_paths(cpath2) + "/"
             if cpath1.startswith(cpath2):
                 # シナリオの不変を保つためにScenarioLog内に保存
-                rel = os.path.relpath(cpath1, cpath2)
+                rel = cw.util.relpath(cpath1, cpath2)
                 path = cw.util.join_paths(u"Data/Temp/ScenarioLog/TempFile", rel)
                 dpath = os.path.dirname(path)
                 if not os.path.isdir(dpath):

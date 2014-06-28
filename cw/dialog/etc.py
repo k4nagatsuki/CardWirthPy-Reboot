@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+
 import wx
 import pygame
+import wx.lib.mixins.listctrl as listmix
 
 import cw
 
@@ -337,6 +341,205 @@ class ExtensionDialog(wx.Dialog):
         cw.cwpy.sounds["click"].play()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
+
+class BookmarkDialog(wx.Dialog):
+    """
+    ブックマークの編集を行う。
+    """
+    def __init__(self, parent, scedir, db):
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["arrange_bookmark"],
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+
+        # リスト
+        self.values = AutoListCtrl(self, -1, size=cw.wins((250, 300)), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
+        self.values.SetDoubleBuffered(True)
+        self.values.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
+        self.values.imgidx_summary = self.values.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"]))
+        self.values.imgidx_complete = self.values.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"]))
+        self.values.imgidx_playing = self.values.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"]))
+        self.values.imgidx_invisible = self.values.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"]))
+        self.values.imgidx_dir = self.values.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"]))
+        self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
+        self.values.InsertColumn(0, u"")
+        self.values.SetColumnWidth(0, cw.wins(250))
+        self.values.setResizeColumn(0)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        self.values.SetFont(font)
+
+        self.bookmark = cw.cwpy.ydata.bookmarks[:]
+        for i, bookmark in enumerate(cw.cwpy.ydata.bookmarks):
+            path = scedir
+            for p in bookmark:
+                path = cw.util.join_paths(path, p)
+                path = cw.util.get_linktarget(path)
+            header = db.get_header(path)
+            if header:
+                item = self.values.InsertStringItem(i, header.name)
+                if self.Parent.is_playing(header):
+                    self.values.SetItemImage(item, self.values.imgidx_playing)
+                elif self.Parent.is_complete(header):
+                    self.values.SetItemImage(item, self.values.imgidx_complete)
+                elif self.Parent.is_invisible(header):
+                    self.values.SetItemImage(item, self.values.imgidx_invisible)
+                else:
+                    self.values.SetItemImage(item, self.values.imgidx_summary)
+            else:
+                if sys.platform == "win32":
+                    sp = os.path.splitext(p)
+                    if sp[1].lower() == ".lnk":
+                        p = sp[0]
+                item = self.values.InsertStringItem(i, p)
+                self.values.SetItemImage(item, self.values.imgidx_dir)
+
+        # 削除
+        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_REMOVE, (cw.wins(70), -1), name=cw.cwpy.msgs["delete"])
+        # 上へ
+        bmp = cw.cwpy.rsrc.buttons["UP"]
+        self.upbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_UP, (-1, -1), bmp=bmp)
+        # 下へ
+        bmp = cw.cwpy.rsrc.buttons["DOWN"]
+        self.downbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_DOWN, (-1, -1), bmp=bmp)
+
+        # 決定
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), cw.cwpy.msgs["decide"])
+        # 中止
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+
+        self._bind()
+        self._do_layout()
+
+        self._item_selected()
+        self.values.resizeLastColumn(-1)
+
+    def _bind(self):
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDownBtn, self.downbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cnclbtn)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
+        self.values.Bind(wx.EVT_SIZE, self.OnResize)
+
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        for child in self.GetChildren():
+            child.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
+    def OnResize(self, event):
+        self.values.resizeLastColumn(-1)
+
+    def OnPaint(self, event):
+        dc = wx.BufferedPaintDC(self)
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        cw.util.fill_bitmap(dc, bmp, self.GetClientSize())
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        self.Destroy()
+
+    def _do_layout(self):
+        sizer = wx.GridBagSizer()
+
+        sizer_right = wx.BoxSizer(wx.VERTICAL)
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
+        sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
+        sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
+        sizer_right.AddStretchSpacer(1)
+        sizer_right.Add(self.okbtn, 0, wx.EXPAND)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.values, 1, wx.EXPAND|wx.ALL, border=cw.wins(5))
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=cw.wins(5))
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnRemoveBtn(self, event):
+        cw.cwpy.sounds["dump"].play()
+        while True:
+            index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            self.values.DeleteItem(index)
+            self.bookmark.pop(index)
+        self._item_selected()
+
+    def OnUpBtn(self, event):
+        index = -1
+        cw.cwpy.sounds["page"].play()
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= 0:
+                break
+            self._swap(index, index-1)
+        self._item_selected()
+
+    def OnDownBtn(self, event):
+        indexes = self.get_selectedindexes()
+        if not indexes or self.values.GetItemCount() <= indexes[-1] + 1:
+            return
+
+        cw.cwpy.sounds["page"].play()
+        indexes.reverse()
+        for index in indexes:
+            self._swap(index, index+1)
+        self._item_selected()
+
+    def _swap(self, index1, index2):
+        self.bookmark[index1], self.bookmark[index2] = self.bookmark[index2], self.bookmark[index1]
+
+        mask = wx.LIST_STATE_SELECTED
+        temp = self.values.GetItemState(index1, mask)
+        self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
+        self.values.SetItemState(index2, temp, mask)
+        def set_item(index, string, image):
+            self.values.SetStringItem(index, 0, string)
+            self.values.SetItemImage(index, image)
+        string1 = self.values.GetItemText(index1)
+        string2 = self.values.GetItemText(index2)
+        image1 = self.values.GetItem(index1).GetImage()
+        image2 = self.values.GetItem(index2).GetImage()
+        set_item(index1, string2, image2)
+        set_item(index2, string1, image1)
+
+    def OnItemSelected(self, event):
+        self._item_selected()
+
+    def get_selectedindexes(self):
+        index = -1
+        indexes = []
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            indexes.append(index)
+        return indexes
+
+    def _item_selected(self):
+        indexes = self.get_selectedindexes()
+        if not indexes:
+            self.rmvbtn.Enable(False)
+            self.upbtn.Enable(False)
+            self.downbtn.Enable(False)
+        else:
+            self.rmvbtn.Enable(True)
+            self.upbtn.Enable(0 < indexes[0])
+            self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
+
+    def OnOkBtn(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        def func(bookmarks):
+            cw.cwpy.ydata.set_bookmarks(bookmarks)
+        cw.cwpy.exec_func(func, self.bookmark)
+        self.Destroy()
+
+class AutoListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+    def __init__(self, parent, id, size, style):
+        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
 
 def main():
     pass

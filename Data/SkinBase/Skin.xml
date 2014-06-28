@@ -634,5 +634,9 @@
     <Message key="title">タイトル</Message>
     <Message key="author">作者名</Message>
     <Message key="target_level">対象レベル</Message>
+    <Message key="add_bookmark">ブックマークの登録</Message>
+    <Message key="arrange_bookmark">ブックマークの整理</Message>
+    <Message key="add_bookmark_message">「%s」のブックマークを登録します。
+よろしいですか？</Message>
   </Messages>
 </Skin>

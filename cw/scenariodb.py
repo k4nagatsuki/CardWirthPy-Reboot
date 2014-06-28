@@ -322,6 +322,17 @@ class Scenariodb(object):
         headers, names = self.create_headers(data)
         return self.sort_headers(headers)
 
+    @synclock(_lock)
+    def get_header(self, path):
+        s = "SELECT * FROM scenariodb WHERE dpath=? AND fname=?"
+        dpath = os.path.dirname(path)
+        fname = os.path.basename(path)
+        self.cur.execute(s, (dpath, fname,))
+        data = self.cur.fetchall()
+        for t in data:
+            return self.create_header(t)
+        return None
+
     def close(self):
         self.con.close()
 
