@@ -44,6 +44,7 @@ class CWPy(_Singleton, threading.Thread):
         self.setting = setting  # 設定
         self.status = "Title"
         self.expand_mode = setting.expandmode
+        self.is_processing = False
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
@@ -1011,6 +1012,7 @@ class CWPy(_Singleton, threading.Thread):
         """シナリオ画面へ遷移。
         header: ScenarioHeader
         """
+        self.is_processing = True
         self.set_status("Scenario")
         self.battle = None
         self.statusbar.change(False)
@@ -1047,6 +1049,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.music.stop()
                     self.change_area(areaid, not loaded, loaded)
                     self.music.play(musicpath)
+                self.is_processing = False
             self.exec_func(func, loaded, musicpath, areaid)
 
         self.is_pcardsselectable = self.ydata and self.ydata.party

@@ -331,6 +331,8 @@ class Frame(wx.Frame):
             self.Destroy()
 
     def OnCLOSE(self, event):
+        while cw.cwpy.is_processing:
+            pass
         if cw.cwpy.setting.caution_beforesaving and cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
             if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
                 s = cw.cwpy.msgs["confirm_quit_changed"]
