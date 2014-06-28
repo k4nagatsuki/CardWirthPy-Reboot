@@ -2219,6 +2219,8 @@ class ScenarioSelect(Select):
         # 日本語入力で一度に何度もイベントが発生する
         # 事があるので絞り込み実施を遅延する
         self._reserved_narrowconditin = True
+        if wx.Window.FindFocus() <> self.narrow:
+            self.toppanel.SetFocus()
         def func():
             if not self._reserved_narrowconditin:
                 return
@@ -2397,7 +2399,7 @@ class ScenarioSelect(Select):
 
         if update:
             fc = wx.Window.FindFocus()
-            if not fc in (self.narrow, self.narrow_type):
+            if fc <> self.narrow:
                 buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
                 if buttonlist:
                     buttonlist[0].SetFocus()
