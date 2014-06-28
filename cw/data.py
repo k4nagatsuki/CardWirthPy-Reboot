@@ -1819,6 +1819,7 @@ class YadoData(object):
 
     def add_bookmark(self, spaths):
         """シナリオのブックマークを追加する。"""
+        self.changed()
         self.bookmarks.append(spaths)
         be = self.environment.find("Bookmarks")
         if be is None:
@@ -1832,6 +1833,7 @@ class YadoData(object):
 
     def set_bookmarks(self, bookmarks):
         """シナリオのブックマーク群を入れ替える。"""
+        self.changed()
         self.bookmarks = bookmarks
 
         be = self.environment.find("Bookmarks")
