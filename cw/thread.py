@@ -976,6 +976,7 @@ class CWPy(_Singleton, threading.Thread):
         cw.util.remove_temp()
         self.yadodir = ""
         self.tempdir = ""
+        self.setting.scenario_narrow = ""
         self.setting.lastscenario = []
         self.ydata = None
         self.sdata = cw.data.SystemData()
