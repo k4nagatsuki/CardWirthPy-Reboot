@@ -2336,7 +2336,11 @@ class CWPy(_Singleton, threading.Thread):
 # データ編集・操作用メソッド。
 #-------------------------------------------------------------------------------
 
-    def trade(self, targettype, target=None, header=None, from_event=False, parentdialog=None, toindex=-1, insertorder=-1, sort=False, sound=True, party=None, from_getcontent=False, call_predlg=True):
+    def trade(self, targettype, target=None, header=None,\
+              from_event=False, parentdialog=None, toindex=-1,\
+              insertorder=-1, sort=False, sound=True, party=None,\
+              from_getcontent=False, call_predlg=True,\
+              clearinusecard=True):
         """
         カードの移動操作を行う。
         Getコンテントからこのメソッドを操作する場合は、
@@ -2485,7 +2489,7 @@ class CWPy(_Singleton, threading.Thread):
             owner.data.remove(path, header.carddata)
             # 戦闘中だった場合はデッキからも削除
             owner.deck.remove(owner, header)
-            if target <> owner:
+            if target <> owner and clearinusecard:
                 self.clear_inusecardimgfromheader(header)
 
             # 行動予定に入っていればキャンセル

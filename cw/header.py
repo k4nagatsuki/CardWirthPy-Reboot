@@ -387,7 +387,7 @@ class CardHeader(object):
                 if cw.cwpy.battle and header in owner.deck.hand:
                     owner.deck.hand.remove(header)
 
-                cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
+                cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
 
         # 召喚獣カード。
         elif header.type == "BeastCard" and not header.maxuselimit == 0:
@@ -401,7 +401,7 @@ class CardHeader(object):
             if header.uselimit <= 0:
                 # 召喚獣消去効果で消えてる場合もあるのでチェック
                 if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
-                    cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
+                    cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
 
     def write(self, party=None, move=False):
         def create_newpath(party):
