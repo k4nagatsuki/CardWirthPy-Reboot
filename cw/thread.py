@@ -1187,7 +1187,11 @@ class CWPy(_Singleton, threading.Thread):
                     # 削除フラグを除去
                     # 荷物袋から移動された場合は使用されている
                     # 可能性があるので上書き
-                    if not header.carddata is None:
+                    if header.carddata is None:
+                        etree = cw.data.yadoxml2etree(header.fpath)
+                        etree.remove("Property", attrname="moved")
+                        etree.write_xml()
+                    else:
                         etree = cw.data.yadoxml2etree(path=header.fpath)
                         etree.remove("Property", attrname="moved")
                         header2 = cw.header.CardHeader(carddata=etree.getroot())
