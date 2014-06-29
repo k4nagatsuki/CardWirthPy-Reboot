@@ -1037,6 +1037,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.party.set_numbercoupon()
 
             def func(loaded, musicpath, areaid):
+                self.is_processing = False
                 if not self.sdata.startid in self.sdata.areas:
                     # 開始エリアが存在しない(帰還)
                     self.check_level(True)
@@ -1049,8 +1050,9 @@ class CWPy(_Singleton, threading.Thread):
                     self.music.stop()
                     self.change_area(areaid, not loaded, loaded)
                     self.music.play(musicpath)
-                self.is_processing = False
             self.exec_func(func, loaded, musicpath, areaid)
+        else:
+            self.is_processing = False
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
 
