@@ -1206,6 +1206,11 @@ class CWPy(_Singleton, threading.Thread):
             except Exception, ex:
                 cw.util.print_ex()
 
+        # 一度荷物袋から取り出されてから戻された
+        # カードはbackpacktableに残る
+        for fpath, header in backpacktable.iteritems():
+            cw.cwpy.ydata.deletedpaths.add(header.fpath)
+
         self.sdata.remove_log()
 
         if not self.areaid > 0:
@@ -2536,6 +2541,7 @@ class CWPy(_Singleton, threading.Thread):
                     header2 = cw.header.CardHeader(carddata=header.carddata)
                     header2.fpath = header.fpath
                     party.backpack_moved.append(header2)
+                    header.fpath = ""
                 elif move:
                     # ファイルの移動のみ
                     self.ydata.deletedpaths.add(header.fpath, header.scenariocard)
@@ -2575,6 +2581,15 @@ class CWPy(_Singleton, threading.Thread):
             # シナリオで取得したカードじゃない場合、XMLの削除
             elif not header.scenariocard and header.moved == 0:
                 self.remove_xml(header)
+            elif not header.scenariocard and header.moved == 1:
+                # 荷物袋からPCへ移動してそこから除去した場合
+                assert not header.carddata is None
+                header.contain_xml()
+                etree = cw.data.xml2etree(element=header.carddata)
+                etree.edit("Property", "2", "moved")
+                header.moved = 2
+                header.write(party=party)
+                self.ydata.party.backpack_moved.append(header)
 
         #-----------------------------------------------------------------------
         # 移動先にデータを追加する
@@ -2654,17 +2669,12 @@ class CWPy(_Singleton, threading.Thread):
                 header.write(party, move=True)
                 header.carddata = None
             else:
+                header.fpath = ""
                 etree = cw.data.xml2etree(element=header.carddata)
                 # 削除フラグを除去
                 if etree.getint("Property", "moved", 0) <> 0:
                     etree.remove("Property", attrname="moved")
                     header.moved = 0
-                    for i, header2 in enumerate(self.ydata.party.backpack_moved):
-                        if header2.fpath == header.fpath:
-                            self.ydata.party.backpack_moved.pop(i)
-                            break
-                else:
-                    header.fpath = ""
                 header.write(party)
                 header.carddata = None
 

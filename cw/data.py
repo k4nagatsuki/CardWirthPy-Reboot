@@ -602,7 +602,7 @@ class ScenarioData(SystemData):
                     cw.cwpy.remove_xml(header)
                 else:
                     # どこかで所有しているので素材は消さない
-                    header.contain_xml()
+                    cw.cwpy.ydata.deletedpaths.add(header.fpath)
             cw.cwpy.ydata.party.backpack_moved = []
 
     def f9(self):
