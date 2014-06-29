@@ -2654,12 +2654,17 @@ class CWPy(_Singleton, threading.Thread):
                 header.write(party, move=True)
                 header.carddata = None
             else:
-                header.fpath = ""
                 etree = cw.data.xml2etree(element=header.carddata)
                 # 削除フラグを除去
                 if etree.getint("Property", "moved", 0) <> 0:
                     etree.remove("Property", attrname="moved")
                     header.moved = 0
+                    for i, header2 in enumerate(self.ydata.party.backpack_moved):
+                        if header2.fpath == header.fpath:
+                            self.ydata.party.backpack_moved.pop(i)
+                            break
+                else:
+                    header.fpath = ""
                 header.write(party)
                 header.carddata = None
 
