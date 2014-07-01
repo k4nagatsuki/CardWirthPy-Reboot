@@ -754,7 +754,7 @@ class Resource(object):
             c2 = 240
         mid = h / 2
         for y in xrange(0, mid+1, 1):
-            bmp.fill((c1-y, c1-y, c1-y), pygame.Rect(0, mid-y, w, 1))
+            bmp.fill((c1-y/2, c1-y/2, c1-y/2), pygame.Rect(0, mid-y, w, 1))
             bmp.fill((c2-y, c2-y, c2-y), pygame.Rect(0, mid+y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
