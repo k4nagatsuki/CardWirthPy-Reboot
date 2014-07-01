@@ -5,7 +5,9 @@ import sys
 import os
 import itertools
 import time
+import datetime
 import threading
+import traceback
 import shutil
 import re
 import wx
@@ -371,13 +373,27 @@ class CWPy(_Singleton, threading.Thread):
 
     def run(self):
         try:
-            self._run()
-        except CWPyRunningError:
-            self.quit()
-        except wx.PyDeadObjectError:
-            pass
-
-        self._quit()
+            try:
+                self._run()
+            except CWPyRunningError:
+                self.quit()
+            except wx.PyDeadObjectError:
+                pass
+    
+            self._quit()
+        except:
+            self.is_processing = False
+            self._running = False
+            # エラーログを出力
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            vstr = []
+            for v in cw.APP_VERSION:
+                vstr.append(str(v))
+            sys.stderr.write("Version : %s\n" % ".".join(vstr))
+            d = datetime.datetime.today()
+            sys.stderr.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
+            traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
+            sys.stderr.write("\n")
 
     def _run(self):
         self._running = True
@@ -1847,9 +1863,9 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_guardcardimg()
         self._stored_partyrecord = None
 
+        oldareaid = self.areaid
         if self.areaid <= 0:
             self.selectedheader = None
-            oldareaid = self.areaid
             areaid = self.pre_areaids.pop()
 
             # キャンプ時は常にカーテン表示
@@ -1884,12 +1900,15 @@ class CWPy(_Singleton, threading.Thread):
                 self.call_predlg()
 
         showbuttons = not self.is_playingscenario() or\
-            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
+            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP) or\
+            oldareaid == cw.AREA_CAMP
         self.statusbar.change(showbuttons)
-        self.disposition_pcards()
 
+        self.disposition_pcards()
         self.change_selection(self.selection)
-        self.draw()
+
+        if oldareaid <> cw.AREA_CAMP:
+            self.draw()
 
     def clean_specials(self):
         """デバッガからの強制的なエリア移動等を発生させる時、

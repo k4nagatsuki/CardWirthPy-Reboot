@@ -13,7 +13,7 @@ import base
 class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
-        self.image = pygame.Surface(cw.s((632, 33)))
+        self.image = pygame.Surface(cw.s((632, 33))).convert()
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
         self._init_image()
@@ -22,9 +22,9 @@ class StatusBar(base.CWPySprite):
         self.showbuttons = False
 
     def _init_image(self):
-        self.image = pygame.Surface(cw.s((632, 33)))
-        subimg = cw.cwpy.rsrc.get_wxbtnbmp(2)
-        self.image.fill((255, 255, 255))
+        self.image = pygame.Surface(cw.s((632, 33))).convert()
+        subimg = cw.cwpy.rsrc.get_statusbtnbmp(2)
+        self.image.fill((240, 240, 240))
         self.image.blit(subimg, cw.s((0, 0)))
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
@@ -239,12 +239,12 @@ class StatusBarButton(base.SelectableSprite):
         self.frame = 0
         self.is_pushed = False
         # ボタン画像
-        wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype)
+        wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype)
         self.btnimg = wxbmp
         if enabled:
-            wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype, wx.CONTROL_PRESSED)
+            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, wx.CONTROL_PRESSED)
             self.btnimg2 = wxbmp
-            wxbmp = cw.cwpy.rsrc.get_wxbtnbmp(sizetype, wx.CONTROL_CURRENT)
+            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, wx.CONTROL_CURRENT)
             self.btnimg3 = wxbmp
         else:
             self.btnimg2 = self.btnimg
@@ -411,14 +411,10 @@ class RunAwayButton(StatusBarButton):
 
 class CancelButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["entry_cancel"], pos, toggle=False)
-        self.is_pushed = False
-
-    def update(self, scr):
-        self.update_selection()
-        self.update_image()
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["entry_cancel"], pos)
 
     def lclick_event(self):
+        StatusBarButton.lclick_event(self)
         cw.cwpy.cancel_cardcontrol()
 
 class InfoCardsButton(StatusBarButton):

@@ -6,6 +6,7 @@ import sys
 import ctypes
 import math
 import md5
+import struct
 import wx
 import pygame
 from pygame.locals import *
@@ -456,13 +457,13 @@ class Resource(object):
         self._msuigothic = False
         # StatusBarで使用するボタンイメージ
         # wxスレッドから初期化
-        self._wxbtnbmp0 = self._create_wxbtnbmp(cw.s(120), cw.s(22), 0)
-        self._wxbtnbmp0pressed = self._create_wxbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_PRESSED)
-        self._wxbtnbmp0current = self._create_wxbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_CURRENT)
-        self._wxbtnbmp1 = self._create_wxbtnbmp(cw.s(27), cw.s(27), 0)
-        self._wxbtnbmp1pressed = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_PRESSED)
-        self._wxbtnbmp1current = self._create_wxbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
-        self._wxbtnbmp2 = self._create_wxbtnbmp(cw.s(632), cw.s(33), 0)
+        self._wxbtnbmp0 = self._create_statusbtnbmp(cw.s(120), cw.s(22), 0)
+        self._wxbtnbmp0pressed = self._create_statusbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_PRESSED)
+        self._wxbtnbmp0current = self._create_statusbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_CURRENT)
+        self._wxbtnbmp1 = self._create_statusbtnbmp(cw.s(27), cw.s(27), 0)
+        self._wxbtnbmp1pressed = self._create_statusbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_PRESSED)
+        self._wxbtnbmp1current = self._create_statusbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
+        self._wxbtnbmp2 = self._create_statusbtnbmp(cw.s(632), cw.s(33), 0)
 
         self.ignorecase_table = {}
 
@@ -694,76 +695,110 @@ class Resource(object):
 
         return button
 
-    def _create_wxbtnbmp(self, w, h, flags=0):
-        try:
-            if sys.platform == "win32":
-                wxbmp = wx.EmptyBitmapRGBA(w, h)
-                dc = wx.MemoryDC(wxbmp)
-                render = wx.RendererNative.Get()
-                render.DrawPushButton(cw.cwpy.frame, dc, (cw.s(0), cw.s(0), w, h), flags)
-                dc.EndDrawing()
-                # RendererNativeがアルファ値を出力しなかった場合
-                wximg = wxbmp.ConvertToImage()
-                pixel_num = w * h
-    
-                if wximg.GetAlphaData() == "\x00" * pixel_num:
-                    wximg.SetAlphaData("\xFF" * pixel_num)
-                wxbmp = wximg.ConvertToBitmap()
-    
-                return cw.image.conv2surface(wxbmp)
-        except:
-            pass
+    def _create_statusbtnbmp(self, w, h, flags=0):
+        """ボタン風の画像を生成する。"""
+        linedata = struct.pack(
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB",
+            200,200,200,255, 200,200,200,255, 200,200,200,255, 200,200,200,255, 200,200,200,255, 200,200,200,255,
+            200,200,200,255, 200,200,200,255, 200,200,200,224, 200,200,200,128, 200,200,200, 68, 200,200,200, 40,
+            200,200,200,255, 200,200,200,224, 200,200,200, 68, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0,
+            200,200,200,255, 200,200,200,128, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0,
+            200,200,200,255, 200,200,200, 68, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0,
+            200,200,200,255, 200,200,200, 40, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0
+        )
+        outdata = struct.pack(
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB"
+           "BBBB BBBB BBBB BBBB BBBB BBBB",
+            0,0,0,255, 0,0,0,255, 0,0,0,188, 0,0,0,128, 0,0,0,  0, 0,0,0,  0,
+            0,0,0,255, 0,0,0,128, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
+            0,0,0,188, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
+            0,0,0,128, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
+            0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
+            0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0
+        )
 
-        bmp = pygame.Surface((w, h)).convert()
-        c1 = 240
-        c2 = 224
+        topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+        topright = pygame.transform.flip(topleft, True, False)
+        bottomleft = pygame.transform.flip(topleft, False, True)
+        bottomright = pygame.transform.flip(topleft, True, True)
+
+        def subtract_corner(value):
+            # 角部分の線の色を濃くする
+            color = (value, value, value, 0)
+            topleft.fill(color, special_flags=BLEND_RGBA_SUB)
+            topright.fill(color, special_flags=BLEND_RGBA_SUB)
+            bottomleft.fill(color, special_flags=BLEND_RGBA_SUB)
+            bottomright.fill(color, special_flags=BLEND_RGBA_SUB)
+
+        bmp = pygame.Surface((w, h)).convert_alpha()
+
+        # グラデーションとなるよう、全面に線を引く
+        # (フラグによって明るさを変える)
+        if (flags & wx.CONTROL_PRESSED) <> 0:
+            c1 = 220
+            c2 = 208
+        elif (flags & wx.CONTROL_CURRENT) <> 0:
+            c1 = 255
+            c2 = 248
+        else:
+            c1 = 255
+            c2 = 240
         mid = h / 2
         for y in xrange(0, mid+1, 1):
             bmp.fill((c1-y, c1-y, c1-y), pygame.Rect(0, mid-y, w, 1))
             bmp.fill((c2-y, c2-y, c2-y), pygame.Rect(0, mid+y, w, 1))
 
-        r = 4
-        r2 = r*2
-
-        if (flags & wx.CONTROL_CURRENT) <> 0:
-            color = (240, 240, 240)
-            bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
-            bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
-            pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
-            pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
-            pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
-            pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
-
+        # 枠の部分。四隅には角丸の画像を描写する
         if (flags & wx.CONTROL_PRESSED) <> 0:
-            color = (196, 196, 196)
-            bmp.fill(color, pygame.Rect(r+1, 1, w-r2-2, h-2))
-            bmp.fill(color, pygame.Rect(1, r+1, w-2, h-r2-2))
-            pygame.draw.ellipse(bmp, color, (w-r2-2, 1, r2, r2))
-            pygame.draw.ellipse(bmp, color, (1, 1, r2, r2))
-            pygame.draw.ellipse(bmp, color, (1, h-r2-2, r2, r2))
-            pygame.draw.ellipse(bmp, color, (w-r2-2, h-r2-2, r2, r2))
+            # 押下済みの画像であれば上と左の縁を暗くする
+            color = (200, 200, 200)
+            pygame.draw.line(bmp, color, (2, 3), (w-4, 3))
+            subtract_corner(8)
+            bmp.blit(topleft, (2, 3))
+            bmp.blit(topright, (w-6-1, 3))
+
+            color = (192, 192, 192)
+            pygame.draw.rect(bmp, color, (2, 2, w-3, h-3), 1)
+            bmp.blit(topleft, (2, 2))
+            bmp.blit(topright, (w-6-1, 2))
+            bmp.blit(bottomleft, (2, h-6-1))
+            subtract_corner(64)
+        else:
+            subtract_corner(72)
 
         color = (128, 128, 128)
+        pygame.draw.rect(bmp, color, (1, 1, w-2, h-2), 1)
+        bmp.blit(topleft, (1, 1))
+        bmp.blit(topright, (w-6-1, 1))
+        bmp.blit(bottomleft, (1, h-6-1))
+        bmp.blit(bottomright, (w-6-1, h-6-1))
 
-        pygame.draw.line(bmp, color, (r, 1), (w-r-1, 1))
-        pygame.draw.line(bmp, color, (r, h-2), (w-r-1, h-2))
-        pygame.draw.line(bmp, color, (1, r), (1, h-r-1))
-        pygame.draw.line(bmp, color, (w-2, r), (w-2, h-r-1))
+        # 枠の外の部分を透明にする
+        topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
+        topright = pygame.transform.flip(topleft, True, False)
+        bottomleft = pygame.transform.flip(topleft, False, True)
+        bottomright = pygame.transform.flip(topleft, True, True)
 
-        r0 = math.radians(0)
-        r90 = math.radians(90)
-        r180 = math.radians(180)
-        r270 = math.radians(270)
-        r360 = math.radians(360)
-        pygame.draw.arc(bmp, color, (w-r2-2, 1, r2, r2), 0, r90)
-        pygame.draw.arc(bmp, color, (1, 1, r2, r2), r90, r180)
-        pygame.draw.arc(bmp, color, (1, h-r2-2, r2, r2), r180, r270)
-        pygame.draw.arc(bmp, color, (w-r2-2, h-r2-2, r2, r2), r270, r360)
+        bmp.blit(topleft, (1, 1), special_flags=BLEND_RGBA_SUB)
+        bmp.blit(topright, (w-6-1, 1), special_flags=BLEND_RGBA_SUB)
+        bmp.blit(bottomleft, (1, h-6-1), special_flags=BLEND_RGBA_SUB)
+        bmp.blit(bottomright, (w-6-1, h-6-1), special_flags=BLEND_RGBA_SUB)
+
+        pygame.draw.rect(bmp, (0, 0, 0, 0), (0, 0, w, h), 1)
 
         return bmp
 
-    def get_wxbtnbmp(self, sizetype, flags=0):
-        """StatusBarで使用するOSネイティブなボタン画像を取得する。
+    def get_statusbtnbmp(self, sizetype, flags=0):
+        """StatusBarで使用するボタン画像を取得する。
         sizetype: 0=(120, 22), 1=(27, 27), 2=(632, 33)
         flags: 0, wx.CONTROL_PRESSED, wx.CONTROL_CURRENT
                sizetype=0または1の時のみ有効

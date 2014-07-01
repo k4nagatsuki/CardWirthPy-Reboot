@@ -40,7 +40,7 @@ import sprite
 cwpy = None
 
 # アプリケーション情報
-APP_VERSION = (0, 1, 2, 1)
+APP_VERSION = (0, 1, 2, 2)
 APP_NAME = "CardWirthPy"
 
 # CardWirthの標準文字コード
