@@ -21,6 +21,7 @@ class SelectPartyRecord(select.Select):
         # パーティ情報
         self.list = cw.cwpy.ydata.partyrecord[:]
         self.list.append(None)
+        self.restorable = [None]*len(self.list)
         self.index = 0
         self.names = []
         # toppanel
@@ -84,6 +85,7 @@ class SelectPartyRecord(select.Select):
                 if panel:
                     panel.list = cw.cwpy.ydata.partyrecord[:]
                     panel.list.append(None)
+                    panel.restorable = [None]*len(panel.list)
                     panel.index = panel.list.index(header)
                     panel.draw(True)
             cw.cwpy.frame.exec_func(func, panel, header)
@@ -117,6 +119,7 @@ class SelectPartyRecord(select.Select):
                     header = panel.list[panel.index]
                     panel.list = cw.cwpy.ydata.partyrecord[:]
                     panel.list.append(None)
+                    panel.restorable = [None]*len(panel.list)
                     if header in panel.list:
                         panel.index = panel.list.index(header)
                 if panel:
@@ -165,12 +168,55 @@ class SelectPartyRecord(select.Select):
         self.rightbtn.Enable(1 < len(self.list))
         self.right2btn.Enable(1 < len(self.list))
 
+        self._update_restorable()
         self.savebtn.Enable(bool(cw.cwpy.ydata.party))
-        self.restorebtn.Enable(bool(self.list[self.index] and cw.cwpy.ydata.can_restoreparty(self.list[self.index])))
+        self.restorebtn.Enable(bool(self.list[self.index] and self.restorable[self.index][0]))
         self.deletebtn.Enable(bool(self.list[self.index]))
         buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
         if buttonlist:
             buttonlist[0].SetFocus()
+
+    def _update_restorable(self):
+        header = self.list[self.index]
+        if not header:
+            return
+        restorable = self.restorable[self.index]
+        if restorable:
+            return
+
+        can = False
+        members = {}
+        cards = []
+
+        for member in header.members:
+            c = cw.cwpy.ydata.can_restore(member)
+            can |= c
+            members[member] = c
+
+        e = cw.data.yadoxml2etree(header.fpath, tag="BackpackRecord")
+        for i, ce in enumerate(e.getfind(".")):
+            if ce.tag <> "CardRecord":
+                continue
+            if 4 * 6 <= i:
+                break
+            name = ce.getattr(".", "name", "")
+            desc = ce.getattr(".", "desc", "")
+            flag = False
+            if not flag:
+                for cheader in cw.cwpy.ydata.storehouse:
+                    if cheader.name == name and cheader.desc == desc:
+                        flag = True
+                        break
+            if not flag and cw.cwpy.ydata.party:
+                for cheader in cw.cwpy.ydata.party.backpack:
+                    if cheader.name == name and cheader.desc == desc:
+                        flag = True
+                        break
+            cards.append(flag)
+
+        restorable = (can, members, cards)
+
+        self.restorable[self.index] = restorable
 
     def draw(self, update=False):
         assert len(self.list)
@@ -184,6 +230,14 @@ class SelectPartyRecord(select.Select):
         dc.DrawBitmap(bmp, 0, 0, False)
 
         header = self.list[self.index]
+        self._update_restorable()
+        restorable = self.restorable[self.index]
+        if restorable:
+            can, members, cards = restorable
+        else:
+            can = False
+            members = {}
+            cards = None
         # 見出し
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
@@ -209,16 +263,22 @@ class SelectPartyRecord(select.Select):
         else:
             n = (len(self.names), 0)
 
-        w = cw.wins(90)
+        w = cw.wins(95)
 
         for index, s in enumerate(self.names):
-            s = cw.util.abbr_longstr(dc, s, cw.wins(90), cw.wins(75))
+            if members.get(header.members[index], False):
+                dc.SetTextForeground((0, 0, 0))
+            else:
+                dc.SetTextForeground((128, 128, 128))
+
+            s = cw.util.abbr_longstr(dc, s, cw.wins(95), cw.wins(75))
             if index < 3:
                 dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
             else:
                 dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])/2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
 
         # パーティ名
+        dc.SetTextForeground((0, 0, 0))
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(20)))
         if header:
             s = header.name
@@ -247,12 +307,17 @@ class SelectPartyRecord(select.Select):
             w = cw.wins(84)
             y = cw.wins(150)
             for index, s in enumerate(backpacklist):
+                if cards and cards[index]:
+                    dc.SetTextForeground((0, 0, 0))
+                else:
+                    dc.SetTextForeground((128, 128, 128))
                 s = cw.util.abbr_longstr(dc, s, cw.wins(84), cw.wins(75))
                 ypos = y + cw.wins(16) * int(index/llen)
                 xpos = index % llen
                 dc.DrawLabel(s, wx.Rect((bmpw-w*llen)/2+w*xpos+cw.wins(10), ypos, w, cw.wins(15)), wx.ALIGN_LEFT)
 
         # ページ番号
+        dc.SetTextForeground((0, 0, 0))
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))

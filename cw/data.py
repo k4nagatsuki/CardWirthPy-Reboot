@@ -1206,15 +1206,24 @@ class YadoData(object):
         """partyrecordheaderが再結成可能であればTrueを返す。
         """
         for member in partyrecordheader.members:
-            for standby in self.standbys:
-                if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+            if self.can_restore(member):
+                return True
+        return False
+
+    def can_restore(self, member):
+        """memberがパーティの再結成に応じられるかを返す。
+        アクティブでないパーティに所属しているなど、
+        応じられない場合はFalseを返す。
+        """
+        for standby in self.standbys:
+            if os.path.splitext(os.path.basename(standby.fpath))[0] == member:
+                return True
+        if self.party:
+            # 現在のパーティは再結成の前に解散するため
+            # standbysの中にいるのと同様に扱う
+            for m in self.party.members:
+                if os.path.splitext(os.path.basename(m.fpath))[0] == member:
                     return True
-            if self.party:
-                # 現在のパーティは再結成の前に解散するため
-                # standbysの中にいるのと同様に扱う
-                for m in self.party.members:
-                    if os.path.splitext(os.path.basename(m.fpath))[0] == member:
-                        return True
         return False
 
     def get_restoremembers(self, partyrecordheader):
