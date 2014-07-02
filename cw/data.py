@@ -1278,7 +1278,7 @@ class YadoData(object):
         # 最初は作者名・シナリオ名・使用回数を使用して検索するが、
         # それで見つからない場合はカード名と解説のみで検索する。
         e = yadoxml2etree(partyrecordheader.fpath, tag="BackpackRecord")
-        for ce in reversed(e.getfind(".")):
+        for ce in e.getfind("."):
             if ce.tag <> "CardRecord":
                 continue
             get = False
@@ -1303,6 +1303,10 @@ class YadoData(object):
                    cheader.desc == desc:
                     cw.cwpy.trade(targettype="BACKPACK", header=cheader, sound=False)
                     break
+        self.party.backpack.reverse()
+        for order, header in enumerate(self.party.backpack):
+            header.order = order
+        self.party.sort_backpack()
 
         cw.cwpy.statusbar.change(False)
         cw.cwpy.draw()

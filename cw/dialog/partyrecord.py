@@ -194,6 +194,7 @@ class SelectPartyRecord(select.Select):
             members[member] = c
 
         e = cw.data.yadoxml2etree(header.fpath, tag="BackpackRecord")
+        removed = set()
         for i, ce in enumerate(e.getfind(".")):
             if ce.tag <> "CardRecord":
                 continue
@@ -204,13 +205,17 @@ class SelectPartyRecord(select.Select):
             flag = False
             if not flag:
                 for cheader in cw.cwpy.ydata.storehouse:
-                    if cheader.name == name and cheader.desc == desc:
+                    if cheader.name == name and cheader.desc == desc and\
+                            not cheader in removed:
                         flag = True
+                        removed.add(cheader)
                         break
             if not flag and cw.cwpy.ydata.party:
                 for cheader in cw.cwpy.ydata.party.backpack:
-                    if cheader.name == name and cheader.desc == desc:
+                    if cheader.name == name and cheader.desc == desc and\
+                            not cheader in removed:
                         flag = True
+                        removed.add(cheader)
                         break
             cards.append(flag)
 
