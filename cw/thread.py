@@ -1478,8 +1478,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 背景スプライト作成
         if not bginhrt:
-            bginhrt |= self.sdata.check_bginhrt()
-            self.background.load(self.sdata.get_bgdata(), bginhrt, True, ttype)
+            self.background.load(self.sdata.get_bgdata(), True, ttype)
 
         # 特殊エリア(キャンプ・メンバー解散)だったら背景にカーテンを追加。
         if self.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
@@ -1646,11 +1645,11 @@ class CWPy(_Singleton, threading.Thread):
             self.clean_specials()
 
         # 背景継承を行うかどうかのbool値
-        bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
+        bginhrt |= bool(self.areaid < 0)
         oldareaid = self.areaid
         self.areaid = areaid
         self.sdata.change_data(areaid)
-        bginhrt |= bool(self.areaid < 0 and self.sdata.check_bginhrt())
+        bginhrt |= bool(self.areaid < 0)
         cw.cwpy.hide_cards(True, quickhide=quickdeal)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype)
 

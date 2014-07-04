@@ -204,17 +204,6 @@ class SystemData(object):
             if not (pygame.event.peek(pygame.locals.USEREVENT)):
                 cw.cwpy.show_party()
 
-    def check_bginhrt(self, elements=[]):
-        """
-        現在のエリアが背景継承かどうかをbool値で返す。
-        最初の背景画像のpathが空だったら背景継承で削除しない。
-        """
-        if not elements and self.data:
-            elements = self.get_bgdata()
-
-        return not bool(not self.data or\
-                            elements and elements[0].getfind("ImagePath").text)
-
     def get_areaname(self):
         """現在滞在中のエリアの名前を返す"""
         if cw.cwpy.is_battlestatus():
@@ -719,7 +708,7 @@ class ScenarioData(SystemData):
         e = etree.getfind("BgImages")
         elements = cw.cwpy.sdata.get_bgdata(e)
         ttype = ("Default", "Default")
-        cw.cwpy.background.load(elements, False, False, ttype)
+        cw.cwpy.background.load(elements, False, ttype)
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
         return etree.gettext("Property/MusicPath", "")
 

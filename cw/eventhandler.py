@@ -121,7 +121,9 @@ class EventHandler(object):
         """
         方向キーイベント。カードのフォーカスを変更する。
         """
-        if cw.cwpy.is_runningevent() or cw.cwpy.lock_menucards or pygame.event.peek(pygame.locals.USEREVENT):
+        if cw.cwpy.is_runningevent() or cw.cwpy.is_processing or\
+                cw.cwpy.lock_menucards or\
+                pygame.event.peek(pygame.locals.USEREVENT):
             return
 
         cw.cwpy.has_inputevent = True
@@ -170,9 +172,10 @@ class EventHandler(object):
         """
         左クリックイベント。
         """
-        if cw.cwpy.is_runningevent() and\
+        if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
-                     cw.cwpy.selection._selectable_on_event):
+                     cw.cwpy.selection._selectable_on_event)) or\
+                cw.cwpy.is_processing:
             return
 
         if cw.cwpy.selection:
@@ -189,9 +192,10 @@ class EventHandler(object):
         """
         右クリックイベント。
         """
-        if cw.cwpy.is_runningevent() and\
+        if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
-                     cw.cwpy.selection._selectable_on_event):
+                     cw.cwpy.selection._selectable_on_event)) or\
+                cw.cwpy.is_processing:
             return
 
         if cw.cwpy.selection:
@@ -310,7 +314,7 @@ class EventHandler(object):
         情報カードビューを表示する。
         """
         if cw.cwpy.is_playingscenario() and\
-                not (cw.cwpy.is_runningevent() or cw.cwpy.is_battlestatus()) and\
+                not (cw.cwpy.is_runningevent() or cw.cwpy.is_processing or cw.cwpy.is_battlestatus()) and\
                 cw.cwpy.sdata.infocards:
             cw.cwpy.sounds["click"].play()
             cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
@@ -331,7 +335,7 @@ class EventHandler(object):
         """
         リターンキーイベント。
         """
-        if cw.cwpy.is_runningevent() and\
+        if (cw.cwpy.is_runningevent() or cw.cwpy.is_processing) and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection._selectable_on_event):
             return

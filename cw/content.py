@@ -1334,12 +1334,11 @@ class ChangeBgImageContent(EventContentBase):
         """背景変更コンテント。"""
         e = self.data.getfind("BgImages")
         elements = cw.cwpy.sdata.get_bgdata(e)
-        bginhrt = cw.cwpy.sdata.check_bginhrt(elements)
         ttype = self.get_transitiontype()
-        cw.cwpy.background.load(elements, bginhrt, True, ttype)
-        # フレームを進める
-        cw.cwpy.draw()
-        cw.cwpy.tick_clock(framerate=30)
+        if cw.cwpy.background.load(elements, True, ttype):
+            # フレームを進める
+            cw.cwpy.draw()
+            cw.cwpy.tick_clock(framerate=30)
         cw.cwpy.input()
         cw.cwpy.eventhandler.run()
         while pygame.event.peek(pygame.locals.USEREVENT):
