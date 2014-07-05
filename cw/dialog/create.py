@@ -826,8 +826,8 @@ class NamePage(AdventurerCreaterPage):
         sizer_2.Add(self.ch_imgdpath, 0, 0, 0)
         sizer_1.Add(sizer_2, 0, 0, 0)
 
-        margin = csize[1] - cw.wins(203) - h2
-        sizer_1.Add((csize[0], margin), 0, 0, 0)
+        margin = csize[1] - sizer_1.CalcMin()[1]
+        sizer_1.Add((0, margin), 0, 0, 0)
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
