@@ -260,6 +260,7 @@ class YadoDB(object):
                         name TEXT,
                         money INTEGER,
                         members TEXT,
+                        membernames TEXT,
                         backpack TEXT,
                         ctime INTEGER,
                         mtime INTEGER,
