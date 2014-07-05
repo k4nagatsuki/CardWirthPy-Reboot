@@ -574,6 +574,8 @@ class ScenarioData(SystemData):
                 path = cw.xmlcreater.create_albumpage(ccard.data.fpath, True)
                 cw.cwpy.ydata.add_album(path)
 
+            for partyrecord in cw.cwpy.ydata.partyrecord:
+                partyrecord.vanish_member(path)
             cw.cwpy.remove_xml(ccard.data.fpath)
 
         self.remove_log()

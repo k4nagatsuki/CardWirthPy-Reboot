@@ -1374,6 +1374,8 @@ class PlayerSelect(Select):
                 if not header.leavenoalbum:
                     path = cw.xmlcreater.create_albumpage(header.fpath)
                     cw.cwpy.ydata.add_album(path)
+                for partyrecord in cw.cwpy.ydata.partyrecord:
+                    partyrecord.vanish_member(header.fpath)
                 cw.cwpy.remove_xml(header)
                 cw.cwpy.ydata.standbys.remove(header)
                 if len(self.list):
@@ -1410,6 +1412,8 @@ class PlayerSelect(Select):
                 path = cw.xmlcreater.create_albumpage(header.fpath, nocoupon=True)
                 cw.cwpy.ydata.add_album(path)
 
+            for partyrecord in cw.cwpy.ydata.partyrecord:
+                partyrecord.vanish_member(header.fpath)
             cw.cwpy.remove_xml(header)
             cw.cwpy.ydata.standbys.remove(header)
             if len(self.list):

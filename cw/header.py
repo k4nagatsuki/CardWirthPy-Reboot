@@ -1090,16 +1090,30 @@ class PartyRecordHeader(object):
                 self.membernames.append(e.getattr(".", "name", u"<Vanished>"))
             self.backpack = [e.attrib.get("name", "") for e in data.getfind("BackpackRecord")]
 
+    def vanish_member(self, fpath):
+        """メンバの消滅を通知する。"""
+        s = os.path.basename(fpath)
+        s = cw.util.splitext(s)[0]
+        if s in self.members:
+            index = self.members.index(s)
+            self.members[index] = ""
+            data = cw.data.xml2etree(self.fpath)
+            data.edit("Property/Members/Member[%s]" % (index+1), u"")
+            data.write_xml()
+
     def get_memberpaths(self):
         seq = []
 
         for fname in self.members:
-            fname2 = fname + ".xml"
-            path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
-            if not os.path.isfile(path):
-                # Windowsがファイル名を変えるため前後のスペースを除く
-                fname2 = fname.strip() + ".xml"
+            if fname:
+                fname2 = fname + ".xml"
                 path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
+                if not os.path.isfile(path):
+                    # Windowsがファイル名を変えるため前後のスペースを除く
+                    fname2 = fname.strip() + ".xml"
+                    path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
+            else:
+                path = ""
             seq.append(path)
 
         return seq
