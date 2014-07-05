@@ -812,7 +812,14 @@ class YadoDB(object):
     def _insert_partyheader(self, header, commit=True):
         """データベースにパーティを登録する。"""
         s = """
-        INSERT OR REPLACE INTO party VALUES(
+        INSERT OR REPLACE INTO party(
+            fpath,
+            name,
+            money,
+            members,
+            ctime,
+            mtime
+        ) VALUES(
             ?,
             ?,
             ?,
@@ -869,7 +876,17 @@ class YadoDB(object):
     def _insert_partyrecordheader(self, header, commit=True):
         """データベースにパーティ記録を登録する。"""
         s = """
-        INSERT OR REPLACE INTO partyrecord VALUES(
+        INSERT OR REPLACE INTO partyrecord(
+            fpath,
+            name,
+            money,
+            members,
+            membernames,
+            backpack,
+            ctime,
+            mtime
+        ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -888,6 +905,7 @@ class YadoDB(object):
             header.name,
             header.money,
             "\n".join(header.members),
+            "\n".join(header.membernames),
             "\n".join(header.backpack),
             ctime,
             mtime,
