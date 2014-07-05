@@ -420,10 +420,12 @@ def get_imageext(b):
     return ""
 
 def get_facepaths(sexcoupon, agecoupon, rel=False):
-    """sexとageに対応したFaceディレクトリ内の画像パスをlistで返す。
+    """sexとageに対応したFaceディレクトリ内の画像パスを辞書で返す。
+    辞書の内容は、サブディレクトリをキーにした
+    当該ディレクトリ内のファイルパスのlistとなる。
     sexcoupon: 性別クーポン。
     agecoupon: 年代クーポン。
-    rel: TrueならFaceディレクトリからの相対パスで返す。
+    rel: TrueならlistにFaceディレクトリからの相対パスを格納する。
     """
     sex = ""
     for f in cw.cwpy.setting.sexes:
@@ -454,24 +456,27 @@ def get_facepaths(sexcoupon, agecoupon, rel=False):
     dpath = "Common"
     dpaths.append(dpath)
 
-    imgpaths = []
+    imgpaths = {}
 
     for dpath in dpaths:
         dpath2 = cw.util.join_paths(facedir, dpath)
         if not os.path.isdir(dpath2):
             continue
-        for name in os.listdir(dpath2):
-            path = cw.util.join_paths(dpath2, name)
-
-            lpath = path.lower()
-            if os.path.isfile(path):
-                for ext in cw.EXTS_IMG:
-                    if lpath.endswith(ext):
+        for dpath3, dnames, fnames in os.walk(dpath2):
+            seq = []
+            for fname in fnames:
+                path = join_paths(dpath3, fname)
+                if os.path.isfile(path):
+                    ext = os.path.splitext(path)[1].lower()
+                    if ext in cw.EXTS_IMG:
                         if rel:
-                            imgpaths.append(cw.util.join_paths(dpath, name))
+                            p = relpath(path, facedir)
+                            seq.append(p)
                         else:
-                            imgpaths.append(path)
-                        break
+                            seq.append(path)
+            if seq:
+                p = relpath(dpath3, facedir)
+                imgpaths[join_paths(p)] = seq
 
     return imgpaths
 

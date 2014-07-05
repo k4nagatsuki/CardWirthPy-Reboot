@@ -550,10 +550,11 @@ class CharaRequirementPanel(wx.Panel):
         # 使用可能なイメージの一覧を取得
         facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
         for info in infos:
-            fpaths.update(cw.util.get_facepaths(info.sex, info.age, rel=True))
+            for paths in cw.util.get_facepaths(info.sex, info.age, rel=True).itervalues():
+                fpaths.update(paths)
         flist = list(fpaths)
         flist.sort()
-        flist.insert(0, u"[変更しない]")
+        flist.insert(0, cw.cwpy.msgs["no_change"])
         self.imgcombo.SetItems(flist)
 
         if img in fpaths:
@@ -698,8 +699,11 @@ class CharaRequirementPanel(wx.Panel):
                     arr.append(u"＿" + nature.name)
             info.talent = arr[cw.cwpy.dice.roll(1, len(arr))-1]
 
-            arr = cw.util.get_facepaths(info.sex, info.age)
-            info.imgpath = arr[cw.cwpy.dice.roll(1, len(arr))-1]
+            seq = []
+            for paths in cw.util.get_facepaths(info.sex, info.age).itervalues():
+                seq.extend(paths)
+
+            info.imgpath = cw.cwpy.dice.choice(seq)
 
         self._select_target(self.cindex)
 

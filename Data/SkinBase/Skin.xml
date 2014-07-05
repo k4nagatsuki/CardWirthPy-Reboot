@@ -638,5 +638,6 @@
     <Message key="arrange_bookmark">ブックマークの整理</Message>
     <Message key="add_bookmark_message">「%s」のブックマークを登録します。
 よろしいですか？</Message>
+    <Message key="no_change">[変更しない]</Message>
   </Messages>
 </Skin>

@@ -656,13 +656,47 @@ class AdventurerCreaterPage(wx.Panel):
 
     def set_imgpaths(self, reset=True):
         if reset or self.imgpath == "":
-            self.imgpaths = []
+            self.imgpaths = {}
+            self.imgdpath = -1
         else:
-            self.imgpaths = [self.imgpath]
-        self.imgpaths += cw.util.get_facepaths(self.sex, self.age)
+            self.imgpaths = {None:[self.imgpath]}
+            self.imgdpath = 0
 
-        if self.imgpaths:
-            self.imgpath = self.imgpaths[0]
+        imgpaths = cw.util.get_facepaths(self.sex, self.age)
+        if 1 == len(imgpaths):
+            if self.imgpaths:
+                self.imgpaths[None].extend(imgpaths.values()[0])
+            else:
+                self.imgpaths.update(imgpaths)
+        else:
+            self.imgpaths.update(imgpaths)
+
+        self.imgdpaths = self.imgpaths.keys()
+        self.imgdpaths.sort()
+
+        if self.imgpaths and (reset or self.imgpath == ""):
+            if None in self.imgpaths:
+                self.imgpath = self.imgpaths[None][0]
+                self.imgdpath = 0
+            else:
+                key = self.imgdpaths[0]
+                self.imgpath = self.imgpaths[key][0]
+                self.imgdpath = 0
+
+        self.ch_imgdpath.Clear()
+        if 1 < len(self.imgpaths):
+            for key in self.imgdpaths:
+                if key is None:
+                    self.ch_imgdpath.Append(cw.cwpy.msgs["no_change"])
+                else:
+                    self.ch_imgdpath.Append(key)
+            self.ch_imgdpath.Select(self.imgdpath)
+            self.ch_imgdpath.Show()
+        else:
+            self.ch_imgdpath.Hide()
+
+        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        self.Layout()
 
     def draw(self, update=False):
         if update:
@@ -686,6 +720,11 @@ class NamePage(AdventurerCreaterPage):
         self.textctrl.SetFocus()
         font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
+
+        self.ch_imgdpath = wx.Choice(self, size=(cw.wins(110), -1))
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.ch_imgdpath.SetFont(font)
+
         self.name = ""
         self.sex = cw.cwpy.setting.sexcoupons[0]
         self.age = cw.cwpy.setting.periodcoupons[0]
@@ -694,13 +733,61 @@ class NamePage(AdventurerCreaterPage):
                 self.age = u"＿" + period.name
                 break
         self.imgpath = ""
+        self.imgdpath = None
         self.set_imgpaths(True)
         self._bind()
         self._do_layout()
 
+        self.upkeyid = wx.NewId()
+        self.downkeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=self.upkeyid)
+        self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=self.downkeyid)
+        seq = [
+            (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
+        ]
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
+
     def _bind(self):
         AdventurerCreaterPage._bind(self)
         self.Bind(wx.EVT_TEXT, self.OnInputText)
+        self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
+
+    def OnMouseWheel(self, event):
+        if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
+            if event.GetWheelRotation() < 0:
+                self._up_imgd()
+            else:
+                self._down_imgd()
+        else:
+            AdventurerCreaterPage.OnMouseWheel(self, event)
+
+    def OnUpKeyDown(self, event):
+        self._up_imgd()
+
+    def _up_imgd(self):
+        if self.ch_imgdpath.IsShown():
+            index = self.imgdpath
+            index -= 1
+            if index < 0:
+                index = len(self.imgdpaths) - 1
+            self.ch_imgdpath.Select(index)
+            event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
+            self.ch_imgdpath.ProcessEvent(event)
+
+    def OnDownKeyDown(self, event):
+        self._down_imgd()
+
+    def _down_imgd(self):
+        if self.ch_imgdpath.IsShown():
+            index = self.imgdpath
+            index += 1
+            if len(self.imgdpaths) <= index:
+                index = 0
+            self.ch_imgdpath.Select(index)
+            event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
+            self.ch_imgdpath.ProcessEvent(event)
 
     def OnInputText(self, event):
         self.name = self.textctrl.GetValue()
@@ -710,15 +797,38 @@ class NamePage(AdventurerCreaterPage):
         else:
             self.Parent.nextbtn.Disable()
 
+    def OnChoiceImgDPath(self, event):
+        index = self.ch_imgdpath.GetSelection()
+        if index <> self.imgdpath:
+            cw.cwpy.sounds["page"].play()
+            self.imgdpath = index
+            key = self.imgdpaths[index]
+            self.imgpath = self.imgpaths[key][0]
+            self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+            self.draw(True)
+            self.textctrl.SetFocus()
+
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         csize = self.GetClientSize()
+        w1, h1 = self.textctrl.GetSize()
+        w2, h2 = self.ch_imgdpath.GetSize()
+
         sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
-        w, h = self.textctrl.GetSize()
-        margin = (csize[0] - w) / 2
-        sizer_1.Add(self.textctrl, 0, wx.RIGHT|wx.LEFT, margin)
-        margin = csize[1] - cw.wins(90) - h
+        sizer_1.Add(self.textctrl, 0, wx.CENTER, 0)
+
+        margin = cw.wins(135) - h1
+        sizer_1.Add((0, margin), 0, 0, 0)
+
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        margin = cw.wins(275) + cw.wins(cw.SIZE_CARDIMAGE[0])/2 - w2/2
+        sizer_2.Add((margin, 0), 0, 0, 0)
+        sizer_2.Add(self.ch_imgdpath, 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, 0, 0)
+
+        margin = csize[1] - cw.wins(203) - h2
         sizer_1.Add((csize[0], margin), 0, 0, 0)
+
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
@@ -808,28 +918,10 @@ class NamePage(AdventurerCreaterPage):
             self.set_nextimg(name)
 
     def set_nextimg(self, name):
-        if self.imgpaths:
-            cw.cwpy.sounds["page"].play()
-            index = self.imgpaths.index(self.imgpath) + 1
-
-            try:
-                self.imgpath = self.imgpaths[index]
-            except:
-                self.imgpath = self.imgpaths[0]
-
-            self.draw(True)
+        _set_nextimg(self, name)
 
     def set_previmg(self, name):
-        if self.imgpaths:
-            cw.cwpy.sounds["page"].play()
-            index = self.imgpaths.index(self.imgpath) - 1
-
-            try:
-                self.imgpath = self.imgpaths[index]
-            except:
-                self.imgpath = self.imgpaths[0]
-
-            self.draw(True)
+        _set_previmg(self, name)
 
 class RacePage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -1439,6 +1531,10 @@ class DesignPanel(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
         self.namectrl.SetFont(font)
 
+        self.ch_imgdpath = wx.Choice(self, size=(cw.wins(110), -1))
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.ch_imgdpath.SetFont(font)
+
         font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER|wx.TE_MULTILINE)
         self.descctrl.SetFont(font)
@@ -1467,9 +1563,56 @@ class DesignPanel(AdventurerCreaterPage):
         self._bind()
         self._do_layout()
 
+        self.upkeyid = wx.NewId()
+        self.downkeyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=self.upkeyid)
+        self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=self.downkeyid)
+        seq = [
+            (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
+            (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
+        ]
+        accel = wx.AcceleratorTable(seq)
+        self.SetAcceleratorTable(accel)
+
     def _bind(self):
         AdventurerCreaterPage._bind(self)
         self.namectrl.Bind(wx.EVT_TEXT, self.OnInputName)
+        self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
+
+    def OnMouseWheel(self, event):
+        if self.ch_imgdpath.GetRect().Contains(event.GetPosition()):
+            if event.GetWheelRotation() < 0:
+                self._up_imgd()
+            else:
+                self._down_imgd()
+        else:
+            AdventurerCreaterPage.OnMouseWheel(self, event)
+
+    def OnUpKeyDown(self, event):
+        self._up_imgd()
+
+    def _up_imgd(self):
+        if self.ch_imgdpath.IsShown():
+            index = self.imgdpath
+            index -= 1
+            if index < 0:
+                index = len(self.imgdpaths) - 1
+            self.ch_imgdpath.Select(index)
+            event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
+            self.ch_imgdpath.ProcessEvent(event)
+
+    def OnDownKeyDown(self, event):
+        self._down_imgd()
+
+    def _down_imgd(self):
+        if self.ch_imgdpath.IsShown():
+            index = self.imgdpath
+            index += 1
+            if len(self.imgdpaths) <= index:
+                index = 0
+            self.ch_imgdpath.Select(index)
+            event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
+            self.ch_imgdpath.ProcessEvent(event)
 
     def OnInputName(self, event):
         self.name = self.namectrl.GetValue()
@@ -1479,11 +1622,28 @@ class DesignPanel(AdventurerCreaterPage):
         else:
             self.Parent.okbtn.Disable()
 
+    def OnChoiceImgDPath(self, event):
+        index = self.ch_imgdpath.GetSelection()
+        if index <> self.imgdpath:
+            cw.cwpy.sounds["page"].play()
+            self.imgdpath = index
+            key = self.imgdpaths[index]
+            self.imgpath = self.imgpaths[key][0]
+            self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+            self.draw(True)
+            self.namectrl.SetFocus()
+
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(60))
-        sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.wins(158))
+        if self.ch_imgdpath.IsShown():
+            sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(50))
+            sizer_1.Add(self.ch_imgdpath, 0, wx.TOP|wx.CENTER, cw.wins(133))
+            h = self.ch_imgdpath.GetSize()[1]
+            sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.wins(45)-h)
+        else:
+            sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(60))
+            sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.wins(158))
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
@@ -1508,30 +1668,42 @@ class DesignPanel(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(15))
 
+        if self.ch_imgdpath.IsShown():
+            y = cw.wins(35)
+            y2 = 106
+        else:
+            y = cw.wins(45)
+            y2 = 116
+
         # Name
         s = cw.cwpy.msgs["entry_name"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(45))
+        dc.DrawText(s, (cwidth - w) / 2, y)
         # Image
+        y += cw.wins(50)
         s = cw.cwpy.msgs["entry_image"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(95))
+        dc.DrawText(s, (cwidth - w) / 2, y)
         # Comment
+        if self.ch_imgdpath.IsShown():
+            y += cw.wins(145)
+        else:
+            y += cw.wins(125)
         s = cw.cwpy.msgs["entry_comment"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(220))
+        dc.DrawText(s, (cwidth - w) / 2, y)
 
         # PrevImage
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
-        pos = cw.wins((135, 150))
+        pos = cw.wins((135, y2+34))
         self.draw_clickablebmp(dc, bmp, pos, "PrevImage", self.set_previmg, None)
         # NextImage
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
-        pos = cw.wins((260, 150))
+        pos = cw.wins((260, y2+34))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
         bmp = cw.wins((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
-        self.draw_clickablebmp(dc, bmp, ((cwidth - cw.wins(74)) / 2, cw.wins(116)), "Face", None, self.on_mousewheel, True)
+        self.draw_clickablebmp(dc, bmp, ((cwidth - cw.wins(74)) / 2, cw.wins(y2)), "Face", None, self.on_mousewheel, True)
 
     def on_mousewheel(self, name, rotate):
         if rotate < 0:
@@ -1540,28 +1712,54 @@ class DesignPanel(AdventurerCreaterPage):
             self.set_nextimg(name)
 
     def set_nextimg(self, name):
-        if self.imgpaths:
-            cw.cwpy.sounds["page"].play()
-            index = self.imgpaths.index(self.imgpath) + 1
-
-            try:
-                self.imgpath = self.imgpaths[index]
-            except:
-                self.imgpath = self.imgpaths[0]
-
-            self.draw(True)
+        _set_nextimg(self, name)
 
     def set_previmg(self, name):
-        if self.imgpaths:
-            cw.cwpy.sounds["page"].play()
-            index = self.imgpaths.index(self.imgpath) - 1
+        _set_previmg(self, name)
+
+def _set_nextimg(panel, name):
+    if panel.imgpaths:
+        cw.cwpy.sounds["page"].play()
+        key = panel.imgdpaths[panel.imgdpath]
+        if key is None and 1 < len(panel.imgdpaths):
+            panel.imgdpath = 1
+            panel.ch_imgdpath.SetSelection(1)
+            key = panel.imgdpaths[1]
+            imgpaths = panel.imgpaths[key]
+            panel.imgpath = imgpaths[0]
+        else:
+            imgpaths = panel.imgpaths[key]
+
+            index = imgpaths.index(panel.imgpath) + 1
 
             try:
-                self.imgpath = self.imgpaths[index]
+                panel.imgpath = imgpaths[index]
             except:
-                self.imgpath = self.imgpaths[0]
+                panel.imgpath = imgpaths[0]
 
-            self.draw(True)
+        panel.draw(True)
+
+def _set_previmg(panel, name):
+    if panel.imgpaths:
+        cw.cwpy.sounds["page"].play()
+        key = panel.imgdpaths[panel.imgdpath]
+        if key is None and 1 < len(panel.imgdpaths):
+            panel.imgdpath = 1
+            panel.ch_imgdpath.SetSelection(1)
+            key = panel.imgdpaths[1]
+            imgpaths = panel.imgpaths[key]
+            panel.imgpath = imgpaths[0]
+        else:
+            imgpaths = panel.imgpaths[key]
+
+            index = imgpaths.index(panel.imgpath) - 1
+
+            try:
+                panel.imgpath = imgpaths[index]
+            except:
+                panel.imgpath = imgpaths[0]
+
+        panel.draw(True)
 
 def main():
     pass
