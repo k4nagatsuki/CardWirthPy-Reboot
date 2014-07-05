@@ -1359,7 +1359,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
         width = 42
     elif mode == 4:
         wrapschars = WRAPS_CHARS
-        width = 36
+        width = 37
     elif mode == 5:
         wrapschars = WRAPS_CHARS
         width = 24

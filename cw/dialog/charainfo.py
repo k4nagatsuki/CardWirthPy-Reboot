@@ -526,7 +526,7 @@ class DescPanel(wx.ScrolledWindow):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
         maxwidth, maxheight, lineheight = dc.GetMultiLineTextExtent(self.text)
-        self.x = cw.wins(18) if maxheight <= self.csize[1] else cw.wins(12)
+        self.x = cw.wins(12) if maxheight <= self.csize[1] else cw.wins(6)
         maxheight += cw.wins(10)
         self.SetVirtualSize((-1, maxheight))
         self.Scroll(0, 0)
