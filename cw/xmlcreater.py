@@ -58,9 +58,10 @@ def create_partyrecord(party):
         s = os.path.basename(member.fpath)
         s = cw.util.splitext(s)[0]
         s = cw.binary.util.repl_escapechar(s)
-        members.append("\n   <Member>%s</Member>" % (s))
+        s2 = cw.binary.util.repl_escapechar(member.gettext("Property/Name", ""))
+        members.append("\n   <Member name=\"%s\">%s</Member>" % (s2, s))
     d["members"] = "".join(members)
-    
+
     backpack = []
     for header in party.backpack:
         d2 = {"name" : cw.binary.util.repl_escapechar(header.name),

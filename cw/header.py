@@ -1062,23 +1062,32 @@ class PartyRecordHeader(object):
             self.name = dbrec["name"]
             self.money = dbrec["money"]
             self.members = dbrec["members"].split("\n")
+            self.membernames = dbrec["membernames"].split("\n")
+            if len(self.membernames) < len(self.members):
+                self.membernames.extend([u"<Vanished>"] * (len(self.members)-len(self.membernames)))
             self.backpack = dbrec["backpack"].split("\n")
         elif partyrecord:
             self.fpath = partyrecord.fpath
             self.name = partyrecord.name
             self.money = partyrecord.money
             self.members = []
+            self.membernames = []
             for member in partyrecord.members:
                 s = os.path.basename(member.fpath)
                 s = cw.util.splitext(s)[0]
                 self.members.append(s)
+                self.membernames.append(member.gettext("Property/Name", ""))
             self.backpack = [header.name for header in partyrecord.backpack]
         else:
             data = cw.data.xml2etree(fpath)
             self.fpath = data.fpath
             self.name = data.gettext("Property/Name")
             self.money = data.getint("Property/Money", 0)
-            self.members = [e.text for e in data.getfind("Property/Members") if e.text]
+            self.members = []
+            self.membernames = []
+            for e in data.getfind("Property/Members"):
+                self.members.append(e.text)
+                self.membernames.append(e.getattr(".", "name", u"<Vanished>"))
             self.backpack = [e.attrib.get("name", "") for e in data.getfind("BackpackRecord")]
 
     def get_memberpaths(self):
@@ -1098,8 +1107,11 @@ class PartyRecordHeader(object):
     def get_membernames(self):
         seq = []
 
-        for fpath in self.get_memberpaths():
-            seq.append(GetName(fpath).name)
+        for i, fpath in enumerate(self.get_memberpaths()):
+            if cw.util.get_yadofilepath(fpath):
+                seq.append(GetName(fpath).name)
+            else:
+                seq.append(self.membernames[i])
 
         return seq
 

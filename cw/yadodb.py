@@ -117,6 +117,7 @@ class YadoDB(object):
                             name TEXT,
                             money INTEGER,
                             members TEXT,
+                            membernames TEXT,
                             backpack TEXT,
                             ctime INTEGER,
                             mtime INTEGER,
@@ -124,6 +125,23 @@ class YadoDB(object):
                         )
                     """
                     self.cur.execute(s)
+                    reqcommit = True
+
+            if self.mode == YADO:
+                # membernames列が存在しない場合は作成する
+                # (旧バージョンとの互換性維持)
+                cur = self.con.execute("PRAGMA table_info('partyrecord')")
+                res = cur.fetchall()
+                hasmembernames = False
+                for rec in res:
+                    if rec[1] == "membernames":
+                        hasmembernames = True
+                        break
+
+                if not hasmembernames:
+                    self.cur.execute("ALTER TABLE partyrecord ADD COLUMN membernames TEXT")
+                    self.cur.execute("UPDATE partyrecord SET membernames=?", ("",))
+                    reqcommit = True
 
             if reqcommit:
                 self.con.commit()
