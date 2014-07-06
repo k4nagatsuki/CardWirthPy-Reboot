@@ -639,5 +639,6 @@
     <Message key="add_bookmark_message">「%s」のブックマークを登録します。
 よろしいですか？</Message>
     <Message key="no_change">[変更しない]</Message>
+    <Message key="select_skin">スキン:</Message>
   </Messages>
 </Skin>

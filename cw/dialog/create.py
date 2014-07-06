@@ -1349,11 +1349,35 @@ class YadoCreater(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.yadodir = ""
         self.SetClientSize(cw.wins((312, 156)))
+
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(18)
         font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
         self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
+
+        choices = []
+        for name in os.listdir(u"Data/Skin"):
+            path = cw.util.join_paths(u"Data/Skin", name)
+            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+
+            if os.path.isdir(path) and os.path.isfile(skinpath):
+                try:
+                    cw.header.GetName(skinpath)
+                    choices.append(name)
+                except Exception:
+                    # エラーのあるスキンは無視
+                    cw.util.print_ex()
+
+        self.skin = wx.Choice(self, size=(cw.wins(150), -1), choices=choices)
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16))
+        self.skin.SetFont(font)
+        if cw.cwpy.setting.skindirname in choices:
+            index = choices.index(cw.cwpy.setting.skindirname)
+            self.skin.Select(index)
+        else:
+            self.skin.Select(0)
+
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
                                                         cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
@@ -1363,6 +1387,7 @@ class YadoCreater(wx.Dialog):
 
     def create_yado(self):
         name = self.textctrl.GetValue().strip()
+        skindirname = self.skin.GetItems()[self.skin.GetSelection()]
         self.yadodir = cw.util.join_paths("Yado", cw.binary.util.check_filename(name))
         self.yadodir = cw.binary.util.check_duplicate(self.yadodir)
         os.makedirs(self.yadodir)
@@ -1373,7 +1398,7 @@ class YadoCreater(wx.Dialog):
             path = cw.util.join_paths(self.yadodir, dname)
             os.makedirs(path)
 
-        cw.xmlcreater.create_environment(name, self.yadodir)
+        cw.xmlcreater.create_environment(name, self.yadodir, skindirname)
 
     def OnInput(self, event):
         name = self.textctrl.GetValue().strip()
@@ -1403,16 +1428,25 @@ class YadoCreater(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic")
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = cw.cwpy.msgs["create_base_message_1"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (csize[0]-w)/2, cw.wins(14))
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", weight=wx.NORMAL)
+        dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["create_base_message_2"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (csize[0]-w)/2, cw.wins(30))
+
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        dc.SetFont(font)
+        s = cw.cwpy.msgs["select_skin"]
+        tw, th = dc.GetTextExtent(s)
+        x, y, w, h = self.skin.GetRect()
+        x -= tw + cw.wins(5)
+        y += (h-th) / 2
+        dc.DrawText(s, x, y)
 
     def _bind(self):
         self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
@@ -1424,17 +1458,31 @@ class YadoCreater(wx.Dialog):
         csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add(cw.wins((0, 55)), 0, 0, 0)
         margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
         sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(cw.wins((0, 25)), 0, 0, 0)
-        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+
+        dc = wx.ClientDC(self)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        dc.SetFont(font)
+        w, h = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
+        sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
+        sizer_3.Add(self.skin, 0, wx.CENTER, 0)
+        sizer_1.Add(sizer_3, 0, wx.CENTER, 0)
+
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
         sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
         sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
         self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
         self.Layout()
 
 #-------------------------------------------------------------------------------

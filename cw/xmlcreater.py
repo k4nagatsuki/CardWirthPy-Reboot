@@ -81,14 +81,21 @@ def create_partyrecord(party):
     _create_xml("PartyRecord", path, d)
     return path
 
-def create_environment(name, dpath):
+def create_environment(name, dpath, skindirname):
     """
     dpath: "Environment.xml"を作成する宿のディレクトリパス。
     宿のデータを納める"Environment.xml"を作る。
     """
-    d = {"name" : name,
-         "skinname" : cw.cwpy.setting.skinname,
-         "skintype" : cw.cwpy.setting.skintype,
+    skintype = u"MedievalFantasy"
+    try:
+        fpath = cw.util.join_paths(u"Data/Skin", skindirname, u"Skin.xml")
+        skintype = cw.header.GetProperty(fpath).properties.get(u"Type", skintype)
+    except:
+        cw.util.print_ex()
+
+    d = {"name" : cw.binary.util.repl_escapechar(name),
+         "skinname" : cw.binary.util.repl_escapechar(skindirname),
+         "skintype" : cw.binary.util.repl_escapechar(skintype),
          "cashbox" : "4000",
          "selectingparty" : "",
          "nowadventuring" : "False",
