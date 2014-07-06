@@ -297,6 +297,18 @@ class ScenarioData(SystemData):
                     self.tempdir = cw.util.decompress_cab(self.fpath, self.tempdir, avoiddup=True)
                 else:
                     self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir, avoiddup=True)
+                fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
+                fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
+                if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):
+                    for dpath, dnames, fnames in os.walk(self.tempdir):
+                        if "Summary.wsm" in fnames or "Summary.xml" in fnames:
+                            # アーカイヴのサブフォルダにシナリオがあるので
+                            # tempdirの位置に移動する
+                            dpath2 = cw.binary.util.check_duplicate(self.tempdir)
+                            os.rename(dpath, dpath2)
+                            cw.util.remove_tree(self.tempdir)
+                            self.tempdir = dpath2
+                            break
                 cw.cwpy.recenthistory.append(self.fpath, self.tempdir)
         else:
             # 展開済みシナリオ
