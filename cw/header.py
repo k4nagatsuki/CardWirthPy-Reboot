@@ -1064,7 +1064,7 @@ class PartyRecordHeader(object):
             self.members = dbrec["members"].split("\n")
             self.membernames = dbrec["membernames"].split("\n")
             if len(self.membernames) < len(self.members):
-                self.membernames.extend([u"<Vanished>"] * (len(self.members)-len(self.membernames)))
+                self.membernames.extend([u""] * (len(self.members)-len(self.membernames)))
             self.backpack = dbrec["backpack"].split("\n")
         elif partyrecord:
             self.fpath = partyrecord.fpath
@@ -1076,7 +1076,7 @@ class PartyRecordHeader(object):
                 s = os.path.basename(member.fpath)
                 s = cw.util.splitext(s)[0]
                 self.members.append(s)
-                self.membernames.append(member.gettext("Property/Name", ""))
+                self.membernames.append(member.gettext("Property/Name", u""))
             self.backpack = [header.name for header in partyrecord.backpack]
         else:
             data = cw.data.xml2etree(fpath)
@@ -1087,8 +1087,19 @@ class PartyRecordHeader(object):
             self.membernames = []
             for e in data.getfind("Property/Members"):
                 self.members.append(e.text)
-                self.membernames.append(e.getattr(".", "name", u"<Vanished>"))
+                self.membernames.append(e.getattr(".", "name", u""))
             self.backpack = [e.attrib.get("name", "") for e in data.getfind("BackpackRecord")]
+
+    def rename_member(self, fpath, name):
+        """メンバの改名を通知する。"""
+        s = os.path.basename(fpath)
+        s = cw.util.splitext(s)[0]
+        if s in self.members:
+            index = self.members.index(s)
+            self.membernames[index] = name
+            data = cw.data.xml2etree(self.fpath)
+            data.edit("Property/Members/Member[%s]" % (index+1), name, "name")
+            data.write_xml()
 
     def vanish_member(self, fpath):
         """メンバの消滅を通知する。"""
@@ -1098,7 +1109,17 @@ class PartyRecordHeader(object):
             index = self.members.index(s)
             self.members[index] = ""
             data = cw.data.xml2etree(self.fpath)
-            data.edit("Property/Members/Member[%s]" % (index+1), u"")
+            ename = "Property/Members/Member[%s]" % (index+1)
+            data.edit(ename, u"")
+
+            # 互換性維持の処理
+            # 過去のデータでname属性が無い場合がある
+            name = data.getattr(ename, u"name", u"")
+            if not name:
+                name = GetName(fpath).name
+                self.membernames[index] = name
+                data.edit(ename, u"", u"name")
+
             data.write_xml()
 
     def get_memberpaths(self):
@@ -1122,10 +1143,15 @@ class PartyRecordHeader(object):
         seq = []
 
         for i, fpath in enumerate(self.get_memberpaths()):
-            if cw.util.get_yadofilepath(fpath):
+            if self.membernames[i]:
+                seq.append(self.membernames[i])
+            elif cw.util.get_yadofilepath(fpath):
+                # name情報はないが本人のデータがある
                 seq.append(GetName(fpath).name)
             else:
-                seq.append(self.membernames[i])
+                # name情報もなく本人も消滅済み
+                # (互換性維持)
+                seq.append(u"<Vanished>")
 
         return seq
 

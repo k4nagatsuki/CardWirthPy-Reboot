@@ -1977,6 +1977,12 @@ class Player(Character):
             cw.cwpy.sdata.lostadventurers.add(fpath)
         cw.cwpy.pcardgrp.remove(self)
 
+    def set_name(self, name):
+        Character.set_name(self, name)
+        if cw.cwpy.ydata:
+            for header in cw.cwpy.ydata.partyrecord:
+                header.rename_member(self.data.fpath, name)
+
 class Enemy(Character):
     def is_dead(self):
         """
