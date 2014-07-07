@@ -710,16 +710,22 @@ class PlayerCard(CWPyCard, character.Player):
 
         # レベルアップ
         if levelup <> 0:
-            n = self.get_specialcoupons()[u"＠レベル原点"] + levelup
-            self.set_level(n)
+            base = self.get_specialcoupons()[u"＠レベル原点"]
             if fromscenario:
-                cw.animation.animate_sprite(self, "levelup")
-
+                n = base + levelup
                 if 1 < levelup:
-                    # 複数回レベルアップした場合はその分回転
+                    # 複数回レベルアップした場合はその分回転表示する
+                    cw.animation.animate_sprite(self, "levelup")
                     for i in xrange(levelup - 1):
                         cw.animation.animate_sprite(self, "hide")
+                        self.set_level(base + i + 1)
                         cw.animation.animate_sprite(self, "deal")
+                    self.set_level(n)
+                else:
+                    self.set_level(n)
+                    cw.animation.animate_sprite(self, "levelup")
+            else:
+                self.set_level(n)
 
         # 回復処理
         if fromscenario or levelup <> 0:
