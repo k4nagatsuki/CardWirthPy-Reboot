@@ -758,6 +758,7 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(cw.cwpy.change_selection, selection)
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_selection)
+        cw.cwpy.exec_func(cw.cwpy.draw)
 
     def change_cardcontrolarea(self):
         """カード移動操作を行う特殊エリアに移動。"""

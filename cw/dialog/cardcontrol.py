@@ -83,6 +83,8 @@ class CardControl(wx.Dialog):
 
         self._proc = False
 
+        for header in self.list:
+            header.negaflag = False
         self.draw_cards()
 
     def _bind(self):
