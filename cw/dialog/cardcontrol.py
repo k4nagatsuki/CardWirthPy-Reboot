@@ -83,8 +83,6 @@ class CardControl(wx.Dialog):
 
         self._proc = False
 
-        for header in self.list:
-            header.negaflag = False
         self.draw_cards()
 
     def _bind(self):
@@ -315,6 +313,8 @@ class CardControl(wx.Dialog):
 
         self.set_cardpos()
 
+        if not self.IsShown():
+            return
         for header in self.get_headers():
             if header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
@@ -468,7 +468,7 @@ class CardControl(wx.Dialog):
         self.toppanel.Refresh()
 
     def draw_card(self, header, fromkeyevent=False):
-        if not fromkeyevent and self.IsActive():
+        if not fromkeyevent and self.IsActive() and self.IsShown():
             mousepos = self.ScreenToClient(wx.GetMousePosition())
             if header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
@@ -1410,6 +1410,8 @@ class HandView(CardControl):
 
         # 手札リスト
         self.list = self.selection.deck.hand
+        for header in self.list:
+            header.negaflag = False
         # ダイアログ作成
         name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
         self.bgcolour = wx.Colour(0, 0, 128)
