@@ -2390,7 +2390,10 @@ class ScenarioSelect(Select):
                     elif header.levelmin or header.levelmax:
                         levelmin = str(header.levelmin) if header.levelmin else " "
                         levelmax = str(header.levelmax) if header.levelmax else " "
-                        addition = u"[%s～%s]" % (levelmin, levelmax)
+                        if levelmin == levelmax:
+                            addition = u"[%s]" % (levelmin)
+                        else:
+                            addition = u"[%s～%s]" % (levelmin, levelmax)
                     if self.is_playing(header) or self.is_complete(header) or self.is_invisible(header):
                         dc.SetTextForeground((128, 128, 128))
                     else:
