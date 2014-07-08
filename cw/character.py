@@ -1838,7 +1838,7 @@ class Character(object):
                 self.update_image()
 
         # 麻痺
-        if self.is_paralyze() and not self.is_petrified():
+        if self.is_paralyze() and not self.is_petrified() and not self.is_unconscious():
             self.set_paralyze(-time)
             flag |= not self.is_paralyze()
             if self.is_analyzable():
