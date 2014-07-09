@@ -489,8 +489,9 @@ class CWYado(object):
 class UnconvCWYado(object):
     """宿データを逆変換してdstpathへ保存する。
     """
-    def __init__(self, ydata, dstpath):
+    def __init__(self, ydata, dstpath, targetengine):
         self.ydata = ydata
+        self.targetengine = targetengine
         self.name = self.ydata.name
         self.dir = util.join_paths(dstpath, util.check_filename(self.name))
         self.dir = util.check_duplicate(self.dir)
@@ -520,14 +521,20 @@ class UnconvCWYado(object):
         def write_card(header):
             data = cw.data.xml2element(header.fpath)
             fpath = create_fpath(header.name, ".wid")
-            with cwfile.CWFileWriter(fpath, "wb") as f:
-                if header.type == "SkillCard":
-                    skill.SkillCard.unconv(f, data, False)
-                elif header.type == "ItemCard":
-                    item.ItemCard.unconv(f, data, False)
-                elif header.type == "BeastCard":
-                    beast.BeastCard.unconv(f, data, False)
-            return data, fpath
+            try:
+                with cwfile.CWFileWriter(fpath, "wb",
+                         targetengine=self.targetengine,
+                         write_errorlog=self.write_errorlog) as f:
+                    if header.type == "SkillCard":
+                        skill.SkillCard.unconv(f, data, False)
+                    elif header.type == "ItemCard":
+                        item.ItemCard.unconv(f, data, False)
+                    elif header.type == "BeastCard":
+                        beast.BeastCard.unconv(f, data, False)
+                return data, fpath
+            except Exception, ex:
+                cw.util.remove(fpath)
+                raise ex
 
         if not os.path.isdir(self.dir):
             os.makedirs(self.dir)
@@ -542,6 +549,9 @@ class UnconvCWYado(object):
                 data, fpath = write_card(header)
                 unusedcards.append((os.path.basename(fpath), data))
                 yadocards[header.fpath] = os.path.basename(fpath), data
+            except cw.binary.cwfile.UnsupportedError:
+                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
+                self.write_errorlog(s)
             except Exception:
                 cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (header.name)
@@ -558,17 +568,28 @@ class UnconvCWYado(object):
                 cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
 
                 ppath = create_fpath(header.name, ".wcp")
-                with cwfile.CWFileWriter(ppath, "wb") as f:
+                hpath = create_fpath(header.name, ".wch")
+                with cwfile.CWFileWriter(ppath, "wb",
+                        targetengine=self.targetengine,
+                        write_errorlog=self.write_errorlog) as f:
                     adventurer.AdventurerCard.unconv(f, data)
 
-                hpath = create_fpath(header.name, ".wch")
-                with cwfile.CWFileWriter(hpath, "wb") as f:
+                with cwfile.CWFileWriter(hpath, "wb",
+                        targetengine=self.targetengine,
+                        write_errorlog=self.write_errorlog) as f:
                     adventurer.AdventurerHeader.unconv(f, data, ppath)
 
+            except cw.binary.cwfile.UnsupportedError:
+                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
+                self.write_errorlog(s)
+                cw.util.remove(ppath)
+                cw.util.remove(hpath)
             except Exception:
                 cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
+                cw.util.remove(ppath)
+                cw.util.remove(hpath)
 
         # 荷物袋のカード(*.wid)
         parties = []
@@ -585,6 +606,9 @@ class UnconvCWYado(object):
 
                     yadocards[header.fpath] = os.path.basename(fpath), data
 
+                except cw.binary.cwfile.UnsupportedError:
+                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name, header.name)
+                    self.write_errorlog(s)
                 except Exception:
                     cw.util.print_ex()
                     s = u"%s の %s は変換できませんでした。\n" % (partyheader.name, header.name)
@@ -625,12 +649,16 @@ class UnconvCWYado(object):
                         i += 1
                 atbl["adventurers"] = atbl
 
-                fpath = create_fpath(pt.name, ".wpl")
-                with cwfile.CWFileWriter(fpath, "wb") as f:
+                fpath1 = create_fpath(pt.name, ".wpl")
+                with cwfile.CWFileWriter(fpath1, "wb",
+                        targetengine=self.targetengine,
+                        write_errorlog=self.write_errorlog) as f:
                     party.Party.unconv(f, pt.data.find("."), atbl, scenarioname)
 
-                fpath = create_fpath(pt.name, ".wpt")
-                with cwfile.CWFileWriter(fpath, "wb") as f:
+                fpath2 = create_fpath(pt.name, ".wpt")
+                with cwfile.CWFileWriter(fpath2, "wb",
+                        targetengine=self.targetengine,
+                        write_errorlog=self.write_errorlog) as f:
                     party.PartyMembers.unconv(f, pt, table, logdir)
 
                 if partyheader.fpath.lower().startswith("yado"):
@@ -638,14 +666,21 @@ class UnconvCWYado(object):
                 else:
                     relpath = cw.util.relpath(partyheader.fpath, tempdir)
                 relpath = cw.util.join_paths(relpath)
-                partytable[relpath] = cw.util.splitext(os.path.basename(fpath))[0]
+                partytable[relpath] = cw.util.splitext(os.path.basename(fpath2))[0]
 
                 if logdir:
                     cw.util.remove("Data/Temp/ScenarioLog")
+            except cw.binary.cwfile.UnsupportedError:
+                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name)
+                self.write_errorlog(s)
+                cw.util.remove(fpath1)
+                cw.util.remove(fpath2)
             except Exception:
                 cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (partyheader.name)
                 self.write_errorlog(s)
+                cw.util.remove(fpath1)
+                cw.util.remove(fpath2)
 
         table["party"] = partytable
 
@@ -658,13 +693,20 @@ class UnconvCWYado(object):
                 data = cw.data.xml2element(header.fpath)
 
                 fpath = create_fpath(header.name, ".wrm")
-                with cwfile.CWFileWriter(fpath, "wb") as f:
+                with cwfile.CWFileWriter(fpath, "wb",
+                        targetengine=self.targetengine,
+                        write_errorlog=self.write_errorlog) as f:
                     album.Album.unconv(f, data)
 
+            except cw.binary.cwfile.UnsupportedError:
+                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
+                self.write_errorlog(s)
+                cw.util.remove(fpath)
             except Exception:
                 cw.util.print_ex()
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
+                cw.util.remove(fpath)
 
         # Environment.wyd
         self.message = u"宿情報を変換中"
@@ -672,7 +714,9 @@ class UnconvCWYado(object):
         try:
             data = self.ydata.environment.find(".")
             fpath = cw.util.join_paths(self.dir, "Environment.wyd")
-            with cwfile.CWFileWriter(fpath, "wb") as f:
+            with cwfile.CWFileWriter(fpath, "wb",
+                        targetengine=self.targetengine,
+                        write_errorlog=self.write_errorlog) as f:
                 environment.Environment.unconv(f, data, table)
 
         except Exception:

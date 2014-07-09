@@ -529,19 +529,68 @@ class Adventurer(base.CWBinaryBase):
         f.write_dword(enhance_defense)
         f.write_dword(duration_enhance_defense)
 
-        f.write_dword(len(items))
+        lenpos = f.tell()
+        f.write_dword(0)
+        cardslen = 0
         for card in items:
-            item.ItemCard.unconv(f, card, True)
-        f.write_dword(len(skills))
+            try:
+                pos = f.tell()
+                item.ItemCard.unconv(f, card, True)
+                cardslen += 1
+            except cw.binary.cwfile.UnsupportedError:
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = card.gettext("Property/Name", "")
+                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    f.write_errorlog(s)
+        tell = f.tell()
+        f.seek(lenpos)
+        f.write_dword(cardslen)
+        f.seek(tell)
+
+        lenpos = f.tell()
+        f.write_dword(0)
+        cardslen = 0
         for card in skills:
-            skill.SkillCard.unconv(f, card, True)
-        f.write_dword(len(beasts))
+            try:
+                pos = f.tell()
+                skill.SkillCard.unconv(f, card, True)
+                cardslen += 1
+            except cw.binary.cwfile.UnsupportedError:
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = card.gettext("Property/Name", "")
+                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    f.write_errorlog(s)
+        tell = f.tell()
+        f.seek(lenpos)
+        f.write_dword(cardslen)
+        f.seek(tell)
+
+        lenpos = f.tell()
+        f.write_dword(0)
+        cardslen = 0
         for card in beasts:
-            beast.BeastCard.unconv(f, card, True)
+            try:
+                pos = f.tell()
+                beast.BeastCard.unconv(f, card, True)
+                cardslen += 1
+            except cw.binary.cwfile.UnsupportedError:
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = card.gettext("Property/Name", "")
+                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    f.write_errorlog(s)
+        tell = f.tell()
+        f.seek(lenpos)
+        f.write_dword(cardslen)
+        f.seek(tell)
 
         f.write_dword(len(coupons))
         for cp in coupons:
             coupon.Coupon.unconv(f, cp)
+
+        f.truncate()
 
 class AdventurerCard(base.CWBinaryBase):
     """wcpファイル(type=1)。冒険者データが中に入っているだけ。"""

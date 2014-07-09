@@ -459,7 +459,7 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and type == "Coupon":
             f.write_string(data.get("coupon"))
             f.write_dword(0)
-            f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets"), f))
         elif tag == "Get" and type == "Cast":
             f.write_dword(int(data.get("id")))
         elif tag == "Get" and type == "Item":
@@ -506,7 +506,7 @@ class Content(base.CWBinaryBase):
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
         elif tag == "Talk" and type == "Dialog":
             targetm = data.get("targetm")
-            f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm))
+            f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm, f))
             if targetm == "Valued":
                 coupons = []
                 initvalue = data.get("initialValue", "0")
@@ -541,7 +541,7 @@ class Content(base.CWBinaryBase):
             f.write_bool(cw.util.str2bool(data.get("average")))
             f.write_dword(int(data.get("value")))
         elif tag == "Branch" and type == "Status":
-            f.write_byte(base.CWBinaryBase.unconv_statustype(data.get("status")))
+            f.write_byte(base.CWBinaryBase.unconv_statustype(data.get("status"), f))
             f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
         elif tag == "Branch" and type == "PartyNumber":
             f.write_dword(int(data.get("value")))
@@ -580,18 +580,23 @@ class Content(base.CWBinaryBase):
         elif tag == "Check" and type == "Flag":
             f.write_string(data.get("flag"))
         elif tag == "Substitute" and type == "Step": # 1.30
+            f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Substitute" and type == "Flag": # 1.30
+            f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Branch" and type == "StepValue": # 1.30
+            f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Branch" and type == "FlagValue": # 1.30
+            f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
         elif tag == "Branch" and type == "RandomSelect": # 1.30
+            f.check_version(1.30)
             f.write_byte(base.CWBinaryBase.unconv_castranges(data.find("CastRanges")))
             levelmin = data.get("levelmin", None)
             levelmax = data.get("levelmax", None)
@@ -606,16 +611,19 @@ class Content(base.CWBinaryBase):
                 f.write_dword(levelmin)
                 f.write_dword(levelmax)
             if (style & 0b10) <> 0:
-                f.write_byte(base.CWBinaryBase.unconv_statustype(status))
+                f.write_byte(base.CWBinaryBase.unconv_statustype(status, f))
         elif tag == "Branch" and type == "KeyCode": # 1.50
+            f.check_version(1.50)
             f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc")))
             f.write_byte(base.CWBinaryBase.unconv_effectcardtype(data.get("effectCardType")))
             f.write_string(data.get("keyCode"))
         elif tag == "Check" and type == "Step": # 1.50
+            f.check_version(1.50)
             f.write_string(data.get("step"))
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_comparison4(data.get("comparison")))
         elif tag == "Branch" and type == "Round": # 1.50
+            f.check_version(1.50)
             f.write_byte(base.CWBinaryBase.unconv_comparison3(data.get("comparison")))
             f.write_dword(int(data.get("round")))
         else:

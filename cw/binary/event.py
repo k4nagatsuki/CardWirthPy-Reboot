@@ -54,9 +54,13 @@ class Event(base.CWBinaryBase):
                 for ig in e:
                     if ig.tag == "Number":
                         for num in cw.util.decodetextlist(ig.text):
-                            ignitions.append(int(num))
+                            ignitionnum = int(num)
+                            if ignitionnum in (4, 5):
+                                f.check_version(1.50)
+                            ignitions.append(ignitionnum)
                     elif ig.tag == "KeyCodes":
                         if matching == "And":
+                            f.check_version(1.50)
                             array = ["MatchingType=All"]
                             array.extend(cw.util.decodetextlist(ig.text))
                             keycodes = cw.util.encodetextlist(array)

@@ -219,6 +219,7 @@ class BgImage(base.CWBinaryBase):
                     imgpath = e.text
 
             elif data.tag == "TextCell":
+                f.check_version(1.50)
                 if e.tag == "Text":
                     text = e.text
                 elif e.tag == "Font":
@@ -241,6 +242,7 @@ class BgImage(base.CWBinaryBase):
                             bcolor = getcolor(e_bdr, bcolor)
 
             elif data.tag == "ColorCell":
+                f.check_version(1.50)
                 if e.tag == "BlendMode":
                     blend = base.CWBinaryBase.unconv_blendmode(e.text)
                 elif e.tag == "Color":
@@ -262,6 +264,7 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "TextCell":
+            f.check_version(1.50)
             f.write_dword(left)
             f.write_dword(top)
             f.write_dword(width + 60000)
@@ -298,6 +301,7 @@ class BgImage(base.CWBinaryBase):
             f.write_byte(unknown)
 
         elif data.tag == "ColorCell":
+            f.check_version(1.50)
             f.write_byte(blend)
             f.write_byte(gradient)
             f.write_ubyte(color1[2]) # RGBの順序が逆

@@ -82,7 +82,7 @@ class EffectMotion(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        tabtype, type = base.CWBinaryBase.unconv_effectmotion_type(data.get("type"))
+        tabtype, type = base.CWBinaryBase.unconv_effectmotion_type(data.get("type"), f)
         element = base.CWBinaryBase.unconv_effectmotion_element(data.get("element"))
 
         f.write_byte(tabtype)

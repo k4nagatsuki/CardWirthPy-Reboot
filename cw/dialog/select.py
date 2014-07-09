@@ -629,30 +629,30 @@ class YadoSelect(Select):
         yadodir = self.list[self.index]
         yadoname = self.names[self.index]
 
-        # ディレクトリ選択ダイアログ
-        s = (u"この拠点のデータをCardWirth用に逆変換します。" +
-              u"\n変換先のフォルダを選択してください。")
-        dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
-        dlg.SetPath(os.getcwdu())
-
-        if dlg.ShowModal() == wx.ID_OK:
-            dstpath = dlg.GetPath()
-            dlg.Destroy()
-        else:
-            dlg.Destroy()
-            return
-
         # 変換確認ダイアログ
         cw.cwpy.sounds["click"].play()
-        s = u"%s を逆変換し、\n新規作成したフォルダへ格納します。\nよろしいですか？" % (yadoname)
-        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        dlg = cw.dialog.etc.ConvertYadoDialog(self, yadoname)
         self.Parent.move_dlg(dlg)
 
         if not dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             return
 
+        targetengine = dlg.targetengine
+        dstpath = dlg.dstpath
         dlg.Destroy()
+
+        try:
+            if not os.path.isdir(dstpath):
+                os.makedirs(dstpath)
+        except:
+            cw.util.print_ex()
+            s = u"フォルダ %s を生成できません。" % (dstpath)
+            dlg = message.ErrorMessage(self, s)
+            self.Parent.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
 
         # 宿データ
         cw.cwpy.yadodir = cw.util.join_paths(yadodir)
@@ -660,7 +660,7 @@ class YadoSelect(Select):
         ydata = cw.data.YadoData(cw.cwpy.yadodir, cw.cwpy.tempdir, loadparty=False)
 
         # コンバータ
-        unconv = cw.binary.cwyado.UnconvCWYado(ydata, dstpath)
+        unconv = cw.binary.cwyado.UnconvCWYado(ydata, dstpath, targetengine)
 
         # プログレスダイアログ表示
         dlg = wx.ProgressDialog(

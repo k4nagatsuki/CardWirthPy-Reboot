@@ -140,6 +140,22 @@ class Environment(base.CWBinaryBase):
         money = 0
         partyname = ""
 
+        # 設定を可能なだけ反映
+        if cw.cwpy.setting.transition == "None":
+            changetype_bg = 0
+        elif cw.cwpy.setting.transition == "Blinds":
+            changetype_bg = 1
+        elif cw.cwpy.setting.transition == "Fade":
+            changetype_bg = 2
+        elif cw.cwpy.setting.transition == "PixelDissolve":
+            changetype_bg = 3
+
+        def roundval(value):
+            return int(round((value-5) / 10.0 * 8.0)) + 4
+        drawcard_speed = roundval(cw.cwpy.setting.dealspeed)
+        drawbg_speed = roundval(cw.cwpy.setting.transitionspeed)
+        message_speed = roundval(cw.cwpy.setting.messagespeed)
+
         for e in data:
             if e.tag == "Property":
                 for prop in e:

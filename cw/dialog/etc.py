@@ -541,6 +541,142 @@ class AutoListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
+class ConvertYadoDialog(wx.Dialog):
+    """
+    宿の逆変換の設定を行う。
+    """
+    def __init__(self, parent, yadoname):
+        wx.Dialog.__init__(self, parent, -1, u"拠点の逆変換",
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.message = u"%s を逆変換し、\n新規作成したフォルダへ格納します。" % (yadoname)
+        dc = wx.ClientDC(self)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        dc.SetFont(font)
+        w, h, lh = dc.GetMultiLineTextExtent(self.message)
+        self.SetClientSize(cw.wins((w + 50, 156)))
+
+        self.targetengine = 1.50
+        self.dstpath = u"UnconvertedYado"
+
+        self.folder = wx.TextCtrl(self, size=(cw.wins(100), -1))
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        self.folder.SetFont(font)
+        self.folder.SetValue(self.dstpath)
+
+        s = ((u"%s のデータをCardWirth用に逆変換します。" +
+              u"\n変換先のフォルダを選択してください。") % (yadoname))
+        self.reffolder = cw.util.create_fileselection(self, self.folder, s, dir=True, getbasedir=os.getcwdu, winsize=True)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.reffolder.SetFont(font)
+
+        choices = [u"CardWirth 1.50",
+                   u"CardWirth 1.30",
+                   u"CardWirth 1.29",
+                   u"CardWirth 1.28"]
+        self.target = wx.Choice(self, size=(-1, -1), choices=choices)
+        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        self.target.SetFont(font)
+        self.target.Select(0)
+
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+        self._do_layout()
+        self._bind()
+
+    def OnOk(self, event):
+        cw.cwpy.sounds["signal"].play()
+        self.dstpath = self.folder.GetValue()
+        index = self.target.GetSelection()
+        if index == 0:
+            self.targetengine = 1.50
+        elif index == 1:
+            self.targetengine = 1.30
+        elif index == 2:
+            self.targetengine = 1.29
+        elif index == 3:
+            self.targetengine = 1.28
+        else:
+            assert False
+
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+        # text
+        dc.SetTextForeground(wx.BLACK)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        dc.SetFont(font)
+        s = self.message
+        w, h, lh = dc.GetMultiLineTextExtent(s)
+        dc.DrawLabel(s, ((csize[0]-w)/2, cw.wins(10), w, h))
+
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        dc.SetFont(font)
+
+        s = u"対象エンジン:"
+        tw, th = dc.GetTextExtent(s)
+        x, y, w, h = self.target.GetRect()
+        x -= tw + cw.wins(5)
+        y += (h-th) / 2
+        dc.DrawText(s, x, y)
+
+        s = u"生成先:"
+        x2, y2, w2, h2 = self.reffolder.GetRect()
+        dc.DrawText(s, x, y - h2 - cw.wins(5))
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def _do_layout(self):
+        csize = self.GetClientSize()
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(cw.wins((0, 50)), 0, 0, 0)
+
+        dc = wx.ClientDC(self)
+        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        dc.SetFont(font)
+        w, h = dc.GetTextExtent(u"対象エンジン:")
+        sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
+        sizer_3.Add(self.target, 1, wx.CENTER, 0)
+
+        sizer_4.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
+        sizer_4.Add(self.folder, 1, wx.CENTER, 0)
+        sizer_4.Add(self.reffolder, 0, wx.CENTER|wx.EXPAND, 0)
+
+        sizer_1.Add(sizer_4, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(10))
+        sizer_1.Add(cw.wins((0, 5)), 0, 0, 0)
+        sizer_1.Add(sizer_3, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, cw.wins(10))
+
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
 def main():
     pass
 

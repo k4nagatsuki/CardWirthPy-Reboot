@@ -186,6 +186,7 @@ class MenuCard(base.CWBinaryBase):
                     elif prop.tag == "ImagePath":
                         imgpath = base.CWBinaryBase.materialpath(prop.text)
                     elif prop.tag == "PCNumber":
+                        f.check_version(1.50)
                         imgpath = prop.text
                     elif prop.tag == "Description":
                         description = prop.text

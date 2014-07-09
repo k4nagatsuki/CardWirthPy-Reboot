@@ -9,6 +9,12 @@ import util
 import cw.util
 
 
+class UnsupportedError(Exception):
+    """指定されたエンジンバージョンで使用できない機能を
+    逆変換しようとした際に投げられる。
+    """
+    pass
+
 class CWFile(io.BufferedReader):
     """CardWirthの生成したバイナリファイルを
     読み込むためのメソッドを追加したBufferedReader。
@@ -98,11 +104,23 @@ class CWFileWriter(io.BufferedWriter):
     """CardWirth用のバイナリファイルを読み込むための
     メソッドを追加したBufferedWriter。
     """
-    def __init__(self, path, mode, decodewrap=False):
+    def __init__(self, path, mode, decodewrap=False,
+                 targetengine=None, write_errorlog=None):
         f = io.FileIO(path, mode)
         io.BufferedWriter.__init__(self, f)
         f.name = path
         self.decodewrap = decodewrap
+        self.targetengine = targetengine
+        self.write_errorlog = write_errorlog
+
+    def check_version(self, engineversion):
+        """指定されたエンジンバージョンよりもengineversionが
+        新しければUnsupportedErrorを投げる。
+        """
+        if self.targetengine is None:
+            return
+        if self.targetengine < engineversion:
+            raise UnsupportedError()
 
     def write_bool(self, b):
         self.write_byte(1 if b else 0)
