@@ -119,8 +119,11 @@ class CWFileWriter(io.BufferedWriter):
         """
         if self.targetengine is None:
             return
-        if self.targetengine < engineversion:
+        if isinstance(engineversion, (str, unicode)):
             raise UnsupportedError()
+        else:
+            if self.targetengine < engineversion:
+                raise UnsupportedError()
 
     def write_bool(self, b):
         self.write_byte(1 if b else 0)

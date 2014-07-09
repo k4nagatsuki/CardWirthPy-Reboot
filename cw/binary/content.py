@@ -378,6 +378,9 @@ class Content(base.CWBinaryBase):
         elif tag == "End" and type == "BadEnd":
             pass
         elif tag == "Change" and type == "Area":
+            if data.get("transition", "Default") <> "Default" or\
+                    data.get("transitionspeed", "Default") <> "Default":
+                f.check_version("CardWirthPy 0.12")
             f.write_dword(int(data.get("id")))
         elif tag == "Talk" and type == "Message":
             text = ""
@@ -390,6 +393,9 @@ class Content(base.CWBinaryBase):
         elif tag == "Play" and type == "Bgm":
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
         elif tag == "Change" and type == "BgImage":
+            if data.get("transition", "Default") <> "Default" or\
+                    data.get("transitionspeed", "Default") <> "Default":
+                f.check_version("CardWirthPy 0.12")
             bgimgs = []
             for e in data:
                 if e.tag == "BgImages":
@@ -576,7 +582,9 @@ class Content(base.CWBinaryBase):
         elif tag == "Branch" and type == "IsBattle":
             pass
         elif tag == "Redisplay" and type == "":
-            pass
+            if data.get("transition", "Default") <> "Default" or\
+                    data.get("transitionspeed", "Default") <> "Default":
+                f.check_version("CardWirthPy 0.12")
         elif tag == "Check" and type == "Flag":
             f.write_string(data.get("flag"))
         elif tag == "Substitute" and type == "Step": # 1.30

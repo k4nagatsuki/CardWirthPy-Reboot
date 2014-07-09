@@ -239,9 +239,11 @@ class SkillCard(base.CWBinaryBase):
                             keycodes2
                             for keycode in keycodes:
                                 if keycode:
-                                    keycodes2.append(keycode)
                                     if 5 <= len(keycodes2):
+                                        f.check_version("CardWirthPy 0.12")
                                         break
+                                    else:
+                                        keycodes2.append(keycode)
                             keycodes = keycodes2
                         if len(keycodes) < 5:
                             keycodes.append([""] * (5 - len(keycodes)))
