@@ -316,9 +316,11 @@ class PartyMembers(base.CWBinaryBase):
         btbl = table["yadocards"]
         # CardWirthでは削除されたカードはF9でも復活しないので変換不要
         for header in party.backpack:
-            fpath, data = btbl[header.fpath]
-            scenariocard = cw.util.str2bool(data.get("scenariocard", "False"))
-            cards.append(BackpackCard.unconv(f, data, fpath, not scenariocard))
+            # バージョン不一致で不変換のデータもあるので所在チェック
+            if header.fpath in btbl:
+                fpath, data = btbl[header.fpath]
+                scenariocard = cw.util.str2bool(data.get("scenariocard", "False"))
+                cards.append(BackpackCard.unconv(f, data, fpath, not scenariocard))
         f.write_dword(party.money) # パーティの所持金(現在値)
 
         # プレイ中のシナリオの状況

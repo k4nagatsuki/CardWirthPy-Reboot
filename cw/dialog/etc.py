@@ -553,12 +553,12 @@ class ConvertYadoDialog(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
         w, h, lh = dc.GetMultiLineTextExtent(self.message)
-        self.SetClientSize(cw.wins((w + 50, 156)))
+        self.SetClientSize((w + cw.wins(50), cw.wins(156)))
 
         self.targetengine = 1.50
         self.dstpath = u"UnconvertedYado"
 
-        self.folder = wx.TextCtrl(self, size=(cw.wins(100), -1))
+        self.folder = wx.TextCtrl(self, size=(-1, -1))
         font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
         self.folder.SetFont(font)
         self.folder.SetValue(self.dstpath)

@@ -7,6 +7,7 @@ import stat
 import shutil
 import traceback
 import copy
+import itertools
 
 import util
 import cw
@@ -600,7 +601,7 @@ class UnconvCWYado(object):
             pt = cw.data.Party(partyheader)
             parties.append((partyheader, pt))
 
-            for header in pt.backpack + pt.backpack_moved:
+            for header in itertools.chain(pt.backpack, pt.backpack_moved):
                 try:
                     data, fpath = write_card(header)
 
