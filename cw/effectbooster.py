@@ -430,15 +430,15 @@ class _JpySubImage(cw.image.Image):
                     image = None
 
             if image is None:
-    
+
                 # 効果音ファイル
                 if ext in cw.EXTS_SND:
                     if doanime:
                         sound = cw.util.load_sound(path)
-    
+
                         if sound:
                             sound.play(True)
-    
+
                     image = pygame.Surface((0, 0)).convert()
                 # Jpy1ファイル
                 elif ext == ".jpy1":
@@ -807,8 +807,6 @@ class JptxImage(cw.image.Image):
                     fontpath = self.outer.get_fontpath(self.fontface)
                     self.font = pygame.font.Font(fontpath, self.fontpixels)
                 else:
-                    if not self.fontface in cw.cwpy.rsrc.facenames:
-                        self.fontface = self.outer.get_fontface(self.fontface)
                     self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
 
             def get_height(self):
@@ -920,20 +918,6 @@ class JptxImage(cw.image.Image):
             info.h = info.h if backheight < 0 else backheight
             rect = self.image.get_rect()
             self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, info.w, info.h)))
-
-    def get_fontface(self, fontface):
-        if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
-            return cw.cwpy.rsrc.fontnames["pgothic"]
-        elif fontface in (u"ＭＳ Ｐ明朝", "MS PMincho"):
-            return cw.cwpy.rsrc.fontnames["pmincho"]
-        elif fontface in (u"ＭＳ ゴシック", "MS Gothic"):
-            return cw.cwpy.rsrc.fontnames["gothic"]
-        elif fontface in (u"ＭＳ 明朝", "MS Mincho"):
-            return cw.cwpy.rsrc.fontnames["mincho"]
-        elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
-            return cw.cwpy.rsrc.fontnames["uigothic"]
-        else:
-            return fontface
 
     def get_fontpath(self, fontface):
         if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):

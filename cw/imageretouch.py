@@ -736,6 +736,7 @@ def colorwrap(num):
 
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
+        face = get_fontface(face)
         if sys.platform == "win32":
             try:
                 func = _imageretouch.font_new
@@ -814,6 +815,27 @@ class Font(object):
             buf, size = _imageretouch.font_render(self.fontinfo, str.encode("utf-8"), antialias, colour[:3])
             assert len(buf) == size[0]*size[1]*4
             return pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
+
+def get_fontface(fontface):
+    """fontfaceが環境に無いフォントであれば
+    差し替え用のフォント名を返す。
+    存在するフォントであればfontfaceを返す。
+    """
+    if not cw.cwpy.rsrc or fontface in cw.cwpy.rsrc.facenames:
+        return fontface
+
+    if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
+        return cw.cwpy.rsrc.fontnames["pgothic"]
+    elif fontface in (u"ＭＳ Ｐ明朝", "MS PMincho"):
+        return cw.cwpy.rsrc.fontnames["pmincho"]
+    elif fontface in (u"ＭＳ ゴシック", "MS Gothic"):
+        return cw.cwpy.rsrc.fontnames["gothic"]
+    elif fontface in (u"ＭＳ 明朝", "MS Mincho"):
+        return cw.cwpy.rsrc.fontnames["mincho"]
+    elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
+        return cw.cwpy.rsrc.fontnames["uigothic"]
+    else:
+        return cw.cwpy.rsrc.fontnames["uigothic"]
 
 def main():
     pass

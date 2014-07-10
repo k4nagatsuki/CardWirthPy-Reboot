@@ -706,7 +706,7 @@ def fix_cwnext16bitbitmap(data):
     biClrImporant = s[16]
     lineSize = ((biWidth * biBitCount + 31) / 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
-    if len(data) - bfOffBits <> lineSize * height: 
+    if len(data) - bfOffBits <> lineSize * height:
         if threading.currentThread() <> cw.cwpy:
             # wxPythonは無理やり読み込んで壊れた画像を作ってしまうので
             # pygame側でエラーが出るか調べる
