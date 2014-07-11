@@ -286,7 +286,7 @@ class BackGround(base.CWPySprite):
 
         image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 
-        if pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask:
+        if image and pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask and not flag:
             # 背景を覆ったので背景継承を取り消す
             del bgs[:]
             bginhrt = False
