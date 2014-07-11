@@ -65,7 +65,7 @@ class BackGround(base.CWPySprite):
         """
         # 対応フラグチェック
         if not cw.cwpy.sdata.flags.get(flag, True):
-            return None, False
+            return None, False, False
         anime = False
 
         try:
@@ -78,7 +78,7 @@ class BackGround(base.CWPySprite):
             ext = cw.util.splitext(path)[1].lower()
 
             if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask) in cw.cwpy.sdata.cache:
-                return cw.cwpy.sdata.cache[(path, mtime, size, mask)], False
+                return cw.cwpy.sdata.cache[(path, mtime, size, mask)], False, False
 
             if ext == ".jptx":
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
@@ -97,7 +97,7 @@ class BackGround(base.CWPySprite):
             raise ex
         except Exception:
             cw.util.print_ex()
-            return None, False
+            return None, False, False
 
         # 指定したサイズに拡大縮小する
         if not image.get_size() in (size, cw.s((0, 0))):
@@ -111,7 +111,7 @@ class BackGround(base.CWPySprite):
         if not anime and cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.cache[(path, mtime, size, mask)] = image
 
-        return image, anime
+        return image, anime, True
 
     def load(self, elements, doanime=True, ttype=("Default", "Default")):
         """背景画面を構成する。
@@ -134,6 +134,7 @@ class BackGround(base.CWPySprite):
         animated = False
         blitlist = []
         bginhrt = True
+        update = False
         for e in elements:
             left = e.getint("Location", "left")
             top = e.getint("Location", "top")
@@ -165,9 +166,10 @@ class BackGround(base.CWPySprite):
 
                 d = (path, inusecard, mask, size, pos, flag, visible)
                 try:
-                    animated2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, doanime)
+                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, doanime)
                     animated |= animated2
                     bginhrt &= bginhrt2
+                    update |= update2
                 except cw.effectbooster.ScreenRescale:
                     return False # 中断
 
@@ -205,15 +207,14 @@ class BackGround(base.CWPySprite):
             else:
                 assert False
 
-        if self.bgs == oldbgs:
-            return False
-
-        self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
+        update |= self.bgs <> oldbgs
+        if update:
+            self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
         self._elements = []
         self._doanime = False
         self._ttype = ("None", "None")
         self._in_playing = False
-        return True
+        return update
 
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
         """背景画面を再構成する。
@@ -228,6 +229,7 @@ class BackGround(base.CWPySprite):
         animated = False
         blitlist = []
         bginhrt = True
+        update = False
         if doanime:
             self._doanime = doanime
             self._ttype = ttype
@@ -236,11 +238,12 @@ class BackGround(base.CWPySprite):
             if type == BG_IMAGE:
                 # 背景画像
                 try:
-                    animated2, bginhrt2 = self._add_imagecell(blitlist, bgs, oldbgs, d, doanime)
+                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, bgs, oldbgs, d, doanime)
                     animated |= animated2
+                    update |= update2
                     bginhrt &= bginhrt2
                 except cw.effectbooster.ScreenRescale:
-                    return # 中断
+                    return False # 中断
 
             elif type == BG_TEXT:
                 # テキストセル
@@ -253,11 +256,16 @@ class BackGround(base.CWPySprite):
             else:
                 assert False
 
+        update |= self.bgs <> bgs
+
+        if update:
+            self.bgs = bgs
+            self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
+
         self._doanime = False
         self._ttype = ("None", "None")
         self._in_playing = False
-        self.bgs = bgs
-        self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
+        return update
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime):
         path, inusecard, mask, size, pos, flag, visible = d
@@ -271,9 +279,9 @@ class BackGround(base.CWPySprite):
             path = cw.util.get_materialpath(path, cw.M_IMG)
 
         if not os.path.isfile(path):
-            return False, bginhrt
+            return False, bginhrt, False
 
-        image, anime = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
+        image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 
         if pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask:
             # 背景を覆ったので背景継承を取り消す
@@ -287,7 +295,7 @@ class BackGround(base.CWPySprite):
             bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
             oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
 
-        return anime, bginhrt
+        return anime, update, bginhrt
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\

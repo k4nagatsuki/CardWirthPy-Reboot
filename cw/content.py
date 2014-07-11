@@ -2194,10 +2194,10 @@ class RedisplayContent(EventContentBase):
     def action(self):
         """画面再構築コンテント。"""
         ttype = self.get_transitiontype()
-        cw.cwpy.background.reload(True, ttype)
-        # フレームを進める
-        cw.cwpy.draw()
-        cw.cwpy.tick_clock(framerate=30)
+        if cw.cwpy.background.reload(True, ttype):
+            # フレームを進める
+            cw.cwpy.draw()
+            cw.cwpy.tick_clock(framerate=30)
         cw.cwpy.input()
         cw.cwpy.eventhandler.run()
         while pygame.event.peek(pygame.locals.USEREVENT):
