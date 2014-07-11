@@ -51,7 +51,7 @@ class BackGround(base.CWPySprite):
                     self.reload(doanime=doanime, ttype=ttype, redraw=True)
             cw.cwpy.exec_func(func)
         else:
-            self.reload(doanime=self._doanime, ttype=("None", "None"), redraw=False)
+            self._reload(doanime=self._doanime, ttype=("None", "None"), redraw=False, force=True)
 
     def update_skin(self, oldskindir, newskindir):
         pass
@@ -217,6 +217,9 @@ class BackGround(base.CWPySprite):
         return update
 
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
+        return self._reload(doanime, ttype, redraw, False)
+
+    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -229,7 +232,7 @@ class BackGround(base.CWPySprite):
         animated = False
         blitlist = []
         bginhrt = True
-        update = False
+        update = force
         if doanime:
             self._doanime = doanime
             self._ttype = ttype
