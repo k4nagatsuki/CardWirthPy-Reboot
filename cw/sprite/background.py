@@ -278,6 +278,9 @@ class BackGround(base.CWPySprite):
         else:
             path = cw.util.get_materialpath(path, cw.M_IMG)
 
+        if cw.cwpy.rsrc:
+            path = cw.cwpy.rsrc.get_filepath(path)
+
         if not os.path.isfile(path):
             return False, bginhrt, False
 
