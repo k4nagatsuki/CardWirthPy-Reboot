@@ -1542,7 +1542,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
         # このif文以降の処理を削除する必要がある
         if mask and image.HasMask() and image.CountColours() <= 255:
             palette = wxbmp.GetPalette()
-            if palette:
+            if not palette is None:
                 mask = (image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue())
                 maskok = False
                 for pixel in xrange(palette.GetColoursCount()):
