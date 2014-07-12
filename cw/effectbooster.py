@@ -541,7 +541,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
                     if os.path.isfile(fpath):
                         return fpath
 
-        dpath = cw.util.join_paths(cw.cwpy.sdata.scedir)
+        dpath = cw.cwpy.sdata.scedir
         fpath = cw.util.join_paths(dpath, filename)
         ext = os.path.splitext(fpath)[1].lower()
         if ext in cw.EXTS_SND:
