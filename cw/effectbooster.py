@@ -68,6 +68,8 @@ class _JpySubImage(cw.image.Image):
         self.animeposition = cw.s(config.get_ints(section, "animeposition", 2, None))
         self.paintmode = config.get_int(section, "paintmode", 0)
 
+        self.defaultcopymode = 2
+
     def draw2back(self, back):
         """背景に描画。"""
         if self.visible:
@@ -446,7 +448,7 @@ class _JpySubImage(cw.image.Image):
                     # 変化するためキャッシュ不可
                 # Jpdcファイル
                 elif ext == ".jpdc":
-                    image = JpdcImage(False, path, cache=self.cache).get_image()
+                    image = JpdcImage(False, path, cache=self.cache, defaultcopymode=self.defaultcopymode).get_image()
                     # 重くならないのでキャッシュ不要
                 # Jptxファイル
                 elif ext == ".jptx":
@@ -594,25 +596,50 @@ class JpyImage(cw.image.Image):
     def __init__(self, path, mask=False, cache=None, doanime=True):
         if not cache:
             cache = JpyCache()
+            finish = True
+        else:
+            finish = False
 
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
+        defaultcopymode = 1
 
         for i, section in enumerate(config.sections()):
             if not section == "init":
                 parts = JpyPartsImage(config, section, cache, mask)
+                parts.defaultcopymode = defaultcopymode
                 parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
                 parts.draw2back(back)
+                if parts.animation in (1, 2, 3):
+                    defaultcopymode = 2
 
         back.retouch()
         cache.restore()
         back.drawtemp(doanime)
+#        if finish:
+#            self.finish(back)
         self.image = back.get_image()
         if mask:
             self.image.set_colorkey(self.image.get_at((0, 0)))
+#===============================================================================
+#
+#     def finish(self, back):
+#         background = cw.cwpy.background.image
+#         pos = back.position
+#         image = back.get_image()
+#         image = back.clip_tempimg(image, pos)
+#
+#         rect = pygame.Rect(pos, image.get_size())
+#         rect = rect.clip(background.get_rect())
+#
+#         if 0 < rect[2] and 0 < rect[3]:
+#             background.blit(image, pos)
+#
+#         back.cache.restore()
+#===============================================================================
 
 class JpyCache(object):
     """Jpy1ファイル読み込み時に使うキャッシュ。
@@ -657,7 +684,7 @@ class JpyCache(object):
         return image
 
 class JpdcImage(cw.image.Image):
-    def __init__(self, mask, path, cache=None):
+    def __init__(self, mask, path, cache=None, defaultcopymode=2):
         config = EffectBoosterConfig(path, "jpdc:init")
         x_noscale, y_noscale, w_noscale, h_noscale = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
         x, y, w, h = cw.s((x_noscale, y_noscale, w_noscale, h_noscale))
@@ -666,7 +693,7 @@ class JpdcImage(cw.image.Image):
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
         if not copymode:
-            copymode = 2
+            copymode = defaultcopymode
 
         if copymode == 3:
             self.image.fill((255, 255, 255))

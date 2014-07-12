@@ -208,8 +208,16 @@ class BackGround(base.CWPySprite):
                 assert False
 
         update |= self.bgs <> oldbgs
+
+        if bginhrt and not blitlist:
+            update = False
+
         if update:
             self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
+        else:
+            # エフェクトブースターの一時描画で使ったスプライトはすべて削除
+            cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+
         self._elements = []
         self._doanime = False
         self._ttype = ("None", "None")
@@ -261,9 +269,15 @@ class BackGround(base.CWPySprite):
 
         update |= self.bgs <> bgs
 
+        if bginhrt and not blitlist:
+            update = False
+
         if update:
             self.bgs = bgs
             self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
+        else:
+            # エフェクトブースターの一時描画で使ったスプライトはすべて削除
+            cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
         self._doanime = False
         self._ttype = ("None", "None")
@@ -295,7 +309,7 @@ class BackGround(base.CWPySprite):
             del bgs[:]
             bginhrt = False
 
-        if image:
+        if image and image.get_size() <> (0, 0):
             blitlist.append((BG_IMAGE, (image, pos, 0)))
             bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True)))
         else:
