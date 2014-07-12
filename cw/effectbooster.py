@@ -619,27 +619,9 @@ class JpyImage(cw.image.Image):
         back.retouch()
         cache.restore()
         back.drawtemp(doanime)
-#        if finish:
-#            self.finish(back)
         self.image = back.get_image()
         if mask:
             self.image.set_colorkey(self.image.get_at((0, 0)))
-#===============================================================================
-#
-#     def finish(self, back):
-#         background = cw.cwpy.background.image
-#         pos = back.position
-#         image = back.get_image()
-#         image = back.clip_tempimg(image, pos)
-#
-#         rect = pygame.Rect(pos, image.get_size())
-#         rect = rect.clip(background.get_rect())
-#
-#         if 0 < rect[2] and 0 < rect[3]:
-#             background.blit(image, pos)
-#
-#         back.cache.restore()
-#===============================================================================
 
 class JpyCache(object):
     """Jpy1ファイル読み込み時に使うキャッシュ。
