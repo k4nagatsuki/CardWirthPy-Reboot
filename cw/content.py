@@ -2348,6 +2348,7 @@ class StartBattleContent(StartContent):
         areaid = self.data.getint(".", "id", 0)
 
         if areaid in cw.cwpy.sdata.battles:
+            cw.cwpy.lock_menucards = True
             cw.cwpy.exec_func(cw.cwpy.change_battlearea, areaid)
             cw.cwpy._dealing = True
             raise cw.event.StartBattleError()

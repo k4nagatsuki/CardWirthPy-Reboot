@@ -255,6 +255,9 @@ class Setting(object):
         self.skindirname = data.gettext("Skin", "Classic")
         self.init_skin()
 
+        # 戦闘行動準備中に同行NPCを表示する
+        self.show_fcardsinbattle = False
+
     def init_skin(self):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
         if not os.path.isdir(self.skindir):
@@ -458,11 +461,13 @@ class Resource(object):
         # StatusBarで使用するボタンイメージ
         # wxスレッドから初期化
         self._wxbtnbmp0 = self._create_statusbtnbmp(cw.s(120), cw.s(22), 0)
-        self._wxbtnbmp0pressed = self._create_statusbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_PRESSED)
-        self._wxbtnbmp0current = self._create_statusbtnbmp(cw.s(120), cw.s(22), wx.CONTROL_CURRENT)
+        self._wxbtnbmp0pressed = self._create_statusbtnbmp(cw.s(120), cw.s(22), 1)
+        self._wxbtnbmp0current = self._create_statusbtnbmp(cw.s(120), cw.s(22), 2)
+        self._wxbtnbmp0pressedcurrent = self._create_statusbtnbmp(cw.s(120), cw.s(22), 3)
         self._wxbtnbmp1 = self._create_statusbtnbmp(cw.s(27), cw.s(27), 0)
-        self._wxbtnbmp1pressed = self._create_statusbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_PRESSED)
-        self._wxbtnbmp1current = self._create_statusbtnbmp(cw.s(27), cw.s(27), wx.CONTROL_CURRENT)
+        self._wxbtnbmp1pressed = self._create_statusbtnbmp(cw.s(27), cw.s(27), 1)
+        self._wxbtnbmp1current = self._create_statusbtnbmp(cw.s(27), cw.s(27), 2)
+        self._wxbtnbmp1pressedcurrent = self._create_statusbtnbmp(cw.s(27), cw.s(27), 3)
         self._wxbtnbmp2 = self._create_statusbtnbmp(cw.s(632), cw.s(33), 0)
 
         self.ignorecase_table = {}
@@ -704,12 +709,12 @@ class Resource(object):
            "BBBB BBBB BBBB BBBB BBBB BBBB"
            "BBBB BBBB BBBB BBBB BBBB BBBB"
            "BBBB BBBB BBBB BBBB BBBB BBBB",
-            200,200,200,255, 200,200,200,255, 200,200,200,255, 200,200,200,255, 200,200,200,255, 200,200,200,255,
-            200,200,200,255, 200,200,200,255, 200,200,200,224, 200,200,200,128, 200,200,200, 68, 200,200,200, 40,
-            200,200,200,255, 200,200,200,224, 200,200,200, 68, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0,
-            200,200,200,255, 200,200,200,128, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0,
-            200,200,200,255, 200,200,200, 68, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0,
-            200,200,200,255, 200,200,200, 40, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0, 200,200,200,  0
+            208,208,208,255, 208,208,208,255, 208,208,208,255, 208,208,208,255, 208,208,208,255, 208,208,208,255,
+            208,208,208,255, 208,208,208,255, 208,208,208,224, 208,208,208,128, 208,208,208, 68, 208,208,208, 40,
+            208,208,208,255, 208,208,208,224, 208,208,208, 68, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0,
+            208,208,208,255, 208,208,208,128, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0,
+            208,208,208,255, 208,208,208, 68, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0,
+            208,208,208,255, 208,208,208, 40, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0
         )
         outdata = struct.pack(
            "BBBB BBBB BBBB BBBB BBBB BBBB"
@@ -743,12 +748,15 @@ class Resource(object):
 
         # グラデーションとなるよう、全面に線を引く
         # (フラグによって明るさを変える)
-        if (flags & wx.CONTROL_PRESSED) <> 0:
+        if flags == 1:
             c1 = 220
             c2 = 208
-        elif (flags & wx.CONTROL_CURRENT) <> 0:
+        elif flags == 2:
             c1 = 255
             c2 = 248
+        elif flags == 3:
+            c1 = 228
+            c2 = 216
         else:
             c1 = 255
             c2 = 240
@@ -758,15 +766,22 @@ class Resource(object):
             bmp.fill((c2-y, c2-y, c2-y), pygame.Rect(0, mid+y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
-        if (flags & wx.CONTROL_PRESSED) <> 0:
+        if flags in (1, 3):
             # 押下済みの画像であれば上と左の縁を暗くする
-            color = (200, 200, 200)
+            if flags == 1:
+                subtract_corner(8)
+                color = (200, 200, 200)
+            else:
+                color = (208, 208, 208)
             pygame.draw.line(bmp, color, (2, 3), (w-4, 3))
             subtract_corner(8)
             bmp.blit(topleft, (2, 3))
             bmp.blit(topright, (w-6-1, 3))
 
-            color = (192, 192, 192)
+            if flags == 1:
+                color = (192, 192, 192)
+            else:
+                color = (200, 200, 200)
             pygame.draw.rect(bmp, color, (2, 2, w-3, h-3), 1)
             bmp.blit(topleft, (2, 2))
             bmp.blit(topright, (w-6-1, 2))
@@ -800,21 +815,25 @@ class Resource(object):
     def get_statusbtnbmp(self, sizetype, flags=0):
         """StatusBarで使用するボタン画像を取得する。
         sizetype: 0=(120, 22), 1=(27, 27), 2=(632, 33)
-        flags: 0, wx.CONTROL_PRESSED, wx.CONTROL_CURRENT
+        flags: 0:通常, 1:押下時, 2:カーソル下, 3:押下かつカーソル下
                sizetype=0または1の時のみ有効
         """
         if sizetype == 0:
-            if flags == wx.CONTROL_PRESSED:
+            if flags == 1:
                 return self._wxbtnbmp0pressed.copy()
-            elif flags == wx.CONTROL_CURRENT:
+            elif flags == 2:
                 return self._wxbtnbmp0current.copy()
+            elif flags == 3:
+                return self._wxbtnbmp0pressedcurrent.copy()
             else:
                 return self._wxbtnbmp0.copy()
         elif sizetype == 1:
-            if flags == wx.CONTROL_PRESSED:
+            if flags == 1:
                 return self._wxbtnbmp1pressed.copy()
-            elif flags == wx.CONTROL_CURRENT:
+            elif flags == 2:
                 return self._wxbtnbmp1current.copy()
+            elif flags == 3:
+                return self._wxbtnbmp1pressedcurrent.copy()
             else:
                 return self._wxbtnbmp1.copy()
         elif sizetype == 2:

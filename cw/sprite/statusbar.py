@@ -23,7 +23,7 @@ class StatusBar(base.CWPySprite):
 
     def _init_image(self):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
-        subimg = cw.cwpy.rsrc.get_statusbtnbmp(2)
+        subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
         self.image.fill((240, 240, 240))
         self.image.blit(subimg, cw.s((0, 0)))
         self.rect = self.image.get_rect()
@@ -88,6 +88,10 @@ class StatusBar(base.CWPySprite):
                 ActionButton(self, cw.s((10, 6)))
                 RunAwayButton(self, cw.s((133, 6)))
             RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            rmargin += cw.s(34)
+            if showbuttons and cw.cwpy.is_debugmode() and\
+                    cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
+                ShowFriendCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
 
         # デバッガのツールが使用可能かどうかを更新
         cw.cwpy.event.refresh_tools()
@@ -231,30 +235,36 @@ class RoundCounterPanel(YadoMoneyPanel):
 
 class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, sizetype=0,
-                 toggle=False, icon=None, enabled=True):
+                 toggle=False, icon=None, enabled=True, is_pushed=False):
         base.SelectableSprite.__init__(self)
         # 各種データ
         self.name = name
         self.status = "normal"
         self.frame = 0
-        self.is_pushed = False
+        self.is_pushed = is_pushed
         # ボタン画像
-        wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype)
+        wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 0)
         self.btnimg = wxbmp
         if enabled:
-            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, wx.CONTROL_PRESSED)
+            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 1)
             self.btnimg2 = wxbmp
-            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, wx.CONTROL_CURRENT)
+            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 2)
             self.btnimg3 = wxbmp
+            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 3)
+            self.btnimg4 = wxbmp
         else:
             self.btnimg2 = self.btnimg
             self.btnimg3 = self.btnimg
+            self.btnimg4 = self.btnimg
         # rect
         self.rect = self.btnimg.get_rect()
         self.rect.top = parent.rect.top + pos[1]
         self.rect.left = parent.rect.left + pos[0]
         # image
-        self.image = self.btnimg
+        if self.is_pushed:
+            self.image = self.btnimg2
+        else:
+            self.image = self.btnimg
         self.noimg = pygame.Surface(cw.s((0, 0))).convert()
 
         # ボタンアイコン・ラベル
@@ -268,10 +278,12 @@ class StatusBarButton(base.SelectableSprite):
         rect.centerx = self.rect.centerx - self.rect.left
         rect.centery = self.rect.centery - self.rect.top
         self.btnimg.blit(image, rect.topleft)
-        self.btnimg3.blit(image, rect.topleft)
-        rect.top += 1
-        rect.left += 1
-        self.btnimg2.blit(image, rect.topleft)
+        if enabled:
+            self.btnimg3.blit(image, rect.topleft)
+            rect.top += 1
+            rect.left += 1
+            self.btnimg2.blit(image, rect.topleft)
+            self.btnimg4.blit(image, rect.topleft)
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="button")
 
@@ -283,7 +295,7 @@ class StatusBarButton(base.SelectableSprite):
 
     def get_selectedimage(self):
         if self.is_pushed:
-            return self.btnimg2
+            return self.btnimg4
         else:
             return self.btnimg3
 
@@ -318,7 +330,7 @@ class StatusBarButton(base.SelectableSprite):
 
     def update_image(self):
         if self.is_pushed:
-            if not self.image == self.btnimg2:
+            if not self.image in (self.btnimg2, self.btnimg4):
                 cw.cwpy.has_inputevent = True
                 self.image = self.btnimg2
 
@@ -354,6 +366,9 @@ class CampButton(StatusBarButton):
         if cw.cwpy.areaid > 0:
             cw.cwpy.sounds["click"].play()
             cw.cwpy.change_specialarea(-4)
+        elif cw.cwpy.areaid == -4:
+            cw.cwpy.sounds["click"].play()
+            cw.cwpy.clear_specialarea()
 
 class TableButton(StatusBarButton):
     def __init__(self, parent, pos):
@@ -376,6 +391,9 @@ class TableButton(StatusBarButton):
         if cw.cwpy.areaid == -4:
             cw.cwpy.sounds["click"].play()
             cw.cwpy.clear_specialarea()
+        elif cw.cwpy.areaid > 0:
+            cw.cwpy.sounds["click"].play()
+            cw.cwpy.change_specialarea(-4)
 
 class ActionButton(StatusBarButton):
     def __init__(self, parent, pos):
@@ -416,6 +434,26 @@ class CancelButton(StatusBarButton):
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
         cw.cwpy.cancel_cardcontrol()
+
+class ShowFriendCardsButton(StatusBarButton):
+    def __init__(self, parent, pos):
+        image = cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST"])
+        name = cw.cwpy.msgs["show_fcards"]
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
+                                 is_pushed=cw.cwpy.setting.show_fcardsinbattle)
+
+    def update(self, scr):
+        self.update_selection()
+
+        self.is_pushed = cw.cwpy.setting.show_fcardsinbattle
+
+        self.update_image()
+
+    def lclick_event(self):
+        cw.cwpy.sounds["page"].play()
+        if cw.cwpy.is_battlestatus():
+            cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
+            cw.cwpy.battle.update_showfcards()
 
 class InfoCardsButton(StatusBarButton):
     def __init__(self, parent, pos):

@@ -87,6 +87,7 @@ class BattleEngine(object):
     def run(self):
         """戦闘行動を開始する。1ラウンド分の処理。"""
         cw.cwpy.clear_selection()
+        cw.cwpy.clear_fcardsprites()
 
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
             self.end(f9=True)
@@ -198,12 +199,31 @@ class BattleEngine(object):
         cw.cwpy.disposition_pcards()
         cw.cwpy.statusbar.change()
         cw.cwpy.show_party()
+        if cw.cwpy.is_debugmode() and cw.cwpy.setting.show_fcardsinbattle:
+            cw.cwpy.add_fcardsprites(status="normal", alpha=192)
         cw.cwpy.draw()
+
+    def update_debug(self):
+        # 敵の状態の暴露・非暴露切り替え
+        for sprite in cw.cwpy.get_mcards():
+            sprite.update_scale()
+
+        # 同行NPCの表示切り替え
+        if self.is_ready():
+            self.update_showfcards()
+
+    def update_showfcards(self):
+        cw.cwpy.clear_fcardsprites()
+        if cw.cwpy.is_debugmode() and\
+                cw.cwpy.setting.show_fcardsinbattle and\
+                self.is_ready():
+            cw.cwpy.add_fcardsprites(status="normal", alpha=192)
 
     def runaway(self):
         """逃走処理。逃走イベントが存在する場合は、
         逃走イベント優先。
         """
+        cw.cwpy.clear_fcardsprites()
         self.clear_playersaction()
         event = cw.cwpy.sdata.events.check_keynum(2)
 

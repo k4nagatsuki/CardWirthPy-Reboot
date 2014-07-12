@@ -12,6 +12,7 @@ from .. import character
 class CWPyCard(base.SelectableSprite):
     def __init__(self, status, flag=None):
         base.SelectableSprite.__init__(self)
+        self.alpha = None
         # 状態
         self.status = status
         self.debug_only = False
@@ -49,6 +50,13 @@ class CWPyCard(base.SelectableSprite):
 
     def get_selectedimage(self):
         return cw.imageretouch.to_negative_for_card(self.get_animeimage())
+
+    def set_alpha(self, alpha):
+        self.alpha = alpha
+        for img in self.zoomimgs:
+            img.set_alpha(alpha)
+        self.image.set_alpha(alpha)
+        self._image.set_alpha(alpha)
 
     def get_animeimage(self):
         if self.zoomimgs:
@@ -117,7 +125,10 @@ class CWPyCard(base.SelectableSprite):
             if not self.scale == 100:
                 scale = self.scale / 100.0
                 image = pygame.transform.rotozoom(image, 0, scale)
+            else:
+                image = image.copy()
 
+            image.set_alpha(self.alpha)
             self._image = image
 
             for i, t in enumerate(self.zoomimgs):
@@ -140,9 +151,10 @@ class CWPyCard(base.SelectableSprite):
         """
         if self.frame == 0:
             if self.reversed:
-                self.image = self.cardimg.get_clickedimg(self.get_animerect(), image=self.image)
+                self.image = self.cardimg.get_clickedimg(self.get_animerect(), image=self.image).copy()
             else:
-                self.image = self.cardimg.get_clickedimg(self.get_animerect())
+                self.image = self.cardimg.get_clickedimg(self.get_animerect()).copy()
+            self.image.set_alpha(self.alpha)
             self.rect = self.image.get_rect(center=self.get_animerect().center)
             self.status = "click"
         elif self.frame == 3:
@@ -466,7 +478,8 @@ class CWPyCard(base.SelectableSprite):
         else:
             self.cardimg.update(self)
 
-        image = self.cardimg.get_image()
+        image = self.cardimg.get_image().copy()
+        image.set_alpha(self.alpha)
         rect = self.cardimg.rect
 
         if not self.scale == 100:
@@ -899,7 +912,16 @@ class FriendCard(CWPyCard, character.Friend):
         cw.cwpy.sounds["click"].play()
         cw.animation.animate_sprite(self, "click")
 
-        if (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
+        if cw.cwpy.is_battlestatus():
+            if not cw.cwpy.setting.openhandviewalways and self.is_inactive():
+                s = cw.cwpy.msgs["inactive"] % self.name
+                cw.cwpy.call_modaldlg("NOTICE", text=s)
+            elif not cw.cwpy.setting.openhandviewalways and self.is_autoselectedpenalty() and not cw.cwpy.debug:
+                s = cw.cwpy.msgs["selected_penalty"]
+                cw.cwpy.call_modaldlg("NOTICE", text=s)
+            else:
+                cw.cwpy.call_modaldlg("HANDVIEW")
+        elif (not cw.cwpy.is_curtained() or cw.cwpy.areaid == cw.AREA_CAMP) and self.is_analyzable():
             if not cw.cwpy.is_battlestatus():
                 cw.cwpy.call_modaldlg("CARDPOCKET")
 

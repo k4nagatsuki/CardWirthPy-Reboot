@@ -588,7 +588,7 @@ class CardControl(wx.Dialog):
                 return
 
         # カード所持者がPlayerCardじゃない場合はカード情報を表示
-        if isinstance(self.selection, cw.character.Friend) or\
+        if (isinstance(self.selection, cw.character.Friend) and not cw.cwpy.is_battlestatus()) or\
                 (not cw.cwpy.debug and isinstance(owner, (cw.character.Enemy, cw.character.Friend))):
             dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
             self.Parent.move_dlg(dlg)

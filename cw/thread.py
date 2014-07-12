@@ -361,9 +361,7 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(not self.is_runningevent())
 
         if self.is_battlestatus():
-            # 敵の状態の暴露・非暴露切り替え
-            for sprite in self.get_mcards():
-                sprite.update_scale()
+            self.battle.update_debug()
 
         if not debug and self.is_showingdebugger():
             self.sounds["page"].play()
@@ -379,7 +377,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.quit()
             except wx.PyDeadObjectError:
                 pass
-    
+
             self._quit()
         except:
             self.is_processing = False
@@ -1498,13 +1496,33 @@ class CWPy(_Singleton, threading.Thread):
 
         # キャンプ画面のときはFriendCardもスプライトグループに追加
         if self.areaid == cw.AREA_CAMP:
-            for index, fcard in enumerate(self.get_fcards()):
-                index = 5 - index
-                pos = (95 * index + 9 * (index + 1), 5)
-                fcard.set_pos_noscale(pos)
+            self.add_fcardsprites(status="hidden")
+
+    def add_fcardsprites(self, status, alpha=None):
+        """mcardgrpに同行NPCのスプライトを追加する。"""
+        seq = list(enumerate(self.get_fcards()))
+        for index, fcard in reversed(seq):
+            index = 5 - index
+            pos = (95 * index + 9 * (index + 1), 5)
+            fcard.set_pos_noscale(pos)
+            fcard.status = status
+            fcard.set_alpha(alpha)
+            if fcard.status == "hidden":
                 fcard.clear_image()
-                fcard.status = "hidden"
                 self.mcardgrp.add(fcard)
+            else:
+                self.mcardgrp.add(fcard)
+                if not alpha is None:
+                    fcard.update_image()
+                fcard.deal()
+
+    def clear_fcardsprites(self):
+        """mcardgrpから同行NPCのスプライトを取り除く。"""
+        fcards = self.get_fcards()
+        for fcard in fcards:
+            fcard.set_alpha(None)
+            fcard.hide()
+        self.mcardgrp.remove(fcards)
 
     def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):
         """自動整列設定時のメニューカードの配置位置を設定する。
@@ -1814,6 +1832,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # ターゲット選択エリア
         elif self.selectedheader:
+            self.clear_fcardsprites()
             self.clear_selection()
             header = self.selectedheader
             owner = header.get_owner()
@@ -1889,6 +1908,8 @@ class CWPy(_Singleton, threading.Thread):
         elif self.is_battlestatus():
             self.clear_curtain()
             self.selectedheader = None
+            if self.battle.is_ready():
+                self.battle.update_showfcards()
             self.call_predlg()
         elif self.selectedheader:
             # ターゲット選択エリアを解除の場合
@@ -1985,7 +2006,10 @@ class CWPy(_Singleton, threading.Thread):
                         elif targets:
                             self.set_targetarrow(targets)
                     elif self.setting.show_allselectedcards:
-                        self.set_inusecardimg(sprite, header, alpha=160)
+                        alpha = 160
+                        if not sprite.alpha is None:
+                            alpha = int(alpha * sprite.alpha / 255.0)
+                        self.set_inusecardimg(sprite, header, alpha=alpha)
 
                     if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
                         show_allselectedcards = True

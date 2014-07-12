@@ -640,5 +640,6 @@
 よろしいですか？</Message>
     <Message key="no_change">[変更しない]</Message>
     <Message key="select_skin">スキン:</Message>
+    <Message key="show_fcards">同行キャストを表示する</Message>
   </Messages>
 </Skin>
