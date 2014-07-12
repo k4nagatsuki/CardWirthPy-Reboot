@@ -1518,10 +1518,12 @@ class CWPy(_Singleton, threading.Thread):
 
     def clear_fcardsprites(self):
         """mcardgrpから同行NPCのスプライトを取り除く。"""
-        fcards = self.get_fcards()
-        for fcard in fcards:
-            fcard.set_alpha(None)
-            fcard.hide()
+        fcards = []
+        for fcard in self.mcardgrp.sprites()[:]:
+            if isinstance(fcard, cw.character.Friend):
+                fcard.set_alpha(None)
+                fcard.hide()
+                fcards.append(fcard)
         self.mcardgrp.remove(fcards)
 
     def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):

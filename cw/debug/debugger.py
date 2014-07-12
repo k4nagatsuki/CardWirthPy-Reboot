@@ -694,16 +694,22 @@ class Debugger(wx.Frame):
                             fcard = cw.sprite.card.FriendCard(key)
                             cw.cwpy.sdata.friendcards.append(fcard)
 
-                    fcards = [i for i in cw.cwpy.sdata.friendcards
-                                                        if i.id in friendids]
+                    def func(friendids):
+                        fcards = [i for i in cw.cwpy.sdata.friendcards
+                                                            if i.id in friendids]
 
-                    for fcard in fcards:
-                        cw.cwpy.sdata.friendcards.remove(fcard)
+                        for fcard in fcards:
+                            cw.cwpy.sdata.friendcards.remove(fcard)
 
-                    # キャンプ画面を開いている場合はエリア再表示
-                    if cw.cwpy.areaid == cw.AREA_CAMP:
-                        func = cw.cwpy.change_area
-                        cw.cwpy.exec_func(func, cw.AREA_CAMP, False)
+                        if cw.cwpy.areaid == cw.AREA_CAMP:
+                            # キャンプ画面を開いている場合は表示更新
+                            cw.cwpy.clear_fcardsprites()
+                            cw.cwpy.add_fcardsprites(status="normal")
+                        elif cw.cwpy.is_battlestatus():
+                            # バトル中は同行キャストの表示更新
+                            cw.cwpy.battle.update_showfcards()
+                        cw.cwpy.draw()
+                    cw.cwpy.exec_func(func, friendids)
 
             dlg.Destroy()
 
