@@ -596,9 +596,6 @@ class JpyImage(cw.image.Image):
     def __init__(self, path, mask=False, cache=None, doanime=True):
         if not cache:
             cache = JpyCache()
-            finish = True
-        else:
-            finish = False
 
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
