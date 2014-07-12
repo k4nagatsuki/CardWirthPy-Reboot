@@ -724,8 +724,8 @@ class PlayerCard(CWPyCard, character.Player):
         # レベルアップ
         if levelup <> 0:
             base = self.get_specialcoupons()[u"＠レベル原点"]
+            n = base + levelup
             if fromscenario:
-                n = base + levelup
                 if 1 < levelup:
                     # 複数回レベルアップした場合はその分回転表示する
                     cw.animation.animate_sprite(self, "levelup")
