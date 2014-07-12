@@ -553,7 +553,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         if inusecardpath:
             fpath = inusecardpath
         else:
-            fpath = cw.util.get_materialpath(fpath, type, scedir=dpath)
+            fpath = cw.util.get_materialpath(filename, type, scedir=dpath)
         # 指定位置に存在しなかった場合は相対位置
         if not os.path.isfile(fpath):
             return get_filepath_s(configpath, filename, 1)

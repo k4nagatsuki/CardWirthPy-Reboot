@@ -947,7 +947,6 @@ def get_materialpath(path, type, scedir="", system=False):
         if os.path.isfile(tpath):
             path = tpath
         else:
-            path = cw.util.join_paths(scedir, path)
             if not scedir:
                 scedir = cw.cwpy.sdata.scedir
             path = cw.util.join_paths(scedir, path)

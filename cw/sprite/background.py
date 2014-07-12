@@ -285,7 +285,7 @@ class BackGround(base.CWPySprite):
             path = cw.cwpy.rsrc.get_filepath(path)
 
         if not os.path.isfile(path):
-            return False, bginhrt, False
+            return False, False, bginhrt
 
         image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 
