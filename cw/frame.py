@@ -746,10 +746,13 @@ class Frame(wx.Frame):
     def kill_dlg(self, dlg=None):
         if dlg:
             dlg.Destroy()
-        cw.cwpy.mousepos = (-1, -1)
 
-        cw.cwpy._showingdlg -= 1
-        cw.cwpy.lock_menucards = False
+        def func():
+            cw.cwpy.mousepos = (-1, -1)
+
+            cw.cwpy._showingdlg -= 1
+            cw.cwpy.lock_menucards = False
+        cw.cwpy.exec_func(func)
 
     def change_selection(self, selection):
         """選択カードを変更し、色反転させる。

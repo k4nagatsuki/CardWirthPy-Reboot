@@ -596,6 +596,12 @@ class CardControl(wx.Dialog):
             dlg.Destroy()
             return
 
+        # 開いていたダイアログの情報
+        indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
+        def append_predialogs(callname, indexes, pos):
+            cw.cwpy.pre_dialogs.append((callname, indexes, pos, cw.UP_WIN))
+        cw.cwpy.exec_func(append_predialogs, self.callname, indexes, self.GetPosition())
+
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
         cw.cwpy.exec_func(cw.cwpy.update_selectablelist)
@@ -606,9 +612,6 @@ class CardControl(wx.Dialog):
                     pcard.test_aptitude = header
                     pcard.update_image()
             cw.cwpy.exec_func(test_aptitude, header)
-        # 開いていたダイアログの情報
-        indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
-        cw.cwpy.pre_dialogs.append((self.callname, indexes, self.GetPosition(), cw.UP_WIN))
         # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)

@@ -613,7 +613,7 @@ class Character(object):
             self.actiondata = (target, header, beasts)
             self.actionautoselected = auto
             cw.cwpy.sounds["page"].play()
-            assert cw.cwpy.pre_dialogs
+            assert cw.cwpy.pre_dialogs, "%s, %s" % (self.name, header.name)
             if cw.cwpy.pre_dialogs:
                 cw.cwpy.pre_dialogs.pop()
 
