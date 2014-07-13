@@ -1100,11 +1100,14 @@ class CWPy(_Singleton, threading.Thread):
         if load_failure == False and not self.is_playingscenario():
             return
 
-        if cw.cwpy.is_runningevent():
-            self.exec_func(self._f9impl())
-            raise cw.event.EffectBreakError()
-        else:
-            self._f9impl()
+        self.clean_specials()
+        def func():
+            if cw.cwpy.is_runningevent():
+                self.exec_func(self._f9impl())
+                raise cw.event.EffectBreakError()
+            else:
+                self._f9impl()
+        self.exec_func(func)
 
     def _f9impl(self):
         self.sdata.is_playing = False
@@ -1933,7 +1936,7 @@ class CWPy(_Singleton, threading.Thread):
             self.draw()
 
     def clean_specials(self):
-        """デバッガからの強制的なエリア移動等を発生させる時、
+        """デバッガやF9で強制的なエリア移動等を発生させる時、
         特殊エリアにいたりバックログを開いていたりした場合は
         クリアして通常状態へ戻す。
         """
