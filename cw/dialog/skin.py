@@ -64,13 +64,13 @@ class SkinConversionDialog(wx.Dialog):
         self.conv.datadir = self.pane_base.datactrl.GetValue()
         self.conv.scenariodir = self.pane_base.scenarioctrl.GetValue()
         e = self.conv.data.find("Property/Name")
-        e.text = self.pane_base.namectrl.GetValue()
+        e.text = self.pane_base.info.namectrl.GetValue()
         e = self.conv.data.find("Property/Type")
-        e.text = self.pane_base.typectrl.GetValue()
+        e.text = self.pane_base.info.typectrl.GetValue()
         e = self.conv.data.find("Property/Author")
-        e.text = self.pane_base.authorctrl.GetValue()
+        e.text = self.pane_base.info.authorctrl.GetValue()
         e = self.conv.data.find("Property/Description")
-        e.text = self.pane_base.descctrl.GetValue()
+        e.text = self.pane_base.info.descctrl.GetValue()
 
         # プログレスダイアログ表示
         dlg = wx.ProgressDialog(
@@ -189,25 +189,6 @@ class SkinBasePanel(wx.Panel):
         self.conv = conv
         self.exe = self.conv.exe
 
-        # スキンタイプ一覧
-        self.types = set([
-            "MedievalFantasy",
-            "Modern",
-            "Monsters",
-            "Oedo",
-            "School",
-            "ScienceFiction",
-        ])
-        if os.path.exists(u"Data/Skin"):
-            for name in os.listdir(u"Data/Skin"):
-                path = cw.util.join_paths(u"Data/Skin", name)
-                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
-                if os.path.isdir(path) and os.path.isfile(skinpath):
-                    e = cw.data.xml2element(skinpath, "Property")
-                    self.types.add(e.gettext("Type", ""))
-        self.types = list(self.types)
-        self.types.sort(lambda x, y: cmp(x.lower(), y.lower()))
-
         self.box_base = wx.StaticBox(self, -1, u"本体とフォルダ")
 
         # 実行ファイルのパス
@@ -240,23 +221,11 @@ class SkinBasePanel(wx.Panel):
              getbasedir=self._get_basedir)
 
         self.box_info = wx.StaticBox(self, -1, u"スキン情報")
-
-        # 種別
-        self.typelabel = wx.StaticText(self, -1, u"種別")
-        self.typectrl = wx.ComboBox(self, choices=self.types, style=wx.CB_DROPDOWN)
-        self.typectrl.SetValue(conv.data.gettext("Property/Type", ""))
-        # 名前
-        self.namelabel = wx.StaticText(self, -1, u"名前")
-        self.namectrl = wx.TextCtrl(self)
-        self.namectrl.SetValue(conv.data.gettext("Property/Name", ""))
-        # 作者
-        self.authorlabel = wx.StaticText(self, -1, u"作者")
-        self.authorctrl = wx.TextCtrl(self)
-        self.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
-        # 解説
-        self.desclabel = wx.StaticText(self, -1, u"解説")
-        self.descctrl = wx.TextCtrl(self, size=(400, 100), style=wx.TE_MULTILINE)
-        self.descctrl.SetValue(conv.data.gettext("Property/Description", ""))
+        self.info = SkinInfoPanel(self)
+        self.info.typectrl.SetValue(conv.data.gettext("Property/Type", ""))
+        self.info.namectrl.SetValue(conv.data.gettext("Property/Name", ""))
+        self.info.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
+        self.info.descctrl.SetValue(conv.data.gettext("Property/Description", ""))
 
         self._do_layout()
         self._bind()
@@ -265,15 +234,14 @@ class SkinBasePanel(wx.Panel):
         self.exectrl.Bind(wx.EVT_TEXT, self.OnInput)
         self.exectrl.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeaveExeCtrl)
         self.datactrl.Bind(wx.EVT_TEXT, self.OnInput)
-        self.typectrl.Bind(wx.EVT_TEXT, self.OnInput)
-        self.namectrl.Bind(wx.EVT_TEXT, self.OnInput)
+        self.info.typectrl.Bind(wx.EVT_TEXT, self.OnInput)
+        self.info.namectrl.Bind(wx.EVT_TEXT, self.OnInput)
 
     def _do_layout(self):
         sizer = wx.GridBagSizer()
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
         gbsizer_base = wx.GridBagSizer()
-        gbsizer_info = wx.GridBagSizer()
 
         gbsizer_base.Add(self.exelabel, pos=(0, 0), flag=wx.ALL, border=3)
         gbsizer_base.Add(self.exectrl, pos=(0, 1), flag=wx.ALL|wx.EXPAND, border=3)
@@ -286,19 +254,8 @@ class SkinBasePanel(wx.Panel):
         gbsizer_base.Add(self.scenarioref, pos=(2, 2), flag=wx.ALL, border=3)
         gbsizer_base.AddGrowableCol(1)
 
-        gbsizer_info.Add(self.typelabel, pos=(0, 0), flag=wx.ALL, border=3)
-        gbsizer_info.Add(self.typectrl, pos=(0, 1), flag=wx.ALL|wx.EXPAND, border=3)
-        gbsizer_info.Add(self.namelabel, pos=(1, 0), flag=wx.ALL, border=3)
-        gbsizer_info.Add(self.namectrl, pos=(1, 1), flag=wx.ALL|wx.EXPAND, border=3)
-        gbsizer_info.Add(self.authorlabel, pos=(2, 0), flag=wx.ALL, border=3)
-        gbsizer_info.Add(self.authorctrl, pos=(2, 1), flag=wx.ALL|wx.EXPAND, border=3)
-        gbsizer_info.Add(self.desclabel, pos=(3, 0), flag=wx.ALL, border=3)
-        gbsizer_info.Add(self.descctrl, pos=(3, 1), flag=wx.ALL|wx.GROW, border=3)
-        gbsizer_info.AddGrowableCol(1)
-        gbsizer_info.AddGrowableRow(3)
-
         bsizer_base.Add(gbsizer_base, 0, wx.EXPAND, 5)
-        bsizer_info.Add(gbsizer_info, 1, wx.EXPAND, 5)
+        bsizer_info.Add(self.info, 1, wx.EXPAND, 5)
 
         sizer.Add(bsizer_base, pos=(0, 0), flag=wx.BOTTOM|wx.EXPAND, border=5)
         sizer.Add(bsizer_info, pos=(1, 0), flag=wx.EXPAND, border=0)
@@ -331,10 +288,10 @@ class SkinBasePanel(wx.Panel):
         self.datactrl.SetValue(self.conv.datadir)
         self.scenarioctrl.SetValue(self.conv.scenariodir)
 
-        self.typectrl.SetValue(self.conv.data.gettext("Property/Type", ""))
-        self.namectrl.SetValue(self.conv.data.gettext("Property/Name", ""))
-        self.authorctrl.SetValue(self.conv.data.gettext("Property/Author", ""))
-        self.descctrl.SetValue(self.conv.data.gettext("Property/Description", ""))
+        self.info.typectrl.SetValue(self.conv.data.gettext("Property/Type", ""))
+        self.info.namectrl.SetValue(self.conv.data.gettext("Property/Name", ""))
+        self.info.authorctrl.SetValue(self.conv.data.gettext("Property/Author", ""))
+        self.info.descctrl.SetValue(self.conv.data.gettext("Property/Description", ""))
 
         self.Parent.Parent.pane_feature.set_values(self.conv)
         self.Parent.Parent.pane_sound.set_values(self.conv)
@@ -344,13 +301,78 @@ class SkinBasePanel(wx.Panel):
     def OnInput(self, event):
         exe = self.exectrl.GetValue().strip()
         data = self.datactrl.GetValue().strip()
-        type = self.typectrl.GetValue().strip()
-        name = self.namectrl.GetValue().strip()
+        type = self.info.typectrl.GetValue().strip()
+        name = self.info.namectrl.GetValue().strip()
 
         if exe and data and type and name:
             self.TopLevelParent.btn_ok.Enable()
         else:
             self.TopLevelParent.btn_ok.Disable()
+
+
+#-------------------------------------------------------------------------------
+# 基本情報(抽出以外)
+#-------------------------------------------------------------------------------
+
+class SkinInfoPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+
+        # スキンタイプ一覧
+        self.types = set([
+            "MedievalFantasy",
+            "Modern",
+            "Monsters",
+            "Oedo",
+            "School",
+            "ScienceFiction",
+        ])
+        if os.path.exists(u"Data/Skin"):
+            for name in os.listdir(u"Data/Skin"):
+                path = cw.util.join_paths(u"Data/Skin", name)
+                skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+                if os.path.isdir(path) and os.path.isfile(skinpath):
+                    e = cw.data.xml2element(skinpath, "Property")
+                    self.types.add(e.gettext("Type", ""))
+        self.types = list(self.types)
+        self.types.sort(lambda x, y: cmp(x.lower(), y.lower()))
+
+        # 種別
+        self.typelabel = wx.StaticText(self, -1, u"種別")
+        self.typectrl = wx.ComboBox(self, choices=self.types, style=wx.CB_DROPDOWN)
+        # 名前
+        self.namelabel = wx.StaticText(self, -1, u"名前")
+        self.namectrl = wx.TextCtrl(self)
+        # 作者
+        self.authorlabel = wx.StaticText(self, -1, u"作者")
+        self.authorctrl = wx.TextCtrl(self)
+        # 解説
+        self.desclabel = wx.StaticText(self, -1, u"解説")
+        self.descctrl = wx.TextCtrl(self, size=(400, 100), style=wx.TE_MULTILINE)
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        pass
+
+    def _do_layout(self):
+        gbsizer_info = wx.GridBagSizer()
+
+        gbsizer_info.Add(self.typelabel, pos=(0, 0), flag=wx.ALL, border=3)
+        gbsizer_info.Add(self.typectrl, pos=(0, 1), flag=wx.ALL|wx.EXPAND, border=3)
+        gbsizer_info.Add(self.namelabel, pos=(1, 0), flag=wx.ALL, border=3)
+        gbsizer_info.Add(self.namectrl, pos=(1, 1), flag=wx.ALL|wx.EXPAND, border=3)
+        gbsizer_info.Add(self.authorlabel, pos=(2, 0), flag=wx.ALL, border=3)
+        gbsizer_info.Add(self.authorctrl, pos=(2, 1), flag=wx.ALL|wx.EXPAND, border=3)
+        gbsizer_info.Add(self.desclabel, pos=(3, 0), flag=wx.ALL, border=3)
+        gbsizer_info.Add(self.descctrl, pos=(3, 1), flag=wx.ALL|wx.GROW, border=3)
+        gbsizer_info.AddGrowableCol(1)
+        gbsizer_info.AddGrowableRow(3)
+
+        self.SetSizer(gbsizer_info)
+        gbsizer_info.Fit(self)
+        self.Layout()
 
 #-------------------------------------------------------------------------------
 # 特性情報
