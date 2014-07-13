@@ -91,6 +91,11 @@ class EventInterface(object):
         else:
             return []
 
+    def get_nowrunningevent(self):
+        if self._nowrunningevents:
+            return self._nowrunningevents[-1]
+        return None
+
     def clear(self):
         self.set_inusecard(None)
         self.clear_events()
@@ -588,7 +593,7 @@ class Event(object):
         while True:
             self.index = 0
             nextcontents = self.get_nextcontents()
-    
+
             while cw.cwpy.is_running() and nextcontents and not self.index < 0:
                 if len(nextcontents) <= self.index:
                     # デバッガによって処理フローが変わった場合
@@ -597,7 +602,7 @@ class Event(object):
                 cw.cwpy.event.wait()
                 self.action()
                 nextcontents = self.get_nextcontents()
-    
+
             # コールコンテントを呼んでいた場合、呼んだところから再開
             if self.nowrunningcontents:
                 packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
@@ -766,14 +771,14 @@ class CardEvent(Event):
         cw.cwpy.event.in_cardevent = True
         try:
             Event.run_exit(self)
-    
+
             if cw.cwpy.is_playingscenario():
                 cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
-    
+
             # エリアのキーコードイベント
             if isinstance(self.user, cw.sprite.card.PlayerCard):
                 self.run_areaevent()
-    
+
             # カード効果
             self.effect_cardmotion()
 

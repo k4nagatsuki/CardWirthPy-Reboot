@@ -458,7 +458,8 @@ class Frame(wx.Frame):
 
     def OnBACKPACK(self, event):
         areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", areaid=areaid)
+        selection, preinfo = self._get_cardcontrolparams()
+        dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
 
         if not dlg.ShowModal() == wx.ID_OK:
@@ -468,7 +469,8 @@ class Frame(wx.Frame):
 
     def OnSTOREHOUSE(self, event):
         areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", areaid=areaid)
+        selection, preinfo = self._get_cardcontrolparams()
+        dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
 
         if not dlg.ShowModal() == wx.ID_OK:
@@ -484,7 +486,8 @@ class Frame(wx.Frame):
 
     def _cardpocket_impl(self, callname):
         areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.CardHolder(self, callname, areaid=areaid)
+        selection, preinfo = self._get_cardcontrolparams()
+        dlg = cw.dialog.cardcontrol.CardHolder(self, callname, selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -498,7 +501,8 @@ class Frame(wx.Frame):
 
     def OnHANDVIEW(self, event):
         areaid = self.change_cardcontrolarea()
-        dlg = cw.dialog.cardcontrol.HandView(self)
+        selection, preinfo = self._get_cardcontrolparams()
+        dlg = cw.dialog.cardcontrol.HandView(self, selection, preinfo)
         self.move_dlg(dlg, (0, -63))
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -509,6 +513,15 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
         self.kill_dlg(dlg)
+
+    def _get_cardcontrolparams(self):
+        if cw.cwpy.pre_dialogs:
+            preinfo = cw.cwpy.pre_dialogs.pop()
+            selection = preinfo[1][1]
+        else:
+            selection = cw.cwpy.selection
+            preinfo = None
+        return selection, preinfo
 
     def OnINFOVIEW(self, event):
         dlg = cw.dialog.cardcontrol.InfoView(self)

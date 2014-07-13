@@ -654,7 +654,7 @@ class CardControl(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class CardHolder(CardControl):
-    def __init__(self, parent, callname, areaid=None):
+    def __init__(self, parent, callname, selection, pre_info=None, areaid=None):
         # タイプ判別
         self.callname = callname
         self.selection = None
@@ -698,8 +698,7 @@ class CardHolder(CardControl):
             sendto = False
 
         # 前に開いていたときのindex値と位置があったら取得する
-        if cw.cwpy.pre_dialogs:
-            pre_info = cw.cwpy.pre_dialogs.pop()
+        if pre_info:
             self.pre_pos = pre_info[2]
             indexs = pre_info[1]
             self.index2 = indexs[1]
@@ -721,7 +720,7 @@ class CardHolder(CardControl):
             self.index3 = cw.cwpy.lastcardpocket
             self.index_combo = 0
             if self.callname == "CARDPOCKET":
-                self.selection = cw.cwpy.selection
+                self.selection = selection
                 if isinstance(self.selection, cw.character.Player):
                     # パーティの手札カード(リバースメンバを除く)
                     self.list2 = cw.cwpy.get_pcards(status)
@@ -1367,18 +1366,16 @@ class CardHolder(CardControl):
 #-------------------------------------------------------------------------------
 
 class HandView(CardControl):
-    def __init__(self, parent):
+    def __init__(self, parent, selection, pre_info=None):
         self.callname = "HANDVIEW"
-        self.owner = cw.cwpy.selection
+        self.owner = selection
 
         # カードリスト
         if cw.cwpy.setting.openhandviewalways:
             status = "unreversed"
         else:
             status = "active"
-        if cw.cwpy.pre_dialogs:
-            self.list2 = cw.cwpy.get_pcards(status)
-        elif isinstance(cw.cwpy.selection, cw.character.Player):
+        if isinstance(selection, cw.character.Player):
             self.list2 = cw.cwpy.get_pcards(status)
         else: # EnemyCard
             if cw.cwpy.is_debugmode():
@@ -1393,8 +1390,7 @@ class HandView(CardControl):
             self.list2 = filter(lambda pcard: not pcard.is_autoselectedpenalty(), self.list2)
 
         # 前に開いていたときのindex値があったら取得する
-        if cw.cwpy.pre_dialogs:
-            pre_info = cw.cwpy.pre_dialogs.pop()
+        if pre_info:
             self.pre_pos = pre_info[2]
             indexs = pre_info[1]
             self.index = indexs[0]
@@ -1403,11 +1399,11 @@ class HandView(CardControl):
             self.index_combo = indexs[3]
             if cw.UP_WIN <> pre_info[3]:
                 self.pre_pos = None
-            self.selection = self.list2[self.index2]
+            self.selection = self.index2
         else:
-            self.selection = cw.cwpy.selection
+            self.selection = selection
             self.index = 0
-            self.index2 = self.list2.index(self.selection)
+            self.index2 = self.selection
             self.index3 = 0
             self.index_combo = 0
 
@@ -1438,24 +1434,24 @@ class HandView(CardControl):
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
 
-        if self.index2 == 0:
-            self.index2 = len(self.list2) -1
+        if self.index2 == self.list2[0]:
+            self.index2 = self.list2[-1]
         else:
-            self.index2 -= 1
+            self.index2 = self.list2[self.list2.index(self.index2) - 1]
 
-        self.selection = self.list2[self.index2]
+        self.selection = self.index2
         self.Parent.change_selection(self.selection)
         self.draw_cards()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.sounds["page"].play()
 
-        if self.index2 == len(self.list2) -1:
-            self.index2 = 0
+        if self.index2 == self.list2[-1]:
+            self.index2 = self.list2[0]
         else:
-            self.index2 += 1
+            self.index2 = self.list2[self.list2.index(self.index2) + 1]
 
-        self.selection = self.list2[self.index2]
+        self.selection = self.index2
         self.Parent.change_selection(self.selection)
         self.draw_cards()
 
@@ -1480,7 +1476,7 @@ class HandView(CardControl):
 class InfoView(CardHolder):
     def __init__(self, parent):
         # ダイアログ作成
-        CardHolder.__init__(self, parent, "INFOVIEW")
+        CardHolder.__init__(self, parent, "INFOVIEW", None)
 
     def OnLeftUp(self, event):
         self.OnRightUp(event)

@@ -840,8 +840,11 @@ class Debugger(wx.Frame):
                 currentfpath = ""
             dlg = cw.debug.event.EventListDialog(self, currentfpath)
             if dlg.ShowModal() == wx.ID_OK:
-                cw.cwpy.exec_func(dlg.events.get_selectedevent().start)
                 self._currentfpath = dlg.events.get_currentfpath()
+                try:
+                    cw.cwpy.exec_func(dlg.events.get_selectedevent().start)
+                except:
+                    pass
             dlg.Destroy()
 
     def OnStepReturnTool(self, event):
@@ -1350,8 +1353,11 @@ class EventTreeCtrl(wx.TreeCtrl):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
-        event = cw.cwpy.event.get_event()
-        trees = cw.cwpy.event.get_trees()
+        nowrunning = cw.cwpy.event.get_nowrunningevent()
+        if not nowrunning:
+            self.DeleteAllItems()
+            return
+        trees = nowrunning.trees
 
         if self.current_tree <> trees:
             self.current_tree = trees
@@ -1364,7 +1370,7 @@ class EventTreeCtrl(wx.TreeCtrl):
                 root = self.AddRoot("Event Root")
                 self.SetPyData(root, None)
 
-                for name in cw.cwpy.event.get_treekeys():
+                for name in nowrunning.treekeys:
                     tree = trees[name]
                     self.set_content(root, tree, name)
 
