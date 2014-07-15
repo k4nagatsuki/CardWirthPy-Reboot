@@ -762,9 +762,8 @@ class Frame(wx.Frame):
 
         def func():
             cw.cwpy.mousepos = (-1, -1)
-
-            cw.cwpy._showingdlg -= 1
             cw.cwpy.lock_menucards = False
+        cw.cwpy._showingdlg -= 1
         cw.cwpy.exec_func(func)
 
     def change_selection(self, selection):

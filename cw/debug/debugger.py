@@ -1354,12 +1354,12 @@ class EventTreeCtrl(wx.TreeCtrl):
         if cw.cwpy.frame.debugger is None:
             return
         nowrunning = cw.cwpy.event.get_nowrunningevent()
-        if not nowrunning:
-            self.DeleteAllItems()
+        if nowrunning is None:
             return
-        trees = nowrunning.trees
 
+        trees = nowrunning.trees
         if self.current_tree <> trees:
+            trees = nowrunning.trees
             self.current_tree = trees
             self.Parent.statusbar.SetStatusText("", 1)
             self.activeitem = None

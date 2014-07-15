@@ -506,6 +506,11 @@ class CWPy(_Singleton, threading.Thread):
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
 
+        if self.lock_menucards:
+            # 操作可能であればメニューカードのロックを解除
+            if not self.is_runningevent():
+                self.lock_menucards = False
+
         # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
         # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
         self.return_takenoutcard()
