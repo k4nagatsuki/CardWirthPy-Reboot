@@ -757,9 +757,6 @@ class JptxImage(cw.image.Image):
         fontcolor = config.get_color("jptx:init", "fontcolor", (255, 255, 255))
         fontface = config.get("jptx:init", "fontface", u"ＭＳ Ｐゴシック")
         antialias = config.get_bool("jptx:init", "antialias", False)
-        if not antialias and fontface in (u"ＭＳ Ｐ明朝"):
-            # cwconv.dllのバグで常にアンチエイリアスがかかる
-            antialias = True
         fonttransparent = config.get_bool("jptx:init", "fonttransparent", False)
         text = config.get("jptx:begin", "jptx:end", "")
 
@@ -822,7 +819,15 @@ class JptxImage(cw.image.Image):
                     return
                 chars = "".join(self.chars)
                 self.chars = []
-                subimg = info.font.render(chars, antialias, info.fontcolor)
+
+                if not antialias and 22 < info.fontpixels and\
+                        fontface in (u"ＭＳ Ｐ明朝", u"ＭＳ 明朝"):
+                    # cwconv.dllのバグで常にアンチエイリアスがかかる
+                    antialias2 = True
+                else:
+                    antialias2 = antialias
+
+                subimg = info.font.render(chars, antialias2, info.fontcolor)
                 width = info.font.size(chars)[0]
                 # 取消線
                 if info.strike:
