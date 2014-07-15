@@ -749,21 +749,21 @@ class Resource(object):
         # グラデーションとなるよう、全面に線を引く
         # (フラグによって明るさを変える)
         if flags == 1:
-            c1 = 220
-            c2 = 208
+            r1 = g1 = b1 = 220
+            r2 = g2 = b2 = 208
         elif flags == 2:
-            c1 = 255
-            c2 = 248
+            r1 = g1 = b1 = 255
+            r2 = g2 = b2 = 248
         elif flags == 3:
-            c1 = 228
-            c2 = 216
+            r1 = g1 = b1 = 228
+            r2 = g2 = b2 = 216
         else:
-            c1 = 255
-            c2 = 240
+            r1 = g1 = b1 = 255
+            r2 = g2 = b2 = 240
         mid = h / 2
         for y in xrange(0, mid+1, 1):
-            bmp.fill((c1-y/4, c1-y/4, c1-y/4), pygame.Rect(0, mid-y, w, 1))
-            bmp.fill((c2-y, c2-y, c2-y), pygame.Rect(0, mid+y, w, 1))
+            bmp.fill((r1-y/4, g1-y/4, b1-y/4), pygame.Rect(0, mid-y, w, 1))
+            bmp.fill((r2-y, g2-y, b2-y), pygame.Rect(0, mid+y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
         if flags in (1, 3):
