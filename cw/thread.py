@@ -490,6 +490,21 @@ class CWPy(_Singleton, threading.Thread):
         return True
 
     def update(self):
+        # 状態の補正
+        if not self.statusbar.showbuttons:
+            # 通常エリアで操作可能な状態であればステータスバーのボタンを表示
+            if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
+                self.statusbar.change()
+
+        if self.lock_menucards:
+            # 操作可能であればメニューカードのロックを解除
+            if not self.is_runningevent() and not self.is_showingdlg():
+                self.lock_menucards = False
+
+        # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
+        # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
+        self.return_takenoutcard()
+
         self.bggrp.update(self.scr_draw)
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
         if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
@@ -500,20 +515,6 @@ class CWPy(_Singleton, threading.Thread):
             self.pcardgrp.update(self.scr_draw)
         self.topgrp.update(self.scr_draw)
         self.sbargrp.update(self.scr_draw)
-
-        if not self.statusbar.showbuttons:
-            # 通常エリアで操作可能な状態であればステータスバーのボタンを表示
-            if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
-                self.statusbar.change()
-
-        if self.lock_menucards:
-            # 操作可能であればメニューカードのロックを解除
-            if not self.is_runningevent():
-                self.lock_menucards = False
-
-        # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
-        # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
-        self.return_takenoutcard()
 
     def return_takenoutcard(self):
         # 一時的に荷物袋から出したカードを戻す(消滅していなければ)
@@ -3052,6 +3053,8 @@ class CWPy(_Singleton, threading.Thread):
         elif mode == "active":
             ecards = [ecard for ecard in ecards if ecard.is_active()]
 
+        ecards = filter(lambda ecard: isinstance(ecard, cw.character.Enemy), ecards)
+
         return ecards
 
     def get_pcards(self, mode=""):
@@ -3072,12 +3075,18 @@ class CWPy(_Singleton, threading.Thread):
     def get_fcards(self, mode=""):
         """FriendCardインスタンスのリストを返す。
         シナリオプレイ中以外は空のリストを返す。
-        mode: なし。
+        mode: "unreversed" or "active"
         """
-        if self.is_playingscenario():
-            return self.sdata.friendcards
-        else:
-            return []
+        if not self.is_playingscenario():
+            return[]
+
+        fcards = self.sdata.friendcards
+        if mode == "unreversed":
+            fcards = [fcard for fcard in fcards if not fcard.is_reversed()]
+        elif mode == "active":
+            fcards = [fcard for fcard in fcards if fcard.is_active()]
+
+        return fcards
 
 class ShowMenuCards(object):
     def __init__(self, cwpy):

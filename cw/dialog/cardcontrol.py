@@ -1377,6 +1377,8 @@ class HandView(CardControl):
             status = "active"
         if isinstance(selection, cw.character.Player):
             self.list2 = cw.cwpy.get_pcards(status)
+        elif isinstance(selection, cw.character.Friend):
+            self.list2 = cw.cwpy.get_fcards(status)
         else: # EnemyCard
             if cw.cwpy.is_debugmode():
                 self.list2 = cw.cwpy.get_ecards(status)

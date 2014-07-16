@@ -385,7 +385,8 @@ class ActiveCharaInfo(CharaInfo):
                     if card.is_analyzable():
                         self.list.append(card)
         else:
-            self.list = cw.cwpy.get_fcards()
+            self.list = cw.cwpy.get_fcards()[:]
+            self.list.reverse()
 
         self.index = self.list.index(cw.cwpy.selection)
         CharaInfo.__init__(self, parent, None, True)
