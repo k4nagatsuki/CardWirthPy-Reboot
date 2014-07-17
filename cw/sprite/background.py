@@ -135,6 +135,7 @@ class BackGround(base.CWPySprite):
         blitlist = []
         bginhrt = True
         update = False
+        forcedraw = False
         for e in elements:
             left = e.getint("Location", "left")
             top = e.getint("Location", "top")
@@ -143,7 +144,8 @@ class BackGround(base.CWPySprite):
             height = e.getint("Size", "height")
             size = (width, height)
             flag = e.gettext("Flag", "")
-            visible = cw.cwpy.sdata.flags.get(flag, True)
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
 
             def getcolor(e, xpath, r, g, b, a):
                 r = e.getint(xpath, "r", r)
@@ -192,7 +194,8 @@ class BackGround(base.CWPySprite):
 
                 d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
                      btype, bcolor, bwidth, size, pos, flag, visible)
-                self._add_textcell(blitlist, self.bgs, oldbgs, d)
+                if self._add_textcell(blitlist, self.bgs, oldbgs, d):
+                    forcedraw = True
 
             elif e.tag == "ColorCell":
                 # カラーセル
@@ -202,7 +205,8 @@ class BackGround(base.CWPySprite):
                 color2 = getcolor(e, "Gradient/EndColor", 0, 0, 0, 255)
 
                 d = blend, color1, gradient, color2, size, pos, flag, visible
-                self._add_colorcell(blitlist, self.bgs, oldbgs, d)
+                if self._add_colorcell(blitlist, self.bgs, oldbgs, d):
+                    forcedraw = True
 
             else:
                 assert False
@@ -214,6 +218,8 @@ class BackGround(base.CWPySprite):
 
         if update:
             self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
+        elif forcedraw:
+            self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -241,6 +247,7 @@ class BackGround(base.CWPySprite):
         blitlist = []
         bginhrt = True
         update = force
+        forcedraw = False
         if doanime:
             self._doanime = doanime
             self._ttype = ttype
@@ -258,11 +265,13 @@ class BackGround(base.CWPySprite):
 
             elif type == BG_TEXT:
                 # テキストセル
-                self._add_textcell(blitlist, bgs, oldbgs, d)
+                if self._add_textcell(blitlist, bgs, oldbgs, d):
+                    forcedraw = True
 
             elif type == BG_COLOR:
                 # カラーセル
-                self._add_colorcell(blitlist, bgs, oldbgs, d)
+                if self._add_colorcell(blitlist, bgs, oldbgs, d):
+                    forcedraw = True
 
             else:
                 assert False
@@ -275,6 +284,8 @@ class BackGround(base.CWPySprite):
         if update:
             self.bgs = bgs
             self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
+        elif forcedraw:
+            self._load_after(False, blitlist, animated, transitspr, oldbgs, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -321,7 +332,8 @@ class BackGround(base.CWPySprite):
     def _add_textcell(self, blitlist, bgs, oldbgs, d):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\
             btype, bcolor, bwidth, size, pos, flag, visible = d
-        visible = cw.cwpy.sdata.flags.get(flag, True)
+        visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+            self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
              btype, bcolor, bwidth, size, pos, flag, visible)
         if visible:
@@ -342,10 +354,12 @@ class BackGround(base.CWPySprite):
         else:
             bgs.append((BG_TEXT, d))
             oldbgs.append((BG_TEXT, d))
+        return visible
 
     def _add_colorcell(self, blitlist, bgs, oldbgs, d):
         blend, color1, gradient, color2, size, pos, flag, visible = d
-        visible = cw.cwpy.sdata.flags.get(flag, True)
+        visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+            self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         d = blend, color1, gradient, color2, size, pos, flag, visible
         if visible:
             image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)
@@ -362,6 +376,7 @@ class BackGround(base.CWPySprite):
         else:
             bgs.append((BG_COLOR, d))
             oldbgs.append((BG_COLOR, d))
+        return visible
 
     def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs, redraw):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
