@@ -661,11 +661,12 @@ class Frame(wx.Frame):
                 cw.cwpy.exec_func(cw.cwpy.sdata.f9)
             else:
                 def stop():
-                    cw.cwpy.exec_func(cw.cwpy.sdata.f9)
                     if cw.cwpy.is_runningevent() and cw.cwpy.event.get_event():
                         # イベント中断
                         cw.cwpy.event.get_event().exit_func = cw.cwpy.sdata.f9
                         raise cw.event.EffectBreakError()
+                    else:
+                        cw.cwpy.exec_func(cw.cwpy.sdata.f9)
                 cw.cwpy.exec_func(stop)
 
         self.kill_dlg(dlg)
