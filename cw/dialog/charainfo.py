@@ -1254,11 +1254,7 @@ class CardPanel(wx.Panel):
         # カード枚数
         level = self.ccard.level
         n = len(self.headers)
-        if self.pocket == cw.POCKET_BEAST:
-            maxn= (level + 1) / 4 + 1
-        else:
-            maxn= level / 2 + 2 if level % 2 == 0 else level / 2 + 3
-        maxn = maxn if maxn <= 10 else 10
+        maxn = self.ccard.get_cardpocketspace()[self.pocket]
         s = cw.cwpy.msgs["card_number"] % (n, maxn)
         dc.DrawText(s, cw.wins(10), cw.wins(10))
         dc.EndDrawing()
