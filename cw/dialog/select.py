@@ -415,17 +415,13 @@ class YadoSelect(Select):
         cw.cwpy.sounds["click"].play()
         yname = self.names[self.index]
         title = cw.cwpy.msgs["extension_title"] % (yname)
-        if self.classic[self.index]:
-            items = [
-                (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
-            ]
-        else:
-            items = [
-                (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado),
-                (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado),
-                (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado),
-                (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
-            ]
+        classic = self.classic[self.index]
+        items = [
+            (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado, not classic),
+            (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic),
+            (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
+        ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
@@ -1421,16 +1417,13 @@ class PlayerSelect(Select):
         if self.list:
             name = self.list[self.index].name
             title = cw.cwpy.msgs["extension_title"] % (name)
-            items = [
-                (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer),
-                (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer),
-                (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
-            ]
         else:
             title = cw.cwpy.msgs["extension"]
-            items = [
-                (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
-            ]
+        items = [
+            (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer, bool(self.list)),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer, bool(self.list)),
+            (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
+        ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()

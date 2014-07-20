@@ -277,8 +277,14 @@ class ExtensionDialog(wx.Dialog):
         self.items = items
 
         self.buttons = []
-        for name, desc, func in self.items:
+        for t in self.items:
+            if len(t) == 3:
+                name, desc, func = t
+                enable = True
+            else:
+                name, desc, func, enable = t
             btn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, -1), name=name)
+            btn.Enable(enable)
             self.buttons.append(btn)
 
         self.panel = wx.Panel(self, -1, style=wx.BORDER)
