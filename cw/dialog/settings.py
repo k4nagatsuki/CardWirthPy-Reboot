@@ -442,7 +442,8 @@ class GeneralSettingPanel(wx.Panel):
                     skinname = e.gettext("Name", "")
                     author = e.gettext("Author", "")
                     desc = e.gettext("Description", "")
-                    self.skin_summarys[name] = (skintype, skinname, author, desc)
+                    classictext = e.getbool("ClassicStyleText", True)
+                    self.skin_summarys[name] = (skintype, skinname, author, desc, classictext)
                 except Exception:
                     # エラーのあるスキンは無視
                     cw.util.print_ex()
@@ -458,7 +459,7 @@ class GeneralSettingPanel(wx.Panel):
     def _choice_skin(self):
         skin = self.skins[self.ch_skin.GetSelection()]
         s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
-        skintype, skinname, author, desc = self.skin_summarys[skin]
+        skintype, skinname, author, desc, classictext = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
         self.st_skin.SetLabel(s % (skintype, skinname, author, desc))
         self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
@@ -480,9 +481,6 @@ class GeneralSettingPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             self.skin_summarys[skin] = dlg.skinsummary
             self._choice_skin()
-            if cw.cwpy.setting.skindirname == skin:
-                cw.cwpy.setting.skinname = dlg.skinsummary[1]
-                cw.cwpy.exec_func(cw.cwpy.update_titlebar)
         dlg.Destroy()
 
     def OnDeleteSkin(self, event):
@@ -893,7 +891,7 @@ class ScenarioSettingPanel(wx.Panel):
 
         types = set()
         for name, t in self.Parent.Parent.pane_gene.skin_summarys.iteritems():
-            skintype, skinname, author, desc = t
+            skintype, skinname, author, desc, classictext = t
             types.add(skintype)
 
         types = list(types)

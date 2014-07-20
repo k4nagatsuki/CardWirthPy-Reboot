@@ -358,6 +358,17 @@ class CWPy(_Singleton, threading.Thread):
             self.update()
             self.draw()
 
+    def update_messagefontstyle(self, classicstyletext):
+        """メッセージの描画フォント設定を変更する。
+        表示中のメッセージがあれば更新する。
+        """
+        if self.setting.classicstyletext <> classicstyletext:
+            self.setting.classicstyletext = classicstyletext
+            for sprite in self.topgrp.sprites():
+                sprite.update_scale()
+            for sprite in self.backloggrp.sprites():
+                sprite.update_scale()
+
     def set_debug(self, debug):
         self.setting.debug = debug
         self.debug = debug

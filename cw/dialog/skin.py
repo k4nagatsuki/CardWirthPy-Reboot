@@ -72,6 +72,8 @@ class SkinConversionDialog(wx.Dialog):
         e.text = self.pane_base.info.authorctrl.GetValue()
         e = self.conv.data.find("Property/Description")
         e.text = self.pane_base.info.descctrl.GetValue()
+        e = self.conv.data.find("Property/ClassicStyleText")
+        e.text = str(self.pane_base.info.classictext.GetValue())
 
         # プログレスダイアログ表示
         dlg = wx.ProgressDialog(
@@ -201,16 +203,22 @@ class SkinEditDialog(wx.Dialog):
         self.skindirname = skindirname
         self.skinsummary = skinsummary
 
+        self.warning = wx.StaticText(self, -1, u"ここでの編集結果は、設定ダイアログでのOK・キャンセルの選択に関わらず即時に反映されます。")
+        font = self.warning.GetFont()
+        font = wx.Font(font.GetPointSize(), font.GetFamily(), font.GetStyle(), wx.BOLD)
+        self.warning.SetFont(font)
+
         self.box_info = wx.StaticBox(self, -1, u"スキン情報")
         self.info = SkinInfoPanel(self)
-        skintype, skinname, author, desc = self.skinsummary
+        skintype, skinname, author, desc, classictext = self.skinsummary
         self.info.typectrl.SetValue(skintype)
         self.info.namectrl.SetValue(skinname)
         self.info.authorctrl.SetValue(author)
         self.info.descctrl.SetValue(desc)
+        self.info.classictext.SetValue(classictext)
 
-        self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
-        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"中止")
+        self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
 
         self._do_layout()
         self._bind()
@@ -223,7 +231,8 @@ class SkinEditDialog(wx.Dialog):
         skinname = self.info.namectrl.GetValue()
         author = self.info.authorctrl.GetValue()
         desc = self.info.descctrl.GetValue()
-        self.skinsummary = (skintype, skinname, author, desc)
+        classictext = self.info.classictext.GetValue()
+        self.skinsummary = (skintype, skinname, author, desc, classictext)
 
         skinpath = cw.util.join_paths(u"Data/Skin", self.skindirname, u"Skin.xml")
         e = cw.data.xml2etree(skinpath)
@@ -231,7 +240,15 @@ class SkinEditDialog(wx.Dialog):
         e.edit("Property/Name", skinname)
         e.edit("Property/Author", author)
         e.edit("Property/Description", desc)
+        e.edit("Property/ClassicStyleText", str(classictext))
         e.write(skinpath)
+
+        if cw.cwpy.setting.skindirname == self.skindirname:
+            def func(skinname, classicstyletext):
+                cw.cwpy.setting.skinname = skinname
+                cw.cwpy.update_titlebar()
+                cw.cwpy.update_messagefontstyle(classicstyletext)
+            cw.cwpy.exec_func(func, skinname, classictext)
 
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
@@ -241,13 +258,14 @@ class SkinEditDialog(wx.Dialog):
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
 
-        bsizer_info.Add(self.info, 0, wx.ALL, 3)
+        bsizer_info.Add(self.info, 0, wx.ALL|wx.EXPAND, 3)
 
         sizer_btn.Add(self.btn_ok, 0, 0, 0)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
 
-        sizer.Add(bsizer_info, 0, wx.ALL, 3)
-        sizer.Add(sizer_btn, 0, wx.ALL|wx.ALIGN_RIGHT, 3)
+        sizer.Add(self.warning, 0, wx.ALL, 3)
+        sizer.Add(bsizer_info, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -299,6 +317,7 @@ class SkinBasePanel(wx.Panel):
         self.info.namectrl.SetValue(conv.data.gettext("Property/Name", ""))
         self.info.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
         self.info.descctrl.SetValue(conv.data.gettext("Property/Description", ""))
+        self.info.classictext.SetValue(conv.data.getbool("Property/ClassicStyleText", True))
 
         self._do_layout()
         self._bind()
@@ -422,6 +441,8 @@ class SkinInfoPanel(wx.Panel):
         # 解説
         self.desclabel = wx.StaticText(self, -1, u"解説")
         self.descctrl = wx.TextCtrl(self, size=(400, 100), style=wx.TE_MULTILINE)
+        # クラシックなフォントを使用するか
+        self.classictext = wx.CheckBox(self, -1, u"メッセージでクラシックなフォントを使用する")
 
         self._do_layout()
         self._bind()
@@ -430,6 +451,8 @@ class SkinInfoPanel(wx.Panel):
         pass
 
     def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
         gbsizer_info = wx.GridBagSizer()
 
         gbsizer_info.Add(self.typelabel, pos=(0, 0), flag=wx.ALL, border=3)
@@ -443,8 +466,11 @@ class SkinInfoPanel(wx.Panel):
         gbsizer_info.AddGrowableCol(1)
         gbsizer_info.AddGrowableRow(3)
 
-        self.SetSizer(gbsizer_info)
-        gbsizer_info.Fit(self)
+        sizer.Add(gbsizer_info, 0, wx.EXPAND, 0)
+        sizer.Add(self.classictext, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
         self.Layout()
 
 #-------------------------------------------------------------------------------
