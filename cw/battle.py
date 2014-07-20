@@ -84,6 +84,19 @@ class BattleEngine(object):
         except BattleDefeatError:
             self.defeat()
 
+    def process_exception(self, ex):
+        """イベントの強制実行等で発生したバトル例外を処理する。"""
+        if isinstance(ex, BattleStartBattleError):
+            self.end(False, startnextbattle=True)
+        elif isinstance(ex, BattleAreaChangeError):
+            self.end(False)
+        elif isinstance(ex, BattleStartBattleError):
+            self.win()
+        elif isinstance(ex, BattleWinError):
+            self.defeat()
+        else:
+            assert False
+
     def run(self):
         """戦闘行動を開始する。1ラウンド分の処理。"""
         cw.cwpy.clear_selection()

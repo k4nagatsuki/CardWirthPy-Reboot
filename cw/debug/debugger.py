@@ -841,10 +841,13 @@ class Debugger(wx.Frame):
             dlg = cw.debug.event.EventListDialog(self, currentfpath)
             if dlg.ShowModal() == wx.ID_OK:
                 self._currentfpath = dlg.events.get_currentfpath()
-                try:
-                    cw.cwpy.exec_func(dlg.events.get_selectedevent().start)
-                except:
-                    pass
+                def func(start):
+                    try:
+                        start()
+                    except cw.battle.BattleError, ex:
+                        if cw.cwpy.is_battlestatus():
+                            cw.cwpy.battle.process_exception(ex)
+                cw.cwpy.exec_func(func, dlg.events.get_selectedevent().start)
             dlg.Destroy()
 
     def OnStepReturnTool(self, event):
