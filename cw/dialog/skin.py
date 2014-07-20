@@ -12,13 +12,14 @@ import cw
 #-------------------------------------------------------------------------------
 
 class SkinConversionDialog(wx.Dialog):
-    def __init__(self, parent, exe):
+    def __init__(self, parent, exe, from_settings=False):
         wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
 
         self.successful = False
         self.select_skin = False
         self.skindirname = ""
+        self.from_settings = from_settings
 
         self.conv = cw.skin.convert.Converter(exe)
 
@@ -140,6 +141,13 @@ class SkinConversionDialog(wx.Dialog):
         if self.conv.failure:
             s = self.conv.errormessage
             wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_EXCLAMATION, self)
+        elif self.from_settings:
+            self.successful = True
+            self.select_skin = True
+            self.skindirname = self.conv.skindirname
+            self.conv.dispose()
+            self.Close()
+            self.Destroy()
         else:
             self.successful = True
             if 1 < cw.frame.get_skincount():
@@ -152,11 +160,13 @@ class SkinConversionDialog(wx.Dialog):
                 self.skindirname = self.conv.skindirname
             self.conv.dispose()
             self.Close()
+            self.Destroy()
 
     def OnCancel(self, event):
         if self.conv:
             self.conv.dispose()
         self.Close()
+        self.Destroy()
 
     def _do_layout(self):
         sizer = wx.GridBagSizer()
@@ -175,6 +185,69 @@ class SkinConversionDialog(wx.Dialog):
         row += 1
         sizer.Add(sizer_btn, pos=(row, 0), flag=wx.ALL|wx.ALIGN_RIGHT, border=5)
         row += 1
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+#-------------------------------------------------------------------------------
+# スキン編集ダイアログ
+#-------------------------------------------------------------------------------
+
+class SkinEditDialog(wx.Dialog):
+    def __init__(self, parent, skindirname, skinsummary):
+        wx.Dialog.__init__(self, parent, -1, u"スキンの編集",
+                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+
+        self.skindirname = skindirname
+        self.skinsummary = skinsummary
+
+        self.box_info = wx.StaticBox(self, -1, u"スキン情報")
+        self.info = SkinInfoPanel(self)
+        skintype, skinname, author, desc = self.skinsummary
+        self.info.typectrl.SetValue(skintype)
+        self.info.namectrl.SetValue(skinname)
+        self.info.authorctrl.SetValue(author)
+        self.info.descctrl.SetValue(desc)
+
+        self.btn_ok = wx.Button(self, wx.ID_OK, u"決定")
+        self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"中止")
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
+
+    def OnOk(self, event):
+        skintype = self.info.typectrl.GetValue()
+        skinname = self.info.namectrl.GetValue()
+        author = self.info.authorctrl.GetValue()
+        desc = self.info.descctrl.GetValue()
+        self.skinsummary = (skintype, skinname, author, desc)
+
+        skinpath = cw.util.join_paths(u"Data/Skin", self.skindirname, u"Skin.xml")
+        e = cw.data.xml2etree(skinpath)
+        e.edit("Property/Type", skintype)
+        e.edit("Property/Name", skinname)
+        e.edit("Property/Author", author)
+        e.edit("Property/Description", desc)
+        e.write(skinpath)
+
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
+
+        bsizer_info.Add(self.info, 0, wx.ALL, 3)
+
+        sizer_btn.Add(self.btn_ok, 0, 0, 0)
+        sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
+
+        sizer.Add(bsizer_info, 0, wx.ALL, 3)
+        sizer.Add(sizer_btn, 0, wx.ALL|wx.ALIGN_RIGHT, 3)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

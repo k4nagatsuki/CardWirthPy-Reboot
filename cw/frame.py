@@ -296,12 +296,10 @@ class Frame(wx.Frame):
                 # スキンの自動生成
                 dlg = cw.dialog.skin.SkinConversionDialog(self, path)
                 self.move_dlg(dlg)
-                def OnClose(event):
-                    dlg.Destroy()
-                dlg.Bind(wx.EVT_CLOSE, OnClose, dlg)
                 dlg.ShowModal()
                 if dlg.select_skin:
                     cw.cwpy.exec_func(cw.cwpy.update_skin, dlg.skindirname)
+                dlg.Destroy()
                 break
 
     def OnDestroy(self, event):
@@ -820,7 +818,6 @@ class MyApp(wx.App):
 
     def OnCloseSkinDialog(self, event):
         # スキンが1つでもあればそのまま起動する
-        self.skindlg.Destroy()
         skincount = get_skincount()
 
         if 0 < skincount:

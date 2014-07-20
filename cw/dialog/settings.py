@@ -333,33 +333,14 @@ class GeneralSettingPanel(wx.Panel):
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
-        self.skins = []
-        self.skin_summarys = {}
+        self.ch_skin = wx.Choice(self, -1, size=(-1, -1))
+        self.st_skin = wx.StaticText(self, -1, u"")
 
-        for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+        self.btn_convertskin = wx.Button(self, -1, u"自動生成...")
+        self.btn_editskin = wx.Button(self, -1, u"編集...")
+        self.btn_deleteskin = wx.Button(self, -1, u"削除")
 
-            if os.path.isdir(path) and os.path.isfile(skinpath):
-                self.skins.append(name)
-                try:
-                    e = cw.data.xml2element(skinpath, "Property")
-                    skintype = e.gettext("Type", "")
-                    skinname = e.gettext("Name", "")
-                    author = e.gettext("Author", "")
-                    desc = e.gettext("Description", "")
-                    desc = cw.util.txtwrap(desc, 1)
-                    self.skin_summarys[name] = (skintype, skinname, author, desc)
-                except Exception:
-                    # エラーのあるスキンは無視
-                    cw.util.print_ex()
-
-        self.ch_skin = wx.Choice(self, -1, size=(-1, -1), choices=self.skins)
-        n = self.skins.index(cw.cwpy.setting.skindirname)
-        self.ch_skin.SetSelection(n)
-        s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
-        s = s % self.skin_summarys[cw.cwpy.setting.skindirname]
-        self.st_skin = wx.StaticText(self, -1, s)
+        self.update_skins(cw.cwpy.setting.skindirname)
 
         # 拡大表示モード
         self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F4キーで拡大)")
@@ -431,6 +412,9 @@ class GeneralSettingPanel(wx.Panel):
         self.sl_expand.Bind(wx.EVT_SLIDER, self.OnExpandChange)
         self.cb_fullscreen.Bind(wx.EVT_CHECKBOX, self.OnExpandChange)
         self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
+        self.btn_convertskin.Bind(wx.EVT_BUTTON, self.OnConvertSkin)
+        self.btn_editskin.Bind(wx.EVT_BUTTON, self.OnEditSkin)
+        self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
 
     ##def OnDebugCheck(self, event):
     ##    if cw.cwpy.is_playingscenario():
@@ -442,10 +426,77 @@ class GeneralSettingPanel(wx.Panel):
     ##        cw.cwpy.sounds["error"].play()
     ##        dlg.ShowModal()
 
+    def update_skins(self, skindirname):
+        self.skins = []
+        self.skin_summarys = {}
+
+        for name in os.listdir(u"Data/Skin"):
+            path = cw.util.join_paths(u"Data/Skin", name)
+            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+
+            if os.path.isdir(path) and os.path.isfile(skinpath):
+                self.skins.append(name)
+                try:
+                    e = cw.data.xml2element(skinpath, "Property")
+                    skintype = e.gettext("Type", "")
+                    skinname = e.gettext("Name", "")
+                    author = e.gettext("Author", "")
+                    desc = e.gettext("Description", "")
+                    desc = cw.util.txtwrap(desc, 1)
+                    self.skin_summarys[name] = (skintype, skinname, author, desc)
+                except Exception:
+                    # エラーのあるスキンは無視
+                    cw.util.print_ex()
+
+        self.ch_skin.SetItems(self.skins)
+        n = self.skins.index(skindirname)
+        self.ch_skin.SetSelection(n)
+        self._choice_skin()
+
     def OnSkinChoice(self, event):
+        self._choice_skin()
+
+    def _choice_skin(self):
         skin = self.skins[self.ch_skin.GetSelection()]
         s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
         self.st_skin.SetLabel(s % self.skin_summarys[skin])
+        self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
+
+    def OnConvertSkin(self, event):
+        dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe=u"", from_settings=True)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+        if dlg.successful:
+            self.update_skins(dlg.skindirname)
+        dlg.Destroy()
+
+    def OnEditSkin(self, event):
+        skin = self.skins[self.ch_skin.GetSelection()]
+        skinsummary = self.skin_summarys[skin]
+        dlg = cw.dialog.skin.SkinEditDialog(self.TopLevelParent, skin, skinsummary)
+        cw.cwpy.frame.move_dlg(dlg)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            self.skin_summarys[skin] = dlg.skinsummary
+            self._choice_skin()
+            if cw.cwpy.setting.skindirname == skin:
+                cw.cwpy.setting.skinname = dlg.skinsummary[1]
+                cw.cwpy.exec_func(cw.cwpy.update_titlebar)
+        dlg.Destroy()
+
+    def OnDeleteSkin(self, event):
+        skin = self.skins[self.ch_skin.GetSelection()]
+        if cw.cwpy.setting.skindirname == skin:
+            return
+        s = u"スキンを削除すると元に戻すことはできません。\n%sを削除しますか？" % (skin)
+        dlg = cw.dialog.message.YesNoMessage(self.TopLevelParent, cw.cwpy.msgs["message"], s)
+        cw.cwpy.frame.move_dlg(dlg)
+        cw.cwpy.sounds["signal"].play()
+        if dlg.ShowModal() == wx.ID_OK:
+            cw.cwpy.sounds["dump"].play()
+            dpath = cw.util.join_paths(u"Data/Skin", skin)
+            cw.util.remove(dpath)
+            self.update_skins(cw.cwpy.setting.skindirname)
 
     def makeExpandInfo(self):
         if self.cb_fullscreen.IsChecked():
@@ -478,8 +529,15 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+
+        bsizer_skinbtn = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_skinbtn.Add(self.btn_convertskin, 0, wx.RIGHT, 3)
+        bsizer_skinbtn.Add(self.btn_editskin, 0, wx.RIGHT, 3)
+        bsizer_skinbtn.Add(self.btn_deleteskin, 0, 0, 3)
+
         bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
-        bsizer_skin.Add(self.st_skin, 0, wx.CENTER|wx.ALL, 3)
+        bsizer_skin.Add(self.st_skin, 1, wx.CENTER|wx.ALL, 3)
+        bsizer_skin.Add(bsizer_skinbtn, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_skin.SetMinSize((SETTINGS_WIDTH, 180))
 
         bsizer_expandmode_draw.Add(self.st_expandscr, 0, wx.RIGHT|wx.CENTER, 3)
@@ -502,9 +560,9 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_party.Add(self.cb_autosavepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_party.Add(self.cb_overwritepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_skin, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_skin, 1, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_v1.Add(bsizer_party, 0, wx.EXPAND, 0)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
@@ -621,7 +679,7 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
-        bsizer_tran.Add(self.ch_tran, 0, wx.BOTTOM, 5)
+        bsizer_tran.Add(self.ch_tran, 0, wx.ALL, 3)
         bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)
         bsizer_deal.Add(self.sl_deal, 0, wx.EXPAND, 0)
         bsizer_msgs.Add(self.sl_msgs, 0, wx.EXPAND, 0)
@@ -642,7 +700,7 @@ class DrawingSettingPanel(wx.Panel):
         gsizer_mframe.Add(self.cs_mframe, pos=(0, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
         gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.CENTER, border=3)
         gsizer_mframe.Add(self.cs_blframe, pos=(1, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
-        bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER|wx.LEFT, 5)
+        bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER|wx.LEFT, 3)
         bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
         bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.RIGHT, 3)
 
@@ -653,12 +711,12 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_fscrbackfile.Add(self.ref_fscrbackfile, 0, wx.CENTER, 3)
         bsizer_fscrback.Add(bsizer_fscrbackfile, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_msgs, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_mframe, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_msgs, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_mframe, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_v1.Add(bsizer_fscrback, 0, wx.EXPAND, 0)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
@@ -740,21 +798,21 @@ class AudioSettingPanel(wx.Panel):
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_soundfontbtns = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, 5)
-        sizer_soundfontbtns.Add(self.btn_rmvsoundfont, 0, wx.RIGHT, 5)
-        sizer_soundfontbtns.Add(self.btn_upsoundfont, 0, wx.RIGHT, 5)
+        sizer_soundfontbtns.Add(self.btn_addsoundfont, 0, wx.RIGHT, 3)
+        sizer_soundfontbtns.Add(self.btn_rmvsoundfont, 0, wx.RIGHT, 3)
+        sizer_soundfontbtns.Add(self.btn_upsoundfont, 0, wx.RIGHT, 3)
         sizer_soundfontbtns.Add(self.btn_downsoundfont, 0, 0, 0)
 
         bsizer_music.Add(self.sl_music, 0, wx.EXPAND, 0)
         bsizer_midi.Add(self.sl_midi, 0, wx.EXPAND, 0)
         bsizer_sound.Add(self.sl_sound, 0, wx.EXPAND, 0)
-        bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.ALL, 5)
-        bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 5)
+        bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.ALL, 3)
+        bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_v1.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
 
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
@@ -873,15 +931,15 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, 5)
-        sizer_folderbtns.Add(self.btn_removefolder, 0, wx.RIGHT, 5)
-        sizer_folderbtns.Add(self.btn_upfolder, 0, wx.RIGHT, 5)
+        sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, 3)
+        sizer_folderbtns.Add(self.btn_removefolder, 0, wx.RIGHT, 3)
+        sizer_folderbtns.Add(self.btn_upfolder, 0, wx.RIGHT, 3)
         sizer_folderbtns.Add(self.btn_downfolder, 0, 0, 0)
 
-        bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.ALL, 5)
-        bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 5)
+        bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.ALL, 3)
+        bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_v1.Add(bsizer_folderoftype, 1, wx.EXPAND, 0)
 
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)

@@ -263,6 +263,18 @@ class CWPy(_Singleton, threading.Thread):
                 if self.battle.is_ready():
                     ccard.decide_action()
 
+        self.update_titlebar()
+
+        if self.ydata:
+            self.ydata._changed = changed
+
+        if self.status == "Title":
+            # タイトル画面にいる場合はロゴ表示前まで戻す
+            self.startup()
+        else:
+            self.music.play(self.music.path, updatepredata=False)
+
+    def update_titlebar(self):
         if self.status == "Title":
             s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
         elif self.status == "Yado":
@@ -277,15 +289,6 @@ class CWPy(_Singleton, threading.Thread):
         else:
             s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
         self.set_titlebar(s)
-
-        if self.ydata:
-            self.ydata._changed = changed
-
-        if self.status == "Title":
-            # タイトル画面にいる場合はロゴ表示前まで戻す
-            self.startup()
-        else:
-            self.music.play(self.music.path, updatepredata=False)
 
     def update_scale(self, scale, changearea=True, rsrconly=False):
         """画面の表示倍率を変更する。

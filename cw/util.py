@@ -1146,6 +1146,9 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
 
     for zname in z.namelist():
         name = decode_zipname(zname).replace('\\', '/')
+        normpath = os.path.normpath(name)
+        if normpath == ".." or normpath.startswith(".." + os.path.sep):
+            continue
 
         if name.endswith("/"):
             name = name.rstrip("/")
