@@ -417,7 +417,6 @@ class CardHeader(object):
 
         if move:
             assert self.fpath
-            cw.cwpy.ydata.deletedpaths.add(self.fpath)
             topath = create_newpath(party)
 
             if topath.startswith(cw.cwpy.yadodir):
@@ -435,7 +434,10 @@ class CardHeader(object):
                 # yadodirにあるファイルはコピーする必要がある
                 shutil.copy(self.fpath, topath)
 
+            cw.cwpy.ydata.deletedpaths.add(self.fpath)
             self.fpath = topath
+            if self.fpath in cw.cwpy.ydata.deletedpaths:
+                cw.cwpy.ydata.deletedpaths.remove(self.fpath)
         else:
             if self.carddata is None:
                 return
