@@ -16,6 +16,7 @@ syntax: regexp
 ^ScreenShot/.*
 ^UnregisteredScenario/.*
 ^UnconvertedYado/.*
+^ConvertedYado/.*
 ^Yado/.*
 ^Settings\.xml$
 ^Scenario\.db$

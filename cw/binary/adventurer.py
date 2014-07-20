@@ -14,9 +14,11 @@ class Adventurer(base.CWBinaryBase):
     """冒険者データ。埋め込み画像はないので
     wch・wptファイルから個別に引っ張ってくる必要がある。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, nameonly=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
+        if nameonly:
+            return
         self.id = f.dword() % 10000
         self.imgpath = ""
 

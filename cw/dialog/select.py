@@ -326,7 +326,7 @@ class YadoSelect(Select):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_base_title"])
         # 宿情報
-        self.names, self.list, self.list2, self.skins, self.extimgs = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
         self.index = 0
         for index, name in enumerate(self.names):
             if cw.cwpy.setting.lastyado == name:
@@ -362,8 +362,15 @@ class YadoSelect(Select):
         self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
 
+    def index_changed(self):
+        Select.index_changed(self)
+        self.enable_btn()
+        buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
+        if buttonlist:
+            buttonlist[0].SetFocus()
+
     def can_clickcenter(self):
-        return self.okbtn.IsEnabled()
+        return self.okbtn.IsEnabled() or (self.list and self.classic[self.index])
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -381,6 +388,19 @@ class YadoSelect(Select):
         else:
             self._enable_btn()
 
+        if self.list and self.classic[self.index]:
+            self.okbtn.Disable()
+
+    def OnSelect(self, event):
+        if not self.list:
+            return
+
+        if self.classic[self.index]:
+            event = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.extbtn.GetId())
+            self.ProcessEvent(event)
+        else:
+            Select.OnSelect(self, event)
+
     def OnDropFiles(self, event):
         paths = event.GetFiles()
 
@@ -395,12 +415,17 @@ class YadoSelect(Select):
         cw.cwpy.sounds["click"].play()
         yname = self.names[self.index]
         title = cw.cwpy.msgs["extension_title"] % (yname)
-        items = [
-            (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado),
-            (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado),
-            (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado),
-            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
-        ]
+        if self.classic[self.index]:
+            items = [
+                (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
+            ]
+        else:
+            items = [
+                (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado),
+                (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado),
+                (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado),
+                (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
+            ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
@@ -489,6 +514,9 @@ class YadoSelect(Select):
         """
         CardWirthの宿データを変換。
         """
+        if self.list and self.classic[self.index]:
+            self._convert_current()
+            return
         # ディレクトリ選択ダイアログ
         s = (u"CardWirthの宿のデータをCardWirthPy用に変換します。" +
               u"\n変換する宿のフォルダを選択してください。")
@@ -499,6 +527,21 @@ class YadoSelect(Select):
             path = dlg.GetPath()
             dlg.Destroy()
             self.conv_yado(path)
+        else:
+            dlg.Destroy()
+
+    def _convert_current(self):
+        if not (self.list and self.classic[self.index]):
+            return
+        yname = self.names[self.index]
+        s = u"%sをCardWirthPy用に変換します。\nよろしいですか？" % yname
+        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        self.Parent.move_dlg(dlg)
+        cw.cwpy.sounds["click"].play()
+        if dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
+            path = self.list[self.index]
+            self.conv_yado(path, ok=True, moveconverted=True)
         else:
             dlg.Destroy()
 
@@ -522,6 +565,14 @@ class YadoSelect(Select):
         # リストが空だったら描画終了
         if not self.list:
             return
+
+        if self.classic[self.index]:
+            # 変換が必要な場合
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16)))
+            dc.SetTextForeground(wx.RED)
+            s = u"変換が必要です"
+            w = dc.GetTextExtent(s)[0]
+            dc.DrawText(s, (bmpw-w)/2, cw.wins(20))
 
         # 宿画像
         path = "Resource/Image/Card/COMMAND0" + extimg
@@ -553,7 +604,7 @@ class YadoSelect(Select):
             y = cw.wins(200) + (idx / 3) * cw.wins(16)
             dc.DrawText(name, x, y)
 
-    def conv_yado(self, path):
+    def conv_yado(self, path, ok=False, moveconverted=False):
         """
         CardWirthの宿データを変換。
         """
@@ -567,16 +618,18 @@ class YadoSelect(Select):
             return
 
         # 変換確認ダイアログ
-        cw.cwpy.sounds["click"].play()
-        s = os.path.basename(path) + u" を変換します。\nよろしいですか？"
-        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-        self.Parent.move_dlg(dlg)
+        if not ok:
+            cw.cwpy.sounds["click"].play()
+            s = os.path.basename(path) + u" を変換します。\nよろしいですか？"
+            dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+            self.Parent.move_dlg(dlg)
 
-        if not dlg.ShowModal() == wx.ID_OK:
+            if not dlg.ShowModal() == wx.ID_OK:
+                dlg.Destroy()
+                return
+
             dlg.Destroy()
-            return
 
-        dlg.Destroy()
         # 宿データ
         cwdata = cw.binary.cwyado.CWYado(
             path, "Yado", cw.cwpy.setting.skintype)
@@ -619,6 +672,14 @@ class YadoSelect(Select):
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
+
+        if moveconverted:
+            if not os.path.isdir(u"ConvertedYado"):
+                os.makedirs(u"ConvertedYado")
+            topath = cw.util.join_paths(u"ConvertedYado", os.path.basename(path))
+            topath = cw.binary.util.check_duplicate(topath)
+            shutil.move(path, topath)
+
         cw.cwpy.sounds["page"].play()
         self.update_list(yadodir)
 
@@ -698,7 +759,7 @@ class YadoSelect(Select):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        self.names, self.list, self.list2, self.skins, self.extimgs = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
 
         try:
             self.index = self.list.index(yadodir)
@@ -714,6 +775,7 @@ class YadoSelect(Select):
         yadodirs = []
         skins = []
         extimgs = []
+        classic = []
 
         skinexttable = {}
 
@@ -752,28 +814,63 @@ class YadoSelect(Select):
 
                 path  = cw.util.join_paths(u"Yado", dname)
                 yadodirs.append(path)
+                classic.append(False)
+                continue
+
+            path  = cw.util.join_paths(u"Yado", dname, u"Environment.wyd")
+            if os.path.isfile(path):
+                # クラシックな宿
+                name = dname
+                names.append(name)
+                skins.append(cw.cwpy.skindir)
+                extimgs.append(cw.cwpy.rsrc.ext_img)
+                path  = cw.util.join_paths(u"Yado", dname)
+                yadodirs.append(path)
+                classic.append(True)
+                continue
 
         advnames = []
 
-        for yadodir in yadodirs:
+        for i, yadodir in enumerate(yadodirs):
             seq = []
 
-            yadodb = cw.yadodb.YadoDB(yadodir)
-            standbys = yadodb.get_standbynames(25)
-            if len(standbys) == 0:
-                yadodb.update(cards=False, adventurers=True, parties=False)
-                standbys = yadodb.get_standbynames(25)
+            if classic[i]:
+                # クラシックな宿
+                for fname in os.listdir(yadodir):
+                    ext = os.path.splitext(fname)[1].lower()
+                    if ext == ".wch":
+                        fpath = cw.util.join_paths(yadodir, fname)
+                        with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                            adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
+                        seq.append(adv.name)
+                    elif ext == ".wpl":
+                        fpath = cw.util.join_paths(yadodir, fname)
+                        with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                            party = cw.binary.party.Party(None, f)
+                        for member in party.memberslist:
+                            seq.append(member)
+                    if 25 <= len(seq):
+                        seq = seq[:23]
+                        seq.append(cw.cwpy.msgs["scenario_etc"])
+                        break
 
-            if 25 <= len(standbys):
-                seq = standbys[:23]
-                seq.append(cw.cwpy.msgs["scenario_etc"])
             else:
-                seq = standbys
+                yadodb = cw.yadodb.YadoDB(yadodir)
+                standbys = yadodb.get_standbynames(25)
+                if len(standbys) == 0:
+                    yadodb.update(cards=False, adventurers=True, parties=False)
+                    standbys = yadodb.get_standbynames(25)
 
-            yadodb.close()
+                if 25 <= len(standbys):
+                    seq = standbys[:23]
+                    seq.append(cw.cwpy.msgs["scenario_etc"])
+                else:
+                    seq = standbys
+                yadodb.close()
+
             advnames.append(seq)
 
-        return names, yadodirs, advnames, skins, extimgs
+        return names, yadodirs, advnames, skins, extimgs, classic
 
 #-------------------------------------------------------------------------------
 #　パーティ選択ダイアログ
