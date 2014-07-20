@@ -186,7 +186,7 @@ class EventHandler(object):
 
         elif cw.cwpy.wait_showcards:
             # メニューカードの表示を待っている場合は表示
-            cw.cwpy.deal_cards()
+            cw.cwpy.deal_cards(quickdeal=cw.cwpy.setting.all_quickdeal)
 
     def rclick_event(self):
         """
