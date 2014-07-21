@@ -747,9 +747,9 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
         gsizer_mwin = wx.GridBagSizer()
-        gsizer_mwin.Add(self.st_mwin, pos=(0, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mwin.Add(self.st_mwin, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
         gsizer_mwin.Add(self.cs_mwin, pos=(0, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
-        gsizer_mwin.Add(self.st_blwin, pos=(1, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mwin.Add(self.st_blwin, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
         gsizer_mwin.Add(self.cs_blwin, pos=(1, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
         bsizer_mwin.Add(gsizer_mwin, 0, wx.CENTER|wx.LEFT, 5)
         bsizer_mwin.Add(self.st_mwin2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
@@ -757,9 +757,9 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_mframe = wx.StaticBoxSizer(self.box_mframe, wx.HORIZONTAL)
         gsizer_mframe = wx.GridBagSizer()
-        gsizer_mframe.Add(self.st_mframe, pos=(0, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mframe.Add(self.st_mframe, pos=(0, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
         gsizer_mframe.Add(self.cs_mframe, pos=(0, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
-        gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.CENTER, border=3)
+        gsizer_mframe.Add(self.st_blframe, pos=(1, 0), flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=3)
         gsizer_mframe.Add(self.cs_blframe, pos=(1, 1), flag=wx.RIGHT|wx.EXPAND, border=3)
         bsizer_mframe.Add(gsizer_mframe, 0, wx.CENTER|wx.LEFT, 3)
         bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
