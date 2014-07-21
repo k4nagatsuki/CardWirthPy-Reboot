@@ -364,10 +364,14 @@ class CWPy(_Singleton, threading.Thread):
         """
         if self.setting.classicstyletext <> classicstyletext:
             self.setting.classicstyletext = classicstyletext
-            for sprite in self.topgrp.sprites():
-                sprite.update_scale()
-            for sprite in self.backloggrp.sprites():
-                sprite.update_scale()
+            self.update_messagestyle()
+
+    def update_messagestyle(self):
+        """メッセージの描画形式の変更を反映する。"""
+        for sprite in self.topgrp.sprites():
+            sprite.update_scale()
+        for sprite in self.backloggrp.sprites():
+            sprite.update_scale()
 
     def set_debug(self, debug):
         self.setting.debug = debug

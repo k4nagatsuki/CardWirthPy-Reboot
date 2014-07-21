@@ -195,24 +195,33 @@ class SettingsDialog(wx.Dialog):
             if soundfonts:
                 cw.bassplayer.init_bass(soundfonts)
             cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
+
+        updatemessage = False
         # 配色(メッセージ)
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_mwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
         cw.cwpy.setting.mwincolour = colour
+        updatemessage |= cw.cwpy.setting.mwincolour <> colour
         alpha = self.pane_draw.sc_mframe.GetValue()
         colour = self.pane_draw.cs_mframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
+        updatemessage |= cw.cwpy.setting.mwinframecolour <> colour
         cw.cwpy.setting.mwinframecolour = colour
         # 配色(バックログ)
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_blwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
+        updatemessage |= cw.cwpy.setting.blwincolour <> colour
         cw.cwpy.setting.blwincolour = colour
         alpha = self.pane_draw.sc_mframe.GetValue()
         colour = self.pane_draw.cs_blframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
+        updatemessage |= cw.cwpy.setting.blwinframecolour <> colour
         cw.cwpy.setting.blwinframecolour = colour
+        if updatemessage:
+            cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
+
         # スキン
         skin = self.pane_gene.ch_skin.GetSelection()
         skin = self.pane_gene.skins[skin]
