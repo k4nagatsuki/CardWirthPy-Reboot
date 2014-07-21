@@ -187,6 +187,22 @@ def create_settings(setting):
          }
     e = cw.data.make_element("MessageLogWindowFrameColor", "", d)
     element.append(e)
+    # メッセージログカーテン色
+    d = {"red": str(setting.blcurtaincolour[0]),
+         "green": str(setting.blcurtaincolour[1]),
+         "blue": str(setting.blcurtaincolour[2]),
+         "alpha": str(setting.blcurtaincolour[3])
+         }
+    e = cw.data.make_element("MessageLogCurtainColor", "", d)
+    element.append(e)
+    # カーテン色
+    d = {"red": str(setting.curtaincolour[0]),
+         "green": str(setting.curtaincolour[1]),
+         "blue": str(setting.curtaincolour[2]),
+         "alpha": str(setting.curtaincolour[3])
+         }
+    e = cw.data.make_element("CurtainColor", "", d)
+    element.append(e)
     # カードの表示スピード(数字が小さいほど速い)(1～100)
     e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed - 1))
     element.append(e)

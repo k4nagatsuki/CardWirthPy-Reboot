@@ -697,16 +697,19 @@ class BacklogData:
                                 True, self.result)
 
 class BacklogCurtain(base.CWPySprite):
-    def __init__(self, spritegrp, alpha=192):
+    def __init__(self, spritegrp, color=None):
         """バックログ用の半透明黒背景スプライト。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         alpha: 透明度。
         """
         base.CWPySprite.__init__(self)
-        self.alpha = alpha
+        if color:
+            self.color = color
+        else:
+            self.color = cw.cwpy.setting.blcurtaincolour
         self.image = pygame.Surface(cw.s((632, 420))).convert()
-        self.image.fill((0, 0, 0))
-        self.image.set_alpha(self.alpha)
+        self.image.fill(self.color[:3])
+        self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 0))
         # spritegroupに追加
@@ -714,8 +717,8 @@ class BacklogCurtain(base.CWPySprite):
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s((632, 420))).convert()
-        self.image.fill((0, 0, 0))
-        self.image.set_alpha(self.alpha)
+        self.image.fill(self.color[:3])
+        self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 0))
 
@@ -748,8 +751,15 @@ class BacklogPage(base.CWPySprite):
         self.image = pygame.Surface((w*len(s), h)).convert_alpha()
         self.image.fill((0, 0, 0, 0))
         for i, c in enumerate(s):
+            x = i * w
+            y = cw.s(0)
+            subimg = font.render(c, True, (0, 0, 0))
+            for xi in xrange(x-1, x+2):
+                for yi in xrange(y-1, y+2):
+                    if xi <> x or yi <> y:
+                        self.image.blit(subimg, (xi, yi))
             subimg = font.render(c, True, (255, 255, 255))
-            self.image.blit(subimg, (i*w, cw.s(0)))
+            self.image.blit(subimg, (x, y))
         self.rect = self.image.get_rect()
         pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - cw.s(10), cw.s(10))
         self.rect.topleft = pos

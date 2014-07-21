@@ -63,6 +63,10 @@ class SettingsDialog(wx.Dialog):
             self.pane_draw.cs_mframe.SetColour((128, 0, 0))
             self.pane_draw.cs_blwin.SetColour((80, 80, 80))
             self.pane_draw.cs_blframe.SetColour((128, 128, 128))
+            self.pane_draw.sc_blcurtain.SetValue(192)
+            self.pane_draw.cs_blcurtain.SetColour((0, 0, 0))
+            self.pane_draw.sc_curtain.SetValue(128)
+            self.pane_draw.cs_curtain.SetColour((0, 0, 80))
             self.pane_draw.ch_fscrbacktype.SetSelection(3)
             self.pane_draw.tx_fscrbackfile.Enable(self.pane_draw.ch_fscrbacktype.GetSelection() == 1)
             self.pane_draw.ref_fscrbackfile.Enable(self.pane_draw.ch_fscrbacktype.GetSelection() == 1)
@@ -221,6 +225,22 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.blwinframecolour = colour
         if updatemessage:
             cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
+
+        updatecurtain = False
+        # 配色(メッセージログカーテン)
+        alpha = self.pane_draw.sc_blcurtain.GetValue()
+        colour = self.pane_draw.cs_blcurtain.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        updatecurtain |= cw.cwpy.setting.blcurtaincolour <> colour
+        cw.cwpy.setting.blcurtaincolour = colour
+        # 配色(選択モードカーテン)
+        alpha = self.pane_draw.sc_curtain.GetValue()
+        colour = self.pane_draw.cs_curtain.GetColour()
+        colour = (colour[0], colour[1], colour[2], alpha)
+        updatecurtain |= cw.cwpy.setting.curtaincolour <> colour
+        cw.cwpy.setting.curtaincolour = colour
+        if updatecurtain:
+            cw.cwpy.exec_func(cw.cwpy.update_curtainstyle)
 
         # スキン
         skin = self.pane_gene.ch_skin.GetSelection()
@@ -625,31 +645,6 @@ class DrawingSettingPanel(wx.Panel):
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_msgs.SetTickFreq(1, 1)
 
-        # メッセージウィンドウ背景色
-        self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
-        self.st_mwin = wx.StaticText(self, -1, u"カラー")
-        self.cs_mwin = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.mwincolour)
-        self.st_blwin = wx.StaticText(self, -1, u"ログ")
-        self.cs_blwin = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.blwincolour)
-        self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(50, -1))
-        self.sc_mwin.SetRange(0, 255)
-        self.sc_mwin.SetValue(cw.cwpy.setting.mwincolour[3])
-        # メッセージウィンドウ枠色
-        self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
-        self.st_mframe = wx.StaticText(self, -1, u"カラー")
-        self.cs_mframe = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.mwinframecolour)
-        self.st_blframe = wx.StaticText(self, -1, u"ログ")
-        self.cs_blframe = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.blwinframecolour)
-        self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値")
-        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(50, -1))
-        self.sc_mframe.SetRange(0, 255)
-        self.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour[3])
-
         # フルスクリーンの背景
         self.box_fscrback = wx.StaticBox(self, -1, u"フルスクリーンの背景")
         choices = [u"<背景なし>", u"<ファイルから選択>", u"ダイアログの壁紙", u"スキンのロゴ"]
@@ -679,6 +674,51 @@ class DrawingSettingPanel(wx.Panel):
 
         self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
         self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+
+        # メッセージウィンドウ背景色
+        self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
+        self.st_mwin = wx.StaticText(self, -1, u"カラー")
+        self.cs_mwin = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.mwincolour)
+        self.st_blwin = wx.StaticText(self, -1, u"ログ")
+        self.cs_blwin = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.blwincolour)
+        self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値")
+        self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_mwin.SetRange(0, 255)
+        self.sc_mwin.SetValue(cw.cwpy.setting.mwincolour[3])
+        # メッセージウィンドウ枠色
+        self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
+        self.st_mframe = wx.StaticText(self, -1, u"カラー")
+        self.cs_mframe = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.mwinframecolour)
+        self.st_blframe = wx.StaticText(self, -1, u"ログ")
+        self.cs_blframe = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.blwinframecolour)
+        self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値")
+        self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_mframe.SetRange(0, 255)
+        self.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour[3])
+
+        # メッセージログカーテン色
+        self.box_blcurtain = wx.StaticBox(self, -1, u"メッセージログの背景")
+        self.st_blcurtain = wx.StaticText(self, -1, u"カラー")
+        self.cs_blcurtain = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.blcurtaincolour)
+        self.st_blcurtain2 = wx.StaticText(self, -1, u"アルファ値")
+        self.sc_blcurtain = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_blcurtain.SetRange(0, 255)
+        self.sc_blcurtain.SetValue(cw.cwpy.setting.blcurtaincolour[3])
+
+        # カーテン色
+        self.box_curtain = wx.StaticBox(self, -1, u"カーテン(選択モードの背景効果)")
+        self.st_curtain = wx.StaticText(self, -1, u"カラー")
+        self.cs_curtain = wx.ColourPickerCtrl(
+            self, -1, col=cw.cwpy.setting.curtaincolour)
+        self.st_curtain2 = wx.StaticText(self, -1, u"アルファ値")
+        self.sc_curtain = wx.SpinCtrl(self, -1, "", size=(50, -1))
+        self.sc_curtain.SetRange(0, 255)
+        self.sc_curtain.SetValue(cw.cwpy.setting.curtaincolour[3])
 
         self._do_layout()
         self._bind()
@@ -725,6 +765,18 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_mframe.Add(self.st_mframe2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
         bsizer_mframe.Add(self.sc_mframe, 0, wx.CENTER|wx.RIGHT, 3)
 
+        bsizer_blcurtain = wx.StaticBoxSizer(self.box_blcurtain, wx.HORIZONTAL)
+        bsizer_blcurtain.Add(self.st_blcurtain, 0, wx.LEFT|wx.RIGHT|wx.CENTER, 3)
+        bsizer_blcurtain.Add(self.cs_blcurtain, 0, wx.RIGHT|wx.EXPAND, 3)
+        bsizer_blcurtain.Add(self.st_blcurtain2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
+        bsizer_blcurtain.Add(self.sc_blcurtain, 0, wx.CENTER|wx.RIGHT, 3)
+
+        bsizer_curtain = wx.StaticBoxSizer(self.box_curtain, wx.HORIZONTAL)
+        bsizer_curtain.Add(self.st_curtain, 0, wx.LEFT|wx.RIGHT|wx.CENTER, 3)
+        bsizer_curtain.Add(self.cs_curtain, 0, wx.RIGHT|wx.EXPAND, 3)
+        bsizer_curtain.Add(self.st_curtain2, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 3)
+        bsizer_curtain.Add(self.sc_curtain, 0, wx.CENTER|wx.RIGHT, 3)
+
         bsizer_fscrback = wx.StaticBoxSizer(self.box_fscrback, wx.VERTICAL)
         bsizer_fscrback.Add(self.ch_fscrbacktype, 0, wx.ALL, 3)
         bsizer_fscrbackfile = wx.BoxSizer(wx.HORIZONTAL)
@@ -739,7 +791,9 @@ class DrawingSettingPanel(wx.Panel):
         sizer_left.Add(bsizer_fscrback, 0, wx.EXPAND, 3)
 
         sizer_right.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_mframe, 0, wx.EXPAND, 3)
+        sizer_right.Add(bsizer_mframe, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_blcurtain, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_curtain, 0, wx.EXPAND, 3)
 
         sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 3)
         sizer_h1.Add(sizer_right, 0, wx.EXPAND, 3)

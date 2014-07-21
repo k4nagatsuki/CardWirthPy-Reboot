@@ -417,20 +417,23 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.draw()
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, spritegrp, size_noscale, pos_noscale, alpha=128, cutarealist=None):
+    def __init__(self, spritegrp, size_noscale, pos_noscale, color=None, cutarealist=None):
         """半透明のブルーバックスプライト。右クリックで解除。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         size: スプライトのサイズ。
         pos: 表示位置。
-        alpha: 透明度。
+        color: カーテン色(不透明度含む)。
         """
-        self.alpha = alpha
+        if color:
+            self.color = color
+        else:
+            self.color = cw.cwpy.setting.curtaincolour
         base.SelectableSprite.__init__(self)
         self._pos_noscale = pos_noscale
         self._size_noscale = size_noscale
         self.image = pygame.Surface(cw.s(size_noscale)).convert()
-        self.image.fill((0, 0, 80))
-        self.image.set_alpha(self.alpha)
+        self.image.fill(self.color[:3])
+        self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s(pos_noscale)
         self.cutarealist = cutarealist
@@ -449,8 +452,8 @@ class Curtain(base.SelectableSprite):
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(self._size_noscale)).convert()
-        self.image.fill((0, 0, 80))
-        self.image.set_alpha(self.alpha)
+        self.image.fill(self.color[:3])
+        self.image.set_alpha(self.color[3])
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s(self._pos_noscale)
         self.cut_curtain()

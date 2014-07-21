@@ -54,6 +54,7 @@ class Setting(object):
             self.mwinframecolour = (128, 0, 0, 255)
             self.blwincolour = (80, 80, 80, 180)
             self.blwinframecolour = (128, 128, 128, 255)
+            self.curtaincolour = (0, 0, 80, 128)
             self.dealspeed = 7
             self.transition = "None"
             self.transitionspeed = 5
@@ -167,6 +168,18 @@ class Setting(object):
         b = data.getint("MessageLogWindowFrameColor", "blue", 128)
         a = data.getint("MessageLogWindowFrameColor", "alpha", 255)
         self.blwinframecolour = self.wrap_colorvalue(r, g, b, a)
+        # メッセージログカーテン色
+        r = data.getint("MessageLogCurtainColor", "red", 0)
+        g = data.getint("MessageLogCurtainColor", "green", 0)
+        b = data.getint("MessageLogCurtainColor", "blue", 0)
+        a = data.getint("MessageLogCurtainColor", "alpha", 192)
+        self.blcurtaincolour = (r, g, b, a)
+        # カーテン色
+        r = data.getint("CurtainColor", "red", 0)
+        g = data.getint("CurtainColor", "green", 0)
+        b = data.getint("CurtainColor", "blue", 80)
+        a = data.getint("CurtainColor", "alpha", 128)
+        self.curtaincolour = (r, g, b, a)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
         dealspeed = data.getint("CardDealingSpeed", 6)
         self.set_dealspeed(dealspeed)

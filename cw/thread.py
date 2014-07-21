@@ -373,6 +373,19 @@ class CWPy(_Singleton, threading.Thread):
         for sprite in self.backloggrp.sprites():
             sprite.update_scale()
 
+    def update_curtainstyle(self):
+        """カーテンの描画形式の変更を反映する。"""
+        for sprite in itertools.chain(self.mcardgrp.sprites(),
+                                      self.pcardgrp.sprites(),
+                                      self.bggrp.sprites(),
+                                      self.backloggrp.sprites()):
+            if isinstance(sprite, cw.sprite.message.BacklogCurtain):
+                sprite.color = self.setting.blcurtaincolour
+                sprite.update_scale()
+            elif isinstance(sprite, cw.sprite.background.Curtain):
+                sprite.color = self.setting.curtaincolour
+                sprite.update_scale()
+
     def set_debug(self, debug):
         self.setting.debug = debug
         self.debug = debug
