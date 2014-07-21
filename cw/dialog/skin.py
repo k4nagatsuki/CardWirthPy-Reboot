@@ -258,13 +258,13 @@ class SkinEditDialog(wx.Dialog):
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_info = wx.StaticBoxSizer(self.box_info, wx.VERTICAL)
 
-        bsizer_info.Add(self.info, 0, wx.ALL|wx.EXPAND, 3)
+        bsizer_info.Add(self.info, 1, wx.ALL|wx.EXPAND, 3)
 
         sizer_btn.Add(self.btn_ok, 0, 0, 0)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
 
         sizer.Add(self.warning, 0, wx.ALL, 3)
-        sizer.Add(bsizer_info, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        sizer.Add(bsizer_info, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -466,7 +466,7 @@ class SkinInfoPanel(wx.Panel):
         gbsizer_info.AddGrowableCol(1)
         gbsizer_info.AddGrowableRow(3)
 
-        sizer.Add(gbsizer_info, 0, wx.EXPAND, 0)
+        sizer.Add(gbsizer_info, 1, wx.EXPAND, 0)
         sizer.Add(self.classictext, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
         self.SetSizer(sizer)

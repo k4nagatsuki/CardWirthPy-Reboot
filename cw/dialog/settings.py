@@ -598,7 +598,7 @@ class GeneralSettingPanel(wx.Panel):
         sizer_right.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_right.Add(bsizer_party, 0, wx.EXPAND, 0)
 
-        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 3)
+        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 5)
         sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
 
         sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
@@ -795,7 +795,7 @@ class DrawingSettingPanel(wx.Panel):
         sizer_right.Add(bsizer_blcurtain, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_right.Add(bsizer_curtain, 0, wx.EXPAND, 3)
 
-        sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 3)
+        sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 5)
         sizer_h1.Add(sizer_right, 0, wx.EXPAND, 3)
 
         sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
@@ -900,7 +900,7 @@ class AudioSettingPanel(wx.Panel):
 
         sizer_right.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
 
-        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 3)
+        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 5)
         sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
 
         sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
