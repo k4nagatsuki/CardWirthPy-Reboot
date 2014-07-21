@@ -328,7 +328,7 @@ class GeneralSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         # デバッグモード
-        self.box_gene = wx.StaticBox(self, -1, "")
+        self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする")
         self.cb_debug.SetValue(cw.cwpy.debug)
         self.cb_nolevelup = wx.CheckBox(
@@ -526,7 +526,11 @@ class GeneralSettingPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+
+        sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_right = wx.BoxSizer(wx.VERTICAL)
+
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
@@ -568,11 +572,16 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_party.Add(self.cb_autosavepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_party.Add(self.cb_overwritepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_skin, 1, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_party, 0, wx.EXPAND, 0)
-        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_skin, 1, wx.EXPAND, 3)
+
+        sizer_right.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_party, 0, wx.EXPAND, 0)
+
+        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 3)
+        sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
+
+        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -580,7 +589,7 @@ class GeneralSettingPanel(wx.Panel):
 class DrawingSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        self.box_gene = wx.StaticBox(self, -1, "")
+        self.box_gene = wx.StaticBox(self, -1, u"詳細")
         # 背景拡大縮小補正
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
@@ -679,7 +688,11 @@ class DrawingSettingPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+
+        sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_right = wx.BoxSizer(wx.VERTICAL)
+
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_tran = wx.StaticBoxSizer(self.box_tran, wx.VERTICAL)
         bsizer_deal = wx.StaticBoxSizer(self.box_deal, wx.VERTICAL)
@@ -719,14 +732,19 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_fscrbackfile.Add(self.ref_fscrbackfile, 0, wx.CENTER, 3)
         bsizer_fscrback.Add(bsizer_fscrbackfile, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_msgs, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_mframe, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_fscrback, 0, wx.EXPAND, 0)
-        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_msgs, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_fscrback, 0, wx.EXPAND, 3)
+
+        sizer_right.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_mframe, 0, wx.EXPAND, 3)
+
+        sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 3)
+        sizer_h1.Add(sizer_right, 0, wx.EXPAND, 3)
+
+        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -739,7 +757,7 @@ class AudioSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        self.box_gene = wx.StaticBox(self, -1, "")
+        self.box_gene = wx.StaticBox(self, -1, u"詳細")
         # 音楽を再生する
         self.cb_playbgm = wx.CheckBox(
             self, -1, u"音楽を再生する")
@@ -794,7 +812,11 @@ class AudioSettingPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+
+        sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_right = wx.BoxSizer(wx.VERTICAL)
+
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_music = wx.StaticBoxSizer(self.box_music, wx.VERTICAL)
         bsizer_midi = wx.StaticBoxSizer(self.box_midi, wx.VERTICAL)
@@ -817,13 +839,17 @@ class AudioSettingPanel(wx.Panel):
         bsizer_soundfont.Add(sizer_soundfontbtns, 0, wx.ALL, 3)
         bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
-        sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_sound, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
+        sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_sound, 0, wx.EXPAND, 3)
 
-        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
+        sizer_right.Add(bsizer_soundfont, 1, wx.EXPAND, 0)
+
+        sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 3)
+        sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
+
+        sizer.Add(sizer_h1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
@@ -874,7 +900,7 @@ class ScenarioSettingPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         # シナリオのオプション
-        self.box_gene = wx.StaticBox(self, -1, u"")
+        self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
         self.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype)
         self.cb_showunfitnessscenario = wx.CheckBox(self, -1, u"適正レベル以外のシナリオを表示する")
@@ -896,7 +922,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.grid_folderoftype.SetColLabelSize(0)
         self.grid_folderoftype.SetRowLabelSize(0)
         self.grid_folderoftype.SetColSize(0, 100)
-        self.grid_folderoftype.SetColSize(1, 150)
+        self.grid_folderoftype.SetColSize(1, 370)
 
         types = set()
         for name, t in self.Parent.Parent.pane_gene.skin_summarys.iteritems():
@@ -1011,7 +1037,7 @@ class UISettingPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         # 描画オプション
-        self.box_draw = wx.StaticBox(self, -1, "")
+        self.box_draw = wx.StaticBox(self, -1, u"カード")
         self.cb_quickdeal = wx.CheckBox(
             self, -1, u"キャンプモードへ高速で切り替える")
         self.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal)
@@ -1026,7 +1052,7 @@ class UISettingPanel(wx.Panel):
         self.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime)
 
         # インタフェースオプション
-        self.box_gene = wx.StaticBox(self, -1, "")
+        self.box_gene = wx.StaticBox(self, -1, u"操作")
         self.cb_showbackpackcard = wx.CheckBox(
             self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
         self.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard)
@@ -1041,7 +1067,7 @@ class UISettingPanel(wx.Panel):
         self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
 
         # ダイアログオプション
-        self.box_dlg = wx.StaticBox(self, -1, "")
+        self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
         self.cb_cautionbeforesaving = wx.CheckBox(
             self, -1, u"保存せずに終了しようとしたら警告する")
         self.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.store_skinoneachbase)
