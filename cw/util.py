@@ -1270,7 +1270,7 @@ def cab_hasfile(cab, file):
     dword = struct.Struct("<l")
     word = struct.Struct("<h")
     file = os.path.normcase(file)
-    encoding = sys.getfilesystemencoding()
+    encoding = "cp932"
     try:
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
             # ヘッダ

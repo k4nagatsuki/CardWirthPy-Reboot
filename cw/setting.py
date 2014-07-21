@@ -185,6 +185,7 @@ class Setting(object):
         self.set_dealspeed(dealspeed)
         # トランジション効果の種類
         self.transition = data.gettext("Transition", "Fade")
+
         self.transitionspeed = data.getint("Transition", "speed", 4)
         self.transitionspeed = cw.util.numwrap(self.transitionspeed, 0, 10)
         # 背景のスムーススケーリング
