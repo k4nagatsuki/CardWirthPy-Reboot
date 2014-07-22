@@ -209,9 +209,9 @@ class BattleEngine(object):
             if self._numenemy <> len(ecards):
                 self._numenemy = len(ecards)
                 cw.cwpy.set_autospread(ecards, 6, False, anime=True)
-        cw.cwpy.disposition_pcards()
         cw.cwpy.statusbar.change()
         cw.cwpy.show_party()
+        cw.cwpy.disposition_pcards()
         if cw.cwpy.is_debugmode() and cw.cwpy.setting.show_fcardsinbattle:
             cw.cwpy.add_fcardsprites(status="normal", alpha=192)
         cw.cwpy.draw()

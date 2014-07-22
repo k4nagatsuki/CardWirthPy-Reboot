@@ -200,9 +200,9 @@ class SystemData(object):
         self.events.start(keynum=keynum, keycodes=keycodes)
         if not cw.cwpy.is_dealing() and not cw.cwpy.battle:
             cw.cwpy.statusbar.change()
-            cw.cwpy.disposition_pcards()
             if not (pygame.event.peek(pygame.locals.USEREVENT)):
                 cw.cwpy.show_party()
+                cw.cwpy.disposition_pcards()
 
     def get_areaname(self):
         """現在滞在中のエリアの名前を返す"""

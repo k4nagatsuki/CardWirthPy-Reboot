@@ -1719,7 +1719,8 @@ class CWPy(_Singleton, threading.Thread):
                 pcard.set_fullrecovery()
                 pcard.update_image()
 
-        self.disposition_pcards()
+        if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
+            self.disposition_pcards()
 
         if 0 < oldareaid and self.ydata and self.is_playingscenario():
             self.ydata.changed()

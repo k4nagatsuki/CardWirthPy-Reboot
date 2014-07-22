@@ -628,6 +628,7 @@ class Event(object):
                 isinstance(self.error, ScenarioBadEndError)) and\
                 cw.cwpy.status <> "Title":
             cw.cwpy.show_party()
+            cw.cwpy.disposition_pcards()
 
         if not isinstance(self.error, AreaChangeError):
             cw.cwpy.event.set_selectedmember(None)
