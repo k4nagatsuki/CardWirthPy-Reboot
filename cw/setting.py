@@ -824,6 +824,36 @@ class Resource(object):
 
         pygame.draw.rect(bmp, (0, 0, 0, 0), (0, 0, w, h), 1)
 
+        if flags in (0, 2):
+            # ハイライトをつける
+            linedata = struct.pack(
+               "BBBB BBBB BBBB BBBB BBBB BBBB"
+               "BBBB BBBB BBBB BBBB BBBB BBBB"
+               "BBBB BBBB BBBB BBBB BBBB BBBB"
+               "BBBB BBBB BBBB BBBB BBBB BBBB"
+               "BBBB BBBB BBBB BBBB BBBB BBBB"
+               "BBBB BBBB BBBB BBBB BBBB BBBB",
+                r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,128, r1,g1,b1,255, r1,g1,b1,255, r1,g1,b1,255,
+                r1,g1,b1,  0, r1,g1,b1,196, r1,g1,b1,224, r1,g1,b1,128, r1,g1,b1, 68, r1,g1,b1, 40,
+                r1,g1,b1,128, r1,g1,b1,224, r1,g1,b1, 68, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0,
+                r1,g1,b1,255, r1,g1,b1,128, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0,
+                r1,g1,b1,255, r1,g1,b1, 68, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0,
+                r1,g1,b1,255, r1,g1,b1, 40, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0, r1,g1,b1,  0
+            )
+            hl_topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+            hl_topright = pygame.transform.flip(hl_topleft, True, False)
+            hl_bottomleft = pygame.transform.flip(hl_topleft, False, True)
+            hl_bottomright = pygame.transform.flip(hl_topleft, True, True)
+            color = (r1, g1, b1)
+            pygame.draw.line(bmp, color, (2+6, 2), (w-6-3, 2))
+            pygame.draw.line(bmp, color, (2+6, h-3), (w-6-3, h-3))
+            pygame.draw.line(bmp, color, (2, 2+6), (2, h-6-3))
+            pygame.draw.line(bmp, color, (w-3, 2+6), (w-3, h-6-3))
+            bmp.blit(hl_topleft, (2, 2))
+            bmp.blit(hl_topright, (w-6-2, 2))
+            bmp.blit(hl_bottomleft, (2, h-6-2))
+            bmp.blit(hl_bottomright, (w-6-2, h-6-2))
+
         return bmp
 
     def get_statusbtnbmp(self, sizetype, flags=0):
