@@ -2035,7 +2035,9 @@ class CWPy(_Singleton, threading.Thread):
                 and isinstance(sprite, cw.character.Character)\
                 and sprite.is_analyzable()) or\
                 show_allselectedcards:
-            for sprite in itertools.chain(self.get_pcards("unreversed"), self.get_ecards("unreversed")):
+            for sprite in itertools.chain(self.get_pcards("unreversed"),
+                                          self.get_ecards("unreversed"),
+                                          self.get_fcards("unreversed")):
                 if not (isinstance(sprite, cw.character.Character)\
                         and sprite.actiondata and sprite.is_analyzable()):
                     continue
