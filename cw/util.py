@@ -170,6 +170,7 @@ class MusicInterface(object):
         else:
             if pygame.mixer:
                 pygame.mixer.music.stop()
+        remove_soundtempfile("Bgm")
         self.fpath = ""
         self.path = ""
         # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
@@ -231,8 +232,23 @@ class SoundInterface(object):
         self._sound = sound
         self._path = path
 
+    def _play_before(self, from_scenario):
+        if from_scenario:
+            if cw.cwpy.lastsound_scenario:
+                cw.cwpy.lastsound_scenario.stop(from_scenario)
+                cw.cwpy.lastsound_scenario = None
+            cw.cwpy.lastsound_scenario = self
+            return "Sound"
+        else:
+            if cw.cwpy.lastsound_system:
+                cw.cwpy.lastsound_system.stop(from_scenario)
+                cw.cwpy.lastsound_system = None
+            cw.cwpy.lastsound_system = self
+            return "SystemSound"
+
     def play(self, from_scenario=False):
         if self._sound:
+
             if cw.cwpy.setting.play_sound:
                 volume = (cw.cwpy.setting.vol_sound * cw.cwpy.music.mastervolume) / 100.0
             else:
@@ -243,13 +259,63 @@ class SoundInterface(object):
                     cw.cwpy.exec_func(self.play, from_scenario)
                     return
                 assert threading.currentThread() == cw.cwpy
+                tempbasedir = self._play_before(from_scenario)
                 try:
-                    cw.bassplayer.play_sound(self._sound, volume, from_scenario)
+                    path = get_soundfilepath(tempbasedir, self._sound)
+                    cw.bassplayer.play_sound(path, volume, from_scenario)
                 except Exception, ex:
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
                     cw.cwpy.frame.exec_func(self.play, from_scenario)
+                    return
+                assert threading.currentThread() <> cw.cwpy
+                tempbasedir = self._play_before(from_scenario)
+                if from_scenario:
+                    name = "cwsnd1"
+                else:
+                    name = "cwsnd2"
+
+                mciSendStringW = ctypes.windll.winmm.mciSendStringW
+                path = get_soundfilepath(tempbasedir, self._sound)
+                mciSendStringW(u'open "%s" alias %s' % (path, name), 0, 0, 0)
+                volume = int(volume * 1000)
+                mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
+                mciSendStringW(u"play %s" % (name), 0, 0, 0)
+            else:
+                if threading.currentThread() <> cw.cwpy:
+                    cw.cwpy.exec_func(self.play, from_scenario)
+                    return
+                assert threading.currentThread() == cw.cwpy
+                tempbasedir = self._play_before(from_scenario)
+                if from_scenario:
+                    chan = pygame.mixer.Channel(0)
+                else:
+                    chan = pygame.mixer.Channel(1)
+
+                self._sound.set_volume(volume)
+                chan.play(self._sound)
+
+    def stop(self, from_scenario):
+        if self._sound:
+            if from_scenario:
+                tempbasedir = "Sound"
+            else:
+                tempbasedir = "SystemSound"
+
+            if cw.bassplayer.is_alivablewithpath(self._path):
+                if threading.currentThread() <> cw.cwpy:
+                    cw.cwpy.exec_func(self.stop, from_scenario)
+                    return
+                assert threading.currentThread() == cw.cwpy
+                try:
+                    cw.bassplayer.stop_sound(from_scenario)
+                    remove_soundtempfile(tempbasedir)
+                except Exception, ex:
+                    cw.util.print_ex()
+            elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
+                if threading.currentThread() == cw.cwpy:
+                    cw.cwpy.frame.exec_func(self.stop, from_scenario)
                     return
                 assert threading.currentThread() <> cw.cwpy
                 if from_scenario:
@@ -260,13 +326,10 @@ class SoundInterface(object):
                 mciSendStringW = ctypes.windll.winmm.mciSendStringW
                 mciSendStringW(u"stop %s" % (name), 0, 0, 0)
                 mciSendStringW(u"close %s" % (name), 0, 0, 0)
-                mciSendStringW(u'open "%s" alias %s' % (self._sound, name), 0, 0, 0)
-                volume = int(volume * 1000)
-                mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
-                mciSendStringW(u"play %s" % (name), 0, 0, 0)
+                remove_soundtempfile(tempbasedir)
             else:
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.play, from_scenario)
+                    cw.cwpy.exec_func(self.stop, from_scenario)
                     return
                 assert threading.currentThread() == cw.cwpy
                 if from_scenario:
@@ -274,9 +337,7 @@ class SoundInterface(object):
                 else:
                     chan = pygame.mixer.Channel(1)
 
-                self._sound.set_volume(volume)
                 chan.stop()
-                chan.play(self._sound)
 
 #-------------------------------------------------------------------------------
 #　汎用関数
@@ -504,6 +565,8 @@ def load_bgm(path):
     if cw.bassplayer.is_alivablewithpath(path):
         return 2
 
+    path = get_soundfilepath(path)
+
     try:
         assert threading.currentThread() == cw.cwpy
         # ファイルパスを渡して読込
@@ -561,6 +624,31 @@ def load_sound(path):
         cw.cwpy.sdata.cache[path] = sound
 
     return sound
+
+def get_soundfilepath(basedir, path):
+    """宿のフォルダにある場合は問題が出るため、
+    再生用のコピーを生成する。
+    """
+    if path and cw.cwpy.ydata and (path.startswith(cw.cwpy.ydata.yadodir) or\
+                                   path.startswith(cw.cwpy.ydata.tempdir)):
+        dpath = join_paths(u"Data/Temp/Playing", basedir)
+        fpath = os.path.basename(path)
+        fpath = join_paths(dpath, fpath)
+        fpath = cw.binary.util.check_duplicate(fpath)
+        if not os.path.isdir(dpath):
+            os.makedirs(dpath)
+        shutil.copyfile(path, fpath)
+        path = fpath
+    return path
+
+def remove_soundtempfile(basedir):
+    """再生用のコピーを削除する。
+    """
+    dpath = join_paths(u"Data/Temp/Playing", basedir)
+    if os.path.isdir(dpath):
+        remove(dpath)
+        if not os.listdir(u"Data/Temp/Playing"):
+            remove(dpath)
 
 def sort_by_attr(seq, attr):
     """破壊的にオブジェクトの属性でソートする。

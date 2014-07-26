@@ -114,6 +114,9 @@ class CWPy(_Singleton, threading.Thread):
         self.recenthistory = self.setting.recenthistory
         # MusicInterfaceインスタンス
         self.music = cw.util.MusicInterface()
+        # 最後に再生した効果音(システム・シナリオの2種)
+        self.lastsound_scenario = None
+        self.lastsound_system = None
         # EventInterfaceインスタンス
         self.event = cw.event.EventInterface()
         # Spriteグループ
@@ -453,6 +456,13 @@ class CWPy(_Singleton, threading.Thread):
         self.frame.AddPendingEvent(event)
 
     def _quit(self):
+        self.music.stop()
+        if self.lastsound_scenario:
+            self.lastsound_scenario.stop(True)
+            self.lastsound_scenario = None
+        if self.lastsound_system:
+            self.lastsound_system.stop(False)
+            self.lastsound_system = None
         pygame.quit()
         cw.util.remove_temp()
         self.setting.write()
