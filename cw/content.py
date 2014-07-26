@@ -38,6 +38,19 @@ class EventContentBase(object):
 
         return (tname, tspeed)
 
+    def is_differentscenario(self):
+        """実行中のイベントがカードの使用時イベントであり、
+        使用中のカードが現在プレイ中のシナリオと異なる
+        シナリオから持ち出されたものであればTrueを返す。
+        """
+        if not cw.cwpy.is_playingscenario():
+            return False
+        inusecard = cw.cwpy.event.get_inusecard()
+        if not inusecard:
+            return False
+        return inusecard.scenario <> cw.cwpy.sdata.name or\
+               inusecard.author <> cw.cwpy.sdata.author
+
 #-------------------------------------------------------------------------------
 # Branch系コンテント
 #-------------------------------------------------------------------------------
@@ -47,6 +60,9 @@ class BranchContent(EventContentBase):
         """カード所持分岐。最初の所持者を選択する。
         cardtype: "SkillCard" or "BeastCard" or "ItemCard"
         """
+        if self.is_differentscenario():
+            return 0
+
         # 各種属性値取得
         id = self.data.getint(".", "id", 0)
         num = self.data.getint(".", "number", 0)
@@ -412,6 +428,9 @@ class BranchBeastContent(BranchContent):
 class BranchCastContent(BranchContent):
     def action(self):
         """キャスト存在分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "id", 0)
         flag = bool([i for i in cw.cwpy.sdata.friendcards if i.id == id])
         return self.get_boolean_index(flag)
@@ -440,6 +459,9 @@ class BranchCastContent(BranchContent):
 class BranchInfoContent(BranchContent):
     def action(self):
         """情報所持分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "id", 0)
         flag = bool([h for h in cw.cwpy.sdata.infocards if h.id == id])
         return self.get_boolean_index(flag)
@@ -483,6 +505,9 @@ class BranchIsBattleContent(BranchContent):
 class BranchBattleContent(BranchContent):
     def action(self):
         """バトル分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         if cw.cwpy.battle:
             value = str(cw.cwpy.areaid)
         elif cw.cwpy.winevent_areaid:
@@ -513,6 +538,9 @@ class BranchBattleContent(BranchContent):
 class BranchAreaContent(BranchContent):
     def action(self):
         """エリア分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         if cw.cwpy.battle:
             areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
             value = str(areaid)
@@ -847,6 +875,9 @@ class BranchMoneyContent(BranchContent):
 class BranchFlagContent(BranchContent):
     def action(self):
         """フラグ分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         flag = self.data.get("flag")
 
         if flag in cw.cwpy.sdata.flags:
@@ -885,6 +916,9 @@ class BranchFlagContent(BranchContent):
 class BranchStepContent(BranchContent):
     def action(self):
         """ステップ上下分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         step = self.data.get("step")
         value = self.data.getint(".", "value", 0)
 
@@ -926,6 +960,9 @@ class BranchStepContent(BranchContent):
 class BranchMultiStepContent(BranchContent):
     def action(self):
         """ステップ多岐分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         step = self.data.get("step")
 
         if step in cw.cwpy.sdata.steps:
@@ -1272,6 +1309,9 @@ class CallPackageContent(EventContentBase):
         """パッケージコールコンテント。
         パッケージのツリーイベントをコールする。
         """
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "call", 0)
         event = cw.cwpy.event.get_event()
         call_package(id, event.nowrunningcontents or 0 < len(self.data.find("Contents")))
@@ -1361,6 +1401,9 @@ class ChangeBgImageContent(EventContentBase):
 class ChangeAreaContent(EventContentBase):
     def action(self):
         """エリア変更コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "id", 0)
         ttype = self.get_transitiontype()
 
@@ -1386,6 +1429,9 @@ class ChangeAreaContent(EventContentBase):
 class CheckFlagContent(EventContentBase):
     def action(self):
         """フラグ判定コンテント。"""
+        if self.is_differentscenario():
+            return cw.IDX_TREEEND
+
         flag = self.data.get("flag")
 
         if cw.cwpy.sdata.flags.get(flag, False):
@@ -1404,6 +1450,9 @@ class CheckFlagContent(EventContentBase):
 class CheckStepContent(EventContentBase):
     def action(self):
         """ステップ判定コンテント(1.50)。"""
+        if self.is_differentscenario():
+            return cw.IDX_TREEEND
+
         step = self.data.get("step")
         value1 = self.data.getint(".", "value", 0)
         comparison = self.data.get("comparison")
@@ -1595,6 +1644,9 @@ class GetContent(EventContentBase):
         """対象範囲のインスタンスに設定枚数のカードを配布する。
         cardtype: "SkillCard" or "ItemCard" or "BeastCard"
         """
+        if self.is_differentscenario():
+            return 0
+
         # 各種属性値取得
         id = self.data.getint(".", "id", 0)
         num = self.data.getint(".", "number", 0)
@@ -1734,6 +1786,9 @@ class GetBeastContent(GetContent):
 class GetCastContent(GetContent):
     def action(self):
         """キャスト加入コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "id", 0)
 
         if id and id in cw.cwpy.sdata.casts:
@@ -1762,6 +1817,9 @@ class GetCastContent(GetContent):
 class GetInfoContent(GetContent):
     def action(self):
         """情報入手コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "id", 0)
 
         if id and id in cw.cwpy.sdata.infos:
@@ -1901,6 +1959,9 @@ class LinkStartContent(EventContentBase):
 class LinkPackageContent(EventContentBase):
     def action(self):
         """パッケージのツリーイベントに移動する。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "link", 0)
         event = cw.cwpy.event.get_event()
         call_package(id, not event.nowrunningcontents is None)
@@ -1924,6 +1985,9 @@ class LoseContent(EventContentBase):
         numが0の場合は全対象カード削除。
         cardtype: "SkillCard" or "ItemCard" or "BeastCard"
         """
+        if self.is_differentscenario():
+            return 0
+
         # 各種属性値取得
         id = self.data.getint(".", "id", 0)
         num = self.data.getint(".", "number", 0)
@@ -2033,6 +2097,9 @@ class LoseBeastContent(LoseContent):
 class LoseCastContent(LoseContent):
     def action(self):
         """キャスト離脱コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "id", 0)
 
         if id in cw.cwpy.sdata.casts:
@@ -2060,6 +2127,9 @@ class LoseCastContent(LoseContent):
 class LoseInfoContent(LoseContent):
     def action(self):
         """情報喪失コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         id = self.data.getint(".", "id", 0)
 
         if id in cw.cwpy.sdata.infos:
@@ -2217,6 +2287,9 @@ class RedisplayContent(EventContentBase):
 class ReverseFlagContent(EventContentBase):
     def action(self):
         """フラグ反転コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         flag = self.data.get("flag")
 
         if flag in cw.cwpy.sdata.flags:
@@ -2241,6 +2314,9 @@ class ReverseFlagContent(EventContentBase):
 class SetFlagContent(EventContentBase):
     def action(self):
         """フラグ変更コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         flag = self.data.get("flag")
         value = self.data.getbool(".", "value", False)
 
@@ -2264,6 +2340,9 @@ class SetFlagContent(EventContentBase):
 class SetStepContent(EventContentBase):
     def action(self):
         """ステップ変更コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         step = self.data.get("step")
         value = self.data.getint(".", "value", 0)
 
@@ -2285,6 +2364,9 @@ class SetStepContent(EventContentBase):
 class SetStepUpContent(EventContentBase):
     def action(self):
         """ステップ増加コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         step = self.data.get("step")
 
         if step in cw.cwpy.sdata.steps:
@@ -2303,6 +2385,9 @@ class SetStepUpContent(EventContentBase):
 class SetStepDownContent(EventContentBase):
     def action(self):
         """ステップ減少コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         step = self.data.get("step")
 
         if step in cw.cwpy.sdata.steps:
@@ -2345,6 +2430,9 @@ class StartBattleContent(StartContent):
         """
         バトル開始コンテント。
         """
+        if self.is_differentscenario():
+            return 0
+
         areaid = self.data.getint(".", "id", 0)
 
         if areaid in cw.cwpy.sdata.battles:
@@ -2693,6 +2781,9 @@ class WaitContent(EventContentBase):
 class SubstituteStepContent(EventContentBase):
     def action(self):
         """ステップ代入コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         fromstep = self.data.get("from")
         tostep = self.data.get("to")
 
@@ -2719,6 +2810,9 @@ class SubstituteStepContent(EventContentBase):
 class SubstituteFlagContent(EventContentBase):
     def action(self):
         """フラグ代入コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         fromflag = self.data.get("from")
         toflag = self.data.get("to")
 
@@ -2751,6 +2845,9 @@ class SubstituteFlagContent(EventContentBase):
 class BranchStepValueContent(BranchContent):
     def action(self):
         """ステップ比較分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         fromstep = self.data.get("from")
         tostep = self.data.get("to")
 
@@ -2789,6 +2886,9 @@ class BranchStepValueContent(BranchContent):
 class BranchFlagValueContent(BranchContent):
     def action(self):
         """フラグ比較分岐コンテント。"""
+        if self.is_differentscenario():
+            return 0
+
         fromflag = self.data.get("from")
         toflag = self.data.get("to")
 
