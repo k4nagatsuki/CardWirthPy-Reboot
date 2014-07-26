@@ -640,7 +640,7 @@ class Event(object):
             cw.cwpy.ydata.party.sort_backpack()
 
         # 戦闘中か否か
-        if cw.cwpy.battle:
+        if cw.cwpy.is_battlestatus():
             # 敗北処理
             if cw.cwpy.is_gameover():
                 raise cw.battle.BattleDefeatError()
