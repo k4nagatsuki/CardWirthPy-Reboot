@@ -2039,7 +2039,8 @@ class CWPy(_Singleton, threading.Thread):
                                           self.get_ecards("unreversed"),
                                           self.get_fcards("unreversed")):
                 if not (isinstance(sprite, cw.character.Character)\
-                        and sprite.actiondata and sprite.is_analyzable()):
+                        and sprite.actiondata and sprite.is_analyzable()\
+                        and sprite.status <> "hidden"):
                     continue
                 self.clear_inusecardimg(sprite)
                 targets, header, beasts = sprite.actiondata

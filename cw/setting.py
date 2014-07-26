@@ -478,10 +478,12 @@ class Resource(object):
         self._wxbtnbmp0pressed = self._create_statusbtnbmp(cw.s(120), cw.s(22), 1)
         self._wxbtnbmp0current = self._create_statusbtnbmp(cw.s(120), cw.s(22), 2)
         self._wxbtnbmp0pressedcurrent = self._create_statusbtnbmp(cw.s(120), cw.s(22), 3)
+        self._wxbtnbmp0disabled = self._create_statusbtnbmp(cw.s(120), cw.s(22), 4)
         self._wxbtnbmp1 = self._create_statusbtnbmp(cw.s(27), cw.s(27), 0)
         self._wxbtnbmp1pressed = self._create_statusbtnbmp(cw.s(27), cw.s(27), 1)
         self._wxbtnbmp1current = self._create_statusbtnbmp(cw.s(27), cw.s(27), 2)
         self._wxbtnbmp1pressedcurrent = self._create_statusbtnbmp(cw.s(27), cw.s(27), 3)
+        self._wxbtnbmp1disabled = self._create_statusbtnbmp(cw.s(27), cw.s(27), 4)
         self._wxbtnbmp2 = self._create_statusbtnbmp(cw.s(632), cw.s(33), 0)
 
         self.ignorecase_table = {}
@@ -760,24 +762,28 @@ class Resource(object):
 
         bmp = pygame.Surface((w, h)).convert_alpha()
 
-        # グラデーションとなるよう、全面に線を引く
-        # (フラグによって明るさを変える)
-        if flags == 1:
-            r1 = g1 = b1 = 220
-            r2 = g2 = b2 = 208
-        elif flags == 2:
-            r1 = g1 = b1 = 255
-            r2 = g2 = b2 = 248
-        elif flags == 3:
-            r1 = g1 = b1 = 228
-            r2 = g2 = b2 = 216
+        if flags == 4:
+            r1 = g1 = b1 = 240
+            bmp.fill((r1, g1, b1))
         else:
-            r1 = g1 = b1 = 255
-            r2 = g2 = b2 = 240
-        mid = h / 2
-        for y in xrange(0, mid+1, 1):
-            bmp.fill((r1-y/4, g1-y/4, b1-y/4), pygame.Rect(0, mid-y, w, 1))
-            bmp.fill((r2-y, g2-y, b2-y), pygame.Rect(0, mid+y, w, 1))
+            # グラデーションとなるよう、全面に線を引く
+            # (フラグによって明るさを変える)
+            if flags == 1:
+                r1 = g1 = b1 = 220
+                r2 = g2 = b2 = 208
+            elif flags == 2:
+                r1 = g1 = b1 = 255
+                r2 = g2 = b2 = 240
+            elif flags == 3:
+                r1 = g1 = b1 = 228
+                r2 = g2 = b2 = 216
+            else:
+                r1 = g1 = b1 = 255
+                r2 = g2 = b2 = 232
+            mid = h / 2
+            for y in xrange(0, mid+1, 1):
+                bmp.fill((r1-y/4, g1-y/4, b1-y/4), pygame.Rect(0, mid-y, w, 1))
+                bmp.fill((r2-y, g2-y, b2-y), pygame.Rect(0, mid+y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
         if flags in (1, 3):
@@ -801,10 +807,14 @@ class Resource(object):
             bmp.blit(topright, (w-6-1, 2))
             bmp.blit(bottomleft, (2, h-6-1))
             subtract_corner(64)
+            color = (128, 128, 128)
+        elif flags == 4:
+            subtract_corner(16)
+            color = (192, 192, 192)
         else:
             subtract_corner(72)
+            color = (128, 128, 128)
 
-        color = (128, 128, 128)
         pygame.draw.rect(bmp, color, (1, 1, w-2, h-2), 1)
         bmp.blit(topleft, (1, 1))
         bmp.blit(topright, (w-6-1, 1))
@@ -869,6 +879,8 @@ class Resource(object):
                 return self._wxbtnbmp0current.copy()
             elif flags == 3:
                 return self._wxbtnbmp0pressedcurrent.copy()
+            elif flags == 4:
+                return self._wxbtnbmp0disabled.copy()
             else:
                 return self._wxbtnbmp0.copy()
         elif sizetype == 1:
@@ -878,6 +890,8 @@ class Resource(object):
                 return self._wxbtnbmp1current.copy()
             elif flags == 3:
                 return self._wxbtnbmp1pressedcurrent.copy()
+            elif flags == 4:
+                return self._wxbtnbmp1disabled.copy()
             else:
                 return self._wxbtnbmp1.copy()
         elif sizetype == 2:

@@ -721,6 +721,12 @@ def _to_disabledimage(buf, size):
             buf[px+1] = buf[px+1] * (max - min) / 255  + min
             buf[px+2] = buf[px+2] * (max - min) / 255  + min
 
+def to_disabledsurface(image):
+    """_to_disabledimage()のpygame.Surface版。"""
+    image = image.copy()
+    image.fill((128, 128, 128), special_flags=pygame.locals.BLEND_RGB_ADD)
+    return to_grayscale(image)
+
 def hex2color(hexnum):
     """RGBデータの16進数を(r, g, b)のタプルで返す。
     hexnum: 16進数。

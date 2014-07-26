@@ -242,17 +242,19 @@ class StatusBarButton(base.SelectableSprite):
         self.status = "normal"
         self.frame = 0
         self.is_pushed = is_pushed
+        self.enabled = enabled
         # ボタン画像
-        wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 0)
-        self.btnimg = wxbmp
         if enabled:
-            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 1)
-            self.btnimg2 = wxbmp
-            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 2)
-            self.btnimg3 = wxbmp
-            wxbmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 3)
-            self.btnimg4 = wxbmp
+            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 0)
+            self.btnimg = bmp
+            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 1)
+            self.btnimg2 = bmp
+            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 2)
+            self.btnimg3 = bmp
+            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 3)
+            self.btnimg4 = bmp
         else:
+            self.btnimg = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 4)
             self.btnimg2 = self.btnimg
             self.btnimg3 = self.btnimg
             self.btnimg4 = self.btnimg
@@ -273,6 +275,9 @@ class StatusBarButton(base.SelectableSprite):
         else:
             font = cw.cwpy.rsrc.fonts["sbarbtn"]
             image = font.render(name, True, (0, 0, 0))
+
+        if not self.enabled:
+            image = cw.imageretouch.to_disabledsurface(image)
 
         rect = image.get_rect()
         rect.centerx = self.rect.centerx - self.rect.left
@@ -489,10 +494,7 @@ class DebuggerButton(StatusBarButton):
 
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos, enabled):
-        self.enabled = enabled
         image = cw.s(cw.cwpy.rsrc.pygamedebugs["BACKLOG"])
-        if not self.enabled:
-            image = cw.imageretouch.to_binaryformat(image, 0)
         name = u"バックログ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
         self._selectable_on_event = enabled
