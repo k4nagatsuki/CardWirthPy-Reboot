@@ -371,12 +371,12 @@ class ActiveCharaInfo(CharaInfo):
         self.is_playingscenario = cw.cwpy.is_playingscenario()
         self.ccard = cw.cwpy.selection
 
-        if isinstance(cw.cwpy.selection, cw.character.Player):
+        if isinstance(self.ccard, cw.character.Player):
             if cw.cwpy.is_debugmode():
                 self.list = cw.cwpy.get_pcards()
             else:
                 self.list = cw.cwpy.get_pcards("unreversed")
-        elif isinstance(cw.cwpy.selection, cw.character.Enemy):
+        elif isinstance(self.ccard, cw.character.Enemy):
             if cw.cwpy.is_debugmode():
                 self.list = cw.cwpy.get_ecards()
             else:
@@ -388,7 +388,7 @@ class ActiveCharaInfo(CharaInfo):
             self.list = cw.cwpy.get_fcards()[:]
             self.list.reverse()
 
-        self.index = self.list.index(cw.cwpy.selection)
+        self.index = self.list.index(self.ccard)
         CharaInfo.__init__(self, parent, None, True)
 
 class TopPanel(wx.Panel):
