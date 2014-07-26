@@ -631,7 +631,9 @@ class Event(object):
             cw.cwpy.disposition_pcards()
 
         if not isinstance(self.error, AreaChangeError):
-            cw.cwpy.event.set_selectedmember(None)
+            # BUG: 全滅時は選択メンバがクリアされない
+            if not (cw.cwpy.is_battlestatus() and cw.cwpy.is_gameover()):
+                cw.cwpy.event.set_selectedmember(None)
 
         cw.cwpy.event.clear()
 
@@ -854,6 +856,10 @@ class CardEvent(Event):
         # ターゲットが存在しない場合は処理中断
         if not self.targets:
             return
+
+        if not isinstance(self.error, AreaChangeError):
+            # 通常のカード効果は全滅時でも選択メンバをクリアする
+            cw.cwpy.event.set_selectedmember(None)
 
         # 各種データ取得
         data = self.inusecard.carddata

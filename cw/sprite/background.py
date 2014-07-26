@@ -381,7 +381,7 @@ class BackGround(base.CWPySprite):
     def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs, redraw):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
         if not bginhrt:
-            self.image = pygame.Surface(cw.s(cw.SIZE_SCR)).convert()
+            self.image.fill((0, 0, 0))
 
         for type, d in blitlist:
             if type == BG_IMAGE:
