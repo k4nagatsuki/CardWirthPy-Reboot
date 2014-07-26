@@ -775,12 +775,17 @@ class CardEvent(Event):
         try:
             Event.run_exit(self)
 
+            cw.cwpy.event.set_inusecard(None)
             if cw.cwpy.is_playingscenario():
                 cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
 
             # エリアのキーコードイベント
             if isinstance(self.user, cw.sprite.card.PlayerCard):
                 self.run_areaevent()
+
+            if not isinstance(self.error, AreaChangeError):
+                # 通常のカード効果は全滅時でも選択メンバをクリアする
+                cw.cwpy.event.set_selectedmember(None)
 
             # カード効果
             self.effect_cardmotion()
@@ -856,10 +861,6 @@ class CardEvent(Event):
         # ターゲットが存在しない場合は処理中断
         if not self.targets:
             return
-
-        if not isinstance(self.error, AreaChangeError):
-            # 通常のカード効果は全滅時でも選択メンバをクリアする
-            cw.cwpy.event.set_selectedmember(None)
 
         # 各種データ取得
         data = self.inusecard.carddata
