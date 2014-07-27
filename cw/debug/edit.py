@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import math
 import wx
 import wx.lib.mixins.listctrl as listmix
 
@@ -117,11 +118,11 @@ class CouponEditDialog(wx.Dialog):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
-        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=5)
+        sizer_combo.Add(self.target, 1, wx.LEFT|wx.RIGHT|wx.EXPAND, border=3)
         sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
-        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
+        sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=3)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
-        sizer_left.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=5)
+        sizer_left.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=3)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
@@ -393,10 +394,16 @@ class CouponEditDialog(wx.Dialog):
                 break
             total += int(self.values.GetItem(index, 1).GetText())
 
+        level = int((-1 + math.sqrt(1 + 4 * max(1, total))) / 2.0) + 1
+        nextlevel = level + 1
+        nextpoint = nextlevel * (nextlevel-1) - total
+
+        s = u"%s点(レベル%s相当 レベル%sまで%s点)" % (total, level, nextlevel, nextpoint)
+
         if 2 <= len(indexes):
-            self.total.SetLabel(u"選択中の合計: %s点" % (total))
+            self.total.SetLabel(u"選択中の合計: %s" % (s))
         else:
-            self.total.SetLabel(u"合計: %s点" % (total))
+            self.total.SetLabel(u"合計: %s" % (s))
 
     def _set_name(self, index, oldname, newname):
         self.values.SetStringItem(index, 0, newname)
