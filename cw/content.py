@@ -46,7 +46,7 @@ class EventContentBase(object):
         if not cw.cwpy.is_playingscenario():
             return False
         inusecard = cw.cwpy.event.get_inusecard()
-        if not inusecard:
+        if not (inusecard and cw.cwpy.event.in_inusecardevent):
             return False
         return inusecard.scenario <> cw.cwpy.sdata.name or\
                inusecard.author <> cw.cwpy.sdata.author
@@ -2532,7 +2532,10 @@ class TalkMessageContent(TalkContent):
             if talkeriscard:
                 if not cw.binary.image.path_is_code(imgpath) and\
                         (not hasattr(talker, "scenariocard") or not talker.scenariocard):
-                    imgpath = cw.util.join_yadodir(imgpath)
+                    if talker.type == "ActionCard":
+                        imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG, system=True)
+                    else:
+                        imgpath = cw.util.join_yadodir(imgpath)
         elif imgpath:
             inusepath = cw.util.get_inusecardmaterialpath(imgpath, cw.M_IMG)
             if os.path.isfile(inusepath):

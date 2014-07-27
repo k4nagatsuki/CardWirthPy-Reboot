@@ -1014,12 +1014,13 @@ def get_inusecardmaterialpath(path, type, inusecard=None):
     素材を指していればそのパスを返す。
     そうでない場合は空文字列を返す。"""
     imgpath = ""
-    if inusecard or (cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard()):
-        if not inusecard:
-            inusecard = cw.cwpy.event.get_inusecard()
-        if not inusecard.carddata.getbool(".", "scenariocard", False):
-            imgpath = cw.util.join_yadodir(path)
-            imgpath = get_materialpathfromskin(imgpath, type)
+    if cw.cwpy.event.in_inusecardevent:
+        if inusecard or (cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard()):
+            if not inusecard:
+                inusecard = cw.cwpy.event.get_inusecard()
+            if not inusecard.carddata.getbool(".", "scenariocard", False):
+                imgpath = cw.util.join_yadodir(path)
+                imgpath = get_materialpathfromskin(imgpath, type)
     return imgpath
 
 def get_materialpath(path, type, scedir="", system=False):

@@ -29,6 +29,8 @@ class EventInterface(object):
 
         # カードイベントの実行中はTrue
         self.in_cardevent = False
+        # 使用時イベントの実行中はTrue
+        self.in_inusecardevent = False
 
     def get_selectedmembername(self):
         """選択中メンバの名前を返す。"""
@@ -98,6 +100,7 @@ class EventInterface(object):
 
     def clear(self):
         self.set_inusecard(None)
+        self.in_inusecardevent = False
         self.clear_events()
         self.nowrunningpacks = {}
         self._stoped = False
@@ -740,6 +743,7 @@ class CardEvent(Event):
             cw.cwpy.sdata.versionhint[cw.HINT_CARD] = self.inusecard.versionhint
 
         cw.cwpy.event.set_inusecard(self.inusecard)
+        cw.cwpy.event.in_inusecardevent = True
 
         data = self.inusecard.carddata
         if self.inusecard.type == "SkillCard":
@@ -775,7 +779,7 @@ class CardEvent(Event):
         try:
             Event.run_exit(self)
 
-            cw.cwpy.event.set_inusecard(None)
+            cw.cwpy.event.in_inusecardevent = False
             if cw.cwpy.is_playingscenario():
                 cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
 
