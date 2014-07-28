@@ -1685,13 +1685,16 @@ class CWPy(_Singleton, threading.Thread):
         対象消去が発生した場合や解散直後に適用。
         """
         for index, pcard in enumerate(self.get_pcards()):
-            assert not pcard.zoomimgs
             x = 9 + 95 * index + 9 * index
             y = pcard._pos_noscale[1]
             pcard.rect[0] = cw.s(x)
             pcard._rect[0] = cw.s(x)
             pcard.cardimg.rect[0] = cw.s(x)
             pcard._pos_noscale = (x, y)
+            for i, t in enumerate(pcard.zoomimgs):
+                img, rect = t
+                rect.center = pcard.rect.center
+                pcard.zoomimgs[i] = (img, rect)
 
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),

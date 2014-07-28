@@ -787,10 +787,6 @@ class CardEvent(Event):
             if isinstance(self.user, cw.sprite.card.PlayerCard):
                 self.run_areaevent()
 
-            if not isinstance(self.error, AreaChangeError):
-                # 通常のカード効果は全滅時でも選択メンバをクリアする
-                cw.cwpy.event.set_selectedmember(None)
-
             # カード効果
             self.effect_cardmotion()
 
@@ -942,6 +938,9 @@ class CardEvent(Event):
                     eff.apply(target)
                 cw.cwpy.draw()
 
+        if not isinstance(self.error, AreaChangeError):
+            # 通常のカード効果は全滅時でも選択メンバをクリアする
+            cw.cwpy.event.set_selectedmember(None)
         self.check_gameover()
 
 def main():
