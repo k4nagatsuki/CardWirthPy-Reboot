@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="41b521497465b62ebc1bc2bb6e41cc5d">1.20</Scenario><!-- はちみつ日和/Area3.wid -->
   <Scenario md5="fb1144ed2f3319350013572b01516dcd">1.28</Scenario><!-- カタパルト/Area1.wid -->
   <Scenario md5="b1c4de688855d56d5593361a3f985e98">1.28</Scenario><!-- ｶﾞﾙｩｯ！(ルゥガルゥ) -->
   <Scenario md5="399b5d1a72f65080008da552b9441359">1.20</Scenario><!-- ジョブの街 -->
