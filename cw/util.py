@@ -399,7 +399,10 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
         path = cw.cwpy.rsrc.get_filepath(path)
     try:
         if f:
-            image = pygame.image.load(f, path)
+            try:
+                image = pygame.image.load(f, "")
+            except:
+                image = pygame.image.load(f, path)
         elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
             #return pygame.Surface((0, 0)).convert()
