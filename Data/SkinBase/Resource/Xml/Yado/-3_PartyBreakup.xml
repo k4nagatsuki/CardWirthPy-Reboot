@@ -13,7 +13,7 @@
     </BgImage>
   </BgImages>
   <MenuCards spreadtype="Custom">
-    <LargeMenuCard>
+    <LargeMenuCard command="DissolveParty">
       <Property>
         <Name>解散</Name>
         <ImagePath>Resource/Image/Card/COMMAND10.bmp</ImagePath>
@@ -22,24 +22,7 @@
         <Location left="269" top="75" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="DissolveParty">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </LargeMenuCard>
   </MenuCards>
   <Events>

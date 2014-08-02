@@ -13,7 +13,7 @@
     </BgImage>
   </BgImages>
   <MenuCards spreadtype="Auto">
-    <LargeMenuCard>
+    <LargeMenuCard command="MoveCard" arg="BACKPACK">
       <Property>
         <Name>荷物袋</Name>
         <ImagePath>Resource/Image/Card/COMMAND7.bmp</ImagePath>
@@ -22,26 +22,9 @@
         <Location left="265" top="75" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="MoveCard" arg="BACKPACK">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </LargeMenuCard>
-    <LargeMenuCard debugOnly="True">
+    <LargeMenuCard debugOnly="True" command="MoveCard" arg="TRASHBOX">
       <Property>
         <Name>ごみ箱</Name>
         <ImagePath>Resource/Image/Card/TRUSH.bmp</ImagePath>
@@ -50,24 +33,7 @@
         <Location left="385" top="75" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="MoveCard" arg="TRASHBOX">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </LargeMenuCard>
   </MenuCards>
   <Events>

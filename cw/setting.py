@@ -7,6 +7,7 @@ import ctypes
 import math
 import md5
 import struct
+import shutil
 import wx
 import pygame
 from pygame.locals import *
@@ -403,8 +404,56 @@ class Setting(object):
                 me.attrib["cheerful"] = str(cheerful * 2)
                 me.attrib["trickish"] = str(trickish * 2)
 
+        if skinversion <= 5:
+            # dataVersion=5までは
+            # MenuCardにPostEventのパラメータを直接持たせる事はできなかった。
+            # dataVersion=6以降は単純なPostEvent実行のみのMenuCardは
+            # それ自体にcommandとargパラメータを持たせ、Eventsは空でよい。
+            update = True
+
+            # バックアップを作成
+            iver = skinversion
+            if iver % 1 == 0:
+                iver = int(iver)
+            for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
+                dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
+                shutil.copytree(dpath, "%s_v%s" % (dpath, iver))
+
+            for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
+                dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
+                for fname in os.listdir(dpath):
+                    ext = os.path.splitext(fname)[1].lower()
+                    if ext <> ".xml":
+                        continue
+                    fpath = cw.util.join_paths(dpath, fname)
+                    e = cw.data.xml2etree(fpath)
+                    updatemcards = False
+                    for me in e.getfind("MenuCards"):
+                        events = me.getfind("Events")
+                        if 1 <> len(events):
+                            continue
+                        ignum = events.gettext("Event/Ignitions/Number", "")
+                        igkeycode = events.gettext("Event/Ignitions/KeyCodes", "")
+                        if ignum <> "1" or igkeycode <> "":
+                            continue
+                        post = me.find("Events/Event/Contents/Start/Contents/Post")
+                        type = post.getattr(".", "type", "")
+                        if type <> "Event":
+                            continue
+                        command = post.getattr(".", "command", "")
+                        arg = post.getattr(".", "arg", "")
+                        if not command:
+                            continue
+                        me.attrib["command"] = command
+                        if arg:
+                            me.attrib["arg"] = arg
+                        events.clear()
+                        updatemcards = True
+                    if updatemcards:
+                        e.write()
+
         if update:
-            data.edit(".", "2", "dataVersion")
+            data.edit(".", "6", "dataVersion")
             data.write()
 
     def set_dealspeed(self, value):

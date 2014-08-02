@@ -477,6 +477,7 @@ class InfoCardsButton(StatusBarButton):
 
     def lclick_event(self):
         cw.cwpy.sounds["click"].play()
+        cw.cwpy.clear_selection()
         cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
 
 class SettingsButton(StatusBarButton):

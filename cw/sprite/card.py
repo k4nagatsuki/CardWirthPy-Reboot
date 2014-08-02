@@ -42,8 +42,34 @@ class CWPyCard(base.SelectableSprite):
         # Trueの間はカード消去で使用中カードをクリアしない
         self.hide_inusecardimg = True
 
+        # MenuCardの特殊コマンド
+        self.command = ""
+        self.arg = ""
+        # フラグ
+        self.flag = ""
+
     def is_initialized(self):
         return True
+
+    def is_flagtrue(self):
+        mcardflag = bool(cw.cwpy.sdata.flags.get(self.flag, True))
+        mcardflag &= bool(not self.debug_only or cw.cwpy.is_debugmode())
+        if mcardflag and self.command == "ShowDialog" and self.arg == "INFOVIEW":
+            mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards)
+        return mcardflag
+
+    @staticmethod
+    def is_flagtrue_static(data):
+        flag = data.gettext("Property/Flag", "")
+        mcardflag = bool(cw.cwpy.sdata.flags.get(flag, True))
+        if mcardflag:
+            debug_only = data.getbool(".", "debugOnly", False)
+            mcardflag &= bool(not debug_only or cw.cwpy.is_debugmode())
+        if mcardflag:
+            command = data.getattr(".", "command", "")
+            if command == "ShowDialog" and data.getattr(".", "arg", "") == "INFOVIEW":
+                mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards)
+        return mcardflag
 
     def get_unselectedimage(self):
         return self.get_animeimage()
@@ -953,6 +979,10 @@ class MenuCard(CWPyCard):
         self.author = ""
         self.scenario = ""
 
+        # システムカード用の特殊パラメータ
+        self.command = data.getattr(".", "command", "")
+        self.arg = data.getattr(".", "arg", "")
+
         # スケール
         if cw.cwpy.is_autospread():
             self.scale = 100
@@ -1033,12 +1063,18 @@ class MenuCard(CWPyCard):
         if not cw.cwpy.is_curtained():
             cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
-            self.events.start(keynum=1)
+            if self.command:
+                cw.content.PostEventContent.do_action(self.command, self.arg)
+            else:
+                self.events.start(keynum=1)
 
         # カード移動操作
         elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
-            self.events.start(keynum=1)
+            if self.command:
+                cw.content.PostEventContent.do_action(self.command, self.arg)
+            else:
+                self.events.start(keynum=1)
 
         # カード使用イベント
         elif cw.cwpy.selectedheader:
@@ -1061,7 +1097,10 @@ class MenuCard(CWPyCard):
             else:
                 cw.cwpy.sounds["click"].play()
             cw.animation.animate_sprite(self, "click")
-            self.events.start(keynum=1)
+            if self.command:
+                cw.content.PostEventContent.do_action(self.command, self.arg)
+            else:
+                self.events.start(keynum=1)
 
     def rclick_event(self):
         """右クリックイベント。"""

@@ -203,7 +203,7 @@ class EventList(wx.TreeCtrl):
             append(selitem, ee, data.getroot().tag)
 
         for ce in itertools.chain(data.getfind("MenuCards", False), data.getfind("EnemyCards", False)):
-            if self._showallcards or cw.cwpy.sdata.flags.get(ce.gettext("Property/Flag", u""), True):
+            if self._showallcards or cw.sprite.card.CWPyCard.is_flagtrue_static(ce):
                 item = self.AppendItem(selitem, ce.gettext("Property/Name", u""), self.imgidx_menucard)
                 for ee in ce.getfind("Events"):
                     append(item, ee, ce.tag)

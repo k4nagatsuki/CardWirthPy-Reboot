@@ -13,7 +13,7 @@
     </BgImage>
   </BgImages>
   <MenuCards spreadtype="Custom">
-    <LargeMenuCard>
+    <LargeMenuCard command="MoveCard" arg="STOREHOUSE">
       <Property>
         <Name>カード置場</Name>
         <ImagePath>Resource/Image/Card/COMMAND5.bmp</ImagePath>
@@ -22,26 +22,9 @@
         <Location left="120" top="75" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="MoveCard" arg="STOREHOUSE">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </LargeMenuCard>
-    <LargeMenuCard>
+    <LargeMenuCard command="MoveCard" arg="BACKPACK">
       <Property>
         <Name>荷物袋</Name>
         <ImagePath>Resource/Image/Card/COMMAND7.bmp</ImagePath>
@@ -50,26 +33,9 @@
         <Location left="220" top="75" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="MoveCard" arg="BACKPACK">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </LargeMenuCard>
-    <LargeMenuCard>
+    <LargeMenuCard command="MoveCard" arg="PAWNSHOP">
       <Property>
         <Name>売却</Name>
         <ImagePath>Resource/Image/Card/SHELF.bmp</ImagePath>
@@ -78,26 +44,9 @@
         <Location left="320" top="75" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="MoveCard" arg="PAWNSHOP">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </LargeMenuCard>
-    <LargeMenuCard>
+    <LargeMenuCard command="MoveCard" arg="TRASHBOX">
       <Property>
         <Name>ごみ箱</Name>
         <ImagePath>Resource/Image/Card/TRUSH.bmp</ImagePath>
@@ -106,24 +55,7 @@
         <Location left="420" top="75" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="MoveCard" arg="TRASHBOX">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </LargeMenuCard>
   </MenuCards>
   <Events>

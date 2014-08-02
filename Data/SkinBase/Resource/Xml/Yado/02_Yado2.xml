@@ -19,7 +19,7 @@
     </BgImage>
   </BgImages>
   <MenuCards spreadtype="Auto">
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="PLAYERSELECT">
       <Property>
         <Name>宿帳を開く</Name>
         <ImagePath>Resource/Image/Card/COMMAND2.bmp</ImagePath>
@@ -28,26 +28,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="PLAYERSELECT">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="ALBUM">
       <Property>
         <Name>アルバム</Name>
         <ImagePath>Resource/Image/Card/COMMAND3.bmp</ImagePath>
@@ -56,26 +39,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="ALBUM">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="PARTYSELECT">
       <Property>
         <Name>冒険の再開</Name>
         <ImagePath>Resource/Image/Card/COMMAND4.bmp</ImagePath>
@@ -84,26 +50,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="PARTYSELECT">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ChangeToSpecialArea" arg="-3">
       <Property>
         <Name>仲間を外す</Name>
         <ImagePath>Resource/Image/Card/COMMAND10.bmp</ImagePath>
@@ -112,26 +61,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ChangeToSpecialArea" arg="-3">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="SCENARIOSELECT">
       <Property>
         <Name>貼紙を見る</Name>
         <ImagePath>Resource/Image/Card/COMMAND6.bmp</ImagePath>
@@ -140,26 +72,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="SCENARIOSELECT">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="STOREHOUSE">
       <Property>
         <Name>カード置場</Name>
         <ImagePath>Resource/Image/Card/COMMAND5.bmp</ImagePath>
@@ -168,26 +83,9 @@
         <Location left="189" top="142" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="STOREHOUSE">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="BACKPACK">
       <Property>
         <Name>荷物袋</Name>
         <ImagePath>Resource/Image/Card/COMMAND7.bmp</ImagePath>
@@ -196,26 +94,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="BACKPACK">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="PARTYEDIT">
       <Property>
         <Name>パーティ情報</Name>
         <ImagePath>Resource/Image/Card/FATHER.bmp</ImagePath>
@@ -224,26 +105,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="PARTYEDIT">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="SAVE">
       <Property>
         <Name>セーブ</Name>
         <ImagePath>Resource/Image/Card/COMMAND11.bmp</ImagePath>
@@ -252,26 +116,9 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="SAVE">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="LoadParty">
       <Property>
         <Name>冒険の中断</Name>
         <ImagePath>Resource/Image/Card/COMMAND9.bmp</ImagePath>
@@ -280,24 +127,7 @@
         <Location left="0" top="0" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="LoadParty">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
   </MenuCards>
   <Events>

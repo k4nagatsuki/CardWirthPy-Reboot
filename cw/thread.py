@@ -403,6 +403,20 @@ class CWPy(_Singleton, threading.Thread):
 
         cw.data.redraw_cards(debug)
 
+    def update_infocard(self):
+        """デバッガ等から所有情報カードの変更を
+        行った際に呼び出される。
+        """
+        self.sdata.notice_infoview = True
+        showbuttons = not self.is_playingscenario() or\
+            (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP)
+        if self.is_battlestatus() and not self.battle.is_ready():
+            showbuttons = False
+        self.statusbar.change(showbuttons)
+
+        if self.areaid == cw.AREA_CAMP and self.is_playingscenario():
+            cw.data.redraw_cards(bool(cw.cwpy.sdata.infocards))
+
     def run(self):
         try:
             try:
@@ -1406,7 +1420,7 @@ class CWPy(_Singleton, threading.Thread):
         # エネミーカードは初期化されていない場合がある
         for mcard in mcardsinv:
             if isinstance(mcard, cw.sprite.card.EnemyCard):
-                if self.sdata.flags.get(mcard.flag, True):
+                if mcard.is_flagtrue():
                     mcard.initialize()
 
         # カード自動配置の配置位置を再設定する
@@ -1420,8 +1434,7 @@ class CWPy(_Singleton, threading.Thread):
 
         deals = []
         for mcard in mcardsinv:
-            if self.sdata.flags.get(mcard.flag, True) and\
-                    (not mcard.debug_only or self.is_debugmode()):
+            if mcard.is_flagtrue():
                 if quickdeal:
                     deals.append(mcard)
                 else:
@@ -1457,9 +1470,7 @@ class CWPy(_Singleton, threading.Thread):
         # メニューカードを下げる
         mcards = self.get_mcards("visible")
         for mcard in mcards:
-            if hideall or\
-                    not self.sdata.flags.get(mcard.flag, True) or\
-                    (mcard.debug_only and not self.is_debugmode()):
+            if hideall or not mcard.is_flagtrue():
                 if mcard.inusecardimg:
                     self.clear_inusecardimg(mcard)
                 if not quickhide:
@@ -1663,9 +1674,7 @@ class CWPy(_Singleton, threading.Thread):
 
             status2 = status
             if status2 <> "hidden":
-                flag = e.gettext("Property/Flag", "")
-                flagvalue = self.sdata.flags.get(flag, True)
-                if not flagvalue:
+                if not cw.sprite.card.CWPyCard.is_flagtrue_static(e):
                     status2 = "hidden"
 
             if e.tag == "EnemyCard":
@@ -1673,7 +1682,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 mcard = cw.sprite.card.MenuCard(e, pos_noscale, status2, addgroup)
 
-            if mcard.debug_only and not self.is_debugmode():
+            if not mcard.is_flagtrue():
                 mcard.status = "hidden"
 
             seq.append(mcard)
@@ -3078,8 +3087,7 @@ class CWPy(_Singleton, threading.Thread):
         elif mode == "flagtrue":
             mcards = [m for m in self.get_mcards()
                             if not isinstance(m, cw.character.Friend)
-                                    and (not m.debug_only or self.is_debugmode())
-                                    and self.sdata.flags.get(m.flag, True)]
+                                    and m.is_flagtrue()]
         else:
             mcards = self.mcardgrp.get_sprites_from_layer(0)
             mcards = [m for m in mcards

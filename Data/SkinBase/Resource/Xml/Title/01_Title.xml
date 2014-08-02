@@ -31,7 +31,7 @@
     </BgImage>
   </BgImages>
   <MenuCards spreadtype="Custom">
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="YADOSELECT">
       <Property>
         <Name>スタート</Name>
         <ImagePath>Resource/Image/Card/COMMAND0.bmp</ImagePath>
@@ -40,26 +40,9 @@
         <Location left="231" top="156" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="YADOSELECT">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
-    <MenuCard>
+    <MenuCard command="ShowDialog" arg="CLOSE">
       <Property>
         <Name>終了</Name>
         <ImagePath>Resource/Image/Card/COMMAND1.bmp</ImagePath>
@@ -68,24 +51,7 @@
         <Location left="316" top="156" />
         <Size scale="100%" />
       </Property>
-      <Events>
-        <Event>
-          <Ignitions>
-            <Number>1</Number>
-            <KeyCodes></KeyCodes>
-          </Ignitions>
-          <Contents>
-            <Start name="メニューイベント">
-              <Contents>
-                <Post type="Event" command="ShowDialog" arg="CLOSE">
-                  <Contents>
-                  </Contents>
-                </Post>
-              </Contents>
-            </Start>
-          </Contents>
-        </Event>
-      </Events>
+      <Events/>
     </MenuCard>
   </MenuCards>
   <Events>

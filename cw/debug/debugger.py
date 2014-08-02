@@ -622,6 +622,7 @@ class Debugger(wx.Frame):
                                 cw.cwpy.sdata.infos.iteritems() if key > 0]
             seq.sort()
             infoids = set([i.id for i in cw.cwpy.sdata.infocards])
+            oldids = infoids.copy()
             choices = []
             selections = []
 
@@ -654,6 +655,10 @@ class Debugger(wx.Frame):
 
                 for header in headers:
                     cw.cwpy.sdata.infocards.remove(header)
+
+                infoids = set([i.id for i in cw.cwpy.sdata.infocards])
+                if infoids <> oldids:
+                    cw.cwpy.exec_func(cw.cwpy.update_infocard)
 
             dlg.Destroy()
 
@@ -1272,6 +1277,7 @@ class EventTreeCtrl(wx.TreeCtrl):
     def __init__(self, parent):
         wx.TreeCtrl.__init__(
             self, parent, style=wx.TR_HIDE_ROOT|wx.TR_NO_BUTTONS)
+        self.SetDoubleBuffered(True)
         # 現在実行中のイベントツリーとイベント
         self.current_tree = None
         self.current_content = None
@@ -1358,6 +1364,8 @@ class EventTreeCtrl(wx.TreeCtrl):
             return
         nowrunning = cw.cwpy.event.get_nowrunningevent()
         if nowrunning is None:
+            self.DeleteAllItems()
+            self.activeitem = None
             return
 
         trees = nowrunning.trees
