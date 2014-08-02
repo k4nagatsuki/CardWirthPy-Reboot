@@ -51,6 +51,7 @@ class SystemData(object):
         self.steps = {}
         self.labels = {}
         self.ignorecase_table = {}
+        self.notice_infoview = False
         # refresh debugger
         self._init_debugger()
 
@@ -203,6 +204,7 @@ class SystemData(object):
             if not (pygame.event.peek(pygame.locals.USEREVENT)):
                 cw.cwpy.show_party()
                 cw.cwpy.disposition_pcards()
+                cw.cwpy.draw()
 
     def get_areaname(self):
         """現在滞在中のエリアの名前を返す"""
@@ -346,6 +348,9 @@ class ScenarioData(SystemData):
         self.friendcards = []
         # 情報カードのリスト(InfoCardHeader)
         self.infocards = []
+        # 情報カードを手に入れてから
+        # 情報カードビューを開くまでの間True
+        self.notice_infoview = False
         # flag set
         self._init_flags()
         # step set

@@ -21,6 +21,12 @@ class NoFontError(ValueError):
 WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ
 WHEEL_SHOWLOG   = "ShowLog"   # バックログを表示
 
+# ステータスバーのボタン状態
+SB_PRESSED = 0b0001 # 押下
+SB_CURRENT = 0b0010 # カーソル下
+SB_DISABLE = 0b0100 # 無効状態
+SB_NOTICE  = 0b1000 # 通知
+
 class Setting(object):
     def __init__(self):
         # フレームレート
@@ -474,17 +480,9 @@ class Resource(object):
         self._msuigothic = False
         # StatusBarで使用するボタンイメージ
         # wxスレッドから初期化
-        self._wxbtnbmp0 = self._create_statusbtnbmp(cw.s(120), cw.s(22), 0)
-        self._wxbtnbmp0pressed = self._create_statusbtnbmp(cw.s(120), cw.s(22), 1)
-        self._wxbtnbmp0current = self._create_statusbtnbmp(cw.s(120), cw.s(22), 2)
-        self._wxbtnbmp0pressedcurrent = self._create_statusbtnbmp(cw.s(120), cw.s(22), 3)
-        self._wxbtnbmp0disabled = self._create_statusbtnbmp(cw.s(120), cw.s(22), 4)
-        self._wxbtnbmp1 = self._create_statusbtnbmp(cw.s(27), cw.s(27), 0)
-        self._wxbtnbmp1pressed = self._create_statusbtnbmp(cw.s(27), cw.s(27), 1)
-        self._wxbtnbmp1current = self._create_statusbtnbmp(cw.s(27), cw.s(27), 2)
-        self._wxbtnbmp1pressedcurrent = self._create_statusbtnbmp(cw.s(27), cw.s(27), 3)
-        self._wxbtnbmp1disabled = self._create_statusbtnbmp(cw.s(27), cw.s(27), 4)
-        self._wxbtnbmp2 = self._create_statusbtnbmp(cw.s(632), cw.s(33), 0)
+        self._statusbtnbmp0 = {}
+        self._statusbtnbmp1 = {}
+        self._statusbtnbmp2 = {}
 
         self.ignorecase_table = {}
 
@@ -762,21 +760,21 @@ class Resource(object):
 
         bmp = pygame.Surface((w, h)).convert_alpha()
 
-        if flags == 4:
+        if flags & SB_DISABLE:
             r1 = g1 = b1 = 240
             bmp.fill((r1, g1, b1))
         else:
             # グラデーションとなるよう、全面に線を引く
             # (フラグによって明るさを変える)
-            if flags == 1:
-                r1 = g1 = b1 = 220
-                r2 = g2 = b2 = 208
-            elif flags == 2:
-                r1 = g1 = b1 = 255
-                r2 = g2 = b2 = 240
-            elif flags == 3:
+            if flags & SB_CURRENT & SB_PRESSED:
                 r1 = g1 = b1 = 228
                 r2 = g2 = b2 = 216
+            elif flags & SB_PRESSED:
+                r1 = g1 = b1 = 220
+                r2 = g2 = b2 = 208
+            elif flags & SB_CURRENT:
+                r1 = g1 = b1 = 255
+                r2 = g2 = b2 = 240
             else:
                 r1 = g1 = b1 = 255
                 r2 = g2 = b2 = 232
@@ -786,9 +784,9 @@ class Resource(object):
                 bmp.fill((r2-y, g2-y, b2-y), pygame.Rect(0, mid+y, w, 1))
 
         # 枠の部分。四隅には角丸の画像を描写する
-        if flags in (1, 3):
+        if flags & SB_PRESSED:
             # 押下済みの画像であれば上と左の縁を暗くする
-            if flags == 1:
+            if not (flags & SB_CURRENT):
                 subtract_corner(8)
                 color = (200, 200, 200)
             else:
@@ -798,7 +796,7 @@ class Resource(object):
             bmp.blit(topleft, (2, 3))
             bmp.blit(topright, (w-6-1, 3))
 
-            if flags == 1:
+            if not (flags & SB_CURRENT):
                 color = (192, 192, 192)
             else:
                 color = (200, 200, 200)
@@ -808,7 +806,7 @@ class Resource(object):
             bmp.blit(bottomleft, (2, h-6-1))
             subtract_corner(64)
             color = (128, 128, 128)
-        elif flags == 4:
+        elif flags & SB_DISABLE:
             subtract_corner(16)
             color = (192, 192, 192)
         else:
@@ -821,20 +819,7 @@ class Resource(object):
         bmp.blit(bottomleft, (1, h-6-1))
         bmp.blit(bottomright, (w-6-1, h-6-1))
 
-        # 枠の外の部分を透明にする
-        topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
-        topright = pygame.transform.flip(topleft, True, False)
-        bottomleft = pygame.transform.flip(topleft, False, True)
-        bottomright = pygame.transform.flip(topleft, True, True)
-
-        bmp.blit(topleft, (1, 1), special_flags=BLEND_RGBA_SUB)
-        bmp.blit(topright, (w-6-1, 1), special_flags=BLEND_RGBA_SUB)
-        bmp.blit(bottomleft, (1, h-6-1), special_flags=BLEND_RGBA_SUB)
-        bmp.blit(bottomright, (w-6-1, h-6-1), special_flags=BLEND_RGBA_SUB)
-
-        pygame.draw.rect(bmp, (0, 0, 0, 0), (0, 0, w, h), 1)
-
-        if flags in (0, 2):
+        if not (flags & SB_PRESSED):
             # ハイライトをつける
             linedata = struct.pack(
                "BBBB BBBB BBBB BBBB BBBB BBBB"
@@ -864,40 +849,55 @@ class Resource(object):
             bmp.blit(hl_bottomleft, (2, h-6-2))
             bmp.blit(hl_bottomright, (w-6-2, h-6-2))
 
+        if flags & SB_NOTICE:
+            if flags & SB_PRESSED:
+                bmp.fill((64, 0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+            else:
+                bmp.fill((128, 0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+
+        # 枠の外の部分を透明にする
+        topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
+        topright = pygame.transform.flip(topleft, True, False)
+        bottomleft = pygame.transform.flip(topleft, False, True)
+        bottomright = pygame.transform.flip(topleft, True, True)
+
+        bmp.blit(topleft, (1, 1), special_flags=BLEND_RGBA_SUB)
+        bmp.blit(topright, (w-6-1, 1), special_flags=BLEND_RGBA_SUB)
+        bmp.blit(bottomleft, (1, h-6-1), special_flags=BLEND_RGBA_SUB)
+        bmp.blit(bottomright, (w-6-1, h-6-1), special_flags=BLEND_RGBA_SUB)
+
+        pygame.draw.rect(bmp, (0, 0, 0, 0), (0, 0, w, h), 1)
+
         return bmp
 
     def get_statusbtnbmp(self, sizetype, flags=0):
         """StatusBarで使用するボタン画像を取得する。
         sizetype: 0=(120, 22), 1=(27, 27), 2=(632, 33)
-        flags: 0:通常, 1:押下時, 2:カーソル下, 3:押下かつカーソル下
-               sizetype=0または1の時のみ有効
+        flags: 0:通常, SB_PRESSED:押下時, SB_CURRENT:カーソル下,
+               SB_DISABLE:無効状態, SB_NOTICE:通知
+               |で組み合わせて指定する。
         """
+        btn = None
         if sizetype == 0:
-            if flags == 1:
-                return self._wxbtnbmp0pressed.copy()
-            elif flags == 2:
-                return self._wxbtnbmp0current.copy()
-            elif flags == 3:
-                return self._wxbtnbmp0pressedcurrent.copy()
-            elif flags == 4:
-                return self._wxbtnbmp0disabled.copy()
+            if flags in self._statusbtnbmp0:
+                btn = self._statusbtnbmp0[flags]
             else:
-                return self._wxbtnbmp0.copy()
+                btn = self._create_statusbtnbmp(cw.s(120), cw.s(22), flags)
+                self._statusbtnbmp0[flags] = btn
         elif sizetype == 1:
-            if flags == 1:
-                return self._wxbtnbmp1pressed.copy()
-            elif flags == 2:
-                return self._wxbtnbmp1current.copy()
-            elif flags == 3:
-                return self._wxbtnbmp1pressedcurrent.copy()
-            elif flags == 4:
-                return self._wxbtnbmp1disabled.copy()
+            if flags in self._statusbtnbmp1:
+                btn = self._statusbtnbmp1[flags]
             else:
-                return self._wxbtnbmp1.copy()
+                btn = self._create_statusbtnbmp(cw.s(27), cw.s(27), flags)
+                self._statusbtnbmp1[flags] = btn
         elif sizetype == 2:
-            return self._wxbtnbmp2.copy()
+            if flags in self._statusbtnbmp2:
+                btn = self._statusbtnbmp2[flags]
+            else:
+                btn = self._create_statusbtnbmp(cw.s(632), cw.s(33), flags)
+                self._statusbtnbmp2[flags] = btn
 
-        return None
+        return btn.copy() if btn else None
 
     def get_resources(self, func, dpath, ext, mask=False):
         """

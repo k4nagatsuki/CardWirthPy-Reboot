@@ -1479,6 +1479,12 @@ class InfoView(CardHolder):
     def __init__(self, parent):
         # ダイアログ作成
         CardHolder.__init__(self, parent, "INFOVIEW", None)
+        def func():
+            if cw.cwpy.sdata.notice_infoview:
+                cw.cwpy.sdata.notice_infoview = False
+                cw.cwpy.statusbar.change()
+                cw.cwpy.draw()
+        cw.cwpy.exec_func(func)
 
     def OnLeftUp(self, event):
         self.OnRightUp(event)

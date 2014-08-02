@@ -235,74 +235,80 @@ class RoundCounterPanel(YadoMoneyPanel):
 
 class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, sizetype=0,
-                 toggle=False, icon=None, enabled=True, is_pushed=False):
+                 toggle=False, icon=None, enabled=True, is_pushed=False,
+                 notice=False):
         base.SelectableSprite.__init__(self)
         # 各種データ
         self.name = name
+        self.sizetype = sizetype
         self.status = "normal"
         self.frame = 0
         self.is_pushed = is_pushed
         self.enabled = enabled
+        self.notice = notice
         # ボタン画像
-        if enabled:
-            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 0)
-            self.btnimg = bmp
-            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 1)
-            self.btnimg2 = bmp
-            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 2)
-            self.btnimg3 = bmp
-            bmp = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 3)
-            self.btnimg4 = bmp
-        else:
-            self.btnimg = cw.cwpy.rsrc.get_statusbtnbmp(sizetype, 4)
-            self.btnimg2 = self.btnimg
-            self.btnimg3 = self.btnimg
-            self.btnimg4 = self.btnimg
-        # rect
-        self.rect = self.btnimg.get_rect()
-        self.rect.top = parent.rect.top + pos[1]
-        self.rect.left = parent.rect.left + pos[0]
-        # image
-        if self.is_pushed:
-            self.image = self.btnimg2
-        else:
-            self.image = self.btnimg
-        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
+        self.btnimg = {}
 
         # ボタンアイコン・ラベル
         if icon:
-            image = icon
+            self.icon = icon
         else:
             font = cw.cwpy.rsrc.fonts["sbarbtn"]
-            image = font.render(name, True, (0, 0, 0))
+            self.icon = font.render(name, True, (0, 0, 0))
 
         if not self.enabled:
-            image = cw.imageretouch.to_disabledsurface(image)
+            self.icon = cw.imageretouch.to_disabledsurface(self.icon)
 
-        rect = image.get_rect()
-        rect.centerx = self.rect.centerx - self.rect.left
-        rect.centery = self.rect.centery - self.rect.top
-        self.btnimg.blit(image, rect.topleft)
-        if enabled:
-            self.btnimg3.blit(image, rect.topleft)
-            rect.top += 1
-            rect.left += 1
-            self.btnimg2.blit(image, rect.topleft)
-            self.btnimg4.blit(image, rect.topleft)
+        # image
+        self.image = self.get_unselectedimage()
+        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
+        # rect
+        self.rect = self.image.get_rect()
+        self.rect.top = parent.rect.top + pos[1]
+        self.rect.left = parent.rect.left + pos[0]
+
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="button")
 
-    def get_unselectedimage(self):
-        if self.is_pushed:
-            return self.btnimg2
+    def get_btnimg(self, flags):
+        if flags in self.btnimg:
+            return self.btnimg[flags]
         else:
-            return self.btnimg
+            bmp = cw.cwpy.rsrc.get_statusbtnbmp(self.sizetype, flags)
+            brect = bmp.get_rect()
+            rect = self.icon.get_rect()
+            rect.centerx = brect.centerx - brect.left
+            rect.centery = brect.centery - brect.top
+            if flags & cw.setting.SB_PRESSED:
+                rect.top += 1
+                rect.left += 1
+            bmp.blit(self.icon, rect.topleft)
+            self.btnimg[flags] = bmp
+            return bmp
+
+    def get_unselectedimage(self):
+        flags = 0
+        if self.enabled:
+            if self.is_pushed:
+                flags |= cw.setting.SB_PRESSED
+            if self.notice:
+                flags |= cw.setting.SB_NOTICE
+        else:
+            flags |= cw.setting.SB_DISABLE
+
+        return self.get_btnimg(flags)
 
     def get_selectedimage(self):
-        if self.is_pushed:
-            return self.btnimg4
+        flags = cw.setting.SB_CURRENT
+        if self.enabled:
+            if self.is_pushed:
+                flags |= cw.setting.SB_PRESSED
+            if self.notice:
+                flags |= cw.setting.SB_NOTICE
         else:
-            return self.btnimg3
+            flags |= cw.setting.SB_DISABLE
+
+        return self.get_btnimg(flags)
 
     def update(self, scr):
         method = getattr(self, "update_" + self.status, None)
@@ -334,15 +340,19 @@ class StatusBarButton(base.SelectableSprite):
         self.frame += 1
 
     def update_image(self):
-        if self.is_pushed:
-            if not self.image in (self.btnimg2, self.btnimg4):
-                cw.cwpy.has_inputevent = True
-                self.image = self.btnimg2
+        if not self.enabled:
+            return
 
-        else:
-            if not self.image in (self.btnimg, self.btnimg3):
-                cw.cwpy.has_inputevent = True
-                self.image = self.btnimg
+        flags = 0
+        if self.is_pushed:
+            flags |= cw.setting.SB_PRESSED
+        if self.is_selection():
+            flags |= cw.setting.SB_CURRENT
+            cw.cwpy.has_inputevent = True
+        if self.notice:
+            flags |= cw.setting.SB_NOTICE
+
+        self.image = self.get_btnimg(flags)
 
     def lclick_event(self):
         cw.animation.animate_sprite(self, "click")
@@ -352,8 +362,7 @@ class StatusBarButton(base.SelectableSprite):
 
 class CampButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True)
-        self.is_pushed = False
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True, is_pushed=False)
 
     def update(self, scr):
         self.update_selection()
@@ -377,18 +386,17 @@ class CampButton(StatusBarButton):
 
 class TableButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True)
-        self.is_pushed = True
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True, is_pushed=True)
 
     def update(self, scr):
         self.update_selection()
 
         if cw.cwpy.selection == self and cw.cwpy.mousein[0]:
             self.is_pushed = True
-        elif cw.cwpy.areaid >= 0:
-            self.is_pushed = True
-        else:
+        elif cw.cwpy.areaid in (-4, -5):
             self.is_pushed = False
+        else:
+            self.is_pushed = True
 
         self.update_image()
 
@@ -464,7 +472,8 @@ class InfoCardsButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.s(cw.cwpy.rsrc.pygamedebugs["INFOVIEW"])
         name = cw.cwpy.msgs["info_card"]
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
+        notice = cw.cwpy.sdata.notice_infoview
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, notice=notice)
 
     def lclick_event(self):
         cw.cwpy.sounds["click"].play()

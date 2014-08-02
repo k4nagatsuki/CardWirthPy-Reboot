@@ -1834,6 +1834,7 @@ class GetInfoContent(GetContent):
                 path = cw.cwpy.sdata.infos[id][1]
                 e = cw.data.xml2element(path, "Property")
                 header = cw.header.InfoCardHeader(e)
+                cw.cwpy.sdata.notice_infoview = True
 
             cw.cwpy.sdata.infocards.insert(0, header)
 
