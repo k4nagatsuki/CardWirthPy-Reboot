@@ -629,7 +629,8 @@ class Event(object):
 
         if not (isinstance(self.error, AreaChangeError) or\
                 isinstance(self.error, ScenarioBadEndError)) and\
-                cw.cwpy.status <> "Title":
+                cw.cwpy.status <> "Title" and\
+                not pygame.event.peek(pygame.locals.USEREVENT):
             cw.cwpy.show_party()
             cw.cwpy.disposition_pcards()
 
