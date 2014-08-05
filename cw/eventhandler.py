@@ -556,6 +556,10 @@ class EventHandlerForMessageWindow(EventHandler):
             cw.cwpy.has_inputevent = True
             sbar = cw.cwpy.list[cw.cwpy.index]
             sbar.lclick_event(skip=True)
+        elif isinstance(cw.cwpy.selection, cw.sprite.message.SelectionBar):
+            cw.cwpy.has_inputevent = True
+            sbar = cw.cwpy.selection
+            sbar.lclick_event(skip=True)
         elif not pushing and cw.cwpy.index >= 0:
             cw.cwpy.has_inputevent = True
             sbar = cw.cwpy.list[cw.cwpy.index]
