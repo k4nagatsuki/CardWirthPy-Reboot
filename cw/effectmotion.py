@@ -96,29 +96,7 @@ class Effect(object):
     def apply(self, target, event=False):
         if isinstance(target, Character) and self.check_enabledtarget(target, event):
             return self.apply_charactercard(target, event=event)
-        elif isinstance(target, cw.sprite.card.MenuCard):
-            return self.apply_menucard(target)
         else:
-            return False
-
-    def apply_menucard(self, target):
-        """
-        MenuCardインスタンスのキーコードイベントを発動させる。
-        """
-        cw.cwpy.play_sound(self.soundpath)
-        self.animate(target)
-        # MenuCardのキーコードイベント発動。発動しなかったら、無効音。
-        keycodes = self.inusecard.get_keycodes()
-        event = target.events.check_keycodes(keycodes)
-
-        if event:
-            lock = cw.cwpy.lock_menucards
-            cw.cwpy.lock_menucards = False
-            target.events.start(keycodes=keycodes)
-            cw.cwpy.lock_menucards = lock
-            return True
-        else:
-            cw.cwpy.sounds["ineffective"].play(True)
             return False
 
     def apply_charactercard(self, target, event=False):

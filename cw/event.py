@@ -629,8 +629,7 @@ class Event(object):
 
         if not (isinstance(self.error, AreaChangeError) or\
                 isinstance(self.error, ScenarioBadEndError)) and\
-                cw.cwpy.status <> "Title" and\
-                not pygame.event.peek(pygame.locals.USEREVENT):
+                cw.cwpy.status <> "Title":
             cw.cwpy.show_party()
             cw.cwpy.disposition_pcards()
 
@@ -844,6 +843,22 @@ class CardEvent(Event):
             cw.cwpy.event.set_selectedmember(self.user)
             target.events.start(1, isinsideevent=True)
 
+    def run_menucardevent(self, target):
+        """
+        MenuCardインスタンスのキーコードイベントを発動させる。
+        """
+        # MenuCardのキーコードイベント発動。発動しなかったら、無効音。
+        keycodes = self.inusecard.get_keycodes()
+        event = target.events.check_keycodes(keycodes)
+        if event:
+            lock = cw.cwpy.lock_menucards
+            cw.cwpy.lock_menucards = False
+            target.events.start(keycodes=keycodes)
+            cw.cwpy.lock_menucards = lock
+            self.error = event.error
+        else:
+            cw.cwpy.sounds["ineffective"].play(True)
+
     def run_successevent(self, target, successflag):
         if isinstance(target, Enemy):
             keycodes = []
@@ -935,7 +950,11 @@ class CardEvent(Event):
             else:
                 target.clear_cardtarget()
 
-                if d["target"] <> "None" or isinstance(target, cw.sprite.card.MenuCard):
+                if isinstance(target, cw.sprite.card.MenuCard):
+                    cw.cwpy.play_sound(eff.soundpath)
+                    eff.animate(target)
+                    self.run_menucardevent(target)
+                elif d["target"] <> "None":
                     eff.apply(target)
                 cw.cwpy.draw()
 
