@@ -1696,13 +1696,13 @@ class CWPy(_Singleton, threading.Thread):
         for index, pcard in enumerate(self.get_pcards()):
             x = 9 + 95 * index + 9 * index
             y = pcard._pos_noscale[1]
-            pcard.rect[0] = cw.s(x)
             pcard._rect[0] = cw.s(x)
+            pcard.rect.center = pcard._rect.center
             pcard.cardimg.rect[0] = cw.s(x)
             pcard._pos_noscale = (x, y)
             for i, t in enumerate(pcard.zoomimgs):
                 img, rect = t
-                rect.center = pcard.rect.center
+                rect.center = pcard._rect.center
                 pcard.zoomimgs[i] = (img, rect)
 
     def change_area(self, areaid, eventstarting=True,
