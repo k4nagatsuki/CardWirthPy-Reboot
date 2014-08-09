@@ -1365,6 +1365,7 @@ class EventTreeCtrl(wx.TreeCtrl):
         nowrunning = cw.cwpy.event.get_nowrunningevent()
         if nowrunning is None:
             self.DeleteAllItems()
+            self.items = {}
             self.activeitem = None
             return
 
