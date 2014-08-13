@@ -400,17 +400,21 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
     try:
         if f:
             try:
+                ispng = get_imageext(f.read(16)) == ".png"
+                f.seek(0)
                 image = pygame.image.load(f, "")
             except:
                 image = pygame.image.load(f, path)
         elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
+            ispng = get_imageext(data) == ".png"
             #return pygame.Surface((0, 0)).convert()
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
+            ispng = os.path.splitext(path)[1].lower() == ".png"
             with io.BufferedReader(io.FileIO(path)) as f2:
                 image = pygame.image.load(f2)
     except:
@@ -443,7 +447,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
         image = image.convert()
 
         # PNGの場合はマスクカラーを無視する(CardWirth 1.50の実装)
-        if image.get_colorkey() and os.path.splitext(path)[1].lower() == ".png":
+        if image.get_colorkey() and ispng:
             image.set_colorkey(None)
 
         # GIFなどアルファチャンネルを持たない透過画像を読み込んだ場合は
