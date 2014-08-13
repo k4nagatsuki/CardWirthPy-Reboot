@@ -400,8 +400,9 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
     try:
         if f:
             try:
+                pos = f.tell()
                 ispng = get_imageext(f.read(16)) == ".png"
-                f.seek(0)
+                f.seek(pos)
                 image = pygame.image.load(f, "")
             except:
                 image = pygame.image.load(f, path)
