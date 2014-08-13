@@ -1518,6 +1518,7 @@ class YadoData(object):
         thr.start()
 
         cw.cwpy.clear_selection()
+        cw.cwpy.draw()
         self._changed = False
 
     #---------------------------------------------------------------------------
