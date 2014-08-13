@@ -2642,6 +2642,9 @@ class ScenarioSelect(Select):
                             self.tree.SelectItem(item)
 
             recurse(self.tree.root)
+            item = self.tree.GetSelection()
+            if item and not self.tree.IsVisible(item):
+                self.tree.ScrollTo(item)
         else:
             self.list = self.scetable[self.nowdir]
             self.list = self._narrow_scenario(self.list)

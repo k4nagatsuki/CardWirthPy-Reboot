@@ -903,6 +903,7 @@ class Resource(object):
                 bmp.fill((64, 0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
             else:
                 bmp.fill((128, 0, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+            bmp.fill((0, 96, 96, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
 
         # 枠の外の部分を透明にする
         topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
