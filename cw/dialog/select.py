@@ -2342,6 +2342,7 @@ class ScenarioSelect(Select):
         if self.tree.IsShown():
             self.tree.Hide()
             self.toppanel.Show()
+            self.draw(True)
         else:
             self.show_tree()
             self.toppanel.Hide()
