@@ -2712,7 +2712,9 @@ class CWPy(_Singleton, threading.Thread):
                 etree = cw.data.xml2etree(element=header.carddata)
                 etree.edit("Property", "2", "moved")
                 header.moved = 2
+                header.set_owner("BACKPACK")
                 header.write(party=party)
+                header.set_owner(None)
                 self.ydata.party.backpack_moved.append(header)
 
         #-----------------------------------------------------------------------
