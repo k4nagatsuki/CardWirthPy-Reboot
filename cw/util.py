@@ -442,6 +442,10 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
         imageb = image
         image = image.convert()
 
+        # PNGの場合はマスクカラーを無視する(CardWirth 1.50の実装)
+        if image.get_colorkey() and os.path.splitext(path)[1].lower() == ".png":
+            image.set_colorkey(None)
+
         # GIFなどアルファチャンネルを持たない透過画像を読み込んだ場合は
         # すでにマスクカラーが指定されているので注意
         if mask and image.get_colorkey():
