@@ -374,6 +374,7 @@ def read_summary(basepath):
     try:
         z = cw.util.zip_file(path, "r")
     except:
+        cw.util.print_ex()
         return None
 
     names = z.namelist()

@@ -1174,14 +1174,35 @@ def rename_file(path, dstpath):
 
 class _LhafileWrapper(lhafile.Lhafile):
     def __init__(self, path, mode):
-        lhafile.Lhafile.__init__(self, path)
+        # 十六進数のファイルサイズを表す文字列+Windows改行コードが
+        # 冒頭に入っていることがある。
+        # その場合は末尾にも余計なデータもあるため、冒頭で指定された
+        # サイズにファイルを切り詰めなくてはならない。
+        f = open(path, "rb")
+        b = str(f.read(1))
+        strnum = []
+        while b in ("0123456789abcdefABCDEF"):
+            strnum.append(b)
+            b = str(f.read(1))
+        if strnum and b == '\r' and f.read(1) == '\n':
+            strnum = "".join(strnum)
+            num = int(strnum, 16)
+            data = f.read(num)
+            f.close()
+            f = io.BytesIO(data)
+            lhafile.Lhafile.__init__(self, f)
+            self.f = f
+        else:
+            f.seek(0)
+            lhafile.Lhafile.__init__(self, f)
+            self.f = f
 
     def __enter__(self):
         return self
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        self.close()
     def close(self):
-        pass
+        self.f.close()
 
 def zip_file(path, mode):
     """zipfile.ZipFileのインスタンスを生成する。
