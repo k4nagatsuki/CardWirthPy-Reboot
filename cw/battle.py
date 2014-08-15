@@ -311,7 +311,7 @@ class BattleEngine(object):
         cw.cwpy.sdata.reset_fcards()
 
         self._running = False
-        if runevent:
+        if runevent and not cw.cwpy.is_forcegameover():
             event = cw.cwpy.sdata.events.check_keynum(3)
         else:
             event = None

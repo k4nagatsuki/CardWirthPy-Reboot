@@ -1629,6 +1629,7 @@ class EndBadEndContent(EventContentBase):
         """シナリオ終了コンテント。
         ゲームオーバ画面に遷移する。
         """
+        cw.cwpy.set_gameoverstatus(True)
         cw.cwpy.exec_func(cw.cwpy.set_gameover)
         raise cw.event.ScenarioBadEndError()
 

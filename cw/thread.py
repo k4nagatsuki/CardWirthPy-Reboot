@@ -92,6 +92,7 @@ class CWPy(_Singleton, threading.Thread):
         self._autospread = True
         # ゲームオーバフラグ(イベント終了処理時にチェック)
         self._gameover = False
+        self._forcegameover = False
         # 現在選択中スプライト(SelectableSprite)
         self.selection = None
         # Trueの間は選択中のスプライトのクリックを行えない
@@ -1140,6 +1141,7 @@ class CWPy(_Singleton, threading.Thread):
         """ゲームオーバー画面へ遷移。"""
         self.set_status("GameOver")
         self._gameover = False
+        self._forcegameover = False
         self.battle = None
         self.card_takenouttemporarily = None
         pygame.event.clear()
@@ -1153,6 +1155,13 @@ class CWPy(_Singleton, threading.Thread):
         self.set_titlebar(s)
         self.statusbar.change()
         self.change_area(1)
+
+    def set_gameoverstatus(self, gameover):
+        """パーティの状態に係わらず
+        現状のゲームオーバー状態を設定する。
+        """
+        self._gameover = gameover
+        self._forcegameover = gameover
 
     def f9(self, load_failure=False):
         """cw.data.ScenarioDataのf9()から呼び出され、
@@ -3023,7 +3032,7 @@ class CWPy(_Singleton, threading.Thread):
         return self._autospread
 
     def is_gameover(self):
-        if self.is_playingscenario():
+        if self.is_playingscenario() and not self._forcegameover:
             self._gameover = True
             pcards = self.get_pcards("unreversed")
             for pcard in pcards:
@@ -3033,6 +3042,9 @@ class CWPy(_Singleton, threading.Thread):
             self._gameover |= not bool(pcards)
 
         return self._gameover
+
+    def is_forcegameover(self):
+        return self._forcegameover
 
     def is_showingmessage(self):
         return bool(self.get_messagewindow())
