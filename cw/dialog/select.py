@@ -2604,6 +2604,9 @@ class ScenarioSelect(Select):
         return header.name in self.stamps
 
     def is_invisible(self, header):
+        if not header.coupons:
+            return False
+
         num = 0
 
         for coupon in header.coupons.splitlines():

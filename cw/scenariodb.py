@@ -112,7 +112,6 @@ class Scenariodb(object):
     @synclock(_lock)
     def update(self, dpath=u"Scenario"):
         """データベースを更新する。"""
-        cw.util.t_start()
         s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (cw.util.get_linktarget(dpath),))
         data = self.cur.fetchall()
