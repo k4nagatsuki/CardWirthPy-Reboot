@@ -282,7 +282,11 @@ class StatusBarButton(base.SelectableSprite):
             if flags & cw.setting.SB_PRESSED:
                 rect.top += 1
                 rect.left += 1
-            bmp.blit(self.icon, rect.topleft)
+            icon = self.icon
+            if flags & cw.setting.SB_NOTICE:
+                icon = icon.convert_alpha()
+                icon.fill((0, 0, 0, 96), special_flags=pygame.locals.BLEND_RGBA_SUB)
+            bmp.blit(icon, rect.topleft)
             self.btnimg[flags] = bmp
             return bmp
 
