@@ -2051,7 +2051,7 @@ class ScenarioSelect(Select):
                     path = cw.util.get_linktarget(path)
                 header = self.db.get_header(path)
                 if header:
-                    item = wx.MenuItem(menu, -1, header.name)
+                    item = wx.MenuItem(menu, -1, header.name.replace("&", "&&"))
                     item.SetFont(font)
                     if self.is_playing(header):
                         item.SetBitmap(icon_playing)
@@ -2066,7 +2066,7 @@ class ScenarioSelect(Select):
                         sp = os.path.splitext(p)
                         if sp[1].lower() == ".lnk":
                             p = sp[0]
-                    item = wx.MenuItem(menu, -1, p)
+                    item = wx.MenuItem(menu, -1, p.replace("&", "&&"))
                     item.SetFont(font)
                     item.SetBitmap(icon_dir)
 
