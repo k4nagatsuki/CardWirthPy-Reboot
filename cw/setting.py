@@ -100,6 +100,9 @@ class Setting(object):
             self.scenario_narrow = ""
             self.scenario_narrowtype = 0
             self.scenario_sorttype = 0
+            self.ssinfoformat = "[%scenario% - ][%party% at ]%yado%"
+            self.ssinfofontcolor = (0, 0, 0, 255)
+            self.ssinfobackcolor = (255, 255, 255, 255)
             self.write()
 
         self.data = cw.data.xml2etree("Settings.xml")
@@ -271,6 +274,18 @@ class Setting(object):
         self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", 2)
         # フルスクリーン時の背景ファイル
         self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", u"Resource/Image/Dialog/PAD")
+
+        # スクリーンショット情報
+        self.ssinfoformat = data.gettext("ScreenShotInformationFormat", "[%scenario% - ][%party% at ]%yado%")
+        # スクリーンショット情報の色
+        r = data.getint("ScreenShotInformationFontColor", "red", 0)
+        g = data.getint("ScreenShotInformationFontColor", "green", 0)
+        b = data.getint("ScreenShotInformationFontColor", "blue", 0)
+        self.ssinfofontcolor = (r, g, b, 255)
+        r = data.getint("ScreenShotInformationBackgroundColor", "red", 255)
+        g = data.getint("ScreenShotInformationBackgroundColor", "green", 255)
+        b = data.getint("ScreenShotInformationBackgroundColor", "blue", 255)
+        self.ssinfobackcolor = (r, g, b, 255)
 
         # スキン
         self.skindirname = data.gettext("Skin", "Classic")
@@ -735,6 +750,8 @@ class Resource(object):
         font = pygame.font.Font(self.fontpaths["mincho"], cw.s(8))
         font.set_bold(True)
         fonts["statusimg3"] = font
+        font = pygame.font.Font(self.fontpaths["pgothic"], cw.s(18))
+        fonts["screenshot"] = font
         return fonts
 
     def create_wxbutton(self, parent, id, size, name=None, bmp=None):

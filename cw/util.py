@@ -905,7 +905,27 @@ def screenshot():
     cw.cwpy.sounds["screenshot"].play()
 
     filename = os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
-    pygame.image.save(cw.cwpy.scr_draw, filename)
+    title = format_title(cw.cwpy.setting.ssinfoformat, cw.cwpy.get_titledic())
+    if title:
+        fore = cw.cwpy.setting.ssinfofontcolor
+        back = cw.cwpy.setting.ssinfobackcolor
+        w = cw.s(cw.SIZE_AREA[0])
+        h = cw.s(cw.SIZE_AREA[1] + 20)
+        bmp = pygame.Surface((w, h)).convert()
+        bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, cw.s(20)))
+        bmp.blit(cw.cwpy.scr_draw, cw.s((0, 20)))
+        font = cw.cwpy.rsrc.fonts["screenshot"]
+        fh = font.get_height()
+        subimg = font.render(title, True, fore)
+        y = (cw.s(20) - fh) / 2
+        swmax = w - cw.s(10)*2
+        if swmax < subimg.get_width():
+            size = (swmax, subimg.get_height())
+            subimg = pygame.transform.smoothscale(subimg, size)
+        bmp.blit(subimg, (cw.s(10), y))
+    else:
+        bmp = cw.cwpy.scr_draw
+    pygame.image.save(bmp, filename)
 
     return
 
@@ -1613,6 +1633,74 @@ def get_char(s, index):
         return ""
     except:
         return ""
+
+def format_title(format, d):
+    """foobar2000の任意フォーマット文字列のような形式で
+    文字列の構築を行う。
+     * %%で囲われた文字列は変数となり、辞書dから得られる値に置換される。
+     * []で囲われた文字列は、その内側で使用された変数がなければ丸ごと無視される。
+     * \の次の文字列は常に通常文字となる。
+
+    例えば次のようになる:
+        d = { "application":"CardWirthPy", "skin":"スキン名", "yado":"宿名" }
+        s = format_title("%application% %skin%[ - %yado%[ %scenario%]]", d)
+        assert s == "CardWirthPy スキン名 - 宿名"
+    """
+    class _FormatPart(object):
+        """フォーマット内の変数。"""
+        def __init__(self, name):
+            self.name = name
+
+    def eat_parts(format, subsection):
+        """formatを文字列とFormatPartのリストに分解。
+        []で囲われた部分はサブリストとする。
+        """
+        list = []
+        bs = False
+        while format:
+            c = format[0]
+            format = format[1:]
+            if bs:
+                list.append(c)
+                bs = False
+            elif c == "\\":
+                bs = True
+            elif c == "]" and subsection:
+                return format, list
+            elif c == "%":
+                ci = format.find("%")
+                if ci <> -1:
+                    list.append(_FormatPart(format[:ci]))
+                    format = format[ci+1:]
+            elif c == "[":
+                format, list2 = eat_parts(format, True)
+                list.append(list2)
+            else:
+                list.append(c)
+        return format, list
+
+    format, l = eat_parts(format, False)
+    assert not format
+    def do_format(l):
+        """フォーマットを実行する。"""
+        seq = []
+        use = False
+        for sec in l:
+            if isinstance(sec, _FormatPart):
+                name = d.get(sec.name, "")
+                if name:
+                    seq.append(name)
+                    use = True
+            elif isinstance(sec, list):
+                str, use2 = do_format(sec)
+                if use2:
+                    seq.append(str)
+                    use = True
+            else:
+                seq.append(sec)
+        return "".join(seq), use
+
+    return do_format(l)[0]
 
 #-------------------------------------------------------------------------------
 # wx汎用関数

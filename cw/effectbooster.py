@@ -732,9 +732,7 @@ class JpdcImage(cw.image.Image):
                 pygame.image.save(saveimage, path.encode(encoding))
             cw.cwpy.draw()
             self.wait()
-            s = "%s %s - %s %s" % (cw.APP_NAME, cw.cwpy.setting.skinname,
-                    os.path.basename(cw.cwpy.yadodir), cw.cwpy.sdata.name)
-            cw.cwpy.set_titlebar(s)
+            cw.cwpy.update_titlebar()
 
     def wait(self):
         # 右クリックするまで待機

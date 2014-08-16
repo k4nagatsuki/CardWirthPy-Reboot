@@ -38,6 +38,7 @@ class CWPy(_Singleton, threading.Thread):
             self.rsrc = None
             self.frame = frame   # 親フレーム
             self.sct = cw.setting.ScenarioCompatibilityTable() # 互換性データベース
+            self.ydata = None
             self._running = False
             self.init_pygame(setting)
 
@@ -45,6 +46,7 @@ class CWPy(_Singleton, threading.Thread):
         """使用変数等はここ参照。"""
         self.setting = setting  # 設定
         self.status = "Title"
+        self.update_titlebar()
         self.expand_mode = setting.expandmode
         self.is_processing = False
 
@@ -279,20 +281,25 @@ class CWPy(_Singleton, threading.Thread):
             self.music.play(self.music.path, updatepredata=False)
 
     def update_titlebar(self):
-        if self.status == "Title":
-            s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
-        elif self.status == "Yado":
-            s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-            s += self.ydata.name
-        elif self.status.startswith("Scenario"):
-            s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-            s += "%s %s" % (self.ydata.name, self.sdata.name)
-        elif self.status == "GameOver":
-            s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-            s += os.path.basename(self.yadodir)
-        else:
-            s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
-        self.set_titlebar(s)
+        """タイトルバー文字列を更新する。"""
+        self.set_titlebar(self.create_title())
+
+    def create_title(self):
+        """タイトルバー文字列を生成する。"""
+        s = "%application% %skin%[ - %yado%[ %scenario%]]"
+        d = self.get_titledic()
+        return cw.util.format_title(s, d)
+
+    def get_titledic(self):
+        """タイトルバー文字列生成用の情報を辞書で取得する。"""
+        d = { "application":cw.APP_NAME, "skin":self.setting.skinname }
+        if self.ydata:
+            d["yado"] = self.ydata.name
+            if self.ydata.party:
+                d["party"] = self.ydata.party.name
+        if self.status.startswith("Scenario"):
+            d["scenario"] = self.sdata.name
+        return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False):
         """画面の表示倍率を変更する。
@@ -1056,8 +1063,7 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.lastscenario = []
         self.ydata = None
         self.sdata = cw.data.SystemData()
-        s = "%s %s" % (cw.APP_NAME, self.setting.skinname)
-        self.set_titlebar(s)
+        self.update_titlebar()
         self.statusbar.change()
         self.change_area(1, ttype=ttype)
 
@@ -1065,9 +1071,7 @@ class CWPy(_Singleton, threading.Thread):
         """宿画面へ遷移。"""
         self.set_status("Yado")
         self.sdata = cw.data.SystemData()
-        s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-        s += self.ydata.name
-        self.set_titlebar(s)
+        self.update_titlebar()
         # 冒険の中断やF9時のためにカーテン消去
         self.clear_curtain()
         self.statusbar.change()
@@ -1103,9 +1107,7 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata = cw.data.ScenarioData(header)
             loaded, musicpath = self.sdata.set_log()
             self.sdata.start()
-            s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-            s += "%s %s" % (self.ydata.name, self.sdata.name)
-            self.set_titlebar(s)
+            self.update_titlebar()
             areaid = self.sdata.startid
             if lastscenario:
                 self.ydata.party.set_lastscenario(lastscenario)
@@ -1150,9 +1152,7 @@ class CWPy(_Singleton, threading.Thread):
         self.sdata.end()
         self.ydata.load_party(None)
         self.sdata = cw.data.SystemData()
-        s = "%s %s - " % (cw.APP_NAME, self.setting.skinname)
-        s += os.path.basename(self.yadodir)
-        self.set_titlebar(s)
+        self.update_titlebar()
         self.statusbar.change()
         self.change_area(1)
 

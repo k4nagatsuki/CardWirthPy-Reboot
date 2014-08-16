@@ -325,6 +325,23 @@ def create_settings(setting):
     e = cw.data.make_element("ScenarioSortType", str(setting.scenario_sorttype))
     element.append(e)
 
+    # スクリーンショット情報
+    e = cw.data.make_element("ScreenShotInformationFormat", setting.ssinfoformat)
+    element.append(e)
+    # スクリーンショット情報の色
+    d = {"red": str(setting.ssinfofontcolor[0]),
+         "green": str(setting.ssinfofontcolor[1]),
+         "blue": str(setting.ssinfofontcolor[2])
+         }
+    e = cw.data.make_element("ScreenShotInformationFontColor", "", d)
+    element.append(e)
+    d = {"red": str(setting.ssinfobackcolor[0]),
+         "green": str(setting.ssinfobackcolor[1]),
+         "blue": str(setting.ssinfobackcolor[2])
+         }
+    e = cw.data.make_element("ScreenShotInformationBackgroundColor", "", d)
+    element.append(e)
+
     # ファイル書き込み
     path = "Settings.xml"
     etree = cw.data.xml2etree(element=element)

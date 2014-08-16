@@ -51,6 +51,8 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.cb_autosavepartyrecord.SetValue(True)
             self.pane_gene.cb_overwritepartyrecord.SetValue(True)
             self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
+            self.pane_gene.tx_ssinfoformat.SetValue("[%scenario% - ][%party% at ]%yado%")
+            self.pane_gene.ch_ssinfocolor.Select(0)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
             self.pane_draw.sl_deal.SetValue(6)
@@ -120,6 +122,15 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.autosave_partyrecord = value
         value = self.pane_gene.cb_overwritepartyrecord.GetValue()
         cw.cwpy.setting.overwrite_partyrecord = value
+        value = self.pane_gene.tx_ssinfoformat.GetValue()
+        cw.cwpy.setting.ssinfoformat = value
+        value = self.pane_gene.ch_ssinfocolor.GetSelection()
+        if value == 1:
+            cw.cwpy.setting.ssinfofontcolor = (255, 255, 255)
+            cw.cwpy.setting.ssinfobackcolor = (0, 0, 0)
+        else:
+            cw.cwpy.setting.ssinfofontcolor = (0, 0, 0)
+            cw.cwpy.setting.ssinfobackcolor = (255, 255, 255)
 
         # 拡大倍率
         value = self.pane_gene.cb_smoothexpand.GetValue()
@@ -432,6 +443,24 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord)
         self.cb_overwritepartyrecord.Enable(cw.cwpy.setting.autosave_partyrecord)
 
+        # スクリーンショット情報
+        self.box_ss = wx.StaticBox(self, -1, u"スクリーンショット情報(画像上部に表示)")
+        self.tx_ssinfoformat = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat)
+        # スクリーンショット情報の色
+        choices = [u"黒文字", u"白文字"]
+        self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
+        if cw.cwpy.setting.ssinfofontcolor[:3] == (255, 255, 255):
+            self.ch_ssinfocolor.Select(1)
+        else:
+            self.ch_ssinfocolor.Select(0)
+
+        self.st_ssinfodesc = wx.StaticText(self, -1,
+                                           u"次の各情報を表示できます:\n" +
+                                           u" %application% = ソフト名, %skin% = スキン名,\n" +
+                                           u" %yado% = 拠点名, %party% = パーティ名,\n" +
+                                           u" %scenario% = シナリオ名")
+
         self._do_layout()
         self._bind()
 
@@ -592,11 +621,19 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_party.Add(self.cb_autosavepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_party.Add(self.cb_overwritepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
+        bsizer_ss = wx.StaticBoxSizer(self.box_ss, wx.VERTICAL)
+        bsizer_ssl = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_ssl.Add(self.tx_ssinfoformat, 1, wx.RIGHT|wx.CENTER, 3)
+        bsizer_ssl.Add(self.ch_ssinfocolor, 0, wx.CENTER, 3)
+        bsizer_ss.Add(bsizer_ssl, 0, wx.ALL|wx.EXPAND, 3)
+        bsizer_ss.Add(self.st_ssinfodesc, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_skin, 1, wx.EXPAND, 3)
 
         sizer_right.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_party, 0, wx.EXPAND, 0)
+        sizer_right.Add(bsizer_party, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_ss, 0, wx.EXPAND, 0)
 
         sizer_h1.Add(sizer_left, 0, wx.RIGHT|wx.EXPAND, 5)
         sizer_h1.Add(sizer_right, 1, wx.EXPAND, 3)
