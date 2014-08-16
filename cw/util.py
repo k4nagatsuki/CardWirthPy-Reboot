@@ -909,8 +909,8 @@ def screenshot():
     if title:
         fore = cw.cwpy.setting.ssinfofontcolor
         back = cw.cwpy.setting.ssinfobackcolor
-        w = cw.s(cw.SIZE_AREA[0])
-        h = cw.s(cw.SIZE_AREA[1] + 20)
+        w = cw.s(cw.SIZE_GAME[0])
+        h = cw.s(cw.SIZE_GAME[1] + 20)
         bmp = pygame.Surface((w, h)).convert()
         bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, cw.s(20)))
         bmp.blit(cw.cwpy.scr_draw, cw.s((0, 20)))

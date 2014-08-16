@@ -100,7 +100,7 @@ class Setting(object):
             self.scenario_narrow = ""
             self.scenario_narrowtype = 0
             self.scenario_sorttype = 0
-            self.ssinfoformat = "[%scenario% - ][%party% at ]%yado%"
+            self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
             self.ssinfofontcolor = (0, 0, 0, 255)
             self.ssinfobackcolor = (255, 255, 255, 255)
             self.write()
@@ -276,7 +276,7 @@ class Setting(object):
         self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", u"Resource/Image/Dialog/PAD")
 
         # スクリーンショット情報
-        self.ssinfoformat = data.gettext("ScreenShotInformationFormat", "[%scenario% - ][%party% at ]%yado%")
+        self.ssinfoformat = data.gettext("ScreenShotInformationFormat", "[%scenario%[(%author%)] - ][%party% at ]%yado%")
         # スクリーンショット情報の色
         r = data.getint("ScreenShotInformationFontColor", "red", 0)
         g = data.getint("ScreenShotInformationFontColor", "green", 0)

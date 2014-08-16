@@ -51,7 +51,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.cb_autosavepartyrecord.SetValue(True)
             self.pane_gene.cb_overwritepartyrecord.SetValue(True)
             self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
-            self.pane_gene.tx_ssinfoformat.SetValue("[%scenario% - ][%party% at ]%yado%")
+            self.pane_gene.tx_ssinfoformat.SetValue("[%scenario%[(%author%)] - ][%party% at ]%yado%")
             self.pane_gene.ch_ssinfocolor.Select(0)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(False)
@@ -459,7 +459,7 @@ class GeneralSettingPanel(wx.Panel):
                                            u"次の各情報を表示できます:\n" +
                                            u" %application% = ソフト名, %skin% = スキン名,\n" +
                                            u" %yado% = 拠点名, %party% = パーティ名,\n" +
-                                           u" %scenario% = シナリオ名")
+                                           u" %scenario% = シナリオ名, %author% = 作者名")
 
         self._do_layout()
         self._bind()

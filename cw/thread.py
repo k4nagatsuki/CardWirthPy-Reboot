@@ -299,6 +299,7 @@ class CWPy(_Singleton, threading.Thread):
                 d["party"] = self.ydata.party.name
         if self.status.startswith("Scenario"):
             d["scenario"] = self.sdata.name
+            d["author"] = self.sdata.author
         return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False):
