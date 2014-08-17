@@ -2593,7 +2593,7 @@ class ScenarioSelect(Select):
                     enable = False
         else:
             dpath = header
-            if not os.path.isdir(cw.util.get_linktarget(dpath)):
+            if self.tree.IsShown() or not os.path.isdir(cw.util.get_linktarget(dpath)):
                 enable = False
         self.yesbtn.Enable(enable)
 
