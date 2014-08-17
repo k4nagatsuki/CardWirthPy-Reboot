@@ -803,7 +803,7 @@ class CardEvent(Event):
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:
-            waitrate = cw.cwpy.setting.dealspeed * 2
+            waitrate = (cw.cwpy.setting.dealspeed+1) * 2
             cw.cwpy.wait_frame(waitrate)
 
         # InuseCardImage削除
@@ -899,7 +899,7 @@ class CardEvent(Event):
             if eff.check_enabledtarget(self.targets[0], False):
                 self.targets[0].set_cardtarget()
                 cw.cwpy.draw()
-                waitrate = cw.cwpy.setting.dealspeed * 2
+                waitrate = (cw.cwpy.setting.dealspeed+1) * 2
                 cw.cwpy.wait_frame(waitrate)
                 targets = self.targets
             else:
@@ -913,7 +913,7 @@ class CardEvent(Event):
                     target.set_cardtarget()
                     cw.cwpy.draw()
                     cw.cwpy.play_sound(path)
-                    waitrate = cw.cwpy.setting.dealspeed
+                    waitrate = cw.cwpy.setting.dealspeed+1
                     cw.cwpy.wait_frame(waitrate)
                     targets.append(target)
 

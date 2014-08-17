@@ -63,7 +63,7 @@ class Setting(object):
         self.blwinframecolour = (128, 128, 128, 255)
         self.curtaincolour = (0, 0, 80, 128)
         self.blcurtaincolour = (0, 0, 0, 192)
-        self.dealspeed = 6
+        self.dealspeed = 5
         self.transition = "Fade"
         self.transitionspeed = 5
         self.smoothscale_bg = False
@@ -199,7 +199,7 @@ class Setting(object):
         a = data.getint("CurtainColor", "alpha", self.curtaincolour[3])
         self.curtaincolour = (r, g, b, a)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
-        dealspeed = data.getint("CardDealingSpeed", self.dealspeed-1)
+        dealspeed = data.getint("CardDealingSpeed", self.dealspeed)
         self.set_dealspeed(dealspeed)
         # トランジション効果の種類
         self.transition = data.gettext("Transition", self.transition)
@@ -475,9 +475,9 @@ class Setting(object):
             data.write()
 
     def set_dealspeed(self, value):
-        self.dealspeed = value + 1
-        self.dealspeed = cw.util.numwrap(self.dealspeed, 1, 11)
-        scales_len = int(self.dealspeed * 1.2)
+        self.dealspeed = value
+        self.dealspeed = cw.util.numwrap(self.dealspeed, 0, 10)
+        scales_len = int((self.dealspeed+1) * 1.2)
         self.dealing_scales = [
             int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
             for i in xrange(scales_len)

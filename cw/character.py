@@ -474,7 +474,7 @@ class Character(object):
             cw.animation.animate_sprite(inusecardimg, "zoomin")
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
-            waitrate = cw.cwpy.setting.dealspeed
+            waitrate = cw.cwpy.setting.dealspeed+1
             cw.cwpy.wait_frame(waitrate)
             cw.animation.animate_sprite(inusecardimg, "zoomout")
             cw.animation.animate_sprite(inusecardimg, "hide")
@@ -496,7 +496,7 @@ class Character(object):
             # 表示中に効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
             cw.cwpy.draw()
-            waitrate = cw.cwpy.setting.dealspeed
+            waitrate = cw.cwpy.setting.dealspeed+1
             cw.cwpy.wait_frame(waitrate)
             # カード消去
             cw.cwpy.clear_inusecardimg(self)

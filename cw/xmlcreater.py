@@ -204,7 +204,7 @@ def create_settings(setting):
     e = cw.data.make_element("CurtainColor", "", d)
     element.append(e)
     # カードの表示スピード(数字が小さいほど速い)(1～100)
-    e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed - 1))
+    e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed))
     element.append(e)
     # トランジション効果の種類
     e = cw.data.make_element("Transition", setting.transition,

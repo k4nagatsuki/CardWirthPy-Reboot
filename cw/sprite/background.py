@@ -494,7 +494,7 @@ class BattleCardImage(card.CWPyCard):
         self.zoomsize_noscale = (56, 80)
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
-        waitrate = cw.cwpy.setting.dealspeed * 4
+        waitrate = (cw.cwpy.setting.dealspeed+1) * 4
         cw.cwpy.wait_frame(waitrate)
         cw.animation.animate_sprite(self, "hide")
 
