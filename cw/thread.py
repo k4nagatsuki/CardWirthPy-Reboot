@@ -2798,6 +2798,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(party.set_money, price)
             else:
                 self.exec_func(self.ydata.set_money, price)
+            self.exec_func(self.draw)
 
         if targettype in ("BACKPACK", "STOREHOUSE") and not toself:
             # 移動先が荷物袋かカード置場だったら
