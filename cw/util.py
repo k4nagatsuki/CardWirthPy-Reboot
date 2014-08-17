@@ -174,9 +174,10 @@ class MusicInterface(object):
         self.fpath = ""
         self.path = ""
         # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
-        path = "DefReset" + cw.cwpy.rsrc.ext_bgm
-        path = join_paths(cw.cwpy.setting.skindir, "Bgm", path)
-        load_bgm(path)
+        if cw.cwpy.rsrc:
+            path = "DefReset" + cw.cwpy.rsrc.ext_bgm
+            path = join_paths(cw.cwpy.setting.skindir, "Bgm", path)
+            load_bgm(path)
 
     def _get_volumevalue(self, fpath):
         if not cw.cwpy.setting.play_bgm:
@@ -577,7 +578,7 @@ def load_bgm(path):
     if cw.bassplayer.is_alivablewithpath(path):
         return 2
 
-    path = get_soundfilepath(path)
+    path = get_soundfilepath("Bgm", path)
 
     try:
         assert threading.currentThread() == cw.cwpy

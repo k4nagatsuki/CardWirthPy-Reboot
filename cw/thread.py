@@ -202,6 +202,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self.update_fullscreenbackground()
 
+            return True
         except cw.setting.NoFontError, ex:
             def func():
                 s = (u"CardWirthPyの実行に必要なフォントがありません。\n"
@@ -209,6 +210,7 @@ class CWPy(_Singleton, threading.Thread):
                 wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_ERROR, cw.cwpy.frame)
                 cw.cwpy.frame.Destroy()
             cw.cwpy.frame.exec_func(func)
+            return False
 
     def _update_clip(self):
         self.bggrp.set_clip(self.background.rect)
@@ -489,7 +491,8 @@ class CWPy(_Singleton, threading.Thread):
         pygame.quit()
         cw.util.remove_temp()
         self.setting.write()
-        self.rsrc.clear_systemfonttable()
+        if self.rsrc:
+            self.rsrc.clear_systemfonttable()
 
     def tick_clock(self, framerate=0):
         if framerate:
@@ -992,7 +995,9 @@ class CWPy(_Singleton, threading.Thread):
         self.events = []
 
         # 必要なスプライトの読み込み
-        self._init_resources()
+        if not self._init_resources():
+            self._running = False
+            return
         self.music.stop()
         ext = self.rsrc.ext_img
         path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
