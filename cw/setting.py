@@ -4,6 +4,7 @@
 import os
 import sys
 import ctypes
+import inspect
 import math
 import md5
 import struct
@@ -30,269 +31,271 @@ SB_NOTICE  = 0b1000 # 通知
 
 class Setting(object):
     def __init__(self):
+        # Settings
+        self.init_settings()
         # フレームレート
         self.fps = 60
         # 1frame分のmillseconds
         self.frametime = 1000 / self.fps
-        # Settings
-        self.init_settings()
         # シナリオ履歴
         self.recenthistory = RecentHistory(self.data)
 
     def init_settings(self):
         # "Settings.xml"がなかったら新しく作る
+        self.lastyado = ""
+        self.lastscenario = []
+        self.expanddrawing = 1
+        self.expandmode = "FullScreen"
+        self.is_expanded = False
+        self.smoothexpand = True
+        self.debug = False
+        self.no_levelup_in_debugmode = False
+        self.play_bgm = True
+        self.play_sound = True
+        self.vol_bgm = 1.0
+        self.vol_midi = 0.8
+        self.vol_sound = 1.0
+        self.soundfonts = [cw.DEFAULT_SOUNDFONT]
+        self.messagespeed = 5
+        self.mwincolour = (0, 0, 80, 180)
+        self.mwinframecolour = (128, 0, 0, 255)
+        self.blwincolour = (80, 80, 80, 180)
+        self.blwinframecolour = (128, 128, 128, 255)
+        self.curtaincolour = (0, 0, 80, 128)
+        self.blcurtaincolour = (0, 0, 0, 192)
+        self.dealspeed = 6
+        self.transition = "Fade"
+        self.transitionspeed = 5
+        self.smoothscale_bg = False
+        self.caution_beforesaving = True
+        self.store_skinoneachbase = True
+        self.revert_cardpocket = True
+        self.quickdeal = True
+        self.all_quickdeal = False
+        self.skindirname = "Classic"
+        self.classicstyletext = True
+        self.sort_standbys = "None"
+        self.sort_storehouse = "None"
+        self.sort_backpack = "None"
+        self.backlogmax = 100
+        self.showfps = False
+        self.selectscenariofromtype = True
+        self.show_unfitnessscenario = True
+        self.show_completedscenario = True
+        self.show_invisiblescenario = False
+        self.wheelup_operation = WHEEL_SHOWLOG
+        self.show_allselectedcards = True
+        self.confirm_beforeusingcard = True
+        self.confirm_beforesaving = True
+        self.show_savedmessage = True
+        self.show_backpackcard = True
+        self.show_statustime = True
+        self.openhandviewalways = False
+        self.noticeimpossibleaction = True
+        self.initmoneyamount = 4000
+        self.autosave_partyrecord = True
+        self.overwrite_partyrecord = True
+        self.folderoftype = []
+        self.fullscreenbackgroundtype = 2
+        self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+        self.scenario_narrow = ""
+        self.scenario_narrowtype = 0
+        self.scenario_sorttype = 0
+        self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
+        self.ssinfofontcolor = (0, 0, 0, 255)
+        self.ssinfobackcolor = (255, 255, 255, 255)
+
+        for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
+            if not t[0].startswith("__"):
+                setattr(self, "%s_init" % (t[0]), t[1])
+
         if not os.path.isfile("Settings.xml"):
-            self.lastyado = ""
-            self.lastscenario = []
-            self.expanddrawing = 1
-            self.expandmode = "FullScreen"
-            self.is_expanded = False
-            self.smoothexpand = True
-            self.debug = False
-            self.no_levelup_in_debugmode = False
-            self.play_bgm = True
-            self.play_sound = True
-            self.vol_bgm = 1.0
-            self.vol_midi = 0.8
-            self.vol_sound = 1.0
-            self.soundfonts = [cw.DEFAULT_SOUNDFONT]
-            self.messagespeed = 4
-            self.mwincolour = (0, 0, 80, 180)
-            self.mwinframecolour = (128, 0, 0, 255)
-            self.blwincolour = (80, 80, 80, 180)
-            self.blwinframecolour = (128, 128, 128, 255)
-            self.curtaincolour = (0, 0, 80, 128)
-            self.dealspeed = 7
-            self.transition = "None"
-            self.transitionspeed = 5
-            self.smoothscale_bg = False
-            self.caution_beforesaving = True
-            self.store_skinoneachbase = True
-            self.revert_cardpocket = True
-            self.quickdeal = True
-            self.all_quickdeal = False
-            self.skindirname = "Classic"
-            self.classicstyletext = True
-            self.sort_standbys = "None"
-            self.sort_storehouse = "None"
-            self.sort_backpack = "None"
-            self.backlogmax = 100
-            self.showfps = False
-            self.selectscenariofromtype = True
-            self.show_unfitnessscenario = True
-            self.show_completedscenario = True
-            self.show_invisiblescenario = False
-            self.wheelup_operation = WHEEL_SHOWLOG
-            self.show_allselectedcards = True
-            self.confirm_beforeusingcard = True
-            self.confirm_beforesaving = True
-            self.show_savedmessage = True
-            self.show_backpackcard = True
-            self.show_statustime = True
-            self.openhandviewalways = False
-            self.noticeimpossibleaction = True
-            self.initmoneyamount = 4000
-            self.autosave_partyrecord = True
-            self.overwrite_partyrecord = True
-            self.folderoftype = []
-            self.fullscreenbackgroundtype = 2
-            self.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
-            self.scenario_narrow = ""
-            self.scenario_narrowtype = 0
-            self.scenario_sorttype = 0
-            self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
-            self.ssinfofontcolor = (0, 0, 0, 255)
-            self.ssinfobackcolor = (255, 255, 255, 255)
             self.write()
+            self.init_skin()
+            return
 
         self.data = cw.data.xml2etree("Settings.xml")
         data = self.data
         # 最後に選択した宿
-        self.lastyado = data.gettext("LastYado", "")
+        self.lastyado = data.gettext("LastYado", self.lastyado)
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)
         self.lastscenario = []
         # 拡大モード
-        self.expandmode = data.gettext("ExpandMode", "FullScreen")
+        self.expandmode = data.gettext("ExpandMode", self.expandmode)
         if self.expandmode == "None":
             self.is_expanded = False
         else:
-            self.is_expanded = data.getbool("ExpandMode", "expanded", False)
-        self.smoothexpand = data.getbool("ExpandMode", "smooth", True)
+            self.is_expanded = data.getbool("ExpandMode", "expanded", self.is_expanded)
+        self.smoothexpand = data.getbool("ExpandMode", "smooth", self.smoothexpand)
         # 描画倍率
         if self.expandmode in ("None", "FullScreen"):
-            expanddrawing_def = 1.0
+            self.expanddrawing = 1.0
         else:
             try:
-                expanddrawing_def = float(self.expandmode)
+                self.expanddrawing = float(self.expandmode)
             except:
-                expanddrawing_def = 1.0
-        self.expanddrawing = data.getfloat("ExpandDrawing", expanddrawing_def)
+                self.expanddrawing = 1.0
+        self.expanddrawing = data.getfloat("ExpandDrawing", self.expanddrawing)
         if self.expanddrawing % 1 == 0:
             self.expanddrawing = int(self.expanddrawing)
         # デバッグモードかどうか
-        self.debug = data.getbool("DebugMode", False)
+        self.debug = data.getbool("DebugMode", self.debug)
         # デバッグ時はレベル上昇しない
-        self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", False)
+        self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", self.no_levelup_in_debugmode)
         # 音楽を再生する
-        self.play_bgm = data.getbool("PlayBgm", True)
+        self.play_bgm = data.getbool("PlayBgm", self.play_bgm)
         # 効果音を再生する
-        self.play_sound = data.getbool("PlaySound", True)
+        self.play_sound = data.getbool("PlaySound", self.play_sound)
         # 音楽のボリューム(0～1.0)
-        self.vol_bgm = data.getint("BgmVolume", 100)
+        self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm*100))
         self.vol_bgm = self.wrap_volumevalue(self.vol_bgm)
         # midi音楽のボリューム(0～1.0)
-        self.vol_midi = data.getint("BgmVolume", "midi", 80)
+        self.vol_midi = data.getint("BgmVolume", "midi", int(self.vol_midi*100))
         self.vol_midi = self.wrap_volumevalue(self.vol_midi)
         # 効果音ボリューム
-        self.vol_sound = data.getint("SoundVolume", 100)
+        self.vol_sound = data.getint("SoundVolume", int(self.vol_sound*100))
         self.vol_sound = self.wrap_volumevalue(self.vol_sound)
         # MIDIサウンドフォント
-        self.soundfonts = [cw.DEFAULT_SOUNDFONT]
         elements = data.getfind("SoundFonts", False)
         if not elements is None:
             self.soundfonts = []
             for e in elements:
                 self.soundfonts.append(e.text)
         # メッセージスピード(数字が小さいほど速い)(0～100)
-        self.messagespeed = data.getint("MessageSpeed", 0)
+        self.messagespeed = data.getint("MessageSpeed", self.messagespeed)
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)
         # メッセージウィンドウの色と透明度
-        r = data.getint("MessageWindowColor", "red", 0)
-        g = data.getint("MessageWindowColor", "green", 0)
-        b = data.getint("MessageWindowColor", "blue", 80)
-        a = data.getint("MessageWindowColor", "alpha", 180)
+        r = data.getint("MessageWindowColor", "red", self.mwincolour[0])
+        g = data.getint("MessageWindowColor", "green", self.mwincolour[1])
+        b = data.getint("MessageWindowColor", "blue", self.mwincolour[2])
+        a = data.getint("MessageWindowColor", "alpha", self.mwincolour[3])
         self.mwincolour = self.wrap_colorvalue(r, g, b, a)
-        r = data.getint("MessageWindowFrameColor", "red", 128)
-        g = data.getint("MessageWindowFrameColor", "green", 0)
-        b = data.getint("MessageWindowFrameColor", "blue", 0)
-        a = data.getint("MessageWindowFrameColor", "alpha", 255)
+        r = data.getint("MessageWindowFrameColor", "red", self.mwinframecolour[0])
+        g = data.getint("MessageWindowFrameColor", "green", self.mwinframecolour[1])
+        b = data.getint("MessageWindowFrameColor", "blue", self.mwinframecolour[2])
+        a = data.getint("MessageWindowFrameColor", "alpha", self.mwinframecolour[3])
         self.mwinframecolour = self.wrap_colorvalue(r, g, b, a)
         # バックログウィンドウの色と透明度
-        r = data.getint("MessageLogWindowColor", "red", 80)
-        g = data.getint("MessageLogWindowColor", "green", 80)
-        b = data.getint("MessageLogWindowColor", "blue", 80)
-        a = data.getint("MessageLogWindowColor", "alpha", 180)
+        r = data.getint("MessageLogWindowColor", "red", self.blwincolour[0])
+        g = data.getint("MessageLogWindowColor", "green", self.blwincolour[1])
+        b = data.getint("MessageLogWindowColor", "blue", self.blwincolour[2])
+        a = data.getint("MessageLogWindowColor", "alpha", self.blwincolour[3])
         self.blwincolour = self.wrap_colorvalue(r, g, b, a)
-        r = data.getint("MessageLogWindowFrameColor", "red", 128)
-        g = data.getint("MessageLogWindowFrameColor", "green", 128)
-        b = data.getint("MessageLogWindowFrameColor", "blue", 128)
-        a = data.getint("MessageLogWindowFrameColor", "alpha", 255)
+        r = data.getint("MessageLogWindowFrameColor", "red", self.blwinframecolour[0])
+        g = data.getint("MessageLogWindowFrameColor", "green", self.blwinframecolour[1])
+        b = data.getint("MessageLogWindowFrameColor", "blue", self.blwinframecolour[2])
+        a = data.getint("MessageLogWindowFrameColor", "alpha", self.blwinframecolour[3])
         self.blwinframecolour = self.wrap_colorvalue(r, g, b, a)
         # メッセージログカーテン色
-        r = data.getint("MessageLogCurtainColor", "red", 0)
-        g = data.getint("MessageLogCurtainColor", "green", 0)
-        b = data.getint("MessageLogCurtainColor", "blue", 0)
-        a = data.getint("MessageLogCurtainColor", "alpha", 192)
+        r = data.getint("MessageLogCurtainColor", "red", self.blcurtaincolour[0])
+        g = data.getint("MessageLogCurtainColor", "green", self.blcurtaincolour[1])
+        b = data.getint("MessageLogCurtainColor", "blue", self.blcurtaincolour[2])
+        a = data.getint("MessageLogCurtainColor", "alpha", self.blcurtaincolour[3])
         self.blcurtaincolour = (r, g, b, a)
         # カーテン色
-        r = data.getint("CurtainColor", "red", 0)
-        g = data.getint("CurtainColor", "green", 0)
-        b = data.getint("CurtainColor", "blue", 80)
-        a = data.getint("CurtainColor", "alpha", 128)
+        r = data.getint("CurtainColor", "red", self.curtaincolour[0])
+        g = data.getint("CurtainColor", "green", self.curtaincolour[1])
+        b = data.getint("CurtainColor", "blue", self.curtaincolour[2])
+        a = data.getint("CurtainColor", "alpha", self.curtaincolour[3])
         self.curtaincolour = (r, g, b, a)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
-        dealspeed = data.getint("CardDealingSpeed", 6)
+        dealspeed = data.getint("CardDealingSpeed", self.dealspeed-1)
         self.set_dealspeed(dealspeed)
         # トランジション効果の種類
-        self.transition = data.gettext("Transition", "Fade")
+        self.transition = data.gettext("Transition", self.transition)
 
-        self.transitionspeed = data.getint("Transition", "speed", 4)
+        self.transitionspeed = data.getint("Transition", "speed", self.transitionspeed)
         self.transitionspeed = cw.util.numwrap(self.transitionspeed, 0, 10)
         # 背景のスムーススケーリング
-        self.smoothscale_bg = data.getbool("SmoothScaling", "bg", False)
+        self.smoothscale_bg = data.getbool("SmoothScaling", "bg", self.smoothscale_bg)
         # 保存せずに終了しようとしたら警告
-        self.caution_beforesaving = data.getbool("CautionBeforeSaving", True)
+        self.caution_beforesaving = data.getbool("CautionBeforeSaving", self.caution_beforesaving)
         # 拠点ごとにスキンを記憶
-        self.store_skinoneachbase = data.getbool("StoreSkinOnEachBase", True)
+        self.store_skinoneachbase = data.getbool("StoreSkinOnEachBase", self.store_skinoneachbase)
         # レベル調節で手放したカードを自動的に戻す
-        self.revert_cardpocket = data.getbool("RevertCardPocket", True)
+        self.revert_cardpocket = data.getbool("RevertCardPocket", self.revert_cardpocket)
         # キャンプ等に高速で切り替える
-        self.quickdeal = data.getbool("QuickDeal", True)
+        self.quickdeal = data.getbool("QuickDeal", self.quickdeal)
         # 全てのシステムカードを高速表示する
-        self.all_quickdeal = data.getbool("AllQuickDeal", False)
+        self.all_quickdeal = data.getbool("AllQuickDeal", self.all_quickdeal)
         # ソート基準
-        self.sort_standbys = data.getattr("SortKey", "standbys", "None")
-        self.sort_storehouse = data.getattr("SortKey", "storehouse", "None")
-        self.sort_backpack = data.getattr("SortKey", "backpack", "None")
+        self.sort_standbys = data.getattr("SortKey", "standbys", self.sort_standbys)
+        self.sort_storehouse = data.getattr("SortKey", "storehouse", self.sort_storehouse)
+        self.sort_backpack = data.getattr("SortKey", "backpack", self.sort_backpack)
         # バックログ最大数
-        self.backlogmax = data.getint("MessageLogMax", 100)
+        self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
 
         self.showfps = False
 
         # スキンによってシナリオの選択開始位置を変更する
-        self.selectscenariofromtype = data.getbool("SelectScenarioFromType", True)
+        self.selectscenariofromtype = data.getbool("SelectScenarioFromType", self.selectscenariofromtype)
         # 適正レベル以外のシナリオを表示する
-        self.show_unfitnessscenario = data.getbool("ShowUnfitnessScenario", True)
+        self.show_unfitnessscenario = data.getbool("ShowUnfitnessScenario", self.show_unfitnessscenario)
         # 隠蔽シナリオを表示する
-        self.show_completedscenario = data.getbool("ShowCompletedScenario", True)
+        self.show_completedscenario = data.getbool("ShowCompletedScenario", self.show_completedscenario)
         # 終了済シナリオを表示する
-        self.show_invisiblescenario = data.getbool("ShowInvisibleScenario", False)
+        self.show_invisiblescenario = data.getbool("ShowInvisibleScenario", self.show_invisiblescenario)
 
         # マウスホイールを上回転させた時の挙動
-        self.wheelup_operation = data.gettext("WheelUpOperation", WHEEL_SHOWLOG)
+        self.wheelup_operation = data.gettext("WheelUpOperation", self.wheelup_operation)
         # 戦闘行動を全員分表示する
-        self.show_allselectedcards = data.getbool("ShowAllSelectedCards", True)
+        self.show_allselectedcards = data.getbool("ShowAllSelectedCards", self.show_allselectedcards)
         # カード使用時に確認ダイアログを表示
-        self.confirm_beforeusingcard = data.getbool("ConfirmBeforeUsingCard", True)
+        self.confirm_beforeusingcard = data.getbool("ConfirmBeforeUsingCard", self.confirm_beforeusingcard)
         # セーブ前に確認ダイアログを表示
-        self.confirm_beforesaving = data.getbool("ConfirmBeforeSaving", True)
+        self.confirm_beforesaving = data.getbool("ConfirmBeforeSaving", self.confirm_beforesaving)
         # セーブ完了時に確認ダイアログを表示
-        self.show_savedmessage = data.getbool("ShowSavedMessage", True)
+        self.show_savedmessage = data.getbool("ShowSavedMessage", self.show_savedmessage)
 
         # カードを選択できない時はダイアログを開かない
-        self.openhandviewalways = data.getbool("OpenHandViewAlways", False)
+        self.openhandviewalways = data.getbool("OpenHandViewAlways", self.openhandviewalways)
         # 不可能な行動を選択した時に警告を表示
-        self.noticeimpossibleaction = data.getbool("NoticeImpossibleAction", True)
+        self.noticeimpossibleaction = data.getbool("NoticeImpossibleAction", self.noticeimpossibleaction)
 
         # 荷物袋のカードを一時的に取り出して使えるようにする
-        self.show_backpackcard = data.getbool("ShowBackpackCard", True)
+        self.show_backpackcard = data.getbool("ShowBackpackCard", self.show_backpackcard)
 
         # 各種ステータスの残り時間を表示する
-        self.show_statustime = data.getbool("ShowStatusTime", True)
+        self.show_statustime = data.getbool("ShowStatusTime", self.show_statustime)
 
         # パーティ結成時の持出金額
-        self.initmoneyamount = data.getint("InitialMoneyAmount", 4000)
+        self.initmoneyamount = data.getint("InitialMoneyAmount", self.initmoneyamount)
 
         # 解散時、自動的にパーティ情報を記録する
-        self.autosave_partyrecord = data.getbool("AutoSavePartyRecord", True)
+        self.autosave_partyrecord = data.getbool("AutoSavePartyRecord", self.autosave_partyrecord)
         # 自動記録時、同名のパーティ記録へ上書きする
-        self.overwrite_partyrecord = data.getbool("OverwritePartyRecord", True)
+        self.overwrite_partyrecord = data.getbool("OverwritePartyRecord", self.overwrite_partyrecord)
 
         # シナリオフォルダ(スキンタイプ別)
-        self.folderoftype = []
         for e_folder in data.getfind("ScenarioFolderOfSkinType", False):
             skintype = e_folder.getattr(".", "skintype", "")
             folder = e_folder.gettext(".", "")
             self.folderoftype.append((skintype, folder))
 
         # シナリオ絞込・整列条件
-        self.scenario_narrow = ""
-        self.scenario_narrowtype = data.getint("ScenarioNarrowType", 0)
-        self.scenario_sorttype = data.getint("ScenarioSortType", 0)
+        self.scenario_narrowtype = data.getint("ScenarioNarrowType", self.scenario_narrowtype)
+        self.scenario_sorttype = data.getint("ScenarioSortType", self.scenario_sorttype)
 
         # フルスクリーン時の背景タイプ(0:無し,1:ファイル指定,2:スキン)
-        self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", 2)
+        self.fullscreenbackgroundtype = data.getint("FullScreenBackgroundType", self.fullscreenbackgroundtype)
         # フルスクリーン時の背景ファイル
-        self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", u"Resource/Image/Dialog/PAD")
+        self.fullscreenbackgroundfile = data.gettext("FullScreenBackgroundFile", self.fullscreenbackgroundfile)
 
         # スクリーンショット情報
-        self.ssinfoformat = data.gettext("ScreenShotInformationFormat", "[%scenario%[(%author%)] - ][%party% at ]%yado%")
+        self.ssinfoformat = data.gettext("ScreenShotInformationFormat", self.ssinfoformat)
         # スクリーンショット情報の色
-        r = data.getint("ScreenShotInformationFontColor", "red", 0)
-        g = data.getint("ScreenShotInformationFontColor", "green", 0)
-        b = data.getint("ScreenShotInformationFontColor", "blue", 0)
+        r = data.getint("ScreenShotInformationFontColor", "red", self.ssinfofontcolor[0])
+        g = data.getint("ScreenShotInformationFontColor", "green", self.ssinfofontcolor[1])
+        b = data.getint("ScreenShotInformationFontColor", "blue", self.ssinfofontcolor[2])
         self.ssinfofontcolor = (r, g, b, 255)
-        r = data.getint("ScreenShotInformationBackgroundColor", "red", 255)
-        g = data.getint("ScreenShotInformationBackgroundColor", "green", 255)
-        b = data.getint("ScreenShotInformationBackgroundColor", "blue", 255)
+        r = data.getint("ScreenShotInformationBackgroundColor", "red", self.ssinfobackcolor[0])
+        g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor[1])
+        b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor[2])
         self.ssinfobackcolor = (r, g, b, 255)
 
         # スキン
-        self.skindirname = data.gettext("Skin", "Classic")
+        self.skindirname = data.gettext("Skin", self.skindirname)
         self.init_skin()
-
-        # 戦闘行動準備中に同行NPCを表示する
-        self.show_fcardsinbattle = False
 
     def init_skin(self):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
