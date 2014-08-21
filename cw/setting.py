@@ -104,6 +104,7 @@ class Setting(object):
         self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
+        self.show_fcardsinbattle = False
 
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
