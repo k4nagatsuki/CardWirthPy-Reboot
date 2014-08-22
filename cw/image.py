@@ -389,33 +389,7 @@ class CharacterCardImage(CardImage):
 
     def _put_number(self, image, num, always=False):
         if (always or cw.cwpy.setting.show_statustime) and num:
-            image = image.copy()
-            s = str(num)
-            if len(s) == 1:
-                font = cw.cwpy.rsrc.fonts["statusimg1"]
-            elif len(s) == 2:
-                font = cw.cwpy.rsrc.fonts["statusimg2"]
-            else:
-                font = cw.cwpy.rsrc.fonts["statusimg3"]
-            h = font.get_height()
-            w = (h+1) / 2
-            subimg = pygame.Surface((len(s)*w, h)).convert_alpha()
-            subimg.fill((0, 0, 0, 0))
-            x = image.get_width() - subimg.get_width() - cw.s(1)
-            y = image.get_height() - subimg.get_height()
-            pos = (x, y)
-            for i, c in enumerate(s):
-                cimg = font.render(c, 2 <= cw.UP_SCR, (0, 0, 0))
-                image.blit(cimg, (pos[0]+1 + i*w, pos[1]+1))
-                image.blit(cimg, (pos[0]+1 + i*w, pos[1]-1))
-                image.blit(cimg, (pos[0]-1 + i*w, pos[1]+1))
-                image.blit(cimg, (pos[0]-1 + i*w, pos[1]-1))
-                image.blit(cimg, (pos[0]+1 + i*w, pos[1]))
-                image.blit(cimg, (pos[0]-1 + i*w, pos[1]))
-                image.blit(cimg, (pos[0] + i*w, pos[1]+1))
-                image.blit(cimg, (pos[0] + i*w, pos[1]-1))
-                cimg = font.render(c, 2 <= cw.UP_SCR, (255, 255, 255))
-                image.blit(cimg, (pos[0] + i*w, pos[1]))
+            image = cw.util.put_number(image, num)
         return image
 
     def _put_enhanceimg(self, seq, bmp, value, duration):
@@ -569,6 +543,9 @@ def get_textcellfont(size, face, color, bold, italic,
     """テキストセル用のフォントを生成し、
     (font, lineheight)を返す。
     """
+    if size % 2 == 0:
+        # BUG: CardWirthでは偶数サイズは1px小さなサイズと同じになる
+        size -= 1
 
     font = cw.imageretouch.Font(face, size+cw.s(1), bold, italic)
     if uline:

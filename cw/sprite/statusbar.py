@@ -236,7 +236,7 @@ class RoundCounterPanel(YadoMoneyPanel):
 class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, sizetype=0,
                  toggle=False, icon=None, enabled=True, is_pushed=False,
-                 notice=False):
+                 notice=False, number=None):
         base.SelectableSprite.__init__(self)
         # 各種データ
         self.name = name
@@ -251,7 +251,10 @@ class StatusBarButton(base.SelectableSprite):
 
         # ボタンアイコン・ラベル
         if icon:
-            self.icon = icon
+            if not number is None:
+                self.icon = cw.util.put_number(icon, number)
+            else:
+                self.icon = icon
         else:
             font = cw.cwpy.rsrc.fonts["sbarbtn"]
             self.icon = font.render(name, True, (0, 0, 0))
@@ -477,7 +480,9 @@ class InfoCardsButton(StatusBarButton):
         image = cw.s(cw.cwpy.rsrc.pygamedebugs["INFOVIEW"])
         name = cw.cwpy.msgs["info_card"]
         notice = cw.cwpy.sdata.notice_infoview
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, notice=notice)
+        number = len(cw.cwpy.sdata.infocards)
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
+                                 notice=notice, number=number)
 
     def lclick_event(self):
         cw.cwpy.sounds["click"].play()

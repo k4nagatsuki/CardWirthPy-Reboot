@@ -476,6 +476,39 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
 
     return image
 
+def put_number(image, num):
+    """アイコンサイズの画像imageの上に
+    numの値を表示する。
+    """
+    image = image.copy()
+    s = str(num)
+    if len(s) == 1:
+        font = cw.cwpy.rsrc.fonts["statusimg1"]
+    elif len(s) == 2:
+        font = cw.cwpy.rsrc.fonts["statusimg2"]
+    else:
+        font = cw.cwpy.rsrc.fonts["statusimg3"]
+    h = font.get_height()
+    w = (h+1) / 2
+    subimg = pygame.Surface((len(s)*w, h)).convert_alpha()
+    subimg.fill((0, 0, 0, 0))
+    x = image.get_width() - subimg.get_width() - cw.s(1)
+    y = image.get_height() - subimg.get_height()
+    pos = (x, y)
+    for i, c in enumerate(s):
+        cimg = font.render(c, 2 <= cw.UP_SCR, (0, 0, 0))
+        image.blit(cimg, (pos[0]+1 + i*w, pos[1]+1))
+        image.blit(cimg, (pos[0]+1 + i*w, pos[1]-1))
+        image.blit(cimg, (pos[0]-1 + i*w, pos[1]+1))
+        image.blit(cimg, (pos[0]-1 + i*w, pos[1]-1))
+        image.blit(cimg, (pos[0]+1 + i*w, pos[1]))
+        image.blit(cimg, (pos[0]-1 + i*w, pos[1]))
+        image.blit(cimg, (pos[0] + i*w, pos[1]+1))
+        image.blit(cimg, (pos[0] + i*w, pos[1]-1))
+        cimg = font.render(c, 2 <= cw.UP_SCR, (255, 255, 255))
+        image.blit(cimg, (pos[0] + i*w, pos[1]))
+    return image
+
 def get_imageext(b):
     """dataが画像であれば対応する拡張子を返す。"""
     if 22 < len(b) and 'B' == b[0] and 'M' == b[1]:
