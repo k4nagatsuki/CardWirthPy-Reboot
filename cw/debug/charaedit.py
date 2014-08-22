@@ -390,6 +390,17 @@ class CharaRequirementPanel(wx.Panel):
         self.cindex = 0
         self._proc = False
 
+        # すでに特殊型のキャラクタがいる場合のみ特殊型を表示する
+        self.show_specialtalent = False
+        specialtalents = set()
+        for f in cw.cwpy.setting.natures:
+            if f.special:
+                specialtalents.add(u"＿" + f.name)
+        for info in infos:
+            if info.talent in specialtalents:
+                self.show_specialtalent = True
+                break
+
         self.namebox = wx.StaticBox(self, -1, u"名前")
         self.name = wx.TextCtrl(self, size=(125, -1))
         self.name.SetMaxLength(14)
@@ -417,10 +428,10 @@ class CharaRequirementPanel(wx.Panel):
 
         array = []
         for f in cw.cwpy.setting.natures:
-            if not f.special:
+            if not f.special or self.show_specialtalent:
                 array.append(f.name)
         self.natures = wx.RadioBox(self, -1, u"素質", choices=array,
-                                   style=wx.RA_VERTICAL, majorDimension=2)
+                                   style=wx.RA_VERTICAL, majorDimension=len(array)/3)
 
         self.autobtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), u"自動選択")
 
@@ -695,7 +706,7 @@ class CharaRequirementPanel(wx.Panel):
             info.age = arr[cw.cwpy.dice.roll(1, len(arr))-1]
             arr = []
             for nature in cw.cwpy.setting.natures:
-                if not nature.special:
+                if not nature.special or self.show_specialtalent:
                     arr.append(u"＿" + nature.name)
             info.talent = arr[cw.cwpy.dice.roll(1, len(arr))-1]
 
