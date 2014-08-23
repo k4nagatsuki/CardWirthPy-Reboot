@@ -2040,7 +2040,7 @@ class ScenarioSelect(Select):
                 self.bookmark = bookmark
             def OnOpen(self, event):
                 cw.cwpy.sounds["equipment"].play()
-                self.outer.set_selected(self.bookmark)
+                self.outer.set_selected(self.bookmark, opendir=True)
 
         if cw.cwpy.ydata.bookmarks:
             menu.AppendSeparator()
@@ -2176,7 +2176,7 @@ class ScenarioSelect(Select):
             seq.append(os.path.basename(sel))
         return seq
 
-    def set_selected(self, spaths):
+    def set_selected(self, spaths, opendir=False):
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
@@ -2246,6 +2246,9 @@ class ScenarioSelect(Select):
                                 i += 1
                             assert item.IsOk()
                             self.tree.SelectItem(item)
+                            if not isinstance(sel, cw.header.ScenarioHeader):
+                                self.tree.Expand(item)
+                                self.create_treeitems(item)
                         break
 
         self._processing = processing
