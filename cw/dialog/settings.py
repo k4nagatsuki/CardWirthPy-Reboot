@@ -149,10 +149,11 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.setting.ssinfofontcolor = (0, 0, 0)
             cw.cwpy.setting.ssinfobackcolor = (255, 255, 255)
         value = self.pane_gene.sc_backlogmax.GetValue()
-        def func(backlogmax):
-            cw.cwpy.set_backlogmax(backlogmax)
-            cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
-        cw.cwpy.exec_func(func, value)
+        if value <> cw.cwpy.setting.backlogmax:
+            def func(backlogmax):
+                cw.cwpy.set_backlogmax(backlogmax)
+                cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
+            cw.cwpy.exec_func(func, value)
 
         # 拡大倍率
         value = self.pane_gene.cb_smoothexpand.GetValue()

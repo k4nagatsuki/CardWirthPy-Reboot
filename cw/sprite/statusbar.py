@@ -247,15 +247,13 @@ class StatusBarButton(base.SelectableSprite):
         self.is_pushed = is_pushed
         self.enabled = enabled
         self.notice = notice
+        self.number = number
         # ボタン画像
         self.btnimg = {}
 
         # ボタンアイコン・ラベル
         if icon:
-            if not number is None:
-                self.icon = cw.util.put_number(icon, number)
-            else:
-                self.icon = icon
+            self.icon = icon
         else:
             font = cw.cwpy.rsrc.fonts["sbarbtn"]
             self.icon = font.render(name, True, (0, 0, 0))
@@ -290,6 +288,8 @@ class StatusBarButton(base.SelectableSprite):
             if flags & cw.setting.SB_NOTICE:
                 icon = icon.convert_alpha()
                 icon.fill((0, 0, 0, 96), special_flags=pygame.locals.BLEND_RGBA_SUB)
+            if not self.number is None:
+                icon = cw.util.put_number(icon, self.number)
             bmp.blit(icon, rect.topleft)
             self.btnimg[flags] = bmp
             return bmp

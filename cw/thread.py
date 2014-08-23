@@ -564,6 +564,7 @@ class CWPy(_Singleton, threading.Thread):
             # 通常エリアで操作可能な状態であればステータスバーのボタンを表示
             if not self.is_runningevent() and not self.areaid in cw.AREAS_TRADE and not self.selectedheader:
                 self.statusbar.change()
+                self.draw()
 
         if self.lock_menucards:
             # 操作可能であればメニューカードのロックを解除
