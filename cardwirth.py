@@ -28,7 +28,7 @@ def main():
     handle = create_mutex()
 
     if handle:
-        if len(sys.argv) > 1:
+        if len(cw.SKIN_CONV_ARGS) > 0:
             os.chdir(os.path.dirname(sys.argv[0]) or '.')
 
         app = cw.frame.MyApp(0)

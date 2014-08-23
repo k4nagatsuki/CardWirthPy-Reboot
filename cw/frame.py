@@ -801,8 +801,8 @@ class MyApp(wx.App):
         self.SetVendorName("")
         skincount = get_skincount()
         exe = u""
-        if len(sys.argv) > 1 and sys.argv[1].lower().endswith(".exe"):
-            exe = sys.argv[1]
+        if len(cw.SKIN_CONV_ARGS) > 0 and cw.SKIN_CONV_ARGS[0].lower().endswith(".exe"):
+            exe = cw.SKIN_CONV_ARGS[0]
         if skincount == 0 or exe:
             # スキンの自動生成
             self.skindlg = cw.dialog.skin.SkinConversionDialog(None, exe)
@@ -818,6 +818,7 @@ class MyApp(wx.App):
 
     def OnCloseSkinDialog(self, event):
         # スキンが1つでもあればそのまま起動する
+        self.skindlg.Destroy()
         skincount = get_skincount()
 
         if 0 < skincount:
@@ -830,7 +831,7 @@ class MyApp(wx.App):
 
 def get_skincount():
     skincount = 0
-    if os.path.exists(u"Data/Skin"):
+    if os.path.isdir(u"Data/Skin"):
         for name in os.listdir(u"Data/Skin"):
             path = cw.util.join_paths(u"Data/Skin", name)
             skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")

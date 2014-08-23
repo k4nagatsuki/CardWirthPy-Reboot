@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import argparse
 
@@ -102,7 +103,14 @@ UP_SCR = 1
 # ゲーム画面・ダイアログ描画時の拡大率(UP_SCRが1の時の値)
 UP_WIN = 1
 
-# 起動オプション
+# 起動オプション(スキン自動生成元)
+SKIN_CONV_ARGS = []
+for arg in sys.argv[1:]:
+    if os.path.isfile(arg) and os.path.splitext(arg)[1].lower() == ".exe":
+        SKIN_CONV_ARGS.append(arg)
+        sys.argv.remove(arg)
+
+# 起動オプション(その他)
 _argparser = argparse.ArgumentParser(add_help=True,
     description=u"オープンソースのCardWirthエンジン")
 _argparser.add_argument("-debug", action="store_true",
@@ -115,7 +123,7 @@ _argparser.add_argument("-party", default="",
 _argparser.add_argument("-scenario", default="",
     help=u"起動と同時にSCENARIOのパスにあるシナリオを開始します。"
        + u"-yado及び-partyと同時に指定する必要があります。")
-OPTIONS = _argparser.parse_args()
+OPTIONS = _argparser.parse_args(sys.argv[1:])
 _encoding = sys.getfilesystemencoding()
 OPTIONS.yado = OPTIONS.yado.decode(_encoding)
 OPTIONS.party = OPTIONS.party.decode(_encoding)
