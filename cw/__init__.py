@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import argparse
 
 import wx
 import pygame
@@ -101,19 +102,54 @@ UP_SCR = 1
 # ゲーム画面・ダイアログ描画時の拡大率(UP_SCRが1の時の値)
 UP_WIN = 1
 
+# 起動オプション
+_argparser = argparse.ArgumentParser(add_help=True,
+    description=u"オープンソースのCardWirthエンジン")
+_argparser.add_argument("-debug", action="store_true",
+    help=u"デバッグモードで起動します。")
+_argparser.add_argument("-yado", default="",
+    help=u"起動と同時にYADOのパスにある宿を読み込みます。")
+_argparser.add_argument("-party", default="",
+    help=u"起動と同時にPARTYのパスにあるパーティを読み込みます。"
+       + u"-yadoと同時に指定する必要があります。")
+_argparser.add_argument("-scenario", default="",
+    help=u"起動と同時にSCENARIOのパスにあるシナリオを開始します。"
+       + u"-yado及び-partyと同時に指定する必要があります。")
+OPTIONS = _argparser.parse_args()
+_encoding = sys.getfilesystemencoding()
+OPTIONS.yado = OPTIONS.yado.decode(_encoding)
+OPTIONS.party = OPTIONS.party.decode(_encoding)
+OPTIONS.scenario = OPTIONS.scenario.decode(_encoding)
+
 def wins(num):
+    """numを実際の表示サイズに変換する。
+    num: int or 座標(x,y) or 矩形(x,y,width,height)
+         or pygame.Surface or pygame.Bitmap or pygame.Image
+    """
     return _s_impl(num, UP_WIN)
 
 def s(num):
+    """numを描画サイズに変換する。
+    num: int or 座標(x,y) or 矩形(x,y,width,height)
+         or pygame.Surface or pygame.Bitmap or pygame.Image
+    """
     return _s_impl(num, UP_SCR)
 
 def scr2win_s(num):
+    """numを描画サイズから表示サイズに変換する。
+    num: int or 座標(x,y) or 矩形(x,y,width,height)
+         or pygame.Surface or pygame.Bitmap or pygame.Image
+    """
     if UP_WIN == UP_SCR:
         return _s_impl(num, 1)
     else:
         return _s_impl(num, float(UP_WIN) / UP_SCR)
 
 def win2scr_s(num):
+    """numを表示サイズから描画サイズに変換する。
+    num: int or 座標(x,y) or 矩形(x,y,width,height)
+         or pygame.Surface or pygame.Bitmap or pygame.Image
+    """
     if UP_WIN == UP_SCR:
         return _s_impl(num, 1)
     else:

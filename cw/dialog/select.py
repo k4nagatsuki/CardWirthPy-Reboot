@@ -1791,15 +1791,7 @@ class ScenarioSelect(Select):
         # ディレクトリとシナリオリストの対応
         self.scetable = {}
         # シナリオディレクトリ
-        self.scedir = u"Scenario"
-        # 設定に応じて初期位置を変更する
-        if cw.cwpy.setting.selectscenariofromtype:
-            for skintype, folder in cw.cwpy.setting.folderoftype:
-                if skintype == cw.cwpy.setting.skintype:
-                    folder = cw.util.get_linktarget(folder)
-                    if os.path.isdir(folder):
-                        self.scedir = folder
-                    break
+        self.scedir = cw.cwpy.setting.get_scedir()
         # 現在開いているディレクトリ
         self.nowdir = self.scedir
         # 開いたディレクトリの階層

@@ -966,9 +966,25 @@ class YadoData(object):
             self.bookmarks.append(bookmark)
 
         # 現在選択中のパーティをセット
-        if loadparty:
+        optparty = cw.OPTIONS.party
+        cw.OPTIONS.party = ""
+        if loadparty or optparty:
             self.party = None
             pname = self.environment.gettext("Property/NowSelectingParty", "")
+            if optparty:
+                # 起動オプションでパーティが選択されている
+                pdppath = cw.util.join_paths(self.yadodir, u"Party")
+                pdpath = cw.util.join_paths(pdppath, optparty)
+                if os.path.isdir(pdpath):
+                    pfile = cw.util.join_paths(pdpath, u"Party.xml")
+                    if not os.path.isfile(pfile):
+                        # 古いデータではParty.xmlでない場合があるのでXMLファイルを探す
+                        for fname in os.listdir(pdpath):
+                            if os.path.splitext(fname)[1].lower() == ".xml":
+                                pfile = cw.util.join_paths(pdpath, fname)
+                                break
+
+                    pname = os.path.relpath(pfile, self.yadodir)
 
             if pname:
                 path = cw.util.join_paths(self.yadodir, pname)
@@ -977,9 +993,11 @@ class YadoData(object):
                 if seq:
                     self.load_party(seq[0])
                 else:
+                    cw.OPTIONS.scenario = ""
                     self.load_party(None)
 
             else:
+                cw.OPTIONS.scenario = ""
                 self.load_party(None)
 
     def update_version(self):

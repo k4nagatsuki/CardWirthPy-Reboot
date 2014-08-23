@@ -1019,7 +1019,27 @@ class CWPy(_Singleton, threading.Thread):
         if not self._init_resources():
             self._running = False
             return
+
         self.music.stop()
+
+        optyado = cw.OPTIONS.yado
+        cw.OPTIONS.yado = ""
+        if optyado:
+            if os.path.isabs(optyado):
+                optyado = cw.util.relpath(optyado, u"Yado")
+            optyado = cw.util.join_paths(u"Yado", optyado)
+            env = cw.util.join_paths(optyado, "Environment.xml")
+            if os.path.isfile(env):
+                self.set_status("Title")
+                self._init_attrs()
+                self.load_yado(optyado)
+                return
+
+        # 起動オプションでの宿の指定に失敗した場合は
+        # これらのオプションは無効
+        cw.OPTIONS.party = ""
+        cw.OPTIONS.scenario = ""
+
         ext = self.rsrc.ext_img
         path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
         card1 = cw.sprite.background.TitleCell(path, 1, 120, True, False)
@@ -1083,6 +1103,12 @@ class CWPy(_Singleton, threading.Thread):
     def set_title(self, init=True, ttype=("Default", "Default")):
         """タイトル画面へ遷移。"""
         self.set_status("Title")
+        self._init_attrs()
+        self.update_titlebar()
+        self.statusbar.change()
+        self.change_area(1, ttype=ttype)
+
+    def _init_attrs(self):
         cw.util.remove_temp()
         self.yadodir = ""
         self.tempdir = ""
@@ -1090,9 +1116,6 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.lastscenario = []
         self.ydata = None
         self.sdata = cw.data.SystemData()
-        self.update_titlebar()
-        self.statusbar.change()
-        self.change_area(1, ttype=ttype)
 
     def set_yado(self):
         """宿画面へ遷移。"""
@@ -1206,7 +1229,7 @@ class CWPy(_Singleton, threading.Thread):
                 self._f9impl()
         self.exec_func(func)
 
-    def _f9impl(self):
+    def _f9impl(self, startotherscenario=False):
         self.sdata.is_playing = False
         self.pre_dialogs = []
 
@@ -1355,7 +1378,11 @@ class CWPy(_Singleton, threading.Thread):
 
         self.ydata.party._loading = False
 
-        self.set_yado()
+        if not self.is_showparty:
+            self._show_party()
+
+        if not startotherscenario:
+            self.set_yado()
 
     def reload_yado(self):
         """現在の宿をロード。"""
@@ -1401,6 +1428,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""
+        optscenario = cw.OPTIONS.scenario
+        cw.OPTIONS.scenario = ""
+
         self.yadodir = yadodir.replace("\\", "/")
         self.tempdir = self.yadodir.replace("Yado",
                                                     "Data/Temp/Yado", 1)
@@ -1410,6 +1440,33 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.ydata.party:
             header = self.ydata.party.get_sceheader()
+            f9ed = False
+
+            if optscenario:
+                scedir = cw.cwpy.setting.get_scedir()
+                scedir = cw.util.join_paths(scedir, optscenario)
+                db = cw.scenariodb.Scenariodb()
+                header2 = db.search_path(scedir)
+                db.close()
+                if header2:
+                    if header:
+                        scepath1 = cw.util.join_paths(header.dpath, header.fname)
+                        scepath1 = os.path.normcase(os.path.normpath(os.path.abspath(scepath1)))
+                        scepath2 = cw.util.join_paths(header2.dpath, header2.fname)
+                        scepath2 = os.path.normcase(os.path.normpath(os.path.abspath(scepath2)))
+                        if header and scepath1 <> scepath2:
+                            self.sdata.set_log()
+                            self._f9impl(startotherscenario=True)
+                    else:
+                        self.ydata.party.reload()
+                        for idx, data in enumerate(self.ydata.party.members):
+                            pos_noscale = (95 * idx + 9 * (idx + 1), 285)
+                            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal")
+                            pcard.set_pos_noscale(pos_noscale)
+                            pcard.update_image()
+                        self.ydata.party._loading = False
+                        self._show_party()
+                    header = header2
 
             # シナリオプレイ途中から再開
             if header:
@@ -1538,6 +1595,9 @@ class CWPy(_Singleton, threading.Thread):
                     seq.append(pcard.inusecardimg)
             cw.animation.animate_sprites(pcards + seq, "shiftup")
 
+        self._show_party()
+
+    def _show_party(self):
         self.is_showparty = True
         self.input(True)
         self.event.refresh_showpartytools()

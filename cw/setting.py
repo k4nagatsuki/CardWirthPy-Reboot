@@ -143,6 +143,10 @@ class Setting(object):
             self.expanddrawing = int(self.expanddrawing)
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", self.debug)
+        if cw.OPTIONS.debug:
+            # 強制デバッグモード起動
+            self.debug = True
+        cw.OPTIONS.debug = False
         # デバッグ時はレベル上昇しない
         self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", self.no_levelup_in_debugmode)
         # 音楽を再生する
@@ -502,6 +506,18 @@ class Setting(object):
         b = cw.util.numwrap(b, 0, 255)
         a = cw.util.numwrap(a, 0, 255)
         return (r, g, b, a)
+
+    def get_scedir(self):
+        scedir = u"Scenario"
+        # 設定に応じて初期位置を変更する
+        if self.selectscenariofromtype:
+            for skintype, folder in self.folderoftype:
+                if skintype == self.skintype:
+                    folder = cw.util.get_linktarget(folder)
+                    if os.path.isdir(folder):
+                        scedir = folder
+                    break
+        return scedir
 
 class Resource(object):
     def __init__(self, setting):
