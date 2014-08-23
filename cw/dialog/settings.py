@@ -43,6 +43,7 @@ class SettingsDialog(wx.Dialog):
         if selpane == 0:
             self.pane_gene.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode_init)
             self.pane_gene.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
+            self.pane_gene.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax_init)
             if cw.cwpy.setting.expandmode_init == "FullScreen":
                 self.pane_gene.cb_fullscreen.SetValue(True)
             else:
@@ -147,6 +148,11 @@ class SettingsDialog(wx.Dialog):
         else:
             cw.cwpy.setting.ssinfofontcolor = (0, 0, 0)
             cw.cwpy.setting.ssinfobackcolor = (255, 255, 255)
+        value = self.pane_gene.sc_backlogmax.GetValue()
+        def func(backlogmax):
+            cw.cwpy.set_backlogmax(backlogmax)
+            cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
+        cw.cwpy.exec_func(func, value)
 
         # 拡大倍率
         value = self.pane_gene.cb_smoothexpand.GetValue()
@@ -386,6 +392,9 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_storeskinoneachbase = wx.CheckBox(
             self, -1, u"拠点ごとにスキンを記憶する")
         self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
+        self.st_backlogmax = wx.StaticText(self, -1, u"メッセージログの最大数:")
+        self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(80, -1), max=9999, min=0)
+        self.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax)
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
@@ -605,6 +614,10 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_backlogmax = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_backlogmax.Add(self.st_backlogmax, 0, wx.RIGHT|wx.CENTER, 3)
+        bsizer_backlogmax.Add(self.sc_backlogmax, 0, wx.CENTER, 3)
+        bsizer_gene.Add(bsizer_backlogmax)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_skinbtn = wx.BoxSizer(wx.HORIZONTAL)

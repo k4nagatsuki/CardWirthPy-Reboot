@@ -914,7 +914,7 @@ class CWPy(_Singleton, threading.Thread):
         self.lock_menucards = locks
 
         # バックログの保存
-        if isinstance(mwin.result, int) and\
+        if self.setting.backlogmax and isinstance(mwin.result, int) and\
                 isinstance(self.sdata, cw.data.ScenarioData) and\
                 not isinstance(mwin, cw.sprite.message.MemberSelectWindow):
             if self.setting.backlogmax <= len(self.sdata.backlog):
@@ -953,9 +953,10 @@ class CWPy(_Singleton, threading.Thread):
         if not self.has_backlog():
             return
 
-        if len(self.sdata.backlog) <= n:
-            n = len(self.sdata.backlog) - 1
-        index = len(self.sdata.backlog) - 1 - n
+        length = len(self.sdata.backlog)
+        if length <= n:
+            n = length - 1
+        index = length - 1 - n
 
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
         while self.is_running() and eventhandler.mwin and\
@@ -965,9 +966,26 @@ class CWPy(_Singleton, threading.Thread):
             self.tick_clock()
             self.input()
             eventhandler.run()
-        else:
-            # 表示終了
-            eventhandler.exit_backlog(playsound=False)
+            if len(self.sdata.backlog) < length:
+                # 最大数の設定変更によりログ数が減った場合
+                if not self.sdata.backlog:
+                    break
+                eventhandler.index -= length - len(self.sdata.backlog)
+                length = len(self.sdata.backlog)
+                if eventhandler.index < 0:
+                    eventhandler.index = 0
+                eventhandler.update_sprites()
+        # 表示終了
+        eventhandler.exit_backlog(playsound=False)
+
+    def set_backlogmax(self, backlogmax):
+        """メッセージログの最大数を設定する。
+        """
+        self.setting.backlogmax = backlogmax
+        if not self.has_backlog():
+            return
+        if backlogmax < len(self.sdata.backlog):
+            del self.sdata.backlog[0:len(self.sdata.backlog)-backlogmax]
 
     def set_titlebar(self, s):
         """タイトルバーテキストを設定する。
