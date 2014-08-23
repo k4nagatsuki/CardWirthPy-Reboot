@@ -55,7 +55,7 @@ class Setting(object):
         self.vol_bgm = 1.0
         self.vol_midi = 0.8
         self.vol_sound = 1.0
-        self.soundfonts = [cw.DEFAULT_SOUNDFONT]
+        self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
         self.messagespeed = 5
         self.mwincolour = (0, 0, 80, 180)
         self.mwinframecolour = (128, 0, 0, 255)
@@ -167,7 +167,8 @@ class Setting(object):
         if not elements is None:
             self.soundfonts = []
             for e in elements:
-                self.soundfonts.append(e.text)
+                use = e.getbool(".", "use", True)
+                self.soundfonts.append((e.text, use))
         # メッセージスピード(数字が小さいほど速い)(0～100)
         self.messagespeed = data.getint("MessageSpeed", self.messagespeed)
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)

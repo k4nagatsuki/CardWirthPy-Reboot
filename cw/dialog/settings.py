@@ -94,9 +94,11 @@ class SettingsDialog(wx.Dialog):
             self.pane_sound.sl_sound.SetValue(int(cw.cwpy.setting.vol_sound_init*100))
             self.pane_sound.sl_midi.SetValue(int(cw.cwpy.setting.vol_midi_init*100))
             self.pane_sound.sl_music.SetValue(int(cw.cwpy.setting.vol_bgm_init*100))
-            self.pane_sound.list_soundfont.Clear()
-            for sfont in cw.cwpy.setting.soundfonts_init:
-                self.pane_sound.list_soundfont.Append(sfont)
+            self.pane_sound.list_soundfont.DeleteAllItems()
+            for index, soundfont in enumerate(cw.cwpy.setting.soundfonts_init):
+                sfont, use = soundfont
+                self.pane_sound.list_soundfont.InsertStringItem(index, sfont)
+                self.pane_sound.list_soundfont.CheckItem(index, use)
         elif selpane == 3:
             # スキン毎のシナリオ開始位置の設定は変更しない
             self.pane_scenario.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype_init)
@@ -224,15 +226,21 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.vol_bgm = value
         cw.cwpy.music.set_volume()
         soundfonts = []
-        for soundfont in self.pane_sound.list_soundfont.GetItems():
-            soundfonts.append(soundfont)
+        for index in xrange(self.pane_sound.list_soundfont.GetItemCount()):
+            soundfont = self.pane_sound.list_soundfont.GetItemText(index)
+            use = self.pane_sound.list_soundfont.IsChecked(index)
+            soundfonts.append((soundfont, use))
         if cw.cwpy.setting.soundfonts <> soundfonts:
+            sfonts1 = [sfont[0] for sfont in soundfonts if sfont[1]]
+            sfonts2 = [sfont[0] for sfont in cw.cwpy.setting.soundfonts if sfont[1]]
             cw.cwpy.setting.soundfonts = soundfonts
-            if cw.bassplayer.is_alivable():
-                cw.bassplayer.dispose_bass()
-            if soundfonts:
-                cw.bassplayer.init_bass(soundfonts)
-            cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
+            if sfonts1 <> sfonts2:
+                if cw.bassplayer.is_alivable():
+                    cw.bassplayer.dispose_bass()
+                if soundfonts:
+                    sfonts = [sfont[0] for sfont in soundfonts if sfont[1]]
+                    cw.bassplayer.init_bass(sfonts)
+                cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
 
         updatemessage = False
         # 配色(メッセージ)
@@ -918,9 +926,11 @@ class AudioSettingPanel(wx.Panel):
         self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(25, -1))
-        self.list_soundfont = wx.ListBox(self, -1, size=(-1, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
-        for soundfont in cw.cwpy.setting.soundfonts:
-            self.list_soundfont.Append(soundfont)
+        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(-1, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
+        for index, soundfont in enumerate(cw.cwpy.setting.soundfonts):
+            sfont, use = soundfont
+            self.list_soundfont.InsertStringItem(index, sfont)
+            self.list_soundfont.CheckItem(index, use)
 
         self._do_layout()
         self._bind()
@@ -979,8 +989,11 @@ class AudioSettingPanel(wx.Panel):
         dlg = wx.FileDialog(self.GetTopLevelParent(), u"MIDIの演奏に使用するサウンドフォント選択", u"Data/SoundFont", "", "*.sf2", wx.FD_OPEN|wx.FD_MULTIPLE)
         if dlg.ShowModal() == wx.ID_OK:
             exists = set()
-            for soundfont in self.list_soundfont.GetItems():
+            index = -1
+            for index in xrange(self.list_soundfont.GetItemCount()):
+                soundfont = self.list_soundfont.GetItemText(index)
                 exists.add(soundfont.lower())
+
             for fname in dlg.GetFilenames():
                 fpath = os.path.join(dlg.GetDirectory(), fname)
                 try:
@@ -992,28 +1005,49 @@ class AudioSettingPanel(wx.Panel):
                 fpath = cw.util.join_paths(fpath)
                 if fpath.lower() in exists:
                     continue
-                self.list_soundfont.Append(fpath)
+                index = self.list_soundfont.GetItemCount()
+                self.list_soundfont.InsertStringItem(index, fpath)
+                self.list_soundfont.CheckItem(index, True)
 
     def OnRemoveSoundFontBtn(self, event):
-        for index in reversed(self.list_soundfont.GetSelections()):
-            self.list_soundfont.Delete(index)
+        while True:
+            index = self.list_soundfont.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index < 0:
+                break
+            self.list_soundfont.DeleteItem(index)
 
     def OnUpSoundFontBtn(self, event):
-        for index in self.list_soundfont.GetSelections():
-            if index == 0:
-                return
-            item = self.list_soundfont.GetString(index)
-            self.list_soundfont.Delete(index)
-            self.list_soundfont.Insert(item, index - 1)
+        index = -1
+        while True:
+            index = self.list_soundfont.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= 0:
+                break
+            item = self.list_soundfont.GetItemText(index)
+            use = self.list_soundfont.IsChecked(index)
+            self.list_soundfont.DeleteItem(index)
+            self.list_soundfont.InsertStringItem(index - 1, item)
+            self.list_soundfont.CheckItem(index - 1, use)
             self.list_soundfont.Select(index - 1)
 
     def OnDownSoundFontBtn(self, event):
-        for index in reversed(self.list_soundfont.GetSelections()):
-            if index + 1 == self.list_soundfont.GetCount():
-                return
-            item = self.list_soundfont.GetString(index)
-            self.list_soundfont.Delete(index)
-            self.list_soundfont.Insert(item, index + 1)
+        indexes = []
+        index = -1
+        while True:
+            index = self.list_soundfont.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index < 0:
+                break
+            indexes.append(index)
+
+        if not indexes or self.list_soundfont.GetItemCount() <= indexes[-1] + 1:
+            return
+
+        indexes.reverse()
+        for index in indexes:
+            item = self.list_soundfont.GetItemText(index)
+            use = self.list_soundfont.IsChecked(index)
+            self.list_soundfont.DeleteItem(index)
+            self.list_soundfont.InsertStringItem(index + 1, item)
+            self.list_soundfont.CheckItem(index + 1, use)
             self.list_soundfont.Select(index + 1)
 
 class ScenarioSettingPanel(wx.Panel):

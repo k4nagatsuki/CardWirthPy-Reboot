@@ -27,6 +27,7 @@ if sys.platform == "win32":
     import ctypes
 
 import wx
+import wx.lib.mixins.listctrl
 import pygame
 from pygame.locals import *
 
@@ -372,7 +373,8 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
 
     # BASS Audioを初期化(使用できない事もある)
     if soundfonts is None:
-        soundfonts = [cw.DEFAULT_SOUNDFONT]
+        soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
+    soundfonts = [sfont[0] for sfont in soundfonts if sfont[1]]
     cw.bassplayer.init_bass(soundfonts)
 
     return scr, scr_draw, scr_fullscreen, clock
@@ -1958,6 +1960,18 @@ def abbr_longstr(dc, str, w1, w2):
             str = str[:-1]
         str += u"..."
     return str
+
+class CheckableListCtrl(wx.ListCtrl,
+                        wx.lib.mixins.listctrl.CheckListCtrlMixin,
+                        wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
+    """チェックボックス付きのリスト。"""
+    def __init__(self, parent, id, size, style):
+        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
+        wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
+        wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
+        self.InsertColumn(0, u"")
+        self.SetColumnWidth(0, 170)
+        self.setResizeColumn(0)
 
 #-------------------------------------------------------------------------------
 #  スレッド関係

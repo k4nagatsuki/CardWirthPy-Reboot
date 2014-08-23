@@ -5,7 +5,6 @@ import os
 import copy
 import threading
 import wx
-import wx.lib.mixins.listctrl
 import wx.lib.agw.customtreectrl
 
 import cw
@@ -735,11 +734,6 @@ def get_scenario(fpath):
 
     header = cw.header.ScenarioHeader(t)
     return cw.data.ScenarioData(header, cardonly=True)
-
-class CheckableListCtrl(wx.ListCtrl, wx.lib.mixins.listctrl.CheckListCtrlMixin):
-    def __init__(self, parent, id, size, style):
-        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
-        wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
 
 def main():
     pass
