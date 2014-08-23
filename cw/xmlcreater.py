@@ -342,6 +342,10 @@ def create_settings(setting):
     e = cw.data.make_element("ScreenShotInformationBackgroundColor", "", d)
     element.append(e)
 
+    # タイトルバーの表示内容
+    e = cw.data.make_element("TitleFormat", setting.titleformat)
+    element.append(e)
+
     # ファイル書き込み
     path = "Settings.xml"
     etree = cw.data.xml2etree(element=element)

@@ -102,6 +102,7 @@ class Setting(object):
         self.scenario_narrowtype = 0
         self.scenario_sorttype = 0
         self.ssinfoformat = "[%scenario%[(%author%)] - ][%party% at ]%yado%"
+        self.titleformat = "%application% %skin%[ - %yado%[ %scenario%]]"
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
         self.show_fcardsinbattle = False
@@ -294,6 +295,9 @@ class Setting(object):
         g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor[1])
         b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor[2])
         self.ssinfobackcolor = (r, g, b, 255)
+
+        # タイトルバーの表示内容
+        self.titleformat = data.gettext("TitleFormat", self.titleformat)
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)

@@ -288,7 +288,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def create_title(self):
         """タイトルバー文字列を生成する。"""
-        s = "%application% %skin%[ - %yado%[ %scenario%]]"
+        s = self.setting.titleformat
         d = self.get_titledic()
         return cw.util.format_title(s, d)
 
@@ -302,6 +302,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.status.startswith("Scenario"):
             d["scenario"] = self.sdata.name
             d["author"] = self.sdata.author
+            d["path"] = self.sdata.fpath
+            d["file"] = os.path.basename(self.sdata.fpath)
         return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False):
