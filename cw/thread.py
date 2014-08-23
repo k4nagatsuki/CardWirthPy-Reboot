@@ -1458,7 +1458,6 @@ class CWPy(_Singleton, threading.Thread):
                             self.sdata.set_log()
                             self._f9impl(startotherscenario=True)
                     else:
-                        self.ydata.party.reload()
                         for idx, data in enumerate(self.ydata.party.members):
                             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
                             pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal")
