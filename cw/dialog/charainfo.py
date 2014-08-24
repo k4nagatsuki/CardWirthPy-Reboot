@@ -569,6 +569,10 @@ class HistoryPanel(wx.ScrolledWindow):
         self.silver = cw.cwpy.rsrc.dialogs["STATUS2"]
         self.bronze = cw.cwpy.rsrc.dialogs["STATUS1"]
         self.black = cw.cwpy.rsrc.dialogs["STATUS0"]
+        self.gold_s = self._get_bmps("STATUS3")
+        self.silver_s = self._get_bmps("STATUS2")
+        self.bronze_s = self._get_bmps("STATUS1")
+        self.black_s = self._get_bmps("STATUS0")
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
         # bind
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -579,6 +583,11 @@ class HistoryPanel(wx.ScrolledWindow):
         if cw.cwpy.debug and editable and isinstance(ccard, cw.sprite.card.PlayerCard):
             self.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FINGER"])
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+
+    def _get_bmps(self, name):
+        bmp = cw.cwpy.rsrc.pygamedialogs[name].convert_alpha()
+        bmp.fill((0, 0, 0, 128), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        return cw.image.conv2wxbmp(bmp)
 
     def OnLeftUp(self, event):
         cw.cwpy.sounds["click"].play()
@@ -609,9 +618,7 @@ class HistoryPanel(wx.ScrolledWindow):
 
         for coupon in self.ccard.data.getfind("Property/Coupons"):
             if coupon.text and not coupon.text.startswith(u"＠"):
-                if cw.cwpy.debug or (not coupon.text.startswith(u"＿") and\
-                                     not coupon.text.startswith(u"：") and\
-                                     not coupon.text.startswith(u"；")):
+                if cw.cwpy.debug or not self.is_hidden(coupon.text):
                     self.coupons.append((coupon.text, int(coupon.get("value"))))
         self.coupons.reverse()
 
@@ -634,6 +641,11 @@ class HistoryPanel(wx.ScrolledWindow):
         self.Scroll(0, 0)
         self.Refresh()
 
+    def is_hidden(self, coupon):
+        return coupon.startswith(u"＿") or\
+               coupon.startswith(u"：") or\
+               coupon.startswith(u"；")
+
     def OnPaint(self, event):
         csize = self.GetClientSize()
         vx, vy = self.GetViewStart()
@@ -646,7 +658,6 @@ class HistoryPanel(wx.ScrolledWindow):
         dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
 
         # クーポン
-        dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
 
         lineheight = self.gold.GetSize()[1] + cw.wins(5)
@@ -654,18 +665,32 @@ class HistoryPanel(wx.ScrolledWindow):
         index = int(vy / lineheight)
         y = (index * lineheight) + cw.wins(10) - vy
         coupons = self.coupons[index:]
+        gray = wx.Colour(160, 160, 160)
         for index, coupon in enumerate(coupons):
             text, value = coupon
-            dc.DrawText(text, cw.wins(32) - vx, y)
 
-            if value > 1:
-                bmp = self.gold
-            elif value == 1:
-                bmp = self.silver
-            elif value == 0:
-                bmp = self.bronze
+            if self.is_hidden(text):
+                dc.SetTextForeground(gray)
+                if value > 1:
+                    bmp = self.gold_s
+                elif value == 1:
+                    bmp = self.silver_s
+                elif value == 0:
+                    bmp = self.bronze_s
+                else:
+                    bmp = self.black_s
             else:
-                bmp = self.black
+                dc.SetTextForeground(wx.WHITE)
+                if value > 1:
+                    bmp = self.gold
+                elif value == 1:
+                    bmp = self.silver
+                elif value == 0:
+                    bmp = self.bronze
+                else:
+                    bmp = self.black
+
+            dc.DrawText(text, cw.wins(32) - vx, y)
             dc.DrawBitmap(bmp, cw.wins(12) - vx, y, True)
             y += lineheight
             if csize[1] <= y:
