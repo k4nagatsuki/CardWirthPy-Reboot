@@ -827,6 +827,7 @@ class JptxImage(cw.image.Image):
 
                 subimg = info.font.render(chars, antialias2, info.fontcolor)
                 width = info.font.size(chars)[0]
+                width = min(width, info.font.get_height()) # FIXME: フォント幅の計算がCardWirthと異なるため暫定対応
                 # 取消線
                 if info.strike:
                     subimg2 = info.font.render(u"―", False, info.fontcolor)
@@ -913,6 +914,7 @@ class JptxImage(cw.image.Image):
                 info.render()
                 info.tag += char
             else:
+                info.render() # FXIME: 1文字ずつ幅を考慮するために1文字ずつレンダリングする
                 info.chars.append(char)
                 info.nolinedata = False
                 info.tagonly = False

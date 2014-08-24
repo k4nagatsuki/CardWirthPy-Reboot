@@ -1793,10 +1793,13 @@ class CWPy(_Singleton, threading.Thread):
             y = pcard._pos_noscale[1]
             pcard._rect[0] = cw.s(x)
             y2 = pcard.rect.top
+            size = pcard.rect.size
+            pcard.rect.size = pcard._rect.size
             pcard.rect.center = pcard._rect.center
             pcard.rect.top = y2
             pcard.cardimg.rect[0] = cw.s(x)
             pcard._pos_noscale = (x, y)
+            pcard.rect.size = size
             for i, t in enumerate(pcard.zoomimgs):
                 img, rect = t
                 rect.center = pcard.rect.center
