@@ -1368,6 +1368,7 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.items = {}
             self.activeitem = None
             self.current_tree = None
+            self.current_content = None
             return
 
         trees = nowrunning.trees
