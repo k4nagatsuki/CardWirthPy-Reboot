@@ -2032,6 +2032,9 @@ class ScenarioSelect(Select):
                 self.bookmark = bookmark
             def OnOpen(self, event):
                 cw.cwpy.sounds["equipment"].play()
+                if self.outer.narrow.GetValue():
+                    self.outer.narrow.SetValue("")
+                    self.outer.update_narrowcondition()
                 self.outer.set_selected(self.bookmark, opendir=True)
 
         if cw.cwpy.ydata.bookmarks:
