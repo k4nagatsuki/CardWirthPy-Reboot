@@ -167,7 +167,7 @@ class Setting(object):
         if not elements is None:
             self.soundfonts = []
             for e in elements:
-                use = e.getbool(".", "use", True)
+                use = e.getbool(".", "enabled", True)
                 self.soundfonts.append((e.text, use))
         # メッセージスピード(数字が小さいほど速い)(0～100)
         self.messagespeed = data.getint("MessageSpeed", self.messagespeed)
