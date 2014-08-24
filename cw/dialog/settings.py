@@ -493,7 +493,8 @@ class GeneralSettingPanel(wx.Panel):
                                            u"次の各情報を表示できます:\n" +
                                            u" %application% = ソフト名, %skin% = スキン名,\n" +
                                            u" %yado% = 拠点名, %party% = パーティ名,\n" +
-                                           u" %scenario% = シナリオ名, %author% = 作者名")
+                                           u" %scenario% = シナリオ名, %author% = 作者名,\n" +
+                                           u" %date% = 日付, %time% = 時刻")
 
         self._do_layout()
         self._bind()

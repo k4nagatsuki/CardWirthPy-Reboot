@@ -941,7 +941,16 @@ def screenshot():
     cw.cwpy.sounds["screenshot"].play()
 
     filename = os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
-    title = format_title(cw.cwpy.setting.ssinfoformat, cw.cwpy.get_titledic())
+    d = cw.cwpy.get_titledic()
+    d["date"] = date.strftime("%Y-%m-%d")
+    d["year"] = date.strftime("%Y")
+    d["month"] = date.strftime("%m")
+    d["day"] = date.strftime("%d")
+    d["time"] = date.strftime("%H:%M:%S")
+    d["hour"] = date.strftime("%H")
+    d["minute"] = date.strftime("%M")
+    d["second"] = date.strftime("%S")
+    title = format_title(cw.cwpy.setting.ssinfoformat, d)
     if title:
         fore = cw.cwpy.setting.ssinfofontcolor
         back = cw.cwpy.setting.ssinfobackcolor
