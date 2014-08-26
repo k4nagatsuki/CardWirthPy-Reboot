@@ -883,6 +883,12 @@ class PartySelect(Select):
         # パーティ情報
         self.list = cw.cwpy.ydata.partys
         self.index = 0
+        if cw.cwpy.ydata.lastparty:
+            # 前回選択されていたパーティ
+            for i, header in enumerate(self.list):
+                if header.fpath == cw.cwpy.ydata.lastparty:
+                    self.index = i
+                    break
         self.names = []
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))

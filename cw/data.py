@@ -886,6 +886,10 @@ class YadoData(object):
         self.yadodir = yadodir
         self.tempdir = tempdir
 
+        # 冒険の再開ダイアログを開いた時に
+        # 選択状態にするパーティのパス
+        self.lastparty = ""
+
         if not os.path.isdir(self.tempdir):
             os.makedirs(self.tempdir)
 
@@ -1139,6 +1143,13 @@ class YadoData(object):
             self.party.write()
             if self.party.members:
                 self.add_party(self.party)
+
+            if self.party.members:
+                # 次に冒険の再開ダイアログを開いた時に
+                # 選択状態にする
+                self.lastparty = self.party.path
+            else:
+                self.lastparty = ""
 
         if header:
             self.party = Party(header)
