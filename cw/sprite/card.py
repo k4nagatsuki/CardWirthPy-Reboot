@@ -466,6 +466,8 @@ class CWPyCard(base.SelectableSprite):
             self.frame += 1
 
     def update_scale(self):
+        if not self.is_initialized():
+            return
         if not (hasattr(self, "cardimg") and self.cardimg):
             return
 
