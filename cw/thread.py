@@ -1794,7 +1794,8 @@ class CWPy(_Singleton, threading.Thread):
             pcard._rect[0] = cw.s(x)
             y2 = pcard.rect.top
             size = pcard.rect.size
-            pcard.rect.size = pcard._rect.size
+            if pcard.rect.size == (0, 0):
+                pcard.rect.size = pcard._rect.size
             pcard.rect.center = pcard._rect.center
             pcard.rect.top = y2
             pcard.cardimg.rect[0] = cw.s(x)
