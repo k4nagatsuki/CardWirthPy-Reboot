@@ -1040,18 +1040,20 @@ class CWPy(_Singleton, threading.Thread):
         cw.OPTIONS.party = ""
         cw.OPTIONS.scenario = ""
 
+        self.sdata = cw.data.SystemData()
+        self.statusbar.change()
         ext = self.rsrc.ext_img
+        white = cw.sprite.background.TitleCell("white", 3, 0, False, None)
         path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
-        card1 = cw.sprite.background.TitleCell(path, 1, 120, True, False)
+        card1 = cw.sprite.background.TitleCell(path, 1, 120, True, white)
         path = cw.util.join_paths(resdir, "TITLE_CARD2") + ext
-        card2 = cw.sprite.background.TitleCell(path, 1, 120, True, False)
+        card2 = cw.sprite.background.TitleCell(path, 1, 120, True, white)
         path = cw.util.join_paths(resdir, "TITLE_CELL1") + ext
-        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False, False)
+        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False, white)
         path = cw.util.join_paths(resdir, "TITLE_CELL2") + ext
-        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False, False)
+        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False, white)
         path = cw.util.join_paths(resdir, "TITLE_CELL3") + ext
-        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, False)
-        white = cw.sprite.background.TitleCell("white", 3, 0, False, True)
+        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, white)
 
         cw.cwpy.topgrp.add(card1, layer="title")
         cw.cwpy.topgrp.add(card2, layer="title")

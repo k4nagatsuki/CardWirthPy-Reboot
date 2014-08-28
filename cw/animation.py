@@ -32,17 +32,15 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
         clip = clip.union(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
+        if not clearevent:
+            clip = _inputevent(clip)
+
         if not skip:
             if background:
                 cw.cwpy.draw()
             else:
                 cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
-
-        if not clearevent:
-            cw.cwpy.update_mousepos()
-            cw.cwpy.events = pygame.event.get()
-            cw.cwpy.eventhandler.run()
 
     if not clearevent:
         cw.cwpy.input(inputonly=True)
@@ -95,14 +93,12 @@ def animate_sprites2(sprandanimes, clearevent=True):
             clip.union_ip(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
+        if not clearevent:
+            clip = _inputevent(clip)
+
         if not skip:
             cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
-
-        if not clearevent:
-            cw.cwpy.update_mousepos()
-            cw.cwpy.events = pygame.event.get()
-            cw.cwpy.eventhandler.run()
 
         animating = False
 
@@ -120,6 +116,16 @@ def animate_sprites2(sprandanimes, clearevent=True):
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
+
+def _inputevent(clip):
+    cw.cwpy.update_mousepos()
+    sel = cw.cwpy.selection
+    cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
+    if sel <> cw.cwpy.selection:
+        clip = clip.union(cw.cwpy.statusbar.rect)
+    cw.cwpy.events = pygame.event.get()
+    cw.cwpy.eventhandler.run()
+    return clip
 
 def _get_skipstatus(clearevent):
     if not clearevent:
