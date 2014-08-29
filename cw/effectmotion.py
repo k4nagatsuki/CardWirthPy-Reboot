@@ -341,6 +341,15 @@ class Effect(object):
         elif isinstance(target, Character):
             flag = bool(not target.is_vanished())
             flag &= event or not target.is_reversed()
+            if flag:
+                flag = False
+                for eff in self.motions:
+                    if target.is_unconscious() and not eff.type in CAN_UNCONSCIOUS:
+                        continue
+                    elif eff.is_noeffect(target):
+                        continue
+                    flag = True
+                    break
             return flag
         else:
             return True
