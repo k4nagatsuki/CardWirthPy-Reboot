@@ -185,7 +185,7 @@ class Text(wx.Dialog):
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
         s = cw.cwpy.msgs["instructions"]
-        dc.DrawText(s, cw.wins(10), cw.wins(2))
+        dc.DrawText(s, cw.wins(5), cw.wins(2))
         s = cw.cwpy.msgs["referencing_file"]
         w = dc.GetTextExtent(s)[0]
         w = w + cw.wins(5) + self.combo.GetSize()[0]

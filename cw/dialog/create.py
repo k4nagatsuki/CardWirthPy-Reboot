@@ -16,12 +16,14 @@ class AdventurerDataComp(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["insufficiency_title"],
                             style=wx.CAPTION|wx.SYSTEM_MENU)
         self.ccard = ccard
-        if self.ccard.has_sex():
+        hassex = self.ccard.has_sex()
+        if hassex:
             self.sex = self.ccard.get_sex()
         else:
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.ccard.set_sex(self.sex)
-        if self.ccard.has_age():
+        hasage = self.ccard.has_age()
+        if hasage:
             self.age = self.ccard.get_age()
         else:
             self.age = cw.cwpy.setting.periodcoupons[0]
@@ -35,7 +37,7 @@ class AdventurerDataComp(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
         self.text_message = wx.StaticText(self, -1, s)
         self.text_message.SetFont(font)
-        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16))
         self.box = wx.StaticBox(self, -1)
         self.text_name = wx.StaticText(self, -1, ccard.name)
         self.text_name.SetFont(font)
@@ -63,6 +65,11 @@ class AdventurerDataComp(wx.Dialog):
             if self.age == coupon:
                 self.rb_age.SetSelection(index)
                 break
+
+        if hassex:
+            self.rb_sex.Disable()
+        if hasage:
+            self.rb_age.Disable()
 
         # OKボタン
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((120, 30)), cw.cwpy.msgs["decide"])
@@ -1091,7 +1098,7 @@ class RelationPage(AdventurerCreaterPage):
 
         cw.util.draw_center(dc, s, cw.wins((315, 220)))
         # 父親消費EP
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.FONTWEIGHT_NORMAL)
         dc.SetFont(font)
 
         if self.father:
@@ -1685,7 +1692,7 @@ class DesignPanel(AdventurerCreaterPage):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
         if self.ch_imgdpath.IsShown():
-            sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(50))
+            sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(55))
             sizer_1.Add(self.ch_imgdpath, 0, wx.TOP|wx.CENTER, cw.wins(133))
             h = self.ch_imgdpath.GetSize()[1]
             sizer_1.Add(self.descctrl, 0, wx.TOP|wx.CENTER, cw.wins(45)-h)
@@ -1717,8 +1724,8 @@ class DesignPanel(AdventurerCreaterPage):
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(15))
 
         if self.ch_imgdpath.IsShown():
-            y = cw.wins(35)
-            y2 = 106
+            y = cw.wins(40)
+            y2 = 111
         else:
             y = cw.wins(45)
             y2 = 116
