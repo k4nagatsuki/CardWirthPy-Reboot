@@ -342,11 +342,10 @@ class Effect(object):
             flag = bool(not target.is_vanished())
             flag &= event or not target.is_reversed()
             if flag:
+                # 回復等が含まれていない場合、意識不明の対象は対象外に
                 flag = False
                 for eff in self.motions:
                     if target.is_unconscious() and not eff.type in CAN_UNCONSCIOUS:
-                        continue
-                    elif eff.is_noeffect(target):
                         continue
                     flag = True
                     break
