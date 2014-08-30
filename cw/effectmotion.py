@@ -341,7 +341,7 @@ class Effect(object):
         elif isinstance(target, Character):
             flag = bool(not target.is_vanished())
             flag &= event or not target.is_reversed()
-            if flag:
+            if flag and self.motions:
                 # 回復等が含まれていない場合、意識不明の対象は対象外に
                 flag = False
                 for eff in self.motions:
