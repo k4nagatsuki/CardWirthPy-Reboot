@@ -32,7 +32,7 @@ class Text(wx.Dialog):
         self._set_text(value)
         self.textctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.textctrl.SetForegroundColour(wx.WHITE)
-        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.textctrl.SetEditable(False)
         self.textctrl.ShowPosition(0)
         # close
@@ -45,7 +45,7 @@ class Text(wx.Dialog):
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.wins((30, 30)), bmp=bmp)
         # choice
         self.combo = wx.ComboBox(self.toppanel, size=cw.wins((140, 20)), choices=self.list, style=wx.CB_READONLY)
-        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
 
         if self.list:
             self.combo.SetSelection(self.index)
@@ -183,7 +183,7 @@ class Text(wx.Dialog):
         dc.SetBrush(wx.Brush(wx.Colour(0, 0, 128)))
         dc.DrawRectangle(0, 0, csize[0], csize[1])
         dc.SetTextForeground(wx.LIGHT_GREY)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
         s = cw.cwpy.msgs["instructions"]
         dc.DrawText(s, cw.wins(10), cw.wins(2))
         s = cw.cwpy.msgs["referencing_file"]
@@ -195,7 +195,7 @@ class Text(wx.Dialog):
         dc.DrawRectangle(0, self.combo.GetSize()[1], csize[0], cw.wins(2))
         if not self.list2:
             dc.SetTextForeground(wx.LIGHT_GREY)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(20)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(20)))
             # 文字
             s = "No Text File"
             size = dc.GetTextExtent(s)

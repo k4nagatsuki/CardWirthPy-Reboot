@@ -245,7 +245,7 @@ class SelectPartyRecord(select.Select):
             cards = None
         # 見出し
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = cw.cwpy.msgs["adventurers_team_record"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(25))
@@ -284,7 +284,7 @@ class SelectPartyRecord(select.Select):
 
         # パーティ名
         dc.SetTextForeground((0, 0, 0))
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(20)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20)))
         if header:
             s = header.name
         else:
@@ -293,7 +293,7 @@ class SelectPartyRecord(select.Select):
         dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
 
         # 所持カード
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
         s = cw.cwpy.msgs["backpack_record"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(130))
@@ -303,7 +303,7 @@ class SelectPartyRecord(select.Select):
         else:
             llen = 4
         hlen = 6
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
         if header:
             backpacklist = header.backpack
             if llen*hlen < len(backpacklist):
@@ -323,7 +323,7 @@ class SelectPartyRecord(select.Select):
 
         # ページ番号
         dc.SetTextForeground((0, 0, 0))
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]

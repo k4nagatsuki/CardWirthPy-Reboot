@@ -702,10 +702,44 @@ class Resource(object):
             WM_FONTCHANGE = 0x001D
             user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
+    def get_fontfromtype(self, name):
+        """フォントタイプ名から抽象フォント名を取得する。"""
+        fonttypetable = {"button"       : "uigothic",
+                         "combo"        : "uigothic",
+                         "slider"       : "gothic",
+                         "spin"         : "gothic",
+                         "tree"         : "gothic",
+                         "list"         : "uigothic",
+                         "tab"          : "uigothic",
+                         "menu"         : "uigothic",
+                         "paneltitle"   : "uigothic",
+                         "dlgmsg"       : "uigothic",
+                         "dlgtitle"     : "mincho",
+                         "inputname"    : "mincho",
+                         "datadesc"     : "gothic",
+                         "charadesc"    : "mincho",
+                         "dlglist"      : "mincho",
+                         "uselimit"     : "mincho",
+                         "cardname"     : "uigothic",
+                         "level"        : "mincho",
+                         "message"      : "mincho",
+                         "selectionbar" : "uigothic",
+                         "logpage"      : "mincho",
+                         "sbarpanel"    : "pmincho",
+                         "sbarbtn"      : "uigothic",
+                         "statusnum"    : "mincho",
+                         "screenshot"   : "uigothic",
+                         }
+
+        return fonttypetable.get(name, name)
+
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
+
+        type = name
+        name = self.get_fontfromtype(name)
 
         # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
@@ -713,9 +747,9 @@ class Resource(object):
             dpi = wx.ScreenDC().GetPPI()[0]
             pixelsize = int((1.0/72 * 96) * size + 0.5)
 
-        if name == "btnfont":
+        if type == "button" and name == "uigothic":
             if self._msuigothic:
-                fontname = "MS UI Gothic"
+                fontname = u"MS UI Gothic"
             else:
                 fontname = u"IPA UIゴシック"
         else:
@@ -729,23 +763,23 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = {}
         # 所持カードの使用回数描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(16))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("uselimit")], cw.s(16))
         font.set_bold(True)
         fonts["card_uselimit"] = font
         # メニューカードの名前描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(12))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("cardname")], cw.s(12))
         font.set_bold(True)
         fonts["mcard_name"] = font
         # プレイヤカードの名前描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(14))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("cardname")], cw.s(14))
         font.set_bold(True)
         fonts["pcard_name"] = font
         # プレイヤカードのレベル描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(36))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("level")], cw.s(36))
         font.set_italic(True)
         fonts["pcard_level"] = font
         # メッセージウィンドウのテキスト描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(22))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("message")], cw.s(22))
         fonts["message"] = font
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             fontface = u"ＭＳ 明朝"
@@ -753,30 +787,32 @@ class Resource(object):
             font.set_bold(True)
             fonts["message_classic"] = font
         # メッセージウィンドウの選択肢描画用
-        font = pygame.font.Font(self.fontpaths["uigothic"], cw.s(15))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("selectionbar")], cw.s(15))
         if cw.UP_SCR == 1:
             font.set_bold(True)
         fonts["selectionbar"] = font
         # メッセージログのページ表示描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(20))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("logpage")], cw.s(20))
         fonts["backlog_page"] = font
         # ステータスバーパネル描画用
-        font = pygame.font.Font(self.fontpaths["pmincho"], cw.s(14))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("sbarpanel")], cw.s(14))
         font.set_bold(True)
         fonts["sbarpanel"] = font
         # ステータスバーボタン描画用
-        fonts["sbarbtn"] = fonts["mcard_name"]
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("sbarbtn")], cw.s(12))
+        font.set_bold(True)
+        fonts["sbarbtn"] = font
         # ステータス画像の召喚回数描画用
-        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(12))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("statusnum")], cw.s(12))
         font.set_bold(True)
         fonts["statusimg1"] = font
-        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(10))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("statusnum")], cw.s(10))
         font.set_bold(True)
         fonts["statusimg2"] = font
-        font = pygame.font.Font(self.fontpaths["mincho"], cw.s(8))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("statusnum")], cw.s(8))
         font.set_bold(True)
         fonts["statusimg3"] = font
-        font = pygame.font.Font(self.fontpaths["pgothic"], cw.s(18))
+        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("screenshot")], cw.s(18))
         fonts["screenshot"] = font
         return fonts
 
@@ -784,7 +820,7 @@ class Resource(object):
         if name:
             button = wx.Button(parent, id, name, size=size)
             button.SetMinSize(size)
-            button.SetFont(self.get_wxfont("btnfont"))
+            button.SetFont(self.get_wxfont("button"))
         elif bmp:
             button = wx.BitmapButton(parent, id, bmp)
             button.SetMinSize(size)
@@ -797,7 +833,7 @@ class Resource(object):
         if name:
             button = wx.Button(parent, id, name, size=size)
             button.SetMinSize(size)
-            button.SetFont(self.get_wxfont("btnfont", pixelsize=14))
+            button.SetFont(self.get_wxfont("button", pixelsize=14))
         elif bmp:
             button = wx.BitmapButton(parent, id, bmp)
             button.SetMinSize(size)

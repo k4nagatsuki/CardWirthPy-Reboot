@@ -289,7 +289,7 @@ class ExtensionDialog(wx.Dialog):
 
         self.panel = wx.Panel(self, -1, style=wx.BORDER)
         self.desc = wx.StaticText(self.panel, -1, size=cw.wins((210, 150)), style=wx.ST_NO_AUTORESIZE)
-        self.desc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14)))
+        self.desc.SetFont(cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14)))
 
         self.btn_cncl = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["cancel"])
         self._bind()
@@ -369,7 +369,7 @@ class BookmarkDialog(wx.Dialog):
         self.values.InsertColumn(0, u"")
         self.values.SetColumnWidth(0, cw.wins(250))
         self.values.setResizeColumn(0)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("list", pixelsize=cw.wins(15), weight=wx.NORMAL)
         self.values.SetFont(font)
 
         self.bookmark = cw.cwpy.ydata.bookmarks[:]
@@ -556,7 +556,7 @@ class ConvertYadoDialog(wx.Dialog):
                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.message = u"%s を逆変換し、\n新規作成したフォルダへ格納します。" % (yadoname)
         dc = wx.ClientDC(self)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
         w, h, lh = dc.GetMultiLineTextExtent(self.message)
         self.SetClientSize((w + cw.wins(50), cw.wins(156)))
@@ -565,14 +565,14 @@ class ConvertYadoDialog(wx.Dialog):
         self.dstpath = u"UnconvertedYado"
 
         self.folder = wx.TextCtrl(self, size=(-1, -1))
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16), weight=wx.NORMAL)
         self.folder.SetFont(font)
         self.folder.SetValue(self.dstpath)
 
         s = ((u"%s のデータをCardWirth用に逆変換します。" +
               u"\n変換先のフォルダを選択してください。") % (yadoname))
         self.reffolder = cw.util.create_fileselection(self, self.folder, s, dir=True, getbasedir=os.getcwdu, winsize=True)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.reffolder.SetFont(font)
 
         choices = [u"CardWirth 1.50",
@@ -580,7 +580,7 @@ class ConvertYadoDialog(wx.Dialog):
                    u"CardWirth 1.29",
                    u"CardWirth 1.28"]
         self.target = wx.Choice(self, size=(-1, -1), choices=choices)
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16), weight=wx.NORMAL)
         self.target.SetFont(font)
         self.target.Select(0)
 
@@ -622,13 +622,13 @@ class ConvertYadoDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
         s = self.message
         w, h, lh = dc.GetMultiLineTextExtent(s)
         dc.DrawLabel(s, ((csize[0]-w)/2, cw.wins(10), w, h))
 
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
 
         s = u"対象エンジン:"
@@ -656,7 +656,7 @@ class ConvertYadoDialog(wx.Dialog):
         sizer_1.Add(cw.wins((0, 50)), 0, 0, 0)
 
         dc = wx.ClientDC(self)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         w, h = dc.GetTextExtent(u"対象エンジン:")
         sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))

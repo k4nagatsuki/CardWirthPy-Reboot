@@ -564,7 +564,7 @@ class YadoSelect(Select):
 
         if self.classic[self.index]:
             # 変換が必要な場合
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16)))
             dc.SetTextForeground(wx.RED)
             s = u"変換が必要です"
             w = dc.GetTextExtent(s)[0]
@@ -577,12 +577,12 @@ class YadoSelect(Select):
         dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
         # 宿名前
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(24)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
@@ -593,7 +593,7 @@ class YadoSelect(Select):
         dc.DrawText(s, (bmpw-w)/2, cw.wins(175))
 
         # 所属冒険者
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
         for idx, name in enumerate(self.list2[self.index]):
             name = cw.util.abbr_longstr(dc, name, cw.wins(90), cw.wins(75))
             x = (bmpw - cw.wins(270)) / 2 + ((idx % 3) * cw.wins(95))
@@ -1008,7 +1008,7 @@ class PartySelect(Select):
         header = self.list[self.index]
         # 見出し
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = cw.cwpy.msgs["adventurers_team"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(25))
@@ -1018,6 +1018,7 @@ class PartySelect(Select):
         dc.DrawText(s, (bmpw-w)/2, cw.wins(60))
 
         # メンバ名
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
         if update:
             self.names = header.get_membernames()
         if len(header.members) > 3:
@@ -1035,7 +1036,7 @@ class PartySelect(Select):
                 dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])/2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
 
         # パーティ名
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(20)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20)))
         s = header.name
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
@@ -1052,7 +1053,7 @@ class PartySelect(Select):
         dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(125), True)
 
         # シナリオ・宿名
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
 
         if sceheader:
             s = sceheader.name
@@ -1062,7 +1063,7 @@ class PartySelect(Select):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (bmpw-w)/2, cw.wins(225))
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
@@ -1091,7 +1092,7 @@ class PlayerSelect(Select):
 
         # sort
         self.sort = wx.ComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
-        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.sort.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
@@ -1591,19 +1592,19 @@ class PlayerSelect(Select):
                 header = self.list[self.index % len(self.list)]
                 # Level
                 dc.SetTextForeground(wx.BLACK)
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_level"]
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(65), cw.wins(45))
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(31)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(31)))
                 s = str(header.level)
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(110), cw.wins(31))
                 # Name
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_class"]
                 dc.DrawText(s, cw.wins(110) + w + cw.wins(5), cw.wins(45))
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(24)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
                 s = header.name
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(125) - w / 2, cw.wins(62))
@@ -1614,7 +1615,7 @@ class PlayerSelect(Select):
                 dc.DrawBitmap(bmp, cw.wins(88), cw.wins(90), True)
                 dc.DestroyClippingRegion()
                 # Age
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_age"] % (header.get_age())
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(127) - w / 2, cw.wins(195))
@@ -1636,7 +1637,7 @@ class PlayerSelect(Select):
                     dc.DrawText(s, cw.wins(320) - w / 2, cw.wins(95) + cw.wins(14) * index)
 
                 # ページ番号
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
                 s = s + "/" + str(len(self.list))
                 w = dc.GetTextExtent(s)[0]
@@ -1663,23 +1664,23 @@ class PlayerSelect(Select):
                     dc.DestroyClippingRegion()
 
                     # Name
-                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                     s = header.name
                     w = dc.GetTextExtent(s)[0]
                     drawwitharound(dc, s, x + (rw - w) / 2, y + cw.wins(105))
                     # Level
                     space = cw.wins(5)
-                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                     s1 = cw.cwpy.msgs["character_level"]
                     w1, h1 = dc.GetTextExtent(s1)
-                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(17)))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(17)))
                     s2 = str(header.level)
                     w2, h2 = dc.GetTextExtent(s2)
                     sx = x + (rw - (w1+cw.wins(5)+w2+space)) / 2
                     sy = y + cw.wins(120)
-                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                     drawwitharound(dc, s1, sx, sy + (h2-h1))
-                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(17)))
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(17)))
                     drawwitharound(dc, s2, sx + w1 + space + cw.wins(5), sy)
                     # Selected
                     if sindex + i == self.index:
@@ -1693,14 +1694,14 @@ class PlayerSelect(Select):
                         x += rw
 
                 # ページ番号
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = str(page+1) if page > 0 else str(-page + 1)
                 s = s + "/" + str(self.get_pagecount())
                 drawwitharound(dc, s, cw.wins(5), cw.wins(5))
 
         # 整列
         if self.sort:
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["sort_title"]
             drawwitharound(dc, s, cw.wins(343), cw.wins(5))
 
@@ -1820,7 +1821,7 @@ class ScenarioSelect(Select):
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
 
         # 絞込条件
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
         self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
         self.narrow_label.SetFont(font)
         self.narrow = wx.TextCtrl(self, -1, size=(-1, -1))
@@ -1829,16 +1830,16 @@ class ScenarioSelect(Select):
         choices = (cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["author"])
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.narrow_type = wx.Choice(self, -1, size=(-1, -1), choices=choices)
         self.narrow_type.SetFont(font)
         self.narrow_type.SetSelection(cw.cwpy.setting.scenario_narrowtype)
 
         # 整列条件
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
         self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
         self.sort_label.SetFont(font)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
         choices = (cw.cwpy.msgs["target_level"],
                    cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["author"])
@@ -1863,7 +1864,7 @@ class ScenarioSelect(Select):
         self.tree = wx.TreeCtrl(self, -1, size=cw.wins((400, 370)),
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
         self.tree.SetDoubleBuffered(True)
-        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
+        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
         self.tree.Hide()
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
         self.tree.imgidx_summary = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"]))
@@ -2017,7 +2018,7 @@ class ScenarioSelect(Select):
         icon_invisible = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"])
         icon_dir = cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"])
 
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(13), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("menu", pixelsize=cw.wins(13), weight=wx.NORMAL)
 
         add = wx.MenuItem(menu, -1, cw.cwpy.msgs["add_bookmark"])
         add.SetBitmap(icon_add)
@@ -2418,7 +2419,7 @@ class ScenarioSelect(Select):
 
         # ページ番号
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = str(self.index+1) if self.list else str(0)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
@@ -2444,7 +2445,7 @@ class ScenarioSelect(Select):
 
             else:
                 # ディレクトリ名
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(24)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(24)))
                 s = os.path.basename(dpath)
                 if s.lower().endswith(".lnk"):
                     s = s[0:-len(".lnk")]
@@ -2459,13 +2460,13 @@ class ScenarioSelect(Select):
                     dc.DrawBitmap(bmp, cw.wins(63), cw.wins(65), False)
 
             # contents
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
             s = cw.cwpy.msgs["contents"]
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(110))
             # 中身
-            font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
-            font2 = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(12))
+            font = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(16))
+            font2 = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(12))
 
             names = self._narrow_scenario(self.names)
             if len(names) > 13:
@@ -2531,12 +2532,12 @@ class ScenarioSelect(Select):
                 dc.DrawBitmap(bmp, cw.wins(163), cw.wins(65), True)
 
             # シナリオ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(24)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(35))
             # 解説文
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(16)))
             s = header.desc
             y = cw.wins(175)
             for l in s.splitlines():
@@ -2544,7 +2545,7 @@ class ScenarioSelect(Select):
                 y += cw.wins(15)
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("mincho",
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle",
                                             style=wx.FONTSTYLE_ITALIC, pixelsize=cw.wins(16)))
             levelmax = str(header.levelmax) if header.levelmax else ""
             levelmin = str(header.levelmin) if header.levelmin else ""

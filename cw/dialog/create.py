@@ -32,19 +32,19 @@ class AdventurerDataComp(wx.Dialog):
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
         s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
         self.text_message = wx.StaticText(self, -1, s)
         self.text_message.SetFont(font)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.box = wx.StaticBox(self, -1)
         self.text_name = wx.StaticText(self, -1, ccard.name)
         self.text_name.SetFont(font)
         self.text_caution = wx.StaticText(self, -1, cw.cwpy.msgs["coution"])
         self.text_caution.SetForegroundColour(wx.RED)
-        font = cw.cwpy.rsrc.get_wxfont(pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(20), style=wx.ITALIC)
         self.text_caution.SetFont(font)
         # ラジオボックス
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         seq = cw.cwpy.setting.sexnames
         self.rb_sex = wx.RadioBox(self, -1, cw.cwpy.msgs["sex"],
                         choices=seq, style=wx.RA_SPECIFY_ROWS, majorDimension=2)
@@ -718,11 +718,11 @@ class NamePage(AdventurerCreaterPage):
         self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
         self.textctrl.SetFocus()
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
 
         self.ch_imgdpath = wx.Choice(self, size=(cw.wins(110), -1))
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.ch_imgdpath.SetFont(font)
 
         self.name = ""
@@ -838,12 +838,12 @@ class NamePage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # welcome to the adventurers inn
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(20), style=wx.ITALIC))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC))
         s = cw.cwpy.msgs["entry_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # Name
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16))
         font.SetUnderlined(True)
         dc.SetFont(font)
         s = cw.cwpy.msgs["entry_name"]
@@ -855,7 +855,7 @@ class NamePage(AdventurerCreaterPage):
         s = cw.cwpy.msgs["entry_age"]
         dc.DrawText(s, cw.wins(85), cw.wins(175))
 
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         dc.SetFont(font)
         xx = [cw.wins(90), cw.wins(155)]
 
@@ -962,13 +962,13 @@ class RacePage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 種族
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の種族を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_message"]
         w = dc.GetTextExtent(s)[0]
@@ -980,7 +980,7 @@ class RacePage(AdventurerCreaterPage):
         if s.count("\n") > 7:
             s = "\n".join(s.split("\n")[0:8])
 
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
         dc.SetFont(font)
         dc.DrawLabel(s, cw.wins((125, 130, 200, 110)))
 
@@ -1011,19 +1011,19 @@ class RelationPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 血縁
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
         dc.SetFont(font)
         s = s = cw.cwpy.msgs["relation_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 親となる条件を満たしている冒険者が宿にいます。
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
         # Father
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16), style=wx.ITALIC)
         font.SetUnderlined(True)
         dc.SetFont(font)
         s = cw.cwpy.msgs["father"]
@@ -1073,7 +1073,7 @@ class RelationPage(AdventurerCreaterPage):
         self.draw_clickablebmp(dc, bmp, pos, "MotherFace", None, self.on_mousewheel, True)
 
         # 父親名前
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16))
         dc.SetFont(font)
 
         if self.father:
@@ -1091,7 +1091,7 @@ class RelationPage(AdventurerCreaterPage):
 
         cw.util.draw_center(dc, s, cw.wins((315, 220)))
         # 父親消費EP
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
         dc.SetFont(font)
 
         if self.father:
@@ -1222,14 +1222,14 @@ class TalentPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 素質
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
         dc.SetFont(font)
         s = s = cw.cwpy.msgs["nature_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の傾向を選択して下さい。
-        font1 = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
-        font2 = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
+        font1 = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font2 = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
         dc.SetFont(font1)
         s = cw.cwpy.msgs["nature_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1270,13 +1270,13 @@ class AttrPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 特性
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(20))
         # 新規冒険者の生まれや性格などの個性を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1284,7 +1284,7 @@ class AttrPage(AdventurerCreaterPage):
         # 特性
         colour = wx.Colour(128, 128, 128)
         dc.SetTextForeground(colour)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         dc.SetFont(font)
 
         for index in xrange(0, len(cw.cwpy.setting.makings), 2):
@@ -1352,7 +1352,7 @@ class YadoCreater(wx.Dialog):
 
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(18)
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
         self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
 
@@ -1370,7 +1370,7 @@ class YadoCreater(wx.Dialog):
                     cw.util.print_ex()
 
         self.skin = wx.Choice(self, size=(cw.wins(150), -1), choices=choices)
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.skin.SetFont(font)
         if cw.cwpy.setting.skindirname in choices:
             index = choices.index(cw.cwpy.setting.skindirname)
@@ -1428,18 +1428,18 @@ class YadoCreater(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = cw.cwpy.msgs["create_base_message_1"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
         s = cw.cwpy.msgs["create_base_message_2"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (csize[0]-w)/2, cw.wins(30))
 
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = cw.cwpy.msgs["select_skin"]
         tw, th = dc.GetTextExtent(s)
@@ -1465,7 +1465,7 @@ class YadoCreater(wx.Dialog):
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
         dc = wx.ClientDC(self)
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         w, h = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
         sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
@@ -1576,14 +1576,14 @@ class DesignPanel(AdventurerCreaterPage):
         self.namectrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.namectrl.SetMaxLength(14)
         self.namectrl.SetFocus()
-        font = cw.cwpy.rsrc.get_wxfont("mincho", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.namectrl.SetFont(font)
 
         self.ch_imgdpath = wx.Choice(self, size=(cw.wins(110), -1))
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.ch_imgdpath.SetFont(font)
 
-        font = cw.cwpy.rsrc.get_wxfont("gothic", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER|wx.TE_MULTILINE)
         self.descctrl.SetFont(font)
 
@@ -1700,8 +1700,6 @@ class DesignPanel(AdventurerCreaterPage):
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
         cwidth = self.GetClientSize()[0]
-        font = cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14))
-        dc.SetFont(font)
 
         # 背景
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
@@ -1711,6 +1709,8 @@ class DesignPanel(AdventurerCreaterPage):
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # Resident Registration
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(18))
+        dc.SetFont(font)
         dc.SetTextForeground(wx.BLACK)
         s = cw.cwpy.msgs["edit_character_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1724,6 +1724,8 @@ class DesignPanel(AdventurerCreaterPage):
             y2 = 116
 
         # Name
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16))
+        dc.SetFont(font)
         s = cw.cwpy.msgs["entry_name"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, y)

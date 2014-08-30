@@ -49,7 +49,7 @@ class Message(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # massage
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("uigothic", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
         dc.DrawLabel(self.text, (0, 0, csize[0], cw.wins(50)), wx.ALIGN_CENTER)
 
     def __do_layout(self):
