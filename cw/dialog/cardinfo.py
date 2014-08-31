@@ -20,8 +20,18 @@ class CardInfo(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.wins((380, 200)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
+
+        # フォントによってダイアログサイズを決定する
+        dc = wx.ClientDC(self)
+        font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13), weight=wx.NORMAL)
+        dc.SetFont(font)
+        size = dc.GetTextExtent(u"―"*19)
+        self.textwidth = size[0]
+        self.textheight = size[1] * 8
+
         # panel
-        self.toppanel = wx.Panel(self, -1, size=cw.wins((380, 138)))
+        size = (self.textwidth+cw.wins(152), self.textheight+cw.wins(47))
+        self.toppanel = wx.Panel(self, -1, size=size)
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((85, 24)), cw.cwpy.msgs["close"])
@@ -99,13 +109,15 @@ class CardInfo(wx.Dialog):
         bmp = self.selection.cardimg.get_cardwxbmp(self.selection)
         self.selection.negaflag = negaflag
 
-        if isinstance(self.selection.cardimg, cw.image.LargeCardImage):
-            dc.DrawBitmap(bmp, cw.wins(7), cw.wins(4), False)
-        else:
-            dc.DrawBitmap(bmp, cw.wins(14), cw.wins(14), False)
+        cwidth = bmp.GetWidth()
+        cheight = bmp.GetHeight()
+        x = (cw.wins(113)-cwidth) / 2
+        y = (self.toppanel.GetClientSize()[1] - cheight) / 2
+        dc.DrawBitmap(bmp, x, y, False)
 
         # 説明文を囲うボックス
-        cw.util.draw_box(dc, cw.wins((113, 9)), cw.wins((258, 120)))
+        rectsize = (self.textwidth + cw.wins(30), self.textheight + cw.wins(30))
+        cw.util.draw_box(dc, cw.wins((113, 9)), rectsize)
         # カード名
         s = self.selection.name
         dc.SetTextForeground(wx.BLACK)
@@ -139,9 +151,9 @@ class CardInfo(wx.Dialog):
                                                             weight=wx.NORMAL)
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
-            y = cw.wins(129) - size[1]/2
-            dc.DrawRectangle(cw.wins(365)-size[0], y, size[0], size[1])
-            dc.DrawText(s, cw.wins(365)-size[0], y)
+            y = (cw.wins(9)+rectsize[1]) - size[1]/2
+            dc.DrawRectangle(cw.wins(113)+rectsize[0]-cw.wins(5)-size[0], y, size[0], size[1])
+            dc.DrawText(s, cw.wins(113)+rectsize[0]-cw.wins(5)-size[0], y)
 
         if update:
             self.toppanel.Refresh()
@@ -151,17 +163,15 @@ class CardInfo(wx.Dialog):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
-        margin = (self.csize[0] - cw.wins(145)) / 2
-        margin2 = margin + (self.csize[0] - cw.wins(145)) % 2
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
-        sizer_panel.Add((margin, 0), 0, 0, 0)
+        sizer_panel.Add((0, 0), 1, 0, 0)
         sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
-        sizer_panel.Add((margin2, 0), 0, 0, 0)
+        sizer_panel.Add((0, 0), 1, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
 
         sizer_1.Add(self.toppanel, 1, 0, 0)
-        sizer_1.Add(self.panel, 0, 0, 0)
+        sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
