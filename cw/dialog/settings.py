@@ -18,11 +18,13 @@ class SettingsDialog(wx.Dialog):
         self.pane_gene = GeneralSettingPanel(self.note)
         self.pane_draw = DrawingSettingPanel(self.note)
         self.pane_sound = AudioSettingPanel(self.note)
+        self.pane_font = FontSettingPanel(self.note)
         self.pane_scenario = ScenarioSettingPanel(self.note)
         self.pane_ui = UISettingPanel(self.note)
         self.note.AddPage(self.pane_gene, u"一般")
         self.note.AddPage(self.pane_draw, u"描画")
         self.note.AddPage(self.pane_sound, u"音声")
+        self.note.AddPage(self.pane_font, u"フォント")
         self.note.AddPage(self.pane_scenario, u"シナリオ")
         self.note.AddPage(self.pane_ui, u"操作")
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
@@ -100,12 +102,23 @@ class SettingsDialog(wx.Dialog):
                 self.pane_sound.list_soundfont.InsertStringItem(index, sfont)
                 self.pane_sound.list_soundfont.CheckItem(index, use)
         elif selpane == 3:
+            for i, basename in enumerate(self.pane_font.bases):
+                name = cw.cwpy.setting.basefont_init[basename]
+                if not name:
+                    name = u"[デフォルト]"
+                self.pane_font.base.SetCellValue(i, 0, name)
+            for i, typename in enumerate(self.pane_font.types):
+                type, name = cw.cwpy.setting.fonttypes_init[typename]
+                if type:
+                    name = u"[%s]" % (self.pane_font.typenames[type])
+                self.pane_font.type.SetCellValue(i, 0, name)
+        elif selpane == 4:
             # スキン毎のシナリオ開始位置の設定は変更しない
             self.pane_scenario.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype_init)
             self.pane_scenario.cb_showunfitnessscenario.SetValue(cw.cwpy.setting.show_unfitnessscenario_init)
             self.pane_scenario.cb_showcompletedscenario.SetValue(cw.cwpy.setting.show_completedscenario_init)
             self.pane_scenario.cb_showinvisiblescenario.SetValue(cw.cwpy.setting.show_invisiblescenario_init)
-        elif selpane == 4:
+        elif selpane == 5:
             self.pane_ui.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal_init)
             self.pane_ui.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal_init)
             self.pane_ui.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards_init)
@@ -125,6 +138,33 @@ class SettingsDialog(wx.Dialog):
         # 設定変更前はレベル上昇が可能な状態だったか
         can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
         updatecardimg = False # カードイメージの更新が必要か
+
+        # フォント
+        flag_fontupdate = False
+        basetable = {}
+        basefont = {}
+        for i, basename in enumerate(self.pane_font.bases):
+            value = self.pane_font.base.GetCellValue(i, 0)
+            if value == u"[デフォルト]":
+                value = u""
+            basefont[basename] = value
+            basetable[u"[%s]" % (self.pane_font.typenames[basename])] = basename
+        fonttypes = {}
+        for i, typename in enumerate(self.pane_font.types):
+            value = self.pane_font.type.GetCellValue(i, 0)
+            type = basetable.get(value, "")
+            if type:
+                fonttypes[typename] = (type, "")
+            else:
+                fonttypes[typename] = ("", value)
+
+        # フォント変更チェック
+        if basefont <> cw.cwpy.setting.basefont:
+            cw.cwpy.setting.basefont = basefont
+            flag_fontupdate = True
+        if fonttypes <> cw.cwpy.setting.fonttypes:
+            cw.cwpy.setting.fonttypes = fonttypes
+            flag_fontupdate = True
 
         # 一般
         value = self.pane_gene.cb_debug.GetValue()
@@ -287,7 +327,7 @@ class SettingsDialog(wx.Dialog):
         # スキン
         skin = self.pane_gene.ch_skin.GetSelection()
         skin = self.pane_gene.skins[skin]
-        if cw.cwpy.setting.skindirname <> skin:
+        if flag_fontupdate or cw.cwpy.setting.skindirname <> skin:
             cw.cwpy.exec_func(cw.cwpy.update_skin, skin)
 
         # レベル調節
@@ -1275,6 +1315,115 @@ class UISettingPanel(wx.Panel):
         sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_dlg, 0, wx.EXPAND, 0)
+        sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+class FontSettingPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        self.typenames = {"gothic"       : u"等幅ゴシック",
+                          "uigothic"     : u"UI用",
+                          "mincho"       : u"等幅明朝",
+                          "pmincho"      : u"可変幅明朝",
+                          "pgothic"      : u"可変幅ゴシック",
+                          "button"       : u"ボタン",
+                          "combo"        : u"コンボボックス",
+                          "slider"       : u"スライダ",
+                          "spin"         : u"スピナ",
+                          "tree"         : u"ツリー",
+                          "list"         : u"リスト",
+                          "tab"          : u"タブ",
+                          "menu"         : u"メニュー",
+                          "paneltitle"   : u"パネル見出し",
+                          "dlgmsg"       : u"ダイアログメッセージ",
+                          "dlgtitle"     : u"ダイアログ見出し",
+                          "inputname"    : u"名前入力欄",
+                          "datadesc"     : u"データ解説文",
+                          "charadesc"    : u"キャラクター解説文",
+                          "dlglist"      : u"ダイアログリスト",
+                          "uselimit"     : u"カード使用回数",
+                          "cardname"     : u"カード名",
+                          "level"        : u"カードレベル",
+                          "message"      : u"メッセージ",
+                          "selectionbar" : u"選択肢",
+                          "logpage"      : u"メッセージログ頁",
+                          "sbarpanel"    : u"ステータスパネル",
+                          "sbarbtn"      : u"ステータスボタン",
+                          "statusnum"    : u"状態値",
+                          "screenshot"   : u"撮影情報",
+                          }
+
+        self.bases = ("gothic", "pgothic", "mincho", "pmincho", "uigothic")
+        self.types = ("button", "combo", "slider", "spin", "tree", "list", "tab", "menu",
+                      "paneltitle", "dlgmsg", "dlgtitle", "inputname", "datadesc", "charadesc",
+                      "dlglist", "uselimit", "cardname", "level", "message", "selectionbar",
+                      "logpage", "sbarpanel", "sbarbtn", "statusnum", "screenshot")
+
+        # フォント配列のロード
+        facenames = wx.FontEnumerator().GetFacenames()
+        str_default = u"[デフォルト]" # デフォルトフォント名
+        fontface_array = [str_default]
+        types = []
+        for base in self.bases:
+            types.append(u"[%s]" % (self.typenames[base]))
+        for name in facenames:
+            if not name.startswith(u"@"):
+                fontface_array.append(name)
+                types.append(name)
+
+        def create_grid(list, faces):
+            grid = wx.grid.Grid(self, -1, size=(-1, 0))
+            grid.SetDoubleBuffered(True)
+            grid.CreateGrid(len(list), 1)
+            grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
+            grid.SetRowLabelSize(100)
+            grid.SetColLabelValue(0, u"フォント名");
+            grid.SetColSize(0, 120)
+            choice = wx.grid.GridCellChoiceEditor(faces)
+            for i, name in enumerate(list):
+                grid.SetRowLabelValue(i, self.typenames[name])
+                grid.SetCellEditor(i, 0, choice)
+            return grid
+
+        # 基本フォント
+        self.box_base = wx.StaticBox(self, -1, u"基本フォント")
+        self.base = create_grid(self.bases, fontface_array)
+        for i, name, in enumerate(self.bases):
+            str_font = cw.cwpy.setting.basefont[name]
+            if not str_font:
+                str_font = str_default
+            self.base.SetCellValue(i, 0, str_font)
+
+        # 役割別フォント
+        self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
+        self.type = create_grid(self.types, types)
+        for i, name, in enumerate(self.types):
+            type, face = cw.cwpy.setting.fonttypes[name]
+            if type:
+                self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[type]))
+            else:
+                self.type.SetCellValue(i, 0, face)
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        pass
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_v1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
+        bsizer_base.Add(self.base, 1, wx.ALL|wx.EXPAND, 3)
+
+        bsizer_type = wx.StaticBoxSizer(self.box_type, wx.VERTICAL)
+        bsizer_type.Add(self.type, 1, wx.ALL|wx.EXPAND, 3)
+
+        sizer_v1.Add(bsizer_base, 1, wx.RIGHT|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_type, 1, wx.EXPAND, 5)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)

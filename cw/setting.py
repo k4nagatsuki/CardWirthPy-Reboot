@@ -9,6 +9,7 @@ import math
 import md5
 import struct
 import shutil
+import weakref
 import wx
 import pygame
 from pygame.locals import *
@@ -106,6 +107,45 @@ class Setting(object):
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
         self.show_fcardsinbattle = False
+
+        self.basefont  = {"gothic"  : "",
+                          "uigothic": "",
+                          "mincho"  : "",
+                          "pmincho" : "",
+                          "pgothic" : "",
+                          }
+        self.fonttypes = {"button"       : ("uigothic", ""),
+                          "combo"        : ("uigothic", ""),
+                          "slider"       : ("gothic",   ""),
+                          "spin"         : ("gothic",   ""),
+                          "tree"         : ("gothic",   ""),
+                          "list"         : ("uigothic", ""),
+                          "tab"          : ("uigothic", ""),
+                          "menu"         : ("uigothic", ""),
+                          "paneltitle"   : ("uigothic", ""),
+                          "dlgmsg"       : ("uigothic", ""),
+                          "dlgtitle"     : ("mincho",   ""),
+                          "inputname"    : ("mincho",   ""),
+                          "datadesc"     : ("gothic",   ""),
+                          "charadesc"    : ("mincho",   ""),
+                          "dlglist"      : ("mincho",   ""),
+                          "uselimit"     : ("mincho",   ""),
+                          "cardname"     : ("uigothic", ""),
+                          "level"        : ("mincho",   ""),
+                          "message"      : ("mincho",   ""),
+                          "selectionbar" : ("uigothic", ""),
+                          "logpage"      : ("mincho",   ""),
+                          "sbarpanel"    : ("pmincho",  ""),
+                          "sbarbtn"      : ("uigothic", ""),
+                          "statusnum"    : ("mincho",   ""),
+                          "screenshot"   : ("uigothic", ""),
+                          }
+
+        # "MS UI GOTHIC"が使えるかどうか
+        msuigothic = bool("MS UI Gothic" in wx.FontEnumerator.GetFacenames())
+        if msuigothic:
+            self.fonttypes["button"] = ("", "MS UI Gothic")
+            self.fonttypes["tab"] = ("", "MS UI Gothic")
 
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
@@ -232,6 +272,21 @@ class Setting(object):
         self.sort_backpack = data.getattr("SortKey", "backpack", self.sort_backpack)
         # バックログ最大数
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
+
+        # フォント名(空白時デフォルト)
+        self.basefont["gothic"] = data.gettext("FontGothic", self.basefont["gothic"])
+        self.basefont["uigothic"] = data.gettext("FontUIGothic", self.basefont["uigothic"])
+        self.basefont["mincho"] = data.gettext("FontMincho", self.basefont["mincho"])
+        self.basefont["pmincho"] = data.gettext("FontPMincho", self.basefont["pmincho"])
+        self.basefont["pgothic"] = data.gettext("FontPGothic", self.basefont["pgothic"])
+        # 役割別フォント
+        for e in data.getfind("Fonts", raiseerror=False):
+            key = e.getattr(".", "key", "")
+            if not key:
+                continue
+            type = e.getattr(".", "type", "")
+            name = e.text
+            self.fonttypes[key] = (type, name)
 
         self.showfps = False
 
@@ -522,16 +577,16 @@ class Setting(object):
 
 class Resource(object):
     def __init__(self, setting):
+        self.setting = weakref.ref(setting)
         # 現在選択しているスキンのディレクトリ
         self.skindir = setting.skindir
         # 各種データの拡張子
         self.ext_img = setting.skinexts.get("image")
         self.ext_bgm = setting.skinexts.get("bgm")
         self.ext_snd = setting.skinexts.get("sound")
-        # システムフォントテーブルの設定(wxダイアログ用)
+        # システムフォントテーブルの設定
         self.fontpaths = self.get_fontpaths()
-        # wxスレッドから初期化
-        self.fontnames = {}
+        self.fontnames, self.fontnames_init = self.set_systemfonttable()
         # その他のスキン付属効果音(辞書)
         self.skinsounds = self.get_skinsounds()
         # システム効果音(辞書)
@@ -566,8 +621,6 @@ class Resource(object):
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
         self.fonts = self.create_fonts()
-        # "MS UI GOTHIC"が使えるかどうか
-        self._msuigothic = False
         # StatusBarで使用するボタンイメージ
         # wxスレッドから初期化
         self._statusbtnbmp0 = {}
@@ -609,8 +662,6 @@ class Resource(object):
 
     def init_wxresources(self):
         """wx側のリソースを初期化。"""
-        # システムフォントテーブルの設定(wxダイアログ用)
-        self.fontnames = self.set_systemfonttable()
         # wxダイアログのボタン画像(辞書)
         self.buttons = self.get_buttons()
         # wxダイアログで使う画像(辞書)
@@ -621,9 +672,6 @@ class Resource(object):
         self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
         self.wxstones = self.get_wxstones()
-        # "MS UI GOTHIC"が使えるかどうか
-        self._msuigothic = bool("MS UI Gothic" in
-                                        wx.FontEnumerator.GetFacenames())
 
     def get_fontpaths(self):
         """
@@ -688,7 +736,15 @@ class Resource(object):
                 if not value in self.facenames:
                     raise ValueError(u"IPA font not found: " + value)
 
-        return d
+        init = d.copy()
+
+        # 設定に応じた差し替え
+        for basetype in d.iterkeys():
+            font = self.setting().basefont[basetype]
+            if font:
+                d[basetype] = font
+
+        return d, init
 
     def clear_systemfonttable(self):
         if sys.platform == "win32" and not sys.getwindowsversion()[3] == 2:
@@ -704,56 +760,27 @@ class Resource(object):
 
     def get_fontfromtype(self, name):
         """フォントタイプ名から抽象フォント名を取得する。"""
-        fonttypetable = {"button"       : "uigothic",
-                         "combo"        : "uigothic",
-                         "slider"       : "gothic",
-                         "spin"         : "gothic",
-                         "tree"         : "gothic",
-                         "list"         : "uigothic",
-                         "tab"          : "uigothic",
-                         "menu"         : "uigothic",
-                         "paneltitle"   : "uigothic",
-                         "dlgmsg"       : "uigothic",
-                         "dlgtitle"     : "mincho",
-                         "inputname"    : "mincho",
-                         "datadesc"     : "gothic",
-                         "charadesc"    : "mincho",
-                         "dlglist"      : "mincho",
-                         "uselimit"     : "mincho",
-                         "cardname"     : "uigothic",
-                         "level"        : "mincho",
-                         "message"      : "mincho",
-                         "selectionbar" : "uigothic",
-                         "logpage"      : "mincho",
-                         "sbarpanel"    : "pmincho",
-                         "sbarbtn"      : "uigothic",
-                         "statusnum"    : "mincho",
-                         "screenshot"   : "uigothic",
-                         }
-
-        return fonttypetable.get(name, name)
+        type = name
+        basename = self.setting().fonttypes.get(name, name)
+        basename, fontname = basename
+        if basename:
+            fontname = self.setting().basefont[basename]
+            if not fontname:
+                fontname = self.fontnames[basename]
+        return fontname
 
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
-        type = name
-        name = self.get_fontfromtype(name)
+        fontname = self.get_fontfromtype(name)
 
         # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
         if not pixelsize:
             dpi = wx.ScreenDC().GetPPI()[0]
             pixelsize = int((1.0/72 * 96) * size + 0.5)
-
-        if type == "button" and name == "uigothic":
-            if self._msuigothic:
-                fontname = u"MS UI Gothic"
-            else:
-                fontname = u"IPA UIゴシック"
-        else:
-            fontname = self.fontnames[name]
 
         wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
         return wxfont
@@ -763,56 +790,56 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = {}
         # 所持カードの使用回数描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("uselimit")], cw.s(16))
+        font = cw.imageretouch.Font(self.get_fontfromtype("uselimit"), cw.s(17))
         font.set_bold(True)
         fonts["card_uselimit"] = font
         # メニューカードの名前描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("cardname")], cw.s(12))
+        font = cw.imageretouch.Font(self.get_fontfromtype("cardname"), cw.s(13))
         font.set_bold(True)
         fonts["mcard_name"] = font
         # プレイヤカードの名前描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("cardname")], cw.s(14))
+        font = cw.imageretouch.Font(self.get_fontfromtype("cardname"), cw.s(15))
         font.set_bold(True)
         fonts["pcard_name"] = font
         # プレイヤカードのレベル描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("level")], cw.s(36))
+        font = cw.imageretouch.Font(self.get_fontfromtype("level"), cw.s(37))
         font.set_italic(True)
         fonts["pcard_level"] = font
         # メッセージウィンドウのテキスト描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("message")], cw.s(22))
+        font = cw.imageretouch.Font(self.get_fontfromtype("message"), cw.s(24))
         fonts["message"] = font
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             fontface = u"ＭＳ 明朝"
-            font = cw.imageretouch.Font(fontface, cw.s(22))
+            font = cw.imageretouch.Font(fontface, cw.s(24))
             font.set_bold(True)
             fonts["message_classic"] = font
         # メッセージウィンドウの選択肢描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("selectionbar")], cw.s(15))
+        font = cw.imageretouch.Font(self.get_fontfromtype("selectionbar"), cw.s(16))
         if cw.UP_SCR == 1:
             font.set_bold(True)
         fonts["selectionbar"] = font
         # メッセージログのページ表示描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("logpage")], cw.s(20))
+        font = cw.imageretouch.Font(self.get_fontfromtype("logpage"), cw.s(24))
         fonts["backlog_page"] = font
         # ステータスバーパネル描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("sbarpanel")], cw.s(14))
+        font = cw.imageretouch.Font(self.get_fontfromtype("sbarpanel"), cw.s(16))
         font.set_bold(True)
         fonts["sbarpanel"] = font
         # ステータスバーボタン描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("sbarbtn")], cw.s(12))
+        font = cw.imageretouch.Font(self.get_fontfromtype("sbarbtn"), cw.s(14))
         font.set_bold(True)
         fonts["sbarbtn"] = font
         # ステータス画像の召喚回数描画用
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("statusnum")], cw.s(12))
+        font = cw.imageretouch.Font(self.get_fontfromtype("statusnum"), cw.s(12))
         font.set_bold(True)
         fonts["statusimg1"] = font
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("statusnum")], cw.s(10))
+        font = cw.imageretouch.Font(self.get_fontfromtype("statusnum"), cw.s(10))
         font.set_bold(True)
         fonts["statusimg2"] = font
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("statusnum")], cw.s(8))
+        font = cw.imageretouch.Font(self.get_fontfromtype("statusnum"), cw.s(8))
         font.set_bold(True)
         fonts["statusimg3"] = font
-        font = pygame.font.Font(self.fontpaths[self.get_fontfromtype("screenshot")], cw.s(18))
+        font = cw.imageretouch.Font(self.get_fontfromtype("screenshot"), cw.s(18))
         fonts["screenshot"] = font
         return fonts
 

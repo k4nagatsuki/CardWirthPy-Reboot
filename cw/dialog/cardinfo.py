@@ -115,8 +115,9 @@ class CardInfo(wx.Dialog):
         dc.SetPen(wx.Pen((255, 255, 255), cw.wins(1), wx.TRANSPARENT))
         colour = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
-        dc.DrawRectangle(cw.wins(122), cw.wins(5), size[0], size[1])
-        dc.DrawText(s, cw.wins(122), cw.wins(5))
+        y = cw.wins(9) - size[1]/2
+        dc.DrawRectangle(cw.wins(122), y, size[0], size[1])
+        dc.DrawText(s, cw.wins(122), y)
         # 説明文
         s = cw.util.txtwrap(self.selection.desc, 1)
 
@@ -138,8 +139,9 @@ class CardInfo(wx.Dialog):
                                                             weight=wx.NORMAL)
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
-            dc.DrawRectangle(cw.wins(365)-size[0], cw.wins(125), size[0], size[1])
-            dc.DrawText(s, cw.wins(365)-size[0], cw.wins(125))
+            y = cw.wins(129) - size[1]/2
+            dc.DrawRectangle(cw.wins(365)-size[0], y, size[0], size[1])
+            dc.DrawText(s, cw.wins(365)-size[0], y)
 
         if update:
             self.toppanel.Refresh()

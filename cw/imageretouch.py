@@ -831,17 +831,17 @@ def get_fontface(fontface):
         return fontface
 
     if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
-        return cw.cwpy.rsrc.fontnames["pgothic"]
+        return cw.cwpy.rsrc.fontnames_init["pgothic"]
     elif fontface in (u"ＭＳ Ｐ明朝", "MS PMincho"):
-        return cw.cwpy.rsrc.fontnames["pmincho"]
+        return cw.cwpy.rsrc.fontnames_init["pmincho"]
     elif fontface in (u"ＭＳ ゴシック", "MS Gothic"):
-        return cw.cwpy.rsrc.fontnames["gothic"]
+        return cw.cwpy.rsrc.fontnames_init["gothic"]
     elif fontface in (u"ＭＳ 明朝", "MS Mincho"):
-        return cw.cwpy.rsrc.fontnames["mincho"]
+        return cw.cwpy.rsrc.fontnames_init["mincho"]
     elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
-        return cw.cwpy.rsrc.fontnames["uigothic"]
+        return cw.cwpy.rsrc.fontnames_init["uigothic"]
     else:
-        return cw.cwpy.rsrc.fontnames["uigothic"]
+        return cw.cwpy.rsrc.fontnames_init["uigothic"]
 
 def main():
     pass

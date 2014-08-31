@@ -172,6 +172,7 @@ class CWPy(_Singleton, threading.Thread):
 
             # リソース(辞書)
             rsrc = self.rsrc
+            self.rsrc = None
             self.rsrc = cw.setting.Resource(self.setting)
             # システム効果音(辞書)
             self.sounds = self.rsrc.sounds

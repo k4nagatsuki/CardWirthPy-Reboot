@@ -839,6 +839,7 @@ font_render(PyObject *self, PyObject *args)
     FontInfo *font = NULL;
     size_t utf8strlen = 0, bufSize = 0, outlen = 0;
     int r = 0, g = 0, b = 0, antialias = 0, draw = 0;
+    int val = 0;
     unsigned char *outdata = NULL, *utf8str = NULL, *buf = NULL;
 
     HANDLE heap = GetProcessHeap();
@@ -887,7 +888,16 @@ font_render(PyObject *self, PyObject *args)
         {
             w2 += max(gm.gmCellIncX, gm.gmptGlyphOrigin.x + gm.gmBlackBoxX);
         }
-        h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY);
+        if (font->underline)
+        {
+            yy = font->otm.otmTextMetrics.tmHeight
+                + font->otm.otmsUnderscorePosition + font->otm.otmsUnderscoreSize;
+            h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY);
+        }
+        else
+        {
+            /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
+        }
     }
     w = w2 < w ? w : w2;
     if (!w) w = 1;
@@ -918,29 +928,7 @@ font_render(PyObject *self, PyObject *args)
             GetGlyphOutlineW(font->hdc, str[i], format, &gm, bufSize, buf, &mat2);
             x = x0 + gm.gmptGlyphOrigin.x;
             y = y0 + (font->otm.otmTextMetrics.tmAscent - gm.gmptGlyphOrigin.y);
-            if (antialias)
-            {
-                bpl = (gm.gmBlackBoxX + 3) / 4 * 4;
-                for (xx = 0; xx < gm.gmBlackBoxX; xx++)
-                {
-                    if (w <= xx+x) continue;
-                    for (yy = 0; yy < gm.gmBlackBoxY; yy++)
-                    {
-                        if (h <= yy+y) continue;
-                        p1 = (yy * bpl) + xx;
-                        a = buf[p1];
-                        if (a)
-                        {
-                            p2 = (((y + yy) * w) + (x + xx)) * 4;
-                            outdata[p2+0] = (unsigned char)r;
-                            outdata[p2+1] = (unsigned char)g;
-                            outdata[p2+2] = (unsigned char)b;
-                            outdata[p2+3] = min(255, a*4);
-                        }
-                    }
-                }
-            }
-            else
+            if (format == GGO_BITMAP)
             {
                 bpl = (gm.gmBlackBoxX + 31) / 32 * 4;
                 for (xx = 0; xx < gm.gmBlackBoxX; xx++)
@@ -957,6 +945,40 @@ font_render(PyObject *self, PyObject *args)
                             outdata[p2+1] = (unsigned char)g;
                             outdata[p2+2] = (unsigned char)b;
                             outdata[p2+3] = a ? 255 : 0;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                bpl = (gm.gmBlackBoxX + 3) / 4 * 4;
+                for (xx = 0; xx < gm.gmBlackBoxX; xx++)
+                {
+                    if (w <= xx+x) continue;
+                    for (yy = 0; yy < gm.gmBlackBoxY; yy++)
+                    {
+                        if (h <= yy+y) continue;
+                        p1 = (yy * bpl) + xx;
+                        a = buf[p1];
+                        if (a)
+                        {
+                            p2 = (((y + yy) * w) + (x + xx)) * 4;
+                            outdata[p2+0] = (unsigned char)r;
+                            outdata[p2+1] = (unsigned char)g;
+                            outdata[p2+2] = (unsigned char)b;
+                            switch (format)
+                            {
+                            case GGO_GRAY8_BITMAP:
+                                val = a * 4;
+                                break;
+                            case GGO_GRAY4_BITMAP:
+                                val = a * 16;
+                                break;
+                            case GGO_GRAY2_BITMAP:
+                                val = a * 64;
+                                break;
+                            }
+                            outdata[p2+3] = min(255, val);
                         }
                     }
                 }

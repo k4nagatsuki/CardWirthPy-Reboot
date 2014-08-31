@@ -270,7 +270,7 @@ class CharacterCardImage(CardImage):
     def set_levelimg(self, level):
         font = cw.cwpy.rsrc.fonts["pcard_level"]
         s = str(level)
-        size = (cw.s(15 * (len(s)-1) + 20), font.size(s)[1])
+        size = (cw.s(15 * (len(s)-1) + 22), font.size(s)[1])
         self.levelimg = pygame.Surface(size, SRCALPHA).convert_alpha()
 
         for index, char in enumerate(s):

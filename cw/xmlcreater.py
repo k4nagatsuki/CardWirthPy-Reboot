@@ -302,6 +302,30 @@ def create_settings(setting):
     e = cw.data.make_element("FullScreenBackgroundFile", setting.fullscreenbackgroundfile)
     element.append(e)
 
+    # 基本フォント(空白時デフォルト)
+    e = cw.data.make_element("FontGothic", setting.basefont["gothic"])
+    element.append(e)
+    e = cw.data.make_element("FontUIGothic", setting.basefont["uigothic"])
+    element.append(e)
+    e = cw.data.make_element("FontMincho", setting.basefont["mincho"])
+    element.append(e)
+    e = cw.data.make_element("FontPMincho", setting.basefont["pmincho"])
+    element.append(e)
+    e = cw.data.make_element("FontPGothic", setting.basefont["pgothic"])
+    element.append(e)
+
+    # 役割別フォント
+    e = cw.data.make_element("Fonts")
+    for key, value in setting.fonttypes.iteritems():
+        if setting.fonttypes[key] <> setting.fonttypes_init[key]:
+            type, name = value
+            if type:
+                fe = cw.data.make_element("Font", "", {"key": key, "type":type})
+            else:
+                fe = cw.data.make_element("Font", name, {"key": key})
+            e.append(fe)
+    element.append(e)
+
     # シナリオ履歴
     if not hasattr(setting, "recenthistory"):
         e = cw.data.make_element("RecentHistory", "", {"limit": "5"})

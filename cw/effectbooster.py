@@ -801,11 +801,7 @@ class JptxImage(cw.image.Image):
                 self.chars = []
 
             def create_font(self):
-                if self.fontface in cw.cwpy.rsrc.fontnames.values():
-                    fontpath = self.outer.get_fontpath(self.fontface)
-                    self.font = pygame.font.Font(fontpath, self.fontpixels)
-                else:
-                    self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
+                self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
 
             def get_height(self):
                 height = self.font.get_height()
@@ -926,20 +922,6 @@ class JptxImage(cw.image.Image):
             info.h = info.h if backheight < 0 else backheight
             rect = self.image.get_rect()
             self.image = self.image.subsurface(rect.clip(pygame.Rect(0, 0, info.w, info.h)))
-
-    def get_fontpath(self, fontface):
-        if fontface in (u"ＭＳ Ｐゴシック", "MS PGothic"):
-            return cw.cwpy.rsrc.fontpaths["pgothic"]
-        elif fontface in (u"ＭＳ Ｐ明朝", "MS PMincho"):
-            return cw.cwpy.rsrc.fontpaths["pmincho"]
-        elif fontface in (u"ＭＳ ゴシック", "MS Gothic"):
-            return cw.cwpy.rsrc.fontpaths["gothic"]
-        elif fontface in (u"ＭＳ 明朝", "MS Mincho"):
-            return cw.cwpy.rsrc.fontpaths["mincho"]
-        elif fontface in (u"ＭＳ ＵＩゴシック", "MS UI Gothic"):
-            return cw.cwpy.rsrc.fontpaths["uigothic"]
-        else:
-            return cw.cwpy.rsrc.fontpaths["pgothic"]
 
     def get_fontcolor(self, fontcolor, default=(0, 0, 0)):
         if not fontcolor:
