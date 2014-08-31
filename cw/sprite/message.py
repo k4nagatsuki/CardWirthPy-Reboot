@@ -208,7 +208,7 @@ class MessageWindow(base.CWPySprite):
 
     def create_charimgs(self, pos=None):
         if pos is None:
-            pos = cw.s((15, 11))
+            pos = cw.s((14, 12))
         if self.talker_image:
             if not self.backlog:
                 self.text = self.rpl_specialstr(True, self.text)

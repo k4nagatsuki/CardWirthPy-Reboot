@@ -810,11 +810,11 @@ class Resource(object):
         font.set_italic(True)
         fonts["pcard_level"] = font
         # メッセージウィンドウのテキスト描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("message"), cw.s(24))
+        font = cw.imageretouch.Font(self.get_fontfromtype("message"), cw.s(22))
         fonts["message"] = font
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             fontface = u"ＭＳ 明朝"
-            font = cw.imageretouch.Font(fontface, cw.s(24))
+            font = cw.imageretouch.Font(fontface, cw.s(22))
             font.set_bold(True)
             fonts["message_classic"] = font
         # メッセージウィンドウの選択肢描画用
