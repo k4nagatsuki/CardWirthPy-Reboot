@@ -158,6 +158,7 @@ class Setting(object):
         if not os.path.isfile("Settings.xml"):
             self.write()
             self.init_skin()
+            self.set_dealspeed(self.dealspeed)
             self.data = cw.data.xml2etree("Settings.xml")
             return
 
