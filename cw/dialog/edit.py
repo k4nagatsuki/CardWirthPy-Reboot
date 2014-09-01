@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 import wx
 
 import cw
@@ -839,7 +840,7 @@ class YadoEditDialog(wx.Dialog):
                 yadodir = cw.util.join_paths(yadodir, dir)
                 yadodir = cw.binary.util.check_duplicate(yadodir)
                 try:
-                    os.rename(self.yadodir, yadodir)
+                    shutil.move(self.yadodir, yadodir)
                     self.yadodir = yadodir
                 except Exception:
                     cw.util.print_ex()

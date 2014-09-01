@@ -307,7 +307,7 @@ class ScenarioData(SystemData):
                             # アーカイヴのサブフォルダにシナリオがあるので
                             # tempdirの位置に移動する
                             dpath2 = cw.binary.util.check_duplicate(self.tempdir)
-                            os.rename(dpath, dpath2)
+                            shutil.move(dpath, dpath2)
                             cw.util.remove_tree(self.tempdir)
                             self.tempdir = dpath2
                             break

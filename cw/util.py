@@ -1223,7 +1223,7 @@ def rename_file(path, dstpath):
     if os.path.isfile(dstpath):
         remove_file(dstpath)
     try:
-        os.rename(path, dstpath)
+        shutil.move(path, dstpath)
     except OSError:
         # ファイルシステムが異なっていると失敗する
         # 可能性があるのでコピー&削除を試みる
@@ -1443,8 +1443,8 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
             dpath = os.path.join(dstdir, list[0])
             if os.path.isdir(dpath):
                 dstdir2 = dupcheck_plus(dstdir, False)
-                os.rename(dstdir, dstdir2)
-                os.rename(os.path.join(dstdir2, list[0]), dstdir)
+                shutil.move(dstdir, dstdir2)
+                shutil.move(os.path.join(dstdir2, list[0]), dstdir)
                 cw.util.remove(dstdir2)
 
     return dstdir
