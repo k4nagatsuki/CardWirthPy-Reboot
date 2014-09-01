@@ -34,13 +34,9 @@ GroupAskが開発したCardWirthの動作を再現・改良することを目的
 
 BMP, JPG, PNG, GIF(non animated)
 
-### サポートしている音楽形式
+### サポートしている音楽と効果音形式
 
-MIDI, MP3, OGG
-
-サポートしている効果音形式
-
-WAV(uncompressed), OGG
+MIDI, WAV, MP3, OGG
 
 
 操作方法
@@ -240,7 +236,7 @@ https://bitbucket.org/takuto_cw/cardwirthpy-reboot
 
 https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
  : TachiGigas はいくつかのバグを修正し、シナリオダイアログの見逃されていた未実装部分を実装しました。
- : また、アプリケーション全体で使用するフォントに関して大きな提案を行い、試験的な実装を行いました。
+ : また、フォントが設定できるようにするよう提案を行い、最初の実装を行いました。
 
 
 謝辞

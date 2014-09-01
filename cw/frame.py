@@ -559,17 +559,16 @@ class Frame(wx.Frame):
             save = True
 
         if save:
-            cw.cwpy.ydata.save()
-            cw.cwpy.sounds["signal"].play()
-            if cw.cwpy.setting.show_savedmessage:
-                if dlg:
-                    dlg.Destroy()
-                s = cw.cwpy.msgs["saved"]
-                dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
-                self.move_dlg(dlg)
-                dlg.ShowModal()
-
-        self.kill_dlg(dlg)
+            self.kill_dlg(dlg, lockmenucard=True)
+            def func():
+                cw.cwpy.ydata.save()
+                cw.cwpy.sounds["signal"].play()
+                if cw.cwpy.setting.show_savedmessage:
+                    s = cw.cwpy.msgs["saved"]
+                    cw.cwpy.call_dlg("MESSAGE", text=s)
+            cw.cwpy.exec_func(func)
+        else:
+            self.kill_dlg(dlg)
 
     def OnRUNAWAY(self, event):
         s = cw.cwpy.msgs["confirm_runaway"]
@@ -755,15 +754,16 @@ class Frame(wx.Frame):
 
         dlg.MoveXY(x, y)
 
-    def kill_dlg(self, dlg=None):
+    def kill_dlg(self, dlg=None, lockmenucard=False):
         if dlg:
             dlg.Destroy()
 
-        def func():
+        def func(lockmenucard):
             cw.cwpy.mousepos = (-1, -1)
-            cw.cwpy.lock_menucards = False
+            if not lockmenucard:
+                cw.cwpy.lock_menucards = False
         cw.cwpy._showingdlg -= 1
-        cw.cwpy.exec_func(func)
+        cw.cwpy.exec_func(func, lockmenucard)
 
     def change_selection(self, selection):
         """選択カードを変更し、色反転させる。
