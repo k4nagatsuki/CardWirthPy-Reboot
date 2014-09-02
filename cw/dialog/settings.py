@@ -1362,7 +1362,8 @@ class FontSettingPanel(wx.Panel):
                       "logpage", "sbarpanel", "sbarbtn", "statusnum", "screenshot")
 
         # フォント配列のロード
-        facenames = wx.FontEnumerator().GetFacenames()
+        facenames = list(wx.FontEnumerator().GetFacenames())
+        facenames.sort()
         str_default = u"[デフォルト]" # デフォルトフォント名
         fontface_array = [str_default]
         types = []
