@@ -2222,8 +2222,9 @@ class CWPy(_Singleton, threading.Thread):
             if card.header == header:
                 if card.user:
                     self.clear_inusecardimg(card.user)
-                    cw.animation.animate_sprite(card.user, "hide")
-                    cw.animation.animate_sprite(card.user, "deal")
+                    if card.user.status <> "hidden":
+                        cw.animation.animate_sprite(card.user, "hide")
+                        cw.animation.animate_sprite(card.user, "deal")
                 else:
                     card.group.remove(card)
                     self.inusecards.remove(card)

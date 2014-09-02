@@ -209,9 +209,9 @@ class SystemData(object):
     def get_areaname(self):
         """現在滞在中のエリアの名前を返す"""
         if cw.cwpy.is_battlestatus():
-            return self.battles[cw.cwpy.areaid][0]
+            return self.battles.get(cw.cwpy.areaid, ("",))[0]
         else:
-            return self.areas[cw.cwpy.areaid][0]
+            return self.areas.get(cw.cwpy.areaid, ("",))[0]
 
     def get_bgdata(self, e=None):
         """背景のElementのリストを返す。
