@@ -88,7 +88,7 @@ class BackGround(base.CWPySprite):
                 image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
                 anime = True
             else:
-                image = cw.util.load_image(path, mask)
+                image = cw.util.load_image(path, mask, isback=True)
         except cw.event.EffectBreakError, ex:
             raise ex
         except cw.effectbooster.ScreenRescale, ex:

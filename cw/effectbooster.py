@@ -456,7 +456,7 @@ class _JpySubImage(cw.image.Image):
                     cw.cwpy.sdata.cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:
-                    image = cw.s(cw.util.load_image(path, False))
+                    image = cw.s(cw.util.load_image(path, False, isback=True))
 
         # 画像キャッシュから読み込み
         elif 1 <= self.loadcache <= 8:

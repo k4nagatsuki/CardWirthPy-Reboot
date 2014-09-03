@@ -392,7 +392,7 @@ def convert_maskpos(maskpos, width, height):
             raise Exception("Invalid maskpos: %s" % (maskpos))
     return maskpos
 
-def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
+def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=False):
     """pygame.Surface(読み込めなかった場合はNone)を返す。
     path: 画像ファイルのパス。
     mask: True時、(0,0)のカラーを透過色に設定する。透過画像の場合は無視される。
@@ -437,7 +437,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
                         data = f2.read()
                 data = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
-                    return load_image(path, mask, maskpos, f2, False)
+                    return load_image(path, mask, maskpos, f2, False, isback=isback)
             except:
                 print u"画像が読み込めません(リトライ後)", path
         return pygame.Surface((0, 0)).convert()
@@ -450,8 +450,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True):
         imageb = image
         image = image.convert()
 
-        # PNGの場合はマスクカラーを無視する(CardWirth 1.50の実装)
-        if image.get_colorkey() and ispng:
+        # カード画像がPNGの場合はマスクカラーを無視する(CardWirth 1.50の実装)
+        if image.get_colorkey() and ispng and not isback:
             image.set_colorkey(None)
 
         # GIFなどアルファチャンネルを持たない透過画像を読み込んだ場合は
