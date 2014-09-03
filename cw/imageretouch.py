@@ -131,6 +131,8 @@ def _add_mosaic(image, value):
 
         pxarray[x] = seq
 
+    del pxarray
+
     return image
 
 def to_binaryformat(image, value, basecolor=(255, 255, 255)):
@@ -173,6 +175,8 @@ def _to_binaryformat(image, value, basecolor):
                     seq.append(0xFFFFFF)
 
         pxarray[x] = seq
+
+    del pxarray
 
     return image
 
@@ -236,6 +240,8 @@ def _add_noise(image, value, colornoise=False):
 
         pxarray[x] = seq
 
+    del pxarray
+
     return image
 
 def exchange_rgbcolor(image, colormodel):
@@ -279,6 +285,8 @@ def _exchange_rgbcolor(image, colormodel):
             seq.append(func(r, g, b))
 
         pxarray[x] = seq
+
+    del pxarray
 
     return image
 
@@ -326,6 +334,8 @@ def _to_sepiatone(image, color=(30, 0, -30)):
 
         pxarray[x] = seq
 
+    del pxarray
+
     return image
 
 def retouch_grayscale(image):
@@ -344,6 +354,8 @@ def retouch_grayscale(image):
             seq.append((r, g, b))
 
         pxarray[x] = seq
+
+    del pxarray
 
     return image
 
@@ -375,6 +387,9 @@ def _spread_pixels(image):
             seq.append(pxarray[n][n2])
 
         out_pxarray[x] = seq
+
+    del out_pxarray
+    del pxarray
 
     return out_image
 
@@ -429,6 +444,9 @@ def __filter(image, weight, offset=0, div=1):
             seq.append((r, g, b))
 
         out_pxarray[x] = seq
+
+    del out_pxarray
+    del pxarray
 
     return out_image
 

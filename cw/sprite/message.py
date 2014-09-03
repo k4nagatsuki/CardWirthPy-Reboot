@@ -122,6 +122,10 @@ class MessageWindow(base.CWPySprite):
             y = (self.rect.height - self.talker_image.get_height()) / 2
             self.image.blit(self.talker_image, (cw.s(15), y))
 
+        self._fore = pygame.Surface(cw.s(size_noscale)).convert_alpha()
+        self._fore.fill((0, 0, 0, 0))
+        self._back = self.image.copy()
+
     def update_scale(self):
         self._init_style()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
@@ -159,32 +163,23 @@ class MessageWindow(base.CWPySprite):
         if chridx < len(self.charimgs):
             pos, txtimg, txtimg2 = self.charimgs[chridx]
 
-            if isinstance(txtimg2, tuple):
-                # 通常のテキスト描画。
-                if isinstance(txtimg2, pygame.Surface) or txtimg2[1] == (False, False):
-                    for x in xrange(pos[0]-1, pos[0]+2):
-                        for y in xrange(pos[1]-1, pos[1]+2):
-                            self.image.blit(txtimg2[0], (x, y))
-                            if sbold:
-                                self.image.blit(txtimg2[0], (x+1, y))
-                # u"―"描画時の処理。両脇の影を描画するかどうか。
-                else:
-                    txtimg2, join_flags = txtimg2
+            # 通常のテキスト描画
+            if txtimg2:
+                for x in xrange(pos[0]-1, pos[0]+2):
+                    for y in xrange(pos[1]-1, pos[1]+2):
+                        self._back.blit(txtimg2, (x, y))
+                        if sbold:
+                            self._back.blit(txtimg2, (x+1, y))
 
-                    if not join_flags[0]:
-                        for y in xrange(pos[1]-1, pos[1]+2):
-                            self.image.blit(txtimg2, (pos[0] - 1, y))
-
-                    if not join_flags[1]:
-                        for y in xrange(pos[1]-1, pos[1]+2):
-                            self.image.blit(txtimg2, (pos[0] + 1, y))
-
-                    self.image.blit(txtimg2, (pos[0], pos[1] + 1))
-                    self.image.blit(txtimg2, (pos[0], pos[1] - 1))
-
-            self.image.blit(txtimg, pos)
+            self._fore.blit(txtimg, pos)
             if sbold:
-                self.image.blit(txtimg, (pos[0]+1, pos[1]))
+                self._fore.blit(txtimg, (pos[0]+1, pos[1]))
+
+            size = txtimg.get_size()
+            area = pygame.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
+            self.image.fill((0, 0, 0, 0), rect=area)
+            self.image.blit(self._back, area, area)
+            self.image.blit(self._fore, area, area)
             self.frame += 1
         else:
             self.is_drawing = False
@@ -229,11 +224,6 @@ class MessageWindow(base.CWPySprite):
                 self.text = cw.util.txtwrap(self.text, 3)
             posp = pos
 
-        # 左右で接続する文字の集合
-        if self.classicstyletext:
-            r_join = re.compile(u"[～―─＿￣]")
-        else:
-            r_join = re.compile(u"[―─＿￣]")
         r_halfwidth = re.compile(u"[ -~｡-ﾟ]") # 半角文字の集合
         r_specialfont = re.compile("#.") # 特殊文字(#)の集合
         # 文字色変更文字(&)の集合
@@ -249,6 +239,9 @@ class MessageWindow(base.CWPySprite):
         cnt = 0
         skip = False
         images = []
+
+        # 左右接続のために伸ばす文字
+        r_join = re.compile(u"[―─＿￣]")
 
         for index, char in enumerate(self.text):
             # 改行処理
@@ -305,78 +298,19 @@ class MessageWindow(base.CWPySprite):
                 image = font.render(char, False, colour)
                 image2 = font.render(char, False, (0, 0, 0))
 
-                # u"―"やu"～"の場合、左右の線が繋がるように補完する
-                join_left = False
-                join_right = False
-                if r_join.match(char):
-                    if index > 0 and r_join.match(self.text[index-1]):
-                        join_left = True
-                    else:
-                        join_left = False
-
-                    if index + 1 < len(self.text) and r_join.match(self.text[index+1]):
-                        join_right = True
-                    else:
-                        join_right = False
-
-                image2 = (image2, (join_left, join_right))
-
             else:
                 # CardWirthPy形式
                 image = font.render(char, True, colour)
                 image2 = font.render(char, True, (0, 0, 0))
-                join_left = False
-                join_right = False
 
                 # u"―"の場合、左右の線が繋がるように補完する
                 if r_join.match(char):
-                    if index > 0 and r_join.match(self.text[index-1]):
-                        join_left = True
-                    else:
-                        join_left = False
-
-                    if len(chars) > 1 and r_join.match(self.text[index+1]):
-                        join_right = True
-                    else:
-                        join_right = False
-
-                    if join_left or join_right:
-                        rect = image.get_rect()
-                        size = (rect.w + cw.s(20), rect.h)
-                        image = pygame.transform.scale(image, size)
-                        image2 = pygame.transform.scale(image2, size)
-
-                        if join_left and join_right:
-                            rect.left += cw.s(10)
-                        elif join_left:
-                            rect.left += cw.s(20)
-
-                        image = image.subsurface(rect)
-                        image2 = (image2.subsurface(rect), (join_left, join_right))
-                    else:
-                        image2 = (image2, (join_left, join_right))
-
-                # u"…"の場合、両脇を1ピクセル詰める
-                elif char == u"…":
-                    w, h = image.get_size()
-                    rect = pygame.Rect((0, 0), (cw.s(6), h))
-                    subimg = image.subsurface(rect).copy()
-                    image.fill((0, 0, 0, 0), rect)
-                    image.blit(subimg, cw.s((1, 0)))
-                    subimg = image2.subsurface(rect).copy()
-                    image2.fill((0, 0, 0, 0), rect)
-                    image2.blit(subimg, cw.s((1, 0)))
-                    rect = pygame.Rect((w - cw.s(6), 0), (cw.s(6), h))
-                    subimg = image.subsurface(rect).copy()
-                    image.fill((0, 0, 0, 0), rect)
-                    image.blit(subimg, (w - cw.s(7), 0))
-                    subimg = image2.subsurface(rect).copy()
-                    image2.fill((0, 0, 0, 0), rect)
-                    image2.blit(subimg, (w - cw.s(7), 0))
-                    image2 = (image2, (join_left, join_right))
-
-                else:
-                    image2 = (image2, (join_left, join_right))
+                    rect = image.get_rect()
+                    size = (rect.w + cw.s(20), rect.h)
+                    image = pygame.transform.scale(image, size)
+                    image2 = pygame.transform.scale(image2, size)
+                    image = image.subsurface((10, 0, rect.w, rect.h))
+                    image2 = image2.subsurface((10, 0, rect.w, rect.h))
 
             images.append((pos, image, image2))
 
@@ -510,6 +444,10 @@ class SelectWindow(MessageWindow):
         self.rect = cw.s(self.rect_noscale)
         # 外枠描画
         draw_frame(self.image, cw.s(size_noscale), cw.s((0, 0)), self.backlog)
+
+        self._fore = pygame.Surface(cw.s(size_noscale)).convert_alpha()
+        self._fore.fill((0, 0, 0, 0))
+        self._back = self.image.copy()
 
     def update_scale(self):
         self._init_style()
