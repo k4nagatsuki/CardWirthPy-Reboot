@@ -75,7 +75,10 @@ class Deck(object):
 
     def get_handmaxnum(self, ccard):
         n = (ccard.level + 1) / 2 + 4
-        return cw.util.numwrap(n, 5, 12)
+        n = cw.util.numwrap(n, 5, 12)
+        if ccard.is_overheat():
+            n += 1
+        return n
 
     def set(self, ccard):
         self.clear(ccard)
@@ -170,17 +173,21 @@ class Deck(object):
     def throwaway(self):
         self._throwaway = True
 
+    def _remove(self, header):
+        self.hand.remove(header)
+        if header.type == "SkillCard":
+            header = header.ref_original()
+            self.talon.append(header)
+        elif header.type == "ActionCard" and header.id > 0:
+            header = cw.cwpy.rsrc.actioncards[header.id]
+            self.talon.append(header)
+
     def draw(self, ccard):
         maxn = self.get_handmaxnum(ccard)
         if self._throwaway:
             # 現在の手札を山札に戻す
             for header in self.hand[1::]:
-                if header.type == "SkillCard":
-                    header = header.ref_original()
-                    self.talon.append(header)
-                elif header.type == "ActionCard" and header.id > 0:
-                    header = cw.cwpy.rsrc.actioncards[header.id]
-                    self.talon.append(header)
+                self._remove(header)
             self.shuffle()
 
             self.hand = []
@@ -210,6 +217,9 @@ class Deck(object):
                 header_copy.set_owner(ccard)
 
             self.hand.append(header_copy)
+
+        while maxn < len(self.hand):
+            self._remove(self.hand[-1])
 
     def check_mind(self, ccard):
         """
