@@ -832,6 +832,50 @@ cleanup:
     return Py_BuildValue("(ii)", w, h);
 }
 
+static void _get_imagesize(FontInfo *font, LPWSTR str, UINT format, size_t *rw, size_t *rh)
+{
+    GLYPHMETRICS gm = { 0 };
+    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
+    size_t w = 0, h = 0, i = 0, w2 = 0, bufSize = 0, yy = 0;
+
+    h = font->otm.otmTextMetrics.tmHeight;
+    for (i = 0; str[i]; i++)
+    {
+        if (str[i] == '\n')
+        {
+            w = w2 < w ? w : w2;
+            w2 = 0;
+            h += font->otm.otmTextMetrics.tmHeight;
+            continue;
+        }
+        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
+        if (str[i+1])
+        {
+            w2 += gm.gmCellIncX;
+        }
+        else
+        {
+            w2 += max(gm.gmCellIncX, gm.gmptGlyphOrigin.x + gm.gmBlackBoxX);
+        }
+        if (font->underline)
+        {
+            yy = font->otm.otmTextMetrics.tmHeight
+                + font->otm.otmsUnderscorePosition + font->otm.otmsUnderscoreSize;
+            h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY);
+        }
+        else
+        {
+            /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
+        }
+    }
+    w = w2 < w ? w : w2;
+    if (!w) w = 1;
+    if (!h) h = 1;
+
+    *rw = w;
+    *rh = h;
+}
+
 static PyObject *
 font_render(PyObject *self, PyObject *args)
 {
@@ -869,39 +913,7 @@ font_render(PyObject *self, PyObject *args)
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
     }
 
-    h = font->otm.otmTextMetrics.tmHeight;
-    for (i = 0; str[i]; i++)
-    {
-        if (str[i] == '\n')
-        {
-            w = w2 < w ? w : w2;
-            w2 = 0;
-            h += font->otm.otmTextMetrics.tmHeight;
-            continue;
-        }
-        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
-        if (str[i+1])
-        {
-            w2 += gm.gmCellIncX;
-        }
-        else
-        {
-            w2 += max(gm.gmCellIncX, gm.gmptGlyphOrigin.x + gm.gmBlackBoxX);
-        }
-        if (font->underline)
-        {
-            yy = font->otm.otmTextMetrics.tmHeight
-                + font->otm.otmsUnderscorePosition + font->otm.otmsUnderscoreSize;
-            h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY);
-        }
-        else
-        {
-            /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
-        }
-    }
-    w = w2 < w ? w : w2;
-    if (!w) w = 1;
-    if (!h) h = 1;
+    _get_imagesize(font, str, format, &w, &h);
 
     outlen = w * h * 4;
     string = PyBytes_FromStringAndSize(NULL, outlen);
@@ -1014,7 +1026,50 @@ font_render(PyObject *self, PyObject *args)
 cleanup:
     if (str) HeapFree(heap, 0, str);
 
-    return Py_BuildValue("O(ii)", string, w, h);
+    /* BUG: タプルを返そうとするとstringがGCで回収されなく
+            なってしまうため、ここではstringのみを返すようにし、
+            (w, h)取得用にfont_imagesize()を用意する。 */
+    /*return Py_BuildValue("s(ii)", string, w, h);*/
+    return string;
+}
+
+static PyObject *
+font_imagesize(PyObject *self, PyObject *args)
+{
+    FontInfo *font = NULL;
+    size_t utf8strlen = 0, bufSize = 0;
+    int antialias = 0;
+    unsigned char *utf8str = NULL;
+
+    HANDLE heap = GetProcessHeap();
+    LPWSTR str = NULL;
+    size_t i = 0, w = 0, h = 0;
+    UINT format = 0;
+
+    if (!PyArg_ParseTuple(args, "ns#i", &font, &utf8str, &utf8strlen, &antialias))
+        return NULL;
+
+    if (!utf8str || !font)
+        return NULL;
+
+    if (!font->hdc)
+        _init_font(font);
+
+    format = antialias ? GGO_GRAY8_BITMAP : GGO_BITMAP;
+
+    bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
+    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
+    if (bufSize)
+    {
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+    }
+
+    _get_imagesize(font, str, format, &w, &h);
+
+cleanup:
+    if (str) HeapFree(heap, 0, str);
+
+    return Py_BuildValue("(ii)", w, h);
 }
 
 #endif
@@ -1061,6 +1116,8 @@ _imageretouchMethods[] =
         "font_size(fontinfo, text)"},
     {"font_render", font_render, METH_VARARGS,
         "font_render(fontinfo, text, antialias, color)"},
+    {"font_imagesize", font_imagesize, METH_VARARGS,
+        "font_imagesize(fontinfo, text, antialias)"},
     {NULL, NULL, 0, NULL}
 #endif
 };

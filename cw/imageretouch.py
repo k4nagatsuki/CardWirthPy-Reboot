@@ -836,7 +836,13 @@ class Font(object):
         if self.font:
             return self.font.render(str, antialias, colour)
         else:
-            buf, size = _imageretouch.font_render(self.fontinfo, str.encode("utf-8"), antialias, colour[:3])
+            str = str.encode("utf-8")
+            # BUG: font_render()からタプルを返そうとするとbufがGCで
+            #      回収されなくなってしまうため、bufのみを返すようにし、
+            #      (w, h)取得用にfont_imagesize()を用意してある
+#            buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
+            size = _imageretouch.font_imagesize(self.fontinfo, str, antialias)
+            buf = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
             assert len(buf) == size[0]*size[1]*4
             return pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
 
