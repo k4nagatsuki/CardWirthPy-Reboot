@@ -1374,23 +1374,30 @@ class FontSettingPanel(wx.Panel):
                 fontface_array.append(name)
                 types.append(name)
 
-        def create_grid(list, faces):
-            grid = wx.grid.Grid(self, -1, size=(-1, 0))
+        # フォント表示サンプル
+        self.box_example = wx.StaticBox(self, -1, u"表示例")
+        self.st_example = wx.StaticText(self, -1, size=(100, 30), style=wx.ALIGN_CENTER)
+        self.st_example.SetDoubleBuffered(True)
+
+        def create_grid(list, faces, editor):
+            grid = wx.grid.Grid(self, -1, size=(-1, 0), style=wx.BORDER)
             grid.SetDoubleBuffered(True)
             grid.CreateGrid(len(list), 1)
+            grid.DisableDragRowSize()
+            grid.SetSelectionMode(wx.grid.Grid.SelectRows)
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
             grid.SetRowLabelSize(100)
             grid.SetColLabelValue(0, u"フォント名");
             grid.SetColSize(0, 120)
-            choice = wx.grid.GridCellChoiceEditor(faces)
             for i, name in enumerate(list):
                 grid.SetRowLabelValue(i, self.typenames[name])
-                grid.SetCellEditor(i, 0, choice)
+                grid.SetCellEditor(i, 0, editor)
             return grid
 
         # 基本フォント
         self.box_base = wx.StaticBox(self, -1, u"基本フォント")
-        self.base = create_grid(self.bases, fontface_array)
+        self.choicebase = wx.grid.GridCellChoiceEditor(fontface_array)
+        self.base = create_grid(self.bases, fontface_array, self.choicebase)
         for i, name, in enumerate(self.bases):
             str_font = cw.cwpy.setting.basefont[name]
             if not str_font:
@@ -1399,7 +1406,8 @@ class FontSettingPanel(wx.Panel):
 
         # 役割別フォント
         self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
-        self.type = create_grid(self.types, types)
+        self.choicetype = wx.grid.GridCellChoiceEditor(types)
+        self.type = create_grid(self.types, types, self.choicetype)
         for i, name, in enumerate(self.types):
             type, face = cw.cwpy.setting.fonttypes[name]
             if type:
@@ -1407,23 +1415,101 @@ class FontSettingPanel(wx.Panel):
             else:
                 self.type.SetCellValue(i, 0, face)
 
+        self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
+        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
+                       face=self.st_example.GetLabel())
+        self.st_example.SetFont(font)
+
         self._do_layout()
         self._bind()
 
     def _bind(self):
-        pass
+        self.base.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontBase)
+        self.base.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChangeBase)
+        self.base.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedBase)
+        self.type.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontType)
+        self.type.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChangeType)
+        self.type.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedType)
+
+    def _select_base(self):
+        i = self.base.GetGridCursorRow()
+        if 0 <= i:
+            self.st_example.SetLabel(self.get_basefontface(self.bases[i]))
+            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
+                           face=self.st_example.GetLabel())
+            self.st_example.SetFont(font)
+            self.Layout()
+
+    def OnCellChangeBase(self, event):
+        self._select_base()
+
+    def OnSelectFontBase(self, event):
+        self._select_base()
+        event.Skip()
+
+    def OnEditorCreatedBase(self, event):
+        self.choicebase.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeBase)
+
+    def get_basefontface(self, fonttype):
+        ctrl = self.choicebase.GetControl()
+        if ctrl and ctrl.IsShown():
+            face = ctrl.GetValue()
+        else:
+            face = self.base.GetCellValue(self.bases.index(fonttype), 0)
+        if face == u"[デフォルト]":
+            face = cw.cwpy.rsrc.fontnames_init[fonttype]
+        return face
+
+    def _select_type(self):
+        i = self.type.GetGridCursorRow()
+        if 0 <= i:
+            self.st_example.SetLabel(self.get_typefontface(self.types[i]))
+            font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
+                           face=self.st_example.GetLabel())
+            self.st_example.SetFont(font)
+            self.Layout()
+
+    def OnCellChangeType(self, event):
+        self._select_type()
+
+    def OnSelectFontType(self, event):
+        self._select_type()
+        event.Skip()
+
+    def OnEditorCreatedType(self, event):
+        self.choicetype.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
+
+    def get_typefontface(self, fonttype):
+        ctrl = self.choicetype.GetControl()
+        if ctrl and ctrl.IsShown():
+            face = ctrl.GetValue()
+        else:
+            face = self.type.GetCellValue(self.types.index(fonttype), 0)
+        for i, basename in enumerate(self.bases):
+            if u"[%s]" % self.typenames[basename] == face:
+                face = self.get_basefontface(basename)
+                break
+        return face
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.HORIZONTAL)
 
+        bsizer_left = wx.BoxSizer(wx.VERTICAL)
+
+        bsizer_example = wx.StaticBoxSizer(self.box_example, wx.VERTICAL)
+        bsizer_example.Add(self.st_example, 1, wx.ALL|wx.EXPAND, 3)
+
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_base.Add(self.base, 1, wx.ALL|wx.EXPAND, 3)
+
+        bsizer_left.Add(bsizer_example, 0, wx.EXPAND|wx.BOTTOM, 3)
+        bsizer_left.Add(bsizer_base, 1, wx.EXPAND, 3)
 
         bsizer_type = wx.StaticBoxSizer(self.box_type, wx.VERTICAL)
         bsizer_type.Add(self.type, 1, wx.ALL|wx.EXPAND, 3)
 
-        sizer_v1.Add(bsizer_base, 1, wx.RIGHT|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_left, 1, wx.RIGHT|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_type, 1, wx.EXPAND, 5)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
