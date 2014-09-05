@@ -1241,7 +1241,7 @@ class CardPanel(wx.Panel):
             if index < 5:
                 pos = cw.wins((30, 30+17*index))
             else:
-                pos = cw.wins((self.csize[0]/2+cw.wins(30-6), 30+17*(index-5)))
+                pos = (self.csize[0]/2+cw.wins(30-6), cw.wins(30+17*(index-5)))
 
             # カード名
             s = header.name
