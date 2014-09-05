@@ -79,7 +79,7 @@ class _JpySubImage(cw.image.Image):
                 back.image.blit(image, self.position, None, BLEND_MIN)
             elif self.paintmode == 2:
                 back.image.blit(image, self.position, None, BLEND_ADD)
-            else:
+            elif self.paintmode <> 4:
                 back.image.blit(image, self.position)
 
     def drawtemp(self, doanime):
@@ -193,19 +193,20 @@ class _JpySubImage(cw.image.Image):
             blendmode = 0
 
         if 0 < rect[2] and 0 < rect[3]:
-            if redraw:
-                if not self.animation == 1:
-                    self.cache.before = background.subsurface(rect).copy()
-                    self.cache.beforeback = background
-                    self.cache.beforerect = rect
-                background.blit(image, pos, special_flags=blendmode)
-                if not nowait:
-                    cw.cwpy.draw()
-            else:
-                if self.animation == 1:
+            if self.paintmode <> 4:
+                if redraw:
+                    if not self.animation == 1:
+                        self.cache.before = background.subsurface(rect).copy()
+                        self.cache.beforeback = background
+                        self.cache.beforerect = rect
                     background.blit(image, pos, special_flags=blendmode)
                     if not nowait:
                         cw.cwpy.draw()
+                else:
+                    if self.animation == 1:
+                        background.blit(image, pos, special_flags=blendmode)
+                        if not nowait:
+                            cw.cwpy.draw()
 
             if not nowait:
                 self.wait(anime=anime, waittime=waittime)
@@ -295,8 +296,12 @@ class _JpySubImage(cw.image.Image):
             elif self.filter == 10:
                 image = cw.imageretouch.filter_emboss(image)
 
+        transparent = self.transparent
+
         # 色調変化
         if self.colormap:
+            if self.paintmode <> 3:
+                transparent = False
             if self.colormap == 1:      # グレイスケール
                 image = cw.imageretouch.to_grayscale(image)
             elif self.colormap == 2:    # セピア
@@ -332,16 +337,14 @@ class _JpySubImage(cw.image.Image):
         if self.mirror or self.flip:
             image = pygame.transform.flip(image, self.mirror, self.flip)
 
-        transparent = self.transparent
-
         # ノイズ
         if self.noise:
             if self.noise == 1:
-                if self.noisepoint in (-255, 255):
-                    # 真っ白・真っ黒にする場合は透明色が無効になる
+                if self.noisepoint < 0 or self.noisepoint == 255:
                     transparent = False
                 image = cw.imageretouch.add_lightness(image, self.noisepoint)
             elif self.noise == 2:
+                transparent = False
                 image = cw.imageretouch.to_binaryformat(image, self.noisepoint)
             elif self.noise == 3:
                 image = cw.imageretouch.add_noise(image, self.noisepoint)
