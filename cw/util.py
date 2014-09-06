@@ -1982,6 +1982,44 @@ class CheckableListCtrl(wx.ListCtrl,
         self.SetColumnWidth(0, 170)
         self.setResizeColumn(0)
 
+def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
+    """toppanelの左右の領域をクリックすると
+    leftbtnまたはrightbtnのイベントが実行されるように
+    イベントへのバインドを行う。
+    """
+    def _is_cursorinleft():
+        rect = toppanel.GetClientRect()
+        x, y = toppanel.ScreenToClient(wx.GetMousePosition())
+        return x < rect.x + rect.width / 4 and leftbtn.IsEnabled()
+
+    def _is_cursorinright():
+        rect = toppanel.GetClientRect()
+        x, y = toppanel.ScreenToClient(wx.GetMousePosition())
+        return rect.x + rect.width / 4 * 3 < x and rightbtn.IsEnabled()
+
+    def _update_mousepos():
+        if _is_cursorinleft():
+            toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_BACK"])
+        elif _is_cursorinright():
+            toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FORE"])
+        else:
+            toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
+
+    def OnMotion(evt):
+        _update_mousepos()
+
+    def OnLeftUp(evt):
+        if _is_cursorinleft():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, leftbtn.GetId())
+            leftbtn.ProcessEvent(btnevent)
+        elif _is_cursorinright():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, rightbtn.GetId())
+            rightbtn.ProcessEvent(btnevent)
+
+    _update_mousepos()
+    toppanel.Bind(wx.EVT_MOTION, OnMotion)
+    toppanel.Bind(wx.EVT_LEFT_UP, OnLeftUp)
+
 #-------------------------------------------------------------------------------
 #  スレッド関係
 #-------------------------------------------------------------------------------

@@ -55,6 +55,7 @@ class CardInfo(wx.Dialog):
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+        cw.util.add_sideclickhandlers(self.toppanel, self.leftbtn, self.rightbtn)
         # focus
         self.panel.SetFocusIgnoringChildren()
 

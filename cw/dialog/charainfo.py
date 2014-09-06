@@ -79,6 +79,7 @@ class CharaInfo(wx.Dialog):
         self._do_layout()
         # bind
         self._bind()
+        cw.util.add_sideclickhandlers(self.toppanel, self.leftbtn, self.rightbtn)
 
         self.leftpagekeyid = wx.NewId()
         self.rightpagekeyid = wx.NewId()

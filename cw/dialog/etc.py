@@ -3,6 +3,7 @@
 
 import os
 import sys
+import itertools
 
 import wx
 import pygame
@@ -304,6 +305,8 @@ class ExtensionDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.OnBotton, btn)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        for ctrl in itertools.chain(self.GetChildren(), self.panel.GetChildren()):
+            ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
 
     def _do_layout(self):
         sizer_buttons = wx.BoxSizer(wx.VERTICAL)
