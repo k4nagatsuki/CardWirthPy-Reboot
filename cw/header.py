@@ -653,8 +653,14 @@ class CardHeader(object):
         self.star = star
         owner = self.get_owner()
         if isinstance(owner, cw.character.Player):
-            etree = cw.data.CWPyElementTree(element=self.carddata)
-            etree.edit("Property/Star", str(self.star))
+            data = cw.data.CWPyElementTree(element=self.carddata)
+            e = data.find("Property/Star")
+            if e is None:
+                e = data.find("Property")
+                e.append(cw.data.make_element("Star", str(self.star)))
+                data.is_edited = True
+            else:
+                data.edit("Property/Star", str(self.star))
             owner.data.is_edited = True
         else:
             data = cw.data.CWPyElementTree(self.fpath)

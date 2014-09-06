@@ -217,7 +217,7 @@ class CardControl(wx.Dialog):
             self._sizer_topbar.Add(self.combo, 0, 0, 0)
             self._sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
         else:
-            self._sizer_topbar.Add((cw.wins(495)-starsize[0]-sortsize[0], 0), 0, 0, 0)
+            self._sizer_topbar.Add((cw.wins(500)-starsize[0]-sortsize[0], 0), 0, 0, 0)
             self._sizer_topbar.Add(self.sort, 0, 0, 0)
             self._sizer_topbar.Add(self.sortwithstar, 0, 0, 0)
 
@@ -505,6 +505,8 @@ class CardControl(wx.Dialog):
             self._after_event = None
 
     def _get_starrect(self, header):
+        if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+            return wx.Rect(0, 0, 0, 0), 0, 0
         x = header.wxrect.left
         y = header.wxrect.top
         bmp, usemask = self._drawlist[header]
