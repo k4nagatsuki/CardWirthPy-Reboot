@@ -765,8 +765,8 @@ class Debugger(wx.Frame):
                                 cw.cwpy.sdata.areas.iteritems() if key > 0]
                 seq.sort()
                 choices = []
-                if cw.cwpy.is_battlestatus():
-                    areaid = cw.cwpy.pre_battleareadata[0]
+                if cw.cwpy.sdata and cw.cwpy.is_battlestatus():
+                    areaid = cw.cwpy.sdata.pre_battleareadata[0]
                 else:
                     areaid = cw.cwpy.areaid
                 selected = -1

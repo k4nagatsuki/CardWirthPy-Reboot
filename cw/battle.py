@@ -184,7 +184,7 @@ class BattleEngine(object):
         self._ready = True
 
         if f9:
-            self.pre_battleareadata = None
+            cw.cwpy.sdata.pre_battleareadata = None
         else:
             cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle)
 

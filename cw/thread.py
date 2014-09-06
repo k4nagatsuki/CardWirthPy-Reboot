@@ -136,8 +136,6 @@ class CWPy(_Singleton, threading.Thread):
         self.card_takenouttemporarily = None
         # エリアID
         self.areaid = 1
-        # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
-        self.pre_battleareadata = None
         # 特殊エリア移動前に保持しておく各種データ
         self.pre_areaids = []
         self.pre_mcards = []
@@ -1890,16 +1888,16 @@ class CWPy(_Singleton, threading.Thread):
         sprite.remove(cw.cwpy.topgrp)
         oldareaid = self.areaid
         oldbgmpath = self.music.path
-        if self.pre_battleareadata:
-            oldareaid = self.pre_battleareadata[0]
-            oldbgmpath = self.pre_battleareadata[1]
+        if self.sdata.pre_battleareadata:
+            oldareaid = self.sdata.pre_battleareadata[0]
+            oldbgmpath = self.sdata.pre_battleareadata[1]
         self.set_battle()
         self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
         # 戦闘音楽を流す
         path = self.sdata.data.gettext("Property/MusicPath", "")
         self.music.play(path)
 
-        self.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
+        self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
         self.battle = cw.battle.BattleEngine()
         self.lock_menucards = False
 
@@ -1932,9 +1930,9 @@ class CWPy(_Singleton, threading.Thread):
                 if not fcard.is_reversed():
                     fcard.remove_timedcoupons(True)
 
-            areaid, bgmpath, battlebgmpath = self.pre_battleareadata
+            areaid, bgmpath, battlebgmpath = self.sdata.pre_battleareadata
             if not startnextbattle:
-                self.pre_battleareadata = None
+                self.sdata.pre_battleareadata = None
             self.set_scenario()
 
             # BGMを最後に指定されたものに戻す

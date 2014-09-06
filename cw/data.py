@@ -52,6 +52,7 @@ class SystemData(object):
         self.labels = {}
         self.ignorecase_table = {}
         self.notice_infoview = False
+        self.pre_battleareadata = None
         # refresh debugger
         self._init_debugger()
 
@@ -351,6 +352,8 @@ class ScenarioData(SystemData):
         # 情報カードを手に入れてから
         # 情報カードビューを開くまでの間True
         self.notice_infoview = False
+        # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
+        self.pre_battleareadata = None
         # flag set
         self._init_flags()
         # step set

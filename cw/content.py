@@ -541,8 +541,8 @@ class BranchAreaContent(BranchContent):
         if self.is_differentscenario():
             return 0
 
-        if cw.cwpy.battle:
-            areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
+        if cw.cwpy.battle and cw.cwpy.sdata:
+            areaid, bgmpath, battlebgmpath = cw.cwpy.sdata.pre_battleareadata
             value = str(areaid)
         else:
             value = str(cw.cwpy.areaid)

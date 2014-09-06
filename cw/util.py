@@ -140,10 +140,10 @@ class MusicInterface(object):
             self.fpath = fpath
             self.path = path
 
-        if updatepredata and cw.cwpy.pre_battleareadata:
-            areaid, bgmpath, battlebgmpath = cw.cwpy.pre_battleareadata
+        if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata:
+            areaid, bgmpath, battlebgmpath = cw.cwpy.sdata.pre_battleareadata
             bgmpath = path
-            cw.cwpy.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
+            cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
     def stop(self):
         if threading.currentThread() <> cw.cwpy:
