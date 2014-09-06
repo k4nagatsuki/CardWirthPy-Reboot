@@ -698,19 +698,19 @@ def remove_soundtempfile(basedir):
         if not os.listdir(u"Data/Temp/Playing"):
             remove(dpath)
 
-def sort_by_attr(seq, attr):
+def sort_by_attr(seq, *attr):
     """破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
     """
-    return seq.sort(key=operator.attrgetter(attr))
+    return seq.sort(key=operator.attrgetter(*attr))
 
-def sorted_by_attr(seq, attr):
+def sorted_by_attr(seq, *attr):
     """非破壊的にオブジェクトの属性でソートする。
     seq: リスト
     attr: 属性名
     """
-    return sorted(seq, key=operator.attrgetter(attr))
+    return sorted(seq, key=operator.attrgetter(*attr))
 
 def new_order(seq, mode=1):
     """order属性を持つアイテムのlistを

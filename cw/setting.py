@@ -77,7 +77,9 @@ class Setting(object):
         self.classicstyletext = True
         self.sort_standbys = "None"
         self.sort_storehouse = "None"
+        self.sort_storehousewithstar = True
         self.sort_backpack = "None"
+        self.sort_backpackwithstar = True
         self.backlogmax = 100
         self.showfps = False
         self.selectscenariofromtype = True
@@ -274,7 +276,9 @@ class Setting(object):
         # ソート基準
         self.sort_standbys = data.getattr("SortKey", "standbys", self.sort_standbys)
         self.sort_storehouse = data.getattr("SortKey", "storehouse", self.sort_storehouse)
+        self.sort_storehousewithstar = data.getbool("SortKey", "storehousewithstar", self.sort_storehousewithstar)
         self.sort_backpack = data.getattr("SortKey", "backpack", self.sort_backpack)
+        self.sort_backpackwithstar = data.getbool("SortKey", "backpackwithstar", self.sort_backpackwithstar)
         # バックログ最大数
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
 

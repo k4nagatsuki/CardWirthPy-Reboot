@@ -52,6 +52,7 @@ class CardHeader(object):
                 from_scenario = bool(dbrec["scenariocard"])
             self.versionhint = dbrec["versionhint"]
             self.moved = dbrec["moved"]
+            self.star = dbrec["star"]
         else:
             self.set_owner(owner)
             self.carddata = carddata
@@ -90,6 +91,7 @@ class CardHeader(object):
             self.enhance_def_used = 0
             self.attachment = False
             self.moved = data.getint(".", "moved", 0)
+            self.star = data.getint("Star", 0)
 
             if self.type == "ActionCard":
                 self.enhance_avo_used = data.getint("Enhance", "avoid")
@@ -178,6 +180,10 @@ class CardHeader(object):
             self.type_id = 1
         else:
             self.type_id = 2
+
+    @property
+    def negastar(self):
+        return -self.star
 
     def set_cardimg(self, path):
         if not cw.binary.image.path_is_code(path):
@@ -631,12 +637,36 @@ class CardHeader(object):
         if self.type == "BeastCard":
             return
 
+        cw.cwpy.ydata.changed()
         self.hold = hold
         owner = self.get_owner()
         if isinstance(owner, cw.character.Player):
             etree = cw.data.CWPyElementTree(element=self.carddata)
             etree.edit("Property/Hold", str(self.hold))
             owner.data.is_edited = True
+
+    def set_star(self, star):
+        if self.star == star:
+            return
+
+        cw.cwpy.ydata.changed()
+        self.star = star
+        owner = self.get_owner()
+        if isinstance(owner, cw.character.Player):
+            etree = cw.data.CWPyElementTree(element=self.carddata)
+            etree.edit("Property/Star", str(self.star))
+            owner.data.is_edited = True
+        else:
+            data = cw.data.CWPyElementTree(self.fpath)
+            e = data.find("Property/Star")
+            if e is None:
+                e = data.find("Property")
+                e.append(cw.data.make_element("Star", str(self.star)))
+                data.is_edited = True
+            else:
+                data.edit("Property/Star", str(self.star))
+            data.write_xml()
+            self.fpath = data.fpath
 
 class InfoCardHeader(object):
     def __init__(self, data):

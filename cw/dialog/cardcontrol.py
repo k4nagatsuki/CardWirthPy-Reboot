@@ -48,8 +48,15 @@ class CardControl(wx.Dialog):
         self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 255)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
         self.toppanel.SetDoubleBuffered(True)
-        # sort
+
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
+
+        # sort
+        self.star = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK"])
+        self.nostar = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK_EMPTY"])
+        self.starlight = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK_LIGHTUP"])
+        self._laststar = None
+
         self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
@@ -57,9 +64,15 @@ class CardControl(wx.Dialog):
         self.sort.Append(cw.cwpy.msgs["sort_level"])
         self.sort.Append(cw.cwpy.msgs["sort_type"])
         self.sort.Append(cw.cwpy.msgs["sort_price"])
+        self.sortwithstar = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=self.star)
+        self.sortwithstar.SetToolTipString(cw.cwpy.msgs["sort_with_star"])
+        self._update_sortwithstar()
         if not sort:
             self.sort.Freeze()
             self.sort.Hide()
+            self.sortwithstar.Freeze()
+            self.sortwithstar.Hide()
+
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
         self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
@@ -91,6 +104,7 @@ class CardControl(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn2, self.rightbtn2)
+        self.Bind(wx.EVT_BUTTON, self.OnSortWithStar, self.sortwithstar)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_COMBOBOX, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
@@ -186,24 +200,31 @@ class CardControl(wx.Dialog):
 
     def _re_layout_topbar(self):
         sortsize = self.sort.GetSize()[0], cw.wins(20)
+        starsize = self.sortwithstar.GetSize()
         combosize = self.combo.GetSize()[0], cw.wins(20)
         self._sizer_topbar.Clear()
         self._sizer_topbar.SetMinSize(combosize)
         if self.combo.IsShown():
-            self._sizer_topbar.Add((cw.wins(500)-combosize[0]-cw.wins(65)-sortsize[0]-cw.wins(40), 0), 0, 0, 0)
+            self._sizer_topbar.Add((cw.wins(500)-combosize[0]-cw.wins(65)-starsize[0]-sortsize[0]-cw.wins(40), 0), 0, 0, 0)
             if self.sort.IsShown():
                 self._sizer_topbar.Add(self.sort, 0, 0, 0)
+                self._sizer_topbar.Add(self.sortwithstar, 0, 0, 0)
             else:
                 self._sizer_topbar.Add(self.sort.GetSize(), 0, 0, 0)
+                self._sizer_topbar.Add(self.sortwithstar.GetSize(), 0, 0, 0)
             self._sizer_topbar.Add(cw.wins((60, 0)), 0, 0, 0)
             self._sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
             self._sizer_topbar.Add(self.combo, 0, 0, 0)
             self._sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
         else:
-            self._sizer_topbar.Add((cw.wins(495)-sortsize[0], 0), 0, 0, 0)
+            self._sizer_topbar.Add((cw.wins(495)-starsize[0]-sortsize[0], 0), 0, 0, 0)
             self._sizer_topbar.Add(self.sort, 0, 0, 0)
+            self._sizer_topbar.Add(self.sortwithstar, 0, 0, 0)
 
     def OnSort(self, event):
+        pass
+
+    def OnSortWithStar(self, event):
         pass
 
     def OnUp(self, event):
@@ -271,13 +292,32 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
 
+        mousepos = event.GetPosition()
         for header in self.get_headers():
-            if header.wxrect.collidepoint(event.GetPosition()):
-                cw.cwpy.sounds["click"].play()
-                def func():
-                    self.lclick_event(header)
-                self.animate_click(header, func)
-                return
+            if header.wxrect.collidepoint(mousepos):
+                rect, x, y = self._get_starrect(header)
+                if rect.Contains(mousepos):
+                    cw.cwpy.sounds["page"].play()
+                    if header.star:
+                        header.set_star(0)
+                    else:
+                        header.set_star(1)
+                    if self.callname == "STOREHOUSE":
+                        if cw.cwpy.setting.sort_storehousewithstar:
+                            self._update_sortattr()
+                    elif self.callname in ("BACKPACK", "CARDPOCKETB"):
+                        if cw.cwpy.setting.sort_backpackwithstar:
+                            self._update_sortattr()
+                    return
+                else:
+                    cw.cwpy.sounds["click"].play()
+                    def func():
+                        self.lclick_event(header)
+                    self.animate_click(header, func)
+                    return
+
+    def _update_sortattr(self):
+        pass
 
     def OnRightUp(self, event):
         if self._proc:
@@ -315,15 +355,28 @@ class CardControl(wx.Dialog):
 
         if not self.IsShown():
             return
+
+        laststar = None
         for header in self.get_headers():
+            draw = False
             if header.wxrect.collidepoint(mousepos):
                 if not header.negaflag:
                     header.negaflag = True
-                    self.draw_card(header)
+                    draw = True
 
             elif header.negaflag:
                 header.negaflag = False
+                draw = True
+
+            rect, x, y = self._get_starrect(header)
+            if rect.Contains(mousepos):
+                laststar = header
+            draw |= laststar <> self._laststar
+
+            if draw:
                 self.draw_card(header)
+
+        self._laststar = laststar
 
     def OnEnter(self, event):
         self.OnMove(event)
@@ -389,9 +442,9 @@ class CardControl(wx.Dialog):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["sort_title"]
             if self.combo.IsShown():
-                dc.DrawText(s, cw.wins(170), cw.wins(3))
+                dc.DrawText(s, cw.wins(150), cw.wins(3))
             else:
-                dc.DrawText(s, cw.wins(385), cw.wins(3))
+                dc.DrawText(s, cw.wins(365), cw.wins(3))
         if self.combo.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["send_to"]
@@ -400,13 +453,25 @@ class CardControl(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
 
         # カードの描画
+        mousepos = self.toppanel.ScreenToClient(wx.GetMousePosition())
         for header, data in self._drawlist.iteritems():
             bmp, usemask = data
             x = header.wxrect.left
             y = header.wxrect.top
-            x += (header.wxrect.width-bmp.GetWidth()) / 2
-            y += (header.wxrect.height-bmp.GetHeight()) / 2
+            w = bmp.GetWidth()
+            h = bmp.GetHeight()
+            x += (header.wxrect.width-w) / 2
+            y += (header.wxrect.height-h) / 2
             dc.DrawBitmap(bmp, x, y, usemask)
+            if self.callname in ("BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
+                rect, x, y = self._get_starrect(header)
+                if rect.Contains(mousepos):
+                    bmp = self.starlight
+                elif header.star:
+                    bmp = self.star
+                else:
+                    bmp = self.nostar
+                dc.DrawBitmap(bmp, x, y, True)
 
         # カード置場・荷物袋・情報カードマーク
         if self._leftmark:
@@ -431,6 +496,20 @@ class CardControl(wx.Dialog):
         if self._after_event:
             cw.cwpy.frame.exec_func(self._after_event)
             self._after_event = None
+
+    def _get_starrect(self, header):
+        x = header.wxrect.left
+        y = header.wxrect.top
+        bmp, usemask = self._drawlist[header]
+        w = bmp.GetWidth()
+        h = bmp.GetHeight()
+        x += (header.wxrect.width-w) / 2
+        y += (header.wxrect.height-h) / 2
+        sw = self.star.GetWidth()
+        sh = self.star.GetHeight()
+        x = x+w - sw - cw.wins(5)
+        y = y+h - sh - cw.wins(5)
+        return wx.Rect(x-cw.wins(4), y-cw.wins(4), sw+cw.wins(8), sh+cw.wins(8)), x, y
 
     def draw(self, update=True):
         if update:
@@ -917,16 +996,24 @@ class CardHolder(CardControl):
             if not self.sort.IsShown():
                 self.sort.Thaw()
                 self.sort.Show()
+                self.sortwithstar.Thaw()
+                self.sortwithstar.Show()
+            self._update_sortwithstar()
             sorttype = cw.cwpy.setting.sort_storehouse
         elif self.callname in ("BACKPACK", "CARDPOCKETB"):
             if not self.sort.IsShown():
                 self.sort.Thaw()
                 self.sort.Show()
+                self.sortwithstar.Thaw()
+                self.sortwithstar.Show()
+            self._update_sortwithstar()
             sorttype = cw.cwpy.setting.sort_backpack
         else:
             if self.sort.IsShown():
                 self.sort.Freeze()
                 self.sort.Hide()
+                self.sortwithstar.Freeze()
+                self.sortwithstar.Hide()
             sorttype = None
 
         if self.sort.IsShown():
@@ -974,16 +1061,56 @@ class CardHolder(CardControl):
             if cw.cwpy.setting.sort_backpack <> sorttype:
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_backpack = sorttype
-                cw.cwpy.ydata.party.sort_backpack()
-                if self.callname == "CARDPOCKETB":
-                    self._set_backpacklist()
-                self.draw_cards()
+                self._update_sortattr()
         elif self.callname == "STOREHOUSE":
             if cw.cwpy.setting.sort_storehouse <> sorttype:
                 cw.cwpy.sounds["page"].play()
                 cw.cwpy.setting.sort_storehouse = sorttype
-                cw.cwpy.ydata.sort_storehouse()
-                self.draw_cards()
+                self._update_sortattr()
+
+    def OnSortWithStar(self, event):
+        cw.cwpy.sounds["page"].play()
+        if self.callname in ("BACKPACK", "CARDPOCKETB"):
+            if cw.cwpy.setting.sort_backpackwithstar:
+                cw.cwpy.setting.sort_backpackwithstar = False
+                self._update_sortattr()
+            else:
+                cw.cwpy.setting.sort_backpackwithstar = True
+                self._update_sortattr()
+        elif self.callname == "STOREHOUSE":
+            if cw.cwpy.setting.sort_storehousewithstar:
+                cw.cwpy.setting.sort_storehousewithstar = False
+                self._update_sortattr()
+            else:
+                cw.cwpy.setting.sort_storehousewithstar = True
+                self._update_sortattr()
+
+        self._update_sortwithstar()
+
+    def _update_sortwithstar(self):
+        bmp = self.star
+        if self.callname in ("BACKPACK", "CARDPOCKETB"):
+            if not cw.cwpy.setting.sort_backpackwithstar:
+                bmp = self.nostar
+        elif self.callname == "STOREHOUSE":
+            if not cw.cwpy.setting.sort_storehousewithstar:
+                bmp = self.nostar
+        else:
+            return
+        self.sortwithstar.SetBitmapFocus(bmp)
+        self.sortwithstar.SetBitmapHover(bmp)
+        self.sortwithstar.SetBitmapLabel(bmp)
+        self.sortwithstar.SetBitmapSelected(bmp)
+
+    def _update_sortattr(self):
+        if self.callname in ("BACKPACK", "CARDPOCKETB"):
+            cw.cwpy.ydata.party.sort_backpack()
+            if self.callname == "CARDPOCKETB":
+                self._set_backpacklist()
+            self.draw_cards()
+        elif self.callname == "STOREHOUSE":
+            cw.cwpy.ydata.sort_storehouse()
+            self.draw_cards()
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.sounds["page"].play()
@@ -1314,6 +1441,9 @@ class CardHolder(CardControl):
         CardControl.OnMouseWheel(self, event)
 
     def draw_cards(self, update=True, mode=-1):
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
+            if (len(self.list)+9) / 10 <= self.index:
+                self.index = (len(self.list)+9) / 10 - 1
         if self.selection:
             self._init_cardpocketlist()
             s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)

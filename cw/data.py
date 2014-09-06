@@ -1399,23 +1399,28 @@ class YadoData(object):
 
     def sort_standbys(self):
         if cw.cwpy.setting.sort_standbys == "Level":
-            cw.util.sort_by_attr(self.standbys, "level")
+            cw.util.sort_by_attr(self.standbys, "level", "order")
         elif cw.cwpy.setting.sort_standbys == "Name":
-            cw.util.sort_by_attr(self.standbys, "name")
+            cw.util.sort_by_attr(self.standbys, "name", "order")
         else:
             cw.util.sort_by_attr(self.standbys, "order")
 
     def sort_storehouse(self):
+        seq = []
+        if cw.cwpy.setting.sort_storehousewithstar:
+            seq.append("negastar")
+
         if cw.cwpy.setting.sort_storehouse == "Level":
-            cw.util.sort_by_attr(self.storehouse, "level")
+            seq.append("level")
         elif cw.cwpy.setting.sort_storehouse == "Name":
-            cw.util.sort_by_attr(self.storehouse, "name")
+            seq.append("name")
         elif cw.cwpy.setting.sort_storehouse == "Type":
-            cw.util.sort_by_attr(self.storehouse, "type_id")
+            seq.append("type_id")
         elif cw.cwpy.setting.sort_storehouse == "Price":
-            cw.util.sort_by_attr(self.storehouse, "price")
-        else:
-            cw.util.sort_by_attr(self.storehouse, "order")
+            seq.append("price")
+        seq.append("order")
+
+        cw.util.sort_by_attr(self.storehouse, *seq)
 
     def sort_partyrecord(self):
         cw.util.sort_by_attr(self.partyrecord, "name")
@@ -1948,16 +1953,21 @@ class Party(object):
             self.sort_backpack()
 
     def sort_backpack(self):
+        seq = []
+        if cw.cwpy.setting.sort_backpackwithstar:
+            seq.append("negastar")
+
         if cw.cwpy.setting.sort_backpack == "Level":
-            cw.util.sort_by_attr(self.backpack, "level")
+            seq.append("level")
         elif cw.cwpy.setting.sort_backpack == "Name":
-            cw.util.sort_by_attr(self.backpack, "name")
+            seq.append("name")
         elif cw.cwpy.setting.sort_backpack == "Type":
-            cw.util.sort_by_attr(self.backpack, "type_id")
+            seq.append("type_id")
         elif cw.cwpy.setting.sort_backpack == "Price":
-            cw.util.sort_by_attr(self.backpack, "price")
-        else:
-            cw.util.sort_by_attr(self.backpack, "order")
+            seq.append("price")
+        seq.append("order")
+
+        cw.util.sort_by_attr(self.backpack, *seq)
 
     def get_backpackkeycodes(self, skill=True, item=True, beast=True):
         """荷物袋内のキーコード一覧を返す。"""

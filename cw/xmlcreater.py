@@ -232,7 +232,9 @@ def create_settings(setting):
     e = cw.data.make_element("SortKey")
     e.set("standbys", setting.sort_standbys)
     e.set("storehouse", setting.sort_storehouse)
+    e.set("storehousewithstar", str(setting.sort_storehousewithstar))
     e.set("backpack", setting.sort_backpack)
+    e.set("backpackwithstar", str(setting.sort_backpackwithstar))
     element.append(e)
     # バックログ最大数
     e = cw.data.make_element("MessageLogMax", str(setting.backlogmax))
