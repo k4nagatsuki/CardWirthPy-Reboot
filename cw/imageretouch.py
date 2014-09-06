@@ -201,7 +201,7 @@ def _add_noise(image, value, colornoise=False):
         return image
 
     if value < 0:
-        randmax = 256
+        randmax = 2
     else:
         randmax = value * 2 + 1
     pxarray = pygame.PixelArray(image)
@@ -214,16 +214,16 @@ def _add_noise(image, value, colornoise=False):
 
             if colornoise:
                 if value < 0:
-                    r = random.randint(0, randmax)
-                    g = random.randint(0, randmax)
-                    b = random.randint(0, randmax)
+                    r = 0 if random.randint(0, randmax) == 0 else 255
+                    g = 0 if random.randint(0, randmax) == 0 else 255
+                    b = 0 if random.randint(0, randmax) == 0 else 255
                 else:
                     r += random.randint(0, randmax) - value
                     g += random.randint(0, randmax) - value
                     b += random.randint(0, randmax) - value
             else:
                 if value < 0:
-                    n = random.randint(0, randmax)
+                    n = 0 if random.randint(0, randmax) == 0 else 255
                     r = n
                     g = n
                     b = n
@@ -485,6 +485,7 @@ def filter_sunpower(image):
 
 def filter_emboss(image):
     """画像にエンボスフィルターを適用。"""
+    image = to_grayscale(image)
     weight = (
         (-1, 0, 0),
         (0, 1, 0),
@@ -519,9 +520,9 @@ def filter_darkemboss(image):
 def filter_electrical(image):
     """画像にエレクトリカルフィルターを適用。"""
     weight = (
-        (-1, -2, -1),
-        (0, 0, 0),
-        (1, 2, 1)
+        (1, 1, 1),
+        (1, -15, 1),
+        (1, 1, 1)
     )
     offset = 0
     div = 1

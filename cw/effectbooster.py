@@ -273,30 +273,46 @@ class _JpySubImage(cw.image.Image):
             elif self.exchange == 5:
                 image = cw.imageretouch.exchange_rgbcolor(image, "rbg")
 
+        transparent = self.transparent
+
         # フィルタ
         if self.filter:
             if self.filter == 1:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.filter_shape(image)
             elif self.filter == 2:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.filter_sharpness(image)
             elif self.filter == 3:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.filter_sunpower(image)
             elif self.filter == 4:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.filter_coloremboss(image)
             elif self.filter == 5:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.filter_darkemboss(image)
             elif self.filter == 6:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.filter_electrical(image)
             elif self.filter == 7:
                 image = cw.imageretouch.to_binaryformat(image, -1, image.get_at((0, 0))[:3])
             elif self.filter == 8:
                 image = cw.imageretouch.spread_pixels(image)
             elif self.filter == 9:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.to_negative(image)
             elif self.filter == 10:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.filter_emboss(image)
-
-        transparent = self.transparent
 
         # 色調変化
         if self.colormap:
@@ -340,17 +356,25 @@ class _JpySubImage(cw.image.Image):
         # ノイズ
         if self.noise:
             if self.noise == 1:
-                if self.noisepoint < 0 or self.noisepoint == 255:
+                if (self.noisepoint < 0 or self.noisepoint == 255) and self.paintmode <> 3:
                     transparent = False
                 image = cw.imageretouch.add_lightness(image, self.noisepoint)
             elif self.noise == 2:
-                transparent = False
-                image = cw.imageretouch.to_binaryformat(image, self.noisepoint)
+                if self.paintmode <> 3:
+                    transparent = False
+                if self.noisepoint < 0:
+                    image.fill((255, 255, 255))
+                else:
+                    image = cw.imageretouch.to_binaryformat(image, self.noisepoint)
             elif self.noise == 3:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.add_noise(image, self.noisepoint)
             elif self.noise == 4:
+                if self.paintmode <> 3:
+                    transparent = False
                 image = cw.imageretouch.add_noise(image, self.noisepoint, True)
-            elif self.noise == 5:
+            elif self.noise == 5 and self.filter <> 7:
                 image = cw.imageretouch.add_mosaic(image, self.noisepoint)
 
         # マスク

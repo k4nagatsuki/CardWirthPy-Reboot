@@ -143,7 +143,7 @@ add_noise(PyObject *self, PyObject *args)
         return string;
     }
 
-    randmax = (val < 0) ? 256 : (val * 2 + 1);
+    randmax = (val < 0) ? 2 : (val * 2 + 1);
     srand((unsigned) time(NULL));
 
     for (y = 0; y < h; y++)
@@ -158,9 +158,9 @@ add_noise(PyObject *self, PyObject *args)
             {
                 if (val < 0)
                 {
-                    r = intwrap(rand() % randmax, 0, 255);
-                    g = intwrap(rand() % randmax, 0, 255);
-                    b = intwrap(rand() % randmax, 0, 255);
+                    r = rand() % randmax ? 0 : 255;
+                    g = rand() % randmax ? 0 : 255;
+                    b = rand() % randmax ? 0 : 255;
                 }
                 else
                 {
@@ -173,7 +173,7 @@ add_noise(PyObject *self, PyObject *args)
             {
                 if (val < 0)
                 {
-                    i = intwrap(rand() % randmax, 0, 255);
+                    i = rand() % randmax ? 0 : 255;
                     r = i;
                     g = i;
                     b = i;
