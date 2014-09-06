@@ -227,6 +227,9 @@ class CardControl(wx.Dialog):
     def OnSortWithStar(self, event):
         pass
 
+    def _update_sortwithstar(self):
+        pass
+
     def OnUp(self, event):
         pass
 
