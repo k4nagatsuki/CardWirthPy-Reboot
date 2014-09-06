@@ -90,9 +90,9 @@ class BattleEngine(object):
             self.end(False, startnextbattle=True)
         elif isinstance(ex, BattleAreaChangeError):
             self.end(False)
-        elif isinstance(ex, BattleStartBattleError):
-            self.win()
         elif isinstance(ex, BattleWinError):
+            self.win()
+        elif isinstance(ex, BattleDefeatError):
             self.defeat()
         else:
             assert False
