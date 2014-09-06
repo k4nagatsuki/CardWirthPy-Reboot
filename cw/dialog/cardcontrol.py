@@ -469,9 +469,13 @@ class CardControl(wx.Dialog):
                     bmp = self.starlight
                 elif header.star:
                     bmp = self.star
-                else:
+                elif header.negaflag:
                     bmp = self.nostar
-                dc.DrawBitmap(bmp, x, y, True)
+                else:
+                    bmp = None
+
+                if bmp:
+                    dc.DrawBitmap(bmp, x, y, True)
 
         # カード置場・荷物袋・情報カードマーク
         if self._leftmark:
