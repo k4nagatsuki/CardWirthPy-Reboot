@@ -734,10 +734,10 @@ class DrawingSettingPanel(wx.Panel):
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
         self.transitions = [
-            "None", "Fade", "PixelDissolve", "Blinds"]
+            "None", "Blinds", "PixelDissolve", "Fade"]
         self.choices_tran = [
-            u"アニメーションなし", u"フェード式",
-            u"ピクセルディゾルブ式", u"ブラインド式"]
+            u"アニメーションなし", u"短冊(スレッド)式", u"ドット置換(シェーブ)式",
+            u"色置換(フェード)式"]
         self.ch_tran = wx.Choice(
             self, -1, size=(-1, -1), choices=self.choices_tran)
         n = self.transitions.index(cw.cwpy.setting.transition)
