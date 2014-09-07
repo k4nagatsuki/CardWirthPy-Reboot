@@ -143,16 +143,54 @@ class EventHandler(object):
                 cw.cwpy.change_selection(sprite)
 
         elif y:
-            seq = None
-            if isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
+            def get_mcards():
+                seq = []
                 if cw.cwpy.is_mcardsselectable:
                     seq = cw.cwpy.get_mcards("visible")
-            else:
+                return seq
+
+            def get_pcards():
+                seq = []
                 if cw.cwpy.is_pcardsselectable:
                     if cw.cwpy.is_debugmode() and not cw.cwpy.selectedheader:
                         seq = cw.cwpy.get_pcards()
                     else:
                         seq = cw.cwpy.get_pcards("unreversed")
+                return seq
+
+            def get_etc():
+                seq = []
+                for sprite in cw.cwpy.topgrp.sprites():
+                    if isinstance(sprite, cw.sprite.background.ClickableSprite):
+                        seq.append(sprite)
+                return seq
+
+            if not cw.cwpy.selection or isinstance(cw.cwpy.selection,
+                                                   cw.sprite.background.Curtain):
+                if y < 0:
+                    funcs = (get_pcards, get_etc, get_mcards)
+                else:
+                    funcs = (get_mcards, get_etc, get_pcards)
+            elif isinstance(cw.cwpy.selection, cw.sprite.card.PlayerCard):
+                if y < 0:
+                    funcs = (get_etc, get_mcards)
+                else:
+                    funcs = (get_mcards, get_etc)
+            elif isinstance(cw.cwpy.selection, cw.sprite.background.ClickableSprite):
+                if y < 0:
+                    funcs = (get_mcards, get_pcards)
+                else:
+                    funcs = (get_pcards, get_mcards)
+            else:
+                if y < 0:
+                    funcs = (get_pcards, get_etc)
+                else:
+                    funcs = (get_etc, get_pcards)
+
+            for func in funcs:
+                seq = func()
+                if seq:
+                    break
 
             if seq:
                 cw.cwpy.list = seq

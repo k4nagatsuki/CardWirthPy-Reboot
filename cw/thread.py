@@ -2147,6 +2147,12 @@ class CWPy(_Singleton, threading.Thread):
         if self.areaid <> cw.AREA_BREAKUP:
             return
 
+        if isinstance(self.selection, cw.sprite.background.ClickableSprite):
+            index = self.topgrp.sprites().index(self.selection)
+            self.clear_selection()
+        else:
+            index = -1
+
         self.topgrp.empty()
 
         def get_image():
@@ -2167,14 +2173,22 @@ class CWPy(_Singleton, threading.Thread):
             def replace(self):
                 self.outer.replace_pcardorder(self.index1, self.index2)
 
+        seq = []
         for i, pcard in enumerate(pcards[0:-1]):
             replace = Replace(self, i)
             pos_noscale = pcard.get_pos_noscale()
             x_noscale = pos_noscale[0] + 95+9/2 - size_noscale[0]/2
             y_noscale = pos_noscale[1] - size_noscale[1] - 5
-            cw.sprite.background.ClickableSprite(get_image, get_selimage,
-                                                 (x_noscale, y_noscale),
-                                                 self.topgrp, replace.replace)
+            sprite = cw.sprite.background.ClickableSprite(get_image, get_selimage,
+                                                          (x_noscale, y_noscale),
+                                                          self.topgrp, replace.replace)
+            seq.append(sprite)
+
+        if index <> -1:
+            self.index = index
+            self.list = seq
+            self.change_selection(self.list[index])
+
         self.draw()
 
     def replace_pcardorder(self, index1, index2):
