@@ -2069,6 +2069,34 @@ class Party(object):
             e = self.data.make_element("Member", s)
             self.data.append("Property/Members", e)
 
+    def replace_order(self, index1, index2):
+        """
+        メンバーの位置を入れ替える。
+        """
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        list = cw.cwpy.pcardgrp.sprites()
+        assert len(list) == len(self.members)
+        list[index1], list[index2] = list[index2], list[index1]
+        self.members[index1], self.members[index2] = self.members[index2], self.members[index1]
+        cw.cwpy.pcardgrp.empty()
+        cw.cwpy.pcardgrp.add(list)
+
+        self.data.getfind("Property/Members").clear()
+        for index, pcard in enumerate(cw.cwpy.get_pcards()):
+            s = os.path.basename(pcard.data.fpath)
+            s = cw.util.splitext(s)[0]
+            e = self.data.make_element("Member", s)
+            self.data.append("Property/Members", e)
+
+        pcard1 = list[index1]
+        pcard2 = list[index2]
+        cw.animation.animate_sprites([pcard1, pcard2], "hide")
+        pos_noscale = list[index1].get_pos_noscale()
+        list[index1].set_pos_noscale(list[index2].get_pos_noscale())
+        list[index2].set_pos_noscale(pos_noscale)
+        cw.animation.animate_sprites([pcard1, pcard2], "deal")
+
     def set_name(self, name):
         """
         パーティ名を変更する。

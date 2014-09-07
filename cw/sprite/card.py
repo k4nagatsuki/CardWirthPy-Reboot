@@ -584,6 +584,9 @@ class CWPyCard(base.SelectableSprite):
         if hasattr(self, "cardimg"):
             self.cardimg.rect.topleft = self._rect.topleft
 
+    def get_pos_noscale(self):
+        return self._pos_noscale
+
     def set_cardtarget(self):
         if not self.cardtarget:
             self.cardtarget = True

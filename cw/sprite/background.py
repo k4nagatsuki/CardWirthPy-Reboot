@@ -780,6 +780,91 @@ class TitleCell(base.CWPySprite):
         else:
             self.image.set_alpha(alpha)
 
+class ClickableSprite(base.SelectableSprite):
+    def __init__(self, getimage, getselimage, pos_noscale, spritegrp, lclickevent=None, rclickevent=None):
+        """画面上に配置され、クリック可能なイメージ。
+        """
+        base.SelectableSprite.__init__(self)
+        self._getimage = getimage
+        self._getselimage = getselimage
+        self._pos_noscale = pos_noscale
+        self._lclickevent = lclickevent
+        self._rclickevent = rclickevent
+        self.update_scale()
+        self.status = "normal"
+        self.old_status = "normal"
+        self.frame = 0
+
+        spritegrp.add(self)
+
+    def update_scale(self):
+        self._image = self._getimage()
+        self._clickedimage = pygame.transform.rotozoom(self._image, 0, 0.9)
+        if self._getselimage:
+            self._selimage = self._getselimage()
+            self._selclickedimage = pygame.transform.rotozoom(self._selimage, 0, 0.9)
+        else:
+            self._selimage = cw.imageretouch.to_negative(self._image)
+            self._selclickedimage = cw.imageretouch.to_negative(self._clickedimage)
+
+        self.image = self._image
+        self._rect = pygame.Rect(cw.s(self._pos_noscale), self._image.get_size())
+        self._clickedrect = self._clickedimage.get_rect()
+        self._clickedrect.center = self._rect.center
+        self.rect = self._rect
+
+    def get_unselectedimage(self):
+        if self.status == "click":
+            return self._clickedimage
+        else:
+            return self._image
+
+    def get_selectedimage(self):
+        if self.status == "click":
+            return self._selclickedimage
+        else:
+            return self._selimage
+
+    def lclick_event(self):
+        """左クリックイベント。"""
+        if self._lclickevent:
+            cw.cwpy.sounds["click"].play()
+            cw.animation.animate_sprite(self, "click")
+            self._lclickevent()
+
+    def rclick_event(self):
+        """右クリックイベント。"""
+        if self._rclickevent:
+            cw.cwpy.sounds["click"].play()
+            cw.animation.animate_sprite(self, "click")
+            self._rclickevent()
+
+    def update(self, scr):
+        method = getattr(self, "update_" + self.status, None)
+
+        if method:
+            method()
+
+    def update_normal(self):
+        self.update_selection()
+
+    def update_click(self):
+        """
+        クリック時のアニメーションを呼び出すメソッド。
+        """
+        if self.frame == 0:
+            self.image = self.get_selectedimage()
+            self.rect = self._clickedrect
+            self.status = "click"
+        elif self.frame == 3:
+            self.status = self.old_status
+            self.image = self.get_selectedimage()
+            self.rect = self._rect
+            self.frame = 0
+            return
+
+        self.frame += 1
+
 def main():
     pass
 

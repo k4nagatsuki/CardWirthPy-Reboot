@@ -1976,6 +1976,7 @@ class CWPy(_Singleton, threading.Thread):
                     cw.cwpy.ydata._changed = changed
                 if areaid == cw.AREA_BREAKUP:
                     self._store_partyrecord()
+                    self._create_poschangearrow()
             else:
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
@@ -2057,6 +2058,10 @@ class CWPy(_Singleton, threading.Thread):
             if areaid <> cw.AREA_CAMP:
                 self.clear_curtain()
 
+            # パーティ解散エリア解除の場合
+            if self.areaid == cw.AREA_BREAKUP:
+                self.topgrp.empty()
+
             # カード移動操作エリアを解除の場合
             if oldareaid in cw.AREAS_TRADE:
                 self.areaid = areaid
@@ -2115,6 +2120,50 @@ class CWPy(_Singleton, threading.Thread):
         """
         for pcard in self.get_pcards():
             pcard.adjust_level(fromscenario)
+
+    def _create_poschangearrow(self):
+        """パーティ解散エリアにメンバ位置入替用の
+        クリック可能スプライトを配置する。
+        """
+        if self.areaid <> cw.AREA_BREAKUP:
+            return
+
+        self.topgrp.empty()
+
+        def get_image():
+            return self.rsrc.pygamedebugs["REPLACE_POSITION"]
+
+        def get_selimage():
+            return cw.imageretouch.add_lightness(get_image().convert_alpha(), 64)
+
+        size_noscale = self.rsrc.debugs["REPLACE_POSITION"].GetSize()
+        pcards = self.get_pcards()
+
+        class Replace(object):
+            def __init__(self, outer, i):
+                self.outer = outer
+                self.index1 = i
+                self.index2 = i+1
+
+            def replace(self):
+                self.outer.replace_pcardorder(self.index1, self.index2)
+
+        for i, pcard in enumerate(pcards[0:-1]):
+            replace = Replace(self, i)
+            pos_noscale = pcard.get_pos_noscale()
+            x_noscale = pos_noscale[0] + 95+9/2 - size_noscale[0]/2
+            y_noscale = pos_noscale[1] - size_noscale[1] - 5
+            cw.sprite.background.ClickableSprite(get_image, get_selimage,
+                                                 (x_noscale, y_noscale),
+                                                 self.topgrp, replace.replace)
+        self.draw()
+
+    def replace_pcardorder(self, index1, index2):
+        """パーティメンバの位置を入れ替える。"""
+        if not (self.ydata and self.ydata.party):
+            return
+        self.ydata.party.replace_order(index1, index2)
+        self._create_poschangearrow()
 
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド
@@ -2436,8 +2485,10 @@ class CWPy(_Singleton, threading.Thread):
             self.sounds["page"].play()
             pcard.remove_numbercoupon()
             cw.animation.animate_sprite(pcard, "delete")
-            pcard.data.write_xml()
             self.pcardgrp.remove(pcard)
+            if breakuparea and self.get_pcards():
+                self._create_poschangearrow()
+            pcard.data.write_xml()
             self.ydata.add_standbys(pcard.data.fpath)
 
             if not self.get_pcards():
@@ -2446,6 +2497,10 @@ class CWPy(_Singleton, threading.Thread):
         else:
             pcards = self.get_pcards()
             cw.animation.animate_sprites(pcards, "hide")
+            if breakuparea:
+                self.topgrp.empty()
+                self.draw()
+
             for pcard in pcards:
                 pcard.remove_numbercoupon()
                 self.pcardgrp.remove(pcard)
