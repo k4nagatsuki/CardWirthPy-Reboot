@@ -122,8 +122,7 @@ class EventHandler(object):
         方向キーイベント。カードのフォーカスを変更する。
         """
         if cw.cwpy.is_runningevent() or cw.cwpy.is_processing or\
-                cw.cwpy.lock_menucards or\
-                pygame.event.peek(pygame.locals.USEREVENT):
+                cw.cwpy.is_lockmenucards():
             return
 
         cw.cwpy.has_inputevent = True
@@ -179,7 +178,7 @@ class EventHandler(object):
             return
 
         if cw.cwpy.selection:
-            if cw.cwpy.lock_menucards:
+            if cw.cwpy.is_lockmenucards():
                 return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
@@ -199,7 +198,7 @@ class EventHandler(object):
             return
 
         if cw.cwpy.selection:
-            if cw.cwpy.lock_menucards:
+            if cw.cwpy.is_lockmenucards():
                 return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.rclick_event()
@@ -341,7 +340,7 @@ class EventHandler(object):
             return
 
         if cw.cwpy.selection:
-            if cw.cwpy.lock_menucards:
+            if cw.cwpy.is_lockmenucards():
                 return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()

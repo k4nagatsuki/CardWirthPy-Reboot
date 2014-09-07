@@ -31,11 +31,11 @@ class SelectableSprite(CWPySprite):
         return self.image
 
     def update(self, scr):
-        if not cw.cwpy.lock_menucards:
+        if not cw.cwpy.is_lockmenucards():
             self.update_selection()
 
     def update_selection(self):
-        if not cw.cwpy.lock_menucards and not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
+        if not cw.cwpy.is_lockmenucards():
             if self.is_selection():
                 if self is not cw.cwpy.selection:
                     cw.cwpy.change_selection(self)

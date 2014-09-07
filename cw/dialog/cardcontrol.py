@@ -604,7 +604,7 @@ class CardControl(wx.Dialog):
         header.clickedflag = True
         self.draw_card(header, fromkeyevent=True)
         def func2():
-            cw.cwpy.wait_frame(4)
+            cw.cwpy.frame.wait_frame(4)
             header.clickedflag = False
             self.draw_card(header, fromkeyevent=True)
             header.negaflag = False

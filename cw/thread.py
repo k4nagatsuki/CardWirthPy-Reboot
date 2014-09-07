@@ -514,6 +514,14 @@ class CWPy(_Singleton, threading.Thread):
         else:
             return None
 
+    def clear_inputevents(self):
+        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+        events = []
+        for e in self.events:
+            if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+                events.append(e)
+        self.events = events
+
     def input(self, eventclear=False, inputonly=False):
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
@@ -791,9 +799,13 @@ class CWPy(_Singleton, threading.Thread):
                 if isinstance(index2, cw.character.Character) and\
                         index2.is_vanished():
                     self.pre_dialogs.pop()
+                    self.lock_menucards = False
                     return
 
             self.call_modaldlg(callname)
+
+        else:
+            self.lock_menucards = False
 
     def exec_func(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行する。
@@ -1997,6 +2009,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.list = self.get_mcards("visible")
                 self.index = -1
                 self.set_curtain()
+            self.lock_menucards = False
 
         # ターゲット選択エリア
         elif self.selectedheader:
@@ -2030,6 +2043,8 @@ class CWPy(_Singleton, threading.Thread):
                     else:
                         self.set_curtain(target=cardtarget)
 
+                self.lock_menucards = False
+
             elif cardtarget == "User" or cardtarget == "None":
                 if self.status == "Scenario":
                     self.change_selection(owner)
@@ -2037,6 +2052,10 @@ class CWPy(_Singleton, threading.Thread):
                 elif self.is_battlestatus():
                     owner.set_action(owner, header)
                     self.clear_specialarea()
+                    self.lock_menucards = False
+
+            else:
+                self.lock_menucards = False
 
         self.statusbar.change(True)
         self.disposition_pcards()
@@ -2415,6 +2434,12 @@ class CWPy(_Singleton, threading.Thread):
             # それ以外だったら特殊エリアをクリアする
             else:
                 self.clear_specialarea()
+
+    def is_lockmenucards(self):
+        """メニューカードをクリック出来ない状態か。"""
+        return self.lock_menucards or\
+               cw.cwpy.is_showingdlg() or\
+               pygame.event.peek(pygame.locals.USEREVENT)
 
 #-------------------------------------------------------------------------------
 # プレイ用メソッド

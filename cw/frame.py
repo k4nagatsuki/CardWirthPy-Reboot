@@ -172,6 +172,15 @@ class Frame(wx.Frame):
             self.dlgeventtypes[eventname] = eventtype
             self.Bind(event, getattr(self, "On" + eventname))
 
+    def tick_clock(self, framerate=0):
+        if not framerate:
+            framerate = cw.cwpy.setting.fps
+        time.sleep(1.0 / framerate)
+
+    def wait_frame(self, count):
+        for i in xrange(count):
+            self.tick_clock()
+
     def show_debugger(self):
         """デバッガ開く。"""
         if cw.cwpy.debug and not self.debugger:
@@ -491,11 +500,11 @@ class Frame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
                 cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
+            self.kill_dlg(dlg, lockmenucard=True)
 
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
-
-        self.kill_dlg(dlg)
+            self.kill_dlg(dlg)
 
     def OnHANDVIEW(self, event):
         selection, preinfo = self._get_cardcontrolparams()
@@ -618,7 +627,7 @@ class Frame(wx.Frame):
             cw.cwpy.exec_func(cw.cwpy.clear_targetarrow)
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
-        self.kill_dlg(dlg)
+        self.kill_dlg(dlg, lockmenucard=True)
 
     def OnDATACOMP(self, event):
         ccard = event.args.get("ccard", None)
