@@ -2156,12 +2156,13 @@ class CWPy(_Singleton, threading.Thread):
         self.topgrp.empty()
 
         def get_image():
-            return self.rsrc.pygamedebugs["REPLACE_POSITION"]
+            return cw.s(self.rsrc.pygamedebugs["REPLACE_POSITION"])
 
         def get_selimage():
-            return cw.imageretouch.add_lightness(get_image().convert_alpha(), 64)
+            bmp = self.rsrc.pygamedebugs["REPLACE_POSITION"].convert_alpha()
+            return cw.s(cw.imageretouch.add_lightness(bmp, 64))
 
-        size_noscale = self.rsrc.debugs["REPLACE_POSITION"].GetSize()
+        size_noscale = self.rsrc.pygamedebugs["REPLACE_POSITION"].get_size()
         pcards = self.get_pcards()
 
         class Replace(object):
