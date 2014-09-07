@@ -494,7 +494,7 @@ class CardControl(wx.Dialog):
         elif self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
              # カード置き場、荷物袋、情報カード
              # ページ番号
-             s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
+             s = str(max(self.index+1, 1))
              s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
              w = dc.GetTextExtent(s)[0]
              dc.DrawText(s, cw.wins(40)-w/2, cw.wins(180))
