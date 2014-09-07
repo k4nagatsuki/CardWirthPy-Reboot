@@ -2147,8 +2147,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.areaid <> cw.AREA_BREAKUP:
             return
 
-        if isinstance(self.selection, cw.sprite.background.ClickableSprite):
-            index = self.topgrp.sprites().index(self.selection)
+        if 0 <= self.index and isinstance(self.selection, cw.sprite.background.ClickableSprite):
+            index = self.index
             self.clear_selection()
         else:
             index = -1
