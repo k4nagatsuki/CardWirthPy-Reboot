@@ -93,6 +93,7 @@ class CardControl(wx.Dialog):
         self._drawlist = {}
         self._leftmark = None
         self._after_event = None
+        self._starclickedflag = False
 
         self._proc = False
 
@@ -281,6 +282,28 @@ class CardControl(wx.Dialog):
             c2.negaflag = True
             self.draw_card(c2, True)
 
+    def _can_sideclick(self):
+        scrpos = wx.GetMousePosition()
+        mousepos = self.toppanel.ScreenToClient(scrpos)
+        for header in self.get_headers():
+            if header.wxrect.collidepoint(mousepos):
+                return False
+        return True
+
+    def _is_cursorinleft(self):
+        if not self._can_sideclick():
+            return False
+        rect = self.toppanel.GetClientRect()
+        x, y = self.toppanel.ScreenToClient(wx.GetMousePosition())
+        return x < rect.x + rect.width / 4 and self.leftbtn.IsEnabled()
+
+    def _is_cursorinright(self):
+        if not self._can_sideclick():
+            return False
+        rect = self.toppanel.GetClientRect()
+        x, y = self.toppanel.ScreenToClient(wx.GetMousePosition())
+        return rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled()
+
     def OnMouseWheel(self, event):
         if event.GetWheelRotation() > 0:
             if self.leftbtn.IsEnabled():
@@ -301,16 +324,18 @@ class CardControl(wx.Dialog):
                 rect, x, y = self._get_starrect(header)
                 if rect.Contains(mousepos):
                     cw.cwpy.sounds["page"].play()
-                    if header.star:
-                        header.set_star(0)
-                    else:
-                        header.set_star(1)
-                    if self.callname == "STOREHOUSE":
-                        if cw.cwpy.setting.sort_storehousewithstar:
-                            self._update_sortattr()
-                    elif self.callname in ("BACKPACK", "CARDPOCKETB"):
-                        if cw.cwpy.setting.sort_backpackwithstar:
-                            self._update_sortattr()
+                    def func():
+                        if header.star:
+                            header.set_star(0)
+                        else:
+                            header.set_star(1)
+                        if self.callname == "STOREHOUSE":
+                            if cw.cwpy.setting.sort_storehousewithstar:
+                                self._update_sortattr()
+                        elif self.callname in ("BACKPACK", "CARDPOCKETB"):
+                            if cw.cwpy.setting.sort_backpackwithstar:
+                                self._update_sortattr()
+                    self.animate_starclick(header, func)
                     return
                 else:
                     cw.cwpy.sounds["click"].play()
@@ -318,6 +343,13 @@ class CardControl(wx.Dialog):
                         self.lclick_event(header)
                     self.animate_click(header, func)
                     return
+
+        if self._is_cursorinleft():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn.GetId())
+            self.ProcessEvent(btnevent)
+        elif self._is_cursorinright():
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn.GetId())
+            self.ProcessEvent(btnevent)
 
     def _update_sortattr(self):
         pass
@@ -381,6 +413,13 @@ class CardControl(wx.Dialog):
 
         self._laststar = laststar
 
+        if self._is_cursorinleft():
+            self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_BACK"])
+        elif self._is_cursorinright():
+            self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_FORE"])
+        else:
+            self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
+
     def OnEnter(self, event):
         self.OnMove(event)
 
@@ -392,6 +431,7 @@ class CardControl(wx.Dialog):
                 if header.negaflag:
                     header.negaflag = False
                     self.draw_card(header)
+        self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_ARROW"])
 
     def OnClickLeftBtn2(self, event):
         count = len(self.combo.GetItems())
@@ -478,7 +518,13 @@ class CardControl(wx.Dialog):
                     bmp = None
 
                 if bmp:
-                    dc.DrawBitmap(bmp, x, y, True)
+                    if self._starclickedflag:
+                        w, h = bmp.GetSize()
+                        w2, h2 = int(w*0.9), int(h*0.9)
+                        bmp = bmp.ConvertToImage().Rescale(w2, h2).ConvertToBitmap()
+                        dc.DrawBitmap(bmp, x + (w-w2)/2, y + (h-h2)/2, True)
+                    else:
+                        dc.DrawBitmap(bmp, x, y, True)
 
         # カード置場・荷物袋・情報カードマーク
         if self._leftmark:
@@ -606,6 +652,25 @@ class CardControl(wx.Dialog):
         def func2():
             cw.cwpy.frame.wait_frame(4)
             header.clickedflag = False
+            self.draw_card(header, fromkeyevent=True)
+            header.negaflag = False
+            def func3():
+                self._proc = False
+                func()
+            self._after_event = func3
+        self._after_event = func2
+
+    def animate_starclick(self, header, func):
+        # スターのクリックアニメーション。4フレーム分。
+        if self._proc:
+            return
+        self._proc = True
+
+        self._starclickedflag = True
+        self.draw_card(header, fromkeyevent=True)
+        def func2():
+            cw.cwpy.frame.wait_frame(4)
+            self._starclickedflag = False
             self.draw_card(header, fromkeyevent=True)
             header.negaflag = False
             def func3():
