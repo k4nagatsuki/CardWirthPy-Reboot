@@ -63,6 +63,8 @@ class Debugger(wx.Frame):
 
         # 最後に強制実行したイベントが属するファイルパス
         self._currentfpath = ""
+        # 最後にイベントを強制実行した時、隠蔽カードを表示していたか
+        self._showhiddencards = False
 
         rsrc = cw.cwpy.rsrc.debugs
 
@@ -843,9 +845,10 @@ class Debugger(wx.Frame):
                 currentfpath = cw.cwpy.sdata.data.fpath
             else:
                 currentfpath = ""
-            dlg = cw.debug.event.EventListDialog(self, currentfpath)
+            dlg = cw.debug.event.EventListDialog(self, currentfpath, self._showhiddencards)
             if dlg.ShowModal() == wx.ID_OK:
                 self._currentfpath = dlg.events.get_currentfpath()
+                self._showhiddencards = dlg.showhiddencards
                 def func(start):
                     try:
                         start()

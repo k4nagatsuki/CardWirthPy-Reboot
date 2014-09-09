@@ -12,12 +12,13 @@ import cw
 #-------------------------------------------------------------------------------
 
 class EventListDialog(wx.Dialog):
-    def __init__(self, parent, currentfpath):
+    def __init__(self, parent, currentfpath, showhiddencards):
         wx.Dialog.__init__(self, parent, -1, u"実行するイベントの選択",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
-        self.events = EventList(self, (250, 300), currentfpath)
+        self.events = EventList(self, (250, 300), currentfpath, showhiddencards)
+        self.showhiddencards = showhiddencards
         self.showallcards = wx.CheckBox(self, -1, u"表示フラグがオフのカードも表示する")
-        self.showallcards.SetValue(False)
+        self.showallcards.SetValue(self.showhiddencards)
 
         # 決定
         self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["decide"])
@@ -65,7 +66,8 @@ class EventListDialog(wx.Dialog):
         self._changed_selection()
 
     def OnShowAllCards(self, event):
-        self.events.set_showallcards(self.showallcards.GetValue())
+        self.showhiddencards = self.showallcards.GetValue()
+        self.events.set_showallcards(self.showhiddencards)
         self._changed_selection()
 
     def OnOkBtn(self, event):
@@ -78,13 +80,13 @@ class EventList(wx.TreeCtrl):
     選択できるようにする。
     """
 
-    def __init__(self, parent, size, currentfpath):
+    def __init__(self, parent, size, currentfpath, showhiddencards):
         """イベントリストのインスタンスを生成する。
         currentfpath: 最初から選択状態にするエリア等のファイルパス。
         """
         wx.TreeCtrl.__init__(self, parent, -1, size=size, style=wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
         self.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=14, weight=wx.NORMAL))
-        self._showallcards = False
+        self._showallcards = showhiddencards
         self.imglist = wx.ImageList(16, 16)
         imgidx_area = self.imglist.Add(cw.cwpy.rsrc.debugs["AREA"])
         imgidx_battle = self.imglist.Add(cw.cwpy.rsrc.debugs["BATTLE"])
