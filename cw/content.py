@@ -1363,7 +1363,7 @@ def call_package(id, call):
         event = cw.cwpy.event.get_event()
     event.cur_content = packevent.starttree
     if cw.cwpy.is_playingscenario():
-        cw.cwpy.sdata.versionhint[cw.HINT_AREA] = versionhint
+        cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
 
 #-------------------------------------------------------------------------------
 # Change系コンテント

@@ -42,7 +42,7 @@ class MessageWindow(base.CWPySprite):
         self.backlog_versionhint = versionhint
         self.versionhint = ""
         if not self.backlog and self.talker and cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.versionhint[cw.HINT_MESSAGE] = talker.versionhint
+            cw.cwpy.sdata.set_versionhint(cw.HINT_MESSAGE, talker.versionhint)
 
         if not self.backlog:
             self.versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)

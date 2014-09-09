@@ -303,6 +303,7 @@ class CWPy(_Singleton, threading.Thread):
             d["author"] = self.sdata.author
             d["path"] = self.sdata.fpath
             d["file"] = os.path.basename(self.sdata.fpath)
+            d["compatibility"] = self.sdata.get_versionhint()
         return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False):
@@ -943,7 +944,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 互換性マーク削除
         if self.is_playingscenario():
-            self.sdata.versionhint[cw.HINT_MESSAGE] = ""
+            self.sdata.set_versionhint(cw.HINT_MESSAGE, "")
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。

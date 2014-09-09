@@ -611,7 +611,7 @@ class Event(object):
                 packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
                 if packevent:
                     packevent.run_exit()
-                    cw.cwpy.sdata.versionhint[cw.HINT_AREA] = versionhint
+                    cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
             else:
                 self.run_exit()
                 break
@@ -740,7 +740,7 @@ class CardEvent(Event):
 
     def start(self):
         if cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.versionhint[cw.HINT_CARD] = self.inusecard.versionhint
+            cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
 
         cw.cwpy.event.set_inusecard(self.inusecard)
         cw.cwpy.event.in_inusecardevent = True
@@ -781,7 +781,7 @@ class CardEvent(Event):
 
             cw.cwpy.event.in_inusecardevent = False
             if cw.cwpy.is_playingscenario():
-                cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
+                cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, "")
 
             # エリアのキーコードイベント
             if isinstance(self.user, cw.sprite.card.PlayerCard):
@@ -795,7 +795,7 @@ class CardEvent(Event):
 
     def end(self):
         if cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.versionhint[cw.HINT_CARD] = None
+            cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, "")
 
         # カードの使用回数減らす(シナリオ終了後に回数減らさないよう条件付き)
         if not isinstance(self.error, ScenarioEndError):
@@ -819,7 +819,7 @@ class CardEvent(Event):
 
         # 互換性マークを削除
         if cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.versionhint[cw.HINT_CARD] = ""
+            cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, "")
 
         # 通常イベントの終了処理
         Event.end(self)

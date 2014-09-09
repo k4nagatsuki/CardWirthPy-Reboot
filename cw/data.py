@@ -102,6 +102,10 @@ class SystemData(object):
         """現在有効になっている互換性マークを返す(常に無し)。"""
         return ""
 
+    def set_versionhint(self, pos, hint):
+        """互換性モードを設定する(処理無し)。"""
+        pass
+
     def update_scale(self):
         for key, mcards in self.sparea_mcards.iteritems():
             for mcard in mcards:
@@ -165,7 +169,7 @@ class SystemData(object):
             self._update_tradearea_m5()
 
         if isinstance(self, ScenarioData):
-            self.versionhint[cw.HINT_AREA] = self.data.getattr("Property", "versionHint", "")
+            self.set_versionhint(cw.HINT_AREA, self.data.getattr("Property", "versionHint", ""))
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
 
@@ -393,6 +397,13 @@ class ScenarioData(SystemData):
             if hint:
                 return hint
         return ""
+
+    def set_versionhint(self, pos, hint):
+        """互換性モードを設定する。"""
+        last = self.get_versionhint()
+        self.versionhint[pos] = hint
+        if last <> self.get_versionhint():
+            cw.cwpy.update_titlebar()
 
     def reload(self):
         flagvals = {}
