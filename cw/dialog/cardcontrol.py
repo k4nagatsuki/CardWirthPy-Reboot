@@ -553,6 +553,8 @@ class CardControl(wx.Dialog):
     def _get_starrect(self, header):
         if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
             return wx.Rect(0, 0, 0, 0), 0, 0
+        if not header in self._drawlist:
+            return wx.Rect(0, 0, 0, 0), 0, 0
         x = header.wxrect.left
         y = header.wxrect.top
         bmp, usemask = self._drawlist[header]
