@@ -528,24 +528,29 @@ def filter_electrical(image):
     div = 1
     return _filter(image, weight, offset, div)
 
-def add_transparentline(image, vline, hline):
+def add_transparentline(image, vline, hline, rect=None, setalpha=False):
     """透明色ラインを入れる。
     image: pygame.Surface
     vline: bool値。Trueなら縦線を入れる。
     hline: bool値。Trueなら横線を入れる。
     """
-    image = image.copy().convert_alpha()
-    color = image.get_at((0, 0))
     w, h = image.get_size()
+    if not rect:
+        rect = (0, 0, w, h)
+    image = image.convert_alpha()
+    color = image.get_at((0, 0))
+    if setalpha:
+        color = (color[0], color[1], color[2], 0)
 
+    x0, y0, w, h = rect
     if vline:
         for cnt in xrange(w / 2 - 1):
-            x = cnt * 2
+            x = cnt * 2 + x0
             pygame.draw.line(image, color, (x, 0), (x, h))
 
     if hline:
         for cnt in xrange(h / 2 - 1):
-            y = cnt * 2
+            y = cnt * 2 + y0
             pygame.draw.line(image, color, (0, y), (w, y))
 
     return image

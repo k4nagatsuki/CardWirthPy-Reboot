@@ -78,15 +78,16 @@ class BackGround(base.CWPySprite):
             ext = cw.util.splitext(path)[1].lower()
 
             if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask) in cw.cwpy.sdata.cache:
-                return cw.cwpy.sdata.cache[(path, mtime, size, mask)], False, False
+                return cw.cwpy.sdata.cache[(path, mtime, size, mask)].copy(), False, False
 
             if ext == ".jptx":
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
             elif ext == ".jpdc":
                 image = cw.effectbooster.JpdcImage(mask, path).get_image()
             elif ext == ".jpy1":
-                image = cw.effectbooster.JpyImage(path, mask, doanime=doanime).get_image()
-                anime = True
+                jpy1 = cw.effectbooster.JpyImage(path, mask, doanime=doanime)
+                anime = not jpy1.is_cacheable
+                image = jpy1.get_image()
             else:
                 image = cw.util.load_image(path, mask, isback=True)
         except cw.event.EffectBreakError, ex:
@@ -315,7 +316,7 @@ class BackGround(base.CWPySprite):
         image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
 
         ext = os.path.splitext(path)[1].lower()
-        if ext <> ".jpdc" and pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask and not flag:
+        if not anime and ext <> ".jpdc" and pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask and not flag:
             # 背景を覆ったので背景継承を取り消す
             del bgs[:]
             bginhrt = False

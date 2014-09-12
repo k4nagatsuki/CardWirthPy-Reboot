@@ -69,18 +69,34 @@ class _JpySubImage(cw.image.Image):
         self.paintmode = config.get_int(section, "paintmode", 0)
 
         self.defaultcopymode = 2
+        self.is_cacheable = True # アニメーションなどが無く、キャッシング可能か
+        self.can_mask = True # 加工でマスクが無効になっていないか
 
-    def draw2back(self, back):
+    def draw2back(self, back, mask):
         """背景に描画。"""
         if self.visible:
             image = self.get_image()
 
             if self.paintmode == 1:
+                self.is_cacheable = False
                 back.image.blit(image, self.position, None, BLEND_MIN)
             elif self.paintmode == 2:
+                self.is_cacheable = False
                 back.image.blit(image, self.position, None, BLEND_ADD)
             elif self.paintmode <> 4:
                 back.image.blit(image, self.position)
+                # CardWirthでは透過ライン部分は強制的に透明となる
+                # (アルファ値上書き？)
+                if self.mask and mask:
+                    x, y = self.position
+                    w, h = image.get_size()
+                    rect = (x, y, w, h)
+                    if self.mask == 1:
+                        back.image = cw.imageretouch.add_transparentline(back.image, True, False, rect, True)
+                    elif self.mask == 2:
+                        back.image = cw.imageretouch.add_transparentline(back.image, False, True, rect, True)
+                    elif self.mask == 3:
+                        back.image = cw.imageretouch.add_transparentline(back.image, True, True, rect, True)
 
     def drawtemp(self, doanime):
         """一時描画。"""
@@ -140,6 +156,7 @@ class _JpySubImage(cw.image.Image):
                     SPF = 8
                     i = 0
                     while rest_x or rest_y:
+                        self.is_cacheable = False
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
                         n /= animespeed
                         n /= cw.UP_SCR
@@ -243,10 +260,12 @@ class _JpySubImage(cw.image.Image):
 
         # 指定時間だけ待機
         if waittime > 0:
+            self.is_cacheable = False
             wait_effectbooster(waittime)
 
         # 右クリックするまで待機
         elif waittime < 0:
+            self.is_cacheable = False
             wait_effectbooster(0)
 
     def retouch(self):
@@ -273,33 +292,33 @@ class _JpySubImage(cw.image.Image):
             elif self.exchange == 5:
                 image = cw.imageretouch.exchange_rgbcolor(image, "rbg")
 
-        transparent = self.transparent
+        self.can_mask = True
 
         # フィルタ
         if self.filter:
             if self.filter == 1:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.filter_shape(image)
             elif self.filter == 2:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.filter_sharpness(image)
             elif self.filter == 3:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.filter_sunpower(image)
             elif self.filter == 4:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.filter_coloremboss(image)
             elif self.filter == 5:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.filter_darkemboss(image)
             elif self.filter == 6:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.filter_electrical(image)
             elif self.filter == 7:
                 image = cw.imageretouch.to_binaryformat(image, -1, image.get_at((0, 0))[:3])
@@ -307,17 +326,17 @@ class _JpySubImage(cw.image.Image):
                 image = cw.imageretouch.spread_pixels(image)
             elif self.filter == 9:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.to_negative(image)
             elif self.filter == 10:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.filter_emboss(image)
 
         # 色調変化
         if self.colormap:
             if self.paintmode <> 3:
-                transparent = False
+                self.can_mask = False
             if self.colormap == 1:      # グレイスケール
                 image = cw.imageretouch.to_grayscale(image)
             elif self.colormap == 2:    # セピア
@@ -357,28 +376,28 @@ class _JpySubImage(cw.image.Image):
         if self.noise:
             if self.noise == 1:
                 if (self.noisepoint < 0 or self.noisepoint == 255) and self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.add_lightness(image, self.noisepoint)
             elif self.noise == 2:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 if self.noisepoint < 0:
                     image.fill((255, 255, 255))
                 else:
                     image = cw.imageretouch.to_binaryformat(image, self.noisepoint)
             elif self.noise == 3:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.add_noise(image, self.noisepoint)
             elif self.noise == 4:
                 if self.paintmode <> 3:
-                    transparent = False
+                    self.can_mask = False
                 image = cw.imageretouch.add_noise(image, self.noisepoint, True)
             elif self.noise == 5 and self.filter <> 7:
                 image = cw.imageretouch.add_mosaic(image, self.noisepoint)
 
         # マスク
-        if transparent:
+        if self.transparent and self.can_mask:
             colorkey = image.get_at((0, 0))
             image.set_colorkey(colorkey, RLEACCEL)
         else:
@@ -455,6 +474,7 @@ class _JpySubImage(cw.image.Image):
 
             if cw.cwpy.is_playingscenario() and cachekey in cw.cwpy.sdata.cache:
                 image, cachemtime = cw.cwpy.sdata.cache[cachekey]
+                image = image.copy()
                 if cachemtime < mtime:
                     image = None
 
@@ -466,15 +486,22 @@ class _JpySubImage(cw.image.Image):
                         sound = cw.util.load_sound(path)
 
                         if sound:
+                            self.is_cacheable = False
                             sound.play(True)
 
                     image = pygame.Surface((0, 0)).convert()
                 # Jpy1ファイル
                 elif ext == ".jpy1":
-                    image = JpyImage(path, cache=self.cache, doanime=doanime, mask=False).get_image()
-                    # 変化するためキャッシュ不可
+                    # 変化する場合はキャッシュ不可
+                    jpy1 = JpyImage(path, cache=self.cache, doanime=doanime, mask=False, parent=self)
+                    image = jpy1.get_image()
+                    if jpy1.is_cacheable:
+                        cw.cwpy.sdata.cache[cachekey] = (image, mtime)
+                    else:
+                        self.is_cacheable = False
                 # Jpdcファイル
                 elif ext == ".jpdc":
+                    self.is_cacheable = False
                     image = JpdcImage(False, path, cache=self.cache, defaultcopymode=self.defaultcopymode).get_image()
                     # 重くならないのでキャッシュ不要
                 # Jptxファイル
@@ -620,7 +647,7 @@ class JpyBackGroundImage(_JpySubImage):
         self.visible = False
 
 class JpyImage(cw.image.Image):
-    def __init__(self, path, mask=False, cache=None, doanime=True):
+    def __init__(self, path, mask=False, cache=None, doanime=True, parent=None):
         if not cache:
             cache = JpyCache()
 
@@ -628,6 +655,9 @@ class JpyImage(cw.image.Image):
         back = JpyBackGroundImage(config, cache, mask)
         back.load(doanime)
         defaultcopymode = 1
+        self.is_cacheable = not back.transparent
+        if parent and back.loadcache:
+            self.is_cacheable = False
 
         for i, section in enumerate(config.sections()):
             if not section == "init":
@@ -636,15 +666,21 @@ class JpyImage(cw.image.Image):
                 parts.load(doanime)
                 parts.retouch()
                 parts.drawtemp(doanime)
-                parts.draw2back(back)
+                parts.draw2back(back, mask)
+                if not parts.is_cacheable:
+                    self.is_cacheable = False
+                if parent and parts.loadcache:
+                    self.is_cacheable = False
                 if parts.animation in (1, 2, 3):
                     defaultcopymode = 2
 
         back.retouch()
         cache.restore()
         back.drawtemp(doanime)
+        if not back.is_cacheable:
+            self.is_cacheable = False
         self.image = back.get_image()
-        if mask:
+        if mask and back.can_mask:
             self.image.set_colorkey(self.image.get_at((0, 0)))
 
 class JpyCache(object):
@@ -757,6 +793,21 @@ class JpdcImage(cw.image.Image):
                     os.makedirs(dpath)
                 encoding = sys.getfilesystemencoding()
                 pygame.image.save(saveimage, path.encode(encoding))
+
+                # Jpy1の内部でのキャッシュヒットミスを
+                # 避けるため、Jpy1のキャッシュを全て取り除く
+                removekeys = []
+                for cachekey in cw.cwpy.sdata.cache.iterkeys():
+                    if isinstance(cachekey, tuple) and len(cachekey) == 4:
+                        if isinstance(cachekey[3], (str, unicode)) and\
+                                os.path.splitext(cachekey[3])[1].lower() == ".jpy1":
+                            removekeys.append(cachekey)
+                        elif isinstance(cachekey[0], (str, unicode)) and\
+                                os.path.splitext(cachekey[0])[1].lower() == ".jpy1":
+                            removekeys.append(cachekey)
+                for key in removekeys:
+                    del cw.cwpy.sdata.cache[key]
+
             cw.cwpy.draw()
             self.wait()
             cw.cwpy.update_titlebar()
