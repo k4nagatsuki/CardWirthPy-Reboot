@@ -53,7 +53,7 @@ class CWScenario(object):
         self.summarypath = None
 
         # 互換性マーク
-        self.versionhint = ""
+        self.versionhint = None
         self.hasmodeini = False
 
         if self.path == "":
@@ -79,15 +79,24 @@ class CWScenario(object):
             else:
                 self.otherdirs.append(path)
 
-        if self.summarypath and not self.hasmodeini and not self.versionhint:
-            self.versionhint = cw.cwpy.sct.get_versionhint(fpath=self.summarypath)
+        if self.summarypath:
+            self.versionhint = cw.cwpy.sct.merge_versionhints(self.versionhint, cw.cwpy.sct.get_versionhint(fpath=self.summarypath))
 
     def read_modeini(self, fpath):
         try:
             conf = ConfigParser.SafeConfigParser()
             conf.read(fpath)
-            self.versionhint = conf.get("Compatibility", "engine")
-            if self.versionhint:
+            try:
+                engine = conf.get("Compatibility", "engine")
+            except:
+                engine = ""
+            try:
+                zindexmode = conf.get("Compatibility", "zIndexMode")
+            except:
+                zindexmode = ""
+
+            if engine or zindexmode:
+                self.versionhint = (engine, zindexmode)
                 self.hasmodeini = True
         except Exception:
             cw.util.print_ex()
@@ -137,11 +146,11 @@ class CWScenario(object):
         """引数のファイル(wid, wsmファイル)を読み込む。"""
         try:
             f = cwfile.CWFile(path, "rb", decodewrap=decodewrap)
-    
+
             no = nameonly
             md = self.materialdir
             ie = self.image_export
-    
+
             if path.lower().endswith(".wsm"):
                 data = summary.Summary(None, f, nameonly=no, materialdir=md, image_export=ie)
                 data.skintype = self.skintype
@@ -149,7 +158,7 @@ class CWScenario(object):
                 filetype = f.byte()
                 f.seek(0)
                 f.filedata = []
-    
+
                 if filetype == 0:
                     data = area.Area(None, f, nameonly=no, materialdir=md, image_export=ie)
                 elif filetype == 1:
@@ -169,7 +178,7 @@ class CWScenario(object):
                         data = cast.CastCard(None, f, nameonly=no, materialdir=md, image_export=ie)
                     else:
                         data = info.InfoCard(None, f, nameonly=no, materialdir=md, image_export=ie)
-    
+
                 elif filetype == 5:
                     if os.path.basename(path).lower().startswith("item"):
                         data = item.ItemCard(None, f, nameonly=no, materialdir=md, image_export=ie)
@@ -187,11 +196,11 @@ class CWScenario(object):
                 else:
                     f.close()
                     raise ValueError(path)
-    
+
             if not nameonly:
                 # 読み残し分を全て読み込む
                 f.read()
-    
+
             f.close()
             return data, "".join(f.filedata)
         except:

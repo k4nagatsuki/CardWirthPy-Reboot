@@ -303,7 +303,8 @@ class CWPy(_Singleton, threading.Thread):
             d["author"] = self.sdata.author
             d["path"] = self.sdata.fpath
             d["file"] = os.path.basename(self.sdata.fpath)
-            d["compatibility"] = self.sdata.get_versionhint()
+            versionhint = self.sdata.get_versionhint()
+            d["compatibility"] = self.sct.to_basehint(versionhint)
         return d
 
     def update_scale(self, scale, changearea=True, rsrconly=False):
@@ -585,7 +586,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.bggrp.update(self.scr_draw)
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-        if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+        if self.sdata and self.sct.zindexmode(self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
             self.pcardgrp.update(self.scr_draw)
             self.mcardgrp.update(self.scr_draw)
         else:
@@ -604,7 +605,7 @@ class CWPy(_Singleton, threading.Thread):
     def draw_cards(self, scr):
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
         dirty_rects = []
-        if self.sdata and self.sct.lessthan("1.20", self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+        if self.sdata and self.sct.zindexmode(self.sdata.get_versionhint(frompos=cw.HINT_AREA)):
             dirty_rects.extend(self.pcardgrp.draw(self.scr_draw))
             dirty_rects.extend(self.mcardgrp.draw(self.scr_draw))
         else:
@@ -944,7 +945,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 互換性マーク削除
         if self.is_playingscenario():
-            self.sdata.set_versionhint(cw.HINT_MESSAGE, "")
+            self.sdata.set_versionhint(cw.HINT_MESSAGE, None)
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。

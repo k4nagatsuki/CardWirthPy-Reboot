@@ -100,7 +100,7 @@ class SystemData(object):
 
     def get_versionhint(self, frompos=0):
         """現在有効になっている互換性マークを返す(常に無し)。"""
-        return ""
+        return None
 
     def set_versionhint(self, pos, hint):
         """互換性モードを設定する(処理無し)。"""
@@ -169,7 +169,7 @@ class SystemData(object):
             self._update_tradearea_m5()
 
         if isinstance(self, ScenarioData):
-            self.set_versionhint(cw.HINT_AREA, self.data.getattr("Property", "versionHint", ""))
+            self.set_versionhint(cw.HINT_AREA, cw.cwpy.sct.from_basehint(self.data.getattr("Property", "versionHint", "")))
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
 
@@ -372,10 +372,10 @@ class ScenarioData(SystemData):
 
         # 各段階の互換性マーク
         self.versionhint = [
-            "", # メッセージ表示時の話者(キャストまたはカード)
-            "", # 使用中のカード
-            "", # エリア・バトル・パッケージ
-            "", # シナリオ本体
+            None, # メッセージ表示時の話者(キャストまたはカード)
+            None, # 使用中のカード
+            None, # エリア・バトル・パッケージ
+            None, # シナリオ本体
         ]
 
         if cw.cwpy.classicdata:
@@ -396,13 +396,13 @@ class ScenarioData(SystemData):
         for hint in self.versionhint[frompos:]:
             if hint:
                 return hint
-        return ""
+        return None
 
     def set_versionhint(self, pos, hint):
         """互換性モードを設定する。"""
         last = self.get_versionhint()
         self.versionhint[pos] = hint
-        if last <> self.get_versionhint():
+        if cw.cwpy.sct.to_basehint(last) <> cw.cwpy.sct.to_basehint(self.get_versionhint()):
             cw.cwpy.update_titlebar()
 
     def reload(self):
@@ -2542,7 +2542,7 @@ def xml2element(path="", tag="", file=None, nocache=False):
             return data
 
     data = None
-    versionhint = ""
+    versionhint = None
     if not file and cw.cwpy and cw.cwpy.classicdata:
         # クラシックなシナリオのファイルだった場合は変換する
         lpath = path.lower()
@@ -2554,11 +2554,11 @@ def xml2element(path="", tag="", file=None, nocache=False):
             data.fpath = path
 
             # 互換性マーク付与
+            versionhint = cw.cwpy.sct.get_versionhint(filedata=filedata)
             if cw.cwpy.classicdata.hasmodeini:
                 # mode.ini優先
-                versionhint = cw.cwpy.classicdata.versionhint
+                versionhint = cw.cwpy.sct.merge_versionhints(cw.cwpy.classicdata.versionhint, versionhint)
             else:
-                versionhint = cw.cwpy.sct.get_versionhint(filedata=filedata)
                 if not versionhint:
                     # 個別のファイルの情報が無い場合はシナリオの情報を使う
                     versionhint = cw.cwpy.classicdata.versionhint
@@ -2582,10 +2582,12 @@ def xml2element(path="", tag="", file=None, nocache=False):
         if nocache:
             data = copydata(data)
 
-    if versionhint:
-        prop = data.find("Property")
-        if not prop is None:
-            prop.set("versionHint", versionhint)
+    if cw.cwpy:
+        basehint = cw.cwpy.sct.to_basehint(versionhint)
+        if basehint:
+            prop = data.find("Property")
+            if not prop is None:
+                prop.set("versionHint", basehint)
 
     return data
 

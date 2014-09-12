@@ -1608,8 +1608,9 @@ class ScenarioCompatibilityTable:
             data = cw.data.xml2element(path="Data/Compatibility.xml")
             for e in data:
                 key = e.get("md5", "")
-                if key:
-                    self.table[key] = e.text
+                zindexmode = bool(e.get("zIndexMode", "False"))
+                if key and (e.text or zindexmode):
+                    self.table[key] = (e.text, zindexmode)
 
     def get_versionhint(self, fpath=None, filedata=None):
         """fpathのファイル内容またはfiledataから、
@@ -1621,14 +1622,61 @@ class ScenarioCompatibilityTable:
         else:
             key = cw.util.get_md5(fpath)
 
-        return self.table.get(key, "")
+        return self.table.get(key, None)
 
     def lessthan(self, versionhint, currentversion):
         """currentversionがversionhint以下であればTrueを返す。"""
         if not currentversion:
             return False
+        if not currentversion[0]:
+            return False
+        if not versionhint:
+            return False
 
         try:
-            return float(currentversion) <= float(versionhint)
+            return float(currentversion[0]) <= float(versionhint)
         except:
             return False
+
+    def zindexmode(self, currentversion):
+        """メニューカードをプレイヤーカードより前に配置するモードで
+        あればTrueを返す。"""
+        if not currentversion:
+            return False
+
+        if currentversion[1]:
+            try:
+                return float(currentversion[1]) <= float("1.20")
+            except:
+                return False
+        else:
+            return self.lessthan("1.20", currentversion)
+
+    def merge_versionhints(self, hint1, hint2):
+        """hint1を高優先度としてhint2とマージする。"""
+        if not hint1:
+            return hint2
+        if not hint2:
+            return hint1
+
+        engine = hint1[0]
+        if not engine:
+            engine = hint2[0]
+        zindexmode = hint1[1]
+        if not zindexmode:
+            zindexmode = hint2[1]
+
+        return (engine, zindexmode)
+
+    def from_basehint(self, basehint):
+        """basehintから複合情報を生成する。"""
+        if not basehint:
+            return None
+        return (basehint, "")
+
+    def to_basehint(self, versionhint):
+        """複合情報versionhintから最も基本的な情報を取り出す。"""
+        if versionhint:
+            return versionhint[0]
+        else:
+            return ""

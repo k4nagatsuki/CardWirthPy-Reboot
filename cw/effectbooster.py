@@ -128,7 +128,7 @@ class _JpySubImage(cw.image.Image):
                 background = cw.cwpy.background.image.copy()
                 self.cache.restore()
                 # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-                if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+                if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                     cards = cw.cwpy.pcardgrp.sprites() + cw.cwpy.mcardgrp.sprites()
                 else:
                     cards = cw.cwpy.mcardgrp.sprites() + cw.cwpy.pcardgrp.sprites()
@@ -742,7 +742,7 @@ class JpdcImage(cw.image.Image):
         else:
             cw.cwpy.bggrp.draw(self.image)
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                 cw.cwpy.pcardgrp.draw(self.image)
                 cw.cwpy.mcardgrp.draw(self.image)
             else:

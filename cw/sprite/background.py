@@ -529,7 +529,7 @@ class InuseCardImage(card.CWPyCard):
             self.group = spritegrp
         elif center:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                 self.group = cw.cwpy.mcardgrp
             else:
                 self.group = cw.cwpy.pcardgrp
@@ -585,7 +585,7 @@ class TargetArrow(base.CWPySprite):
         self.update_scale()
         # spritegroupに追加
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+        if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
             cw.cwpy.mcardgrp.add(self, layer="targetarrow")
         else:
             cw.cwpy.pcardgrp.add(self, layer="targetarrow")

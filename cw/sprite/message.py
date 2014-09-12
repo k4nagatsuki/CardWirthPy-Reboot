@@ -40,7 +40,7 @@ class MessageWindow(base.CWPySprite):
         self.talker = talker
 
         self.backlog_versionhint = versionhint
-        self.versionhint = ""
+        self.versionhint = None
         if not self.backlog and self.talker and cw.cwpy.is_playingscenario():
             cw.cwpy.sdata.set_versionhint(cw.HINT_MESSAGE, talker.versionhint)
 
@@ -399,8 +399,8 @@ class SelectWindow(MessageWindow):
         self.flag_table = {}
         self.step_table = {}
         self.talker_image = None
-        self.versionhint = ""
-        self.backlog_versionhint = ""
+        self.versionhint = None
+        self.backlog_versionhint = None
 
         self._init_style()
 

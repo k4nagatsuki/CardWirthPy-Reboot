@@ -781,7 +781,7 @@ class CardEvent(Event):
 
             cw.cwpy.event.in_inusecardevent = False
             if cw.cwpy.is_playingscenario():
-                cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, "")
+                cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
             # エリアのキーコードイベント
             if isinstance(self.user, cw.sprite.card.PlayerCard):
@@ -795,7 +795,7 @@ class CardEvent(Event):
 
     def end(self):
         if cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, "")
+            cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
         # カードの使用回数減らす(シナリオ終了後に回数減らさないよう条件付き)
         if not isinstance(self.error, ScenarioEndError):
@@ -819,7 +819,7 @@ class CardEvent(Event):
 
         # 互換性マークを削除
         if cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, "")
+            cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
         # 通常イベントの終了処理
         Event.end(self)

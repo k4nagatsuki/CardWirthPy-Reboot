@@ -1335,7 +1335,7 @@ def call_package(id, call):
     if not id in cw.cwpy.event.nowrunningpacks:
         path = cw.cwpy.sdata.packs[id][1]
         data = cw.data.xml2etree(path)
-        versionhint = data.getattr("Property", "versionHint", "")
+        versionhint = cw.cwpy.sct.from_basehint(data.getattr("Property", "versionHint", ""))
         e = data.find("Events/Event")
         if e is None:
             return 0

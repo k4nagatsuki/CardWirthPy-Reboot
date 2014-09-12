@@ -50,7 +50,7 @@ class CardHeader(object):
             self.attachment = bool(dbrec["attachment"])
             if dbowner == "BACKPACK":
                 from_scenario = bool(dbrec["scenariocard"])
-            self.versionhint = dbrec["versionhint"]
+            self.versionhint = cw.cwpy.sct.from_basehint(dbrec["versionhint"])
             self.moved = dbrec["moved"]
             self.star = dbrec["star"]
         else:
@@ -130,7 +130,7 @@ class CardHeader(object):
             # Image
             self.imgpath = data.gettext("ImagePath", "")
             # 互換性マーク
-            self.versionhint = data.getattr(".", "versionHint", "")
+            self.versionhint = cw.cwpy.sct.from_basehint(data.getattr(".", "versionHint", ""))
 
         self.bgtype = bgtype
 
@@ -746,7 +746,7 @@ class AdventurerHeader(object):
             self.gene.set_str(dbrec["gene"])
             self.history = dbrec["history"].split("\n")
             self.race = dbrec["race"]
-            self.versionhint = dbrec["versionhint"]
+            self.versionhint = cw.cwpy.sct.from_basehint(dbrec["versionhint"])
         else:
             self.fpath = data.fpath
             self.level = data.getint("Level", 0)
@@ -774,7 +774,7 @@ class AdventurerHeader(object):
             self.history = []
             self.race = ""
             # 互換性マーク
-            self.versionhint = data.getattr(".", "versionHint", "")
+            self.versionhint = cw.cwpy.sct.from_basehint(data.getattr(".", "versionHint", ""))
 
             for e in reversed(data.getfind("Coupons").getchildren()):
                 if not e.text:

@@ -103,7 +103,7 @@ class Character(object):
         # 対象消去されたか否か
         self._vanished = False
         # 互換性マーク
-        self.versionhint = self.data.getattr("Property", "versionHint", "")
+        self.versionhint = cw.cwpy.sct.from_basehint(self.data.getattr("Property", "versionHint", ""))
 
         # 状態の正規化
         self.cardimg = None
@@ -484,7 +484,7 @@ class Character(object):
             # NPC表示
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画されるため、
             #           NPCもメニューカードのグループで描画する必要がある
-            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                 grp = cw.cwpy.mcardgrp
             else:
                 grp = cw.cwpy.pcardgrp
