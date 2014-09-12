@@ -69,7 +69,7 @@ class BuildExe(object):
 
         #Extra files/dirs copied to game
         self.extra_datas = ["Data/Font", "Data/SoundFont", "Data/SkinBase", "Data/Debugger",
-            "License.txt", "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
+            "Data/Compatibility.xml", "License.txt", "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
             "bass.dll", "bassmidi.dll",
             "ChangeLog.txt", "Microsoft.VC90.CRT.manifest",
             "ReadMe.txt", self.srcfile_name]
@@ -203,7 +203,8 @@ class BuildExe(object):
             if os.path.isdir(data):
                 extra_datas.extend(self.find_data_files(data, '*'))
             else:
-                extra_datas.append(('.', [data]))
+                dir = os.path.dirname(data)
+                extra_datas.append((os.path.join('.', dir), [data]))
 
         issystemdll = py2exe.build_exe.isSystemDLL
         def myissystemdll(path):
