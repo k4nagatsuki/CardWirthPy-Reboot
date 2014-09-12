@@ -204,7 +204,7 @@ class BuildExe(object):
                 extra_datas.extend(self.find_data_files(data, '*'))
             else:
                 dir = os.path.dirname(data)
-                extra_datas.append((os.path.join('.', dir), [data]))
+                extra_datas.append((dir, [data]))
 
         issystemdll = py2exe.build_exe.isSystemDLL
         def myissystemdll(path):
