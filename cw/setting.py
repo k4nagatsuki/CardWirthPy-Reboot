@@ -638,10 +638,8 @@ class Resource(object):
 
         self.ignorecase_table = {}
 
-        if sys.platform == "win32":
-            self.init_wxresources()
-        else:
-            cw.cwpy.frame.exec_func(self.init_wxresources)
+        cw.cwpy.frame.exec_func(self.init_wxresources)
+        if sys.platform <> "win32":
             # FIXME: 大文字・小文字を区別しないシステムでリソース内のファイルの
             #        取得に失敗する事があるので、すべて小文字のパスをキーにして
             #        真のファイル名へのマッピングをしておく。

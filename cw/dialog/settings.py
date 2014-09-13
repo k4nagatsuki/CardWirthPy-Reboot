@@ -215,7 +215,7 @@ class SettingsDialog(wx.Dialog):
                 def func(value):
                     cw.cwpy.setting.expandmode = value
                     cw.cwpy.setting.expanddrawing = expanddrawing
-                    cw.cwpy.set_expanded(False)
+                    cw.cwpy.set_expanded(True, value, force=True)
                 cw.cwpy.exec_func(func, value)
             else:
                 cw.cwpy.setting.expandmode = value

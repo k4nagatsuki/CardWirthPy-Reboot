@@ -307,7 +307,7 @@ class CWPy(_Singleton, threading.Thread):
             d["compatibility"] = self.sct.to_basehint(versionhint)
         return d
 
-    def update_scale(self, scale, changearea=True, rsrconly=False):
+    def update_scale(self, scale, changearea=True, rsrconly=False, udpatedrawsize=True):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
@@ -337,30 +337,33 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_draw = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                 cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
 
-        self._init_resources()
+        if udpatedrawsize:
+            self._init_resources()
 
-        self.statusbar.update_scale()
-        self.sbargrp.set_clip(self.statusbar.rect)
-        if self.sdata:
-            self.sdata.update_scale()
-            if self.pre_mcards:
-                mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1])
-                self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
-        for sprite in self.mcardgrp.sprites():
-            if sprite.is_initialized():
+            self.statusbar.update_scale()
+            self.sbargrp.set_clip(self.statusbar.rect)
+            if self.sdata:
+                self.sdata.update_scale()
+                if self.pre_mcards:
+                    mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1])
+                    self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
+            for sprite in self.mcardgrp.sprites():
+                if sprite.is_initialized():
+                    sprite.update_scale()
+            for sprite in self.pcardgrp.sprites():
                 sprite.update_scale()
-        for sprite in self.pcardgrp.sprites():
-            sprite.update_scale()
-        for sprite in self.bggrp.sprites():
-            sprite.update_scale()
-        for sprite in self.topgrp.sprites():
-            sprite.update_scale()
-        for sprite in self.backloggrp.sprites():
-            sprite.update_scale()
-        for sprite in self.get_fcards():
-            sprite.update_scale()
-        self._update_clip()
-        self.music.update_scale()
+            for sprite in self.bggrp.sprites():
+                sprite.update_scale()
+            for sprite in self.topgrp.sprites():
+                sprite.update_scale()
+            for sprite in self.backloggrp.sprites():
+                sprite.update_scale()
+            for sprite in self.get_fcards():
+                sprite.update_scale()
+            self._update_clip()
+            self.music.update_scale()
+        else:
+            cw.cwpy.frame.exec_func(self.rsrc.update_winscale)
 
         if self.ydata:
             self.ydata._changed = changed
@@ -835,18 +838,29 @@ class CWPy(_Singleton, threading.Thread):
                 time.sleep(0.001)
             return result[0]
 
-    def set_expanded(self, flag, expandmode=""):
+    def set_expanded(self, flag, expandmode="", force=False):
         """拡大表示する。すでに拡大表示されている場合は解除する。
         flag: Trueなら拡大表示、Falseなら解除。
         """
-        if self.is_expanded() == flag:
+        if not force and self.is_expanded() == flag:
             return
 
         if not expandmode:
             expandmode = self.expand_mode if self.is_expanded() else self.setting.expandmode
 
+        updatedrawsize = force or self.setting.expanddrawing <> 1
+
         if expandmode == "None":
-            return
+            if force:
+                def func():
+                    if self.frame.IsFullScreen():
+                        func = self.frame.ShowFullScreen(False)
+                self.frame.exec_func(func)
+                self.expand_mode = "None"
+                cw.UP_WIN = 1
+                self.update_scale(1, True, False, updatedrawsize)
+            else:
+                return
 
         elif expandmode == "FullScreen":
             # フルスクリーン
@@ -867,8 +881,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_draw = self.scr
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, True)
-                    if self.setting.expanddrawing <> 1:
-                        self.update_scale(self.setting.expanddrawing)
+                    self.update_scale(self.setting.expanddrawing, True, False, updatedrawsize)
                 else:
                     cw.UP_WIN = 1
                     self.expand_mode = "None"
@@ -877,7 +890,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_draw = self.scr
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, False)
-                    self.update_scale(1)
+                    self.update_scale(1, True, False, updatedrawsize)
 
                 while not self.frame.IsFullScreen() == flag:
                     pass
@@ -889,17 +902,21 @@ class CWPy(_Singleton, threading.Thread):
         else:
             # 拡大
             try:
+                def func():
+                    if self.frame.IsFullScreen():
+                        func = self.frame.ShowFullScreen(False)
+                self.frame.exec_func(func)
                 scale = float(expandmode)
                 scale = max(scale, 0.5)
                 self.setting.is_expanded = flag
                 if flag:
                     self.expand_mode = expandmode
                     cw.UP_WIN = scale
-                    self.update_scale(self.setting.expanddrawing)
+                    self.update_scale(self.setting.expanddrawing, True, False, updatedrawsize)
                 else:
                     self.expand_mode = "None"
                     cw.UP_WIN = 1
-                    self.update_scale(1)
+                    self.update_scale(1, True, False, updatedrawsize)
 
             except Exception:
                 cw.util.print_ex()
