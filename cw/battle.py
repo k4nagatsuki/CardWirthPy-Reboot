@@ -43,9 +43,9 @@ class BattleEngine(object):
         # 戦闘行動中フラグ
         self._running = False
         # 表示中の敵の数
-        self._numenemy = 0
+        self.numenemy = 0
         if cw.cwpy.is_autospread():
-            self._numenemy = len(cw.cwpy.get_mcards("flagtrue"))
+            self.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
 
         cw.cwpy.battle = self
 
@@ -206,8 +206,8 @@ class BattleEngine(object):
 
         if cw.cwpy.is_autospread():
             ecards = cw.cwpy.get_mcards("flagtrue")
-            if self._numenemy <> len(ecards):
-                self._numenemy = len(ecards)
+            if self.numenemy <> len(ecards):
+                self.numenemy = len(ecards)
                 cw.cwpy.set_autospread(ecards, 6, False, anime=True)
         cw.cwpy.statusbar.change()
         cw.cwpy.show_party()

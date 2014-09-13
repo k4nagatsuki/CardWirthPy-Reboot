@@ -867,7 +867,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_draw = self.scr
                     func = self.frame.ShowFullScreen
                     self.frame.exec_func(func, True)
-                    self.update_scale(self.setting.expanddrawing)
+                    if self.setting.expanddrawing <> 1:
+                        self.update_scale(self.setting.expanddrawing)
                 else:
                     cw.UP_WIN = 1
                     self.expand_mode = "None"
@@ -1754,6 +1755,9 @@ class CWPy(_Singleton, threading.Thread):
         if anime:
             for mcard in mcards:
                 cw.animation.animate_sprite(mcard, "deal")
+
+        if self.battle:
+            self.battle.numenemy = len(cw.cwpy.get_mcards("flagtrue"))
 
     def set_mcards(self, (stype, elements), dealanime=True, addgroup=True, setautospread=True):
         """メニューカードスプライトを構成する。
