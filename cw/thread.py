@@ -857,6 +857,7 @@ class CWPy(_Singleton, threading.Thread):
                         func = self.frame.ShowFullScreen(False)
                 self.frame.exec_func(func)
                 self.expand_mode = "None"
+                self.setting.is_expanded = False
                 cw.UP_WIN = 1
                 self.update_scale(1, True, False, updatedrawsize)
             else:
