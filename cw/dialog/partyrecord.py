@@ -276,7 +276,7 @@ class SelectPartyRecord(select.Select):
             else:
                 dc.SetTextForeground((128, 128, 128))
 
-            s = cw.util.abbr_longstr(dc, s, cw.wins(95), cw.wins(75))
+            s = cw.util.abbr_longstr(dc, s, cw.wins(95))
             if index < 3:
                 dc.DrawLabel(s, wx.Rect((bmpw-w*n[0])/2+w*index, cw.wins(85), w, cw.wins(15)), wx.ALIGN_CENTER)
             else:
@@ -316,7 +316,7 @@ class SelectPartyRecord(select.Select):
                     dc.SetTextForeground((0, 0, 0))
                 else:
                     dc.SetTextForeground((128, 128, 128))
-                s = cw.util.abbr_longstr(dc, s, cw.wins(84), cw.wins(75))
+                s = cw.util.abbr_longstr(dc, s, cw.wins(84))
                 ypos = y + cw.wins(16) * int(index/llen)
                 xpos = index % llen
                 dc.DrawLabel(s, wx.Rect((bmpw-w*llen)/2+w*xpos+cw.wins(10), ypos, w, cw.wins(15)), wx.ALIGN_LEFT)

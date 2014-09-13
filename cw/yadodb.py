@@ -553,7 +553,7 @@ class YadoDB(object):
             header.attachment,
             header.moved,
             1 if header.scenariocard else 0,
-            header.versionhint,
+            cw.cwpy.sct.to_basehint(header.versionhint),
             header.star,
             ctime,
             mtime,
@@ -735,7 +735,7 @@ class YadoDB(object):
             header.gene.get_str(),
             "\n".join(header.history),
             header.race,
-            header.versionhint,
+            cw.cwpy.sct.to_basehint(header.versionhint),
             ctime,
             mtime,
         ))

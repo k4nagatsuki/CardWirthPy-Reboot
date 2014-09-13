@@ -1873,6 +1873,16 @@ def draw_box(dc, pos, size):
     box = get_boxpointlist(pos, size)
     dc.DrawLineList(box)
 
+def draw_witharound(dc, s, x, y, textcolor=wx.BLACK, framecolor=wx.WHITE):
+    """テキストsを縁取りしながら描画する。"""
+    for xv in xrange(x-1, x+2):
+        for yv in xrange(y-1, y+2):
+            if x <> xv or y <> yv:
+                dc.SetTextForeground(framecolor)
+                dc.DrawText(s, xv, yv)
+    dc.SetTextForeground(textcolor)
+    dc.DrawText(s, x, y)
+
 def get_boxpointlist(pos, size):
     """StaticBoxの囲い描画用のposlistを返す。"""
     x, y = pos
@@ -1956,16 +1966,15 @@ class CWPyStaticBitmap(wx.Panel):
     def GetBitmap(self, bmp):
         return self.bmp
 
-def abbr_longstr(dc, str, w1, w2):
+def abbr_longstr(dc, str, w):
     """ClientDCを使って長い文字列を省略して末尾に三点リーダを付ける。
     dc: ClientDC
     str: 編集対象の文字列
-    w1: 目標文字列長(pixel)
-    w2: 三点リーダを抜きにした目標文字列長(pixel)
+    w: 目標文字列長(pixel)
     """
     width = dc.GetTextExtent(str)[0]
-    if width > w1:
-        while dc.GetTextExtent(str + u"...")[0] > w2:
+    if width > w:
+        while dc.GetTextExtent(str + u"...")[0] > w:
             str = str[:-1]
         str += u"..."
     return str
