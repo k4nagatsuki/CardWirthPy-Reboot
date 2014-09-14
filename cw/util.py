@@ -1316,7 +1316,7 @@ def compress_zip(path, zpath):
     z.close()
     return zpath
 
-def decompress_zip(path, dstdir, dname="", avoiddup=False):
+def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progress=None):
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
@@ -1331,7 +1331,12 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
     dstdir = join_paths(dstdir, dname)
     dstdir = dupcheck_plus(dstdir, False)
 
-    for zname in z.namelist():
+    list = z.namelist()
+    if startup:
+        startup(len(list))
+    for i, zname in enumerate(list):
+        if progress and i % 10 == 0:
+            progress(i)
         name = decode_zipname(zname).replace('\\', '/')
         normpath = os.path.normpath(name)
         if normpath == ".." or normpath.startswith(".." + os.path.sep):
@@ -1356,6 +1361,9 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False):
                 f.write(data)
 
     z.close()
+
+    if progress:
+        progress(len(list))
 
     if avoiddup:
         # 内部にディレクトリが一つしかない場合は
@@ -1413,7 +1421,7 @@ def get_elementfromzip(zpath, name, tag=""):
         f.close()
     return element
 
-def decompress_cab(path, dstdir, dname="", avoiddup=False):
+def decompress_cab(path, dstdir, dname="", avoiddup=False, startup=None, progress=None):
     """cabファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
@@ -1424,16 +1432,49 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
     dstdir = join_paths(dstdir, dname)
     dstdir = dupcheck_plus(dstdir, False)
 
+    if startup or progress:
+        filenum = cab_filenum(path)
+
+    if startup:
+        startup(filenum)
+
     try:
         if not os.path.isdir(dstdir):
             os.makedirs(dstdir)
         s = "expand \"%s\" -f:* \"%s\"" % (path, dstdir)
         encoding = sys.getfilesystemencoding()
-        if subprocess.call(s.encode(encoding), shell=True) <> 0:
-            return None
+        if progress:
+            class Progress(object):
+                def __init__(self):
+                    self.result = dstdir
+                def run(self):
+                    if subprocess.call(s.encode(encoding), shell=True) <> 0:
+                        self.result = None
+
+            prog = Progress()
+            thr = threading.Thread(target=prog.run)
+            thr.start()
+            count = 0
+            while thr.is_alive():
+                # ファイル数カウント
+                last_count = count
+                count = 0
+                for dpath, dnames, fnames in os.walk(dstdir):
+                    count += len(fnames)
+                if last_count <> count:
+                    progress(count)
+                p = time.time() + 0.1
+                while thr.is_alive() and time.time() < p:
+                    time.sleep(0.001)
+        else:
+            if subprocess.call(s.encode(encoding), shell=True) <> 0:
+                return None
     except Exception:
         cw.util.print_ex()
         return None
+
+    if progress:
+        progress(filenum)
 
     if avoiddup:
         # 内部にディレクトリが一つしかない場合は
@@ -1448,6 +1489,23 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False):
                 cw.util.remove(dstdir2)
 
     return dstdir
+
+def cab_filenum(cab):
+    """CABアーカイブに含まれるファイル数を返す。"""
+    dword = struct.Struct("<l")
+    word = struct.Struct("<h")
+    try:
+        with io.BufferedReader(io.FileIO(cab, "rb")) as f:
+            # ヘッダ
+            buf = f.read(36)
+            if buf[:4] <> "MSCF":
+                return 0
+
+            cfiles = word.unpack(buf[28:30])[0]
+            return cfiles
+    except Exception:
+        cw.util.print_ex()
+    return 0
 
 def cab_hasfile(cab, file):
     """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""

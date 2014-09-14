@@ -301,9 +301,62 @@ class ScenarioData(SystemData):
             else:
                 self.tempdir = u"Data/Temp/Scenario"
                 if self.fpath.lower().endswith(".cab"):
-                    self.tempdir = cw.util.decompress_cab(self.fpath, self.tempdir, avoiddup=True)
+                    decompress = cw.util.decompress_cab
                 else:
-                    self.tempdir = cw.util.decompress_zip(self.fpath, self.tempdir, avoiddup=True)
+                    decompress = cw.util.decompress_zip
+
+                # 展開を別スレッドで実行し、進捗をステータスバーに表示
+                self._progress = False
+                self._arcname = os.path.basename(self.fpath)
+                self._format = u""
+                def startup(filenum):
+                    def func():
+                        self._filenum = filenum
+                        self._format = u"%%sを展開中... (%%%ds/%%s)" % len(str(self._filenum))
+                        cw.cwpy.expanding = self._format % (self._arcname, 0, self._filenum)
+                        cw.cwpy.expanding_max = self._filenum
+                        cw.cwpy.expanding_min = 0
+                        cw.cwpy.expanding_cur = 0
+                        cw.cwpy.statusbar.change()
+                    cw.cwpy.exec_func(func)
+                def progress(cur):
+                    def func():
+                        if not cw.cwpy.expanding:
+                            return
+                        cw.cwpy.expanding_cur = cur
+                        cw.cwpy.expanding = self._format % (self._arcname, cur, self._filenum)
+                        cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
+                        cw.cwpy.draw()
+                        self._progress = False
+                    if not self._progress or cur == cw.cwpy.expanding_max:
+                        self._progress = True
+                        cw.cwpy.exec_func(func)
+
+                self._error = None
+                def run_decompress():
+                    try:
+                        self.tempdir = decompress(self.fpath, self.tempdir, avoiddup=True, startup=startup, progress=progress)
+                    except Exception, e:
+                        cw.util.print_ex()
+                        self._error = e
+
+                thr = threading.Thread(target=run_decompress)
+                thr.start()
+                while thr.is_alive():
+                    cw.cwpy.eventhandler.run()
+                    cw.cwpy.tick_clock()
+                    cw.cwpy.input(noinput=True)
+                cw.cwpy.eventhandler.run()
+                cw.cwpy.expanding = u""
+                cw.cwpy.expanding_max = 100
+                cw.cwpy.expanding_min = 0
+                cw.cwpy.expanding_cur = 0
+                cw.cwpy.statusbar.change(False)
+                if self._error:
+                    # 展開エラー
+                    raise self._error
+
+                # 展開完了
                 fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
                 fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
                 if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):

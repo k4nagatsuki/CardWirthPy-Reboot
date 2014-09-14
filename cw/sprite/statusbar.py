@@ -35,10 +35,13 @@ class StatusBar(base.CWPySprite):
 
     def change(self, showbuttons=True, encounter=False):
         self.clear()
-        if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT)):
+        if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT) or cw.cwpy.expanding):
             showbuttons = False
 
         self.showbuttons = showbuttons
+
+        if cw.cwpy.expanding:
+            ExpandView(self, cw.s((10, 6)))
 
         left = cw.s(602)
         rmargin = cw.s(0)
@@ -59,10 +62,11 @@ class StatusBar(base.CWPySprite):
             EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif (cw.cwpy.is_curtained() and cw.cwpy.areaid <> cw.AREA_CAMP) or cw.cwpy.selectedheader:
             if cw.cwpy.status == "Yado":
-                YadoMoneyPanel(self, cw.s((10, 6)))
-                if showbuttons:
-                    CancelButton(self, cw.s((133, 6)))
-                PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                if not cw.cwpy.expanding:
+                    YadoMoneyPanel(self, cw.s((10, 6)))
+                    if showbuttons:
+                        CancelButton(self, cw.s((133, 6)))
+                    PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
             else:
                 if showbuttons:
                     CancelButton(self, cw.s((10, 6)))
@@ -71,8 +75,9 @@ class StatusBar(base.CWPySprite):
                 elif cw.cwpy.is_battlestatus():
                     RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Yado":
-            YadoMoneyPanel(self, cw.s((10, 6)))
-            PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            if not cw.cwpy.expanding:
+                YadoMoneyPanel(self, cw.s((10, 6)))
+                PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
                 lmargin = 10
@@ -101,6 +106,76 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.sbargrp.remove_sprites_of_layer("panel")
         cw.cwpy.sbargrp.remove_sprites_of_layer("button")
 
+class ProgressView(base.CWPySprite):
+    def __init__(self, parent, pos, size=None, text="", max=0, min=100, current=0):
+        base.CWPySprite.__init__(self)
+        if size is None:
+            size = cw.s((300, 22))
+        self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        self.text = text
+        self.max = max
+        self.min = min
+        self.current = current
+        self._last_params = None
+        self.rect = pygame.Rect(pos, size)
+        self.rect.top = parent.rect.top + pos[1]
+        self.rect.left = parent.rect.left + pos[0]
+        self.update(None)
+
+        # spritegroupに追加
+        cw.cwpy.sbargrp.add(self, layer="panel")
+
+    def update(self, scr):
+        params = (self.text, self.max, self.min, self.current)
+        if self._last_params <> params:
+            self.update_image()
+            cw.cwpy.has_inputevent = True
+
+    def update_image(self):
+        self._last_params = (self.text, self.max, self.min, self.current)
+
+        image = pygame.Surface(self.rect.size).convert_alpha()
+        image.fill((0, 0, 0))
+        w, h = self.rect.size
+        rect = pygame.Rect(cw.s(1), cw.s(1), w-cw.s(2), h-cw.s(2))
+        image.fill((255, 255, 255), rect)
+        w = self.rect.width - cw.s(2)
+
+        subimg = self.font.render(self.text, True, (0, 0, 0))
+        if w-cw.s(4) < subimg.get_width():
+            subimg = pygame.transform.smoothscale(subimg, (w-cw.s(4), subimg.get_height()))
+        x = (image.get_width() - subimg.get_width()) / 2
+        y = (image.get_height() - subimg.get_height()) / 2
+
+
+        g = w / float(self.max - self.min)
+        curw = int(self.current * g) + cw.s(1)
+        rect = (cw.s(1), cw.s(1), curw, self.rect.height-cw.s(2))
+        image.fill((0, 0, 128), rect)
+
+        curw = curw - (x-cw.s(1))
+        rect = (cw.s(0), cw.s(0), min(curw, subimg.get_width()), subimg.get_height())
+        subimg.fill((255, 255, 255, 0), rect, special_flags=pygame.locals.BLEND_RGBA_ADD)
+
+        image.blit(subimg, (x, y))
+        _draw_edge(image)
+        self.image = image
+
+class ExpandView(ProgressView):
+    def __init__(self, parent, pos):
+        text = cw.cwpy.expanding
+        max = cw.cwpy.expanding_max
+        min = cw.cwpy.expanding_min
+        current = cw.cwpy.expanding_cur
+        ProgressView.__init__(self, parent, pos, text=text, max=max, min=min, current=current)
+
+    def update(self, scr):
+        self.text = cw.cwpy.expanding
+        self.max = cw.cwpy.expanding_max
+        self.min = cw.cwpy.expanding_min
+        self.current = cw.cwpy.expanding_cur
+        ProgressView.update(self, scr)
+
 class StatusBarPanel(base.CWPySprite):
     def __init__(self, parent, color, pos, size=None, icon=None):
         if size is None:
@@ -109,12 +184,13 @@ class StatusBarPanel(base.CWPySprite):
         self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
         self.icon = icon
         # panelimg
-        self.panelimg = pygame.Surface(size).convert()
+        self.panelimg = pygame.Surface(size).convert_alpha()
         self.panelimg.fill((0, 0, 0))
         rect = self.panelimg.get_rect()
         rect.topleft = cw.s((1, 1))
         rect.size = (size[0] - cw.s(2), size[1] - cw.s(2))
         self.panelimg.fill(color, rect)
+        _draw_edge(self.panelimg)
 
         if self.icon:
             self.panelimg.blit(self.icon, cw.s((3, 3)))
@@ -137,6 +213,27 @@ class StatusBarPanel(base.CWPySprite):
         self.panelimg.fill(color, rect)
         if self.icon:
             self.panelimg.blit(self.icon, cw.s((3, 3)))
+        _draw_edge(self.panelimg)
+
+def _draw_edge(image):
+    def put(x, y):
+        rect = pygame.Rect((x, y), (1, 1))
+        image.fill((0, 0, 0), rect)
+        image.fill((0, 0, 0, 192), rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+    def put_inside(x, y):
+        rect = pygame.Rect((x, y), (1, 1))
+        image.fill((192, 192, 192), rect, special_flags=pygame.locals.BLEND_RGB_MULT)
+    w, h = image.get_size()
+
+    put(0, 0)
+    put(w-1, 0)
+    put(0, h-1)
+    put(w-1, h-1)
+
+    put_inside(cw.s(1), cw.s(1))
+    put_inside(w-1-cw.s(1), cw.s(1))
+    put_inside(cw.s(1), h-1-cw.s(1))
+    put_inside(w-1-cw.s(1), h-1-cw.s(1))
 
 class YadoMoneyPanel(StatusBarPanel):
     def __init__(self, parent, pos):

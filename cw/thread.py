@@ -160,6 +160,14 @@ class CWPy(_Singleton, threading.Thread):
         # 保存用のパーティ記録
         # 解散エリアに入った時点で生成される
         self._stored_partyrecord = None
+
+        # アーカイヴを展開中のシナリオ
+        self.expanding = u""
+        # 展開の進捗情報
+        self.expanding_min = 0
+        self.expanding_max = 100
+        self.expanding_cur = 0
+
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
 
@@ -527,7 +535,7 @@ class CWPy(_Singleton, threading.Thread):
                 events.append(e)
         self.events = events
 
-    def input(self, eventclear=False, inputonly=False):
+    def input(self, eventclear=False, inputonly=False, noinput=False):
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
         if self.update_mousepos():
@@ -550,6 +558,8 @@ class CWPy(_Singleton, threading.Thread):
                 events = [events[-1]]
             self.events.extend(events)
         else:
+            if noinput:
+                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             self.events.extend(pygame.event.get())
 
     def _in_partyarea(self, mousepos):
