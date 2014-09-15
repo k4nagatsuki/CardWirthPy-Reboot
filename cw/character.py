@@ -1317,7 +1317,7 @@ class Character(object):
 
         return olevel - level
 
-    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None):
+    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None, revert_cardpocket=True):
         """レベルを設定する。
         regulate: レベルを調節する場合はTrue。
         backpack_party: レベルが下がって手札を持ちきれなくなった際、
@@ -1401,7 +1401,7 @@ class Character(object):
                     n -= 1
             for header in self.cardpocket[0]:
                 header.get_uselimit(reset=True)
-        elif 0 < uplevel:
+        elif 0 < uplevel and revert_cardpocket:
             # レベル調節で手放したカードを戻す
             self.revert_cardpocket(backpack_party)
 

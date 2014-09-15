@@ -732,8 +732,8 @@ class PlayerCard(CWPyCard, character.Player):
         cw.animation.animate_sprite(self, "click")
         cw.cwpy.call_modaldlg("CHARAINFO")
 
-    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None):
-        character.Player.set_level(self, value, regulate, debugedit, backpack_party)
+    def set_level(self, value, regulate=False, debugedit=False, backpack_party=None, revert_cardpocket=True):
+        character.Player.set_level(self, value, regulate, debugedit, backpack_party, revert_cardpocket)
         self.cardimg.set_levelimg(self.level)
 
     def adjust_level(self, fromscenario):
@@ -752,6 +752,8 @@ class PlayerCard(CWPyCard, character.Player):
                 # シナリオクリア時にはレベルダウンしない
                 levelup = max(0, levelup)
 
+        level = self.level # 再調節に使用
+
         # レベルアップ
         if levelup <> 0:
             base = self.get_specialcoupons()[u"＠レベル原点"]
@@ -762,14 +764,14 @@ class PlayerCard(CWPyCard, character.Player):
                     cw.animation.animate_sprite(self, "levelup")
                     for i in xrange(levelup - 1):
                         cw.animation.animate_sprite(self, "hide")
-                        self.set_level(base + i + 1)
+                        self.set_level(base + i + 1, revert_cardpocket=False)
                         cw.animation.animate_sprite(self, "deal")
-                    self.set_level(n)
+                    self.set_level(n, revert_cardpocket=False)
                 else:
-                    self.set_level(n)
+                    self.set_level(n, revert_cardpocket=False)
                     cw.animation.animate_sprite(self, "levelup")
             else:
-                self.set_level(n)
+                self.set_level(n, revert_cardpocket=False)
 
         # 回復処理
         if fromscenario or levelup <> 0:
@@ -787,6 +789,12 @@ class PlayerCard(CWPyCard, character.Player):
             names = [(0, cw.cwpy.msgs["ok"])]
             mwin = cw.sprite.message.MessageWindow(text, names, self.imgpath, self)
             cw.cwpy.show_message(mwin)
+            if base <> level:
+                # レベル調節中だった場合は再調節
+                cw.animation.animate_sprite(self, "hide")
+                self.set_level(level, regulate=True)
+                self.update_image()
+                cw.animation.animate_sprite(self, "deal")
 
         return result
 

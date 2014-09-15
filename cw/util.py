@@ -1277,7 +1277,7 @@ def zip_file(path, mode):
     正しいファイル名が得られなくなってしまう。
     まったくスレッドセーフではない悪い方法だが、
     それを回避するには一時的にos.sepを'/'にして凌ぐしかない。"""
-    if path.endswith(".lzh"):
+    if path.lower().endswith(".lzh"):
         return _LhafileWrapper(path, mode)
     else:
         sep = os.sep
