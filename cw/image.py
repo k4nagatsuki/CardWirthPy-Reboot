@@ -274,7 +274,7 @@ class CharacterCardImage(CardImage):
         h = 0
         for c in s:
             size = font.size(c)
-            w += size[0]
+            w += cw.s(18)
             h = max(size[1], h)
         size = (w, h)
         self.levelimg = pygame.Surface(size, SRCALPHA).convert_alpha()
