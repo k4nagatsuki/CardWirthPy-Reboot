@@ -206,7 +206,12 @@ class EventList(wx.TreeCtrl):
 
         for ce in itertools.chain(data.getfind("MenuCards", False), data.getfind("EnemyCards", False)):
             if self._showallcards or cw.sprite.card.CWPyCard.is_flagtrue_static(ce):
-                item = self.AppendItem(selitem, ce.gettext("Property/Name", u""), self.imgidx_menucard)
+                if ce.tag == "EnemyCard":
+                    cardid = ce.getint("Property/Id", 0)
+                    cardname = cw.cwpy.sdata.casts.get(cardid, (u"", u""))[0]
+                else:
+                    cardname = ce.gettext("Property/Name", u"")
+                item = self.AppendItem(selitem, cardname, self.imgidx_menucard)
                 for ee in ce.getfind("Events"):
                     append(item, ee, ce.tag)
                 self.Expand(item)
