@@ -29,8 +29,25 @@ class EventHandler(object):
             if not event:
                 break
             if event.type == KEYDOWN:
+                # 上方向キー
+                if event.key == K_UP:
+                    self.dirkey_event(y=-1)
+                # 下方向キー
+                elif event.key == K_DOWN:
+                    self.dirkey_event(y=1)
+                # 左方向キー
+                elif event.key == K_LEFT:
+                    self.dirkey_event(x=-1)
+                # 右方向キー
+                elif event.key == K_RIGHT:
+                    self.dirkey_event(x=1)
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # ESCAPEキー
-                if event.key == K_ESCAPE:
+                elif event.key == K_ESCAPE:
                     self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
@@ -53,25 +70,8 @@ class EventHandler(object):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
-                # リターンキー
-                elif event.key == K_RETURN:
-                    self.returnkey_event()
-                # 上方向キー
-                elif event.key == K_UP:
-                    self.dirkey_event(y=-1)
-                # 下方向キー
-                elif event.key == K_DOWN:
-                    self.dirkey_event(y=1)
-                # 左方向キー
-                elif event.key == K_LEFT:
-                    self.dirkey_event(x=-1)
-                # 右方向キー
-                elif event.key == K_RIGHT:
-                    self.dirkey_event(x=1)
-
-            elif event.type == KEYUP:
                 # PrintScreenキー
-                if event.key == K_PRINT:
+                elif event.key == K_PRINT:
                     self.printkey_event()
 
             elif event.type == MOUSEBUTTONUP:
@@ -439,8 +439,22 @@ class EventHandlerForMessageWindow(EventHandler):
             if not event:
                 break
             if event.type == KEYDOWN:
+                # 上方向キー
+                if event.key == K_UP:
+                    self.dirkey_event(y=-1)
+                # 下方向キー
+                elif event.key == K_DOWN:
+                    self.dirkey_event(y=1)
+                # Shiftキー
+                elif event.key == K_RSHIFT or event.key == K_LSHIFT:
+                    self.shiftkey_event(True)
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # ESCAPEキー
-                if event.key == K_ESCAPE:
+                elif event.key == K_ESCAPE:
                     self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
@@ -460,22 +474,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
-                # リターンキー
-                elif event.key == K_RETURN:
-                    self.returnkey_event()
-                # 上方向キー
-                elif event.key == K_UP:
-                    self.dirkey_event(y=-1)
-                # 下方向キー
-                elif event.key == K_DOWN:
-                    self.dirkey_event(y=1)
-                # Shiftキー
-                elif event.key == K_RSHIFT or event.key == K_LSHIFT:
-                    self.shiftkey_event(True)
-
-            elif event.type == KEYUP:
                 # PrintScreenキー
-                if event.key == K_PRINT:
+                elif event.key == K_PRINT:
                     self.printkey_event()
                 # Shiftキー
                 elif event.key == K_RSHIFT or event.key == K_LSHIFT:
@@ -690,8 +690,19 @@ class EventHandlerForBacklog(EventHandler):
             if not event:
                 break
             if event.type == KEYDOWN:
+                # 上方向キー
+                if event.key == K_UP:
+                    self.dirkey_event(y=-1)
+                # 下方向キー
+                elif event.key == K_DOWN:
+                    self.dirkey_event(y=1)
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # ESCAPEキー
-                if event.key == K_ESCAPE:
+                elif event.key == K_ESCAPE:
                     self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
@@ -711,19 +722,8 @@ class EventHandlerForBacklog(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
-                # リターンキー
-                elif event.key == K_RETURN:
-                    self.returnkey_event()
-                # 上方向キー
-                elif event.key == K_UP:
-                    self.dirkey_event(y=-1)
-                # 下方向キー
-                elif event.key == K_DOWN:
-                    self.dirkey_event(y=1)
-
-            elif event.type == KEYUP:
                 # PrintScreenキー
-                if event.key == K_PRINT:
+                elif event.key == K_PRINT:
                     self.printkey_event()
 
             elif event.type == MOUSEBUTTONUP:
@@ -894,8 +894,14 @@ class EventHandlerForEffectBooster(EventHandler):
             if not event:
                 break
             if event.type == KEYDOWN:
+                pass
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # ESCAPEキー
-                if event.key == K_ESCAPE:
+                elif event.key == K_ESCAPE:
                     self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
@@ -915,13 +921,8 @@ class EventHandlerForEffectBooster(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
-                # リターンキー
-                elif event.key == K_RETURN:
-                    self.returnkey_event()
-
-            elif event.type == KEYUP:
                 # PrintScreenキー
-                if event.key == K_PRINT:
+                elif event.key == K_PRINT:
                     self.printkey_event()
 
             elif event.type == MOUSEBUTTONUP:
@@ -975,7 +976,8 @@ class EventHandlerForEffectBooster(EventHandler):
         F4キーイベント。
         """
         cw.cwpy.exec_func(EventHandler.f4key_event, self)
-        raise cw.effectbooster.ScreenRescale()
+        if cw.cwpy.setting.expanddrawing <> 1:
+            raise cw.effectbooster.ScreenRescale()
 
 def main():
     pass
