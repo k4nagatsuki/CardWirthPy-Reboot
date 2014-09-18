@@ -983,6 +983,14 @@ def dupcheck_plus(path, yado=True):
     ファイル・フォルダ名の後ろに"(n)"を付加して重複を回避する。
     宿のファイルパスの場合は、"Data/Temp/Yado"ディレクトリの重複もチェックする。
     """
+
+    dpath, basename = os.path.split(path)
+    fname, ext = cw.util.splitext(basename)
+    fname = cw.binary.util.check_filename(fname.strip())
+    ext = ext.strip()
+    basename = fname + ext
+    path = join_paths(dpath, basename)
+
     if yado:
         if path.startswith("Yado"):
             temppath = path.replace("Yado", "Data/Temp/Yado", 1)
@@ -995,11 +1003,6 @@ def dupcheck_plus(path, yado=True):
     else:
         temppath = ""
 
-    dpath, basename = os.path.split(path)
-    fname, ext = cw.util.splitext(basename)
-    fname = cw.binary.util.check_filename(fname.strip())
-    ext = ext.strip()
-    basename = fname + ext
     count = 2
 
     while os.path.exists(path) or os.path.exists(temppath):
