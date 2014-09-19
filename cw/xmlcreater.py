@@ -236,6 +236,12 @@ def create_settings(setting):
     e.set("backpack", setting.sort_backpack)
     e.set("backpackwithstar", str(setting.sort_backpackwithstar))
     element.append(e)
+    # カード絞込条件
+    e = cw.data.make_element("CardNarrowType", str(setting.card_narrowtype))
+    element.append(e)
+    # 情報カード絞込条件
+    e = cw.data.make_element("InfoViewNarrowType", str(setting.infoview_narrowtype))
+    element.append(e)
     # バックログ最大数
     e = cw.data.make_element("MessageLogMax", str(setting.backlogmax))
     element.append(e)

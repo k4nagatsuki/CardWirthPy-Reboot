@@ -80,6 +80,9 @@ class Setting(object):
         self.sort_storehousewithstar = True
         self.sort_backpack = "None"
         self.sort_backpackwithstar = True
+        self.card_narrow = ""
+        self.card_narrowtype = 0
+        self.infoview_narrowtype = 0
         self.backlogmax = 100
         self.showfps = False
         self.selectscenariofromtype = True
@@ -279,6 +282,10 @@ class Setting(object):
         self.sort_storehousewithstar = data.getbool("SortKey", "storehousewithstar", self.sort_storehousewithstar)
         self.sort_backpack = data.getattr("SortKey", "backpack", self.sort_backpack)
         self.sort_backpackwithstar = data.getbool("SortKey", "backpackwithstar", self.sort_backpackwithstar)
+        # カード絞込条件
+        self.card_narrowtype = data.getint("CardNarrowType", self.card_narrowtype)
+        # 情報カード絞込条件
+        self.infoview_narrowtype = data.getint("InfoViewNarrowType", self.infoview_narrowtype)
         # バックログ最大数
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
 
