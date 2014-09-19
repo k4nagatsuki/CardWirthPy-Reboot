@@ -225,7 +225,11 @@ class CardControl(wx.Dialog):
         sizer_toppanel.Add(cw.wins((420, 225)), (1,1), (1,3), wx.EXPAND)
         h = self.narrow.GetSize()[1]
         h = max(h, self.narrow_type.GetSize()[1])
-        sizer_toppanel.Add((cw.s(225), h), (2,1), (1,1), wx.EXPAND)
+        w = self.toppanel.GetClientSize()[0] -\
+            self.narrow.GetSize()[0] -\
+            self.narrow_type.GetSize()[0] -\
+            cw.wins(84)
+        sizer_toppanel.Add((w, h), (2,1), (1,1), wx.EXPAND)
         sizer_toppanel.Add(self.narrow, (2,2), (1,1), wx.ALIGN_CENTER_VERTICAL)
         sizer_toppanel.Add(self.narrow_type, (2,3), (1,1), wx.ALIGN_CENTER_VERTICAL)
         sizer_toppanel.Add(cw.wins((0, 2)), (3,0), (1,4), 0)
