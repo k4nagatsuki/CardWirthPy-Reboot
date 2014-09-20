@@ -693,7 +693,7 @@ class TransferYadoDataDialog(wx.Dialog):
     宿のデータの転送を行う。
     """
     def __init__(self, parent, yadodirs, yadonames, selected):
-        wx.Dialog.__init__(self, parent, -1, u"カードとブックマークのコピー",
+        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["transfer_title"],
                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
 
         self.yadodirs = yadodirs

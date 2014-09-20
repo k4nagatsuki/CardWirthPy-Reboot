@@ -473,6 +473,7 @@
     <Message key="rename_base_message">新しい名称を入力して下さい。</Message>
     <Message key="copy_base">%sを複製します。
 よろしいですか？</Message>
+    <Message key="transfer_title">カードとブックマークの転送</Message>
     <Message key="transfer_from_base">転送元:</Message>
     <Message key="transfer_to_base">転送先:</Message>
     <Message key="transfer_no_item">転送可能な項目はありません</Message>
