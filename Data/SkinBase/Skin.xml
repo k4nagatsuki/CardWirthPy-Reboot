@@ -464,13 +464,22 @@
     <Message key="create_base_message_2">登録する冒険者の宿の名称を入力して下さい。</Message>
     <Message key="rename">改名</Message>
     <Message key="copy">複製</Message>
+    <Message key="transfer">転送</Message>
     <Message key="rename_base_description">この拠点の名称を変更します。</Message>
     <Message key="copy_base_description">この拠点の複製を生成します。</Message>
     <Message key="delete_base_description">この拠点を破棄し、すべての情報を削除します。</Message>
+    <Message key="transfer_base_description">他の拠点のカードやブックマークをこの拠点へコピーします。</Message>
     <Message key="rename_base_title">名称の変更</Message>
     <Message key="rename_base_message">新しい名称を入力して下さい。</Message>
     <Message key="copy_base">%sを複製します。
 よろしいですか？</Message>
+    <Message key="transfer_from_base">転送元:</Message>
+    <Message key="transfer_to_base">転送先:</Message>
+    <Message key="transfer_no_item">転送可能な項目はありません</Message>
+    <Message key="confirm_transfer">「%s」の%s件のデータを「%s」へ転送してよろしいですか？</Message>
+    <Message key="transfer_data">データの転送</Message>
+    <Message key="transfer_processing">%sを転送中...</Message>
+    <Message key="transfer_success">データの転送が完了しました。</Message>
     <Message key="card_control">カード操作</Message>
     <Message key="cards_hand">%sの手札カード</Message>
     <Message key="cards_backpack">荷物袋の手札カード</Message>
@@ -637,6 +646,7 @@
     <Message key="scenario_name">シナリオ名</Message>
     <Message key="author">作者名</Message>
     <Message key="target_level">対象レベル</Message>
+    <Message key="bookmark">ブックマーク</Message>
     <Message key="add_bookmark">ブックマークの登録</Message>
     <Message key="arrange_bookmark">ブックマークの整理</Message>
     <Message key="add_bookmark_message">「%s」のブックマークを登録します。

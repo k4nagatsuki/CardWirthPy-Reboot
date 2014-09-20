@@ -419,6 +419,7 @@ class YadoSelect(Select):
         items = [
             (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado, not classic),
             (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic),
+            (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"], self.trasnfer_yadodata, not classic and 1 < self.classic.count(False)),
             (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
         ]
@@ -474,6 +475,27 @@ class YadoSelect(Select):
             self.update_list(newpath)
 
         dlg.Destroy()
+
+    def trasnfer_yadodata(self):
+        """
+        宿のデータのコピー。
+        """
+        path = self.list[self.index]
+        dirs = []
+        names = []
+        for i, dir in enumerate(self.list):
+            if not self.classic[i]:
+                dirs.append(dir)
+                names.append(self.names[i])
+        if names:
+            cw.cwpy.sounds["click"].play()
+            dlg = cw.dialog.etc.TransferYadoDataDialog(self, dirs, names, path)
+            cw.cwpy.frame.move_dlg(dlg)
+            if dlg.ShowModal() == wx.ID_OK:
+                self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
+                self.index = self.list.index(path)
+                self.draw(True)
+            dlg.Destroy()
 
     def delete_yado(self):
         """

@@ -1066,16 +1066,22 @@ class PartyHeader(object):
         else:
             return None
 
-    def get_memberpaths(self):
+    def get_memberpaths(self, yadodir=None):
         seq = []
 
         for fname in self.members:
             fname2 = fname + ".xml"
-            path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
+            if yadodir:
+                path = cw.util.join_paths(yadodir, "Adventurer", fname2)
+            else:
+                path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
             if not os.path.isfile(path):
                 # Windowsがファイル名を変えるため前後のスペースを除く
                 fname2 = fname.strip() + ".xml"
-                path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
+                if yadodir:
+                    path = cw.util.join_paths(yadodir, "Adventurer", fname2)
+                else:
+                    path = cw.util.join_yadodir(cw.util.join_paths("Adventurer", fname2))
             seq.append(path)
 
         return seq

@@ -4,6 +4,8 @@
 import os
 import sys
 import itertools
+import threading
+import shutil
 
 import wx
 import pygame
@@ -681,6 +683,465 @@ class ConvertYadoDialog(wx.Dialog):
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+
+        self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
+        self.Layout()
+
+class TransferYadoDataDialog(wx.Dialog):
+    """
+    宿のデータの転送を行う。
+    """
+    def __init__(self, parent, yadodirs, yadonames, selected):
+        wx.Dialog.__init__(self, parent, -1, u"カードとブックマークのコピー",
+                           style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+
+        self.yadodirs = yadodirs
+        self.yadonames = yadonames
+        if selected in yadodirs:
+            self.index = yadodirs.index(selected)
+        else:
+            self.index = 0
+
+        # 転送元
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        self.fromyado = wx.Choice(self, -1, choices=yadonames)
+        self.fromyado.SetSelection(1 if self.index == 0 else 0)
+        self.fromyado.SetFont(font)
+        # 転送先
+        self.toyado = wx.Choice(self, -1, choices=yadonames)
+        self.toyado.SetSelection(self.index)
+        self.toyado.SetFont(font)
+
+        # 転送可能なデータリスト
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((300, 300)), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL, colpos=1)
+        self.datalist.SetFont(font)
+        self.imglist = self.datalist.GetImageList(wx.IMAGE_LIST_SMALL)
+        assert self.imglist.ImageCount == 2
+
+        w, h = cw.cwpy.rsrc.debugs["NOCHECK"].GetSize()
+        w, h = cw.wins((w, h))
+
+        # CheckableListはImageListの0番と1番にチェックボックスの
+        # 画像を設定してチェックボックスが存在するように見せかけている
+        # そのため、他のアイコンのサイズがチェックボックス画像に一致しない
+        # 場合は独自のアイコンに差し替える必要がある
+        w2, h2 = self.imglist.GetSize(0)
+        if (w, h) <> (w2, h2):
+            self.imglist = wx.ImageList(w, h, True)
+            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["NOCHECK"]))
+            self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["CHECK"]))
+        self.imgidx_bookmark = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK"]))
+        self.imgidx_party = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["MEMBER"]))
+        self.imgidx_standby = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_CAST"]))
+        self.imgidx_skill = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_SKILL"]))
+        self.imgidx_item = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_ITEM"]))
+        self.imgidx_beast = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["EVT_GET_BEAST"]))
+        self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
+        self._checking = False
+        def func(index, flag):
+            # チェック時に音を鳴らし、選択中のアイテムだった場合は
+            # 他の選択中のアイテムにもチェックを反映
+            if self._checking:
+                return
+            self._checking = True
+            cw.cwpy.sounds["page"].play()
+            cw.util.CheckableListCtrl.OnCheckItem(self.datalist, index, flag)
+            i = self.datalist.GetNextItem(index-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index == i:
+                index = -1
+                while True:
+                    index = self.datalist.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+                    if index < 0:
+                        break
+                    if index <> i:
+                        self.datalist.CheckItem(index, flag)
+            self._enable_btn()
+            self._checking = False
+        self.datalist.OnCheckItem = func
+
+        self.datalist.InsertImageStringItem(0, u"", 0)
+        rect = self.datalist.GetItemRect(0, wx.LIST_RECT_LABEL)
+        self.datalist.SetColumnWidth(0, rect.x)
+        self.datalist.DeleteAllItems()
+
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+        self._do_layout()
+        self._bind()
+
+        self._update_list()
+
+    def _update_list(self):
+        # 選択中の転送元にある転送可能なデータの一覧を表示
+        i = 0
+        self.data = []
+        self.datalist.DeleteAllItems()
+
+        yadodir = self.yadodirs[self.index]
+        data = cw.data.xml2etree(cw.util.join_paths(yadodir, u"Environment.xml"))
+        bookmark = data.find("Bookmarks")
+        if not bookmark is None:
+            self.datalist.InsertStringItem(i, u"")
+            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["bookmark"])
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_bookmark)
+            self.datalist.CheckItem(i, False)
+            self.data.append(bookmark)
+            i += 1
+
+        yadodb = cw.yadodb.YadoDB(yadodir)
+        parties = yadodb.get_parties()
+        standbys = yadodb.get_standbys()
+        cards = yadodb.get_cards()
+        yadodb.close()
+
+        partymembers = set()
+
+        for header in itertools.chain(parties, standbys, cards):
+            if isinstance(header, cw.header.PartyHeader):
+                image = self.imgidx_party
+                for member in header.members:
+                    partymembers.add(member)
+            elif isinstance(header, cw.header.AdventurerHeader):
+                if os.path.splitext(os.path.basename(header.fpath))[0] in partymembers:
+                    continue
+                image = self.imgidx_standby
+            elif isinstance(header, cw.header.CardHeader):
+                if header.type == "SkillCard":
+                    image = self.imgidx_skill
+                elif header.type == "ItemCard":
+                    image = self.imgidx_item
+                elif header.type == "BeastCard":
+                    image = self.imgidx_beast
+                else:
+                    assert False
+            else:
+                assert False
+            self.datalist.InsertStringItem(i, u"")
+            self.datalist.SetStringItem(i, 1, header.name)
+            self.datalist.SetItemColumnImage(i, 1, image)
+            self.datalist.CheckItem(i, False)
+            self.data.append(header)
+            i += 1
+
+        if not self.data:
+            self.datalist.InsertStringItem(i, u"")
+            self.datalist.SetStringItem(i, 1, cw.cwpy.msgs["transfer_no_item"])
+
+        self._enable_btn()
+
+    def _enable_btn(self):
+        btn = self.fromyado.GetSelection() <> self.toyado.GetSelection()
+        if btn:
+            btn = False
+            for index in xrange(self.datalist.GetItemCount()):
+                if self.datalist.IsChecked(index):
+                    btn = True
+                    break
+        self.okbtn.Enable(btn)
+        self.datalist.Enable(bool(self.data))
+
+    def OnFromYado(self, event):
+        cw.cwpy.sounds["page"].play()
+        index = self.fromyado.GetSelection()
+        if index == self.index:
+            return
+        self.index = index
+        self._update_list()
+
+    def OnToYado(self, event):
+        self._enable_btn()
+
+    def OnOk(self, event):
+        # 転送を実行する
+        index1 = self.fromyado.GetSelection()
+        index2 = self.toyado.GetSelection()
+        if index1 == index2:
+            return
+        cw.cwpy.sounds["signal"].play()
+        name1 = self.yadonames[index1]
+        name2 = self.yadonames[index2]
+        seq = []
+        for i in xrange(self.datalist.GetItemCount()):
+            if self.datalist.IsChecked(i):
+                seq.append(self.data[i])
+        s = cw.cwpy.msgs["confirm_transfer"] % (name1, len(seq), name2)
+        dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+        cw.cwpy.frame.move_dlg(dlg)
+
+        result = dlg.ShowModal()
+        dlg.Destroy()
+        if result <> wx.ID_OK:
+            return
+
+        # 進捗状態を進めるアイテムの数
+        counter = 0
+        for data in seq:
+            if isinstance(data, cw.data.CWPyElement) and data.tag == "Bookmarks":
+                counter += 1
+            elif isinstance(data, cw.header.PartyHeader):
+                # パーティデータ・メンバ・荷物袋のカード
+                counter += 1
+                counter += len(data.members)
+                for type in (u"SkillCard", u"ItemCard", u"BeastCard"):
+                    dpath = cw.util.join_paths(os.path.dirname(data.fpath), type)
+                    if os.path.isdir(dpath):
+                        counter += len(os.listdir(dpath))
+            elif isinstance(data, cw.header.AdventurerHeader):
+                counter += 1
+            elif isinstance(data, cw.header.CardHeader):
+                counter += 1
+            else:
+                assert False
+
+        # プログレスダイアログ表示
+        dlg = wx.ProgressDialog(cw.cwpy.msgs["transfer_data"], "", maximum=counter,
+            parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
+            wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
+
+        fromyado = self.yadodirs[index1]
+        toyado = self.yadodirs[index2]
+        class TransferThread(threading.Thread):
+            def __init__(self, outer):
+                threading.Thread.__init__(self)
+                self.outer = outer
+                self.num = 0
+                self.msg = u""
+
+            def run(self):
+                yadodb = cw.yadodb.YadoDB(toyado)
+                try:
+                    for data in seq:
+                        if isinstance(data, cw.data.CWPyElement) and data.tag == "Bookmarks":
+                            name = cw.cwpy.msgs["bookmark"]
+                        else:
+                            name = data.name
+                        self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
+
+                        if isinstance(data, cw.data.CWPyElement) and data.tag == "Bookmarks":
+                            self.outer._transfer_bookmark(fromyado, toyado, data, self)
+                        elif isinstance(data, cw.header.PartyHeader):
+                            self.outer._transfer_party(fromyado, toyado, data, yadodb, self)
+                        elif isinstance(data, cw.header.AdventurerHeader):
+                            self.outer._transfer_adventurer(fromyado, toyado, data, yadodb, self)
+                        elif isinstance(data, cw.header.CardHeader):
+                            self.outer._transfer_card(fromyado, toyado, data, yadodb, self)
+                        else:
+                            assert False
+
+                    yadodb.commit()
+                finally:
+                    yadodb.close()
+
+        thread = TransferThread(self)
+        thread.start()
+
+        while thread.is_alive():
+            dlg.Update(thread.num, thread.msg)
+            wx.MilliSleep(1)
+
+        dlg.Destroy()
+
+        cw.cwpy.sounds["harvest"].play()
+        s = cw.cwpy.msgs["transfer_success"]
+        dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
+        cw.cwpy.frame.move_dlg(dlg)
+
+        result = dlg.ShowModal()
+        dlg.Destroy()
+
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
+
+    def _transfer_bookmark(self, fromyado, toyado, be, counter):
+        # ブックマークを転送する
+        # ただし転送先にすでに存在するアイテムは転送しない
+        targetbookmarks = set()
+        data = cw.data.xml2etree(cw.util.join_paths(toyado, u"Environment.xml"))
+        bookmark = data.find("Bookmarks")
+        if bookmark is None:
+            bookmark = cw.data.make_element("Bookmarks", u"")
+            data.getroot().append(bookmark)
+        else:
+            for e in bookmark:
+                paths = []
+                for pe in e:
+                    paths.append(pe.text)
+                paths = "/".join(paths)
+                targetbookmarks.add(paths)
+
+        for e in be:
+            paths = []
+            for pe in e:
+                paths.append(pe.text)
+            paths = "/".join(paths)
+            if not paths in targetbookmarks:
+                bookmark.append(e)
+                targetbookmarks.add(paths)
+
+        data.write()
+        counter.num += 1
+
+    def _transfer_party(self, fromyado, toyado, header, yadodb, counter):
+        # パーティを転送する
+        pdata = cw.data.xml2etree(header.fpath)
+        for i, fpath in enumerate(header.get_memberpaths(fromyado)):
+            # パーティメンバーの転送
+            data = cw.data.xml2etree(fpath)
+            fpath = self._transfer_adventurer(fromyado, toyado, data, yadodb, counter=counter)
+            name = os.path.splitext(os.path.basename(fpath))[0]
+            pdata.find("Property/Members/Member[%s]" % (i+1)).text = name
+
+        # パーティデータの転送
+        dpath = os.path.dirname(header.fpath)
+        dstdir = dpath.replace(fromyado + "/", toyado + "/", 1)
+        dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
+        if not os.path.isdir(dstdir):
+            os.makedirs(dstdir)
+        pdata.fpath = cw.util.join_paths(dstdir, u"Party.xml")
+        pdata.write()
+        wsl = os.path.splitext(header.fpath)[0] + ".wsl"
+        if os.path.isfile(wsl):
+            shutil.copy2(wsl, cw.util.join_paths(dstdir, u"Party.wsl"))
+        counter.num += 1
+
+        # 荷物袋の転送
+        carddb = cw.yadodb.YadoDB(dpath, cw.yadodb.PARTY)
+        cards = carddb.get_cards()
+        carddb.close()
+
+        carddb = cw.yadodb.YadoDB(dstdir, cw.yadodb.PARTY)
+        for i, cardheader in enumerate(cards):
+            fpath = cardheader.fpath
+            type = cardheader.type
+            basename = os.path.basename(fpath)
+            e = cw.data.xml2etree(fpath)
+            e.fpath = u""
+            self._transfer_card(fromyado, toyado, e, None, counter=counter)
+            e.fpath = cw.util.join_paths(dstdir, type, basename)
+            e.fpath = cw.util.dupcheck_plus(e.fpath, yado=False)
+            e.write()
+            carddb.insert_card(e.fpath, commit=False, cardorder=i)
+            counter.num += 1
+        carddb.commit()
+        carddb.close()
+
+        # 宿DBへ追加
+        fpath = cw.util.join_paths(dstdir, os.path.basename(header.fpath))
+        yadodb.insert_party(fpath)
+
+    def _transfer_adventurer(self, fromyado, toyado, data, yadodb, counter):
+        # 冒険者の転送
+        if isinstance(data, cw.header.AdventurerHeader):
+            data = cw.data.xml2etree(data.fpath)
+        dstdir = cw.util.join_paths(toyado, u"Material", u"Adventurer", data.gettext("Property/Name"))
+        dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
+        cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado)
+        data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
+        data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
+
+        for e in itertools.chain(data.getfind("SkillCards"),
+                                 data.getfind("ItemCards"),
+                                 data.getfind("BeastCards")):
+            e.fpath = u""
+            self._transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
+
+        data.write()
+        if yadodb:
+            yadodb.insert_adventurer(data.fpath, album=False, commit=False)
+        counter.num += 1
+        return data.fpath
+
+    def _transfer_card(self, fromyado, toyado, data, yadodb, counter):
+        # 個別のカードの転送
+        if isinstance(data, cw.header.CardHeader):
+            data = cw.data.xml2etree(data.fpath)
+        dstdir = cw.util.join_paths(toyado, u"Material", data.getroot().tag, data.gettext("Property/Name"))
+        dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
+        if not data.getbool(".", "scenariocard", False):
+            cw.cwpy.copy_materials(data, dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado)
+        if data.fpath:
+            data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
+            data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
+            data.write()
+        if yadodb:
+            yadodb.insert_card(data.fpath, commit=False)
+            counter.num += 1
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
+        dc.SetFont(font)
+
+        # 転送元
+        s = cw.cwpy.msgs["transfer_from_base"]
+        tw, th = dc.GetTextExtent(s)
+        x, y, w, h = self.fromyado.GetRect()
+        x = cw.wins(5)
+        y += (h-th) / 2
+        dc.DrawText(s, x, y)
+
+        # 転送先
+        s = cw.cwpy.msgs["transfer_to_base"]
+        tw, th = dc.GetTextExtent(s)
+        x, y, w, h = self.toyado.GetRect()
+        x = cw.wins(5)
+        y += (h-th) / 2
+        dc.DrawText(s, x, y)
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.fromyado.Bind(wx.EVT_CHOICE, self.OnFromYado)
+        self.toyado.Bind(wx.EVT_CHOICE, self.OnToYado)
+
+    def _do_layout(self):
+        csize = self.GetClientSize()
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.VERTICAL)
+        sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h2 = wx.BoxSizer(wx.HORIZONTAL)
+
+        dc = wx.ClientDC(self)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        dc.SetFont(font)
+        w = dc.GetMultiLineTextExtent(cw.cwpy.msgs["transfer_from_base"])[0]
+        w = max(w, dc.GetMultiLineTextExtent(cw.cwpy.msgs["transfer_to_base"])[0])
+        w += cw.wins(3)
+
+        sizer_h1.Add((w, cw.wins(0)), 0, wx.RIGHT, cw.wins(3))
+        sizer_h1.Add(self.fromyado, 0, 0, 0)
+        sizer_h2.Add((w, cw.wins(0)), 0, wx.RIGHT, cw.wins(3))
+        sizer_h2.Add(self.toyado, 0, 0, 0)
+
+        sizer_2.Add(sizer_h1, 0, wx.EXPAND|wx.BOTTOM, cw.wins(5))
+        sizer_2.Add(sizer_h2, 0, wx.EXPAND|wx.BOTTOM, cw.wins(5))
+
+        sizer_2.Add(self.datalist, 1, wx.EXPAND, cw.wins(5))
+
+        sizer_1.Add(sizer_2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, cw.wins(5))
+
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2.Add((0, 0), 1, 0, 0)
+        sizer_2.Add(self.okbtn, 0, wx.LEFT|wx.RIGHT, cw.wins(5))
+        sizer_2.Add((0, 0), 1, 0, 0)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, cw.wins(5))
+        sizer_2.Add((0, 0), 1, 0, 0)
+        sizer_1.Add(sizer_2, 0, wx.EXPAND|wx.TOP|wx.BOTTOM, cw.wins(10))
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)

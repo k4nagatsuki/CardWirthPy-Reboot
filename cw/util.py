@@ -2044,13 +2044,20 @@ class CheckableListCtrl(wx.ListCtrl,
                         wx.lib.mixins.listctrl.CheckListCtrlMixin,
                         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     """チェックボックス付きのリスト。"""
-    def __init__(self, parent, id, size, style):
-        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
+    def __init__(self, parent, id, size, style, colpos=0):
+        wx.ListCtrl.__init__(self, parent, id, size=size, style=style|wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
-        self.InsertColumn(0, u"")
-        self.SetColumnWidth(0, 170)
-        self.setResizeColumn(0)
+#        w, h = self.GetImageList(wx.IMAGE_LIST_SMALL).GetSize(0)
+        for i in xrange(colpos+1):
+            self.InsertColumn(i, u"")
+
+        self.InsertImageStringItem(0, u"", 0)
+        rect = self.GetItemRect(0, wx.LIST_RECT_LABEL)
+        self.SetColumnWidth(0, rect.x)
+        self.DeleteAllItems()
+
+        self.resizeLastColumn(0)
 
 def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     """toppanelの左右の領域をクリックすると

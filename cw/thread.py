@@ -3094,7 +3094,7 @@ class CWPy(_Singleton, threading.Thread):
                     if os.path.isfile(temppath):
                         self.ydata.deletedpaths.add(temppath)
 
-    def copy_materials(self, data, dstdir, from_scenario=True, scedir=""):
+    def copy_materials(self, data, dstdir, from_scenario=True, scedir="", yadodir=None, toyado=None):
         """
         from_scenario: Trueの場合は開いているシナリオから、
                        Falseの場合は開いている宿からコピーする
@@ -3112,46 +3112,65 @@ class CWPy(_Singleton, threading.Thread):
         else:
             prop = data.find("Property")
 
-        e = cw.data.make_element("Materials", dstdir.replace(self.yadodir + "/", "", 1))
-        prop.append(e)
+        if toyado:
+            yadodir2 = toyado
+            dstdir2 = dstdir.replace(toyado + "/", "", 1)
+        else:
+            yadodir2 = self.yadodir
+            dstdir2 = dstdir.replace(yadodir2 + "/", "", 1)
+
+        emp = prop.find("Materials")
+        if emp is None:
+            mdir = ""
+            e = cw.data.make_element("Materials", dstdir2)
+            prop.append(e)
+        else:
+            mdir = emp.text
+            emp.text = dstdir2
+
         for e in data.getiterator():
             if e.tag in ("ImagePath", "SoundPath", "SoundPath2") and e.text:
                 def set_material(text):
                     e.text = text
-                self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, e.text, set_material)
+                self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, e.text, set_material, yadodir, toyado)
             elif e.tag in ("Play", "Talk"):
                 path = e.getattr(".", "path", "")
                 if path:
                     def set_material(text):
                         e.attrib["path"] = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
             elif e.tag == "Text" and e.text:
                 for spchar in r_specialfont.findall(e.text):
                     c = "font_" + spchar[1:]
+                    if not emp is None:
+                        c = cw.util.join_paths(mdir, c)
                     def set_material(text):
                         pass
                     for ext in cw.EXTS_IMG:
-                        self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, c + ext, set_material)
+                        self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, c + ext, set_material, yadodir, toyado)
 
             elif e.tag == "Effect":
                 path = e.getattr(".", "sound", "")
                 if path:
                     def set_material(text):
                         e.attrib["sound"] = text
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
 
-    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material):
+    def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir, toyado):
         pisc = not e is None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
         if pisc:
             imgpath = materialpath
         else:
-            if from_scenario:
+            if yadodir:
+                imgpath = cw.util.join_paths(yadodir, materialpath)
+            elif from_scenario:
                 if not scedir:
                     scedir = self.sdata.scedir
                 imgpath = cw.util.join_paths(scedir, materialpath)
             else:
                 imgpath = cw.util.join_yadodir(materialpath)
-            imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
+            if not yadodir:
+                imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
 
         if not (pisc or os.path.isfile(imgpath)):
             return
@@ -3171,7 +3190,7 @@ class CWPy(_Singleton, threading.Thread):
                     innerfpath = innerfpath.replace(scedir + "/", "", 1)
                     def func(text):
                         pass
-                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func)
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, None, innerfpath, func, yadodir, toyado)
 
             except Exception:
                 cw.util.print_ex()
@@ -3191,9 +3210,9 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 dname = os.path.basename(imgpath)
             imgdst = cw.util.join_paths(dstdir, dname)
-            imgdst = cw.util.dupcheck_plus(imgdst)
+            imgdst = cw.util.dupcheck_plus(imgdst, yado=not yadodir)
 
-            if imgdst.startswith("Yado"):
+            if not yadodir and imgdst.startswith("Yado"):
                 imgdst = imgdst.replace(self.yadodir, self.tempdir, 1)
 
             # 対象画像コピー
@@ -3207,7 +3226,10 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 shutil.copy2(imgpath, imgdst)
             # ElementTree編集
-            materialpath = imgdst.replace(self.tempdir + "/", "", 1)
+            if yadodir:
+                materialpath = imgdst.replace(toyado + "/", "", 1)
+            else:
+                materialpath = imgdst.replace(self.tempdir + "/", "", 1)
             set_material(materialpath)
             if not pisc:
                 # 重複して処理しないよう辞書に登録
