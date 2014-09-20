@@ -48,6 +48,7 @@ class MusicInterface(object):
         self._winmm = False
         self._bass = False
         self._movie = None
+        self.inusecard = False
 
     def update_scale(self):
         if self._movie:
@@ -55,18 +56,18 @@ class MusicInterface(object):
             rect = cw.wins(pygame.Rect((0, 0), self._movie.get_size()))
             self._movie.set_display(self.movie_scr, rect)
 
-    def play(self, path, updatepredata=True, restart=False):
-        self._play(path, updatepredata, restart)
+    def play(self, path, updatepredata=True, restart=False, inusecard=False):
+        self._play(path, updatepredata, restart, inusecard)
 
-    def _play(self, path, updatepredata=True, restart=False):
+    def _play(self, path, updatepredata=True, restart=False, inusecard=False):
         if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self._play, path, updatepredata, restart)
+            cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard)
             return
 
         assert threading.currentThread() == cw.cwpy
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        fpath = self.get_path(path)
+        fpath = self.get_path(path, inusecard)
         self.path = path
         if not pygame.mixer and not cw.bassplayer.is_alivablewithpath(path):
             return
@@ -220,12 +221,18 @@ class MusicInterface(object):
         self.mastervolume = volume
         self.set_volume()
 
-    def get_path(self, path):
-        inusepath = cw.util.get_inusecardmaterialpath(path, cw.M_MSC)
-        if os.path.isfile(inusepath):
-            path = inusepath
+    def get_path(self, path, inusecard=False):
+        if inusecard:
+            path = cw.util.join_yadodir(path)
+            self.inusecard = True
         else:
-            path = get_materialpath(path, cw.M_MSC, system=cw.cwpy.areaid < 0)
+            inusepath = cw.util.get_inusecardmaterialpath(path, cw.M_MSC)
+            if os.path.isfile(inusepath):
+                path = inusepath
+                self.inusecard = True
+            else:
+                path = get_materialpath(path, cw.M_MSC, system=cw.cwpy.areaid < 0)
+                self.inusecard = False
 
         return path
 

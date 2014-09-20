@@ -22,10 +22,10 @@ def load(path):
         return
 
     areaid = cw.cwpy.areaid
-    musicpath = cw.cwpy.sdata.load_log(path, True)
+    musicpath, inusecard = cw.cwpy.sdata.load_log(path, True)
 
     # BGM
-    cw.cwpy.music.play(musicpath)
+    cw.cwpy.music.play(musicpath, inusecard)
 
     # キャンプ画面を開いている場合はエリア再表示
     func = cw.cwpy.change_area

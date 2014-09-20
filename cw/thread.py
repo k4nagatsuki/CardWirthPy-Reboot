@@ -1199,7 +1199,7 @@ class CWPy(_Singleton, threading.Thread):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.sdata = cw.data.ScenarioData(header)
-            loaded, musicpath = self.sdata.set_log()
+            loaded, musicpath, inusecard = self.sdata.set_log()
             self.sdata.start()
             self.update_titlebar()
             areaid = self.sdata.startid
@@ -1209,7 +1209,7 @@ class CWPy(_Singleton, threading.Thread):
             if not loaded:
                 self.ydata.party.set_numbercoupon()
 
-            def func(loaded, musicpath, areaid):
+            def func(loaded, musicpath, inusecard, areaid):
                 self.is_processing = False
                 if not self.sdata.startid in self.sdata.areas:
                     # 開始エリアが存在しない(帰還)
@@ -1217,13 +1217,13 @@ class CWPy(_Singleton, threading.Thread):
                     self.sdata.end()
                     self.set_yado()
                 elif musicpath is None or\
-                                self.music.path == self.music.get_path(musicpath):
+                                self.music.path == self.music.get_path(musicpath, inusecard):
                     self.change_area(areaid, not loaded, loaded)
                 else:
                     self.music.stop()
                     self.change_area(areaid, not loaded, loaded)
-                    self.music.play(musicpath)
-            self.exec_func(func, loaded, musicpath, areaid)
+                    self.music.play(musicpath, inusecard=inusecard)
+            self.exec_func(func, loaded, musicpath, inusecard, areaid)
         else:
             self.is_processing = False
 
@@ -3121,6 +3121,7 @@ class CWPy(_Singleton, threading.Thread):
             dstdir2 = dstdir.replace(yadodir2 + "/", "", 1)
 
         if adventurer:
+            mdir = ""
             emp = None
         else:
             emp = prop.find("Materials")
@@ -3136,22 +3137,30 @@ class CWPy(_Singleton, threading.Thread):
                     emp.text = dstdir2
                     imgpaths[mdir] = dstdir2
 
+        if yadodir and mdir:
+            from_scenario = True
+            scedir = cw.util.join_paths(yadodir, mdir)
+
         for e in data.getiterator():
-            if e.tag in ("ImagePath", "SoundPath", "SoundPath2") and e.text:
-                def set_material(text):
-                    e.text = text
-                self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, e.text, set_material, yadodir, toyado)
+            if e.tag in ("ImagePath", "SoundPath", "SoundPath2"):
+                path = e.text
+                if path:
+                    if yadodir and mdir:
+                        path = cw.util.relpath(path, mdir)
+                    def set_material(text):
+                        e.text = text
+                    self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
             elif e.tag in ("Play", "Talk"):
                 path = e.getattr(".", "path", "")
                 if path:
+                    if yadodir and mdir:
+                        path = cw.util.relpath(path, mdir)
                     def set_material(text):
                         e.attrib["path"] = text
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
             elif e.tag == "Text" and e.text:
                 for spchar in r_specialfont.findall(e.text):
                     c = "font_" + spchar[1:]
-                    if not emp is None:
-                        c = cw.util.join_paths(mdir, c)
                     def set_material(text):
                         pass
                     for ext in cw.EXTS_IMG:
@@ -3160,6 +3169,8 @@ class CWPy(_Singleton, threading.Thread):
             elif e.tag == "Effect":
                 path = e.getattr(".", "sound", "")
                 if path:
+                    if yadodir and mdir:
+                        path = cw.util.relpath(path, mdir)
                     def set_material(text):
                         e.attrib["sound"] = text
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
@@ -3169,12 +3180,12 @@ class CWPy(_Singleton, threading.Thread):
         if pisc:
             imgpath = materialpath
         else:
-            if yadodir:
-                imgpath = cw.util.join_paths(yadodir, materialpath)
-            elif from_scenario:
+            if from_scenario:
                 if not scedir:
                     scedir = self.sdata.scedir
                 imgpath = cw.util.join_paths(scedir, materialpath)
+            elif yadodir:
+                imgpath = cw.util.join_paths(yadodir, materialpath)
             else:
                 imgpath = cw.util.join_yadodir(materialpath)
             if not yadodir:
@@ -3204,9 +3215,12 @@ class CWPy(_Singleton, threading.Thread):
                 cw.util.print_ex()
 
         # 重複チェック。既に処理しているimgpathかどうか
-        if not pisc and imgpath in imgpaths:
+        keypath = imgpath
+        if yadodir and from_scenario:
+            keypath = cw.util.relpath(keypath, yadodir)
+        if not pisc and keypath in imgpaths:
             # ElementTree編集
-            set_material(imgpaths[imgpath])
+            set_material(imgpaths[keypath])
         else:
             # 対象画像のコピー先を作成
             if pisc:
@@ -3241,7 +3255,7 @@ class CWPy(_Singleton, threading.Thread):
             set_material(materialpath)
             if not pisc:
                 # 重複して処理しないよう辞書に登録
-                imgpaths[imgpath] = materialpath
+                imgpaths[keypath] = materialpath
 
 #-------------------------------------------------------------------------------
 # 状態取得用メソッド

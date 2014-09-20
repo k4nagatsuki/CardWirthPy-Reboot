@@ -1037,6 +1037,18 @@ class TransferYadoDataDialog(wx.Dialog):
             # 冒険中情報
             etree = None
             cw.util.decompress_zip(wsl, "Data/Temp", "ScenarioLog")
+
+            file = u"Data/Temp/ScenarioLog/ScenarioLog.xml"
+            etree = cw.data.xml2etree(file)
+            e = etree.getfind("Property/MusicPath")
+            if e.getbool(".", "inusecard", False):
+                e.text = counter.imgpaths.get(e.text, e.text)
+            for e in etree.getfind("BgImages"):
+                if e.getbool("ImagePath", "inusecard", False):
+                    e = e.find("ImagePath")
+                    e.text = counter.imgpaths.get(e.text, e.text)
+            etree.write()
+
             dir = u"Data/Temp/ScenarioLog/Party"
             for p in os.listdir(dir):
                 if p.lower().endswith(".xml"):
@@ -1059,6 +1071,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 self._transfer_adventurer(fromyado, toyado, e, None, counter=counter, overwrite=True)
             cw.util.remove(dir)
             shutil.move(dir2, dir)
+
             wsl = cw.util.join_paths(dstdir, u"Party.wsl")
             cw.util.compress_zip("Data/Temp/ScenarioLog", wsl)
             cw.util.remove(u"Data/Temp/ScenarioLog")

@@ -129,11 +129,11 @@ class SystemData(object):
 
         if path:
             cw.util.decompress_zip(path, "Data/Temp", "ScenarioLog")
-            musicpath = self.load_log("Data/Temp/ScenarioLog/ScenarioLog.xml", False)
-            return True, musicpath
+            musicpath, inusecard = self.load_log("Data/Temp/ScenarioLog/ScenarioLog.xml", False)
+            return True, musicpath, inusecard
         else:
             self.create_log()
-            return False, None
+            return False, None, False
 
     def remove_log(self):
         cw.util.remove("Data/Temp/ScenarioLog")
@@ -154,6 +154,8 @@ class SystemData(object):
                 self.compstamps[e.text] = True
             elif e.get("value") == "False":
                 self.compstamps[e.text] = False
+
+        return "", False
 
     def change_data(self, id):
         if cw.cwpy.is_battlestatus():
@@ -797,7 +799,7 @@ class ScenarioData(SystemData):
         ttype = ("Default", "Default")
         cw.cwpy.background.load(elements, False, ttype)
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
-        return etree.gettext("Property/MusicPath", "")
+        return etree.gettext("Property/MusicPath", ""), etree.getbool("Property/MusicPath", "inusecard", False)
 
     def update_log(self):
         cw.xmlcreater.create_scenariolog(self, "Data/Temp/ScenarioLog/ScenarioLog.xml", False)
