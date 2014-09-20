@@ -3130,7 +3130,11 @@ class CWPy(_Singleton, threading.Thread):
                 prop.append(e)
             else:
                 mdir = emp.text
-                emp.text = dstdir2
+                if mdir in imgpaths:
+                    emp.text = imgpaths[mdir]
+                else:
+                    emp.text = dstdir2
+                    imgpaths[mdir] = dstdir2
 
         for e in data.getiterator():
             if e.tag in ("ImagePath", "SoundPath", "SoundPath2") and e.text:
