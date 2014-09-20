@@ -699,18 +699,19 @@ class TransferYadoDataDialog(wx.Dialog):
         self.yadodirs = yadodirs
         self.yadonames = yadonames
         if selected in yadodirs:
-            self.index = yadodirs.index(selected)
+            index2 = yadodirs.index(selected)
         else:
-            self.index = 0
+            index2 = 0
+        self.index = 1 if index2 == 0 else 0
 
         # 転送元
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16), weight=wx.NORMAL)
         self.fromyado = wx.Choice(self, -1, choices=yadonames)
-        self.fromyado.SetSelection(1 if self.index == 0 else 0)
+        self.fromyado.SetSelection(self.index)
         self.fromyado.SetFont(font)
         # 転送先
         self.toyado = wx.Choice(self, -1, choices=yadonames)
-        self.toyado.SetSelection(self.index)
+        self.toyado.SetSelection(index2)
         self.toyado.SetFont(font)
 
         # 転送可能なデータリスト
@@ -885,6 +886,7 @@ class TransferYadoDataDialog(wx.Dialog):
             elif isinstance(data, cw.header.PartyHeader):
                 # パーティデータ・メンバ・荷物袋のカード
                 counter += 1
+                counter += 1
                 counter += len(data.members)
                 for type in (u"SkillCard", u"ItemCard", u"BeastCard"):
                     dpath = cw.util.join_paths(os.path.dirname(data.fpath), type)
@@ -908,6 +910,7 @@ class TransferYadoDataDialog(wx.Dialog):
             def __init__(self, outer):
                 threading.Thread.__init__(self)
                 self.outer = outer
+                self.imgpaths = {}
                 self.num = 0
                 self.msg = u""
 
@@ -988,12 +991,15 @@ class TransferYadoDataDialog(wx.Dialog):
     def _transfer_party(self, fromyado, toyado, header, yadodb, counter):
         # パーティを転送する
         pdata = cw.data.xml2etree(header.fpath)
+        membertable = {}
         for i, fpath in enumerate(header.get_memberpaths(fromyado)):
             # パーティメンバーの転送
             data = cw.data.xml2etree(fpath)
+            name1 = os.path.splitext(os.path.basename(fpath))[0]
             fpath = self._transfer_adventurer(fromyado, toyado, data, yadodb, counter=counter)
             name = os.path.splitext(os.path.basename(fpath))[0]
             pdata.find("Property/Members/Member[%s]" % (i+1)).text = name
+            membertable[name1] = name
 
         # パーティデータの転送
         dpath = os.path.dirname(header.fpath)
@@ -1003,9 +1009,6 @@ class TransferYadoDataDialog(wx.Dialog):
             os.makedirs(dstdir)
         pdata.fpath = cw.util.join_paths(dstdir, u"Party.xml")
         pdata.write()
-        wsl = os.path.splitext(header.fpath)[0] + ".wsl"
-        if os.path.isfile(wsl):
-            shutil.copy2(wsl, cw.util.join_paths(dstdir, u"Party.wsl"))
         counter.num += 1
 
         # 荷物袋の転送
@@ -1029,19 +1032,52 @@ class TransferYadoDataDialog(wx.Dialog):
         carddb.commit()
         carddb.close()
 
+        wsl = os.path.splitext(header.fpath)[0] + ".wsl"
+        if os.path.isfile(wsl):
+            # 冒険中情報
+            etree = None
+            cw.util.decompress_zip(wsl, "Data/Temp", "ScenarioLog")
+            dir = u"Data/Temp/ScenarioLog/Party"
+            for p in os.listdir(dir):
+                if p.lower().endswith(".xml"):
+                    etree = cw.data.xml2etree(cw.util.join_paths(dir, p))
+                    break
+            for e in etree.getfind("Property/Members"):
+                e.text = membertable[e.text]
+            etree.write()
+
+            dir = u"Data/Temp/ScenarioLog/Members"
+            dir2 = u"Data/Temp/ScenarioLog/Members2"
+            if not os.path.isdir(dir2):
+                os.makedirs(dir2)
+            for p in os.listdir(dir):
+                if not p.lower().endswith(".xml"):
+                    continue
+                e = cw.data.xml2etree(cw.util.join_paths(dir, p))
+                p2 = membertable[os.path.splitext(p)[0]] + ".xml"
+                e.fpath = cw.util.join_paths(dir2, p2)
+                self._transfer_adventurer(fromyado, toyado, e, None, counter=counter, overwrite=True)
+            cw.util.remove(dir)
+            shutil.move(dir2, dir)
+            wsl = cw.util.join_paths(dstdir, u"Party.wsl")
+            cw.util.compress_zip("Data/Temp/ScenarioLog", wsl)
+            cw.util.remove(u"Data/Temp/ScenarioLog")
+        counter.num += 1
+
         # 宿DBへ追加
         fpath = cw.util.join_paths(dstdir, os.path.basename(header.fpath))
         yadodb.insert_party(fpath)
 
-    def _transfer_adventurer(self, fromyado, toyado, data, yadodb, counter):
+    def _transfer_adventurer(self, fromyado, toyado, data, yadodb, counter, overwrite=False):
         # 冒険者の転送
         if isinstance(data, cw.header.AdventurerHeader):
             data = cw.data.xml2etree(data.fpath)
         dstdir = cw.util.join_paths(toyado, u"Material", u"Adventurer", data.gettext("Property/Name"))
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
-        cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado)
-        data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
-        data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
+        cw.cwpy.copy_materials(data.find("Property"), dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado, adventurer=True, imgpaths=counter.imgpaths)
+        if not overwrite:
+            data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
+            data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)
 
         for e in itertools.chain(data.getfind("SkillCards"),
                                  data.getfind("ItemCards"),
@@ -1052,17 +1088,22 @@ class TransferYadoDataDialog(wx.Dialog):
         data.write()
         if yadodb:
             yadodb.insert_adventurer(data.fpath, album=False, commit=False)
-        counter.num += 1
+        if not overwrite:
+            counter.num += 1
         return data.fpath
 
     def _transfer_card(self, fromyado, toyado, data, yadodb, counter):
         # 個別のカードの転送
         if isinstance(data, cw.header.CardHeader):
             data = cw.data.xml2etree(data.fpath)
-        dstdir = cw.util.join_paths(toyado, u"Material", data.getroot().tag, data.gettext("Property/Name"))
+        e = data.find("Property/Materials")
+        if e is None:
+            dstdir = cw.util.join_paths(toyado, u"Material", data.getroot().tag, data.gettext("Property/Name"))
+        else:
+            dstdir = cw.util.join_paths(toyado, e.text)
         dstdir = cw.util.dupcheck_plus(dstdir, yado=False)
         if not data.getbool(".", "scenariocard", False):
-            cw.cwpy.copy_materials(data, dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado)
+            cw.cwpy.copy_materials(data, dstdir, from_scenario=False, scedir="", yadodir=fromyado, toyado=toyado, imgpaths=counter.imgpaths)
         if data.fpath:
             data.fpath = data.fpath.replace(fromyado + "/", toyado + "/", 1)
             data.fpath = cw.util.dupcheck_plus(data.fpath, yado=False)

@@ -3094,7 +3094,7 @@ class CWPy(_Singleton, threading.Thread):
                     if os.path.isfile(temppath):
                         self.ydata.deletedpaths.add(temppath)
 
-    def copy_materials(self, data, dstdir, from_scenario=True, scedir="", yadodir=None, toyado=None):
+    def copy_materials(self, data, dstdir, from_scenario=True, scedir="", yadodir=None, toyado=None, adventurer=False, imgpaths=None):
         """
         from_scenario: Trueの場合は開いているシナリオから、
                        Falseの場合は開いている宿からコピーする
@@ -3104,8 +3104,9 @@ class CWPy(_Singleton, threading.Thread):
         if isinstance(data, cw.data.CWPyElementTree):
             data = data.getroot()
 
-        # 同じimgpathを重複して処理しないための辞書
-        imgpaths = {}
+        if imgpaths is None:
+            imgpaths = {}
+
         r_specialfont = re.compile("#.") # 特殊文字(#)
         if data.tag == "Property":
             prop = data
@@ -3119,14 +3120,17 @@ class CWPy(_Singleton, threading.Thread):
             yadodir2 = self.yadodir
             dstdir2 = dstdir.replace(yadodir2 + "/", "", 1)
 
-        emp = prop.find("Materials")
-        if emp is None:
-            mdir = ""
-            e = cw.data.make_element("Materials", dstdir2)
-            prop.append(e)
+        if adventurer:
+            emp = None
         else:
-            mdir = emp.text
-            emp.text = dstdir2
+            emp = prop.find("Materials")
+            if emp is None:
+                mdir = ""
+                e = cw.data.make_element("Materials", dstdir2)
+                prop.append(e)
+            else:
+                mdir = emp.text
+                emp.text = dstdir2
 
         for e in data.getiterator():
             if e.tag in ("ImagePath", "SoundPath", "SoundPath2") and e.text:

@@ -34,6 +34,7 @@ class SystemData(object):
         cw.cwpy.debug = cw.cwpy.setting.debug
         self.data = None
         self.name = ""
+        self.sdata = ""
         self.author = ""
         self.tempdir = ""
         self.scedir = ""
