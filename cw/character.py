@@ -4,6 +4,7 @@
 import os
 import copy
 import math
+import shutil
 import pygame
 
 import cw
@@ -121,12 +122,54 @@ class Character(object):
     def set_image(self, path):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        e = self.data.find("Property/ImagePath")
+        etree = None
+        eimg = None
         if self.get_imagepath():
-            dpath = cw.util.join_paths(cw.cwpy.yadodir, os.path.dirname(self.get_imagepath()))
-            cw.cwpy.ydata.deletedpaths.add(dpath)
+            if cw.cwpy.is_playingscenario():
+                # F9のためにシナリオ突入時の画像の記録を取る
+                name = os.path.splitext(os.path.basename(self.data.fpath))[0]
+                log = cw.util.join_paths(u"Data/Temp/ScenarioLog/Face/Log.xml")
+                if os.path.isfile(log):
+                    etree = cw.data.xml2etree(log)
+                else:
+                    e = cw.data.make_element("ImagePaths", "")
+                    etree = cw.data.xml2etree(element=e)
+                    etree.fpath = log
+                for e in etree.getfind(".", raiseerror=False):
+                    member = e.getattr(".", "member")
+                    if member == name:
+                        eimg = e
+                        break
+                else:
+                    fpath = self.get_imagepath()
+                    fname = os.path.basename(fpath)
+                    dname = os.path.basename(os.path.dirname(fpath))
+                    dpath = cw.util.join_paths(u"Data/Temp/ScenarioLog/Face")
+                    fpath2 = cw.util.join_yadodir(fpath)
+                    if os.path.isfile(fpath2):
+                        fpath = cw.util.join_paths(dpath, fname)
+                        fpath = cw.util.dupcheck_plus(fpath, yado=False)
+                        if not os.path.isdir(dpath):
+                            os.makedirs(dpath)
+                        shutil.copy2(fpath2, fpath)
+                        e = cw.data.make_element("ImagePath", u"", {"member":name,
+                                                                    "path":os.path.basename(fpath)})
+                    else:
+                        e = cw.data.make_element("ImagePath", u"", {"member":name,
+                                                                    "path":u""})
+
+                    etree.getroot().append(e)
+                    eimg = e
+
+            fpath = cw.util.join_yadodir(self.get_imagepath())
+            cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
+
         newpath = cw.xmlcreater.write_castimagepath(self.get_name(), path)
         self.data.edit("Property/ImagePath", newpath)
+
+        if not eimg is None:
+            eimg.text = newpath
+            etree.write()
 
     def get_name(self):
         return self.data.gettext("Property/Name", "")

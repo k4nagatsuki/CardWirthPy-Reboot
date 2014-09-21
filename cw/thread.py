@@ -1399,8 +1399,6 @@ class CWPy(_Singleton, threading.Thread):
         for fpath, header in backpacktable.iteritems():
             cw.cwpy.ydata.deletedpaths.add(header.fpath)
 
-        self.sdata.remove_log()
-
         if not self.areaid > 0:
             self.areaid = self.pre_areaids[0]
 
@@ -1409,6 +1407,13 @@ class CWPy(_Singleton, threading.Thread):
         showparty = bool(self.pcardgrp.get_sprites_from_layer(0))
         if showparty:
             self.music.stop()
+
+        logpath = u"Data/Temp/ScenarioLog/Face/Log.xml"
+        if os.path.isfile(logpath):
+            elog = cw.data.xml2etree(logpath)
+        else:
+            elog = Nones
+
         for idx, data in enumerate(self.ydata.party.members):
             if idx < len(pcards):
                 pcard = pcards[idx]
@@ -1416,9 +1421,30 @@ class CWPy(_Singleton, threading.Thread):
 
             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
             pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal")
+
+            # カード画像が変更されているPCは戻す
+            if not elog is None:
+                name = os.path.splitext(os.path.basename(data.fpath))[0]
+
+                for eimg in elog.getfind(".", raiseerror=False):
+                    if eimg.get("member", "") == name:
+                        fname = eimg.get("path", "")
+                        if fname:
+                            face = cw.util.join_paths(u"Data/Temp/ScenarioLog/Face", fname)
+                        else:
+                            face = ""
+                        pcard.data.edit("Property/ImagePath", eimg.text)
+                        if os.path.isfile(face):
+                            pcard.set_image(face)
+                        else:
+                            pcard.set_image("")
+                        break
+
             pcard.set_pos_noscale(pos_noscale)
             pcard.set_fullrecovery()
             pcard.update_image()
+
+        self.sdata.remove_log()
 
         self.ydata.party._loading = False
 
@@ -3216,7 +3242,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 重複チェック。既に処理しているimgpathかどうか
         keypath = imgpath
-        if yadodir and from_scenario:
+        if yadodir:
             keypath = cw.util.relpath(keypath, yadodir)
         if not pisc and keypath in imgpaths:
             # ElementTree編集

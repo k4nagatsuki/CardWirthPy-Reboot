@@ -1035,7 +1035,6 @@ class TransferYadoDataDialog(wx.Dialog):
         wsl = os.path.splitext(header.fpath)[0] + ".wsl"
         if os.path.isfile(wsl):
             # 冒険中情報
-            etree = None
             cw.util.decompress_zip(wsl, "Data/Temp", "ScenarioLog")
 
             file = u"Data/Temp/ScenarioLog/ScenarioLog.xml"
@@ -1049,7 +1048,17 @@ class TransferYadoDataDialog(wx.Dialog):
                     e.text = counter.imgpaths.get(e.text, e.text)
             etree.write()
 
+            file = u"Data/Temp/ScenarioLog/Face/Log.xml"
+            if os.path.isfile(file):
+                etree = cw.data.xml2etree(file)
+                for e in etree.getfind("."):
+                    member = e.get("member", "")
+                    e.set("member", membertable.get(member, member))
+                    e.text = counter.imgpaths.get(e.text, e.text)
+                etree.write()
+
             dir = u"Data/Temp/ScenarioLog/Party"
+            etree = None
             for p in os.listdir(dir):
                 if p.lower().endswith(".xml"):
                     etree = cw.data.xml2etree(cw.util.join_paths(dir, p))
