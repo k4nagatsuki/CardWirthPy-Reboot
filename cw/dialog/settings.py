@@ -658,7 +658,6 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
-        bsizer_expandmode_in = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_expandmode_draw = wx.BoxSizer(wx.HORIZONTAL)
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
@@ -681,11 +680,10 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_skin.SetMinSize((SETTINGS_WIDTH, 180))
 
         bsizer_expandmode_draw.Add(self.st_expandscr, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_expandmode_draw.Add(self.ch_expanddrawing, 0, wx.CENTER, 0)
-        bsizer_expandmode_in.Add(self.st_expandwin, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_expandmode_in.Add(self.st_expand, 1, wx.CENTER, 3)
+        bsizer_expandmode_draw.Add(self.ch_expanddrawing, 0, wx.CENTER|wx.RIGHT, 10)
+        bsizer_expandmode_draw.Add(self.st_expandwin, 0, wx.CENTER, 0)
+        bsizer_expandmode_draw.Add(self.st_expand, 0, wx.CENTER, 0)
         bsizer_expandmode.Add(bsizer_expandmode_draw, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_expandmode.Add(bsizer_expandmode_in, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_expandmode.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
         bsizer_expandmode.Add(self.ln_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
@@ -967,7 +965,7 @@ class AudioSettingPanel(wx.Panel):
         self.btn_rmvsoundfont = wx.Button(self, -1, u"削除")
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(25, -1))
-        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(-1, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
+        self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(SETTINGS_WIDTH, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
         for index, soundfont in enumerate(cw.cwpy.setting.soundfonts):
             sfont, use = soundfont
             self.list_soundfont.InsertStringItem(index, sfont)
@@ -1388,7 +1386,7 @@ class FontSettingPanel(wx.Panel):
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
             grid.SetRowLabelSize(100)
             grid.SetColLabelValue(0, u"フォント名");
-            grid.SetColSize(0, 120)
+            grid.SetColSize(0, 150)
             for i, name in enumerate(list):
                 grid.SetRowLabelValue(i, self.typenames[name])
                 grid.SetCellEditor(i, 0, editor)

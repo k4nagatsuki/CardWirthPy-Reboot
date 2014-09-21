@@ -270,18 +270,18 @@ class StatusEditDialog(wx.Dialog):
             duration = self._value(value, status.mentality_dur, (i == 0), 0)
 
         STATUSES = [
-            ("Normal",   u"正常", cw.cwpy.rsrc.statuses["MIND0_dbg"]),
-            ("Sleep",    u"眠り", cw.cwpy.rsrc.statuses["MIND1_dbg"]),
-            ("Confuse",  u"混乱", cw.cwpy.rsrc.statuses["MIND2_dbg"]),
-            ("Overheat", u"激高", cw.cwpy.rsrc.statuses["MIND3_dbg"]),
-            ("Brave",    u"勇敢", cw.cwpy.rsrc.statuses["MIND4_dbg"]),
-            ("Panic",    u"恐慌", cw.cwpy.rsrc.statuses["MIND5_dbg"]),
+            ("Normal",   u"正常", cw.cwpy.rsrc.wxstatuses["MIND0_dbg"]),
+            ("Sleep",    u"眠り", cw.cwpy.rsrc.wxstatuses["MIND1_dbg"]),
+            ("Confuse",  u"混乱", cw.cwpy.rsrc.wxstatuses["MIND2_dbg"]),
+            ("Overheat", u"激高", cw.cwpy.rsrc.wxstatuses["MIND3_dbg"]),
+            ("Brave",    u"勇敢", cw.cwpy.rsrc.wxstatuses["MIND4_dbg"]),
+            ("Panic",    u"恐慌", cw.cwpy.rsrc.wxstatuses["MIND5_dbg"]),
         ]
 
         list = []
         selected = 0
         for i, stdata in enumerate(STATUSES):
-            list.append((stdata[1], cw.image.conv2wxbmp(stdata[2])))
+            list.append((stdata[1], stdata[2]))
             if stdata[0] == value:
                 selected = i
 
@@ -599,7 +599,7 @@ class StatusButton(wx.BitmapButton):
         enable = False
         if self.mode == 0:
             # ライフ
-            image = cw.cwpy.rsrc.statuses["LIFE_dbg"]
+            image = cw.cwpy.rsrc.wxstatuses["LIFE_dbg"]
             if not self.value is None:
                 self.text1 = "%s%%" % (self.value)
                 if 0 >= self.value:
@@ -616,34 +616,34 @@ class StatusButton(wx.BitmapButton):
 
         elif self.mode == 1:
             # 中毒
-            image = cw.cwpy.rsrc.statuses["BODY0_dbg"]
+            image = cw.cwpy.rsrc.wxstatuses["BODY0_dbg"]
         elif self.mode == 2:
             # 麻痺
-            image = cw.cwpy.rsrc.statuses["BODY1_dbg"]
+            image = cw.cwpy.rsrc.wxstatuses["BODY1_dbg"]
         elif self.mode == 3:
             # 精神状態
             if self.value is None or self.value == "Normal":
                 # 正常
-                image = cw.cwpy.rsrc.statuses["MIND0_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["MIND0_dbg"]
             elif self.value == "Sleep":
                 # 眠り
-                image = cw.cwpy.rsrc.statuses["MIND1_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["MIND1_dbg"]
                 self.text1 = u"眠り"
             elif self.value == "Confuse":
                 # 混乱
-                image = cw.cwpy.rsrc.statuses["MIND2_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["MIND2_dbg"]
                 self.text1 = u"混乱"
             elif self.value == "Overheat":
                 # 激高
-                image = cw.cwpy.rsrc.statuses["MIND3_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["MIND3_dbg"]
                 self.text1 = u"激高"
             elif self.value == "Brave":
                 # 勇猛
-                image = cw.cwpy.rsrc.statuses["MIND4_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["MIND4_dbg"]
                 self.text1 = u"勇猛"
             elif self.value == "Panic":
                 # 恐慌
-                image = cw.cwpy.rsrc.statuses["MIND5_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["MIND5_dbg"]
                 self.text1 = u"恐慌"
 
             if not self.duration is None and 0 < self.duration:
@@ -652,40 +652,40 @@ class StatusButton(wx.BitmapButton):
                     enable = True
         elif self.mode == 4:
             # 呪縛
-            image = cw.cwpy.rsrc.statuses["MAGIC0_dbg"]
+            image = cw.cwpy.rsrc.wxstatuses["MAGIC0_dbg"]
         elif self.mode == 5:
             # 沈黙
-            image = cw.cwpy.rsrc.statuses["MAGIC1_dbg"]
+            image = cw.cwpy.rsrc.wxstatuses["MAGIC1_dbg"]
         elif self.mode == 6:
             # 暴露
-            image = cw.cwpy.rsrc.statuses["MAGIC2_dbg"]
+            image = cw.cwpy.rsrc.wxstatuses["MAGIC2_dbg"]
         elif self.mode == 7:
             # 魔法無効
-            image = cw.cwpy.rsrc.statuses["MAGIC3_dbg"]
+            image = cw.cwpy.rsrc.wxstatuses["MAGIC3_dbg"]
         elif self.mode == 8:
             # 行動力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP0_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["UP0_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN0_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["DOWN0_dbg"]
         elif self.mode == 9:
             # 回避力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP1_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["UP1_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN1_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["DOWN1_dbg"]
         elif self.mode == 10:
             # 抵抗力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP2_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["UP2_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN2_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["DOWN2_dbg"]
         elif self.mode == 11:
             # 防御力
             if self.value is None or self.value >= 0:
-                image = cw.cwpy.rsrc.statuses["UP3_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["UP3_dbg"]
             else:
-                image = cw.cwpy.rsrc.statuses["DOWN3_dbg"]
+                image = cw.cwpy.rsrc.wxstatuses["DOWN3_dbg"]
         assert not image is None, self.mode
 
         if self.mode == 1 or self.mode == 2:
@@ -735,7 +735,7 @@ class StatusButton(wx.BitmapButton):
                 elif -1 >= self.value:
                     colour = wx.Colour(0, 0, 187)
 
-        self.image = cw.image.conv2wxbmp(image)
+        self.image = image
 
         if colour:
             # 背景色の変更
@@ -747,21 +747,16 @@ class StatusButton(wx.BitmapButton):
             bdc.SetPen(wx.Pen(colour))
             bdc.SetBrush(wx.Brush(colour))
             bdc.DrawRectangle(0, 0, w, h)
-            bdc.DrawBitmap(self.image, 0, 0)
+            bdc.DrawBitmap(self.image, 0, 0, True)
             bdc.EndDrawing()
             self.image = canvas
 
         # 半透明化
-        # FIXME: ここでSetAlphaData()を呼ばなければ
-        #        色がおかしくなるため、enable=Trueの
-        #        時も設定を行なっている
         w = self.image.GetWidth()
         h = self.image.GetHeight()
         image = self.image.ConvertToImage()
         if not enable:
             image.SetAlphaData(chr(128) * (w*h))
-        else:
-            image.SetAlphaData(chr(255) * (w*h))
         self.image = image.ConvertToBitmap()
 
         csize = self.GetClientSize()

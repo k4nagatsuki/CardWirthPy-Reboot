@@ -629,7 +629,7 @@ class Resource(object):
         self.specialchars_is_changed = False
         self.specialchars = self.get_specialchars()
         # プレイヤカードのステータス画像(辞書)
-        self.statuses = self.get_statuses()
+        self.statuses = self.get_statuses(cw.util.load_image)
         # 適性値・使用回数値画像(辞書)
         self.stones = self.get_stones()
         # wx版。wxスレッドから初期化
@@ -686,6 +686,8 @@ class Resource(object):
         self.cursors = self.get_cursors()
         # 適性値・使用回数値画像(辞書)
         self.wxstones = self.get_wxstones()
+        # プレイヤカードのステータス画像(辞書)
+        self.wxstatuses = self.get_statuses(cw.util.load_wxbmp)
 
     def get_fontpaths(self):
         """
@@ -795,6 +797,9 @@ class Resource(object):
         if not pixelsize:
             dpi = wx.ScreenDC().GetPPI()[0]
             pixelsize = int((1.0/72 * 96) * size + 0.5)
+        else:
+            # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
+            pixelsize -= 1
 
         wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
         return wxfont
@@ -1173,35 +1178,41 @@ class Resource(object):
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
         return self.get_resources(func, dpath, self.ext_img, True)
 
-    def get_statuses(self):
+    def get_statuses(self, load_image):
         """
         ステータス表示に使う画像を読み込んで、
         ("LIFEGUAGE", "TARGET", "LIFE", "UP*", "DOWN*"はマスクする)
         pygameのサーフェスの辞書で返す。
         """
+        if load_image == cw.util.load_wxbmp:
+            ss = cw.wins
+        else:
+            ss = cw.s
+
         def func(path):
-            bmp = cw.util.load_image(path)
-            return bmp, cw.s((bmp, get_resourcesize(path)))
+            bmp = load_image(path)
+            return bmp, ss((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
         d = self.get_resources(func, dpath, self.ext_img)
 
         for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            bmp = cw.util.load_image(path, mask=True, maskpos=(1, 1))
-            d[name + "_dbg"] = bmp
-            d[name] = cw.s((bmp, get_resourcesize(path)))
+            bmp = load_image(path, mask=True, maskpos=(1, 1))
+            if load_image == cw.util.load_wxbmp:
+                d[name + "_dbg"] = bmp
+            d[name] = ss((bmp, get_resourcesize(path)))
 
         name = "TARGET"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.s((cw.util.load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
+        d[name] = ss((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
 
         name = "LIFEGUAGE"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.util.load_image(path, mask=True, maskpos="center")
+        d[name] = load_image(path, mask=True, maskpos="center")
 
         name = "LIFEBAR"
         path = cw.util.join_paths(dpath, name + self.ext_img)
-        d[name] = cw.util.load_image(path)
+        d[name] = load_image(path)
 
         return d
 

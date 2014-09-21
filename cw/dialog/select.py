@@ -1274,8 +1274,8 @@ class PartySelect(MultiViewSelect):
 
                 # 選択マーク
                 if sindex + i == self.index:
-                    bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["TARGET"])
-                    dc.DrawBitmap(bmp, ix + cw.wins(58), iy + cw.wins(80))
+                    bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
+                    dc.DrawBitmap(bmp, ix + cw.wins(58), iy + cw.wins(80), True)
 
                 if self.views / 2 == i + 1:
                     x = 0
@@ -1787,8 +1787,8 @@ class PlayerSelect(MultiViewSelect):
                     cw.util.draw_witharound(dc, s2, sx + w1 + space + cw.wins(5), sy)
                     # Selected
                     if sindex + i == self.index:
-                        bmp = cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["TARGET"])
-                        dc.DrawBitmap(bmp, ix + cw.wins(58), iy + cw.wins(80))
+                        bmp = cw.cwpy.rsrc.wxstatuses["TARGET"]
+                        dc.DrawBitmap(bmp, ix + cw.wins(58), iy + cw.wins(80), True)
 
                     if self.views / 2 == i + 1:
                         x = 0

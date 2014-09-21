@@ -595,7 +595,7 @@ class HistoryPanel(wx.ScrolledWindow):
     def _get_bmps(self, name):
         bmp = cw.cwpy.rsrc.pygamedialogs[name].convert_alpha()
         bmp.fill((0, 0, 0, 128), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        return cw.image.conv2wxbmp(bmp)
+        return cw.image.conv2wxbmp(cw.scr2win_s(bmp))
 
     def OnLeftUp(self, event):
         cw.cwpy.sounds["click"].play()
@@ -960,7 +960,7 @@ class StatusPanel(wx.ScrolledWindow):
         height = cw.wins(8)
 
         # 生命力の割合
-        bmp = cw.scr2win_s(cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses["LIFE"], maskpos=cw.wins((1, 1))))
+        bmp = cw.cwpy.rsrc.wxstatuses["LIFE"]
         if self.ccard.is_unconscious():
             colour = wx.Colour(0, 0, 128)
             msg = u"意識不明"
@@ -1027,7 +1027,7 @@ class StatusPanel(wx.ScrolledWindow):
             self.Refresh()
 
     def _draw_status(self, dc, msg, imgname, height):
-        bmp = cw.scr2win_s(cw.image.conv2wxbmp(cw.cwpy.rsrc.statuses[imgname]))
+        bmp = cw.scr2win_s(cw.cwpy.rsrc.wxstatuses[imgname])
         dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))
         dc.DrawText(msg, cw.wins(32), height)
         self.Refresh()
@@ -1038,37 +1038,36 @@ class StatusPanel(wx.ScrolledWindow):
             return height
         if 10 <= value:
             colour = wx.Colour(255, 0, 0)
-            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
             msg = u"%s最大ボーナス (%d)" % (enhname, dur)
         elif 7 <= value:
             colour = wx.Colour(175, 0, 0)
-            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
             msg = u"%s大ボーナス (%d)" % (enhname, dur)
         elif 4 <= value:
             colour = wx.Colour(127, 0, 0)
-            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
             msg = u"%s中ボーナス (%d)" % (enhname, dur)
         elif 1 <= value:
             colour = wx.Colour(79, 0, 0)
-            bmp = cw.cwpy.rsrc.statuses[enhimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[enhimage]
             msg = u"%s小ボーナス (%d)" % (enhname, dur)
         elif -10 >= value:
             colour = wx.Colour(0, 0, 51)
-            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
             msg = u"%s最大ペナルティ (%d)" % (enhname, dur)
         elif -7 >= value:
             colour = wx.Colour(0, 0, 85)
-            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
             msg = u"%s大ペナルティ (%d)" % (enhname, dur)
         elif -4 >= value:
             colour = wx.Colour(0, 0, 136)
-            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
             msg = u"%s中ペナルティ (%d)" % (enhname, dur)
         elif -1 >= value:
             colour = wx.Colour(0, 0, 187)
-            bmp = cw.cwpy.rsrc.statuses[pnlimage]
+            bmp = cw.cwpy.rsrc.wxstatuses[pnlimage]
             msg = u"%s小ペナルティ (%d)" % (enhname, dur)
-        bmp = cw.scr2win_s(cw.image.conv2wxbmp(bmp, maskpos=cw.wins((1, 1))))
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         dc.DrawRectangle(cw.wins(12), height - cw.wins(1), bmp.Width, bmp.Height)
         dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))

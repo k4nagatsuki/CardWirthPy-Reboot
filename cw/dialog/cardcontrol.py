@@ -28,6 +28,7 @@ class CardControl(wx.Dialog):
         # ダイアログ作成
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.SetDoubleBuffered(True)
 
         if areaid is None:
             self.areaid = cw.cwpy.areaid
@@ -45,7 +46,7 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
         # toppanel
-        self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 250)))
+        self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 285)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
         self.toppanel.SetDoubleBuffered(True)
 
@@ -57,31 +58,29 @@ class CardControl(wx.Dialog):
         self.starlight = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK_LIGHTUP"])
         self._laststar = None
 
-        self.sort = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
-        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14), weight=wx.NORMAL))
-        self.sort.Append(cw.cwpy.msgs["sort_no"])
-        self.sort.Append(cw.cwpy.msgs["sort_name"])
-        self.sort.Append(cw.cwpy.msgs["sort_level"])
-        self.sort.Append(cw.cwpy.msgs["sort_type"])
-        self.sort.Append(cw.cwpy.msgs["sort_price"])
-        self.sortwithstar = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=self.star)
+        choices = [cw.cwpy.msgs["sort_no"],
+                   cw.cwpy.msgs["sort_name"],
+                   cw.cwpy.msgs["sort_level"],
+                   cw.cwpy.msgs["sort_type"],
+                   cw.cwpy.msgs["sort_price"]]
+        self.sort = wx.ComboBox(self.toppanel, -1, size=cw.wins((75, 24)), choices=choices, style=wx.CB_READONLY)
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.sortwithstar = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=self.star)
         self.sortwithstar.SetToolTipString(cw.cwpy.msgs["sort_with_star"])
         self._update_sortwithstar()
         if not sort:
-            self.sort.Freeze()
             self.sort.Hide()
-            self.sortwithstar.Freeze()
             self.sortwithstar.Hide()
 
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
-        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
+        self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
         # sendto
-        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((115, 20)), style=wx.CB_READONLY)
+        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((115, 24)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
-        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 20)), bmp=bmp)
+        self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
         if not sendto:
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
@@ -89,7 +88,7 @@ class CardControl(wx.Dialog):
 
         # 絞込条件
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
-        self.narrow = wx.TextCtrl(self.toppanel, -1, size=cw.wins((100, 20)))
+        self.narrow = wx.TextCtrl(self.toppanel, -1, size=cw.wins((100, 24)))
         self.narrow.SetValue(cw.cwpy.setting.card_narrow)
         self.narrow.SetFont(font)
         if self.callname == "INFOVIEW":
@@ -101,7 +100,7 @@ class CardControl(wx.Dialog):
                        cw.cwpy.msgs["scenario_name"],
                        cw.cwpy.msgs["author"])
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
-        self.narrow_type = wx.combo.BitmapComboBox(self.toppanel, -1, size=cw.wins((90, 20)), choices=choices, style=wx.CB_READONLY)
+        self.narrow_type = wx.ComboBox(self.toppanel, -1, size=cw.wins((90, 24)), choices=choices, style=wx.CB_READONLY)
         self.narrow_type.SetFont(font)
         if self.callname == "INFOVIEW":
             self.narrow_type.SetSelection(cw.cwpy.setting.infoview_narrowtype)
@@ -109,9 +108,7 @@ class CardControl(wx.Dialog):
             self.narrow_type.SetSelection(cw.cwpy.setting.card_narrowtype)
 
         if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
-            self.narrow.Freeze()
             self.narrow.Hide()
-            self.narrow_type.Freeze()
             self.narrow_type.Hide()
 
         # focus
@@ -210,31 +207,74 @@ class CardControl(wx.Dialog):
                 event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
                 self.ProcessEvent(event)
 
-    def _do_layout(self, sizer_leftbar):
+    def _do_layout(self):
         """
         引数に子クラスで設定したsizer_leftbarが必要
         """
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_toppanel = wx.GridBagSizer(1, 1)
-        sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
-        # トップバー
-        self._re_layout_topbar()
-        # トップパネルにトップバーとレフトバーを設定
-        sizer_toppanel.Add(self._sizer_topbar, (0,0), (1,4), wx.EXPAND)
-        sizer_toppanel.Add(sizer_leftbar, (1,0), (2,1), wx.EXPAND)
-        sizer_toppanel.Add(cw.wins((420, 225)), (1,1), (1,3), wx.EXPAND)
-        h = self.narrow.GetSize()[1]
-        h = max(h, self.narrow_type.GetSize()[1])
-        w = self.toppanel.GetClientSize()[0] -\
-            self.narrow.GetSize()[0] -\
-            self.narrow_type.GetSize()[0] -\
-            cw.wins(84)
-        sizer_toppanel.Add((w, h), (2,1), (1,1), wx.EXPAND)
-        sizer_toppanel.Add(self.narrow, (2,2), (1,1), wx.ALIGN_CENTER_VERTICAL)
-        sizer_toppanel.Add(self.narrow_type, (2,3), (1,1), wx.ALIGN_CENTER_VERTICAL)
-        sizer_toppanel.Add(cw.wins((0, 2)), (3,0), (1,4), 0)
-        self.toppanel.SetSizer(sizer_toppanel)
+        # toppanelはSizerを使わず自前で座標を計算
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            y = cw.wins(70)
+            self.skillbtn.SetPosition((cw.wins(6), y))
+            y += self.skillbtn.GetSize()[1]
+            self.itembtn.SetPosition((cw.wins(6), y))
+            y += self.itembtn.GetSize()[1]
+            self.beastbtn.SetPosition((cw.wins(6), y))
+        elif self.callname <> "HANDVIEW":
+            # カード置き場、荷物袋、情報カード
+            y = cw.wins(50)
+            self.upbtn.SetPosition((cw.wins(6), y))
+            self.upbtn.SetSize(cw.wins((70, 40)))
+            y += self.upbtn.GetSize()[1]
+            y += cw.wins(240-110)
+            self.downbtn.SetPosition((cw.wins(6), y))
+            self.downbtn.SetSize(cw.wins((70, 40)))
+
+        cwidth = cw.wins(500)
+        cheight = cw.wins(285)
+
+        # 絞込条件
+        if self.narrow.IsShown():
+            y = cheight - cw.wins(5)
+            y -= cw.wins(24)
+            x = cwidth - cw.wins(5)
+            x -= cw.wins(90)
+            self.narrow_type.SetSize(cw.wins((90, 24)))
+            yc = y + (cw.wins(24)-self.narrow_type.GetSize()[1]) / 2
+            self.narrow_type.SetPosition((x, yc))
+            x -= cw.wins(100)
+            x -= cw.wins(2)
+            self.narrow.SetPosition((x, y))
+            self.narrow.SetSize(cw.wins((100, 24)))
+
+        # 移動先
+        x = cwidth - cw.wins(5)
+        y = cw.wins(0)
+        if self.combo.IsShown():
+            x -= cw.wins(20)
+            self.rightbtn2.SetPosition((x, y))
+            self.rightbtn2.SetSize(cw.wins((20, 24)))
+            x -= cw.wins(115)
+            self.combo.SetSize(cw.wins((115, 24)))
+            yc = y + (cw.wins(24)-self.combo.GetSize()[1]) / 2
+            self.combo.SetPosition((x, yc))
+            x -= cw.wins(20)
+            self.leftbtn2.SetPosition((x, y))
+            self.leftbtn2.SetSize(cw.wins((20, 24)))
+            x -= cw.wins(60)
+
+        if self.sort.IsShown():
+            x -= cw.wins(24)
+            self.sortwithstar.SetPosition((x, y))
+            self.sortwithstar.SetSize(cw.wins((24, 24)))
+            x -= cw.wins(75)
+            self.sort.SetSize(cw.wins((75, 24)))
+            yc = y + (cw.wins(24)-self.sort.GetSize()[1]) / 2
+            self.sort.SetPosition((x, yc))
+
         # ボタンバー
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         width = self.toppanel.GetClientSize()[0] - cw.wins(6)
         margin = (width - cw.wins(60) - self.closebtn.GetSize()[0]) / 2
         margin2 = margin + ((width - cw.wins(60) - self.closebtn.GetSize()[0]) % 2)
@@ -250,29 +290,6 @@ class CardControl(wx.Dialog):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
-
-    def _re_layout_topbar(self):
-        sortsize = self.sort.GetSize()[0], cw.wins(20)
-        starsize = self.sortwithstar.GetSize()
-        combosize = self.combo.GetSize()[0], cw.wins(20)
-        self._sizer_topbar.Clear()
-        self._sizer_topbar.SetMinSize(combosize)
-        if self.combo.IsShown():
-            self._sizer_topbar.Add((cw.wins(500)-combosize[0]-cw.wins(65)-starsize[0]-sortsize[0]-cw.wins(40), 0), 0, 0, 0)
-            if self.sort.IsShown():
-                self._sizer_topbar.Add(self.sort, 0, 0, 0)
-                self._sizer_topbar.Add(self.sortwithstar, 0, 0, 0)
-            else:
-                self._sizer_topbar.Add((self.sort.GetSize()[0], 0), 0, 0, 0)
-                self._sizer_topbar.Add((self.sortwithstar.GetSize()[0], 0), 0, 0, 0)
-            self._sizer_topbar.Add(cw.wins((60, 0)), 0, 0, 0)
-            self._sizer_topbar.Add(self.leftbtn2, 0, 0, 0)
-            self._sizer_topbar.Add(self.combo, 0, 0, 0)
-            self._sizer_topbar.Add(self.rightbtn2, 0, 0, 0)
-        else:
-            self._sizer_topbar.Add((cw.wins(500)-starsize[0]-sortsize[0], cw.wins(20)), 0, 0, 0)
-            self._sizer_topbar.Add(self.sort, 0, 0, 0)
-            self._sizer_topbar.Add(self.sortwithstar, 0, 0, 0)
 
     def OnNarrowCondition(self, event):
         cw.cwpy.sounds["page"].play()
@@ -523,26 +540,24 @@ class CardControl(wx.Dialog):
     def OnPaint(self, event):
         self.set_cardpos()
         csize = self.GetClientSize()
+        tsize = self.toppanel.GetClientSize()
 
         dc = wx.PaintDC(self.toppanel)
 
-        # 背景色
-        dc.SetBrush(wx.Brush(self.bgcolour))
-        dc.DrawRectangle(0, 0, cw.wins(505), cw.wins(271))
         # 背景の透かし
         bmp = cw.cwpy.rsrc.dialogs["PAD"]
         size = bmp.GetSize()
-        dc.DrawBitmap(bmp, (cw.wins(500)-size[0])/2, (cw.wins(270)-size[1])/2, True)
+        dc.DrawBitmap(bmp, (tsize[0]-size[0])/2, (tsize[1]-size[1])/2, True)
         # ライン
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
         dc.SetPen(wx.Pen(colour, cw.wins(1), wx.SOLID))
-        dc.DrawLine(cw.wins(1), cw.wins(20), cw.wins(499), cw.wins(20))
+        dc.DrawLine(cw.wins(1), cw.wins(24), cw.wins(499), cw.wins(24))
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW)
         dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
-        dc.DrawLine(cw.wins(1), cw.wins(21), cw.wins(499), cw.wins(21))
+        dc.DrawLine(cw.wins(1), cw.wins(25), cw.wins(499), cw.wins(25))
         # モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
         mode = self.get_mode()
         if mode == CCMODE_SHOW:
             s = cw.cwpy.msgs["mode_show"]
@@ -552,20 +567,21 @@ class CardControl(wx.Dialog):
             s = cw.cwpy.msgs["mode_battle"]
         else:
             s = cw.cwpy.msgs["mode_use"]
-        dc.DrawText(s, cw.wins(8), cw.wins(2))
-        if self.sort.IsShown():
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
-            s = cw.cwpy.msgs["sort_title"]
-            if self.combo.IsShown():
-                dc.DrawText(s, cw.wins(150), cw.wins(3))
-            else:
-                dc.DrawText(s, cw.wins(365), cw.wins(3))
-        if self.combo.IsShown():
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
-            s = cw.cwpy.msgs["send_to"]
-            dc.DrawText(s, cw.wins(295), cw.wins(3))
-        # カード枚数のフォント設定
+        fh = dc.GetTextExtent("#")[1]
+        fy = (cw.wins(24)-fh) / 2
+        dc.DrawText(s, cw.wins(8), fy)
+
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
+        fh = dc.GetTextExtent("#")[1]
+        fy = (cw.wins(24)-fh) / 2
+        if self.sort.IsShown():
+            s = cw.cwpy.msgs["sort_title"]
+            x = self.sort.GetPosition()[0] - dc.GetTextExtent(s)[0] - cw.wins(2)
+            dc.DrawText(s, x, fy)
+        if self.combo.IsShown():
+            s = cw.cwpy.msgs["send_to"]
+            x = self.leftbtn2.GetPosition()[0] - dc.GetTextExtent(s)[0] - cw.wins(2)
+            dc.DrawText(s, x, fy)
 
         # 絞込条件
         if self.narrow.IsShown():
@@ -607,9 +623,17 @@ class CardControl(wx.Dialog):
                     else:
                         dc.DrawBitmap(bmp, x, y, True)
 
+        # カード枚数のフォント設定
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
+
         # カード置場・荷物袋・情報カードマーク
         if self._leftmark:
-            dc.DrawBitmap(self._leftmark, cw.wins(3), cw.wins(85), True)
+            rect = self.upbtn.GetRect()
+            top = rect[1] + rect[3]
+            btm = self.downbtn.GetPosition()[1]
+            h = dc.GetTextExtent("#")[1] + cw.wins(1) + self._leftmark.GetHeight()
+            y = top + (btm-top-h)/2
+            dc.DrawBitmap(self._leftmark, cw.wins(3), y, True)
 
         if self.callname == "CARDPOCKET":
             # 所持カード数
@@ -617,14 +641,17 @@ class CardControl(wx.Dialog):
             maxnum = self.selection.get_cardpocketspace()[self.index3]
             s = "Cap " + str(num) + "/" + str(maxnum)
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, cw.wins(40)-w/2, cw.wins(220))
+            rect = self.beastbtn.GetRect()
+            y = rect[1] + rect[3] + cw.wins(3)
+            dc.DrawText(s, cw.wins(40)-w/2, y)
         elif self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
-             # カード置き場、荷物袋、情報カード
-             # ページ番号
-             s = str(max(self.index+1, 1))
-             s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
-             w = dc.GetTextExtent(s)[0]
-             dc.DrawText(s, cw.wins(40)-w/2, cw.wins(180))
+            # カード置き場、荷物袋、情報カード
+            if self._leftmark:
+                # ページ番号
+                s = str(max(self.index+1, 1))
+                s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, cw.wins(40)-w/2, y + self._leftmark.GetHeight()+cw.wins(1))
 
         # 保留中のイベントを実施
         if self._after_event:
@@ -1102,6 +1129,8 @@ class CardHolder(CardControl):
 
         cw.cwpy.exec_func(cw.cwpy.draw)
 
+        self._show_controls()
+
         # layout
         self._do_layout()
         # bind
@@ -1119,94 +1148,6 @@ class CardHolder(CardControl):
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
 
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
-
-    def _re_layout(self):
-        # レフトバー
-        self._sizer_leftbar.Clear()
-        if self.callname == "CARDPOCKET":
-            # キャストの手札カード
-            margin = cw.wins((235-150))/2
-            margin2 = margin + cw.wins((235-150))%2
-            self._sizer_leftbar.Add((0, margin), 0, 0, 0)
-            self._sizer_leftbar.Add(self.skillbtn, 0, wx.LEFT, cw.wins(6))
-            self._sizer_leftbar.Add(self.itembtn, 0, wx.LEFT, cw.wins(6))
-            self._sizer_leftbar.Add(self.beastbtn, 0, wx.LEFT, cw.wins(6))
-            self._sizer_leftbar.Add((0, margin2), 0, 0, 0)
-
-            self.skillbtn.Show()
-            self.itembtn.Show()
-            self.beastbtn.Show()
-            self.upbtn.Hide()
-            self.downbtn.Hide()
-        else:
-            # カード置き場、荷物袋、情報カード
-            self._sizer_leftbar.Add(cw.wins((0, 20)), 0, 0, 0)
-            self._sizer_leftbar.Add(self.upbtn, 0, wx.LEFT, cw.wins(6))
-            self._sizer_leftbar.Add(cw.wins((0, 235-110)), 0, 0, 0)
-            self._sizer_leftbar.Add(self.downbtn, 0, wx.LEFT, cw.wins(6))
-            self._sizer_leftbar.Add(cw.wins((0, 15)), 0, 0, 0)
-
-            self.upbtn.Show()
-            self.downbtn.Show()
-            if self.callname <> "INFOVIEW":
-                self.skillbtn.Hide()
-                self.itembtn.Hide()
-                self.beastbtn.Hide()
-
-        # ソート条件
-        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
-            if not self.sort.IsShown():
-                self.sort.Thaw()
-                self.sort.Show()
-                self.sortwithstar.Thaw()
-                self.sortwithstar.Show()
-                self.narrow.Thaw()
-                self.narrow.Show()
-                self.narrow_type.Thaw()
-                self.narrow_type.Show()
-            self._update_sortwithstar()
-        else:
-            if self.sort.IsShown():
-                self.sort.Freeze()
-                self.sort.Hide()
-                self.sortwithstar.Freeze()
-                self.sortwithstar.Hide()
-                self.narrow.Freeze()
-                self.narrow.Hide()
-                self.narrow_type.Freeze()
-                self.narrow_type.Hide()
-
-        if self.callname == "STOREHOUSE":
-            sorttype = cw.cwpy.setting.sort_storehouse
-        elif self.callname in ("BACKPACK", "CARDPOCKETB"):
-            sorttype = cw.cwpy.setting.sort_backpack
-        else:
-            sorttype = None
-
-        if self.sort.IsShown():
-            if sorttype == "Name":
-                self.sort.Select(1)
-            elif sorttype == "Level":
-                self.sort.Select(2)
-            elif sorttype == "Type":
-                self.sort.Select(3)
-            else:
-                self.sort.Select(0)
-
-        self._re_layout_topbar()
-
-        self._sizer_topbar.Layout()
-        self._sizer_leftbar.Layout()
-        if self.toppanel.GetSizer():
-            self.toppanel.GetSizer().Layout()
-        self.Layout()
-
-    def _do_layout(self):
-        self._sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
-
-        self._re_layout()
-
-        CardControl._do_layout(self, self._sizer_leftbar)
 
     def OnDestroy(self, event):
         for header in self._fulllist:
@@ -1411,7 +1352,8 @@ class CardHolder(CardControl):
 
         self.Parent.change_selection(self.selection)
         if self.callname <> old_callname:
-            self._re_layout()
+            self._show_controls()
+            self._do_layout()
 
         if self.callname == "CARDPOCKET" or len(self.list) <= 10:
             self.upbtn.Disable()
@@ -1419,12 +1361,60 @@ class CardHolder(CardControl):
         else:
             self.upbtn.Enable()
             self.downbtn.Enable()
-        self.Layout()
 
         if self.callname == "CARDPOCKETB":
             self.closebtn.SetLabel(cw.cwpy.msgs["return"])
         else:
             self.closebtn.SetLabel(cw.cwpy.msgs["close"])
+
+    def _show_controls(self):
+        if self.callname == "CARDPOCKET":
+            # キャストの手札カード
+            self.skillbtn.Show()
+            self.itembtn.Show()
+            self.beastbtn.Show()
+            self.upbtn.Hide()
+            self.downbtn.Hide()
+        else:
+            # カード置き場、荷物袋、情報カード
+            self.upbtn.Show()
+            self.downbtn.Show()
+            if self.callname <> "INFOVIEW":
+                self.skillbtn.Hide()
+                self.itembtn.Hide()
+                self.beastbtn.Hide()
+
+        # ソート条件
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+            if not self.sort.IsShown():
+                self.sort.Show()
+                self.sortwithstar.Show()
+                self.narrow.Show()
+                self.narrow_type.Show()
+            self._update_sortwithstar()
+        else:
+            if self.sort.IsShown():
+                self.sort.Hide()
+                self.sortwithstar.Hide()
+                self.narrow.Hide()
+                self.narrow_type.Hide()
+
+        if self.callname == "STOREHOUSE":
+            sorttype = cw.cwpy.setting.sort_storehouse
+        elif self.callname in ("BACKPACK", "CARDPOCKETB"):
+            sorttype = cw.cwpy.setting.sort_backpack
+        else:
+            sorttype = None
+
+        if self.sort.IsShown():
+            if sorttype == "Name":
+                self.sort.Select(1)
+            elif sorttype == "Level":
+                self.sort.Select(2)
+            elif sorttype == "Type":
+                self.sort.Select(3)
+            else:
+                self.sort.Select(0)
 
     def _set_backpacklist(self, narrow=True):
         if self.index3 == cw.POCKET_SKILL:
@@ -1560,25 +1550,29 @@ class CardHolder(CardControl):
 
     def OnMouseWheel(self, event):
         mousepos = event.GetPosition()
-        lpos = self._sizer_leftbar.GetPosition()
-        lsize = self._sizer_leftbar.GetSize()
-        lwidth = lsize[0] + lpos[0] * 2;
-        if self.sort.IsShown() and self.sort.GetRect().Contains(mousepos):
-            index = self.sort.GetSelection()
-            count = self.sort.GetCount()
-            if event.GetWheelRotation() > 0:
-                if index <= 0:
-                    index = count - 1
+        lwidth = cw.wins(80)
+        def selcombo(combo):
+            if combo.IsShown() and combo.GetRect().Contains(mousepos):
+                index = combo.GetSelection()
+                count = combo.GetCount()
+                if event.GetWheelRotation() > 0:
+                    if index <= 0:
+                        index = count - 1
+                    else:
+                        index -= 1
                 else:
-                    index -= 1
-            else:
-                if count <= index + 1:
-                    index = 0
-                else:
-                    index += 1
-            self.sort.Select(index)
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
-            self.ProcessEvent(btnevent)
+                    if count <= index + 1:
+                        index = 0
+                    else:
+                        index += 1
+                combo.Select(index)
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, combo.GetId())
+                self.ProcessEvent(btnevent)
+                return True
+            return False
+        if selcombo(self.sort):
+            return
+        elif selcombo(self.narrow_type):
             return
         elif self.combo.IsShown() and self.combo.GetRect().Contains(mousepos):
             if event.GetWheelRotation() > 0:
@@ -1823,10 +1817,6 @@ class HandView(CardControl):
     def get_headers(self):
         return self.list
 
-    def _do_layout(self):
-        sizer_leftbar = wx.BoxSizer(wx.VERTICAL)
-        CardControl._do_layout(self, sizer_leftbar)
-
 #-------------------------------------------------------------------------------
 #　情報カードダイアログ
 #-------------------------------------------------------------------------------
@@ -1862,45 +1852,34 @@ def get_poslist(num, mode=1):
 
         for cnt in xrange(num):
             if cnt < 5:
-                poslist.append((leftm+cw.wins(84)*cnt, cw.wins(24)))
+                poslist.append((leftm+cw.wins(84)*cnt, cw.wins(29)))
             else:
-                poslist.append((leftm+cw.wins(84)*(cnt-5), cw.wins(135)))
+                poslist.append((leftm+cw.wins(84)*(cnt-5), cw.wins(142)))
 
-    elif mode == 2:
-        # 描画エリアサイズ
-        w, h = cw.wins((425, 230))
-        # 左,上の余白
-        leftm = cw.wins(80)
+    else:
+        if mode == 2:
+            # 描画エリアサイズ
+            w, h = cw.wins((425, 230))
+            # 折り返し枚数
+            numb = 5
+            # 左,上の余白
+            leftm = cw.wins(78)
+        elif mode == 3:
+            w, h = cw.wins((505, 230))
+            numb = 6
+            leftm = cw.wins(0)
 
-        if num < 5:
+        if num < numb:
             x = (w - cw.wins(83) * num) / 2 + leftm
-            y = cw.wins(84)
+            y = cw.wins(95)
             poslist = [(x + (cw.wins(83) * cnt), y) for cnt in xrange(num)]
         else:
             row1, row2 = num / 2 + num % 2, num / 2
             x = (w - cw.wins(83) * row1) / 2 + leftm
-            y = cw.wins(33)
+            y = cw.wins(40)
             row1list = [(x + (cw.wins(83) * cnt), y) for cnt in xrange(row1)]
             x = (w - cw.wins(83) * row2) / 2 + leftm
-            y = cw.wins(150)
-            row2list = [(x + (cw.wins(83) * cnt), y) for cnt in xrange(row2)]
-            poslist = row1list + row2list
-
-    elif mode == 3:
-        # 描画エリアサイズ
-        w, h = cw.wins((505, 230))
-
-        if num < 6:
-            x = (w - cw.wins(83) * num) / 2
-            y = cw.wins(84)
-            poslist = [(x + (cw.wins(83) * cnt), y) for cnt in xrange(num)]
-        else:
-            row1, row2 = num / 2 + num % 2, num / 2
-            x = (w - cw.wins(83) * row1) / 2
-            y = cw.wins(33)
-            row1list = [(x + (cw.wins(83) * cnt), y) for cnt in xrange(row1)]
-            x = (w - cw.wins(83) * row2) / 2
-            y = cw.wins(150)
+            y = cw.wins(160)
             row2list = [(x + (cw.wins(83) * cnt), y) for cnt in xrange(row2)]
             poslist = row1list + row2list
 
