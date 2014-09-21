@@ -2932,7 +2932,7 @@ class BranchFlagValueContent(BranchContent):
 #-------------------------------------------------------------------------------
 
 methoddict = {
-    "MoveToYado": "set_yado",
+    "MoveToYado": "set_gameover2",
     "MoveToTitle": "set_title",
     "Exit": "quit",
     "ShowDialog": "call_dlg",

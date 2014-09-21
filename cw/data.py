@@ -2215,11 +2215,14 @@ class Party(object):
     def lost(self):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+        for card in self.backpack[:]:
+            cw.cwpy.trade("TRASHBOX", header=card, from_event=True, sort=False)
         for pcard in cw.cwpy.get_pcards():
             pcard.lost()
         self.members = []
 
         cw.cwpy.remove_xml(self)
+        cw.cwpy.ydata.deletedpaths.add(os.path.dirname(self.path))
 
     def get_coupontable(self):
         """

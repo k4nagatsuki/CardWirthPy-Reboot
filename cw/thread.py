@@ -1412,7 +1412,7 @@ class CWPy(_Singleton, threading.Thread):
         if os.path.isfile(logpath):
             elog = cw.data.xml2etree(logpath)
         else:
-            elog = Nones
+            elog = None
 
         for idx, data in enumerate(self.ydata.party.members):
             if idx < len(pcards):

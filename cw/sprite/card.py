@@ -798,6 +798,12 @@ class PlayerCard(CWPyCard, character.Player):
 
         return result
 
+    def lost(self):
+        cw.character.Player.lost(self)
+        for pocket in self.cardpocket:
+            for card in pocket[:]:
+                cw.cwpy.trade("TRASHBOX", header=card, from_event=True, sort=False)
+
 #-------------------------------------------------------------------------------
 #　エネミーカードスプライト
 #-------------------------------------------------------------------------------
