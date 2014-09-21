@@ -494,6 +494,11 @@ class CWPy(_Singleton, threading.Thread):
         event = wx.PyCommandEvent(wx.wxEVT_DESTROY)
         self.frame.AddPendingEvent(event)
 
+    def quit2(self):
+        self.ydata = None
+        event = wx.PyCommandEvent(wx.wxEVT_CLOSE_WINDOW)
+        self.frame.AddPendingEvent(event)
+
     def _quit(self):
         self.music.stop()
         if self.lastsound_scenario:
