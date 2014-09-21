@@ -979,7 +979,7 @@ class CardHolder(CardControl):
                 self._init_cardpocketlist()
             else:
                 assert self.callname == "CARDPOCKETB"
-                self._set_backpacklist()
+                self._set_backpacklist(narrow=False)
 
         # 左右ボタンでの移動先の有無(情報カードは左右移動無し)
         if self.callname <> "INFOVIEW":
@@ -1426,7 +1426,7 @@ class CardHolder(CardControl):
         else:
             self.closebtn.SetLabel(cw.cwpy.msgs["close"])
 
-    def _set_backpacklist(self):
+    def _set_backpacklist(self, narrow=True):
         if self.index3 == cw.POCKET_SKILL:
             type = "SkillCard"
         elif self.index3 == cw.POCKET_ITEM:
@@ -1434,7 +1434,9 @@ class CardHolder(CardControl):
         else:
             assert self.index3 == cw.POCKET_BEAST
             type = "BeastCard"
-        self.list = self._narrow(filter(lambda header: header.type == type, cw.cwpy.ydata.party.backpack))
+        self.list = filter(lambda header: header.type == type, cw.cwpy.ydata.party.backpack)
+        if narrow:
+            self.list = self._narrow(self.list)
 
     def lclick_event(self, header):
         header.negaflag = False
