@@ -1429,8 +1429,7 @@ class FontSettingPanel(wx.Panel):
         self.type.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnCellChangeType)
         self.type.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.OnEditorCreatedType)
 
-    def _select_base(self):
-        i = self.base.GetGridCursorRow()
+    def _select_base(self, i):
         if 0 <= i:
             self.st_example.SetLabel(self.get_basefontface(self.bases[i]))
             font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
@@ -1439,10 +1438,10 @@ class FontSettingPanel(wx.Panel):
             self.Layout()
 
     def OnCellChangeBase(self, event):
-        self._select_base()
+        self._select_base(self.base.GetGridCursorRow())
 
     def OnSelectFontBase(self, event):
-        self._select_base()
+        self._select_base(event.TopRow)
         event.Skip()
 
     def OnEditorCreatedBase(self, event):
@@ -1458,8 +1457,7 @@ class FontSettingPanel(wx.Panel):
             face = cw.cwpy.rsrc.fontnames_init[fonttype]
         return face
 
-    def _select_type(self):
-        i = self.type.GetGridCursorRow()
+    def _select_type(self, i):
         if 0 <= i:
             self.st_example.SetLabel(self.get_typefontface(self.types[i]))
             font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
@@ -1468,10 +1466,10 @@ class FontSettingPanel(wx.Panel):
             self.Layout()
 
     def OnCellChangeType(self, event):
-        self._select_type()
+        self._select_type(self.type.GetGridCursorRow())
 
     def OnSelectFontType(self, event):
-        self._select_type()
+        self._select_type(event.TopRow)
         event.Skip()
 
     def OnEditorCreatedType(self, event):
