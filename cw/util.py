@@ -442,7 +442,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                         return pygame.Surface((0, 0)).convert()
                     with open(path, "rb") as f2:
                         data = f2.read()
-                data = cw.image.fix_cwnext16bitbitmap(data)
+                data, ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
                     return load_image(path, mask, maskpos, f2, False, isback=isback)
             except:
@@ -1841,9 +1841,14 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                     with open(name, "rb") as f2:
                         data = f2.read()
 
-                data = cw.image.fix_cwnext16bitbitmap(data)
-                with io.BytesIO(data) as f2:
-                    image = wx.ImageFromStream(f2, wx.BITMAP_TYPE_ANY, -1)
+                data, ok = cw.image.fix_cwnext16bitbitmap(data)
+                if name and ok:
+                    # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
+                    #      二重にファイルを読む処理よりなお10倍も遅い
+                    image = wx.Image(name)
+                else:
+                    with io.BytesIO(data) as f2:
+                        image = wx.ImageFromStream(f2, wx.BITMAP_TYPE_ANY, -1)
             except:
                 print u"画像が読み込めません(load_wxbmp)", name
                 return wx.EmptyBitmap(0, 0)

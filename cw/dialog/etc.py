@@ -234,10 +234,7 @@ class BattleCommand(wx.Dialog):
             bmp = header.get_wxbmp()
 
         if header.clickedflag:
-            image = bmp.ConvertToImage()
-            size = image.GetSize()
-            image = image.Rescale(size[0]/10*9, size[1]/10*9)
-            bmp = image.ConvertToBitmap()
+            bmp = header.get_wxclickedbmp(header, bmp)
             pos = (pos[0]+cw.wins(4), pos[1]+cw.wins(5))
 
         dc.DrawBitmap(bmp, pos[0], pos[1], False)

@@ -593,9 +593,22 @@ class HistoryPanel(wx.ScrolledWindow):
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def _get_bmps(self, name):
-        bmp = cw.cwpy.rsrc.pygamedialogs[name].convert_alpha()
-        bmp.fill((0, 0, 0, 128), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        return cw.image.conv2wxbmp(cw.scr2win_s(bmp))
+        bmp = cw.cwpy.rsrc.dialogs[name]
+        x, y = cw.wins(0), cw.wins(0)
+        w, h = bmp.GetWidth(), bmp.GetHeight()
+
+        img = bmp.ConvertToImage()
+        img.SetAlphaData(chr(128) * (w*h))
+        bmp = img.ConvertToBitmap()
+        wxbmp = wx.EmptyBitmap(w, h)
+        dc = wx.MemoryDC()
+        dc.SelectObject(wxbmp)
+        dc.SetBrush(wx.Brush(wx.Colour(0, 0, 255)))
+        dc.SetPen(wx.Pen(wx.Colour(0, 0, 255)))
+        dc.DrawRectangle(-1, -1, w+2, h+2)
+        dc.DrawBitmap(bmp, x, y)
+        dc.SelectObject(wx.NullBitmap)
+        return wxbmp
 
     def OnLeftUp(self, event):
         cw.cwpy.sounds["click"].play()

@@ -613,7 +613,7 @@ class Resource(object):
         # wxスレッドから初期化
         self.buttons = {}
         # カード背景画像(辞書)
-        self.cardbgs = self.get_cardbgs()
+        self.cardbgs = self.get_cardbgs(cw.util.load_image)
         # wxダイアログで使う画像(辞書)
         self.pygamedialogs = self.get_dialogs(cw.util.load_image)
         # wx版。wxスレッドから初期化
@@ -688,6 +688,8 @@ class Resource(object):
         self.wxstones = self.get_wxstones()
         # プレイヤカードのステータス画像(辞書)
         self.wxstatuses = self.get_statuses(cw.util.load_wxbmp)
+        # カード背景画像(辞書)
+        self.wxcardbgs = self.get_cardbgs(cw.util.load_wxbmp)
 
     def get_fontpaths(self):
         """
@@ -1261,21 +1263,26 @@ class Resource(object):
         d = self.get_resources(func, dpath, ".png", True)
         return d
 
-    def get_cardbgs(self):
+    def get_cardbgs(self, load_image):
         """
         カードの背景画像を読み込んで、pygameのサーフェス
         ("PREMIER", "RARE", "HOLD", "PENALTY"はマスクする)
         の辞書で返す。
         """
+        if load_image == cw.util.load_wxbmp:
+            ss = cw.wins
+        else:
+            ss = cw.s
+
         def func(path):
-            return cw.s((cw.util.load_image(path), get_resourcesize(path)))
+            return ss((load_image(path), get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
         d = self.get_resources(func, dpath, self.ext_img)
 
         for img in (("HOLD", "center"), ("PENALTY", "center"), ("PREMIER", "right"), ("RARE", "right")):
             name = img[0]
             path = cw.util.join_paths(dpath, name + self.ext_img)
-            d[name] = cw.s((cw.util.load_image(path, True, maskpos = img[1]), get_resourcesize(path)))
+            d[name] = ss((load_image(path, True, maskpos = img[1]), get_resourcesize(path)))
 
         return d
 

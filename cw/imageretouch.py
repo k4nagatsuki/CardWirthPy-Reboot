@@ -80,6 +80,26 @@ def to_negative_for_card(image):
     outimage.blit(image.subsurface(rect), cw.s((1, 1)), None, BLEND_RGB_SUB)
     return outimage
 
+def to_negative_for_wxcard(wxbmp):
+    """色反転したwx.Bitmapを返す。
+    カード画像用なので外枠1ピクセルは色反転しない。
+    wxbmp: wx.Bitmap
+    """
+    w, h = wxbmp.GetWidth(), wxbmp.GetHeight()
+
+    dc = wx.MemoryDC()
+    image = wx.EmptyBitmap(w, h)
+    dc.SelectObject(image)
+    dc.DrawBitmap(wxbmp, cw.wins(0), cw.wins(0))
+    if cw.wins(3) <= w and cw.wins(3) <= h:
+        x, y, w, h = wx.Rect(cw.wins(1), cw.wins(1), w - cw.wins(2), h - cw.wins(2))
+        sourcedc = wx.MemoryDC()
+        sourcedc.SelectObject(wxbmp)
+        dc.Blit(x, y, w, h, sourcedc, x, y, wx.INVERT)
+        sourcedc.SelectObject(wx.NullBitmap)
+    dc.SelectObject(wx.NullBitmap)
+    return image
+
 def add_lightness(image, value):
     """明度を調整する。
     image: pygame.Surface

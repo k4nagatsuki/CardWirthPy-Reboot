@@ -722,10 +722,7 @@ class CardControl(wx.Dialog):
 
         bmp = header.get_cardwxbmp()
         if header.clickedflag:
-            image = bmp.ConvertToImage()
-            size = image.GetSize()
-            image = image.Rescale(size[0]/10*9, size[1]/10*9)
-            bmp = image.ConvertToBitmap()
+            bmp = header.cardimg.get_wxclickedbmp(header, bmp)
         self._drawlist[header] = (bmp, False)
         self.toppanel.Refresh(rect=header.wxrect)
 

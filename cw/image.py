@@ -4,6 +4,7 @@
 import os
 import io
 import sys
+import array
 import struct
 import threading
 import wx
@@ -11,6 +12,7 @@ import pygame
 from pygame.locals import *
 
 import cw
+from wx import IMAGE_QUALITY_HIGH
 
 
 class Image(object):
@@ -23,14 +25,6 @@ class Image(object):
     def get_negaimg(self):
         image = self.get_image()
         return cw.imageretouch.to_negative(image)
-
-    def get_wxbmp(self):
-        image = self.get_image()
-        return cw.scr2win_s(conv2wxbmp(image))
-
-    def get_wxnegabmp(self):
-        image = self.get_negaimg()
-        return cw.scr2win_s(conv2wxbmp(image))
 
 #-------------------------------------------------------------------------------
 # カード関係
@@ -186,13 +180,155 @@ class CardImage(Image):
             negaimg = self.get_negaimg()
         return pygame.transform.scale(negaimg, size)
 
-    def get_wxclickedbmp(self):
-        image = self.get_clickedimg()
-        return cw.scr2win_s(conv2wxbmp(image))
+    def get_wxbmp(self):
+        self.wxcardbg = cw.cwpy.rsrc.wxcardbgs[self.bgtype]
+        self.wxrect = wx.Rect(cw.wins(0), cw.wins(0), self.wxcardbg.GetWidth(), self.wxcardbg.GetHeight())
+
+        w, h = self.wxrect.GetSize()
+        bmp = wx.EmptyBitmap(w, h)
+        dc = wx.MemoryDC()
+        dc.SelectObject(bmp)
+        dc.DrawBitmap(self.wxcardbg, 0, 0, False)
+
+        # プレミア画像
+        if self.premium == "Rare":
+            subimg = cw.cwpy.rsrc.wxcardbgs["RARE"]
+            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(64), True)
+        elif self.premium == "Premium":
+            subimg = cw.cwpy.rsrc.wxcardbgs["PREMIER"]
+            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(41), True)
+
+        pisc = cw.binary.image.path_is_code(self.path)
+        if pisc:
+            path = self.path
+        else:
+            path = cw.util.get_yadofilepath(self.path)
+
+        if not path:
+            path = self.path
+
+        cw.util.t_start()
+        subimg = cw.util.load_wxbmp(path, True)
+        subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+        dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
+        font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+        dc.SetFont(font)
+        w, h = dc.GetTextExtent(self.name)
+        subimg = wx.EmptyBitmapRGBA(w, h)
+        dc.SelectObject(subimg)
+        dc.SetBrush(wx.BLACK_BRUSH)
+        dc.SetPen(wx.BLACK_PEN)
+        dc.DrawRectangle(-1, -1, w + 2, h + 2)
+        dc.SetTextForeground(wx.WHITE)
+        dc.DrawText(self.name, cw.wins(0), cw.wins(0))
+        dc.SelectObject(bmp)
+        subimg = subimg.ConvertToImage()
+        subimg.ConvertColourToAlpha(0, 0, 0)
+
+        left = cw.wins(5)
+        if w/2 + left*2 > self.wxrect.GetWidth():
+            size = (self.wxrect.GetWidth() - left*2, h/2)
+            subimg = subimg.Rescale(size[0], h/2, quality=IMAGE_QUALITY_HIGH)
+        else:
+            subimg = subimg.Rescale(w/2, h/2, quality=IMAGE_QUALITY_HIGH)
+
+        subimg = subimg.ConvertToBitmap()
+
+        dc.DrawBitmap(subimg, left, cw.wins(5))
+
+        dc.SelectObject(wx.NullBitmap)
+
+        return bmp
 
     def get_cardwxbmp(self, header):
-        image = self.get_cardimg(header)
-        return cw.scr2win_s(conv2wxbmp(image))
+        if header.negaflag:
+            image = self.get_wxnegabmp()
+        else:
+            image = self.get_wxbmp()
+
+        if not hasattr(header, "type"):
+            return image
+
+        dc = wx.MemoryDC()
+        dc.SelectObject(image)
+
+        if header.type in ("ItemCard", "BeastCard"):
+            uselimit, maxn = header.get_uselimit()
+
+            # 使用回数(数字)
+            if maxn or (header.type == "BeastCard" and not header.attachment):
+                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(18), weight=wx.NORMAL)
+                dc.SetFont(font)
+                s = str(uselimit)
+                pos = cw.wins((5, 90))
+                for c in s:
+                    dc.SetTextForeground(wx.BLACK)
+                    dc.DrawText(c, pos[0]+1, pos[1]-1)
+                    dc.DrawText(c, pos[0],   pos[1]-1)
+                    dc.DrawText(c, pos[0]-1, pos[1]-1)
+                    dc.DrawText(c, pos[0]-1, pos[1])
+                    dc.DrawText(c, pos[0]+1, pos[1])
+                    dc.DrawText(c, pos[0]+1, pos[1]+1)
+                    dc.DrawText(c, pos[0],   pos[1]+1)
+                    dc.DrawText(c, pos[0]-1, pos[1]+1)
+
+                    if header.recycle:
+                        dc.SetTextForeground(wx.YELLOW)
+                    else:
+                        dc.SetTextForeground(wx.WHITE)
+
+                    dc.DrawText(c, pos[0], pos[1])
+                    pos = pos[0] + cw.wins(10), pos[1]
+
+        owner = header.get_owner()
+        if isinstance(owner, cw.character.Character):
+            # 適性値
+            key = "HAND" + str(header.get_vocation_level(owner))
+            subimg = cw.cwpy.rsrc.wxstones[key]
+            dc.DrawBitmap(subimg, cw.wins(60), cw.wins(90), True)
+
+            # 使用回数(画像)
+            if header.type == "SkillCard":
+                key = "HAND" + str(header.get_uselimit_level() + 5)
+                subimg = cw.cwpy.rsrc.wxstones[key]
+                dc.DrawBitmap(subimg, cw.wins(60), cw.wins(75), True)
+
+            # ホールド
+            if header.ref_original() and header.ref_original().hold:
+                subimg = cw.cwpy.rsrc.wxcardbgs["HOLD"]
+                dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
+
+            # ペナルティ
+            if header.penalty:
+                subimg = cw.cwpy.rsrc.wxcardbgs["PENALTY"]
+                dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
+
+        dc.SelectObject(wx.NullBitmap)
+
+        return image
+
+    def get_wxnegabmp(self):
+        image = self.get_wxbmp()
+        return cw.imageretouch.to_negative_for_wxcard(image)
+
+    def get_wxclickedbmp(self, header, wxbmp):
+        size = (self.wxrect.GetWidth() * 9 / 10, self.wxrect.GetHeight() * 9 / 10)
+        if wxbmp:
+            negaimg = wxbmp
+        else:
+            negaimg = self.get_cardwxbmp(header)
+
+        # FIXME: この処理がないとnegaimg.ConvertToImage()の時点で化ける
+        w, h = negaimg.GetWidth(), negaimg.GetHeight()
+        buf = array.array('B', [0] * (w*h * 3))
+        negaimg.CopyToBuffer(buf)
+        negaimg = wx.BitmapFromBuffer(w, h, buf)
+
+        image = negaimg.ConvertToImage()
+        image = image.Rescale(size[0], size[1], quality=IMAGE_QUALITY_HIGH)
+        return image.ConvertToBitmap()
 
     def update(self, card):
         pass
@@ -663,21 +799,21 @@ def fix_cwnext16bitbitmap(data):
            非常にレアなケースなのでまず問題にはならないと思われる。
     """
     if len(data) < 14 + 40:
-        return data
+        return data, True
     s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
     if s[0] <> ord('B'):
-        return data
+        return data, True
     if s[1] <> ord('M'):
-        return data
+        return data, True
     bfSize = s[2]
     bfReserved1 = s[3]
     bfReserved2 = s[4]
     bfOffBits = s[5]
     if bfOffBits == 0:
-        return data
+        return data, True
     biSize = s[6]
     if biSize <> 40:
-        return data
+        return data, True
     biWidth = s[7]
     biHeight = s[8]
     biPlanes = s[9]
@@ -697,7 +833,7 @@ def fix_cwnext16bitbitmap(data):
             with io.BytesIO(data) as f:
                 try:
                     pygame.image.load(f)
-                    return data
+                    return data, True
                 except:
                     pass
         # bfOffBitsをヘッダ直後に修正
@@ -707,7 +843,8 @@ def fix_cwnext16bitbitmap(data):
             bfOffBits += 4 * 3
         b = struct.pack("<I", bfOffBits)
         data = data[0:10] + b + data[14:]
-    return data
+        return data, False
+    return data, True
 
 def main():
     pass
