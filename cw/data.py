@@ -1200,7 +1200,13 @@ class YadoData(object):
 
     def set_skinname(self, skinname):
         self.skinname = skinname
-        self.environment.edit("Property/Skin", skinname)
+        e = self.environment.find("Property/Skin")
+        if e is None:
+            prop = self.environment.find("Property")
+            prop.append(make_element("Skin", skinname))
+        else:
+            e.text = skinname
+        self.environment.is_edited = True
 
     def load_party(self, header=None):
         """
