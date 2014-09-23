@@ -481,6 +481,8 @@
     <Message key="transfer_data">データの転送</Message>
     <Message key="transfer_processing">%sを転送中...</Message>
     <Message key="transfer_success">データの転送が完了しました。</Message>
+    <Message key="gossip">ゴシップ</Message>
+    <Message key="complete_stamp">終了印</Message>
     <Message key="card_control">カード操作</Message>
     <Message key="cards_hand">%sの手札カード</Message>
     <Message key="cards_backpack">荷物袋の手札カード</Message>

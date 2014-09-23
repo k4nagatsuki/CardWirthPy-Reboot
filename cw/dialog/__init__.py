@@ -13,6 +13,7 @@ import etc
 import settings
 import skin
 import partyrecord
+import transfer
 
 
 def main():

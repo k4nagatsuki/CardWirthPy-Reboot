@@ -928,7 +928,7 @@ class YadoDB(object):
 
     @synclock(_lock)
     def insert_partyrecord(self, path, commit=True):
-        return self._insert_party(path, commit)
+        return self._insert_partyrecord(path, commit)
 
     def _insert_partyrecord(self, path, commit=True):
         try:

@@ -489,7 +489,7 @@ class YadoSelect(Select):
                 names.append(self.names[i])
         if names:
             cw.cwpy.sounds["click"].play()
-            dlg = cw.dialog.etc.TransferYadoDataDialog(self, dirs, names, path)
+            dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
             cw.cwpy.frame.move_dlg(dlg)
             if dlg.ShowModal() == wx.ID_OK:
                 self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
@@ -1126,6 +1126,8 @@ class PartySelect(MultiViewSelect):
         dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
+        if not (1 < len(dlg.list) or cw.cwpy.ydata.party):
+            self.partyrecordbtn.Disable()
         dlg.Destroy()
 
     def get_selected(self):
@@ -1144,7 +1146,8 @@ class PartySelect(MultiViewSelect):
         # リストが空だったらボタンを無効化
         if not self.list:
             self._disable_btn()
-            self.partyrecordbtn.Enable()
+            if cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord:
+                self.partyrecordbtn.Enable()
             self.closebtn.Enable()
         elif len(self.list) == 1:
             self._enable_btn()
@@ -1154,6 +1157,9 @@ class PartySelect(MultiViewSelect):
             self.left2btn.Disable()
         else:
             self._enable_btn()
+
+        if not (cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord):
+            self.partyrecordbtn.Disable()
 
     def draw(self, update=False):
         dc = Select.draw(self, update)
@@ -1560,7 +1566,7 @@ class PlayerSelect(MultiViewSelect):
         items = [
             (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer, bool(self.list)),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer, bool(self.list)),
-            (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord),
+            (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord, bool(cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord)),
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)

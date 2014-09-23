@@ -153,7 +153,16 @@ class SelectPartyRecord(select.Select):
         cw.cwpy.exec_func(func, header)
         self.list.remove(header)
         self.index = max(0, min(self.index, len(self.list)-2))
-        self.draw(True)
+        if 1 < len(self.list) or cw.cwpy.ydata.party:
+            def func(panel):
+                def func(panel):
+                    panel.restorable = [None]*len(panel.list)
+                    panel.draw(True)
+                cw.cwpy.frame.exec_func(func, panel)
+            cw.cwpy.exec_func(func, self)
+        else:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+            self.ProcessEvent(btnevent)
 
     def can_clickcenter(self):
         return self.restorebtn.IsEnabled()

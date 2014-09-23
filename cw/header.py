@@ -1130,9 +1130,9 @@ class PartyRecordHeader(object):
             self.members = []
             self.membernames = []
             for e in data.getfind("Property/Members"):
-                self.members.append(e.text)
+                self.members.append(e.text if e.text else "")
                 self.membernames.append(e.getattr(".", "name", u""))
-            self.backpack = [e.attrib.get("name", "") for e in data.getfind("BackpackRecord")]
+            self.backpack = [e.get("name", "") for e in data.getfind("BackpackRecord")]
 
     def rename_member(self, fpath, name):
         """メンバの改名を通知する。"""
