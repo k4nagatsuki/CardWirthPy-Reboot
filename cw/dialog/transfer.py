@@ -343,6 +343,7 @@ class TransferYadoDataDialog(wx.Dialog):
                         elif isinstance(data, int):
                             # 資金
                             money = self.environment.getint("Property/Cashbox", 0) + data
+                            money = cw.util.numwrap(money, 0, 9999999)
                             self.environment.edit("Property/Cashbox", str(money))
                             self.num += 1
                         elif isinstance(data, list):
