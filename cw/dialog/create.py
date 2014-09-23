@@ -540,6 +540,9 @@ class AdventurerCreater(wx.Dialog):
 
     def create_adventurer(self):
         data = AdventurerData()
+        father = self.page3.father
+        mother = self.page3.mother
+        data.set_parents(father, mother)
         race = self.page2.get_race()
         data.set_race(race)
         s = self.page1.name
@@ -550,9 +553,6 @@ class AdventurerCreater(wx.Dialog):
         data.set_sex(s)
         s = self.page1.imgpath
         data.set_image(s)
-        father = self.page3.father
-        mother = self.page3.mother
-        data.set_parents(father, mother)
         s = self.page4.talent
         s = data.set_talent(s)
         seq = self.page5.get_coupons()
