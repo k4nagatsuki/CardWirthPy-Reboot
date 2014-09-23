@@ -1848,6 +1848,26 @@ class Character(object):
         idx = cw.POCKET_BEAST
         return len(self.get_pocketcards(idx)) < self.get_cardpocketspace()[idx]
 
+    def decrease_physical(self, type, time):
+        """中毒麻痺の時間経過による軽減。"""
+        for t in xrange(time):
+            # FIXME: 本家CardWirthと軽減確率が違う
+            uvalue = self.get_vocation_val(("vit", "aggressive")) + self.level + cw.cwpy.dice.roll(2)
+            tvalue = (self.poison if type == "Poison" else self.paralyze) + cw.cwpy.dice.roll(2)
+
+            flag = uvalue > tvalue
+            dice = cw.cwpy.dice.roll(2)
+            if dice == 12:
+                flag = True
+            if dice == 2:
+                flag = False
+
+            if flag:
+                if type == "Poison":
+                    self.set_poison(-1)
+                else:
+                    self.set_paralyze(-1)
+
     def set_timeelapse(self, time=1):
         """時間経過。"""
         if cw.cwpy.ydata:
@@ -1860,7 +1880,7 @@ class Character(object):
 
         # 中毒
         if self.is_poison() and not self.is_unconscious():
-            self.set_poison(-time)
+            self.decrease_physical("Poison", time)
 
             if not self.is_poison():
                 flag = True
@@ -1882,7 +1902,7 @@ class Character(object):
 
         # 麻痺
         if self.is_paralyze() and not self.is_petrified() and not self.is_unconscious():
-            self.set_paralyze(-time)
+            self.decrease_physical("Paralyze", time)
             flag |= not self.is_paralyze()
             if self.is_analyzable():
                 updateimage = True
