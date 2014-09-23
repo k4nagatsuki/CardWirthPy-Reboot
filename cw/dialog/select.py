@@ -1610,6 +1610,7 @@ class PlayerSelect(MultiViewSelect):
                     cw.cwpy.ydata.add_album(path)
                 for partyrecord in cw.cwpy.ydata.partyrecord:
                     partyrecord.vanish_member(header.fpath)
+                cw.cwpy.ydata.remove_emptypartyrecord()
                 cw.cwpy.remove_xml(header)
                 cw.cwpy.ydata.standbys.remove(header)
                 if len(self.list):
@@ -1648,6 +1649,7 @@ class PlayerSelect(MultiViewSelect):
 
             for partyrecord in cw.cwpy.ydata.partyrecord:
                 partyrecord.vanish_member(header.fpath)
+            cw.cwpy.ydata.remove_emptypartyrecord()
             cw.cwpy.remove_xml(header)
             cw.cwpy.ydata.standbys.remove(header)
             if len(self.list):

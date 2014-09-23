@@ -665,6 +665,8 @@ class ScenarioData(SystemData):
                 partyrecord.vanish_member(path)
             cw.cwpy.remove_xml(ccard.data.fpath)
 
+        cw.cwpy.ydata.remove_emptypartyrecord()
+
         self.remove_log()
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
@@ -1313,6 +1315,15 @@ class YadoData(object):
             cw.cwpy.ydata.changed()
         self.partyrecord.remove(header)
         self.deletedpaths.add(header.fpath)
+
+    def remove_emptypartyrecord(self):
+        """メンバが全滅したパーティ記録を削除する。"""
+        for header in self.partyrecord[:]:
+            for member in header.members:
+                if member:
+                    break
+            else:
+                self.partyrecord.remove(header)
 
     def can_restoreparty(self, partyrecordheader):
         """partyrecordheaderが再結成可能であればTrueを返す。
