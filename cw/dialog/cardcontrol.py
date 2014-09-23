@@ -1033,22 +1033,23 @@ class CardHolder(CardControl):
         # 情報カードダイアログの場合は切り替えが無いため不要
         if self.callname <> "INFOVIEW":
             # skill
-            self.skillbtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
+            self.skillbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
             bmp = cw.cwpy.rsrc.buttons["SKILL"]
             self.skillbtn.SetBitmapLabel(bmp, False)
             self.skillbtn.SetBitmapSelected(bmp)
             # item
-            self.itembtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
+            self.itembtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
             bmp = cw.cwpy.rsrc.buttons["ITEM"]
             self.itembtn.SetBitmapLabel(bmp, False)
             self.itembtn.SetBitmapSelected(bmp)
             # beast
-            self.beastbtn = wx.lib.buttons.GenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
+            self.beastbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
             bmp = cw.cwpy.rsrc.buttons["BEAST"]
             self.beastbtn.SetBitmapLabel(bmp, False)
             self.beastbtn.SetBitmapSelected(bmp)
             # self.index3の値からトグルをセットする
             for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn)):
+                btn.SetBackgroundColour(self.bgcolour)
                 if self.index3 == index:
                     btn.SetToggle(True)
                 else:
@@ -1346,6 +1347,9 @@ class CardHolder(CardControl):
                 self.toppanel.SetBackgroundColour(self.bgcolour)
                 self.list = self._narrow(cw.cwpy.ydata.storehouse)
             self.selection = None
+
+        for btn in (self.skillbtn, self.itembtn, self.beastbtn):
+            btn.SetBackgroundColour(self.bgcolour)
 
         self.Parent.change_selection(self.selection)
         if self.callname <> old_callname:
