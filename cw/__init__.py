@@ -226,8 +226,9 @@ def _s_impl(num, up_scr):
                 if size[0] % num[1] == 0:
                     return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_NORMAL)
                 else:
-                    # Rescale(wx.IMAGE_QUALITY_HIGH)よりも速い
-                    return image.conv2wxbmp(_s_impl(image.conv2surface(img.ConvertToBitmap())), up_scr).ConvertToImage()
+                    if not img.HasAlpha():
+                        img.InitAlpha()
+                    return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_HIGH)
             else:
                 # スケール情報の無いwx.Image(単純拡大)
                 return _s_impl(img, up_scr)
@@ -236,8 +237,7 @@ def _s_impl(num, up_scr):
             if bmp.GetWidth() <= 0 or bmp.GetHeight() <= 0:
                 return bmp
             # wx.Bitmap
-            size = num[1]
-            return image.conv2wxbmp(_s_impl(image.conv2surface(bmp), up_scr))
+            return _s_impl((bmp.ConvertToImage(), num[1]), up_scr).ConvertToBitmap()
 
         elif len(num) == 4:
             # 矩形
@@ -276,8 +276,9 @@ def _s_impl(num, up_scr):
         if up_scr % 1 == 0:
             return num.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
         else:
-            # Rescale(wx.IMAGE_QUALITY_HIGH)よりも速い
-            return image.conv2wxbmp(_s_impl(image.conv2surface(num.ConvertToBitmap())), up_scr).ConvertToImage()
+            if not num.HasAlpha():
+                num.InitAlpha()
+            return num.Rescale(w, h, wx.IMAGE_QUALITY_HIGH)
 
     elif isinstance(num, wx.Bitmap):
         # スケール情報の無いwx.Bitmap(単純拡大)
@@ -285,7 +286,7 @@ def _s_impl(num, up_scr):
         h = int(num.GetHeight() * up_scr)
         if w <= 0 or h <= 0:
             return num
-        return image.conv2wxbmp(_s_impl(image.conv2surface(num), up_scr))
+        return _s_impl(num.ConvertToImage(), up_scr).ConvertToBitmap()
 
     return num
 

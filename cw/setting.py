@@ -803,6 +803,11 @@ class Resource(object):
             # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
             pixelsize -= 1
 
+        # BUG: フォントサイズとテキストによっては
+        #      ツリーアイテムの後方が欠ける事がある
+        if name == "tree" and pixelsize % 2 == 1:
+            pixelsize += 1
+
         wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
         return wxfont
 
