@@ -214,12 +214,12 @@ class CardControl(wx.Dialog):
         # toppanelはSizerを使わず自前で座標を計算
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
-            y = cw.wins(70)
-            self.skillbtn.SetPosition((cw.wins(6), y))
+            y = cw.wins(64)
+            self.skillbtn.SetPosition((cw.wins(4), y))
             y += self.skillbtn.GetSize()[1]
-            self.itembtn.SetPosition((cw.wins(6), y))
+            self.itembtn.SetPosition((cw.wins(4), y))
             y += self.itembtn.GetSize()[1]
-            self.beastbtn.SetPosition((cw.wins(6), y))
+            self.beastbtn.SetPosition((cw.wins(4), y))
         elif self.callname <> "HANDVIEW":
             # カード置き場、荷物袋、情報カード
             y = cw.wins(50)
@@ -1033,17 +1033,17 @@ class CardHolder(CardControl):
         # 情報カードダイアログの場合は切り替えが無いため不要
         if self.callname <> "INFOVIEW":
             # skill
-            self.skillbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
+            self.skillbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
             bmp = cw.cwpy.rsrc.buttons["SKILL"]
             self.skillbtn.SetBitmapLabel(bmp, False)
             self.skillbtn.SetBitmapSelected(bmp)
             # item
-            self.itembtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
+            self.itembtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
             bmp = cw.cwpy.rsrc.buttons["ITEM"]
             self.itembtn.SetBitmapLabel(bmp, False)
             self.itembtn.SetBitmapSelected(bmp)
             # beast
-            self.beastbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((70, 50)))
+            self.beastbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((74, 54)))
             bmp = cw.cwpy.rsrc.buttons["BEAST"]
             self.beastbtn.SetBitmapLabel(bmp, False)
             self.beastbtn.SetBitmapSelected(bmp)

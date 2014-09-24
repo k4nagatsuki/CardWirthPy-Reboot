@@ -200,7 +200,7 @@ class CardHeader(object):
                                                     self.name, self.premium)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
-        self.wxrect = cw.scr2win_s(pygame.Rect(self.rect))
+        self.wxrect = pygame.Rect(self._cardimg.wxrect)
         self._cardscale = cw.UP_SCR
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
@@ -698,7 +698,7 @@ class InfoCardHeader(object):
         # TODO scaleinfo
         self._cardimg = cw.image.CardImage(self.imgpath, "INFO", self.name)
         self.rect = self._cardimg.rect
-        self.wxrect = cw.scr2win_s(self._cardimg.rect)
+        self.wxrect = self._cardimg.wxrect
         self._cardscale = cw.UP_SCR
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
@@ -1021,9 +1021,9 @@ class ScenarioHeader(object):
             if self.image:
                 with io.BytesIO(str(self.image)) as f:
                     # TODO scaleinfo
-                    self._wxbmp = cw.s((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE))
+                    self._wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE))
             else:
-                self._wxbmp = wx.EmptyBitmap(cw.s(0), cw.s(0))
+                self._wxbmp = wx.EmptyBitmap(cw.wins(0), cw.wins(0))
         return self._wxbmp
 
 class PartyHeader(object):

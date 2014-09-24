@@ -1040,7 +1040,7 @@ class StatusPanel(wx.ScrolledWindow):
             self.Refresh()
 
     def _draw_status(self, dc, msg, imgname, height):
-        bmp = cw.scr2win_s(cw.cwpy.rsrc.wxstatuses[imgname])
+        bmp = cw.cwpy.rsrc.wxstatuses[imgname]
         dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))
         dc.DrawText(msg, cw.wins(32), height)
         self.Refresh()

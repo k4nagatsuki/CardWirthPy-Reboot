@@ -2637,7 +2637,7 @@ class ScenarioSelect(Select):
 
             # 見出し画像
             if header.image:
-                bmp = cw.scr2win_s(header.get_wxbmp())
+                bmp = header.get_wxbmp()
                 w = bmp.GetSize()[0]
                 # 左上位置固定(互換性維持)
                 dc.DrawBitmap(bmp, cw.wins(163), cw.wins(65), True)

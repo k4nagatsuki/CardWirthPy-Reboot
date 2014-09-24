@@ -48,6 +48,14 @@ class CardImage(Image):
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
 
+    @property
+    def wxcardbg(self):
+        return cw.cwpy.rsrc.wxcardbgs[self.bgtype]
+
+    @property
+    def wxrect(self):
+        return pygame.Rect(0, 0, self.wxcardbg.GetWidth(), self.wxcardbg.GetHeight())
+
     def is_modifiedfile(self):
         if cw.binary.image.path_is_code(self.path):
             return False
@@ -181,10 +189,7 @@ class CardImage(Image):
         return pygame.transform.scale(negaimg, size)
 
     def get_wxbmp(self):
-        self.wxcardbg = cw.cwpy.rsrc.wxcardbgs[self.bgtype]
-        self.wxrect = wx.Rect(cw.wins(0), cw.wins(0), self.wxcardbg.GetWidth(), self.wxcardbg.GetHeight())
-
-        w, h = self.wxrect.GetSize()
+        w, h = self.wxrect.size
         bmp = wx.EmptyBitmap(w, h)
         dc = wx.MemoryDC()
         dc.SelectObject(bmp)
@@ -228,8 +233,8 @@ class CardImage(Image):
         subimg.ConvertColourToAlpha(0, 0, 0)
 
         left = cw.wins(5)
-        if w/2 + left*2 > self.wxrect.GetWidth():
-            size = (self.wxrect.GetWidth() - left*2, h/2)
+        if w/2 + left*2 > self.wxrect.width:
+            size = (self.wxrect.width - left*2, h/2)
             subimg = subimg.Rescale(size[0], h/2, quality=IMAGE_QUALITY_HIGH)
         else:
             subimg = subimg.Rescale(w/2, h/2, quality=IMAGE_QUALITY_HIGH)
@@ -314,7 +319,7 @@ class CardImage(Image):
         return cw.imageretouch.to_negative_for_wxcard(image)
 
     def get_wxclickedbmp(self, header, wxbmp):
-        size = (self.wxrect.GetWidth() * 9 / 10, self.wxrect.GetHeight() * 9 / 10)
+        size = (self.wxrect.width * 9 / 10, self.wxrect.height * 9 / 10)
         if wxbmp:
             negaimg = wxbmp
         else:
