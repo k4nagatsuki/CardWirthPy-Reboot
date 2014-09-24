@@ -464,6 +464,14 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
         self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
 
+        def clear_keyin(event):
+            cw.cwpy.exec_func(cw.cwpy.keyevent.clear_keyin, event.GetKeyCode())
+        def recurse(c):
+            c.Bind(wx.EVT_KEY_UP, clear_keyin)
+            for cc in c.GetChildren():
+                recurse(cc)
+        recurse(self)
+
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
         self.Destroy()
@@ -1298,6 +1306,7 @@ class EventTreeCtrl(wx.TreeCtrl):
         self.SetImageList(self.imglist)
         self.refresh_tree()
         self.refresh_activeitem()
+        self.processing = False
         self._bind()
 
     def _bind(self):
@@ -1335,10 +1344,13 @@ class EventTreeCtrl(wx.TreeCtrl):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
+        processing = self.processing
+        self.processing = True
         event = cw.cwpy.event.get_event()
 
         if event and event.cur_content in self.items:
             if self.current_content == event.cur_content:
+                self.processing = processing
                 return
             self.current_content = event.cur_content
 
@@ -1348,6 +1360,7 @@ class EventTreeCtrl(wx.TreeCtrl):
                 parent = self.GetItemParent(self.activeitem)
                 parent = self.GetItemPyData(parent)
                 if parent is None:
+                    self.processing = processing
                     return
                 s = self.get_contentname(parent, content)
                 self.SetItemText(self.activeitem, s)
@@ -1360,11 +1373,15 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.SetItemTextColour(self.activeitem, wx.RED)
         else:
             self.current_content = None
+        self.processing = processing
 
     def refresh_tree(self):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
+        processing = self.processing
+        self.processing = True
+
         nowrunning = cw.cwpy.event.get_nowrunningevent()
         if nowrunning is None:
             self.DeleteAllItems()
@@ -1372,6 +1389,7 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.activeitem = None
             self.current_tree = None
             self.current_content = None
+            self.processing = processing
             return
 
         trees = nowrunning.trees
@@ -1392,6 +1410,7 @@ class EventTreeCtrl(wx.TreeCtrl):
                     self.set_content(root, tree, name)
 
             self.ExpandAll()
+        self.processing = processing
 
     def set_content(self, parentitem, content, name):
         assert threading.currentThread() <> cw.cwpy

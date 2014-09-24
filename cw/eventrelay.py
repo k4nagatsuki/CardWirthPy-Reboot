@@ -40,6 +40,10 @@ class KeyEventRelay(object):
     def clear(self):
         self.keyin = [0 for cnt in xrange(322)]
 
+    def clear_keyin(self, wxkeycode):
+        if wxkeycode in self.keymap:
+            self.keyin[self.keymap[wxkeycode]] = 0
+
     def keydown(self, keycode):
         key = self.keymap.get(keycode, None)
 
@@ -61,6 +65,9 @@ class KeyEventRelay(object):
 
     def get_pressed(self):
         return tuple(self.keyin)
+
+    def is_keyin(self, keycode):
+        return self.threshold < self.keyin[keycode]
 
 def main():
     pass

@@ -13,13 +13,13 @@ class EventHandler(object):
         cw.cwpy.has_inputevent = False
 
         # リターンキー押しっぱなし
-        if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+        if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event()
         # 左方向キー押しっぱなし
-        elif cw.cwpy.keyin[K_LEFT] > cw.cwpy.keyevent.threshold:
+        elif cw.cwpy.keyevent.is_keyin(K_LEFT):
             self.dirkey_event(x=-1)
         # 右方向キー押しっぱなし
-        elif cw.cwpy.keyin[K_RIGHT] > cw.cwpy.keyevent.threshold:
+        elif cw.cwpy.keyevent.is_keyin(K_RIGHT):
             self.dirkey_event(x=1)
 
         exception = None
@@ -423,13 +423,13 @@ class EventHandlerForMessageWindow(EventHandler):
         cw.cwpy.has_inputevent = False
 
         # リターンキー押しっぱなし
-        if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+        if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event(True)
         # 上方向キー押しっぱなし
-        elif cw.cwpy.keyin[K_UP] > cw.cwpy.keyevent.threshold:
+        elif cw.cwpy.keyevent.is_keyin(K_UP):
             self.dirkey_event(y=-1)
         # 下方向キー押しっぱなし
-        elif cw.cwpy.keyin[K_DOWN] > cw.cwpy.keyevent.threshold:
+        elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
 
         exception = None
@@ -674,13 +674,13 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.has_inputevent = False
 
         # リターンキー押しっぱなし
-        if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+        if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event(True)
         # 上方向キー押しっぱなし
-        elif cw.cwpy.keyin[K_UP] > cw.cwpy.keyevent.threshold:
+        elif cw.cwpy.keyevent.is_keyin(K_UP):
             self.dirkey_event(y=-1)
         # 下方向キー押しっぱなし
-        elif cw.cwpy.keyin[K_DOWN] > cw.cwpy.keyevent.threshold:
+        elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
 
         exception = None
@@ -884,7 +884,7 @@ class EventHandlerForEffectBooster(EventHandler):
         cw.cwpy.has_inputevent = False
 
         # リターンキー押しっぱなし
-        if cw.cwpy.keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+        if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event(True)
 
         exception = None
