@@ -464,6 +464,9 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
         self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
 
+        # デバッガにフォーカスが合っている時に
+        # cw.cwpy.frame.OnKeyUp()が取れなくなるので
+        # ここでキーが上げられた事を検出する
         def clear_keyin(event):
             cw.cwpy.exec_func(cw.cwpy.keyevent.clear_keyin, event.GetKeyCode())
         def recurse(c):

@@ -455,6 +455,7 @@ class CardControl(wx.Dialog):
                     self.Parent.move_dlg(dlg)
                     dlg.ShowModal()
                     dlg.Destroy()
+                    self.closebtn.SetFocus()
                 self.animate_click(header, func)
                 return
 
@@ -796,6 +797,7 @@ class CardControl(wx.Dialog):
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
+            self.closebtn.SetFocus()
             return
         else:
             owner = header.get_owner()
@@ -817,6 +819,7 @@ class CardControl(wx.Dialog):
 
             dlg.Destroy()
             self.draw_cards()
+            self.closebtn.SetFocus()
             return
         elif not self.areaid in cw.AREAS_TRADE and isinstance(owner, cw.character.Character):
             if not self.check_using(owner, header):
@@ -854,6 +857,7 @@ class CardControl(wx.Dialog):
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
+            self.closebtn.SetFocus()
             return
 
         # 開いていたダイアログの情報
@@ -885,6 +889,7 @@ class CardControl(wx.Dialog):
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
+                self.closebtn.SetFocus()
             else:
                 cw.cwpy.sounds["error"].play()
             return False
@@ -903,6 +908,7 @@ class CardControl(wx.Dialog):
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
+                self.closebtn.SetFocus()
             else:
                 cw.cwpy.sounds["error"].play()
             return False
@@ -1450,6 +1456,7 @@ class CardHolder(CardControl):
                     self.Parent.move_dlg(dlg)
                     dlg.ShowModal()
                     dlg.Destroy()
+                    self.closebtn.SetFocus()
                 else:
                     cw.cwpy.sounds["error"].play()
                 self.draw_cards()
