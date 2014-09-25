@@ -86,6 +86,7 @@ class Frame(wx.Frame):
 
         if sys.platform == "win32":
             self.panel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+            self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
         else:
             # Windowsではこれらのイベントはpygame側で取れる
             self.panel.Bind(wx.EVT_MOTION, self.OnMotion)
@@ -98,6 +99,7 @@ class Frame(wx.Frame):
             self.panel.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
             self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
             self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+            self.panel.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
 
             # BUG: 以降の処理はwxPythonのバグでFrameがフォーカスを
             #      上手く取れない事への対策
@@ -248,6 +250,9 @@ class Frame(wx.Frame):
         ゲーム中は常にトップフレームがフォーカスされていなければならない。
         """
         self.SetFocus()
+
+    def OnKillFocus(self, event):
+        cw.cwpy.keyevent.clear()
 
     def OnKeyUp(self, event):
         keycode = event.GetKeyCode()

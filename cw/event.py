@@ -302,14 +302,15 @@ class EventInterface(object):
         """デバッガのイベントツリーの実行中コンテントを更新する。"""
         dbg = cw.cwpy.frame.debugger
         if cw.cwpy.is_showingdebugger():
+            self._debugger_processing = True
             def func():
                 dbg.view_tree.refresh_tree()
                 dbg.view_tree.refresh_activeitem()
+                self._debugger_processing = False
             cw.cwpy.frame.exec_func(func)
 
-            while dbg.view_tree.processing:
+            while self._debugger_processing:
                 pass
-            cw.cwpy.clear_inputevents()
 
     def wait(self):
         """デバッガのイベントコントロールバーで指定した分だけ、

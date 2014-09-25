@@ -464,17 +464,6 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
         self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
 
-        # デバッガにフォーカスが合っている時に
-        # cw.cwpy.frame.OnKeyUp()が取れなくなるので
-        # ここでキーが上げられた事を検出する
-        def clear_keyin(event):
-            cw.cwpy.exec_func(cw.cwpy.keyevent.clear_keyin, event.GetKeyCode())
-        def recurse(c):
-            c.Bind(wx.EVT_KEY_UP, clear_keyin)
-            for cc in c.GetChildren():
-                recurse(cc)
-        recurse(self)
-
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
         self.Destroy()
@@ -1307,6 +1296,8 @@ class EventTreeCtrl(wx.TreeCtrl):
                 self.imgidxs[key] = self.imglist.Add(value)
 
         self.SetImageList(self.imglist)
+        root = self.AddRoot("Event Root")
+        self.SetPyData(root, None)
         self.refresh_tree()
         self.refresh_activeitem()
         self.processing = False
@@ -1387,7 +1378,7 @@ class EventTreeCtrl(wx.TreeCtrl):
 
         nowrunning = cw.cwpy.event.get_nowrunningevent()
         if nowrunning is None:
-            self.DeleteAllItems()
+            self.DeleteChildren(self.GetRootItem())
             self.items = {}
             self.activeitem = None
             self.current_tree = None
@@ -1402,15 +1393,12 @@ class EventTreeCtrl(wx.TreeCtrl):
             self.Parent.statusbar.SetStatusText("", 1)
             self.activeitem = None
             self.items = {}
-            self.DeleteAllItems()
+            self.DeleteChildren(self.GetRootItem())
 
             if self.current_tree:
-                root = self.AddRoot("Event Root")
-                self.SetPyData(root, None)
-
                 for name in nowrunning.treekeys:
                     tree = trees[name]
-                    self.set_content(root, tree, name)
+                    self.set_content(self.GetRootItem(), tree, name)
 
             self.ExpandAll()
         self.processing = processing

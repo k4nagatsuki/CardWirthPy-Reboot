@@ -875,6 +875,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.setting.is_expanded = False
                 cw.UP_WIN = 1
                 self.update_scale(1, True, False, updatedrawsize)
+                self.clear_inputevents()
             else:
                 return
 
@@ -914,6 +915,7 @@ class CWPy(_Singleton, threading.Thread):
                 # 一度マウスポインタを画面外へ出さないと
                 # フォーカスを失うことがある
                 pygame.mouse.set_pos(pos)
+                self.clear_inputevents()
 
         else:
             # 拡大
@@ -933,6 +935,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.expand_mode = "None"
                     cw.UP_WIN = 1
                     self.update_scale(1, True, False, updatedrawsize)
+                self.clear_inputevents()
 
             except Exception:
                 cw.util.print_ex()
