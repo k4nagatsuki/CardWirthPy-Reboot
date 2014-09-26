@@ -2035,6 +2035,11 @@ class CWPy(_Singleton, threading.Thread):
                         pcard.update_image()
                         cw.animation.animate_sprite(pcard, "deal")
 
+            if areachange and not eventkeynum == 3 and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
+                # 勝利・逃走成功時に時間経過
+                # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない
+                self.elapse_time()
+
             if areachange:
                 # 戦闘前のエリアに戻る
                 self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)
