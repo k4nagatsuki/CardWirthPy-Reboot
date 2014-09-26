@@ -374,6 +374,10 @@ def create_settings(setting):
     e = cw.data.make_element("ScreenShotInformationBackgroundColor", "", d)
     element.append(e)
 
+    # デバッガでイベントツリーを垂直表示する
+    e = cw.data.make_element("ShowStraightEventTree", str(setting.show_straighteventtree))
+    element.append(e)
+
     # タイトルバーの表示内容
     e = cw.data.make_element("TitleFormat", setting.titleformat)
     element.append(e)

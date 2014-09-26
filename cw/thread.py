@@ -1231,6 +1231,8 @@ class CWPy(_Singleton, threading.Thread):
                     self.music.stop()
                     self.change_area(areaid, not loaded, loaded)
                     self.music.play(musicpath, inusecard=inusecard)
+                if self.is_showingdebugger() and self.event:
+                    self.event.refresh_variablelist()
             self.exec_func(func, loaded, musicpath, inusecard, areaid)
         else:
             self.is_processing = False

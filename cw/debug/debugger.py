@@ -3,6 +3,7 @@
 
 import os
 import sys
+import math
 import threading
 import wx
 import wx.aui
@@ -387,7 +388,10 @@ class Debugger(wx.Frame):
         # create variable view
         self.view_var = VariableListCtrl(self)
         # create eventtree view
-        self.view_tree = EventTreeCtrl(self)
+        if cw.cwpy.setting.show_straighteventtree:
+            self.view_tree = EventView(self)
+        else:
+            self.view_tree = EventTreeCtrl(self)
 
         # add pane
         self._mgr.AddPane(
@@ -1275,6 +1279,393 @@ class VariableListCtrl(wx.ListCtrl):
             self.SetItemCount(len(self.list))
 
         self.Refresh()
+
+class EventView(wx.ScrolledWindow):
+    def __init__(self, parent):
+        """イベントツリーを垂直表示するビュー。"""
+        wx.ScrolledWindow.__init__(self, parent, -1)
+        self.SetDoubleBuffered(True)
+        self.SetBackgroundColour(wx.WHITE)
+
+        # 現在実行中のイベントツリーとイベント
+        self.current_tree = None
+        self.current_content = None
+        # 現在実行中のContent(item)
+        self.activeitem = None
+        # itemの辞書(keyはコンテントデータ)
+        self.items = {}
+        self.itemlist = []
+        self.selectionitem = None
+        self.selectionindex = -1
+        self.refresh_tree()
+        self.refresh_activeitem()
+        self.processing = False
+        self.maxwidth, self.maxheight = self.GetClientSize()
+        self.scrollrate_x = 1
+        self.scrollrate_y = 1
+        self.lineheight = 1
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+
+    def AcceptsFocus(self):
+        return True
+
+    def AcceptsFocusFromKeyboard(self):
+        return True
+
+    def OnSetFocus(self, event):
+        pass
+
+    def OnKillFocus(self, event):
+        pass
+
+    def OnPaint(self, event):
+        if not self.itemlist:
+            return
+        dc = wx.PaintDC(self)
+        try:
+            dc = wx.GCDC(dc)
+        except:
+            pass
+
+        selpen = wx.Pen(wx.Colour(255, 128, 128))
+        selbrush = wx.Brush(wx.Colour(255, 240, 240))
+        actpen =wx.Pen(wx.Colour(255, 192, 192))
+        actbrush =wx.Brush(wx.Colour(255, 192, 192))
+        linepen = wx.Pen(wx.Colour(128, 128, 128))
+
+        x, y = self.GetViewStart()
+        csize = self.GetClientSize()
+        xtop = x * self.scrollrate_x
+        ytop = y * self.scrollrate_y
+        y = self.get_index((0, ytop))
+        last = self.get_item((0, ytop + csize[1]))
+
+        for item in self.itemlist[y:]:
+            if item.content.tag == u"Start" and item <> self.itemlist[0]:
+                dc.SetPen(linepen)
+                dc.DrawLine(0, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+
+            if item == self.activeitem:
+                dc.SetPen(actpen)
+                dc.SetBrush(actbrush)
+                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0], self.lineheight)
+            else:
+                dc.SetBrush(selbrush)
+            if item == self.selectionitem:
+                dc.SetPen(selpen)
+                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0], self.lineheight)
+
+        pen = wx.Pen(wx.Colour(192, 192, 192), width=4)
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        iw = cw.cwpy.rsrc.debugs["EVT_START"].GetWidth()
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        circles = []
+        for item in self.itemlist:
+            ix, iy = item.pos
+            ix -= xtop
+            iy -= ytop
+            cx = ix + iw/2
+            cy = iy + self.lineheight/2
+            if item.nextlen == 0:
+                bottom = cy+self.lineheight-4
+                dc.DrawLine(cx, cy, cx, bottom)
+                dc.DrawLine(cx-5, bottom, cx+5, bottom)
+            else:
+                for child in item.nextdata:
+                    child = self.items[child]
+                    if child.pos[0] == item.pos[0]:
+                        bottom = child.pos[1]-ytop + self.lineheight/2
+                        dc.DrawLine(cx, cy, cx, bottom)
+                    else:
+                        bottom = child.pos[1]-ytop-self.lineheight/2
+                        if cy < bottom:
+                            dc.DrawLine(cx, cy, cx, bottom)
+                            circles.append((cx, bottom+2))
+                        dc.DrawArc(cx, bottom, cx+iw, bottom+self.lineheight, cx+iw, bottom)
+        dc.SetBrush(wx.WHITE_BRUSH)
+        for cx, cy in circles:
+            dc.DrawCircle(cx, cy, 6)
+
+        for item in self.itemlist[y:]:
+            dc.DrawBitmap(item.image, item.pos[0]-xtop, item.pos[1]-ytop, True)
+            s = item.text
+            if item == self.activeitem:
+                dc.SetTextForeground(wx.RED)
+                s += u" // ACTIVE!"
+            else:
+                dc.SetTextForeground(wx.BLACK)
+            dc.DrawText(s,
+                        item.pos[0]+item.image.GetWidth()+2-xtop,
+                        item.pos[1]-ytop)
+
+            if last == item:
+                break
+
+    def get_item(self, pos):
+        index = self.get_index(pos)
+        if index == -1:
+            return None
+        else:
+            return self.itemlist[index]
+
+    def get_index(self, pos):
+        y = pos[1]
+        index = -1
+        list = self.itemlist
+        ii = 0
+        i = len(list) / 2
+        while 0 <= i and i < len(list):
+            if list[i].is_contains(pos):
+                index = i
+                break
+            elif y < list[i].pos[1]:
+                list = list[:i]
+                i = len(list) / 2
+            elif list[i].pos[1] + list[i].height <= y:
+                list = list[i+1:]
+                ii += i + 1
+                i = len(list) / 2
+        return index + ii
+
+    def OnLeftDown(self, event):
+        self.SetFocus()
+        x, y = self.GetViewStart()
+        xtop = x * self.scrollrate_x
+        ytop = y * self.scrollrate_y
+        index = self.get_index((event.GetX()+xtop, event.GetY()+ytop))
+        if index <> -1:
+            item = self.itemlist[index]
+            content = cw.content.get_content(item.content)
+            self.selectionitem = item
+            self.selectionindex = index
+            self.Parent.statusbar.SetStatusText(content.get_status(), 1)
+            self.Refresh()
+
+    def OnDClick(self, event):
+        self.SetFocus()
+        x, y = self.GetViewStart()
+        xtop = x * self.scrollrate_x
+        ytop = y * self.scrollrate_y
+        item = self.get_item((event.GetX()+xtop, event.GetY()+ytop))
+        if not item:
+            return
+
+        self.set_activeitem(item)
+
+    def set_activeitem(self, item):
+        # スタートコンテントの場合は次のコンテントへ遷移
+        data = item.content
+        if data.tag == "Start":
+            e = item.nextdata
+            if not len(e):
+                return
+            data = e[0]
+
+        if not data is None:
+            cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data)
+
+    def OnKeyDown(self, event):
+        if not self.itemlist:
+            return
+        keycode = event.GetKeyCode()
+        if keycode in (wx.WXK_LEFT, wx.WXK_UP):
+            if self.selectionitem:
+                 index = self.selectionindex
+                 if 0 < index:
+                     self.selectionitem = self.itemlist[index-1]
+                     self.selectionindex = index-1
+                     self.show_item(self.selectionitem)
+                     self.Refresh()
+            else:
+                self.selectionitem = self.itemlist[0]
+                self.selectionindex = 0
+                self.show_item(self.selectionitem)
+                self.Refresh()
+
+        elif keycode in (wx.WXK_RIGHT, wx.WXK_DOWN):
+            if self.selectionitem:
+                 index = self.selectionindex
+                 if index+1 < len(self.itemlist):
+                     self.selectionitem = self.itemlist[index+1]
+                     self.selectionindex = index+1
+                     self.show_item(self.selectionitem)
+                     self.Refresh()
+            else:
+                self.selectionitem = self.itemlist[0]
+                self.selectionindex = 0
+                self.show_item(self.selectionitem)
+                self.Refresh()
+
+    def OnKeyUp(self, event):
+        if not self.itemlist:
+            return
+        keycode = event.GetKeyCode()
+        if keycode in (wx.WXK_RETURN, wx.WXK_SPACE):
+            if not self.selectionitem:
+                return
+            if self.selectionitem == self.activeitem:
+                return
+            self.set_activeitem(self.selectionitem)
+
+    def show_item(self, item):
+        x, y = self.GetViewStart()
+        w, h = self.GetClientSize()
+        xtop = x * self.scrollrate_x
+        ytop = y * self.scrollrate_y
+        if item.pos[1] + item.height < ytop:
+            ytop = item.pos[1]
+            y = ytop / self.scrollrate_y
+            self.Scroll(x, y)
+        elif ytop + h <= item.pos[1] + item.height:
+            y = (item.pos[1] + item.height) / self.scrollrate_y
+            y -= h / self.scrollrate_y
+            self.Scroll(x, y)
+
+    def refresh_activeitem(self):
+        assert threading.currentThread() <> cw.cwpy
+        if cw.cwpy.frame.debugger is None:
+            return
+        processing = self.processing
+        self.processing = True
+        event = cw.cwpy.event.get_event()
+
+        if event and event.cur_content in self.items:
+            if self.current_content == event.cur_content:
+                self.processing = processing
+                return
+            self.current_content = event.cur_content
+            self.activeitem = self.items[event.cur_content]
+            self.show_item(self.activeitem)
+        else:
+            self.current_content = None
+        self.Refresh()
+        self.processing = processing
+
+    def refresh_tree(self):
+        assert threading.currentThread() <> cw.cwpy
+        if cw.cwpy.frame.debugger is None:
+            return
+        processing = self.processing
+        self.processing = True
+
+        nowrunning = cw.cwpy.event.get_nowrunningevent()
+        if nowrunning is None:
+            self.items = {}
+            self.itemlist = []
+            self.activeitem = None
+            self.selectionitem = None
+            self.selectionindex = -1
+            self.current_tree = None
+            self.current_content = None
+            self.processing = processing
+            self.SetVirtualSize((1, 1))
+            self.Refresh()
+            return
+
+        trees = nowrunning.trees
+        self.maxwidth, self.maxheight = 0, 0
+        icon = cw.cwpy.rsrc.debugs["EVT_START"]
+        dc = wx.ClientDC(self)
+        actw, self.lineheight = dc.GetTextExtent(" // ACTIVE!")
+        shiftx = icon.GetWidth()
+        self.lineheight = max(icon.GetHeight() + 2, self.lineheight)
+        if self.current_tree <> trees:
+            trees = nowrunning.trees
+            self.current_tree = trees
+            self.Parent.statusbar.SetStatusText(u"", 1)
+            self.activeitem = None
+            self.selectionitem = None
+            self.selectionindex = -1
+            self.items = {}
+            self.itemlist = []
+
+            if self.current_tree:
+                for name in nowrunning.treekeys:
+                    tree = trees[name]
+                    self.create_item(None, tree, shiftx, dc)
+
+            if self.itemlist:
+                item = self.itemlist[-1]
+                self.maxheight = item.pos[1] + item.height
+            self.maxwidth += actw
+
+            self.SetVirtualSize((self.maxwidth, self.maxheight))
+            self.scrollrate_x = shiftx
+            self.scrollrate_y = self.lineheight
+            self.SetScrollRate(self.scrollrate_x, self.scrollrate_y)
+            self.Scroll(0, 0)
+            self.Refresh()
+
+        self.processing = processing
+
+    def create_item(self, parentitem, content, shiftx, dc):
+        assert threading.currentThread() <> cw.cwpy
+        if parentitem:
+            parent = parentitem.content
+            x = parentitem.pos[0]
+            if parentitem.is_branch():
+                x += shiftx
+        else:
+            parent = None
+            x = 0
+        if self.itemlist:
+            item = self.itemlist[-1]
+            pos = (x, item.pos[1] + item.height)
+        else:
+            pos = (0, 0)
+        item = EventViewItem(parent, content, pos, self.lineheight, dc)
+        self.items[content] = item
+        self.itemlist.append(item)
+        self.maxwidth = max(item.pos[0] + item.width, self.maxwidth)
+        for e in item.nextdata:
+            self.create_item(item, e, shiftx, dc)
+
+class EventViewItem(object):
+    def __init__(self, parent, content, pos, lineheight, dc):
+        assert threading.currentThread() <> cw.cwpy
+        self.parent = parent
+        self.content = content
+        self.pos = pos
+        s = u""
+        if not self.parent is None:
+            parent = cw.content.get_content(self.parent)
+            if parent:
+                s = parent.get_childname(self.content)
+        else:
+            s = self.content.get("name", "")
+        self.text = s
+        s = "EVT_" + self.content.tag.upper()
+        if "type" in self.content.attrib:
+            s += "_" + self.content.get("type").upper()
+        self.image = cw.cwpy.rsrc.debugs.get(s, None)
+        self.nextdata = self.content.find("Contents")
+        self.nextlen = len(self.nextdata)
+
+        if self.nextlen:
+            self.height = lineheight
+        else:
+            self.height = lineheight * 2
+
+        self.width = self.image.GetWidth()
+        if self.text:
+            self.width += 2
+            self.width += dc.GetTextExtent(self.text)[0]
+
+    def is_branch(self):
+        return 2 <= self.nextlen or self.content.tag in ("Start", "Branch")
+
+    def is_contains(self, pos):
+        return self.pos[1] <= pos[1] and pos[1] < self.pos[1] + self.height
 
 class EventTreeCtrl(wx.TreeCtrl):
     def __init__(self, parent):

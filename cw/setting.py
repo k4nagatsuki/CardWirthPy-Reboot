@@ -112,6 +112,7 @@ class Setting(object):
         self.ssinfofontcolor = (0, 0, 0, 255)
         self.ssinfobackcolor = (255, 255, 255, 255)
         self.show_fcardsinbattle = False
+        self.show_straighteventtree = True
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -371,6 +372,9 @@ class Setting(object):
         g = data.getint("ScreenShotInformationBackgroundColor", "green", self.ssinfobackcolor[1])
         b = data.getint("ScreenShotInformationBackgroundColor", "blue", self.ssinfobackcolor[2])
         self.ssinfobackcolor = (r, g, b, 255)
+
+        # デバッガでイベントツリーを垂直表示する
+        self.show_straighteventtree = data.gettext("ShowStraightEventTree", self.show_straighteventtree)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
