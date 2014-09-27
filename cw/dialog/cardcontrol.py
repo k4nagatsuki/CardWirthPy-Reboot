@@ -88,7 +88,7 @@ class CardControl(wx.Dialog):
 
         # 絞込条件
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
-        self.narrow = wx.TextCtrl(self.toppanel, -1, size=cw.wins((100, 24)))
+        self.narrow = wx.TextCtrl(self.toppanel, -1, size=cw.wins((100, 20)))
         self.narrow.SetValue(cw.cwpy.setting.card_narrow)
         self.narrow.SetFont(font)
         if self.callname == "INFOVIEW":
@@ -100,7 +100,7 @@ class CardControl(wx.Dialog):
                        cw.cwpy.msgs["scenario_name"],
                        cw.cwpy.msgs["author"])
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
-        self.narrow_type = wx.ComboBox(self.toppanel, -1, size=cw.wins((90, 24)), choices=choices, style=wx.CB_READONLY)
+        self.narrow_type = wx.ComboBox(self.toppanel, -1, size=cw.wins((90, 20)), choices=choices, style=wx.CB_READONLY)
         self.narrow_type.SetFont(font)
         if self.callname == "INFOVIEW":
             self.narrow_type.SetSelection(cw.cwpy.setting.infoview_narrowtype)
@@ -236,16 +236,16 @@ class CardControl(wx.Dialog):
         # 絞込条件
         if self.narrow.IsShown():
             y = cheight - cw.wins(5)
-            y -= cw.wins(24)
+            y -= cw.wins(20)
             x = cwidth - cw.wins(5)
             x -= cw.wins(90)
-            self.narrow_type.SetSize(cw.wins((90, 24)))
-            yc = y + (cw.wins(24)-self.narrow_type.GetSize()[1]) / 2
+            self.narrow_type.SetSize(cw.wins((90, 20)))
+            yc = y + (cw.wins(20)-self.narrow_type.GetSize()[1]) / 2
             self.narrow_type.SetPosition((x, yc))
             x -= cw.wins(100)
             x -= cw.wins(2)
             self.narrow.SetPosition((x, y))
-            self.narrow.SetSize(cw.wins((100, 24)))
+            self.narrow.SetSize(cw.wins((100, 20)))
 
         # 移動先
         x = cwidth - cw.wins(5)
@@ -1845,7 +1845,7 @@ class InfoView(CardHolder):
 
 def get_poslist(num, mode=1):
     """
-    カード描画に使うpositionのリストを返す。
+    カード描画に使うpositionusのリストを返す。
     mode=1は荷物袋・カード置場用。
     mode=2は所持カード用。
     mode=3は戦闘カード用。
@@ -1860,9 +1860,9 @@ def get_poslist(num, mode=1):
 
         for cnt in xrange(num):
             if cnt < 5:
-                poslist.append((leftm+cw.wins(84)*cnt, cw.wins(29)))
+                poslist.append((leftm+cw.wins(84)*cnt, cw.wins(31)))
             else:
-                poslist.append((leftm+cw.wins(84)*(cnt-5), cw.wins(142)))
+                poslist.append((leftm+cw.wins(84)*(cnt-5), cw.wins(145)))
 
     else:
         if mode == 2:
