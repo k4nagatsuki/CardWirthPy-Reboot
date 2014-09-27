@@ -951,6 +951,9 @@ class CWPy(_Singleton, threading.Thread):
         locks = self.lock_menucards
         self.lock_menucards = False
 
+        if self.is_showingdebugger() and self.event and self.event._step:
+            self.event.refresh_tools()
+
         while self.is_running() and mwin.result is None:
             self.event.refresh_activeitem()
             self.update()
@@ -983,9 +986,6 @@ class CWPy(_Singleton, threading.Thread):
         # 互換性マーク削除
         if self.is_playingscenario():
             self.sdata.set_versionhint(cw.HINT_MESSAGE, None)
-
-        if self.is_showingdebugger() and self.event:
-            self.event.refresh_tools()
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。

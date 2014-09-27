@@ -54,9 +54,6 @@ class EventInterface(object):
 
         self._nowrunningevents.append(event)
 
-        if len(self._nowrunningevents) == 1:
-            self.refresh_tools()
-
     def replace_event(self, event):
         """パッケージへのリンクによって
         実行中のイベントを置換する。
@@ -346,22 +343,28 @@ class EventInterface(object):
                         pygame.time.get_ticks() < tick:
                 if not self.get_event().force_nextcontent is None:
                     break
-                self.refresh_activeitem()
+                if cnt == 0:
+                    self.refresh_tools()
+                    self.refresh_activeitem()
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1)
                 cnt += 1
 
+            cnt = 0
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                                             self._paused and not self._stoped:
                 if 0 <= self._targetstack and self._targetstack < self.get_currentstack():
                     break
                 if not self.get_event().force_nextcontent is None:
                     break
-                self.refresh_activeitem()
+                if cnt == 0:
+                    self.refresh_tools()
+                    self.refresh_activeitem()
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1)
+                cnt += 1
 
             if self._stoped:
                 raise EffectBreakError()

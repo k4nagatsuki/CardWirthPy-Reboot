@@ -905,12 +905,15 @@ class Debugger(wx.Frame):
         cw.cwpy.event._step = False
 
         step = bool(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
-        self.mi_stepreturn.Enable(step)
-        self.tl_stepreturn.Enable(step)
-        self.mi_stepover.Enable(step)
-        self.tl_stepover.Enable(step)
-        self.mi_stepin.Enable(step)
-        self.tl_stepin.Enable(step)
+
+        enabled = {}
+        enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, step)
+        enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, step)
+        enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, step)
+        for mi, tl, enable in enabled.itervalues():
+            if tl.IsEnabled() <> enable:
+                mi.Enable(enable)
+                tl.Enable(enable)
 
         self.mi_pause.Check(cw.cwpy.event._paused)
         # SetToggleが効かないため
@@ -951,12 +954,15 @@ class Debugger(wx.Frame):
             else:
                 cw.cwpy.event._stoped = True
 
-        self.mi_stepreturn.Enable(False)
-        self.tl_stepreturn.Enable(False)
-        self.mi_stepover.Enable(False)
-        self.tl_stepover.Enable(False)
-        self.mi_stepin.Enable(False)
-        self.tl_stepin.Enable(False)
+        enabled = {}
+        enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, False)
+        enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, False)
+        enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, False)
+        for mi, tl, enable in enabled.itervalues():
+            if tl.IsEnabled() <> enable:
+                mi.Enable(enable)
+                tl.Enable(enable)
+
         self.tb_event.Realize()
 
     def refresh_areaname(self):
@@ -970,9 +976,7 @@ class Debugger(wx.Frame):
         self.st_area.SetLabel(cw.cwpy.sdata.get_areaname())
 
         # ツールボタンの表示を切り替えるかどうか
-        if cw.cwpy.is_battlestatus() == self.tl_area._battletool:
-            self.tb_area.Refresh()
-        else:
+        if cw.cwpy.is_battlestatus() <> self.tl_area._battletool:
             if cw.cwpy.is_battlestatus():
                 bmp = cw.cwpy.rsrc.debugs["BATTLECANCEL"]
                 self.mi_area.SetBitmap(bmp)
@@ -988,16 +992,11 @@ class Debugger(wx.Frame):
                 self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area._battletool = False
 
-            self.mi_area.GetMenu().UpdateUI()
-            self.tb_area.Realize()
-            self._mgr.Update()
-
     def refresh_selectedmembername(self):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
         self.st_select.SetLabel(cw.cwpy.event.get_selectedmembername())
-        self.tb_select.Refresh()
 
     def refresh_tools(self):
         assert threading.currentThread() <> cw.cwpy
@@ -1007,154 +1006,104 @@ class Debugger(wx.Frame):
 
     def _refresh_tools(self):
         assert threading.currentThread() <> cw.cwpy
-        self.mi_comp.Enable(False)
-        self.tl_comp.Enable(False)
-        self.mi_gossip.Enable(False)
-        self.tl_gossip.Enable(False)
-        self.mi_money.Enable(False)
-        self.tl_money.Enable(False)
-        self.mi_card.Enable(False)
-        self.tl_card.Enable(False)
-        self.mi_member.Enable(False)
-        self.tl_member.Enable(False)
-        self.mi_coupon.Enable(False)
-        self.tl_coupon.Enable(False)
-        self.mi_status.Enable(False)
-        self.tl_status.Enable(False)
-        self.mi_recovery.Enable(False)
-        self.tl_recovery.Enable(False)
-        self.mi_break.Enable(False)
-        self.tl_break.Enable(False)
-        self.mi_update.Enable(False)
-        self.tl_update.Enable(False)
-        self.mi_redisplay.Enable(False)
-        self.tl_redisplay.Enable(False)
-        self.mi_battle.Enable(False)
-        self.tl_battle.Enable(False)
-        self.mi_pack.Enable(False)
-        self.tl_pack.Enable(False)
-        self.mi_friend.Enable(False)
-        self.tl_friend.Enable(False)
-        self.mi_info.Enable(False)
-        self.tl_info.Enable(False)
-        self.mi_round.Enable(False)
-        self.tl_round.Enable(False)
-        self.mi_save.Enable(False)
-        self.tl_save.Enable(False)
-        self.mi_load.Enable(False)
-        self.tl_load.Enable(False)
-        self.mi_loadyado.Enable(False)
-        self.tl_loadyado.Enable(False)
-        self.mi_reset.Enable(False)
-        self.tl_reset.Enable(False)
-        self.mi_stepreturn.Enable(False)
-        self.tl_stepreturn.Enable(False)
-        self.mi_stepover.Enable(False)
-        self.tl_stepover.Enable(False)
-        self.mi_stepin.Enable(False)
-        self.tl_stepin.Enable(False)
-        self.mi_pause.Enable(False)
-        self.tl_pause.Enable(False)
-        self.mi_stop.Enable(False)
-        self.tl_stop.Enable(False)
-        self.mi_select.Enable(False)
-        self.tl_select.Enable(False)
-        self.mi_showparty.Enable(False)
-        self.tl_showparty.Enable(False)
-        self.mi_hideparty.Enable(False)
-        self.tl_hideparty.Enable(False)
-        self.mi_area.Enable(False)
-        self.tl_area.Enable(False)
-        self.mi_startevent.Enable(False)
-        self.tl_startevent.Enable(False)
 
-        self.mi_bgm.Enable(True)
-        self.tl_bgm.Enable(True)
+        enabled = {}
+
+        enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, False)
+        enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, False)
+        enabled[self.mi_money.GetId()] = (self.mi_money, self.tl_money, False)
+        enabled[self.mi_card.GetId()] = (self.mi_card, self.tl_card, False)
+        enabled[self.mi_member.GetId()] = (self.mi_member, self.tl_member, False)
+        enabled[self.mi_coupon.GetId()] = (self.mi_coupon, self.tl_coupon, False)
+        enabled[self.mi_status.GetId()] = (self.mi_status, self.tl_status, False)
+        enabled[self.mi_recovery.GetId()] = (self.mi_recovery, self.tl_recovery, False)
+        enabled[self.mi_break.GetId()] = (self.mi_break, self.tl_break, False)
+        enabled[self.mi_update.GetId()] = (self.mi_update, self.tl_update, False)
+        enabled[self.mi_redisplay.GetId()] = (self.mi_redisplay, self.tl_redisplay, False)
+        enabled[self.mi_battle.GetId()] = (self.mi_battle, self.tl_battle, False)
+        enabled[self.mi_pack.GetId()] = (self.mi_pack, self.tl_pack, False)
+        enabled[self.mi_friend.GetId()] = (self.mi_friend, self.tl_friend, False)
+        enabled[self.mi_info.GetId()] = (self.mi_info, self.tl_info, False)
+        enabled[self.mi_round.GetId()] = (self.mi_round, self.tl_round, False)
+        enabled[self.mi_save.GetId()] = (self.mi_save, self.tl_save, False)
+        enabled[self.mi_load.GetId()] = (self.mi_load, self.tl_load, False)
+        enabled[self.mi_loadyado.GetId()] = (self.mi_loadyado, self.tl_loadyado, False)
+        enabled[self.mi_reset.GetId()] = (self.mi_reset, self.tl_reset, False)
+        enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, False)
+        enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, False)
+        enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, False)
+        enabled[self.mi_pause.GetId()] = (self.mi_pause, self.tl_pause, False)
+        enabled[self.mi_stop.GetId()] = (self.mi_stop, self.tl_stop, False)
+        enabled[self.mi_select.GetId()] = (self.mi_select, self.tl_select, False)
+        enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, False)
+        enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, False)
+        enabled[self.mi_area.GetId()] = (self.mi_area, self.tl_area, False)
+        enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, False)
+
+        enabled[self.mi_bgm.GetId()] = (self.mi_bgm, self.tl_bgm, True)
 
         if cw.cwpy.ydata:
-            self.mi_comp.Enable(True)
-            self.tl_comp.Enable(True)
-            self.mi_gossip.Enable(True)
-            self.tl_gossip.Enable(True)
-            self.mi_money.Enable(True)
-            self.tl_money.Enable(True)
-            self.mi_card.Enable(True)
-            self.tl_card.Enable(True)
-            self.mi_member.Enable(True)
-            self.tl_member.Enable(True)
-            self.mi_coupon.Enable(True)
-            self.tl_coupon.Enable(True)
-            self.mi_loadyado.Enable(True)
-            self.tl_loadyado.Enable(True)
+            enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, True)
+            enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, True)
+            enabled[self.mi_money.GetId()] = (self.mi_money, self.tl_money, True)
+            enabled[self.mi_card.GetId()] = (self.mi_card, self.tl_card, True)
+            enabled[self.mi_member.GetId()] = (self.mi_member, self.tl_member, True)
+            enabled[self.mi_coupon.GetId()] = (self.mi_coupon, self.tl_coupon, True)
+            enabled[self.mi_loadyado.GetId()] = (self.mi_loadyado, self.tl_loadyado, True)
 
         if cw.cwpy.is_playingscenario():
-            self.mi_pause.Enable(True)
-            self.tl_pause.Enable(True)
-            self.mi_status.Enable(True)
-            self.tl_status.Enable(True)
-            self.mi_recovery.Enable(True)
-            self.tl_recovery.Enable(True)
-            self.mi_redisplay.Enable(True)
-            self.tl_redisplay.Enable(True)
+            enabled[self.mi_pause.GetId()] = (self.mi_pause, self.tl_pause, True)
+            enabled[self.mi_status.GetId()] = (self.mi_status, self.tl_status, True)
+            enabled[self.mi_recovery.GetId()] = (self.mi_recovery, self.tl_recovery, True)
+            enabled[self.mi_redisplay.GetId()] = (self.mi_redisplay, self.tl_redisplay, True)
             if cw.cwpy.is_runningevent():
-                self.mi_select.Enable(True)
-                self.tl_select.Enable(True)
+                enabled[self.mi_select.GetId()] = (self.mi_select, self.tl_select, True)
                 if cw.cwpy.is_showparty:
-                    self.mi_hideparty.Enable(True)
-                    self.tl_hideparty.Enable(True)
+                    enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, True)
                 else:
-                    self.mi_showparty.Enable(True)
-                    self.tl_showparty.Enable(True)
-                self.mi_stop.Enable(True)
-                self.tl_stop.Enable(True)
+                    enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, True)
+                enabled[self.mi_stop.GetId()] = (self.mi_stop, self.tl_stop, True)
             else:
                 if not cw.cwpy.is_battlestatus():
-                    self.mi_break.Enable(True)
-                    self.tl_break.Enable(True)
-                    self.mi_save.Enable(True)
-                    self.tl_save.Enable(True)
-                    self.mi_load.Enable(True)
-                    self.tl_load.Enable(True)
+                    enabled[self.mi_break.GetId()] = (self.mi_break, self.tl_break, True)
+                    enabled[self.mi_save.GetId()] = (self.mi_save, self.tl_save, True)
+                    enabled[self.mi_load.GetId()] = (self.mi_load, self.tl_load, True)
                 else:
-                    self.mi_round.Enable(True)
-                    self.tl_round.Enable(True)
+                    enabled[self.mi_round.GetId()] = (self.mi_round, self.tl_round, True)
 
                 if not cw.cwpy.battle or not cw.cwpy.battle.is_running():
-                    self.mi_update.Enable(True)
-                    self.tl_update.Enable(True)
-                    self.mi_battle.Enable(True)
-                    self.tl_battle.Enable(True)
-                    self.mi_pack.Enable(True)
-                    self.tl_pack.Enable(True)
-                    self.mi_friend.Enable(True)
-                    self.tl_friend.Enable(True)
-                    self.mi_info.Enable(True)
-                    self.tl_info.Enable(True)
-                    self.mi_reset.Enable(True)
-                    self.tl_reset.Enable(True)
-                    self.mi_area.Enable(True)
-                    self.tl_area.Enable(True)
-                    self.mi_startevent.Enable(True)
-                    self.tl_startevent.Enable(True)
+                    enabled[self.mi_update.GetId()] = (self.mi_update, self.tl_update, True)
+                    enabled[self.mi_battle.GetId()] = (self.mi_battle, self.tl_battle, True)
+                    enabled[self.mi_pack.GetId()] = (self.mi_pack,self.tl_pack, True)
+                    enabled[self.mi_friend.GetId()] = (self.mi_friend, self.tl_friend, True)
+                    enabled[self.mi_info.GetId()] = (self.mi_info, self.tl_info, True)
+                    enabled[self.mi_reset.GetId()] = (self.mi_reset, self.tl_reset, True)
+                    enabled[self.mi_area.GetId()] = (self.mi_area, self.tl_area, True)
+                    enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, True)
 
         else:
-            self.mi_pause.Enable(True)
-            self.tl_pause.Enable(True)
+            enabled[self.mi_pause.GetId()] = (self.mi_pause, self.tl_pause, True)
 
-        step = bool(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
-        self.mi_stepreturn.Enable(step)
-        self.tl_stepreturn.Enable(step)
-        self.mi_stepover.Enable(step)
-        self.tl_stepover.Enable(step)
-        self.mi_stepin.Enable(step)
-        self.tl_stepin.Enable(step)
+        step = bool((cw.cwpy.event._paused or\
+                     (cw.cwpy.event._step and cw.cwpy.is_showingmessage())) and\
+                    cw.cwpy.is_runningevent())
+        enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, step)
+        enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, step)
+        enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, step)
 
-        self.tb1.Realize()
-        self.tb2.Realize()
-        self.tb_area.Realize()
-        self.tb_select.Realize()
-        self.tb_event.Realize()
-        self._mgr.Update()
+        update = False
+        for mi, tl, enable in enabled.itervalues():
+            if tl.IsEnabled() <> enable:
+                mi.Enable(enable)
+                tl.Enable(enable)
+                update = True
+
+        if update:
+            self.tb1.Realize()
+            self.tb2.Realize()
+            self.tb_area.Realize()
+            self.tb_select.Realize()
+            self.tb_event.Realize()
 
     def refresh_showpartytools(self):
         assert threading.currentThread() <> cw.cwpy
@@ -1164,22 +1113,24 @@ class Debugger(wx.Frame):
 
     def _refresh_showpartytools(self):
         assert threading.currentThread() <> cw.cwpy
-        self.mi_showparty.Enable(False)
-        self.tl_showparty.Enable(False)
-        self.mi_hideparty.Enable(False)
-        self.tl_hideparty.Enable(False)
+        enabled = {}
+
+        enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, False)
+        enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, False)
 
         if cw.cwpy.is_playingscenario():
             if cw.cwpy.is_runningevent():
                 if cw.cwpy.is_showparty:
-                    self.mi_hideparty.Enable(True)
-                    self.tl_hideparty.Enable(True)
+                    enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, True)
                 else:
-                    self.mi_showparty.Enable(True)
-                    self.tl_showparty.Enable(True)
+                    enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, True)
+
+        for mi, tl, enable in enabled.itervalues():
+            if tl.IsEnabled() <> enable:
+                mi.Enable(enable)
+                tl.Enable(enable)
 
         self.tb_select.Realize()
-        self._mgr.Update()
 
 class VariableListCtrl(wx.ListCtrl):
     def __init__(self, parent):
