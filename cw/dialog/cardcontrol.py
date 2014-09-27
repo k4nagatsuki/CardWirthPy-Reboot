@@ -1845,7 +1845,7 @@ class InfoView(CardHolder):
 
 def get_poslist(num, mode=1):
     """
-    カード描画に使うpositionusのリストを返す。
+    カード描画に使うpositionのリストを返す。
     mode=1は荷物袋・カード置場用。
     mode=2は所持カード用。
     mode=3は戦闘カード用。
