@@ -36,6 +36,7 @@ class SystemData(object):
         self.name = ""
         self.sdata = ""
         self.author = ""
+        self.fpath = ""
         self.tempdir = ""
         self.scedir = ""
         self._init_xmlpaths()

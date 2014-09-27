@@ -314,6 +314,38 @@ class Select(wx.Dialog):
         """パネルの左右クリックでページ切替可能ならTrue。"""
         return True
 
+    def _init_narrowpanel(self, choices, narrowtext, narrowtype):
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
+        self.narrow_label.SetFont(font)
+        self.narrow = wx.TextCtrl(self, -1, size=(-1, -1))
+        self.narrow.SetFont(font)
+        self.narrow.SetValue(narrowtext)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.narrow_type = wx.Choice(self, -1, size=(-1, -1), choices=choices)
+        self.narrow_type.SetFont(font)
+        self.narrow_type.SetSelection(narrowtype)
+
+        self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
+        self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
+
+    def OnNarrowCondition(self, event):
+        cw.cwpy.sounds["page"].play()
+        # 日本語入力で一度に何度もイベントが発生する
+        # 事があるので絞り込み実施を遅延する
+        self._reserved_narrowconditin = True
+        if wx.Window.FindFocus() <> self.narrow:
+            self.toppanel.SetFocus()
+        def func():
+            if not self._reserved_narrowconditin:
+                return
+            self._on_narrowcondition()
+            self._reserved_narrowconditin = False
+        wx.CallAfter(func)
+
+    def _on_narrowcondition(self):
+        pass
+
 #-------------------------------------------------------------------------------
 #　宿選択ダイアログ
 #-------------------------------------------------------------------------------
@@ -1307,15 +1339,25 @@ class PlayerSelect(MultiViewSelect):
         # ダイアログボックス作成
         MultiViewSelect.__init__(self, parent, cw.cwpy.msgs["select_member_title"], wx.ID_ADD, 10)
         # 冒険者情報
-        self.list = cw.cwpy.ydata.standbys
+        self.list = []
         self.isalbum = False
         self.index = 0
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((460, 280)))
         self.toppanel.SetMinSize(cw.wins((460, 280)))
 
+        # 絞込条件
+        choices = [cw.cwpy.msgs["sort_name"],
+                   cw.cwpy.msgs["description"],
+                   cw.cwpy.msgs["history"],
+                   cw.cwpy.msgs["character_attribute"]]
+        self._init_narrowpanel(choices, u"", cw.cwpy.setting.standbys_narrowtype)
+
         # sort
-        self.sort = wx.ComboBox(self.toppanel, size=cw.wins((75, 20)), style=wx.CB_READONLY)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
+        self.sort_label.SetFont(font)
+        self.sort = wx.Choice(self, size=cw.wins((75, 20)))
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.sort.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
@@ -1327,6 +1369,8 @@ class PlayerSelect(MultiViewSelect):
             self.sort.Select(2)
         else:
             self.sort.Select(0)
+
+        self.update_narrowcondition()
 
         # add
         self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, cw.wins((50, 24)), cw.cwpy.msgs["add_member"])
@@ -1357,7 +1401,7 @@ class PlayerSelect(MultiViewSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
-        self.Bind(wx.EVT_COMBOBOX, self.OnSort, self.sort)
+        self.Bind(wx.EVT_CHOICE, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1376,6 +1420,86 @@ class PlayerSelect(MultiViewSelect):
         accel = wx.AcceleratorTable(seq)
         self.SetAcceleratorTable(accel)
 
+    def _add_topsizer(self):
+        nsizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
+        nsizer.Add(self.narrow, 1, wx.CENTER, 0)
+        nsizer.Add(self.narrow_type, 0, wx.CENTER|wx.EXPAND, cw.wins(3))
+
+        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
+
+        self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
+
+    def _on_narrowcondition(self):
+        cw.cwpy.setting.standbys_narrowtype = self.narrow_type.GetSelection()
+        self.update_narrowcondition()
+        self.draw(True)
+
+    def update_narrowcondition(self):
+        if 0 <= self.index and self.index < len(self.list):
+            selected = self.list[self.index]
+        else:
+            selected = None
+
+        if self.isalbum:
+            self.list = cw.cwpy.ydata.album[:]
+        else:
+            self.list = cw.cwpy.ydata.standbys[:]
+
+        narrow = self.narrow.GetValue().lower()
+        if narrow:
+            type = self.narrow_type.GetSelection()
+
+            hiddens = set([u"＿", u"＠"])
+            attrs = set(cw.cwpy.setting.periodnames)
+            attrs.update(cw.cwpy.setting.sexnames)
+            attrs.update(cw.cwpy.setting.naturenames)
+            attrs.update(cw.cwpy.setting.makingnames)
+
+            seq = []
+            for header in self.list:
+                if type == 0:
+                    # 名前
+                    if not narrow in header.name.lower():
+                        continue
+
+                elif type == 1:
+                    # 解説
+                    if not narrow in header.desc.lower():
+                        continue
+
+                elif type == 2:
+                    # 経歴
+                    for coupon in header.history:
+                        if coupon and not coupon[0] in hiddens:
+                            if narrow in coupon.lower():
+                                break
+                    else:
+                        continue
+
+                elif type == 3:
+                    # 特性
+                    for coupon in header.history:
+                        if coupon and coupon[0] == u"＿":
+                            coupon = coupon[1:]
+                            if coupon in attrs:
+                                if narrow in coupon.lower():
+                                    break
+                    else:
+                        continue
+
+                seq.append(header)
+            self.list = seq
+
+        if selected in self.list:
+            self.index = self.list.index(selected)
+        elif self.list:
+            self.index %= len(self.list)
+        else:
+            self.index = 0
+
     def OnNumberKeyDown(self, event):
         """
         数値キー'1'～'9'までの押下を処理する。
@@ -1388,7 +1512,7 @@ class PlayerSelect(MultiViewSelect):
             index = self.sortkeydown.index(event.GetId())
             if index < self.sort.GetCount():
                 self.sort.SetSelection(index)
-                event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
+                event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.sort.GetId())
                 self.ProcessEvent(event)
 
     def enable_btn(self):
@@ -1431,6 +1555,7 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.sounds["page"].play()
             cw.cwpy.setting.sort_standbys = sorttype
             cw.cwpy.ydata.sort_standbys()
+            self.update_narrowcondition()
             self.draw(True)
         self.left2btn.SetFocus()
 
@@ -1448,22 +1573,11 @@ class PlayerSelect(MultiViewSelect):
     def OnMouseWheel(self, event):
         if self._processing:
             return
-        if self.sort and self.sort.GetRect().Contains(event.GetPosition()):
-            index = self.sort.GetSelection()
-            count = self.sort.GetCount()
-            if event.GetWheelRotation() > 0:
-                if index <= 0:
-                    index = count - 1
-                else:
-                    index -= 1
-            else:
-                if count <= index + 1:
-                    index = 0
-                else:
-                    index += 1
-            self.sort.Select(index)
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
-            self.ProcessEvent(btnevent)
+
+        if change_combo(self.narrow_type, event):
+            return
+        elif change_combo(self.sort, event):
+            return
         else:
             MultiViewSelect.OnMouseWheel(self, event)
 
@@ -1492,8 +1606,9 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.sounds["page"].play()
             header = cw.cwpy.ydata.add_standbys(dlg.fpath)
             # リスト更新
-            self.list = cw.cwpy.ydata.standbys
-            self.index = self.list.index(header)
+            self.update_narrowcondition()
+            if header in self.list:
+                self.index = self.list.index(header)
             self.enable_btn()
             self.draw(True)
 
@@ -1542,6 +1657,7 @@ class PlayerSelect(MultiViewSelect):
             def func(panel):
                 if panel:
                     panel._processing = False
+                    self.update_narrowcondition()
                     if len(panel.list):
                         panel.index %= len(panel.list)
                     else:
@@ -1613,6 +1729,7 @@ class PlayerSelect(MultiViewSelect):
                 cw.cwpy.ydata.remove_emptypartyrecord()
                 cw.cwpy.remove_xml(header)
                 cw.cwpy.ydata.standbys.remove(header)
+                self.update_narrowcondition()
                 if len(self.list):
                     self.index %= len(self.list)
                 else:
@@ -1652,6 +1769,7 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.ydata.remove_emptypartyrecord()
             cw.cwpy.remove_xml(header)
             cw.cwpy.ydata.standbys.remove(header)
+            self.update_narrowcondition()
             if len(self.list):
                 self.index %= len(self.list)
             else:
@@ -1685,6 +1803,7 @@ class PlayerSelect(MultiViewSelect):
                 cw.cwpy.ydata.album[self.index] = header
             else:
                 cw.cwpy.ydata.standbys[self.index] = header
+            self.update_narrowcondition()
             self.list[self.index] = header
             cw.cwpy.frame.exec_func(self.draw, True)
         cw.cwpy.exec_func(func)
@@ -1739,11 +1858,19 @@ class PlayerSelect(MultiViewSelect):
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(127) - w / 2, cw.wins(225))
 
-                # クーポン(新しい順から7つ)
+                # クーポン(新しい順から9つ)
+                hiddens = set([u"＿", u"＠"])
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(320) - w / 2, cw.wins(65))
-                for index, s in enumerate(header.history):
+                history = []
+                for s in header.history:
+                    if s and not s[0] in hiddens:
+                        history.append(s)
+                        if 9 < len(history):
+                            history[-1] = cw.cwpy.msgs["history_etc"]
+                            break
+                for index, s in enumerate(history):
                     w = dc.GetTextExtent(s)[0]
                     dc.DrawText(s, cw.wins(320) - w / 2, cw.wins(95) + cw.wins(14) * index)
 
@@ -1777,6 +1904,7 @@ class PlayerSelect(MultiViewSelect):
                     # Name
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                     s = header.name
+                    s = cw.util.abbr_longstr(dc, s, rw)
                     w = dc.GetTextExtent(s)[0]
                     cw.util.draw_witharound(dc, s, x + (rw - w) / 2, y + cw.wins(105))
                     # Level
@@ -1809,12 +1937,6 @@ class PlayerSelect(MultiViewSelect):
                 s = str(page+1) if page > 0 else str(-page + 1)
                 s = s + "/" + str(self.get_pagecount())
                 cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(5))
-
-        # 整列
-        if self.sort:
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
-            s = cw.cwpy.msgs["sort_title"]
-            cw.util.draw_witharound(dc, s, cw.wins(343), cw.wins(5))
 
 #-------------------------------------------------------------------------------
 #　アルバムダイアログ
@@ -1857,6 +1979,15 @@ class Album(PlayerSelect):
     def can_clickcenter(self):
         return False
 
+    def OnMouseWheel(self, event):
+        Select.OnMouseWheel(self, event)
+
+    def _add_topsizer(self):
+        pass
+
+    def update_narrowcondition(self):
+        pass
+
     def OnClickDelBtn(self, event):
         cw.cwpy.sounds["signal"].play()
         header = self.list[self.index]
@@ -1894,6 +2025,26 @@ class Album(PlayerSelect):
     def OnSelect(self, event):
         pass
 
+def change_combo(combo, event):
+    if combo and combo.GetRect().Contains(event.GetPosition()):
+        index = combo.GetSelection()
+        count = combo.GetCount()
+        if event.GetWheelRotation() > 0:
+            if index <= 0:
+                index = count - 1
+            else:
+                index -= 1
+        else:
+            if count <= index + 1:
+                index = 0
+            else:
+                index += 1
+        combo.Select(index)
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, combo.GetId())
+        combo.ProcessEvent(btnevent)
+        return True
+    else:
+        return False
 
 #-------------------------------------------------------------------------------
 #　貼り紙選択ダイアログ
@@ -1932,19 +2083,10 @@ class ScenarioSelect(Select):
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
 
         # 絞込条件
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
-        self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
-        self.narrow_label.SetFont(font)
-        self.narrow = wx.TextCtrl(self, -1, size=(-1, -1))
-        self.narrow.SetFont(font)
-        self.narrow.SetValue(cw.cwpy.setting.scenario_narrow)
         choices = (cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["author"])
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
-        self.narrow_type = wx.Choice(self, -1, size=(-1, -1), choices=choices)
-        self.narrow_type.SetFont(font)
-        self.narrow_type.SetSelection(cw.cwpy.setting.scenario_narrowtype)
+        self._init_narrowpanel(choices, cw.cwpy.setting.scenario_narrow, cw.cwpy.setting.scenario_narrowtype)
 
         # 整列条件
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
@@ -2026,8 +2168,6 @@ class ScenarioSelect(Select):
         self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.tree.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 
-        self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
-        self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
         self.sort.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
         self.bookmark.Bind(wx.EVT_BUTTON, self.OnBookmark)
 
@@ -2061,6 +2201,17 @@ class ScenarioSelect(Select):
         accel = wx.AcceleratorTable(seq)
         self.SetAcceleratorTable(accel)
 
+    def OnMouseWheel(self, event):
+        if self._processing:
+            return
+
+        if change_combo(self.narrow_type, event):
+            return
+        elif change_combo(self.sort, event):
+            return
+        else:
+            Select.OnMouseWheel(self, event)
+
     def OnUpKeyDown(self, event):
         self.narrow.SetFocus()
 
@@ -2093,11 +2244,14 @@ class ScenarioSelect(Select):
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
 
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
+
         nsizer.Add(self.narrow_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
         nsizer.Add(self.narrow, 1, wx.CENTER, 0)
-        nsizer.Add(self.narrow_type, 0, wx.RIGHT|wx.CENTER, cw.wins(3))
-        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(2))
-        nsizer.Add(self.sort, 0, wx.CENTER, 0)
+        nsizer.Add(self.narrow_type, 0, wx.CENTER|wx.EXPAND, cw.wins(3))
+
+        nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
+        nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
+
         nsizer.Add(self.bookmark, 0, wx.CENTER|wx.EXPAND, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
@@ -2486,22 +2640,11 @@ class ScenarioSelect(Select):
         if self.bookmarkmenu:
             self.bookmarkmenu.Destroy()
 
-    def OnNarrowCondition(self, event):
-        cw.cwpy.sounds["page"].play()
-        # 日本語入力で一度に何度もイベントが発生する
-        # 事があるので絞り込み実施を遅延する
-        self._reserved_narrowconditin = True
-        if wx.Window.FindFocus() <> self.narrow:
-            self.toppanel.SetFocus()
-        def func():
-            if not self._reserved_narrowconditin:
-                return
-            self._reserved_narrowconditin = False
-            #cw.cwpy.setting.scenario_narrow = self.narrow.GetValue()
-            cw.cwpy.setting.scenario_narrowtype = self.narrow_type.GetSelection()
-            cw.cwpy.setting.scenario_sorttype = self.sort.GetSelection()
-            self.update_narrowcondition()
-        wx.CallAfter(func)
+    def _on_narrowcondition(self):
+        #cw.cwpy.setting.scenario_narrow = self.narrow.GetValue()
+        cw.cwpy.setting.scenario_narrowtype = self.narrow_type.GetSelection()
+        cw.cwpy.setting.scenario_sorttype = self.sort.GetSelection()
+        self.update_narrowcondition()
 
     def draw(self, update=False):
         self._draw_impl(update)

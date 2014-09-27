@@ -82,6 +82,7 @@ class Setting(object):
         self.sort_backpackwithstar = True
         self.card_narrow = ""
         self.card_narrowtype = 0
+        self.standbys_narrowtype = 0
         self.infoview_narrowtype = 0
         self.backlogmax = 100
         self.showfps = False
@@ -283,6 +284,8 @@ class Setting(object):
         self.sort_storehousewithstar = data.getbool("SortKey", "storehousewithstar", self.sort_storehousewithstar)
         self.sort_backpack = data.getattr("SortKey", "backpack", self.sort_backpack)
         self.sort_backpackwithstar = data.getbool("SortKey", "backpackwithstar", self.sort_backpackwithstar)
+        # 宿帳絞込条件
+        self.standbys_narrowtype = data.getint("StandbysNarrowType", self.standbys_narrowtype)
         # カード絞込条件
         self.card_narrowtype = data.getint("CardNarrowType", self.card_narrowtype)
         # 情報カード絞込条件

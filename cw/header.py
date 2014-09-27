@@ -724,7 +724,7 @@ class InfoCardHeader(object):
             return self.cardimg.get_image()
 
 class AdventurerHeader(object):
-    def __init__(self, data=None, album=False, dbrec=None):
+    def __init__(self, data=None, album=False, dbrec=None, fpath=""):
         """
         album: アルバム用の場合はTrueにする。
         dbrec: データベースから生成する場合は対象レコード。
@@ -735,6 +735,7 @@ class AdventurerHeader(object):
             self.fpath = dbrec["fpath"]
             self.level = dbrec["level"]
             self.name = dbrec["name"]
+            self.desc = dbrec["desc"]
             self.imgpath = dbrec["imgpath"]
             self.album = bool(dbrec["album"])
             self.lost = bool(dbrec["lost"])
@@ -747,10 +748,55 @@ class AdventurerHeader(object):
             self.history = dbrec["history"].split("\n")
             self.race = dbrec["race"]
             self.versionhint = cw.cwpy.sct.from_basehint(dbrec["versionhint"])
+
+        elif fpath:
+            self.fpath = fpath
+            prop = GetProperty(fpath)
+            self.level = int(prop.properties.get("Level", "0"))
+            self.name = prop.properties.get("Name", "")
+            self.desc = cw.util.decodewrap(prop.properties.get("Description", ""))
+            self.imgpath = prop.properties.get("ImagePath", "")
+            self.album = album
+            self.lost = cw.util.str2bool(prop.attrs.get(".", {}).get("lost", "False"))
+
+            ages = set(cw.cwpy.setting.periodcoupons)
+            sexs = set(cw.cwpy.setting.sexcoupons)
+            r_gene = re.compile(u"＠Ｇ\d{10}$")
+
+            self.sex = cw.cwpy.setting.sexcoupons[0]
+            self.age = cw.cwpy.setting.periodcoupons[0]
+            self.ep = 0
+            self.leavenoalbum = False
+            self.gene = Gene()
+            self.gene.set_randombit()
+            self.history = []
+            self.race = ""
+            # 互換性マーク
+            self.versionhint = cw.cwpy.sct.from_basehint(prop.attrs.get(".", {}).get("versionHint", ""))
+
+            for coupon, attrs, name in reversed(prop.third.get("Coupons", [])):
+                if not name:
+                    continue
+                elif name in ages:
+                    self.age = name
+                elif name in sexs:
+                    self.sex = name
+                elif name == u"＠ＥＰ":
+                    self.ep = int(attrs.get("value", 0))
+                elif name == u"＿消滅予約":
+                    self.leavenoalbum = True
+                elif r_gene.match(name):
+                    self.gene.set_str(name[2:], int(attrs.get("value", 0)))
+                elif name.startswith(u"＠Ｒ"):
+                    self.race = name[2:]
+
+                self.history.append(name)
+
         else:
             self.fpath = data.fpath
             self.level = data.getint("Level", 0)
             self.name = data.gettext("Name", "")
+            self.desc = cw.util.decodewrap(data.gettext("Description", ""))
             self.imgpath = data.gettext("ImagePath", "")
             self.album = album
 
@@ -763,7 +809,6 @@ class AdventurerHeader(object):
             # クーポンにある各種変数取得
             ages = set(cw.cwpy.setting.periodcoupons)
             sexs = set(cw.cwpy.setting.sexcoupons)
-            hiddens = set([u"＿", u"＠"])
             r_gene = re.compile(u"＠Ｇ\d{10}$")
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.age = cw.cwpy.setting.periodcoupons[0]
@@ -791,11 +836,8 @@ class AdventurerHeader(object):
                     self.gene.set_str(e.text[2:], int(e.get("value", 0)))
                 elif e.text.startswith(u"＠Ｒ"):
                     self.race = e.text[2:]
-                elif len(self.history) < 7 and not e.text[0] in hiddens:
-                    self.history.append(e.text)
 
-                    if len(self.history) == 6:
-                        self.history.append(u"etc...")
+                self.history.append(e.text)
 
     def made_baby(self):
         """
@@ -1237,6 +1279,7 @@ class GetProperty(object):
         self.properties = {}
         self.attrs = {}
         self.stack = []
+        self.third = {}
 
         parser = xml.parsers.expat.ParserCreate()
         parser.StartElementHandler = self.start_element
@@ -1251,9 +1294,16 @@ class GetProperty(object):
 
     def start_element(self, name, attrs):
         self.stack.append(name)
-        if 3 == len(self.stack) and self.stack[1] == "Property":
+        if 4 == len(self.stack) and self.stack[1] == "Property":
+            name2 = self.stack[2]
+            seq = self.third.get(name2, [])
+            seq.append((name, attrs, ""))
+            self.third[name2] = seq
+        elif 3 == len(self.stack) and self.stack[1] == "Property":
             element = self.stack[2]
             self.attrs[name] = attrs
+        elif 2 == len(self.stack) and name == "Property":
+            self.attrs["."] = attrs
 
     def end_element(self, name):
         if self.stack[1:] == ["Property"]:
@@ -1266,6 +1316,9 @@ class GetProperty(object):
             if not element in self.properties:
                 self.properties[element] = ""
             self.properties[element] += data
+            if 4 == len(self.stack):
+                seq = self.third[self.stack[2]]
+                seq[-1] = (seq[-1][0], seq[-1][1], data)
 
 class RaceHeader(object):
     def __init__(self, data):

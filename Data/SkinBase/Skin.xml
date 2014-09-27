@@ -648,6 +648,7 @@
     <Message key="card_name">カード名</Message>
     <Message key="scenario_name">シナリオ名</Message>
     <Message key="author">作者名</Message>
+    <Message key="character_attribute">特性</Message>
     <Message key="target_level">対象レベル</Message>
     <Message key="bookmark">ブックマーク</Message>
     <Message key="add_bookmark">ブックマークの登録</Message>

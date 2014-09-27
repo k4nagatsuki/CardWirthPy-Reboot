@@ -236,6 +236,9 @@ def create_settings(setting):
     e.set("backpack", setting.sort_backpack)
     e.set("backpackwithstar", str(setting.sort_backpackwithstar))
     element.append(e)
+    # 宿帳絞込条件
+    e = cw.data.make_element("StandbysNarrowType", str(setting.standbys_narrowtype))
+    element.append(e)
     # カード絞込条件
     e = cw.data.make_element("CardNarrowType", str(setting.card_narrowtype))
     element.append(e)

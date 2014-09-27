@@ -98,15 +98,22 @@ class YadoDB(object):
                 reqcommit = True
 
             if self.mode == YADO:
-                # versionhint列が存在しない場合は作成する
+                # desc列かversionhint列が存在しない場合は作成する
                 # (旧バージョンとの互換性維持)
                 cur = self.con.execute("PRAGMA table_info('adventurer')")
                 res = cur.fetchall()
+                hasdesc = False
                 hasversionhint = False
                 for rec in res:
-                    if rec[1] == "versionhint":
+                    if rec[1] == "desc":
+                        hasdesc = True
+                    elif rec[1] == "versionhint":
                         hasversionhint = True
-                        break
+
+                if not hasdesc:
+                    self.cur.execute("ALTER TABLE adventurer ADD COLUMN desc TEXT")
+                    self.cur.execute("UPDATE adventurer SET mtime=?", (0,)) # 強制更新
+                    reqcommit = True
 
                 if not hasversionhint:
                     self.cur.execute("ALTER TABLE adventurer ADD COLUMN versionhint TEXT")
@@ -219,6 +226,7 @@ class YadoDB(object):
                         fpath TEXT,
                         level INTEGER,
                         name TEXT,
+                        desc TEXT,
                         imgpath TEXT,
                         album INTEGER,
                         lost INTEGER,
@@ -681,6 +689,7 @@ class YadoDB(object):
             fpath,
             level,
             name,
+            desc,
             imgpath,
             album,
             lost,
@@ -695,6 +704,7 @@ class YadoDB(object):
             ctime,
             mtime
         ) VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -725,6 +735,7 @@ class YadoDB(object):
             fpath,
             header.level,
             header.name,
+            header.desc,
             header.imgpath,
             album,
             header.lost,
@@ -761,9 +772,7 @@ class YadoDB(object):
 
     def _insert_adventurer(self, path, album, commit=True, adventurerorder=-1):
         try:
-            data = cw.data.xml2etree(path)
-            e = data.find("Property")
-            header = cw.header.AdventurerHeader(e, album=album)
+            header = cw.header.AdventurerHeader(fpath=path, album=album)
             header.fpath = path
             return self._insert_adventurerheader(header, commit, adventurerorder)
         except Exception:
