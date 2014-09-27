@@ -43,14 +43,13 @@ class CardImage(Image):
         self.premium = premium
         self.scaleinfo = scaleinfo
 
-        wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + self.bgtype])
-        self.wxrect = pygame.Rect(0, 0, wxsize[0], wxsize[1])
-
         self.update_scale()
 
     def update_scale(self):
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
+        wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + self.bgtype])
+        self.wxrect = pygame.Rect(0, 0, wxsize[0], wxsize[1])
 
     @property
     def wxcardbg(self):
