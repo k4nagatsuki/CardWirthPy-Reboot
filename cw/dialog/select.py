@@ -1636,36 +1636,45 @@ class PlayerSelect(MultiViewSelect):
             return
         self._processing = True
 
-        cw.cwpy.sounds["harvest"].play()
         header = self.list[self.index]
-        cw.cwpy.ydata.standbys.remove(header)
 
         def func(panel, header, index):
-            if cw.cwpy.ydata.party:
-                if len(cw.cwpy.ydata.party.members) < 6:
-                    cw.cwpy.ydata.party.add(header)
-                else:
-                    # 追加できなかった
-                    cw.cwpy.ydata.standbys.insert(index, header)
-                    def func(panel):
-                        if panel:
-                            panel._processing = False
-                    cw.cwpy.frame.exec_func(func, panel)
-                    return
+            if PlayerSelect._add(header):
+                def func(panel):
+                    if panel:
+                        panel._processing = False
+                        self.update_narrowcondition()
+                        if len(panel.list):
+                            panel.index %= len(panel.list)
+                        else:
+                            panel.index = 0
+                        panel.enable_btn()
+                        panel.draw(True)
+                cw.cwpy.frame.exec_func(func, panel)
             else:
-                cw.cwpy.ydata.create_party(header, chgarea=False)
-            def func(panel):
-                if panel:
-                    panel._processing = False
-                    self.update_narrowcondition()
-                    if len(panel.list):
-                        panel.index %= len(panel.list)
-                    else:
-                        panel.index = 0
-                    panel.enable_btn()
-                    panel.draw(True)
-            cw.cwpy.frame.exec_func(func, panel)
+                def func(panel):
+                    if panel:
+                        panel._processing = False
+                cw.cwpy.frame.exec_func(func, panel)
         cw.cwpy.exec_func(func, self, header, self.index)
+
+    @staticmethod
+    def _add(header):
+        assert threading.currentThread() == cw.cwpy
+        if cw.cwpy.ydata.party:
+            if len(cw.cwpy.ydata.party.members) < 6:
+                cw.cwpy.sounds["harvest"].play()
+                cw.cwpy.ydata.standbys.remove(header)
+                cw.cwpy.ydata.party.add(header)
+                return True
+            else:
+                # 追加できなかった
+                return False
+        else:
+            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.ydata.standbys.remove(header)
+            cw.cwpy.ydata.create_party(header, chgarea=False)
+            return True
 
     def OnClickExBtn(self, event):
         """
@@ -1683,6 +1692,7 @@ class PlayerSelect(MultiViewSelect):
             (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer, bool(self.list)),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer, bool(self.list)),
             (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord, bool(cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord)),
+            (cw.cwpy.msgs["random_team"], cw.cwpy.msgs["random_team_description"], self.random_team, bool(cw.cwpy.ydata.standbys and self.addbtn.IsEnabled()))
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
@@ -1786,6 +1796,43 @@ class PlayerSelect(MultiViewSelect):
         dlg.ShowModal()
         dlg.Destroy()
 
+    def random_team(self):
+        if self._processing:
+            return
+        self._processing = True
+
+        def func(panel):
+            class Pocket(object):
+                def __init__(self, header, point):
+                    self.header = header
+                    self.point = point
+
+            while cw.cwpy.ydata.standbys and (not cw.cwpy.ydata.party or\
+                                              len(cw.cwpy.ydata.party.members) < 6):
+                if not cw.cwpy.ydata.party:
+                    PlayerSelect._add(cw.cwpy.dice.choice(cw.cwpy.ydata.standbys))
+                else:
+                    seq = self.calc_needs(cw.cwpy.ydata.standbys)
+                    seq2 = []
+                    for need, header in cw.cwpy.dice.shuffle(seq):
+                        point = cw.cwpy.dice.roll(1, need)
+                        seq2.append(Pocket(header, point))
+                    cw.util.sort_by_attr(seq2, "point")
+                    PlayerSelect._add(seq2[0].header)
+
+            def func(panel):
+                if panel:
+                    panel._processing = False
+                    panel.update_narrowcondition()
+                    if len(panel.list):
+                        panel.index %= len(panel.list)
+                    else:
+                        panel.index = 0
+                    panel.enable_btn()
+                    panel.draw(True)
+            cw.cwpy.frame.exec_func(func, panel)
+        cw.cwpy.exec_func(func, self)
+
     def OnClickInfoBtn(self, event):
         if self._processing:
             return
@@ -1807,6 +1854,47 @@ class PlayerSelect(MultiViewSelect):
             self.list[self.index] = header
             cw.cwpy.frame.exec_func(self.draw, True)
         cw.cwpy.exec_func(func)
+
+    def calc_needs(self, list):
+        """list内のメンバに対して、現在のパーティの構成から
+        パーティにおける必要度を計算する。
+        レベルが近く、同型のメンバが少ないほど必要度が高くなる。
+        """
+        if cw.cwpy.ydata.party:
+            talents = set(cw.cwpy.setting.naturecoupons)
+            types = {}
+            level = 0.0
+            seq = []
+            for member in cw.cwpy.get_pcards():
+                level += member.level
+                talent = member.get_talent()
+                val = types.get(talent, 0)
+                val += 1
+                types[talent] = val
+            level /= len(cw.cwpy.ydata.party.members)
+
+            for header in list:
+                # 同型のメンバの数だけ必要度を下げる
+                need = 10
+                talent = cw.cwpy.setting.naturecoupons[0]
+                for coupon in header.history:
+                    if coupon in talents:
+                        talent = coupon
+                        break
+                val = types.get(talent, 0)
+                for i in xrange(val):
+                    need *= 2
+
+                # レベルが離れているほど必要度を下げる
+                val = level - header.level
+                if val < 0:
+                    val = -val
+                for i in xrange(int(val+0.5)):
+                    need *= 4
+                seq.append((int(need), header))
+            return seq
+        else:
+            return [(10, header) for header in list]
 
     def draw(self, update=False):
         dc = MultiViewSelect.draw(self, update)
