@@ -1347,6 +1347,7 @@ class EventView(wx.ScrolledWindow):
         for cx, cy in circles:
             dc.DrawCircle(cx, cy, 6)
 
+        yg = (self.lineheight - dc.GetTextExtent("#")[1]) / 2
         for item in self.itemlist[y:]:
             dc.DrawBitmap(item.image, item.pos[0]-xtop, item.pos[1]-ytop, True)
             s = item.text
@@ -1357,7 +1358,7 @@ class EventView(wx.ScrolledWindow):
                 dc.SetTextForeground(wx.BLACK)
             dc.DrawText(s,
                         item.pos[0]+item.image.GetWidth()+2-xtop,
-                        item.pos[1]-ytop)
+                        item.pos[1]-ytop+yg)
 
             if last == item:
                 break

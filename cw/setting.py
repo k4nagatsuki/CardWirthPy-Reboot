@@ -757,6 +757,7 @@ class Resource(object):
             d["pmincho"] = u"IPA P明朝"
             d["pgothic"] = u"IPA Pゴシック"
 
+            encoding = sys.getfilesystemencoding()
             for value in d.itervalues():
                 if not value in self.facenames:
                     raise ValueError(u"IPA font not found: " + value)

@@ -221,7 +221,7 @@ class CardImage(Image):
         font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
         dc.SetFont(font)
         w, h = dc.GetTextExtent(self.name)
-        subimg = wx.EmptyBitmapRGBA(w, h)
+        subimg = wx.EmptyBitmap(w, h)
         dc.SelectObject(subimg)
         dc.SetBrush(wx.BLACK_BRUSH)
         dc.SetPen(wx.BLACK_PEN)

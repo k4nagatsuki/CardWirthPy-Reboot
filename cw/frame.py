@@ -317,6 +317,9 @@ class Frame(wx.Frame):
                 break
 
     def OnDestroy(self, event):
+        if self.debugger:
+            self.debugger.Destroy()
+
         cw.cwpy._running = False
 
         while threading.activeCount() > self.initialThreadCount:

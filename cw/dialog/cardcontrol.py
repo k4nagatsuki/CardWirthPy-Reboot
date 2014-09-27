@@ -47,6 +47,7 @@ class CardControl(wx.Dialog):
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 285)))
+        self.toppanel.SetMinSize(cw.wins((500, 285)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
         self.toppanel.SetDoubleBuffered(True)
 
