@@ -958,12 +958,15 @@ class Debugger(wx.Frame):
         enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, False)
         enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, False)
         enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, False)
+        update = False
         for mi, tl, enable in enabled.itervalues():
             if tl.IsEnabled() <> enable:
                 mi.Enable(enable)
                 tl.Enable(enable)
+                update = True
 
-        self.tb_event.Realize()
+        if update:
+            self.tb_event.Realize()
 
     def refresh_areaname(self):
         assert threading.currentThread() <> cw.cwpy
@@ -1091,19 +1094,15 @@ class Debugger(wx.Frame):
         enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, step)
         enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, step)
 
-        update = False
+        bars = set()
         for mi, tl, enable in enabled.itervalues():
             if tl.IsEnabled() <> enable:
                 mi.Enable(enable)
                 tl.Enable(enable)
-                update = True
+                bars.add(tl.GetToolBar())
 
-        if update:
-            self.tb1.Realize()
-            self.tb2.Realize()
-            self.tb_area.Realize()
-            self.tb_select.Realize()
-            self.tb_event.Realize()
+        for bar in bars:
+            bar.Realize()
 
     def refresh_showpartytools(self):
         assert threading.currentThread() <> cw.cwpy
@@ -1125,12 +1124,15 @@ class Debugger(wx.Frame):
                 else:
                     enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, True)
 
+        update = False
         for mi, tl, enable in enabled.itervalues():
             if tl.IsEnabled() <> enable:
                 mi.Enable(enable)
                 tl.Enable(enable)
+                update = True
 
-        self.tb_select.Realize()
+        if update:
+            self.tb_select.Realize()
 
 class VariableListCtrl(wx.ListCtrl):
     def __init__(self, parent):
