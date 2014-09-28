@@ -287,6 +287,8 @@ class CardHeader(object):
         使用回数の段階値を返す。段階値は(0 > 1 > 2 > 3 > 4)の順
         """
         limit, maxlimit = self.get_uselimit()
+        if maxlimit <= 0:
+            return 0
         limitper = 100 * limit / maxlimit
 
         if limitper == 100:

@@ -103,8 +103,8 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.event.refresh_tools()
 
     def clear(self):
-        cw.cwpy.sbargrp.remove_sprites_of_layer("panel")
-        cw.cwpy.sbargrp.remove_sprites_of_layer("button")
+        cw.cwpy.sbargrp.empty()
+        cw.cwpy.sbargrp.add(self)
 
 class ProgressView(base.CWPySprite):
     def __init__(self, parent, pos, size=None, text="", max=0, min=100, current=0):
