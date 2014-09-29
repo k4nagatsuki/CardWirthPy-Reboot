@@ -2042,6 +2042,9 @@ class CWPy(_Singleton, threading.Thread):
                 # 勝利・逃走成功時に時間経過
                 # 戦闘中のエリア移動・敗北イベント・1.20以下は時間経過しない
                 self.elapse_time()
+                if self.is_gameover():
+                    self.set_gameover()
+                    return
 
             if areachange:
                 # 戦闘前のエリアに戻る
