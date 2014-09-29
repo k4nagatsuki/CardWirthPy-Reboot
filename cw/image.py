@@ -47,12 +47,15 @@ class CardImage(Image):
     def update_scale(self):
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
-        wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + self.bgtype])
-        self.wxrect = pygame.Rect(0, 0, wxsize[0], wxsize[1])
 
     @property
     def wxcardbg(self):
         return cw.cwpy.rsrc.wxcardbgs[self.bgtype]
+
+    @property
+    def wxrect(self):
+        wxsize = cw.wins(cw.setting.SIZE_RESOURCES["CardBg/" + self.bgtype])
+        return pygame.Rect(0, 0, wxsize[0], wxsize[1])
 
     def is_modifiedfile(self):
         if cw.binary.image.path_is_code(self.path):
