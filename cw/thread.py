@@ -371,6 +371,8 @@ class CWPy(_Singleton, threading.Thread):
             self._update_clip()
             self.music.update_scale()
         else:
+            self.init_fullscreenparams()
+            self.update_fullscreenbackground()
             cw.cwpy.frame.exec_func(self.rsrc.update_winscale)
 
         if self.ydata:
