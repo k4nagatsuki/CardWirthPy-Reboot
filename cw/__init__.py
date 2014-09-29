@@ -228,7 +228,7 @@ def _s_impl(num, up_scr):
                 else:
                     if not img.HasAlpha():
                         img.InitAlpha()
-                    return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_HIGH)
+                    return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_BILINEAR)
             else:
                 # スケール情報の無いwx.Image(単純拡大)
                 return _s_impl(img, up_scr)
@@ -278,7 +278,7 @@ def _s_impl(num, up_scr):
         else:
             if not num.HasAlpha():
                 num.InitAlpha()
-            return num.Rescale(w, h, wx.IMAGE_QUALITY_HIGH)
+            return num.Rescale(w, h, wx.IMAGE_QUALITY_BILINEAR)
 
     elif isinstance(num, wx.Bitmap):
         # スケール情報の無いwx.Bitmap(単純拡大)
