@@ -13,7 +13,7 @@ import base
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
                  pos_noscale=None, size_noscale=None, talkerimage=None,
-                 nametable={}, flagtable={}, steptable={},
+                 nametable={}, namesubtable={}, flagtable={}, steptable={},
                  backlog=False, result=None, versionhint="", specialchars=None):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
@@ -25,6 +25,7 @@ class MessageWindow(base.CWPySprite):
         self._barspchr = True
 
         self.name_table = nametable
+        self.name_subtable = namesubtable
         self.flag_table = flagtable
         self.step_table = steptable
         self.specialchars = specialchars
@@ -49,6 +50,8 @@ class MessageWindow(base.CWPySprite):
 
         if not self.name_table:
             self.name_table = _create_nametable(True, self.talker)
+        if not self.name_subtable:
+            self.name_subtable = _create_nametable(False, self.talker)
 
         self.talker_image_noscale = talkerimage
         self._init_style()
@@ -194,7 +197,7 @@ class MessageWindow(base.CWPySprite):
             for index, name in enumerate(self.names):
                 # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
                 if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-                    name = (name[0], self.rpl_specialstr(False, name[1]))
+                    name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable))
                 pos = (x, cw.s(25) * index + y)
                 selected = 1 < len(self.names) and self.backlog and self.result == index
                 sbar = SelectionBar(name, pos, backlog=self.backlog, selected=selected)
@@ -322,11 +325,13 @@ class MessageWindow(base.CWPySprite):
 
         return images
 
-    def rpl_specialstr(self, full, s):
+    def rpl_specialstr(self, full, s, nametable=None):
         """
         特殊文字列(#, $)を置換した文字列を返す。
         """
-        return _rpl_specialstr(full, s, self.name_table, self.get_stepvalue, self.get_flagvalue)
+        if not nametable:
+            nametable = self.name_table
+        return _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
 
     def get_stepvalue(self, key):
         if self.backlog:
@@ -396,6 +401,7 @@ class SelectWindow(MessageWindow):
         self.backlog = backlog
         self._barspchr = False
         self.name_table = {}
+        self.name_subtable = {}
         self.flag_table = {}
         self.step_table = {}
         self.talker_image = None
@@ -623,6 +629,7 @@ class BacklogData:
             self.talker_image = None
         self.rect_noscale = base.rect_noscale
         self.name_table = base.name_table
+        self.name_subtable = base.name_subtable
         self.flag_table = base.flag_table
         self.step_table = base.step_table
         self.result = base.result
@@ -634,7 +641,7 @@ class BacklogData:
             return MessageWindow(self.text, self.names, self.path, None,
                                  self.rect_noscale.topleft, self.rect_noscale.size,
                                  self.talker_image,
-                                 self.name_table, self.flag_table, self.step_table,
+                                 self.name_table, self.name_subtable, self.flag_table, self.step_table,
                                  True, self.result, self.versionhint, self.specialchars)
         else:
             return SelectWindow(self.names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
