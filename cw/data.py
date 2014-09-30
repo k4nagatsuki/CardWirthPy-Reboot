@@ -1519,7 +1519,6 @@ class YadoData(object):
         cardorder = {}
         cardtable = {}
         for i, header in enumerate(self.storehouse):
-            cw.util.t_start()
             if header.fpath.lower().startswith("yado"):
                 fpath = cw.util.relpath(header.fpath, self.yadodir)
             else:

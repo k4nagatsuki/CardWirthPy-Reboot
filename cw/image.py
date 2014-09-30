@@ -215,7 +215,6 @@ class CardImage(Image):
         if not path:
             path = self.path
 
-        cw.util.t_start()
         subimg = cw.util.load_wxbmp(path, True)
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
         dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
