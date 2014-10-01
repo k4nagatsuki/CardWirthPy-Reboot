@@ -235,9 +235,9 @@ class CardImage(Image):
         left = cw.wins(5)
         if w/2 + left*2 > self.wxrect.width:
             size = (self.wxrect.width - left*2, h/2)
-            subimg = subimg.Rescale(size[0], h/2, quality=wx.IMAGE_QUALITY_BILINEAR)
+            subimg = subimg.Rescale(size[0], h/2, quality=cw.RESCALE_QUALITY)
         else:
-            subimg = subimg.Rescale(w/2, h/2, quality=wx.IMAGE_QUALITY_BILINEAR)
+            subimg = subimg.Rescale(w/2, h/2, quality=cw.RESCALE_QUALITY)
 
         subimg = subimg.ConvertToBitmap()
 
@@ -332,7 +332,7 @@ class CardImage(Image):
         negaimg = wx.BitmapFromBuffer(w, h, buf)
 
         image = negaimg.ConvertToImage()
-        image = image.Rescale(size[0], size[1], quality=wx.IMAGE_QUALITY_BILINEAR)
+        image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
         return image.ConvertToBitmap()
 
     def update(self, card):

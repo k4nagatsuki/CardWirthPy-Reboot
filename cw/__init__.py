@@ -103,6 +103,12 @@ UP_SCR = 1
 # ゲーム画面・ダイアログ描画時の拡大率(UP_SCRが1の時の値)
 UP_WIN = 1
 
+# wxPythonでイメージをスムージングしつつサイズ変更する際に用いるフラグ
+if 3 <= wx.VERSION[0]:
+    RESCALE_QUALITY = wx.IMAGE_QUALITY_BILINEAR
+else:
+    RESCALE_QUALITY = wx.IMAGE_QUALITY_HIGH
+
 # 起動オプション(スキン自動生成元)
 SKIN_CONV_ARGS = []
 for arg in sys.argv[1:]:
@@ -228,7 +234,7 @@ def _s_impl(num, up_scr):
                 else:
                     if not img.HasAlpha():
                         img.InitAlpha()
-                    return img.Rescale(size[0], size[1], wx.IMAGE_QUALITY_BILINEAR)
+                    return img.Rescale(size[0], size[1], cw.RESCALE_QUALITY)
             else:
                 # スケール情報の無いwx.Image(単純拡大)
                 return _s_impl(img, up_scr)
@@ -278,7 +284,7 @@ def _s_impl(num, up_scr):
         else:
             if not num.HasAlpha():
                 num.InitAlpha()
-            return num.Rescale(w, h, wx.IMAGE_QUALITY_BILINEAR)
+            return num.Rescale(w, h, cw.RESCALE_QUALITY)
 
     elif isinstance(num, wx.Bitmap):
         # スケール情報の無いwx.Bitmap(単純拡大)

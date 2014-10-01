@@ -20,6 +20,17 @@ import cw
 class NoFontError(ValueError):
     pass
 
+if sys.platform <> "win32":
+    # wx.Appのロード前にフォントをインストールしなければならない
+    fontconfig = ctypes.CDLL("libfontconfig.so")
+    if fontconfig:
+        fcconfig = fontconfig.FcConfigGetCurrent()
+        for dpath, dnames, fnames in os.walk(u"Data"):
+            for fname in fnames:
+                if fname.lower().endswith(".ttf"):
+                    path = os.path.join(dpath, fname)
+                    fontconfig.FcConfigAppFontAddFile(fcconfig, path)
+
 # マウスホイールを上回転させた時の挙動
 WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ
 WHEEL_SHOWLOG   = "ShowLog"   # バックログを表示
@@ -483,6 +494,7 @@ class Setting(object):
                 update_mental(e)
             for e in data.getfind("Makings"):
 
+
                 update_mental(e)
             ste = data.getfind("SampleTypes")
             def check_sampletype(ste, name, cautious, cheerful):
@@ -752,27 +764,16 @@ class Resource(object):
 
             self.facenames = set(wx.FontEnumerator().GetFacenames())
         else:
-            fontconfig = ctypes.CDLL("libfontconfig.so")
-            if fontconfig:
-                fcconfig = fontconfig.FcConfigGetCurrent()
-                for name, path in self.fontpaths.iteritems():
-                    fontname = cw.util.get_truetypefontname(path)
-                    if fontname:
-                        d[name] = fontname
-                    else:
-                        raise ValueError("Failed to get facename from %s" % name)
-                self.facenames = set(wx.FontEnumerator().GetFacenames())
-            else:
-                self.facenames = set(wx.FontEnumerator().GetFacenames())
-                d["gothic"] = u"IPAゴシック"
-                d["uigothic"] = u"IPA UIゴシック"
-                d["mincho"] = u"IPA明朝"
-                d["pmincho"] = u"IPA P明朝"
-                d["pgothic"] = u"IPA Pゴシック"
+            self.facenames = set(wx.FontEnumerator().GetFacenames())
+            d["gothic"] = u"IPAゴシック"
+            d["uigothic"] = u"IPA UIゴシック"
+            d["mincho"] = u"IPA明朝"
+            d["pmincho"] = u"IPA P明朝"
+            d["pgothic"] = u"IPA Pゴシック"
 
-                for value in d.itervalues():
-                    if not value in self.facenames:
-                        raise ValueError(u"IPA font not found: " + value)
+            for value in d.itervalues():
+                if not value in self.facenames:
+                    raise ValueError(u"IPA font not found: " + value)
 
         init = d.copy()
 
