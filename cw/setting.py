@@ -656,6 +656,7 @@ class Resource(object):
         self.wxstones = {}
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
+
         self.fonts = self.create_fonts()
         # StatusBarで使用するボタンイメージ
         # wxスレッドから初期化
@@ -820,7 +821,7 @@ class Resource(object):
         if not pixelsize:
             dpi = wx.ScreenDC().GetPPI()[0]
             pixelsize = int((1.0/72 * 96) * size + 0.5)
-        else:
+        elif 3 <= wx.VERSION[0]:
             # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
             pixelsize -= 1
 
