@@ -656,7 +656,6 @@ class Resource(object):
         self.wxstones = {}
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
-
         self.fonts = self.create_fonts()
         # StatusBarで使用するボタンイメージ
         # wxスレッドから初期化
