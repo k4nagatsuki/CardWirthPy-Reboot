@@ -78,9 +78,11 @@ class PartyEditor(wx.Dialog):
         if not self.panel.value == self.party.money:
             pmoney = self.panel.value - self.party.money
             ymoney = self.party.money - self.panel.value
-            cw.cwpy.ydata.set_money(ymoney)
-            self.party.set_money(pmoney)
-            cw.cwpy.exec_func(cw.cwpy.draw, True)
+            def func(party, pmoney, ymoney):
+                cw.cwpy.ydata.set_money(ymoney)
+                party.set_money(pmoney)
+                cw.cwpy.draw(True)
+            cw.cwpy.exec_func(func, self.party, pmoney, ymoney)
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
