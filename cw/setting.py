@@ -105,7 +105,7 @@ class Setting(object):
         self.show_allselectedcards = True
         self.confirm_beforeusingcard = True
         self.confirm_beforesaving = True
-        self.show_savedmessage = True
+        self.show_savedmessage = False
         self.show_backpackcard = True
         self.show_statustime = True
         self.openhandviewalways = False
@@ -149,7 +149,7 @@ class Setting(object):
                           "dlglist"      : ("mincho",   ""),
                           "uselimit"     : ("mincho",   ""),
                           "cardname"     : ("uigothic", ""),
-                          "level"        : ("mincho",   ""),
+                          "level"        : ("pmincho",  ""),
                           "message"      : ("mincho",   ""),
                           "selectionbar" : ("uigothic", ""),
                           "logpage"      : ("mincho",   ""),
