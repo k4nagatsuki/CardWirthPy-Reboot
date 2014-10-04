@@ -875,7 +875,7 @@ class NamePage(AdventurerCreaterPage):
             self.draw_clickabletext(dc, s, pos, u"＿" + sex.name, self.set_sex, None, self.sex)
             if xx[1] == x:
                 x = xx[0]
-                y += cw.wins(20)
+                y += cw.wins(15)
             else:
                 x = xx[1]
 
@@ -1241,24 +1241,32 @@ class TalentPage(AdventurerCreaterPage):
         s = cw.cwpy.msgs["nature_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
+
+        natures = filter(lambda n: not n.special, cw.cwpy.setting.natures)
         xx = [cw.wins(65), cw.wins(255)]
         x = xx[0]
         y = cw.wins(92)
-        for nature in cw.cwpy.setting.natures:
-            if not nature.special:
-                s = cw.util.txtwrap(nature.description, mode=5)
-                dc.SetFont(font1)
-                dc.DrawLabel(s, (x + cw.wins(3), y + cw.wins(18), cw.wins(145), cw.wins(35)))
-                dc.SetFont(font2)
-                s = nature.name
-                pos = (x, y)
-                self.draw_clickabletext(dc, s, pos, u"＿" + nature.name, self.set_talent, None, self.talent)
+        yd = cw.wins(18)
+        yp = cw.wins(55)
+        w = cw.wins(145)
+        if 6 < len(natures):
+            y = cw.wins(85)
+            yd = cw.wins(15)
+            yp = cw.wins(45)
+        for i, nature in enumerate(natures):
+            s = cw.util.txtwrap(nature.description, mode=5)
+            dc.SetFont(font1)
+            dc.DrawLabel(s, (x + cw.wins(3), y + yd, w, cw.wins(35)))
+            dc.SetFont(font2)
+            s = nature.name
+            pos = (x, y)
+            self.draw_clickabletext(dc, s, pos, u"＿" + nature.name, self.set_talent, None, self.talent)
 
-                if x == xx[1]:
-                    x = xx[0]
-                    y += cw.wins(55)
-                else:
-                    x = xx[1]
+            if x == xx[1]:
+                x = xx[0]
+                y += yp
+            else:
+                x = xx[1]
 
     def set_talent(self, name):
         if not self.talent == name:
@@ -1294,9 +1302,10 @@ class AttrPage(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         dc.SetFont(font)
 
+        yp = cw.wins(192 / ((len(cw.cwpy.setting.makings)+3)/4))
         for index in xrange(0, len(cw.cwpy.setting.makings), 2):
             column = index % 4
-            pos = cw.wins((67 + column * 86, 64 + (index / 4) * 16))
+            pos = cw.wins(67 + column * 86), cw.wins(64) + (index / 4) * yp
             m1 = cw.cwpy.setting.makings[index]
             s = m1.name
             if index + 1 < len(cw.cwpy.setting.makings):
