@@ -9,7 +9,7 @@ import cw
 
 def join_paths(*paths):
     """パス結合。"""
-    return "/".join(paths).replace("\\", "/").strip("/")
+    return "/".join(filter(lambda a: a, paths)).replace("\\", "/").strip("/")
 
 def check_filename(name):
     """ファイル名として適切かどうかチェックして返す。

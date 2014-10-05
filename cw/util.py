@@ -739,7 +739,7 @@ def join_paths(*paths):
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
     *paths: パス結合する文字列
     """
-    return "/".join(paths).replace("\\", "/").rstrip("/")
+    return "/".join(filter(lambda a: a, paths)).replace("\\", "/").rstrip("/")
 
 def relpath(path, start):
     if len(start) < len(path) and path.startswith(start):
