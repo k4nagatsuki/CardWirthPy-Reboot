@@ -25,7 +25,12 @@ class CardEditDialog(wx.Dialog):
             self.scdata = cw.cwpy.sdata
             self.scpath = self.scdata.fpath
             if os.path.isdir(self.scpath):
-                self.scpath = cw.util.join_paths(self.scpath, "Summary.wsm")
+                spath = cw.util.join_paths(self.scpath, "Summary.wsm")
+                if os.path.isfile(spath):
+                    self.scpath = spath
+                spath = cw.util.join_paths(self.scpath, "Summary.xml")
+                if os.path.isfile(spath):
+                    self.scpath = spath
         else:
             self.scdata = None
             self.scpath = ""
@@ -189,7 +194,7 @@ class CardEditDialog(wx.Dialog):
             dpath = ""
             fpath = ""
         dlg = wx.FileDialog(self, u"シナリオの選択", dpath, fpath,
-                            u"シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab)|*.wsn;*.wsm;*.zip;*.cab",
+                            u"シナリオファイル (*.wsn; *.wsm; *.zip; *.lzh; *.cab; Summary.xml)|*.wsn;*.wsm;*.zip;*.cab;Summary.xml",
                             wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             fpath = dlg.GetPath()
@@ -725,7 +730,7 @@ class CardEditDialog(wx.Dialog):
 def get_scenario(fpath):
     """fpathのシナリオのデータを生成して返す。"""
     lfpath = fpath.lower()
-    if lfpath.endswith(".wsm"):
+    if lfpath.endswith(".wsm") or lfpath.endswith(".xml"):
         t = cw.scenariodb.read_summary(os.path.dirname(fpath))
     else:
         t = cw.scenariodb.read_summary(fpath)

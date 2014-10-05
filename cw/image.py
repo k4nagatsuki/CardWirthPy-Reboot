@@ -395,7 +395,7 @@ class CharacterCardImage(CardImage):
 
     def set_faceimg(self, path):
         self.path = path
-        if not cw.binary.image.path_is_code(self.path):
+        if not cw.binary.image.path_is_code(self.path) and isinstance(self.ccard, cw.sprite.card.PlayerCard):
             path = cw.util.get_yadofilepath(path)
         self.cardimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
 

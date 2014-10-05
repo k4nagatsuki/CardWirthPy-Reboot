@@ -34,9 +34,12 @@ class ScenariodbUpdatingThread(threading.Thread):
         type(self)._finished = False
         db = Scenariodb()
         db.update()
+        folders = set()
+        folders.add(u"Scenario")
         for skintype, folder in self.setting.folderoftype:
-            if folder <> u"Scenario":
+            if not folder in folders:
                 db.update(folder)
+                folders.add(folder)
 
         if self._vacuum:
             db.vacuum()
@@ -123,14 +126,24 @@ class Scenariodb(object):
 
             if not os.path.isfile(ltarg):
                 spath = cw.util.join_paths(ltarg, "Summary.wsm")
-                if os.path.exists(spath):
+                if os.path.isfile(spath):
                     # クラシックなシナリオ
                     dbpaths.append(path)
                     if os.path.getmtime(spath) > t[2]:
                         # 情報を更新
                         self._insert_scenario(path, False)
-                else:
-                    self.delete(path, False)
+                    continue
+
+                spath = cw.util.join_paths(ltarg, "Summary.xml")
+                if os.path.isfile(spath):
+                    # 展開済みのシナリオ
+                    dbpaths.append(path)
+                    if os.path.getmtime(spath) > t[2]:
+                        # 情報を更新
+                        self._insert_scenario(path, False)
+                    continue
+
+                self.delete(path, False)
             else:
                 dbpaths.append(path)
 
@@ -210,8 +223,7 @@ class Scenariodb(object):
         ltarg = cw.util.get_linktarget(path)
 
         if not os.path.isfile(ltarg):
-            spath = cw.util.join_paths(ltarg, "Summary.wsm")
-            if os.path.exists(spath):
+            def func(spath, header):
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
                     cs = read_summary(path)
@@ -223,6 +235,12 @@ class Scenariodb(object):
                 else:
                     # 更新は不要
                     return header
+            spath = cw.util.join_paths(ltarg, "Summary.wsm")
+            if os.path.isfile(spath):
+                return func(spath, header)
+            spath = cw.util.join_paths(ltarg, "Summary.xml")
+            if os.path.isfile(spath):
+                return func(spath, header)
             self.delete(path)
             return None
         elif os.path.getmtime(ltarg) > header.mtime:
@@ -340,10 +358,26 @@ def read_summary(basepath):
     if os.path.isdir(path):
         f = None
         try:
-            spath = os.path.join(path, "Summary.wsm")
-            with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                return read_summary_classic(basepath, spath, f)
+            spath = cw.util.join_paths(path, "Summary.wsm")
+            if os.path.isfile(spath):
+                with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
+                    return read_summary_classic(basepath, spath, f)
+
+            spath = cw.util.join_paths(path, "Summary.xml")
+            if os.path.isfile(spath):
+                e = cw.data.xml2element(spath, "Property")
+                imgpath, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False)
+                imgbuf = ""
+                if imgpath:
+                    imgpath = cw.util.join_paths(path, imgpath)
+                    if os.path.isfile(imgpath):
+                        with open(imgpath, "rb") as f2:
+                            imgbuf = f2.read()
+                imgbuf = buffer(imgbuf)
+                summaryinfos.append(imgbuf)
+                return tuple(summaryinfos)
         except:
+            cw.util.print_ex()
             return None
 
     if path.lower().endswith(".cab"):
@@ -368,6 +402,7 @@ def read_summary(basepath):
             else:
                 return None
         except Exception, ex:
+            cw.util.print_ex()
             return None
 
     try:
@@ -487,6 +522,9 @@ def get_scenariopaths(path):
         ltarg = cw.util.get_linktarget(file)
         if os.path.isdir(ltarg):
             fpath = cw.util.join_paths(ltarg, "Summary.wsm")
+            if os.path.isfile(fpath):
+                yield file
+            fpath = cw.util.join_paths(ltarg, "Summary.xml")
             if os.path.isfile(fpath):
                 yield file
         else:

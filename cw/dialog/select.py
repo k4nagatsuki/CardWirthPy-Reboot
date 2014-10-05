@@ -3386,7 +3386,12 @@ class ScenarioSelect(Select):
         ltarg = cw.util.get_linktarget(path)
         if os.path.isdir(ltarg):
             spath = cw.util.join_paths(ltarg, "Summary.wsm")
-            return os.path.exists(spath)
+            if os.path.isfile(spath):
+                return True
+            spath = cw.util.join_paths(ltarg, "Summary.xml")
+            if os.path.isfile(spath):
+                return True
+            return False
         else:
             lpath = ltarg.lower()
             return lpath.endswith(".wsn") or\
@@ -3461,7 +3466,7 @@ class ScenarioSelect(Select):
         CardWirthのシナリオデータを変換。
         """
         # CardWirthのシナリオデータか確認
-        if not os.path.exists(cw.util.join_paths(path, "Summary.wsm")):
+        if not os.path.isfile(cw.util.join_paths(path, "Summary.wsm")):
 
             s = u"カードワースのシナリオのディレクトリではありません。"
             dlg = message.ErrorMessage(self, s)
