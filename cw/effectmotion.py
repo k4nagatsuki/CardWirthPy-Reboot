@@ -1022,10 +1022,14 @@ def get_effectivetargets(header, targets):
                     # すでにその行動のターゲットになっている場合は行わない
                     for s2, tarr, user in cw.cwpy.battle.priorityacts:
                         if s == s2:
-                            for t in tarr:
-                                if t in ts:
-                                    ts.remove(t)
-                                    break
+                            if isinstance(tarr, cw.character.Character):
+                                if tarr in ts:
+                                    ts.remove(tarr)
+                            else:
+                                for t in tarr:
+                                    if t in ts:
+                                        ts.remove(t)
+                                        break
                 setshp.extend(ts)
 
     return narrow(sets), narrow(setshp)
