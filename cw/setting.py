@@ -537,7 +537,9 @@ class Setting(object):
                 iver = int(iver)
             for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
                 dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
-                shutil.copytree(dpath, "%s_v%s" % (dpath, iver))
+                dst = "%s_v%s" % (dpath, iver)
+                dst = cw.util.dupcheck_plus(dst, yado=False)
+                shutil.copytree(dpath, dst)
 
             for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
                 dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
