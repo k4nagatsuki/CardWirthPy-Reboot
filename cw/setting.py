@@ -149,7 +149,7 @@ class Setting(object):
                           "dlglist"      : ("mincho",   ""),
                           "uselimit"     : ("mincho",   ""),
                           "cardname"     : ("uigothic", ""),
-                          "level"        : ("pmincho",  ""),
+                          "level"        : ("mincho",   ""),
                           "message"      : ("mincho",   ""),
                           "selectionbar" : ("uigothic", ""),
                           "logpage"      : ("mincho",   ""),
