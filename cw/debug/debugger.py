@@ -1303,7 +1303,7 @@ class EventView(wx.ScrolledWindow):
         last = self.get_item((0, ytop + csize[1]))
 
         for item in self.itemlist[y:]:
-            if item.content.tag == u"Start" and item <> self.itemlist[0]:
+            if item.parent is None and item <> self.itemlist[0]:
                 dc.SetPen(linepen)
                 dc.DrawLine(0, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
 
@@ -1419,7 +1419,7 @@ class EventView(wx.ScrolledWindow):
     def set_activeitem(self, item):
         # スタートコンテントの場合は次のコンテントへ遷移
         data = item.content
-        if data.tag == "Start":
+        if item.parent is None:
             e = item.nextdata
             if not len(e):
                 return
@@ -1616,7 +1616,9 @@ class EventViewItem(object):
             self.width += dc.GetTextExtent(self.text)[0]
 
     def is_branch(self):
-        return 2 <= self.nextlen or self.content.tag in ("Start", "Branch")
+        return 2 <= self.nextlen or\
+            self.content.tag == "Branch" or\
+            self.parent is None
 
     def is_contains(self, pos):
         return self.pos[1] <= pos[1] and pos[1] < self.pos[1] + self.height
@@ -1671,7 +1673,7 @@ class EventTreeCtrl(wx.TreeCtrl):
             return
 
         # スタートコンテントの場合は次のコンテントへ遷移
-        if data.tag == "Start":
+        if item.parent is None:
             item, cookie = self.GetFirstChild(item)
             if not item.IsOk():
                 return

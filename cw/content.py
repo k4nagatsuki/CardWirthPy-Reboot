@@ -804,11 +804,13 @@ class BranchCouponContent(BranchContent):
 
     def get_childname(self, child):
         s = self.data.get("coupon", "")
+        scope = self.data.get("targets")
+        s2 = self.textdict.get(scope.lower(), "")
 
         if child.get("name", "") == u"○":
-            return u"称号『%s』を所有している" % (s)
+            return u"%s称号『%s』を所有している" % (s2, s)
         else:
-            return u"称号『%s』を所有していない" % (s)
+            return u"%s称号『%s』を所有していない" % (s2, s)
 
 class BranchSelectContent(BranchContent):
     def action(self):
@@ -1088,7 +1090,9 @@ class BranchAbilityContent(BranchContent):
         level = self.data.get("value", "0")
         physical = self.textdict.get(self.data.get("physical").lower())
         mental = self.textdict.get(self.data.get("mental").lower())
-        s = u"レベル%sで %sと %sで行う" % (level, physical, mental)
+        scope = self.data.get("targetm")
+        s2 = self.textdict.get(scope.lower(), "")
+        s = u"%sレベル%sで %sと %sで行う" % (s2, level, physical, mental)
 
         if child.get("name", "") == u"○":
             s += u"判定に成功"
@@ -2449,7 +2453,7 @@ class StartBattleContent(StartContent):
         areaid = self.data.getint(".", "id", 0)
 
         if areaid in cw.cwpy.sdata.battles:
-            return u"バトルビュー『%s』" % (cw.cwpy.sdata.areas[areaid][0])
+            return u"バトルビュー『%s』" % (cw.cwpy.sdata.battles[areaid][0])
         else:
             return u"バトルエリアが指定されていません"
 
