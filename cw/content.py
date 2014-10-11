@@ -55,7 +55,7 @@ class EventContentBase(object):
     def textdict(self):
         return {
             # 対象範囲
-            "backpack" : u"荷物袋の中",
+            "backpack" : u"荷物袋",
             "partyandbackpack" : u"パーティ全体(荷物袋含む)",
             "field" : u"フィールド全体",
             # 対象メンバ
@@ -1400,10 +1400,11 @@ class ChangeBgImageContent(EventContentBase):
                 path = e.gettext("ImagePath", "")
                 seq.append(path)
             elif e.tag == "TextCell":
-                text = e.gettext(".", "")
+                text = e.gettext("Text", "")
                 if 10 < len(text):
+                    text = text.replace(u"\\n", u"")
                     text = text[:10+1] + u"..."
-                seq.append(u"テキスト「%s」", text)
+                seq.append(u"テキスト「%s」" % (text))
             elif e.tag == "ColorCell":
                 seq.append(u"カラーセル")
 
