@@ -459,6 +459,9 @@ class Status(object):
         # 現在ライフ・最大ライフ
         if hasattr(pcard, "maxlife"):
             self.life = int(100 * pcard.life / pcard.maxlife)
+            if self.life == 0 and 0 < pcard.life:
+                # 1点でもライフがある場合は最小で1%にする
+                self.life = 1
         else:
             self.life = pcard.life
         # 精神状態
@@ -513,6 +516,9 @@ class Status(object):
 
         if s.life <> self.life:
             life = int(pcard.maxlife / 100.0 * self.life) - pcard.life
+            if pcard.life + life <= 0 and 0 < self.life:
+                # 0%でない場合は最小値を1にする
+                life = 1 - pcard.life
             pcard.set_life(life)
             update = True
 
