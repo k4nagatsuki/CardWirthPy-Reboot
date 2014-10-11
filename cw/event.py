@@ -22,7 +22,7 @@ class EventInterface(object):
         self._paused = False
         self._stoped = False
         self._step = False
-        self._targetstack = -1
+        self._targetstack = -2
 
         # イベント実行中に操作を受け付けるためのタイマ
         self.eventtimer = 1
@@ -101,7 +101,7 @@ class EventInterface(object):
         self.clear_events()
         self.nowrunningpacks = {}
         self._stoped = False
-        self._targetstack = -1
+        self._targetstack = -2
         self.refresh_tools()
         self.refresh_activeitem()
 
@@ -354,7 +354,7 @@ class EventInterface(object):
             cnt = 0
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
                                             self._paused and not self._stoped:
-                if 0 <= self._targetstack and self._targetstack < self.get_currentstack():
+                if -1 <= self._targetstack and self._targetstack < self.get_currentstack():
                     break
                 if not self.get_event().force_nextcontent is None:
                     break

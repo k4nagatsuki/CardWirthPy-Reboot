@@ -51,6 +51,75 @@ class EventContentBase(object):
         return inusecard.scenario <> cw.cwpy.sdata.name or\
                inusecard.author <> cw.cwpy.sdata.author
 
+    @property
+    def textdict(self):
+        return {
+            # 対象範囲
+            "backpack" : u"荷物袋の中",
+            "partyandbackpack" : u"パーティ全体(荷物袋含む)",
+            "field" : u"フィールド全体",
+            # 対象メンバ
+            "random" : u"ランダムメンバ",
+            "selected" : u"選択中メンバ",
+            "unselected" : u"選択外メンバ",
+            "inusecard" : u"使用中カード",
+            "party" : u"パーティ全体",
+            "enemy" : u"敵全体",
+            "npc" : u"同行キャスト全体",
+            "valued" : u"評価メンバ",
+            # 身体能力
+            "dex" : u"器用度",
+            "agl" : u"敏捷度",
+            "int" : u"知力",
+            "str" : u"筋力",
+            "vit" : u"生命力",
+            "min" : u"精神力",
+            # 精神能力
+            "aggressive" : u"好戦性",
+            "unaggressive" : u"平和性",
+            "cheerful" : u"社交性",
+            "uncheerful" : u"内向性",
+            "brave" : u"勇猛性",
+            "unbrave" : u"臆病性",
+            "cautious" : u"慎重性",
+            "uncautious" : u"大胆性",
+            "trickish" : u"狡猾性",
+            "untrickish" : u"正直性",
+            # ステータス
+            "active" : u"行動可能",
+            "inactive" : u"行動不可",
+            "alive" : u"生存",
+            "dead" : u"非生存",
+            "fine" : u"健康",
+            "injured" : u"負傷",
+            "heavyinjured" : u"重傷",
+            "unconscious" : u"意識不明",
+            "poison" : u"中毒",
+            "sleep" : u"眠り",
+            "bind" : u"呪縛",
+            "paralyze" : u"麻痺／石化",
+            "confuse" : u"混乱", # 1.30
+            "overheat" : u"激昂", # 1.30
+            "brave" : u"勇敢", # 1.30
+            "panic" : u"恐慌", # 1.30
+            "silence" : u"沈黙", # 1.50
+            "faceup" : u"暴露", # 1.50
+            "antimagic" : u"魔法無効化", # 1.50
+            "upaction" : u"行動力上昇", # 1.50
+            "upavoid" : u"回避力上昇", # 1.50
+            "upresist" : u"抵抗力上昇", # 1.50
+            "updefense" : u"防御力上昇", # 1.50
+            "downaction" : u"行動力低下", # 1.50
+            "downavoid" : u"回避力低下", # 1.50
+            "downresist" : u"抵抗力低下", # 1.50
+            "downdefense" : u"防御力低下", # 1.50
+            # カード種別
+            "all" : u"全てのカード", # 1.50
+            "skill" : u"特殊技能カード", # 1.50
+            "item" : u"アイテムカード", # 1.50
+            "beast" : u"召喚獣カード", # 1.50
+        }
+
 #-------------------------------------------------------------------------------
 # Branch系コンテント
 #-------------------------------------------------------------------------------
@@ -263,75 +332,6 @@ class BranchContent(EventContentBase):
 
         return index
 
-    textdict = {
-        # 対象範囲
-        "selected" : u"選択中メンバが",
-        "random" : u"誰か一人が",
-        "party" : u"パーティ全員が",
-        "backpack" : u"荷物袋の中に",
-        "partyandbackpack" : u"パーティ全体で",
-        "field" : u"フィールド全体で",
-        # 対象メンバ
-        "random" : u"ランダムメンバ",
-        "selected" : u"選択中メンバ",
-        "unselected" : u"選択外メンバ",
-        "inusecard" : u"使用中カード",
-        "party" : u"パーティ全体",
-        "enemy" : u"敵全体",
-        "npc" : u"同行キャスト全体",
-        # 身体能力
-        "dex" : u"器用度",
-        "agl" : u"敏捷度",
-        "int" : u"知力",
-        "str" : u"筋力",
-        "vit" : u"生命力",
-        "min" : u"精神力",
-        # 精神能力
-        "aggressive" : u"好戦性",
-        "unaggressive" : u"平和性",
-        "cheerful" : u"社交性",
-        "uncheerful" : u"内向性",
-        "brave" : u"勇猛性",
-        "unbrave" : u"臆病性",
-        "cautious" : u"慎重性",
-        "uncautious" : u"大胆性",
-        "trickish" : u"狡猾性",
-        "untrickish" : u"正直性",
-        # ステータス
-        "active" : u"行動可能",
-        "inactive" : u"行動不可",
-        "alive" : u"生存",
-        "dead" : u"非生存",
-        "fine" : u"健康",
-        "injured" : u"負傷",
-        "heavyinjured" : u"重傷",
-        "unconscious" : u"意識不明",
-        "poison" : u"中毒",
-        "sleep" : u"眠り",
-        "bind" : u"呪縛",
-        "paralyze" : u"麻痺／石化",
-        "confuse" : u"混乱", # 1.30
-        "overheat" : u"激昂", # 1.30
-        "brave" : u"勇敢", # 1.30
-        "panic" : u"恐慌", # 1.30
-        "silence" : u"沈黙", # 1.50
-        "faceup" : u"暴露", # 1.50
-        "antimagic" : u"魔法無効化", # 1.50
-        "upaction" : u"行動力上昇", # 1.50
-        "upavoid" : u"回避力上昇", # 1.50
-        "upresist" : u"抵抗力上昇", # 1.50
-        "updefense" : u"防御力上昇", # 1.50
-        "downaction" : u"行動力低下", # 1.50
-        "downavoid" : u"回避力低下", # 1.50
-        "downresist" : u"抵抗力低下", # 1.50
-        "downdefense" : u"防御力低下", # 1.50
-        # カード種別
-        "all" : u"全てのカード", # 1.50
-        "skill" : u"特殊技能カード", # 1.50
-        "item" : u"アイテムカード", # 1.50
-        "beast" : u"召喚獣カード", # 1.50
-    }
-
 class BranchSkillContent(BranchContent):
     def action(self):
         """スキル所持分岐コンテント。"""
@@ -354,9 +354,9 @@ class BranchSkillContent(BranchContent):
             s2 = cw.cwpy.sdata.skills[id][0]
 
             if child.get("name", "") == u"○":
-                s = u"%s『%s』を所有している" % (s, s2)
+                s = u"%sが『%s』を所有している" % (s, s2)
             else:
-                s = u"%s『%s』を所有していない" % (s, s2)
+                s = u"%sが『%s』を所有していない" % (s, s2)
 
         else:
             s = u"特殊技能カードが指定されていません"
@@ -385,9 +385,9 @@ class BranchItemContent(BranchContent):
             s2 = cw.cwpy.sdata.items[id][0]
 
             if child.get("name", "") == u"○":
-                s = u"%s『%s』を所有している" % (s, s2)
+                s = u"%sが『%s』を所有している" % (s, s2)
             else:
-                s = u"%s『%s』を所有していない" % (s, s2)
+                s = u"%sが『%s』を所有していない" % (s, s2)
 
         else:
             s = u"アイテムカードが指定されていません"
@@ -416,9 +416,9 @@ class BranchBeastContent(BranchContent):
             s2 = cw.cwpy.sdata.beasts[id][0]
 
             if child.get("name", "") == u"○":
-                s = u"%s『%s』を所有している" % (s, s2)
+                s = u"%sが『%s』を所有している" % (s, s2)
             else:
-                s = u"%s『%s』を所有していない" % (s, s2)
+                s = u"%sが『%s』を所有していない" % (s, s2)
 
         else:
             s = u"召喚獣カードが指定されていません"
@@ -808,9 +808,9 @@ class BranchCouponContent(BranchContent):
         s2 = self.textdict.get(scope.lower(), "")
 
         if child.get("name", "") == u"○":
-            return u"%s称号『%s』を所有している" % (s2, s)
+            return u"%sが称号『%s』を所有している" % (s2, s)
         else:
-            return u"%s称号『%s』を所有していない" % (s2, s)
+            return u"%sが称号『%s』を所有していない" % (s2, s)
 
 class BranchSelectContent(BranchContent):
     def action(self):
@@ -1017,7 +1017,7 @@ class BranchRandomContent(BranchContent):
         return self.get_boolean_index(flag)
 
     def get_status(self):
-        return u"確率 = %s％" % (self.data.get("value", "0"))
+        return u"確率 = %s%%" % (self.data.get("value", "0"))
 
     def get_childname(self, child):
         if child.get("name", "") == u"○":
@@ -1092,7 +1092,7 @@ class BranchAbilityContent(BranchContent):
         mental = self.textdict.get(self.data.get("mental").lower())
         scope = self.data.get("targetm")
         s2 = self.textdict.get(scope.lower(), "")
-        s = u"%sレベル%sで %sと %sで行う" % (s2, level, physical, mental)
+        s = u"%sがレベル%sで %sと %sで行う" % (s2, level, physical, mental)
 
         if child.get("name", "") == u"○":
             s += u"判定に成功"
@@ -1393,14 +1393,26 @@ class ChangeBgImageContent(EventContentBase):
         return 0
 
     def get_status(self):
-        elements = self.data.getfind("BgImages").getchildren()
+        seq = []
 
-        if elements:
-            path = elements[0].gettext("ImagePath", "")
+        for e in self.data.getfind("BgImages", raiseerror=False):
+            if e.tag == "BgImage":
+                path = e.gettext("ImagePath", "")
+                seq.append(path)
+            elif e.tag == "TextCell":
+                text = e.gettext(".", "")
+                if 10 < len(text):
+                    text = text[:10+1] + u"..."
+                seq.append(u"テキスト「%s」", text)
+            elif e.tag == "ColorCell":
+                seq.append(u"カラーセル")
+
+        if seq:
+            s = u"】【".join(seq)
         else:
-            path = ""
+            s = u"無し"
 
-        return u"背景ファイル = 【%s】" % (path)
+        return u"背景 = 【%s】" % (s)
 
 class ChangeAreaContent(EventContentBase):
     def action(self):
@@ -1528,7 +1540,59 @@ class EffectContent(EventContentBase):
         return 0
 
     def get_status(self):
-        return u"効果コンテント"
+        dic = { "Heal": u"回復",
+                "Damage": u"ダメージ",
+                "Absorb": u"吸収",
+                "Paralyze": u"麻痺状態",
+                "DisParalyze": u"麻痺解除",
+                "Poison": u"中毒状態",
+                "DisPoison": u"中毒解除",
+                "GetSkillPower": u"精神力回復",
+                "LoseSkillPower": u"精神力不能",
+                "Sleep": u"睡眠状態",
+                "Confuse": u"混乱状態",
+                "Overheat": u"激昂状態",
+                "Brave": u"勇敢状態",
+                "Panic": u"恐慌状態",
+                "Normal": u"正常状態",
+                "Bind": u"束縛状態",
+                "DisBind": u"束縛解除",
+                "Silence": u"沈黙状態",
+                "DisSilence": u"沈黙解除",
+                "FaceUp": u"暴露状態",
+                "FaceDown": u"暴露解除",
+                "AntiMagic": u"魔法無効化状態",
+                "DisAntiMagic": u"魔法無効化解除",
+                "EnhanceAction": u"行動力変化",
+                "EnhanceAvoid": u"回避力変化",
+                "EnhanceResist": u"抵抗力変化",
+                "EnhanceDefense": u"防御力変化",
+                "VanishTarget": u"対象消去",
+                "VanishCard": u"カード消去",
+                "VanishBeast": u"召喚獣消去",
+                "DealAttackCard": u"通常攻撃",
+                "DealPowerfulAttackCard": u"渾身の一撃",
+                "DealCriticalAttackCard": u"会心の一撃",
+                "DealFeintCard": u"フェイント",
+                "DealDefenseCard": u"防御",
+                "DealDistanceCard": u"見切り",
+                "DealConfuseCard": u"混乱",
+                "DealSkillCard": u"特殊技能",
+                "CancelAction": u"行動キャンセル",
+                "SummonBeast": u"召喚獣召喚", }
+
+        targetm = self.data.get("targetm", "Selected")
+        targetm = self.textdict.get(targetm.lower(), "")
+        seq = []
+        for e in self.data.getfind("Motions", raiseerror=False):
+            type = dic.get(e.getattr(".", "type", ""), u"")
+            seq.append(type)
+        if seq:
+            s = u"】【".join(seq)
+        else:
+            s = u"無し"
+
+        return u"%sへの効果【%s】" % (targetm, s)
 
 class EffectBreakContent(EventContentBase):
     def action(self):
@@ -1756,7 +1820,11 @@ class GetSkillContent(GetContent):
         id = self.data.getint(".", "id", 0)
 
         if id in cw.cwpy.sdata.skills:
-            return u"特殊技能カード『%s』取得" % (cw.cwpy.sdata.skills[id][0])
+            scope = self.data.get("targets")
+            scope = self.textdict.get(scope.lower(), "")
+            num = self.data.getint(".", "number", 0)
+            num = u"%s枚" % (num)
+            return u"%sが特殊技能カード『%s』を%s取得" % (scope, cw.cwpy.sdata.skills[id][0], num)
         else:
             return u"特殊技能カードが指定されていません"
 
@@ -1770,7 +1838,11 @@ class GetItemContent(GetContent):
         id = self.data.getint(".", "id", 0)
 
         if id in cw.cwpy.sdata.items:
-            return u"アイテムカード『%s』取得" % (cw.cwpy.sdata.items[id][0])
+            scope = self.data.get("targets")
+            scope = self.textdict.get(scope.lower(), "")
+            num = self.data.getint(".", "number", 0)
+            num = u"%s枚" % (num)
+            return u"%sがアイテムカード『%s』を%s取得" % (scope, cw.cwpy.sdata.items[id][0], num)
         else:
             return u"アイテムカードが指定されていません"
 
@@ -1784,7 +1856,11 @@ class GetBeastContent(GetContent):
         id = self.data.getint(".", "id", 0)
 
         if id in cw.cwpy.sdata.beasts:
-            return u"召喚獣カード『%s』取得" % (cw.cwpy.sdata.beasts[id][0])
+            scope = self.data.get("targets")
+            scope = self.textdict.get(scope.lower(), "")
+            num = self.data.getint(".", "number", 0)
+            num = u"%s枚" % (num)
+            return u"%sが召喚獣カード『%s』を%s取得" % (scope, cw.cwpy.sdata.beasts[id][0], num)
         else:
             return u"召喚獣カードが指定されていません"
 
@@ -1921,7 +1997,11 @@ class GetCouponContent(GetContent):
         coupon = self.data.get("coupon")
 
         if coupon:
-            return u"称号『%s』付与" % (coupon)
+            value = self.data.get("value")
+            value = "+%s" % (value) if 0 <= value else "%s" % (value)
+            scope = self.data.get("targets")
+            scope = self.textdict.get(scope.lower(), "")
+            return u"%sに称号『%s(%s)』を付与" % (scope, coupon, value)
         else:
             return u"称号が指定されていません"
 
@@ -2066,7 +2146,11 @@ class LoseSkillContent(LoseContent):
 
         if id in cw.cwpy.sdata.skills:
             name = cw.cwpy.sdata.skills[id][0]
-            return u"特殊技能カード『%s』喪失" % (name)
+            scope = self.data.get("targets")
+            scope = self.textdict.get(scope.lower(), "")
+            num = self.data.getint(".", "number", 0)
+            num = u"%s枚" % (num) if num else u"全て"
+            return u"%sが特殊技能カード『%s』を%s喪失" % (scope, name, num)
         else:
             return u"特殊技能カードが指定されていません"
 
@@ -2081,7 +2165,11 @@ class LoseItemContent(LoseContent):
 
         if id in cw.cwpy.sdata.items:
             name = cw.cwpy.sdata.items[id][0]
-            return u"アイテムカード『%s』喪失" % (name)
+            scope = self.data.get("targets")
+            scope = self.textdict.get(scope.lower(), "")
+            num = self.data.getint(".", "number", 0)
+            num = u"%s枚" % (num) if num else u"全て"
+            return u"%sがアイテムカード『%s』を%s喪失" % (scope, name, num)
         else:
             return u"アイテムカードが指定されていません"
 
@@ -2096,7 +2184,11 @@ class LoseBeastContent(LoseContent):
 
         if id in cw.cwpy.sdata.beasts:
             name = cw.cwpy.sdata.beasts[id][0]
-            return u"召喚獣カード『%s』喪失" % (name)
+            scope = self.data.get("targets")
+            scope = self.textdict.get(scope.lower(), "")
+            num = self.data.getint(".", "number", 0)
+            num = u"%s枚" % (num) if num else u"全て"
+            return u"%sが召喚獣カード『%s』を%s喪失" % (scope, name, num)
         else:
             return u"召喚獣カードが指定されていません"
 
@@ -2224,7 +2316,9 @@ class LoseCouponContent(LoseContent):
         coupon = self.data.get("coupon")
 
         if coupon:
-            return u"称号『%s』剥奪" % (coupon)
+            scope = self.data.get("targets")
+            s = self.textdict.get(scope.lower(), "")
+            return u"%sから称号『%s』剥奪" % (s, coupon)
         else:
             return u"称号が指定されていません"
 
@@ -2245,7 +2339,7 @@ class PlayBgmContent(EventContentBase):
         if path:
             return u"BGMを【%s】へ変更" % (path)
         else:
-            return u"BGMが指定されていません"
+            return u"BGM停止"
 
 class PlaySoundContent(EventContentBase):
     def action(self):
@@ -2405,7 +2499,7 @@ class SetStepDownContent(EventContentBase):
         step = self.data.get("step")
 
         if step in cw.cwpy.sdata.steps:
-            return u"ステップ『%s』の値を1現象" % (step)
+            return u"ステップ『%s』の値を1減少" % (step)
         else:
             return u"ステップが指定されていません"
 
@@ -2606,6 +2700,8 @@ class TalkMessageContent(TalkContent):
             s = u"[選択外] "
         elif imgpath.endswith("??Card"):
             s = u"[カード] "
+        elif imgpath:
+            s = u"[%s] " % (imgpath)
         else:
             s = ""
 
@@ -2740,10 +2836,14 @@ class TalkDialogContent(TalkContent):
         return dialogtext
 
     def get_status(self):
-        try:
-            return self.data.getfind("Dialogs")[0].gettext("Text").replace("\\n", "")
-        except:
-            return ""
+        e = self.data.getfind("Dialogs")
+        if not e is None and len(e):
+            s = e[0].gettext("Text", "").replace("\\n", "")
+        else:
+            s = ""
+        targetm = self.data.get("targetm", "")
+        s2 = self.textdict.get(targetm.lower(), "")
+        return "[%s] %s" % (s2, s)
 
 #-------------------------------------------------------------------------------
 # Wait系コンテント
@@ -2781,7 +2881,8 @@ class WaitContent(EventContentBase):
         return 0
 
     def get_status(self):
-        return u"時間経過コンテント"
+        value = self.data.getint(".", "value", 0)
+        return u"%s秒間待機" % (value/10.0)
 
 #-------------------------------------------------------------------------------
 # 代入コンテント (1.30～)

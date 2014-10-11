@@ -863,10 +863,7 @@ class Debugger(wx.Frame):
             dlg.Destroy()
 
     def OnStepReturnTool(self, event):
-        if cw.cwpy.event.get_currentstack() == 0:
-            evt = wx.PyCommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED, ID_PAUSE)
-            self.ProcessEvent(evt)
-            return
+        cw.cwpy.event.breakwait = True
         cw.cwpy.event._targetstack = cw.cwpy.event.get_currentstack() - 1
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
@@ -889,7 +886,7 @@ class Debugger(wx.Frame):
 
     def OnStepInTool(self, event):
         cw.cwpy.event.breakwait = True
-        cw.cwpy.event._targetstack = -1
+        cw.cwpy.event._targetstack = -2
         cw.cwpy.event._step = True
         cw.cwpy.event._paused = False
         mwin = cw.cwpy.get_messagewindow()
@@ -901,6 +898,7 @@ class Debugger(wx.Frame):
     def OnPauseTool(self, event):
         # メッセージウィンドウ表示中の場合は一時停止できない
         cw.cwpy.event.breakwait = True
+        cw.cwpy.event._targetstack = -2
         cw.cwpy.event._paused = not cw.cwpy.event._paused
         cw.cwpy.event._step = False
 
@@ -1301,6 +1299,8 @@ class EventView(wx.ScrolledWindow):
         ytop = y * self.scrollrate_y
         y = self.get_index((0, ytop))
         last = self.get_item((0, ytop + csize[1]))
+        if not last:
+            last = self.itemlist[-1]
 
         for item in self.itemlist[y:]:
             if item.parent is None and item <> self.itemlist[0]:
@@ -1310,12 +1310,14 @@ class EventView(wx.ScrolledWindow):
             if item == self.activeitem:
                 dc.SetPen(actpen)
                 dc.SetBrush(actbrush)
-                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0]+1, self.lineheight)
             else:
                 dc.SetBrush(selbrush)
             if item == self.selectionitem:
                 dc.SetPen(selpen)
-                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0], self.lineheight)
+                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0]+1, self.lineheight)
+            if last == item:
+                break
 
         pen = wx.Pen(wx.Colour(192, 192, 192), width=4)
         pen.SetCap(wx.CAP_BUTT)
@@ -1323,7 +1325,13 @@ class EventView(wx.ScrolledWindow):
         iw = cw.cwpy.rsrc.debugs["EVT_START"].GetWidth()
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         circles = []
-        for item in self.itemlist:
+        for i, item in enumerate(self.itemlist):
+            if item.nextlen == 0:
+                if i < y:
+                    continue
+            else:
+                if self.items[item.nextdata[-1]].pos[1] < ytop:
+                    continue
             ix, iy = item.pos
             ix -= xtop
             iy -= ytop
@@ -1345,6 +1353,10 @@ class EventView(wx.ScrolledWindow):
                             dc.DrawLine(cx, cy, cx, bottom)
                             circles.append((cx, bottom+2))
                         dc.DrawArc(cx, bottom, cx+iw, bottom+self.lineheight, cx+iw, bottom)
+
+            if last == item:
+                break
+
         dc.SetBrush(wx.WHITE_BRUSH)
         for cx, cy in circles:
             dc.DrawCircle(cx, cy, 6)
@@ -1500,8 +1512,11 @@ class EventView(wx.ScrolledWindow):
             self.current_content = event.cur_content
             self.activeitem = self.items[event.cur_content]
             self.show_item(self.activeitem)
+            s = cw.content.get_content(self.current_content).get_status()
+            self.Parent.statusbar.SetStatusText(s, 1)
         else:
             self.current_content = None
+            self.Parent.statusbar.SetStatusText(u"", 1)
         self.Refresh()
         self.processing = processing
 
