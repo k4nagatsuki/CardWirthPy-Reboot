@@ -419,8 +419,7 @@ class Setting(object):
         path = cw.util.join_paths("Data/SkinBase/Skin.xml")
         basedata = cw.data.xml2etree(path)
         path = cw.util.join_paths(self.skindir, "Skin.xml")
-        data = cw.data.xml2etree(path)
-        self._update_skin(data)
+        data = self._update_skin(path)
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
         self.skinexts = data.getfind("Property/Extension").attrib
@@ -467,116 +466,127 @@ class Setting(object):
         self.unknown_race = cw.header.UnknownRaceHeader(self)
         self.races.append(self.unknown_race)
 
-    def _update_skin(self, data):
+    def _update_skin(self, path):
         """旧バージョンのデータの誤りを訂正する。
         """
-        skinversion = float(data.getattr(".", "dataVersion", "0"))
-        update = False
+        while not cw.util.create_mutex(path):
+            pass
 
-        if skinversion <= 1:
-            # dataVersion=1まで
-            #  * 社交-内向と慎重-大胆の値が入れ替わっていた
-            #  * SampleTypeで精神特性の値が1/2になっていた
-            #  * SkinBaseの情報を上書きしていない場合に限り、SampleTypeで
-            #    社交-内向と慎重-大胆の入れ替わりは発生していない
-            update = True
-            def update_mental(e):
-                me = e.find("Mental")
-                cautious = me.getattr(".", "cautious")
-                cheerful = me.getattr(".", "cheerful")
-                me.attrib["cautious"] = cheerful
-                me.attrib["cheerful"] = cautious
-            for e in data.getfind("Sexes"):
-                update_mental(e)
-            for e in data.getfind("Periods"):
-                update_mental(e)
-            for e in data.getfind("Natures"):
-                update_mental(e)
-            for e in data.getfind("Makings"):
+        try:
+            data = cw.data.xml2etree(path)
 
+            skinversion = float(data.getattr(".", "dataVersion", "0"))
+            update = False
 
-                update_mental(e)
-            ste = data.getfind("SampleTypes")
-            def check_sampletype(ste, name, cautious, cheerful):
-                # SampleTypeがSkinBaseの内容そのままかチェックする
-                return ste.gettext("Name") == name and\
-                       ste.getfloat("Mental", "cautious") == cautious and\
-                       ste.getfloat("Mental", "cheerful") == cheerful
-            if len(ste) <> 5 or\
-               not check_sampletype(ste[0], u"バランス", 0.0, 0.0) or\
-               not check_sampletype(ste[1], u"ファイター", -0.5, 0.0) or\
-               not check_sampletype(ste[2], u"シーフ", 0.5, 0.0) or\
-               not check_sampletype(ste[3], u"プリースト", 0.0, 0.5) or\
-               not check_sampletype(ste[4], u"メイジ", 0.5, -0.5):
-                # SkinBaseの内容そのままでない場合は入れ替え発生
-                for e in ste:
+            if skinversion <= 1:
+                # dataVersion=1まで
+                #  * 社交-内向と慎重-大胆の値が入れ替わっていた
+                #  * SampleTypeで精神特性の値が1/2になっていた
+                #  * SkinBaseの情報を上書きしていない場合に限り、SampleTypeで
+                #    社交-内向と慎重-大胆の入れ替わりは発生していない
+                update = True
+                def update_mental(e):
+                    me = e.find("Mental")
+                    cautious = me.getattr(".", "cautious")
+                    cheerful = me.getattr(".", "cheerful")
+                    me.attrib["cautious"] = cheerful
+                    me.attrib["cheerful"] = cautious
+                for e in data.getfind("Sexes"):
                     update_mental(e)
-            for e in ste:
-                me = e.find("Mental")
-                aggressive = me.getfloat(".", "aggressive")
-                brave = me.getfloat(".", "brave")
-                cautious = me.getfloat(".", "cautious")
-                cheerful = me.getfloat(".", "cheerful")
-                trickish = me.getfloat(".", "trickish")
-                me.attrib["aggressive"] = str(aggressive * 2)
-                me.attrib["brave"] = str(brave * 2)
-                me.attrib["cautious"] = str(cautious * 2)
-                me.attrib["cheerful"] = str(cheerful * 2)
-                me.attrib["trickish"] = str(trickish * 2)
+                for e in data.getfind("Periods"):
+                    update_mental(e)
+                for e in data.getfind("Natures"):
+                    update_mental(e)
+                for e in data.getfind("Makings"):
 
-        if skinversion <= 5:
-            # dataVersion=5までは
-            # MenuCardにPostEventのパラメータを直接持たせる事はできなかった。
-            # dataVersion=6以降は単純なPostEvent実行のみのMenuCardは
-            # それ自体にcommandとargパラメータを持たせ、Eventsは空でよい。
-            update = True
 
-            # バックアップを作成
-            iver = skinversion
-            if iver % 1 == 0:
-                iver = int(iver)
-            for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
-                dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
-                dst = "%s_v%s" % (dpath, iver)
-                dst = cw.util.dupcheck_plus(dst, yado=False)
-                shutil.copytree(dpath, dst)
+                    update_mental(e)
+                ste = data.getfind("SampleTypes")
+                def check_sampletype(ste, name, cautious, cheerful):
+                    # SampleTypeがSkinBaseの内容そのままかチェックする
+                    return ste.gettext("Name") == name and\
+                           ste.getfloat("Mental", "cautious") == cautious and\
+                           ste.getfloat("Mental", "cheerful") == cheerful
+                if len(ste) <> 5 or\
+                   not check_sampletype(ste[0], u"バランス", 0.0, 0.0) or\
+                   not check_sampletype(ste[1], u"ファイター", -0.5, 0.0) or\
+                   not check_sampletype(ste[2], u"シーフ", 0.5, 0.0) or\
+                   not check_sampletype(ste[3], u"プリースト", 0.0, 0.5) or\
+                   not check_sampletype(ste[4], u"メイジ", 0.5, -0.5):
+                    # SkinBaseの内容そのままでない場合は入れ替え発生
+                    for e in ste:
+                        update_mental(e)
+                for e in ste:
+                    me = e.find("Mental")
+                    aggressive = me.getfloat(".", "aggressive")
+                    brave = me.getfloat(".", "brave")
+                    cautious = me.getfloat(".", "cautious")
+                    cheerful = me.getfloat(".", "cheerful")
+                    trickish = me.getfloat(".", "trickish")
+                    me.attrib["aggressive"] = str(aggressive * 2)
+                    me.attrib["brave"] = str(brave * 2)
+                    me.attrib["cautious"] = str(cautious * 2)
+                    me.attrib["cheerful"] = str(cheerful * 2)
+                    me.attrib["trickish"] = str(trickish * 2)
 
-            for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
-                dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
-                for fname in os.listdir(dpath):
-                    ext = os.path.splitext(fname)[1].lower()
-                    if ext <> ".xml":
-                        continue
-                    fpath = cw.util.join_paths(dpath, fname)
-                    e = cw.data.xml2etree(fpath)
-                    updatemcards = False
-                    for me in e.getfind("MenuCards"):
-                        events = me.getfind("Events")
-                        if 1 <> len(events):
-                            continue
-                        ignum = events.gettext("Event/Ignitions/Number", "")
-                        igkeycode = events.gettext("Event/Ignitions/KeyCodes", "")
-                        if ignum <> "1" or igkeycode <> "":
-                            continue
-                        post = me.find("Events/Event/Contents/Start/Contents/Post")
-                        type = post.getattr(".", "type", "")
-                        if type <> "Event":
-                            continue
-                        command = post.getattr(".", "command", "")
-                        arg = post.getattr(".", "arg", "")
-                        if not command:
-                            continue
-                        me.attrib["command"] = command
-                        if arg:
-                            me.attrib["arg"] = arg
-                        events.clear()
-                        updatemcards = True
-                    if updatemcards:
-                        e.write()
+            if skinversion <= 5:
+                # dataVersion=5までは
+                # MenuCardにPostEventのパラメータを直接持たせる事はできなかった。
+                # dataVersion=6以降は単純なPostEvent実行のみのMenuCardは
+                # それ自体にcommandとargパラメータを持たせ、Eventsは空でよい。
+                update = True
 
-        if update:
-            data.edit(".", "6", "dataVersion")
-            data.write()
+                # バックアップを作成
+                iver = skinversion
+                if iver % 1 == 0:
+                    iver = int(iver)
+                for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
+                    dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
+                    dst = "%s_v%s" % (dpath, iver)
+                    dst = cw.util.dupcheck_plus(dst, yado=False)
+                    shutil.copytree(dpath, dst)
+
+                for dname in (u"GameOver", u"Scenario", u"Title", u"Yado"):
+                    dpath = cw.util.join_paths(self.skindir, u"Resource/Xml", dname)
+                    for fname in os.listdir(dpath):
+                        ext = os.path.splitext(fname)[1].lower()
+                        if ext <> ".xml":
+                            continue
+                        fpath = cw.util.join_paths(dpath, fname)
+                        e = cw.data.xml2etree(fpath)
+                        updatemcards = False
+                        for me in e.getfind("MenuCards"):
+                            events = me.getfind("Events")
+                            if 1 <> len(events):
+                                continue
+                            ignum = events.gettext("Event/Ignitions/Number", "")
+                            igkeycode = events.gettext("Event/Ignitions/KeyCodes", "")
+                            if ignum <> "1" or igkeycode <> "":
+                                continue
+                            post = me.find("Events/Event/Contents/Start/Contents/Post")
+                            type = post.getattr(".", "type", "")
+                            if type <> "Event":
+                                continue
+                            command = post.getattr(".", "command", "")
+                            arg = post.getattr(".", "arg", "")
+                            if not command:
+                                continue
+                            me.attrib["command"] = command
+                            if arg:
+                                me.attrib["arg"] = arg
+                            events.clear()
+                            updatemcards = True
+                        if updatemcards:
+                            e.write()
+
+            if update:
+                data.edit(".", "6", "dataVersion")
+                data.write()
+
+            return data
+
+        finally:
+            cw.util.release_mutex()
 
     def set_dealspeed(self, value):
         self.dealspeed = value
@@ -1544,7 +1554,7 @@ class RecentHistory(object):
                     temppaths.append(temppath)
 
         temppaths = set(temppaths)
-        tempdir = u"Data/Temp/Scenario"
+        tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
 
         if os.path.isdir(tempdir):
             for name in os.listdir(tempdir):

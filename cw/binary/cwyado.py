@@ -437,7 +437,7 @@ class CWYado(object):
 
         # ファイル書き込み
         etree = cw.data.xml2etree(element=element)
-        etree.write("Data/Temp/ScenarioLog/ScenarioLog.xml")
+        etree.write(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"))
 
         # party
         element = cw.data.make_element("ScenarioLog")
@@ -460,12 +460,12 @@ class CWYado(object):
             e_members.append(e)
 
         etree = cw.data.xml2etree(element=element)
-        etree.write("Data/Temp/ScenarioLog/Party/Party.xml")
+        etree.write(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party/Party.xml"))
 
         # member
-        os.makedirs("Data/Temp/ScenarioLog/Members")
+        os.makedirs(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members"))
         for adventurer in partymembers.adventurers + partymembers.vanisheds:
-            dstpath = cw.util.join_paths("Data/Temp/ScenarioLog/Members",
+            dstpath = cw.util.join_paths(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members"),
                                                     os.path.basename(adventurer.xmlpath))
             etree = cw.data.xml2etree(element=adventurer.get_f9data())
             etree.write(dstpath)
@@ -478,14 +478,14 @@ class CWYado(object):
         carddb.close()
         for fpath in fpaths:
             element.append(cw.data.make_element("File", fpath))
-        path = "Data/Temp/ScenarioLog/Backpack.xml"
+        path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Backpack.xml")
         etree = cw.data.xml2etree(element=element)
         etree.write(path)
 
         # create_zip
         path = cw.util.splitext(party.xmlpath)[0] + ".wsl"
-        cw.util.compress_zip("Data/Temp/ScenarioLog", path)
-        cw.util.remove("Data/Temp/ScenarioLog")
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path)
+        cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
 
 class UnconvCWYado(object):
     """宿データを逆変換してdstpathへ保存する。
@@ -627,16 +627,16 @@ class UnconvCWYado(object):
                 self.curnum += 1
 
                 # log
-                if os.path.isdir("Data/Temp/ScenarioLog"):
-                    cw.util.remove("Data/Temp/ScenarioLog")
+                if os.path.isdir(cw.util.join_paths(cw.tempdir, u"ScenarioLog")):
+                    cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
                 path = cw.util.splitext(pt.data.fpath)[0] + ".wsl"
                 if os.path.isfile(path):
-                    cw.util.decompress_zip(path, "Data/Temp", "ScenarioLog")
-                    etree = cw.data.xml2etree("Data/Temp/ScenarioLog/ScenarioLog.xml")
+                    cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
+                    etree = cw.data.xml2etree(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"))
                     scenarioname = etree.gettext("Property/Name")
                     if not scenarioname:
                         scenarioname = "noname"
-                    logdir = "Data/Temp/ScenarioLog"
+                    logdir = cw.util.join_paths(cw.tempdir, u"ScenarioLog")
                 else:
                     scenarioname = ""
                     logdir = ""
@@ -670,7 +670,7 @@ class UnconvCWYado(object):
                 partytable[relpath] = cw.util.splitext(os.path.basename(fpath2))[0]
 
                 if logdir:
-                    cw.util.remove("Data/Temp/ScenarioLog")
+                    cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
             except cw.binary.cwfile.UnsupportedError:
                 s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name)
                 self.write_errorlog(s)

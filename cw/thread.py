@@ -1173,6 +1173,8 @@ class CWPy(_Singleton, threading.Thread):
         self.setting.lastscenario = []
         self.ydata = None
         self.sdata = cw.data.SystemData()
+        cw.tempdir = cw.tempdir_init
+        cw.util.release_mutex()
 
     def set_yado(self):
         """宿画面へ遷移。"""
@@ -1310,7 +1312,7 @@ class CWPy(_Singleton, threading.Thread):
         # party copy
         fname = os.path.basename(self.ydata.party.data.fpath)
         dname = os.path.basename(os.path.dirname(self.ydata.party.data.fpath))
-        path = cw.util.join_paths("Data/Temp/ScenarioLog/Party", fname)
+        path = cw.util.join_paths(cw.tempdir, "ScenarioLog/Party", fname)
         dstpath = cw.util.join_paths(self.ydata.tempdir, "Party", dname, fname)
         dpath = os.path.dirname(dstpath)
 
@@ -1319,7 +1321,7 @@ class CWPy(_Singleton, threading.Thread):
 
         shutil.copy2(path, dstpath)
         # member copy
-        dpath = u"Data/Temp/ScenarioLog/Members"
+        dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members")
 
         for name in os.listdir(dpath):
             path = cw.util.join_paths(dpath, name)
@@ -1357,7 +1359,7 @@ class CWPy(_Singleton, threading.Thread):
         self.ydata.party.reload()
 
         # 荷物袋のデータを戻す
-        path = "Data/Temp/ScenarioLog/Backpack.xml"
+        path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Backpack.xml")
         etree = cw.data.xml2etree(path)
         backpacktable = {}
         yadodir = self.ydata.party.get_yadodir()
@@ -1423,7 +1425,7 @@ class CWPy(_Singleton, threading.Thread):
         if showparty:
             self.music.stop()
 
-        logpath = u"Data/Temp/ScenarioLog/Face/Log.xml"
+        logpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
         if os.path.isfile(logpath):
             elog = cw.data.xml2etree(logpath)
         else:
@@ -1445,7 +1447,7 @@ class CWPy(_Singleton, threading.Thread):
                     if eimg.get("member", "") == name:
                         fname = eimg.get("path", "")
                         if fname:
-                            face = cw.util.join_paths(u"Data/Temp/ScenarioLog/Face", fname)
+                            face = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face", fname)
                         else:
                             face = ""
                         pcard.data.edit("Property/ImagePath", eimg.text)
@@ -1517,8 +1519,7 @@ class CWPy(_Singleton, threading.Thread):
         cw.OPTIONS.scenario = ""
 
         self.yadodir = yadodir.replace("\\", "/")
-        self.tempdir = self.yadodir.replace("Yado",
-                                                    "Data/Temp/Yado", 1)
+        self.tempdir = self.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)
         self.music.stop()
         self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
         self.setting.lastyado = self.ydata.name
@@ -2560,7 +2561,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.status == "Scenario":
             self.sdata.update_log()
             self.music.stop()
-            cw.util.remove("Data/Temp/ScenarioLog")
+            cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
             self.ydata.load_party(None)
 
             if not self.areaid > 0:

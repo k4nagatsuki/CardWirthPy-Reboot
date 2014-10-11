@@ -124,20 +124,20 @@ class SystemData(object):
         wslファイルの読み込みまたは新規作成を行う。
         読み込みを行った場合はTrue、新規作成を行った場合はFalseを返す。
         """
-        cw.util.remove("Data/Temp/ScenarioLog")
+        cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         path = cw.util.get_yadofilepath(path)
 
         if path:
-            cw.util.decompress_zip(path, "Data/Temp", "ScenarioLog")
-            musicpath, inusecard = self.load_log("Data/Temp/ScenarioLog/ScenarioLog.xml", False)
+            cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
+            musicpath, inusecard = self.load_log(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
             return True, musicpath, inusecard
         else:
             self.create_log()
             return False, None, False
 
     def remove_log(self):
-        cw.util.remove("Data/Temp/ScenarioLog")
+        cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
         cw.cwpy.ydata.deletedpaths.add(path)
 
@@ -169,41 +169,11 @@ class SystemData(object):
             path = self.areas[id][1]
 
         self.data = xml2etree(path)
-        if id == -5:
-            self._update_tradearea_m5()
 
         if isinstance(self, ScenarioData):
             self.set_versionhint(cw.HINT_AREA, cw.cwpy.sct.from_basehint(self.data.getattr("Property", "versionHint", "")))
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
-
-    def _update_tradearea_m5(self):
-        # 過去のデータの修正(～2013-08-25)
-        # 古いバージョンの-5_TradeArea.xmlには
-        # ごみ箱が存在しないため、
-        # ここで追加して上書き保存する
-        e_trademcards = self.data.find("MenuCards")
-        if not e_trademcards is None and len(e_trademcards) == 1 and e_trademcards.attrib.get("spreadtype", "Auto") == "Custom":
-            e_trademcards.attrib["spreadtype"] = "Auto"
-            dpath = cw.util.join_paths(cw.cwpy.skindir, u"Resource/Xml/Yado")
-            e_trade_m1 = None
-            # -1のエリアからごみ箱の要素を取ってコピーする
-            for fname in os.listdir(dpath):
-                path = cw.util.join_paths(dpath, fname)
-                if os.path.isfile(path) and fname.endswith(".xml"):
-                    e = xml2element(path)
-                    id = e.getint("Property/Id")
-                    if id == -1:
-                        e_trade_m1 = e
-                        break
-            e_trushbox = e_trade_m1.find("MenuCards/LargeMenuCard[3]")
-            if e_trushbox.gettext("Property/ImagePath", "").startswith("Resource/Image/Card/TRUSH"):
-                e_trushbox.attrib["debugOnly"] = "True"
-                e_trademcards.append(e_trushbox)
-                self.data.write()
-                self._init_sparea_mcards()
-                if not cw.cwpy.is_debugmode():
-                    self.sparea_mcards[-5][1].hide()
 
     def start_event(self, keynum=None, keycodes=[]):
         cw.cwpy.statusbar.change(False)
@@ -303,7 +273,7 @@ class ScenarioData(SystemData):
             if self.tempdir:
                 cw.cwpy.recenthistory.moveend(self.fpath)
             else:
-                self.tempdir = u"Data/Temp/Scenario"
+                self.tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
                 if self.fpath.lower().endswith(".cab"):
                     decompress = cw.util.decompress_cab
                 else:
@@ -380,7 +350,7 @@ class ScenarioData(SystemData):
 
         if cw.scenariodb.TYPE_CLASSIC == header.type:
             cw.cwpy.classicdata = cw.binary.cwscenario.CWScenario(
-                self.tempdir, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
+                self.tempdir, cw.util.join_paths(cw.tempdir, u"OldScenario"), cw.cwpy.setting.skintype,
                 materialdir="", image_export=False)
 
         # 特殊文字の画像パスの集合(正規表現)
@@ -695,21 +665,21 @@ class ScenarioData(SystemData):
 
     def create_log(self):
         # log
-        cw.xmlcreater.create_scenariolog(self, "Data/Temp/ScenarioLog/ScenarioLog.xml", False)
+        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
         # Party and members xml update
         cw.cwpy.ydata.party.write()
         # party
-        os.makedirs("Data/Temp/ScenarioLog/Party")
+        os.makedirs(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party"))
         path = cw.util.get_yadofilepath(cw.cwpy.ydata.party.data.fpath)
-        dstpath = cw.util.join_paths("Data/Temp/ScenarioLog/Party",
+        dstpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party",
                                                     os.path.basename(path))
         shutil.copy2(path, dstpath)
         # member
-        os.makedirs("Data/Temp/ScenarioLog/Members")
+        os.makedirs(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members"))
 
         for data in cw.cwpy.ydata.party.members:
             path = cw.util.get_yadofilepath(data.fpath)
-            dstpath = cw.util.join_paths("Data/Temp/ScenarioLog/Members",
+            dstpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members",
                                                     os.path.basename(path))
             shutil.copy2(path, dstpath)
 
@@ -726,7 +696,7 @@ class ScenarioData(SystemData):
                 fpath = cw.util.relpath(header.fpath, tempdir)
             fpath = cw.util.join_paths(fpath)
             element.append(cw.data.make_element("File", fpath))
-        path = "Data/Temp/ScenarioLog/Backpack.xml"
+        path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Backpack.xml")
         etree = cw.data.xml2etree(element=element)
         etree.write(path)
 
@@ -736,7 +706,7 @@ class ScenarioData(SystemData):
         if path.startswith(cw.cwpy.yadodir):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
-        cw.util.compress_zip("Data/Temp/ScenarioLog", path)
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path)
         cw.cwpy.ydata.deletedpaths.discard(path)
 
     def load_log(self, path, recording):
@@ -805,13 +775,13 @@ class ScenarioData(SystemData):
         return etree.gettext("Property/MusicPath", ""), etree.getbool("Property/MusicPath", "inusecard", False)
 
     def update_log(self):
-        cw.xmlcreater.create_scenariolog(self, "Data/Temp/ScenarioLog/ScenarioLog.xml", False)
+        cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
 
         if path.startswith("Yado"):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
-        cw.util.compress_zip("Data/Temp/ScenarioLog", path)
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path)
 
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
@@ -1107,11 +1077,11 @@ class YadoData(object):
             wslpath = cw.util.splitext(fpath)[0] + ".wsl"
             haswsl = os.path.isfile(wslpath)
             if haswsl:
-                cw.util.decompress_zip(wslpath, "Data/Temp", "ScenarioLog")
+                cw.util.decompress_zip(wslpath, cw.tempdir, "ScenarioLog")
 
                 # 荷物袋内のカード群(ファイルパスのみ)
                 files = cw.data.make_element("BackpackFiles")
-                party = xml2etree(cw.util.join_paths("Data/Temp/ScenarioLog/Party", os.path.basename(fpath)))
+                party = xml2etree(cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", os.path.basename(fpath)))
                 for e in party.getfind("Backpack"):
                     # まだ所持しているカードとシナリオ内で
                     # 失われたカードを判別できないので、
@@ -1136,17 +1106,17 @@ class YadoData(object):
                     files.append(cw.data.make_element("File", path))
 
                 # 新フォーマットの荷物袋ログ
-                path = "Data/Temp/ScenarioLog/Backpack.xml"
+                path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Backpack.xml")
                 etree = CWPyElementTree(element=files)
                 etree.write(path)
 
                 party.getroot().remove(party.find("Backpack"))
                 party.write()
-                shutil.move(party.fpath, "Data/Temp/ScenarioLog/Party/Party.xml")
+                shutil.move(party.fpath, cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party/Party.xml"))
 
                 wslpath2 = cw.util.join_paths(dpath, "Party.wsl")
-                cw.util.compress_zip("Data/Temp/ScenarioLog", wslpath2)
-                cw.util.remove("Data/Temp/ScenarioLog")
+                cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wslpath2)
+                cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
 
             # 現状のパーティデータ
             data = xml2etree(fpath)
@@ -2577,11 +2547,12 @@ def yadoxml2etree(path, tag=""):
     return CWPyElementTree(element=element)
 
 def yadoxml2element(path, tag=""):
+    yadodir = cw.util.join_paths(cw.tempdir, u"Yado")
     if path.startswith("Yado"):
-        temppath = path.replace("Yado", "Data/Temp/Yado", 1)
-    elif path.startswith("Data/Temp/Yado"):
+        temppath = path.replace("Yado", yadodir, 1)
+    elif path.startswith(yadodir):
         temppath = path
-        path = path.replace("Data/Temp/Yado", "Yado", 1)
+        path = path.replace(yadodir, "Yado", 1)
     else:
         raise ValueError("%s is not YadoXMLFile." % path)
 

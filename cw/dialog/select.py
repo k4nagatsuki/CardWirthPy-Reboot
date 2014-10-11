@@ -402,7 +402,7 @@ class YadoSelect(Select):
             buttonlist[0].SetFocus()
 
     def can_clickcenter(self):
-        return self.okbtn.IsEnabled() or (self.list and self.classic[self.index])
+        return (self.okbtn.IsEnabled() or (self.list and self.classic[self.index])) and os.path.isdir(self.list[self.index])
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
@@ -420,25 +420,34 @@ class YadoSelect(Select):
         else:
             self._enable_btn()
 
-        if self.list and self.classic[self.index]:
+        if self.list and (self.classic[self.index] or cw.util.exists_mutex(self.list[self.index]) or not os.path.isdir(self.list[self.index])):
             self.okbtn.Disable()
 
     def OnSelect(self, event):
         if not self.list:
             return
 
+        if not os.path.isdir(self.list[self.index]):
+            hasmutex = False
+
         if self.classic[self.index]:
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.extbtn.GetId())
             self.ProcessEvent(event)
-        else:
+        elif self.okbtn.IsEnabled():
             Select.OnSelect(self, event)
 
     def OnDropFiles(self, event):
-        paths = event.GetFiles()
+        if cw.util.create_mutex(cw.tempdir_init):
+            try:
+                paths = event.GetFiles()
 
-        for path in paths:
-            self.conv_yado(path)
-            time.sleep(0.3)
+                for path in paths:
+                    self.conv_yado(path)
+                    time.sleep(0.3)
+            finally:
+                cw.util.release_mutex()
+        else:
+            cw.cwpy.sounds["error"].play()
 
     def OnClickExBtn(self, event):
         """
@@ -448,12 +457,21 @@ class YadoSelect(Select):
         yname = self.names[self.index]
         title = cw.cwpy.msgs["extension_title"] % (yname)
         classic = self.classic[self.index]
+        hasmutex = not cw.util.exists_mutex(cw.tempdir_init)
+        hasmutexlocal = not cw.util.exists_mutex(self.list[self.index]) and os.path.isdir(self.list[self.index])
+        cantransfer = bool(1 < self.classic.count(False) and os.path.isdir(self.list[self.index]))
+        if cantransfer:
+            for i, path in enumerate(self.list):
+                if not self.classic[i] and cw.util.exists_mutex(path):
+                    cantransfer = False
+                    break
+
         items = [
-            (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado, not classic),
-            (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic),
-            (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"], self.trasnfer_yadodata, not classic and 1 < self.classic.count(False)),
-            (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic),
-            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado),
+            (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado, not classic and hasmutexlocal),
+            (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic and hasmutexlocal),
+            (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"], self.trasnfer_yadodata, cantransfer),
+            (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic and hasmutexlocal),
+            (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado, hasmutexlocal),
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
         cw.cwpy.frame.move_dlg(dlg)
@@ -464,88 +482,138 @@ class YadoSelect(Select):
         """
         宿改名。
         """
-        cw.cwpy.sounds["click"].play()
-        path = self.list[self.index]
-        dlg = cw.dialog.edit.YadoEditDialog(self, path)
-        cw.cwpy.frame.move_dlg(dlg)
+        if not os.path.isdir(self.list[self.index]):
+            return
+        if cw.util.create_mutex(self.list[self.index]):
+            try:
+                cw.cwpy.sounds["click"].play()
+                path = self.list[self.index]
+                dlg = cw.dialog.edit.YadoEditDialog(self, path)
+                cw.cwpy.frame.move_dlg(dlg)
 
-        if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds["harvest"].play()
-            self.update_list(dlg.yadodir)
+                if dlg.ShowModal() == wx.ID_OK:
+                    cw.cwpy.sounds["harvest"].play()
+                    cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
+                    self.update_list(dlg.yadodir)
 
-        dlg.Destroy()
+                dlg.Destroy()
+            finally:
+                cw.util.release_mutex()
+        else:
+            cw.cwpy.sounds["error"].play()
 
     def copy_yado(self):
         """
         宿複製。
         """
-        cw.cwpy.sounds["signal"].play()
-        path = self.list[self.index]
-        yname = self.names[self.index]
-        s = cw.cwpy.msgs["copy_base"] % (yname)
-        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-        cw.cwpy.frame.move_dlg(dlg)
+        if not os.path.isdir(self.list[self.index]):
+            return
+        if cw.util.create_mutex(self.list[self.index]):
+            try:
+                cw.cwpy.sounds["signal"].play()
+                path = self.list[self.index]
+                yname = self.names[self.index]
+                s = cw.cwpy.msgs["copy_base"] % (yname)
+                dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+                cw.cwpy.frame.move_dlg(dlg)
 
-        if dlg.ShowModal() == wx.ID_OK:
-            env = cw.util.join_paths(path, "Environment.xml")
-            data = cw.data.xml2etree(env)
-            name = data.gettext("Property/Name", os.path.basename(path))
-            name = u"コピー - %s" % (name)
-            if not data.find("Property/Name") is None:
-                data.edit("Property/Name", name)
-            else:
-                e = data.make_element("Name", name)
-                data.insert("Property", e, 0)
+                if dlg.ShowModal() == wx.ID_OK:
+                    env = cw.util.join_paths(path, "Environment.xml")
+                    data = cw.data.xml2etree(env)
+                    name = data.gettext("Property/Name", os.path.basename(path))
+                    name = u"コピー - %s" % (name)
+                    if not data.find("Property/Name") is None:
+                        data.edit("Property/Name", name)
+                    else:
+                        e = data.make_element("Name", name)
+                        data.insert("Property", e, 0)
 
-            newpath = cw.binary.util.check_filename(name)
-            newpath = cw.util.join_paths(os.path.dirname(path), newpath)
-            newpath = cw.binary.util.check_duplicate(newpath)
-            shutil.copytree(path, newpath)
-            env = cw.util.join_paths(newpath, "Environment.xml")
-            data.write(env)
-            cw.cwpy.sounds["harvest"].play()
-            self.update_list(newpath)
+                    newpath = cw.binary.util.check_filename(name)
+                    newpath = cw.util.join_paths(os.path.dirname(path), newpath)
+                    newpath = cw.binary.util.check_duplicate(newpath)
+                    shutil.copytree(path, newpath)
+                    env = cw.util.join_paths(newpath, "Environment.xml")
+                    data.write(env)
+                    cw.cwpy.sounds["harvest"].play()
+                    self.update_list(newpath)
 
-        dlg.Destroy()
+                dlg.Destroy()
+            finally:
+                cw.util.release_mutex()
+        else:
+            cw.cwpy.sounds["error"].play()
 
     def trasnfer_yadodata(self):
         """
         宿のデータのコピー。
         """
-        path = self.list[self.index]
-        dirs = []
-        names = []
-        for i, dir in enumerate(self.list):
-            if not self.classic[i]:
-                dirs.append(dir)
-                names.append(self.names[i])
-        if names:
-            cw.cwpy.sounds["click"].play()
-            dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
-            cw.cwpy.frame.move_dlg(dlg)
-            if dlg.ShowModal() == wx.ID_OK:
-                self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
-                self.index = self.list.index(path)
-                self.draw(True)
-            dlg.Destroy()
+        if not os.path.isdir(self.list[self.index]):
+            return
+        if cw.util.create_mutex(cw.tempdir_init):
+            try:
+                mutexes = 0
+                for path in self.list:
+                    if cw.util.create_mutex(path):
+                        mutexes += 1
+                    else:
+                        break
+                draw = False
+                try:
+                    if mutexes <> len(self.list):
+                        cw.cwpy.sounds["error"].play()
+                        return
+                    path = self.list[self.index]
+                    dirs = []
+                    names = []
+                    for i, dir in enumerate(self.list):
+                        if not self.classic[i]:
+                            dirs.append(dir)
+                            names.append(self.names[i])
+                    if names:
+                        cw.cwpy.sounds["click"].play()
+                        dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
+                        cw.cwpy.frame.move_dlg(dlg)
+                        if dlg.ShowModal() == wx.ID_OK:
+                            self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
+                            self.index = self.list.index(path)
+                            draw = True
+                        dlg.Destroy()
+                finally:
+                    for i in xrange(mutexes):
+                        cw.util.release_mutex()
+                if draw:
+                    self.draw(True)
+            finally:
+                cw.util.release_mutex()
+        else:
+            cw.cwpy.sounds["error"].play()
 
     def delete_yado(self):
         """
         宿削除。
         """
-        cw.cwpy.sounds["signal"].play()
-        path = self.list[self.index]
-        yname = self.names[self.index]
-        s = cw.cwpy.msgs["delete_base"] % (yname)
-        dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
-        cw.cwpy.frame.move_dlg(dlg)
+        if not os.path.isdir(self.list[self.index]):
+            return
+        if cw.util.create_mutex(self.list[self.index]):
+            try:
+                cw.cwpy.sounds["signal"].play()
+                path = self.list[self.index]
+                yname = self.names[self.index]
+                s = cw.cwpy.msgs["delete_base"] % (yname)
+                dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
+                cw.cwpy.frame.move_dlg(dlg)
 
-        if dlg.ShowModal() == wx.ID_OK:
-            cw.util.remove(path)
-            cw.cwpy.sounds["dump"].play()
-            self.update_list()
+                if dlg.ShowModal() == wx.ID_OK:
+                    cw.util.remove(path)
+                    cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
+                    cw.cwpy.sounds["dump"].play()
+                    self.update_list()
 
-        dlg.Destroy()
+                dlg.Destroy()
+            finally:
+                cw.util.release_mutex()
+        else:
+            cw.cwpy.sounds["error"].play()
 
     def OnClickNewBtn(self, event):
         """
@@ -564,21 +632,27 @@ class YadoSelect(Select):
         """
         CardWirthの宿データを変換。
         """
-        if self.list and self.classic[self.index]:
-            self._convert_current()
-            return
-        # ディレクトリ選択ダイアログ
-        s = (u"CardWirthの宿のデータをCardWirthPy用に変換します。" +
-              u"\n変換する宿のフォルダを選択してください。")
-        dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
-        dlg.SetPath(os.getcwdu())
+        if cw.util.create_mutex(cw.tempdir_init):
+            try:
+                if self.list and self.classic[self.index]:
+                    self._convert_current()
+                    return
+                # ディレクトリ選択ダイアログ
+                s = (u"CardWirthの宿のデータをCardWirthPy用に変換します。" +
+                      u"\n変換する宿のフォルダを選択してください。")
+                dlg = wx.DirDialog(self, s, style=wx.DD_DIR_MUST_EXIST)
+                dlg.SetPath(os.getcwdu())
 
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-            dlg.Destroy()
-            self.conv_yado(path)
+                if dlg.ShowModal() == wx.ID_OK:
+                    path = dlg.GetPath()
+                    dlg.Destroy()
+                    self.conv_yado(path)
+                else:
+                    dlg.Destroy()
+            finally:
+                cw.util.release_mutex()
         else:
-            dlg.Destroy()
+            cw.cwpy.sounds["error"].play()
 
     def _convert_current(self):
         if not (self.list and self.classic[self.index]):
@@ -653,6 +727,15 @@ class YadoSelect(Select):
             x = (bmpw - cw.wins(270)) / 2 + ((idx % 3) * cw.wins(95))
             y = cw.wins(200) + (idx / 3) * cw.wins(16)
             dc.DrawText(name, x, y)
+
+        if cw.util.exists_mutex(self.list[self.index]):
+            fpath = cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING" + extimg)
+            if os.path.isfile(fpath):
+                bmp = cw.wins((cw.util.load_wxbmp(fpath, True), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
+            else:
+                bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
+            w = bmp.GetSize()[0]
+            dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(152), True)
 
     def conv_yado(self, path, ok=False, moveconverted=False):
         """
@@ -767,7 +850,7 @@ class YadoSelect(Select):
 
         # 宿データ
         cw.cwpy.yadodir = cw.util.join_paths(yadodir)
-        cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado", "Data/Temp/Yado", 1)
+        cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)
         ydata = cw.data.YadoData(cw.cwpy.yadodir, cw.cwpy.tempdir, loadparty=False)
 
         # コンバータ
@@ -3412,7 +3495,7 @@ class ScenarioSelect(Select):
             if os.path.isfile(path):
                 # 圧縮ファイル内から取得
                 if path.lower().endswith(".cab"):
-                    dpath = "Data/Temp/Cab"
+                    dpath = cw.util.join_paths(cw.tempdir, u"Cab")
                     if not os.path.isdir(dpath):
                         os.makedirs(dpath)
                     s = "expand \"%s\" -f:%s \"%s\"" % (path, "*.txt", dpath)
@@ -3488,7 +3571,7 @@ class ScenarioSelect(Select):
         dlg.Destroy()
         # シナリオデータ
         cwdata = cw.binary.cwscenario.CWScenario(
-            path, "Data/Temp/OldScenario", cw.cwpy.setting.skintype,
+            path, cw.util.join_paths(cw.tempdir, u"OldScenario"), cw.cwpy.setting.skintype,
             materialdir="Material", image_export=True)
 
         # 変換可能なデータか確認

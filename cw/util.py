@@ -686,7 +686,7 @@ def get_soundfilepath(basedir, path):
     """
     if path and cw.cwpy.ydata and (path.startswith(cw.cwpy.ydata.yadodir) or\
                                    path.startswith(cw.cwpy.ydata.tempdir)):
-        dpath = join_paths(u"Data/Temp/Playing", basedir)
+        dpath = join_paths(cw.tempdir, u"Playing", basedir)
         fpath = os.path.basename(path)
         fpath = join_paths(dpath, fpath)
         fpath = cw.binary.util.check_duplicate(fpath)
@@ -699,10 +699,10 @@ def get_soundfilepath(basedir, path):
 def remove_soundtempfile(basedir):
     """再生用のコピーを削除する。
     """
-    dpath = join_paths(u"Data/Temp/Playing", basedir)
+    dpath = join_paths(cw.tempdir, u"Playing", basedir)
     if os.path.isdir(dpath):
         remove(dpath)
-        if not os.listdir(u"Data/Temp/Playing"):
+        if not os.listdir(join_paths(cw.tempdir, u"Playing")):
             remove(dpath)
 
 def sort_by_attr(seq, *attr):
@@ -991,6 +991,7 @@ def dupcheck_plus(path, yado=True):
     宿のファイルパスの場合は、"Data/Temp/Yado"ディレクトリの重複もチェックする。
     """
 
+    tempyado = cw.util.join_paths(cw.tempdir, u"Yado")
     dpath, basename = os.path.split(path)
     fname, ext = cw.util.splitext(basename)
     fname = cw.binary.util.check_filename(fname.strip())
@@ -1000,9 +1001,9 @@ def dupcheck_plus(path, yado=True):
 
     if yado:
         if path.startswith("Yado"):
-            temppath = path.replace("Yado", "Data/Temp/Yado", 1)
-        elif path.startswith("Data/Temp/Yado"):
-            temppath = path.replace("Data/Temp/Yado", "Yado", 1)
+            temppath = path.replace("Yado", tempyado, 1)
+        elif path.startswith(tempyado):
+            temppath = path.replace(tempyado, "Yado", 1)
         else:
             print u"宿パスの重複チェック失敗", path
             temppath = ""
@@ -1018,9 +1019,9 @@ def dupcheck_plus(path, yado=True):
 
         if yado:
             if path.startswith("Yado"):
-                temppath = path.replace("Yado", "Data/Temp/Yado", 1)
-            elif path.startswith("Data/Temp/Yado"):
-                temppath = path.replace("Data/Temp/Yado", "Yado", 1)
+                temppath = path.replace("Yado", tempyado, 1)
+            elif path.startswith(tempyado):
+                temppath = path.replace(tempyado, "Yado", 1)
             else:
                 print u"宿パスの重複チェック失敗", path
                 temppath = ""
@@ -1119,7 +1120,7 @@ def get_materialpath(path, type, scedir="", system=False):
     if type == cw.M_IMG and cw.binary.image.path_is_code(path):
         return path
     if not system and cw.cwpy.is_playingscenario():
-        tpath = cw.util.join_paths(u"Data/Temp/ScenarioLog/TempFile", path)
+        tpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", path)
         if os.path.isfile(tpath):
             path = tpath
         else:
@@ -1150,7 +1151,7 @@ def remove_temp():
     """
     "Data/Temp/Yado"を空にする。
     """
-    dpath = u"Data/Temp"
+    dpath = cw.tempdir
 
     if not os.path.exists(dpath):
         os.makedirs(dpath)
@@ -2237,6 +2238,71 @@ def t_print():
     if lines:
         with open("performance.txt", "w") as f:
             f.write("\n".join(lines))
+
+#-------------------------------------------------------------------------------
+#  同時起動制御
+#-------------------------------------------------------------------------------
+
+import md5
+_mutex = []
+
+def create_mutex(dpath):
+    global _mutex
+    if not os.path.isabs(dpath):
+        dpath = os.path.abspath(dpath)
+    dpath = os.path.normpath(dpath)
+    dpath = os.path.normcase(dpath)
+    name = md5.new(buffer(dpath)).hexdigest()
+    name = u"CardWirthPy/%s" % (name)
+    name = name.encode("utf-16")
+
+    # 二重起動防止 for Windows
+    if sys.platform == "win32":
+        ERROR_ALREADY_EXISTS = 183
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.CreateMutexW(None, 1, name)
+        err = kernel32.GetLastError()
+
+        if err == ERROR_ALREADY_EXISTS:
+            if handle:
+                kernel32.ReleaseMutex(handle)
+                kernel32.CloseHandle(handle)
+            handle = None
+        else:
+            _mutex.append(handle)
+            return True
+    else:
+        return True
+
+def exists_mutex(dpath):
+    global _mutex
+    if not os.path.isabs(dpath):
+        dpath = os.path.abspath(dpath)
+    dpath = os.path.normpath(dpath)
+    dpath = os.path.normcase(dpath)
+    name = md5.new(buffer(dpath)).hexdigest()
+    name = u"CardWirthPy/%s" % (name)
+    name = name.encode("utf-16")
+
+    if sys.platform == "win32":
+        MUTEX_ALL_ACCESS = 0x001F0001
+        SYNCHRONIZE = 0x00100000
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.OpenMutexW(MUTEX_ALL_ACCESS, 0, name)
+        if handle and not handle in _mutex:
+            kernel32.ReleaseMutex(handle)
+            kernel32.CloseHandle(handle)
+            return True
+    return False
+
+def release_mutex():
+    global _mutex
+    if _mutex:
+        if sys.platform == "win32":
+            kernel32 = ctypes.windll.kernel32
+            kernel32.ReleaseMutex(_mutex[-1])
+            kernel32.CloseHandle(_mutex[-1])
+        del _mutex[-1]
 
 def main():
     pass

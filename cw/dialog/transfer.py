@@ -499,9 +499,9 @@ class TransferYadoDataDialog(wx.Dialog):
         wsl = os.path.splitext(header.fpath)[0] + ".wsl"
         if os.path.isfile(wsl):
             # 冒険中情報
-            cw.util.decompress_zip(wsl, "Data/Temp", "ScenarioLog")
+            cw.util.decompress_zip(wsl, cw.tempdir, "ScenarioLog")
 
-            file = u"Data/Temp/ScenarioLog/ScenarioLog.xml"
+            file = cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml")
             etree = cw.data.xml2etree(file)
             e = etree.getfind("Property/MusicPath")
             if e.getbool(".", "inusecard", False):
@@ -512,7 +512,7 @@ class TransferYadoDataDialog(wx.Dialog):
                     e.text = counter.imgpaths.get(e.text, e.text)
             etree.write()
 
-            file = u"Data/Temp/ScenarioLog/Face/Log.xml"
+            file = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
             if os.path.isfile(file):
                 etree = cw.data.xml2etree(file)
                 for e in etree.getfind("."):
@@ -521,7 +521,7 @@ class TransferYadoDataDialog(wx.Dialog):
                     e.text = counter.imgpaths.get(e.text, e.text)
                 etree.write()
 
-            dir = u"Data/Temp/ScenarioLog/Party"
+            dir = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party")
             etree = None
             for p in os.listdir(dir):
                 if p.lower().endswith(".xml"):
@@ -531,8 +531,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 e.text = counter.membertable[e.text]
             etree.write()
 
-            dir = u"Data/Temp/ScenarioLog/Members"
-            dir2 = u"Data/Temp/ScenarioLog/Members2"
+            dir = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members")
+            dir2 = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members2")
             if not os.path.isdir(dir2):
                 os.makedirs(dir2)
             for p in os.listdir(dir):
@@ -546,8 +546,8 @@ class TransferYadoDataDialog(wx.Dialog):
             shutil.move(dir2, dir)
 
             wsl = cw.util.join_paths(dstdir, u"Party.wsl")
-            cw.util.compress_zip("Data/Temp/ScenarioLog", wsl)
-            cw.util.remove(u"Data/Temp/ScenarioLog")
+            cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wsl)
+            cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
         counter.num += 1
 
         # 宿DBへ追加

@@ -381,7 +381,16 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.load_yado(dlg.list[dlg.index])
+            yadodir = dlg.list[dlg.index]
+            if cw.util.create_mutex(yadodir):
+                cw.tempdir = cw.util.join_paths(u"Data/Temp/Local", yadodir)
+                try:
+                    cw.cwpy.load_yado(yadodir)
+                except:
+                    cw.util.print_ex()
+                    cw.cwpy.sounds["error"].play()
+            else:
+                cw.cwpy.sounds["error"].play()
 
         self.kill_dlg(dlg)
 

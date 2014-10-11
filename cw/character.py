@@ -128,7 +128,7 @@ class Character(object):
             if cw.cwpy.is_playingscenario():
                 # F9のためにシナリオ突入時の画像の記録を取る
                 name = os.path.splitext(os.path.basename(self.data.fpath))[0]
-                log = cw.util.join_paths(u"Data/Temp/ScenarioLog/Face/Log.xml")
+                log = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
                 if os.path.isfile(log):
                     etree = cw.data.xml2etree(log)
                 else:
@@ -144,7 +144,7 @@ class Character(object):
                     fpath = self.get_imagepath()
                     fname = os.path.basename(fpath)
                     dname = os.path.basename(os.path.dirname(fpath))
-                    dpath = cw.util.join_paths(u"Data/Temp/ScenarioLog/Face")
+                    dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face")
                     fpath2 = cw.util.join_yadodir(fpath)
                     if os.path.isfile(fpath2):
                         fpath = cw.util.join_paths(dpath, fname)

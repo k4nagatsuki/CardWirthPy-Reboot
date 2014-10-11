@@ -383,7 +383,7 @@ def read_summary(basepath):
     if path.lower().endswith(".cab"):
         try:
             if cw.util.cab_hasfile(path, "Summary.wsm"):
-                dpath = "Data/Temp/Cab"
+                dpath = cw.util.join_paths(cw.tempdir, u"Cab")
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 s = "expand \"%s\" -I -f:%s \"%s\"" % (path, "Summary.wsm", dpath)
