@@ -1320,7 +1320,7 @@ class GetProperty(object):
             self.properties[element] += data
             if 4 == len(self.stack):
                 seq = self.third[self.stack[2]]
-                seq[-1] = (seq[-1][0], seq[-1][1], data)
+                seq[-1] = (seq[-1][0], seq[-1][1], seq[-1][2] + data)
 
 class RaceHeader(object):
     def __init__(self, data):
