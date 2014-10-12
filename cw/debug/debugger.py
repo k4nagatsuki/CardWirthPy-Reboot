@@ -1472,6 +1472,10 @@ class EventView(wx.ScrolledWindow):
                 self.show_item(self.selectionitem)
                 self.Refresh()
 
+        if self.selectionitem and keycode in (wx.WXK_LEFT, wx.WXK_UP, wx.WXK_RIGHT, wx.WXK_DOWN):
+             content = cw.content.get_content(self.selectionitem.content)
+             self.Parent.statusbar.SetStatusText(content.get_status(), 1)
+
     def OnKeyUp(self, event):
         if not self.itemlist:
             return
