@@ -61,6 +61,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
+            self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
             self.pane_draw.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
             self.pane_draw.sl_msgs.SetValue(cw.cwpy.setting.messagespeed_init)
             self.pane_draw.ch_tran.SetSelection(self.pane_draw.transitions.index(cw.cwpy.setting.transition_init))
@@ -138,6 +139,7 @@ class SettingsDialog(wx.Dialog):
         # 設定変更前はレベル上昇が可能な状態だったか
         can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
         updatecardimg = False # カードイメージの更新が必要か
+        updatestatusbar = False # ステータスバーの更新が必要か
 
         # フォント
         flag_fontupdate = False
@@ -194,8 +196,8 @@ class SettingsDialog(wx.Dialog):
         if value <> cw.cwpy.setting.backlogmax:
             def func(backlogmax):
                 cw.cwpy.set_backlogmax(backlogmax)
-                cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func, value)
+            updatestatusbar = True
 
         # 拡大倍率
         value = self.pane_gene.cb_smoothexpand.GetValue()
@@ -224,6 +226,10 @@ class SettingsDialog(wx.Dialog):
         # 描画
         value = self.pane_draw.cb_smooth_bg.GetValue()
         cw.cwpy.setting.smoothscale_bg = value
+        value = self.pane_draw.cb_statusbarmask.GetValue()
+        if value <> cw.cwpy.setting.statusbarmask:
+            cw.cwpy.setting.statusbarmask = value
+            updatestatusbar = True
         value = self.pane_draw.sl_deal.GetValue()
         cw.cwpy.setting.set_dealspeed(value)
         value = self.pane_draw.sl_msgs.GetValue()
@@ -403,6 +409,12 @@ class SettingsDialog(wx.Dialog):
                                              cw.cwpy.get_ecards("unreversed"),\
                                              cw.cwpy.get_fcards("unreversed")):
                     ccard.update_image()
+            cw.cwpy.exec_func(func)
+
+        # ステータスバーの更新
+        if updatestatusbar:
+            def func():
+                cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func)
 
         self.Close()
@@ -728,6 +740,10 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
         self.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg)
+        # イベント中にステータスバーの色を変える
+        self.cb_statusbarmask = wx.CheckBox(
+            self, -1, u"イベント中にステータスバーの色を変える")
+        self.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -853,6 +869,7 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_msgs = wx.StaticBoxSizer(self.box_msgs, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.ALL, 3)
         bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)

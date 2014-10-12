@@ -381,6 +381,10 @@ def create_settings(setting):
     e = cw.data.make_element("ShowStraightEventTree", str(setting.show_straighteventtree))
     element.append(e)
 
+    # イベント中にステータスバーの色を変える
+    e = cw.data.make_element("StatusBarMask", str(setting.statusbarmask))
+    element.append(e)
+
     # タイトルバーの表示内容
     e = cw.data.make_element("TitleFormat", setting.titleformat)
     element.append(e)

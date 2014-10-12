@@ -665,10 +665,10 @@ class EventHandlerForBacklog(EventHandler):
         self._page = cw.sprite.message.BacklogPage(self.index+1, len(self.backlog), cw.cwpy.backloggrp)
         self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp)
         self._lock_menucards = cw.cwpy.lock_menucards
-        cw.cwpy.clear_selection()
-        cw.cwpy.statusbar.change(False)
-        cw.cwpy.lock_menucards = False
         cw.cwpy._is_showingbacklog = True
+        cw.cwpy.clear_selection()
+        cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
+        cw.cwpy.lock_menucards = False
 
     def run(self):
         cw.cwpy.has_inputevent = False

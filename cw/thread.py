@@ -261,6 +261,7 @@ class CWPy(_Singleton, threading.Thread):
             self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
             self.deal_cards()
 
+        self.clear_selection()
         self.rsrc = None
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True)
 
@@ -2154,6 +2155,8 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_inusecardimg()
         self.clear_guardcardimg()
         self._stored_partyrecord = None
+        targetselectionarea = False
+        callpredlg = False
 
         oldareaid = self.areaid
         if self.areaid <= 0:
@@ -2188,18 +2191,20 @@ class CWPy(_Singleton, threading.Thread):
             self.selectedheader = None
             if self.battle.is_ready():
                 self.battle.update_showfcards()
-            self.call_predlg()
+            callpredlg = True
         elif self.selectedheader:
             # ターゲット選択エリアを解除の場合
             self.selectedheader = None
+            targetselectionarea = True
             if self.is_curtained():
                 self.clear_curtain()
             if self.pre_dialogs:
-                self.call_predlg()
+                callpredlg = True
 
         showbuttons = not self.is_playingscenario() or\
             (not self.areaid in cw.AREAS_TRADE and self.areaid in cw.AREAS_SP) or\
-            oldareaid == cw.AREA_CAMP
+            oldareaid == cw.AREA_CAMP or\
+            targetselectionarea
         self.statusbar.change(showbuttons)
 
         self.disposition_pcards()
@@ -2207,6 +2212,9 @@ class CWPy(_Singleton, threading.Thread):
 
         if oldareaid <> cw.AREA_CAMP:
             self.draw()
+
+        if callpredlg:
+            self.call_predlg()
 
     def clean_specials(self):
         """デバッガやF9で強制的なエリア移動等を発生させる時、

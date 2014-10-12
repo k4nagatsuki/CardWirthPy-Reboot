@@ -125,6 +125,7 @@ class Setting(object):
         self.ssinfobackcolor = (255, 255, 255, 255)
         self.show_fcardsinbattle = False
         self.show_straighteventtree = True
+        self.statusbarmask = True
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -316,7 +317,7 @@ class Setting(object):
             if not key:
                 continue
             type = e.getattr(".", "type", "")
-            name = e.text
+            name = e.text if e.text else u""
             self.fonttypes[key] = (type, name)
 
         self.showfps = False
@@ -389,6 +390,9 @@ class Setting(object):
 
         # デバッガでイベントツリーを垂直表示する
         self.show_straighteventtree = data.gettext("ShowStraightEventTree", self.show_straighteventtree)
+
+        # イベント中にステータスバーの色を変える
+        self.statusbarmask = data.getbool("StatusBarMask", self.statusbarmask)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)

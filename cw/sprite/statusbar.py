@@ -20,6 +20,7 @@ class StatusBar(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
         self.showbuttons = False
+        self._statusbarmask = cw.cwpy.setting.statusbarmask
 
     def _init_image(self):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
@@ -38,10 +39,20 @@ class StatusBar(base.CWPySprite):
         if showbuttons and (pygame.event.peek(pygame.locals.USEREVENT) or cw.cwpy.expanding):
             showbuttons = False
 
-        self.showbuttons = showbuttons
+        if self.showbuttons <> showbuttons or self._statusbarmask <> cw.cwpy.setting.statusbarmask:
+            self.showbuttons = showbuttons
+            subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
+            self.image.fill((240, 240, 240))
+            self.image.blit(subimg, cw.s((0, 0)))
+            if not self.showbuttons and cw.cwpy.setting.statusbarmask:
+                self.image.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
+
+        self._statusbarmask = cw.cwpy.setting.statusbarmask
 
         if cw.cwpy.expanding:
             ExpandView(self, cw.s((10, 6)))
+
+        showbuttons &= not cw.cwpy.is_showingbacklog()
 
         left = cw.s(602)
         rmargin = cw.s(0)
@@ -347,6 +358,7 @@ class StatusBarButton(base.SelectableSprite):
         self.number = number
         # ボタン画像
         self.btnimg = {}
+        self._statusbarmask = cw.cwpy.setting.statusbarmask
 
         # ボタンアイコン・ラベル
         if icon:
@@ -370,10 +382,17 @@ class StatusBarButton(base.SelectableSprite):
         cw.cwpy.sbargrp.add(self, layer="button")
 
     def get_btnimg(self, flags):
-        if flags in self.btnimg:
-            return self.btnimg[flags]
+        if self._statusbarmask <> cw.cwpy.setting.statusbarmask:
+            self._statusbarmask = cw.cwpy.setting.statusbarmask
+            self.btnimg.clear()
+
+        key = (flags, cw.cwpy.statusbar.showbuttons)
+        if key in self.btnimg:
+            return self.btnimg[key]
         else:
             bmp = cw.cwpy.rsrc.get_statusbtnbmp(self.sizetype, flags)
+            if not cw.cwpy.statusbar.showbuttons and cw.cwpy.setting.statusbarmask:
+                bmp.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
             brect = bmp.get_rect()
             rect = self.icon.get_rect()
             rect.centerx = brect.centerx - brect.left
@@ -388,7 +407,7 @@ class StatusBarButton(base.SelectableSprite):
             if not self.number is None:
                 icon = cw.util.put_number(icon, self.number)
             bmp.blit(icon, rect.topleft)
-            self.btnimg[flags] = bmp
+            self.btnimg[key] = bmp
             return bmp
 
     def get_unselectedimage(self):
