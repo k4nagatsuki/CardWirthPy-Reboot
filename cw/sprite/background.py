@@ -477,11 +477,11 @@ class BattleCardImage(card.CWPyCard):
         self.rect = self._rect = self.image.get_rect()
         self.set_pos_noscale(center_noscale=(316, 142))
         self.clear_image()
-        self.highspeed = True
         # spritegroupに追加
         cw.cwpy.topgrp.add(self, layer="battlecard")
 
     def update_battlestart(self):
+        self.highspeed = True
         cw.animation.animate_sprite(self, "deal")
         cw.animation.animate_sprite(self, "hide")
         self.zoomsize_noscale = (8, 12)
@@ -497,7 +497,7 @@ class BattleCardImage(card.CWPyCard):
         cw.animation.animate_sprite(self, "deal")
         waitrate = (cw.cwpy.setting.dealspeed+1) * 4
         cw.cwpy.wait_frame(waitrate)
-        cw.animation.animate_sprite(self, "hide")
+        self.highspeed = False
 
     def update_image(self):
         pass

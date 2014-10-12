@@ -1977,7 +1977,6 @@ class CWPy(_Singleton, threading.Thread):
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")
-        sprite.remove(cw.cwpy.topgrp)
         oldareaid = self.areaid
         oldbgmpath = self.music.path
         if self.sdata.pre_battleareadata:
@@ -1985,6 +1984,8 @@ class CWPy(_Singleton, threading.Thread):
             oldbgmpath = self.sdata.pre_battleareadata[1]
         self.set_battle()
         self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
+        cw.animation.animate_sprite(sprite, "hide")
+        sprite.remove(cw.cwpy.topgrp)
         # 戦闘音楽を流す
         path = self.sdata.data.gettext("Property/MusicPath", "")
         self.music.play(path)
