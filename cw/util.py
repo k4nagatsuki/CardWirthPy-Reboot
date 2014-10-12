@@ -1158,10 +1158,16 @@ def remove_temp():
     if not os.path.exists(dpath):
         os.makedirs(dpath)
 
+    removeall = True
     for name in os.listdir(dpath):
-        if not name == "Scenario":
+        if name == "Scenario":
+            removeall = False
+        else:
             path = join_paths(dpath, name)
             remove(path)
+
+    if removeall and cw.tempdir <> cw.tempdir_init:
+        remove(cw.tempdir)
 
 def remove(path):
     if os.path.isfile(path):

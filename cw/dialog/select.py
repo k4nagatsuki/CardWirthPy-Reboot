@@ -1683,7 +1683,7 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.frame.move_dlg(dlg)
         else:
             dlg = cw.dialog.create.AdventurerCreater(self)
-            cw.cwpy.frame.move_dlg(dlg, point=cw.wins((20, 20)))
+            cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.sounds["page"].play()
@@ -2994,7 +2994,6 @@ class ScenarioSelect(Select):
                     buttonlist[0].SetFocus()
 
     def _enable_btn2(self, header, dc=None):
-        enable = True
         bmpw = self.toppanel.GetClientSize()[0]
         if isinstance(header, cw.header.ScenarioHeader):
             # 進行中チェック
@@ -3003,29 +3002,18 @@ class ScenarioSelect(Select):
                     bmp = cw.cwpy.rsrc.dialogs["PLAYING"]
                     w = bmp.GetSize()[0]
                     dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(152), True)
-                if not cw.cwpy.debug:
-                    enable = False
             # 済み印存在チェック
             elif self.is_complete(header):
                 if dc:
                     bmp = cw.cwpy.rsrc.dialogs["COMPLETE"]
                     w = bmp.GetSize()[0]
                     dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(175), True)
-                if not cw.cwpy.debug:
-                    enable = False
             # クーポン存在チェック
             elif self.is_invisible(header):
                 if dc:
                     bmp = cw.cwpy.rsrc.dialogs["INVISIBLE"]
                     w = bmp.GetSize()[0]
                     dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(100), True)
-                if not cw.cwpy.debug:
-                    enable = False
-        else:
-            dpath = header
-            if self.tree.IsShown() or not os.path.isdir(cw.util.get_linktarget(dpath)):
-                enable = False
-        self.yesbtn.Enable(enable)
 
     def is_playing(self, header):
         return header.get_fpath() in self.nowplayingpaths
@@ -3361,50 +3349,34 @@ class ScenarioSelect(Select):
             return
         # リストが空だったらボタンを無効化
         if not self.list:
-            self._disable_btn()
-            ##self.convbtn.Enable()
+            self.yesbtn.Enable(False)
+            self.infobtn.Enable(False)
+            self.viewbtn.Enable(False)
             self.nobtn.Enable()
+            self.rightbtn.Disable()
+            self.right2btn.Disable()
+            self.leftbtn.Disable()
+            self.left2btn.Disable()
             self.SetTitle(u"貼紙を見る")
             return
         elif len(self.list) == 1:
-            self._enable_btn()
+            self.infobtn.Enable()
+            self.viewbtn.Enable()
+            self.nobtn.Enable()
             self.rightbtn.Disable()
             self.right2btn.Disable()
             self.leftbtn.Disable()
             self.left2btn.Disable()
         else:
-            self._enable_btn()
+            self.infobtn.Enable()
+            self.viewbtn.Enable()
+            self.nobtn.Enable()
+            self.rightbtn.Enable()
+            self.right2btn.Enable()
+            self.leftbtn.Enable()
+            self.left2btn.Enable()
 
         selected = self.list[self.index]
-
-        # ツリー表示中かつディレクトリ選択中なら決定ボタン無効化
-        if self.list and self.tree.IsShown() and\
-                not isinstance(selected, cw.header.ScenarioHeader):
-            self.yesbtn.Disable()
-
-        # ショートカットのリンク先が無い場合
-        if self.list and isinstance(selected, (str, unicode)):
-            if not os.path.isdir(cw.util.get_linktarget(selected)):
-                self.yesbtn.Disable()
-
-        # ツリー表示中の決定ボタン有効・無効判定
-        if self.tree.IsShown():
-            selitem = self.tree.GetSelection()
-            if selitem:
-                data = self.tree.GetItemPyData(selitem)
-                if data:
-                    index, pathorheader = data
-                    if isinstance(pathorheader, cw.header.ScenarioHeader):
-                        header = pathorheader
-                        if not cw.cwpy.is_debugmode()\
-                            and (self.is_playing(header)\
-                             or self.is_complete(header)\
-                             or self.is_invisible(header)):
-                            self.yesbtn.Disable()
-                else:
-                    self.yesbtn.Disable()
-            else:
-                self.yesbtn.Disable()
 
         # 状況によってボタンのテキストを更新
         if self.tree.IsShown():
@@ -3421,6 +3393,28 @@ class ScenarioSelect(Select):
             self.nobtn.SetLabel(cw.cwpy.msgs["return"])
         else:
             self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
+
+        enable = True
+        if not self.list:
+            enable = False
+        elif isinstance(selected, cw.header.ScenarioHeader):
+            # 進行中チェック
+            if self.is_playing(selected):
+                if not cw.cwpy.debug:
+                    enable = False
+            # 済み印存在チェック
+            elif self.is_complete(selected):
+                if not cw.cwpy.debug:
+                    enable = False
+            # クーポン存在チェック
+            elif self.is_invisible(selected):
+                if not cw.cwpy.debug:
+                    enable = False
+        else:
+            dpath = selected
+            if self.tree.IsShown() or not os.path.isdir(cw.util.get_linktarget(dpath)):
+                enable = False
+        self.yesbtn.Enable(enable)
 
         # 選択中のファイル名またはディレクトリ名を表示
         if isinstance(selected, cw.header.ScenarioHeader):
