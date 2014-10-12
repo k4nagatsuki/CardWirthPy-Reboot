@@ -1381,8 +1381,8 @@ class Character(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
 
-        vit = max(1, self.physical.get("vit"))
-        minval = max(1, self.physical.get("min"))
+        vit = max(1, int(self.physical.get("vit")))
+        minval = max(1, int(self.physical.get("min")))
 
         coeff = self.data.getfloat("Property/Life", "coefficient", 0.0)
         if coeff <= 0.0:
