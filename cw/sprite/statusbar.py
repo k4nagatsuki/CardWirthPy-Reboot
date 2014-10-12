@@ -42,10 +42,10 @@ class StatusBar(base.CWPySprite):
         if self.showbuttons <> showbuttons or self._statusbarmask <> cw.cwpy.setting.statusbarmask:
             self.showbuttons = showbuttons
             subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
+            if not self.showbuttons and cw.cwpy.setting.statusbarmask:
+                subimg.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
             self.image.fill((240, 240, 240))
             self.image.blit(subimg, cw.s((0, 0)))
-            if not self.showbuttons and cw.cwpy.setting.statusbarmask:
-                self.image.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
 
         self._statusbarmask = cw.cwpy.setting.statusbarmask
 
