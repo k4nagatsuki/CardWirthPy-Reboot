@@ -467,6 +467,8 @@ class CWPy(_Singleton, threading.Thread):
             sys.stderr.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)
             sys.stderr.write("\n")
+        finally:
+            cw.util.clear_mutex()
 
     def _run(self):
         self._running = True
@@ -988,6 +990,7 @@ class CWPy(_Singleton, threading.Thread):
         # 互換性マーク削除
         if self.is_playingscenario():
             self.sdata.set_versionhint(cw.HINT_MESSAGE, None)
+
 
         # メッセージ表示中にシナリオ強制終了(F9)などを行った場合、
         # イベント強制終了用のエラーを送出する。

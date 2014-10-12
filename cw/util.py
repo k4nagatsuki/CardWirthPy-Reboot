@@ -19,6 +19,8 @@ import StringIO
 import io
 import traceback
 import datetime
+import md5
+import ctypes
 
 if sys.platform == "win32":
     import pythoncom
@@ -2243,9 +2245,14 @@ def t_print():
 #  同時起動制御
 #-------------------------------------------------------------------------------
 
-import md5
+_lock_mutex = threading.Lock()
 _mutex = []
+if sys.platform <> "win32":
+    _librt = ctypes.CDLL("librt.so")
+    SEM_FAILED = -1
+    S_IRWXU = 0x0700
 
+@synclock(_lock_mutex)
 def create_mutex(dpath):
     global _mutex
     if not os.path.isabs(dpath):
@@ -2253,11 +2260,11 @@ def create_mutex(dpath):
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
     name = md5.new(buffer(dpath)).hexdigest()
-    name = u"CardWirthPy/%s" % (name)
-    name = name.encode("utf-16")
 
     # 二重起動防止 for Windows
     if sys.platform == "win32":
+        name = u"CardWirthPy/%s" % (name)
+        name = name.encode("utf-16")
         ERROR_ALREADY_EXISTS = 183
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.CreateMutexW(None, 1, name)
@@ -2272,8 +2279,17 @@ def create_mutex(dpath):
             _mutex.append(handle)
             return True
     else:
-        return True
+        # Posix
+        name = "/CardWirthPy_%s" % (name)
+        _librt.sem_unlink(name)
+        handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
+        if SEM_FAILED <> handle and handle:
+            _mutex.append((handle, name))
+            return True
 
+    return False
+
+@synclock(_lock_mutex)
 def exists_mutex(dpath):
     global _mutex
     if not os.path.isabs(dpath):
@@ -2281,10 +2297,10 @@ def exists_mutex(dpath):
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
     name = md5.new(buffer(dpath)).hexdigest()
-    name = u"CardWirthPy/%s" % (name)
-    name = name.encode("utf-16")
 
     if sys.platform == "win32":
+        name = u"CardWirthPy/%s" % (name)
+        name = name.encode("utf-16")
         MUTEX_ALL_ACCESS = 0x001F0001
         SYNCHRONIZE = 0x00100000
         kernel32 = ctypes.windll.kernel32
@@ -2293,8 +2309,21 @@ def exists_mutex(dpath):
             kernel32.ReleaseMutex(handle)
             kernel32.CloseHandle(handle)
             return True
-    return False
 
+        return False
+    else:
+        name = "/CardWirthPy_%s" % (name)
+        handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
+        if (handle, name) in _mutex:
+            return False
+        if SEM_FAILED <> handle and handle:
+            _librt.sem_close(handle)
+            _librt.sem_unlink(name)
+            return False
+
+        return True
+
+@synclock(_lock_mutex)
 def release_mutex():
     global _mutex
     if _mutex:
@@ -2302,7 +2331,23 @@ def release_mutex():
             kernel32 = ctypes.windll.kernel32
             kernel32.ReleaseMutex(_mutex[-1])
             kernel32.CloseHandle(_mutex[-1])
+        else:
+            _librt.sem_close(_mutex[-1][0])
+            _librt.sem_unlink(_mutex[-1][1])
         del _mutex[-1]
+
+@synclock(_lock_mutex)
+def clear_mutex():
+    global _mutex
+    for mutex in _mutex:
+        if sys.platform == "win32":
+            kernel32 = ctypes.windll.kernel32
+            kernel32.ReleaseMutex(mutex)
+            kernel32.CloseHandle(mutex)
+        else:
+            _librt.sem_close(mutex[0])
+            _librt.sem_unlink(mutex[1])
+    _mutex = []
 
 def main():
     pass

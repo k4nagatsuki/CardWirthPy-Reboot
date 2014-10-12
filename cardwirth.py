@@ -12,8 +12,11 @@ def main():
     if len(cw.SKIN_CONV_ARGS) > 0:
         os.chdir(os.path.dirname(sys.argv[0]) or '.')
 
-    app = cw.frame.MyApp(0)
-    app.MainLoop()
+    try:
+        app = cw.frame.MyApp(0)
+        app.MainLoop()
+    finally:
+        cw.util.clear_mutex()
 
 if __name__ == "__main__":
     main()
