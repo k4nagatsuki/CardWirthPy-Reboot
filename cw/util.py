@@ -2281,7 +2281,6 @@ def create_mutex(dpath):
     else:
         # Posix
         name = "/CardWirthPy_%s" % (name)
-        _librt.sem_unlink(name)
         handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
         if SEM_FAILED <> handle and handle:
             _mutex.append((handle, name))
