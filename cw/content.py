@@ -824,15 +824,14 @@ class BranchSelectContent(BranchContent):
             pcards = cw.cwpy.get_pcards("active")
 
         index = -1
-        if pcards:
-            if random:
+        if random:
+            if pcards:
                 pcard = cw.cwpy.dice.choice(pcards)
                 cw.cwpy.event.set_selectedmember(pcard)
                 index = 0
-            else:
-                if pcards:
-                    mwin = cw.sprite.message.MemberSelectWindow(pcards)
-                    index = cw.cwpy.show_message(mwin)
+        else:
+            mwin = cw.sprite.message.MemberSelectWindow(pcards)
+            index = cw.cwpy.show_message(mwin)
 
         flag = bool(index == 0)
         return self.get_boolean_index(flag)
