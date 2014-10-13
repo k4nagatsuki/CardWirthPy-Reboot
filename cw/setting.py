@@ -502,8 +502,6 @@ class Setting(object):
                 for e in data.getfind("Natures"):
                     update_mental(e)
                 for e in data.getfind("Makings"):
-
-
                     update_mental(e)
                 ste = data.getfind("SampleTypes")
                 def check_sampletype(ste, name, cautious, cheerful):
