@@ -100,7 +100,10 @@ class CardImage(Image):
         subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
         image.blit(subimg, cw.s((3, 13)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
-        subimg = font.render(self.name, True, (0, 0, 0))
+        colour = (0, 0, 0)
+        if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
+            colour = (255, 255, 255)
+        subimg = font.render(self.name, True, colour)
         w, h = subimg.get_size()
 
         left = cw.s(5)
@@ -230,7 +233,10 @@ class CardImage(Image):
         dc.DrawText(self.name, cw.wins(0), cw.wins(0))
         dc.SelectObject(bmp)
         subimg = subimg.ConvertToImage()
-        subimg.ConvertColourToAlpha(0, 0, 0)
+        if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
+            subimg.ConvertColourToAlpha(255, 255, 255)
+        else:
+            subimg.ConvertColourToAlpha(0, 0, 0)
 
         left = cw.wins(5)
         if w/2 + left*2 > self.wxrect.width:
@@ -450,7 +456,12 @@ class CharacterCardImage(CardImage):
         self.image.blit(self.cardimg, (x, y))
 
         # 名前
-        self.image.blit(self.nameimg, cw.s((7, 4)))
+        if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
+            nameimg = self.nameimg.copy()
+            nameimg.fill((255, 255, 255, 0), special_flags=BLEND_RGBA_ADD)
+        else:
+            nameimg = self.nameimg
+        self.image.blit(nameimg, cw.s((7, 4)))
 
         # ライフ
         if ccard.is_analyzable():

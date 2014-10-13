@@ -10,6 +10,7 @@ import md5
 import struct
 import shutil
 import weakref
+import array
 import wx
 import pygame
 from pygame.locals import *
@@ -648,6 +649,8 @@ class Resource(object):
         self.buttons = {}
         # カード背景画像(辞書)
         self.cardbgs = self.get_cardbgs(cw.util.load_image)
+        self.cardnamecolorhints = self.get_cardnamecolorhints(self.cardbgs)
+        self.cardnamecolorborder = 128
         # wxダイアログで使う画像(辞書)
         self.pygamedialogs = self.get_dialogs(cw.util.load_image)
         # wx版。wxスレッドから初期化
@@ -1324,6 +1327,23 @@ class Resource(object):
             path = cw.util.join_paths(dpath, name + self.ext_img)
             d[name] = ss((load_image(path, True, maskpos = img[1]), get_resourcesize(path)))
 
+        return d
+
+    def get_cardnamecolorhints(self, cardbgs):
+        """
+        カードの各台紙について、文字描画領域の色を
+        平均化した辞書を作成する。
+        """
+        d = {}
+        for key in ("ACTION", "BEAST", "BIND", "DANGER", "FAINT", "INFO", "INJURY", "ITEM",
+                    "LARGE", "NORMAL", "OPTION", "PARALY", "PETRIF", "SKILL", "SLEEP"):
+            bmp = cardbgs[key]
+            rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(5), cw.s(15))
+            sub = bmp.subsurface(rect)
+            buf = pygame.image.tostring(sub, "RGB")
+            buf = array.array('B', buf)
+            rgb = sum(buf) / len(buf)
+            d[key] = rgb
         return d
 
     def get_actioncards(self):
