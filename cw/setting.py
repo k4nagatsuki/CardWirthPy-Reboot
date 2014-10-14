@@ -650,7 +650,7 @@ class Resource(object):
         # カード背景画像(辞書)
         self.cardbgs = self.get_cardbgs(cw.util.load_image)
         self.cardnamecolorhints = self.get_cardnamecolorhints(self.cardbgs)
-        self.cardnamecolorborder = 128
+        self.cardnamecolorborder = 116
         # wxダイアログで使う画像(辞書)
         self.pygamedialogs = self.get_dialogs(cw.util.load_image)
         # wx版。wxスレッドから初期化
