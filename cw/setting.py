@@ -1338,7 +1338,7 @@ class Resource(object):
         for key in ("ACTION", "BEAST", "BIND", "DANGER", "FAINT", "INFO", "INJURY", "ITEM",
                     "LARGE", "NORMAL", "OPTION", "PARALY", "PETRIF", "SKILL", "SLEEP"):
             bmp = cardbgs[key]
-            rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(5), cw.s(15))
+            rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
             sub = bmp.subsurface(rect)
             buf = pygame.image.tostring(sub, "RGB")
             buf = array.array('B', buf)
