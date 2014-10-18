@@ -16,15 +16,17 @@ class StatusBar(base.CWPySprite):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
+        self.showbuttons = False
+        self._statusbarmask = cw.cwpy.setting.statusbarmask
         self._init_image()
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
-        self.showbuttons = False
-        self._statusbarmask = cw.cwpy.setting.statusbarmask
 
     def _init_image(self):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
         subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
+        if not self.showbuttons and self._statusbarmask:
+            subimg.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
         self.image.fill((240, 240, 240))
         self.image.blit(subimg, cw.s((0, 0)))
         self.rect = self.image.get_rect()
