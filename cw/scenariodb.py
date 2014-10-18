@@ -366,7 +366,7 @@ def read_summary(basepath):
             spath = cw.util.join_paths(path, "Summary.xml")
             if os.path.isfile(spath):
                 e = cw.data.xml2element(spath, "Property")
-                imgpath, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False)
+                imgpath, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath))
                 imgbuf = ""
                 if imgpath:
                     imgpath = cw.util.join_paths(path, imgpath)
@@ -400,6 +400,43 @@ def read_summary(basepath):
                 else:
                     return None
             else:
+                summpath = cw.util.cab_hasfile(path, "Summary.xml")
+                if summpath:
+                    scedir = os.path.dirname(summpath)
+                    dpath = cw.util.join_paths(cw.tempdir, u"Cab")
+                    if not os.path.isdir(dpath):
+                        os.makedirs(dpath)
+                    s = "expand \"%s\" -f:%s \"%s\"" % (path, "Summary.xml", dpath)
+                    encoding = sys.getfilesystemencoding()
+                    ret = subprocess.call(s.encode(encoding), shell=True)
+                    summpath2 = cw.util.join_paths(dpath, summpath)
+                    if ret == 0 and os.path.isfile(summpath2):
+                        try:
+                            e = cw.data.xml2element(summpath2, "Property")
+
+                            try:
+                                imgpath, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+                            except:
+                                return None
+
+                            imgbuf = ""
+                            if imgpath:
+                                imgpath = cw.util.join_paths(scedir, imgpath)
+                                s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath), dpath)
+                                encoding = sys.getfilesystemencoding()
+                                ret = subprocess.call(s.encode(encoding), shell=True)
+                                imgpath2 = cw.util.join_paths(dpath, imgpath)
+                                if ret == 0 and os.path.isfile(imgpath2):
+                                    with open(imgpath2, "rb") as f:
+                                        imgbuf = f.read()
+
+                            imgbuf = buffer(imgbuf)
+                            summaryinfos.append(imgbuf)
+                            return tuple(summaryinfos)
+
+                        finally:
+                            for p in os.listdir(dpath):
+                                cw.util.remove(cw.util.join_paths(dpath, p))
                 return None
         except Exception, ex:
             cw.util.print_ex()
@@ -434,7 +471,7 @@ def read_summary(basepath):
         f.close()
 
     try:
-        imgpath, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True)
+        imgpath, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
     except:
         z.close()
         return None
@@ -450,7 +487,7 @@ def read_summary(basepath):
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
-def parse_summarydata(basepath, data, type, archive):
+def parse_summarydata(basepath, data, type, archive, mtime):
     e = data.find("ImagePath")
     imgpath = e.text or ""
     e = data.find("Name")
@@ -480,7 +517,6 @@ def parse_summarydata(basepath, data, type, archive):
     tags = e.text or ""
     tags = cw.util.decodewrap(tags)
     ctime = time.time()
-    mtime = os.path.getmtime(data.fpath)
     if archive:
         dpath, fname = os.path.split(basepath)
     else:

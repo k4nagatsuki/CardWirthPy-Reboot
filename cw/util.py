@@ -1529,7 +1529,7 @@ def cab_filenum(cab):
 def cab_hasfile(cab, file):
     """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""
     if not os.path.isfile(cab):
-        return False
+        return ""
 
     dword = struct.Struct("<l")
     word = struct.Struct("<h")
@@ -1540,7 +1540,7 @@ def cab_hasfile(cab, file):
             # ヘッダ
             buf = f.read(36)
             if buf[:4] <> "MSCF":
-                return False
+                return ""
 
             cofffiles = dword.unpack(buf[16:20])[0]
             cfiles = word.unpack(buf[28:30])[0]
@@ -1560,10 +1560,10 @@ def cab_hasfile(cab, file):
                 if not (attribs & _A_NAME_IS_UTF):
                     name = unicode(name, encoding);
                 if file == os.path.normcase(os.path.basename(name)):
-                    return True
+                    return name
     except Exception:
         cw.util.print_ex()
-    return False
+    return ""
 
 #-------------------------------------------------------------------------------
 #　テキスト操作関連
