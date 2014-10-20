@@ -46,6 +46,7 @@ class Converter(threading.Thread):
 
         self.datadir = self.find_datadir()
         self.scenariodir = self.find_scenariodir()
+        self.yadodir = self.find_yadodir()
         self.skintype = self.find_type()
 
         self.data = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
@@ -115,6 +116,17 @@ class Converter(threading.Thread):
             except:
                 pass
         return u"Scenario"
+
+    def find_yadodir(self):
+        if self.exe and len(self.exebinary) < 3000000:
+            key = "\\\0\\Environment.wyd\0"
+            index = self.exebinary.find(key)
+            try:
+                index = index + len(key)
+                return unicode(self.exebinary[index-len(key)-4:index-len(key)], cw.MBCS)
+            except:
+                pass
+        return u"Yado"
 
     def find_type(self):
         if self.exe:

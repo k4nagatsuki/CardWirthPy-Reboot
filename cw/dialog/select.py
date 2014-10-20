@@ -599,7 +599,7 @@ class YadoSelect(Select):
                 cw.cwpy.sounds["signal"].play()
                 path = self.list[self.index]
                 if self.isshortcuts[self.index]:
-                    yname = os.path.basename(os.path.basename(self.isshortcuts[self.index]))
+                    yname = u"%sへのショートカット" % (self.names[self.index])
                 else:
                     yname = self.names[self.index]
                 s = cw.cwpy.msgs["delete_base"] % (yname)
@@ -703,7 +703,10 @@ class YadoSelect(Select):
             dc.SetTextForeground(wx.RED)
             s = u"変換が必要です"
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(20))
+            if self.isshortcuts[self.index]:
+                dc.DrawText(s, (bmpw-w)/2, cw.wins(12))
+            else:
+                dc.DrawText(s, (bmpw-w)/2, cw.wins(20))
 
         # 宿画像
         path = "Resource/Image/Card/COMMAND0" + extimg
@@ -716,11 +719,11 @@ class YadoSelect(Select):
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
         if self.isshortcuts[self.index]:
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(38))
+            dc.DrawText(s, (bmpw-w)/2, cw.wins(30))
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(12)))
             s = u"ショートカット"
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(64))
+            dc.DrawText(s, (bmpw-w)/2, cw.wins(56))
         else:
             dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
         # ページ番号

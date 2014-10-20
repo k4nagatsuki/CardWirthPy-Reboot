@@ -64,6 +64,7 @@ class SkinConversionDialog(wx.Dialog):
         self.conv.exe = self.pane_base.exectrl.GetValue()
         self.conv.datadir = self.pane_base.datactrl.GetValue()
         self.conv.scenariodir = self.pane_base.scenarioctrl.GetValue()
+        self.conv.yadodir = self.pane_base.yadoctrl.GetValue()
         e = self.conv.data.find("Property/Name")
         e.text = self.pane_base.info.namectrl.GetValue()
         e = self.conv.data.find("Property/Type")
@@ -95,10 +96,10 @@ class SkinConversionDialog(wx.Dialog):
                     targ = os.path.join(os.path.dirname(self.conv.exe), self.conv.scenariodir)
 
                 existslink = False
-                path1 = os.path.abspath(os.path.normpath(targ))
+                path1 = os.path.normcase(os.path.abspath(os.path.normpath(targ)))
                 for dpath in os.listdir(u"Scenario"):
                     dpath = os.path.join(u"Scenario", dpath)
-                    path2 = os.path.abspath(os.path.normpath(cw.util.get_linktarget(dpath)))
+                    path2 = os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(dpath))))
                     if path1 == path2:
                         existslink = True
                         break
@@ -138,7 +139,32 @@ class SkinConversionDialog(wx.Dialog):
                 setting.write()
 
             except:
-                pass
+                cw.util.print_ex()
+
+        if self.conv.scenariodir:
+            try:
+                if os.path.isabs(self.conv.yadodir):
+                    targ = self.conv.yadodir
+                else:
+                    targ = os.path.join(os.path.dirname(self.conv.exe), self.conv.yadodir)
+
+                exists = set()
+                for fpath in os.listdir(u"Yado"):
+                    fpath = cw.util.join_paths(u"Yado", fpath)
+                    exists.add(os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(fpath)))))
+
+                if os.path.isdir(targ):
+                    for fpath in os.listdir(targ):
+                        dpath = cw.util.join_paths(targ, fpath)
+                        fpath = cw.util.join_paths(dpath, "Environment.wyd")
+                        if os.path.isfile(fpath) and not os.path.normcase(os.path.abspath(os.path.normpath(dpath))) in exists:
+                            link = os.path.basename(dpath)
+                            link = cw.util.join_paths(u"Yado", link + ".lnk")
+                            link = cw.binary.util.check_duplicate(link)
+                            cw.util.create_link(link, dpath)
+
+            except:
+                cw.util.print_ex()
 
         if self.conv.failure:
             s = self.conv.errormessage
@@ -310,6 +336,15 @@ class SkinBasePanel(wx.Panel):
              message=u"スキン生成元のシナリオフォルダを選択してください。",
              dir=True,
              getbasedir=self._get_basedir)
+        # Yadoディレクトリの名前
+        self.yadolabel = wx.StaticText(self, -1, u"宿")
+        self.yadoctrl = wx.TextCtrl(self)
+        self.yadoctrl.SetValue(conv.yadodir)
+        self.yadoref = cw.util.create_fileselection(self,
+             target=self.yadoctrl,
+             message=u"スキン生成元の宿フォルダを選択してください。",
+             dir=True,
+             getbasedir=self._get_basedir)
 
         self.box_info = wx.StaticBox(self, -1, u"スキン情報")
         self.info = SkinInfoPanel(self)
@@ -344,6 +379,9 @@ class SkinBasePanel(wx.Panel):
         gbsizer_base.Add(self.scenariolabel, pos=(2, 0), flag=wx.ALL, border=3)
         gbsizer_base.Add(self.scenarioctrl, pos=(2, 1), flag=wx.ALL|wx.EXPAND, border=3)
         gbsizer_base.Add(self.scenarioref, pos=(2, 2), flag=wx.ALL, border=3)
+        gbsizer_base.Add(self.yadolabel, pos=(3, 0), flag=wx.ALL, border=3)
+        gbsizer_base.Add(self.yadoctrl, pos=(3, 1), flag=wx.ALL|wx.EXPAND, border=3)
+        gbsizer_base.Add(self.yadoref, pos=(3, 2), flag=wx.ALL, border=3)
         gbsizer_base.AddGrowableCol(1)
 
         bsizer_base.Add(gbsizer_base, 0, wx.EXPAND, 5)
@@ -379,6 +417,7 @@ class SkinBasePanel(wx.Panel):
 
         self.datactrl.SetValue(self.conv.datadir)
         self.scenarioctrl.SetValue(self.conv.scenariodir)
+        self.yadoctrl.SetValue(self.conv.yadodir)
 
         self.info.typectrl.SetValue(self.conv.data.gettext("Property/Type", ""))
         self.info.namectrl.SetValue(self.conv.data.gettext("Property/Name", ""))
