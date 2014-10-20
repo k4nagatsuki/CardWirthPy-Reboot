@@ -254,7 +254,7 @@ class CWPyCard(base.SelectableSprite):
             self.frame += 1
 
     def hide(self):
-        """カードをアニメーショ無しで非表示にする。"""
+        """カードをアニメーション無しで非表示にする。"""
         self.status = "hidden"
         self.clear_image()
         if self.hide_inusecardimg:

@@ -797,6 +797,7 @@ class ClickableSprite(base.SelectableSprite):
         self.frame = 0
 
         spritegrp.add(self)
+        self.spritegrp = spritegrp
 
     def update_scale(self):
         self._image = self._getimage()
@@ -865,6 +866,41 @@ class ClickableSprite(base.SelectableSprite):
             return
 
         self.frame += 1
+
+    def update_hide(self):
+        """
+        カードのように横幅を縮めながら非表示にする。
+        """
+        if self.frame >= len(cw.cwpy.setting.dealing_scales):
+            self.status = "hidden"
+            self.frame = 0
+            return
+
+        n = cw.cwpy.setting.dealing_scales[self.frame]
+        rect = self.rect
+        size = rect.w * n / 100, rect.h
+        if cw.cwpy.selection == self:
+            self.image = self.get_selectedimage()
+        else:
+            self.image = self.get_unselectedimage()
+
+        self.image = pygame.transform.scale(self.image, size)
+
+        # 反転表示中
+        if cw.cwpy.selection == self:
+            self.image = cw.imageretouch.to_negative_for_card(self.image)
+
+        self.rect = self.image.get_rect(center=rect.center)
+        self.frame += 1
+
+    def update_delete(self):
+        """
+        カードのように横幅を縮めながら非表示にし、
+        画面上から除去する。
+        """
+        self.update_hide()
+        if self.status == "hidden":
+            self.spritegrp.remove(self)
 
 def main():
     pass

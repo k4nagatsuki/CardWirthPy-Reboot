@@ -2620,9 +2620,15 @@ class CWPy(_Singleton, threading.Thread):
                 return
             self.sounds["page"].play()
             pcard.remove_numbercoupon()
-            cw.animation.animate_sprite(pcard, "delete")
+            pcards = self.get_pcards()
+            index = pcards.index(pcard)
+            arrows = self.topgrp.sprites()
+            sprites = [pcard]
+            if index < len(arrows):
+                sprites.append(arrows[index])
+            cw.animation.animate_sprites(sprites, "delete")
             self.pcardgrp.remove(pcard)
-            if breakuparea and self.get_pcards():
+            if breakuparea and pcards:
                 self._create_poschangearrow()
             pcard.data.write_xml()
             self.ydata.add_standbys(pcard.data.fpath)
@@ -2632,10 +2638,12 @@ class CWPy(_Singleton, threading.Thread):
 
         else:
             pcards = self.get_pcards()
-            cw.animation.animate_sprites(pcards, "hide")
+            seq = list(pcards)
+            if breakuparea:
+                seq.extend(self.topgrp.sprites())
+            cw.animation.animate_sprites(seq, "hide")
             if breakuparea:
                 self.topgrp.empty()
-                self.draw()
 
             for pcard in pcards:
                 pcard.remove_numbercoupon()
