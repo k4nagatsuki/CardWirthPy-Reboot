@@ -358,7 +358,7 @@ class YadoSelect(Select):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_base_title"])
         # 宿情報
-        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic, self.isshortcuts = self.get_yadolist()
         self.index = 0
         for index, name in enumerate(self.names):
             if cw.cwpy.setting.lastyado == name:
@@ -574,7 +574,7 @@ class YadoSelect(Select):
                         dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
                         cw.cwpy.frame.move_dlg(dlg)
                         if dlg.ShowModal() == wx.ID_OK:
-                            self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
+                            self.names, self.list, self.list2, self.skins, self.extimgs, self.classic, self.isshortcuts = self.get_yadolist()
                             self.index = self.list.index(path)
                             draw = True
                         dlg.Destroy()
@@ -598,14 +598,21 @@ class YadoSelect(Select):
             try:
                 cw.cwpy.sounds["signal"].play()
                 path = self.list[self.index]
-                yname = self.names[self.index]
+                if self.isshortcuts[self.index]:
+                    yname = os.path.basename(os.path.basename(self.isshortcuts[self.index]))
+                else:
+                    yname = self.names[self.index]
                 s = cw.cwpy.msgs["delete_base"] % (yname)
                 dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
                 cw.cwpy.frame.move_dlg(dlg)
 
                 if dlg.ShowModal() == wx.ID_OK:
-                    cw.util.remove(path)
-                    cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
+                    if self.isshortcuts[self.index]:
+                        cw.util.remove(self.isshortcuts[self.index])
+                    else:
+                        cw.util.remove(path)
+                    if not self.classic[self.index]:
+                        cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
                     cw.cwpy.sounds["dump"].play()
                     self.update_list()
 
@@ -665,7 +672,7 @@ class YadoSelect(Select):
         if dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             path = self.list[self.index]
-            self.conv_yado(path, ok=True, moveconverted=True)
+            self.conv_yado(path, ok=True, moveconverted=True, deletepath=self.isshortcuts[self.index])
         else:
             dlg.Destroy()
 
@@ -708,7 +715,14 @@ class YadoSelect(Select):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
+        if self.isshortcuts[self.index]:
+            dc.DrawText(s, (bmpw-w)/2, cw.wins(38))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(12)))
+            s = u"ショートカット"
+            w = dc.GetTextExtent(s)[0]
+            dc.DrawText(s, (bmpw-w)/2, cw.wins(64))
+        else:
+            dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
         # ページ番号
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
@@ -737,7 +751,7 @@ class YadoSelect(Select):
             w = bmp.GetSize()[0]
             dc.DrawBitmap(bmp, (bmpw-w)/2, cw.wins(152), True)
 
-    def conv_yado(self, path, ok=False, moveconverted=False):
+    def conv_yado(self, path, ok=False, moveconverted=False, deletepath=""):
         """
         CardWirthの宿データを変換。
         """
@@ -806,7 +820,9 @@ class YadoSelect(Select):
         dlg.ShowModal()
         dlg.Destroy()
 
-        if moveconverted:
+        if deletepath:
+            cw.util.remove(deletepath)
+        elif moveconverted:
             if not os.path.isdir(u"ConvertedYado"):
                 os.makedirs(u"ConvertedYado")
             topath = cw.util.join_paths(u"ConvertedYado", os.path.basename(path))
@@ -892,7 +908,7 @@ class YadoSelect(Select):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic, self.isshortcuts = self.get_yadolist()
 
         try:
             self.index = self.list.index(yadodir)
@@ -909,6 +925,7 @@ class YadoSelect(Select):
         skins = []
         extimgs = []
         classic = []
+        isshortcuts = []
 
         skinexttable = {}
 
@@ -948,18 +965,27 @@ class YadoSelect(Select):
                 path  = cw.util.join_paths(u"Yado", dname)
                 yadodirs.append(path)
                 classic.append(False)
+                isshortcuts.append("")
                 continue
 
-            path  = cw.util.join_paths(u"Yado", dname, u"Environment.wyd")
+            path = cw.util.join_paths(u"Yado", dname)
+            path2 = cw.util.get_linktarget(path)
+            isshortcut = path2 <> path
+            if isshortcut:
+                path = path2
+            path = cw.util.join_paths(path, u"Environment.wyd")
             if os.path.isfile(path):
                 # クラシックな宿
-                name = dname
+                name = os.path.basename(path2)
                 names.append(name)
                 skins.append(cw.cwpy.skindir)
                 extimgs.append(cw.cwpy.rsrc.ext_img)
-                path  = cw.util.join_paths(u"Yado", dname)
-                yadodirs.append(path)
+                yadodirs.append(path2)
                 classic.append(True)
+                if isshortcut:
+                    isshortcuts.append(cw.util.join_paths(u"Yado", dname))
+                else:
+                    isshortcuts.append("")
                 continue
 
         advnames = []
@@ -970,22 +996,25 @@ class YadoSelect(Select):
             if classic[i]:
                 # クラシックな宿
                 for fname in os.listdir(yadodir):
-                    ext = os.path.splitext(fname)[1].lower()
-                    if ext == ".wch":
-                        fpath = cw.util.join_paths(yadodir, fname)
-                        with cw.binary.cwfile.CWFile(fpath, "rb") as f:
-                            adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
-                        seq.append(adv.name)
-                    elif ext == ".wpl":
-                        fpath = cw.util.join_paths(yadodir, fname)
-                        with cw.binary.cwfile.CWFile(fpath, "rb") as f:
-                            party = cw.binary.party.Party(None, f)
-                        for member in party.memberslist:
-                            seq.append(member)
-                    if 25 <= len(seq):
-                        seq = seq[:23]
-                        seq.append(cw.cwpy.msgs["scenario_etc"])
-                        break
+                    try:
+                        ext = os.path.splitext(fname)[1].lower()
+                        if ext == ".wch":
+                            fpath = cw.util.join_paths(yadodir, fname)
+                            with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                                adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
+                            seq.append(adv.name)
+                        elif ext == ".wpl":
+                            fpath = cw.util.join_paths(yadodir, fname)
+                            with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                                party = cw.binary.party.Party(None, f)
+                            for member in party.memberslist:
+                                seq.append(member)
+                        if 25 <= len(seq):
+                            seq = seq[:23]
+                            seq.append(cw.cwpy.msgs["scenario_etc"])
+                            break
+                    except:
+                        cw.util.print_ex()
 
             else:
                 yadodb = cw.yadodb.YadoDB(yadodir)
@@ -1003,7 +1032,7 @@ class YadoSelect(Select):
 
             advnames.append(seq)
 
-        return names, yadodirs, advnames, skins, extimgs, classic
+        return names, yadodirs, advnames, skins, extimgs, classic, isshortcuts
 
 #-------------------------------------------------------------------------------
 #　一覧表示可能な選択ダイアログ(抽象クラス)
