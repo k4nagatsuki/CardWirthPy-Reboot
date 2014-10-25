@@ -1091,8 +1091,11 @@ class CWPy(_Singleton, threading.Thread):
             if os.path.isfile(env):
                 self.set_status("Title")
                 self._init_attrs()
-                self.load_yado(optyado)
-                return
+                if self.load_yado(optyado):
+                    return
+                else:
+                    s = u"指定された拠点は他の起動で使用中です。"
+                    self.call_modaldlg("MESSAGE", text=s)
 
         # 起動オプションでの宿の指定に失敗した場合は
         # これらのオプションは無効
@@ -1508,6 +1511,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.set_status("Title")
                 self.sdata = cw.data.SystemData()
                 cw.util.remove_temp()
+                self._init_attrs()
                 self.load_yado(self.yadodir)
             self.exec_func(func)
 
@@ -1519,6 +1523,12 @@ class CWPy(_Singleton, threading.Thread):
 
     def load_yado(self, yadodir):
         """指定されたディレクトリの宿をロード。"""
+        if cw.util.create_mutex(yadodir):
+            cw.tempdir = cw.util.join_paths(u"Data/Temp/Local", yadodir)
+        else:
+            cw.cwpy.sounds["error"].play()
+            return False
+
         optscenario = cw.OPTIONS.scenario
         cw.OPTIONS.scenario = ""
 
@@ -1586,6 +1596,7 @@ class CWPy(_Singleton, threading.Thread):
             self.exec_func(self.set_yado)
 
         self._clear_changed = True
+        return True
 
 #-------------------------------------------------------------------------------
 # エリアチェンジ関係メソッド
