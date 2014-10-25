@@ -729,7 +729,7 @@ def decorate(image, angle=8):
         mid = image.get_height()/2
         for y in xrange(1, mid, 1):
             rect = (0, mid-y, w, 1)
-            c = max(0, y-1)*angle
+            c = max(0, y-cw.s(1))*angle
             if cw.UP_SCR <> 1:
                 c = int(float(c) / cw.UP_SCR)
             color = (c, c, c, 0)
