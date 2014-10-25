@@ -70,6 +70,7 @@ class Setting(object):
         self.vol_sound = 1.0
         self.soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
         self.messagespeed = 5
+        self.decorationfont = False
         self.mwincolour = (0, 0, 80, 180)
         self.mwinframecolour = (128, 0, 0, 255)
         self.blwincolour = (80, 80, 80, 180)
@@ -237,6 +238,8 @@ class Setting(object):
         # メッセージスピード(数字が小さいほど速い)(0～100)
         self.messagespeed = data.getint("MessageSpeed", self.messagespeed)
         self.messagespeed = cw.util.numwrap(self.messagespeed, 0, 100)
+        # メッセージで装飾フォントを使用する
+        self.decorationfont = data.getbool("DecorationFont", self.decorationfont)
         # メッセージウィンドウの色と透明度
         r = data.getint("MessageWindowColor", "red", self.mwincolour[0])
         g = data.getint("MessageWindowColor", "green", self.mwincolour[1])

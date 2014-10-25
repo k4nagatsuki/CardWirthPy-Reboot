@@ -2224,7 +2224,8 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(showbuttons)
 
         self.disposition_pcards()
-        self.change_selection(self.selection)
+        if not callpredlg:
+            self.change_selection(self.selection)
 
         if oldareaid <> cw.AREA_CAMP:
             self.draw()

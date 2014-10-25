@@ -62,6 +62,7 @@ class SettingsDialog(wx.Dialog):
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
+            self.pane_draw.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont_init)
             self.pane_draw.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
             self.pane_draw.sl_msgs.SetValue(cw.cwpy.setting.messagespeed_init)
             self.pane_draw.ch_tran.SetSelection(self.pane_draw.transitions.index(cw.cwpy.setting.transition_init))
@@ -224,12 +225,17 @@ class SettingsDialog(wx.Dialog):
                 cw.cwpy.setting.expanddrawing = expanddrawing
 
         # 描画
+        updatemessage = False
         value = self.pane_draw.cb_smooth_bg.GetValue()
         cw.cwpy.setting.smoothscale_bg = value
         value = self.pane_draw.cb_statusbarmask.GetValue()
         if value <> cw.cwpy.setting.statusbarmask:
             cw.cwpy.setting.statusbarmask = value
             updatestatusbar = True
+        value = self.pane_draw.cb_decorationfont.GetValue()
+        if value <> cw.cwpy.setting.decorationfont:
+            cw.cwpy.setting.decorationfont = value
+            updatemessage = True
         value = self.pane_draw.sl_deal.GetValue()
         cw.cwpy.setting.set_dealspeed(value)
         value = self.pane_draw.sl_msgs.GetValue()
@@ -288,7 +294,6 @@ class SettingsDialog(wx.Dialog):
                     cw.bassplayer.init_bass(sfonts)
                 cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
 
-        updatemessage = False
         # 配色(メッセージ)
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_mwin.GetColour()
@@ -400,7 +405,6 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.confirm_beforeusingcard = value
         value = self.pane_ui.cb_noticeimpossibleaction.GetValue()
         cw.cwpy.setting.noticeimpossibleaction = value
-
 
         # イメージの更新
         if updatecardimg:
@@ -744,6 +748,10 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_statusbarmask = wx.CheckBox(
             self, -1, u"イベント中にステータスバーの色を変える")
         self.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask)
+        # メッセージで装飾フォントを使用する
+        self.cb_decorationfont = wx.CheckBox(
+            self, -1, u"メッセージで装飾フォントを使用する")
+        self.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -870,6 +878,7 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.ALL, 3)
         bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)

@@ -157,6 +157,9 @@ def create_settings(setting):
     # メッセージスピード(数字が小さいほど速い)(0～100)
     e = cw.data.make_element("MessageSpeed", str(setting.messagespeed))
     element.append(e)
+    # メッセージで装飾フォントを使用する
+    e = cw.data.make_element("DecorationFont", str(setting.decorationfont))
+    element.append(e)
     # メッセージウィンドウの色と透明度
     d = {"red": str(setting.mwincolour[0]),
          "green": str(setting.mwincolour[1]),

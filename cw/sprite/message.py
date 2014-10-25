@@ -283,6 +283,7 @@ class MessageWindow(base.CWPySprite):
                     image.fill(colour)
                     image.blit(charimg, (0, 0))
                     image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
+                    image = decorate(image)
                     images.append((pos, cw.s((image, cw.setting.SIZE_SPFONT)), None))
                     pos = pos[0] + cw.s(20), pos[1]
                     skip = True
@@ -299,11 +300,13 @@ class MessageWindow(base.CWPySprite):
             if self.classicstyletext:
                 # クラシック形式
                 image = font.render(char, False, colour)
+                image = decorate(image)
                 image2 = font.render(char, False, (0, 0, 0))
 
             else:
                 # CardWirthPy形式
                 image = font.render(char, True, colour)
+                image = decorate(image)
                 image2 = font.render(char, True, (0, 0, 0))
 
                 # u"―"の場合、左右の線が繋がるように補完する
@@ -563,6 +566,7 @@ class SelectionBar(base.SelectableSprite):
         # 選択肢描画
         font = cw.cwpy.rsrc.fonts["selectionbar"]
         nameimg = font.render(self.name, True, (255, 255, 255))
+        nameimg = decorate(nameimg, angle=16)
         nameimg2 = font.render(self.name, True, (0, 0, 0))
         w = size[0] - cw.s(10)
         if w < nameimg.get_width():
@@ -714,6 +718,26 @@ class BacklogPage(base.CWPySprite):
         self.rect = self.image.get_rect()
         pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - cw.s(10), cw.s(10))
         self.rect.topleft = pos
+
+def decorate(image, angle=8):
+    """
+    imageに装飾フォント処理を適用する。
+    """
+    if cw.cwpy.setting.decorationfont:
+        image = image.convert_alpha()
+        w = image.get_width()
+        mid = image.get_height()/2
+        for y in xrange(1, mid, 1):
+            rect = (0, mid-y, w, 1)
+            c = max(0, y-1)*angle
+            if cw.UP_SCR <> 1:
+                c = int(float(c) / cw.UP_SCR)
+            color = (c, c, c, 0)
+            image.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            rect = (0, mid+y, w, 1)
+            image.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+
+    return image
 
 def draw_frame(image, size, pos=None, backlog=False):
     """
