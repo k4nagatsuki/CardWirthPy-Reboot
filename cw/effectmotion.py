@@ -873,6 +873,8 @@ class EffectMotion(object):
         """
         通常攻撃配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard(1)
             return True
@@ -882,6 +884,8 @@ class EffectMotion(object):
         """
         渾身の一撃配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard(2)
             return True
@@ -891,6 +895,8 @@ class EffectMotion(object):
         """
         会心の一撃配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard(3)
             return True
@@ -900,6 +906,8 @@ class EffectMotion(object):
         """
         フェイント配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard(4)
             return True
@@ -909,6 +917,8 @@ class EffectMotion(object):
         """
         防御配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard(5)
             return True
@@ -918,6 +928,8 @@ class EffectMotion(object):
         """
         見切り配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard(6)
             return True
@@ -927,6 +939,8 @@ class EffectMotion(object):
         """
         混乱配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard(-1)
             return True
@@ -936,6 +950,8 @@ class EffectMotion(object):
         """
         特殊技能配布。
         """
+        if target.is_inactive():
+            return False
         if cw.cwpy.battle:
             target.deck.set_nextcard()
             return True
