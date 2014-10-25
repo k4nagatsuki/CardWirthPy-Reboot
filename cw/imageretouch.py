@@ -60,17 +60,18 @@ def to_negative(image):
     outimage.blit(image, (0, 0), None, BLEND_RGB_SUB)
     return outimage
 
-def to_negative_for_card(image):
+def to_negative_for_card(image, framewidth=0):
     """色反転したpygame.Surfaceを返す。
-    カード画像用なので外枠1ピクセルは色反転しない。
+    カード画像用なので外枠nピクセルは色反転しない。
     image: pygame.Surface
+    framewidth: 外枠の幅。現在は1.50に合わせて外枠無し(0)
     """
     w, h = image.get_size()
 
-    if w < cw.s(3) or h < cw.s(3):
+    if w < cw.s(1 + framewidth*2) or h < cw.s(1 + framewidth*2):
         return image.copy()
 
-    rect = pygame.Rect(cw.s((1, 1)), (w - cw.s(2), h - cw.s(2)))
+    rect = pygame.Rect(cw.s((framewidth, framewidth)), (w - cw.s(framewidth*2), h - cw.s(framewidth*2)))
     outimage = image.copy()
 
     if image.get_flags() & SRCALPHA:
@@ -78,13 +79,14 @@ def to_negative_for_card(image):
     else:
         outimage.fill((255, 255, 255), rect)
 
-    outimage.blit(image.subsurface(rect), cw.s((1, 1)), None, BLEND_RGB_SUB)
+    outimage.blit(image.subsurface(rect), cw.s((framewidth, framewidth)), None, BLEND_RGB_SUB)
     return outimage
 
-def to_negative_for_wxcard(wxbmp):
+def to_negative_for_wxcard(wxbmp, framewidth=0):
     """色反転したwx.Bitmapを返す。
     カード画像用なので外枠1ピクセルは色反転しない。
     wxbmp: wx.Bitmap
+    framewidth: 外枠の幅。現在は1.50に合わせて外枠無し(0)
     """
     w, h = wxbmp.GetWidth(), wxbmp.GetHeight()
 
@@ -92,8 +94,9 @@ def to_negative_for_wxcard(wxbmp):
     image = wx.EmptyBitmap(w, h)
     dc.SelectObject(image)
     dc.DrawBitmap(wxbmp, cw.wins(0), cw.wins(0))
-    if cw.wins(3) <= w and cw.wins(3) <= h:
-        x, y, w, h = wx.Rect(cw.wins(1), cw.wins(1), w - cw.wins(2), h - cw.wins(2))
+    if cw.wins(1 + framewidth*2) <= w and cw.wins(1 + framewidth*2) <= h:
+        x, y, w, h = wx.Rect(cw.wins(framewidth), cw.wins(framewidth),
+                             w - cw.wins(framewidth*2), h - cw.wins(framewidth*2))
         sourcedc = wx.MemoryDC()
         sourcedc.SelectObject(wxbmp)
         dc.Blit(x, y, w, h, sourcedc, x, y, wx.INVERT)
