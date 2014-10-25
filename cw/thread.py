@@ -1094,7 +1094,8 @@ class CWPy(_Singleton, threading.Thread):
                 if self.load_yado(optyado):
                     return
                 else:
-                    s = u"指定された拠点は他の起動で使用中です。"
+                    name = cw.header.GetName(env).name
+                    s = u"「%s」は他の起動で使用中です。" % (name)
                     self.call_modaldlg("MESSAGE", text=s)
 
         # 起動オプションでの宿の指定に失敗した場合は
