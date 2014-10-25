@@ -1533,8 +1533,11 @@ class CWPy(_Singleton, threading.Thread):
             f9ed = False
 
             if optscenario:
-                scedir = cw.cwpy.setting.get_scedir()
-                scedir = cw.util.join_paths(scedir, optscenario)
+                if os.path.isabs(optscenario):
+                    scedir = optscenario
+                else:
+                    scedir = cw.cwpy.setting.get_scedir()
+                    scedir = cw.util.join_paths(scedir, optscenario)
                 db = cw.scenariodb.Scenariodb()
                 header2 = db.search_path(scedir)
                 db.close()
