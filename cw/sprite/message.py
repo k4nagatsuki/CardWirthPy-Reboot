@@ -279,7 +279,7 @@ class MessageWindow(base.CWPySprite):
                         continue
 
                     size = charimg.get_size()
-                    image = pygame.Surface(size).convert_alpha()
+                    image = pygame.Surface(size).convert()
                     image.fill(colour)
                     image.blit(charimg, (0, 0))
                     image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
