@@ -85,6 +85,8 @@ def animate_sprites2(sprandanimes, clearevent=True):
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and animating:
         clip = None
         for sprite, anitype in sprandanimes:
+            if sprite.status <> anitype:
+                continue
             if clip:
                 clip.union_ip(sprite.rect)
             else:
