@@ -27,7 +27,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
 
     cw.cwpy.draw()
     while cw.cwpy.is_running() and not cw.cwpy.cut_animation and sprite.status == anitype:
-        clip = sprite.rect
+        clip = pygame.Rect(sprite.rect)
         sprite.update(cw.cwpy.scr_draw)
         clip = clip.union(sprite.rect)
 
