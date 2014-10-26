@@ -715,7 +715,7 @@ class YadoSelect(Select):
         dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
         # 宿名前
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(22)))
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
         if self.isshortcuts[self.index]:
@@ -2902,7 +2902,7 @@ class ScenarioSelect(Select):
 
             else:
                 # ディレクトリ名
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(24)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(22)))
                 s = os.path.basename(dpath)
                 if s.lower().endswith(".lnk"):
                     s = s[0:-len(".lnk")]
@@ -2986,19 +2986,19 @@ class ScenarioSelect(Select):
                 bmp = header.get_wxbmp()
                 w = bmp.GetSize()[0]
                 # 左上位置固定(互換性維持)
-                dc.DrawBitmap(bmp, cw.wins(163), cw.wins(65), True)
+                dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70), True)
 
             # シナリオ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(22)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(35))
             # 解説文
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(16)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
             s = header.desc
-            y = cw.wins(175)
+            y = cw.wins(180)
             for l in s.splitlines():
-                dc.DrawText(l, cw.wins(60), y)
+                dc.DrawText(l, cw.wins(65), y)
                 y += cw.wins(15)
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))

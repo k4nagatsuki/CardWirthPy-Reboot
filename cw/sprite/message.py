@@ -283,7 +283,8 @@ class MessageWindow(base.CWPySprite):
                     image.fill(colour)
                     image.blit(charimg, (0, 0))
                     image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
-                    images.append((pos, decorate(cw.s((image, cw.setting.SIZE_SPFONT))), None))
+                    image = cw.s((image, cw.setting.SIZE_SPFONT))
+                    images.append((pos, decorate(image, basecolour=colour), None))
                     pos = pos[0] + cw.s(20), pos[1]
                     skip = True
                     continue
@@ -299,13 +300,13 @@ class MessageWindow(base.CWPySprite):
             if self.classicstyletext:
                 # クラシック形式
                 image = font.render(char, False, colour)
-                image = decorate(image)
+                image = decorate(image, basecolour=colour)
                 image2 = font.render(char, False, (0, 0, 0))
 
             else:
                 # CardWirthPy形式
                 image = font.render(char, True, colour)
-                image = decorate(image)
+                image = decorate(image, basecolour=colour)
                 image2 = font.render(char, True, (0, 0, 0))
 
                 # u"―"の場合、左右の線が繋がるように補完する
@@ -565,7 +566,7 @@ class SelectionBar(base.SelectableSprite):
         # 選択肢描画
         font = cw.cwpy.rsrc.fonts["selectionbar"]
         nameimg = font.render(self.name, True, (255, 255, 255))
-        nameimg = decorate(nameimg, angle=16)
+        nameimg = decorate(nameimg, angle=16, basecolour=(255, 255, 255))
         nameimg2 = font.render(self.name, True, (0, 0, 0))
         w = size[0] - cw.s(10)
         if w < nameimg.get_width():
@@ -718,7 +719,7 @@ class BacklogPage(base.CWPySprite):
         pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - cw.s(10), cw.s(10))
         self.rect.topleft = pos
 
-def decorate(image, angle=8):
+def decorate(image, angle=8, basecolour=(255, 255, 255)):
     """
     imageに装飾フォント処理を適用する。
     """
@@ -726,7 +727,13 @@ def decorate(image, angle=8):
         image = image.convert_alpha()
         w = image.get_width()
         mid = image.get_height()/2
+
+        if sum(basecolour) < 128*3:
+            # 暗くなりすぎると見えなくなるので明るくしておく
+            image.fill((16, 16, 16, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+
         for y in xrange(1, mid, 1):
+            # グラデーション
             rect = (0, mid-y, w, 1)
             c = max(0, y-cw.s(1))*angle
             if cw.UP_SCR <> 1:
