@@ -587,15 +587,15 @@ class Debugger(wx.Frame):
             if cw.cwpy.is_runningevent():
                 packid = cw.cwpy.event.get_packageid()
 
+            # 古いバージョンのCWXEditorでは
+            # -a -b -pオプションつきの起動で
+            # 同一のシナリオが複数開かれてしまう
             if packid:
-                seq.append("-p")
-                seq.append(str(packid))
+                seq.append("package:id:%s" % (packid))
             elif cw.cwpy.is_battlestatus():
-                seq.append("-b")
-                seq.append(str(cw.cwpy.areaid))
+                seq.append("battle:id:%s" % (cw.cwpy.areaid))
             else:
-                seq.append("-a")
-                seq.append(str(cw.cwpy.areaid))
+                seq.append("area:id:%s" % (cw.cwpy.areaid))
 
             subprocess.Popen(seq)
         except:
