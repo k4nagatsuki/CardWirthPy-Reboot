@@ -113,6 +113,9 @@ def create_settings(setting):
     setting: Settingインスタンス。
     """
     element = cw.data.make_element("Settings")
+    # シナリオエディタ
+    e = cw.data.make_element("ScenarioEditor", setting.editor)
+    element.append(e)
     # 最後に選択した宿
     e = cw.data.make_element("LastYado", setting.lastyado)
     element.append(e)

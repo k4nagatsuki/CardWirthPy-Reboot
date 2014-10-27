@@ -55,6 +55,7 @@ class Setting(object):
 
     def init_settings(self):
         # "Settings.xml"がなかったら新しく作る
+        self.editor = "cwxeditor"
         self.lastyado = ""
         self.lastscenario = []
         self.expanddrawing = 1
@@ -185,6 +186,10 @@ class Setting(object):
 
         self.data = cw.data.xml2etree("Settings.xml")
         data = self.data
+
+        # シナリオエディタ
+        self.editor = data.gettext("ScenarioEditor", self.editor)
+
         # 最後に選択した宿
         self.lastyado = data.gettext("LastYado", self.lastyado)
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)

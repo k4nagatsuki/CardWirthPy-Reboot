@@ -5,6 +5,7 @@ import os
 import sys
 import math
 import threading
+import subprocess
 import wx
 import wx.aui
 import wx.lib.mixins.listctrl as listmix
@@ -44,6 +45,7 @@ ID_PAUSE = wx.NewId()
 ID_STOP = wx.NewId()
 ID_ROUND = wx.NewId()
 ID_STARTEVENT = wx.NewId()
+ID_EDITOR = wx.NewId()
 
 
 class Debugger(wx.Frame):
@@ -52,7 +54,7 @@ class Debugger(wx.Frame):
             self, parent, -1, u"CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
-        self.SetClientSize((590, cw.cwpy.frame.GetClientSize()[1]))
+        self.SetClientSize((610, cw.cwpy.frame.GetClientSize()[1]))
         # set icon
         cw.cwpy.frame.set_icon(self)
         # aui manager
@@ -80,6 +82,11 @@ class Debugger(wx.Frame):
         mb.Append(scenario_menu, u"シナリオ(&S)")
         mb.Append(run_menu, u"実行(&R)")
 
+        self.mi_editor = wx.MenuItem(file_menu, ID_EDITOR, u"エディタで開く(&O)\tCtrl+E",
+                         u"シナリオをエディタで開きます。")
+        self.mi_editor.SetBitmap(rsrc["EDITOR"])
+        file_menu.AppendItem(self.mi_editor)
+        file_menu.AppendSeparator()
         self.mi_save = wx.MenuItem(file_menu, ID_SAVE, u"セーブ(&S)\tCtrl+S",
                          u"状況を記録します。")
         self.mi_save.SetBitmap(rsrc["SAVE"])
@@ -298,6 +305,10 @@ class Debugger(wx.Frame):
         self.tl_break = self.tb2.AddLabelTool(
             ID_BREAK, u"シナリオ中断", rsrc["BREAK"],
             shortHelp=u"シナリオを中断して、冒険者の宿に戻ります。")
+        self.tb2.AddSeparator()
+        self.tl_editor = self.tb2.AddLabelTool(
+            ID_EDITOR, u"エディタで開く", rsrc["EDITOR"],
+            shortHelp=u"シナリオをエディタで開きます。")
         self.tb2.Realize()
 
         # create event control bar
@@ -467,6 +478,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnCouponTool, id=ID_COUPON)
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
         self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
+        self.Bind(wx.EVT_MENU, self.OnEditorTool, id=ID_EDITOR)
 
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
@@ -545,6 +557,35 @@ class Debugger(wx.Frame):
                 cw.cwpy.statusbar.change()
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func, dlg.value)
+
+    def OnEditorTool(self, event):
+        if not cw.cwpy.is_playingscenario():
+            return
+        fpath = cw.cwpy.sdata.fpath
+        if not fpath:
+            return
+        if os.path.isdir(fpath):
+            # WirthBuilderはSummary.wsmのパスを渡さないとシナリオを開けない
+            wsm = cw.util.join_paths(fpath, "Summary.wsm")
+            if os.path.isfile(wsm):
+                fpath = wsm
+        # WirthBuilderは'/'区切りのパスを受け付けない
+        fpath = os.path.normpath(fpath)
+
+        editor = cw.cwpy.setting.editor
+
+        try:
+            # エディタ起動
+            encoding = sys.getfilesystemencoding()
+            editor = editor.encode(encoding)
+            fpath = fpath.encode(encoding)
+            subprocess.Popen([editor, fpath])
+        except:
+            s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [デバッガ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
+            dlg = cw.dialog.message.ErrorMessage(self, s)
+            cw.cwpy.frame.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
 
     def OnSaveTool(self, event):
         if not cw.cwpy.is_playingscenario():
@@ -1019,6 +1060,7 @@ class Debugger(wx.Frame):
         enabled[self.mi_status.GetId()] = (self.mi_status, self.tl_status, False)
         enabled[self.mi_recovery.GetId()] = (self.mi_recovery, self.tl_recovery, False)
         enabled[self.mi_break.GetId()] = (self.mi_break, self.tl_break, False)
+        enabled[self.mi_editor.GetId()] = (self.mi_editor, self.tl_editor, False)
         enabled[self.mi_update.GetId()] = (self.mi_update, self.tl_update, False)
         enabled[self.mi_redisplay.GetId()] = (self.mi_redisplay, self.tl_redisplay, False)
         enabled[self.mi_battle.GetId()] = (self.mi_battle, self.tl_battle, False)
@@ -1057,6 +1099,7 @@ class Debugger(wx.Frame):
             enabled[self.mi_status.GetId()] = (self.mi_status, self.tl_status, True)
             enabled[self.mi_recovery.GetId()] = (self.mi_recovery, self.tl_recovery, True)
             enabled[self.mi_redisplay.GetId()] = (self.mi_redisplay, self.tl_redisplay, True)
+            enabled[self.mi_editor.GetId()] = (self.mi_editor, self.tl_editor, True)
             if cw.cwpy.is_runningevent():
                 enabled[self.mi_select.GetId()] = (self.mi_select, self.tl_select, True)
                 if cw.cwpy.is_showparty:

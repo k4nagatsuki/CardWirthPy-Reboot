@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import itertools
 import wx
 import wx.aui
@@ -116,6 +117,7 @@ class SettingsDialog(wx.Dialog):
                 self.pane_font.type.SetCellValue(i, 0, name)
         elif selpane == 4:
             # スキン毎のシナリオ開始位置の設定は変更しない
+            self.pane_scenario.tx_editor.SetValue(cw.cwpy.setting.editor_init)
             self.pane_scenario.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype_init)
             self.pane_scenario.cb_showunfitnessscenario.SetValue(cw.cwpy.setting.show_unfitnessscenario_init)
             self.pane_scenario.cb_showcompletedscenario.SetValue(cw.cwpy.setting.show_completedscenario_init)
@@ -356,6 +358,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.exec_func(check_levelup, can_levelup)
 
         # シナリオ
+        value = self.pane_scenario.tx_editor.GetValue()
+        cw.cwpy.setting.editor = value
         value = self.pane_scenario.cb_selectscenariofromtype.GetValue()
         cw.cwpy.setting.selectscenariofromtype = value
         value = self.pane_scenario.cb_showunfitnessscenario.GetValue()
@@ -1161,6 +1165,20 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row, 0, skintype)
             self.grid_folderoftype.SetCellValue(row, 1, folder)
 
+        # シナリオエディタ
+        self.box_debug = wx.StaticBox(self, -1, u"デバッグ")
+        self.st_editor = wx.StaticText(self, -1, u"エディタ")
+        self.tx_editor = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_editor.SetValue(cw.cwpy.setting.editor)
+        if sys.platform == "win32":
+            wildcard = u"実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
+        else:
+            wildcard = u"全てのファイル (*.*)|*.*"
+        self.ref_editor = cw.util.create_fileselection(self,
+            target=self.tx_editor,
+            message=u"CardWirthのシナリオエディタを選択",
+            wildcard=wildcard)
+
         self._do_layout()
         self._bind()
 
@@ -1193,8 +1211,14 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.ALL, 3)
         bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
+        bsizer_editor = wx.StaticBoxSizer(self.box_debug, wx.HORIZONTAL)
+        bsizer_editor.Add(self.st_editor, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_editor.Add(self.tx_editor, 1, wx.TOP|wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_editor.Add(self.ref_editor, 0, wx.TOP|wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 3)
+
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_folderoftype, 1, wx.EXPAND, 0)
+        sizer_v1.Add(bsizer_folderoftype, 1, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_v1.Add(bsizer_editor, 0, wx.EXPAND, 0)
 
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
