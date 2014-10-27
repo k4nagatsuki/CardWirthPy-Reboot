@@ -1343,11 +1343,11 @@ def call_package(id, call):
         if e is None:
             return 0
         cw.cwpy.event.nowrunningpacks[id] = e, versionhint
-        cw.cwpy.event.packageid.append(id)
     else:
         e, versionhint = cw.cwpy.event.nowrunningpacks[id]
 
     packevent = cw.event.Event(e)
+    packevent.packageid = id
     if packevent.starttree is None:
         return
 

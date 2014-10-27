@@ -18,8 +18,6 @@ class EventInterface(object):
         self._nowrunningevents = []
         # 現在起動中のパッケージイベントの辞書(EventEngine, keyはID)
         self.nowrunningpacks = {}
-        # 実行中のパッケージID
-        self.packageid = []
         # デバッガのイベントコントロールバー用変数
         self._paused = False
         self._stoped = False
@@ -99,8 +97,9 @@ class EventInterface(object):
 
     def get_packageid(self):
         """実行中のパッケージIDを返す。"""
-        if self.nowrunningpacks and self.packageid:
-            return self.packageid[-1]
+        event = self.get_nowrunningevent()
+        if event:
+            return event.packageid
         else:
             return 0
 
@@ -109,7 +108,6 @@ class EventInterface(object):
         self.in_inusecardevent = False
         self.clear_events()
         self.nowrunningpacks = {}
-        self.packageid = []
         self._stoped = False
         self._targetstack = -2
         self.refresh_tools()
@@ -528,6 +526,8 @@ class Event(object):
         self.keycode_matching = "Or"
         # 終了時実行関数。F9用
         self.exit_func = None
+        # パッケージイベントであればパッケージIDを設定
+        self.packageid = 0
 
         if event is not None:
             if event.hasfind("Ignitions//Number"):
@@ -629,8 +629,6 @@ class Event(object):
                 packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
                 if packevent:
                     packevent.run_exit()
-                    if cw.cwpy.event.packageid:
-                        cw.cwpy.event.packageid.pop()
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
             else:
                 self.run_exit()
