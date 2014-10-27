@@ -629,7 +629,8 @@ class Event(object):
                 packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
                 if packevent:
                     packevent.run_exit()
-                    cw.cwpy.event.packageid.pop()
+                    if cw.cwpy.event.packageid:
+                        cw.cwpy.event.packageid.pop()
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
             else:
                 self.run_exit()
