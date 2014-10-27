@@ -425,6 +425,9 @@ class SettingsDialog(wx.Dialog):
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func)
 
+        if cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
+            cw.cwpy.frame.debugger.refresh_tools()
+
         self.Close()
 
     def OnClose(self, event):

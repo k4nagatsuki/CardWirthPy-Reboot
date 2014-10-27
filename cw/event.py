@@ -18,6 +18,8 @@ class EventInterface(object):
         self._nowrunningevents = []
         # 現在起動中のパッケージイベントの辞書(EventEngine, keyはID)
         self.nowrunningpacks = {}
+        # 実行中のパッケージID
+        self.packageid = []
         # デバッガのイベントコントロールバー用変数
         self._paused = False
         self._stoped = False
@@ -95,11 +97,19 @@ class EventInterface(object):
             return self._nowrunningevents[-1]
         return None
 
+    def get_packageid(self):
+        """実行中のパッケージIDを返す。"""
+        if self.nowrunningpacks and self.packageid:
+            return self.packageid[-1]
+        else:
+            return 0
+
     def clear(self):
         self.set_inusecard(None)
         self.in_inusecardevent = False
         self.clear_events()
         self.nowrunningpacks = {}
+        self.packageid = []
         self._stoped = False
         self._targetstack = -2
         self.refresh_tools()
@@ -619,6 +629,7 @@ class Event(object):
                 packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
                 if packevent:
                     packevent.run_exit()
+                    cw.cwpy.event.packageid.pop()
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
             else:
                 self.run_exit()

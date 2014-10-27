@@ -573,13 +573,31 @@ class Debugger(wx.Frame):
         fpath = os.path.normpath(fpath)
 
         editor = cw.cwpy.setting.editor
+        if not editor:
+            return
 
         try:
             # エディタ起動
             encoding = sys.getfilesystemencoding()
             editor = editor.encode(encoding)
             fpath = fpath.encode(encoding)
-            subprocess.Popen([editor, fpath])
+            seq = [editor, fpath]
+
+            packid = 0
+            if cw.cwpy.is_runningevent():
+                packid = cw.cwpy.event.get_packageid()
+
+            if packid:
+                seq.append("-p")
+                seq.append(str(packid))
+            elif cw.cwpy.is_battlestatus():
+                seq.append("-b")
+                seq.append(str(cw.cwpy.areaid))
+            else:
+                seq.append("-a")
+                seq.append(str(cw.cwpy.areaid))
+
+            subprocess.Popen(seq)
         except:
             s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [デバッガ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
             dlg = cw.dialog.message.ErrorMessage(self, s)
@@ -1099,7 +1117,8 @@ class Debugger(wx.Frame):
             enabled[self.mi_status.GetId()] = (self.mi_status, self.tl_status, True)
             enabled[self.mi_recovery.GetId()] = (self.mi_recovery, self.tl_recovery, True)
             enabled[self.mi_redisplay.GetId()] = (self.mi_redisplay, self.tl_redisplay, True)
-            enabled[self.mi_editor.GetId()] = (self.mi_editor, self.tl_editor, True)
+            if cw.cwpy.setting.editor:
+                enabled[self.mi_editor.GetId()] = (self.mi_editor, self.tl_editor, True)
             if cw.cwpy.is_runningevent():
                 enabled[self.mi_select.GetId()] = (self.mi_select, self.tl_select, True)
                 if cw.cwpy.is_showparty:
