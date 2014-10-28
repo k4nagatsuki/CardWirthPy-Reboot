@@ -2411,7 +2411,102 @@ class _CWPyElementInterface(object):
         return make_element(*args, **kwargs)
 
 class CWPyElement(_ElementInterface, _CWPyElementInterface):
-    pass
+
+    def __init__(self, tag, attrib={}):
+        _ElementInterface.__init__(self, tag, attrib)
+        # CWXパスを構築するための親要素情報
+        self.cwxparent = None
+
+    def append(self, subelement):
+        subelement.cwxparent = self
+        return _ElementInterface.append(self, subelement)
+
+    def extend(self, subelements):
+        l = len(self)
+        for i, subelement in enumerate(subelements):
+            subelement.cwxparent = self
+        return _ElementInterface.extend(self, subelements)
+
+    def insert(self, index, subelement):
+        subelement.cwxparent = self
+        return _ElementInterface.insert(self, index, subelement)
+
+    def remove(self, subelement):
+        if subelement.cwxparent is self:
+            subelement.cwxparent = None
+        return _ElementInterface.remove(self, subelement)
+
+    def index(self, subelement):
+        for i, e in enumerate(self):
+            if e == subelement:
+                return i
+        return -1
+
+    def get_cwxpath(self):
+        """CWXパスを構築して返す。
+        イベントまたはその親要素でなければ正しいパスは構築されない。
+        """
+        cwxpath = []
+
+        e = self
+        scenariodata = False
+        while not e is None:
+            if "cwxpath" in e.attrib:
+                # 召喚獣召喚効果で付与された召喚獣
+                cwxpath.append(e.attrib.get("cwxpath", ""))
+                scenariodata = True
+                break
+            elif e.tag == "Area":
+                cwxpath.append("area:id:%s" % (e.gettext("Property/Id", "0")))
+                scenariodata = True
+            elif e.tag == "Battle":
+                cwxpath.append("battle:id:%s" % (e.gettext("Property/Id", "0")))
+                scenariodata = True
+            elif e.tag == "Package":
+                cwxpath.append("package:id:%s" % (e.gettext("Property/Id", "0")))
+                scenariodata = True
+            elif e.tag == "CastCard":
+                cwxpath.append("castcard:id:%s" % (e.gettext("Property/Id", "0")))
+                scenariodata = True
+            elif e.tag == "SkillCard":
+                cwxpath.append("skillcard:id:%s" % (e.gettext("Property/Id", "0")))
+                if e.getbool(".", "scenariocard", False):
+                    scenariodata = True
+                    break
+            elif e.tag == "ItemCard":
+                cwxpath.append("itemcard:id:%s" % (e.gettext("Property/Id", "0")))
+                if e.getbool(".", "scenariocard", False):
+                    scenariodata = True
+                    break
+            elif e.tag == "BeastCard":
+                cwxpath.append("beastcard:id:%s" % (e.gettext("Property/Id", "0")))
+                if e.getbool(".", "scenariocard", False):
+                    scenariodata = True
+                    break
+            elif e.tag == "MenuCard":
+                cwxpath.append("menucard:%s" % (e.cwxparent.index(e)))
+            elif e.tag == "EnemyCard":
+                cwxpath.append("enemycard:%s" % (e.cwxparent.index(e)))
+            elif e.tag == "Event":
+                cwxpath.append("event:%s" % (e.cwxparent.index(e)))
+            elif e.tag == "Motion":
+                cwxpath.append("motion:%s" % (e.cwxparent.index(e)))
+            elif e.tag in ("SkillCards", "ItemCards", "BeastCards", "Beasts", "Motions",
+                           "Contents", "Events", "MenuCards", "EnemyCards"):
+                pass
+            else:
+                # Content
+                assert not e.cwxparent is None, e.tag
+                assert e.cwxparent.tag == "Contents", "%s/%s" % (e.cwxparent.tag, e.tag)
+                cwxpath.append(":%s" % (e.cwxparent.index(e)))
+
+            e = e.cwxparent
+
+        if scenariodata:
+            return "/".join(reversed(cwxpath))
+        else:
+            return ""
+
 
 #-------------------------------------------------------------------------------
 #  CWPyElementTree

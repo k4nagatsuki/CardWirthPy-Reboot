@@ -559,51 +559,71 @@ class Debugger(wx.Frame):
             cw.cwpy.exec_func(func, dlg.value)
 
     def OnEditorTool(self, event):
-        if not cw.cwpy.is_playingscenario():
+        if not cw.cwpy.setting.editor:
             return
-        fpath = cw.cwpy.sdata.fpath
-        if not fpath:
-            return
-        if os.path.isdir(fpath):
-            # WirthBuilderはSummary.wsmのパスを渡さないとシナリオを開けない
-            wsm = cw.util.join_paths(fpath, "Summary.wsm")
-            if os.path.isfile(wsm):
-                fpath = wsm
-        # WirthBuilderは'/'区切りのパスを受け付けない
-        fpath = os.path.normpath(fpath)
+        def func(self):
+            if not cw.cwpy.is_playingscenario():
+                return
+            fpath = cw.cwpy.sdata.fpath
+            if not fpath:
+                return
+            if os.path.isdir(fpath):
+                # WirthBuilderはSummary.wsmのパスを渡さないとシナリオを開けない
+                wsm = cw.util.join_paths(fpath, "Summary.wsm")
+                if os.path.isfile(wsm):
+                    fpath = wsm
+            # WirthBuilderは'/'区切りのパスを受け付けない
+            fpath = os.path.normpath(fpath)
 
-        editor = cw.cwpy.setting.editor
-        if not editor:
-            return
+            editor = cw.cwpy.setting.editor
+            if not editor:
+                return
 
-        try:
             # エディタ起動
             encoding = sys.getfilesystemencoding()
             editor = editor.encode(encoding)
             fpath = fpath.encode(encoding)
             seq = [editor, fpath]
-
+            cwxpath = ""
             packid = 0
-            if cw.cwpy.is_runningevent():
-                packid = cw.cwpy.event.get_packageid()
 
-            # 古いバージョンのCWXEditorでは
-            # -a -b -pオプションつきの起動で
-            # 同一のシナリオが複数開かれてしまう
-            if packid:
+            if cw.cwpy.is_runningevent():
+                event = cw.cwpy.event.get_event()
+                if event and not event.cur_content is None:
+                    cwxpath = event.cur_content.get_cwxpath()
+
+                if not cwxpath:
+                    # パッケージ処理中でなければ0が返る
+                    packid = cw.cwpy.event.get_packageid()
+
+            if cwxpath:
+                seq.append(cwxpath)
+            elif packid:
+                # 古いバージョンのCWXEditorでは
+                # -a -b -pオプションつきの起動で
+                # 同一のシナリオが複数開かれてしまう
                 seq.append("package:id:%s" % (packid))
             elif cw.cwpy.is_battlestatus():
                 seq.append("battle:id:%s" % (cw.cwpy.areaid))
             else:
                 seq.append("area:id:%s" % (cw.cwpy.areaid))
 
-            subprocess.Popen(seq)
-        except:
-            s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [デバッガ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
-            dlg = cw.dialog.message.ErrorMessage(self, s)
-            cw.cwpy.frame.move_dlg(dlg)
-            dlg.ShowModal()
-            dlg.Destroy()
+            def func(self, seq):
+                if not self:
+                    return
+
+                try:
+                    subprocess.Popen(seq)
+                except:
+                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [デバッガ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
+                    dlg = cw.dialog.message.ErrorMessage(self, s)
+                    cw.cwpy.frame.move_dlg(dlg)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+
+            cw.cwpy.frame.exec_func(func, self, seq)
+
+        cw.cwpy.exec_func(func, self)
 
     def OnSaveTool(self, event):
         if not cw.cwpy.is_playingscenario():
@@ -1229,11 +1249,14 @@ class VariableListCtrl(wx.ListCtrl):
 
             if dlg.ShowModal() == wx.ID_OK:
                 if isinstance(item, cw.data.Flag):
-                    item.set(not bool(dlg.GetSelection()))
-                    func = item.redraw_cards
-                    cw.cwpy.exec_func(func)
+                    def func(item, value):
+                        item.set(value)
+                        item.redraw_cards()
+                    cw.cwpy.exec_func(func, item, not bool(dlg.GetSelection()))
                 elif isinstance(item, cw.data.Step):
-                    item.set(dlg.GetSelection())
+                    def func(item, value):
+                        item.set(value)
+                    cw.cwpy.exec_func(func, item, dlg.GetSelection())
 
             dlg.Destroy()
 
@@ -1283,15 +1306,24 @@ class VariableListCtrl(wx.ListCtrl):
         self.list = []
         self.SetItemCount(0)
 
-        if cw.cwpy.is_playingscenario():
-            self.list = cw.cwpy.sdata.steps.values()
-            cw.util.sort_by_attr(self.list, "name")
-            seq = cw.cwpy.sdata.flags.values()
-            cw.util.sort_by_attr(seq, "name")
-            self.list.extend(seq)
-            self.SetItemCount(len(self.list))
+        def func(self):
+            if cw.cwpy.is_playingscenario():
+                list = cw.cwpy.sdata.steps.values()
+                cw.util.sort_by_attr(list, "name")
+                seq = cw.cwpy.sdata.flags.values()
+                cw.util.sort_by_attr(seq, "name")
+                list.extend(seq)
+                def func(self, list):
+                    self.list = list
+                    self.SetItemCount(len(list))
+                    self.Refresh()
+                cw.cwpy.frame.exec_func(func, self, list)
+            else:
+                def func(self):
+                    self.Refresh()
+                cw.cwpy.frame.exec_func(func, self)
 
-        self.Refresh()
+        cw.cwpy.exec_func(func, self)
 
 class EventView(wx.ScrolledWindow):
     def __init__(self, parent):
@@ -1569,22 +1601,33 @@ class EventView(wx.ScrolledWindow):
             return
         processing = self.processing
         self.processing = True
-        event = cw.cwpy.event.get_event()
 
-        if event and event.cur_content in self.items:
-            if self.current_content == event.cur_content:
+        def func(self):
+            event = cw.cwpy.event.get_event()
+            cur_content = event.cur_content if event else None
+
+            def func(self, event, cur_content):
+                if not self:
+                    return
+
+                if event and cur_content in self.items:
+                    if self.current_content == cur_content:
+                        self.processing = processing
+                        return
+                    self.current_content = cur_content
+                    self.activeitem = self.items[cur_content]
+                    self.show_item(self.activeitem)
+                    s = cw.content.get_content(self.current_content).get_status()
+                    self.Parent.statusbar.SetStatusText(s, 1)
+                else:
+                    self.current_content = None
+                    self.Parent.statusbar.SetStatusText(u"", 1)
+                self.Refresh()
                 self.processing = processing
-                return
-            self.current_content = event.cur_content
-            self.activeitem = self.items[event.cur_content]
-            self.show_item(self.activeitem)
-            s = cw.content.get_content(self.current_content).get_status()
-            self.Parent.statusbar.SetStatusText(s, 1)
-        else:
-            self.current_content = None
-            self.Parent.statusbar.SetStatusText(u"", 1)
-        self.Refresh()
-        self.processing = processing
+
+            cw.cwpy.frame.exec_func(func, self, event, cur_content)
+
+        cw.cwpy.exec_func(func, self)
 
     def refresh_tree(self):
         assert threading.currentThread() <> cw.cwpy
@@ -1593,55 +1636,65 @@ class EventView(wx.ScrolledWindow):
         processing = self.processing
         self.processing = True
 
-        nowrunning = cw.cwpy.event.get_nowrunningevent()
-        if nowrunning is None:
-            self.items = {}
-            self.itemlist = []
-            self.activeitem = None
-            self.selectionitem = None
-            self.selectionindex = -1
-            self.current_tree = None
-            self.current_content = None
-            self.processing = processing
-            self.SetVirtualSize((1, 1))
-            self.Refresh()
-            return
+        def func(self):
+            nowrunning = cw.cwpy.event.get_nowrunningevent()
+            trees = nowrunning.trees if not nowrunning is None else None
 
-        trees = nowrunning.trees
-        self.maxwidth, self.maxheight = 0, 0
-        icon = cw.cwpy.rsrc.debugs["EVT_START"]
-        dc = wx.ClientDC(self)
-        actw, self.lineheight = dc.GetTextExtent(" // ACTIVE!")
-        shiftx = icon.GetWidth()
-        self.lineheight = max(icon.GetHeight() + 2, self.lineheight)
-        if self.current_tree <> trees:
-            trees = nowrunning.trees
-            self.current_tree = trees
-            self.Parent.statusbar.SetStatusText(u"", 1)
-            self.activeitem = None
-            self.selectionitem = None
-            self.selectionindex = -1
-            self.items = {}
-            self.itemlist = []
+            def func(self, nowrunning, trees):
+                if not self:
+                    return
 
-            if self.current_tree:
-                for name in nowrunning.treekeys:
-                    tree = trees[name]
-                    self.create_item(None, tree, shiftx, dc)
+                if nowrunning is None:
+                    self.items = {}
+                    self.itemlist = []
+                    self.activeitem = None
+                    self.selectionitem = None
+                    self.selectionindex = -1
+                    self.current_tree = None
+                    self.current_content = None
+                    self.processing = processing
+                    self.SetVirtualSize((1, 1))
+                    self.Refresh()
+                    return
 
-            if self.itemlist:
-                item = self.itemlist[-1]
-                self.maxheight = item.pos[1] + item.height
-            self.maxwidth += actw
+                self.maxwidth, self.maxheight = 0, 0
+                icon = cw.cwpy.rsrc.debugs["EVT_START"]
+                dc = wx.ClientDC(self)
+                actw, self.lineheight = dc.GetTextExtent(" // ACTIVE!")
+                shiftx = icon.GetWidth()
+                self.lineheight = max(icon.GetHeight() + 2, self.lineheight)
+                if self.current_tree <> trees:
+                    trees = nowrunning.trees
+                    self.current_tree = trees
+                    self.Parent.statusbar.SetStatusText(u"", 1)
+                    self.activeitem = None
+                    self.selectionitem = None
+                    self.selectionindex = -1
+                    self.items = {}
+                    self.itemlist = []
 
-            self.SetVirtualSize((self.maxwidth, self.maxheight))
-            self.scrollrate_x = shiftx
-            self.scrollrate_y = self.lineheight
-            self.SetScrollRate(self.scrollrate_x, self.scrollrate_y)
-            self.Scroll(0, 0)
-            self.Refresh()
+                    if self.current_tree:
+                        for name in nowrunning.treekeys:
+                            tree = trees[name]
+                            self.create_item(None, tree, shiftx, dc)
 
-        self.processing = processing
+                    if self.itemlist:
+                        item = self.itemlist[-1]
+                        self.maxheight = item.pos[1] + item.height
+                    self.maxwidth += actw
+
+                    self.SetVirtualSize((self.maxwidth, self.maxheight))
+                    self.scrollrate_x = shiftx
+                    self.scrollrate_y = self.lineheight
+                    self.SetScrollRate(self.scrollrate_x, self.scrollrate_y)
+                    self.Scroll(0, 0)
+                    self.Refresh()
+
+                self.processing = processing
+
+            cw.cwpy.frame.exec_func(func, self, nowrunning, trees)
+
+        cw.cwpy.exec_func(func, self)
 
     def create_item(self, parentitem, content, shiftx, dc):
         assert threading.currentThread() <> cw.cwpy

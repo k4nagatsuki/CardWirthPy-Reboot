@@ -975,7 +975,10 @@ class EffectMotion(object):
         """
         eff = False
         for e in self.beasts:
+            cwxpath = e.get_cwxpath()
             e = cw.data.copydata(e)
+            if cwxpath:
+                e.attrib["cwxpath"] = cwxpath
             self.duration = e.getint("Property/UseLimit")
             duration = self.calc_durationvalue(False)
             e.find("Property/UseLimit").text = str(duration)

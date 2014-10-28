@@ -959,8 +959,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_showingdebugger() and self.event and self.event._step:
             self.event.refresh_tools()
 
+        self.event.refresh_activeitem()
         while self.is_running() and mwin.result is None:
-            self.event.refresh_activeitem()
             self.update()
 
             if mwin.result is None:
@@ -1526,6 +1526,7 @@ class CWPy(_Singleton, threading.Thread):
         if createmutex:
             if cw.util.create_mutex(yadodir):
                 cw.tempdir = cw.util.join_paths(u"Data/Temp/Local", yadodir)
+                cw.util.remove_temp()
             else:
                 cw.cwpy.sounds["error"].play()
                 return False
