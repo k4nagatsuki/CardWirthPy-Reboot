@@ -187,7 +187,6 @@ class Frame(wx.Frame):
         """デバッガ開く。"""
         if cw.cwpy.debug and not self.debugger:
             # キー入力初期化
-            cw.cwpy.keyevent.clear()
             dlg = cw.debug.debugger.Debugger(self)
             # メインフレームの真横に表示
             w = dlg.GetSize()[0]
