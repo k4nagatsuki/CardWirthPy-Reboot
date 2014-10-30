@@ -607,6 +607,10 @@ class EffectMotion(object):
 
         target.set_life(-value)
 
+        # 睡眠解除
+        if target.is_sleep():
+            target.set_mentality("Normal", 0)
+
         # 与えたダメージ分、使用者回復
         if self.user:
             self.user.set_life(value)
