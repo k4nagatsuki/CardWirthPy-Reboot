@@ -2232,6 +2232,8 @@ class CWPy(_Singleton, threading.Thread):
             self.draw()
 
         if callpredlg:
+            if not self.is_battlestatus():
+                self.return_takenoutcard()
             self.call_predlg()
 
     def clean_specials(self):
