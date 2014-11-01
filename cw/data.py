@@ -2342,7 +2342,9 @@ class _CWPyElementInterface(object):
         if e is None:
             text = default
         else:
-            text = e.text or default
+            text = e.text
+            if text is None:
+                text = u""
 
         if text is None:
             self._raiseerror(path)

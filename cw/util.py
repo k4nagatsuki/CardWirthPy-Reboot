@@ -1401,15 +1401,18 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progres
 def decode_zipname(name):
     if not isinstance(name, unicode):
         try:
-            name = name.decode(cw.MBCS)
+            name = name.decode("utf_8_sig")
         except UnicodeDecodeError:
             try:
-                name = name.decode("euc-jp")
+                name = name.decode(cw.MBCS)
             except UnicodeDecodeError:
                 try:
-                    name = name.decode("utf-8")
+                    name = name.decode("euc-jp")
                 except UnicodeDecodeError:
-                    name = name
+                    try:
+                        name = name.decode("utf-8")
+                    except UnicodeDecodeError:
+                        name = name
 
     return name
 

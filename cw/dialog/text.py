@@ -101,7 +101,6 @@ class Text(wx.Dialog):
         self._set_text(self.list2[self.index2])
 
     def OnClickLeftBtn(self, event):
-        cw.cwpy.sounds["page"].play()
         self.Parent.OnClickLeftBtn(event)
         self._enable_btn()
         self.update_lists()
@@ -129,7 +128,6 @@ class Text(wx.Dialog):
             self.combo.Disable()
 
     def OnClickRightBtn(self, event):
-        cw.cwpy.sounds["page"].play()
         self.Parent.OnClickRightBtn(event)
         self._enable_btn()
         self.update_lists()

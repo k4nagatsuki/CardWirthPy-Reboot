@@ -158,7 +158,7 @@ class BranchContent(EventContentBase):
 
         # 対象カードデータ取得
         e = cw.data.xml2element(path, "Property")
-        cardname = e.gettext("Name", "noname")
+        cardname = e.gettext("Name", "")
         carddesc = e.gettext("Description", "")
 
         # 対象範囲修正
