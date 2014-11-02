@@ -45,6 +45,8 @@ class CardImage(Image):
         self.update_scale()
 
     def update_scale(self):
+        self._bmp = None
+        self._wxbmp = None
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
 
@@ -71,6 +73,9 @@ class CardImage(Image):
         return self.image_mtime <> os.path.getmtime(path)
 
     def get_image(self):
+        if self._bmp:
+            return self._bmp.copy()
+
         image = self.cardbg.copy()
 
         # プレミア画像
@@ -112,6 +117,7 @@ class CardImage(Image):
             subimg = pygame.transform.smoothscale(subimg, size)
 
         image.blit(subimg, (left, cw.s(5)))
+        self._bmp = image.copy()
         return image
 
     def get_cardimg(self, header):
@@ -193,6 +199,9 @@ class CardImage(Image):
         return pygame.transform.scale(negaimg, size)
 
     def get_wxbmp(self):
+        if self._wxbmp:
+            return self._wxbmp
+
         w, h = self.wxrect.size
         bmp = wx.EmptyBitmap(w, h)
         dc = wx.MemoryDC()
@@ -251,6 +260,7 @@ class CardImage(Image):
 
         dc.SelectObject(wx.NullBitmap)
 
+        self._wxbmp = bmp
         return bmp
 
     def get_cardwxbmp(self, header):
