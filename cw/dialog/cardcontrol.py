@@ -832,9 +832,9 @@ class CardControl(wx.Dialog):
             if index <> self._combo_manual:
                 def func(header):
                     if index == self._combo_storehouse:
-                        cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self, sound=False)
+                        cw.cwpy.trade("STOREHOUSE", header=header, from_event=False, parentdialog=self, sound=False, sort=True)
                     elif index == self._combo_backpack:
-                        cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self, sound=False)
+                        cw.cwpy.trade("BACKPACK", header=header, from_event=False, parentdialog=self, sound=False, sort=True)
                     elif index in self._combo_cast:
                         target = self.list2[self._combo_cast[index]]
                         cw.cwpy.trade("PLAYERCARD", header=header, target=target, from_event=False, parentdialog=self, sound=False)
