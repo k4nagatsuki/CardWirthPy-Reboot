@@ -485,9 +485,10 @@ class CWPy(_Singleton, threading.Thread):
             self.tick_clock()         # FPS調整
             self.input()              # 各種入力イベント取得
             self.eventhandler.run()   # イベントハンドラ
-            if update:
-                self.update()         # スプライトの更新
-            self.draw(True)           # スプライトの描画
+            if not pygame.event.peek(USEREVENT):
+                if update:
+                    self.update()         # スプライトの更新
+                self.draw(True)           # スプライトの描画
 
         if not self.is_runningevent() and self._clear_changed:
             if self.ydata:
