@@ -664,7 +664,10 @@ class PlayerCard(CWPyCard, character.Player):
 
     def update_delete(self):
         """パーティから外す。"""
-        self.update_hide()
+        if self.old_status == "hidden":
+            self.hide()
+        else:
+            self.update_hide()
 
         if self.frame == 0:
             cw.cwpy.ydata.party.remove(self)
@@ -874,7 +877,10 @@ class EnemyCard(CWPyCard, character.Enemy):
         CWPyCard.update(self, scr)
 
     def update_delete(self):
-        self.update_hide()
+        if self.old_status == "hidden":
+            self.hide()
+        else:
+            self.update_hide()
 
         if self.frame == 0:
             cw.cwpy.mcardgrp.remove(self)
