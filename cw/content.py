@@ -751,7 +751,7 @@ class BranchCouponContent(BranchContent):
         elif scope == "Field":
             scope = "FieldCasts"
             someone = True
-            unreversed = True
+            unreversed = False
         else:
             someone = True
             unreversed = False
