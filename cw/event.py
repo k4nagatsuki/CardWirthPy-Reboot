@@ -635,6 +635,11 @@ class Event(object):
                 break
 
     def run_exit(self):
+        if self.base:
+            self._copy_from(self.base)
+            self.clear()
+            self.base = None
+
         cw.cwpy.event.pop_event()
         self.clear()
 
