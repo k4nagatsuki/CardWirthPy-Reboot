@@ -618,9 +618,9 @@ class CWPy(_Singleton, threading.Thread):
         self.topgrp.update(self.scr_draw)
         self.sbargrp.update(self.scr_draw)
 
-    def return_takenoutcard(self):
+    def return_takenoutcard(self, checkevent=True):
         # 一時的に荷物袋から出したカードを戻す(消滅していなければ)
-        if self.card_takenouttemporarily and not self.selectedheader and not self.is_runningevent() and not self.is_battlestatus():
+        if self.card_takenouttemporarily and not self.selectedheader and (not checkevent or not self.is_runningevent()) and not self.is_battlestatus():
             if self.card_takenouttemporarily.get_owner():
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None, sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None
@@ -806,7 +806,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def call_predlg(self):
         """直前に開いていたダイアログを再び開く。"""
-        self.return_takenoutcard()
+        self.return_takenoutcard(checkevent=False)
         if self.pre_dialogs:
             pre_info = self.pre_dialogs[-1]
             callname = pre_info[0]
@@ -2232,8 +2232,6 @@ class CWPy(_Singleton, threading.Thread):
             self.draw()
 
         if callpredlg:
-            if not self.is_battlestatus():
-                self.return_takenoutcard()
             self.call_predlg()
 
     def clean_specials(self):
