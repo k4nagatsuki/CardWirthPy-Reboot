@@ -200,7 +200,9 @@ class CardImage(Image):
 
     def get_wxbmp(self):
         if self._wxbmp:
-            return self._wxbmp
+            bmp = self._wxbmp.ConvertToImage()
+            bmp = bmp.ConvertToBitmap()
+            return bmp
 
         w, h = self.wxrect.size
         bmp = wx.EmptyBitmap(w, h)
@@ -261,6 +263,8 @@ class CardImage(Image):
         dc.SelectObject(wx.NullBitmap)
 
         self._wxbmp = bmp
+        bmp = self._wxbmp.ConvertToImage()
+        bmp = bmp.ConvertToBitmap()
         return bmp
 
     def get_cardwxbmp(self, header):
