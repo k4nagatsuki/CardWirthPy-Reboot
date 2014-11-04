@@ -309,7 +309,7 @@ class EventHandler(object):
             cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
         else:
             cw.cwpy.keyevent.clear()
-            cw.cwpy.frame.exec_func(cw.cwpy.frame.show_debugger)
+            cw.cwpy.frame.exec_func(cw.cwpy.frame.show_debugger, cw.cwpy.is_runningevent())
 
     def f4key_event(self):
         """

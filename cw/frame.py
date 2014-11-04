@@ -183,7 +183,7 @@ class Frame(wx.Frame):
         for i in xrange(count):
             self.tick_clock()
 
-    def show_debugger(self):
+    def show_debugger(self, refreshtree):
         """デバッガ開く。"""
         if cw.cwpy.debug and not self.debugger:
             # キー入力初期化
@@ -192,8 +192,11 @@ class Frame(wx.Frame):
             w = dlg.GetSize()[0]
             w -= (w - self.GetSize()[0]) / 2
             self.move_dlg(dlg, (w, 0))
-            dlg.Show()
             self.debugger = dlg
+            if refreshtree:
+                self.debugger.view_tree.refresh_tree()
+                self.debugger.view_tree.refresh_activeitem()
+            dlg.Show()
 
     def close_debugger(self):
         """デバッガ閉じる。"""
