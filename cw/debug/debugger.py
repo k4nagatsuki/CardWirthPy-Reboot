@@ -1457,15 +1457,20 @@ class EventView(wx.ScrolledWindow):
 
         yg = (self.lineheight - dc.GetTextExtent("#")[1]) / 2
         for item in self.itemlist[y:]:
-            dc.DrawBitmap(item.image, item.pos[0]-xtop, item.pos[1]-ytop, True)
+            if item.image:
+                dc.DrawBitmap(item.image, item.pos[0]-xtop, item.pos[1]-ytop, True)
             s = item.text
             if item == self.activeitem:
                 dc.SetTextForeground(wx.RED)
                 s += u" // ACTIVE!"
             else:
                 dc.SetTextForeground(wx.BLACK)
+            if item.image:
+                imgwidth = item.image.GetWidth()
+            else:
+                imgwidth = 0
             dc.DrawText(s,
-                        item.pos[0]+item.image.GetWidth()+2-xtop,
+                        item.pos[0]+imgwidth+2-xtop,
                         item.pos[1]-ytop+yg)
 
             if last == item:
@@ -1744,7 +1749,10 @@ class EventViewItem(object):
         else:
             self.height = lineheight * 2
 
-        self.width = self.image.GetWidth()
+        if self.image:
+            self.width = self.image.GetWidth()
+        else:
+            self.width = 0
         if self.text:
             self.width += 2
             self.width += dc.GetTextExtent(self.text)[0]
