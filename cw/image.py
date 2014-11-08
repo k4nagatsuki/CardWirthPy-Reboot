@@ -200,9 +200,7 @@ class CardImage(Image):
 
     def get_wxbmp(self):
         if self._wxbmp:
-            bmp = self._wxbmp.ConvertToImage()
-            bmp = bmp.ConvertToBitmap()
-            return bmp
+            return cw.util.copy_wxbmp(self._wxbmp)
 
         w, h = self.wxrect.size
         bmp = wx.EmptyBitmap(w, h)
@@ -263,9 +261,7 @@ class CardImage(Image):
         dc.SelectObject(wx.NullBitmap)
 
         self._wxbmp = bmp
-        bmp = self._wxbmp.ConvertToImage()
-        bmp = bmp.ConvertToBitmap()
-        return bmp
+        return cw.util.copy_wxbmp(self._wxbmp)
 
     def get_cardwxbmp(self, header):
         if header.negaflag:
@@ -345,13 +341,7 @@ class CardImage(Image):
         else:
             negaimg = self.get_cardwxbmp(header)
 
-        # FIXME: この処理がないとnegaimg.ConvertToImage()の時点で化ける
-        w, h = negaimg.GetWidth(), negaimg.GetHeight()
-        buf = array.array('B', [0] * (w*h * 3))
-        negaimg.CopyToBuffer(buf)
-        negaimg = wx.BitmapFromBuffer(w, h, buf)
-
-        image = negaimg.ConvertToImage()
+        image = cw.util.convert_to_image(negaimg)
         image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)
         return image.ConvertToBitmap()
 

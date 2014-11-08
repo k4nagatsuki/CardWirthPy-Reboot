@@ -1083,7 +1083,7 @@ class StatusPanel(wx.ScrolledWindow):
             msg = u"%s小ペナルティ (%d)" % (enhname, dur)
         dc.SetBrush(wx.Brush(colour, wx.SOLID))
         dc.DrawRectangle(cw.wins(12), height - cw.wins(1), bmp.Width, bmp.Height)
-        dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1))
+        dc.DrawBitmap(bmp, cw.wins(12), height - cw.wins(1), True)
         dc.DrawText(msg, cw.wins(32), height)
         self.Refresh()
         return height + cw.wins(17)

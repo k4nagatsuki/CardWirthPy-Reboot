@@ -21,6 +21,7 @@ import traceback
 import datetime
 import md5
 import ctypes
+import array
 
 if sys.platform == "win32":
     import pythoncom
@@ -1905,6 +1906,25 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
             return wx.EmptyBitmap(0, 0)
 
     return wxbmp
+
+def copy_wxbmp(bmp):
+    """wx.Bitmapのコピーを生成する。"""
+    w = bmp.GetWidth()
+    h = bmp.GetHeight()
+    buf = array.array('B', [0] * (w*h * 3))
+    bmp.CopyToBuffer(buf)
+    return wx.BitmapFromBuffer(w, h, buf)
+
+def convert_to_image(bmp):
+    """wx.Bitmapをwx.Imageに変換する。
+    FIXME: 直接bmp.ConvertToImage()を使用すると
+           画像が化ける事がある
+    """
+    w = bmp.GetWidth()
+    h = bmp.GetHeight()
+    buf = array.array('B', [0] * (w*h * 3))
+    bmp.CopyToBuffer(buf)
+    return wx.ImageFromBuffer(w, h, buf)
 
 def fill_bitmap(dc, bmp, csize):
     """引数のbmpを敷き詰める。"""

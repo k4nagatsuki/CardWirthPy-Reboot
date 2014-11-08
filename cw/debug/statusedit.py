@@ -760,7 +760,7 @@ class StatusButton(wx.BitmapButton):
         # 半透明化
         w = self.image.GetWidth()
         h = self.image.GetHeight()
-        image = self.image.ConvertToImage()
+        image = cw.util.convert_to_image(self.image)
         if not enable:
             image.SetAlphaData(chr(128) * (w*h))
         self.image = image.ConvertToBitmap()
