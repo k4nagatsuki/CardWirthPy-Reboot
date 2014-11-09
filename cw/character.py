@@ -1440,8 +1440,12 @@ class Character(object):
                         targettype = targettype_original
                     if regulate and targettype <> "TRASHBOX":
                         self.add_cardpocketmemory(header)
-                    cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party)
+                    cw.cwpy.trade(targettype=targettype, header=header, from_event=True, party=backpack_party, sort=False)
                     n -= 1
+            if targettype_original == "BACKPACK":
+                cw.cwpy.ydata.party.sort_backpack()
+            elif targettype_original == "STOREHOUSE":
+                cw.cwpy.ydata.sort_storehouse()
             for header in self.cardpocket[0]:
                 header.get_uselimit(reset=True)
         elif 0 < uplevel and revert_cardpocket:
