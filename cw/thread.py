@@ -2770,7 +2770,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def trade(self, targettype, target=None, header=None,\
               from_event=False, parentdialog=None, toindex=-1,\
-              insertorder=-1, sort=False, sound=True, party=None,\
+              insertorder=-1, sort=True, sound=True, party=None,\
               from_getcontent=False, call_predlg=True,\
               clearinusecard=True):
         """

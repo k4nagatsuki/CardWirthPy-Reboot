@@ -1388,14 +1388,14 @@ class YadoData(object):
                    cheader.scenario == scenario and\
                    cheader.uselimit == uselimit:
                     get = True
-                    cw.cwpy.trade(targettype="BACKPACK", header=cheader, sound=False)
+                    cw.cwpy.trade(targettype="BACKPACK", header=cheader, sound=False, sort=False)
                     break
             if get:
                 continue
             for cheader in self.storehouse:
                 if cheader.name == name and\
                    cheader.desc == desc:
-                    cw.cwpy.trade(targettype="BACKPACK", header=cheader, sound=False)
+                    cw.cwpy.trade(targettype="BACKPACK", header=cheader, sound=False, sort=False)
                     break
         self.party.backpack.reverse()
         for order, header in enumerate(self.party.backpack):

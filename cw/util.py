@@ -2020,7 +2020,9 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
                 dpath = dlg.GetPath()
                 if getbasedir:
                     base = getbasedir()
-                    dpath = cw.util.relpath(dpath, base)
+                    dpath2 = cw.util.relpath(dpath, base)
+                    if not dpath2.startswith(".." + os.path.sep):
+                        dpath = dpath2
                 target.SetValue(dpath)
                 if callback:
                     callback(dpath)
@@ -2032,7 +2034,9 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
                 fpath = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
                 if getbasedir:
                     base = getbasedir()
-                    fpath = cw.util.relpath(fpath, base)
+                    fpath2 = cw.util.relpath(fpath, base)
+                    if not fpath2.startswith(".." + os.path.sep):
+                        fpath = fpath2
                 target.SetValue(fpath)
                 if callback:
                     callback(fpath)
