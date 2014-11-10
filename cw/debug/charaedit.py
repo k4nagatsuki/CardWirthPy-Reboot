@@ -787,6 +787,20 @@ class CharaSelectablePanel(wx.Panel):
             elif not making in info.makings and value:
                 info.makings.add(making)
 
+        if value:
+            index = self.makings.index(check)
+            if index % 2 == 1:
+                index -= 1
+            else:
+                index += 1
+            if index < len(self.makings):
+                check = self.makings[index]
+                check.SetValue(False)
+                making = u"＿" + check.GetLabel()
+                for info in infos:
+                    if making in info.makings:
+                        info.makings.remove(making)
+
     def OnAutoBtn(self, event):
         self._set_random()
 
