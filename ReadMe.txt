@@ -260,4 +260,6 @@ CardWirthPyを開発するにあたって、お世話になった方々に、心
 
 [きりう様](http://homepage3.nifty.com/kiryu/cg/garden/jpy.html)
 
+[HAND様](http://www.geocities.jp/handmademidis/)
+
 その他、バグ報告・仕様提案などご意見くださったすべての方々

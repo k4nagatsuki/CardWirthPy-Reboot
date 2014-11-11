@@ -5,6 +5,7 @@ import os
 import copy
 import math
 import shutil
+import itertools
 import pygame
 
 import cw
@@ -832,30 +833,59 @@ class Character(object):
         self.set_action(targets, header, beasts, True)
 
     def decide_usecard(self, headers):
-        seq = []
+        """
+        使用可能な手札のいずれかを自動選択する。
+        """
 
-        for index, t in enumerate(headers):
-            targets, header = t
+        # 適性の最大値
+        # 最大-22より適性値が小さなカードは選択から除外する
+        maxv = 0
+        for t in headers:
+            header = t[1]
+            vocation = header.get_vocation_val(self)
+            maxv = max(maxv, vocation)
 
-            # カード交換のソートキーは4固定
+        # 選択値
+        # カードごとに決定し、これまでの最大値を上回れば選択
+        maxd = 0
+        # 選択されたカード
+        selected = None
+        # 初期選択
+        for t in itertools.chain(headers[1:], headers[:1]):
+            header = t[1]
+
+            vocation = header.get_vocation_val(self)
             if header.type == "ActionCard" and header.id == 0:
-                sortkey = 4
-            else:
-                sortkey = header.get_vocation_val(self)
+                # カード交換は適性値-6
+                vocation -= 6
 
-            seq.append((sortkey, len(targets), index, (targets, header)))
-
-        seq.sort(reverse=True)
-        seq2 = []
-
-        for index, i in enumerate(seq):
-            for cnt in xrange(len(seq) - index):
-                seq2.append(i)
-
-        if not seq2:
+            if maxv - vocation < 22:
+                # 最大-22未満でない最初のカードを選択
+                selected = t
+                break
+        if not selected:
             return None, None
 
-        return cw.cwpy.dice.choice(seq2)[3]
+        # カードを選択する(手札交換は最後に判定)
+        for t in itertools.chain(headers[1:], headers[:1]):
+            header = t[1]
+            d = cw.cwpy.dice.roll()
+            if d == 2:
+                continue
+
+            vocation = header.get_vocation_val(self)
+            if header.type == "ActionCard" and header.id == 0:
+                # カード交換は適性値-6
+                vocation -= 6
+
+            if 22 <= (maxv - vocation):
+                continue
+            d = (1 + vocation) / 2 + d
+            if maxd < d:
+                selected = t
+                maxd = d
+
+        return selected
 
     #---------------------------------------------------------------------------
     #　状態取得用
