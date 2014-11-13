@@ -836,52 +836,38 @@ class Character(object):
         """
         使用可能な手札のいずれかを自動選択する。
         """
-
-        # 適性の最大値
-        # 最大-22より適性値が小さなカードは選択から除外する
-        maxv = 0
+        # 手札交換は次の特殊処理を行う
+        #  * 常に最後に判定する
+        #  * 適性値を-6する
+        seq = [] # 手札交換以外のカード
+        exchange = [] # 手札交換
         for t in headers:
             header = t[1]
-            vocation = header.get_vocation_val(self)
-            maxv = max(maxv, vocation)
+            if header.type == "ActionCard" and header.id == 0:
+                exchange.append(t)
+            else:
+                seq.append(t)
+        assert len(seq)+len(exchange) == len(headers)
+
+        # カードを選択する(手札交換以外)
 
         # 選択値
         # カードごとに決定し、これまでの最大値を上回れば選択
-        maxd = 0
+        maxd = -2147483647
         # 選択されたカード
-        selected = None
-        # 初期選択
-        for t in itertools.chain(headers[1:], headers[:1]):
+        selected = (None, None)
+        for i, t in enumerate(itertools.chain(seq, exchange)):
             header = t[1]
+            # 適性値
+            vocation = int(header.get_vocation_val(self))
+            if len(seq) <= i:
+                vocation -= 6 # 手札交換なので-6
 
-            vocation = header.get_vocation_val(self)
-            if header.type == "ActionCard" and header.id == 0:
-                # カード交換は適性値-6
-                vocation -= 6
-
-            if maxv - vocation < 22:
-                # 最大-22未満でない最初のカードを選択
-                selected = t
-                break
-        if not selected:
-            return None, None
-
-        # カードを選択する(手札交換は最後に判定)
-        for t in itertools.chain(headers[1:], headers[:1]):
-            header = t[1]
+            # 選択値を計算
             d = cw.cwpy.dice.roll()
-            if d == 2:
-                continue
-
-            vocation = header.get_vocation_val(self)
-            if header.type == "ActionCard" and header.id == 0:
-                # カード交換は適性値-6
-                vocation -= 6
-
-            if 22 <= (maxv - vocation):
-                continue
             d = (1 + vocation) / 2 + d
             if maxd < d:
+                # 選択する
                 selected = t
                 maxd = d
 
