@@ -88,9 +88,11 @@ def init_bass(soundfonts):
         cw.util.print_ex()
 
     if not _bass:
-        return
+        return False
 
-    _bass.BASS_Init(-1, 44100, BASS_DEVICE_DEFAULT, None, None)
+    if not _bass.BASS_Init(-1, 44100, BASS_DEVICE_DEFAULT, None, None):
+        dispose_bass()
+        return False
 
     # サウンドフォントのロード
     _sfonts = ""
