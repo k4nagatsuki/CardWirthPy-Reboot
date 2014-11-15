@@ -114,48 +114,37 @@ class MusicInterface(object):
                             mciSendStringW(u"play %s" % (name), 0, 0, 0)
                             self._winmm = True
                         elif cw.util.splitext(fpath)[1].lower() in (".mpg", ".mpeg"):
-                            try:
+                            if pygame.mixer.get_init():
                                 try:
                                     pygame.mixer.quit()
-                                except:
+                                    encoding = sys.getfilesystemencoding()
+                                    self._movie = pygame.movie.Movie(fpath.encode(encoding))
+                                    self._movie.set_volume(self._get_volumevalue(fpath))
+                                    self.movie_scr = pygame.Surface(cw.wins(self._movie.get_size())).convert()
+                                    rect = cw.wins(pygame.Rect((0, 0), self._movie.get_size()))
+                                    self._movie.set_display(self.movie_scr, rect)
+                                    self._movie.play()
+                                except Exception:
                                     cw.util.print_ex()
-                                encoding = sys.getfilesystemencoding()
-                                self._movie = pygame.movie.Movie(fpath.encode(encoding))
-                                self._movie.set_volume(self._get_volumevalue(fpath))
-                                self.movie_scr = pygame.Surface(cw.wins(self._movie.get_size())).convert()
-                                rect = cw.wins(pygame.Rect((0, 0), self._movie.get_size()))
-                                self._movie.set_display(self.movie_scr, rect)
-                                self._movie.play()
-                            except Exception:
-                                cw.util.print_ex()
                     elif filesize == 57 and cw.util.get_md5(fpath) == "d11be4c76fc63a6ba299c2f3bd3880b0":
-                        try:
-                            # FIXME: reset.mid
-                            # 繰り返し流すとハングアップ pygame 1.9.1
+                        # FIXME: reset.mid
+                        # 繰り返し流すとハングアップ pygame 1.9.1
+                        if pygame.mixer.get_init():
                             pygame.mixer.music.play(0)
-                        except:
-                            cw.util.print_ex()
                     elif filesize == 737 and cw.util.get_md5(fpath) == "41b0a6aaa8ffefa9ce6742e80e393075":
-                        try:
-                            # FIXME: DefReset.mid
-                            # 繰り返し流すとシステムが不安定になる pygame 1.9.1
+                        # FIXME: DefReset.mid
+                        # 繰り返し流すとシステムが不安定になる pygame 1.9.1
+                        if pygame.mixer.get_init():
                             pygame.mixer.music.play(0)
-                        except:
-                            cw.util.print_ex()
                     elif cw.util.splitext(fpath)[1].lower() == ".mp3":
                         # 互換動作: 1.28以前はMP3がループ再生されない
-                        try:
+                        if pygame.mixer.get_init():
                             if cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
                                 pygame.mixer.music.play(0)
                             else:
                                 pygame.mixer.music.play(-1)
-                        except:
-                            cw.util.print_ex()
-                    else:
-                        try:
-                            pygame.mixer.music.play(-1)
-                        except:
-                            cw.util.print_ex()
+                    elif pygame.mixer.get_init():
+                        pygame.mixer.music.play(-1)
             self.fpath = fpath
             self.path = path
 
@@ -190,12 +179,8 @@ class MusicInterface(object):
                 pygame.mixer.init(44100, -16, 2, 1024)
             except:
                 cw.util.print_ex()
-        else:
-            try:
-                if pygame.mixer:
-                    pygame.mixer.music.stop()
-            except:
-                cw.util.print_ex()
+        elif pygame.mixer and pygame.mixer.get_init():
+            pygame.mixer.music.stop()
         remove_soundtempfile("Bgm")
         self.fpath = ""
         self.path = ""
@@ -230,15 +215,12 @@ class MusicInterface(object):
             volume = self._get_volumevalue(self.fpath)
 
         assert threading.currentThread() == cw.cwpy
-        try:
-            if self._bass:
-                cw.bassplayer.set_bgmvolume(volume)
-            elif self._movie:
-                self._movie.set_volume(volume)
-            else:
-                pygame.mixer.music.set_volume(volume)
-        except:
-            cw.util.print_ex()
+        if self._bass:
+            cw.bassplayer.set_bgmvolume(volume)
+        elif self._movie:
+            self._movie.set_volume(volume)
+        elif pygame.mixer.get_init():
+            pygame.mixer.music.set_volume(volume)
 
     def set_mastervolume(self, volume):
         if threading.currentThread() <> cw.cwpy:
@@ -324,7 +306,7 @@ class SoundInterface(object):
                     return
                 assert threading.currentThread() == cw.cwpy
                 tempbasedir = self._play_before(from_scenario)
-                try:
+                if pygame.mixer.get_init():
                     if from_scenario:
                         chan = pygame.mixer.Channel(0)
                     else:
@@ -332,8 +314,6 @@ class SoundInterface(object):
 
                     self._sound.set_volume(volume)
                     chan.play(self._sound)
-                except:
-                    cw.util.print_ex()
 
     def stop(self, from_scenario):
         if self._sound:
@@ -371,15 +351,13 @@ class SoundInterface(object):
                     cw.cwpy.exec_func(self.stop, from_scenario)
                     return
                 assert threading.currentThread() == cw.cwpy
-                try:
+                if pygame.mixer.get_init():
                     if from_scenario:
                         chan = pygame.mixer.Channel(0)
                     else:
                         chan = pygame.mixer.Channel(1)
 
                     chan.stop()
-                except:
-                    cw.util.print_ex()
 
 #-------------------------------------------------------------------------------
 #　汎用関数
@@ -387,10 +365,7 @@ class SoundInterface(object):
 
 def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     """pygame初期化。"""
-    try:
-        pygame.mixer.pre_init(44100, -16, 2, 1024)
-    except:
-        print_ex()
+    pygame.mixer.pre_init(44100, -16, 2, 1024)
     pygame.init()
     flags = 0
     size = cw.s(size_noscale)
@@ -410,11 +385,8 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     if title:
         pygame.display.set_caption(title)
 
-    try:
-        pygame.mixer.init(44100, -16, 2, 1024)
+    if pygame.mixer.get_init():
         pygame.mixer.set_num_channels(2)
-    except:
-        print_ex()
     pygame.event.set_blocked(None)
     pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
 
@@ -660,6 +632,9 @@ def load_bgm(path):
     if cw.bassplayer.is_alivablewithpath(path):
         return 2
 
+    if not pygame.mixer.get_init():
+        return -1
+
     path = get_soundfilepath("Bgm", path)
 
     try:
@@ -707,10 +682,12 @@ def load_sound(path):
             # WinMMを使用する事でSDL_mixerの問題を避ける
             # FIXME: mp3効果音をWindows環境でしか再生できない
             sound = SoundInterface(path, path)
-        else:
+        elif pygame.mixer.get_init():
             with io.BufferedReader(io.FileIO(path)) as f:
                 sound = pygame.mixer.Sound(f)
             sound = SoundInterface(sound, path)
+        else:
+            return SoundInterface()
     except:
         print u"サウンドが読み込めません", path
         return SoundInterface()
