@@ -82,8 +82,7 @@ class Text(wx.Dialog):
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
         ]
-        accel = wx.AcceleratorTable(seq)
-        self.SetAcceleratorTable(accel)
+        cw.util.set_acceleratortable(self, seq)
 
     def _set_text(self, value):
         # ZIPアーカイブのファイルエンコーディングと
