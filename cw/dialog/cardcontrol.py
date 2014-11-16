@@ -7,6 +7,7 @@ import itertools
 import wx
 import wx.combo
 import wx.lib.buttons
+import wx.lib.intctrl
 import pygame.time
 
 import cw
@@ -240,6 +241,23 @@ class CardControl(wx.Dialog):
             y += cw.wins(240-110)
             self.downbtn.SetPosition((cw.wins(6), y))
             self.downbtn.SetSize(cw.wins((70, 40)))
+
+            # ページ番号入力欄
+            psize = (cw.wins(25), self.page.GetSize()[1])
+            dc = wx.ClientDC(self)
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
+            rect = self.upbtn.GetRect()
+            top = rect[1] + rect[3]
+            btm = self.downbtn.GetPosition()[1]
+            h = dc.GetTextExtent("#")[1] + cw.wins(1) + cw.wins(cw.SIZE_CARDIMAGE[1])
+            y = top + (btm-top-h)/2
+            y += cw.wins(cw.SIZE_CARDIMAGE[1])+cw.wins(1)
+            te = dc.GetTextExtent("/")
+            sx = cw.wins(40)-te[0]/2
+            y += te[1] / 2
+            y -= psize[1]/2
+            self.page.SetPosition((sx-psize[0], y))
+            self.page.SetSize(psize)
 
         cwidth = cw.wins(500)
         cheight = cw.wins(285)
@@ -660,10 +678,20 @@ class CardControl(wx.Dialog):
             # カード置き場、荷物袋、情報カード
             if self._leftmark:
                 # ページ番号
-                s = str(max(self.index+1, 1))
-                s += "/" + str((len(self.list)+9)/10) if len(self.list) > 0 else "/1"
+                page = max(self.index+1, 1)
+                maxpage = (len(self.list)+9)/10 if len(self.list) > 0 else 1
+                s = "/"
+                sw = dc.GetTextExtent(s)[0]
+                w = sw
+                sx = cw.wins(40)-w/2
+                sy = y+self._leftmark.GetHeight()+cw.wins(1)
+                dc.DrawText(s, sx, sy)
+                s = str(page)
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(40)-w/2, y + self._leftmark.GetHeight()+cw.wins(1))
+                dc.DrawText(s, sx-w, sy)
+                s = str(maxpage)
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, sx+sw, sy)
 
         # 保留中のイベントを実施
         if self._after_event:
@@ -1076,6 +1104,15 @@ class CardHolder(CardControl):
         # up
         bmp = cw.cwpy.rsrc.buttons["UP"]
         self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp)
+        # ページ指定
+        self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 16)))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        self.page.SetFont(font)
+        self.page.SetValue(1)
+        self.page.SetMin(1)
+        self.page.SetMax(1)
+        self.page.SetLimited(True)
+        self.page.SetNoneAllowed(False)
         # down
         bmp = cw.cwpy.rsrc.buttons["DOWN"]
         self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp)
@@ -1162,7 +1199,16 @@ class CardHolder(CardControl):
         self.Bind(wx.EVT_BUTTON, self.OnClickUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickDownBtn, self.downbtn)
 
+        self.page.Bind(wx.lib.intctrl.EVT_INT, self.OnPageNum)
+        self.page.Bind(wx.EVT_SET_FOCUS, self.OnPageSetFocus)
+
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+
+    def OnPageSetFocus(self, event):
+        def func():
+            self.page.SetSelection(0, len(str(self.page.GetValue())))
+        cw.cwpy.frame.exec_func(func)
+        event.Skip()
 
     def OnDestroy(self, event):
         for header in self._fulllist:
@@ -1393,10 +1439,13 @@ class CardHolder(CardControl):
             self.beastbtn.Show()
             self.upbtn.Hide()
             self.downbtn.Hide()
+            self.page.Hide()
         else:
             # カード置き場、荷物袋、情報カード
             self.upbtn.Show()
             self.downbtn.Show()
+            self.page.Show()
+            self.page.SetMax((len(self.list)+9)/10 if len(self.list) > 0 else 1)
             if self.callname <> "INFOVIEW":
                 self.skillbtn.Hide()
                 self.itembtn.Hide()
@@ -1542,6 +1591,8 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
+        self.page.SetValue(self.index+1)
+
         self.draw_cards()
 
     def OnClickDownBtn(self, event):
@@ -1565,7 +1616,25 @@ class CardHolder(CardControl):
                 if index == negaindex:
                     header.negaflag = True
 
+        self.page.SetValue(self.index+1)
+
         self.draw_cards()
+
+    def OnPageNum(self, event):
+        if self.page.GetValue() < self.page.GetMin():
+            return
+        if self.page.GetMax() < self.page.GetValue():
+            return
+        index = self.page.GetValue()-1
+        if self.index <> index:
+            cw.cwpy.sounds["page"].play()
+            negaindex = -1
+            if not negaindex == -1:
+                for index, header in enumerate(self.get_headers()):
+                    if index == negaindex:
+                        header.negaflag = True
+            self.index = index
+            self.draw_cards()
 
     def OnMouseWheel(self, event):
         mousepos = event.GetPosition()
