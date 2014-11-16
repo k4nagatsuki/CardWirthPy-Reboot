@@ -95,6 +95,12 @@ class CardControl(wx.Dialog):
         if self.callname == "INFOVIEW":
             choices = (cw.cwpy.msgs["card_name"],
                        cw.cwpy.msgs["description"])
+        elif cw.cwpy.is_debugmode():
+            choices = (cw.cwpy.msgs["card_name"],
+                       cw.cwpy.msgs["description"],
+                       cw.cwpy.msgs["scenario_name"],
+                       cw.cwpy.msgs["author"],
+                       cw.cwpy.msgs["key_code"])
         else:
             choices = (cw.cwpy.msgs["card_name"],
                        cw.cwpy.msgs["description"],
@@ -104,9 +110,13 @@ class CardControl(wx.Dialog):
         self.narrow_type = wx.ComboBox(self.toppanel, -1, size=cw.wins((90, 20)), choices=choices, style=wx.CB_READONLY)
         self.narrow_type.SetFont(font)
         if self.callname == "INFOVIEW":
-            self.narrow_type.SetSelection(cw.cwpy.setting.infoview_narrowtype)
+            narrow_sel = cw.cwpy.setting.infoview_narrowtype
         else:
-            self.narrow_type.SetSelection(cw.cwpy.setting.card_narrowtype)
+            narrow_sel = cw.cwpy.setting.card_narrowtype
+        if narrow_sel < self.narrow_type.GetCount():
+            self.narrow_type.SetSelection(narrow_sel)
+        else:
+            self.narrow_type.SetSelection(0)
 
         if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             self.narrow.Hide()
@@ -1696,22 +1706,35 @@ class CardHolder(CardControl):
 
         else:
             for header in self._fulllist:
-                if type == 0:
-                    # カード名
-                    t = header.name
-                elif type == 1:
-                    # 解説
-                    t = header.desc
-                elif type == 2:
-                    # シナリオ名
-                    t = header.scenario
-                elif type == 3:
-                    # 作者名
-                    t = header.author
+                if type in (0, 1, 2, 3):
+                    if type == 0:
+                        # カード名
+                        t = header.name
+                    elif type == 1:
+                        # 解説
+                        t = header.desc
+                    elif type == 2:
+                        # シナリオ名
+                        t = header.scenario
+                    elif type == 3:
+                        # 作者名
+                        t = header.author
+                    else:
+                        assert False
+                    if narrow in t.lower():
+                        seq.append(header)
+                elif type == 4:
+                    # キーコード(デバッグ時のみ)
+                    if narrow == header.name.lower():
+                        # カード名もキーコードになる
+                        seq.append(header)
+                    else:
+                        for keycode in header.keycodes:
+                            if narrow in keycode.lower():
+                                seq.append(header)
+                                break
                 else:
                     assert False
-                if narrow in t.lower():
-                    seq.append(header)
 
         return seq
 
