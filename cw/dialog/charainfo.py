@@ -113,8 +113,7 @@ class CharaInfo(wx.Dialog):
             (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.enter),
             (wx.ACCEL_CTRL, wx.WXK_RETURN, self.openinfo),
         ]
-        accel = wx.AcceleratorTable(seq)
-        self.SetAcceleratorTable(accel)
+        cw.util.set_acceleratortable(self, seq)
 
     def _bind(self):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)

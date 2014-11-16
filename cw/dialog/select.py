@@ -76,8 +76,7 @@ class Select(wx.Dialog):
             (wx.ACCEL_CTRL|wx.ACCEL_ALT, wx.WXK_RIGHT, self.right2keyid),
         ]
         self.accels = seq
-        accel = wx.AcceleratorTable(seq)
-        self.SetAcceleratorTable(accel)
+        cw.util.set_acceleratortable(self, seq)
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn, self.leftbtn)
@@ -1532,8 +1531,7 @@ class PlayerSelect(MultiViewSelect):
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_NORMAL, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
-        accel = wx.AcceleratorTable(seq)
-        self.SetAcceleratorTable(accel)
+        cw.util.set_acceleratortable(self, seq)
 
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -2408,8 +2406,7 @@ class ScenarioSelect(Select):
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_ALT, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
-        accel = wx.AcceleratorTable(seq)
-        self.SetAcceleratorTable(accel)
+        cw.util.set_acceleratortable(self, seq)
 
     def OnMouseWheel(self, event):
         if self._processing:

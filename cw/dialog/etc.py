@@ -81,11 +81,12 @@ class BattleCommand(wx.Dialog):
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.leftkeyid)
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.rightkeyid)
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.returnkeyid)
-        accel = wx.AcceleratorTable([
+        seq = [
             (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RETURN, self.returnkeyid),
-        ])
+        ]
+        accel = wx.AcceleratorTable(seq)
         self.SetAcceleratorTable(accel)
 
     def OnMouseWheel(self, event):

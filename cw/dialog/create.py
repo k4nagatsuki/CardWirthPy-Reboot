@@ -753,8 +753,7 @@ class NamePage(AdventurerCreaterPage):
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
         ]
-        accel = wx.AcceleratorTable(seq)
-        self.SetAcceleratorTable(accel)
+        cw.util.set_acceleratortable(self, seq)
 
     def _bind(self):
         AdventurerCreaterPage._bind(self)
@@ -1635,8 +1634,7 @@ class DesignPanel(AdventurerCreaterPage):
             (wx.ACCEL_CTRL, wx.WXK_UP, self.upkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
         ]
-        accel = wx.AcceleratorTable(seq)
-        self.SetAcceleratorTable(accel)
+        cw.util.set_acceleratortable(self, seq)
 
     def _bind(self):
         AdventurerCreaterPage._bind(self)
