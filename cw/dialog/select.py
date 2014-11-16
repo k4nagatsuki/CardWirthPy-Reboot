@@ -1588,7 +1588,14 @@ class PlayerSelect(MultiViewSelect):
                 elif type == 2:
                     # 経歴
                     for coupon in header.history:
-                        if coupon and not coupon[0] in hiddens:
+                        if coupon:
+                            if cw.cwpy.is_debugmode():
+                                if coupon[0] == u"＿" and coupon[1:] in attrs:
+                                    continue
+                            else:
+                                if coupon[0] in hiddens:
+                                    continue
+
                             if narrow in coupon.lower():
                                 break
                     else:
