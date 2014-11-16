@@ -242,7 +242,7 @@ class CardControl(wx.Dialog):
             self.downbtn.SetSize(cw.wins((70, 40)))
 
             # ページ番号入力欄
-            psize = (cw.wins(25), self.page.GetSize()[1])
+            psize = (cw.wins(34), self.page.GetSize()[1])
             dc = wx.ClientDC(self)
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
             rect = self.upbtn.GetRect()
@@ -252,7 +252,7 @@ class CardControl(wx.Dialog):
             y = top + (btm-top-h)/2
             y += cw.wins(cw.SIZE_CARDIMAGE[1])+cw.wins(1)
             te = dc.GetTextExtent("/")
-            sx = cw.wins(40)-te[0]/2
+            sx = cw.wins(40)-te[0]/2+cw.wins(7)
             y += te[1] / 2
             y -= psize[1]/2
             self.page.SetPosition((sx-psize[0], y))
@@ -682,12 +682,9 @@ class CardControl(wx.Dialog):
                 s = "/"
                 sw = dc.GetTextExtent(s)[0]
                 w = sw
-                sx = cw.wins(40)-w/2
+                sx = cw.wins(40)-w/2+cw.wins(7)
                 sy = y+self._leftmark.GetHeight()+cw.wins(1)
                 dc.DrawText(s, sx, sy)
-                s = str(page)
-                w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, sx-w, sy)
                 s = str(maxpage)
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, sx+sw, sy)
