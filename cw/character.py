@@ -761,16 +761,10 @@ class Character(object):
         行動順位を判定する数値をself.actionorderに設定。
         敏捷度と大胆性で判定。レベル・行動力は関係なし。
         """
-        vocation_val = int(self.get_vocation_val(("agl", "uncautious")) + 4)
-        n = vocation_val / 2
-        n2 = vocation_val % 2 * 5
-        value = cw.cwpy.dice.roll(n, 10)
-
-        if n2:
-            value += cw.cwpy.dice.roll(1, n2)
-
-        self.actionorder = value
-        return value
+        vocation_val = int(self.get_vocation_val(("agl", "uncautious")))
+        d = cw.cwpy.dice.roll(1, 6)
+        self.actionorder = vocation_val + d
+        return self.actionorder
 
     def decide_action(self):
         """
