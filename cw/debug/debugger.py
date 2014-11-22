@@ -354,7 +354,7 @@ class Debugger(wx.Frame):
             shortHelp=u"エリアを選択して場面を変更します。")
 
         # _battletoolでボタンの切り替えを判別
-        self.tl_area._battletool = cw.cwpy.is_battlestatus()
+        self.tl_area._battletool = False
 
         self.tb_area.AddSeparator()
         self.st_area = wx.StaticText(
@@ -439,10 +439,17 @@ class Debugger(wx.Frame):
         self._mgr.Update()
         # ボタン更新
         self._refresh_tools()
-        self._refresh_areaname()
+        self._refresh_areaname(force=True)
         self._refresh_pausetool()
         # bind
         self._bind()
+
+    def refresh_all(self):
+        self.view_tree.refresh_tree()
+        self.view_tree.refresh_activeitem()
+        self._refresh_tools()
+        self._refresh_areaname(force=True)
+        self._refresh_pausetool()
 
     def _bind(self):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -1051,12 +1058,12 @@ class Debugger(wx.Frame):
             return
         self._refresh_areaname()
 
-    def _refresh_areaname(self):
+    def _refresh_areaname(self, force=False):
         assert threading.currentThread() <> cw.cwpy
         self.st_area.SetLabel(cw.cwpy.sdata.get_areaname())
 
         # ツールボタンの表示を切り替えるかどうか
-        if cw.cwpy.is_battlestatus() <> self.tl_area._battletool:
+        if force or cw.cwpy.is_battlestatus() <> self.tl_area._battletool:
             if cw.cwpy.is_battlestatus():
                 bmp = cw.cwpy.rsrc.debugs["BATTLECANCEL"]
                 self.mi_area.SetBitmap(bmp)
@@ -1071,6 +1078,7 @@ class Debugger(wx.Frame):
                 self.tl_area.SetBitmap1(bmp)
                 self.tl_area.SetShortHelp(u"エリアを選択して場面を変更します。")
                 self.tl_area._battletool = False
+            self.tb_area.Realize()
 
     def refresh_selectedmembername(self):
         assert threading.currentThread() <> cw.cwpy

@@ -194,8 +194,12 @@ class Frame(wx.Frame):
             self.move_dlg(dlg, (w, 0))
             self.debugger = dlg
             if refreshtree:
-                self.debugger.view_tree.refresh_tree()
-                self.debugger.view_tree.refresh_activeitem()
+                def func():
+                    def func():
+                        if self.debugger:
+                            self.debugger.refresh_all()
+                    cw.cwpy.frame.exec_func(func)
+                cw.cwpy.exec_func(func)
             dlg.Show()
 
     def close_debugger(self):
