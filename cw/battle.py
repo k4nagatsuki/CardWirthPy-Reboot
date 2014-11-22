@@ -358,11 +358,19 @@ class BattleEngine(object):
         """行動順を決める値を算出し、
         その値をもとに並び替えした戦闘参加メンバを設定する。
         """
-        for member in self.members:
-            member.decide_actionorder()
+        seq = self.members[:]
+        self.members = []
 
-        cw.util.sort_by_attr(self.members, "actionorder")
-        self.members.reverse()
+        while seq:
+            m = seq[0]
+            order = m.decide_actionorder()
+            for member in seq[1:]:
+                order2 = member.decide_actionorder()
+                if order < order2 or cw.cwpy.dice.roll() == 12:
+                    m = member
+                    order = order2
+            self.members.append(m)
+            seq.remove(m)
 
     def set_action(self):
         """戦闘参加メンバ全員、行動自動選択。"""
