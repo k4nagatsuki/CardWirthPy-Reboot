@@ -354,7 +354,7 @@ class ScenarioData(SystemData):
                 materialdir="", image_export=False)
 
         # 特殊文字の画像パスの集合(正規表現)
-        self._r_specialchar = re.compile(r"font_(.)[.].*$")
+        self._r_specialchar = re.compile(r"^font_(.)[.]bmp$")
 
         # 各種xmlファイルのパスを設定
         self._init_xmlpaths()
