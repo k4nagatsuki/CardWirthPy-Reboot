@@ -50,7 +50,7 @@ class CardControl(wx.Dialog):
         self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 285)))
         self.toppanel.SetMinSize(cw.wins((500, 285)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
-        self.toppanel.SetDoubleBuffered(True)
+        self.toppanel.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -568,10 +568,15 @@ class CardControl(wx.Dialog):
 
     def OnPaint(self, event):
         self.set_cardpos()
-        csize = self.GetClientSize()
         tsize = self.toppanel.GetClientSize()
 
-        dc = wx.PaintDC(self.toppanel)
+        basebmp = wx.EmptyBitmap(tsize[0], tsize[1])
+        dc = wx.MemoryDC(basebmp)
+        dc.SetClippingRect(self.toppanel.GetUpdateClientRect())
+        bcolor = self.toppanel.GetBackgroundColour()
+        dc.SetBrush(wx.Brush(bcolor))
+        dc.SetPen(wx.Pen(bcolor))
+        dc.DrawRectangle(0, 0, tsize[0], tsize[1])
 
         # 背景の透かし
         bmp = cw.cwpy.rsrc.dialogs["PAD"]
@@ -688,6 +693,10 @@ class CardControl(wx.Dialog):
                 s = str(maxpage)
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, sx+sw, sy)
+
+        dc.SelectObject(wx.NullBitmap)
+        dc = wx.PaintDC(self.toppanel)
+        dc.DrawBitmap(basebmp, 0, 0)
 
         # 保留中のイベントを実施
         if self._after_event:
