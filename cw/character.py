@@ -760,10 +760,11 @@ class Character(object):
         """
         行動順位を判定する数値をself.actionorderに設定。
         敏捷度と大胆性で判定。レベル・行動力は関係なし。
+        FIXME: これによって決定される行動順はCardWirthと若干異なる
         """
         vocation_val = int(self.get_vocation_val(("agl", "uncautious")))
-        d = cw.cwpy.dice.roll(1, 6)
-        self.actionorder = vocation_val + d
+        d = cw.cwpy.dice.roll(2, 6)
+        self.actionorder = int((vocation_val+1) * 1.4) + d
         return self.actionorder
 
     def decide_action(self):

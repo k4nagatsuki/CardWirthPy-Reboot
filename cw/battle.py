@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import bisect
+
 import cw
 
 
@@ -358,19 +360,17 @@ class BattleEngine(object):
         """行動順を決める値を算出し、
         その値をもとに並び替えした戦闘参加メンバを設定する。
         """
-        seq = self.members[:]
-        self.members = []
+        if not self.members:
+            return
 
-        while seq:
-            m = seq[0]
-            order = m.decide_actionorder()
-            for member in seq[1:]:
-                order2 = member.decide_actionorder()
-                if order < order2 or cw.cwpy.dice.roll() == 12:
-                    m = member
-                    order = order2
-            self.members.append(m)
-            seq.remove(m)
+        member = self.members[0]
+        members = [(-member.decide_actionorder(), 0, member)]
+        for i, member in enumerate(self.members[1:], 1):
+            o = (-member.decide_actionorder(), -i, member)
+            bisect.insort(members, o)
+
+        assert len(members) == len(self.members)
+        self.members = map(lambda o: o[1], members)
 
     def set_action(self):
         """戦闘参加メンバ全員、行動自動選択。"""
