@@ -32,6 +32,7 @@ class CardInfo(wx.Dialog):
         # panel
         size = (self.textwidth+cw.wins(152), self.textheight+cw.wins(47))
         self.toppanel = wx.Panel(self, -1, size=size)
+        self.toppanel.SetDoubleBuffered(True)
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((85, 24)), cw.cwpy.msgs["close"])
