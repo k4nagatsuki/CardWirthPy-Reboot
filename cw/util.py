@@ -1925,9 +1925,7 @@ def copy_wxbmp(bmp):
     """wx.Bitmapのコピーを生成する。"""
     w = bmp.GetWidth()
     h = bmp.GetHeight()
-    buf = array.array('B', [0] * (w*h * 3))
-    bmp.CopyToBuffer(buf)
-    return wx.BitmapFromBuffer(w, h, buf)
+    return bmp.GetSubBitmap((0, 0, w, h))
 
 def convert_to_image(bmp):
     """wx.Bitmapをwx.Imageに変換する。
