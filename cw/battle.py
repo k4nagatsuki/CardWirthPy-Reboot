@@ -370,7 +370,7 @@ class BattleEngine(object):
             bisect.insort(members, o)
 
         assert len(members) == len(self.members)
-        self.members = map(lambda o: o[1], members)
+        self.members = map(lambda o: o[2], members)
 
     def set_action(self):
         """戦闘参加メンバ全員、行動自動選択。"""
