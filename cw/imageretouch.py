@@ -6,7 +6,8 @@ import sys
 import random
 import wx
 import pygame
-from pygame.locals import *
+from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_RGB_ADD, BLEND_RGB_SUB,\
+                          BLEND_RGBA_ADD, BLEND_RGBA_SUB, RLEACCEL, SRCALPHA
 
 import cw
 
@@ -150,7 +151,7 @@ def _add_mosaic(image, value):
         n = (x / value) * value
         seq = []
 
-        for y, px in enumerate(pxs):
+        for y, _px in enumerate(pxs):
             n2 = (y / value) * value
             seq.append(pxarray[n][n2])
 
@@ -760,15 +761,15 @@ def _to_disabledimage(buf, size):
     wxbmp: wx.Bitmap
     """
     # 最終的なRGB値の範囲を設定
-    min, max = 140, 240
+    nmin, nmax = 140, 240
 
     colorkey = (buf[0], buf[1], buf[2])
 
     for px in xrange(0, len(buf), 3):
         if (buf[px], buf[px+1], buf[px+2]) <> colorkey:
-            buf[px+0] = buf[px+0] * (max - min) / 255  + min
-            buf[px+1] = buf[px+1] * (max - min) / 255  + min
-            buf[px+2] = buf[px+2] * (max - min) / 255  + min
+            buf[px+0] = buf[px+0] * (nmax - nmin) / 255  + nmin
+            buf[px+1] = buf[px+1] * (nmax - nmin) / 255  + nmin
+            buf[px+2] = buf[px+2] * (nmax - nmin) / 255  + nmin
 
 def to_disabledsurface(image):
     """_to_disabledimage()のpygame.Surface版。"""
@@ -818,7 +819,7 @@ class Font(object):
                 self.bold = bold
                 self.italic = italic
                 self.underline = False
-                self.fontinfo = _imageretouch.font_new(face.encode("utf-8"), pixels, bold, italic);
+                self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic);
             except:
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
@@ -874,23 +875,23 @@ class Font(object):
         else:
             return _imageretouch.font_height(self.fontinfo)
 
-    def size(self, str):
+    def size(self, text):
         if self.font:
-            return self.font.size(str)
+            return self.font.size(text)
         else:
-            return _imageretouch.font_size(self.fontinfo, str.encode("utf-8"))
+            return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
 
-    def render(self, str, antialias, colour):
+    def render(self, text, antialias, colour):
         if self.font:
-            return self.font.render(str, antialias, colour)
+            return self.font.render(text, antialias, colour)
         else:
-            str = str.encode("utf-8")
+            text = text.encode("utf-8")
             # BUG: font_render()からタプルを返そうとするとbufがGCで
             #      回収されなくなってしまうため、bufのみを返すようにし、
             #      (w, h)取得用にfont_imagesize()を用意してある
 #            buf, size = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
-            size = _imageretouch.font_imagesize(self.fontinfo, str, antialias)
-            buf = _imageretouch.font_render(self.fontinfo, str, antialias, colour[:3])
+            size = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
+            buf = _imageretouch.font_render(self.fontinfo, text, antialias, colour[:3])
             assert len(buf) == size[0]*size[1]*4
             return pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
 

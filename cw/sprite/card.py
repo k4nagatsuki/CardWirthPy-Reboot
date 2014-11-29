@@ -4,7 +4,6 @@
 import pygame
 
 import cw
-import cw.binary.image
 import base
 from .. import character
 
@@ -422,7 +421,7 @@ class CWPyCard(base.SelectableSprite):
         self.rect.topleft = (self.rect[0], y)
         self.rect.size = self.image.get_size()
 
-        for image, rect in self.zoomimgs:
+        for _image, rect in self.zoomimgs:
             if not rect is self.rect:
                 rect.center = self.rect.center
 
@@ -447,10 +446,10 @@ class CWPyCard(base.SelectableSprite):
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self.image.get_size()
         if self.zoomimgs:
-            image, zrect = self.zoomimgs[0]
+            _image, zrect = self.zoomimgs[0]
             topleft = (zrect[0], y)
             zrect.topleft = topleft
-            for image, rect in self.zoomimgs[1:]:
+            for _image, rect in self.zoomimgs[1:]:
                 rect.center = zrect.center
             self.rect.center = zrect.center
         else:

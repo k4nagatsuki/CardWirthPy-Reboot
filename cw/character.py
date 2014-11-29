@@ -6,7 +6,6 @@ import copy
 import math
 import shutil
 import itertools
-import pygame
 
 import cw
 
@@ -98,7 +97,7 @@ class Character(object):
         # クーポン一覧
         self.coupons = {}
         for e in self.data.getfind("Property/Coupons"):
-             self.coupons[e.text] = int(e.get("value")), e
+            self.coupons[e.text] = int(e.get("value")), e
         # 時限クーポンのデータのリスト(name, flag_countable)
         self.timedcoupons = self.get_timedcoupons()
 
@@ -144,7 +143,6 @@ class Character(object):
                 else:
                     fpath = self.get_imagepath()
                     fname = os.path.basename(fpath)
-                    dname = os.path.basename(os.path.dirname(fpath))
                     dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face")
                     fpath2 = cw.util.join_yadodir(fpath)
                     if os.path.isfile(fpath2):
@@ -246,7 +244,6 @@ class Character(object):
 
     def has_keycode(self, keycode, skill=True, item=True, beast=True):
         """指定されたキーコードを所持しているか。"""
-        seq = []
         if skill:
             for header in self.get_pocketcards(cw.POCKET_SKILL):
                 if keycode in header.get_keycodes():
@@ -524,7 +521,6 @@ class Character(object):
             cw.animation.animate_sprite(inusecardimg, "hide")
         elif isinstance(self, cw.character.Friend):
             self.set_pos_noscale(center_noscale=(316, 142))
-            self.status == "hidden"
             # NPC表示
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画されるため、
             #           NPCもメニューカードのグループで描画する必要がある
@@ -609,7 +605,7 @@ class Character(object):
             if self.is_alive() and not ishidden and self.status <> "reversed":
                 for targets_b, header_b in beasts[:]:
                     inarr = False
-                    for targets_c, header_c in self.actiondata[2]:
+                    for _targets_c, header_c in self.actiondata[2]:
                         if header_c == header_b:
                             inarr = True
                             break
@@ -685,7 +681,7 @@ class Character(object):
             if self.is_dead():
                 self.clear_action()
             elif self.is_inactive():
-                target, header, beasts = self.actiondata
+                _target, _header, beasts = self.actiondata
                 self.set_action(None, None, beasts, True)
 
         if self.is_inactive():
@@ -944,7 +940,7 @@ class Character(object):
         b = False
 
         for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
-            avoid, resist, defense = header.get_enhance_val()
+            _avoid, _resist, defense = header.get_enhance_val()
 
             if defense >= 10:
                 b = True
@@ -959,7 +955,7 @@ class Character(object):
         val4 = 0
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
-            avoid, resist, defense = header.get_enhance_val_used()
+            _avoid, _resist, defense = header.get_enhance_val_used()
             val4 += defense
         val4 = cw.util.numwrap(val4, -10, 10)
 
@@ -991,14 +987,14 @@ class Character(object):
 
         val3 = 0
         for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
-            avoid, resist, defense = header.get_enhance_val()
+            _avoid, resist, _defense = header.get_enhance_val()
             val3 += resist
         val3 = cw.util.numwrap(val3, -10, 10)
 
         val4 = 0
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
-            avoid, resist, defense = header.get_enhance_val_used()
+            _avoid, resist, _defense = header.get_enhance_val_used()
             val4 += resist
         val4 = cw.util.numwrap(val4, -10, 10)
 
@@ -1018,14 +1014,14 @@ class Character(object):
 
         val3 = 0
         for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
-            avoid, resist, defense = header.get_enhance_val()
+            avoid, _resist, _defense = header.get_enhance_val()
             val3 += avoid
         val3 = cw.util.numwrap(val3, -10, 10)
 
         val4 = 0
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
-            avoid, resist, defense = header.get_enhance_val_used()
+            avoid, _resist, _defense = header.get_enhance_val_used()
             val4 += avoid
         val4 = cw.util.numwrap(val4, -10, 10)
 
@@ -1089,10 +1085,10 @@ class Character(object):
 
         return d
 
-    def replace_allcoupons(self, list, syscoupons={}):
+    def replace_allcoupons(self, seq, syscoupons={}):
         """システムクーポン以外の全てのクーポンを
         listの内容に入れ替える。
-        list: クーポン情報のタプル(name, value)のリスト。
+        seq: クーポン情報のタプル(name, value)のリスト。
         syscoupons: このコレクション内にあるクーポンは
                     システムクーポンとして処理対象外にする
         """
@@ -1109,7 +1105,7 @@ class Character(object):
         naturecoupons = set(cw.cwpy.setting.naturecoupons)
 
         # クーポン追加
-        for coupon in reversed(list):
+        for coupon in reversed(seq):
             name = coupon[0]
             if name in sexcoupons:
                 old = self.get_sex()
@@ -1285,7 +1281,7 @@ class Character(object):
         """
         s = set()
 
-        for coupon, data in self.coupons.iteritems():
+        for coupon in self.coupons.iterkeys():
             if coupon.startswith(u"：") or coupon.startswith(u"；"):
                 s.add(coupon)
 
@@ -1304,7 +1300,7 @@ class Character(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
 
-        value, e = self.coupons[name]
+        _value, e = self.coupons[name]
         self.data.remove("Property/Coupons", e)
         del self.coupons[name]
 
@@ -1505,24 +1501,24 @@ class Character(object):
              len(self.get_pocketcards(cw.POCKET_BEAST)),
         ]
         for e in reversed(self.data.getfind("./CardMemories", False)[:]):
-            type = e.gettext("./Type")
+            cardtype = e.gettext("./Type")
             name = e.gettext("./Name", "")
             desc = e.gettext("./Description", "")
             scenario = e.gettext("./Scenario", "")
             author = e.gettext("./Author", "")
-            if type == "SkillCard":
+            if cardtype == "SkillCard":
                 index = cw.POCKET_SKILL
                 uselimit = -1
-            elif type == "ItemCard":
+            elif cardtype == "ItemCard":
                 index = cw.POCKET_ITEM
                 uselimit = e.getint("./UseLimit", -1)
-            elif type == "BeastCard":
+            elif cardtype == "BeastCard":
                 index = cw.POCKET_BEAST
                 uselimit = e.getint("./UseLimit", -1)
 
             if n[index] < maxn[index]:
                 for header in seq:
-                    if header.type == type and\
+                    if header.type == cardtype and\
                             header.name == name and\
                             header.desc == desc and\
                             header.scenario == scenario and\
@@ -1531,7 +1527,7 @@ class Character(object):
                         n[index] += 1
                         cw.cwpy.trade("PLAYERCARD", target=self, header=header, from_event=True, party=backpack_party)
                         seq.remove(header)
-                        if type <> "BeastCard":
+                        if cardtype <> "BeastCard":
                             hold = e.getbool("./Hold", False)
                             header.set_hold(hold)
                         break
@@ -1863,12 +1859,12 @@ class Character(object):
         idx = cw.POCKET_BEAST
         return len(self.get_pocketcards(idx)) < self.get_cardpocketspace()[idx]
 
-    def decrease_physical(self, type, time):
+    def decrease_physical(self, stype, time):
         """中毒麻痺の時間経過による軽減。"""
-        for t in xrange(time):
+        for _t in xrange(time):
             # FIXME: 本家CardWirthと軽減確率が違う
             uvalue = self.get_vocation_val(("vit", "aggressive")) + self.level + cw.cwpy.dice.roll(2)
-            tvalue = (self.poison if type == "Poison" else self.paralyze) + cw.cwpy.dice.roll(2)
+            tvalue = (self.poison if stype == "Poison" else self.paralyze) + cw.cwpy.dice.roll(2)
 
             flag = uvalue > tvalue
             dice = cw.cwpy.dice.roll(2)
@@ -1878,7 +1874,7 @@ class Character(object):
                 flag = False
 
             if flag:
-                if type == "Poison":
+                if stype == "Poison":
                     self.set_poison(-1)
                 else:
                     self.set_paralyze(-1)

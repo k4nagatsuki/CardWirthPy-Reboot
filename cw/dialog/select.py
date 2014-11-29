@@ -6,20 +6,16 @@ import sys
 import time
 import datetime
 import threading
-import zipfile
-import StringIO
 import shutil
 import subprocess
 import wx
 
 import cw
-import cw.binary
 import message
 import charainfo
 import text
 
 from cw.util import synclock
-from wx._controls import EVT_TREE_ITEM_EXPANDED
 
 
 _lockupdatescenario = threading.Lock()
@@ -133,7 +129,7 @@ class Select(wx.Dialog):
             return
 
         rect = self.toppanel.GetClientRect()
-        x, y = self.toppanel.ScreenToClient(wx.GetMousePosition())
+        x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
         if x < rect.x + rect.width / 4 and self.leftbtn.IsEnabled():
             self.toppanel.SetCursor(cw.cwpy.rsrc.cursors["CURSOR_BACK"])
             self.clickmode = wx.LEFT
@@ -427,9 +423,6 @@ class YadoSelect(Select):
         if not self.list:
             return
 
-        if not os.path.isdir(self.list[self.index]):
-            hasmutex = False
-
         if self.classic[self.index]:
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.extbtn.GetId())
             self.ProcessEvent(event)
@@ -457,7 +450,6 @@ class YadoSelect(Select):
         yname = self.names[self.index]
         title = cw.cwpy.msgs["extension_title"] % (yname)
         classic = self.classic[self.index]
-        hasmutex = not cw.util.exists_mutex(cw.tempdir_init)
         hasmutexlocal = not cw.util.exists_mutex(self.list[self.index]) and os.path.isdir(self.list[self.index])
         cantransfer = bool(1 < self.classic.count(False) and os.path.isdir(self.list[self.index]))
         if cantransfer:
@@ -565,9 +557,9 @@ class YadoSelect(Select):
                     path = self.list[self.index]
                     dirs = []
                     names = []
-                    for i, dir in enumerate(self.list):
+                    for i, dname in enumerate(self.list):
                         if not self.classic[i]:
-                            dirs.append(dir)
+                            dirs.append(dname)
                             names.append(self.names[i])
                     if names:
                         cw.cwpy.sounds["click"].play()
@@ -1395,14 +1387,14 @@ class PartySelect(MultiViewSelect):
             page = self.get_page()
 
             sindex = page * self.views
-            list = self.list[sindex:sindex+self.views]
+            seq = self.list[sindex:sindex+self.views]
             x = 0
             y = 0
             size = self.toppanel.GetSize()
             rw = size[0] / (self.views / 2)
             rh = size[1] / 2
             dc.SetTextForeground(wx.BLACK)
-            for i, header in enumerate(list):
+            for i, header in enumerate(seq):
                 # 宿・シナリオイメージ
                 bmp, sceheader = get_image(header)
                 ix = x + (rw - cw.wins(72)) / 2
@@ -1564,7 +1556,7 @@ class PlayerSelect(MultiViewSelect):
 
         narrow = self.narrow.GetValue().lower()
         if narrow:
-            type = self.narrow_type.GetSelection()
+            ntype = self.narrow_type.GetSelection()
 
             hiddens = set([u"＿", u"＠"])
             attrs = set(cw.cwpy.setting.periodnames)
@@ -1574,17 +1566,17 @@ class PlayerSelect(MultiViewSelect):
 
             seq = []
             for header in self.list:
-                if type == 0:
+                if ntype == 0:
                     # 名前
                     if not narrow in header.name.lower():
                         continue
 
-                elif type == 1:
+                elif ntype == 1:
                     # 解説
                     if not narrow in header.desc.lower():
                         continue
 
-                elif type == 2:
+                elif ntype == 2:
                     # 経歴
                     for coupon in header.history:
                         if coupon:
@@ -1600,7 +1592,7 @@ class PlayerSelect(MultiViewSelect):
                     else:
                         continue
 
-                elif type == 3:
+                elif ntype == 3:
                     # 特性
                     for coupon in header.history:
                         if coupon and coupon[0] == u"＿":
@@ -1976,8 +1968,8 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.frame.exec_func(self.draw, True)
         cw.cwpy.exec_func(func)
 
-    def calc_needs(self, list):
-        """list内のメンバに対して、現在のパーティの構成から
+    def calc_needs(self, mlist):
+        """mlist内のメンバに対して、現在のパーティの構成から
         パーティにおける必要度を計算する。
         レベルが近く、同型のメンバが少ないほど必要度が高くなる。
         """
@@ -1994,7 +1986,7 @@ class PlayerSelect(MultiViewSelect):
                 types[talent] = val
             level /= len(cw.cwpy.ydata.party.members)
 
-            for header in list:
+            for header in mlist:
                 # 同型のメンバの数だけ必要度を下げる
                 need = 10
                 talent = cw.cwpy.setting.naturecoupons[0]
@@ -2003,19 +1995,19 @@ class PlayerSelect(MultiViewSelect):
                         talent = coupon
                         break
                 val = types.get(talent, 0)
-                for i in xrange(val):
+                for _i in xrange(val):
                     need *= 2
 
                 # レベルが離れているほど必要度を下げる
                 val = level - header.level
                 if val < 0:
                     val = -val
-                for i in xrange(int(val+0.5)):
+                for _i in xrange(int(val+0.5)):
                     need *= 4
                 seq.append((int(need), header))
             return seq
         else:
-            return [(10, header) for header in list]
+            return [(10, header) for header in mlist]
 
     def draw(self, update=False):
         dc = MultiViewSelect.draw(self, update)
@@ -2093,14 +2085,14 @@ class PlayerSelect(MultiViewSelect):
                 page = self.get_page()
 
                 sindex = page * self.views
-                list = self.list[sindex:sindex+self.views]
+                seq = self.list[sindex:sindex+self.views]
                 x = 0
                 y = 0
                 size = self.toppanel.GetSize()
                 rw = size[0] / (self.views / 2)
                 rh = size[1] / 2
                 dc.SetTextForeground(wx.BLACK)
-                for i, header in enumerate(list):
+                for i, header in enumerate(seq):
                     # Image
                     path = cw.util.join_yadodir(header.imgpath)
                     bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
@@ -2437,14 +2429,14 @@ class ScenarioSelect(Select):
         if self._processing:
             return
 
-        id = event.GetId()
-        if id in self.narrowkeydown:
-            index = self.narrowkeydown.index(id)
+        eid = event.GetId()
+        if eid in self.narrowkeydown:
+            index = self.narrowkeydown.index(eid)
             if index < self.narrow_type.GetCount():
                 self.narrow_type.SetSelection(index)
                 self.OnNarrowCondition(event)
-        if id in self.sortkeydown:
-            index = self.sortkeydown.index(id)
+        if eid in self.sortkeydown:
+            index = self.sortkeydown.index(eid)
             if index < self.sort.GetCount():
                 self.sort.SetSelection(index)
                 self.OnNarrowCondition(event)
@@ -2546,9 +2538,9 @@ class ScenarioSelect(Select):
                     item.SetFont(font)
                     item.SetBitmap(icon_dir)
 
-                open = OpenBookmark(self, bookmark)
+                openbookmark = OpenBookmark(self, bookmark)
                 menu.AppendItem(item)
-                menu.Bind(wx.EVT_MENU, open.OnOpen, item)
+                menu.Bind(wx.EVT_MENU, openbookmark.OnOpen, item)
 
     def OnAddBookmark(self, event):
         cw.cwpy.sounds["signal"].play()
@@ -2603,7 +2595,7 @@ class ScenarioSelect(Select):
         data = self.tree.GetItemPyData(selitem)
         if not data:
             return
-        index, pathorheader = data
+        _index, pathorheader = data
         if isinstance(pathorheader, cw.header.ScenarioHeader):
             if self.viewbtn.Enabled:
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.viewbtn.GetId())
@@ -2626,7 +2618,7 @@ class ScenarioSelect(Select):
         data = self.tree.GetItemPyData(selitem)
         if not data:
             return
-        index, pathorheader = data
+        _index, pathorheader = data
         if isinstance(pathorheader, cw.header.ScenarioHeader):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
             self.ProcessEvent(btnevent)
@@ -2643,7 +2635,7 @@ class ScenarioSelect(Select):
         if not self.list:
             return seq
 
-        for dpath, selname in self._saved_dirstack:
+        for _dpath, selname in self._saved_dirstack:
             seq.append(selname)
         sel = self._saved_list[self._saved_index]
         if isinstance(sel, cw.header.ScenarioHeader):
@@ -3197,7 +3189,6 @@ class ScenarioSelect(Select):
         # ツリーを初期化する
         self.tree.DeleteChildren(self.tree.root)
 
-        nowdir = self.scedir
         treeitem = self.tree.root
         itemlist = []
         dirstack = self.dirstack[:]
@@ -3205,7 +3196,7 @@ class ScenarioSelect(Select):
             itemlist, dpaths = self.create_treeitems(treeitem)
 
             if dirstack:
-                pardir, selname = dirstack.pop(0)
+                _pardir, selname = dirstack.pop(0)
                 index = -1
                 for i, dpath in enumerate(dpaths):
                     if os.path.normcase(selname) == os.path.normcase(os.path.basename(dpath)):
@@ -3213,7 +3204,6 @@ class ScenarioSelect(Select):
                         break
                 if index == -1:
                     break
-                nowdir = cw.util.join_paths(pardir, selname)
                 treeitem = itemlist[index]
                 self.tree.DeleteChildren(treeitem)
             else:
@@ -3226,7 +3216,7 @@ class ScenarioSelect(Select):
         if self._processing:
             return
         selitem = event.GetItem()
-        item, cookie = self.tree.GetFirstChild(selitem)
+        item, _cookie = self.tree.GetFirstChild(selitem)
         data = self.tree.GetItemPyData(item)
         if not data is None:
             # 読込済み
@@ -3236,7 +3226,7 @@ class ScenarioSelect(Select):
             self.updatenames_thr.quit = True
             self.updatenames_thr = None
         self.names = [u"読込中..."]
-        index, dpath = self.tree.GetItemPyData(selitem)
+        _index, dpath = self.tree.GetItemPyData(selitem)
         paritem = self.tree.GetItemParent(selitem)
         dirstack = self.get_dirstack(paritem)
         self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack)
@@ -3265,8 +3255,8 @@ class ScenarioSelect(Select):
             selitem = paritem
             paritem = self.tree.GetItemParent(selitem)
 
-        index, self.nowdir = self.tree.GetItemPyData(paritem)
-        self.index, pathorheader = self.tree.GetItemPyData(selitem)
+        _index, self.nowdir = self.tree.GetItemPyData(paritem)
+        self.index, _pathorheader = self.tree.GetItemPyData(selitem)
 
         dpaths = self.get_dpaths(self.nowdir)
         headers = self.db.search_dpath(self.nowdir)
@@ -3282,13 +3272,12 @@ class ScenarioSelect(Select):
     def get_dirstack(self, paritem):
         dirstack = []
         while paritem:
-            i, parpath = self.tree.GetItemPyData(paritem)
-            i, selpath = self.tree.GetItemPyData(paritem)
+            _i, parpath = self.tree.GetItemPyData(paritem)
+            _i, selpath = self.tree.GetItemPyData(paritem)
             parpath = os.path.dirname(parpath)
             selpath = os.path.basename(selpath)
             dirstack.insert(0, (parpath, selpath))
 
-            selitem = paritem
             paritem = self.tree.GetItemParent(paritem)
         return dirstack[1:]
 
@@ -3324,7 +3313,7 @@ class ScenarioSelect(Select):
 
             parent = None
             while item.IsOk():
-                i, data = self.tree.GetItemPyData(item)
+                _i, data = self.tree.GetItemPyData(item)
                 if not data:
                     break
                 if not isinstance(data, cw.header.ScenarioHeader):
@@ -3493,9 +3482,9 @@ class ScenarioSelect(Select):
         seq = []
 
         try:
-            dir = cw.util.get_linktarget(dpath)
-            for dname in os.listdir(dir):
-                path = cw.util.join_paths(dir, dname)
+            dpath2 = cw.util.get_linktarget(dpath)
+            for dname in os.listdir(dpath2):
+                path = cw.util.join_paths(dpath2, dname)
                 if self.is_listitem(path) and not self.is_scenario(path):
                     seq.append(path)
         except Exception:
@@ -3551,7 +3540,7 @@ class ScenarioSelect(Select):
                     try:
                         encoding = sys.getfilesystemencoding()
                         if subprocess.call(s.encode(encoding), shell=True) == 0:
-                            for dpath2, dnames, fnames in os.walk(dpath):
+                            for dpath2, _dnames, fnames in os.walk(dpath):
                                 for fname in fnames:
                                     fname = cw.util.decode_zipname(fname)
                                     if fname.lower().endswith(".txt"):
@@ -3560,10 +3549,10 @@ class ScenarioSelect(Select):
                                             content = f.read()
                                         seq.append(text.ReadmeData(fname, content))
                     finally:
-                        for file in os.listdir(dpath):
-                            file = cw.util.decode_zipname(file)
-                            file = cw.util.join_paths(dpath, file)
-                            cw.util.remove(file)
+                        for fpath in os.listdir(dpath):
+                            fpath = cw.util.decode_zipname(fpath)
+                            fpath = cw.util.join_paths(dpath, fpath)
+                            cw.util.remove(fpath)
 
                 else:
                     with cw.util.zip_file(path, "r") as z:
@@ -3579,7 +3568,7 @@ class ScenarioSelect(Select):
 
                 # フォルダ内から取得
                 paths = []
-                for dpath, dnames, fnames in os.walk(path):
+                for dpath, _dnames, fnames in os.walk(path):
                     for fname in fnames:
                         if fname.lower().endswith(".txt"):
                             paths.append(cw.util.join_paths(dpath, fname))

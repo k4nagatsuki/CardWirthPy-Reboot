@@ -6,7 +6,6 @@ import io
 import re
 import copy
 import weakref
-import StringIO
 import wx
 import pygame
 import xml.parsers.expat
@@ -776,7 +775,7 @@ class AdventurerHeader(object):
             # 互換性マーク
             self.versionhint = cw.cwpy.sct.from_basehint(prop.attrs.get(".", {}).get("versionHint", ""))
 
-            for coupon, attrs, name in reversed(prop.third.get("Coupons", [])):
+            for _coupon, attrs, name in reversed(prop.third.get("Coupons", [])):
                 if not name:
                     continue
                 elif name in ages:
@@ -966,7 +965,7 @@ class Gene(object):
         if bits:
             self.bits = bits
         else:
-            self.bits = [0 for cnt in xrange(10)]
+            self.bits = [0 for _cnt in xrange(10)]
 
         self.count = 0
 
@@ -1258,7 +1257,7 @@ class GetName(object):
         with open(fpath) as f:
             try:
                 parser.ParseFile(f)
-            except Exception, ex:
+            except Exception:
                 pass
 
     def start_element(self, name, attrs):
@@ -1291,7 +1290,7 @@ class GetProperty(object):
         with open(fpath) as f:
             try:
                 parser.ParseFile(f)
-            except Exception, ex:
+            except Exception:
                 pass
 
     def start_element(self, name, attrs):
@@ -1302,7 +1301,6 @@ class GetProperty(object):
             seq.append((name, attrs, ""))
             self.third[name2] = seq
         elif 3 == len(self.stack) and self.stack[1] == "Property":
-            element = self.stack[2]
             self.attrs[name] = attrs
         elif 2 == len(self.stack) and name == "Property":
             self.attrs["."] = attrs

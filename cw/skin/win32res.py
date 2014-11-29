@@ -43,29 +43,29 @@ class Win32Res(object):
     Win64用のPEファイルにも恐らく有効。
     """
 
-    def __init__(self, file):
+    def __init__(self, fpath):
         object.__init__(self)
 
         self._table = {}
         self._winhandle = None
 
-        if file:
-            self.laod_resmodule(file)
+        if fpath:
+            self.laod_resmodule(fpath)
 
     def __del__(self):
         self.dispose()
 
-    def laod_resmodule(self, file):
+    def laod_resmodule(self, fpath):
         self._table = {}
 
         if _winapi:
-            self._winhandle = win32api.LoadLibraryEx(file, 0,
+            self._winhandle = win32api.LoadLibraryEx(fpath, 0,
                     win32con.LOAD_LIBRARY_AS_DATAFILE|
                     win32con.LOAD_WITH_ALTERED_SEARCH_PATH)
             if self._winhandle:
                 return
 
-        with open(file, "rb") as f:
+        with open(fpath, "rb") as f:
             data = f.read()
         base = data[:]
 
@@ -91,10 +91,10 @@ class Win32Res(object):
         data = data[size_of_option_header:]
         res_size = 0
         res_addr = 0
-        for i in xrange(number_of_section):
+        for _i in xrange(number_of_section):
             rva = uint32.unpack(data[12:16])[0]
             if ".rsrc" == data[:5] or res_addr_rva == rva:
-                res_addr_rva == rva
+                res_addr_rva = rva
                 res_size = uint32.unpack(data[16:20])[0]
                 res_addr = uint32.unpack(data[20:24])[0]
                 break
@@ -107,7 +107,7 @@ class Win32Res(object):
         num_name = uint16.unpack(data[12:14])[0]
         num_id = uint16.unpack(data[14:16])[0]
         data = data[16:]
-        for i in xrange(num_name + num_id):
+        for _i in xrange(num_name + num_id):
             # IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 1)
             w1 = uint32.unpack(data[:4])[0]
             w2 = uint32.unpack(data[4:8])[0]
@@ -121,7 +121,7 @@ class Win32Res(object):
             num_name = uint16.unpack(data2[12:14])[0]
             num_id = uint16.unpack(data2[14:16])[0]
             data2 = data2[16:]
-            for j in xrange(num_name + num_id):
+            for _j in xrange(num_name + num_id):
                 # IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 2)
                 w1 = uint32.unpack(data2[:4])[0]
                 w2 = uint32.unpack(data2[4:8])[0]
@@ -160,9 +160,9 @@ class Win32Res(object):
         if 0x80000000 == (w1 & 0x80000000):
             # Name is String
             offset = (w1 & ~0x80000000) + res_addr
-            len = uint16.unpack(base[offset:offset+2])[0]
+            length = uint16.unpack(base[offset:offset+2])[0]
             # wide chars
-            return unicode(base[(offset+2):(offset+2)+(len*2)], "utf-16")
+            return unicode(base[(offset+2):(offset+2)+(length*2)], "utf-16")
         else:
             # ID
             return w1
@@ -174,14 +174,14 @@ class Win32Res(object):
             win32api.FreeLibrary(self._winhandle)
             self._winhandle = None
 
-    def get_rcdata(self, type, name):
+    def get_rcdata(self, valtype, name):
         if self._winhandle:
             k = ctypes.windll.kernel32
-            if isinstance(type, (str, unicode)):
-                type = ctypes.create_string_buffer(type)
+            if isinstance(valtype, (str, unicode)):
+                valtype = ctypes.create_string_buffer(valtype)
             if isinstance(name, (str, unicode)):
                 name = ctypes.create_string_buffer(name)
-            hsrc = k.FindResourceA(self._winhandle, name, type)
+            hsrc = k.FindResourceA(self._winhandle, name, valtype)
             if hsrc:
                 size = k.SizeofResource(self._winhandle, hsrc)
                 hglobal = k.LoadResource(self._winhandle, hsrc)
@@ -190,8 +190,8 @@ class Win32Res(object):
                 ctypes.memmove(data, p, size)
                 return str(buffer(data))
         else:
-            if type in self._table:
-                table = self._table[type]
+            if valtype in self._table:
+                table = self._table[valtype]
                 if name in table:
                     return table[name]
         return None
@@ -312,7 +312,7 @@ class Win32Res(object):
                 data = data[1:]
                 stack.pop()
                 continue
-            classname = data[1:1+length]
+            _classname = data[1:1+length]
             data = data[1+length:]
             length = ord(data[0])
             name = data[1:1+length]
@@ -327,9 +327,9 @@ class Win32Res(object):
                     break
                 key = data[1:1+length]
                 data = data[1+length:]
-                type = ord(data[0])
+                valtype = ord(data[0])
                 data = data[1:]
-                if type == 0x01: # strings
+                if valtype == 0x01: # strings
                     value = []
                     while ord(data[0]) in (2, 3, 6):
                         dt = data[0]
@@ -344,42 +344,42 @@ class Win32Res(object):
                             value.append(unicode(data[2:2+length], cw.MBCS))
                             data = data[2+length:]
                     data = data[1:]
-                elif type == 0x02: # signed byte
+                elif valtype == 0x02: # signed byte
                     value = int8.unpack(data[0])[0]
                     data = data[1:]
-                elif type == 0x03: # unsigned short
+                elif valtype == 0x03: # unsigned short
                     value = uint16.unpack(data[:2])[0]
                     data = data[2:]
-                elif type == 0x06: # string
+                elif valtype == 0x06: # string
                     length = ord(data[0])
                     value = unicode(data[1:1+length], cw.MBCS)
                     data = data[1+length:]
-                elif type == 0x07: # name
+                elif valtype == 0x07: # name
                     length = ord(data[0])
                     value = data[1:1+length]
                     data = data[1+length:]
-                elif type == 0x08: # False
+                elif valtype == 0x08: # False
                     value = False
-                elif type == 0x09: # True
+                elif valtype == 0x09: # True
                     value = True
-                elif type == 0x0a: # binary
+                elif valtype == 0x0a: # binary
                     length = uint32.unpack(data[0:4])[0]
                     value = data[4:4+length]
                     data = data[4+length:]
-                elif type == 0x0b: # array
+                elif valtype == 0x0b: # array
                     value = []
                     while 0 < ord(data[0]):
                         length = ord(data[0])
                         value.append(data[1:1+length])
                         data = data[1+length:]
                     data = data[1:]
-                elif type == 0x12: # unknown (utf-16 string?)
+                elif valtype == 0x12: # unknown (utf-16 string?)
                     length = uint32.unpack(data[:4])[0]
                     length *= 2
                     value = data[4:4+length].decode("utf-16")
                     data = data[4+length:]
                 else:
-                    raise Exception("value type: %s (%s, %s)" % (name, key, type))
+                    raise Exception("value type: %s (%s, %s)" % (name, key, valtype))
                 stack[-1][key] = value
 
         return table

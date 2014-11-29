@@ -96,16 +96,16 @@ class CastCard(base.CWBinaryBase):
 
         # 所持カード
         items_num = f.dword()
-        self.items = [item.ItemCard(self, f) for cnt in xrange(items_num)]
+        self.items = [item.ItemCard(self, f) for _cnt in xrange(items_num)]
         skills_num = f.dword()
-        self.skills = [skill.SkillCard(self, f) for cnt in xrange(skills_num)]
+        self.skills = [skill.SkillCard(self, f) for _cnt in xrange(skills_num)]
         beasts_num = f.dword()
-        self.beasts = [beast.BeastCard(self, f) for cnt in xrange(beasts_num)]
+        self.beasts = [beast.BeastCard(self, f) for _cnt in xrange(beasts_num)]
 
         if 0 < dataversion:
             # クーポン
             coupons_num = f.dword()
-            self.coupons = [coupon.Coupon(self, f) for cnt in xrange(coupons_num)]
+            self.coupons = [coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
         else:
             self.coupons = []
 
@@ -245,10 +245,10 @@ class CastCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        type = 2
+        restype = 2
         image = None
         name = ""
-        id = 0
+        resid = 0
 
         noeffect_weapon = False
         noeffect_magic = False
@@ -277,9 +277,9 @@ class CastCard(base.CWBinaryBase):
         dex = 0
         agl = 0
         inte = 0
-        str = 0
+        stre = 0
         vit = 0
-        min = 0
+        mind = 0
 
         aggressive = 0
         cheerful = 0
@@ -314,7 +314,7 @@ class CastCard(base.CWBinaryBase):
             if e.tag == "Property":
                 for prop in e:
                     if prop.tag == "Id":
-                        id = int(prop.text)
+                        resid = int(prop.text)
                     elif prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
@@ -350,9 +350,9 @@ class CastCard(base.CWBinaryBase):
                                 dex = int(ae.get("dex"))
                                 agl = int(ae.get("agl"))
                                 inte = int(ae.get("int"))
-                                str = int(ae.get("str"))
+                                stre = int(ae.get("str"))
                                 vit = int(ae.get("vit"))
-                                min = int(ae.get("min"))
+                                mind = int(ae.get("min"))
                             elif ae.tag == "Mental":
                                 aggressive = int(ae.get("aggressive"))
                                 cheerful = int(ae.get("cheerful"))
@@ -406,10 +406,10 @@ class CastCard(base.CWBinaryBase):
             elif e.tag == "BeastCards":
                 beasts = e
 
-        f.write_byte(type)
+        f.write_byte(restype)
         f.write_image(image)
         f.write_string(name)
-        f.write_dword(id + 40000)
+        f.write_dword(resid + 40000)
 
         f.write_bool(noeffect_weapon)
         f.write_bool(noeffect_magic)
@@ -438,9 +438,9 @@ class CastCard(base.CWBinaryBase):
         f.write_dword(dex)
         f.write_dword(agl)
         f.write_dword(inte)
-        f.write_dword(str)
+        f.write_dword(stre)
         f.write_dword(vit)
-        f.write_dword(min)
+        f.write_dword(mind)
 
         f.write_dword(aggressive)
         f.write_dword(cheerful)

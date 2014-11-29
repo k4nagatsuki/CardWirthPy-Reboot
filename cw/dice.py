@@ -12,7 +12,7 @@ class Dice(object):
 
         n = 0
 
-        for i in xrange(times):
+        for _i in xrange(times):
             n += random.randrange(1, sided + 1)
 
         return n

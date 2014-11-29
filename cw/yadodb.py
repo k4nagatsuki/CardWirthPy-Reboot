@@ -7,7 +7,6 @@ import threading
 import time
 
 import cw
-import cw.binary
 from cw.util import synclock
 
 
@@ -161,9 +160,9 @@ class YadoDB(object):
                 self.con.commit()
 
         else:
-            dir = os.path.dirname(self.name)
-            if not os.path.isdir(dir):
-                os.makedirs(dir)
+            dname = os.path.dirname(self.name)
+            if not os.path.isdir(dname):
+                os.makedirs(dname)
             self.con = sqlite3.connect(self.name, timeout=30000)
             self.con.row_factory = sqlite3.Row
             self.cur = self.con.cursor()
@@ -289,12 +288,12 @@ class YadoDB(object):
     def update(self, cards=True, adventurers=True, parties=True, cardorder={}, adventurerorder={}, partyrecord=True):
         """データベースを更新する。"""
         def walk(dpath, headertable, insert, insertheader, *args):
-            dir = cw.util.join_paths(self.ypath, dpath)
-            if os.path.isdir(dir):
-                for file in os.listdir(dir):
-                    if not file.lower().endswith(".xml"):
+            dname = cw.util.join_paths(self.ypath, dpath)
+            if os.path.isdir(dname):
+                for fname in os.listdir(dname):
+                    if not fname.lower().endswith(".xml"):
                         continue
-                    path = cw.util.join_paths(dpath, file)
+                    path = cw.util.join_paths(dpath, fname)
                     if not path in dbpaths:
                         if isinstance(headertable, dict) and path in headertable:
                             insertheader(headertable[path], *args)

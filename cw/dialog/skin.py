@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import wx
 import wx.grid
 
 import cw
@@ -114,7 +113,7 @@ class SkinConversionDialog(wx.Dialog):
                     setting = cw.cwpy.setting
                 else:
                     setting = cw.setting.Setting()
-                for skintype, folder in setting.folderoftype:
+                for skintype, _folder in setting.folderoftype:
                     if skintype == self.conv.skintype:
                         break # 登録済み
                 else:
@@ -129,8 +128,8 @@ class SkinConversionDialog(wx.Dialog):
                         fpath = cw.util.join_paths(dpath, "Skin.xml")
                         if not os.path.isfile(fpath):
                             continue
-                        type = cw.header.GetName(fpath, tagname="Type").name
-                        if self.conv.skintype == type:
+                        stype = cw.header.GetName(fpath, tagname="Type").name
+                        if self.conv.skintype == stype:
                             # 同タイプの既存スキンが./Scenarioを参照している
                             break
                     else:
@@ -316,7 +315,7 @@ class SkinBasePanel(wx.Panel):
             target=self.exectrl,
             message=u"スキン生成元となるカードワース本体の選択",
             wildcard=u"カードワース本体 (*.exe)|*.exe|全てのファイル (*.*)|*.*",
-            dir=False,
+            seldir=False,
             callback=self._selected_exe)
         # Dataディレクトリの名前
         self.datalabel = wx.StaticText(self, -1, u"データ")
@@ -325,7 +324,7 @@ class SkinBasePanel(wx.Panel):
         self.dataref = cw.util.create_fileselection(self,
              target=self.datactrl,
              message=u"スキン生成元のデータフォルダを選択してください。",
-             dir=True,
+             seldir=True,
              getbasedir=self._get_basedir)
         # Scenarioディレクトリの名前
         self.scenariolabel = wx.StaticText(self, -1, u"シナリオ")
@@ -334,7 +333,7 @@ class SkinBasePanel(wx.Panel):
         self.scenarioref = cw.util.create_fileselection(self,
              target=self.scenarioctrl,
              message=u"スキン生成元のシナリオフォルダを選択してください。",
-             dir=True,
+             seldir=True,
              getbasedir=self._get_basedir)
         # Yadoディレクトリの名前
         self.yadolabel = wx.StaticText(self, -1, u"宿")
@@ -343,7 +342,7 @@ class SkinBasePanel(wx.Panel):
         self.yadoref = cw.util.create_fileselection(self,
              target=self.yadoctrl,
              message=u"スキン生成元の宿フォルダを選択してください。",
-             dir=True,
+             seldir=True,
              getbasedir=self._get_basedir)
 
         self.box_info = wx.StaticBox(self, -1, u"スキン情報")
@@ -432,10 +431,10 @@ class SkinBasePanel(wx.Panel):
     def OnInput(self, event):
         exe = self.exectrl.GetValue().strip()
         data = self.datactrl.GetValue().strip()
-        type = self.info.typectrl.GetValue().strip()
+        skintype = self.info.typectrl.GetValue().strip()
         name = self.info.namectrl.GetValue().strip()
 
-        if exe and data and type and name:
+        if exe and data and skintype and name:
             self.TopLevelParent.btn_ok.Enable()
         else:
             self.TopLevelParent.btn_ok.Disable()

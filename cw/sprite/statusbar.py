@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-
-import wx
 import pygame
 
 import cw
@@ -120,14 +117,14 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.sbargrp.add(self)
 
 class ProgressView(base.CWPySprite):
-    def __init__(self, parent, pos, size=None, text="", max=0, min=100, current=0):
+    def __init__(self, parent, pos, size=None, text="", nmax=0, nmin=100, current=0):
         base.CWPySprite.__init__(self)
         if size is None:
             size = cw.s((300, 22))
         self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
         self.text = text
-        self.max = max
-        self.min = min
+        self.max = nmax
+        self.min = nmin
         self.current = current
         self._last_params = None
         self.rect = pygame.Rect(pos, size)
@@ -177,10 +174,10 @@ class ProgressView(base.CWPySprite):
 class ExpandView(ProgressView):
     def __init__(self, parent, pos):
         text = cw.cwpy.expanding
-        max = cw.cwpy.expanding_max
-        min = cw.cwpy.expanding_min
+        nmax = cw.cwpy.expanding_max
+        nmin = cw.cwpy.expanding_min
         current = cw.cwpy.expanding_cur
-        ProgressView.__init__(self, parent, pos, text=text, max=max, min=min, current=current)
+        ProgressView.__init__(self, parent, pos, text=text, nmax=nmax, nmin=nmin, current=current)
 
     def update(self, scr):
         self.text = cw.cwpy.expanding

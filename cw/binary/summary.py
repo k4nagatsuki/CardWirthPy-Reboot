@@ -35,10 +35,10 @@ class Summary(base.CWBinaryBase):
             self.version = 7
             self.area_id = self.area_id - 70000
         steps_num = f.dword()
-        self.steps = [Step(self, f) for cnt in xrange(steps_num)]
+        self.steps = [Step(self, f) for _cnt in xrange(steps_num)]
         flags_num = f.dword()
-        self.flags = [Flag(self, f) for cnt in xrange(flags_num)]
-        w = f.dword() # 不明
+        self.flags = [Flag(self, f) for _cnt in xrange(flags_num)]
+        _w = f.dword() # 不明
         if 0 < self.version:
             self.level_min = f.dword()
             self.level_max = f.dword()
@@ -154,7 +154,7 @@ class Step(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
         self.default = f.dword()
-        self.variable_names = [f.string() for cnt in xrange(10)]
+        self.variable_names = [f.string() for _cnt in xrange(10)]
 
         self.data = None
 
@@ -208,7 +208,7 @@ class Flag(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = f.string()
         self.default = f.bool()
-        self.variable_names = [f.string() for cnt in xrange(2)]
+        self.variable_names = [f.string() for _cnt in xrange(2)]
 
         self.data = None
 

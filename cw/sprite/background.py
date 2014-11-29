@@ -4,7 +4,7 @@
 import os
 import math
 import pygame
-from pygame.locals import BLEND_MIN, BLEND_ADD, BLEND_SUB, BLEND_MULT
+from pygame.locals import BLEND_ADD, BLEND_SUB, BLEND_MULT
 
 import cw
 import base
@@ -253,8 +253,8 @@ class BackGround(base.CWPySprite):
             self._doanime = doanime
             self._ttype = ttype
 
-        for type, d in self.bgs:
-            if type == BG_IMAGE:
+        for bgtype, d in self.bgs:
+            if bgtype == BG_IMAGE:
                 # 背景画像
                 try:
                     animated2, update2, bginhrt2 = self._add_imagecell(blitlist, bgs, oldbgs, d, doanime)
@@ -264,12 +264,12 @@ class BackGround(base.CWPySprite):
                 except cw.effectbooster.ScreenRescale:
                     return False # 中断
 
-            elif type == BG_TEXT:
+            elif bgtype == BG_TEXT:
                 # テキストセル
                 if self._add_textcell(blitlist, bgs, oldbgs, d):
                     forcedraw = True
 
-            elif type == BG_COLOR:
+            elif bgtype == BG_COLOR:
                 # カラーセル
                 if self._add_colorcell(blitlist, bgs, oldbgs, d):
                     forcedraw = True
@@ -332,7 +332,7 @@ class BackGround(base.CWPySprite):
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\
-            btype, bcolor, bwidth, size, pos, flag, visible = d
+            btype, bcolor, bwidth, size, pos, flag, _visible = d
         visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
             self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
@@ -358,7 +358,7 @@ class BackGround(base.CWPySprite):
         return visible
 
     def _add_colorcell(self, blitlist, bgs, oldbgs, d):
-        blend, color1, gradient, color2, size, pos, flag, visible = d
+        blend, color1, gradient, color2, size, pos, flag, _visible = d
         visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
             self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         d = blend, color1, gradient, color2, size, pos, flag, visible
@@ -384,8 +384,8 @@ class BackGround(base.CWPySprite):
         if not bginhrt:
             self.image.fill((0, 0, 0))
 
-        for type, d in blitlist:
-            if type == BG_IMAGE:
+        for bgtype, d in blitlist:
+            if bgtype == BG_IMAGE:
                 # 背景画像、カラーセル、縁取り形式2のテキストセル
                 image, pos, flag = d
                 if flag in (0, BLEND_MULT):
@@ -395,7 +395,7 @@ class BackGround(base.CWPySprite):
                 else:
                     assert False
 
-            elif type == BG_TEXT:
+            elif bgtype == BG_TEXT:
                 # 縁取り形式2以外のテキストセル
                 text, face, tsize, color, bold, italic, underline, strike, vertical,\
                     bcolor, size, pos = d
@@ -538,7 +538,6 @@ class InuseCardImage(card.CWPyCard):
         else:
             self.group = cw.cwpy.mcardgrp
         if user and not center:
-            top = False
             sprites = self.group.sprites()[:]
             self.group.empty()
             index = sprites.index(user)

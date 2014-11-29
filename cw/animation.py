@@ -3,7 +3,6 @@
 
 import threading
 import pygame
-from pygame.locals import *
 
 import cw
 
@@ -134,9 +133,12 @@ def _get_skipstatus(clearevent):
         return False
 
     keyin = cw.cwpy.keyevent.get_pressed()
-    breakflag = pygame.event.peek((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+    breakflag = pygame.event.peek((pygame.locals.MOUSEBUTTONDOWN,
+                                   pygame.locals.MOUSEBUTTONUP,
+                                   pygame.locals.KEYDOWN,
+                                   pygame.locals.KEYUP))
 
-    if breakflag or keyin[K_RETURN] > cw.cwpy.keyevent.threshold:
+    if breakflag or keyin[pygame.locals.K_RETURN] > cw.cwpy.keyevent.threshold:
         return True
 
     return False

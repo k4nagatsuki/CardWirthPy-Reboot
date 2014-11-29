@@ -5,7 +5,6 @@ import os
 import shutil
 
 import cw
-import cw.binary.xmltemplate
 
 
 def _create_xml(name, path, d):
@@ -308,8 +307,8 @@ def create_settings(setting):
 
     # シナリオフォルダ(スキンタイプ別)
     e = cw.data.make_element("ScenarioFolderOfSkinType")
-    for type, folder in setting.folderoftype:
-        e_folder = cw.data.make_element("Folder", folder, {"skintype": type})
+    for skintype, folder in setting.folderoftype:
+        e_folder = cw.data.make_element("Folder", folder, {"skintype": skintype})
         e.append(e_folder)
     element.append(e)
 
@@ -335,9 +334,9 @@ def create_settings(setting):
     e = cw.data.make_element("Fonts")
     for key, value in setting.fonttypes.iteritems():
         if setting.fonttypes[key] <> setting.fonttypes_init[key]:
-            type, name = value
-            if type:
-                fe = cw.data.make_element("Font", "", {"key": key, "type":type})
+            fonttype, name = value
+            if fonttype:
+                fe = cw.data.make_element("Font", "", {"key": key, "type":fonttype})
             else:
                 fe = cw.data.make_element("Font", name, {"key": key})
             e.append(fe)
@@ -540,9 +539,9 @@ def create_scenariolog(sdata, path, recording):
             e.set("a", "255")
         return e
 
-    for type, d in cw.cwpy.background.bgs:
-        if type == cw.sprite.background.BG_IMAGE:
-            fpath, inusecard, mask, size, pos, flag, visible = d
+    for bgtype, d in cw.cwpy.background.bgs:
+        if bgtype == cw.sprite.background.BG_IMAGE:
+            fpath, inusecard, mask, size, pos, flag, _visible = d
             e_bgimg = cw.data.make_element("BgImage", attrs={"mask": str(mask)})
 
             if inusecard:
@@ -551,9 +550,9 @@ def create_scenariolog(sdata, path, recording):
                 e = cw.data.make_element("ImagePath", fpath)
             e_bgimg.append(e)
 
-        elif type == cw.sprite.background.BG_TEXT:
+        elif bgtype == cw.sprite.background.BG_TEXT:
             text, face, tsize, color, bold, italic, underline, strike, vertical,\
-                btype, bcolor, bwidth, size, pos, flag, visible = d
+                btype, bcolor, bwidth, size, pos, flag, _visible = d
             e_bgimg = cw.data.make_element("TextCell")
 
             e = cw.data.make_element("Text", text)
@@ -575,8 +574,8 @@ def create_scenariolog(sdata, path, recording):
                 e.append(make_colorelement("Color", bcolor))
                 e_bgimg.append(e)
 
-        elif type == cw.sprite.background.BG_COLOR:
-            blend, color1, gradient, color2, size, pos, flag, visible = d
+        elif bgtype == cw.sprite.background.BG_COLOR:
+            blend, color1, gradient, color2, size, pos, flag, _visible = d
             e_bgimg = cw.data.make_element("ColorCell")
 
             e = cw.data.make_element("BlendMode", blend)

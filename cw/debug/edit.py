@@ -35,15 +35,15 @@ class CouponEditDialog(wx.Dialog):
         self.pcards = cw.cwpy.get_pcards()
         self.coupons = []
         for pcard in self.pcards:
-            list = []
+            seq = []
             for e in pcard.data.getfind("Property/Coupons"):
                 name = e.text
                 if name.startswith(u"＠") or name in self.syscoupons:
                     continue
                 value = e.get("value")
-                list.append((name, int(value)))
-            list.reverse()
-            self.coupons.append(list)
+                seq.append((name, int(value)))
+            seq.reverse()
+            self.coupons.append(seq)
 
         # リスト
         self.values = EditableListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE)
@@ -113,8 +113,6 @@ class CouponEditDialog(wx.Dialog):
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
 
     def _do_layout(self):
-        sizer = wx.GridBagSizer()
-
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_combo = wx.BoxSizer(wx.HORIZONTAL)
         sizer_combo.Add(self.leftbtn, 0, wx.EXPAND)
@@ -179,8 +177,8 @@ class CouponEditDialog(wx.Dialog):
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員
-            for list in self.coupons:
-                list.insert(0, (name, 0))
+            for seq in self.coupons:
+                seq.insert(0, (name, 0))
         else:
             # 誰か一人
             self.coupons[cindex-1].insert(0, (name, 0))
@@ -204,10 +202,10 @@ class CouponEditDialog(wx.Dialog):
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員
-            for list in self.coupons:
-                for i, coupon in enumerate(list):
+            for seq in self.coupons:
+                for i, coupon in enumerate(seq):
                     if coupon[0] == name:
-                        list.pop(i)
+                        seq.pop(i)
                         break
         else:
             # 誰か一人
@@ -215,7 +213,6 @@ class CouponEditDialog(wx.Dialog):
         self.values.DeleteItem(index)
 
     def OnValueBtn(self, event):
-        value = None
         index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
         if index <= -1:
             return
@@ -263,17 +260,17 @@ class CouponEditDialog(wx.Dialog):
         if cindex == 0:
             # 全員を選択中
             return
-        list = self.coupons[cindex-1]
-        list[index1], list[index2] = list[index2], list[index1]
+        seq = self.coupons[cindex-1]
+        seq[index1], seq[index2] = seq[index2], seq[index1]
 
         mask = wx.LIST_STATE_SELECTED
         temp = self.values.GetItemState(index1, mask)
         self.values.SetItemState(index1, self.values.GetItemState(index2, mask), mask)
         self.values.SetItemState(index2, temp, mask)
         def set_item(index):
-            self.values.SetStringItem(index, 0, list[index][0])
-            self.values.SetStringItem(index, 1, str(list[index][1]))
-            self.values.SetItemImage(index, self._get_valueimage(list[index][1]))
+            self.values.SetStringItem(index, 0, seq[index][0])
+            self.values.SetStringItem(index, 1, str(seq[index][1]))
+            self.values.SetItemImage(index, self._get_valueimage(seq[index][1]))
         set_item(index1)
         set_item(index2)
 
@@ -346,11 +343,10 @@ class CouponEditDialog(wx.Dialog):
         # 選択されたキャラクターの称号一覧を表示する
         self.values.DeleteAllItems()
         index = self.target.GetSelection()
-        total = 0
         if index == 0:
             coupons = set()
-            for list in self.coupons:
-                for coupon in list:
+            for seq in self.coupons:
+                for coupon in seq:
                     name = coupon[0]
                     if name in coupons:
                         continue
@@ -410,15 +406,15 @@ class CouponEditDialog(wx.Dialog):
         cindex = self.target.GetSelection()
         if cindex == 0:
             # 全員
-            for list in self.coupons:
-                for i, coupon in enumerate(list):
+            for seq in self.coupons:
+                for i, coupon in enumerate(seq):
                     if coupon[0] == oldname:
-                        list[i] = (newname, coupon[1])
+                        seq[i] = (newname, coupon[1])
                         break
         else:
             # 誰か一人
-            list = self.coupons[cindex-1]
-            list[index] = (newname, list[index][1])
+            seq = self.coupons[cindex-1]
+            seq[index] = (newname, seq[index][1])
 
     def _set_value(self, index, value):
         self.values.SetStringItem(index, 1, str(value))
@@ -427,10 +423,10 @@ class CouponEditDialog(wx.Dialog):
         name = self.values.GetItem(index, 0).GetText()
         if cindex == 0:
             # 全員
-            for list in self.coupons:
-                for i, coupon in enumerate(list):
+            for seq in self.coupons:
+                for i, coupon in enumerate(seq):
                     if coupon[0] == name:
-                        list[i] = (name, value)
+                        seq[i] = (name, value)
                         break
         else:
             # 誰か一人
@@ -442,10 +438,10 @@ class CouponEditDialog(wx.Dialog):
 
 class ListEditDialog(wx.Dialog):
 
-    def __init__(self, parent, title, list, image):
+    def __init__(self, parent, title, mlist, image):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
-        self.list = list
+        self.list = mlist
 
         # リスト
         self.values = EditableListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
@@ -609,10 +605,10 @@ class GossipEditDialog(ListEditDialog):
             cw.cwpy.ydata.get_gossiplist(), cw.cwpy.rsrc.debugs["GOSSIP_dbg"])
 
     def OnOkBtn(self, event):
-        def func(list):
+        def func(seq):
             cw.cwpy.sounds["harvest"].play()
             cw.cwpy.ydata.clear_gossips()
-            for name in list:
+            for name in seq:
                 cw.cwpy.ydata.set_gossip(name)
         cw.cwpy.exec_func(func, self.list)
         self.SetReturnCode(wx.ID_OK)
@@ -624,18 +620,18 @@ class CompStampEditDialog(ListEditDialog):
             cw.cwpy.ydata.get_compstamplist(), cw.cwpy.rsrc.debugs["COMPSTAMP_dbg"])
 
     def OnOkBtn(self, event):
-        def func(list):
+        def func(seq):
             cw.cwpy.sounds["harvest"].play()
             cw.cwpy.ydata.clear_compstamps()
-            for name in list:
+            for name in seq:
                 cw.cwpy.ydata.set_compstamp(name)
         cw.cwpy.exec_func(func, self.list)
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, id, size, style):
-        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
+    def __init__(self, parent, cid, size, style):
+        wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)
         listmix.TextEditMixin.__init__(self)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 

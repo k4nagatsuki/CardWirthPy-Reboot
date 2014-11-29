@@ -13,9 +13,9 @@ class Event(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f)
-                                            for cnt in xrange(contents_num)]
+                                            for _cnt in xrange(contents_num)]
         ignitions_num = f.dword()
-        self.ignitions = [f.dword() for cnt in xrange(ignitions_num)]
+        self.ignitions = [f.dword() for _cnt in xrange(ignitions_num)]
         self.keycodes = f.string(True)
 
         self.data = None
@@ -85,7 +85,7 @@ class SimpleEvent(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         contents_num = f.dword()
         self.contents = [content.Content(self, f)
-                                            for cnt in xrange(contents_num)]
+                                            for _cnt in xrange(contents_num)]
 
         self.data = None
 

@@ -4,7 +4,6 @@
 import struct
 
 import io
-import util
 
 import cw.util
 

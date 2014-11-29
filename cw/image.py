@@ -3,13 +3,10 @@
 
 import os
 import io
-import sys
-import array
 import struct
 import threading
 import wx
 import pygame
-from pygame.locals import *
 
 import cw
 
@@ -399,7 +396,7 @@ class CharacterCardImage(CardImage):
         guage = cw.cwpy.rsrc.statuses["LIFEGUAGE"]
         self.lifeguage = guage
         self.lifebar = cw.cwpy.rsrc.statuses["LIFEBAR"]
-        self.lifeimg.set_colorkey(guage.get_at((0, 0)), RLEACCEL)
+        self.lifeimg.set_colorkey(guage.get_at((0, 0)), pygame.locals.RLEACCEL)
         # rect
         self.rect = pygame.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
 
@@ -423,9 +420,9 @@ class CharacterCardImage(CardImage):
         s = str(level)
         w = cw.s(95)
         size = (w, font.get_height())
-        self.levelimg = pygame.Surface(size, SRCALPHA).convert_alpha()
+        self.levelimg = pygame.Surface(size, pygame.locals.SRCALPHA).convert_alpha()
 
-        for index, char in enumerate(reversed(s)):
+        for char in reversed(s):
             subimg = font.render(char, True, (0, 0, 0))
             self.levelimg.blit(subimg, (w - subimg.get_width(), cw.s(0)))
             w -= min(cw.s(20), font.size(char)[0])
@@ -462,7 +459,7 @@ class CharacterCardImage(CardImage):
         # 名前
         if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
             nameimg = self.nameimg.copy()
-            nameimg.fill((255, 255, 255, 0), special_flags=BLEND_RGBA_ADD)
+            nameimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
         else:
             nameimg = self.nameimg
         self.image.blit(nameimg, cw.s((7, 4)))
@@ -611,7 +608,6 @@ def create_type2textcell(text, face, size, color,
     img.fill((0, 0, 0, 0))
 
     w = cellsize[0]
-    h = cellsize[1]
 
     # text
     font, lineheight = get_textcellfont(size, face, color, bold,
@@ -760,7 +756,7 @@ def conv2wxbmp(image, maskpos=(0, 0)):
     """
     w, h = image.get_size()
 
-    if (image.get_flags() & SRCALPHA) or image.get_colorkey():
+    if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey():
         buf = pygame.image.tostring(image, "RGBA")
         wxbmp = wx.BitmapFromBufferRGBA(w, h, buf)
     else:
@@ -768,7 +764,7 @@ def conv2wxbmp(image, maskpos=(0, 0)):
         wxbmp = wx.BitmapFromBuffer(w, h, buf)
 
     if image.get_colorkey():
-        r, g, b, a = image.get_at(maskpos)
+        r, g, b, _a = image.get_at(maskpos)
         wxbmp.SetMaskColour(wx.Colour(r, g, b))
 
     return wxbmp
@@ -799,7 +795,7 @@ def conv2surface(wxbmp):
         image = pygame.image.frombuffer(buf, (w, h), "RGB").convert()
 
     if wximg.HasMask():
-        image.set_colorkey(wximg.GetOrFindMaskColour(), RLEACCEL)
+        image.set_colorkey(wximg.GetOrFindMaskColour(), pygame.locals.RLEACCEL)
 
     return image
 
@@ -820,9 +816,9 @@ def fix_cwnext16bitbitmap(data):
         return data, True
     if s[1] <> ord('M'):
         return data, True
-    bfSize = s[2]
-    bfReserved1 = s[3]
-    bfReserved2 = s[4]
+    _bfSize = s[2]
+    _bfReserved1 = s[3]
+    _bfReserved2 = s[4]
     bfOffBits = s[5]
     if bfOffBits == 0:
         return data, True
@@ -831,14 +827,14 @@ def fix_cwnext16bitbitmap(data):
         return data, True
     biWidth = s[7]
     biHeight = s[8]
-    biPlanes = s[9]
+    _biPlanes = s[9]
     biBitCount = s[10]
     biCompression = s[11]
-    biSizeImage = s[12]
-    biXPixPerMeter = s[13]
-    biYPixPerMeter = s[14]
-    biClrUsed = s[15]
-    biClrImporant = s[16]
+    _biSizeImage = s[12]
+    _biXPixPerMeter = s[13]
+    _biYPixPerMeter = s[14]
+    _biClrUsed = s[15]
+    _biClrImporant = s[16]
     lineSize = ((biWidth * biBitCount + 31) / 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
     if len(data) - bfOffBits <> lineSize * height:

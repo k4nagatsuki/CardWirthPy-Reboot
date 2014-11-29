@@ -211,7 +211,6 @@ class Text(wx.Dialog):
         sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
 
         # トップバー
-        size = self.combo.GetSize()
         sizer_topbar.Add((0, 0), 1, 0, 0)
         sizer_topbar.Add(self.combo, 0, 0, 0)
         sizer_toppanel.Add(sizer_topbar, 0, wx.EXPAND, 0)

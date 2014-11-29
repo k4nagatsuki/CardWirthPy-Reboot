@@ -16,11 +16,11 @@ class Deck(object):
     def get_actioncards(self, ccard):
         seq = []
 
-        for id, header in cw.cwpy.rsrc.actioncards.iteritems():
-            if id == 7 and not ccard.escape:
+        for resid, header in cw.cwpy.rsrc.actioncards.iteritems():
+            if resid == 7 and not ccard.escape:
                 continue # 逃走しない
-            if id > 0:
-                for cnt in xrange(header.uselimit):
+            if resid > 0:
+                for _cnt in xrange(header.uselimit):
                     seq.append(header)
 
         return seq
@@ -29,20 +29,20 @@ class Deck(object):
         seq = []
 
         for header in ccard.get_pocketcards(cw.POCKET_SKILL):
-            uselimit, maxn = header.get_uselimit()
+            uselimit, _maxn = header.get_uselimit()
 
-            for cnt in xrange(uselimit - handcounts.get(header, 0)):
+            for _cnt in xrange(uselimit - handcounts.get(header, 0)):
                 seq.append(header)
 
         return seq
 
-    def set_nextcard(self, id=0, brave=False):
+    def set_nextcard(self, resid=0, brave=False):
         """山札の一番上に指定したIDのアクションカードを置く。
         IDを指定しなかった場合(0の場合)は、スキルカードを置く。
         """
         # アクションカード
-        if id and id in cw.cwpy.rsrc.actioncards:
-            header = cw.cwpy.rsrc.actioncards[id]
+        if resid and resid in cw.cwpy.rsrc.actioncards:
+            header = cw.cwpy.rsrc.actioncards[resid]
         # スキルカード
         else:
             for header in self.talon:
@@ -57,7 +57,7 @@ class Deck(object):
                     return
 
         # ペナルティカードじゃなかったら、山札からカードを消す
-        if not id < 0 and header in self.talon:
+        if not resid < 0 and header in self.talon:
             self.talon.remove(header)
 
         self.nextcards.append(header)
@@ -122,9 +122,9 @@ class Deck(object):
         if header.type == "ItemCard":
             self.set_hand(ccard)
         elif header.type == "SkillCard":
-            uselimit, maxn = header.get_uselimit()
+            uselimit, _maxn = header.get_uselimit()
 
-            for cnt in xrange(uselimit):
+            for _cnt in xrange(uselimit):
                 self.talon.append(header)
 
             self.shuffle()

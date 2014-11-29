@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import io
 import shutil
 import struct
 import threading
 
 import cw
-
-import win32res
 
 class Converter(threading.Thread):
     def __init__(self, exe):
@@ -67,19 +64,19 @@ class Converter(threading.Thread):
         self._get_messages()
         self._get_cards()
 
-    def _get_resources(self, dir):
-        dir = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dir)
+    def _get_resources(self, dpath):
+        dpath = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dpath)
         rsrc = {}
-        for path in os.listdir(dir):
+        for path in os.listdir(dpath):
             if path.lower().endswith(".xml"):
                 name = cw.util.splitext(path)[0]
-                path = cw.util.join_paths(dir, path)
+                path = cw.util.join_paths(dpath, path)
                 rsrc[name] = cw.data.xml2etree(path)
         return rsrc
 
-    def _write_data(self, dir, table):
+    def _write_data(self, dpath, table):
         for data in table.values():
-            data.fpath = cw.util.join_paths(dir, cw.util.relpath(data.fpath, u"Data/SkinBase/"))
+            data.fpath = cw.util.join_paths(dpath, cw.util.relpath(data.fpath, u"Data/SkinBase/"))
             data.write()
 
     def find_skinname(self):
@@ -130,15 +127,15 @@ class Converter(threading.Thread):
 
     def find_type(self):
         if self.exe:
-            file = os.path.basename(self.exe).lower()
-            file = cw.util.splitext(file)[0]
-            if file == "s_c_wirth":
+            fname = os.path.basename(self.exe).lower()
+            fname = cw.util.splitext(fname)[0]
+            if fname == "s_c_wirth":
                 return "School"
-            elif file == "modernwirth":
+            elif fname == "modernwirth":
                 return "Modern"
-            elif file == "darkwirth":
+            elif fname == "darkwirth":
                 return "Monsters"
-            elif file == "oedowirth":
+            elif fname == "oedowirth":
                 return "Oedo"
             elif 0 <= os.path.dirname(self.exe).lower().find("sfv"):
                 return "ScienceFiction"
@@ -340,7 +337,7 @@ class Converter(threading.Thread):
                     sound1, index = self._get_text(index)
                     sound2, index = self._get_text(index)
                     keycodes = []
-                    for i in xrange(0, keycodenum):
+                    for _i in xrange(0, keycodenum):
                         keycode, index = self._get_text(index)
                         keycodes.append(keycode)
                     data = self.actioncard[cardkey]
@@ -379,7 +376,7 @@ class Converter(threading.Thread):
                 def get_menucard(area, index):
                     name, index = self._get_text(index, True)
                     desc, index = self._get_text(index, True)
-                    image, index = self._get_text(index)
+                    _image, index = self._get_text(index)
                     for data in area:
                         e = data[0].find("MenuCards/*[%s]" % (data[1]))
                         e.find("Property/Name").text = name
@@ -764,29 +761,29 @@ class Converter(threading.Thread):
         self.curnum = 0
         self.message = u"スキンのベースをコピー中..."
 
-        dir = self.data.gettext("Property/Name", "")
-        dir = cw.binary.util.check_filename(dir)
-        dir = cw.util.join_paths(u"Data/Skin", dir)
-        dir = cw.binary.util.check_duplicate(dir)
-        self.skindirname = os.path.basename(dir)
+        dpath = self.data.gettext("Property/Name", "")
+        dpath = cw.binary.util.check_filename(dpath)
+        dpath = cw.util.join_paths(u"Data/Skin", dpath)
+        dpath = cw.binary.util.check_duplicate(dpath)
+        self.skindirname = os.path.basename(dpath)
         if not os.path.exists(u"Data/Skin"):
             os.makedirs(u"Data/Skin")
-        shutil.copytree(u"Data/SkinBase", dir)
+        shutil.copytree(u"Data/SkinBase", dpath)
         f = None
         try:
             # Resource
             self.curnum = 10
             self.message = u"リソースを抽出中..."
 
-            self.data.fpath = cw.util.join_paths(dir, u"Skin.xml")
+            self.data.fpath = cw.util.join_paths(dpath, u"Skin.xml")
             self.data.write()
 
-            self._write_data(dir, self.actioncard)
-            self._write_data(dir, self.gameover)
-            self._write_data(dir, self.scenario)
-            self._write_data(dir, self.title)
-            self._write_data(dir, self.yado)
-            self._write_data(dir, self.specialcard)
+            self._write_data(dpath, self.actioncard)
+            self._write_data(dpath, self.gameover)
+            self._write_data(dpath, self.scenario)
+            self._write_data(dpath, self.title)
+            self._write_data(dpath, self.yado)
+            self._write_data(dpath, self.specialcard)
 
             imgtbl = {
                 "BUTTON_ARROW":"Button/ARROW",
@@ -971,7 +968,7 @@ class Converter(threading.Thread):
                 if res is None:
                     print "Resource not found: %s" % (resname)
                     continue
-                fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
+                fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                 resdir = os.path.dirname(fpath)
                 if not os.path.isdir(resdir):
                     os.makedirs(resdir)
@@ -983,7 +980,7 @@ class Converter(threading.Thread):
                 if res is None:
                     print "Cursor not found: %s" % (resname)
                     continue
-                fpath = cw.util.join_paths(dir, "Resource/Image", target + ".cur")
+                fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
                 resdir = os.path.dirname(fpath)
                 if not os.path.isdir(resdir):
                     os.makedirs(resdir)
@@ -1003,7 +1000,7 @@ class Converter(threading.Thread):
                     res = res[name]
                 if not res:
                     continue
-                fpath = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
+                fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                 resdir = os.path.dirname(fpath)
                 if not os.path.isdir(resdir):
                     os.makedirs(resdir)
@@ -1024,7 +1021,7 @@ class Converter(threading.Thread):
             self.curnum = 20
             self.message = u"BGMフォルダをコピー中..."
             folder = cw.util.join_paths(datadir, u"Midi")
-            target = cw.util.join_paths(dir, u"Bgm")
+            target = cw.util.join_paths(dpath, u"Bgm")
             if os.path.isdir(folder):
                 shutil.copytree(folder, target)
             else:
@@ -1034,7 +1031,7 @@ class Converter(threading.Thread):
             self.curnum = 30
             self.message = u"カード画像フォルダをコピー中..."
             folder = cw.util.join_paths(datadir, u"Face")
-            target = cw.util.join_paths(dir, u"Face")
+            target = cw.util.join_paths(dpath, u"Face")
             if os.path.isdir(folder):
                 shutil.copytree(folder, target)
             else:
@@ -1044,7 +1041,7 @@ class Converter(threading.Thread):
             self.curnum = 40
             self.message = u"効果音フォルダをコピー中..."
             folder = cw.util.join_paths(datadir, u"Wave")
-            target = cw.util.join_paths(dir, u"Sound")
+            target = cw.util.join_paths(dpath, u"Sound")
             if os.path.isdir(folder):
                 shutil.copytree(folder, target)
             else:
@@ -1054,7 +1051,7 @@ class Converter(threading.Thread):
             self.curnum = 50
             self.message = u"背景画像フォルダをコピー中..."
             folder = cw.util.join_paths(datadir, u"Table")
-            target = cw.util.join_paths(dir, u"Table")
+            target = cw.util.join_paths(dpath, u"Table")
             if os.path.isdir(folder):
                 shutil.copytree(folder, target)
             else:
@@ -1067,12 +1064,12 @@ class Converter(threading.Thread):
             for key, target in imgtbl.iteritems():
                 fpath = cw.util.join_paths(resdir, key + ".bmp")
                 if os.path.isfile(fpath):
-                    dist = cw.util.join_paths(dir, "Resource/Image", target + ".bmp")
+                    dist = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                     shutil.copyfile(fpath, dist)
             for key, target in curtbl.iteritems():
                 fpath = cw.util.join_paths(resdir, key + ".cur")
                 if os.path.isfile(fpath):
-                    dist = cw.util.join_paths(dir, "Resource/Image", target + ".cur")
+                    dist = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
                     shutil.copyfile(fpath, dist)
 
             self.curnum = 70
@@ -1085,7 +1082,7 @@ class Converter(threading.Thread):
             self.failure = True
             self.complete = True
             self.errormessage = u"スキンの自動生成に失敗しました。"
-            shutil.rmtree(dir)
+            shutil.rmtree(dpath)
             raise ex
 
         finally:

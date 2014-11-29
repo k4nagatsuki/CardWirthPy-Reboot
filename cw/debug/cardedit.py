@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import copy
 import threading
-import wx
 import wx.combo
 import wx.lib.agw.customtreectrl
 
@@ -511,7 +509,7 @@ class CardEditDialog(wx.Dialog):
                 toplevel = info[0]
                 owner = info[1]
                 data = info[2]
-                notscenariocard = info[3]
+                _notscenariocard = info[3]
                 if not item.IsChecked():
                     continue
                 del infos[item]
@@ -611,7 +609,7 @@ class CardEditDialog(wx.Dialog):
         """チェックに応じたカードのマッチング条件を返す。
         この戻り値を比較する事でカードの同一性を判断する。
         """
-        type = ""
+        cardtype = ""
         name = ""
         desc = ""
         scenario = ""
@@ -619,7 +617,7 @@ class CardEditDialog(wx.Dialog):
 
         if isinstance(data, cw.header.CardHeader):
             header = data
-            type = header.type
+            cardtype = header.type
             if self.mname.GetValue():
                 name = header.name
             if self.mdesc.GetValue():
@@ -629,7 +627,7 @@ class CardEditDialog(wx.Dialog):
             if self.mauthor.GetValue():
                 author = header.author
         else:
-            type = data.tag
+            cardtype = data.tag
             e = data.find("Property")
             if self.mname.GetValue():
                 name = e.gettext("Name", "")
@@ -640,22 +638,22 @@ class CardEditDialog(wx.Dialog):
             if self.mauthor.GetValue():
                 author = e.gettext("Author", "")
 
-        return (type, name, desc, scenario, author)
+        return (cardtype, name, desc, scenario, author)
 
     def _get_imgidx(self, data):
         """カードの種類に応じたアイコンのindexを返す。"""
-        type = ""
+        cardtype = ""
         if isinstance(data, cw.header.CardHeader):
             header = data
-            type = header.type
+            cardtype = header.type
         else:
-            type = data.tag
+            cardtype = data.tag
 
-        if type == "SkillCard":
+        if cardtype == "SkillCard":
             return self.timgidx_skill
-        elif type == "ItemCard":
+        elif cardtype == "ItemCard":
             return self.timgidx_item
-        elif type == "BeastCard":
+        elif cardtype == "BeastCard":
             return self.timgidx_beast
 
         return None
@@ -691,9 +689,9 @@ class CardEditDialog(wx.Dialog):
         self.scenario.SetLabel(self.scdata.name)
 
         def append_cards(table, image):
-            for id in table.keys():
+            for resid in table.keys():
                 index = self.cards.GetItemCount()
-                data = cw.data.xml2etree(table[id][1])
+                data = cw.data.xml2etree(table[resid][1])
 
                 header = cw.header.CardHeader(carddata=data.getroot(), from_scenario=True, scedir=self.scdata.scedir)
                 header.negaflag = False

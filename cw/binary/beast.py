@@ -54,19 +54,19 @@ class BeastCard(base.CWBinaryBase):
         self.visual_effect = f.byte()
         motions_num = f.dword()
         self.motions = [effectmotion.EffectMotion(self, f, dataversion=dataversion)
-                                          for cnt in xrange(motions_num)]
+                                          for _cnt in xrange(motions_num)]
         self.enhance_avoid = f.dword()
         self.enhance_resist = f.dword()
         self.enhance_defense = f.dword()
         self.sound_effect = f.string()
         self.sound_effect2 = f.string()
-        self.keycodes = [f.string() for cnt in xrange(5)]
+        self.keycodes = [f.string() for _cnt in xrange(5)]
         if 2 < dataversion:
             self.premium = f.byte()
             self.scenario_name = f.string()
             self.scenario_author = f.string()
             events_num = f.dword()
-            self.events = [event.SimpleEvent(self, f) for cnt in xrange(events_num)]
+            self.events = [event.SimpleEvent(self, f) for _cnt in xrange(events_num)]
             self.hold = f.bool()
         else:
             self.scenario_name = ""
@@ -166,10 +166,10 @@ class BeastCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, ownerisadventurer):
-        type = 0
+        restype = 0
         image = None
         name = ""
-        id = 0
+        resid = 0
         description = ""
         p_ability = 0
         m_ability = 0
@@ -200,7 +200,7 @@ class BeastCard(base.CWBinaryBase):
             if e.tag == "Property":
                 for prop in e:
                     if prop.tag == "Id":
-                        id = int(prop.text)
+                        resid = int(prop.text)
                     elif prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
@@ -211,8 +211,6 @@ class BeastCard(base.CWBinaryBase):
                         scenario_name = prop.text
                     elif prop.tag == "Author":
                         scenario_author = prop.text
-                    elif prop.tag == "Level":
-                        level = int(prop.text)
                     elif prop.tag == "Ability":
                         p_ability = base.CWBinaryBase.unconv_card_physicalability(prop.get("physical"))
                         m_ability = base.CWBinaryBase.unconv_card_mentalability(prop.get("mental"))
@@ -266,10 +264,10 @@ class BeastCard(base.CWBinaryBase):
             elif e.tag == "Events":
                 events = e
 
-        f.write_byte(type)
+        f.write_byte(restype)
         f.write_image(image)
         f.write_string(name)
-        f.write_dword(id + 50000)
+        f.write_dword(resid + 50000)
         f.write_string(description, True)
         f.write_dword(p_ability)
         f.write_dword(m_ability)

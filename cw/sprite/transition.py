@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import pygame
-from pygame.locals import *
 
 import cw
 import base
@@ -74,7 +73,7 @@ class PixelDissolve(Transition):
     def update_transition(self, scr):
         self.frame += 1
 
-        for cnt in xrange(self.variation):
+        for _cnt in xrange(self.variation):
             if self.poslist:
                 x, y = self.poslist.pop()
                 self.rect_sec.topleft = (x, y)

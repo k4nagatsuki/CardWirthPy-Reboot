@@ -12,12 +12,12 @@ import cw
 
 class StatusEditDialog(wx.Dialog):
 
-    def __init__(self, parent, list, selected=-1):
+    def __init__(self, parent, mlist, selected=-1):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの状態の編集",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetDoubleBuffered(True)
 
-        self.pcards = list
+        self.pcards = mlist
 
         self.statuses = []
         self.statuses_backup = []
@@ -278,15 +278,15 @@ class StatusEditDialog(wx.Dialog):
             ("Panic",    u"恐慌", cw.cwpy.rsrc.wxstatuses["MIND5_dbg"]),
         ]
 
-        list = []
+        seq = []
         selected = 0
         for i, stdata in enumerate(STATUSES):
-            list.append((stdata[1], stdata[2]))
+            seq.append((stdata[1], stdata[2]))
             if stdata[0] == value:
                 selected = i
 
         dlg = cw.dialog.edit.NumberComboEditDialog(self, u"精神状態",
-                                                   u"精神状態", list, selected,
+                                                   u"精神状態", seq, selected,
                                                    u"継続時間", duration, 0, 100)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:

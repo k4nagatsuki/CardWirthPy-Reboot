@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import wx
 
 import cw
@@ -118,26 +117,26 @@ class CharacterEditDialog(wx.Dialog):
         self._select_target()
 
     def OnStandardType(self, event):
-        list = [u"カスタム"]
+        seq = [u"カスタム"]
         for sample in cw.cwpy.setting.sampletypes:
-            list.append(sample.name)
-        selected = list.index(self.pane_req.type.GetLabel())
+            seq.append(sample.name)
+        selected = seq.index(self.pane_req.type.GetLabel())
         if selected <= -1:
             selected = 0
         dlg = cw.dialog.edit.ComboEditDialog(self.TopLevelParent, u"能力型",
-                                             u"能力型", list, selected)
+                                             u"能力型", seq, selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             cindex = self.target.GetSelection()
             if 0 < dlg.selected:
-                type = cw.cwpy.setting.sampletypes[dlg.selected-1]
+                ctype = cw.cwpy.setting.sampletypes[dlg.selected-1]
             else:
-                type = None
+                ctype = None
             if cindex == 0:
                 for info in self.infos:
-                    info.type = type
+                    info.type = ctype
             else:
-                self.infos[cindex-1].type = type
+                self.infos[cindex-1].type = ctype
             self.pane_req._select_target(cindex)
 
     def OnAutoBtn(self, event):
@@ -219,19 +218,19 @@ class CharaInfo(object):
             }
 
     def get_paramtype(self, info):
-        for type in cw.cwpy.setting.sampletypes:
-            if self.race.agl + type.aglbonus == info.physical["agl"] and\
-               self.race.dex + type.dexbonus == info.physical["dex"] and\
-               self.race.int + type.intbonus == info.physical["int"] and\
-               self.race.min + type.minbonus == info.physical["min"] and\
-               self.race.str + type.strbonus == info.physical["str"] and\
-               self.race.vit + type.vitbonus == info.physical["vit"] and\
-               self.race.aggressive + type.aggressive == info.mental["aggressive"] and\
-               self.race.brave      + type.brave      == info.mental["brave"] and\
-               self.race.cautious   + type.cautious   == info.mental["cautious"] and\
-               self.race.cheerful   + type.cheerful   == info.mental["cheerful"] and\
-               self.race.trickish   + type.trickish   == info.mental["trickish"]:
-                return type
+        for ctype in cw.cwpy.setting.sampletypes:
+            if self.race.agl + ctype.aglbonus == info.physical["agl"] and\
+               self.race.dex + ctype.dexbonus == info.physical["dex"] and\
+               self.race.int + ctype.intbonus == info.physical["int"] and\
+               self.race.min + ctype.minbonus == info.physical["min"] and\
+               self.race.str + ctype.strbonus == info.physical["str"] and\
+               self.race.vit + ctype.vitbonus == info.physical["vit"] and\
+               self.race.aggressive + ctype.aggressive == info.mental["aggressive"] and\
+               self.race.brave      + ctype.brave      == info.mental["brave"] and\
+               self.race.cautious   + ctype.cautious   == info.mental["cautious"] and\
+               self.race.cheerful   + ctype.cheerful   == info.mental["cheerful"] and\
+               self.race.trickish   + ctype.trickish   == info.mental["trickish"]:
+                return ctype
         return None
 
     def put_params(self, pcard):
@@ -559,7 +558,6 @@ class CharaRequirementPanel(wx.Panel):
         infos = self._get_infos()
 
         # 使用可能なイメージの一覧を取得
-        facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
         for info in infos:
             for paths in cw.util.get_facepaths(info.sex, info.age, rel=True).itervalues():
                 fpaths.update(paths)
@@ -616,7 +614,7 @@ class CharaRequirementPanel(wx.Panel):
         name = ""
         level = u"―"
         imgpath = ""
-        type = None
+        ctype = None
         sex = ""
         age = ""
         talent = ""
@@ -629,7 +627,7 @@ class CharaRequirementPanel(wx.Panel):
                 name = info.name
                 level = str(info.level)
                 imgpath = info.imgpath
-                type = info.type
+                ctype = info.type
                 sex = info.sex
                 age = info.age
                 talent = info.talent
@@ -640,8 +638,8 @@ class CharaRequirementPanel(wx.Panel):
                     level = u"―"
                 if imgpath <> info.imgpath:
                     imgpath = ""
-                if type <> info.type:
-                    type = u"―――"
+                if ctype <> info.type:
+                    ctype = u"―――"
                 if sex <> info.sex:
                     sex = ""
                 if age <> info.age:
@@ -661,10 +659,10 @@ class CharaRequirementPanel(wx.Panel):
             self.imgcombo.SetValue(fpath)
         else:
             self.imgcombo.SetSelection(0)
-        if isinstance(type, cw.features.SampleType):
-            self.type.SetLabel(type.name)
-        elif type:
-            self.type.SetLabel(type)
+        if isinstance(ctype, cw.features.SampleType):
+            self.type.SetLabel(ctype.name)
+        elif ctype:
+            self.type.SetLabel(ctype)
         else:
             self.type.SetLabel(u"カスタム")
 
@@ -745,7 +743,6 @@ class CharaSelectablePanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnClearBtn, self.clearbtn)
 
     def _do_layout(self):
-        rows = (len(self.makings) + 3) / 4
         cols = 4
         sizer_checks = wx.GridBagSizer()
         for i, check in enumerate(self.makings):
@@ -821,7 +818,7 @@ class CharaSelectablePanel(wx.Panel):
         self.cindex = cindex
         if self.cindex == 0:
             # 全員
-            for i, info in enumerate(self.infos):
+            for i, _info in enumerate(self.infos):
                 force = (i == 0)
                 for check in self.makings:
                     making = u"＿" + check.GetLabel()

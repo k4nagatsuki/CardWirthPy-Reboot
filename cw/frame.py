@@ -180,7 +180,7 @@ class Frame(wx.Frame):
         time.sleep(1.0 / framerate)
 
     def wait_frame(self, count):
-        for i in xrange(count):
+        for _i in xrange(count):
             self.tick_clock()
 
     def show_debugger(self, refreshtree):
@@ -528,7 +528,6 @@ class Frame(wx.Frame):
 
     def OnHANDVIEW(self, event):
         selection, preinfo = self._get_cardcontrolparams()
-        areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.HandView(self, selection, preinfo)
         self.move_dlg(dlg, (0, -63))
 
@@ -862,7 +861,6 @@ def get_skincount():
     skincount = 0
     if os.path.isdir(u"Data/Skin"):
         for name in os.listdir(u"Data/Skin"):
-            path = cw.util.join_paths(u"Data/Skin", name)
             skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
             if os.path.exists(skinpath):
                 skincount += 1
