@@ -1064,7 +1064,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_status(self, name):
         self.status = name
-        self.hide_cards(True, quickhide=self.setting.all_quickdeal)
+        quickhide = (self.setting.all_quickdeal and name <> "ScenarioBattle")
+        self.hide_cards(True, quickhide=quickhide)
         self.pre_areaids = []
         self.pre_dialogs = []
         self.pre_mcards = []
