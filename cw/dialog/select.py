@@ -2948,7 +2948,7 @@ class ScenarioSelect(Select):
                             addition = u"(%s)" % (header.author)
                     elif self.sort.GetSelection() == 3:
                         # 整列条件: 更新日時
-                        addition = self._formatted_mtime(header.mtime, False)
+                        addition = u"[%s]" % (self._formatted_mtime(header.mtime, False))
                     elif header.levelmin or header.levelmax:
                         levelmin = str(header.levelmin) if header.levelmin else " "
                         levelmax = str(header.levelmax) if header.levelmax else " "
