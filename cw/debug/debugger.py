@@ -11,6 +11,7 @@ import wx.aui
 import wx.lib.mixins.listctrl as listmix
 
 import cw
+import cw.binary
 
 
 # ID
