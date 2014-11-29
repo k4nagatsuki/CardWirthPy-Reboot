@@ -189,7 +189,7 @@ class Step(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data):
         name = ""
-        default = int(e.get("default"))
+        default = int(data.get("default"))
         variable_names = [""] * 10
         for e in data:
             if e.tag == "Name":
@@ -227,7 +227,7 @@ class Flag(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data):
         name = ""
-        default = cw.util.str2bool(e.get("default"))
+        default = cw.util.str2bool(data.get("default"))
         variable_names = [""] * 2
         for e in data:
             if e.tag == "Name":

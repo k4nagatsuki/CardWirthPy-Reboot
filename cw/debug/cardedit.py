@@ -5,6 +5,7 @@ import os
 import copy
 import threading
 import wx
+import wx.combo
 import wx.lib.agw.customtreectrl
 
 import cw

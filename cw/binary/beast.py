@@ -240,6 +240,7 @@ class BeastCard(base.CWBinaryBase):
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む
                         if 5 < len(keycodes):
+                            keycodes2 = []
                             for keycode in keycodes:
                                 if keycode:
                                     if 5 <= len(keycodes2):

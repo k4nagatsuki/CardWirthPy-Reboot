@@ -15,6 +15,7 @@ import pygame
 from pygame.locals import *
 
 import cw
+import cw.util
 import cw.binary.image
 
 
@@ -1063,8 +1064,8 @@ class CWPy(_Singleton, threading.Thread):
 #-------------------------------------------------------------------------------
 
     def set_status(self, name):
+        quickhide = (self.setting.all_quickdeal and not ("ScenarioBattle" in (name, self.status)))
         self.status = name
-        quickhide = (self.setting.all_quickdeal and name <> "ScenarioBattle")
         self.hide_cards(True, quickhide=quickhide)
         self.pre_areaids = []
         self.pre_dialogs = []

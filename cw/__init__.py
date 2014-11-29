@@ -33,6 +33,7 @@ import effectbooster
 import content
 import xmlcreater
 import bassplayer
+import binary
 
 import dialog
 import debug

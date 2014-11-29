@@ -2573,7 +2573,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
             try:
                 value = str(value)
             except:
-                t = (self.fpath, path, value, attr)
+                t = (self.fpath, path, value, attrname)
                 print u"エレメント編集失敗 (%s, %s, %s, %s)" % t
                 return
 

@@ -17,6 +17,7 @@ try:
         import _imageretouch64 as _imageretouch
 except ImportError, ex:
     print "failed to load _imageretouch module. %s" % (ex.message)
+    _imageretouch = object()
 
 
 def _retouch(func, image, *args):
