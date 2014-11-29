@@ -834,7 +834,8 @@ class Resource(object):
         return fontname
 
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
-                        family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM):
+                        family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM,
+                        adjustsize=False):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
@@ -851,7 +852,7 @@ class Resource(object):
 
         # BUG: フォントサイズとテキストによっては
         #      ツリーアイテムの後方が欠ける事がある
-        if name == "tree" and pixelsize % 2 == 1:
+        if (name == "tree" or adjustsize) and 15 < pixelsize and pixelsize % 2 == 1:
             pixelsize += 1
 
         wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)

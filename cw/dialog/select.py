@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import datetime
 import threading
 import zipfile
 import StringIO
@@ -2303,7 +2304,8 @@ class ScenarioSelect(Select):
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
         choices = (cw.cwpy.msgs["target_level"],
                    cw.cwpy.msgs["title"],
-                   cw.cwpy.msgs["author"])
+                   cw.cwpy.msgs["author"],
+                   cw.cwpy.msgs["modified_date"])
         self.sort = wx.Choice(self, -1, size=(-1, -1), choices=choices)
         self.sort.SetFont(font)
         self.sort.SetSelection(cw.cwpy.setting.scenario_sorttype)
@@ -2926,7 +2928,7 @@ class ScenarioSelect(Select):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(110))
             # 中身
-            font = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(16))
+            font = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14), adjustsize=True)
             font2 = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(12))
 
             names = self._narrow_scenario(self.names)
@@ -2944,6 +2946,9 @@ class ScenarioSelect(Select):
                         # 整列条件: 作者名
                         if header.author:
                             addition = u"(%s)" % (header.author)
+                    elif self.sort.GetSelection() == 3:
+                        # 整列条件: 更新日時
+                        addition = u"[%s]" % (self._formatted_mtime(header.mtime, False))
                     elif header.levelmin or header.levelmax:
                         levelmin = str(header.levelmin) if header.levelmin else " "
                         levelmax = str(header.levelmax) if header.levelmax else " "
@@ -3155,6 +3160,13 @@ class ScenarioSelect(Select):
 
         return itemlist, dpaths
 
+    def _formatted_mtime(self, mtime, showtime):
+        d = datetime.datetime.fromtimestamp(mtime)
+        if showtime:
+            return d.strftime("%Y-%m-%d %H:%M")
+        else:
+            return d.strftime("%Y-%m-%d")
+
     def create_treeitem(self, index, treeitem, header):
         name = header.name
         image = self.tree.imgidx_summary
@@ -3170,7 +3182,10 @@ class ScenarioSelect(Select):
             else:
                 name = u"[%2d～%2d] %s" % (header.levelmin, header.levelmax, name)
 
-        if self.sort.GetSelection() == 2 and header.author:
+        if self.sort.GetSelection() == 3:
+            # 日時による整列中
+            name = u"%s (%s)" % (name, self._formatted_mtime(header.mtime, True))
+        elif self.sort.GetSelection() == 2 and header.author:
             # 作者名による整列中
             name = u"%s (%s)" % (name, header.author)
 
@@ -3377,6 +3392,10 @@ class ScenarioSelect(Select):
         elif sort == 2:
             # 作者名
             cw.util.sort_by_attr(seq, "author")
+        elif sort == 3:
+            # 更新日時
+            cw.util.sort_by_attr(seq, "mtime")
+            seq.reverse()
 
         return dseq + seq
 
