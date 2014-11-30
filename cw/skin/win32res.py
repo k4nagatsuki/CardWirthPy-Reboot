@@ -94,7 +94,7 @@ class Win32Res(object):
         for i in xrange(number_of_section):
             rva = uint32.unpack(data[12:16])[0]
             if ".rsrc" == data[:5] or res_addr_rva == rva:
-                res_addr_rva == rva
+                res_addr_rva = rva
                 res_size = uint32.unpack(data[16:20])[0]
                 res_addr = uint32.unpack(data[20:24])[0]
                 break
