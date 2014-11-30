@@ -6,6 +6,7 @@ import sys
 import itertools
 import wx
 import wx.aui
+import wx.grid
 
 import cw
 
@@ -260,9 +261,9 @@ class SettingsDialog(wx.Dialog):
         elif value == 3:
             cw.cwpy.setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
             cw.cwpy.setting.fullscreenbackgroundtype = 2
-        def func():
+        def func1():
             cw.cwpy.update_fullscreenbackground()
-        cw.cwpy.exec_func(func)
+        cw.cwpy.exec_func(func1)
 
         # オーディオ
         value = self.pane_sound.cb_playbgm.GetValue()

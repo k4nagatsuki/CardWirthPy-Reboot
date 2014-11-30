@@ -228,12 +228,12 @@ class BgImage(base.CWBinaryBase):
                     for e_font in e:
                         if e_font.tag == "Color":
                             color = getcolor(e_font, color)
-                    bold = str2bool(e.get("bold", bold))
-                    italic = str2bool(e.get("italic", italic))
-                    underline = str2bool(e.get("underline", underline))
-                    strike = str2bool(e.get("strike", strike))
+                    bold = cw.util.str2bool(e.get("bold", bold))
+                    italic = cw.util.str2bool(e.get("italic", italic))
+                    underline = cw.util.str2bool(e.get("underline", underline))
+                    strike = cw.util.str2bool(e.get("strike", strike))
                 elif e.tag == "Vertical":
-                    vertical = str2bool(e.text)
+                    vertical = cw.util.str2bool(e.text)
                 elif e.tag == "Bordering":
                     btype = base.CWBinaryBase.unconv_borderingtype(e.get("type", "None"))
                     bwidth = int(e.get("width", "1"))

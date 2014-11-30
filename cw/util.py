@@ -1199,7 +1199,7 @@ def remove_file(path, retry=0):
             remove_file(path, retry + 1)
         elif retry < 5:
             time.sleep(1)
-            remove_tree(treepath, retry + 1)
+            remove_tree(path, retry + 1)
         else:
             raise err
 
@@ -2227,6 +2227,7 @@ def get_linktarget(file):
     """
     if sys.platform <> "win32" or not file.lower().endswith(".lnk"):
         return file
+
     _co_initialize()
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
@@ -2250,6 +2251,7 @@ def create_link(shortcutpath, targetpath):
     dpath = os.path.dirname(shortcutpath)
     if not os.path.exists(dpath):
         os.makedirs(dpath)
+
     _co_initialize()
     targetpath = os.path.abspath(targetpath)
     shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,

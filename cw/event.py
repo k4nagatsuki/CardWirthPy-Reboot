@@ -447,7 +447,7 @@ class EventEngine(object):
                 array = ["MatchingType=All"]
                 array.extend(igkeycodes)
                 igkeycodes = array
-                maching = "Or"
+                matching = "Or"
 
             if matching == "And":
                 match = True

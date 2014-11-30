@@ -635,7 +635,7 @@ class Content(base.CWBinaryBase):
             f.write_byte(base.CWBinaryBase.unconv_comparison3(data.get("comparison")))
             f.write_dword(int(data.get("round")))
         else:
-            raise ValueError(self.tag + ", " + self.type)
+            raise ValueError(tag + ", " + type)
 
 def main():
     pass
