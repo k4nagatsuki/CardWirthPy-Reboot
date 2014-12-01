@@ -869,8 +869,8 @@ static void _get_imagesize(FontInfo *font, LPWSTR str, UINT format, size_t *rw, 
         }
     }
     w = w2 < w ? w : w2;
-    if (!w) w = 1;
-    if (!h) h = 1;
+    if ((int)w <= 0) w = 1;
+    if ((int)h <= 0) h = 1;
 
     *rw = w;
     *rh = h;
