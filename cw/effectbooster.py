@@ -374,7 +374,7 @@ class _JpySubImage(cw.image.Image):
         # ノイズ
         if self.noise:
             if self.noise == 1:
-                if (self.noisepoint < 0 or self.noisepoint == 255) and self.paintmode <> 3:
+                if self.noisepoint <> 0 and self.paintmode <> 3:
                     self.can_mask = False
                 image = cw.imageretouch.add_lightness(image, self.noisepoint)
             elif self.noise == 2:
