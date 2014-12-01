@@ -851,11 +851,11 @@ static void _get_imagesize(FontInfo *font, LPWSTR str, UINT format, size_t *rw, 
         bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
         if (str[i+1])
         {
-            w2 += gm.gmCellIncX;
+        	w2 += max(0, gm.gmCellIncX);
         }
         else
         {
-            w2 += max(gm.gmCellIncX, gm.gmptGlyphOrigin.x + gm.gmBlackBoxX);
+            w2 += max(max(0, gm.gmCellIncX), max(0, gm.gmptGlyphOrigin.x) + max(0, gm.gmBlackBoxX));
         }
         if (font->underline)
         {
