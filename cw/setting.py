@@ -13,7 +13,6 @@ import weakref
 import array
 import wx
 import pygame
-from pygame.locals import *
 
 import cw
 
@@ -325,9 +324,9 @@ class Setting(object):
             key = e.getattr(".", "key", "")
             if not key:
                 continue
-            type = e.getattr(".", "type", "")
+            fonttype = e.getattr(".", "type", "")
             name = e.text if e.text else u""
-            self.fonttypes[key] = (type, name)
+            self.fonttypes[key] = (fonttype, name)
 
         self.showfps = False
 
@@ -575,8 +574,8 @@ class Setting(object):
                             if ignum <> "1" or igkeycode <> "":
                                 continue
                             post = me.find("Events/Event/Contents/Start/Contents/Post")
-                            type = post.getattr(".", "type", "")
-                            if type <> "Event":
+                            posttype = post.getattr(".", "type", "")
+                            if posttype <> "Event":
                                 continue
                             command = post.getattr(".", "command", "")
                             arg = post.getattr(".", "arg", "")
@@ -814,7 +813,7 @@ class Resource(object):
         if sys.platform == "win32" and not sys.getwindowsversion()[3] == 2:
             gdi32 = ctypes.windll.gdi32
 
-            for name, path in self.fontpaths.iteritems():
+            for path in self.fontpaths.itervalues():
                 gdi32.RemoveFontResourceA(path)
 
             user32 = ctypes.windll.user32
@@ -824,7 +823,6 @@ class Resource(object):
 
     def get_fontfromtype(self, name):
         """フォントタイプ名から抽象フォント名を取得する。"""
-        type = name
         basename = self.setting().fonttypes.get(name, name)
         basename, fontname = basename
         if basename:
@@ -844,7 +842,6 @@ class Resource(object):
         # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
         if not pixelsize:
-            dpi = wx.ScreenDC().GetPPI()[0]
             pixelsize = int((1.0/72 * 96) * size + 0.5)
         elif 3 <= wx.VERSION[0]:
             # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
@@ -916,26 +913,26 @@ class Resource(object):
         fonts["screenshot"] = font
         return fonts
 
-    def create_wxbutton(self, parent, id, size, name=None, bmp=None):
+    def create_wxbutton(self, parent, cid, size, name=None, bmp=None):
         if name:
-            button = wx.Button(parent, id, name, size=size)
+            button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
             button.SetFont(self.get_wxfont("button"))
         elif bmp:
-            button = wx.BitmapButton(parent, id, bmp)
+            button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
 
         return button
 
-    def create_wxbutton_dbg(self, parent, id, size, name=None, bmp=None):
+    def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None):
         if name:
-            button = wx.Button(parent, id, name, size=size)
+            button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
             button.SetFont(self.get_wxfont("button", pixelsize=14))
         elif bmp:
-            button = wx.BitmapButton(parent, id, bmp)
+            button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
@@ -981,10 +978,10 @@ class Resource(object):
         def subtract_corner(value):
             # 角部分の線の色を濃くする
             color = (value, value, value, 0)
-            topleft.fill(color, special_flags=BLEND_RGBA_SUB)
-            topright.fill(color, special_flags=BLEND_RGBA_SUB)
-            bottomleft.fill(color, special_flags=BLEND_RGBA_SUB)
-            bottomright.fill(color, special_flags=BLEND_RGBA_SUB)
+            topleft.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            topright.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            bottomleft.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            bottomright.fill(color, special_flags=pygame.locals.BLEND_RGBA_SUB)
 
         bmp = pygame.Surface((w, h)).convert_alpha()
 
@@ -1090,10 +1087,10 @@ class Resource(object):
         bottomleft = pygame.transform.flip(topleft, False, True)
         bottomright = pygame.transform.flip(topleft, True, True)
 
-        bmp.blit(topleft, (1, 1), special_flags=BLEND_RGBA_SUB)
-        bmp.blit(topright, (w-6-1, 1), special_flags=BLEND_RGBA_SUB)
-        bmp.blit(bottomleft, (1, h-6-1), special_flags=BLEND_RGBA_SUB)
-        bmp.blit(bottomright, (w-6-1, h-6-1), special_flags=BLEND_RGBA_SUB)
+        bmp.blit(topleft, (1, 1), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(topright, (w-6-1, 1), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(bottomleft, (1, h-6-1), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(bottomright, (w-6-1, h-6-1), special_flags=pygame.locals.BLEND_RGBA_SUB)
 
         pygame.draw.rect(bmp, (0, 0, 0, 0), (0, 0, w, h), 1)
 
@@ -1392,8 +1389,8 @@ class Resource(object):
             carddata = cw.data.xml2element(fpath)
 
         d = {}
-        for type in ("ItemCard", "BeastCard"):
-            d[type] = cw.header.CardHeader(carddata=carddata, bgtype=type.upper().replace("CARD", ""))
+        for cardtype in ("ItemCard", "BeastCard"):
+            d[cardtype] = cw.header.CardHeader(carddata=carddata, bgtype=cardtype.upper().replace("CARD", ""))
         return d
 
     def get_specialchars(self):

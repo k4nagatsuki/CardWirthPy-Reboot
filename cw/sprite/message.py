@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import re
 import pygame
-from pygame.locals import *
 
 import cw
 import base
@@ -282,7 +280,7 @@ class MessageWindow(base.CWPySprite):
                     image = pygame.Surface(size).convert()
                     image.fill(colour)
                     image.blit(charimg, (0, 0))
-                    image.set_colorkey(image.get_at((0, 0)), RLEACCEL)
+                    image.set_colorkey(image.get_at((0, 0)), pygame.locals.RLEACCEL)
                     image = cw.s((image, cw.setting.SIZE_SPFONT))
                     images.append((pos, decorate(image, basecolour=colour), None))
                     pos = pos[0] + cw.s(20), pos[1]
@@ -678,24 +676,24 @@ class BacklogCurtain(base.CWPySprite):
         self.rect.topleft = cw.s((0, 0))
 
 class BacklogPage(base.CWPySprite):
-    def __init__(self, page, max, spritegrp):
+    def __init__(self, page, pagemax, spritegrp):
         """バックログの何ページ目を見ているかを表示するスプライト。
         page: 現在見ているページ。
-        max: ページの最大数。
+        pagemax: ページの最大数。
         spritegrp: 登録するSpriteGroup。"backlogpage"レイヤに追加される。
         """
         base.CWPySprite.__init__(self)
-        self.update_page(page, max)
+        self.update_page(page, pagemax)
         # spritegroupに追加
         spritegrp.add(self, layer="backlogpage")
 
-    def update_page(self, page, max):
+    def update_page(self, page, pagemax):
         """バックログの何ページ目を見ているかの情報を更新する。
         page: 現在見ているページ。
-        max: ページの最大数。
+        pagemax: ページの最大数。
         """
         self.page = page
-        self.max = max
+        self.max = pagemax
         self.update_scale()
 
     def update_scale(self):
@@ -846,11 +844,11 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
         def get_varvalue(get, c):
             if i+1 == len(s):
                 return 0
-            next = s[i+1:].find(c)
-            if next < 0:
+            nextpos = s[i+1:].find(c)
+            if nextpos < 0:
                 return 0
-            fl = s[i+1:i+1+next]
-            skip = 1 + next
+            fl = s[i+1:i+1+nextpos]
+            skip = 1 + nextpos
             buf.append(get(fl))
             return skip
 

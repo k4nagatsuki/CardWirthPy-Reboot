@@ -6,6 +6,7 @@ import threading
 import cwscenario
 import cwyado
 import xmltemplate
+import image
 
 
 class ConvertingThread(threading.Thread):

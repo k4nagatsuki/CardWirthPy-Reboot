@@ -17,8 +17,8 @@ class EffectMotion(base.CWBinaryBase):
 
         if 2 < dataversion:
             # 不明なバイト列(8,5,0,0,0)。読み飛ばし。
-            for cnt in xrange(5):
-                b = f.byte()
+            for _cnt in xrange(5):
+                _b = f.byte()
 
         self.element = f.byte()
 
@@ -57,7 +57,7 @@ class EffectMotion(base.CWBinaryBase):
         elif self.tabtype == 8:
             beasts_num = f.dword()
             self.beasts = [beast.BeastCard(self, f, summoneffect=True)
-                                            for cnt in xrange(beasts_num)]
+                                            for _cnt in xrange(beasts_num)]
         else:
             raise ValueError(self.fpath)
 
@@ -82,7 +82,7 @@ class EffectMotion(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        tabtype, type = base.CWBinaryBase.unconv_effectmotion_type(data.get("type"), f)
+        tabtype, mtype = base.CWBinaryBase.unconv_effectmotion_type(data.get("type"), f)
         element = base.CWBinaryBase.unconv_effectmotion_element(data.get("element"))
 
         f.write_byte(tabtype)
@@ -98,7 +98,7 @@ class EffectMotion(base.CWBinaryBase):
 
         # 大分類が召喚の場合は、typeを飛ばす
         if tabtype <> 8:
-            f.write_byte(type)
+            f.write_byte(mtype)
 
         # 生命力, 肉体
         if tabtype in (0, 1):

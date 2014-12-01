@@ -47,9 +47,9 @@ class Environment(base.CWBinaryBase):
         self.gossips = f.string(True)
         unusedcards_num = f.dword()
         self.unusedcards = [UnusedCard(self, f)
-                                    for cnt in xrange(unusedcards_num)]
+                                    for _cnt in xrange(unusedcards_num)]
         yadocards_num = f.dword()
-        self.yadocards = [YadoCard(self, f) for cnt in xrange(yadocards_num)]
+        self.yadocards = [YadoCard(self, f) for _cnt in xrange(yadocards_num)]
         self.money = f.dword()
         self.partyname = f.string()
         # CardWirthPyにおける選択中パーティ
@@ -118,9 +118,6 @@ class Environment(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data, table):
         yadotype = 1 # 常に通常宿とする
-        drawcard_speed = 4 # 標準値
-        drawbg_speed = 4 # 標準値
-        message_speed = 4 # 標準値
         play_bgm = True
         play_sound = True
         correct_scaledown = True
@@ -263,18 +260,18 @@ class YadoCard(base.CWBinaryBase):
         name = data.findtext("Property/Name", "")
         description = data.findtext("Property/Description", "")
         if data.tag == "SkillCard":
-            type = 1
+            restype = 1
         elif data.tag == "ItemCard":
-            type = 2
+            restype = 2
         elif data.tag == "BeastCard":
-            type = 3
+            restype = 3
         number = 1
 
         f.write_byte(0)
         f.write_byte(0)
         f.write_string(name)
         f.write_string(description)
-        f.write_byte(type)
+        f.write_byte(restype)
         f.write_rawstring(cw.util.splitext(fname)[0])
         f.write_dword(number)
 

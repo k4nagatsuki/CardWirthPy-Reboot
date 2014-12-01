@@ -3,7 +3,6 @@
 
 import os
 import shutil
-import wx
 import wx.combo
 
 import cw
@@ -387,7 +386,7 @@ class Number2EditDialog(wx.Dialog):
 class NumberComboEditDialog(wx.Dialog):
 
     def __init__(self, parent, title,
-                 label1, list, selected,
+                 label1, mlist, selected,
                  label2, value, minvalue, maxvalue):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
@@ -400,7 +399,7 @@ class NumberComboEditDialog(wx.Dialog):
 
         # コンボボックス
         self.combo = wx.combo.BitmapComboBox(self.panel, -1, style=wx.CB_READONLY)
-        for li in list:
+        for li in mlist:
             if isinstance(li, (str, unicode)):
                 self.combo.Append(li)
             else:
@@ -567,7 +566,7 @@ class NumberEditor(wx.Panel):
 
 class ComboEditDialog(wx.Dialog):
 
-    def __init__(self, parent, title, label, list, selected):
+    def __init__(self, parent, title, label, mlist, selected):
         wx.Dialog.__init__(self, parent, -1, title,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.selected = selected
@@ -577,7 +576,7 @@ class ComboEditDialog(wx.Dialog):
 
         # コンボボックス
         self.combo = wx.combo.BitmapComboBox(self.panel, -1, style=wx.CB_READONLY)
-        for li in list:
+        for li in mlist:
             if isinstance(li, (str, unicode)):
                 self.combo.Append(li)
             else:
@@ -644,13 +643,13 @@ class ComboEditDialog(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class LevelEditDialog(wx.Dialog):
-    def __init__(self, parent, list, selected, party=None):
+    def __init__(self, parent, mlist, selected, party=None):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["regulate_level_title"],
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
 
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
 
-        self.list = list
+        self.list = mlist
         self.party = party
 
         # 対象者
@@ -860,9 +859,9 @@ class YadoEditDialog(wx.Dialog):
 
             # ディレクトリの移動
             yadodir = os.path.dirname(self.yadodir)
-            dir = cw.binary.util.check_filename(name)
-            if os.path.normcase(os.path.basename(self.yadodir)) <> os.path.normcase(dir):
-                yadodir = cw.util.join_paths(yadodir, dir)
+            dname = cw.binary.util.check_filename(name)
+            if os.path.normcase(os.path.basename(self.yadodir)) <> os.path.normcase(dname):
+                yadodir = cw.util.join_paths(yadodir, dname)
                 yadodir = cw.binary.util.check_duplicate(yadodir)
                 try:
                     shutil.move(self.yadodir, yadodir)

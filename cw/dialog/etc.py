@@ -4,8 +4,6 @@
 import os
 import sys
 import itertools
-import threading
-import shutil
 
 import wx
 import pygame
@@ -99,35 +97,35 @@ class BattleCommand(wx.Dialog):
 
     def OnKeyDown(self, event):
         dc = wx.ClientDC(self.toppanel)
-        id = event.GetId()
+        resid = event.GetId()
 
-        list = None
-        if id == self.returnkeyid:
+        seq = None
+        if resid == self.returnkeyid:
             for header in self.list:
                 if header.negaflag:
                     cw.cwpy.sounds["click"].play()
                     self.animate_click(header)
                     header.lclick_event()
                     return
-        elif id == self.leftkeyid:
-            list = self.list[:]
-            list.reverse()
-        elif id == self.rightkeyid:
-            list = self.list
+        elif resid == self.leftkeyid:
+            seq = self.list[:]
+            seq.reverse()
+        elif resid == self.rightkeyid:
+            seq = self.list
 
-        if not list:
+        if not seq:
             return
         c1 = None
-        c2 = list[0]
-        for i, header in enumerate(list):
+        c2 = seq[0]
+        for i, header in enumerate(seq):
             if header.negaflag:
-                if i == len(list)-1:
+                if i == len(seq)-1:
                     c1 = header
-                    c2 = list[0]
+                    c2 = seq[0]
                     break
                 else:
                     c1 = header
-                    c2 = list[i+1]
+                    c2 = seq[i+1]
                     break
 
         if c1:
@@ -280,10 +278,10 @@ class ExtensionDialog(wx.Dialog):
         self.buttons = []
         for t in self.items:
             if len(t) == 3:
-                name, desc, func = t
+                name, _desc, _func = t
                 enable = True
             else:
-                name, desc, func, enable = t
+                name, _desc, _func, enable = t
             btn = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(24)), name=name)
             btn.Enable(enable)
             self.buttons.append(btn)
@@ -448,8 +446,6 @@ class BookmarkDialog(wx.Dialog):
         self.Destroy()
 
     def _do_layout(self):
-        sizer = wx.GridBagSizer()
-
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=cw.wins(5))
@@ -546,8 +542,8 @@ class BookmarkDialog(wx.Dialog):
         self.Destroy()
 
 class AutoListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, id, size, style):
-        wx.ListCtrl.__init__(self, parent, id, size=size, style=style)
+    def __init__(self, parent, cid, size, style):
+        wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
 class ConvertYadoDialog(wx.Dialog):
@@ -561,7 +557,7 @@ class ConvertYadoDialog(wx.Dialog):
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
-        w, h, lh = dc.GetMultiLineTextExtent(self.message)
+        w, _h, _lh = dc.GetMultiLineTextExtent(self.message)
         self.SetClientSize((w + cw.wins(50), cw.wins(156)))
 
         self.targetengine = 1.50
@@ -574,7 +570,7 @@ class ConvertYadoDialog(wx.Dialog):
 
         s = ((u"%s のデータをCardWirth用に逆変換します。" +
               u"\n変換先のフォルダを選択してください。") % (yadoname))
-        self.reffolder = cw.util.create_fileselection(self, self.folder, s, dir=True, getbasedir=os.getcwdu, winsize=True)
+        self.reffolder = cw.util.create_fileselection(self, self.folder, s, seldir=True, getbasedir=os.getcwdu, winsize=True)
         font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.reffolder.SetFont(font)
 
@@ -628,7 +624,7 @@ class ConvertYadoDialog(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
         s = self.message
-        w, h, lh = dc.GetMultiLineTextExtent(s)
+        w, h, _lh = dc.GetMultiLineTextExtent(s)
         dc.DrawLabel(s, ((csize[0]-w)/2, cw.wins(10), w, h))
 
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
@@ -642,7 +638,7 @@ class ConvertYadoDialog(wx.Dialog):
         dc.DrawText(s, x, y)
 
         s = u"生成先:"
-        x2, y2, w2, h2 = self.reffolder.GetRect()
+        _x2, _y2, _w2, h2 = self.reffolder.GetRect()
         dc.DrawText(s, x, y - h2 - cw.wins(5))
 
     def _bind(self):
@@ -661,7 +657,7 @@ class ConvertYadoDialog(wx.Dialog):
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
-        w, h = dc.GetTextExtent(u"対象エンジン:")
+        w, _h = dc.GetTextExtent(u"対象エンジン:")
         sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
         sizer_3.Add(self.target, 1, wx.CENTER, 0)
 

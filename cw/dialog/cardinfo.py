@@ -215,10 +215,10 @@ class MenuCardInfo(CardInfo):
 #-------------------------------------------------------------------------------
 
 class YadoCardInfo(CardInfo):
-    def __init__(self, parent, list, selection):
+    def __init__(self, parent, clist, selection):
         # カード情報
         self.selection = selection
-        self.list = list
+        self.list = clist
         self.index = self.list.index(selection)
         # ダイアログ作成
         CardInfo.__init__(self, parent)

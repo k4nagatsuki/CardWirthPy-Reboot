@@ -288,7 +288,7 @@ class AdventurerData(object):
         if not isinstance(race, cw.header.UnknownRaceHeader):
             self.set_coupon(u"＠Ｒ" + race.name, 0)
 
-        for name, velue in race.coupons:
+        for name, _velue in race.coupons:
             self.set_coupon(name, 0)
 
     def set_parents(self, father=None, mother=None):
@@ -596,21 +596,19 @@ class AdventurerCreaterPage(wx.Panel):
         self.draw()
 
     def OnLeftUp(self, event):
-        dc = wx.ClientDC(self)
         mousepos = event.GetPosition()
 
         for key, value in self.clickables.iteritems():
-            rect, method, wheelmethod = value
+            rect, method, _wheelmethod = value
 
             if method and rect.collidepoint(mousepos):
                 method(key)
 
     def OnMouseWheel(self, event):
-        dc = wx.ClientDC(self)
         mousepos = event.GetPosition()
 
         for key, value in self.clickables.iteritems():
-            rect, method, wheelmethod = value
+            rect, _method, wheelmethod = value
 
             if wheelmethod and rect.collidepoint(mousepos):
                 wheelmethod(key, event.GetWheelRotation())
@@ -817,8 +815,8 @@ class NamePage(AdventurerCreaterPage):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         csize = self.GetClientSize()
-        w1, h1 = self.textctrl.GetSize()
-        w2, h2 = self.ch_imgdpath.GetSize()
+        _w1, h1 = self.textctrl.GetSize()
+        w2, _h2 = self.ch_imgdpath.GetSize()
 
         sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
         sizer_1.Add(self.textctrl, 0, wx.CENTER, 0)
@@ -1019,7 +1017,7 @@ class RelationPage(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
         dc.SetFont(font)
-        s = s = cw.cwpy.msgs["relation_title"]
+        s = cw.cwpy.msgs["relation_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 親となる条件を満たしている冒険者が宿にいます。
@@ -1201,13 +1199,13 @@ class RelationPage(AdventurerCreaterPage):
         if not cw.cwpy.ydata:
             return
 
-        for index, header in enumerate(cw.cwpy.ydata.standbys):
+        for header in cw.cwpy.ydata.standbys:
             for period in cw.cwpy.setting.periods:
                 if period.spendep > 0 and header.age == u"＿" + period.name and header.ep >= period.spendep:
                     append_header(self, header)
                     break
 
-        for index, header in enumerate(cw.cwpy.ydata.album):
+        for header in cw.cwpy.ydata.album:
             if header.ep >= 10:
                 append_header(self, header)
 
@@ -1230,7 +1228,7 @@ class TalentPage(AdventurerCreaterPage):
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
         dc.SetFont(font)
-        s = s = cw.cwpy.msgs["nature_title"]
+        s = cw.cwpy.msgs["nature_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の傾向を選択して下さい。
@@ -1252,7 +1250,7 @@ class TalentPage(AdventurerCreaterPage):
             y = cw.wins(85)
             yd = cw.wins(15)
             yp = cw.wins(45)
-        for i, nature in enumerate(natures):
+        for nature in natures:
             s = cw.util.txtwrap(nature.description, mode=5)
             dc.SetFont(font1)
             dc.DrawLabel(s, (x + cw.wins(3), y + yd, w, cw.wins(35)))
@@ -1424,8 +1422,6 @@ class YadoCreater(wx.Dialog):
             self.okbtn.Disable()
 
     def OnOk(self, event):
-        name = self.textctrl.GetValue().strip()
-
         self.create_yado()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
@@ -1482,7 +1478,7 @@ class YadoCreater(wx.Dialog):
         dc = wx.ClientDC(self)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
-        w, h = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
+        w, _h = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
         sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
         sizer_3.Add(self.skin, 0, wx.CENTER, 0)
         sizer_1.Add(sizer_3, 0, wx.CENTER, 0)
@@ -1719,7 +1715,6 @@ class DesignPanel(AdventurerCreaterPage):
         path = "Table/Bill" + cw.cwpy.rsrc.ext_img
         path = cw.util.join_paths(cw.cwpy.skindir, path)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
-        bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # Resident Registration

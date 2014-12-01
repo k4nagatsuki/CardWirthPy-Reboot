@@ -36,8 +36,8 @@ class BgImage(base.CWBinaryBase):
                 self.flag = ""
                 self.unknown = 0
         else:
-            type = f.byte()
-            if type == 2:
+            bgtype = f.byte()
+            if bgtype == 2:
                 # テキストセル
                 self.type = cw.sprite.background.BG_TEXT
                 self.mask = f.bool()
@@ -75,7 +75,7 @@ class BgImage(base.CWBinaryBase):
                 self.flag = f.string()
                 self.unknown = f.byte()
 
-            elif type == 3:
+            elif bgtype == 3:
                 # カラーセル
                 self.type = cw.sprite.background.BG_COLOR
                 self.blend = f.byte()
@@ -97,7 +97,7 @@ class BgImage(base.CWBinaryBase):
                 self.unknown = f.byte()
 
             else:
-                raise ValueError("Background type: %s" % (type))
+                raise ValueError("Background type: %s" % (bgtype))
 
         self.data = None
 
@@ -147,8 +147,8 @@ class BgImage(base.CWBinaryBase):
                 self.data.append(e)
 
                 if self.gradient <> 0:
-                    dir = self.conv_gradientdir(self.gradient)
-                    e = cw.data.make_element("Gradient", attrs={"direction": dir})
+                    dire = self.conv_gradientdir(self.gradient)
+                    e = cw.data.make_element("Gradient", attrs={"direction": dire})
                     e.append(makecolor("EndColor", self.color2))
                     self.data.append(e)
 

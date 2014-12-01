@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import copy
-
-import pygame
-
 import cw
 from cw.character import Character
 
@@ -176,7 +171,6 @@ class Effect(object):
                         consume.add(header)
 
             # ボーナス・ペナルティの発動したカードを一時表示する
-            guardcardimg = None
             if not event and guardcard:
                 cw.cwpy.sounds["equipment"].play(True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
@@ -1043,7 +1037,7 @@ def get_effectivetargets(header, targets):
                             ts.append(t)
                 if cw.cwpy.battle:
                     # すでにその行動のターゲットになっている場合は行わない
-                    for s2, tarr, user in cw.cwpy.battle.priorityacts:
+                    for s2, tarr, _user in cw.cwpy.battle.priorityacts:
                         if s == s2:
                             if isinstance(tarr, cw.character.Character):
                                 if tarr in ts:

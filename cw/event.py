@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import pygame
-from pygame.locals import *
 
 import cw
-from cw.character import Character, Enemy
+from cw.character import Enemy
 
 
 class EventInterface(object):
@@ -727,11 +726,11 @@ class Event(object):
                     # フラグ判定コンテントの場合、
                     # 対応フラグがTrueの場合のみ実行対象に
                     if e.tag == "Check":
-                        type = e.get("type")
-                        if type == "Flag":
+                        ctype = e.get("type")
+                        if ctype == "Flag":
                             if cw.content.CheckFlagContent(e).action() == 0:
                                 seq.append(e)
-                        elif type == "Step":
+                        elif ctype == "Step":
                             if cw.content.CheckStepContent(e).action() == 0:
                                 seq.append(e)
 

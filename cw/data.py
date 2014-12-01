@@ -8,7 +8,6 @@ import copy
 import time
 import shutil
 import threading
-import StringIO
 import xml.parsers.expat
 from xml.etree.cElementTree import ElementTree
 from xml.etree.ElementTree import _ElementInterface
@@ -16,7 +15,6 @@ from xml.etree.ElementTree import _ElementInterface
 import pygame
 
 import cw
-import cw.scenariodb
 from cw.util import synclock
 
 
@@ -78,9 +76,9 @@ class SystemData(object):
 
             if os.path.isfile(path) and fname.endswith(".xml"):
                 e = xml2element(path, "Property")
-                id = e.getint("Id")
+                resid = e.getint("Id")
                 name = e.gettext("Name")
-                self.areas[id] = (name, path)
+                self.areas[resid] = (name, path)
 
     def _init_sparea_mcards(self):
         """
@@ -89,7 +87,7 @@ class SystemData(object):
         """
         d = {}
 
-        for key, value in self.areas.iteritems():
+        for key in self.areas.iterkeys():
             if key in cw.AREAS_TRADE:
                 data = self.get_mcarddata(key, battlestatus=False)
                 areaid = cw.cwpy.areaid
@@ -109,7 +107,7 @@ class SystemData(object):
         pass
 
     def update_scale(self):
-        for key, mcards in self.sparea_mcards.iteritems():
+        for mcards in self.sparea_mcards.itervalues():
             for mcard in mcards:
                 mcard.update_scale()
 
@@ -158,15 +156,15 @@ class SystemData(object):
 
         return "", False
 
-    def change_data(self, id):
+    def change_data(self, resid):
         if cw.cwpy.is_battlestatus():
-            if not id in self.battles:
+            if not resid in self.battles:
                 return
-            path = self.battles[id][1]
+            path = self.battles[resid][1]
         else:
-            if not id in self.areas:
+            if not resid in self.areas:
                 return
-            path = self.areas[id][1]
+            path = self.areas[resid][1]
 
         self.data = xml2etree(path)
 
@@ -204,7 +202,7 @@ class SystemData(object):
         else:
             return []
 
-    def get_mcarddata(self, id=None, battlestatus=None):
+    def get_mcarddata(self, resid=None, battlestatus=None):
         """spreadtypeの値("Custom", "Auto")と
         メニューカードのElementのリストをタプルで返す。
         id: 取得対象のエリア。不指定の場合は現在のエリア。
@@ -212,13 +210,13 @@ class SystemData(object):
         if not isinstance(battlestatus, bool):
             battlestatus = cw.cwpy.is_battlestatus()
 
-        if id is None:
+        if resid is None:
             data = self.data
         elif battlestatus:
-            path = self.battles[id][1]
+            path = self.battles[resid][1]
             data = xml2etree(path)
         else:
-            path = self.areas[id][1]
+            path = self.areas[resid][1]
             data = xml2etree(path)
 
         e = data.find("MenuCards")
@@ -238,14 +236,14 @@ class SystemData(object):
         """現在使用可能なBGMのパスのリストを返す。"""
         seq = []
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Bgm")
-        for dpath2, dnames, fnames in os.walk(dpath):
+        for dpath2, _dnames, fnames in os.walk(dpath):
             for fname in fnames:
                 if cw.util.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
                     if dpath2 == dpath:
-                        dir = ""
+                        dname = ""
                     else:
-                        dir = cw.util.relpath(dpath2, dpath)
-                    seq.append(cw.util.join_paths(dir, fname))
+                        dname = cw.util.relpath(dpath2, dpath)
+                    seq.append(cw.util.join_paths(dname, fname))
         return seq
 
     def reset_fcards(self):
@@ -334,7 +332,7 @@ class ScenarioData(SystemData):
                 fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
                 fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
                 if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):
-                    for dpath, dnames, fnames in os.walk(self.tempdir):
+                    for dpath, _dnames, fnames in os.walk(self.tempdir):
                         if "Summary.wsm" in fnames or "Summary.xml" in fnames:
                             # アーカイヴのサブフォルダにシナリオがあるので
                             # tempdirの位置に移動する
@@ -413,7 +411,7 @@ class ScenarioData(SystemData):
         #        取得に失敗する事があるので、すべて小文字のパスをキーにして
         #        真のファイル名へのマッピングをしておく。
         #        主にこの問題は手書きされる'*.jpy1'内で発生する。
-        for dpath, dnames, fnames in os.walk(self.tempdir):
+        for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 path = cw.util.join_paths(dpath, fname)
                 self.ignorecase_table[path.lower()] = path
@@ -475,7 +473,7 @@ class ScenarioData(SystemData):
         self.skills = {}
         self.beasts = {}
 
-        for dpath, dnames, fnames in os.walk(self.tempdir):
+        for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 # "font_*.*"のファイルパスの画像を特殊文字に指定
                 if self.eat_spchar(dpath, fname):
@@ -499,33 +497,33 @@ class ScenarioData(SystemData):
                 if lf.endswith(".xml"):
                     # wsnシナリオの基本要素一覧情報
                     e = xml2element(path, "Property")
-                    id = e.getint("Id")
+                    resid = e.getint("Id")
                     name = e.gettext("Name", "")
                 else:
                     # クラシックなシナリオの基本要素一覧情報
-                    wdata, filedata = cw.cwpy.classicdata.load_file(path, nameonly=True)
+                    wdata, _filedata = cw.cwpy.classicdata.load_file(path, nameonly=True)
                     if wdata is None:
                         continue
-                    id = wdata.id
+                    resid = wdata.id
                     name = wdata.name
 
                 ldpath = dpath.lower()
                 if ldpath.endswith("area") or lf.startswith("area"):
-                    self.areas[id] = (name, path)
+                    self.areas[resid] = (name, path)
                 elif ldpath.endswith("battle") or lf.startswith("battle"):
-                    self.battles[id] = (name, path)
+                    self.battles[resid] = (name, path)
                 elif ldpath.endswith("package") or lf.startswith("package"):
-                    self.packs[id] = (name, path)
+                    self.packs[resid] = (name, path)
                 elif ldpath.endswith("castcard") or lf.startswith("mate"):
-                    self.casts[id] = (name, path)
+                    self.casts[resid] = (name, path)
                 elif ldpath.endswith("infocard") or lf.startswith("info"):
-                    self.infos[id] = (name, path)
+                    self.infos[resid] = (name, path)
                 elif ldpath.endswith("itemcard") or lf.startswith("item"):
-                    self.items[id] = (name, path)
+                    self.items[resid] = (name, path)
                 elif ldpath.endswith("skillcard") or lf.startswith("skill"):
-                    self.skills[id] = (name, path)
+                    self.skills[resid] = (name, path)
                 elif ldpath.endswith("beastcard") or lf.startswith("beast"):
-                    self.beasts[id] = (name, path)
+                    self.beasts[resid] = (name, path)
 
         if not self.summary:
             raise ValueError("Summary file is not found.")
@@ -538,15 +536,15 @@ class ScenarioData(SystemData):
 
             if os.path.isfile(path) and fname.endswith(".xml"):
                 e = xml2element(path, "Property")
-                id = e.getint("Id")
+                resid = e.getint("Id")
                 name = e.gettext("Name")
-                self.areas[id] = (name, path)
+                self.areas[resid] = (name, path)
 
     def update_scale(self):
         # 特殊文字の画像パスの集合(正規表現)
         SystemData.update_scale(self)
 
-        for dpath, dnames, fnames in os.walk(self.tempdir):
+        for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 self.eat_spchar(dpath, fname)
 
@@ -787,14 +785,14 @@ class ScenarioData(SystemData):
         """現在使用可能なBGMのパスのリストを返す。"""
         seq = SystemData.get_bgmpaths(self)
         dpath = self.tempdir
-        for dpath2, dnames, fnames in os.walk(dpath):
+        for dpath2, _dnames, fnames in os.walk(dpath):
             for fname in fnames:
                 if cw.util.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
                     if dpath2 == dpath:
-                        dir = ""
+                        dname = ""
                     else:
-                        dir = cw.util.relpath(dpath2, dpath)
-                    seq.append(cw.util.join_paths(dir, fname))
+                        dname = cw.util.relpath(dpath2, dpath)
+                    seq.append(cw.util.join_paths(dname, fname))
         return seq
 
     def reset_fcards(self):
@@ -1488,7 +1486,7 @@ class YadoData(object):
         # カード置場の順序を記憶しておく
         cardorder = {}
         cardtable = {}
-        for i, header in enumerate(self.storehouse):
+        for header in self.storehouse:
             if header.fpath.lower().startswith("yado"):
                 fpath = cw.util.relpath(header.fpath, self.yadodir)
             else:
@@ -1500,7 +1498,7 @@ class YadoData(object):
         # 宿帳の順序を記憶しておく
         adventurerorder = {}
         adventurertable = {}
-        for i, header in enumerate(self.standbys):
+        for header in self.standbys:
             if header.fpath.lower().startswith("yado"):
                 fpath = cw.util.relpath(header.fpath, self.yadodir)
             else:
@@ -1522,7 +1520,7 @@ class YadoData(object):
             self.party.write()
 
         # TEMPのファイルを移動
-        for dpath, dnames, fnames in os.walk(self.tempdir):
+        for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 path = cw.util.join_paths(dpath, fname)
                 dstpath = path.replace(self.tempdir, self.yadodir, 1)
@@ -1569,7 +1567,7 @@ class YadoData(object):
             yadodir = party.get_yadodir()
             tempdir = party.get_tempdir()
             cardtable = {}
-            for i, header in enumerate(party.backpack):
+            for header in party.backpack:
                 if header.fpath.lower().startswith("yado"):
                     fpath = cw.util.relpath(header.fpath, yadodir)
                 else:
@@ -2117,7 +2115,7 @@ class Party(object):
         cw.cwpy.pcardgrp.remove(pcard)
         self.data.getfind("Property/Members").clear()
 
-        for index, pcard in enumerate(cw.cwpy.get_pcards()):
+        for pcard in cw.cwpy.get_pcards():
             s = os.path.basename(pcard.data.fpath)
             s = cw.util.splitext(s)[0]
             e = self.data.make_element("Member", s)
@@ -2129,26 +2127,26 @@ class Party(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        list = cw.cwpy.pcardgrp.sprites()
-        assert len(list) == len(self.members)
-        list[index1], list[index2] = list[index2], list[index1]
+        seq = cw.cwpy.pcardgrp.sprites()
+        assert len(seq) == len(self.members)
+        seq[index1], seq[index2] = seq[index2], seq[index1]
         self.members[index1], self.members[index2] = self.members[index2], self.members[index1]
         cw.cwpy.pcardgrp.empty()
-        cw.cwpy.pcardgrp.add(list)
+        cw.cwpy.pcardgrp.add(seq)
 
         self.data.getfind("Property/Members").clear()
-        for index, pcard in enumerate(cw.cwpy.get_pcards()):
+        for pcard in cw.cwpy.get_pcards():
             s = os.path.basename(pcard.data.fpath)
             s = cw.util.splitext(s)[0]
             e = self.data.make_element("Member", s)
             self.data.append("Property/Members", e)
 
-        pcard1 = list[index1]
-        pcard2 = list[index2]
+        pcard1 = seq[index1]
+        pcard2 = seq[index2]
         cw.animation.animate_sprites([pcard1, pcard2], "hide")
-        pos_noscale = list[index1].get_pos_noscale()
-        list[index1].set_pos_noscale(list[index2].get_pos_noscale())
-        list[index2].set_pos_noscale(pos_noscale)
+        pos_noscale = seq[index1].get_pos_noscale()
+        seq[index1].set_pos_noscale(seq[index2].get_pos_noscale())
+        seq[index2].set_pos_noscale(pos_noscale)
         cw.animation.animate_sprites([pcard1, pcard2], "deal")
 
     def set_name(self, name):
@@ -2424,8 +2422,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
         return _ElementInterface.append(self, subelement)
 
     def extend(self, subelements):
-        l = len(self)
-        for i, subelement in enumerate(subelements):
+        for subelement in subelements:
             subelement.cwxparent = self
         return _ElementInterface.extend(self, subelements)
 
@@ -2543,9 +2540,9 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                 with io.BytesIO() as f:
                     f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
                     ElementTree.write(self, f, "utf-8")
-                    bytes = f.getvalue()
+                    sbytes = f.getvalue()
                 with open(path, "wb") as f:
-                    f.write(bytes)
+                    f.write(sbytes)
                     break
             except IOError, ex:
                 if 5 <= retry:
@@ -2662,13 +2659,13 @@ def yadoxml2element(path, tag=""):
     else:
         raise ValueError("%s is not found." % path)
 
-def xml2etree(path="", tag="", file=None, element=None, nocache=False):
+def xml2etree(path="", tag="", stream=None, element=None, nocache=False):
     if element is None:
-        element = xml2element(path, tag, file, nocache=nocache)
+        element = xml2element(path, tag, stream, nocache=nocache)
 
     return CWPyElementTree(element=element)
 
-def xml2element(path="", tag="", file=None, nocache=False):
+def xml2element(path="", tag="", stream=None, nocache=False):
     usecache = path and cw.cwpy and cw.cwpy.sdata and\
                isinstance(cw.cwpy.sdata, cw.data.ScenarioData) and\
                path.startswith(cw.cwpy.sdata.tempdir)
@@ -2689,7 +2686,7 @@ def xml2element(path="", tag="", file=None, nocache=False):
 
     data = None
     versionhint = None
-    if not file and cw.cwpy and cw.cwpy.classicdata:
+    if not stream and cw.cwpy and cw.cwpy.classicdata:
         # クラシックなシナリオのファイルだった場合は変換する
         lpath = path.lower()
         if lpath.endswith(".wsm") or lpath.endswith(".wid"):
@@ -2711,10 +2708,10 @@ def xml2element(path="", tag="", file=None, nocache=False):
 
     if data is None:
         if not usecache and tag and not versionhint:
-            parser = SimpleXmlParser(path, tag, file, targetonly=True)
+            parser = SimpleXmlParser(path, tag, stream, targetonly=True)
             return parser.parse()
         else:
-            parser = SimpleXmlParser(path, "", file)
+            parser = SimpleXmlParser(path, "", stream)
             data = parser.parse()
 
     basedata = data
@@ -2760,7 +2757,7 @@ class EndTargetTagException(Exception):
     pass
 
 class SimpleXmlParser(object):
-    def __init__(self, fpath, targettag="", file=None, targetonly=False):
+    def __init__(self, fpath, targettag="", stream=None, targetonly=False):
         """
         targettag: 読み込むタグのロケーションパス。絶対パスは使えない。
             "Property/Name"という風にタグごとに"/"で区切って指定する。
@@ -2769,7 +2766,7 @@ class SimpleXmlParser(object):
         self.root = None
         self.node_stack = []
         self.fpath = fpath.replace("\\", "/")
-        self.file = file
+        self.file = stream
         self.targettag = targettag.strip("/")
         self.targetonly = targetonly
         self.parsetags = []
@@ -2831,10 +2828,10 @@ class SimpleXmlParser(object):
 
         return self.root
 
-    def parse_file(self, file):
+    def parse_file(self, fname):
         try:
-            self._parse_file(file)
-        except EndTargetTagException, ex:
+            self._parse_file(fname)
+        except EndTargetTagException:
             pass
         except xml.parsers.expat.ExpatError, err:
             # エラーになったファイルのパスを付け加える
@@ -2842,14 +2839,14 @@ class SimpleXmlParser(object):
             err.args = (err.args[0] + s.encode(u"utf-8"), )
             raise err
 
-    def _parse_file(self, file):
+    def _parse_file(self, fname):
         parser = xml.parsers.expat.ParserCreate()
         parser.buffer_text = 1
         parser.StartElementHandler = self.start_element
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.char_data
 
-        fdata = file.read()
+        fdata = fname.read()
         parser.Parse(fdata, 1)
 
     def get_currentpath(self):

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import itertools
 import threading
 import shutil
@@ -274,8 +273,8 @@ class TransferYadoDataDialog(wx.Dialog):
                 counter += 1 # 全体情報
                 counter += 1 # 冒険中情報
                 counter += len(data.members)
-                for type in (u"SkillCard", u"ItemCard", u"BeastCard"):
-                    dpath = cw.util.join_paths(os.path.dirname(data.fpath), type)
+                for cardtype in (u"SkillCard", u"ItemCard", u"BeastCard"):
+                    dpath = cw.util.join_paths(os.path.dirname(data.fpath), cardtype)
                     if os.path.isdir(dpath):
                         counter += len(os.listdir(dpath))
             elif isinstance(data, cw.header.AdventurerHeader):
@@ -483,12 +482,12 @@ class TransferYadoDataDialog(wx.Dialog):
         carddb = cw.yadodb.YadoDB(dstdir, cw.yadodb.PARTY)
         for i, cardheader in enumerate(cards):
             fpath = cardheader.fpath
-            type = cardheader.type
+            cardtype = cardheader.type
             basename = os.path.basename(fpath)
             e = cw.data.xml2etree(fpath)
             e.fpath = u""
             self._transfer_card(fromyado, toyado, e, None, counter=counter)
-            e.fpath = cw.util.join_paths(dstdir, type, basename)
+            e.fpath = cw.util.join_paths(dstdir, cardtype, basename)
             e.fpath = cw.util.dupcheck_plus(e.fpath, yado=False)
             e.write()
             carddb.insert_card(e.fpath, commit=False, cardorder=i)
@@ -501,8 +500,8 @@ class TransferYadoDataDialog(wx.Dialog):
             # 冒険中情報
             cw.util.decompress_zip(wsl, cw.tempdir, "ScenarioLog")
 
-            file = cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml")
-            etree = cw.data.xml2etree(file)
+            fname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml")
+            etree = cw.data.xml2etree(fname)
             e = etree.getfind("Property/MusicPath")
             if e.getbool(".", "inusecard", False):
                 e.text = counter.imgpaths.get(e.text, e.text)
@@ -512,38 +511,38 @@ class TransferYadoDataDialog(wx.Dialog):
                     e.text = counter.imgpaths.get(e.text, e.text)
             etree.write()
 
-            file = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
-            if os.path.isfile(file):
-                etree = cw.data.xml2etree(file)
+            fname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face/Log.xml")
+            if os.path.isfile(fname):
+                etree = cw.data.xml2etree(fname)
                 for e in etree.getfind("."):
                     member = e.get("member", "")
                     e.set("member", counter.membertable.get(member, member))
                     e.text = counter.imgpaths.get(e.text, e.text)
                 etree.write()
 
-            dir = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party")
+            dname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party")
             etree = None
-            for p in os.listdir(dir):
+            for p in os.listdir(dname):
                 if p.lower().endswith(".xml"):
-                    etree = cw.data.xml2etree(cw.util.join_paths(dir, p))
+                    etree = cw.data.xml2etree(cw.util.join_paths(dname, p))
                     break
             for e in etree.getfind("Property/Members"):
                 e.text = counter.membertable[e.text]
             etree.write()
 
-            dir = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members")
-            dir2 = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members2")
-            if not os.path.isdir(dir2):
-                os.makedirs(dir2)
-            for p in os.listdir(dir):
+            dname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members")
+            dname2 = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Members2")
+            if not os.path.isdir(dname2):
+                os.makedirs(dname2)
+            for p in os.listdir(dname):
                 if not p.lower().endswith(".xml"):
                     continue
-                e = cw.data.xml2etree(cw.util.join_paths(dir, p))
+                e = cw.data.xml2etree(cw.util.join_paths(dname, p))
                 p2 = counter.membertable[os.path.splitext(p)[0]] + ".xml"
-                e.fpath = cw.util.join_paths(dir2, p2)
+                e.fpath = cw.util.join_paths(dname2, p2)
                 self._transfer_adventurer(fromyado, toyado, e, None, counter=counter, overwrite=True)
-            cw.util.remove(dir)
-            shutil.move(dir2, dir)
+            cw.util.remove(dname)
+            shutil.move(dname2, dname)
 
             wsl = cw.util.join_paths(dstdir, u"Party.wsl")
             cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wsl)
@@ -643,16 +642,16 @@ class TransferYadoDataDialog(wx.Dialog):
 
         # 転送元
         s = cw.cwpy.msgs["transfer_from_base"]
-        tw, th = dc.GetTextExtent(s)
-        x, y, w, h = self.fromyado.GetRect()
+        _tw, th = dc.GetTextExtent(s)
+        _x, y, _w, h = self.fromyado.GetRect()
         x = cw.wins(5)
         y += (h-th) / 2
         dc.DrawText(s, x, y)
 
         # 転送先
         s = cw.cwpy.msgs["transfer_to_base"]
-        tw, th = dc.GetTextExtent(s)
-        x, y, w, h = self.toyado.GetRect()
+        _tw, th = dc.GetTextExtent(s)
+        x, y, _w, h = self.toyado.GetRect()
         x = cw.wins(5)
         y += (h-th) / 2
         dc.DrawText(s, x, y)
@@ -665,7 +664,6 @@ class TransferYadoDataDialog(wx.Dialog):
         self.toyado.Bind(wx.EVT_CHOICE, self.OnToYado)
 
     def _do_layout(self):
-        csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_h1 = wx.BoxSizer(wx.HORIZONTAL)

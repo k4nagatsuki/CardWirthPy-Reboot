@@ -18,9 +18,9 @@ class Album(base.CWBinaryBase):
         self.name = f.string()
         self.image = f.image()
         self.level = f.word()
-        w = f.word() # 不明(能力修正？)
-        w = f.word() # 不明(能力修正？)
-        w = f.word() # 不明(能力修正？)
+        _w = f.word() # 不明(能力修正？)
+        _w = f.word() # 不明(能力修正？)
+        _w = f.word() # 不明(能力修正？)
         # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
         # 能力値
         self.dex = f.byte()
@@ -57,7 +57,7 @@ class Album(base.CWBinaryBase):
         self.description = f.string(True).replace("TEXT\\n", "", 1)
         # クーポン
         coupons_num = f.dword()
-        self.coupons = [coupon.Coupon(self, f) for cnt in xrange(coupons_num)]
+        self.coupons = [coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
 
         self.data = None
 
@@ -128,9 +128,9 @@ class Album(base.CWBinaryBase):
         dex = 0
         agl = 0
         inte = 0
-        str = 0
+        stre = 0
         vit = 0
-        min = 0
+        mind = 0
         aggressive = 0
         cheerful = 0
         brave = 0
@@ -159,9 +159,9 @@ class Album(base.CWBinaryBase):
                                 dex = int(ae.get("dex"))
                                 agl = int(ae.get("agl"))
                                 inte = int(ae.get("int"))
-                                str = int(ae.get("str"))
+                                stre = int(ae.get("str"))
                                 vit = int(ae.get("vit"))
-                                min = int(ae.get("min"))
+                                mind = int(ae.get("min"))
                             elif ae.tag == "Mental":
                                 aggressive = int(ae.get("aggressive"))
                                 cheerful = int(ae.get("cheerful"))
@@ -186,9 +186,9 @@ class Album(base.CWBinaryBase):
         f.write_word(dex)
         f.write_word(agl)
         f.write_word(inte)
-        f.write_word(str)
+        f.write_word(stre)
         f.write_word(vit)
-        f.write_word(min)
+        f.write_word(mind)
         f.write_word(aggressive)
         f.write_word(cheerful)
         f.write_word(brave)

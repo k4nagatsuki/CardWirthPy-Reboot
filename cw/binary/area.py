@@ -38,12 +38,12 @@ class Area(base.CWBinaryBase):
             return
 
         events_num = f.dword()
-        self.events = [event.Event(self, f) for cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
         self.spreadtype = f.byte()
         mcards_num = f.dword()
-        self.mcards = [MenuCard(self, f, dataversion=dataversion) for cnt in xrange(mcards_num)]
+        self.mcards = [MenuCard(self, f, dataversion=dataversion) for _cnt in xrange(mcards_num)]
         bgimgs_num = f.dword()
-        self.bgimgs = [bgimage.BgImage(self, f) for cnt in xrange(bgimgs_num)]
+        self.bgimgs = [bgimage.BgImage(self, f) for _cnt in xrange(bgimgs_num)]
 
         self.data = None
 
@@ -73,9 +73,9 @@ class Area(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        type = 0
+        restype = 0
         name = ""
-        id = 0
+        resid = 0
         events = []
         spreadtype = 0
         mcards = []
@@ -85,7 +85,7 @@ class Area(base.CWBinaryBase):
             if e.tag == "Property":
                 for prop in e:
                     if prop.tag == "Id":
-                        id = int(prop.text)
+                        resid = int(prop.text)
                     elif prop.tag == "Name":
                         name = prop.text
             elif e.tag == "BgImages":
@@ -96,10 +96,10 @@ class Area(base.CWBinaryBase):
             elif e.tag == "Events":
                 events = e
 
-        f.write_byte(type)
+        f.write_byte(restype)
         f.write_dword(0) # 不明
         f.write_string(name)
-        f.write_dword(id + 40000)
+        f.write_dword(resid + 40000)
         f.write_dword(len(events))
         for evt in events:
             event.Event.unconv(f, evt)
@@ -115,13 +115,13 @@ class MenuCard(base.CWBinaryBase):
     """メニューカードのデータ。"""
     def __init__(self, parent, f, yadodata=False, dataversion=4):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        b = f.byte() # 不明
+        _b = f.byte() # 不明
         self.image = f.image()
         self.name = f.string()
-        dw = f.dword() # 不明
+        _dw = f.dword() # 不明
         self.description = f.string(True)
         events_num = f.dword()
-        self.events = [event.Event(self, f) for cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
         self.flag = f.string()
         self.scale = f.dword()
         self.left = f.dword()

@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
 import itertools
 
-import wx
 import wx.combo
 import wx.lib.buttons
 import wx.lib.intctrl
-import pygame.time
 
 import cw
 import cardinfo
@@ -205,14 +202,14 @@ class CardControl(wx.Dialog):
         数値キー'1'～'9'までの押下を処理する。
         CardControlではソート条件の変更を行う。
         """
-        id = event.GetId()
-        if id in self.narrowkeydown:
-            index = self.narrowkeydown.index(id)
+        eid = event.GetId()
+        if eid in self.narrowkeydown:
+            index = self.narrowkeydown.index(eid)
             if index < self.narrow_type.GetCount():
                 self.narrow_type.SetSelection(index)
                 self.OnNarrowCondition(event)
-        if id in self.sortkeydown:
-            index = self.sortkeydown.index(id)
+        if eid in self.sortkeydown:
+            index = self.sortkeydown.index(eid)
             if index < self.sort.GetCount():
                 self.sort.SetSelection(index)
                 event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.sort.GetId())
@@ -357,10 +354,10 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
 
-        id = event.GetId()
+        eid = event.GetId()
 
-        list = None
-        if id == self.returnkeyid:
+        seq = None
+        if eid == self.returnkeyid:
             for header in self.get_headers():
                 if header.negaflag:
                     cw.cwpy.sounds["click"].play()
@@ -368,25 +365,25 @@ class CardControl(wx.Dialog):
                         self.lclick_event(header)
                     self.animate_click(header, func)
                     return
-        elif id == self.leftkeyid:
-            list = self.get_headers()[:]
-            list.reverse()
-        elif id == self.rightkeyid:
-            list = self.get_headers()
+        elif eid == self.leftkeyid:
+            seq = self.get_headers()[:]
+            seq.reverse()
+        elif eid == self.rightkeyid:
+            seq = self.get_headers()
 
-        if not list:
+        if not seq:
             return
         c1 = None
-        c2 = list[0]
-        for i, header in enumerate(list):
+        c2 = seq[0]
+        for i, header in enumerate(seq):
             if header.negaflag:
-                if i == len(list)-1:
+                if i == len(seq)-1:
                     c1 = header
-                    c2 = list[0]
+                    c2 = seq[0]
                     break
                 else:
                     c1 = header
-                    c2 = list[i+1]
+                    c2 = seq[i+1]
                     break
 
         self.set_cardpos()
@@ -410,14 +407,14 @@ class CardControl(wx.Dialog):
         if not self._can_sideclick():
             return False
         rect = self.toppanel.GetClientRect()
-        x, y = self.toppanel.ScreenToClient(wx.GetMousePosition())
+        x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
         return x < rect.x + rect.width / 4 and self.leftbtn.IsEnabled()
 
     def _is_cursorinright(self):
         if not self._can_sideclick():
             return False
         rect = self.toppanel.GetClientRect()
-        x, y = self.toppanel.ScreenToClient(wx.GetMousePosition())
+        x, _y = self.toppanel.ScreenToClient(wx.GetMousePosition())
         return rect.x + rect.width / 4 * 3 < x and self.rightbtn.IsEnabled()
 
     def OnMouseWheel(self, event):
@@ -437,7 +434,7 @@ class CardControl(wx.Dialog):
         mousepos = event.GetPosition()
         for header in self.get_headers():
             if header.wxrect.collidepoint(mousepos):
-                rect, x, y = self._get_starrect(header)
+                rect, _x, _y = self._get_starrect(header)
                 if rect.Contains(mousepos):
                     cw.cwpy.sounds["page"].play()
                     def func():
@@ -520,7 +517,7 @@ class CardControl(wx.Dialog):
                 header.negaflag = False
                 draw = True
 
-            rect, x, y = self._get_starrect(header)
+            rect, _x, _y = self._get_starrect(header)
             if rect.Contains(mousepos):
                 laststar = header
             draw |= laststar <> self._laststar
@@ -682,7 +679,6 @@ class CardControl(wx.Dialog):
             # カード置き場、荷物袋、情報カード
             if self._leftmark:
                 # ページ番号
-                page = max(self.index+1, 1)
                 maxpage = (len(self.list)+9)/10 if len(self.list) > 0 else 1
                 s = "/"
                 sw = dc.GetTextExtent(s)[0]
@@ -710,7 +706,7 @@ class CardControl(wx.Dialog):
             return wx.Rect(0, 0, 0, 0), 0, 0
         x = header.wxrect.left
         y = header.wxrect.top
-        bmp, usemask = self._drawlist[header]
+        bmp, _usemask = self._drawlist[header]
         w = bmp.GetWidth()
         h = bmp.GetHeight()
         x += (header.wxrect.width-w) / 2
@@ -1490,13 +1486,13 @@ class CardHolder(CardControl):
 
     def _set_backpacklist(self, narrow=True):
         if self.index3 == cw.POCKET_SKILL:
-            type = "SkillCard"
+            cardtype = "SkillCard"
         elif self.index3 == cw.POCKET_ITEM:
-            type = "ItemCard"
+            cardtype = "ItemCard"
         else:
             assert self.index3 == cw.POCKET_BEAST
-            type = "BeastCard"
-        self.list = filter(lambda header: header.type == type, cw.cwpy.ydata.party.backpack)
+            cardtype = "BeastCard"
+        self.list = filter(lambda header: header.type == cardtype, cw.cwpy.ydata.party.backpack)
         if narrow:
             self.list = self._narrow(self.list)
 
@@ -1737,29 +1733,29 @@ class CardHolder(CardControl):
         if cw.cwpy.setting.show_backpackcard and self.index3 <> cw.POCKET_SKILL and self.get_mode() == CCMODE_USE:
             space = self.selection.get_cardpocketspace()[self.index3]
             if len(self.list) < space:
-                type = ""
+                cardtype = ""
                 if self.index3 == cw.POCKET_ITEM:
-                    type = "ItemCard"
+                    cardtype = "ItemCard"
                 elif self.index3 == cw.POCKET_BEAST:
-                    type = "BeastCard"
-                if type:
+                    cardtype = "BeastCard"
+                if cardtype:
                     for header in cw.cwpy.ydata.party.backpack:
                         # 荷物袋に存在する場合のみ選択肢「荷物袋」を表示
-                        if header.type == type:
-                            self.list.insert(0, cw.cwpy.rsrc.backpackcards[type])
+                        if header.type == cardtype:
+                            self.list.insert(0, cw.cwpy.rsrc.backpackcards[cardtype])
                             break
 
     def get_headers(self):
         li = self.index * 10
-        list = self.list[li:li + 10]
-        return list
+        clist = self.list[li:li + 10]
+        return clist
 
-    def _narrow(self, list):
-        self._fulllist = list
+    def _narrow(self, clist):
+        self._fulllist = clist
         if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return self._fulllist
         narrow = self.narrow.GetValue().lower()
-        type = self.narrow_type.GetSelection()
+        ntype = self.narrow_type.GetSelection()
         if not narrow:
             return self._fulllist
 
@@ -1767,10 +1763,10 @@ class CardHolder(CardControl):
         if self.callname == "INFOVIEW":
             for header in self._fulllist:
                 t = ""
-                if type == 0:
+                if ntype == 0:
                     # カード名
                     t = header.name
-                elif type == 1:
+                elif ntype == 1:
                     # 解説
                     t = header.desc
                 else:
@@ -1780,24 +1776,24 @@ class CardHolder(CardControl):
 
         else:
             for header in self._fulllist:
-                if type in (0, 1, 2, 3):
-                    if type == 0:
+                if ntype in (0, 1, 2, 3):
+                    if ntype == 0:
                         # カード名
                         t = header.name
-                    elif type == 1:
+                    elif ntype == 1:
                         # 解説
                         t = header.desc
-                    elif type == 2:
+                    elif ntype == 2:
                         # シナリオ名
                         t = header.scenario
-                    elif type == 3:
+                    elif ntype == 3:
                         # 作者名
                         t = header.author
                     else:
                         assert False
                     if narrow in t.lower():
                         seq.append(header)
-                elif type == 4:
+                elif ntype == 4:
                     # キーコード(デバッグ時のみ)
                     if narrow == header.name.lower():
                         # カード名もキーコードになる
@@ -1950,7 +1946,7 @@ def get_poslist(num, mode=1):
     """
     if mode == 1:
         # 描画エリアサイズ
-        w, h = cw.wins((425, 230))
+        w, _h = cw.wins((425, 230))
         # 左,上の余白
         leftm = cw.wins(80)
 
@@ -1965,13 +1961,13 @@ def get_poslist(num, mode=1):
     else:
         if mode == 2:
             # 描画エリアサイズ
-            w, h = cw.wins((425, 230))
+            w, _h = cw.wins((425, 230))
             # 折り返し枚数
             numb = 5
             # 左,上の余白
             leftm = cw.wins(78)
         elif mode == 3:
-            w, h = cw.wins((505, 230))
+            w, _h = cw.wins((505, 230))
             numb = 6
             leftm = cw.wins(0)
 

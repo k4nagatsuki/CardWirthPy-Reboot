@@ -3,8 +3,6 @@
 
 from string import Template
 
-import util
-
 
 Adventurer = """$indent<Adventurer>
 $indent <Property>

@@ -12,11 +12,9 @@ import shutil
 import re
 import wx
 import pygame
-from pygame.locals import *
+from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
-import cw.util
-import cw.binary.image
 
 
 class CWPyRunningError(Exception):
@@ -211,7 +209,7 @@ class CWPy(_Singleton, threading.Thread):
             self.update_fullscreenbackground()
 
             return True
-        except cw.setting.NoFontError, ex:
+        except cw.setting.NoFontError:
             def func():
                 s = (u"CardWirthPyの実行に必要なフォントがありません。\n"
                      u"Data/Font以下にIPAフォントをインストールしてください。")
@@ -528,7 +526,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def wait_frame(self, count):
         self.event.eventtimer = 0
-        for i in xrange(count):
+        for _i in xrange(count):
             self.tick_clock()
 
     def get_nextevent(self):
@@ -772,7 +770,6 @@ class CWPy(_Singleton, threading.Thread):
             y = self.scr_pos[1] - width/2-1
             w = self.scr_size[0] + width+1
             h = self.scr_size[1] + width+1
-            rect = pygame.Rect(x, y, w, h)
             sur = pygame.Surface((w, h)).convert_alpha()
             sur.fill((255, 255, 255, 192))
             self.scr_fullscreen.blit(sur, (x, y))
@@ -851,12 +848,15 @@ class CWPy(_Singleton, threading.Thread):
             return func(*args, **kwargs)
         else:
             result = [None]
-            isrun = True
-            def func2(result, func, *args, **kwargs):
+            class Running(object):
+                def __init__(self):
+                    self.isrun = True
+            running = Running()
+            def func2(running, result, func, *args, **kwargs):
                 result[0] = func(*args, **kwargs)
-                isrun = False
-            self.exec_func(func2, result, func, *args, **kwargs)
-            while isrun and self.frame.IsEnabled() and self.is_running():
+                running.isrun = False
+            self.exec_func(func2, running, result, func, *args, **kwargs)
+            while running.isrun and self.frame.IsEnabled() and self.is_running():
                 time.sleep(0.001)
             return result[0]
 
@@ -1151,7 +1151,7 @@ class CWPy(_Singleton, threading.Thread):
         cw.animation.animate_sprite(card1, "hide", clearevent=False)
         cw.animation.animate_sprite(card2, "deal", clearevent=False)
         cw.animation.animate_sprites2([(card2, "hide"), (white, "fadein2")], clearevent=False)
-        for i in xrange(self.setting.fps / 2):
+        for _i in xrange(self.setting.fps / 2):
             if self.cut_animation:
                 break
             self.tick_clock()
@@ -1419,7 +1419,7 @@ class CWPy(_Singleton, threading.Thread):
                 if header.type == "SkillCard":
                     header.maxuselimit = 0
                     header.uselimit = 0
-            except Exception, ex:
+            except Exception:
                 cw.util.print_ex()
 
         # 一度荷物袋から取り出されてから戻された
@@ -1545,7 +1545,6 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.ydata.party:
             header = self.ydata.party.get_sceheader()
-            f9ed = False
 
             if optscenario:
                 if os.path.isabs(optscenario):
@@ -1871,7 +1870,7 @@ class CWPy(_Singleton, threading.Thread):
         status = "hidden" if dealanime else "normal"
         seq = []
 
-        for index, e in enumerate(elements):
+        for e in elements:
             if stype == "Auto":
                 pos_noscale = (0, 0)
             else:
@@ -2042,7 +2041,7 @@ class CWPy(_Singleton, threading.Thread):
                 if not fcard.is_reversed():
                     fcard.remove_timedcoupons(True)
 
-            areaid, bgmpath, battlebgmpath = self.sdata.pre_battleareadata
+            areaid, bgmpath, _battlebgmpath = self.sdata.pre_battleareadata
             if not startnextbattle:
                 self.sdata.pre_battleareadata = None
             self.set_scenario()
@@ -2366,7 +2365,7 @@ class CWPy(_Singleton, threading.Thread):
                         and sprite.status <> "hidden"):
                     continue
                 self.clear_inusecardimg(sprite)
-                targets, header, beasts = sprite.actiondata
+                targets, header, _beasts = sprite.actiondata
                 if header:
                     if self.selection == sprite:
                         self.set_inusecardimg(sprite, header)

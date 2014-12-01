@@ -4,7 +4,10 @@
 import os
 
 import pygame
-from pygame.locals import *
+from pygame.locals import K_RETURN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
+                          K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F9,\
+                          K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN,\
+                          MOUSEBUTTONUP, MOUSEBUTTONDOWN, USEREVENT
 
 import cw
 

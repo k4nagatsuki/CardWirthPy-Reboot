@@ -22,7 +22,7 @@ class Party(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 2
         self.fname = self.get_fname()
-        w = f.word() # 不明(0)
+        _w = f.word() # 不明(0)
         self.yadoname = f.string()
         f.image() # 宿の埋め込み画像は破棄。
         self.memberslist = []
@@ -129,10 +129,10 @@ class PartyMembers(base.CWBinaryBase):
         self.type = 3
         self.fname = self.get_fname()
         adventurers_num = f.byte() - 30
-        b = f.byte() # 不明(0)
-        b = f.byte() # 不明(0)
-        b = f.byte() # 不明(0)
-        b = f.byte() # 不明(5)
+        _b = f.byte() # 不明(0)
+        _b = f.byte() # 不明(0)
+        _b = f.byte() # 不明(0)
+        _b = f.byte() # 不明(5)
         self.adventurers = []
         vanisheds_num = 0
         for i in xrange(adventurers_num):
@@ -140,22 +140,22 @@ class PartyMembers(base.CWBinaryBase):
             vanisheds_num = f.byte() # 最後のメンバが消滅メンバの数を持っている？
         self.vanisheds = []
         if 0 < vanisheds_num:
-            dw = f.dword() # 不明(0)
+            _dw = f.dword() # 不明(0)
             for i in xrange(vanisheds_num):
                 self.vanisheds.append(adventurer.AdventurerWithImage(self, f))
                 if i + 1 < vanisheds_num:
-                    b = f.byte()
+                    _b = f.byte()
             self.vanisheds.reverse()
         else:
-            b = f.byte() # 不明(0)
-            b = f.byte() # 不明(0)
-            b = f.byte() # 不明(0)
+            _b = f.byte() # 不明(0)
+            _b = f.byte() # 不明(0)
+            _b = f.byte() # 不明(0)
         self.name = f.string()
         # 荷物袋にあるカードリスト
         cards_num = f.dword()
-        self.cards = [BackpackCard(self, f) for cnt in xrange(cards_num)]
+        self.cards = [BackpackCard(self, f) for _cnt in xrange(cards_num)]
         # *.wplにもあるパーティの所持金(冒険中の現在値)
-        money = f.dword()
+        _money = f.dword()
 
         # 対応する *.wpl
         self.wpl = None
@@ -164,7 +164,7 @@ class PartyMembers(base.CWBinaryBase):
         self.money_beforeadventure = f.dword() # 冒険前の所持金。冒険中でなければ0
         self.nowadventuring = f.bool()
         if self.nowadventuring: # 冒険中か
-            w = f.word() # 不明(0)
+            _w = f.word() # 不明(0)
             self.scenariopath = f.rawstring() # シナリオ
             self.areaid = f.dword()
             self.steps = self.split_variables(f.rawstring(), True)
@@ -173,11 +173,11 @@ class PartyMembers(base.CWBinaryBase):
             self.infocards = self.split_ids(f.rawstring())
             self.music = f.rawstring()
             bgimgs_num = f.dword()
-            self.bgimgs = [bgimage.BgImage(self, f) for cnt in xrange(bgimgs_num)]
+            self.bgimgs = [bgimage.BgImage(self, f) for _cnt in xrange(bgimgs_num)]
 
-    def split_variables(self, str, step):
+    def split_variables(self, text, step):
         d = {}
-        for l in str.splitlines():
+        for l in text.splitlines():
             index = -1
             for i, c in enumerate(l):
                 if c == '=':
@@ -190,9 +190,9 @@ class PartyMembers(base.CWBinaryBase):
                     d[l[:index]] = bool(int(l[index+1:]))
         return d
 
-    def split_ids(self, str):
+    def split_ids(self, text):
         seq = []
-        for l in str.splitlines():
+        for l in text.splitlines():
             if l:
                 seq.append(int(l))
         return seq
@@ -201,7 +201,7 @@ class PartyMembers(base.CWBinaryBase):
         """adventurercardだけxml化する。"""
         wpldata = self.wpl.get_data()
         me = wpldata.find("Property/Members")
-        for i, adventurer in enumerate(self.adventurers):
+        for adventurer in self.adventurers:
             path = adventurer.create_xml(dpath)
             text = cw.util.splitext(os.path.basename(path))[0]
             me.append(cw.data.make_element("Member", text))
@@ -243,7 +243,6 @@ class PartyMembers(base.CWBinaryBase):
     def unconv(f, party, table, logdir):
         adventurers = []
         vanisheds = []
-        name = ""
         cards = []
         money_beforeadventure = 0
         nowadventuring = False

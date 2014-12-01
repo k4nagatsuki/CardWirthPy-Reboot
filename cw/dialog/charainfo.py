@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os.path
 import wx
 import pygame
 
 import cw
-import cw.dialog.edit
 import cardinfo
 
 
@@ -533,7 +531,7 @@ class DescPanel(wx.ScrolledWindow):
         self.text = cw.util.txtwrap(self.text, 4)
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
-        maxwidth, maxheight, lineheight = dc.GetMultiLineTextExtent(self.text)
+        _maxwidth, maxheight, _lineheight = dc.GetMultiLineTextExtent(self.text)
         self.x = cw.wins(12) if maxheight <= self.csize[1] else cw.wins(6)
         maxheight += cw.wins(10)
         self.SetVirtualSize((-1, maxheight))
@@ -717,20 +715,20 @@ class HistoryPanel(wx.ScrolledWindow):
                 break
 
 class EditButton():
-    def __init__(self, name, type):
+    def __init__(self, name, btype):
         self.name = name
-        self.type = type
+        self.type = btype
         self.negaflag = False
 
 class EditPanel(wx.Panel):
-    def __init__(self, parent, list, ccard):
+    def __init__(self, parent, mlist, ccard):
         wx.Panel.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(200)), style=wx.SUNKEN_BORDER)
         self._destroy = False
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.csize = self.GetClientSize()
         # エレメントオブジェクト
-        self.list = list
+        self.list = mlist
         self.ccard = ccard
         self.selected = -1
         # ボタン
@@ -766,16 +764,16 @@ class EditPanel(wx.Panel):
                 else:
                     # レベルを調節する
                     cw.cwpy.sounds["click"].play()
-                    list = self.get_charalist()
-                    self.selected = list.index(self.ccard)
+                    mlist = self.get_charalist()
+                    self.selected = mlist.index(self.ccard)
                     party = self.Parent.Parent.party
-                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, list=list, selected=self.selected, party=party)
+                    dlg = cw.dialog.edit.LevelEditDialog(self.Parent.Parent, mlist=mlist, selected=self.selected, party=party)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
                         def func(panel):
                             if panel:
                                 panel.Parent.Parent.toppanel.Refresh()
-                        self.update_charalist(list)
+                        self.update_charalist(mlist)
                         cw.cwpy.exec_func(cw.cwpy.frame.exec_func, func, self)
                     dlg.Destroy()
                 self.draw(True)
@@ -798,21 +796,21 @@ class EditPanel(wx.Panel):
         else:
             return self.list
 
-    def update_charalist(self, list):
+    def update_charalist(self, mlist):
         """編集結果をヘッダ等に反映する。"""
         if isinstance(self.Parent.Parent, StandbyPartyCharaInfo):
-            def func(parentheaders, list):
+            def func(parentheaders, mlist):
                 for i, header in enumerate(parentheaders):
-                    ccard = list[i]
+                    ccard = mlist[i]
                     ccard.data.write_xml()
                     header.level = ccard.level
-            cw.cwpy.exec_func(func, self.list, list)
+            cw.cwpy.exec_func(func, self.list, mlist)
         elif isinstance(self.Parent.Parent, StandbyCharaInfo):
-            def func(index, headers, list):
-                ccard = list[0]
+            def func(index, headers, mlist):
+                ccard = mlist[0]
                 ccard.data.write_xml()
                 headers[index].level = ccard.level
-            cw.cwpy.exec_func(func, self.Parent.Parent.index, self.list, list)
+            cw.cwpy.exec_func(func, self.Parent.Parent.index, self.list, mlist)
 
     def OnPaint(self, event):
         self.draw()
@@ -923,13 +921,13 @@ class EditPanel(wx.Panel):
             self.Refresh()
 
 class StatusPanel(wx.ScrolledWindow):
-    def __init__(self, parent, list, ccard, editable):
+    def __init__(self, parent, mlist, ccard, editable):
         wx.ScrolledWindow.__init__(self, parent, -1, size=(parent.Parent.width-cw.wins(8), cw.wins(200)), style=wx.SUNKEN_BORDER)
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.SetScrollRate(cw.wins(10), cw.wins(10))
         self.csize = self.GetClientSize()
-        self.list = list
+        self.list = mlist
         # エレメントオブジェクト
         self.ccard = ccard
         # bmp
@@ -946,7 +944,7 @@ class StatusPanel(wx.ScrolledWindow):
         cw.cwpy.sounds["click"].play()
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
-        dlg = cw.debug.statusedit.StatusEditDialog(parent, list=self.list, selected=selected)
+        dlg = cw.debug.statusedit.StatusEditDialog(parent, mlist=self.list, selected=selected)
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             self.draw(True)
@@ -1298,7 +1296,6 @@ class CardPanel(wx.Panel):
             dc.DrawBitmap(bmp, pos[0]-cw.wins(20), pos[1]-cw.wins(1), True)
 
         # カード枚数
-        level = self.ccard.level
         n = len(self.headers)
         maxn = self.ccard.get_cardpocketspace()[self.pocket]
         s = cw.cwpy.msgs["card_number"] % (n, maxn)

@@ -4,8 +4,6 @@
 import os
 import sys
 import itertools
-import wx
-import wx.aui
 import wx.grid
 
 import cw
@@ -112,9 +110,9 @@ class SettingsDialog(wx.Dialog):
                     name = u"[デフォルト]"
                 self.pane_font.base.SetCellValue(i, 0, name)
             for i, typename in enumerate(self.pane_font.types):
-                type, name = cw.cwpy.setting.fonttypes_init[typename]
-                if type:
-                    name = u"[%s]" % (self.pane_font.typenames[type])
+                fonttype, name = cw.cwpy.setting.fonttypes_init[typename]
+                if fonttype:
+                    name = u"[%s]" % (self.pane_font.typenames[fonttype])
                 self.pane_font.type.SetCellValue(i, 0, name)
         elif selpane == 4:
             # スキン毎のシナリオ開始位置の設定は変更しない
@@ -158,9 +156,9 @@ class SettingsDialog(wx.Dialog):
         fonttypes = {}
         for i, typename in enumerate(self.pane_font.types):
             value = self.pane_font.type.GetCellValue(i, 0)
-            type = basetable.get(value, "")
-            if type:
-                fonttypes[typename] = (type, "")
+            fonttype = basetable.get(value, "")
+            if fonttype:
+                fonttypes[typename] = (fonttype, "")
             else:
                 fonttypes[typename] = ("", value)
 
@@ -493,11 +491,11 @@ class GeneralSettingPanel(wx.Panel):
             n = 10 # FullScreen中はスライドを1.0倍に仮設定
         else:
             n = int(10 * float(cw.cwpy.setting.expandmode))
-        max = x if x < y else y
-        if max < 10:
-            max = 10
-        if max < n:
-            n = max
+        nmax = x if x < y else y
+        if nmax < 10:
+            nmax = 10
+        if nmax < n:
+            n = nmax
 
         self.ch_expanddrawing = wx.ComboBox(self, -1, style=wx.CB_DROPDOWN|wx.CB_READONLY)
         i = 0
@@ -508,13 +506,13 @@ class GeneralSettingPanel(wx.Panel):
                 self.ch_expanddrawing.Select(i)
             i += 1
             val *= 2
-            if max < val*10:
+            if nmax < val*10:
                 break
         if self.ch_expanddrawing.GetSelection() == -1:
             self.ch_expanddrawing.Select(0)
 
         self.sl_expand = wx.Slider(
-            self, -1, n, 10, max, size=(120, -1),
+            self, -1, n, 10, nmax, size=(120, -1),
             style=wx.SL_HORIZONTAL)
         self.st_expand = wx.StaticText(self, -1)
         self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
@@ -616,7 +614,7 @@ class GeneralSettingPanel(wx.Panel):
     def _choice_skin(self):
         skin = self.skins[self.ch_skin.GetSelection()]
         s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
-        skintype, skinname, author, desc, classictext = self.skin_summarys[skin]
+        skintype, skinname, author, desc, _classictext = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
         self.st_skin.SetLabel(s % (skintype, skinname, author, desc))
         self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
@@ -1153,8 +1151,8 @@ class ScenarioSettingPanel(wx.Panel):
         self.grid_folderoftype.SetColSize(1, 370)
 
         types = set()
-        for name, t in self.Parent.Parent.pane_gene.skin_summarys.iteritems():
-            skintype, skinname, author, desc, classictext = t
+        for t in self.Parent.Parent.pane_gene.skin_summarys.itervalues():
+            skintype, _skinname, _author, _desc, _classictext = t
             types.add(skintype)
 
         types = list(types)
@@ -1239,12 +1237,12 @@ class ScenarioSettingPanel(wx.Panel):
         if row == -1:
             return
 
-        type = self.grid_folderoftype.GetCellValue(row, 0)
-        if not type:
-            type = u"(指定無し)"
+        skintype = self.grid_folderoftype.GetCellValue(row, 0)
+        if not skintype:
+            skintype = u"(指定無し)"
 
         dpath = os.path.abspath("Scenario")
-        dlg = wx.DirDialog(self.TopLevelParent, u"「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (type), dpath, style=wx.DD_DIR_MUST_EXIST)
+        dlg = wx.DirDialog(self.TopLevelParent, u"「%s」タイプのスキンでプレイするシナリオのフォルダを選択してください。" % (skintype), dpath, style=wx.DD_DIR_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             dpath = dlg.GetPath()
             relpath = cw.util.relpath(dpath, ".")
@@ -1431,17 +1429,17 @@ class FontSettingPanel(wx.Panel):
         self.st_example = wx.StaticText(self, -1, size=(100, 30), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
-        def create_grid(list, faces, editor):
+        def create_grid(seq, faces, editor):
             grid = wx.grid.Grid(self, -1, size=(-1, 0), style=wx.BORDER)
             grid.SetDoubleBuffered(True)
-            grid.CreateGrid(len(list), 1)
+            grid.CreateGrid(len(seq), 1)
             grid.DisableDragRowSize()
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
             grid.SetRowLabelSize(100)
             grid.SetColLabelValue(0, u"フォント名");
             grid.SetColSize(0, 150)
-            for i, name in enumerate(list):
+            for i, name in enumerate(seq):
                 grid.SetRowLabelValue(i, self.typenames[name])
                 grid.SetCellEditor(i, 0, editor)
             return grid
@@ -1461,9 +1459,9 @@ class FontSettingPanel(wx.Panel):
         self.choicetype = wx.grid.GridCellChoiceEditor(types)
         self.type = create_grid(self.types, types, self.choicetype)
         for i, name, in enumerate(self.types):
-            type, face = cw.cwpy.setting.fonttypes[name]
-            if type:
-                self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[type]))
+            fonttype, face = cw.cwpy.setting.fonttypes[name]
+            if fonttype:
+                self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[fonttype]))
             else:
                 self.type.SetCellValue(i, 0, face)
 
@@ -1535,7 +1533,7 @@ class FontSettingPanel(wx.Panel):
             face = ctrl.GetValue()
         else:
             face = self.type.GetCellValue(self.types.index(fonttype), 0)
-        for i, basename in enumerate(self.bases):
+        for basename in self.bases:
             if u"[%s]" % self.typenames[basename] == face:
                 face = self.get_basefontface(basename)
                 break

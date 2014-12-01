@@ -5,7 +5,6 @@ import base
 import bgimage
 import dialog
 import effectmotion
-import xmltemplate
 
 import cw
 
@@ -14,11 +13,11 @@ class Content(base.CWBinaryBase):
     def __init__(self, parent, f):
         base.CWBinaryBase.__init__(self, parent, f)
 
-        tag, type = self.conv_contenttype(f.byte())
+        tag, ctype = self.conv_contenttype(f.byte())
 
         self.xmltype = "Content"
         self.tag = tag
-        self.type = type
+        self.type = ctype
         self.name = f.string()
         children_num = f.dword()
         if children_num <= 39999:
@@ -30,7 +29,7 @@ class Content(base.CWBinaryBase):
             self.version = 5
             children_num -= 50000
 
-        self.children = [Content(self, f) for cnt in xrange(children_num)]
+        self.children = [Content(self, f) for _cnt in xrange(children_num)]
 
         # 宿データの埋め込みカードのコンテントは
         # 子コンテントデータの後ろに"dword()"(4)が埋め込まれている。
@@ -58,7 +57,7 @@ class Content(base.CWBinaryBase):
             self.properties["path"] = self.get_materialpath(f.string())
         elif self.tag == "Change" and self.type == "BgImage":
             bgimgs_num = f.dword()
-            self.bgimgs = [bgimage.BgImage(self, f) for cnt in xrange(bgimgs_num)]
+            self.bgimgs = [bgimage.BgImage(self, f) for _cnt in xrange(bgimgs_num)]
         elif self.tag == "Play" and self.type == "Sound":
             self.properties["path"] = self.get_materialpath(f.string())
         elif self.tag == "Wait" and self.type == "":
@@ -74,7 +73,7 @@ class Content(base.CWBinaryBase):
             self.properties["visual"] = self.conv_card_visualeffect(f.byte())
             motions_num = f.dword()
             self.motions = [effectmotion.EffectMotion(self, f, dataversion=self.version)
-                                            for cnt in xrange(motions_num)]
+                                            for _cnt in xrange(motions_num)]
         elif self.tag == "Branch" and self.type == "Select":
             self.properties["targetall"] = f.bool()
             self.properties["random"] = f.bool()
@@ -203,14 +202,14 @@ class Content(base.CWBinaryBase):
             self.properties["targetm"] = member
             if member == "Valued":
                 coupons_num = f.dword()
-                self.coupons = [cw.binary.coupon.Coupon(self, f) for cnt in xrange(coupons_num)]
+                self.coupons = [cw.binary.coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
                 if self.coupons and self.coupons[0].name == "":
                     self.properties["initialValue"] = self.coupons[0].value
                     self.coupons = self.coupons[1:]
                 else:
                     self.properties["initialValue"] = 0
             dialogs_num = f.dword()
-            self.dialogs = [cw.binary.dialog.Dialog(self, f) for cnt in xrange(dialogs_num)]
+            self.dialogs = [cw.binary.dialog.Dialog(self, f) for _cnt in xrange(dialogs_num)]
         elif self.tag == "Set" and self.type == "StepUp":
             self.properties["step"] = f.string()
         elif self.tag == "Set" and self.type == "StepDown":
@@ -341,8 +340,8 @@ class Content(base.CWBinaryBase):
                 self.data.append(e)
             elif self.tag == "Branch" and self.type == "RandomSelect": # 1.30
                 e = cw.data.make_element("CastRanges")
-                for range in self.castranges:
-                    e.append(cw.data.make_element("CastRange", range))
+                for castrange in self.castranges:
+                    e.append(cw.data.make_element("CastRange", castrange))
                 self.data.append(e)
 
         return self.data
@@ -350,7 +349,7 @@ class Content(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data):
         tag = data.tag
-        type = data.get("type", "")
+        ctype = data.get("type", "")
         name = data.get("name", "")
         children = []
 
@@ -358,7 +357,7 @@ class Content(base.CWBinaryBase):
             if e.tag == "Contents":
                 children = e
 
-        f.write_byte(base.CWBinaryBase.unconv_contenttype(tag, type))
+        f.write_byte(base.CWBinaryBase.unconv_contenttype(tag, ctype))
         f.write_string(name)
         f.write_dword(len(children) + 50000)
         for child in children:
@@ -367,22 +366,22 @@ class Content(base.CWBinaryBase):
         # 子コンテントデータの後ろに"dword()"(4)が埋め込まれている。
         f.write_dword(4)
 
-        if tag == "Start" and type == "":
+        if tag == "Start" and ctype == "":
             pass
-        elif tag == "Link" and type == "Start":
+        elif tag == "Link" and ctype == "Start":
             f.write_string(data.get("link"))
-        elif tag == "Start" and type == "Battle":
+        elif tag == "Start" and ctype == "Battle":
             f.write_dword(int(data.get("id")))
-        elif tag == "End" and type == "":
+        elif tag == "End" and ctype == "":
             f.write_bool(cw.util.str2bool(data.get("complete")))
-        elif tag == "End" and type == "BadEnd":
+        elif tag == "End" and ctype == "BadEnd":
             pass
-        elif tag == "Change" and type == "Area":
+        elif tag == "Change" and ctype == "Area":
             if data.get("transition", "Default") <> "Default" or\
                     data.get("transitionspeed", "Default") <> "Default":
                 f.check_version("CardWirthPy 0.12")
             f.write_dword(int(data.get("id")))
-        elif tag == "Talk" and type == "Message":
+        elif tag == "Talk" and ctype == "Message":
             text = ""
             for e in data:
                 if e.tag == "Text":
@@ -390,9 +389,9 @@ class Content(base.CWBinaryBase):
                     break
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
             f.write_string(text, True)
-        elif tag == "Play" and type == "Bgm":
+        elif tag == "Play" and ctype == "Bgm":
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
-        elif tag == "Change" and type == "BgImage":
+        elif tag == "Change" and ctype == "BgImage":
             if data.get("transition", "Default") <> "Default" or\
                     data.get("transitionspeed", "Default") <> "Default":
                 f.check_version("CardWirthPy 0.12")
@@ -404,11 +403,11 @@ class Content(base.CWBinaryBase):
             f.write_dword(len(bgimgs))
             for bgimg in bgimgs:
                 bgimage.BgImage.unconv(f, bgimg)
-        elif tag == "Play" and type == "Sound":
+        elif tag == "Play" and ctype == "Sound":
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
-        elif tag == "Wait" and type == "":
+        elif tag == "Wait" and ctype == "":
             f.write_dword(int(data.get("value")))
-        elif tag == "Effect" and type == "":
+        elif tag == "Effect" and ctype == "":
             f.write_dword(int(data.get("level")))
             f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
             f.write_byte(base.CWBinaryBase.unconv_card_effecttype(data.get("effecttype")))
@@ -424,93 +423,93 @@ class Content(base.CWBinaryBase):
             f.write_dword(len(motions))
             for motion in motions:
                 effectmotion.EffectMotion.unconv(f, motion)
-        elif tag == "Branch" and type == "Select":
+        elif tag == "Branch" and ctype == "Select":
             f.write_bool(cw.util.str2bool(data.get("targetall")))
             f.write_bool(cw.util.str2bool(data.get("random")))
-        elif tag == "Branch" and type == "Ability":
+        elif tag == "Branch" and ctype == "Ability":
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
             f.write_dword(base.CWBinaryBase.unconv_card_physicalability(data.get("physical")))
             f.write_dword(base.CWBinaryBase.unconv_card_mentalability(data.get("mental")))
-        elif tag == "Branch" and type == "Random":
+        elif tag == "Branch" and ctype == "Random":
             f.write_dword(int(data.get("value")))
-        elif tag == "Branch" and type == "Flag":
+        elif tag == "Branch" and ctype == "Flag":
             f.write_string(data.get("flag"))
-        elif tag == "Set" and type == "Flag":
+        elif tag == "Set" and ctype == "Flag":
             f.write_string(data.get("flag"))
             f.write_bool(cw.util.str2bool(data.get("value")))
-        elif tag == "Branch" and type == "MultiStep":
+        elif tag == "Branch" and ctype == "MultiStep":
             f.write_string(data.get("step"))
-        elif tag == "Set" and type == "Step":
+        elif tag == "Set" and ctype == "Step":
             f.write_string(data.get("step"))
             f.write_dword(int(data.get("value")))
-        elif tag == "Branch" and type == "Cast":
+        elif tag == "Branch" and ctype == "Cast":
             f.write_dword(int(data.get("id")))
-        elif tag == "Branch" and type == "Item":
-            f.write_dword(int(data.get("id")))
-            f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Branch" and type == "Skill":
+        elif tag == "Branch" and ctype == "Item":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Branch" and type == "Info":
-            f.write_dword(int(data.get("id")))
-        elif tag == "Branch" and type == "Beast":
+        elif tag == "Branch" and ctype == "Skill":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Branch" and type == "Money":
+        elif tag == "Branch" and ctype == "Info":
+            f.write_dword(int(data.get("id")))
+        elif tag == "Branch" and ctype == "Beast":
+            f.write_dword(int(data.get("id")))
+            f.write_dword(int(data.get("number")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+        elif tag == "Branch" and ctype == "Money":
             f.write_dword(int(data.get("value")))
-        elif tag == "Branch" and type == "Coupon":
+        elif tag == "Branch" and ctype == "Coupon":
             f.write_string(data.get("coupon"))
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope_coupon(data.get("targets"), f))
-        elif tag == "Get" and type == "Cast":
+        elif tag == "Get" and ctype == "Cast":
             f.write_dword(int(data.get("id")))
-        elif tag == "Get" and type == "Item":
-            f.write_dword(int(data.get("id")))
-            f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Get" and type == "Skill":
+        elif tag == "Get" and ctype == "Item":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Get" and type == "Info":
-            f.write_dword(int(data.get("id")))
-        elif tag == "Get" and type == "Beast":
+        elif tag == "Get" and ctype == "Skill":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Get" and type == "Money":
+        elif tag == "Get" and ctype == "Info":
+            f.write_dword(int(data.get("id")))
+        elif tag == "Get" and ctype == "Beast":
+            f.write_dword(int(data.get("id")))
+            f.write_dword(int(data.get("number")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+        elif tag == "Get" and ctype == "Money":
             f.write_dword(int(data.get("value")))
-        elif tag == "Get" and type == "Coupon":
+        elif tag == "Get" and ctype == "Coupon":
             f.write_string(data.get("coupon"))
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Lose" and type == "Cast":
+        elif tag == "Lose" and ctype == "Cast":
             f.write_dword(int(data.get("id")))
-        elif tag == "Lose" and type == "Item":
-            f.write_dword(int(data.get("id")))
-            f.write_dword(int(data.get("number")))
-            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Lose" and type == "Skill":
+        elif tag == "Lose" and ctype == "Item":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Lose" and type == "Info":
-            f.write_dword(int(data.get("id")))
-        elif tag == "Lose" and type == "Beast":
+        elif tag == "Lose" and ctype == "Skill":
             f.write_dword(int(data.get("id")))
             f.write_dword(int(data.get("number")))
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Lose" and type == "Money":
+        elif tag == "Lose" and ctype == "Info":
+            f.write_dword(int(data.get("id")))
+        elif tag == "Lose" and ctype == "Beast":
+            f.write_dword(int(data.get("id")))
+            f.write_dword(int(data.get("number")))
+            f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
+        elif tag == "Lose" and ctype == "Money":
             f.write_dword(int(data.get("value")))
-        elif tag == "Lose" and type == "Coupon":
+        elif tag == "Lose" and ctype == "Coupon":
             f.write_string(data.get("coupon"))
             f.write_dword(0)
             f.write_byte(base.CWBinaryBase.unconv_target_scope(data.get("targets")))
-        elif tag == "Talk" and type == "Dialog":
+        elif tag == "Talk" and ctype == "Dialog":
             targetm = data.get("targetm")
             f.write_byte(base.CWBinaryBase.unconv_target_member_dialog(targetm, f))
             if targetm == "Valued":
@@ -532,78 +531,78 @@ class Content(base.CWBinaryBase):
             f.write_dword(len(dialogs))
             for dialog in dialogs:
                 cw.binary.dialog.Dialog.unconv(f, dialog)
-        elif tag == "Set" and type == "StepUp":
+        elif tag == "Set" and ctype == "StepUp":
             f.write_string(data.get("step"))
-        elif tag == "Set" and type == "StepDown":
+        elif tag == "Set" and ctype == "StepDown":
             f.write_string(data.get("step"))
-        elif tag == "Reverse" and type == "Flag":
+        elif tag == "Reverse" and ctype == "Flag":
             f.write_string(data.get("flag"))
-        elif tag == "Branch" and type == "Step":
+        elif tag == "Branch" and ctype == "Step":
             f.write_string(data.get("step"))
             f.write_dword(int(data.get("value")))
-        elif tag == "Elapse" and type == "Time":
+        elif tag == "Elapse" and ctype == "Time":
             pass
-        elif tag == "Branch" and type == "Level":
+        elif tag == "Branch" and ctype == "Level":
             f.write_bool(cw.util.str2bool(data.get("average")))
             f.write_dword(int(data.get("value")))
-        elif tag == "Branch" and type == "Status":
+        elif tag == "Branch" and ctype == "Status":
             f.write_byte(base.CWBinaryBase.unconv_statustype(data.get("status"), f))
             f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))
-        elif tag == "Branch" and type == "PartyNumber":
+        elif tag == "Branch" and ctype == "PartyNumber":
             f.write_dword(int(data.get("value")))
-        elif tag == "Show" and type == "Party":
+        elif tag == "Show" and ctype == "Party":
             pass
-        elif tag == "Hide" and type == "Party":
+        elif tag == "Hide" and ctype == "Party":
             pass
-        elif tag == "Effect" and type == "Break":
+        elif tag == "Effect" and ctype == "Break":
             pass
-        elif tag == "Call" and type == "Start":
+        elif tag == "Call" and ctype == "Start":
             f.write_string(data.get("call"))
-        elif tag == "Link" and type == "Package":
+        elif tag == "Link" and ctype == "Package":
             f.write_dword(int(data.get("link")))
-        elif tag == "Call" and type == "Package":
+        elif tag == "Call" and ctype == "Package":
             f.write_dword(int(data.get("call")))
-        elif tag == "Branch" and type == "Area":
+        elif tag == "Branch" and ctype == "Area":
             pass
-        elif tag == "Branch" and type == "Battle":
+        elif tag == "Branch" and ctype == "Battle":
             pass
-        elif tag == "Branch" and type == "CompleteStamp":
+        elif tag == "Branch" and ctype == "CompleteStamp":
             f.write_string(data.get("scenario"))
-        elif tag == "Get" and type == "CompleteStamp":
+        elif tag == "Get" and ctype == "CompleteStamp":
             f.write_string(data.get("scenario"))
-        elif tag == "Lose" and type == "CompleteStamp":
+        elif tag == "Lose" and ctype == "CompleteStamp":
             f.write_string(data.get("scenario"))
-        elif tag == "Branch" and type == "Gossip":
+        elif tag == "Branch" and ctype == "Gossip":
             f.write_string(data.get("gossip"))
-        elif tag == "Get" and type == "Gossip":
+        elif tag == "Get" and ctype == "Gossip":
             f.write_string(data.get("gossip"))
-        elif tag == "Lose" and type == "Gossip":
+        elif tag == "Lose" and ctype == "Gossip":
             f.write_string(data.get("gossip"))
-        elif tag == "Branch" and type == "IsBattle":
+        elif tag == "Branch" and ctype == "IsBattle":
             pass
-        elif tag == "Redisplay" and type == "":
+        elif tag == "Redisplay" and ctype == "":
             if data.get("transition", "Default") <> "Default" or\
                     data.get("transitionspeed", "Default") <> "Default":
                 f.check_version("CardWirthPy 0.12")
-        elif tag == "Check" and type == "Flag":
+        elif tag == "Check" and ctype == "Flag":
             f.write_string(data.get("flag"))
-        elif tag == "Substitute" and type == "Step": # 1.30
+        elif tag == "Substitute" and ctype == "Step": # 1.30
             f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
-        elif tag == "Substitute" and type == "Flag": # 1.30
+        elif tag == "Substitute" and ctype == "Flag": # 1.30
             f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
-        elif tag == "Branch" and type == "StepValue": # 1.30
+        elif tag == "Branch" and ctype == "StepValue": # 1.30
             f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
-        elif tag == "Branch" and type == "FlagValue": # 1.30
+        elif tag == "Branch" and ctype == "FlagValue": # 1.30
             f.check_version(1.30)
             f.write_string(data.get("from"))
             f.write_string(data.get("to"))
-        elif tag == "Branch" and type == "RandomSelect": # 1.30
+        elif tag == "Branch" and ctype == "RandomSelect": # 1.30
             f.check_version(1.30)
             f.write_byte(base.CWBinaryBase.unconv_castranges(data.find("CastRanges")))
             levelmin = data.get("levelmin", None)
@@ -620,22 +619,22 @@ class Content(base.CWBinaryBase):
                 f.write_dword(levelmax)
             if (style & 0b10) <> 0:
                 f.write_byte(base.CWBinaryBase.unconv_statustype(status, f))
-        elif tag == "Branch" and type == "KeyCode": # 1.50
+        elif tag == "Branch" and ctype == "KeyCode": # 1.50
             f.check_version(1.50)
             f.write_byte(base.CWBinaryBase.unconv_keycoderange(data.get("targetkc")))
             f.write_byte(base.CWBinaryBase.unconv_effectcardtype(data.get("effectCardType")))
             f.write_string(data.get("keyCode"))
-        elif tag == "Check" and type == "Step": # 1.50
+        elif tag == "Check" and ctype == "Step": # 1.50
             f.check_version(1.50)
             f.write_string(data.get("step"))
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_comparison4(data.get("comparison")))
-        elif tag == "Branch" and type == "Round": # 1.50
+        elif tag == "Branch" and ctype == "Round": # 1.50
             f.check_version(1.50)
             f.write_byte(base.CWBinaryBase.unconv_comparison3(data.get("comparison")))
             f.write_dword(int(data.get("round")))
         else:
-            raise ValueError(tag + ", " + type)
+            raise ValueError(tag + ", " + ctype)
 
 def main():
     pass

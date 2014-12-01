@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import stat
 import shutil
-import traceback
 import copy
 import itertools
 
@@ -335,13 +333,13 @@ class CWYado(object):
         with cwfile.CWFile(path, "rb") as f:
             # 1:スキル, 2:アイテム, 3:召喚獣
             fname = os.path.basename(path)
-            type = d.get(cw.util.splitext(fname)[0])
+            restype = d.get(cw.util.splitext(fname)[0])
 
-            if type == 1:
+            if restype == 1:
                 data = skill.SkillCard(None, f, True)
-            elif type == 2:
+            elif restype == 2:
                 data = item.ItemCard(None, f, True)
-            elif type == 3:
+            elif restype == 3:
                 data = beast.BeastCard(None, f, True)
             else:
                 raise ValueError(path)
@@ -408,16 +406,16 @@ class CWYado(object):
         e_info = cw.data.make_element("InfoCards")
         element.append(e_info)
 
-        for id in partymembers.infocards:
-            e = cw.data.make_element("InfoCard", str(id))
+        for resid in partymembers.infocards:
+            e = cw.data.make_element("InfoCard", str(resid))
             e_info.append(e)
 
         # FriendCard
         e_cast = cw.data.make_element("CastCards")
         element.append(e_cast)
 
-        for id in reversed(partymembers.friendcards):
-            e_cast.append(cw.data.make_element("FriendCard", str(id)))
+        for resid in reversed(partymembers.friendcards):
+            e_cast.append(cw.data.make_element("FriendCard", str(resid)))
 
         # DeletedFile(無し)
         e_del = cw.data.make_element("DeletedFiles")

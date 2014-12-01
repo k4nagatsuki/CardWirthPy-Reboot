@@ -4,7 +4,8 @@
 import os
 import sys
 import struct
-from ctypes import *
+import ctypes
+from ctypes import c_size_t, c_long, c_void_p, c_longlong, c_float
 
 import cw
 
@@ -32,9 +33,9 @@ _soundstream1 = 0
 _soundstream2 = 0
 
 if sys.platform == "win32":
-    SYNCPROC = WINFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
+    SYNCPROC = ctypes.WINFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
 else:
-    SYNCPROC = CFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
+    SYNCPROC = ctypes.CFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
 
 def _cc111loop(handle, channel, data, pos):
     """CC#111の位置へシークし、再び演奏を始める。"""
@@ -75,15 +76,15 @@ def init_bass(soundfonts):
 
     try:
         if sys.platform == "win32":
-            _bass = windll.LoadLibrary("bass.dll")
-            _bassmidi = windll.LoadLibrary("bassmidi.dll")
+            _bass = ctypes.windll.LoadLibrary("bass.dll")
+            _bassmidi = ctypes.windll.LoadLibrary("bassmidi.dll")
         else:
             if sys.maxsize == 0x7fffffff:
-                _bass = CDLL("./lib/libbass32.so", mode=RTLD_GLOBAL)
-                _bassmidi = CDLL("./lib/libbassmidi32.so")
+                _bass = ctypes.CDLL("./lib/libbass32.so", mode=ctypes.RTLD_GLOBAL)
+                _bassmidi = ctypes.CDLL("./lib/libbassmidi32.so")
             elif sys.maxsize == 0x7fffffffffffffff:
-                _bass = CDLL("./lib/libbass64.so", mode=RTLD_GLOBAL)
-                _bassmidi = CDLL("./lib/libbassmidi64.so")
+                _bass = ctypes.CDLL("./lib/libbass64.so", mode=ctypes.RTLD_GLOBAL)
+                _bassmidi = ctypes.CDLL("./lib/libbassmidi64.so")
     except Exception:
         cw.util.print_ex()
 
@@ -111,7 +112,7 @@ def init_bass(soundfonts):
 
     return True
 
-def _play(file, volume, loop):
+def _play(fpath, volume, loop):
     """
     BASS Audioによってfileを演奏する。
     file: 再生するファイル。
@@ -122,19 +123,19 @@ def _play(file, volume, loop):
     encoding = sys.getfilesystemencoding()
     flag = (BASS_MUSIC_STOPBACK|BASS_SAMPLE_LOOP) if loop else BASS_DEFAULT
 
-    BASS_CONFIG_MIDI_DEFFONT = 0x10403
-    ext = cw.util.splitext(file)[1].lower()
+    _BASS_CONFIG_MIDI_DEFFONT = 0x10403
+    ext = cw.util.splitext(fpath)[1].lower()
     if ext == ".mid" or ext == ".midi":
         if not is_alivablemidi():
             return
-        stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, file.encode(encoding), c_longlong(0), c_longlong(0), flag, 44100)
+        stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag, 44100)
         if stream:
             if _sfonts:
                 _bassmidi.BASS_MIDI_StreamSetFonts(stream, _sfonts, len(_sfonts) / (4*3))
             else:
-                raise ValueError("sound font not found: %s" % (file))
+                raise ValueError("sound font not found: %s" % (fpath))
         else:
-            raise ValueError("_play() failure: %s" % (file))
+            raise ValueError("_play() failure: %s" % (fpath))
 
         # RPGツクールで使用されるループ位置情報(CC#111)を探し、
         # 存在する場合はその位置からループ再生を行う
@@ -144,18 +145,18 @@ def _play(file, volume, loop):
             count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
             for i in xrange(0, count, 4*5):
                 bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
-                event = bassMidiEvent[0] # 使用しない
+                _event = bassMidiEvent[0] # 使用しない
                 param = bassMidiEvent[1]
-                chan = bassMidiEvent[2] # 使用しない
-                tick = bassMidiEvent[3] # 使用しない
+                _chan = bassMidiEvent[2] # 使用しない
+                _tick = bassMidiEvent[3] # 使用しない
                 pos = c_long(bassMidiEvent[4])
                 if param == CC111: # CC#111があったのでここでループする
                     _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END, c_longlong(0), CC111LOOP, pos)
                     break
     else:
-        stream = _bass.BASS_StreamCreateFile(False, file.encode(encoding), c_longlong(0), c_longlong(0), flag)
+        stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag)
         if not stream:
-            raise ValueError("_play() failure: %s" % (file))
+            raise ValueError("_play() failure: %s" % (fpath))
 
     _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
     _bass.BASS_ChannelPlay(stream, loop)
@@ -179,7 +180,7 @@ def dispose_bass():
     del _bassmidi
     _bassmidi = None
 
-def play_bgm(file, volume=1.0):
+def play_bgm(fpath, volume=1.0):
     """
     BASS AudioによってfileをBGMとして演奏する。
     file: 再生するファイル。
@@ -189,10 +190,10 @@ def play_bgm(file, volume=1.0):
     if not is_alivable():
         return False
     stop_bgm()
-    _bgmstream = _play(file, volume, True)
+    _bgmstream = _play(fpath, volume, True)
     return _bgmstream <> 0
 
-def play_sound(file, volume=1.0, fromscenario=False):
+def play_sound(fpath, volume=1.0, fromscenario=False):
     """
     BASS Audioによってfileを効果音として演奏する。
     file: 再生するファイル。
@@ -203,10 +204,10 @@ def play_sound(file, volume=1.0, fromscenario=False):
         return False
     stop_sound(fromscenario)
     if fromscenario:
-        _soundstream1 = _play(file, volume, False)
+        _soundstream1 = _play(fpath, volume, False)
         return _soundstream1 <> 0
     else:
-        _soundstream2 = _play(file, volume, False)
+        _soundstream2 = _play(fpath, volume, False)
         return _soundstream2 <> 0
 
 def stop_bgm():

@@ -37,10 +37,10 @@ class Battle(base.CWBinaryBase):
             return
 
         events_num = f.dword()
-        self.events = [event.Event(self, f) for cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
         self.spreadtype = f.byte()
         ecards_num = f.dword()
-        self.ecards = [EnemyCard(self, f) for cnt in xrange(ecards_num)]
+        self.ecards = [EnemyCard(self, f) for _cnt in xrange(ecards_num)]
         if 0 < dataversion:
             self.bgm = f.string()
         else:
@@ -72,9 +72,9 @@ class Battle(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        type = 1
+        restype = 1
         name = ""
-        id = 0
+        resid = 0
         events = []
         spreadtype = 0
         ecards = []
@@ -84,7 +84,7 @@ class Battle(base.CWBinaryBase):
             if e.tag == "Property":
                 for prop in e:
                     if prop.tag == "Id":
-                        id = int(prop.text)
+                        resid = int(prop.text)
                     elif prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "MusicPath":
@@ -95,10 +95,10 @@ class Battle(base.CWBinaryBase):
             elif e.tag == "Events":
                 events = e
 
-        f.write_byte(type)
+        f.write_byte(restype)
         f.write_dword(0) # 不明
         f.write_string(name)
-        f.write_dword(id + 40000)
+        f.write_dword(resid + 40000)
         f.write_dword(len(events))
         for evt in events:
             event.Event.unconv(f, evt)
@@ -117,7 +117,7 @@ class EnemyCard(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.cast_id = f.dword()
         events_num = f.dword()
-        self.events = [event.Event(self, f) for cnt in xrange(events_num)]
+        self.events = [event.Event(self, f) for _cnt in xrange(events_num)]
         self.flag = f.string()
         self.scale = f.dword()
         self.left = f.dword()

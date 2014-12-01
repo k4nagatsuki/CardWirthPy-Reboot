@@ -7,7 +7,6 @@ import re
 import math
 
 import pygame
-from pygame.locals import *
 
 import cw
 
@@ -79,10 +78,10 @@ class _JpySubImage(cw.image.Image):
 
             if self.paintmode == 1:
                 self.is_cacheable = False
-                back.image.blit(image, self.position, None, BLEND_MIN)
+                back.image.blit(image, self.position, None, pygame.locals.BLEND_MIN)
             elif self.paintmode == 2:
                 self.is_cacheable = False
-                back.image.blit(image, self.position, None, BLEND_ADD)
+                back.image.blit(image, self.position, None, pygame.locals.BLEND_ADD)
             elif self.paintmode <> 4:
                 back.image.blit(image, self.position)
                 # CardWirthでは透過ライン部分は強制的に透明となる
@@ -203,9 +202,9 @@ class _JpySubImage(cw.image.Image):
         rect = rect.clip(background.get_rect())
 
         if self.paintmode == 1:
-            blendmode = BLEND_MIN
+            blendmode = pygame.locals.BLEND_MIN
         elif self.paintmode == 2:
-            blendmode = BLEND_ADD
+            blendmode = pygame.locals.BLEND_ADD
         else:
             blendmode = 0
 
@@ -399,7 +398,7 @@ class _JpySubImage(cw.image.Image):
         # マスク
         if self.transparent and self.can_mask:
             colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey, RLEACCEL)
+            image.set_colorkey(colorkey, pygame.locals.RLEACCEL)
         else:
             colorkey = None
             image.set_colorkey(None)
@@ -599,14 +598,14 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         fpath = cw.util.join_paths(dpath, filename)
         ext = os.path.splitext(fpath)[1].lower()
         if ext in cw.EXTS_SND:
-            type = cw.M_SND
+            mtype = cw.M_SND
         else:
-            type = cw.M_IMG
-        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, type)
+            mtype = cw.M_IMG
+        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, mtype)
         if inusecardpath:
             fpath = inusecardpath
         else:
-            fpath = cw.util.get_materialpath(filename, type, scedir=dpath)
+            fpath = cw.util.get_materialpath(filename, mtype, scedir=dpath)
         # 指定位置に存在しなかった場合は相対位置
         if not os.path.isfile(fpath):
             return get_filepath_s(configpath, filename, 1)
@@ -659,7 +658,7 @@ class JpyImage(cw.image.Image):
         if parent and back.loadcache:
             self.is_cacheable = False
 
-        for i, section in enumerate(config.sections()):
+        for section in config.sections():
             if not section == "init":
                 parts = JpyPartsImage(config, section, cache, mask)
                 parts.defaultcopymode = defaultcopymode
@@ -754,7 +753,7 @@ class JpdcImage(cw.image.Image):
         self.image = self.image.subsurface(rect)
 
         if mask:
-            self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
+            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
 
         # 画像保存
         filename = config.get("jpdc:init", "savefilename", "")
@@ -848,7 +847,7 @@ class JptxImage(cw.image.Image):
         self.image.fill(backcolor)
 
         if mask:
-            self.image.set_colorkey(self.image.get_at((0, 0)), RLEACCEL)
+            self.image.set_colorkey(self.image.get_at((0, 0)), pygame.locals.RLEACCEL)
 
         if fonttransparent:
             fontcolor = backcolor
@@ -915,7 +914,7 @@ class JptxImage(cw.image.Image):
 
         info = Info(self, lineheight, fontface, fontpixels, fontcolor)
         face_def = fontface
-        pixels_def = fontpixels
+        _pixels_def = fontpixels
         color_def = fontcolor
 
         for char in text:

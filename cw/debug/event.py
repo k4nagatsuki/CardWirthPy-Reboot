@@ -31,8 +31,6 @@ class EventListDialog(wx.Dialog):
         self._do_layout()
 
     def _do_layout(self):
-        sizer = wx.GridBagSizer()
-
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(self.events, 1, flag=wx.EXPAND)
         sizer_left.Add(self.showallcards, 0, flag=wx.EXPAND|wx.TOP, border=5)
@@ -105,10 +103,10 @@ class EventList(wx.TreeCtrl):
         def append_item(d, imgidx):
             keys = d.keys()
             keys.sort()
-            for id in keys:
-                if id < 0:
+            for eid in keys:
+                if eid < 0:
                     continue
-                a = d[id]
+                a = d[eid]
                 name, path = a
                 item = self.AppendItem(self.root, name, imgidx)
                 self.SetItemPyData(item, (name, path, False))
@@ -258,5 +256,5 @@ class EventList(wx.TreeCtrl):
             selitem = parent
             parent = self.GetItemParent(selitem)
 
-        name, path, expanded = self.GetItemPyData(selitem)
+        _name, path, _expanded = self.GetItemPyData(selitem)
         return path

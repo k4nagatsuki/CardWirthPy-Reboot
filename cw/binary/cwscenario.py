@@ -106,7 +106,7 @@ class CWScenario(object):
             return False
 
         try:
-            data, filedata = self.load_file(self.summarypath)
+            data, _filedata = self.load_file(self.summarypath)
             if data is None or 4 < data.version:
                 return False
         except:
@@ -125,7 +125,7 @@ class CWScenario(object):
 
         for path in self.cwfiles:
             try:
-                data, filedata = self.load_file(path)
+                data, _filedata = self.load_file(path)
                 if data is None:
                     s = os.path.basename(path)
                     s = u"%s は読込できませんでした。\n" % (s)

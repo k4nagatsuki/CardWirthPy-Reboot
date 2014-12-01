@@ -7,7 +7,6 @@ import stat
 import shutil
 import re
 import time
-import threading
 import struct
 import zipfile
 import lhafile
@@ -24,18 +23,15 @@ import ctypes
 import array
 
 if sys.platform == "win32":
-    import pythoncom
-    import win32com.shell.shell
-    import win32com.client
-    import ctypes
+    import importlib
+    pythoncom = importlib.import_module("pythoncom")
+    win32shell = importlib.import_module("win32com.shell.shell")
 
-import wx
 import wx.lib.mixins.listctrl
 import pygame
-from pygame.locals import *
+from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
 
 import cw
-import cw.binary.image
 
 
 #-------------------------------------------------------------------------------
@@ -88,23 +84,23 @@ class MusicInterface(object):
                 self.stop()
                 self._winmm = False
                 self._bass = False
-                type = load_bgm(fpath)
-                if type <> -1:
+                bgmtype = load_bgm(fpath)
+                if bgmtype <> -1:
                     filesize = 0
                     if os.path.isfile(fpath):
                         try:
                             filesize = os.path.getsize(fpath)
-                        except Exception, e:
+                        except Exception:
                             cw.util.print_ex()
 
-                    if type == 2:
+                    if bgmtype == 2:
                         volume = self._get_volumevalue(fpath)
                         try:
                             cw.bassplayer.play_bgm(fpath, volume)
                             self._bass = True
                         except Exception:
                             cw.util.print_ex()
-                    elif type == 1:
+                    elif bgmtype == 1:
                         if sys.platform == "win32":
                             name = "cwbgm"
                             mciSendStringW = ctypes.windll.winmm.mciSendStringW
@@ -281,7 +277,7 @@ class SoundInterface(object):
                 try:
                     path = get_soundfilepath(tempbasedir, self._sound)
                     cw.bassplayer.play_sound(path, volume, from_scenario)
-                except Exception, ex:
+                except Exception:
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
@@ -330,7 +326,7 @@ class SoundInterface(object):
                 try:
                     cw.bassplayer.stop_sound(from_scenario)
                     remove_soundtempfile(tempbasedir)
-                except Exception, ex:
+                except Exception:
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
@@ -454,7 +450,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                         return pygame.Surface((0, 0)).convert()
                     with open(path, "rb") as f2:
                         data = f2.read()
-                data, ok = cw.image.fix_cwnext16bitbitmap(data)
+                data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
                     return load_image(path, mask, maskpos, f2, False, isback=isback)
             except:
@@ -463,7 +459,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
 
     # アルファチャンネルを持った透過画像を読み込んだ場合は
     # SRCALPHA(0x00010000)のフラグがONになっている
-    if image.get_flags() & SRCALPHA:
+    if image.get_flags() & pygame.locals.SRCALPHA:
         image = image.convert_alpha()
     else:
         imageb = image
@@ -490,10 +486,10 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                         break
                 if not maskok:
                     maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
-                    image.set_colorkey(image.get_at(maskpos), RLEACCEL)
+                    image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
         elif mask and not image.get_colorkey():
             maskpos = convert_maskpos(maskpos, image.get_width(), image.get_height())
-            image.set_colorkey(image.get_at(maskpos), RLEACCEL)
+            image.set_colorkey(image.get_at(maskpos), pygame.locals.RLEACCEL)
 
     return image
 
@@ -590,7 +586,7 @@ def get_facepaths(sexcoupon, agecoupon, rel=False):
         dpath2 = cw.util.join_paths(facedir, dpath)
         if not os.path.isdir(dpath2):
             continue
-        for dpath3, dnames, fnames in os.walk(dpath2):
+        for dpath3, _dnames, fnames in os.walk(dpath2):
             seq = []
             for fname in fnames:
                 path = join_paths(dpath3, fname)
@@ -806,16 +802,16 @@ def str2bool(s):
         else:
             raise ValueError("%s is incorrect value!" % (s))
 
-def numwrap(n, min, max):
+def numwrap(n, nmin, nmax):
     """最小値、最大値の範囲内でnの値を返す。
     n: 範囲内で調整される値。
-    min: 最小値。
-    max: 最大値。
+    nmin: 最小値。
+    nmax: 最大値。
     """
-    if n < min:
-        n = min
-    elif n > max:
-        n = max
+    if n < nmin:
+        n = nmin
+    elif n > nmax:
+        n = nmax
 
     return n
 
@@ -1114,7 +1110,7 @@ def get_yadofilepath(path):
     else:
         return ""
 
-def get_inusecardmaterialpath(path, type, inusecard=None):
+def get_inusecardmaterialpath(path, mtype, inusecard=None):
     """pathが宿からシナリオへ持ち込んだカードの
     素材を指していればそのパスを返す。
     そうでない場合は空文字列を返す。"""
@@ -1125,16 +1121,16 @@ def get_inusecardmaterialpath(path, type, inusecard=None):
                 inusecard = cw.cwpy.event.get_inusecard()
             if not inusecard.carddata.getbool(".", "scenariocard", False):
                 imgpath = cw.util.join_yadodir(path)
-                imgpath = get_materialpathfromskin(imgpath, type)
+                imgpath = get_materialpathfromskin(imgpath, mtype)
     return imgpath
 
-def get_materialpath(path, type, scedir="", system=False):
+def get_materialpath(path, mtype, scedir="", system=False):
     """pathが指す素材を、シナリオプレイ中はシナリオ内から探し、
     プレイ中でない場合や存在しない場合はスキンから探す。
     path: 素材の相対パス。
     type: 素材のタイプ。cw.M_IMG, cw.M_MSC, cw.M_SNDのいずれか。
     """
-    if type == cw.M_IMG and cw.binary.image.path_is_code(path):
+    if mtype == cw.M_IMG and cw.binary.image.path_is_code(path):
         return path
     if not system and cw.cwpy.is_playingscenario():
         tpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", path)
@@ -1146,19 +1142,19 @@ def get_materialpath(path, type, scedir="", system=False):
             path = cw.util.join_paths(scedir, path)
     elif not os.path.isfile(path):
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-    return get_materialpathfromskin(path, type)
+    return get_materialpathfromskin(path, mtype)
 
-def get_materialpathfromskin(path, type):
+def get_materialpathfromskin(path, mtype):
     if not os.path.isfile(path):
-        if type == cw.M_IMG:
+        if mtype == cw.M_IMG:
             fname = os.path.basename(path)
             fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
             path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
-        elif type == cw.M_MSC:
+        elif mtype == cw.M_MSC:
             fname = os.path.basename(path)
             fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_bgm
             path = cw.util.join_paths(cw.cwpy.skindir, "Bgm", fname)
-        elif type == cw.M_SND:
+        elif mtype == cw.M_SND:
             fname = os.path.basename(path)
             fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_snd
             path = cw.util.join_paths(cw.cwpy.skindir, "Sound", fname)
@@ -1365,10 +1361,10 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progres
     dstdir = join_paths(dstdir, dname)
     dstdir = dupcheck_plus(dstdir, False)
 
-    list = z.namelist()
+    seq = z.namelist()
     if startup:
-        startup(len(list))
-    for i, zname in enumerate(list):
+        startup(len(seq))
+    for i, zname in enumerate(seq):
         if progress and i % 10 == 0:
             progress(i)
         name = decode_zipname(zname).replace('\\', '/')
@@ -1397,18 +1393,18 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progres
     z.close()
 
     if progress:
-        progress(len(list))
+        progress(len(seq))
 
     if avoiddup:
         # 内部にディレクトリが一つしかない場合は
         # 最上位のディレクトリに格上げする
-        list = os.listdir(dstdir)
-        if 1 == len(list):
-            dpath = os.path.join(dstdir, list[0])
+        seq = os.listdir(dstdir)
+        if 1 == len(seq):
+            dpath = os.path.join(dstdir, seq[0])
             if os.path.isdir(dpath):
                 dstdir2 = dupcheck_plus(dstdir, False)
                 os.rename(dstdir, dstdir2)
-                os.rename(os.path.join(dstdir2, list[0]), dstdir)
+                os.rename(os.path.join(dstdir2, seq[0]), dstdir)
                 cw.util.remove(dstdir2)
 
     return dstdir
@@ -1453,7 +1449,7 @@ def get_elementfromzip(zpath, name, tag=""):
         data = read_zipdata(z, name)
     f = StringIO.StringIO(data)
     try:
-        element = cw.data.xml2element(name, tag, file=f)
+        element = cw.data.xml2element(name, tag, stream=f)
     finally:
         f.close()
     return element
@@ -1496,7 +1492,7 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False, startup=None, progres
                 # ファイル数カウント
                 last_count = count
                 count = 0
-                for dpath, dnames, fnames in os.walk(dstdir):
+                for dpath, _dnames, fnames in os.walk(dstdir):
                     count += len(fnames)
                 if last_count <> count:
                     progress(count)
@@ -1516,20 +1512,19 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False, startup=None, progres
     if avoiddup:
         # 内部にディレクトリが一つしかない場合は
         # 最上位のディレクトリに格上げする
-        list = os.listdir(dstdir)
-        if 1 == len(list):
-            dpath = os.path.join(dstdir, list[0])
+        seq = os.listdir(dstdir)
+        if 1 == len(seq):
+            dpath = os.path.join(dstdir, seq[0])
             if os.path.isdir(dpath):
                 dstdir2 = dupcheck_plus(dstdir, False)
                 shutil.move(dstdir, dstdir2)
-                shutil.move(os.path.join(dstdir2, list[0]), dstdir)
+                shutil.move(os.path.join(dstdir2, seq[0]), dstdir)
                 cw.util.remove(dstdir2)
 
     return dstdir
 
 def cab_filenum(cab):
     """CABアーカイブに含まれるファイル数を返す。"""
-    dword = struct.Struct("<l")
     word = struct.Struct("<h")
     try:
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
@@ -1544,14 +1539,14 @@ def cab_filenum(cab):
         cw.util.print_ex()
     return 0
 
-def cab_hasfile(cab, file):
+def cab_hasfile(cab, fname):
     """CABアーカイブに指定された名前のファイルが含まれているか判定する。"""
     if not os.path.isfile(cab):
         return ""
 
     dword = struct.Struct("<l")
     word = struct.Struct("<h")
-    file = os.path.normcase(file)
+    fname = os.path.normcase(fname)
     encoding = "cp932"
     try:
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
@@ -1564,7 +1559,7 @@ def cab_hasfile(cab, file):
             cfiles = word.unpack(buf[28:30])[0]
             f.seek(cofffiles)
 
-            for i in xrange(cfiles):
+            for _i in xrange(cfiles):
                 buf = f.read(16)
                 attribs = word.unpack(buf[14:16])[0]
                 name = []
@@ -1577,7 +1572,7 @@ def cab_hasfile(cab, file):
                 _A_NAME_IS_UTF = 0x80
                 if not (attribs & _A_NAME_IS_UTF):
                     name = unicode(name, encoding);
-                if file == os.path.normcase(os.path.basename(name)):
+                if fname == os.path.normcase(os.path.basename(name)):
                     return name
     except Exception:
         cw.util.print_ex()
@@ -1774,7 +1769,7 @@ def get_char(s, index):
     except:
         return ""
 
-def format_title(format, d):
+def format_title(fmt, d):
     """foobar2000の任意フォーマット文字列のような形式で
     文字列の構築を行う。
      * %%で囲われた文字列は変数となり、辞書dから得られる値に置換される。
@@ -1791,36 +1786,36 @@ def format_title(format, d):
         def __init__(self, name):
             self.name = name
 
-    def eat_parts(format, subsection):
+    def eat_parts(fmt, subsection):
         """formatを文字列とFormatPartのリストに分解。
         []で囲われた部分はサブリストとする。
         """
-        list = []
+        seq = []
         bs = False
-        while format:
-            c = format[0]
-            format = format[1:]
+        while fmt:
+            c = fmt[0]
+            fmt = fmt[1:]
             if bs:
-                list.append(c)
+                seq.append(c)
                 bs = False
             elif c == "\\":
                 bs = True
             elif c == "]" and subsection:
-                return format, list
+                return fmt, seq
             elif c == "%":
-                ci = format.find("%")
+                ci = fmt.find("%")
                 if ci <> -1:
-                    list.append(_FormatPart(format[:ci]))
-                    format = format[ci+1:]
+                    seq.append(_FormatPart(fmt[:ci]))
+                    fmt = fmt[ci+1:]
             elif c == "[":
-                format, list2 = eat_parts(format, True)
-                list.append(list2)
+                fmt, list2 = eat_parts(fmt, True)
+                seq.append(list2)
             else:
-                list.append(c)
-        return format, list
+                seq.append(c)
+        return fmt, seq
 
-    format, l = eat_parts(format, False)
-    assert not format
+    fmt, l = eat_parts(fmt, False)
+    assert not fmt
     def do_format(l):
         """フォーマットを実行する。"""
         seq = []
@@ -1832,9 +1827,9 @@ def format_title(format, d):
                     seq.append(name)
                     use = True
             elif isinstance(sec, list):
-                str, use2 = do_format(sec)
+                text, use2 = do_format(sec)
                 if use2:
-                    seq.append(str)
+                    seq.append(text)
                     use = True
             else:
                 seq.append(sec)
@@ -2011,14 +2006,14 @@ def get_boxpointlist(pos, size):
     poslist.append((x, y + height, x + width, y + height))
     return poslist
 
-def create_fileselection(parent, target, message, wildcard="*.*", dir=False, getbasedir=None, callback=None, winsize=False):
+def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, getbasedir=None, callback=None, winsize=False):
     """ファイルまたはディレクトリを選択する
     ダイアログを表示するボタンを生成する。
     parent: ボタンの親パネル。
     target: 選択結果を格納するコントロール。
     message: 選択時に表示されるメッセージ。
     wildcard: 選択対象の定義。
-    dir: Trueの場合はディレクトリの選択を行う。
+    seldir: Trueの場合はディレクトリの選択を行う。
     getbasedir: 相対パスを扱う場合は基準となるパスを返す関数。
     """
     def OnOpen(event):
@@ -2026,7 +2021,7 @@ def create_fileselection(parent, target, message, wildcard="*.*", dir=False, get
         dpath = fpath
         if getbasedir and not os.path.isabs(dpath):
             dpath = os.path.join(getbasedir(), dpath)
-        if dir:
+        if seldir:
             dlg = wx.DirDialog(parent.TopLevelParent, message, dpath, wx.DD_DIR_MUST_EXIST)
             if dlg.ShowModal() == wx.ID_OK:
                 dpath = dlg.GetPath()
@@ -2065,11 +2060,11 @@ class CWPyStaticBitmap(wx.Panel):
     """wx.StaticBitmapはアルファチャンネル付きの画像を
     正しく表示できない場合があるので代替する。
     """
-    def __init__(self, parent, id, bmp, size=None):
+    def __init__(self, parent, cid, bmp, size=None):
         if not size and bmp:
             s = bmp.GetSize()
             size = (s[0], s[1])
-        wx.Panel.__init__(self, parent, id, size=size)
+        wx.Panel.__init__(self, parent, cid, size=size)
         self.bmp = bmp
         self._bind()
 
@@ -2087,25 +2082,25 @@ class CWPyStaticBitmap(wx.Panel):
     def GetBitmap(self, bmp):
         return self.bmp
 
-def abbr_longstr(dc, str, w):
+def abbr_longstr(dc, text, w):
     """ClientDCを使って長い文字列を省略して末尾に三点リーダを付ける。
     dc: ClientDC
-    str: 編集対象の文字列
+    text: 編集対象の文字列
     w: 目標文字列長(pixel)
     """
-    width = dc.GetTextExtent(str)[0]
+    width = dc.GetTextExtent(text)[0]
     if width > w:
-        while dc.GetTextExtent(str + u"...")[0] > w:
-            str = str[:-1]
-        str += u"..."
-    return str
+        while dc.GetTextExtent(text + u"...")[0] > w:
+            text = text[:-1]
+        text += u"..."
+    return text
 
 class CheckableListCtrl(wx.ListCtrl,
                         wx.lib.mixins.listctrl.CheckListCtrlMixin,
                         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin):
     """チェックボックス付きのリスト。"""
-    def __init__(self, parent, id, size, style, colpos=0):
-        wx.ListCtrl.__init__(self, parent, id, size=size, style=style|wx.LC_NO_HEADER)
+    def __init__(self, parent, cid, size, style, colpos=0):
+        wx.ListCtrl.__init__(self, parent, cid, size=size, style=style|wx.LC_NO_HEADER)
         wx.lib.mixins.listctrl.CheckListCtrlMixin.__init__(self)
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
 #        w, h = self.GetImageList(wx.IMAGE_LIST_SMALL).GetSize(0)
@@ -2126,12 +2121,12 @@ def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     """
     def _is_cursorinleft():
         rect = toppanel.GetClientRect()
-        x, y = toppanel.ScreenToClient(wx.GetMousePosition())
+        x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
         return x < rect.x + rect.width / 4 and leftbtn.IsEnabled()
 
     def _is_cursorinright():
         rect = toppanel.GetClientRect()
-        x, y = toppanel.ScreenToClient(wx.GetMousePosition())
+        x, _y = toppanel.ScreenToClient(wx.GetMousePosition())
         return rect.x + rect.width / 4 * 3 < x and rightbtn.IsEnabled()
 
     def _update_mousepos():
@@ -2221,26 +2216,26 @@ def _co_initialize():
         if not thr2.isAlive():
             _cominit_table.remove(thr2)
 
-def get_linktarget(file):
+def get_linktarget(fpath):
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
-    if sys.platform <> "win32" or not file.lower().endswith(".lnk"):
-        return file
+    if sys.platform <> "win32" or not fpath.lower().endswith(".lnk"):
+        return fpath
 
     _co_initialize()
-    shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
+    shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
-                                          win32com.shell.shell.IID_IShellLink)
+                                          win32shell.IID_IShellLink)
     try:
         encoding = sys.getfilesystemencoding()
         STGM_READ = 0x00000000
-        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(file.encode(encoding), STGM_READ)
-        file = shortcut.GetPath(win32com.shell.shell.SLGP_UNCPRIORITY)[0].decode(encoding)
+        shortcut.QueryInterface(pythoncom.IID_IPersistFile).Load(fpath.encode(encoding), STGM_READ)
+        fpath = shortcut.GetPath(win32shell.SLGP_UNCPRIORITY)[0].decode(encoding)
     except Exception:
         print_ex()
-        return file
-    return join_paths(file)
+        return fpath
+    return join_paths(fpath)
 
 def create_link(shortcutpath, targetpath):
     """targetpathへのショートカットを
@@ -2254,9 +2249,9 @@ def create_link(shortcutpath, targetpath):
 
     _co_initialize()
     targetpath = os.path.abspath(targetpath)
-    shortcut = pythoncom.CoCreateInstance(win32com.shell.shell.CLSID_ShellLink, None,
+    shortcut = pythoncom.CoCreateInstance(win32shell.CLSID_ShellLink, None,
                                           pythoncom.CLSCTX_INPROC_SERVER,
-                                          win32com.shell.shell.IID_IShellLink)
+                                          win32shell.IID_IShellLink)
     encoding = sys.getfilesystemencoding()
     shortcut.SetPath(targetpath.encode(encoding))
     shortcut.QueryInterface(pythoncom.IID_IPersistFile).Save(shortcutpath.encode(encoding), 0)
@@ -2368,7 +2363,7 @@ def exists_mutex(dpath):
         name = u"CardWirthPy/%s" % (name)
         name = name.encode("utf-16")
         MUTEX_ALL_ACCESS = 0x001F0001
-        SYNCHRONIZE = 0x00100000
+        _SYNCHRONIZE = 0x00100000
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.OpenMutexW(MUTEX_ALL_ACCESS, 0, name)
         if handle and not handle in _mutex:

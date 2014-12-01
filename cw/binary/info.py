@@ -16,13 +16,13 @@ class InfoCard(base.CWBinaryBase):
         idl = f.dword()
 
         if idl < 19999:
-            dataversion = 0
+            _dataversion = 0
             self.id = idl
         elif idl < 39999:
-            dataversion = 2
+            _dataversion = 2
             self.id = idl - 20000
         else:
-            dataversion = 4
+            _dataversion = 4
             self.id = idl - 40000
 
         if nameonly:
@@ -53,17 +53,17 @@ class InfoCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data):
-        type = 4
+        restype = 4
         image = None
         name = ""
-        id = 0
+        resid = 0
         description = ""
 
         for e in data:
             if e.tag == "Property":
                 for prop in e:
                     if prop.tag == "Id":
-                        id = int(prop.text)
+                        resid = int(prop.text)
                     elif prop.tag == "Name":
                         name = prop.text
                     elif prop.tag == "ImagePath":
@@ -71,10 +71,10 @@ class InfoCard(base.CWBinaryBase):
                     elif prop.tag == "Description":
                         description = prop.text
 
-        f.write_byte(type)
+        f.write_byte(restype)
         f.write_image(image)
         f.write_string(name)
-        f.write_dword(id + 40000)
+        f.write_dword(resid + 40000)
         f.write_string(description, True)
 
 def main():

@@ -2,13 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
 import io
 import weakref
-import StringIO
 
 import util
-import xmltemplate
 import wx
 
 import cw
@@ -449,157 +446,157 @@ class CWBinaryBase(object):
             raise ValueError(self.fpath)
 
     @staticmethod
-    def unconv_contenttype(type, n):
-        if type == "Start" and n == "":
+    def unconv_contenttype(ctype, n):
+        if ctype == "Start" and n == "":
             return 0
-        elif type == "Link" and n == "Start":
+        elif ctype == "Link" and n == "Start":
             return 1
-        elif type == "Start" and n == "Battle":
+        elif ctype == "Start" and n == "Battle":
             return 2
-        elif type == "End" and n == "":
+        elif ctype == "End" and n == "":
             return 3
-        elif type == "End" and n == "BadEnd":
+        elif ctype == "End" and n == "BadEnd":
             return 4
-        elif type == "Change" and n == "Area":
+        elif ctype == "Change" and n == "Area":
             return 5
-        elif type == "Talk" and n == "Message":
+        elif ctype == "Talk" and n == "Message":
             return 6
-        elif type == "Play" and n == "Bgm":
+        elif ctype == "Play" and n == "Bgm":
             return 7
-        elif type == "Change" and n == "BgImage":
+        elif ctype == "Change" and n == "BgImage":
             return 8
-        elif type == "Play" and n == "Sound":
+        elif ctype == "Play" and n == "Sound":
             return 9
-        elif type == "Wait" and n == "":
+        elif ctype == "Wait" and n == "":
             return 10
-        elif type == "Effect" and n == "":
+        elif ctype == "Effect" and n == "":
             return 11
-        elif type == "Branch" and n == "Select":
+        elif ctype == "Branch" and n == "Select":
             return 12
-        elif type == "Branch" and n == "Ability":
+        elif ctype == "Branch" and n == "Ability":
             return 13
-        elif type == "Branch" and n == "Random":
+        elif ctype == "Branch" and n == "Random":
             return 14
-        elif type == "Branch" and n == "Flag":
+        elif ctype == "Branch" and n == "Flag":
             return 15
-        elif type == "Set" and n == "Flag":
+        elif ctype == "Set" and n == "Flag":
             return 16
-        elif type == "Branch" and n == "MultiStep":
+        elif ctype == "Branch" and n == "MultiStep":
             return 17
-        elif type == "Set" and n == "Step":
+        elif ctype == "Set" and n == "Step":
             return 18
-        elif type == "Branch" and n == "Cast":
+        elif ctype == "Branch" and n == "Cast":
             return 19
-        elif type == "Branch" and n == "Item":
+        elif ctype == "Branch" and n == "Item":
             return 20
-        elif type == "Branch" and n == "Skill":
+        elif ctype == "Branch" and n == "Skill":
             return 21
-        elif type == "Branch" and n == "Info":
+        elif ctype == "Branch" and n == "Info":
             return 22
-        elif type == "Branch" and n == "Beast":
+        elif ctype == "Branch" and n == "Beast":
             return 23
-        elif type == "Branch" and n == "Money":
+        elif ctype == "Branch" and n == "Money":
             return 24
-        elif type == "Branch" and n == "Coupon":
+        elif ctype == "Branch" and n == "Coupon":
             return 25
-        elif type == "Get" and n == "Cast":
+        elif ctype == "Get" and n == "Cast":
             return 26
-        elif type == "Get" and n == "Item":
+        elif ctype == "Get" and n == "Item":
             return 27
-        elif type == "Get" and n == "Skill":
+        elif ctype == "Get" and n == "Skill":
             return 28
-        elif type == "Get" and n == "Info":
+        elif ctype == "Get" and n == "Info":
             return 29
-        elif type == "Get" and n == "Beast":
+        elif ctype == "Get" and n == "Beast":
             return 30
-        elif type == "Get" and n == "Money":
+        elif ctype == "Get" and n == "Money":
             return 31
-        elif type == "Get" and n == "Coupon":
+        elif ctype == "Get" and n == "Coupon":
             return 32
-        elif type == "Lose" and n == "Cast":
+        elif ctype == "Lose" and n == "Cast":
             return 33
-        elif type == "Lose" and n == "Item":
+        elif ctype == "Lose" and n == "Item":
             return 34
-        elif type == "Lose" and n == "Skill":
+        elif ctype == "Lose" and n == "Skill":
             return 35
-        elif type == "Lose" and n == "Info":
+        elif ctype == "Lose" and n == "Info":
             return 36
-        elif type == "Lose" and n == "Beast":
+        elif ctype == "Lose" and n == "Beast":
             return 37
-        elif type == "Lose" and n == "Money":
+        elif ctype == "Lose" and n == "Money":
             return 38
-        elif type == "Lose" and n == "Coupon":
+        elif ctype == "Lose" and n == "Coupon":
             return 39
-        elif type == "Talk" and n == "Dialog":
+        elif ctype == "Talk" and n == "Dialog":
             return 40
-        elif type == "Set" and n == "StepUp":
+        elif ctype == "Set" and n == "StepUp":
             return 41
-        elif type == "Set" and n == "StepDown":
+        elif ctype == "Set" and n == "StepDown":
             return 42
-        elif type == "Reverse" and n == "Flag":
+        elif ctype == "Reverse" and n == "Flag":
             return 43
-        elif type == "Branch" and n == "Step":
+        elif ctype == "Branch" and n == "Step":
             return 44
-        elif type == "Elapse" and n == "Time":
+        elif ctype == "Elapse" and n == "Time":
             return 45
-        elif type == "Branch" and n == "Level":
+        elif ctype == "Branch" and n == "Level":
             return 46
-        elif type == "Branch" and n == "Status":
+        elif ctype == "Branch" and n == "Status":
             return 47
-        elif type == "Branch" and n == "PartyNumber":
+        elif ctype == "Branch" and n == "PartyNumber":
             return 48
-        elif type == "Show" and n == "Party":
+        elif ctype == "Show" and n == "Party":
             return 49
-        elif type == "Hide" and n == "Party":
+        elif ctype == "Hide" and n == "Party":
             return 50
-        elif type == "Effect" and n == "Break":
+        elif ctype == "Effect" and n == "Break":
             return 51
-        elif type == "Call" and n == "Start":
+        elif ctype == "Call" and n == "Start":
             return 52
-        elif type == "Link" and n == "Package":
+        elif ctype == "Link" and n == "Package":
             return 53
-        elif type == "Call" and n == "Package":
+        elif ctype == "Call" and n == "Package":
             return 54
-        elif type == "Branch" and n == "Area":
+        elif ctype == "Branch" and n == "Area":
             return 55
-        elif type == "Branch" and n == "Battle":
+        elif ctype == "Branch" and n == "Battle":
             return 56
-        elif type == "Branch" and n == "CompleteStamp":
+        elif ctype == "Branch" and n == "CompleteStamp":
             return 57
-        elif type == "Get" and n == "CompleteStamp":
+        elif ctype == "Get" and n == "CompleteStamp":
             return 58
-        elif type == "Lose" and n == "CompleteStamp":
+        elif ctype == "Lose" and n == "CompleteStamp":
             return 59
-        elif type == "Branch" and n == "Gossip":
+        elif ctype == "Branch" and n == "Gossip":
             return 60
-        elif type == "Get" and n == "Gossip":
+        elif ctype == "Get" and n == "Gossip":
             return 61
-        elif type == "Lose" and n == "Gossip":
+        elif ctype == "Lose" and n == "Gossip":
             return 62
-        elif type == "Branch" and n == "IsBattle":
+        elif ctype == "Branch" and n == "IsBattle":
             return 63
-        elif type == "Redisplay" and n == "":
+        elif ctype == "Redisplay" and n == "":
             return 64
-        elif type == "Check" and n == "Flag":
+        elif ctype == "Check" and n == "Flag":
             return 65
-        elif type == "Substitute" and n == "Step": # 1.30
+        elif ctype == "Substitute" and n == "Step": # 1.30
             return 66
-        elif type == "Substitute" and n == "Flag": # 1.30
+        elif ctype == "Substitute" and n == "Flag": # 1.30
             return 67
-        elif type == "Branch" and n == "StepValue": # 1.30
+        elif ctype == "Branch" and n == "StepValue": # 1.30
             return 68
-        elif type == "Branch" and n == "FlagValue": # 1.30
+        elif ctype == "Branch" and n == "FlagValue": # 1.30
             return 69
-        elif type == "Branch" and n == "RandomSelect": # 1.30
+        elif ctype == "Branch" and n == "RandomSelect": # 1.30
             return 70
-        elif type == "Branch" and n == "KeyCode": # 1.50
+        elif ctype == "Branch" and n == "KeyCode": # 1.50
             return 71
-        elif type == "Check" and n == "Step": # 1.50
+        elif ctype == "Check" and n == "Step": # 1.50
             return 72
-        elif type == "Branch" and n == "Round": # 1.50
+        elif ctype == "Branch" and n == "Round": # 1.50
             return 73
         else:
-            raise ValueError(type + ", " + n)
+            raise ValueError(ctype + ", " + n)
 
 #-------------------------------------------------------------------------------
 # 適用メンバ・適用範囲

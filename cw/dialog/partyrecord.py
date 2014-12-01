@@ -247,9 +247,9 @@ class SelectPartyRecord(select.Select):
         self._update_restorable()
         restorable = self.restorable[self.index]
         if restorable:
-            can, members, cards = restorable
+            _can, members, cards = restorable
         else:
-            can = False
+            _can = False
             members = {}
             cards = None
         # 見出し

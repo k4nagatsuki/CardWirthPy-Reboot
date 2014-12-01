@@ -3,15 +3,11 @@
 
 import os
 import sys
-import math
 import threading
 import subprocess
-import wx
 import wx.aui
-import wx.lib.mixins.listctrl as listmix
 
 import cw
-import cw.binary
 
 
 # ID
@@ -840,8 +836,8 @@ class Debugger(wx.Frame):
 
             if dlg.ShowModal() == wx.ID_OK:
                 cw.cwpy.exec_func(cw.cwpy.clean_specials)
-                id = seq[dlg.GetSelection()][0]
-                cw.cwpy.exec_func(cw.content.call_package, id, False)
+                resid = seq[dlg.GetSelection()][0]
+                cw.cwpy.exec_func(cw.content.call_package, resid, False)
 
             dlg.Destroy()
 
@@ -1018,14 +1014,14 @@ class Debugger(wx.Frame):
         if cw.cwpy.event._paused:
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PLAY"]
             text = u"イベント実行再開(&P)\tF10"
-            help = u"イベント実行を再開します。"
+            helptext = u"イベント実行を再開します。"
         else:
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PAUSE"]
             text = u"イベント一時停止(&P)\tF10"
-            help = u"イベントを一時停止します。"
+            helptext = u"イベントを一時停止します。"
         self.mi_pause.SetText(text)
         self.tl_pause.SetBitmap1(bmp)
-        self.tl_pause.SetShortHelp(help)
+        self.tl_pause.SetShortHelp(helptext)
 
         self.tb_event.Realize()
 
@@ -1317,16 +1313,16 @@ class VariableListCtrl(wx.ListCtrl):
 
         def func(self):
             if cw.cwpy.is_playingscenario():
-                list = cw.cwpy.sdata.steps.values()
-                cw.util.sort_by_attr(list, "name")
+                vlist = cw.cwpy.sdata.steps.values()
+                cw.util.sort_by_attr(vlist, "name")
                 seq = cw.cwpy.sdata.flags.values()
                 cw.util.sort_by_attr(seq, "name")
-                list.extend(seq)
-                def func(self, list):
-                    self.list = list
-                    self.SetItemCount(len(list))
+                vlist.extend(seq)
+                def func(self, vlist):
+                    self.list = vlist
+                    self.SetItemCount(len(vlist))
                     self.Refresh()
-                cw.cwpy.frame.exec_func(func, self, list)
+                cw.cwpy.frame.exec_func(func, self, vlist)
             else:
                 def func(self):
                     self.Refresh()
@@ -1495,20 +1491,20 @@ class EventView(wx.ScrolledWindow):
     def get_index(self, pos):
         y = pos[1]
         index = -1
-        list = self.itemlist
+        seq = self.itemlist
         ii = 0
-        i = len(list) / 2
-        while 0 <= i and i < len(list):
-            if list[i].is_contains(pos):
+        i = len(seq) / 2
+        while 0 <= i and i < len(seq):
+            if seq[i].is_contains(pos):
                 index = i
                 break
-            elif y < list[i].pos[1]:
-                list = list[:i]
-                i = len(list) / 2
-            elif list[i].pos[1] + list[i].height <= y:
-                list = list[i+1:]
+            elif y < seq[i].pos[1]:
+                seq = seq[:i]
+                i = len(seq) / 2
+            elif seq[i].pos[1] + seq[i].height <= y:
+                seq = seq[i+1:]
                 ii += i + 1
-                i = len(list) / 2
+                i = len(seq) / 2
         return index + ii
 
     def OnLeftDown(self, event):
@@ -1554,12 +1550,12 @@ class EventView(wx.ScrolledWindow):
         keycode = event.GetKeyCode()
         if keycode in (wx.WXK_LEFT, wx.WXK_UP):
             if self.selectionitem:
-                 index = self.selectionindex
-                 if 0 < index:
-                     self.selectionitem = self.itemlist[index-1]
-                     self.selectionindex = index-1
-                     self.show_item(self.selectionitem)
-                     self.Refresh()
+                index = self.selectionindex
+                if 0 < index:
+                    self.selectionitem = self.itemlist[index-1]
+                    self.selectionindex = index-1
+                    self.show_item(self.selectionitem)
+                    self.Refresh()
             else:
                 self.selectionitem = self.itemlist[0]
                 self.selectionindex = 0
@@ -1568,12 +1564,12 @@ class EventView(wx.ScrolledWindow):
 
         elif keycode in (wx.WXK_RIGHT, wx.WXK_DOWN):
             if self.selectionitem:
-                 index = self.selectionindex
-                 if index+1 < len(self.itemlist):
-                     self.selectionitem = self.itemlist[index+1]
-                     self.selectionindex = index+1
-                     self.show_item(self.selectionitem)
-                     self.Refresh()
+                index = self.selectionindex
+                if index+1 < len(self.itemlist):
+                    self.selectionitem = self.itemlist[index+1]
+                    self.selectionindex = index+1
+                    self.show_item(self.selectionitem)
+                    self.Refresh()
             else:
                 self.selectionitem = self.itemlist[0]
                 self.selectionindex = 0
@@ -1581,8 +1577,8 @@ class EventView(wx.ScrolledWindow):
                 self.Refresh()
 
         if self.selectionitem and keycode in (wx.WXK_LEFT, wx.WXK_UP, wx.WXK_RIGHT, wx.WXK_DOWN):
-             content = cw.content.get_content(self.selectionitem.content)
-             self.Parent.statusbar.SetStatusText(content.get_status(), 1)
+            content = cw.content.get_content(self.selectionitem.content)
+            self.Parent.statusbar.SetStatusText(content.get_status(), 1)
 
     def OnKeyUp(self, event):
         if not self.itemlist:
@@ -1597,8 +1593,8 @@ class EventView(wx.ScrolledWindow):
 
     def show_item(self, item):
         x, y = self.GetViewStart()
-        w, h = self.GetClientSize()
-        xtop = x * self.scrollrate_x
+        _w, h = self.GetClientSize()
+        _xtop = x * self.scrollrate_x
         ytop = y * self.scrollrate_y
         if item.pos[1] + item.height < ytop:
             ytop = item.pos[1]
@@ -1825,7 +1821,7 @@ class EventTreeCtrl(wx.TreeCtrl):
 
         # スタートコンテントの場合は次のコンテントへ遷移
         if item.parent is None:
-            item, cookie = self.GetFirstChild(item)
+            item, _cookie = self.GetFirstChild(item)
             if not item.IsOk():
                 return
             data = self.GetItemPyData(item)

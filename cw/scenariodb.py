@@ -5,15 +5,12 @@ import os
 import io
 import sys
 import time
-import zipfile
 import StringIO
 import sqlite3
 import threading
-import shutil
 import subprocess
 
 import cw
-import cw.binary
 from cw.util import synclock
 
 
@@ -36,7 +33,7 @@ class ScenariodbUpdatingThread(threading.Thread):
         db.update()
         folders = set()
         folders.add(u"Scenario")
-        for skintype, folder in self.setting.folderoftype:
+        for _skintype, folder in self.setting.folderoftype:
             if not folder in folders:
                 db.update(folder)
                 folders.add(folder)
@@ -191,7 +188,6 @@ class Scenariodb(object):
         self._insert_scenario(path, commit)
 
     def _insert_scenario(self, path, commit=True):
-        lpath = path.lower()
         t = read_summary(path)
 
         if t:
@@ -336,7 +332,7 @@ class Scenariodb(object):
         s = "SELECT * FROM scenariodb WHERE %s LIKE ?" % (column)
         self.cur.execute(s, (q,))
         data = self.cur.fetchall()
-        headers, names = self.create_headers(data)
+        headers, _names = self.create_headers(data)
         return self.sort_headers(headers)
 
     @synclock(_lock)
@@ -438,7 +434,7 @@ def read_summary(basepath):
                             for p in os.listdir(dpath):
                                 cw.util.remove(cw.util.join_paths(dpath, p))
                 return None
-        except Exception, ex:
+        except Exception:
             cw.util.print_ex()
             return None
 
@@ -466,7 +462,7 @@ def read_summary(basepath):
     fdata = z.read(name)
     f = StringIO.StringIO(fdata)
     try:
-        e = cw.data.xml2element(path, "Property", file=f)
+        e = cw.data.xml2element(path, "Property", stream=f)
     finally:
         f.close()
 
@@ -487,7 +483,7 @@ def read_summary(basepath):
     summaryinfos.append(imgbuf)
     return tuple(summaryinfos)
 
-def parse_summarydata(basepath, data, type, archive, mtime):
+def parse_summarydata(basepath, data, scetype, archive, mtime):
     e = data.find("ImagePath")
     imgpath = e.text or ""
     e = data.find("Name")
@@ -521,11 +517,10 @@ def parse_summarydata(basepath, data, type, archive, mtime):
         dpath, fname = os.path.split(basepath)
     else:
         dpath, fname = os.path.split(os.path.dirname(basepath))
-    return (imgpath, [dpath, type, fname, name, author, desc, skintype, levelmin,
+    return (imgpath, [dpath, scetype, fname, name, author, desc, skintype, levelmin,
                 levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
 
 def read_summary_classic(basepath, spath, f=None):
-    path = cw.util.get_linktarget(basepath)
     try:
         if not f:
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
@@ -536,7 +531,7 @@ def read_summary_classic(basepath, spath, f=None):
         imgbuf = s.image
         ctime = time.time()
         mtime = os.path.getmtime(spath)
-    except Exception, ex:
+    except Exception:
         return None
 
     summaryinfos = [os.path.dirname(basepath), TYPE_CLASSIC,
@@ -553,23 +548,23 @@ def get_scenariopaths(path):
     path = cw.util.get_linktarget(path)
     if not os.path.isdir(path):
         return
-    for file in os.listdir(path):
-        file = cw.util.join_paths(path, file)
-        ltarg = cw.util.get_linktarget(file)
+    for fname in os.listdir(path):
+        fname = cw.util.join_paths(path, fname)
+        ltarg = cw.util.get_linktarget(fname)
         if os.path.isdir(ltarg):
             fpath = cw.util.join_paths(ltarg, "Summary.wsm")
             if os.path.isfile(fpath):
-                yield file
+                yield fname
             fpath = cw.util.join_paths(ltarg, "Summary.xml")
             if os.path.isfile(fpath):
-                yield file
+                yield fname
         else:
             lfile = ltarg.lower()
             if lfile.endswith(".wsn") or\
                lfile.endswith(".zip") or\
                lfile.endswith(".lzh") or\
                lfile.endswith(".cab"):
-                yield file
+                yield fname
 
 def main():
     db = Scenariodb()

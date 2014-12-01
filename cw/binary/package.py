@@ -20,7 +20,7 @@ class Package(base.CWBinaryBase):
         if nameonly:
             return
         events_num = f.dword()
-        self.events = [event.SimpleEvent(self, f) for cnt in xrange(events_num)]
+        self.events = [event.SimpleEvent(self, f) for _cnt in xrange(events_num)]
 
         self.data = None
 
@@ -42,14 +42,14 @@ class Package(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data):
         name = ""
-        id = 0
+        resid = 0
         events = []
 
         for e in data:
             if e.tag == "Property":
                 for prop in e:
                     if prop.tag == "Id":
-                        id = int(prop.text)
+                        resid = int(prop.text)
                     elif prop.tag == "Name":
                         name = prop.text
             elif e.tag == "Events":
@@ -57,7 +57,7 @@ class Package(base.CWBinaryBase):
 
         f.write_dword(0) # 不明
         f.write_string(name)
-        f.write_dword(id)
+        f.write_dword(resid)
         f.write_dword(len(events))
         for evt in events:
             event.SimpleEvent.unconv(f, evt)
