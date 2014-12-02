@@ -15,6 +15,7 @@ import pygame
 from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
+from cw.event import EffectBreakError
 
 
 class CWPyRunningError(Exception):
@@ -285,7 +286,8 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.status == "Title":
             # タイトル画面にいる場合はロゴ表示前まで戻す
-            self.startup()
+            self.exec_func(self.startup)
+            raise cw.event.EffectBreakError()
         else:
             self.music.play(self.music.path, updatepredata=False)
 
@@ -1129,44 +1131,49 @@ class CWPy(_Singleton, threading.Thread):
         cw.cwpy.topgrp.add(white, layer="title")
 
         self.lock_menucards = False
-        cw.animation.animate_sprite(card2, "deal", clearevent=False)
-        cw.animation.animate_sprite(card2, "hide", clearevent=False)
-        cw.animation.animate_sprite(card1, "deal", clearevent=False)
-        cw.animation.animate_sprite(card1, "hide", clearevent=False)
-        cw.animation.animate_sprites2([(card2, "deal"), (cell1, "fadein")], clearevent=False)
-        cw.animation.animate_sprite(card2, "hide", clearevent=False)
-        cw.animation.animate_sprite(card1, "deal", clearevent=False)
-        cw.animation.animate_sprites2([(card1, "hide"), (cell1, "vanish"), (cell2, "show")], clearevent=False)
-        cw.animation.animate_sprite(card2, "deal", clearevent=False)
-        cw.animation.animate_sprite(card2, "hide", clearevent=False)
-        cw.animation.animate_sprite(card1, "deal", clearevent=False)
-        cw.animation.animate_sprites2([(card1, "hide"), (cell2, "fadeout")], clearevent=False)
-        cw.animation.animate_sprite(card2, "deal", clearevent=False)
-        cw.animation.animate_sprite(card2, "hide", clearevent=False)
-        cw.animation.animate_sprite(card1, "deal", clearevent=False)
-        cw.animation.animate_sprite(card1, "hide", clearevent=False)
-        cw.animation.animate_sprites2([(card2, "deal"), (cell3, "fadein")], clearevent=False)
-        cw.animation.animate_sprite(card2, "hide", clearevent=False)
-        cw.animation.animate_sprite(card1, "deal", clearevent=False)
-        cw.animation.animate_sprite(card1, "hide", clearevent=False)
-        cw.animation.animate_sprite(card2, "deal", clearevent=False)
-        cw.animation.animate_sprites2([(card2, "hide"), (white, "fadein2")], clearevent=False)
-        for _i in xrange(self.setting.fps / 2):
+        try:
+            cw.animation.animate_sprite(card2, "deal", clearevent=False)
+            cw.animation.animate_sprite(card2, "hide", clearevent=False)
+            cw.animation.animate_sprite(card1, "deal", clearevent=False)
+            cw.animation.animate_sprite(card1, "hide", clearevent=False)
+            cw.animation.animate_sprites2([(card2, "deal"), (cell1, "fadein")], clearevent=False)
+            cw.animation.animate_sprite(card2, "hide", clearevent=False)
+            cw.animation.animate_sprite(card1, "deal", clearevent=False)
+            cw.animation.animate_sprites2([(card1, "hide"), (cell1, "vanish"), (cell2, "show")], clearevent=False)
+            cw.animation.animate_sprite(card2, "deal", clearevent=False)
+            cw.animation.animate_sprite(card2, "hide", clearevent=False)
+            cw.animation.animate_sprite(card1, "deal", clearevent=False)
+            cw.animation.animate_sprites2([(card1, "hide"), (cell2, "fadeout")], clearevent=False)
+            cw.animation.animate_sprite(card2, "deal", clearevent=False)
+            cw.animation.animate_sprite(card2, "hide", clearevent=False)
+            cw.animation.animate_sprite(card1, "deal", clearevent=False)
+            cw.animation.animate_sprite(card1, "hide", clearevent=False)
+            cw.animation.animate_sprites2([(card2, "deal"), (cell3, "fadein")], clearevent=False)
+            cw.animation.animate_sprite(card2, "hide", clearevent=False)
+            cw.animation.animate_sprite(card1, "deal", clearevent=False)
+            cw.animation.animate_sprite(card1, "hide", clearevent=False)
+            cw.animation.animate_sprite(card2, "deal", clearevent=False)
+            cw.animation.animate_sprites2([(card2, "hide"), (white, "fadein2")], clearevent=False)
+            for _i in xrange(self.setting.fps / 2):
+                if self.cut_animation:
+                    break
+                self.tick_clock()
+            self.selection = None
+
+            # スプライトを解除する
+            self.topgrp.remove_sprites_of_layer("title")
+
             if self.cut_animation:
-                break
-            self.tick_clock()
-        self.selection = None
+                ttype = ("Default", "Default")
+                self.cut_animation = False
+            else:
+                ttype = ("None", "None")
+                self.wait_showcards = True
+            self.set_title(ttype=ttype)
 
-        # スプライトを解除する
-        self.topgrp.remove_sprites_of_layer("title")
-
-        if self.cut_animation:
-            ttype = ("Default", "Default")
-            self.cut_animation = False
-        else:
-            ttype = ("None", "None")
-            self.wait_showcards = True
-        self.set_title(ttype=ttype)
+        except cw.event.EffectBreakError:
+            # 他のスキンへの切り替えなどで中止
+            self.topgrp.remove_sprites_of_layer("title")
 
     def set_title(self, init=True, ttype=("Default", "Default")):
         """タイトル画面へ遷移。"""
