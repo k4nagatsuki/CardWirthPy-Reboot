@@ -15,7 +15,6 @@ import pygame
 from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
-from cw.event import EffectBreakError
 
 
 class CWPyRunningError(Exception):
