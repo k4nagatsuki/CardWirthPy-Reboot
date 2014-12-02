@@ -227,8 +227,11 @@ class SettingsDialog(wx.Dialog):
 
         # 描画
         updatemessage = False
+        updatebg = False
         value = self.pane_draw.cb_smooth_bg.GetValue()
-        cw.cwpy.setting.smoothscale_bg = value
+        if cw.cwpy.setting.smoothscale_bg <> value:
+            updatebg = True
+            cw.cwpy.setting.smoothscale_bg = value
         value = self.pane_draw.cb_statusbarmask.GetValue()
         if value <> cw.cwpy.setting.statusbarmask:
             cw.cwpy.setting.statusbarmask = value
@@ -341,6 +344,7 @@ class SettingsDialog(wx.Dialog):
         skin = self.pane_gene.skins[skin]
         if flag_fontupdate or cw.cwpy.setting.skindirname <> skin:
             cw.cwpy.exec_func(cw.cwpy.update_skin, skin)
+            updatebg = False
 
         # レベル調節
         def check_levelup(can_levelup_old):
@@ -408,6 +412,14 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.confirm_beforeusingcard = value
         value = self.pane_ui.cb_noticeimpossibleaction.GetValue()
         cw.cwpy.setting.noticeimpossibleaction = value
+
+        # 背景の更新
+        if updatebg:
+            def func():
+                if cw.cwpy.is_playingscenario():
+                    cw.cwpy.sdata.cache = {}
+                cw.cwpy.background.reload()
+            cw.cwpy.exec_func(func)
 
         # イメージの更新
         if updatecardimg:
