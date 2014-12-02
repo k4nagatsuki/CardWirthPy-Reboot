@@ -15,7 +15,6 @@ import pygame
 from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
-from cw.event import EffectBreakError
 
 
 class CWPyRunningError(Exception):
@@ -286,8 +285,12 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.status == "Title":
             # タイトル画面にいる場合はロゴ表示前まで戻す
-            self.exec_func(self.startup)
-            raise cw.event.EffectBreakError()
+            if self.topgrp.sprites():
+                # アニメーション中なら中止してから戻す
+                self.exec_func(self.startup)
+                raise cw.event.EffectBreakError()
+            else:
+                self.startup()
         else:
             self.music.play(self.music.path, updatepredata=False)
 
@@ -1078,6 +1081,8 @@ class CWPy(_Singleton, threading.Thread):
         タイトル画面へ遷移する。"""
         resdir = cw.util.join_paths(cw.cwpy.skindir, u"Resource/Image/Other")
         self.events = []
+        self.cut_animation = False
+        self.wait_showcards = False
 
         # 必要なスプライトの読み込み
         if not self._init_resources():
