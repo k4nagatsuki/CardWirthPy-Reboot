@@ -651,8 +651,9 @@ class Event(object):
         if not (isinstance(self.error, AreaChangeError) or\
                 isinstance(self.error, ScenarioBadEndError)) and\
                 cw.cwpy.status <> "Title":
-            cw.cwpy.show_party()
-            cw.cwpy.disposition_pcards()
+            if not cw.cwpy.is_gameover():
+                cw.cwpy.show_party()
+                cw.cwpy.disposition_pcards()
 
         if not isinstance(self.error, AreaChangeError):
             # BUG: 全滅時は選択メンバがクリアされない
