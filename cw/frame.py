@@ -518,7 +518,7 @@ class Frame(wx.Frame):
         self.move_dlg(dlg, (0, -63))
 
         if dlg.ShowModal() == wx.ID_OK:
-            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
+            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid >= 0:
                 cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
             self.kill_dlg(dlg, lockmenucard=True)
 
@@ -532,7 +532,7 @@ class Frame(wx.Frame):
         self.move_dlg(dlg, (0, -63))
 
         if dlg.ShowModal() == wx.ID_OK:
-            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid > 0:
+            if cw.cwpy.is_playingscenario() and cw.cwpy.areaid >= 0:
                 cw.cwpy.exec_func(cw.cwpy.change_specialarea, cw.cwpy.areaid)
 
         else:

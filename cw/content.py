@@ -3050,7 +3050,7 @@ class PostEventContent(EventContentBase):
         """CWPyのメソッド実行用コンテント。
         シナリオでは使えない(スキン専用)。
         """
-        if not cw.cwpy.is_playingscenario() or cw.cwpy.areaid <= 0:
+        if not cw.cwpy.is_playingscenario() or cw.cwpy.areaid < 0:
             command = self.data.get("command")
             arg = self.data.get("arg")
             PostEventContent.do_action(command, arg)

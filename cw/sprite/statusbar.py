@@ -500,7 +500,7 @@ class CampButton(StatusBarButton):
         self.update_image()
 
     def lclick_event(self):
-        if cw.cwpy.areaid > 0:
+        if cw.cwpy.areaid >= 0:
             cw.cwpy.sounds["click"].play()
             cw.cwpy.change_specialarea(-4)
         elif cw.cwpy.areaid == -4:
@@ -527,7 +527,7 @@ class TableButton(StatusBarButton):
         if cw.cwpy.areaid == -4:
             cw.cwpy.sounds["click"].play()
             cw.cwpy.clear_specialarea()
-        elif cw.cwpy.areaid > 0:
+        elif cw.cwpy.areaid >= 0:
             cw.cwpy.sounds["click"].play()
             cw.cwpy.change_specialarea(-4)
 
@@ -536,7 +536,7 @@ class ActionButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["start_action"], pos)
 
     def update(self, scr):
-        if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid <= 0:
+        if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
             self.image = self.noimg
         else:
             StatusBarButton.update(self, scr)
@@ -552,7 +552,7 @@ class RunAwayButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["runaway"], pos)
 
     def update(self, scr):
-        if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid <= 0:
+        if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
             self.image = self.noimg
         else:
             StatusBarButton.update(self, scr)
