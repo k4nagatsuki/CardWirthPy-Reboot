@@ -708,7 +708,7 @@ class Debugger(wx.Frame):
     def OnInfoTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.infos.iteritems() if key > 0]
+                                cw.cwpy.sdata.infos.iteritems() if key >= 0]
             seq.sort()
             infoids = set([i.id for i in cw.cwpy.sdata.infocards])
             oldids = infoids.copy()
@@ -754,7 +754,7 @@ class Debugger(wx.Frame):
     def OnFriendTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.casts.iteritems() if key > 0]
+                                cw.cwpy.sdata.casts.iteritems() if key >= 0]
             seq.sort()
             friendids = set([i.id for i in cw.cwpy.sdata.friendcards])
             choices = []
@@ -810,7 +810,7 @@ class Debugger(wx.Frame):
     def OnBattleTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.battles.iteritems() if key > 0]
+                                cw.cwpy.sdata.battles.iteritems() if key >= 0]
             seq.sort()
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
@@ -827,7 +827,7 @@ class Debugger(wx.Frame):
     def OnPackageTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.packs.iteritems() if key > 0]
+                                cw.cwpy.sdata.packs.iteritems() if key >= 0]
             seq.sort()
             choices = [s for key, s in seq]
             dlg = wx.SingleChoiceDialog(
@@ -851,7 +851,7 @@ class Debugger(wx.Frame):
             # 非戦闘中はエリア移動
             else:
                 seq = [(key, str(key) + ": " + value[0]) for key, value in
-                                cw.cwpy.sdata.areas.iteritems() if key > 0]
+                                cw.cwpy.sdata.areas.iteritems() if key >= 0]
                 seq.sort()
                 choices = []
                 if cw.cwpy.sdata and cw.cwpy.is_battlestatus():

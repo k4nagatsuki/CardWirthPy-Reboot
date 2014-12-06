@@ -338,7 +338,7 @@ class EventInterface(object):
             self.eventtimer += 1
 
         if cw.cwpy.is_showingdebugger() and\
-                 cw.cwpy.is_playingscenario() and 0 < cw.cwpy.areaid:
+                 cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
             cnt = 0
 
             if self._step:

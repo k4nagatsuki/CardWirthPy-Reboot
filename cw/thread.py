@@ -1439,7 +1439,7 @@ class CWPy(_Singleton, threading.Thread):
         for fpath, header in backpacktable.iteritems():
             cw.cwpy.ydata.deletedpaths.add(header.fpath)
 
-        if not self.areaid > 0:
+        if not self.areaid >= 0:
             self.areaid = self.pre_areaids[0]
 
         # スプライトを作り直す
@@ -1968,11 +1968,11 @@ class CWPy(_Singleton, threading.Thread):
         if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
             self.disposition_pcards()
 
-        if 0 < oldareaid and self.ydata and self.is_playingscenario():
+        if 0 <= oldareaid and self.ydata and self.is_playingscenario():
             self.ydata.changed()
 
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
-        if eventstarting and oldareaid > 0:
+        if eventstarting and oldareaid >= 0:
             if not self.wait_showcards:
                 self.deal_cards(quickdeal=quickdeal)
             else:
@@ -1982,7 +1982,7 @@ class CWPy(_Singleton, threading.Thread):
                 # カード描画中にF9された場合はここへ来る
                 return
 
-            if self.areaid > 0 and self.status == "Scenario":
+            if self.areaid >= 0 and self.status == "Scenario":
                 self.elapse_time()
 
             self.sdata.start_event(keynum=1)
@@ -2190,7 +2190,7 @@ class CWPy(_Singleton, threading.Thread):
         callpredlg = False
 
         oldareaid = self.areaid
-        if self.areaid <= 0:
+        if self.areaid < 0:
             self.selectedheader = None
             areaid = self.pre_areaids.pop()
 
@@ -2607,7 +2607,7 @@ class CWPy(_Singleton, threading.Thread):
             cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
             self.ydata.load_party(None)
 
-            if not self.areaid > 0:
+            if not self.areaid >= 0:
                 self.areaid = self.pre_areaids[0]
 
             self.set_yado()
