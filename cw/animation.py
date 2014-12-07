@@ -31,8 +31,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
         clip = clip.union(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
-        if not clearevent:
-            clip = _inputevent(clip)
+        clip = _inputevent(clip, clearevent)
 
         if not skip:
             if background:
@@ -41,9 +40,8 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
                 cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
-    if not clearevent:
-        cw.cwpy.input(inputonly=True)
-        cw.cwpy.eventhandler.run()
+    cw.cwpy.input(inputonly=clearevent)
+    cw.cwpy.eventhandler.run()
 
     if skip:
         cw.cwpy.draw()
@@ -94,8 +92,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
             clip.union_ip(sprite.rect)
 
         skip = _get_skipstatus(clearevent)
-        if not clearevent:
-            clip = _inputevent(clip)
+        clip = _inputevent(clip, clearevent)
 
         if not skip:
             cw.cwpy.draw(clip=clip)
@@ -108,9 +105,8 @@ def animate_sprites2(sprandanimes, clearevent=True):
                 animating = True
                 break
 
-    if not clearevent:
-        cw.cwpy.input(inputonly=True)
-        cw.cwpy.eventhandler.run()
+    cw.cwpy.input(inputonly=clearevent)
+    cw.cwpy.eventhandler.run()
 
     if skip:
         cw.cwpy.draw()
@@ -118,13 +114,13 @@ def animate_sprites2(sprandanimes, clearevent=True):
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
 
-def _inputevent(clip):
+def _inputevent(clip, clearevent):
     cw.cwpy.update_mousepos()
     sel = cw.cwpy.selection
     cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
     if sel <> cw.cwpy.selection:
         clip = clip.union(cw.cwpy.statusbar.rect)
-    cw.cwpy.events = pygame.event.get()
+    cw.cwpy.input(inputonly=clearevent)
     cw.cwpy.eventhandler.run()
     return clip
 

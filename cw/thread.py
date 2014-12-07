@@ -2577,8 +2577,10 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.clear_specialarea()
 
-    def is_lockmenucards(self):
+    def is_lockmenucards(self, sprite):
         """メニューカードをクリック出来ない状態か。"""
+        if isinstance(sprite, cw.sprite.statusbar.StatusBarButton):
+            return False
         return self.lock_menucards or\
                cw.cwpy.is_showingdlg() or\
                pygame.event.peek(pygame.locals.USEREVENT)

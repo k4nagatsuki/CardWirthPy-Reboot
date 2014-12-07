@@ -125,7 +125,7 @@ class EventHandler(object):
         方向キーイベント。カードのフォーカスを変更する。
         """
         if cw.cwpy.is_runningevent() or cw.cwpy.is_processing or\
-                cw.cwpy.is_lockmenucards():
+                cw.cwpy.is_lockmenucards(None):
             return
 
         cw.cwpy.has_inputevent = True
@@ -219,7 +219,7 @@ class EventHandler(object):
             return
 
         if cw.cwpy.selection:
-            if cw.cwpy.is_lockmenucards():
+            if cw.cwpy.is_lockmenucards(cw.cwpy.selection):
                 return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
@@ -239,7 +239,7 @@ class EventHandler(object):
             return
 
         if cw.cwpy.selection:
-            if cw.cwpy.is_lockmenucards():
+            if cw.cwpy.is_lockmenucards(cw.cwpy.selection):
                 return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.rclick_event()
@@ -382,7 +382,7 @@ class EventHandler(object):
             return
 
         if cw.cwpy.selection:
-            if cw.cwpy.is_lockmenucards():
+            if cw.cwpy.is_lockmenucards(cw.cwpy.selection):
                 return
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()

@@ -1319,9 +1319,10 @@ class VariableListCtrl(wx.ListCtrl):
                 cw.util.sort_by_attr(seq, "name")
                 vlist.extend(seq)
                 def func(self, vlist):
-                    self.list = vlist
-                    self.SetItemCount(len(vlist))
-                    self.Refresh()
+                    if self:
+                        self.list = vlist
+                        self.SetItemCount(len(vlist))
+                        self.Refresh()
                 cw.cwpy.frame.exec_func(func, self, vlist)
             else:
                 def func(self):
