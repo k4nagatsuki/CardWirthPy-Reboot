@@ -119,7 +119,7 @@ def _inputevent(clip, clearevent):
     sel = cw.cwpy.selection
     cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
     if sel <> cw.cwpy.selection:
-        clip = clip.union(cw.cwpy.statusbar.rect)
+        clip.union_ip(cw.cwpy.statusbar.rect)
     cw.cwpy.input(inputonly=clearevent)
     cw.cwpy.eventhandler.run()
     return clip
