@@ -264,7 +264,7 @@ class CWPy(_Singleton, threading.Thread):
         self.rsrc = None
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True)
 
-        if self.is_battlestatus():
+        if self.is_battlestatus() and  self.battle:
             for ccard in self.get_pcards("unreversed"):
                 ccard.deck.set(ccard)
                 if self.battle.is_ready():

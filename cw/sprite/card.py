@@ -398,7 +398,7 @@ class CWPyCard(base.SelectableSprite):
             self.status = self.old_status
             self.frame = 0
             self.clear_image(move=False)
-        else:
+        elif self.zoomimgs:
             self.image, self.rect = self.zoomimgs.pop()
             self.rect = pygame.Rect(self.rect)
             self.frame += 1
@@ -406,6 +406,9 @@ class CWPyCard(base.SelectableSprite):
             if not self.zoomimgs:
                 self.status = self.old_status
                 self.frame = 0
+        else:
+            self.status = self.old_status
+            self.frame = 0
 
     def update_shiftup(self):
         """下にさげていたカードを上にあげる。"""
@@ -472,9 +475,10 @@ class CWPyCard(base.SelectableSprite):
 
         zoom = 0 < len(self.zoomimgs)
 
-        if zoom:
-            self.old_status = self.status
-            self.status = "zoomout"
+        if zoom and not self.status in ("zoomin", "zoomout"):
+            if self.status <> "zoomout":
+                self.old_status = self.status
+                self.status = "zoomout"
             while self.status == "zoomout":
                 self.update_zoomout()
 
@@ -483,9 +487,10 @@ class CWPyCard(base.SelectableSprite):
         if self._pos_noscale or self._center_noscale:
             self.set_pos_noscale(self._pos_noscale, self._center_noscale)
 
-        if zoom:
-            self.old_status = self.status
-            self.status = "zoomin"
+        if zoom and not self.status in ("zoomin", "zoomout"):
+            if self.status <> "zoomin":
+                self.old_status = self.status
+                self.status = "zoomin"
             while self.status == "zoomin":
                 self.update_zoomin()
 
