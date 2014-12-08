@@ -31,11 +31,11 @@ class SelectableSprite(CWPySprite):
         return self.image
 
     def update(self, scr):
-        if not cw.cwpy.is_lockmenucards():
+        if not cw.cwpy.is_lockmenucards(self):
             self.update_selection()
 
     def update_selection(self):
-        if not cw.cwpy.is_lockmenucards():
+        if not cw.cwpy.is_lockmenucards(self):
             if self.is_selection():
                 if self is not cw.cwpy.selection:
                     cw.cwpy.change_selection(self)
@@ -45,11 +45,12 @@ class SelectableSprite(CWPySprite):
 
     def is_selection(self):
         """選択中スプライトか判定。"""
-        if cw.cwpy.is_dealing():
+        if cw.cwpy.is_dealing() and not self._selectable_on_event:
             return False
         # 戦闘行動中時
         elif not cw.cwpy.is_runningevent()\
-                        and cw.cwpy.battle and cw.cwpy.battle.is_running():
+                        and cw.cwpy.battle and cw.cwpy.battle.is_running()\
+                        and not self._selectable_on_event:
             return False
         # イベント中時、メッセージ選択バー以外
         elif cw.cwpy.is_runningevent() and not self._selectable_on_event:

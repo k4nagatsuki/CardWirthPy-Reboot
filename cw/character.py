@@ -516,7 +516,7 @@ class Character(object):
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
             waitrate = cw.cwpy.setting.dealspeed+1
-            cw.cwpy.wait_frame(waitrate)
+            cw.cwpy.wait_frame(waitrate, True)
             cw.animation.animate_sprite(inusecardimg, "zoomout")
             cw.animation.animate_sprite(inusecardimg, "hide")
         elif isinstance(self, cw.character.Friend):
@@ -537,7 +537,7 @@ class Character(object):
             cw.cwpy.play_sound(soundpath, header)
             cw.cwpy.draw()
             waitrate = cw.cwpy.setting.dealspeed+1
-            cw.cwpy.wait_frame(waitrate)
+            cw.cwpy.wait_frame(waitrate, True)
             # カード消去
             cw.cwpy.clear_inusecardimg(self)
             # NPC消去

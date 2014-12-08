@@ -696,7 +696,7 @@ class Debugger(wx.Frame):
                     if pcard.status == "hidden":
                         pcard.set_fullrecovery()
                         pcard.update_image()
-                        cw.cwpy.wait_frame(12)
+                        cw.cwpy.wait_frame(12, True)
                     else:
                         cw.animation.animate_sprite(pcard, "hide")
                         pcard.set_fullrecovery()
@@ -1319,9 +1319,10 @@ class VariableListCtrl(wx.ListCtrl):
                 cw.util.sort_by_attr(seq, "name")
                 vlist.extend(seq)
                 def func(self, vlist):
-                    self.list = vlist
-                    self.SetItemCount(len(vlist))
-                    self.Refresh()
+                    if self:
+                        self.list = vlist
+                        self.SetItemCount(len(vlist))
+                        self.Refresh()
                 cw.cwpy.frame.exec_func(func, self, vlist)
             else:
                 def func(self):

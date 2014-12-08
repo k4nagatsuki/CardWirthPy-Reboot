@@ -611,6 +611,8 @@ class SettingsButton(StatusBarButton):
         name = u"設定"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
         self._selectable_on_event = True
+        if self.is_selection():
+            self.update_image()
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
@@ -622,6 +624,8 @@ class DebuggerButton(StatusBarButton):
         name = u"デバッガ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
         self._selectable_on_event = True
+        if self.is_selection():
+            self.update_image()
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
@@ -633,6 +637,8 @@ class BacklogButton(StatusBarButton):
         name = u"バックログ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
         self._selectable_on_event = enabled
+        if enabled and self.is_selection():
+            self.update_image()
 
     def lclick_event(self):
         if not self.enabled:

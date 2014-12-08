@@ -264,7 +264,7 @@ class CWPy(_Singleton, threading.Thread):
         self.rsrc = None
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True)
 
-        if self.is_battlestatus():
+        if self.is_battlestatus() and  self.battle:
             for ccard in self.get_pcards("unreversed"):
                 ccard.deck.set(ccard)
                 if self.battle.is_ready():
@@ -529,9 +529,26 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.clock.tick(self.setting.fps)
 
-    def wait_frame(self, count):
+    def wait_frame(self, count, canskip):
         self.event.eventtimer = 0
         for _i in xrange(count):
+            if canskip:
+                keyin = self.keyevent.get_pressed()
+
+                # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
+                if keyin[pygame.locals.K_RETURN] > self.keyevent.threshold:
+                    break
+
+                sel = self.selection
+                self.sbargrp.update(cw.cwpy.scr_draw)
+                if sel <> self.selection:
+                    cw.cwpy.draw(clip=self.statusbar.rect)
+                breakflag = pygame.event.peek((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
+                self.input(inputonly=True)
+                self.eventhandler.run()
+                if breakflag:
+                    break
+
             self.tick_clock()
 
     def get_nextevent(self):
@@ -2577,8 +2594,10 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 self.clear_specialarea()
 
-    def is_lockmenucards(self):
+    def is_lockmenucards(self, sprite):
         """メニューカードをクリック出来ない状態か。"""
+        if isinstance(sprite, cw.sprite.statusbar.StatusBarButton):
+            return False
         return self.lock_menucards or\
                cw.cwpy.is_showingdlg() or\
                pygame.event.peek(pygame.locals.USEREVENT)
