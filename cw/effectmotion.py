@@ -175,7 +175,7 @@ class Effect(object):
                 cw.cwpy.sounds["equipment"].play(True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
-                cw.cwpy.wait_frame(12)
+                cw.cwpy.wait_frame(12, True)
                 cw.cwpy.clear_guardcardimg()
                 cw.cwpy.draw()
 
@@ -192,7 +192,7 @@ class Effect(object):
         if success_avo:
             cw.cwpy.sounds["avoid"].play(True)
             cw.cwpy.draw()
-            cw.cwpy.wait_frame(1)
+            cw.cwpy.wait_frame(1, True)
             return False
         elif noeffect or (success_res and not hasdamage):
             cw.cwpy.sounds["ineffective"].play(True)
@@ -291,7 +291,7 @@ class Effect(object):
             cw.cwpy.draw()
 
             if cw.cwpy.has_sound(self.soundpath):
-                cw.cwpy.wait_frame(12)
+                cw.cwpy.wait_frame(12, True)
 
         # 横振動(地震)
         elif self.visualeffect == "Horizontal":
@@ -321,7 +321,7 @@ class Effect(object):
             if update_image:
                 target.update_image()
             cw.cwpy.draw()
-            cw.cwpy.wait_frame(1)
+            cw.cwpy.wait_frame(1, True)
 
     def check_enabledtarget(self, target, event=False):
         """

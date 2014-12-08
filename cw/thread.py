@@ -529,9 +529,26 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.clock.tick(self.setting.fps)
 
-    def wait_frame(self, count):
+    def wait_frame(self, count, canskip):
         self.event.eventtimer = 0
         for _i in xrange(count):
+            if canskip:
+                keyin = self.keyevent.get_pressed()
+
+                # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
+                if keyin[pygame.locals.K_RETURN] > self.keyevent.threshold:
+                    break
+
+                sel = self.selection
+                self.sbargrp.update(cw.cwpy.scr_draw)
+                if sel <> self.selection:
+                    cw.cwpy.draw(clip=self.statusbar.rect)
+                breakflag = pygame.event.peek((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
+                self.input(inputonly=True)
+                self.eventhandler.run()
+                if breakflag:
+                    break
+
             self.tick_clock()
 
     def get_nextevent(self):

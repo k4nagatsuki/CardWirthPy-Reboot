@@ -2872,7 +2872,7 @@ class WaitContent(EventContentBase):
             if breakflag:
                 break
 
-            cw.cwpy.wait_frame(1)
+            cw.cwpy.wait_frame(1, False)
 
         return 0
 

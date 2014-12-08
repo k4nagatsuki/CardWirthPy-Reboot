@@ -31,15 +31,16 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
         clip.union_ip(sprite.rect)
 
         skip |= _get_skipstatus(clearevent)
-        clip = _inputevent(clip, clearevent)
 
         if not skip:
+            clip = _inputevent(clip, clearevent)
             if background:
                 cw.cwpy.draw()
             else:
                 cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
+    cw.cwpy.update_mousepos()
     cw.cwpy.input(inputonly=clearevent)
     cw.cwpy.eventhandler.run()
 
@@ -92,9 +93,9 @@ def animate_sprites2(sprandanimes, clearevent=True):
             clip.union_ip(sprite.rect)
 
         skip |= _get_skipstatus(clearevent)
-        clip = _inputevent(clip, clearevent)
 
         if not skip:
+            clip = _inputevent(clip, clearevent)
             cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
@@ -105,6 +106,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
                 animating = True
                 break
 
+    cw.cwpy.update_mousepos()
     cw.cwpy.input(inputonly=clearevent)
     cw.cwpy.eventhandler.run()
 

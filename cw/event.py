@@ -355,7 +355,7 @@ class EventInterface(object):
                     self.refresh_activeitem()
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
-                cw.cwpy.wait_frame(1)
+                cw.cwpy.wait_frame(1, False)
                 cnt += 1
 
             cnt = 0
@@ -370,7 +370,7 @@ class EventInterface(object):
                     self.refresh_activeitem()
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
-                cw.cwpy.wait_frame(1)
+                cw.cwpy.wait_frame(1, False)
                 cnt += 1
 
             if self._stoped:
@@ -826,7 +826,7 @@ class CardEvent(Event):
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:
             waitrate = (cw.cwpy.setting.dealspeed+1) * 2
-            cw.cwpy.wait_frame(waitrate)
+            cw.cwpy.wait_frame(waitrate, True)
 
         # InuseCardImage削除
         cw.cwpy.clear_inusecardimg(self.user)
@@ -922,7 +922,7 @@ class CardEvent(Event):
                 self.targets[0].set_cardtarget()
                 cw.cwpy.draw()
                 waitrate = (cw.cwpy.setting.dealspeed+1) * 2
-                cw.cwpy.wait_frame(waitrate)
+                cw.cwpy.wait_frame(waitrate, True)
                 targets = self.targets
             else:
                 targets = []
@@ -936,7 +936,7 @@ class CardEvent(Event):
                     cw.cwpy.draw()
                     cw.cwpy.play_sound(path)
                     waitrate = cw.cwpy.setting.dealspeed+1
-                    cw.cwpy.wait_frame(waitrate)
+                    cw.cwpy.wait_frame(waitrate, True)
                     targets.append(target)
 
         self.waited = True

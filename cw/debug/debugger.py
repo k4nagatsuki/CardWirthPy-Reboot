@@ -696,7 +696,7 @@ class Debugger(wx.Frame):
                     if pcard.status == "hidden":
                         pcard.set_fullrecovery()
                         pcard.update_image()
-                        cw.cwpy.wait_frame(12)
+                        cw.cwpy.wait_frame(12, True)
                     else:
                         cw.animation.animate_sprite(pcard, "hide")
                         pcard.set_fullrecovery()
