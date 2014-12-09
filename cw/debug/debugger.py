@@ -565,7 +565,7 @@ class Debugger(wx.Frame):
     def OnEditorTool(self, event):
         if not cw.cwpy.setting.editor:
             return
-        def func(self):
+        def func(self, content):
             if not cw.cwpy.is_playingscenario():
                 return
             fpath = cw.cwpy.sdata.fpath
@@ -591,7 +591,11 @@ class Debugger(wx.Frame):
             cwxpath = ""
             packid = 0
 
-            if cw.cwpy.is_runningevent():
+            if not content is None:
+                cwxpath = content.get_cwxpath()
+                if not cwxpath and cw.cwpy.is_runningevent():
+                    packid = cw.cwpy.event.get_packageid()
+            elif cw.cwpy.is_runningevent():
                 event = cw.cwpy.event.get_event()
                 if event and not event.cur_content is None:
                     cwxpath = event.cur_content.get_cwxpath()
@@ -627,7 +631,14 @@ class Debugger(wx.Frame):
 
             cw.cwpy.frame.exec_func(func, self, seq)
 
-        cw.cwpy.exec_func(func, self)
+        if not self.view_tree.selectionitem is None:
+            content = self.view_tree.selectionitem.content
+        elif not self.view_tree.activeitem is None:
+            content = self.view_tree.activeitem.content
+        else:
+            content = None
+
+        cw.cwpy.exec_func(func, self, content)
 
     def OnSaveTool(self, event):
         if not cw.cwpy.is_playingscenario():
