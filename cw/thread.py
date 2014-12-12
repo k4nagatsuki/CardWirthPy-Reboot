@@ -568,6 +568,10 @@ class CWPy(_Singleton, threading.Thread):
         self.events = events
 
     def input(self, eventclear=False, inputonly=False, noinput=False):
+        if eventclear:
+            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            return
+
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
         if self.update_mousepos():
@@ -582,9 +586,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.keyin = self.keyevent.get_pressed()
 
-        if eventclear:
-            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
-        elif inputonly:
+        if inputonly:
             events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             if events:
                 events = [events[-1]]
@@ -1635,7 +1637,7 @@ class CWPy(_Singleton, threading.Thread):
 # エリアチェンジ関係メソッド
 #-------------------------------------------------------------------------------
 
-    def deal_cards(self, quickdeal=False):
+    def deal_cards(self, quickdeal=False, updatelist=True):
         """hidden状態のMenuCard(対応フラグがFalseだったら表示しない)と
         PlayerCardを全て表示する。
         quickdeal: 前カードを同時に表示する。
@@ -1672,11 +1674,11 @@ class CWPy(_Singleton, threading.Thread):
                         # カード描画中にF9された場合はここへ来る
                         return
 
-        if quickdeal:
+        if deals and quickdeal:
             cw.animation.animate_sprites(deals, "deal")
 
         # list, indexセット
-        if not self.is_showingmessage():
+        if updatelist and not self.is_showingmessage():
             self.list = self.get_mcards("visible")
             self.index = -1
 
@@ -1684,7 +1686,7 @@ class CWPy(_Singleton, threading.Thread):
         self._dealing = False
         self.wait_showcards = False
 
-    def hide_cards(self, hideall=False, hideparty=True, quickhide=False):
+    def hide_cards(self, hideall=False, hideparty=True, quickhide=False, updatelist=True):
         """
         カードを非表示にする(表示中だったカードはhidden状態になる)。
         各カードのhidecards()の最後に呼ばれる。
@@ -1693,18 +1695,22 @@ class CWPy(_Singleton, threading.Thread):
         if not self.setting.quickdeal:
             quickhide = False
         self._dealing = True
-        # 選択を解除する
-        self.clear_selection()
+        if updatelist:
+            # 選択を解除する
+            self.clear_selection()
 
         # メニューカードを下げる
         mcards = self.get_mcards("visible")
+        hide = False
         for mcard in mcards:
             if hideall or not mcard.is_flagtrue():
                 if mcard.inusecardimg:
                     self.clear_inusecardimg(mcard)
-                if not quickhide:
+                if quickhide:
+                    hide = True
+                else:
                     cw.animation.animate_sprite(mcard, "hide")
-        if quickhide:
+        if hide:
             cw.animation.animate_sprites(mcards, "hide")
 
         # プレイヤカードを下げる
@@ -1713,7 +1719,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.hide_party()
 
         # list, indexセット
-        if not self.is_showingmessage():
+        if updatelist and not self.is_showingmessage():
             self.list = self.get_mcards("visible")
             self.index = -1
 

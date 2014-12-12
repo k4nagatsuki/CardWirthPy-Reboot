@@ -285,12 +285,11 @@ class Effect(object):
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
         """
         # 隠れているカードやFriendCardはアニメーションさせない
-        if isinstance(target, cw.character.Friend) or target.status == "hidden":
+        if target.status == "hidden" or isinstance(target, cw.character.Friend):
             if update_image:
                 target.update_image()
-            cw.cwpy.draw()
 
-            if cw.cwpy.has_sound(self.soundpath):
+            if self.soundpath and cw.cwpy.has_sound(self.soundpath):
                 cw.cwpy.wait_frame(12, True)
 
         # 横振動(地震)

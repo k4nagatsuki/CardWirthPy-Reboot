@@ -409,28 +409,33 @@ class EventEngine(object):
 
         if event:
             event.clear()
-            # メニューカードの選択を記憶
-            last_selected = None
-            if 0 <= cw.cwpy.index:
-                selection = cw.cwpy.list[cw.cwpy.index]
-                if isinstance(selection, cw.sprite.card.MenuCard):
-                    last_selected = selection
+            isinsideevent |= bool(cw.cwpy.event.get_event())
+            if not isinsideevent:
+                # メニューカードの選択を記憶
+                last_selected = None
+                if 0 <= cw.cwpy.index:
+                    selection = cw.cwpy.list[cw.cwpy.index]
+                    if isinstance(selection, cw.sprite.card.MenuCard):
+                        last_selected = selection
 
-            # メニューカードの反転表示を解除する
-            if isinstance(cw.cwpy.selection, cw.sprite.card.MenuCard):
-                cw.cwpy.clear_selection()
+                # メニューカードの反転表示を解除する
+                if isinstance(cw.cwpy.selection, cw.sprite.card.MenuCard):
+                    cw.cwpy.clear_selection()
 
             # イベント実行
-            if cw.cwpy.event.get_event() or isinsideevent:
+            if isinsideevent:
                 event.run()
             else:
                 event.start()
 
             # メニューカードの選択を復元
-            if last_selected and last_selected in cw.cwpy.list:
-                index = cw.cwpy.list.index(last_selected)
-                if 0 <= index:
-                    cw.cwpy.index = index
+            if not isinsideevent:
+                cw.cwpy.list = cw.cwpy.get_mcards("visible")
+                cw.cwpy.index = -1
+                if last_selected and last_selected in cw.cwpy.list:
+                    index = cw.cwpy.list.index(last_selected)
+                    if 0 <= index:
+                        cw.cwpy.index = index
             return True
         else:
             return False
@@ -696,7 +701,6 @@ class Event(object):
             return
         """self.cur_contentを実行。"""
         content = cw.content.get_content(self.cur_content)
-
         if content:
             self.index = content.action()
         else:
@@ -719,27 +723,35 @@ class Event(object):
         elif self.cur_content is None:
             return None
         else:
-            element = self.cur_content.find("Contents")
+            if self.cur_content.nextelements is None:
 
-            if element is not None:
+                element = self.cur_content.find("Contents")
+
+                if element is not None:
+                    self.cur_content.nextelements = []
+                    self.cur_content.needcheck = False
+                    seq = []
+                    for e in element:
+                        # フラグ判定コンテントの場合、
+                        # 対応フラグがTrueの場合のみ実行対象に
+                        if e.tag == "Check":
+                            self.cur_content.needcheck = True
+                            if cw.content.get_content(e).action() == 0:
+                                seq.append(e)
+                        else:
+                            seq.append(e)
+                        self.cur_content.nextelements.append(e)
+                    return seq
+                else:
+                    return None
+            elif self.cur_content.needcheck:
                 seq = []
-                for e in element.getchildren():
-                    # フラグ判定コンテントの場合、
-                    # 対応フラグがTrueの場合のみ実行対象に
-                    if e.tag == "Check":
-                        ctype = e.get("type")
-                        if ctype == "Flag":
-                            if cw.content.CheckFlagContent(e).action() == 0:
-                                seq.append(e)
-                        elif ctype == "Step":
-                            if cw.content.CheckStepContent(e).action() == 0:
-                                seq.append(e)
-
-                    else:
+                for e in self.cur_content.nextelements:
+                    if e.tag <> "Check" or cw.content.get_content(e).action() == 0:
                         seq.append(e)
                 return seq
             else:
-                return None
+                return self.cur_content.nextelements
 
     def check_gameover(self):
         """ゲームオーバーチェック。"""

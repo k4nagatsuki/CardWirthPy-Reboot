@@ -854,9 +854,9 @@ def redraw_cards(value):
             cw.cwpy.deal_cards()
 
     elif value:
-        cw.cwpy.deal_cards()
+        cw.cwpy.deal_cards(updatelist=False)
     else:
-        cw.cwpy.hide_cards()
+        cw.cwpy.hide_cards(updatelist=False)
 
 class Step(object):
     def __init__(self, value, name, valuenames):
@@ -2416,6 +2416,9 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
         _ElementInterface.__init__(self, tag, attrib)
         # CWXパスを構築するための親要素情報
         self.cwxparent = None
+        self.content = None
+        self.nextelements = None
+        self.needcheck = None
 
     def append(self, subelement):
         subelement.cwxparent = self
@@ -2750,6 +2753,11 @@ def copydata(data):
     e = make_element(data.tag, data.text, copy.deepcopy(data.attrib), data.tail)
     for child in data:
         e.append(copydata(child))
+
+    e.cwxparent = data.cwxparent
+    e.content = data.content
+    e.nextelements = data.nextelements
+    e.needcheck = data.needcheck
 
     return e
 
