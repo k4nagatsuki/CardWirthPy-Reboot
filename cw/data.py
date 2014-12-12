@@ -815,7 +815,7 @@ class Flag(object):
 
     def redraw_cards(self):
         """対応するメニューカードの再描画処理"""
-        cw.data.redraw_cards(self.value)
+        cw.data.redraw_cards(self.value, flag=self.name)
 
     def set(self, value):
         if self.value <> value:
@@ -836,12 +836,12 @@ class Flag(object):
         else:
             return self.falsename
 
-def redraw_cards(value):
+def redraw_cards(value, flag=""):
     """フラグに対応するメニューカードの再描画処理"""
     if cw.cwpy.is_autospread():
         drawflag = False
 
-        for mcard in cw.cwpy.get_mcards():
+        for mcard in cw.cwpy.get_mcards(flag=flag):
             mcardflag = mcard.is_flagtrue()
 
             if mcardflag and mcard.status == "hidden":
@@ -850,13 +850,13 @@ def redraw_cards(value):
                 drawflag = True
 
         if drawflag:
-            cw.cwpy.hide_cards(True)
-            cw.cwpy.deal_cards()
+            cw.cwpy.hide_cards(True, flag=flag)
+            cw.cwpy.deal_cards(flag=flag)
 
     elif value:
-        cw.cwpy.deal_cards(updatelist=False)
+        cw.cwpy.deal_cards(updatelist=False, flag=flag)
     else:
-        cw.cwpy.hide_cards(updatelist=False)
+        cw.cwpy.hide_cards(updatelist=False, flag=flag)
 
 class Step(object):
     def __init__(self, value, name, valuenames):
