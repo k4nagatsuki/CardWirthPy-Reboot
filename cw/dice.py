@@ -13,7 +13,12 @@ class Dice(object):
         n = 0
 
         for _i in xrange(times):
-            n += random.randrange(1, sided + 1)
+            # BUG: random.randrange()は著しく遅い
+            #n += random.randrange(1, sided + 1)
+
+            # random.uniform(1, sided+1)は多少速いが
+            # 次のコードよりは遅い
+            n += int(random.random() * sided) + 1
 
         return n
 

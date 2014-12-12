@@ -116,6 +116,9 @@ class Character(object):
 
         self.reversed = False
 
+        # キャッシュ
+        self._voc_tbl = {}
+
     def get_imagepath(self):
         return self.data.gettext("Property/ImagePath", "")
 
@@ -908,6 +911,10 @@ class Character(object):
         適性値(身体適性値 + 精神適性値)を返す。
         引数のvocationは(身体適性名, 精神適性名)のタプル。
         """
+        vo = vocation
+        voc = self._voc_tbl.get(vo, None)
+        if voc:
+            return voc
         vocation = (vocation[0].lower(), vocation[1].lower())
         physical = vocation[0]
         mental = vocation[1].replace("un", "", 1)
@@ -917,7 +924,9 @@ class Character(object):
         if vocation[1].find("un") > -1:
             mental = -mental
 
-        return physical + mental
+        voc = physical + mental
+        self._voc_tbl[vo] = voc
+        return voc
 
     def get_enhance_act(self):
         """

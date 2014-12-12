@@ -27,10 +27,10 @@ class CardInfo(wx.Dialog):
         dc.SetFont(font)
         size = dc.GetTextExtent(u"―"*19)
         self.textwidth = size[0]
-        self.textheight = size[1] * 8
+        self.textheight = size[1] * 9
 
         # panel
-        size = (self.textwidth+cw.wins(152), self.textheight+cw.wins(47))
+        size = (self.textwidth+cw.wins(152), self.textheight+cw.wins(42))
         self.toppanel = wx.Panel(self, -1, size=size)
         self.toppanel.SetDoubleBuffered(True)
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
@@ -117,7 +117,7 @@ class CardInfo(wx.Dialog):
         dc.DrawBitmap(bmp, x, y, False)
 
         # 説明文を囲うボックス
-        rectsize = (self.textwidth + cw.wins(30), self.textheight + cw.wins(30))
+        rectsize = (self.textwidth + cw.wins(30), self.textheight + cw.wins(25))
         cw.util.draw_box(dc, cw.wins((113, 9)), rectsize)
         # カード名
         s = self.selection.name
@@ -134,12 +134,12 @@ class CardInfo(wx.Dialog):
         # 説明文
         s = cw.util.txtwrap(self.selection.desc, 1)
 
-        if s.count("\n") > 7:
-            s = "\n".join(s.split("\n")[0:8])
+        if s.count("\n") > 8:
+            s = "\n".join(s.split("\n")[0:9])
 
         font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13), weight=wx.NORMAL)
         dc.SetFont(font)
-        dc.DrawLabel(s, cw.wins((127, 22, 200, 110)))
+        dc.DrawLabel(s, cw.wins((127, 19, 200, 110)))
 
         # シナリオ・作者名
         scenario = self.selection.scenario
