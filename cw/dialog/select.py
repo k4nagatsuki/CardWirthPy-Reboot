@@ -3207,7 +3207,11 @@ class ScenarioSelect(Select):
                 treeitem = itemlist[index]
                 self.tree.DeleteChildren(treeitem)
             else:
-                self.tree.SelectItem(itemlist[self.index])
+                if itemlist:
+                    self.tree.SelectItem(itemlist[self.index])
+                else:
+                    self.tree.SelectItem(treeitem)
+                    self._tree_selchanged()
                 break
 
     def OnTreeItemExpanded(self, event):
@@ -3247,6 +3251,9 @@ class ScenarioSelect(Select):
             return
         if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
             return
+        self._tree_selchanged()
+
+    def _tree_selchanged(self):
         selitem = self.tree.GetSelection()
         paritem = self.tree.GetItemParent(selitem)
 
@@ -3395,7 +3402,7 @@ class ScenarioSelect(Select):
         if not self.list:
             self.yesbtn.Enable(False)
             self.infobtn.Enable(False)
-            self.viewbtn.Enable(False)
+            self.viewbtn.Enable(bool(self.dirstack))
             self.nobtn.Enable()
             self.rightbtn.Disable()
             self.right2btn.Disable()
