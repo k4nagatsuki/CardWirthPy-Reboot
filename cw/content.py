@@ -3251,13 +3251,17 @@ class SubstituteFlagContent(EventContentBase):
         toflag = self.data.get("to")
 
         if fromflag in cw.cwpy.sdata.flags and toflag in cw.cwpy.sdata.flags:
-            cw.cwpy.sdata.flags[toflag].set(cw.cwpy.sdata.flags[fromflag].value)
+            toflag = cw.cwpy.sdata.flags[toflag]
+            toflag.set(cw.cwpy.sdata.flags[fromflag].value)
+            toflag.redraw_cards()
         elif fromflag == "??Random":
-            if toflag in cw.cwpy.sdata.flags:
+            toflag = cw.cwpy.sdata.flags.get(toflag, None)
+            if not toflag is None:
                 if cw.cwpy.dice.roll(1, 2) == 1:
-                    cw.cwpy.sdata.flags[toflag].set(True)
+                    toflag.set(True)
                 else:
-                    cw.cwpy.sdata.flags[toflag].set(False)
+                    toflag.set(False)
+                toflag.redraw_cards()
 
         return 0
 
