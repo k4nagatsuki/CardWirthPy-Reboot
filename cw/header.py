@@ -182,6 +182,8 @@ class CardHeader(object):
 
     @property
     def negastar(self):
+        if self.star is None:
+            return 0
         return -self.star
 
     def set_cardimg(self, path):

@@ -10,8 +10,9 @@ import cw
 class EventContentBase(object):
     def __init__(self, data):
         self.data = data
-        self._is_differentscenario = None
-        self._checked_differentscenario = False
+        self._author = None
+        self._scenario = None
+        self._inusecard = False
 
     def action(self):
         return 0
@@ -44,18 +45,22 @@ class EventContentBase(object):
         使用中のカードが現在プレイ中のシナリオと異なる
         シナリオから持ち出されたものであればTrueを返す。
         """
-        if not self._checked_differentscenario:
+        if self._scenario is None:
             if cw.cwpy.is_playingscenario():
                 inusecard = cw.cwpy.event.get_inusecard()
                 if inusecard and cw.cwpy.event.in_inusecardevent:
-                    self._is_differentscenario = inusecard.scenario <> cw.cwpy.sdata.name or\
-                                                 inusecard.author <> cw.cwpy.sdata.author
+                    self._scenario = inusecard.scenario
+                    self._author = inusecard.author
+                    self._inusecard = True
                 else:
-                    self._is_differentscenario = False
+                    self._scenario = ""
+                    self._author = ""
+                    self._inusecard = False
             else:
-                self._is_differentscenario = False
-            self._checked_differentscenario = True
-        return self._is_differentscenario
+                self._scenario = ""
+                self._author = ""
+                self._inusecard = False
+        return self._inusecard and (self._scenario <> cw.cwpy.sdata.name or self._author <> cw.cwpy.sdata.author)
 
     @property
     def textdict(self):
@@ -1057,19 +1062,20 @@ class BranchFlagContent(BranchContent):
 class BranchStepContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.step = self.data.get("step")
+        self.value = self.data.getint(".", "value", 0)
+        self.nextlen = len(self.data.getfind("Contents"))
 
     def action(self):
         """ステップ上下分岐コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        step = self.data.get("step")
-        value = self.data.getint(".", "value", 0)
-
-        if step in cw.cwpy.sdata.steps:
-            flag = bool(cw.cwpy.sdata.steps[step].value >= value)
+        step = cw.cwpy.sdata.steps.get(self.step, None)
+        if not step is None:
+            flag = step.value >= self.value
             index = self.get_boolean_index(flag)
-        elif len(self.data.getfind("Contents")):
+        elif self.nextlen:
             # ステップｓが存在しない場合は
             # 常に最初の子コンテントが選ばれる
             index = 0
@@ -2728,17 +2734,17 @@ class SetFlagContent(EventContentBase):
 class SetStepContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
+        self.step = self.data.get("step")
+        self.value = self.data.getint(".", "value", 0)
 
     def action(self):
         """ステップ変更コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        step = self.data.get("step")
-        value = self.data.getint(".", "value", 0)
-
-        if step in cw.cwpy.sdata.steps:
-            cw.cwpy.sdata.steps[step].set(value)
+        step = cw.cwpy.sdata.steps.get(self.step, None)
+        if not step is None:
+            step.set(self.value)
 
         return 0
 
@@ -2755,16 +2761,16 @@ class SetStepContent(EventContentBase):
 class SetStepUpContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
+        self.step = self.data.get("step")
 
     def action(self):
         """ステップ増加コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        step = self.data.get("step")
-
-        if step in cw.cwpy.sdata.steps:
-            cw.cwpy.sdata.steps[step].up()
+        step = cw.cwpy.sdata.steps.get(self.step, None)
+        if not step is None:
+            step.up()
 
         return 0
 
@@ -2779,16 +2785,16 @@ class SetStepUpContent(EventContentBase):
 class SetStepDownContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
+        self.step = self.data.get("step")
 
     def action(self):
         """ステップ減少コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        step = self.data.get("step")
-
-        if step in cw.cwpy.sdata.steps:
-            cw.cwpy.sdata.steps[step].down()
+        step = cw.cwpy.sdata.steps.get(self.step, None)
+        if not step is None:
+            step.down()
 
         return 0
 

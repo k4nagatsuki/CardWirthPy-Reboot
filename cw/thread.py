@@ -148,6 +148,8 @@ class CWPy(_Singleton, threading.Thread):
         # list, index(キーボードでのカード選択に使う)
         self.list = []
         self.index = -1
+        # メニューカードのフラグごとの辞書
+        self._mcardtable = {}
         # カード選択ダイアログで選択中のカード種別
         self.lastcardpocket = 0
         # クラシックなシナリオの再生中であればそのデータ
@@ -1637,7 +1639,7 @@ class CWPy(_Singleton, threading.Thread):
 # エリアチェンジ関係メソッド
 #-------------------------------------------------------------------------------
 
-    def deal_cards(self, quickdeal=False, updatelist=True):
+    def deal_cards(self, quickdeal=False, updatelist=True, flag=""):
         """hidden状態のMenuCard(対応フラグがFalseだったら表示しない)と
         PlayerCardを全て表示する。
         quickdeal: 前カードを同時に表示する。
@@ -1646,7 +1648,7 @@ class CWPy(_Singleton, threading.Thread):
             quickdeal = False
         self._dealing = True
 
-        mcardsinv = self.get_mcards("invisible")
+        mcardsinv = self.get_mcards("invisible", flag=flag)
 
         # エネミーカードは初期化されていない場合がある
         for mcard in mcardsinv:
@@ -1678,15 +1680,14 @@ class CWPy(_Singleton, threading.Thread):
             cw.animation.animate_sprites(deals, "deal")
 
         # list, indexセット
-        if updatelist and not self.is_showingmessage():
-            self.list = self.get_mcards("visible")
-            self.index = -1
+        if updatelist:
+            self._update_mcardlist()
 
         self.input(True)
         self._dealing = False
         self.wait_showcards = False
 
-    def hide_cards(self, hideall=False, hideparty=True, quickhide=False, updatelist=True):
+    def hide_cards(self, hideall=False, hideparty=True, quickhide=False, updatelist=True, flag=""):
         """
         カードを非表示にする(表示中だったカードはhidden状態になる)。
         各カードのhidecards()の最後に呼ばれる。
@@ -1700,7 +1701,7 @@ class CWPy(_Singleton, threading.Thread):
             self.clear_selection()
 
         # メニューカードを下げる
-        mcards = self.get_mcards("visible")
+        mcards = self.get_mcards("visible", flag=flag)
         hide = False
         for mcard in mcards:
             if hideall or not mcard.is_flagtrue():
@@ -1719,12 +1720,27 @@ class CWPy(_Singleton, threading.Thread):
                 self.hide_party()
 
         # list, indexセット
-        if updatelist and not self.is_showingmessage():
-            self.list = self.get_mcards("visible")
-            self.index = -1
+        if updatelist:
+            self._update_mcardlist()
 
         self.input(True)
         self._dealing = False
+
+    def _update_mcardlist(self):
+        self._mcardtable = {}
+        mcards = self.get_mcards()
+        visible = []
+        for mcard in mcards:
+            if mcard.status <> "hidden":
+                visible.append(mcard)
+            if mcard.flag:
+                seq = self._mcardtable.get(mcard.flag, [])
+                seq.append(mcard)
+                if len(seq) == 1:
+                    self._mcardtable[mcard.flag] = seq
+        if not self.is_showingmessage():
+            self.list = visible
+            self.index = -1
 
     def show_party(self):
         """非表示のPlayerCardを再表示にする。"""
@@ -3481,21 +3497,23 @@ class CWPy(_Singleton, threading.Thread):
         except:
             return None
 
-    def get_mcards(self, mode=""):
+    def get_mcards(self, mode="", flag=""):
         """MenuCardインスタンスのリストを返す。
         mode: "visible" or "invisible" or "visiblemenucards" or "flagtrue"
         """
         if mode == "visible":
-            mcards = [m for m in self.get_mcards() if not m.status == "hidden"]
+            mcards = [m for m in self.get_mcards(flag=flag) if not m.status == "hidden"]
         elif mode == "invisible":
-            mcards = [m for m in self.get_mcards() if m.status == "hidden"]
+            mcards = [m for m in self.get_mcards(flag=flag) if m.status == "hidden"]
         elif mode == "visiblemenucards":
-            mcards = [m for m in self.get_mcards() if not m.status == "hidden"
+            mcards = [m for m in self.get_mcards(flag=flag) if not m.status == "hidden"
                                 and isinstance(m, cw.sprite.card.MenuCard)]
         elif mode == "flagtrue":
-            mcards = [m for m in self.get_mcards()
+            mcards = [m for m in self.get_mcards(flag=flag)
                             if not isinstance(m, cw.character.Friend)
                                     and m.is_flagtrue()]
+        elif flag:
+            mcards = self._mcardtable.get(flag, [])
         else:
             mcards = self.mcardgrp.get_sprites_from_layer(0)
             mcards = [m for m in mcards

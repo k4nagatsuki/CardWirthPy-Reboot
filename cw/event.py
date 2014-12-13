@@ -701,10 +701,12 @@ class Event(object):
             return
         """self.cur_contentを実行。"""
         content = cw.content.get_content(self.cur_content)
+        #cw.util.t_start()
         if content:
             self.index = content.action()
         else:
             self.index = 0
+        #cw.util.td_end(content.data.tag + content.data.get("type", ""))
 
         if (self.cur_content.tag == "Effect") or\
             (self.cur_content.tag == "Set" and self.cur_content.get("type") == "Coupon") or\
