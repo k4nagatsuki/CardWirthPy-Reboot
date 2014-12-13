@@ -1730,7 +1730,7 @@ class CWPy(_Singleton, threading.Thread):
         """mcardの対象消去を通知する。"""
         if isinstance(mcard, (cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard)) and mcard.flag:
             seq = self._mcardtable.get(mcard.flag, [])
-            if seq:
+            if seq and mcard in seq:
                 seq.remove(mcard)
                 if not seq:
                     del self._mcardtable[mcard.flag]
