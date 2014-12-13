@@ -10,8 +10,9 @@ import cw
 class EventContentBase(object):
     def __init__(self, data):
         self.data = data
-        self._is_differentscenario = None
-        self._checked_differentscenario = False
+        self._author = None
+        self._scenario = None
+        self._inusecard = False
 
     def action(self):
         return 0
@@ -44,18 +45,22 @@ class EventContentBase(object):
         使用中のカードが現在プレイ中のシナリオと異なる
         シナリオから持ち出されたものであればTrueを返す。
         """
-        if not self._checked_differentscenario:
+        if self._scenario is None:
             if cw.cwpy.is_playingscenario():
                 inusecard = cw.cwpy.event.get_inusecard()
                 if inusecard and cw.cwpy.event.in_inusecardevent:
-                    self._is_differentscenario = inusecard.scenario <> cw.cwpy.sdata.name or\
-                                                 inusecard.author <> cw.cwpy.sdata.author
+                    self._scenario = inusecard.scenario
+                    self._author = inusecard.author
+                    self._inusecard = True
                 else:
-                    self._is_differentscenario = False
+                    self._scenario = ""
+                    self._author = ""
+                    self._inusecard = False
             else:
-                self._is_differentscenario = False
-            self._checked_differentscenario = True
-        return self._is_differentscenario
+                self._scenario = ""
+                self._author = ""
+                self._inusecard = False
+        return self._inusecard and (self._scenario <> cw.cwpy.sdata.name or self._author <> cw.cwpy.sdata.author)
 
     @property
     def textdict(self):
