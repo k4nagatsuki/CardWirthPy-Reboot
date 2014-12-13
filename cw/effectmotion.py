@@ -290,6 +290,7 @@ class Effect(object):
                 target.update_image()
 
             if self.soundpath and cw.cwpy.has_sound(self.soundpath):
+                cw.cwpy.draw()
                 cw.cwpy.wait_frame(12, True)
 
         # 横振動(地震)
