@@ -1726,6 +1726,15 @@ class CWPy(_Singleton, threading.Thread):
         self.input(True)
         self._dealing = False
 
+    def vanished_card(self, mcard):
+        """mcardの対象消去を通知する。"""
+        if isinstance(mcard, (cw.sprite.card.MenuCard, cw.sprite.card.EnemyCard)) and mcard.flag:
+            seq = self._mcardtable.get(mcard.flag, [])
+            if seq:
+                seq.remove(mcard)
+                if not seq:
+                    del self._mcardtable[mcard.flag]
+
     def _update_mcardlist(self):
         self._mcardtable = {}
         mcards = self.get_mcards()

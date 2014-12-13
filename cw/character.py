@@ -1731,6 +1731,7 @@ class Character(object):
             self._vanished = True
             cw.animation.animate_sprite(self, "delete")
             self.lost()
+            cw.cwpy.vanished_card(self)
 
     def set_enhance_act(self, value, duration):
         """
