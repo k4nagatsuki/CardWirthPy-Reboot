@@ -1135,7 +1135,10 @@ class Character(object):
         # 隠蔽クーポン
         if revcoupon_old <> revcoupon_new:
             self.reversed = revcoupon_old
-            cw.animation.animate_sprite(self, "reverse")
+            if self.status == "hidden":
+                self.reverse()
+            else:
+                cw.animation.animate_sprite(self, "reverse")
 
     def get_sex(self):
         for coupon in cw.cwpy.setting.sexcoupons:
@@ -1278,7 +1281,10 @@ class Character(object):
         # 隠蔽クーポン
         if name == u"：Ｒ" and not self.is_reversed():
             if update and not removed:
-                cw.animation.animate_sprite(self, "reverse")
+                if self.status == "hidden":
+                    self.reverse()
+                else:
+                    cw.animation.animate_sprite(self, "reverse")
             self.reversed = True
 
         # 隠蔽クーポンがあるため
@@ -1320,7 +1326,10 @@ class Character(object):
         # 隠蔽クーポン
         if name == u"：Ｒ" and self.is_reversed():
             if update:
-                cw.animation.animate_sprite(self, "reverse")
+                if self.status == "hidden":
+                    self.reverse()
+                else:
+                    cw.animation.animate_sprite(self, "reverse")
             self.reversed = False
 
         return True

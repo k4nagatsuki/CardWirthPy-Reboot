@@ -429,7 +429,11 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(not self.is_runningevent())
 
         if self.is_battlestatus():
-            self.battle.update_debug()
+            if self.battle:
+                self.battle.update_debug()
+            else:
+                for sprite in self.get_mcards():
+                    sprite.update_scale()
 
         if not debug and self.is_showingdebugger():
             self.sounds["page"].play()
