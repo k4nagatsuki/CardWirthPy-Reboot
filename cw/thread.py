@@ -2711,6 +2711,8 @@ class CWPy(_Singleton, threading.Thread):
             sprites = [pcard]
             if index < len(arrows):
                 sprites.append(arrows[index])
+            elif 0 < index and index == len(arrows):
+                sprites.append(arrows[-1])
             cw.animation.animate_sprites(sprites, "delete")
             self.pcardgrp.remove(pcard)
             if breakuparea and pcards:
