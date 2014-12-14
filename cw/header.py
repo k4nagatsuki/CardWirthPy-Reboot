@@ -278,6 +278,13 @@ class CardHeader(object):
         if self.vocation[1].startswith("un"):
             mental = -mental
 
+        if int(mental) <> mental:
+            if mental < 0:
+                mental += 0.5
+            else:
+                mental -= 0.5
+            mental = int(mental)
+
         if enhance_act:
             return physical + mental + owner.data.getint("Property/Enhance/Action")
         else:
