@@ -142,6 +142,13 @@ class CWPyCard(base.SelectableSprite):
             if self.reversed:
                 self.status = "reversed"
 
+    def reverse(self):
+        """
+        アニメーション無しでカードをひっくり返す。
+        """
+        self.reversed = not self.reversed
+        self._reverse()
+
     def _reverse(self):
         # 表←→裏の画像切り替え
         if self.reversed:
