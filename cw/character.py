@@ -924,6 +924,13 @@ class Character(object):
         if vocation[1].find("un") > -1:
             mental = -mental
 
+        if int(mental) <> mental:
+            if mental < 0:
+                mental += 0.5
+            else:
+                mental -= 0.5
+            mental = int(mental)
+
         voc = physical + mental
         self._voc_tbl[vo] = voc
         return voc
