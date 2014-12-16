@@ -391,7 +391,9 @@ class ScenarioData(SystemData):
         self._init_debugger()
 
         # ロードしたデータファイルのキャッシュ
-        self.cache = {}
+        self.data_cache = {}
+        # ロードしたイメージ等のリソースのキャッシュ
+        self.resource_cache = {}
         # メッセージのバックログ
         self.backlog = []
 
@@ -437,7 +439,8 @@ class ScenarioData(SystemData):
             flagvals[name] = flag.value
         for name, step in self.steps.items():
             stepvals[name] = step.value
-        self.cache = {}
+        self.data_cache = {}
+        self.resource_cache = {}
         self._init_xmlpaths()
         self._init_flags()
         self._init_steps()
@@ -2676,8 +2679,8 @@ def xml2element(path="", tag="", stream=None, nocache=False):
         mtime = os.path.getmtime(path)
 
     # キャッシュからデータを取得
-    if usecache and path in cw.cwpy.sdata.cache:
-        cachedata = cw.cwpy.sdata.cache[path]
+    if usecache and path in cw.cwpy.sdata.data_cache:
+        cachedata = cw.cwpy.sdata.data_cache[path]
         if mtime <= cachedata.mtime:
             data = cachedata.data
             if tag:
@@ -2724,7 +2727,7 @@ def xml2element(path="", tag="", stream=None, nocache=False):
     if usecache:
         # キャッシュにデータを保存
         cachedata = CacheData(basedata, mtime)
-        cw.cwpy.sdata.cache[path] = cachedata
+        cw.cwpy.sdata.data_cache[path] = cachedata
         if nocache:
             data = copydata(data)
 

@@ -665,8 +665,8 @@ def load_sound(path):
     if not pygame.mixer or not os.path.isfile(path):
         return SoundInterface()
 
-    if cw.cwpy.is_playingscenario() and path in cw.cwpy.sdata.cache:
-        return cw.cwpy.sdata.cache[path]
+    if cw.cwpy.is_playingscenario() and path in cw.cwpy.sdata.resource_cache:
+        return cw.cwpy.sdata.resource_cache[path]
 
     try:
         assert threading.currentThread() == cw.cwpy
@@ -689,7 +689,7 @@ def load_sound(path):
         return SoundInterface()
 
     if cw.cwpy.is_playingscenario():
-        cw.cwpy.sdata.cache[path] = sound
+        cw.cwpy.sdata.resource_cache[path] = sound
 
     return sound
 

@@ -417,7 +417,7 @@ class SettingsDialog(wx.Dialog):
         if updatebg:
             def func():
                 if cw.cwpy.is_playingscenario():
-                    cw.cwpy.sdata.cache = {}
+                    cw.cwpy.sdata.resource_cache = {}
                 cw.cwpy.background.reload()
             cw.cwpy.exec_func(func)
 
