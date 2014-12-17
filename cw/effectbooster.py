@@ -471,8 +471,8 @@ class _JpySubImage(cw.image.Image):
 
             cachekey = (_JpySubImage, cw.UP_SCR, False, path)
 
-            if cw.cwpy.is_playingscenario() and cachekey in cw.cwpy.sdata.cache:
-                image, cachemtime = cw.cwpy.sdata.cache[cachekey]
+            if cw.cwpy.is_playingscenario() and cachekey in cw.cwpy.sdata.resource_cache:
+                image, cachemtime = cw.cwpy.sdata.resource_cache[cachekey]
                 image = image.copy()
                 if cachemtime < mtime:
                     image = None
@@ -495,7 +495,7 @@ class _JpySubImage(cw.image.Image):
                     jpy1 = JpyImage(path, cache=self.cache, doanime=doanime, mask=False, parent=self)
                     image = jpy1.get_image()
                     if jpy1.is_cacheable:
-                        cw.cwpy.sdata.cache[cachekey] = (image, mtime)
+                        cw.cwpy.sdata.resource_cache[cachekey] = (image, mtime)
                     else:
                         self.is_cacheable = False
                 # Jpdcファイル
@@ -506,7 +506,7 @@ class _JpySubImage(cw.image.Image):
                 # Jptxファイル
                 elif ext == ".jptx":
                     image = JptxImage(path, False).get_image()
-                    cw.cwpy.sdata.cache[cachekey] = (image.copy(), mtime)
+                    cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                 # その他画像ファイル
                 else:
                     image = cw.s(cw.util.load_image(path, False, isback=True))
@@ -796,7 +796,7 @@ class JpdcImage(cw.image.Image):
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
                 removekeys = []
-                for cachekey in cw.cwpy.sdata.cache.iterkeys():
+                for cachekey in cw.cwpy.sdata.resource_cache.iterkeys():
                     if isinstance(cachekey, tuple) and len(cachekey) == 4:
                         if isinstance(cachekey[3], (str, unicode)) and\
                                 os.path.splitext(cachekey[3])[1].lower() == ".jpy1":
@@ -805,7 +805,7 @@ class JpdcImage(cw.image.Image):
                                 os.path.splitext(cachekey[0])[1].lower() == ".jpy1":
                             removekeys.append(cachekey)
                 for key in removekeys:
-                    del cw.cwpy.sdata.cache[key]
+                    del cw.cwpy.sdata.resource_cache[key]
 
             cw.cwpy.draw()
             self.wait()
