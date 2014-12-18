@@ -1187,8 +1187,9 @@ class PartySelect(MultiViewSelect):
         self.index = 0
         if cw.cwpy.ydata.lastparty:
             # 前回選択されていたパーティ
+            lastparty = cw.util.get_yadofilepath(cw.cwpy.ydata.lastparty)
             for i, header in enumerate(self.list):
-                if header.fpath == cw.cwpy.ydata.lastparty:
+                if cw.util.get_yadofilepath(header.fpath) == lastparty:
                     self.index = i
                     break
         self.names = []
