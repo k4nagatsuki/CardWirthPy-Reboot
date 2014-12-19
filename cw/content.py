@@ -2163,7 +2163,7 @@ class GetMoneyContent(GetContent):
     def action(self):
         """所持金取得コンテント"""
         value = self.data.getint(".", "value", 0)
-        cw.cwpy.ydata.party.set_money(value)
+        cw.cwpy.ydata.party.set_money(value, fromevent=True)
         return 0
 
     def get_status(self):
@@ -2521,7 +2521,7 @@ class LoseMoneyContent(LoseContent):
     def action(self):
         """所持金減少コンテント。"""
         value = self.data.getint(".", "value", 0)
-        cw.cwpy.ydata.party.set_money(-value)
+        cw.cwpy.ydata.party.set_money(-value, fromevent=True)
         return 0
 
     def get_status(self):
