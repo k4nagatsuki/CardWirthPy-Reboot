@@ -105,15 +105,16 @@ class CardImage(Image):
         colour = (0, 0, 0)
         if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
             colour = (255, 255, 255)
-        subimg = font.render(self.name, True, colour)
-        w, h = subimg.get_size()
+        if self.name:
+            subimg = font.render(self.name, True, colour)
+            w, h = subimg.get_size()
 
-        left = cw.s(5)
-        if w + left*2 > self.rect.w:
-            size = (self.rect.w - left*2, h)
-            subimg = pygame.transform.smoothscale(subimg, size)
+            left = cw.s(5)
+            if w + left*2 > self.rect.w:
+                size = (self.rect.w - left*2, h)
+                subimg = pygame.transform.smoothscale(subimg, size)
 
-        image.blit(subimg, (left, cw.s(5)))
+            image.blit(subimg, (left, cw.s(5)))
         self._bmp = image.copy()
         return image
 
@@ -229,31 +230,32 @@ class CardImage(Image):
         dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
         font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
         dc.SetFont(font)
-        w, h = dc.GetTextExtent(self.name)
-        subimg = wx.EmptyBitmap(w, h)
-        dc.SelectObject(subimg)
-        dc.SetBrush(wx.BLACK_BRUSH)
-        dc.SetPen(wx.BLACK_PEN)
-        dc.DrawRectangle(-1, -1, w + 2, h + 2)
-        dc.SetTextForeground(wx.WHITE)
-        dc.DrawText(self.name, cw.wins(0), cw.wins(0))
-        dc.SelectObject(bmp)
-        subimg = subimg.ConvertToImage()
-        if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
-            subimg.ConvertColourToAlpha(255, 255, 255)
-        else:
-            subimg.ConvertColourToAlpha(0, 0, 0)
+        if self.name:
+            w, h = dc.GetTextExtent(self.name)
+            subimg = wx.EmptyBitmap(w, h)
+            dc.SelectObject(subimg)
+            dc.SetBrush(wx.BLACK_BRUSH)
+            dc.SetPen(wx.BLACK_PEN)
+            dc.DrawRectangle(-1, -1, w + 2, h + 2)
+            dc.SetTextForeground(wx.WHITE)
+            dc.DrawText(self.name, cw.wins(0), cw.wins(0))
+            dc.SelectObject(bmp)
+            subimg = subimg.ConvertToImage()
+            if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
+                subimg.ConvertColourToAlpha(255, 255, 255)
+            else:
+                subimg.ConvertColourToAlpha(0, 0, 0)
 
-        left = cw.wins(5)
-        if w/2 + left*2 > self.wxrect.width:
-            size = (self.wxrect.width - left*2, h/2)
-            subimg = subimg.Rescale(size[0], h/2, quality=cw.RESCALE_QUALITY)
-        else:
-            subimg = subimg.Rescale(w/2, h/2, quality=cw.RESCALE_QUALITY)
+            left = cw.wins(5)
+            if w/2 + left*2 > self.wxrect.width:
+                size = (self.wxrect.width - left*2, h/2)
+                subimg = subimg.Rescale(size[0], h/2, quality=cw.RESCALE_QUALITY)
+            else:
+                subimg = subimg.Rescale(w/2, h/2, quality=cw.RESCALE_QUALITY)
 
-        subimg = subimg.ConvertToBitmap()
+            subimg = subimg.ConvertToBitmap()
 
-        dc.DrawBitmap(subimg, left, cw.wins(5))
+            dc.DrawBitmap(subimg, left, cw.wins(5))
 
         dc.SelectObject(wx.NullBitmap)
 
