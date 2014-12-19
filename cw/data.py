@@ -2162,7 +2162,7 @@ class Party(object):
             self.name = name
             self.data.edit("Property/Name", name)
 
-    def set_money(self, value):
+    def set_money(self, value, fromevent=False):
         """
         パーティの所持金を変更する。
         """
@@ -2172,9 +2172,10 @@ class Party(object):
             self.money += value
             self.money = cw.util.numwrap(self.money, 0, 9999999)
             self.data.edit("Property/Money", str(self.money))
-            showbuttons = not cw.cwpy.is_playingscenario() or not cw.cwpy.is_runningevent()
-            cw.cwpy.statusbar.change(showbuttons)
-            cw.cwpy.has_inputevent = True
+            if not fromevent:
+                showbuttons = not cw.cwpy.is_playingscenario() or not cw.cwpy.is_runningevent()
+                cw.cwpy.statusbar.change(showbuttons)
+                cw.cwpy.has_inputevent = True
 
     def set_numbercoupon(self):
         """
