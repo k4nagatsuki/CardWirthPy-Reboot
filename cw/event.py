@@ -963,6 +963,10 @@ class CardEvent(Event):
                 # 意識不明者に有効な効果が含まれていない場合は
                 # イベント発火判定を含め何もしない
                 continue
+            if target.status == "hidden" and\
+                    not isinstance(target, cw.sprite.card.FriendCard):
+                # 非表示の場合は何もしない
+                continue
 
             unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and\
                 not isinstance(target, cw.sprite.card.MenuCard) and\
