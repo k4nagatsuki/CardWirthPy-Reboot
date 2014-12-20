@@ -154,14 +154,14 @@ CardWirthPyには現在のところ未完成の機能はありませんが、完
 
 CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはpy2exeを使用しています。
 
-[Python ver2.7.6](http://www.python.org/)
+[Python ver2.7.9](http://www.python.org/)
  : License: Python Software Foundation License
 
 [py2exe ver0.6.9](http://www.py2exe.org/)
 
 CardWirthPyは以下のPythonの外部モジュールを使用しています。
 
-[wxPython ver3.0.1.1](http://www.wxpython.org/)
+[wxPython ver3.0.2.0](http://www.wxpython.org/)
  : License: wxWindows Library License
 
 [Pygame ver1.9.1](http://www.pygame.org/)
@@ -170,7 +170,7 @@ CardWirthPyは以下のPythonの外部モジュールを使用しています。
 [Python for Windows extensions Build 219](http://sourceforge.net/projects/pywin32/)
  : License: Python Software Foundation License
 
-[lhafile](http://trac.neotitans.net/wiki/lhafile)
+[lhafile 0.1](http://trac.neotitans.net/wiki/lhafile)
  : License: 修正BSDライセンス
 
 CardWirthPyは以下のMicrosoftのライブラリを同梱しています。

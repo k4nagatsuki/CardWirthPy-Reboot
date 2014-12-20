@@ -112,7 +112,7 @@ class CardImage(Image):
             left = cw.s(5)
             if w + left*2 > self.rect.w:
                 size = (self.rect.w - left*2, h)
-                subimg = pygame.transform.smoothscale(subimg, size)
+                subimg = cw.image.smoothscale(subimg, size)
 
             image.blit(subimg, (left, cw.s(5)))
         self._bmp = image.copy()
@@ -372,7 +372,7 @@ class LargeCardImage(CardImage):
 
         if w + cw.s(3) > self.rect.w:
             size = (self.rect.w - cw.s(12), h)
-            subimg = pygame.transform.smoothscale(subimg, size)
+            subimg = cw.image.smoothscale(subimg, size)
 
         image.blit(subimg, cw.s((6, 6)))
         return image
@@ -415,7 +415,7 @@ class CharacterCardImage(CardImage):
 
         if w + cw.s(14) > cw.s(95):
             size = (cw.s(95 - 14), h)
-            self.nameimg = pygame.transform.smoothscale(self.nameimg, size)
+            self.nameimg = cw.image.smoothscale(self.nameimg, size)
 
     def set_levelimg(self, level):
         font = cw.cwpy.rsrc.fonts["pcard_level"]
@@ -804,6 +804,14 @@ def conv2surface(wxbmp):
 #-------------------------------------------------------------------------------
 # ユーティリティ
 #-------------------------------------------------------------------------------
+
+def smoothscale(surface, size):
+    """surfaceをリサイズする。
+    可能であればスムージングする。
+    """
+    if surface.get_bitsize() < 24:
+        surface = surface.convert(24)
+    return pygame.transform.smoothscale(surface, size)
 
 def fix_cwnext16bitbitmap(data):
     """一部バージョンのCardWirthNextが生成するBitmap(16 bit)は

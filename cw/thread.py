@@ -699,7 +699,7 @@ class CWPy(_Singleton, threading.Thread):
             if not self.setting.smoothexpand or cw.UP_SCR % cw.UP_WIN == 0 or cw.UP_WIN % cw.UP_SCR == 0:
                 scale = pygame.transform.scale
             else:
-                scale = pygame.transform.smoothscale
+                scale = cw.image.smoothscale
 
             def update_clip(scale):
                 clx = int(clip.left * scale) - 2

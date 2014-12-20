@@ -105,7 +105,7 @@ class BackGround(base.CWPySprite):
             if cw.cwpy.setting.smoothscale_bg:
                 if not (image.get_flags() & pygame.locals.SRCALPHA) and image.get_colorkey():
                     image = image.convert_alpha()
-                image = pygame.transform.smoothscale(image, size)
+                image = cw.image.smoothscale(image, size)
             else:
                 image = pygame.transform.scale(image, size)
 
@@ -558,7 +558,7 @@ class InuseCardImage(card.CWPyCard):
         if not self.user.scale == 100 and not self.center:
             scale = self.user.scale / 100.0
             self.rect.size = (int(self.rect.width*scale), int(self.rect.height*scale))
-            self.image = pygame.transform.smoothscale(self.image, self.rect.size)
+            self.image = cw.image.smoothscale(self.image, self.rect.size)
 
         if self.center:
             self.set_pos_noscale(center_noscale=(316, 142))

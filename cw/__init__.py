@@ -221,7 +221,7 @@ def _s_impl(num, up_scr):
                 else:
                     if not (bmp.get_flags() & pygame.locals.SRCALPHA) and bmp.get_colorkey():
                         bmp = bmp.convert_alpha()
-                    return pygame.transform.smoothscale(bmp, size)
+                    return image.smoothscale(bmp, size)
             else:
                 # スケール情報の無いpygame.Surface(単純拡大)
                 return _s_impl(bmp, up_scr)
@@ -274,7 +274,7 @@ def _s_impl(num, up_scr):
         else:
             if not (num.get_flags() & pygame.locals.SRCALPHA) and num.get_colorkey():
                 num = num.convert_alpha()
-            return pygame.transform.smoothscale(num, size)
+            return image.smoothscale(num, size)
 
     elif isinstance(num, wx.Image):
         # スケール情報の無いwx.Image(単純拡大)

@@ -986,7 +986,7 @@ def screenshot():
         swmax = w - cw.s(10)*2
         if swmax < subimg.get_width():
             size = (swmax, subimg.get_height())
-            subimg = pygame.transform.smoothscale(subimg, size)
+            subimg = cw.image.smoothscale(subimg, size)
         bmp.blit(subimg, (cw.s(10), y))
     else:
         bmp = cw.cwpy.scr_draw

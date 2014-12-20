@@ -153,7 +153,7 @@ class ProgressView(base.CWPySprite):
 
         subimg = self.font.render(self.text, True, (0, 0, 0))
         if w-cw.s(4) < subimg.get_width():
-            subimg = pygame.transform.smoothscale(subimg, (w-cw.s(4), subimg.get_height()))
+            subimg = cw.image.smoothscale(subimg, (w-cw.s(4), subimg.get_height()))
         x = (image.get_width() - subimg.get_width()) / 2
         y = (image.get_height() - subimg.get_height()) / 2
 

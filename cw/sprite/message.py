@@ -568,8 +568,8 @@ class SelectionBar(base.SelectableSprite):
         nameimg2 = font.render(self.name, True, (0, 0, 0))
         w = size[0] - cw.s(10)
         if w < nameimg.get_width():
-            nameimg = pygame.transform.smoothscale(nameimg, (w, nameimg.get_height()))
-            nameimg2 = pygame.transform.smoothscale(nameimg2, (w, nameimg2.get_height()))
+            nameimg = cw.image.smoothscale(nameimg, (w, nameimg.get_height()))
+            nameimg2 = cw.image.smoothscale(nameimg2, (w, nameimg2.get_height()))
         w, h = nameimg.get_size()
         pos = (cw.s(470)-w)/2, (cw.s(25)-h)/2
         image.blit(nameimg2, (pos[0]+1, pos[1]))

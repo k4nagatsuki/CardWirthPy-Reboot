@@ -431,7 +431,7 @@ class _JpySubImage(cw.image.Image):
 
             if not size == image.get_size() and not size == cw.s((0, 0)):
                 if self.smooth:
-                    image = pygame.transform.smoothscale(image, size)
+                    image = cw.image.smoothscale(image, size)
                 else:
                     image = pygame.transform.scale(image, size)
 
@@ -553,7 +553,7 @@ class _JpySubImage(cw.image.Image):
                 if image.get_width() == 0 or image.get_height() == 0:
                     image = pygame.Surface(size).convert()
                 elif self.smooth:
-                    image = pygame.transform.smoothscale(image, size)
+                    image = cw.image.smoothscale(image, size)
                 else:
                     image = pygame.transform.scale(image, size)
 
@@ -774,7 +774,7 @@ class JpdcImage(cw.image.Image):
                 if cw.UP_SCR % 1 == 0:
                     saveimage = pygame.transform.scale(saveimage, (w_noscale, h_noscale))
                 else:
-                    saveimage = pygame.transform.smoothscale(saveimage, (w_noscale, h_noscale))
+                    saveimage = cw.image.smoothscale(saveimage, (w_noscale, h_noscale))
 
             path = cw.util.join_paths(os.path.dirname(path), filename)
 
