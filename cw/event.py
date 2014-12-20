@@ -967,6 +967,9 @@ class CardEvent(Event):
                     not isinstance(target, cw.sprite.card.FriendCard):
                 # 非表示の場合は何もしない
                 continue
+            if not isinstance(target, cw.sprite.card.MenuCard) and\
+                    target.is_vanished():
+                continue
 
             unconscious_flag = eff.has_motions(cw.effectmotion.CAN_UNCONSCIOUS) and\
                 not isinstance(target, cw.sprite.card.MenuCard) and\
