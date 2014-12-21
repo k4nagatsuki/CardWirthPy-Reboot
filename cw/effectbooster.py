@@ -993,6 +993,9 @@ class JptxImage(cw.image.Image):
                 info.tagonly = False
 
         info.render()
+        if info.nolinedata or not info.tagonly:
+            info.y += info.get_height() * info.lineheight / 100 - cw.s(2)
+            info.h = info.y
 
         if backheight < 0 or backwidth < 0:
             info.w = info.w if backwidth < 0 else backwidth
