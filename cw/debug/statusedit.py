@@ -193,7 +193,8 @@ class StatusEditDialog(wx.Dialog):
                 cw.cwpy.sounds["harvest"].play()
                 if pcard.status == "hidden":
                     pcard.update_image()
-                    cw.cwpy.wait_frame(12, True)
+                    waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+                    cw.cwpy.wait_frame(waitrate, True)
                 else:
                     cw.animation.animate_sprite(pcard, "hide")
                     pcard.update_image()

@@ -175,7 +175,8 @@ class Effect(object):
                 cw.cwpy.sounds["equipment"].play(True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
-                cw.cwpy.wait_frame(12, True)
+                waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+                cw.cwpy.wait_frame(waitrate, True)
                 cw.cwpy.clear_guardcardimg()
                 cw.cwpy.draw()
 
@@ -291,7 +292,8 @@ class Effect(object):
 
             if self.soundpath and cw.cwpy.has_sound(self.soundpath):
                 cw.cwpy.draw()
-                cw.cwpy.wait_frame(12, True)
+                waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+                cw.cwpy.wait_frame(waitrate, True)
 
         # 横振動(地震)
         elif self.visualeffect == "Horizontal":
