@@ -59,6 +59,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
             self.pane_gene.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat_init)
             self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
+            self.pane_gene.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
@@ -177,6 +178,8 @@ class SettingsDialog(wx.Dialog):
 
         value = self.pane_gene.cb_nolevelup.GetValue()
         cw.cwpy.setting.no_levelup_in_debugmode = value
+        value = self.pane_gene.cb_showexperiencebar.GetValue()
+        cw.cwpy.setting.show_experiencebar = value
         value = self.pane_gene.cb_storeskinoneachbase.GetValue()
         cw.cwpy.setting.store_skinoneachbase = value
         value = self.pane_gene.sc_initmoneyamount.GetValue()
@@ -470,6 +473,9 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_nolevelup = wx.CheckBox(
             self, -1, u"デバッグ中はレベル上昇を停止する")
         self.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode)
+        self.cb_showexperiencebar = wx.CheckBox(
+            self, -1, u"次のレベルアップまでの割合を表示する")
+        self.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar)
 
         # 基本的なオプション
         self.cb_storeskinoneachbase = wx.CheckBox(
@@ -696,6 +702,7 @@ class GeneralSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_showexperiencebar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_backlogmax = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_backlogmax.Add(self.st_backlogmax, 0, wx.RIGHT|wx.CENTER, 3)

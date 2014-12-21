@@ -128,6 +128,7 @@ class Setting(object):
         self.show_fcardsinbattle = False
         self.show_straighteventtree = True
         self.statusbarmask = True
+        self.show_experiencebar = True
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -401,6 +402,9 @@ class Setting(object):
 
         # イベント中にステータスバーの色を変える
         self.statusbarmask = data.getbool("StatusBarMask", self.statusbarmask)
+
+        # 次のレベルアップまでの割合を表示する
+        self.show_experiencebar = data.getbool("ShowExperienceBar", self.show_experiencebar)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)

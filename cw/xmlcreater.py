@@ -390,6 +390,10 @@ def create_settings(setting):
     e = cw.data.make_element("StatusBarMask", str(setting.statusbarmask))
     element.append(e)
 
+    # 次のレベルアップまでの割合を表示する
+    e = cw.data.make_element("ShowExperienceBar", str(setting.show_experiencebar))
+    element.append(e)
+
     # タイトルバーの表示内容
     e = cw.data.make_element("TitleFormat", setting.titleformat)
     element.append(e)

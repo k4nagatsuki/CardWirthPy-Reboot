@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import math
 import wx
 import pygame
 
@@ -455,17 +456,67 @@ class TopPanel(wx.Panel):
         # レベル
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
         coupons = self.ccard.get_specialcoupons()
+        maxlevel = False
+        baselevel = self.ccard.level
         if u"＠レベル原点" in coupons and self.ccard.level <> coupons[u"＠レベル原点"]:
-            s = "Level: %d / %d" % (self.ccard.level, coupons[u"＠レベル原点"])
+            baselevel = coupons[u"＠レベル原点"]
+            s = "Level: %d / %d" % (self.ccard.level, baselevel)
         else:
             s = "Level: %d" % (self.ccard.level)
-            if u"＠レベル上限" in coupons and coupons[u"＠レベル上限"] <= self.ccard.level:
-                # max
-                dc.SetTextForeground(wx.RED)
-                dc.DrawText("max", cw.wins(25), cw.wins(20))
-
+        if u"＠レベル上限" in coupons and coupons[u"＠レベル上限"] <= baselevel:
+            # max
+            dc.SetTextForeground(wx.RED)
+            dc.DrawText("max", cw.wins(25), cw.wins(20))
+            maxlevel = True
         dc.SetTextForeground(wx.BLACK)
         dc.DrawText(s, cw.wins(5), cw.wins(5))
+
+        # 次のレベルまで割合バー
+        if cw.cwpy.setting.show_experiencebar and isinstance(self.ccard, cw.character.Player) and not maxlevel:
+            exp = self.ccard.get_couponsvalue()
+            curexp = baselevel * (baselevel-1)
+            nextlevel = baselevel + 1
+            nextexp = nextlevel * (nextlevel-1)
+
+            prange = nextexp - curexp
+            x = cw.wins(5)+1
+            y = cw.wins(22)+1
+            w = cw.wins(42)-2
+            h = cw.wins(5)-2
+            hr = max(2, h/3)
+            rad = math.radians(45)
+            colour = wx.Colour(216, 216, 216)
+            dc.SetPen(wx.Pen(colour))
+            dc.SetBrush(wx.Brush(colour))
+            dc.DrawRectangle(x-1, y-1, w+2, hr)
+            dc.SetPen(wx.WHITE_PEN)
+            dc.SetBrush(wx.WHITE_BRUSH)
+            dc.DrawRectangle(x-1, y-1+hr, w+2, h+2-hr)
+            hr -= 1
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            if exp < curexp:
+                val = curexp - exp
+                w2 = min(w, int(w * (float(val) / prange)))
+                dc.SetBrush(wx.Brush(wx.Colour(64, 0, 0)))
+                dc.DrawRectangle(x+w-w2, y, w2, hr)
+                dc.SetBrush(wx.Brush(wx.Colour(192, 32, 32)))
+                dc.DrawRectangle(x+w-w2, y+hr, w2, h-hr)
+                linecolour = wx.Colour(128, 128, 128)
+            else:
+                val = exp - curexp
+                if 0 < val:
+                    w2 = min(w, int(w * (float(val) / prange)))
+                    dc.SetBrush(wx.Brush(wx.Colour(128, 128, 192)))
+                    dc.DrawRectangle(x, y, w2, hr)
+                    dc.SetBrush(wx.Brush(wx.Colour(192, 192, 255)))
+                    dc.DrawRectangle(x, y+hr, w2, h-hr)
+                linecolour = wx.Colour(128, 128, 128)
+            gcdc = wx.GCDC(dc)
+            gcdc.SetPen(wx.Pen(linecolour))
+            gcdc.SetBrush(wx.TRANSPARENT_BRUSH)
+            gcdc.DrawRoundedRectangle(x-1, y-1, w+2, h+2, rad)
+            gcdc.EndDrawing()
+
         # 名前
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
         s = self.ccard.name
