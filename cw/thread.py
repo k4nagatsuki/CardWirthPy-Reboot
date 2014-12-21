@@ -1652,7 +1652,10 @@ class CWPy(_Singleton, threading.Thread):
             quickdeal = False
         self._dealing = True
 
-        mcardsinv = self.get_mcards("invisible", flag=flag)
+        if self.is_autospread():
+            mcardsinv = self.get_mcards("invisible")
+        else:
+            mcardsinv = self.get_mcards("invisible", flag=flag)
 
         # エネミーカードは初期化されていない場合がある
         for mcard in mcardsinv:
@@ -1705,7 +1708,10 @@ class CWPy(_Singleton, threading.Thread):
             self.clear_selection()
 
         # メニューカードを下げる
-        mcards = self.get_mcards("visible", flag=flag)
+        if self.is_autospread():
+            mcards = self.get_mcards("visible")
+        else:
+            mcards = self.get_mcards("visible", flag=flag)
         hide = False
         for mcard in mcards:
             if hideall or not mcard.is_flagtrue():
