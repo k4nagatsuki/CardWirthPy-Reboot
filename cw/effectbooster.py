@@ -828,7 +828,8 @@ class JptxImage(cw.image.Image):
         backheight = cw.s(config.get_int("jptx:init", "backheight", -1))
         autoline = config.get_bool("jptx:init", "autoline", True)
         lineheight = config.get_int("jptx:init", "lineheight", 100)
-        fontpixels = cw.s(config.get_int("jptx:init", "fontpixels", 12))
+        fontpixels_noscale = config.get_int("jptx:init", "fontpixels", 12)
+        fontpixels = cw.s(fontpixels_noscale)
         fontcolor = config.get_color("jptx:init", "fontcolor", (255, 255, 255))
         fontface = config.get("jptx:init", "fontface", u"ＭＳ Ｐゴシック")
         antialias = config.get_bool("jptx:init", "antialias", False)
@@ -858,10 +859,11 @@ class JptxImage(cw.image.Image):
         italic = False
 
         class Info(object):
-            def __init__(self, outer, lineheight, fontface, fontpixels, fontcolor):
+            def __init__(self, outer, lineheight, fontface, fontpixels, fontpixels_noscale, fontcolor):
                 self.outer = outer
                 self.lineheight = lineheight
                 self.fontpixels = fontpixels
+                self.fontpixels_noscale = fontpixels_noscale
                 self.fontcolor = fontcolor
                 self.fontface = fontface
                 self.oldfonts = []
@@ -880,8 +882,26 @@ class JptxImage(cw.image.Image):
             def create_font(self):
                 self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
 
+                # BUG: cwconv.dllではポイントサイズを2倍してテキストを描画し、
+                #      最後に縮小する事でアンチエイリアスを実現している。
+                #      ポイントサイズによって計算し、誤差も発生するため、
+                #      一部サイズの結果がDPIによって様々におかしくなるが、
+                #      そのバグに依存した描画を行っているシナリオが多数あるので、
+                #      CardWirthが一般的に実行されていた96DPIでのサイズ計算に合せる。
+                #      将来データバージョンを上げる時に修正するべきかもしれない。
+                pixels = self.fontpixels_noscale
+                if (pixels+2) % 4 == 0:
+                    pixels += 1
+                points2 = (pixels * 72 / 96) * 2
+                pixels_aa = points2 * 96 / 72
+                if (pixels-1) % 4 == 0:
+                    pixels_aa += 3
+                # -- サイズ補正ここまで
+                pixels_aa = max(1, pixels_aa)
+                self.font2 = cw.imageretouch.Font(self.fontface, cw.s(pixels_aa))
+
             def get_height(self):
-                height = self.font.get_height()
+                height = self.fontpixels
                 height += cw.s(2)
                 return height
 
@@ -891,30 +911,39 @@ class JptxImage(cw.image.Image):
                 chars = "".join(self.chars)
                 self.chars = []
 
-                if not antialias and 22 < info.fontpixels and\
-                        fontface in (u"ＭＳ Ｐ明朝", u"ＭＳ 明朝"):
-                    # cwconv.dllのバグで常にアンチエイリアスがかかる
-                    antialias2 = True
+                if antialias:
+                    subimg = info.font2.render(chars, True, info.fontcolor)
+                    size = info.font2.size(chars)
+                    width = size[0] / 2
+                    height = size[1] / 2
+                    subimg.blit(subimg, (0, 0)) # 濃くする
+                    subimg = cw.image.smoothscale(subimg, (width, height))
+                    yp = 0
                 else:
-                    antialias2 = antialias
+                    if not antialias and 22 < info.fontpixels_noscale and\
+                            fontface in (u"ＭＳ Ｐ明朝", u"ＭＳ 明朝", u"ＭＳ Ｐゴシック", u"ＭＳ ゴシック", u"MS UI Gothic"):
+                        # cwconv.dllのバグで常にアンチエイリアスがかかる
+                        antialias2 = True
+                    else:
+                        antialias2 = antialias
 
-                subimg = info.font.render(chars, antialias2, info.fontcolor)
-                width = info.font.size(chars)[0]
-                width = min(width, info.font.get_height()) # FIXME: フォント幅の計算がCardWirthと異なるため暫定対応
+                    subimg = info.font.render(chars, antialias2, info.fontcolor)
+                    width = info.font.size(chars)[0]
+                    yp = cw.s(1)
+
                 # 取消線
                 if info.strike:
                     subimg2 = info.font.render(u"―", False, info.fontcolor)
-                    size = (width + cw.s(10), info.get_height())
+                    size = (int(width + cw.s(10)), info.get_height())
                     subimg2 = pygame.transform.scale(subimg2, size)
                     subimg.blit(subimg2, cw.s((-5, 0)))
 
-                self.outer.image.blit(subimg, (info.x, info.y))
-                info.x += width
-                info.w = info.x if info.x > info.w else info.w
+                self.outer.image.blit(subimg, (int(info.x), info.y+yp))
+                info.x = info.x + width
+                info.w = int(info.x) if info.x > info.w else info.w
 
-        info = Info(self, lineheight, fontface, fontpixels, fontcolor)
+        info = Info(self, lineheight, fontface, fontpixels, fontpixels_noscale, fontcolor)
         face_def = fontface
-        _pixels_def = fontpixels
         color_def = fontcolor
 
         for char in text:
@@ -940,12 +969,15 @@ class JptxImage(cw.image.Image):
                 if name == "b":
                     bold = start
                     info.font.set_bold(start)
+                    info.font2.set_bold(start)
                 elif name == "u":
                     underline = start
                     info.font.set_underline(start)
+                    info.font2.set_underline(start)
                 elif name == "i":
                     italic= start
                     info.font.set_italic(start)
+                    info.font2.set_italic(start)
                 elif name == "s":
                     info.strike = start
                 elif name == "shiftx":
@@ -962,11 +994,13 @@ class JptxImage(cw.image.Image):
                 # タグ名=font, 属性color=blueという用に認識してしまうため注意。
                 elif name.startswith("font"):
                     if start:
-                        info.oldfonts.append((info.fontface, info.fontpixels, info.fontcolor))
+                        info.oldfonts.append((info.fontface, info.fontpixels, info.fontpixels_noscale, info.fontcolor))
                         if "fontpixels" in attrs:
-                            info.fontpixels = cw.s(int(attrs["fontpixels"]))
+                            info.fontpixels_noscale = int(attrs["fontpixels"])
+                            info.fontpixels = cw.s(info.fontpixels_noscale)
                         if "pixels" in attrs:
-                            info.fontpixels = cw.s(int(attrs["pixels"]))
+                            info.fontpixels_noscale = int(attrs["pixels"])
+                            info.fontpixels = cw.s(info.fontpixels_noscale)
                         info.fontface = attrs.get("fontface", face_def)
                         info.fontface = attrs.get("face", info.fontface)
                         info.create_font()
@@ -975,27 +1009,30 @@ class JptxImage(cw.image.Image):
                         if color:
                             info.fontcolor = self.get_fontcolor(color, color_def)
                     else:
-                        info.fontface, info.fontpixels, color = info.oldfonts.pop()
+                        info.fontface, info.fontpixels, info.fontpixels_noscale, color = info.oldfonts.pop()
                         info.create_font()
                         info.fontcolor = color
                     info.font.set_bold(bold)
+                    info.font2.set_bold(bold)
                     info.font.set_italic(italic)
+                    info.font2.set_italic(italic)
                     info.font.set_underline(underline)
+                    info.font2.set_underline(underline)
 
                 info.tag = ""
             elif info.tag:
                 info.render()
                 info.tag += char
             else:
-                info.render() # FXIME: 1文字ずつ幅を考慮するために1文字ずつレンダリングする
                 info.chars.append(char)
                 info.nolinedata = False
                 info.tagonly = False
 
-        info.render()
-        if info.nolinedata or not info.tagonly:
-            info.y += info.get_height() * info.lineheight / 100 - cw.s(2)
-            info.h = info.y
+        if info.chars or not info.nolinedata:
+            info.render()
+            if info.nolinedata or not info.tagonly:
+                info.y += info.get_height() * info.lineheight / 100 - cw.s(2)
+                info.h = info.y
 
         if backheight < 0 or backwidth < 0:
             info.w = info.w if backwidth < 0 else backwidth

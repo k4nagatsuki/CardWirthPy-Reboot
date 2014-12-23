@@ -700,7 +700,8 @@ def get_textcellfont(size, face, color, bold, italic,
     (font, lineheight)を返す。
     """
     if size % 2 == 0:
-        # BUG: CardWirthでは偶数サイズは1px小さなサイズと同じになる
+        # BUG: CardWirthでは偶数サイズは1px小さなサイズと同じになる。
+        #      将来データバージョンを上げる時に修正するべきかもしれない。
         size -= 1
 
     font = cw.imageretouch.Font(face, size+cw.s(1), bold, italic)
