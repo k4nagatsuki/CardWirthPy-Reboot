@@ -881,6 +881,10 @@ class JptxImage(cw.image.Image):
 
             def create_font(self):
                 self.font = cw.imageretouch.Font(self.fontface, self.fontpixels)
+                if cw.UP_SCR == 1:
+                    self.font_noscale = self.font
+                else:
+                    self.font_noscale = cw.imageretouch.Font(self.fontface, self.fontpixels_noscale)
 
                 # BUG: cwconv.dllではポイントサイズを2倍してテキストを描画し、
                 #      最後に縮小する事でアンチエイリアスを実現している。
@@ -897,8 +901,13 @@ class JptxImage(cw.image.Image):
                 if (pixels-1) % 4 == 0:
                     pixels_aa += 3
                 # -- サイズ補正ここまで
-                pixels_aa = max(1, pixels_aa)
-                self.font2 = cw.imageretouch.Font(self.fontface, cw.s(pixels_aa))
+                pixels_aa_noscale = max(1, pixels_aa)
+                pixels_aa = cw.s(pixels_aa_noscale)
+                self.font2 = cw.imageretouch.Font(self.fontface, pixels_aa)
+                if cw.UP_SCR == 1:
+                    self.font2_noscale = self.font2
+                else:
+                    self.font2_noscale = cw.imageretouch.Font(self.fontface, pixels_aa_noscale)
 
             def get_height(self):
                 height = self.fontpixels
@@ -913,7 +922,10 @@ class JptxImage(cw.image.Image):
 
                 if antialias:
                     subimg = info.font2.render(chars, True, info.fontcolor)
-                    size = info.font2.size(chars)
+                    if cw.UP_SCR == 1:
+                        size = info.font2.size(chars)
+                    else:
+                        size = cw.s(info.font2_noscale.size(chars))
                     width = size[0] / 2
                     height = size[1] / 2
                     subimg.blit(subimg, (0, 0)) # 濃くする
@@ -928,7 +940,12 @@ class JptxImage(cw.image.Image):
                         antialias2 = antialias
 
                     subimg = info.font.render(chars, antialias2, info.fontcolor)
-                    width = info.font.size(chars)[0]
+                    if cw.UP_SCR == 1:
+                        width = info.font.size(chars)[0]
+                    else:
+                        size = cw.s(info.font_noscale.size(chars))
+                        subimg = cw.image.smoothscale(subimg, size)
+                        width = size[0]
                     yp = cw.s(1)
 
                 # 取消線
@@ -970,14 +987,23 @@ class JptxImage(cw.image.Image):
                     bold = start
                     info.font.set_bold(start)
                     info.font2.set_bold(start)
+                    if cw.UP_SCR <> 1:
+                        info.font_noscale.set_bold(start)
+                        info.font2_noscale.set_bold(start)
                 elif name == "u":
                     underline = start
                     info.font.set_underline(start)
                     info.font2.set_underline(start)
+                    if cw.UP_SCR <> 1:
+                        info.font_noscale.set_underline(start)
+                        info.font2_noscale.set_underline(start)
                 elif name == "i":
                     italic= start
                     info.font.set_italic(start)
                     info.font2.set_italic(start)
+                    if cw.UP_SCR <> 1:
+                        info.font_noscale.set_italic(start)
+                        info.font2_noscale.set_italic(start)
                 elif name == "s":
                     info.strike = start
                 elif name == "shiftx":
@@ -1014,10 +1040,19 @@ class JptxImage(cw.image.Image):
                         info.fontcolor = color
                     info.font.set_bold(bold)
                     info.font2.set_bold(bold)
+                    if cw.UP_SCR <> 1:
+                        info.font_noscale.set_bold(bold)
+                        info.font2_noscale.set_bold(bold)
                     info.font.set_italic(italic)
                     info.font2.set_italic(italic)
+                    if cw.UP_SCR <> 1:
+                        info.font_noscale.set_italic(italic)
+                        info.font2_noscale.set_italic(italic)
                     info.font.set_underline(underline)
                     info.font2.set_underline(underline)
+                    if cw.UP_SCR <> 1:
+                        info.font_noscale.set_underline(underline)
+                        info.font2_noscale.set_underline(underline)
 
                 info.tag = ""
             elif info.tag:
