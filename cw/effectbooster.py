@@ -869,7 +869,6 @@ class JptxImage(cw.image.Image):
                 self.oldfonts = []
                 self.x = 0
                 self.y = 0
-                self.y = 0
                 self.w = 0
                 self.h = 0
                 self.tag = ""
@@ -955,9 +954,12 @@ class JptxImage(cw.image.Image):
                     subimg2 = pygame.transform.scale(subimg2, size)
                     subimg.blit(subimg2, cw.s((-5, 0)))
 
-                self.outer.image.blit(subimg, (int(info.x), info.y+yp))
+                self.outer.image.blit(subimg, (int(info.x), int(info.y)+yp))
                 info.x = info.x + width
                 info.w = int(info.x) if info.x > info.w else info.w
+
+            def calc_lineheight(self):
+                return self.fontpixels * self.lineheight / 100.0
 
         info = Info(self, lineheight, fontface, fontpixels, fontpixels_noscale, fontcolor)
         face_def = fontface
@@ -968,8 +970,8 @@ class JptxImage(cw.image.Image):
                 info.render()
                 info.x = 0
                 if info.nolinedata or not info.tagonly:
-                    info.y += info.get_height() * info.lineheight / 100 - cw.s(2)
-                info.h = info.y
+                    info.y = info.y + info.calc_lineheight()
+                info.h = int(info.y)
                 info.nolinedata = True
                 info.tagonly = True
             elif char == "<":
@@ -1013,7 +1015,7 @@ class JptxImage(cw.image.Image):
                 elif name == "shifty":
                     if start:
                         n = cw.s(int(attrs["shifty"]))
-                        info.y += n
+                        info.y = info.y + n
                 elif name == "lineheight":
                     info.lineheight = int(attrs["lineheight"])
                 # 本家エフェクトブースターは"<fontcolor="blue">"のようなタグを、
@@ -1066,8 +1068,8 @@ class JptxImage(cw.image.Image):
         if info.chars or not info.nolinedata:
             info.render()
             if info.nolinedata or not info.tagonly:
-                info.y += info.get_height() * info.lineheight / 100 - cw.s(2)
-                info.h = info.y
+                info.y = info.y + info.calc_lineheight()
+                info.h = int(info.y)
 
         if backheight < 0 or backwidth < 0:
             info.w = info.w if backwidth < 0 else backwidth
