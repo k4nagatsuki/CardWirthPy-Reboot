@@ -671,6 +671,8 @@ class Event(object):
         if cw.cwpy.ydata and cw.cwpy.ydata.party:
             cw.cwpy.ydata.party.sort_backpack()
 
+        cw.cwpy.update_mcardlist()
+
         # 戦闘中か否か
         if cw.cwpy.is_battlestatus():
             # 敗北処理

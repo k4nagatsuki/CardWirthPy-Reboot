@@ -150,6 +150,9 @@ class CWPy(_Singleton, threading.Thread):
         self.index = -1
         # メニューカードのフラグごとの辞書
         self._mcardtable = {}
+        # イベント終了時にメニューカードのリストを
+        # 更新する必要がある場合はTrue
+        self._after_update_mcardlist = False
         # カード選択ダイアログで選択中のカード種別
         self.lastcardpocket = 0
         # クラシックなシナリオの再生中であればそのデータ
@@ -1689,6 +1692,8 @@ class CWPy(_Singleton, threading.Thread):
         # list, indexセット
         if updatelist:
             self._update_mcardlist()
+        else:
+            self._after_update_mcardlist = True
 
         self.input(True)
         self._dealing = False
@@ -1732,6 +1737,8 @@ class CWPy(_Singleton, threading.Thread):
         # list, indexセット
         if updatelist:
             self._update_mcardlist()
+        else:
+            self._after_update_mcardlist = True
 
         self.input(True)
         self._dealing = False
@@ -1744,6 +1751,12 @@ class CWPy(_Singleton, threading.Thread):
                 seq.remove(mcard)
                 if not seq:
                     del self._mcardtable[mcard.flag]
+
+    def update_mcardlist(self):
+        """必要であればメニューカードのリストを更新する。
+        """
+        if self._after_update_mcardlist:
+            self._update_mcardlist()
 
     def _update_mcardlist(self):
         self._mcardtable = {}
