@@ -1081,7 +1081,7 @@ class Character(object):
         cnt = 0
 
         for coupon, data in self.coupons.iteritems():
-            if coupon and not coupon.startswith(u"＠"):
+            if coupon and not coupon[0] in (u"＠", u"：", u"；"):
                 value = data[0]
                 cnt += value
 
