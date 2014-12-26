@@ -1061,6 +1061,13 @@ class Debugger(wx.Frame):
         if update:
             self.tb_event.Realize()
 
+        def func(self):
+            def func(self):
+                if self:
+                    self._refresh_areaname()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+
     def refresh_areaname(self):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
