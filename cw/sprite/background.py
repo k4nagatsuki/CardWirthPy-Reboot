@@ -26,6 +26,7 @@ class BackGround(base.CWPySprite):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
         self.rect = self.image.get_rect()
         self._in_playing = False
+        self._bgs = []
         self._elements = []
         self._doanime = False
         self._ttype = ("None", "None")
@@ -37,12 +38,14 @@ class BackGround(base.CWPySprite):
         self.rect = self.image.get_rect()
         if self._in_playing:
             # Jpy1アニメーション中の場合は再実行
+            bgs = self._bgs
             elements = self._elements
             doanime = self._doanime
             ttype = self._ttype
             def func():
                 # アニメーション前の背景を復元
-                self.reload(doanime=False, ttype=("None", "None"), redraw=True)
+                self.bgs = bgs
+                self._reload(doanime=False, ttype=("None", "None"), redraw=True, force=True)
                 if elements:
                     # 再実行
                     self.load(elements, doanime=doanime, ttype=ttype)
@@ -127,6 +130,7 @@ class BackGround(base.CWPySprite):
         # 背景処理する前に、トランジション用スプライト作成
         transitspr = cw.sprite.transition.get_transition(ttype)
         oldbgs = list(self.bgs)
+        self._bgs = oldbgs
         self._elements = elements
         self._doanime = doanime
         self._ttype = ttype
@@ -225,6 +229,7 @@ class BackGround(base.CWPySprite):
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
+        self._bgs = []
         self._elements = []
         self._doanime = False
         self._ttype = ("None", "None")

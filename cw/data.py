@@ -53,6 +53,8 @@ class SystemData(object):
         self.ignorecase_table = {}
         self.notice_infoview = False
         self.pre_battleareadata = None
+        self.data_cache = {}
+        self.resource_cache = {}
         # refresh debugger
         self._init_debugger()
 
