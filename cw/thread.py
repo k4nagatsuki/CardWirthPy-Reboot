@@ -2388,7 +2388,7 @@ class CWPy(_Singleton, threading.Thread):
             self.list = seq
             self.change_selection(self.list[index])
 
-        self.draw()
+        self.draw(clip=cw.s(pygame.Rect((0, 0), cw.SIZE_AREA)))
 
     def replace_pcardorder(self, index1, index2):
         """パーティメンバの位置を入れ替える。"""
@@ -2697,7 +2697,6 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 areaid = 1
             self.change_area(areaid, bginhrt=False)
-            self.draw()
         elif newparty:
             for i, e in enumerate(self.ydata.party.members):
                 pos_noscale = (9 + 95 * i + 9 * i, 285)
