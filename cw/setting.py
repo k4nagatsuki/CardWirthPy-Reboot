@@ -853,7 +853,7 @@ class Resource(object):
 
         # BUG: フォントサイズとテキストによっては
         #      ツリーアイテムの後方が欠ける事がある
-        if (name == "tree" or adjustsize) and 15 < pixelsize and pixelsize % 2 == 1:
+        if (name in ("tree", "slider") or adjustsize) and 15 < pixelsize and pixelsize % 2 == 1:
             pixelsize += 1
 
         wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
