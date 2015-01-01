@@ -61,10 +61,12 @@ class _JpySubImage(cw.image.Image):
         # image temporary draw
         self.waittime = config.get_int(section, "wait", 0)
         self.animation = config.get_int(section, "animation", 0)
-        self.animemove = cw.s(config.get_ints(section, "animemove", 2, None))
+        self.animemove_noscale = config.get_ints(section, "animemove", 2, None)
+        self.animemove = cw.s(self.animemove_noscale)
         self.animeclip = cw.s(config.get_ints(section, "animeclip", 4, None))
         self.animespeed = config.get_int(section, "animespeed", 0)
-        self.animeposition = cw.s(config.get_ints(section, "animeposition", 2, None))
+        self.animeposition_noscale = config.get_ints(section, "animeposition", 2, None)
+        self.animeposition = cw.s(self.animeposition_noscale)
         self.paintmode = config.get_int(section, "paintmode", 0)
 
         self.defaultcopymode = 2
@@ -105,16 +107,16 @@ class _JpySubImage(cw.image.Image):
                 self.wait()
         # 一時描画
         elif self.animation:
-            if self.animeposition and self.animemove:
-                pos = self.animeposition
-                pos = (pos[0] + self.animemove[0], pos[1] + self.animemove[1])
-            elif self.animeposition:
-                pos = self.animeposition
-            elif self.animemove:
-                pos = self.cache.load_position()
-                pos = (pos[0] + self.animemove[0], pos[1] + self.animemove[1])
+            if self.animeposition_noscale and self.animemove:
+                pos_noscale = self.animeposition_noscale
+                pos_noscale = (pos_noscale[0] + self.animemove_noscale[0], pos_noscale[1] + self.animemove_noscale[1])
+            elif self.animeposition_noscale:
+                pos_noscale = self.animeposition_noscale
+            elif self.animemove_noscale:
+                pos_noscale = self.cache.load_position_noscale()
+                pos_noscale = (pos_noscale[0] + self.animemove_noscale[0], pos_noscale[1] + self.animemove_noscale[1])
             else:
-                pos = self.position
+                pos_noscale = self.position_noscale
 
             animespeed = cw.util.numwrap(self.animespeed, 0, 255)
 
@@ -139,16 +141,16 @@ class _JpySubImage(cw.image.Image):
 
             if not animespeed:
                 if doanime:
-                    self._drawtemp_impl(background, pos)
+                    self._drawtemp_impl(background, cw.s(pos_noscale))
 
             # 連続描画
             else:
                 if doanime:
-                    goalpos = pos
-                    pos = self.cache.load_position()
-                    x, y = pos
-                    rest_x = goalpos[0] - x
-                    rest_y = goalpos[1] - y
+                    goalpos_noscale = pos_noscale
+                    pos_noscale = self.cache.load_position_noscale()
+                    x, y = pos_noscale
+                    rest_x = goalpos_noscale[0] - x
+                    rest_y = goalpos_noscale[1] - y
                     xdir = bool(rest_x > -1)
                     ydir = bool(rest_y > -1)
 
@@ -158,39 +160,38 @@ class _JpySubImage(cw.image.Image):
                         self.is_cacheable = False
                         n = math.sqrt(rest_x * rest_x + rest_y * rest_y)
                         n /= animespeed
-                        n /= cw.UP_SCR
 
                         if n == 0:
                             n = 1
 
                         if rest_x:
-                            x = int(pos[0] + round(rest_x / n))
-                            rest_x = goalpos[0] - x
+                            x = int(pos_noscale[0] + round(rest_x / n))
+                            rest_x = goalpos_noscale[0] - x
 
                             if (rest_x < 0 and xdir) or (rest_x > 0 and not xdir):
-                                x = goalpos[0]
+                                x = goalpos_noscale[0]
                                 rest_x = 0
 
                         if rest_y:
-                            y = int(pos[1] + round(rest_y / n))
-                            rest_y = goalpos[1] - y
+                            y = int(pos_noscale[1] + round(rest_y / n))
+                            rest_y = goalpos_noscale[1] - y
 
                             if (rest_y < 0 and ydir) or (rest_y > 0 and not ydir):
-                                y = goalpos[1]
+                                y = goalpos_noscale[1]
                                 rest_y = 0
 
-                        pos = (x, y)
+                        pos_noscale = (x, y)
                         if self.waittime <= 0 or SPF <= self.waittime:
-                            self._drawtemp_impl(background, pos, anime=True, waittime=self.waittime)
+                            self._drawtemp_impl(background, cw.s(pos_noscale), anime=True, waittime=self.waittime)
                         elif SPF <= i:
-                            self._drawtemp_impl(background, pos, anime=True, waittime=self.waittime*SPF)
+                            self._drawtemp_impl(background, cw.s(pos_noscale), anime=True, waittime=self.waittime*SPF)
                             i %= SPF
                         else:
                             if self.animation == 1:
-                                self._drawtemp_impl(background, pos, anime=True, nowait=True)
+                                self._drawtemp_impl(background, cw.s(pos_noscale), anime=True, nowait=True)
                             i += 1
 
-            self.cache.save_position(pos)
+            self.cache.save_position_noscale(pos_noscale)
 
     def _drawtemp_impl(self, background, pos, redraw=True, anime=False, waittime=None, nowait=False):
         """backgroundのposの位置に一時描画。"""
@@ -629,7 +630,8 @@ class JpyPartsImage(_JpySubImage):
         self.height = cw.s(config.get_int(section, "height", -1))
         self.width = cw.s(config.get_int(section, "width", -1))
         self.color = config.get_color(section, "color", (0, 0, 0))
-        self.position = cw.s(config.get_ints(section, "position", 2, (0, 0)))
+        self.position_noscale = config.get_ints(section, "position", 2, (0, 0))
+        self.position = cw.s(self.position_noscale)
         self.savecache = config.get_int(section, "savecache", 0)
         self.visible = config.get_bool(section, "visible", True)
         self.transparent = config.get_bool(section, "transparent", True)
@@ -641,7 +643,8 @@ class JpyBackGroundImage(_JpySubImage):
         self.width = cw.s(config.get_int("init", "backwidth", -1))
         self.height = cw.s(config.get_int("init", "backheight", -1))
         self.transparent = config.get_bool("init", "transparent", False)
-        self.position = cw.s((0, 0))
+        self.position_noscale = (0, 0)
+        self.position = cw.s(self.position_noscale)
         self.savecache = 0
         self.visible = False
 
@@ -688,7 +691,7 @@ class JpyCache(object):
     キャッシュした画像をセーブ・ロードする。
     """
     def __init__(self):
-        self.pos = None
+        self.pos_noscale = None
         self.img = {}
         # 一時描画を削除するために描画前背景を保存する
         self.before = None
@@ -702,14 +705,14 @@ class JpyCache(object):
             self.beforeback = None
             self.beforerect = None
 
-    def save_position(self, pos):
-        self.pos = pos
+    def save_position_noscale(self, pos_noscale):
+        self.pos_noscale = pos_noscale
 
-    def load_position(self):
-        if self.pos:
-            return self.pos
+    def load_position_noscale(self):
+        if self.pos_noscale:
+            return self.pos_noscale
         else:
-            return cw.s((0, 0))
+            return (0, 0)
 
     def save_image(self, n, image):
         self.img[n] = image
