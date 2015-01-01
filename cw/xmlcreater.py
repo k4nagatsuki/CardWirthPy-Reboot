@@ -593,7 +593,10 @@ def create_scenariolog(sdata, path, recording):
                 e_bgimg.append(e)
 
         else:
-            assert False
+            assert bgtype == cw.sprite.background.BG_SEPARATOR
+            e_bgimg = cw.data.make_element("Separator")
+            e_bgimgs.append(e_bgimg)
+            continue
 
         e = cw.data.make_element("Flag", flag)
         e_bgimg.append(e)

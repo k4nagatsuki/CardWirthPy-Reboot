@@ -15,6 +15,7 @@ import card
 #　背景スプライト
 #-------------------------------------------------------------------------------
 
+BG_SEPARATOR = -1
 BG_IMAGE = 0
 BG_TEXT = 1
 BG_COLOR = 2
@@ -44,6 +45,7 @@ class BackGround(base.CWPySprite):
             ttype = self._ttype
             def func():
                 # アニメーション前の背景を復元
+                self.image.fill((0, 0, 0))
                 self.bgs = bgs
                 self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True)
                 if elements:
@@ -51,9 +53,10 @@ class BackGround(base.CWPySprite):
                     self.load(elements, doanime=doanime, ttype=ttype)
                 else:
                     # 再実行
-                    self.reload(doanime=doanime, ttype=ttype, redraw=True)
+                    self._reload(doanime=doanime, ttype=ttype, redraw=True, force=False)
             cw.cwpy.exec_func(func)
         else:
+            self.image.fill((0, 0, 0))
             self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True, nocheckvisible=True)
 
     def update_skin(self, oldskindir, newskindir):
@@ -121,7 +124,7 @@ class BackGround(base.CWPySprite):
 
         return image, anime, True
 
-    def load(self, elements, doanime=True, ttype=("Default", "Default")):
+    def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True):
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
@@ -148,19 +151,22 @@ class BackGround(base.CWPySprite):
         # 背景構築
         animated = False
         blitlist = []
-        bginhrt = True
         update = False
         forcedraw = False
+        afterseps = False
+        if self.bgs:
+            self.bgs.append((BG_SEPARATOR, None))
         for e in elements:
-            left = e.getint("Location", "left")
-            top = e.getint("Location", "top")
-            pos = (left, top)
-            width = e.getint("Size", "width")
-            height = e.getint("Size", "height")
-            size = (width, height)
-            flag = e.gettext("Flag", "")
-            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
-                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+            if e.tag <> "Separator":
+                left = e.getint("Location", "left")
+                top = e.getint("Location", "top")
+                pos = (left, top)
+                width = e.getint("Size", "width")
+                height = e.getint("Size", "height")
+                size = (width, height)
+                flag = e.gettext("Flag", "")
+                visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+                    self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
 
             def getcolor(e, xpath, r, g, b, a):
                 r = e.getint(xpath, "r", r)
@@ -223,8 +229,16 @@ class BackGround(base.CWPySprite):
                 if self._add_colorcell(blitlist, self.bgs, oldbgs, d):
                     forcedraw = True
 
-            else:
-                assert False
+            elif e.tag == "Separator":
+                self.bgs.append((BG_SEPARATOR, None))
+                if blitlist:
+                    self._load_after(bginhrt or afterseps, blitlist, animated, ("None", "None"), oldbgs, False)
+                    del blitlist[:]
+                else:
+                    # エフェクトブースターの一時描画で使ったスプライトはすべて削除
+                    cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+                animated = False
+                afterseps = True
 
         update |= self.bgs <> oldbgs
 
@@ -232,9 +246,9 @@ class BackGround(base.CWPySprite):
             update = False
 
         if update:
-            self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, True)
+            self._load_after(bginhrt or afterseps, blitlist, animated, transitspr, oldbgs, True)
         elif forcedraw:
-            self._load_after(bginhrt, blitlist, animated, transitspr, oldbgs, False)
+            self._load_after(bginhrt or afterseps, blitlist, animated, transitspr, oldbgs, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -247,6 +261,7 @@ class BackGround(base.CWPySprite):
         return update
 
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
+        self.image.fill((0, 0, 0))
         return self._reload(doanime, ttype, redraw, False)
 
     def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False):
@@ -297,7 +312,15 @@ class BackGround(base.CWPySprite):
                     forcedraw = True
 
             else:
-                assert False
+                assert bgtype == BG_SEPARATOR
+                bgs.append((bgtype, d))
+                if blitlist:
+                    self._load_after(True, blitlist, animated, ("None", "None"), oldbgs, False)
+                    del blitlist[:]
+                else:
+                    # エフェクトブースターの一時描画で使ったスプライトはすべて削除
+                    cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+                animated = False
 
         update |= self.bgs <> bgs
 
@@ -306,9 +329,9 @@ class BackGround(base.CWPySprite):
 
         if update:
             self.bgs = bgs
-            self._load_after(False, blitlist, animated, transitspr, oldbgs, redraw)
+            self._load_after(True, blitlist, animated, transitspr, oldbgs, redraw)
         elif forcedraw:
-            self._load_after(False, blitlist, animated, transitspr, oldbgs, False)
+            self._load_after(True, blitlist, animated, transitspr, oldbgs, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -428,7 +451,7 @@ class BackGround(base.CWPySprite):
                     cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
 
             else:
-                assert False
+                assert bgtype == BG_SEPARATOR
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")

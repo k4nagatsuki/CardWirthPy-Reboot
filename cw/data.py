@@ -773,7 +773,7 @@ class ScenarioData(SystemData):
         e = etree.getfind("BgImages")
         elements = cw.cwpy.sdata.get_bgdata(e)
         ttype = ("Default", "Default")
-        cw.cwpy.background.load(elements, False, ttype)
+        cw.cwpy.background.load(elements, False, ttype, bginhrt=False)
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
         return etree.gettext("Property/MusicPath", ""), etree.getbool("Property/MusicPath", "inusecard", False)
 
