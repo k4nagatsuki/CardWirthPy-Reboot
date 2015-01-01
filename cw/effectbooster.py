@@ -14,18 +14,20 @@ import cw
 class ScreenRescale(Exception):
     pass
 
-def wait_effectbooster(waittime):
+def wait_effectbooster(waittime, doanime):
     if 0 < waittime:
-        tick = pygame.time.get_ticks() + waittime
+        start_ticks = pygame.time.get_ticks() - doanime.time_elapsed
+        tick = start_ticks + waittime
     else:
         tick = 0
         cw.util.change_cursor("mouse")
 
     try:
+        doanime.time_elapsed = 0
         eventhandler = cw.eventhandler.EventHandlerForEffectBooster()
         cw.cwpy.clear_selection()
         while cw.cwpy.is_running() and\
-                (not tick or pygame.time.get_ticks() < tick) and\
+                (waittime <= 0 or pygame.time.get_ticks() < tick) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
@@ -33,9 +35,47 @@ def wait_effectbooster(waittime):
             cw.cwpy.input()
             eventhandler.run()
 
+        doanime.time_elapsed = 0
+    except ScreenRescale, ex:
+        if 0 < waittime:
+            doanime.time_elapsed = pygame.time.get_ticks() - start_ticks
+        else:
+            doanime.time_elapsed = 0
+        raise ex
     finally:
         if not tick:
             cw.util.change_cursor()
+
+class AnimationCounter(object):
+    def __init__(self):
+        self.count = 0
+        self.skip_count = 0
+        self.time_elapsed = 0
+        self.all_cut = False
+
+    def get_reloadcounter(self):
+        counter = AnimationCounter()
+        counter.skip_count = self.count - 1
+        counter.time_elapsed = self.time_elapsed
+        return counter
+
+    def countup(self):
+        self.count += 1
+        if not self.all_cut and self.skip_count < self.count:
+            return True
+        else:
+            return False
+
+class CutAnimation(AnimationCounter):
+    def __init__(self):
+        AnimationCounter.__init__(self)
+        self.all_cut = True
+
+    def get_reloadcounter(self):
+        return self
+
+    def countup(self):
+        return False
 
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
@@ -103,8 +143,7 @@ class _JpySubImage(cw.image.Image):
         """一時描画。"""
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
-            if doanime:
-                self.wait()
+            self.wait(doanime)
         # 一時描画
         elif self.animation:
             if self.animeposition_noscale and self.animemove:
@@ -140,12 +179,11 @@ class _JpySubImage(cw.image.Image):
                 cw.sprite.background.Jpy1TemporalSprite(background)
 
             if not animespeed:
-                if doanime:
-                    self._drawtemp_impl(background, cw.s(pos_noscale))
+                self._drawtemp_impl(doanime, background, cw.s(pos_noscale))
 
             # 連続描画
             else:
-                if doanime:
+                if not doanime.all_cut:
                     goalpos_noscale = pos_noscale
                     pos_noscale = self.cache.load_position_noscale()
                     x, y = pos_noscale
@@ -182,18 +220,18 @@ class _JpySubImage(cw.image.Image):
 
                         pos_noscale = (x, y)
                         if self.waittime <= 0 or SPF <= self.waittime:
-                            self._drawtemp_impl(background, cw.s(pos_noscale), anime=True, waittime=self.waittime)
+                            self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True, waittime=self.waittime)
                         elif SPF <= i:
-                            self._drawtemp_impl(background, cw.s(pos_noscale), anime=True, waittime=self.waittime*SPF)
+                            self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True, waittime=self.waittime*SPF)
                             i %= SPF
                         else:
                             if self.animation == 1:
-                                self._drawtemp_impl(background, cw.s(pos_noscale), anime=True, nowait=True)
+                                self._drawtemp_impl(doanime, background, cw.s(pos_noscale), anime=True, nowait=True)
                             i += 1
 
             self.cache.save_position_noscale(pos_noscale)
 
-    def _drawtemp_impl(self, background, pos, redraw=True, anime=False, waittime=None, nowait=False):
+    def _drawtemp_impl(self, doanime, background, pos, redraw=True, anime=False, waittime=None, nowait=False):
         """backgroundのposの位置に一時描画。"""
         self.cache.restore()
         image = self.get_image()
@@ -217,16 +255,16 @@ class _JpySubImage(cw.image.Image):
                         self.cache.beforeback = background
                         self.cache.beforerect = rect
                     background.blit(image, pos, special_flags=blendmode)
-                    if not nowait:
+                    if not nowait and doanime.countup():
                         cw.cwpy.draw()
                 else:
                     if self.animation == 1:
                         background.blit(image, pos, special_flags=blendmode)
-                        if not nowait:
+                        if not nowait and doanime.countup():
                             cw.cwpy.draw()
 
             if not nowait:
-                self.wait(anime=anime, waittime=waittime)
+                self.wait(doanime, anime=anime, waittime=waittime)
 
     def clip_tempimg(self, image, pos):
         if self.animeclip:
@@ -254,19 +292,21 @@ class _JpySubImage(cw.image.Image):
 
         return image
 
-    def wait(self, anime=False, waittime=None):
+    def wait(self, doanime, anime=False, waittime=None):
         if waittime is None:
             waittime = self.waittime
 
         # 指定時間だけ待機
         if waittime > 0:
             self.is_cacheable = False
-            wait_effectbooster(waittime)
+            if doanime.countup():
+                wait_effectbooster(waittime, doanime=doanime)
 
         # 右クリックするまで待機
         elif waittime < 0:
             self.is_cacheable = False
-            wait_effectbooster(0)
+            if doanime.countup():
+                wait_effectbooster(0, doanime=doanime)
 
     def retouch(self):
         """画像加工。"""
@@ -482,11 +522,11 @@ class _JpySubImage(cw.image.Image):
 
                 # 効果音ファイル
                 if ext in cw.EXTS_SND:
-                    if doanime:
-                        sound = cw.util.load_sound(path)
+                    sound = cw.util.load_sound(path)
 
-                        if sound:
-                            self.is_cacheable = False
+                    if sound:
+                        self.is_cacheable = False
+                        if doanime.countup():
                             sound.play(True)
 
                     image = pygame.Surface((0, 0)).convert()
@@ -502,7 +542,7 @@ class _JpySubImage(cw.image.Image):
                 # Jpdcファイル
                 elif ext == ".jpdc":
                     self.is_cacheable = False
-                    image = JpdcImage(False, path, cache=self.cache, defaultcopymode=self.defaultcopymode).get_image()
+                    image = JpdcImage(False, path, cache=self.cache, defaultcopymode=self.defaultcopymode, doanime=doanime).get_image()
                     # 重くならないのでキャッシュ不要
                 # Jptxファイル
                 elif ext == ".jptx":
@@ -649,9 +689,11 @@ class JpyBackGroundImage(_JpySubImage):
         self.visible = False
 
 class JpyImage(cw.image.Image):
-    def __init__(self, path, mask=False, cache=None, doanime=True, parent=None):
+    def __init__(self, path, mask=False, cache=None, doanime=None, parent=None):
         if not cache:
             cache = JpyCache()
+        if not doanime:
+            doanime = AnimationCounter()
 
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
@@ -728,7 +770,9 @@ class JpyCache(object):
         return image
 
 class JpdcImage(cw.image.Image):
-    def __init__(self, mask, path, cache=None, defaultcopymode=2):
+    def __init__(self, mask, path, cache=None, defaultcopymode=2, doanime=None):
+        if not doanime:
+            doanime = AnimationCounter()
         config = EffectBoosterConfig(path, "jpdc:init")
         x_noscale, y_noscale, w_noscale, h_noscale = config.get_ints("jpdc:init", "clip", 4, (0, 0, 632, 420))
         x, y, w, h = cw.s((x_noscale, y_noscale, w_noscale, h_noscale))
@@ -811,14 +855,14 @@ class JpdcImage(cw.image.Image):
                     del cw.cwpy.sdata.resource_cache[key]
 
             cw.cwpy.draw()
-            self.wait()
+            self.wait(doanime=doanime)
             cw.cwpy.update_titlebar()
 
-    def wait(self):
+    def wait(self, doanime):
         # 右クリックするまで待機
         cw.util.change_cursor("mouse")
 
-        wait_effectbooster(0)
+        wait_effectbooster(0, doanime=doanime)
 
         cw.util.change_cursor()
 

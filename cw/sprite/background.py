@@ -28,7 +28,7 @@ class BackGround(base.CWPySprite):
         self._in_playing = False
         self._bgs = []
         self._elements = []
-        self._doanime = False
+        self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         # spritegroupに追加
         cw.cwpy.bggrp.add(self)
@@ -39,13 +39,13 @@ class BackGround(base.CWPySprite):
         if self._in_playing:
             # Jpy1アニメーション中の場合は再実行
             bgs = self._bgs
+            doanime = self._doanime.get_reloadcounter()
             elements = self._elements
-            doanime = self._doanime
             ttype = self._ttype
             def func():
                 # アニメーション前の背景を復元
                 self.bgs = bgs
-                self._reload(doanime=False, ttype=("None", "None"), redraw=True, force=True)
+                self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True)
                 if elements:
                     # 再実行
                     self.load(elements, doanime=doanime, ttype=ttype)
@@ -54,21 +54,25 @@ class BackGround(base.CWPySprite):
                     self.reload(doanime=doanime, ttype=ttype, redraw=True)
             cw.cwpy.exec_func(func)
         else:
-            self._reload(doanime=self._doanime, ttype=("None", "None"), redraw=False, force=True)
+            self._reload(doanime=cw.effectbooster.CutAnimation(), ttype=("None", "None"), redraw=False, force=True, nocheckvisible=True)
 
     def update_skin(self, oldskindir, newskindir):
         pass
 
-    def load_surface(self, path, mask, size, flag, doanime):
+    def load_surface(self, path, mask, size, flag, doanime, visible=True, nocheckvisible=False):
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
         mask: (0, 0)の色でマスクするか否か。透過画像を使う場合は無視。
         size: 背景のサイズ。
         flag: 背景に対応するフラグ。
         """
-        # 対応フラグチェック
-        if not cw.cwpy.sdata.flags.get(flag, True):
-            return None, False, False
+        if nocheckvisible:
+            if not visible:
+                return None, False, False
+        else:
+            # 対応フラグチェック
+            if not cw.cwpy.sdata.flags.get(flag, True):
+                return None, False, False
         anime = False
 
         try:
@@ -86,7 +90,7 @@ class BackGround(base.CWPySprite):
             if ext == ".jptx":
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
             elif ext == ".jpdc":
-                image = cw.effectbooster.JpdcImage(mask, path).get_image()
+                image = cw.effectbooster.JpdcImage(mask, path, doanime=doanime).get_image()
             elif ext == ".jpy1":
                 jpy1 = cw.effectbooster.JpyImage(path, mask, doanime=doanime)
                 anime = not jpy1.is_cacheable
@@ -130,9 +134,15 @@ class BackGround(base.CWPySprite):
         # 背景処理する前に、トランジション用スプライト作成
         transitspr = cw.sprite.transition.get_transition(ttype)
         oldbgs = list(self.bgs)
-        self._bgs = oldbgs
+        self._bgs = list(oldbgs)
         self._elements = elements
-        self._doanime = doanime
+        if doanime:
+            if isinstance(doanime, bool):
+                self._doanime = cw.effectbooster.AnimationCounter()
+            else:
+                self._doanime = doanime
+        else:
+            self._doanime = cw.effectbooster.CutAnimation()
         self._ttype = ttype
 
         # 背景構築
@@ -173,7 +183,7 @@ class BackGround(base.CWPySprite):
 
                 d = (path, inusecard, mask, size, pos, flag, visible)
                 try:
-                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, doanime)
+                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, self._doanime)
                     animated |= animated2
                     bginhrt &= bginhrt2
                     update |= update2
@@ -231,7 +241,7 @@ class BackGround(base.CWPySprite):
 
         self._bgs = []
         self._elements = []
-        self._doanime = False
+        self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         self._in_playing = False
         return update
@@ -239,7 +249,7 @@ class BackGround(base.CWPySprite):
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
         return self._reload(doanime, ttype, redraw, False)
 
-    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False):
+    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -254,15 +264,22 @@ class BackGround(base.CWPySprite):
         bginhrt = True
         update = force
         forcedraw = False
+        self._bgs = list(oldbgs)
         if doanime:
-            self._doanime = doanime
+            if isinstance(doanime, bool):
+                self._doanime = cw.effectbooster.AnimationCounter()
+            else:
+                self._doanime = doanime
+            self._ttype = ("None","None")
+        else:
+            self._doanime = cw.effectbooster.CutAnimation()
             self._ttype = ttype
 
         for bgtype, d in self.bgs:
             if bgtype == BG_IMAGE:
                 # 背景画像
                 try:
-                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, bgs, oldbgs, d, doanime)
+                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, bgs, oldbgs, d, self._doanime, nocheckvisible=nocheckvisible)
                     animated |= animated2
                     update |= update2
                     bginhrt &= bginhrt2
@@ -271,12 +288,12 @@ class BackGround(base.CWPySprite):
 
             elif bgtype == BG_TEXT:
                 # テキストセル
-                if self._add_textcell(blitlist, bgs, oldbgs, d):
+                if self._add_textcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
                     forcedraw = True
 
             elif bgtype == BG_COLOR:
                 # カラーセル
-                if self._add_colorcell(blitlist, bgs, oldbgs, d):
+                if self._add_colorcell(blitlist, bgs, oldbgs, d, nocheckvisible=nocheckvisible):
                     forcedraw = True
 
             else:
@@ -296,12 +313,13 @@ class BackGround(base.CWPySprite):
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
-        self._doanime = False
+        self._bgs = []
+        self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         self._in_playing = False
         return update
 
-    def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime):
+    def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime, nocheckvisible=False):
         path, inusecard, mask, size, pos, flag, visible = d
         basepath = path
         bginhrt = True
@@ -318,7 +336,7 @@ class BackGround(base.CWPySprite):
         if not os.path.isfile(path):
             return False, False, bginhrt
 
-        image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime)
+        image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime, visible=visible, nocheckvisible=nocheckvisible)
 
         ext = os.path.splitext(path)[1].lower()
         if not anime and ext <> ".jpdc" and pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask and not flag:
@@ -335,11 +353,12 @@ class BackGround(base.CWPySprite):
 
         return anime, update, bginhrt
 
-    def _add_textcell(self, blitlist, bgs, oldbgs, d):
+    def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\
-            btype, bcolor, bwidth, size, pos, flag, _visible = d
-        visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
-            self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+            btype, bcolor, bwidth, size, pos, flag, visible = d
+        if not nocheckvisible:
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
              btype, bcolor, bwidth, size, pos, flag, visible)
         if visible:
@@ -362,10 +381,11 @@ class BackGround(base.CWPySprite):
             oldbgs.append((BG_TEXT, d))
         return visible
 
-    def _add_colorcell(self, blitlist, bgs, oldbgs, d):
-        blend, color1, gradient, color2, size, pos, flag, _visible = d
-        visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
-            self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+    def _add_colorcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
+        blend, color1, gradient, color2, size, pos, flag, visible = d
+        if not nocheckvisible:
+            visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+                self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         d = blend, color1, gradient, color2, size, pos, flag, visible
         if visible:
             image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)

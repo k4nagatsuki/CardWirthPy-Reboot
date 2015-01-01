@@ -939,6 +939,12 @@ class EventHandlerForEffectBooster(EventHandler):
                 # 右クリック
                 elif event.button == 3:
                     self.rclick_event()
+                # マウスホイール上移動
+                elif event.button == 4:
+                    self.wheel_event(y=-1)
+                # マウスホイール下移動
+                elif event.button == 5:
+                    self.wheel_event(y=1)
 
             # ユーザイベント
             elif event.type == USEREVENT and hasattr(event, "func"):
@@ -961,6 +967,12 @@ class EventHandlerForEffectBooster(EventHandler):
             cw.cwpy.selection.lclick_event()
             return
 
+        self.running = False
+
+    def wheel_event(self, y=0):
+        """
+        ホイールイベント。
+        """
         self.running = False
 
     def escapekey_event(self):

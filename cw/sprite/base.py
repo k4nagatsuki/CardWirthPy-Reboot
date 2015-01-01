@@ -11,6 +11,9 @@ class CWPySprite(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self, *groups)
         self.dirty = 2
 
+    def update_scale(self):
+        pass
+
 class SelectableSprite(CWPySprite):
     def __init__(self, *groups):
         self._selectable_on_event = False

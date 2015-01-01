@@ -3194,7 +3194,7 @@ class WaitContent(EventContentBase):
             cw.cwpy.event.refresh_activeitem()
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
             cw.cwpy.draw()
-            breakflag = pygame.event.peek((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
+            breakflag = cw.cwpy.get_breakflag()
             cw.cwpy.input()
             cw.cwpy.eventhandler.run()
             if breakflag:

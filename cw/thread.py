@@ -395,8 +395,10 @@ class CWPy(_Singleton, threading.Thread):
         pygame.mouse.set_pos(pos)
 
         if changearea:
-            self.update()
-            self.draw()
+            def func():
+                self.update()
+                self.draw()
+            self.exec_func(func)
 
     def update_messagefontstyle(self, classicstyletext):
         """メッセージの描画フォント設定を変更する。
@@ -539,6 +541,7 @@ class CWPy(_Singleton, threading.Thread):
             self.clock.tick(self.setting.fps)
 
     def wait_frame(self, count, canskip):
+        """countフレーム分待機する。"""
         self.event.eventtimer = 0
         for _i in xrange(count):
             if canskip:
@@ -552,13 +555,29 @@ class CWPy(_Singleton, threading.Thread):
                 self.sbargrp.update(cw.cwpy.scr_draw)
                 if sel <> self.selection:
                     cw.cwpy.draw(clip=self.statusbar.rect)
-                breakflag = pygame.event.peek((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
+                breakflag = self.get_breakflag()
                 self.input(inputonly=True)
                 self.eventhandler.run()
                 if breakflag:
                     break
 
             self.tick_clock()
+
+    def get_breakflag(self):
+        """待機時間を飛ばすべき入力がある場合にTrueを返す。"""
+        breakflag = False
+        events = pygame.event.get((pygame.locals.MOUSEBUTTONUP, pygame.locals.KEYUP))
+        for e in events:
+            if e.type == pygame.locals.MOUSEBUTTONUP:
+                breakflag = True
+            elif e.type == pygame.locals.KEYUP:
+                if not e.key in (pygame.locals.K_F1, pygame.locals.K_F2, pygame.locals.K_F3, pygame.locals.K_F4,
+                                 pygame.locals.K_F5, pygame.locals.K_F6, pygame.locals.K_F7, pygame.locals.K_F8,
+                                 pygame.locals.K_F9, pygame.locals.K_F10, pygame.locals.K_F11, pygame.locals.K_F12,
+                                 pygame.locals.K_F13, pygame.locals.K_F14, pygame.locals.K_F15):
+                    breakflag = True
+            pygame.event.post(e)
+        return breakflag
 
     def get_nextevent(self):
         if self.events:
