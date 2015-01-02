@@ -154,7 +154,7 @@ class BackGround(base.CWPySprite):
         update = False
         forcedraw = False
         afterseps = False
-        if self.bgs:
+        if self.bgs and bginhrt:
             self.bgs.append((BG_SEPARATOR, None))
         for e in elements:
             if e.tag <> "Separator":

@@ -719,7 +719,8 @@ class JpyImage(cw.image.Image):
                     defaultcopymode = 2
 
         back.retouch()
-        cache.restore()
+        if not parent:
+            cache.restore()
         back.drawtemp(doanime)
         if not back.is_cacheable:
             self.is_cacheable = False
