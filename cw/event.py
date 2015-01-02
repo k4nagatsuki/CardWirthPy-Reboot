@@ -897,8 +897,8 @@ class CardEvent(Event):
         else:
             cw.cwpy.sounds["ineffective"].play(True)
 
-    def run_successevent(self, target, successflag):
-        if isinstance(target, Enemy):
+    def run_successevent(self, target, successflag, can_unconscious):
+        if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
             keycodes = []
             for keycode in self.inusecard.get_keycodes():
                 if keycode:
@@ -984,9 +984,9 @@ class CardEvent(Event):
                 target.clear_cardtarget()
 
                 if eff.apply(target):
-                    self.run_successevent(target, True)
+                    self.run_successevent(target, True, unconscious_flag)
                 else:
-                    self.run_successevent(target, False)
+                    self.run_successevent(target, False, unconscious_flag)
                     cw.cwpy.draw()
 
                 # 最初から意識不明・麻痺なら死亡イベント発生なし
