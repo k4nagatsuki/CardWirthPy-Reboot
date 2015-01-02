@@ -157,7 +157,7 @@ class BackGround(base.CWPySprite):
         if self.bgs and bginhrt:
             self.bgs.append((BG_SEPARATOR, None))
         for e in elements:
-            if e.tag <> "Separator":
+            if e.tag <> "Redisplay":
                 left = e.getint("Location", "left")
                 top = e.getint("Location", "top")
                 pos = (left, top)
@@ -229,7 +229,7 @@ class BackGround(base.CWPySprite):
                 if self._add_colorcell(blitlist, self.bgs, oldbgs, d):
                     forcedraw = True
 
-            elif e.tag == "Separator":
+            elif e.tag == "Redisplay":
                 self.bgs.append((BG_SEPARATOR, None))
                 if blitlist:
                     self._load_after(bginhrt or afterseps, blitlist, animated, ("None", "None"), oldbgs, False)
