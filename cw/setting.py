@@ -129,6 +129,7 @@ class Setting(object):
         self.show_straighteventtree = True
         self.statusbarmask = True
         self.show_experiencebar = True
+        self.show_roundautostartbutton = False
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -405,6 +406,9 @@ class Setting(object):
 
         # 次のレベルアップまでの割合を表示する
         self.show_experiencebar = data.getbool("ShowExperienceBar", self.show_experiencebar)
+
+        # バトルラウンドを自動開始可能にする
+        self.show_roundautostartbutton = data.getbool("ShowRoundAutoStartButton", self.show_roundautostartbutton)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)

@@ -609,6 +609,7 @@
     <Message key="camp">キャンプ</Message>
     <Message key="select_battle_action">戦闘行動選択</Message>
     <Message key="start_action">行動開始</Message>
+    <Message key="autostart_round">自動的に行動を開始する</Message>
     <Message key="runaway">逃げる</Message>
     <Message key="confirm_runaway">逃走します。よろしいですか？</Message>
     <Message key="round">Round %s</Message>

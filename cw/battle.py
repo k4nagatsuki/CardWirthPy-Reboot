@@ -166,8 +166,14 @@ class BattleEngine(object):
             raise BattleWinError()
 
         self._running = False
-        # 次ターン準備
-        self.ready()
+
+        # 2ラウンド目移行は自動で行動開始可能
+        if cw.cwpy.setting.show_roundautostartbutton and cw.cwpy.sdata.autostart_round:
+            self.ready(redraw=False)
+            cw.cwpy.exec_func(self.start)
+        else:
+            # 次ターン準備
+            self.ready()
 
     def end(self, areachange=True, f9=False, startnextbattle=False):
         """勝利・敗北以外の戦闘終了処理。
@@ -190,7 +196,7 @@ class BattleEngine(object):
         else:
             cw.cwpy.clear_battlearea(areachange=areachange, startnextbattle=startnextbattle)
 
-    def ready(self):
+    def ready(self, redraw=True):
         """戦闘行動の準備を行う。
         1ラウンド終了するたびに自動的に呼ばれる。
         """
@@ -216,7 +222,8 @@ class BattleEngine(object):
         cw.cwpy.disposition_pcards()
         if cw.cwpy.is_debugmode() and cw.cwpy.setting.show_fcardsinbattle:
             cw.cwpy.add_fcardsprites(status="normal", alpha=192)
-        cw.cwpy.draw()
+        if redraw:
+            cw.cwpy.draw()
 
     def update_debug(self):
         # 敵の状態の暴露・非暴露切り替え

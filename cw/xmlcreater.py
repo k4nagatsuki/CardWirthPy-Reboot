@@ -394,6 +394,10 @@ def create_settings(setting):
     e = cw.data.make_element("ShowExperienceBar", str(setting.show_experiencebar))
     element.append(e)
 
+    # バトルラウンドを自動開始可能にする
+    e = cw.data.make_element("ShowRoundAutoStartButton", str(setting.show_roundautostartbutton))
+    element.append(e)
+
     # タイトルバーの表示内容
     e = cw.data.make_element("TitleFormat", setting.titleformat)
     element.append(e)

@@ -100,9 +100,14 @@ class StatusBar(base.CWPySprite):
             if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards:
                 InfoCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
+            if cw.cwpy.setting.show_roundautostartbutton:
+                AutoStartButton(self, cw.s((5, 3)))
+                left = cw.s(36)
+            else:
+                left = cw.s(10)
             if showbuttons:
-                ActionButton(self, cw.s((10, 6)))
-                RunAwayButton(self, cw.s((133, 6)))
+                ActionButton(self, (left, cw.s((6))))
+                RunAwayButton(self, (cw.s(123) + left, cw.s((6))))
             RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
             if showbuttons and cw.cwpy.is_debugmode() and\
@@ -590,6 +595,33 @@ class ShowFriendCardsButton(StatusBarButton):
         if cw.cwpy.is_battlestatus():
             cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
             cw.cwpy.battle.update_showfcards()
+
+class AutoStartButton(StatusBarButton):
+    def __init__(self, parent, pos):
+        image = cw.s(cw.cwpy.rsrc.pygamedebugs["AUTO_START"])
+        name = cw.cwpy.msgs["autostart_round"]
+        if cw.cwpy.is_playingscenario():
+            pushed = cw.cwpy.sdata.autostart_round
+        else:
+            pushed = False
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
+                                 is_pushed=pushed)
+        self._selectable_on_event = True
+
+    def update(self, scr):
+        self.update_selection()
+
+        if cw.cwpy.is_playingscenario():
+            self.is_pushed = cw.cwpy.sdata.autostart_round
+        else:
+            self.is_pushed = False
+
+        self.update_image()
+
+    def lclick_event(self):
+        if cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
+            cw.cwpy.sounds["page"].play()
+            cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
 
 class InfoCardsButton(StatusBarButton):
     def __init__(self, parent, pos):

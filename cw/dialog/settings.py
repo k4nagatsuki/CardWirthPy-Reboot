@@ -127,6 +127,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_ui.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal_init)
             self.pane_ui.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards_init)
             self.pane_ui.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime_init)
+            self.pane_ui.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton_init)
 
             self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
             self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
@@ -415,6 +416,15 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.confirm_beforeusingcard = value
         value = self.pane_ui.cb_noticeimpossibleaction.GetValue()
         cw.cwpy.setting.noticeimpossibleaction = value
+        value = self.pane_ui.cb_showroundautostartbutton.GetValue()
+        if cw.cwpy.setting.show_roundautostartbutton <> value:
+            cw.cwpy.setting.show_roundautostartbutton = value
+            updatestatusbar = True
+            if not cw.cwpy.setting.show_roundautostartbutton:
+                def func():
+                    if cw.cwpy.is_playingscenario():
+                        cw.cwpy.sdata.autostart_round = False
+                cw.cwpy.exec_func(func)
 
         # 背景の更新
         if updatebg:
@@ -1330,6 +1340,9 @@ class UISettingPanel(wx.Panel):
         self.cb_showlogwithwheelup = wx.CheckBox(
             self, -1, u"マウスホイールを上に回すとログを表示")
         self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
+        self.cb_showroundautostartbutton = wx.CheckBox(
+            self, -1, u"バトルで自動的に行動を開始できるようにする")
+        self.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton)
 
         # ダイアログオプション
         self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
@@ -1372,6 +1385,7 @@ class UISettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_openhandviewalways, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_showroundautostartbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_dlg.Add(self.cb_cautionbeforesaving, 0, wx.ALL, 3)

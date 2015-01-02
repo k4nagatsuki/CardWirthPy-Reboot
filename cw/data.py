@@ -55,6 +55,7 @@ class SystemData(object):
         self.pre_battleareadata = None
         self.data_cache = {}
         self.resource_cache = {}
+        self.autostart_round = False
         # refresh debugger
         self._init_debugger()
 
@@ -385,6 +386,8 @@ class ScenarioData(SystemData):
         self.notice_infoview = False
         # 戦闘エリア移動前のエリアデータ(ID, MusicFullPath, BattleMusicPath)
         self.pre_battleareadata = None
+        # バトル中、自動で行動開始するか
+        self.autostart_round = False
         # flag set
         self._init_flags()
         # step set
