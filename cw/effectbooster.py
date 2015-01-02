@@ -796,7 +796,8 @@ class JpdcImage(cw.image.Image):
                 cw.cwpy.mcardgrp.draw(self.image)
                 cw.cwpy.pcardgrp.draw(self.image)
             if copymode == 2:
-                cw.cwpy.topgrp.draw(self.image)
+                for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"):
+                    self.image.blit(sprite.image, sprite.rect.topleft)
 
         self.image = self.image.subsurface(rect)
 

@@ -224,11 +224,12 @@ class CWPy(_Singleton, threading.Thread):
             return False
 
     def _update_clip(self):
-        self.bggrp.set_clip(self.background.rect)
-        self.mcardgrp.set_clip(self.background.rect)
-        self.pcardgrp.set_clip(self.background.rect)
-        self.topgrp.set_clip(self.background.rect)
-        self.backloggrp.set_clip(self.background.rect)
+        clip = pygame.Rect(cw.s((0, 0)), cw.s(cw.SIZE_AREA))
+        self.bggrp.set_clip(clip)
+        self.mcardgrp.set_clip(clip)
+        self.pcardgrp.set_clip(clip)
+        self.topgrp.set_clip(clip)
+        self.backloggrp.set_clip(clip)
 
     def update_skin(self, skindirname, changearea=True):
         if self.status == "Title":
@@ -365,14 +366,15 @@ class CWPy(_Singleton, threading.Thread):
                 if self.pre_mcards:
                     mcarddata = self.sdata.get_mcarddata(self.pre_areaids[-1])
                     self.pre_mcards[-1] = self.set_mcards(mcarddata, False, False)
+            self._update_clip()
             for sprite in self.mcardgrp.sprites():
                 if sprite.is_initialized():
                     sprite.update_scale()
             for sprite in self.pcardgrp.sprites():
                 sprite.update_scale()
-            for sprite in self.bggrp.sprites():
-                sprite.update_scale()
             for sprite in self.topgrp.sprites():
+                sprite.update_scale()
+            for sprite in self.bggrp.sprites():
                 sprite.update_scale()
             for sprite in self.backloggrp.sprites():
                 sprite.update_scale()
