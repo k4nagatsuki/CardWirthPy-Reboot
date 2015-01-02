@@ -261,10 +261,9 @@ class BackGround(base.CWPySprite):
         return update
 
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
-        self.image.fill((0, 0, 0))
-        return self._reload(doanime, ttype, redraw, False)
+        return self._reload(doanime, ttype, redraw, False, redisplay=False)
 
-    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False):
+    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False, redisplay=True):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
@@ -313,6 +312,8 @@ class BackGround(base.CWPySprite):
 
             else:
                 assert bgtype == BG_SEPARATOR
+                if not redisplay:
+                    continue
                 bgs.append((bgtype, d))
                 if blitlist:
                     self._load_after(True, blitlist, animated, ("None", "None"), oldbgs, False)
