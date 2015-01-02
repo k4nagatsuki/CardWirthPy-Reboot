@@ -143,6 +143,8 @@ class _JpySubImage(cw.image.Image):
         """一時描画。"""
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
+            if doanime.countup():
+                cw.cwpy.draw()
             self.wait(doanime)
         # 一時描画
         elif self.animation:
