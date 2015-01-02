@@ -681,7 +681,7 @@ class Character(object):
         麻痺・死亡状態であれば召喚獣も動けない。
         """
         if self.actiondata:
-            if self.is_dead():
+            if self.is_unconscious() or self.is_reversed():
                 self.clear_action()
             elif self.is_inactive():
                 _target, _header, beasts = self.actiondata
