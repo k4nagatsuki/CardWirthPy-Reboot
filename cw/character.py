@@ -1888,11 +1888,10 @@ class Character(object):
     def decrease_physical(self, stype, time):
         """中毒麻痺の時間経過による軽減。"""
         for _t in xrange(time):
-            # FIXME: 本家CardWirthと軽減確率が違う
-            uvalue = self.get_vocation_val(("vit", "aggressive")) + self.level + cw.cwpy.dice.roll(2)
+            uvalue = (self.get_vocation_val(("vit", "aggressive")) + 1) // 2 + self.level + cw.cwpy.dice.roll(2)
             tvalue = (self.poison if stype == "Poison" else self.paralyze) + cw.cwpy.dice.roll(2)
 
-            flag = uvalue > tvalue
+            flag = uvalue >= tvalue
             dice = cw.cwpy.dice.roll(2)
             if dice == 12:
                 flag = True
