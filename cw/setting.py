@@ -36,10 +36,11 @@ WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ
 WHEEL_SHOWLOG   = "ShowLog"   # バックログを表示
 
 # ステータスバーのボタン状態
-SB_PRESSED = 0b0001 # 押下
-SB_CURRENT = 0b0010 # カーソル下
-SB_DISABLE = 0b0100 # 無効状態
-SB_NOTICE  = 0b1000 # 通知
+SB_PRESSED   = 0b00000001 # 押下
+SB_CURRENT   = 0b00000010 # カーソル下
+SB_DISABLE   = 0b00000100 # 無効状態
+SB_NOTICE    = 0b00001000 # 通知
+SB_EMPHASIZE = 0b00010000 # 強調
 
 class Setting(object):
     def __init__(self):
@@ -1045,6 +1046,22 @@ class Resource(object):
         else:
             subtract_corner(72)
             color = (128, 128, 128)
+
+        if flags & SB_EMPHASIZE:
+            # 線の色を赤くする
+            emcolor = (0, 128, 128, 0)
+            topleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            topright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            bottomleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            bottomright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            color = (color[0], max(0, color[1]-128), max(0, color[2]-128))
+
+            emcolor = (96, 0, 0, 0)
+            topleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
+            topright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
+            bottomleft.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
+            bottomright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
+            color = (min(255, color[0]+96), color[1], color[2])
 
         pygame.draw.rect(bmp, color, (1, 1, w-2, h-2), 1)
         bmp.blit(topleft, (1, 1))

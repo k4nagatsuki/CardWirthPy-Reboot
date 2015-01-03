@@ -834,6 +834,7 @@ class CWPy(_Singleton, threading.Thread):
         """
         stack = self._showingdlg
         self.lock_menucards = True
+        self.input(eventclear=True)
         self._showingdlg += 1
         self.keyevent.clear() # キー入力初期化
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])

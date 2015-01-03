@@ -248,6 +248,8 @@ class BattleEngine(object):
         cw.cwpy.clear_fcardsprites()
         self.clear_playersaction()
         event = cw.cwpy.sdata.events.check_keynum(2)
+        # 逃走を試みる時は自動で行動開始はしたくないはず
+        cw.cwpy.sdata.autostart_round = False
 
         if event:
             # 逃走イベント開始

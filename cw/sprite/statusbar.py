@@ -101,12 +101,15 @@ class StatusBar(base.CWPySprite):
                 InfoCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
             if cw.cwpy.setting.show_roundautostartbutton:
-                AutoStartButton(self, cw.s((5, 3)))
+                autostart = AutoStartButton(self, cw.s((5, 3)))
                 left = cw.s(36)
             else:
+                autostart = None
                 left = cw.s(10)
             if showbuttons:
-                ActionButton(self, (left, cw.s((6))))
+                btn = ActionButton(self, (left, cw.s((6))))
+                if autostart:
+                    autostart.actionbtn = btn
                 RunAwayButton(self, (cw.s(123) + left, cw.s((6))))
             RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
@@ -349,7 +352,7 @@ class RoundCounterPanel(YadoMoneyPanel):
 class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, sizetype=0,
                  toggle=False, icon=None, enabled=True, is_pushed=False,
-                 notice=False, number=None):
+                 notice=False, number=None, is_emphasize=False):
         base.SelectableSprite.__init__(self)
         # 各種データ
         self.name = name
@@ -357,6 +360,7 @@ class StatusBarButton(base.SelectableSprite):
         self.status = "normal"
         self.frame = 0
         self.is_pushed = is_pushed
+        self.is_emphasize = is_emphasize
         self.enabled = enabled
         self.notice = notice
         self.number = number
@@ -421,6 +425,8 @@ class StatusBarButton(base.SelectableSprite):
                 flags |= cw.setting.SB_PRESSED
             if self.notice:
                 flags |= cw.setting.SB_NOTICE
+            if self.is_emphasize:
+                flags |= cw.setting.SB_EMPHASIZE
         else:
             flags |= cw.setting.SB_DISABLE
 
@@ -433,6 +439,8 @@ class StatusBarButton(base.SelectableSprite):
                 flags |= cw.setting.SB_PRESSED
             if self.notice:
                 flags |= cw.setting.SB_NOTICE
+            if self.is_emphasize:
+                flags |= cw.setting.SB_EMPHASIZE
         else:
             flags |= cw.setting.SB_DISABLE
 
@@ -479,6 +487,8 @@ class StatusBarButton(base.SelectableSprite):
             cw.cwpy.has_inputevent = True
         if self.notice:
             flags |= cw.setting.SB_NOTICE
+        if self.is_emphasize:
+            flags |= cw.setting.SB_EMPHASIZE
 
         self.image = self.get_btnimg(flags)
 
@@ -538,7 +548,11 @@ class TableButton(StatusBarButton):
 
 class ActionButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["start_action"], pos)
+        autostart = cw.cwpy.setting.show_roundautostartbutton and\
+            cw.cwpy.is_playingscenario() and\
+            cw.cwpy.sdata.autostart_round
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["start_action"], pos,
+                                 is_emphasize=autostart)
 
     def update(self, scr):
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
@@ -607,6 +621,7 @@ class AutoStartButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
                                  is_pushed=pushed)
         self._selectable_on_event = True
+        self.actionbtn = None
 
     def update(self, scr):
         self.update_selection()
@@ -622,6 +637,12 @@ class AutoStartButton(StatusBarButton):
         if cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
             cw.cwpy.sounds["page"].play()
             cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
+            if self.actionbtn:
+                autostart = cw.cwpy.setting.show_roundautostartbutton and\
+                    cw.cwpy.is_playingscenario() and\
+                    cw.cwpy.sdata.autostart_round
+                self.actionbtn.is_emphasize = autostart
+                self.actionbtn.update_image()
 
 class InfoCardsButton(StatusBarButton):
     def __init__(self, parent, pos):
