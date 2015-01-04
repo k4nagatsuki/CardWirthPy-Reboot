@@ -5,7 +5,7 @@ import os
 
 import pygame
 from pygame.locals import K_RETURN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
-                          K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F9,\
+                          K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F9,\
                           K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN,\
                           MOUSEBUTTONUP, MOUSEBUTTONDOWN, USEREVENT
 
@@ -70,6 +70,9 @@ class EventHandler(object):
                 # F6キー
                 elif event.key == K_F6:
                     self.f6key_event()
+                # F7キー
+                elif event.key == K_F7:
+                    self.f7key_event()
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
@@ -360,6 +363,17 @@ class EventHandler(object):
             cw.cwpy.sounds["click"].play()
             cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
 
+    def f7key_event(self):
+        """
+        F7キーイベント。
+        バトルの自動行動のオン・オフを切り替える。
+        """
+        if cw.cwpy.setting.show_roundautostartbutton and cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
+            cw.cwpy.sounds["page"].play()
+            cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
+            cw.cwpy.statusbar.change(showbuttons=cw.cwpy.statusbar.showbuttons)
+            cw.cwpy.draw(clip=cw.s(pygame.Rect(cw.RECT_STATUSBAR)))
+
     def f9key_event(self):
         """
         F9キーイベント。緊急避難。
@@ -475,6 +489,9 @@ class EventHandlerForMessageWindow(EventHandler):
                 # F5キー
                 elif event.key == K_F5:
                     self.f5key_event()
+                # F7キー
+                elif event.key == K_F7:
+                    self.f7key_event()
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
@@ -723,6 +740,9 @@ class EventHandlerForBacklog(EventHandler):
                 # F5キー
                 elif event.key == K_F5:
                     self.f5key_event()
+                # F7キー
+                elif event.key == K_F7:
+                    self.f7key_event()
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
@@ -922,6 +942,9 @@ class EventHandlerForEffectBooster(EventHandler):
                 # F5キー
                 elif event.key == K_F5:
                     self.f5key_event()
+                # F7キー
+                elif event.key == K_F7:
+                    self.f7key_event()
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
@@ -973,6 +996,10 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         ホイールイベント。
         """
+        if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
+            self.f5key_event()
+            return
+
         self.running = False
 
     def escapekey_event(self):
