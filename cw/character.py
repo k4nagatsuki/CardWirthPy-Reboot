@@ -491,6 +491,135 @@ class Character(object):
     def is_downdefense(self):
         return self.enhance_def < 0 and 0 < self.enhance_def_dur
 
+    def is_effective(self, motion):
+        """motionが現在のselfに対して有効な効果か。
+        ターゲットの選択に使用される判定であるため、
+        実際には有効であっても必ずしもTrueを返さない。
+        """
+        if self.is_reversed() or self.is_vanished() or self.status == "hidden":
+            return False
+
+        mtype = motion.get("type", "")
+        if mtype == "Heal":
+            return self.is_injuredall()
+        elif mtype == "Damage":
+            return not self.is_unconscious()
+        elif mtype == "Absorb":
+            return not self.is_unconscious()
+        elif mtype == "Paralyze":
+            return not self.is_unconscious()
+        elif mtype == "DisParalyze":
+            return self.is_paralyze()
+        elif mtype == "Poison":
+            return not self.is_unconscious()
+        elif mtype == "DisPoison":
+            return self.is_poison()
+        elif mtype == "GetSkillPower":
+            return not self.is_unconscious()
+        elif mtype == "LoseSkillPower":
+            return not self.is_unconscious()
+        elif mtype in "Sleep":
+            # CardWirthでは、すでに睡眠状態なら
+            # さらに大きな時間で上書き可能な状態でも
+            # ターゲットにしない。
+            # 混乱・激昂・勇敢・恐慌・呪縛・沈黙
+            # ・暴露・魔法無効も同様
+            return not self.is_unconscious() and not self.is_sleep()
+        elif mtype == "Confuse":
+            return not self.is_unconscious() and not self.is_confuse()
+        elif mtype == "Overheat":
+            return not self.is_unconscious() and not self.is_overheat()
+        elif mtype == "Brave":
+            return not self.is_unconscious() and not self.is_brave()
+        elif mtype == "Panic":
+            return not self.is_unconscious() and not self.is_panic()
+        elif mtype == "Normal":
+            return not self.is_unconscious() and not self.is_normal()
+        elif mtype == "Bind":
+            return not self.is_unconscious() and not self.is_bind()
+        elif mtype == "DisBind":
+            return self.is_bind()
+        elif mtype == "Silence":
+            return not self.is_unconscious() and not self.is_silence()
+        elif mtype == "DisSilence":
+            return self.is_silence()
+        elif mtype == "FaceUp":
+            return not self.is_unconscious() and not self.is_faceup()
+        elif mtype == "FaceDown":
+            return self.is_faceup()
+        elif mtype == "AntiMagic":
+            return not self.is_unconscious() and not self.is_antimagic()
+        elif mtype == "DisAntiMagic":
+            return self.is_antimagic()
+        elif mtype == "EnhanceAction":
+            # 能力ボーナスは時間を見ず、値のみを見て判定する
+            if self.is_unconscious():
+                return False
+            value = motion.getint(".", "value", 0)
+            if value == 0:
+                return self.is_enhanced_act()
+            elif value < 0:
+                return value < self.get_enhance_act()
+            elif 0 < value:
+                return self.get_enhance_act() < value
+        elif mtype == "EnhanceAvoid":
+            if self.is_unconscious():
+                return False
+            value = motion.getint(".", "value", 0)
+            if value == 0:
+                return self.is_enhanced_avo()
+            elif value < 0:
+                return value < self.get_enhance_avo()
+            elif 0 < value:
+                return self.get_enhance_avo() < value
+        elif mtype == "EnhanceResist":
+            if self.is_unconscious():
+                return False
+            value = motion.getint(".", "value", 0)
+            if value == 0:
+                return self.is_enhanced_res()
+            elif value < 0:
+                return value < self.get_enhance_res()
+            elif 0 < value:
+                return self.get_enhance_res() < value
+        elif mtype == "EnhanceDefense":
+            if self.is_unconscious():
+                return False
+            value = motion.getint(".", "value", 0)
+            if value == 0:
+                return self.is_enhanced_def()
+            elif value < 0:
+                return value < self.get_enhance_def()
+            elif 0 < value:
+                return self.get_enhance_def() < value
+        elif mtype == "VanishCard":
+            return self.is_active()
+        elif mtype == "VanishBeast":
+            return self.has_beast()
+        elif mtype == "DealAttackCard":
+            return self.is_active()
+        elif mtype == "DealPowerfulAttackCard":
+            return self.is_active()
+        elif mtype == "DealCriticalAttackCard":
+            return self.is_active()
+        elif mtype == "DealFeintCard":
+            return self.is_active()
+        elif mtype == "DealDefenseCard":
+            return self.is_active()
+        elif mtype == "DealDistanceCard":
+            return self.is_active()
+        elif mtype == "DealConfuseCard":
+            return self.is_active()
+        elif mtype == "DealSkillCard":
+            return self.is_active()
+        elif mtype == "CancelAction": # 1.50
+            return self.is_active()
+        elif mtype == "SummonBeast":
+            return self.can_addbeast()
+        else:
+            # VanishTarget: 常に有効
+            return True
+
     #---------------------------------------------------------------------------
     #　カード操作
     #---------------------------------------------------------------------------
