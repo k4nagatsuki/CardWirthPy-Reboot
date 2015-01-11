@@ -507,7 +507,8 @@ class StatusBarButton(base.SelectableSprite):
 
 class CampButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True, is_pushed=False)
+        is_pushed = cw.cwpy.areaid in (-4, -5)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True, is_pushed=is_pushed)
 
     def update(self, scr):
         self.update_selection()
@@ -531,7 +532,8 @@ class CampButton(StatusBarButton):
 
 class TableButton(StatusBarButton):
     def __init__(self, parent, pos):
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True, is_pushed=True)
+        is_pushed = not cw.cwpy.areaid in (-4, -5)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True, is_pushed=is_pushed)
 
     def update(self, scr):
         self.update_selection()
