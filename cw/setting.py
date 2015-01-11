@@ -654,10 +654,8 @@ class Resource(object):
         # システムフォントテーブルの設定
         self.fontpaths = self.get_fontpaths()
         self.fontnames, self.fontnames_init = self.set_systemfonttable()
-        # その他のスキン付属効果音(辞書)
-        self.skinsounds = self.get_skinsounds()
-        # システム効果音(辞書)
-        self.sounds = self.get_sounds(setting, self.skinsounds)
+        # 効果音
+        self.init_sounds()
         # システムメッセージ(辞書)
         self.msgs = self.get_msgs(setting)
         # wxダイアログのボタン画像(辞書)
@@ -726,6 +724,12 @@ class Resource(object):
 
     def update_winscale(self):
         self.init_wxresources()
+
+    def init_sounds(self):
+        # その他のスキン付属効果音(辞書)
+        self.skinsounds = self.get_skinsounds()
+        # システム効果音(辞書)
+        self.sounds = self.get_sounds(self.setting(), self.skinsounds)
 
     def init_wxresources(self):
         """wx側のリソースを初期化。"""

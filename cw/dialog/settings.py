@@ -300,6 +300,8 @@ class SettingsDialog(wx.Dialog):
                 if soundfonts:
                     sfonts = [sfont[0] for sfont in soundfonts if sfont[1]]
                     cw.bassplayer.init_bass(sfonts)
+                if bool(sfonts1) <> bool(sfonts2):
+                    cw.cwpy.exec_func(cw.cwpy.init_sounds)
                 cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
 
         # 配色(メッセージ)

@@ -679,7 +679,7 @@ def load_sound(path):
             # FIXME: mp3効果音をWindows環境でしか再生できない
             sound = SoundInterface(path, path)
         elif pygame.mixer.get_init():
-            with io.BufferedReader(io.FileIO(path)) as f:
+            with open(path, "rb") as f:
                 sound = pygame.mixer.Sound(f)
             sound = SoundInterface(sound, path)
         else:

@@ -223,6 +223,14 @@ class CWPy(_Singleton, threading.Thread):
             cw.cwpy.frame.exec_func(func)
             return False
 
+    def init_sounds(self):
+        """スキン付属の効果音を再読込する。"""
+        self.rsrc.init_sounds()
+        # システム効果音(辞書)
+        self.sounds = self.rsrc.sounds
+        # その他のスキン付属効果音(辞書)
+        self.skinsounds = self.rsrc.skinsounds
+
     def _update_clip(self):
         clip = pygame.Rect(cw.s((0, 0)), cw.s(cw.SIZE_AREA))
         self.bggrp.set_clip(clip)
