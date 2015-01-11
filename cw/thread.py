@@ -142,6 +142,7 @@ class CWPy(_Singleton, threading.Thread):
         # 各種入力イベント
         self.mousein = (0, 0, 0)
         self.mousepos = (-1, -1)
+        self.wxmousepos = (-1, -1)
         self.mousemotion = False
         self.keyin = ()
         self.events = []
@@ -639,7 +640,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def update_mousepos(self):
         if sys.platform <> "win32":
-            return False
+            self.mousepos = self.wxmousepos
+            return True
         if pygame.mouse.get_focused():
             if self.scr_fullscreen:
                 mousepos = pygame.mouse.get_pos()

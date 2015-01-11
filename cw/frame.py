@@ -269,15 +269,11 @@ class Frame(wx.Frame):
         cw.cwpy.keyevent.keydown(keycode)
 
     def OnMotion(self, event):
-        pos = (event.GetX(), event.GetY())
         if not (self.IsActive() or (self.debugger and self.debugger.IsActive())):
             pos = (-1, -1)
-        elif cw.UP_SCR <> cw.UP_WIN:
-            pos = (int(float(pos[0]) / cw.UP_WIN * cw.UP_SCR),
-                   int(float(pos[1]) / cw.UP_WIN * cw.UP_SCR))
-        if pos <> cw.cwpy.mousepos:
-            cw.cwpy.mousemotion = True
-            cw.cwpy.mousepos = pos
+        else:
+            pos = cw.win2scr_s((event.GetX(), event.GetY()))
+        cw.cwpy.wxmousepos = pos
 
     def OnLeftUp(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
