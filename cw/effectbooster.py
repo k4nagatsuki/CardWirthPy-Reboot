@@ -978,9 +978,22 @@ class JptxImage(cw.image.Image):
                         size = cw.s(info.font2_noscale.size(chars))
                     width = size[0] / 2
                     height = size[1] / 2
-                    subimg.blit(subimg, (0, 0)) # 濃くする
-                    subimg = cw.image.smoothscale(subimg, (width, height))
                     yp = 0
+                    rect = pygame.Rect(int(info.x), int(info.y)+yp, width, height)
+                    rect = rect.clip(self.outer.image.get_rect())
+                    if 0 < rect.width and 0 < rect.height:
+                        if cw.UP_SCR <> 1 and subimg.get_size() <> size:
+                            # 1倍で描画した時のサイズに合せる
+                            subimg = pygame.transform.smoothscale(subimg, size)
+                        # 拡大した背景にBlitし、その後縮小する
+                        subimg2 = self.outer.image.subsurface(rect)
+                        w, h = subimg2.get_size()
+                        w2 = w * 2
+                        h2 = h * 2
+                        subimg2 = pygame.transform.scale(subimg2, (w2, h2))
+                        subimg2.blit(subimg, (0, 0))
+                        # 縮小
+                        subimg = pygame.transform.smoothscale(subimg2, (w, h))
                 else:
                     if not antialias and 22 < info.fontpixels_noscale and\
                             fontface in (u"ＭＳ Ｐ明朝", u"ＭＳ 明朝", u"ＭＳ Ｐゴシック", u"ＭＳ ゴシック", u"MS UI Gothic"):
@@ -993,6 +1006,7 @@ class JptxImage(cw.image.Image):
                     if cw.UP_SCR == 1:
                         width = info.font.size(chars)[0]
                     else:
+                        # 1倍で描画した時のサイズに合せる
                         size = cw.s(info.font_noscale.size(chars))
                         subimg = cw.image.smoothscale(subimg, size)
                         width = size[0]
