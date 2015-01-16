@@ -626,12 +626,26 @@ class CWPy(_Singleton, threading.Thread):
         self.keyin = self.keyevent.get_pressed()
 
         if inputonly:
+            seq = []
+            for e in self.events:
+                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+                    seq.append(e)
+                else:
+                    pygame.event.post(e)
             events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             if events:
                 events = [events[-1]]
-            self.events.extend(events)
+            seq.extend(events)
+            del self.events[:]
+            self.events.extend(seq)
         else:
             if noinput:
+                seq = []
+                for e in self.events:
+                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+                        seq.append(e)
+                del self.events[:]
+                self.events.extend(seq)
                 pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             self.events.extend(pygame.event.get())
 

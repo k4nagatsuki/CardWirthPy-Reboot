@@ -65,6 +65,8 @@ class Debugger(wx.Frame):
         self._currentfpath = ""
         # 最後にイベントを強制実行した時、隠蔽カードを表示していたか
         self._showhiddencards = False
+        # 完全回復が予約されているがまだ実施されていない時はTrue
+        self._recovering = False
 
         rsrc = cw.cwpy.rsrc.debugs
 
@@ -700,8 +702,9 @@ class Debugger(wx.Frame):
         dlg.ShowModal()
 
     def OnRecoveryTool(self, event):
-        if cw.cwpy.is_playingscenario():
-            def recovery_all():
+        if cw.cwpy.is_playingscenario() and not self._recovering:
+            self._recovering = True
+            def recovery_all(self):
                 for pcard in cw.cwpy.get_pcards("unreversed"):
                     cw.cwpy.sounds["harvest"].play()
                     if pcard.status == "hidden":
@@ -714,8 +717,12 @@ class Debugger(wx.Frame):
                         pcard.set_fullrecovery()
                         pcard.update_image()
                         cw.animation.animate_sprite(pcard, "deal")
+                def func(self):
+                    if self:
+                        self._recovering = False
+                cw.cwpy.frame.exec_func(func, self)
 
-            cw.cwpy.exec_func(recovery_all)
+            cw.cwpy.exec_func(recovery_all, self)
 
     def OnInfoTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():

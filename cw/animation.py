@@ -47,7 +47,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
             cw.cwpy.tick_clock()
 
     cw.cwpy.update_mousepos()
-    cw.cwpy.input(inputonly=clearevent)
+    cw.cwpy.input(inputonly=True)
     cw.cwpy.eventhandler.run()
 
     if skip:
@@ -119,7 +119,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
                 break
 
     cw.cwpy.update_mousepos()
-    cw.cwpy.input(inputonly=clearevent)
+    cw.cwpy.input(inputonly=True)
     cw.cwpy.eventhandler.run()
 
     if skip:
@@ -134,7 +134,7 @@ def _inputevent(clip, clearevent):
     cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
     if sel <> cw.cwpy.selection:
         clip.union_ip(cw.cwpy.statusbar.rect)
-    cw.cwpy.input(inputonly=clearevent)
+    cw.cwpy.input(inputonly=True)
     cw.cwpy.eventhandler.run()
     return clip
 

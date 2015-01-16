@@ -137,6 +137,8 @@ class BattleEngine(object):
         for member in self.members:
             if member.actionend:
                 continue
+            cw.cwpy.input()
+            cw.cwpy.eventhandler.run()
             member.action()
             if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
                 self.end(f9=True)
@@ -155,6 +157,9 @@ class BattleEngine(object):
         if not cw.cwpy.is_playingscenario() or cw.cwpy.sdata.in_f9:
             self.end(f9=True)
             return
+
+        cw.cwpy.input()
+        cw.cwpy.eventhandler.run()
 
         # 時間経過
         cw.cwpy.elapse_time()
