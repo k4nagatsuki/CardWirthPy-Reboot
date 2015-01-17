@@ -226,11 +226,11 @@ https://bitbucket.org/k4nagatsuki/cardwirthpy-reboot
 
 https://bitbucket.org/takuto_cw/cardwirthpy-reboot
  : takuto_cw はいくつかのバグを修正し、カードダイアログのボタンに使用する画像を描き起こしました。
- : また、レベル調節でのカードの移動など、新機能についての具体的な提案を行なっています。
+ : また、レベル調節でのカードの移動やレベル変化時のEPの扱いなど、新機能や仕様についての具体的な提案や実装を行なっています。
 
 https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
  : TachiGigas はいくつかのバグを修正し、シナリオダイアログの見逃されていた未実装部分を実装しました。
- : また、フォントが設定できるようにするよう提案を行い、最初の実装を行いました。
+ : また、フォント設定の提案と最初の実装、「冒険の再開」ダイアログでの先頭メンバ表示など、いくつもの機能の提案や実装を行っています。
 
 
 謝辞

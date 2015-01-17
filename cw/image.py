@@ -750,59 +750,6 @@ def create_colorcell(size, color1, gradient, color2):
     return image
 
 #-------------------------------------------------------------------------------
-# 画像変換用関数
-#-------------------------------------------------------------------------------
-
-def conv2wxbmp(image, maskpos=(0, 0)):
-    """pygame.Surfaceをwx.Bitmapに変換する。
-    image: pygame.Surface
-    """
-    w, h = image.get_size()
-
-    if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey():
-        buf = pygame.image.tostring(image, "RGBA")
-        wxbmp = wx.BitmapFromBufferRGBA(w, h, buf)
-    else:
-        buf = pygame.image.tostring(image, "RGB")
-        wxbmp = wx.BitmapFromBuffer(w, h, buf)
-
-    if image.get_colorkey():
-        r, g, b, _a = image.get_at(maskpos)
-        wxbmp.SetMaskColour(wx.Colour(r, g, b))
-
-    return wxbmp
-
-def conv2surface(wxbmp):
-    """wx.Bitmapをpygame.Surfaceに変換する。
-    wxbmp: wx.Bitmap
-    """
-    w, h = wxbmp.GetSize()
-    wximg = wxbmp.ConvertToImage()
-
-    if wxbmp.HasAlpha():
-        data = wximg.GetData()
-        r_data = data[0::3]
-        g_data = data[1::3]
-        b_data = data[2::3]
-        a_data = wximg.GetAlphaData()
-        seq = []
-
-        for cnt in xrange(w * h):
-            seq.append((r_data[cnt] + g_data[cnt] + b_data[cnt] + a_data[cnt]))
-
-        buf = "".join(seq)
-        image = pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
-    else:
-        wximg = wxbmp.ConvertToImage()
-        buf = wximg.GetData()
-        image = pygame.image.frombuffer(buf, (w, h), "RGB").convert()
-
-    if wximg.HasMask():
-        image.set_colorkey(wximg.GetOrFindMaskColour(), pygame.locals.RLEACCEL)
-
-    return image
-
-#-------------------------------------------------------------------------------
 # ユーティリティ
 #-------------------------------------------------------------------------------
 
