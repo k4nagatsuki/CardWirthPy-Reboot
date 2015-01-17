@@ -1319,11 +1319,22 @@ class PartySelect(MultiViewSelect):
 
             if sceheader:
                 bmp = sceheader.get_wxbmp()
+                bmp2 = None
             else:
                 path = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
                 path = cw.util.join_paths(cw.cwpy.skindir, path)
                 bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
-            return bmp, sceheader
+
+                fpath = header.get_memberpaths()[0]
+                data = cw.data.yadoxml2etree(fpath)
+                ccard = cw.character.Player(data)
+                path = ccard.data.gettext("Property/ImagePath", "")
+                path = cw.util.join_yadodir(path)
+                bmp2 = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+                image = cw.image.conv2surface(bmp2)
+                image = cw.image.smoothscale(image, cw.wins((37, 47)))
+                bmp2 = cw.image.conv2wxbmp(image)
+            return bmp, bmp2, sceheader
 
         if self.views == 1:
             # 単独表示
@@ -1363,8 +1374,10 @@ class PartySelect(MultiViewSelect):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
             # シナリオ・宿画像
-            bmp, sceheader = get_image(header)
+            bmp, bmp2, sceheader = get_image(header)
             dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(125), True)
+            if bmp2:
+                dc.DrawBitmap(bmp2, bmpw/2, cw.wins(125+47), True)
 
             # シナリオ・宿名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -1397,11 +1410,13 @@ class PartySelect(MultiViewSelect):
             dc.SetTextForeground(wx.BLACK)
             for i, header in enumerate(seq):
                 # 宿・シナリオイメージ
-                bmp, sceheader = get_image(header)
+                bmp, bmp2, sceheader = get_image(header)
                 ix = x + (rw - cw.wins(72)) / 2
                 iy = y + 5
                 dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
                 dc.DrawBitmap(bmp, ix, iy, True)
+                if bmp2:
+                    dc.DrawBitmap(bmp2, ix + cw.wins(37), iy + cw.wins(47), True)
                 dc.DestroyClippingRegion()
 
                 # パーティ名
