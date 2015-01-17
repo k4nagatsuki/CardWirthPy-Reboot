@@ -858,7 +858,10 @@ class Character(object):
         tdice = cw.cwpy.dice.roll(2)
 
         thresholdbonus = int(thresholdbonus)
-        bonus = int(self.get_vocation_val(vocation) + enhance)
+        thresholdbonus = max(0, thresholdbonus)
+        voc = self.get_vocation_val(vocation)
+        bonus = int(voc + enhance)
+        bonus = max(0, bonus)
         uvalue = (thresholdbonus+1) / 2 + level + subbonus + udice
         tvalue = (bonus+1) / 2 + self.level + tdice
         return uvalue < tvalue
@@ -1042,7 +1045,7 @@ class Character(object):
         """
         vo = vocation
         voc = self._voc_tbl.get(vo, None)
-        if voc:
+        if not voc is None:
             return voc
         vocation = (vocation[0].lower(), vocation[1].lower())
         physical = vocation[0]
@@ -1060,7 +1063,7 @@ class Character(object):
                 mental -= 0.5
             mental = int(mental)
 
-        voc = physical + mental
+        voc = int(physical + mental)
         self._voc_tbl[vo] = voc
         return voc
 
