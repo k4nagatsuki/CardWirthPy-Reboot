@@ -815,6 +815,15 @@ def numwrap(n, nmin, nmax):
 
     return n
 
+def div_vocation(value):
+    """能力判定のために能力値を2で割る。
+    0以上の場合とマイナス値の場合で式が異なる。
+    """
+    if value < 0:
+        return (value+2) // 2
+    else:
+        return (value+1) // 2
+
 def get_truetypefontname(path):
     """引数のTrueTypeFontファイルを読み込んで、フォントネームを返す。
     ref http://mail.python.org/pipermail/python-list/2008-September/508476.html

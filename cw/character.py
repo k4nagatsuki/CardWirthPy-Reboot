@@ -855,15 +855,13 @@ class Character(object):
             return False
 
         udice = cw.cwpy.dice.roll(2)
-        tdice = cw.cwpy.dice.roll(2)
+        tdice = dice
 
         thresholdbonus = int(thresholdbonus)
-        thresholdbonus = max(0, thresholdbonus)
         voc = self.get_vocation_val(vocation)
         bonus = int(voc + enhance)
-        bonus = max(0, bonus)
-        uvalue = (thresholdbonus+1) / 2 + level + subbonus + udice
-        tvalue = (bonus+1) / 2 + self.level + tdice
+        uvalue = cw.util.div_vocation(thresholdbonus) + level + subbonus + udice
+        tvalue = cw.util.div_vocation(bonus) + self.level + tdice
         return uvalue < tvalue
 
     def decide_misfire(self, level):
@@ -2020,7 +2018,7 @@ class Character(object):
     def decrease_physical(self, stype, time):
         """中毒麻痺の時間経過による軽減。"""
         for _t in xrange(time):
-            uvalue = (self.get_vocation_val(("vit", "aggressive")) + 1) // 2 + self.level + cw.cwpy.dice.roll(2)
+            uvalue = cw.util.div_vocation(self.get_vocation_val(("vit", "aggressive"))) + self.level + cw.cwpy.dice.roll(2)
             tvalue = (self.poison if stype == "Poison" else self.paralyze) + cw.cwpy.dice.roll(2)
 
             flag = uvalue >= tvalue
