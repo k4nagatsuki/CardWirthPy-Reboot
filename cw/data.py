@@ -2479,6 +2479,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
             elif e.tag == "CastCard":
                 cwxpath.append("castcard:id:%s" % (e.gettext("Property/Id", "0")))
                 scenariodata = True
+                break
             elif e.tag == "SkillCard":
                 cwxpath.append("skillcard:id:%s" % (e.gettext("Property/Id", "0")))
                 if e.getbool(".", "scenariocard", False):
@@ -2505,7 +2506,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
             elif e.tag in ("SkillCards", "ItemCards", "BeastCards", "Beasts", "Motions",
                            "Contents", "Events", "MenuCards", "EnemyCards"):
                 pass
-            elif e.tag == "Adventurer":
+            elif e.tag in ("Adventurer", "CastCards"):
                 break
             else:
                 # Content

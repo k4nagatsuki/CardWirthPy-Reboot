@@ -353,6 +353,7 @@ class EventInterface(object):
                 if cnt == 0:
                     self.refresh_tools()
                     self.refresh_activeitem()
+                cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1, False)
@@ -368,6 +369,7 @@ class EventInterface(object):
                 if cnt == 0:
                     self.refresh_tools()
                     self.refresh_activeitem()
+                cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
                 cw.cwpy.input()
                 cw.cwpy.eventhandler.run()
                 cw.cwpy.wait_frame(1, False)
