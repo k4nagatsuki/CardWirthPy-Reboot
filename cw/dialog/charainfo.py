@@ -495,20 +495,28 @@ class TopPanel(wx.Panel):
             hr -= 1
             dc.SetPen(wx.TRANSPARENT_PEN)
             if exp < curexp:
+                lcolor = wx.Colour(192, 32, 32)
+                dcolor = wx.Colour(64, 0, 0)
                 val = curexp - exp
                 w2 = min(w, int(w * (float(val) / prange)))
-                dc.SetBrush(wx.Brush(wx.Colour(64, 0, 0)))
+                dc.SetBrush(wx.Brush(dcolor))
                 dc.DrawRectangle(x+w-w2, y, w2, hr)
-                dc.SetBrush(wx.Brush(wx.Colour(192, 32, 32)))
+                dc.SetBrush(wx.Brush(lcolor))
                 dc.DrawRectangle(x+w-w2, y+hr, w2, h-hr)
                 linecolour = wx.Colour(128, 128, 128)
             else:
+                if nextexp <= exp:
+                    lcolor = wx.Colour(128, 224, 128)
+                    dcolor = wx.Colour(64, 160, 64)
+                else:
+                    lcolor = wx.Colour(192, 192, 255)
+                    dcolor = wx.Colour(128, 128, 192)
                 val = exp - curexp
                 if 0 < val:
                     w2 = min(w, int(w * (float(val) / prange)))
-                    dc.SetBrush(wx.Brush(wx.Colour(128, 128, 192)))
+                    dc.SetBrush(wx.Brush(dcolor))
                     dc.DrawRectangle(x, y, w2, hr)
-                    dc.SetBrush(wx.Brush(wx.Colour(192, 192, 255)))
+                    dc.SetBrush(wx.Brush(lcolor))
                     dc.DrawRectangle(x, y+hr, w2, h-hr)
                 linecolour = wx.Colour(128, 128, 128)
             gcdc = wx.GCDC(dc)
