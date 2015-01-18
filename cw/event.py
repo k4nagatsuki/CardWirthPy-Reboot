@@ -881,7 +881,9 @@ class CardEvent(Event):
     def run_deadevent(self, target):
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
             cw.cwpy.event.set_selectedmember(self.user)
-            target.events.start(1, isinsideevent=True)
+            return target.events.start(1, isinsideevent=True)
+        else:
+            return False
 
     def run_menucardevent(self, target):
         """
@@ -900,7 +902,7 @@ class CardEvent(Event):
             cw.cwpy.sounds["ineffective"].play(True)
 
     def run_successevent(self, target, successflag, can_unconscious):
-        if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
+        if isinstance(target, Enemy):
             keycodes = []
             for keycode in self.inusecard.get_keycodes():
                 if keycode:
@@ -985,15 +987,22 @@ class CardEvent(Event):
                 self.run_enemyevent(target, unconscious_flag)
                 target.clear_cardtarget()
 
-                if eff.apply(target):
-                    self.run_successevent(target, True, unconscious_flag)
-                else:
-                    self.run_successevent(target, False, unconscious_flag)
-                    cw.cwpy.draw()
+                success = eff.apply(target)
 
                 # 最初から意識不明・麻痺なら死亡イベント発生なし
                 if not unconscious_flag and not paralyze_flag:
-                    self.run_deadevent(target)
+                    deadevent = self.run_deadevent(target)
+                else:
+                    deadevent = False
+
+                # 成功・失敗キーコードイベントより死亡イベントを優先
+                if not deadevent:
+                    if success:
+                        self.run_successevent(target, True, unconscious_flag)
+                    else:
+                        self.run_successevent(target, False, unconscious_flag)
+                        cw.cwpy.draw()
+
             else:
                 target.clear_cardtarget()
 
