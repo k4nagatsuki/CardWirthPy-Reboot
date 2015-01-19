@@ -887,56 +887,6 @@ def get_md5(path):
 
     return m.hexdigest()
 
-def change_cursor(name="arrow"):
-    """マウスカーソルを変更する。
-    name: 変更するマウスカーソルの名前。
-    (arrow, diamond, broken_x, tri_left, tri_right, mouse)"""
-    if name == "arrow":
-        pygame.mouse.set_cursor(*pygame.cursors.arrow)
-    elif name == "diamond":
-        pygame.mouse.set_cursor(*pygame.cursors.diamond)
-    elif name == "broken_x":
-        pygame.mouse.set_cursor(*pygame.cursors.broken_x)
-    elif name == "tri_left":
-        pygame.mouse.set_cursor(*pygame.cursors.tri_left)
-    elif name == "tri_right":
-        pygame.mouse.set_cursor(*pygame.cursors.tri_right)
-    elif name == "mouse":
-        # 24x24
-        s = (
-          "    .#.#...........     ",
-          "    .#.#.#########.     ",
-          "    .#.#.#####.###.     ",
-          "  .........##.####.     ",
-          " .####.####.######.     ",
-          ".#####.#####.#..##.     ",
-          ".#####.#####.#####.     ",
-          ".#####.#####.#..##.     ",
-          ".#####.#####.#####.     ",
-          ".#####.#####.#####.     ",
-          "......#......#####.     ",
-          ".###########.#####.     ",
-          ".###########.#####.     ",
-          ".###########.#####.     ",
-          ".###########.......     ",
-          ".###########.           ",
-          ".###########.           ",
-          " .#########.            ",
-          "  .......... ... .  .   ",
-          " .###.#. .#..###.#..#.  ",
-          ".#....#. .#.#....###.   ",
-          ".#....#...#.#....#.#.   ",
-          " .###.###.#..###.#..#.  ",
-          "  .........  ... .  .   ",)
-
-        cursor = pygame.cursors.compile(s, ".", "#", "o")
-        pygame.mouse.set_cursor((24, 24), (7, 7), *cursor)
-
-    # 一度マウスポインタを画面外へ出さないと変更されない
-    pos = pygame.mouse.get_pos()
-    pygame.mouse.set_pos([-1, -1])
-    pygame.mouse.set_pos(pos)
-
 def number_normalization(value, fromvalue, tovalue):
     """数値を範囲内の値に正規化する。
     value: 正規化対象の数値。

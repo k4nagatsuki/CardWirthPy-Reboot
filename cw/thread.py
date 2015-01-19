@@ -172,6 +172,8 @@ class CWPy(_Singleton, threading.Thread):
         self.expanding_min = 0
         self.expanding_max = 100
         self.expanding_cur = 0
+        # 現在のカーソル名
+        self.cursor = "arrow"
 
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
@@ -852,6 +854,60 @@ class CWPy(_Singleton, threading.Thread):
             sur.fill((255, 255, 255, 192))
             self.scr_fullscreen.blit(sur, (x, y))
 
+    def change_cursor(self, name="arrow"):
+        """マウスカーソルを変更する。
+        name: 変更するマウスカーソルの名前。
+        (arrow, diamond, broken_x, tri_left, tri_right, mouse)"""
+        if self.cursor == name:
+            return
+
+        self.cursor = name
+        if name == "arrow":
+            pygame.mouse.set_cursor(*pygame.cursors.arrow)
+        elif name == "diamond":
+            pygame.mouse.set_cursor(*pygame.cursors.diamond)
+        elif name == "broken_x":
+            pygame.mouse.set_cursor(*pygame.cursors.broken_x)
+        elif name == "tri_left":
+            pygame.mouse.set_cursor(*pygame.cursors.tri_left)
+        elif name == "tri_right":
+            pygame.mouse.set_cursor(*pygame.cursors.tri_right)
+        elif name == "mouse":
+            # 24x24
+            s = (
+              "    .#.#...........     ",
+              "    .#.#.#########.     ",
+              "    .#.#.#####.###.     ",
+              "  .........##.####.     ",
+              " .####.####.######.     ",
+              ".#####.#####.#..##.     ",
+              ".#####.#####.#####.     ",
+              ".#####.#####.#..##.     ",
+              ".#####.#####.#####.     ",
+              ".#####.#####.#####.     ",
+              "......#......#####.     ",
+              ".###########.#####.     ",
+              ".###########.#####.     ",
+              ".###########.#####.     ",
+              ".###########.......     ",
+              ".###########.           ",
+              ".###########.           ",
+              " .#########.            ",
+              "  .......... ... .  .   ",
+              " .###.#. .#..###.#..#.  ",
+              ".#....#. .#.#....###.   ",
+              ".#....#...#.#....#.#.   ",
+              " .###.###.#..###.#..#.  ",
+              "  .........  ... .  .   ",)
+
+            cursor = pygame.cursors.compile(s, ".", "#", "o")
+            pygame.mouse.set_cursor((24, 24), (7, 7), *cursor)
+
+        # 一度マウスポインタを画面外へ出さないと変更されない
+        pos = pygame.mouse.get_pos()
+        pygame.mouse.set_pos([-1, -1])
+        pygame.mouse.set_pos(pos)
+
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。
         name: ダイアログ名。cw.frame参照。
@@ -1100,22 +1156,27 @@ class CWPy(_Singleton, threading.Thread):
         index = length - 1 - n
 
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
-        while self.is_running() and eventhandler.mwin and\
-                cw.cwpy.sdata.is_playing and self._is_showingbacklog:
-            self.sbargrp.update(self.scr_draw)
-            self.draw()
-            self.tick_clock()
-            self.input()
-            eventhandler.run()
-            if len(self.sdata.backlog) < length:
-                # 最大数の設定変更によりログ数が減った場合
-                if not self.sdata.backlog:
-                    break
-                eventhandler.index -= length - len(self.sdata.backlog)
-                length = len(self.sdata.backlog)
-                if eventhandler.index < 0:
-                    eventhandler.index = 0
-                eventhandler.update_sprites()
+        cursor = self.cursor
+        self.change_cursor()
+        try:
+            while self.is_running() and eventhandler.mwin and\
+                    cw.cwpy.sdata.is_playing and self._is_showingbacklog:
+                self.sbargrp.update(self.scr_draw)
+                self.draw()
+                self.tick_clock()
+                self.input()
+                eventhandler.run()
+                if len(self.sdata.backlog) < length:
+                    # 最大数の設定変更によりログ数が減った場合
+                    if not self.sdata.backlog:
+                        break
+                    eventhandler.index -= length - len(self.sdata.backlog)
+                    length = len(self.sdata.backlog)
+                    if eventhandler.index < 0:
+                        eventhandler.index = 0
+                    eventhandler.update_sprites()
+        finally:
+            self.change_cursor(cursor)
         # 表示終了
         eventhandler.exit_backlog(playsound=False)
 

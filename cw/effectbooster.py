@@ -20,7 +20,7 @@ def wait_effectbooster(waittime, doanime):
         tick = start_ticks + waittime
     else:
         tick = 0
-        cw.util.change_cursor("mouse")
+        cw.cwpy.change_cursor("mouse")
 
     try:
         doanime.time_elapsed = 0
@@ -44,7 +44,7 @@ def wait_effectbooster(waittime, doanime):
         raise ex
     finally:
         if not tick:
-            cw.util.change_cursor()
+            cw.cwpy.change_cursor()
 
 class AnimationCounter(object):
     def __init__(self):
@@ -864,11 +864,11 @@ class JpdcImage(cw.image.Image):
 
     def wait(self, doanime):
         # 右クリックするまで待機
-        cw.util.change_cursor("mouse")
+        cw.cwpy.change_cursor("mouse")
 
         wait_effectbooster(0, doanime=doanime)
 
-        cw.util.change_cursor()
+        cw.cwpy.change_cursor()
 
 class JptxImage(cw.image.Image):
     def __init__(self, path, mask):
