@@ -759,7 +759,10 @@ def relpath(path, start):
         path2 = path[len(start):]
         if path2[0] == '/' or (sys.platform == "win32" and path2[0] == '\\'):
             return path2[1:]
-    return os.path.relpath(path, start)
+    try:
+        return os.path.relpath(path, start)
+    except:
+        return path
 assert relpath("Data/abc", "Data") == "abc"
 assert relpath("Data/abc/def", "Data").replace("\\", "/") == "abc/def"
 assert relpath("Data/abc/def", "Data/abc/").replace("\\", "/") == "def"

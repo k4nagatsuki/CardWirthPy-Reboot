@@ -1037,7 +1037,7 @@ class YadoData(object):
                                 pfile = cw.util.join_paths(pdpath, fname)
                                 break
 
-                    pname = os.path.relpath(pfile, self.yadodir)
+                    pname = cw.util.relpath(pfile, self.yadodir)
 
             if pname:
                 path = cw.util.join_paths(self.yadodir, pname)
