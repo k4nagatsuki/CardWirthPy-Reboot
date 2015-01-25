@@ -727,7 +727,7 @@ class JpyImage(cw.image.Image):
         if not back.is_cacheable:
             self.is_cacheable = False
         self.image = back.get_image()
-        if mask and back.can_mask:
+        if mask and (parent is None or back.can_mask):
             self.image.set_colorkey(self.image.get_at((0, 0)))
 
 class JpyCache(object):
