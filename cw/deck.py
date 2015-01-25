@@ -211,9 +211,6 @@ class Deck(object):
             header_copy = header.copy()
 
             if header.type == "ActionCard":
-                if header.id > 0:
-                    self.talon.insert(0, header)
-
                 header_copy.set_owner(ccard)
 
             self.hand.append(header_copy)

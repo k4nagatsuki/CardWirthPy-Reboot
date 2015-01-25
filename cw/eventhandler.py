@@ -335,6 +335,14 @@ class EventHandler(object):
             cw.cwpy.sounds["page"].play()
             cw.cwpy.show_backlog()
 
+        # PCの山札内のカード数を表示する
+##        for pcard in cw.cwpy.get_pcards():
+##            print "%s --------" % (pcard.name)
+##            d = {}
+##            for h in pcard.deck.talon:
+##                d[h.name] = d.get(h.name, 0) + 1
+##            for name, count in d.iteritems():
+##                print "  %s: %s" % (name, count)
 ##        for ecard in cw.cwpy.get_ecards():
 ##            for h in ecard.deck.talon:
 ##                print h.name, ecard.name
