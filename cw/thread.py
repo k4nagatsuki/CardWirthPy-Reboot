@@ -1364,7 +1364,6 @@ class CWPy(_Singleton, threading.Thread):
         self.is_processing = True
         self.set_status("Scenario")
         self.battle = None
-        self.statusbar.change(False)
 
         if self.setting.store_skinoneachbase and self.ydata.skinname <> cw.cwpy.setting.skinname:
             self.update_skin(self.ydata.skinname, changearea=False)
@@ -1373,6 +1372,7 @@ class CWPy(_Singleton, threading.Thread):
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
             self.sdata = cw.data.ScenarioData(header)
+            self.statusbar.change(False)
             loaded, musicpath, inusecard = self.sdata.set_log()
             self.sdata.start()
             self.update_titlebar()
@@ -1401,6 +1401,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.event.refresh_variablelist()
             self.exec_func(func, loaded, musicpath, inusecard, areaid)
         else:
+            self.statusbar.change(False)
             self.is_processing = False
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
