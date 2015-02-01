@@ -7,7 +7,7 @@ import pygame
 import cw
 
 
-def animate_sprite(sprite, anitype, clearevent=True, background=False):
+def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbutton=False):
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
 
@@ -39,16 +39,19 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False):
         skip |= _get_skipstatus(clearevent)
 
         if not skip:
-            clip = _inputevent(clip, clearevent)
+            clip = _inputevent(clip, clearevent, statusbutton)
             if background:
                 cw.cwpy.draw()
             else:
                 cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
-    cw.cwpy.update_mousepos()
-    cw.cwpy.input(inputonly=clearevent)
-    cw.cwpy.eventhandler.run()
+    if statusbutton:
+        cw.cwpy.clear_inputevents()
+    else:
+        cw.cwpy.update_mousepos()
+        cw.cwpy.input(inputonly=clearevent)
+        cw.cwpy.eventhandler.run()
 
     if skip:
         cw.cwpy.draw()
@@ -107,7 +110,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
         skip |= _get_skipstatus(clearevent)
 
         if not skip:
-            clip = _inputevent(clip, clearevent)
+            clip = _inputevent(clip, clearevent, False)
             cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
@@ -128,14 +131,17 @@ def animate_sprites2(sprandanimes, clearevent=True):
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
 
-def _inputevent(clip, clearevent):
-    cw.cwpy.update_mousepos()
-    sel = cw.cwpy.selection
-    cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-    if sel <> cw.cwpy.selection:
-        clip.union_ip(cw.cwpy.statusbar.rect)
-    cw.cwpy.input(inputonly=clearevent)
-    cw.cwpy.eventhandler.run()
+def _inputevent(clip, clearevent, statusbutton):
+    if statusbutton:
+        cw.cwpy.clear_inputevents()
+    else:
+        cw.cwpy.update_mousepos()
+        sel = cw.cwpy.selection
+        cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
+        if sel <> cw.cwpy.selection:
+            clip.union_ip(cw.cwpy.statusbar.rect)
+        cw.cwpy.input(inputonly=clearevent)
+        cw.cwpy.eventhandler.run()
     return clip
 
 def _get_skipstatus(clearevent):

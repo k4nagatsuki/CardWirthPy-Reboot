@@ -504,7 +504,7 @@ class StatusBarButton(base.SelectableSprite):
         self.image = self.get_btnimg(flags)
 
     def lclick_event(self):
-        cw.animation.animate_sprite(self, "click")
+        cw.animation.animate_sprite(self, "click", statusbutton=True)
 
     def rclick_event(self):
         pass
