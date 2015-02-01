@@ -1220,9 +1220,9 @@ class BranchAbilityContent(BranchContent):
             else:
                 targets = [targets]
 
-        # 死亡・睡眠者は判定から排除
+        # 死亡・睡眠or呪縛者は判定から排除
         targets = [target for target in targets
-                    if target.is_alive() and (sleep or not target.is_sleep())]
+                    if target.is_alive() and (sleep or not (target.is_sleep() or target.is_bind()))]
 
         # 能力判定
         flag = False
