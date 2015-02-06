@@ -581,6 +581,29 @@ def add_transparentline(image, vline, hline, rect=None, setalpha=False):
 
     return image
 
+def add_transparentmesh(image, rect=None, setalpha=False):
+    """透明色の網の目を入れる。
+    image: pygame.Surface
+    """
+    w, h = image.get_size()
+    if not rect:
+        rect = (0, 0, w, h)
+    image = image.convert_alpha()
+    color = image.get_at((0, 0))
+    if setalpha:
+        color = (color[0], color[1], color[2], 0)
+
+    clip = image.get_clip()
+    image.set_clip(rect)
+    x0, y0, w, h = rect
+    for cnt in xrange(0, w + h, 2):
+        pos1 = (x0 + cnt, y0)
+        pos2 = (x0 + cnt - h, y0 + h)
+        pygame.draw.line(image, color, pos1, pos2)
+
+    image.set_clip(clip)
+    return image
+
 def add_border(img, bordercolor, borderwidth):
     """textcolorの領域を縁取りする。
     この処理はwxPythonのインスタンスに対して行う。

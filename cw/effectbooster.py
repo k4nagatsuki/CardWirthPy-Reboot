@@ -486,7 +486,7 @@ class _JpySubImage(cw.image.Image):
             elif self.mask == 2:
                 image = cw.imageretouch.add_transparentline(image, False, True, setalpha=setalpha)
             elif self.mask == 3:
-                image = cw.imageretouch.add_transparentline(image, True, True, setalpha=setalpha)
+                image = cw.imageretouch.add_transparentmesh(image, setalpha=setalpha)
 
         # 透明度
         if self.paintmode == 3:
