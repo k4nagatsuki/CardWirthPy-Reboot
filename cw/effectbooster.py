@@ -480,12 +480,13 @@ class _JpySubImage(cw.image.Image):
 
         # 透過ライン
         if self.mask:
+            setalpha = self.transparent and not self.can_mask
             if self.mask == 1:
-                image = cw.imageretouch.add_transparentline(image, True, False)
+                image = cw.imageretouch.add_transparentline(image, True, False, setalpha=setalpha)
             elif self.mask == 2:
-                image = cw.imageretouch.add_transparentline(image, False, True)
+                image = cw.imageretouch.add_transparentline(image, False, True, setalpha=setalpha)
             elif self.mask == 3:
-                image = cw.imageretouch.add_transparentline(image, True, True)
+                image = cw.imageretouch.add_transparentline(image, True, True, setalpha=setalpha)
 
         # 透明度
         if self.paintmode == 3:
