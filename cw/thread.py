@@ -165,6 +165,8 @@ class CWPy(_Singleton, threading.Thread):
         # 保存用のパーティ記録
         # 解散エリアに入った時点で生成される
         self._stored_partyrecord = None
+        # 対象消去によってメンバの位置を再計算する必要があるか
+        self._need_disposition = False
 
         # アーカイヴを展開中のシナリオ
         self.expanding = u""
@@ -686,6 +688,13 @@ class CWPy(_Singleton, threading.Thread):
         # 一時カードはダイアログを開き直す直前に荷物袋へ戻すが、
         # 戦闘突入等でダイアログを開き直せなかった場合はここで戻す
         self.return_takenoutcard()
+        # パーティが非表示であれば表示する
+        if not self.is_runningevent():
+            if not self.is_showparty:
+                self.show_party()
+            if self._need_disposition:
+                self.disposition_pcards()
+                self.draw()
 
         self.bggrp.update(self.scr_draw)
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
@@ -1861,6 +1870,9 @@ class CWPy(_Singleton, threading.Thread):
                 if not seq:
                     del self._mcardtable[mcard.flag]
 
+        if isinstance(mcard, cw.sprite.card.PlayerCard):
+            self._need_disposition = True
+
     def update_mcardlist(self):
         """必要であればメニューカードのリストを更新する。
         """
@@ -2108,6 +2120,7 @@ class CWPy(_Singleton, threading.Thread):
                 img, rect = t
                 rect.center = pcard.rect.center
                 pcard.zoomimgs[i] = (img, rect)
+        self._need_disposition = False
 
     def change_area(self, areaid, eventstarting=True,
                           bginhrt=False, ttype=("Default", "Default"),
@@ -2145,7 +2158,7 @@ class CWPy(_Singleton, threading.Thread):
                 pcard.set_fullrecovery()
                 pcard.update_image()
 
-        if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
+        if not self.is_playingscenario():
             self.disposition_pcards()
 
         if 0 <= oldareaid and self.ydata and self.is_playingscenario():
