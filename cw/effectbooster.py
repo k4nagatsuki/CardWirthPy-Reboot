@@ -539,7 +539,7 @@ class _JpySubImage(cw.image.Image):
                     jpy1 = JpyImage(path, cache=self.cache, doanime=doanime, mask=False, parent=self)
                     image = jpy1.get_image()
                     if jpy1.is_cacheable:
-                        cw.cwpy.sdata.resource_cache[cachekey] = (image, mtime)
+                        cw.cwpy.sdata.resource_cache[cachekey] = (image.copy(), mtime)
                     else:
                         self.is_cacheable = False
                 # Jpdcファイル
