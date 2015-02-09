@@ -728,8 +728,16 @@ class JpyImage(cw.image.Image):
         if not back.is_cacheable:
             self.is_cacheable = False
         self.image = back.get_image()
-        if mask and (parent is None or back.can_mask):
-            self.image.set_colorkey(self.image.get_at((0, 0)))
+
+        # 互換動作: 1.30以前はレタッチ内容によってセルとして配置した時に
+        #           指定したマスク設定が無効にされてしまう場合があるが、
+        #           1.50では無効にならない
+        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+            if mask and back.can_mask:
+                self.image.set_colorkey(self.image.get_at((0, 0)))
+        else:
+            if mask and (parent is None or back.can_mask):
+                self.image.set_colorkey(self.image.get_at((0, 0)))
 
 class JpyCache(object):
     """Jpy1ファイル読み込み時に使うキャッシュ。
