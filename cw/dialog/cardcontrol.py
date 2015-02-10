@@ -1481,6 +1481,8 @@ class CardHolder(CardControl):
                 self.sort.Select(2)
             elif sorttype == "Type":
                 self.sort.Select(3)
+            elif sorttype == "Price":
+                self.sort.Select(4)
             else:
                 self.sort.Select(0)
 
