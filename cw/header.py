@@ -554,46 +554,42 @@ class CardHeader(object):
         return bool(self._owner == "STOREHOUSE")
 
     def is_autoselectable(self):
-        # 対象無し
         card = self.ref_original()
 
         if card.type == "ItemCard" and card.recycle and card.uselimit <= 0:
             # 使用回数0(リサイクルカードのみ)
             return False
 
-        flag = not bool(card.target == "None")
+        if card.hold and not card.penalty and card.type <> "BeastCard":
+            # ホールド(ペナルティカード以外)
+            return False
 
-        # 使用時ボーナス・ペナルティがあるカードは無条件に選択可能
-        if not card.hold:
+        # 対象無しまたは効果無し
+        noeffect = bool(card.target == "None")
+        if not card.carddata is None:
+            noeffect |= card.carddata.find("Motions/Motion") is None
+
+        owner = card.get_owner()
+        silence = False
+        if not card.carddata is None and owner:
+            # 沈黙
+            spell = card.carddata.getbool("Property/EffectType", "spell", False)
+            silence |= owner.is_silence() and spell
+
+            # 魔法無効状態
+            effecttype = card.carddata.gettext("Property/EffectType", "")
+            magic = effecttype in ("Magic", "PhysicalMagic")
+            silence |= owner.is_antimagic() and magic
+
+        if not silence:
+            # 使用時ボーナス・ペナルティがあるカードは効果がなくても選択可能
+            # ただしCardWirthでは沈黙・魔法無効化の影響は受ける
             if card.enhance_avo_used <> 0 or\
                card.enhance_res_used <> 0 or\
                card.enhance_def_used <> 0:
                 return True
 
-        # ペナルティカードは無条件に選択可能(ホールドも不可)
-        if card.type <> "BeastCard" and card.penalty:
-            return True
-
-        if not card.carddata is None:
-            # 効果無し
-            flag &= not card.carddata.find("Motions/Motion") is None
-
-        if card.type <> "BeastCard":
-            # ホールド
-            flag &= not card.hold
-
-            owner = card.get_owner()
-            if not card.carddata is None and owner:
-                # 沈黙
-                spell = card.carddata.getbool("Property/EffectType", "spell", False)
-                flag &= not (owner.is_silence() and spell)
-
-                # 魔法無効状態
-                effecttype = card.carddata.gettext("Property/EffectType", "")
-                magic = effecttype in ("Magic", "PhysicalMagic")
-                flag &= not (owner.is_antimagic() and magic)
-
-        return flag
+        return not (noeffect or silence)
 
     def get_targets(self):
         """
