@@ -44,6 +44,7 @@ class CardImage(Image):
     def update_scale(self):
         self._bmp = None
         self._wxbmp = None
+        self._upwin = 0
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
 
@@ -197,8 +198,9 @@ class CardImage(Image):
         return pygame.transform.scale(negaimg, size)
 
     def get_wxbmp(self):
-        if self._wxbmp:
+        if self._wxbmp and self._upwin == cw.UP_WIN:
             return cw.util.copy_wxbmp(self._wxbmp)
+        self._upwin = cw.UP_WIN
 
         w, h = self.wxrect.size
         bmp = wx.EmptyBitmap(w, h)
