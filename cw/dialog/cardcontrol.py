@@ -936,7 +936,7 @@ class CardControl(wx.Dialog):
 
         # 使用回数が0以下だったら処理中止
         if header.uselimit <= 0 and not header.type == "BeastCard":
-            if not header.type == "ItemCard" or not header.maxuselimit == 0:
+            if not header.type == "ItemCard" or header.recycle or not header.maxuselimit == 0:
                 cw.cwpy.sounds["error"].play()
                 return False
 

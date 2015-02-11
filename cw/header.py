@@ -166,7 +166,7 @@ class CardHeader(object):
         # 特殊なキーコード
         self.keycodes.append(self.name)
         self.penalty = bool(u"ペナルティ" in self.keycodes)
-        self.recycle = bool(u"リサイクル" in self.keycodes)
+        self.recycle = bool(self.type == "ItemCard" and u"リサイクル" in self.keycodes)
 
         # 所持スキルカードだった場合は使用回数を設定
         if self.is_ccardheader() and self.type == "SkillCard":
@@ -556,6 +556,11 @@ class CardHeader(object):
     def is_autoselectable(self):
         # 対象無し
         card = self.ref_original()
+
+        if card.type == "ItemCard" and card.recycle and card.uselimit <= 0:
+            # 使用回数0(リサイクルカードのみ)
+            return False
+
         flag = not bool(card.target == "None")
 
         # 使用時ボーナス・ペナルティがあるカードは無条件に選択可能
@@ -576,10 +581,6 @@ class CardHeader(object):
         if card.type <> "BeastCard":
             # ホールド
             flag &= not card.hold
-
-            if card.type == "ItemCard":
-                # 使用回数0(リサイクルカードのみ)
-                flag &= not bool(card.recycle and card.uselimit <= 0)
 
             owner = card.get_owner()
             if not card.carddata is None and owner:
