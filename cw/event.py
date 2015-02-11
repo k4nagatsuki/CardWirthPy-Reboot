@@ -795,7 +795,7 @@ class CardEvent(Event):
         spellcard = data.getbool("Property/EffectType", "spell", False)
         magiccard = data.gettext("Property/EffectType", "None") in ("Magic", "PhysicalMagic")
         flag = bool(spellcard and self.user.is_silence())
-        flag |= bool(magiccard and self.user.is_antimagic())
+        flag |= bool(magiccard and self.user.is_antimagic() and data.tag <> "BeastCard")
         flag |= bool(0 < level and not self.user.decide_misfire(level))
 
         if flag:

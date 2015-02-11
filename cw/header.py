@@ -576,10 +576,11 @@ class CardHeader(object):
             spell = card.carddata.getbool("Property/EffectType", "spell", False)
             silence |= owner.is_silence() and spell
 
-            # 魔法無効状態
-            effecttype = card.carddata.gettext("Property/EffectType", "")
-            magic = effecttype in ("Magic", "PhysicalMagic")
-            silence |= owner.is_antimagic() and magic
+            if card.type <> "BeastCard":
+                # 魔法無効状態
+                effecttype = card.carddata.gettext("Property/EffectType", "")
+                magic = effecttype in ("Magic", "PhysicalMagic")
+                silence |= owner.is_antimagic() and magic
 
         if not silence:
             # 使用時ボーナス・ペナルティがあるカードは効果がなくても選択可能
