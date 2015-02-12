@@ -1042,6 +1042,11 @@ def get_effectivetargets(header, targets):
                                     if t in ts:
                                         ts.remove(t)
                                         break
+                    if ts and header.allrange:
+                        # 一部だけ取り除かれている可能性があるので
+                        # 改めて全員追加
+                        ts = []
+                        ts.extend(targets)
                 setshp.extend(ts)
 
     return narrow(sets), narrow(setshp)

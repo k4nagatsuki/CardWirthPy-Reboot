@@ -789,19 +789,18 @@ class Character(object):
             if cw.cwpy.pre_dialogs:
                 cw.cwpy.pre_dialogs.pop()
 
-        if cw.cwpy.battle and target:
-            seq = []
-            if header:
-                seq.append((target, header))
-            seq.extend(beasts)
-
-            for target, h in seq:
-                for e in h.carddata.getfind("Motions"):
-                    t = e.get("type", "")
-                    if t:
-                        cw.cwpy.battle.priorityacts.append((t, target, self))
+        if cw.cwpy.battle and target and header:
+            # 召喚獣は個々の選択時に優先行動済みリストへ追加される
+            self._add_priorityacts(target, header)
 
         self.actionend = False
+
+    def _add_priorityacts(self, target, h):
+        if cw.cwpy.battle and target and h:
+            for e in h.carddata.getfind("Motions"):
+                t = e.get("type", "")
+                if t:
+                    cw.cwpy.battle.priorityacts.append((t, target, self))
 
     def adjust_action(self):
         """
@@ -923,6 +922,8 @@ class Character(object):
                         targets = [cw.cwpy.dice.choice(efftargets)]
 
                     beasts.append((targets, header))
+                    # 優先行動済みリストへ追加する
+                    self._add_priorityacts(targets, header)
 
         # 行動不能時は召喚獣のみ
         if self.is_inactive():
