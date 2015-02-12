@@ -1646,6 +1646,7 @@ class PlayerSelect(MultiViewSelect):
             self.index %= len(self.list)
         else:
             self.index = 0
+        self.enable_btn()
 
     def OnNumberKeyDown(self, event):
         """
@@ -1669,6 +1670,7 @@ class PlayerSelect(MultiViewSelect):
             self.newbtn.Enable()
             self.closebtn.Enable()
             self.exbtn.Enable()
+            self.viewbtn.Enable()
         elif len(self.list) <= self.views:
             self._enable_btn()
             self.rightbtn.Disable()
