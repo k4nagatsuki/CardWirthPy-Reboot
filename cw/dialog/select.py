@@ -1511,8 +1511,6 @@ class PlayerSelect(MultiViewSelect):
         else:
             self.sort.Select(0)
 
-        self.update_narrowcondition()
-
         # add
         self.addbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_ADD, cw.wins((50, 24)), cw.cwpy.msgs["add_member"])
         self.buttonlist.append(self.addbtn)
@@ -1531,8 +1529,9 @@ class PlayerSelect(MultiViewSelect):
         # close
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((50, 24)), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
-        # enable btn
-        self.enable_btn()
+
+        self.update_narrowcondition()
+
         # layout
         self._do_layout()
         # bind
