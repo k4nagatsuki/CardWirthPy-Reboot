@@ -1315,7 +1315,7 @@ class CardPanel(wx.Panel):
             # カード名
             s = header.name
             size = dc.GetTextExtent(s)
-            if header.type in ("ItemCard", "BeastCard") and header.uselimit:
+            if header.type in ("ItemCard", "BeastCard") and (header.uselimit or header.recycle):
                 s += "(%d)" % header.uselimit
 
             if header.negaflag:

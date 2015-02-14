@@ -980,7 +980,8 @@ class EffectMotion(object):
             if cwxpath:
                 e.attrib["cwxpath"] = cwxpath
             self.duration = e.getint("Property/UseLimit")
-            duration = self.calc_durationvalue(False)
+            recycle = u"リサイクル" in cw.util.decodetextlist(e.gettext("Property/KeyCodes", u""))
+            duration = self.calc_durationvalue(recycle)
             e.find("Property/UseLimit").text = str(duration)
             eff |= target.set_beast(e)
         return eff

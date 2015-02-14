@@ -166,7 +166,7 @@ class CardHeader(object):
         # 特殊なキーコード
         self.keycodes.append(self.name)
         self.penalty = bool(u"ペナルティ" in self.keycodes)
-        self.recycle = bool(self.type == "ItemCard" and u"リサイクル" in self.keycodes)
+        self.recycle = bool(self.type in ("ItemCard", "BeastCard") and u"リサイクル" in self.keycodes and self.attachment)
 
         # 所持スキルカードだった場合は使用回数を設定
         if self.is_ccardheader() and self.type == "SkillCard":
@@ -414,7 +414,7 @@ class CardHeader(object):
             owner.data.is_edited = True
 
             # カード消滅処理
-            if header.uselimit <= 0:
+            if header.uselimit <= 0 and not header.recycle and header.get_owner() == owner:
                 # 召喚獣消去効果で消えてる場合もあるのでチェック
                 if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
@@ -556,7 +556,7 @@ class CardHeader(object):
     def is_autoselectable(self):
         card = self.ref_original()
 
-        if card.type == "ItemCard" and card.recycle and card.uselimit <= 0:
+        if card.recycle and card.uselimit <= 0:
             # 使用回数0(リサイクルカードのみ)
             return False
 

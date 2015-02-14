@@ -1975,18 +1975,20 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
     # 召喚獣カードの場合、付帯属性を操作する
     # 召喚獣獲得コンテントないしデバッガからの配布であれば、必ず付帯能力に
     if etree.getroot().tag == "BeastCard":
-        if not notscenariocard or fromdebugger:
-            s = "True"
+        if not notscenariocard or fromdebugger or from_getcontent:
+            attachment = True
         else:
-            if etree.gettext("Property/UseLimit") == "0":
+            attachment = False
+
+        if etree.gettext("Property/UseLimit") == "0":
+            recycle = u"リサイクル" in cw.util.decodetextlist(etree.gettext("Property/KeyCodes"))
+            if not (recycle and attachment) and not attachment:
                 etree.edit("Property/UseLimit", "1")
 
-            s = "False"
-
         if etree.hasfind("Property/Attachment"):
-            etree.edit("Property/Attachment", s)
+            etree.edit("Property/Attachment", str(attachment))
         else:
-            e = etree.make_element("Attachment", s)
+            e = etree.make_element("Attachment", str(attachment))
             etree.append("Property", e)
 
     # カード移動操作

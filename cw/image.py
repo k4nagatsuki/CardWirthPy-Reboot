@@ -132,7 +132,7 @@ class CardImage(Image):
             uselimit, maxn = header.get_uselimit()
 
             # 使用回数(数字)
-            if maxn or header.recycle or (header.type == "BeastCard" and not header.attachment):
+            if maxn or header.recycle or (header.type == "BeastCard" and maxn):
                 font = cw.cwpy.rsrc.fonts["card_uselimit"]
                 s = str(uselimit)
                 pos = cw.s((5, 90))
@@ -280,7 +280,7 @@ class CardImage(Image):
             uselimit, maxn = header.get_uselimit()
 
             # 使用回数(数字)
-            if maxn or header.recycle or (header.type == "BeastCard" and not header.attachment):
+            if maxn or header.recycle or (header.type == "BeastCard" and maxn):
                 font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(18), weight=wx.NORMAL)
                 dc.SetFont(font)
                 s = str(uselimit)
