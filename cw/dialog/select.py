@@ -314,7 +314,7 @@ class Select(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
         self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition"])
         self.narrow_label.SetFont(font)
-        self.narrow = wx.TextCtrl(self, -1, size=(-1, -1))
+        self.narrow = wx.TextCtrl(self, -1, size=(cw.wins(0), -1))
         self.narrow.SetFont(font)
         self.narrow.SetValue(narrowtext)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
