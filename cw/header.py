@@ -146,7 +146,8 @@ class CardHeader(object):
             self.price = 1000
 
         # シナリオ取得フラグ
-        if from_scenario or (self.carddata is not None and self.carddata.get("scenariocard")):
+        scenariocard = not (self.carddata is None) and self.carddata.getbool(".", "scenariocard", False)
+        if from_scenario or (self.carddata is not None) and scenariocard:
             self.scenariocard = True
             if scedir:
                 self.scedir = scedir
@@ -166,7 +167,13 @@ class CardHeader(object):
         # 特殊なキーコード
         self.keycodes.append(self.name)
         self.penalty = bool(u"ペナルティ" in self.keycodes)
-        self.recycle = bool(self.type in ("ItemCard", "BeastCard") and u"リサイクル" in self.keycodes and self.attachment)
+        if not scenariocard and self.type == "BeastCard" and isinstance(owner, (cw.character.Friend, cw.character.Enemy)):
+            # 最初から持っていた使用回数ありリサイクル召喚獣に限っては
+            # 付帯能力でなくてもリサイクル状態が有効になる
+            reattachment = True
+        else:
+            reattachment = self.attachment
+        self.recycle = bool(self.type in ("ItemCard", "BeastCard") and u"リサイクル" in self.keycodes and reattachment)
 
         # 所持スキルカードだった場合は使用回数を設定
         if self.is_ccardheader() and self.type == "SkillCard":
