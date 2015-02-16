@@ -923,6 +923,7 @@ class CardControl(wx.Dialog):
     def check_using(self, owner, header):
         # 行動不能だったら使用不可
         if owner.is_inactive():
+            cw.cwpy.sounds["error"].play()
             if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["inactive"] % owner.name
                 dlg = message.Message(self, cw.cwpy.msgs["message"], s)
@@ -930,8 +931,6 @@ class CardControl(wx.Dialog):
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.closebtn.SetFocus()
-            else:
-                cw.cwpy.sounds["error"].play()
             return False
 
         # 使用回数が0以下だったら処理中止
@@ -942,6 +941,7 @@ class CardControl(wx.Dialog):
 
         # 戦闘中にペナルティカードを行動選択していたら処理中止
         if owner.is_autoselectedpenalty() and not cw.cwpy.debug:
+            cw.cwpy.sounds["error"].play()
             if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["selected_penalty"]
                 dlg = message.Message(self, cw.cwpy.msgs["message"], s)
@@ -949,8 +949,6 @@ class CardControl(wx.Dialog):
                 dlg.ShowModal()
                 dlg.Destroy()
                 self.closebtn.SetFocus()
-            else:
-                cw.cwpy.sounds["error"].play()
             return False
 
         return True
@@ -1513,6 +1511,7 @@ class CardHolder(CardControl):
 
         elif header.type == "UseCardInBackpack":
             if owner.is_inactive():
+                cw.cwpy.sounds["error"].play()
                 if cw.cwpy.setting.noticeimpossibleaction:
                     s = cw.cwpy.msgs["inactive"] % owner.name
                     dlg = message.Message(self, cw.cwpy.msgs["message"], s)
@@ -1520,8 +1519,6 @@ class CardHolder(CardControl):
                     dlg.ShowModal()
                     dlg.Destroy()
                     self.closebtn.SetFocus()
-                else:
-                    cw.cwpy.sounds["error"].play()
                 self.draw_cards()
                 return
             old_callname = self.callname

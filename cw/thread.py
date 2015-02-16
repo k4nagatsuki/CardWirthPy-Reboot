@@ -961,12 +961,12 @@ class CWPy(_Singleton, threading.Thread):
                     self.pre_dialogs.pop()
                     return
 
-                # 手札カードダイアログの選択者が
+                # 手札カードダイアログの選択者が行動不能か
                 # 対象消去されている場合は開かない
                 indexs = pre_info[1]
                 index2 = indexs[1]
                 if isinstance(index2, cw.character.Character) and\
-                        index2.is_vanished():
+                        (index2.is_vanished() or (not index2.is_active() and not cw.cwpy.setting.openhandviewalways)):
                     self.pre_dialogs.pop()
                     self.lock_menucards = False
                     return

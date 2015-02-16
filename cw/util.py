@@ -1331,6 +1331,8 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progres
             progress(i)
         name = decode_zipname(zname).replace('\\', '/')
         normpath = os.path.normpath(name)
+        if os.path.isabs(normpath):
+            continue
         if normpath == ".." or normpath.startswith(".." + os.path.sep):
             continue
 
