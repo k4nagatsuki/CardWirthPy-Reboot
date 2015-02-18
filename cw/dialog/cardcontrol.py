@@ -1444,7 +1444,9 @@ class CardHolder(CardControl):
             self.upbtn.Show()
             self.downbtn.Show()
             self.page.Show()
+            page = self.index+1
             self.page.SetMax((len(self.list)+9)/10 if len(self.list) > 0 else 1)
+            self.page.SetValue(page)
             if self.callname <> "INFOVIEW":
                 self.skillbtn.Hide()
                 self.itembtn.Hide()
