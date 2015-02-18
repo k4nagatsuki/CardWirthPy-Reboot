@@ -904,12 +904,14 @@ def number_normalization(value, fromvalue, tovalue):
         value += tovalue;
     return value;
 
-def print_ex():
+def print_ex(file=None):
     """例外の内容を標準出力に書き足す。
     """
+    if file is None:
+        file = sys.stdout
     exc_type, exc_value, exc_traceback = sys.exc_info()
-    traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-    print
+    traceback.print_exception(exc_type, exc_value, exc_traceback, file=file)
+    file.write("\n")
     return
 
 def screenshot():

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import io
 import re
 import copy
@@ -310,9 +311,9 @@ class ScenarioData(SystemData):
                 self._error = None
                 def run_decompress():
                     try:
-                        self.tempdir = decompress(self.fpath, self.tempdir, avoiddup=True, startup=startup, progress=progress)
+                        self.tempdir = decompress(self.fpath, self.tempdir, avoiddup=False, startup=startup, progress=progress)
                     except Exception, e:
-                        cw.util.print_ex()
+                        cw.util.print_ex(file=sys.stderr)
                         self._error = e
 
                 thr = threading.Thread(target=run_decompress)
