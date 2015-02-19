@@ -912,11 +912,12 @@ class CWPy(_Singleton, threading.Thread):
             cursor = pygame.cursors.compile(s, ".", "#", "o")
             pygame.mouse.set_cursor((24, 24), (7, 7), *cursor)
 
-        # FIXME: 一度マウスポインタを画面外へ出さないと変更されない
-        # FIXME: カーソルがワープしてしまうことがある？
-        ##pos = pygame.mouse.get_pos()
-        ##pygame.mouse.set_pos([-1, -1])
-        ##pygame.mouse.set_pos(pos)
+        # FIXME: 一度マウスポインタを移動しないと変更されない
+        pos = pygame.mouse.get_pos()
+        x = pos[0] - 1 if 0 < pos[0] else pos[0] + 1
+        y = pos[1] - 1 if 0 < pos[1] else pos[1] + 1
+        pygame.mouse.set_pos(x, y)
+        pygame.mouse.set_pos(pos)
 
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。
