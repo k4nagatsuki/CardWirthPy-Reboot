@@ -1874,6 +1874,9 @@ class Character(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+        if isinstance(self, cw.character.Friend):
+            # 1.50までは同行NPCに対象消去は効かない
+            return
         if not self.is_vanished():
             self._vanished = True
             cw.animation.animate_sprite(self, "delete")
