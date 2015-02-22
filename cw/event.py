@@ -156,11 +156,17 @@ class EventInterface(object):
         # フィールド全体
         elif scope == "Field":
             ccard = self.get_selectedmember()
-            if ccard:
+            if ccard and not (isinstance(ccard, cw.character.Enemy) and ccard.status == "hidden"):
                 seq.append(ccard)
-            seq.extend(cw.cwpy.get_pcards(mode))
-            seq.extend([cw.cwpy.ydata.party.backpack])
-            seq.extend(cw.cwpy.get_ecards(mode))
+            else:
+                ccard = None
+            seq2 = []
+            seq2.extend(cw.cwpy.get_pcards(mode))
+            seq2.extend([cw.cwpy.ydata.party.backpack])
+            seq2.extend(cw.cwpy.get_ecards(mode))
+            if ccard and ccard in seq2:
+                seq2.remove(ccard)
+            seq.extend(seq2)
         # 敵全体(1.30～)
         elif scope == "Enemy":
             seq = cw.cwpy.get_ecards(mode)
@@ -170,11 +176,17 @@ class EventInterface(object):
         # フィールド全体(キャストのみ)
         elif scope == "FieldCasts":
             ccard = self.get_selectedmember()
-            if ccard:
+            if ccard and not (isinstance(ccard, cw.character.Enemy) and ccard.status == "hidden"):
                 seq.append(ccard)
-            seq.extend(cw.cwpy.get_pcards(mode))
-            seq.extend(cw.cwpy.get_ecards(mode))
-            seq.extend(cw.cwpy.get_fcards(mode))
+            else:
+                ccard = None
+            seq2 = []
+            seq2.extend(cw.cwpy.get_pcards(mode))
+            seq2.extend(cw.cwpy.get_ecards(mode))
+            seq2.extend(cw.cwpy.get_fcards(mode))
+            if ccard and ccard in seq2:
+                seq2.remove(ccard)
+            seq.extend(seq2)
         else:
             raise ValueError(scope + " is invalid value.")
 
