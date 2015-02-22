@@ -388,9 +388,8 @@ class BattleEngine(object):
 
     def set_action(self):
         """戦闘参加メンバ全員、行動自動選択。"""
-        if cw.cwpy.get_ecards("unreversed"):
-            for member in self.members:
-                member.decide_action()
+        for member in self.members:
+            member.decide_action()
 
     def clear_playersaction(self):
         """PlayerCard, FriendCardの行動をクリアする。"""
