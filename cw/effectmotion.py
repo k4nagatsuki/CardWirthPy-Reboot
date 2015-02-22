@@ -1015,6 +1015,8 @@ def get_effectivetargets(header, targets):
             sets.append(targets[0])
             setshp.append(targets[0])
     else:
+        # カード効果を上から順に見ていき、対象の存在する効果があれば
+        # その効果の対象群を返す
         for motion in motions:
             sets.extend([t for t in targets if t.is_effective(motion)])
 
@@ -1049,6 +1051,11 @@ def get_effectivetargets(header, targets):
                         ts = []
                         ts.extend(targets)
                 setshp.extend(ts)
+
+            if sets or setshp:
+                # この効果での対象群が見つかったので
+                # その中から対象を選択する
+                break
 
     return narrow(sets), narrow(setshp)
 
