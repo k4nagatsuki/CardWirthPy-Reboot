@@ -221,20 +221,22 @@ class EventInterface(object):
 
     def has_selectedmember(self):
         """選択メンバが存在する場合はTrueを返す。"""
-        return bool(self._selectedmember)
+        return bool(self._selectedmember and\
+           not (isinstance(self._selectedmember, cw.character.Character) and\
+                self._selectedmember.is_vanished()))
 
     def get_selectedmember(self):
         """選択中のPlayerCardインスタンスを返す。
         存在しなかったらランダムで選択して返す。
         """
-        if not self._selectedmember or\
-                (not isinstance(self._selectedmember, cw.sprite.card.EnemyCard) and\
-                 self._selectedmember.is_vanished()) or\
-                (isinstance(self._selectedmember, cw.sprite.card.EnemyCard) and\
-                 self._selectedmember.status == "hidden"):
+        if not self.has_selectedmember():
             self.set_selectedmember(self.get_randommember())
 
         return self._selectedmember
+
+    def clear_selectedmember(self):
+        """選択中のメンバをクリアする。"""
+        self._selectedmember = None
 
     def get_unselectedmember(self):
         """選択外のPlayerCardインスタンスを返す。"""

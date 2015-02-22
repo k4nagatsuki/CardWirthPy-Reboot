@@ -2225,6 +2225,14 @@ class Enemy(Character):
         b |= self.status == "hidden"
         return b
 
+    def is_inactive(self):
+        """
+        敵は隠蔽状態であれば行動不能と見做す。
+        """
+        b = Character.is_inactive(self)
+        b |= self.status == "hidden"
+        return b
+
 class Friend(Character):
     pass
 

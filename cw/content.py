@@ -1720,6 +1720,13 @@ class EffectContent(EventContentBase):
         """効果コンテント。"""
 
         target = cw.cwpy.event.get_targetmember(self.targetm)
+        if self.targetm == "Selected" and target and\
+                isinstance(target, cw.character.Enemy) and\
+                target.status == "hidden":
+            # BUG: CardWirthではフラグによって隠蔽状態の敵に
+            #      効果を適用しようとした場合にメンバ選択が解除される
+            cw.cwpy.event.clear_selectedmember()
+            return 0
 
         # 対象メンバに効果モーションを適用
         if isinstance(target, list):
