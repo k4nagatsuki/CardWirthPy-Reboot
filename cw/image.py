@@ -369,15 +369,67 @@ class LargeCardImage(CardImage):
         subimg = cw.s((cw.util.load_image(self.path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
         image.blit(subimg, cw.s((10, 23)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
-        subimg = font.render(self.name, True, (0, 0, 0))
-        w, h = subimg.get_size()
+        if self.name:
+            subimg = font.render(self.name, True, (0, 0, 0))
+            w, h = subimg.get_size()
 
-        if w + cw.s(3) > self.rect.w:
-            size = (self.rect.w - cw.s(12), h)
-            subimg = cw.image.smoothscale(subimg, size)
+            if w + cw.s(3) > self.rect.w:
+                size = (self.rect.w - cw.s(12), h)
+                subimg = cw.image.smoothscale(subimg, size)
 
-        image.blit(subimg, cw.s((6, 6)))
+            image.blit(subimg, cw.s((6, 6)))
         return image
+
+    def get_wxbmp(self):
+        w = self.wxcardbg.GetWidth()
+        h = self.wxcardbg.GetHeight()
+        bmp = wx.EmptyBitmap(w, h)
+        dc = wx.MemoryDC()
+        dc.SelectObject(bmp)
+        dc.DrawBitmap(self.wxcardbg, 0, 0, False)
+
+        # プレミア画像
+        if self.premium == "Rare":
+            subimg = cw.cwpy.rsrc.wxcardbgs["RARE"]
+            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(64), True)
+        elif self.premium == "Premium":
+            subimg = cw.cwpy.rsrc.wxcardbgs["PREMIER"]
+            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(41), True)
+
+        subimg = cw.util.load_wxbmp(self.path, True)
+        subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+        dc.DrawBitmap(subimg, cw.wins(10), cw.wins(23), True)
+        font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+        dc.SetFont(font)
+        if self.name:
+            w, h = dc.GetTextExtent(self.name)
+            subimg = wx.EmptyBitmap(w, h)
+            dc.SelectObject(subimg)
+            dc.SetBrush(wx.BLACK_BRUSH)
+            dc.SetPen(wx.BLACK_PEN)
+            dc.DrawRectangle(-1, -1, w + 2, h + 2)
+            dc.SetTextForeground(wx.WHITE)
+            dc.DrawText(self.name, cw.wins(0), cw.wins(0))
+            dc.SelectObject(bmp)
+            subimg = subimg.ConvertToImage()
+            subimg.ConvertColourToAlpha(0, 0, 0)
+
+            left = cw.wins(6)
+            if w/2 + left*2 > w:
+                size = (w - left*2, h/2)
+                subimg = subimg.Rescale(size[0], h/2, quality=cw.RESCALE_QUALITY)
+            else:
+                subimg = subimg.Rescale(w/2, h/2, quality=cw.RESCALE_QUALITY)
+
+            subimg = subimg.ConvertToBitmap()
+
+            dc.DrawBitmap(subimg, left, cw.wins(6))
+
+        dc.SelectObject(wx.NullBitmap)
+
+        return bmp
 
 class CharacterCardImage(CardImage):
     def __init__(self, ccard, pos_noscale=(0, 0), scaleinfo=None):
@@ -411,13 +463,16 @@ class CharacterCardImage(CardImage):
         self.cardimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
 
     def set_nameimg(self, name):
-        font = cw.cwpy.rsrc.fonts["pcard_name"]
-        self.nameimg = font.render(name, True, (0, 0, 0))
-        w, h = self.nameimg.get_size()
+        if name:
+            font = cw.cwpy.rsrc.fonts["pcard_name"]
+            self.nameimg = font.render(name, True, (0, 0, 0))
+            w, h = self.nameimg.get_size()
 
-        if w + cw.s(14) > cw.s(95):
-            size = (cw.s(95 - 14), h)
-            self.nameimg = cw.image.smoothscale(self.nameimg, size)
+            if w + cw.s(14) > cw.s(95):
+                size = (cw.s(95 - 14), h)
+                self.nameimg = cw.image.smoothscale(self.nameimg, size)
+        else:
+            self.nameimg = None
 
     def set_levelimg(self, level):
         font = cw.cwpy.rsrc.fonts["pcard_level"]
@@ -461,12 +516,13 @@ class CharacterCardImage(CardImage):
         self.image.blit(self.cardimg, (x, y))
 
         # 名前
-        if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
-            nameimg = self.nameimg.copy()
-            nameimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
-        else:
-            nameimg = self.nameimg
-        self.image.blit(nameimg, cw.s((7, 4)))
+        if self.nameimg:
+            if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
+                nameimg = self.nameimg.copy()
+                nameimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+            else:
+                nameimg = self.nameimg
+            self.image.blit(nameimg, cw.s((7, 4)))
 
         # ライフ
         if ccard.is_analyzable():
