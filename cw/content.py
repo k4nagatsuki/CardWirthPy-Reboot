@@ -3423,13 +3423,19 @@ class PostEventContent(EventContentBase):
             methodname = methoddict[command]
             method = getattr(cw.cwpy, methodname)
 
-            if methodname == "call_dlg":
-                cw.cwpy.lock_menucards = True
+            lock_menucards = cw.cwpy.lock_menucards
+            cw.cwpy.lock_menucards = True
 
             if arg:
                 cw.cwpy.exec_func(method, arg)
             else:
                 cw.cwpy.exec_func(method)
+
+            # ダイアログのコールの場合はcall_dlgでロックが解除される
+            if methodname <> "call_dlg":
+                def func():
+                    cw.cwpy.lock_menucards = lock_menucards
+                cw.cwpy.exec_func(func)
 
 #-------------------------------------------------------------------------------
 # コンテント取得用関数
