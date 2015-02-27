@@ -1332,12 +1332,16 @@ class PartySelect(MultiViewSelect):
                 if os.path.isfile(fpath):
                     fpath = cw.header.GetProperty(fpath).properties.get("ImagePath", "")
                     fpath = cw.util.join_yadodir(fpath)
-                    bmp2 = cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE))
-                    w = bmp2.GetWidth() // 2
-                    h = bmp2.GetHeight() // 2
-                    img = bmp2.ConvertToImage()
-                    img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
-                    bmp2 = img.ConvertToBitmap()
+                    if os.path.isfile(fpath):
+                        bmp2 = cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE))
+                        w = bmp2.GetWidth() // 2
+                        h = bmp2.GetHeight() // 2
+                        if w and h:
+                            img = bmp2.ConvertToImage()
+                            img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
+                            bmp2 = img.ConvertToBitmap()
+                        else:
+                            bmp2 = None
             return bmp, bmp2, sceheader
 
         if self.views == 1:
