@@ -1641,6 +1641,13 @@ class CWPy(_Singleton, threading.Thread):
         if not startotherscenario:
             self.set_yado()
 
+        if self.lastsound_scenario:
+            self.lastsound_scenario.stop(True)
+            self.lastsound_scenario = None
+        if self.lastsound_system:
+            self.lastsound_system.stop(False)
+            self.lastsound_system = None
+
     def reload_yado(self):
         """現在の宿をロード。"""
         # イベントを中止
