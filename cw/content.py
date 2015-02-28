@@ -364,7 +364,8 @@ class BranchContent(EventContentBase):
                         except:
                             name = -2
 
-                    self._index_table[name] = index
+                    if not name in self._index_table:
+                        self._index_table[name] = index
                     if self._index_default < 0 and name == -1:
                         self._index_default = index
                     checkedlist.append((checker, name))
