@@ -235,7 +235,11 @@ class BranchContent(EventContentBase):
                 cw.cwpy.event.set_selectedmember(selectedmember)
             elif not someone:
                 selectedmember = cw.cwpy.event.get_targetmember("Random")
-                cw.cwpy.event.set_selectedmember(selectedmember)
+                if selectedmember:
+                    cw.cwpy.event.set_selectedmember(selectedmember)
+                else:
+                    # BUG: 全員隠蔽状態の時は成功する(CardWirth 1.50)
+                    flag = True
 
         return self.get_boolean_index(flag)
 
@@ -908,6 +912,7 @@ class BranchCouponContent(BranchContent):
         # 選択メンバで分岐した際に限り、全員隠蔽 = 選択メンバがいないと常に失敗
         # FIXME: 確実な仕様求ム
         if len(targets) == 0:
+            cw.cwpy.event.clear_selectedmember()
             return self.get_boolean_index(scope <> "Selected")
 
         for target in targets:
@@ -922,11 +927,15 @@ class BranchCouponContent(BranchContent):
                     break
 
         # 選択設定
-        if not scope == "Selected":
-            if not selectedmember:
-                selectedmember = cw.cwpy.event.get_targetmember("Random")
+        if scope <> "Selected":
+            if not selectedmember and scope == "Party" and not someone:
+                # パーティ全員を選択する場合は先頭のメンバが選択状態になる
+                selectedmember = cw.cwpy.event.get_targetmember("First", "unreversed")
 
-            cw.cwpy.event.set_selectedmember(selectedmember)
+            if selectedmember:
+                cw.cwpy.event.set_selectedmember(selectedmember)
+            else:
+                cw.cwpy.event.clear_selectedmember()
 
         return self.get_boolean_index(flag)
 

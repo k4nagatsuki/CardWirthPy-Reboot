@@ -167,9 +167,9 @@ class EventInterface(object):
             seq = cw.cwpy.get_fcards(mode)
         # フィールド全体(キャストのみ)
         elif scope == "FieldCasts":
+            # 同行キャストは対象外
             seq.extend(cw.cwpy.get_pcards(mode))
             seq.extend(cw.cwpy.get_ecards(mode))
-            seq.extend(cw.cwpy.get_fcards(mode))
         else:
             raise ValueError(scope + " is invalid value.")
 
@@ -198,6 +198,9 @@ class EventInterface(object):
         # パーティ全体(※リストで返す)
         elif targetm == "Party":
             target = cw.cwpy.get_pcards(mode)
+        # パーティ先頭
+        elif targetm == "First":
+            target = cw.cwpy.get_firstmember(mode)
         else:
             raise ValueError(targetm + " is invalid value.")
 
@@ -248,6 +251,12 @@ class EventInterface(object):
             pcards = [pcard for pcard in pcards if not pcard == selectedmember]
 
         return cw.cwpy.dice.choice(pcards)
+
+    def get_firstmember(self, mode):
+        """先頭のPlayerCardインスタンスを返す。
+        """
+        pcards = cw.cwpy.get_pcards(mode)
+        return pcards[0] if pcards else None
 
     def get_inusecard(self):
         """使用カード(CardHeaderインスタンス)を返す。"""
