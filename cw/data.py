@@ -272,8 +272,22 @@ class ScenarioData(SystemData):
         if os.path.isfile(self.fpath):
             # zip解凍・解凍したディレクトリを登録
             self.tempdir = cw.cwpy.recenthistory.check(self.fpath)
+
+            # 展開先のフォルダのサブフォルダ内にシナリオ本体がある場合、
+            # self.tempdirをサブフォルダに設定する
+            def findsummary_intemp():
+                fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
+                fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
+                if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):
+                    for dpath, _dnames, fnames in os.walk(self.tempdir):
+                        if "Summary.wsm" in fnames or "Summary.xml" in fnames:
+                            # アーカイヴのサブフォルダにシナリオがある
+                            self.tempdir = dpath
+                            break
+
             if self.tempdir:
                 cw.cwpy.recenthistory.moveend(self.fpath)
+                findsummary_intemp()
             else:
                 self.tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
                 if self.fpath.lower().endswith(".cab"):
@@ -333,19 +347,8 @@ class ScenarioData(SystemData):
                     raise self._error
 
                 # 展開完了
-                fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
-                fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
-                if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):
-                    for dpath, _dnames, fnames in os.walk(self.tempdir):
-                        if "Summary.wsm" in fnames or "Summary.xml" in fnames:
-                            # アーカイヴのサブフォルダにシナリオがあるので
-                            # tempdirの位置に移動する
-                            dpath2 = cw.binary.util.check_duplicate(self.tempdir)
-                            shutil.move(dpath, dpath2)
-                            cw.util.remove_tree(self.tempdir)
-                            self.tempdir = dpath2
-                            break
                 cw.cwpy.recenthistory.append(self.fpath, self.tempdir)
+                findsummary_intemp()
         else:
             # 展開済みシナリオ
             self.tempdir = self.fpath
