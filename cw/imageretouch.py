@@ -824,6 +824,8 @@ class Font(object):
             if face in names:
                 path = cw.util.join_paths(u"Data/Font", ttf)
                 if os.path.isfile(path):
+                    if pixels < 0:
+                        pixels = -pixels
                     font = pygame.font.Font(path, pixels)
                     if bold:
                         font.set_bold(bold)
@@ -844,12 +846,16 @@ class Font(object):
                 self.underline = False
                 self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic);
             except:
+                if pixels < 0:
+                    pixels = -pixels
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
                 self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
         else:
             encoding = sys.getfilesystemencoding()
             face = face.encode(encoding)
+            if pixels < 0:
+                pixels = -pixels
             self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
 
     def __del__(self):

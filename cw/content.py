@@ -879,6 +879,22 @@ class BranchCouponContent(BranchContent):
     def action(self):
         """称号存在分岐コンテント。"""
         coupon = self.data.get("coupon")
+
+        if coupon.startswith(u"＠CardWirthPy Version."):
+            if coupon == u"＠CardWirthPy Version.0.12.2 Only":
+                # 現在のバージョンが0.12.2か判定する特殊クーポン
+                return self.get_boolean_index(True)
+            elif not coupon.endswith(u" Only"):
+                rpos = coupon.rfind(".")
+                try:
+                    # 現行のバージョンが0.12.2以下か判定する特殊クーポン
+                    # (ただし0.12.1以前はバージョン識別子機能が無いため除外する)
+                    ver = int(coupon[rpos+1:])
+                    if 2 <= ver and ver <= 2:
+                        return self.get_boolean_index(True)
+                except:
+                    pass
+
         scope = self.data.get("targets")
 
         # 対象範囲修正
@@ -909,9 +925,11 @@ class BranchCouponContent(BranchContent):
         flag = False
         selectedmember = None
 
-        # BUG: CW1.28～1.50のバグ？：判定対象がないと否応なくTrue？
-        # 選択メンバで分岐した際に限り、全員隠蔽 = 選択メンバがいないと常に失敗
-        # FIXME: 確実な仕様求ム
+        # BUG: CardWirthでは複数の判定対象が想定される条件
+        #      (「選択中のメンバ」以外)で、全員隠蔽等で
+        #      判定対象が0人の時に絶対成功する。
+        #      これは誰か一人が失敗した時点で判定がFalseとなって
+        #      終了といったような処理になっているためと思われる
         if len(targets) == 0:
             cw.cwpy.event.clear_selectedmember()
             return self.get_boolean_index(scope <> "Selected")

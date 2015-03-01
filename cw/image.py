@@ -757,12 +757,7 @@ def get_textcellfont(size, face, color, bold, italic,
     """テキストセル用のフォントを生成し、
     (font, lineheight)を返す。
     """
-    if size % 2 == 0:
-        # BUG: CardWirthでは偶数サイズは1px小さなサイズと同じになる。
-        #      将来データバージョンを上げる時に修正するべきかもしれない。
-        size -= cw.s(1)
-
-    font = cw.imageretouch.Font(face, size+cw.s(1), bold, italic)
+    font = cw.imageretouch.Font(face, -size, bold, italic)
     if uline:
         font.set_underline(True)
 
