@@ -825,6 +825,8 @@ class Font(object):
                 path = cw.util.join_paths(u"Data/Font", ttf)
                 if os.path.isfile(path):
                     if pixels < 0:
+                        # FIXME: CreateFont()で高さにマイナス値を指定した場合には
+                        #         行ではなく文字の高さでフォントが選択される
                         pixels = -pixels
                     font = pygame.font.Font(path, pixels)
                     if bold:
@@ -847,6 +849,8 @@ class Font(object):
                 self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic);
             except:
                 if pixels < 0:
+                    # FIXME: CreateFont()で高さにマイナス値を指定した場合には
+                    #         行ではなく文字の高さでフォントが選択される
                     pixels = -pixels
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
@@ -855,6 +859,8 @@ class Font(object):
             encoding = sys.getfilesystemencoding()
             face = face.encode(encoding)
             if pixels < 0:
+                # FIXME: CreateFont()で高さにマイナス値を指定した場合には
+                #         行ではなく文字の高さでフォントが選択される
                 pixels = -pixels
             self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
 
