@@ -824,6 +824,7 @@ class Frame(wx.Frame):
 
 class MyApp(wx.App):
     def OnInit(self):
+        wx.Log.SetLogLevel(wx.LOG_Error)
         self.SetAppName(cw.APP_NAME)
         self.SetVendorName("")
         skincount = get_skincount()
