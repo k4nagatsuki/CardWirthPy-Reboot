@@ -200,7 +200,7 @@ class EventInterface(object):
             target = cw.cwpy.get_pcards(mode)
         # パーティ先頭
         elif targetm == "First":
-            target = cw.cwpy.get_firstmember(mode)
+            target = self.get_firstmember(mode)
         else:
             raise ValueError(targetm + " is invalid value.")
 
