@@ -2927,7 +2927,7 @@ class ScenarioSelect(Select):
                     self.updatenames_thr.quit = True
                     self.updatenames_thr = None
                 self.names = [u"読込中..."]
-                self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:])
+                self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:], startdir=dpath, expandedset=set())
                 self.updatenames_thr.start()
 
             # Folder.bmpチェック
@@ -3255,25 +3255,44 @@ class ScenarioSelect(Select):
                 break
 
     def OnTreeItemExpanded(self, event):
+        if self._processing:
+            return
+
+        selitem = event.GetItem()
+        data = self.tree.GetItemPyData(selitem)
+        if data is None:
+            return
+        _index, dpath = data
+        self._expandeditem(selitem, startdir=dpath, expandedset=set())
+
+    def _expandeditem(self, selitem, startdir, expandedset):
         if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
             return
         if self._processing:
             return
-        selitem = event.GetItem()
+
         item, _cookie = self.tree.GetFirstChild(selitem)
         data = self.tree.GetItemPyData(item)
         if not data is None:
             # 読込済み
             return
 
+        _index, dpath = self.tree.GetItemPyData(selitem)
+        ndpath = cw.util.get_linktarget(dpath)
+        ndpath = os.path.abspath(ndpath)
+        ndpath = os.path.normpath(ndpath)
+        ndpath = os.path.normcase(ndpath)
+        if ndpath in expandedset:
+            return
+        expandedset.add(ndpath)
+
         if self.updatenames_thr:
             self.updatenames_thr.quit = True
             self.updatenames_thr = None
         self.names = [u"読込中..."]
-        _index, dpath = self.tree.GetItemPyData(selitem)
         paritem = self.tree.GetItemParent(selitem)
         dirstack = self.get_dirstack(paritem)
-        self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack)
+        self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack, startdir=startdir, expandedset=expandedset)
         self.updatenames_thr.start()
 
     def OnTreeItemCollapsed(self, event):
@@ -3341,7 +3360,7 @@ class ScenarioSelect(Select):
             item, cookie = self.tree.GetNextChild(item, cookie)
             i += 1
 
-    def updated_names(self, dpath, dirstack):
+    def updated_names(self, dpath, dirstack, startdir, expandedset):
         if not self.tree.IsShown():
             self.Refresh()
             return
@@ -3377,6 +3396,50 @@ class ScenarioSelect(Select):
         if item and item.IsOk():
             # ディレクトリの内容を表示
             self.create_treeitems(item)
+
+        # 次のディレクトリを展開する
+        ##baseitem = item
+        ##
+        ##def expand(item):
+        ##    data = self.tree.GetItemPyData(item)
+        ##    if not data is None:
+        ##        index, header = data
+        ##        if not isinstance(header, cw.header.ScenarioHeader):
+        ##            ndpath = cw.util.get_linktarget(header)
+        ##            ndpath = os.path.abspath(ndpath)
+        ##            ndpath = os.path.normpath(ndpath)
+        ##            ndpath = os.path.normcase(ndpath)
+        ##            if ndpath in expandedset:
+        ##                return False
+        ##
+        ##            processing = self._processing
+        ##            self._processing = True
+        ##            self.tree.Expand(item)
+        ##            self._processing = processing
+        ##            self._expandeditem(item, startdir, expandedset)
+        ##            return True
+        ##    return False
+        ##
+        ### サブディレクトリを優先して展開
+        ##item, cookie = self.tree.GetFirstChild(baseitem)
+        ##while item.IsOk():
+        ##    if expand(item):
+        ##        return
+        ##    item, cookie = self.tree.GetNextChild(item, cookie)
+        ##
+        ### サブディレクトリがない場合は次のアイテムを選択
+        ### それもない場合は上位ディレクトリへ遡る
+        ##while baseitem and baseitem.IsOk():
+        ##    data = self.tree.GetItemPyData(baseitem)
+        ##    if data and data[1] == startdir:
+        ##        return
+        ##
+        ##    item = self.tree.GetNextSibling(baseitem)
+        ##    if item and item.IsOk():
+        ##        if expand(item):
+        ##            return
+        ##    # 一つ上へ辿って次のフォルダを探す
+        ##    baseitem = self.tree.GetItemParent(baseitem)
 
     def _narrow_scenario(self, headers):
         """設定に応じて表示しないシナリオを除去する。"""
@@ -3759,13 +3822,15 @@ class ScenarioSelect(Select):
 
 class UpdateNamesThread(threading.Thread):
 
-    def __init__(self, dlg, dpath, dirstack):
+    def __init__(self, dlg, dpath, dirstack, startdir, expandedset):
         threading.Thread.__init__(self)
         self.dlg = dlg
         self.dpath = dpath
         self.dirstack = dirstack
         self.dpaths = dlg.get_dpaths(dpath)
         self.quit = False
+        self.startdir = startdir
+        self.expandedset = expandedset
 
     def run(self):
         """ScenarioSelectで現在表示中のディレクトリ内の
@@ -3795,7 +3860,7 @@ class UpdateNamesThread(threading.Thread):
             if self.dlg:
                 self.dlg.names = dnames + headers
                 if self.quit: return
-                wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack)
+                wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack, self.startdir, self.expandedset)
                 self.dlg.updatenames_thr = None
         cw.cwpy.frame.exec_func(func)
 
