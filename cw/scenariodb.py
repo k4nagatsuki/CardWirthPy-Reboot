@@ -19,6 +19,10 @@ _lock = threading.Lock()
 TYPE_WSN = 0
 TYPE_CLASSIC = 1
 
+DATA_TITLE = 0
+DATA_AUTHOR = 1
+DATA_DESC = 2
+
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
 
@@ -345,6 +349,43 @@ class Scenariodb(object):
         for t in data:
             return self.create_header(t)
         return None
+
+    @synclock(_lock)
+    def find_headers(self, ftype, value):
+        if ftype == DATA_TITLE:
+            s = "SELECT * FROM scenariodb WHERE name LIKE ? ESCAPE '\\'"
+        elif ftype == DATA_AUTHOR:
+            s = "SELECT * FROM scenariodb WHERE author LIKE ? ESCAPE '\\'"
+        elif ftype == DATA_DESC:
+            s = "SELECT * FROM scenariodb WHERE desc LIKE ? ESCAPE '\\'"
+        else:
+            raise Exception()
+        value2 = value.replace("\\", "\\\\")
+        value2 = value2.replace("%", "\\%")
+        value2 = value2.replace("_", "\\_")
+        value2 = '%' + value2 + '%'
+        self.cur.execute(s, (value2,))
+        data = self.cur.fetchall()
+        headers, _names = self.create_headers(data)
+
+        # 情報が更新されている可能性があるため再チェック
+        seq = []
+        v = value.lower()
+        for header in headers:
+            if ftype == DATA_TITLE:
+                if not v in header.name.lower():
+                    continue
+            elif ftype == DATA_AUTHOR:
+                if not v in header.desc.lower():
+                    continue
+            elif ftype == DATA_DESC:
+                if not v in header.author.lower():
+                    continue
+            else:
+                assert False
+            seq.append(header)
+
+        return self.sort_headers(seq)
 
     def close(self):
         self.con.close()

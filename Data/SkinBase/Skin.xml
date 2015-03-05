@@ -663,5 +663,8 @@
     <Message key="show_fcards">同行キャストを表示する</Message>
     <Message key="random_team">自動編成</Message>
     <Message key="random_team_description">現在待機中のメンバから、近いレベルで異なる特性を持ったメンバを探して自動的にパーティを編成します。</Message>
+    <Message key="find_scenario">この条件でシナリオを検索</Message>
+    <Message key="find_result">検索結果</Message>
+    <Message key="find_notfound">該当なし</Message>
   </Messages>
 </Skin>

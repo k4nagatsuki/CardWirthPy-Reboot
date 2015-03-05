@@ -2322,6 +2322,9 @@ class ScenarioSelect(Select):
         # 現在進行中のシナリオパスの集合
         self.nowplayingpaths = cw.cwpy.ydata.get_nowplayingpaths()
 
+        # 検索結果
+        self.find_result = None
+
         # 絞込条件
         choices = (cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
@@ -2347,9 +2350,15 @@ class ScenarioSelect(Select):
         self.list = self._narrow_scenario(self.list)
         self.index = 0
 
+        # 検索
+        bmp = cw.wins(cw.cwpy.rsrc.debugs["FIND_SCENARIO"])
+        self.find = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(16)), bmp=bmp)
+        self.find.SetToolTip(wx.ToolTip(cw.cwpy.msgs["find_scenario"]))
+
         # ブックマーク
         bmp = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK"])
         self.bookmark = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(16)), bmp=bmp)
+        self.bookmark.SetToolTip(wx.ToolTip(cw.cwpy.msgs["bookmark"]))
 
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((400, 370)))
@@ -2366,6 +2375,7 @@ class ScenarioSelect(Select):
         self.tree.imgidx_playing = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"]))
         self.tree.imgidx_invisible = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"]))
         self.tree.imgidx_dir = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"]))
+        self.tree.imgidx_findresult = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["FIND_SCENARIO"]))
         self.tree.root = self.tree.AddRoot(self.scedir)
         self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
         self.tree.SetImageList(self.tree.imglist)
@@ -2410,6 +2420,7 @@ class ScenarioSelect(Select):
         self.tree.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 
         self.sort.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
+        self.find.Bind(wx.EVT_BUTTON, self.OnFind)
         self.bookmark.Bind(wx.EVT_BUTTON, self.OnBookmark)
 
         self.draw(True)
@@ -2492,9 +2503,64 @@ class ScenarioSelect(Select):
         nsizer.Add(self.sort_label, 0, wx.LEFT|wx.RIGHT|wx.CENTER, cw.wins(3))
         nsizer.Add(self.sort, 0, wx.CENTER|wx.EXPAND, 0)
 
+        nsizer.Add(self.find, 0, wx.CENTER|wx.EXPAND, 0)
         nsizer.Add(self.bookmark, 0, wx.CENTER|wx.EXPAND, 0)
 
         self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
+
+    def OnFind(self, event):
+        value = self.narrow.GetValue()
+        if not value:
+            return
+        cw.cwpy.sounds["harvest"].play()
+        narrow = self.narrow_type.GetSelection()
+        if narrow == 0:
+            ftype = cw.scenariodb.DATA_TITLE
+        elif narrow == 1:
+            ftype = cw.scenariodb.DATA_AUTHOR
+        elif narrow == 2:
+            ftype = cw.scenariodb.DATA_DESC
+        else:
+            assert False
+        headers = self.db.find_headers(ftype, value)
+
+        list = self.scetable[self.scedir]
+        if list and isinstance(list[0], FindResult):
+            findresult = list[0]
+        else:
+            findresult = FindResult()
+            list.insert(0, findresult)
+            self.find_result = findresult
+            self.scetable[self.scedir] = list
+        self.scetable[findresult] = headers[:]
+        findresult.headers = self._sort_headers(headers)
+
+        # 検索結果ディレクトリを表示する
+        if self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen():
+            item, cookie = self.tree.GetFirstChild(self.tree.root)
+            if item and item.IsOk():
+                data = self.tree.GetItemPyData(item)
+                if data and isinstance(data[1], FindResult):
+                    self.tree.Delete(item)
+            item = self._create_findresultitem(0, self.tree.root, findresult)
+            self.tree.SelectItem(item)
+            self.tree.Expand(item)
+            item = self.tree.GetNextSibling(item)
+            while item and item.IsOk():
+                data = self.tree.GetItemPyData(item)
+                if data:
+                    index, header = data
+                    self.tree.SetItemPyData(item, (index+1, header))
+                item = self.tree.GetNextSibling(item)
+            self._tree_selchanged()
+        else:
+            self.nowdir = self.scedir
+
+        self.list = self._narrow_scenario(list)
+        self.index = 0
+
+        if not (self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen()):
+            self.draw(True)
 
     def OnBookmark(self, event):
         # ブックマークメニューを生成して表示する
@@ -2582,9 +2648,11 @@ class ScenarioSelect(Select):
                 menu.Bind(wx.EVT_MENU, openbookmark.OnOpen, item)
 
     def OnAddBookmark(self, event):
-        cw.cwpy.sounds["signal"].play()
         self._update_saveddirstack()
         header = self.list[self.index]
+        if isinstance(header, FindResult):
+            return
+        cw.cwpy.sounds["signal"].play()
         if isinstance(header, cw.header.ScenarioHeader):
             name = header.name
         else:
@@ -2679,8 +2747,22 @@ class ScenarioSelect(Select):
         sel = self._saved_list[self._saved_index]
         if isinstance(sel, cw.header.ScenarioHeader):
             seq.append(sel.fname)
+        elif isinstance(sel, FindResult):
+            seq.append("/find_result")
         else:
             seq.append(os.path.basename(sel))
+        return seq
+
+    def _get_nowlist(self, nowdir=None):
+        if nowdir is None:
+            nowdir = self.nowdir
+        if isinstance(nowdir, FindResult):
+            return nowdir.headers
+        seq = []
+        if nowdir == self.scedir and self.find_result:
+            seq.append(self.find_result)
+        seq.extend(self.db.search_dpath(nowdir))
+        seq.extend(self.get_dpaths(nowdir))
         return seq
 
     def set_selected(self, spaths, opendir=False):
@@ -2694,9 +2776,7 @@ class ScenarioSelect(Select):
             self.nowdir = self.scedir
             self.index = 0
             self.dirstack = []
-            dpaths = self.get_dpaths(self.nowdir)
-            headers = self.db.search_dpath(self.nowdir)
-            self.list = dpaths + headers
+            self.list = self._get_nowlist()
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
         else:
@@ -2705,6 +2785,8 @@ class ScenarioSelect(Select):
             exists = True
             treeitem = self.tree.root
             for fname in spaths[:-1]:
+                if fname.startswith("/"):
+                    break
                 parent2 = cw.util.join_paths(parent, fname)
                 if os.path.exists(parent2):
                     self.dirstack.append((parent, fname))
@@ -2729,9 +2811,7 @@ class ScenarioSelect(Select):
                     exists = False
                     break
             self.nowdir = parent
-            dpaths = self.get_dpaths(self.nowdir)
-            headers = self.db.search_dpath(self.nowdir)
-            self.list = dpaths + headers
+            self.list = self._get_nowlist()
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
             self.index = 0
@@ -2766,6 +2846,8 @@ class ScenarioSelect(Select):
         self._update_saveddirstack()
 
     def _update_saveddirstack(self):
+        if self.dirstack and self.dirstack[0][0].startswith("/"):
+            return
         self._saved_dirstack = self.dirstack[:]
         self._saved_list = self.list[:]
         self._saved_index = self.index
@@ -2805,12 +2887,14 @@ class ScenarioSelect(Select):
         if self.yesbtn.GetLabel() == cw.cwpy.msgs["see"]:
             assert not self.tree.IsShown()
             cw.cwpy.sounds["equipment"].play()
-            self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
+            if isinstance(self.list[self.index], FindResult):
+                self.dirstack.append((self.nowdir, "/find_result"))
+                self.nowdir = self.list[self.index]
+            else:
+                self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
+                self.nowdir = cw.util.get_linktarget(self.list[self.index])
             self._update_saveddirstack()
-            self.nowdir = cw.util.get_linktarget(self.list[self.index])
-            headers =  self.db.search_dpath(self.nowdir)
-            dpaths = self.get_dpaths(self.nowdir)
-            self.list = dpaths + headers
+            self.list = self._get_nowlist()
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
             self.index = 0
@@ -2827,18 +2911,17 @@ class ScenarioSelect(Select):
             assert not self.tree.IsShown()
             cw.cwpy.sounds["equipment"].play()
             self.nowdir, selname = self.dirstack.pop()
-            headers =  self.db.search_dpath(self.nowdir)
-            dpaths = self.get_dpaths(self.nowdir)
-            self.list = dpaths + headers
+            self.list = self._get_nowlist()
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
             self.index = 0
-            selname = os.path.normcase(selname)
-            for index, name in enumerate(self.list):
-                if not isinstance(name, cw.header.ScenarioHeader):
-                    name = os.path.normcase(os.path.basename(name))
-                    if selname == name:
-                        self.index = index
+            if not selname.startswith("/"):
+                selname = os.path.normcase(selname)
+                for index, name in enumerate(self.list):
+                    if not isinstance(name, cw.header.ScenarioHeader):
+                        name = os.path.normcase(os.path.basename(name))
+                        if selname == name:
+                            self.index = index
 
             self.enable_btn()
 
@@ -2923,16 +3006,22 @@ class ScenarioSelect(Select):
             dpath = self.list[self.index]
 
             if update:
-                if self.updatenames_thr:
-                    self.updatenames_thr.quit = True
-                    self.updatenames_thr = None
-                self.names = [u"読込中..."]
-                self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:], startdir=dpath, expandedset=set())
-                self.updatenames_thr.start()
+                if isinstance(dpath, FindResult):
+                    self.names = dpath.headers
+                else:
+                    if self.updatenames_thr:
+                        self.updatenames_thr.quit = True
+                        self.updatenames_thr = None
+                    self.names = [u"読込中..."]
+                    self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:], startdir=dpath, expandedset=set())
+                    self.updatenames_thr.start()
 
             # Folder.bmpチェック
-            scan_folder_bmp = os.path.join(cw.util.get_linktarget(dpath), u"Folder.bmp")
-            if os.path.isfile(scan_folder_bmp):
+            if isinstance(dpath, FindResult):
+                scan_folder_bmp = ""
+            else:
+                scan_folder_bmp = os.path.join(cw.util.get_linktarget(dpath), u"Folder.bmp")
+            if scan_folder_bmp and os.path.isfile(scan_folder_bmp):
                 # Folder.bmp表示
                 folder_bmp = cw.util.load_wxbmp(scan_folder_bmp, True)
                 cw.util.draw_center(dc, cw.wins(folder_bmp), cw.wins((200, 60)), True)
@@ -2940,18 +3029,22 @@ class ScenarioSelect(Select):
             else:
                 # ディレクトリ名
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(22)))
-                s = os.path.basename(dpath)
-                if s.lower().endswith(".lnk"):
-                    s = s[0:-len(".lnk")]
+                if isinstance(dpath, FindResult):
+                    s = cw.cwpy.msgs["find_result"]
+                else:
+                    s = os.path.basename(dpath)
+                    if s.lower().endswith(".lnk"):
+                        s = s[0:-len(".lnk")]
                 dc.DrawText(s, cw.wins(135), cw.wins(65))
                 # フォルダ画像
                 bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
                 dc.DrawBitmap(bmp, cw.wins(65), cw.wins(30), True)
 
-                if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
-                    # リンクシンボル
-                    bmp = cw.cwpy.rsrc.dialogs["LINK"]
-                    dc.DrawBitmap(bmp, cw.wins(63), cw.wins(65), False)
+                if not isinstance(dpath, FindResult):
+                    if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
+                        # リンクシンボル
+                        bmp = cw.cwpy.rsrc.dialogs["LINK"]
+                        dc.DrawBitmap(bmp, cw.wins(63), cw.wins(65), False)
 
             # contents
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
@@ -3122,7 +3215,7 @@ class ScenarioSelect(Select):
                         index, header = data
                         if isinstance(header, cw.header.ScenarioHeader):
                             delitems.append(item)
-                        elif self.tree.IsExpanded(item):
+                        elif isinstance(header, FindResult) or self.tree.IsExpanded(item):
                             recurse(item)
                     item, cookie = self.tree.GetNextChild(item, cookie)
                 for item in delitems:
@@ -3167,11 +3260,14 @@ class ScenarioSelect(Select):
         dpaths = []
 
         if not nowdir in self.scetable:
-            self.scetable[nowdir] = self.get_dpaths(nowdir) + self.db.search_dpath(nowdir)
+            self.scetable[nowdir] = self._get_nowlist(nowdir)
 
         for index, header in enumerate(self._narrow_scenario(self.scetable[nowdir])):
             if isinstance(header, cw.header.ScenarioHeader):
                 item = self.create_treeitem(index, treeitem, header)
+                itemlist.append(item)
+            elif isinstance(header, FindResult):
+                item = self._create_findresultitem(index, treeitem, header)
                 itemlist.append(item)
             else:
                 dpath = header
@@ -3191,6 +3287,18 @@ class ScenarioSelect(Select):
             self.tree.Expand(treeitem)
 
         return itemlist, dpaths
+
+    def _create_findresultitem(self, index, treeitem, findresult):
+        image = self.tree.imgidx_findresult
+        item = self.tree.InsertItemBefore(treeitem, index, cw.cwpy.msgs["find_result"], image)
+        self.tree.SetItemPyData(item, (index, findresult))
+        if findresult.headers:
+            for i, h in enumerate(findresult.headers):
+                self.create_treeitem(i, item, h)
+        else:
+            child = self.tree.AppendItem(item, cw.cwpy.msgs["find_notfound"])
+            self.tree.SetItemPyData(child, None)
+        return item
 
     def _formatted_mtime(self, mtime, showtime):
         d = datetime.datetime.fromtimestamp(mtime)
@@ -3248,10 +3356,16 @@ class ScenarioSelect(Select):
                 self.tree.DeleteChildren(treeitem)
             else:
                 if itemlist:
-                    self.tree.SelectItem(itemlist[self.index])
+                    treeitem = itemlist[self.index]
+                    self.tree.SelectItem(treeitem)
                 else:
                     self.tree.SelectItem(treeitem)
                     self._tree_selchanged()
+
+                # 検索結果ディレクトリを選択中であれば展開する
+                data = self.tree.GetItemPyData(treeitem)
+                if data and isinstance(data[1], FindResult):
+                    self.tree.Expand(treeitem)
                 break
 
     def OnTreeItemExpanded(self, event):
@@ -3260,7 +3374,7 @@ class ScenarioSelect(Select):
 
         selitem = event.GetItem()
         data = self.tree.GetItemPyData(selitem)
-        if data is None:
+        if data is None or isinstance(data[1], FindResult):
             return
         _index, dpath = data
         self._expandeditem(selitem, startdir=dpath, expandedset=set())
@@ -3269,6 +3383,11 @@ class ScenarioSelect(Select):
         if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
             return
         if self._processing:
+            return
+
+        data = self.tree.GetItemPyData(selitem)
+        if data and isinstance(data[1], FindResult):
+            # 検索結果に対しては何もしない
             return
 
         item, _cookie = self.tree.GetFirstChild(selitem)
@@ -3300,6 +3419,10 @@ class ScenarioSelect(Select):
             return
         # 一旦リストをクリアして次に開いた時に再読込を行う
         item = event.GetItem()
+        data = self.tree.GetItemPyData(item)
+        if data and isinstance(data[1], FindResult):
+            # 検索結果はクリアしない
+            return
         self.tree.DeleteChildren(item)
         child = self.tree.AppendItem(item, u"読込中...")
         self.tree.SetItemPyData(child, None)
@@ -3324,9 +3447,7 @@ class ScenarioSelect(Select):
         _index, self.nowdir = self.tree.GetItemPyData(paritem)
         self.index, _pathorheader = self.tree.GetItemPyData(selitem)
 
-        dpaths = self.get_dpaths(self.nowdir)
-        headers = self.db.search_dpath(self.nowdir)
-        self.list = dpaths + headers
+        self.list = self._get_nowlist()
         self.scetable[self.nowdir] = self.list
         self.list = self._narrow_scenario(self.list)
 
@@ -3340,8 +3461,14 @@ class ScenarioSelect(Select):
         while paritem:
             _i, parpath = self.tree.GetItemPyData(paritem)
             _i, selpath = self.tree.GetItemPyData(paritem)
-            parpath = os.path.dirname(parpath)
-            selpath = os.path.basename(selpath)
+            if isinstance(parpath, FindResult):
+                parpath = "/find_result"
+            else:
+                parpath = os.path.dirname(parpath)
+            if isinstance(selpath, FindResult):
+                selpath = "/find_result"
+            else:
+                selpath = os.path.basename(selpath)
             dirstack.insert(0, (parpath, selpath))
 
             paritem = self.tree.GetItemParent(paritem)
@@ -3382,7 +3509,7 @@ class ScenarioSelect(Select):
                 _i, data = self.tree.GetItemPyData(item)
                 if not data:
                     break
-                if not isinstance(data, cw.header.ScenarioHeader):
+                if not isinstance(data, (cw.header.ScenarioHeader, FindResult)):
                     name = os.path.normcase(os.path.basename(data))
                     if name == os.path.normcase(os.path.basename(dirstack[0][1])):
                         parent = item
@@ -3404,7 +3531,7 @@ class ScenarioSelect(Select):
         ##    data = self.tree.GetItemPyData(item)
         ##    if not data is None:
         ##        index, header = data
-        ##        if not isinstance(header, cw.header.ScenarioHeader):
+        ##        if not isinstance(header, (cw.header.ScenarioHeader, FindResult)):
         ##            ndpath = cw.util.get_linktarget(header)
         ##            ndpath = os.path.abspath(ndpath)
         ##            ndpath = os.path.normpath(ndpath)
@@ -3481,6 +3608,9 @@ class ScenarioSelect(Select):
             else:
                 dseq.append(header)
 
+        return dseq + self._sort_headers(seq)
+
+    def _sort_headers(self, seq):
         sort = self.sort.GetSelection()
         if sort == 0:
             # 対象レベル。最初からソート済み
@@ -3495,8 +3625,7 @@ class ScenarioSelect(Select):
             # 更新日時
             cw.util.sort_by_attr(seq, "mtime")
             seq.reverse()
-
-        return dseq + seq
+        return seq
 
     def enable_btn(self):
         if self._processing:
@@ -3564,6 +3693,9 @@ class ScenarioSelect(Select):
             elif self.is_invisible(selected):
                 if not cw.cwpy.debug:
                     enable = False
+        elif isinstance(selected, FindResult):
+            if self.tree.IsShown():
+                enable = False
         else:
             dpath = selected
             if self.tree.IsShown() or not os.path.isdir(cw.util.get_linktarget(dpath)):
@@ -3574,6 +3706,9 @@ class ScenarioSelect(Select):
         if isinstance(selected, cw.header.ScenarioHeader):
             fname = selected.fname
             author = selected.author
+        elif isinstance(selected, FindResult):
+            fname = cw.cwpy.msgs["find_result"]
+            author = ""
         else:
             fname = os.path.basename(selected)
             author = ""
@@ -3771,9 +3906,7 @@ class ScenarioSelect(Select):
         cw.util.remove(temppath)
         # 更新処理
         self.db.insert_scenario(zpath)
-        headers = self.db.search_dpath(self.nowdir)
-        dpaths = self.get_dpaths(self.nowdir)
-        self.list = dpaths + headers
+        self.list = self._get_nowlist()
         self.scetable[self.nowdir] = self.list
         self.list = self._narrow_scenario(self.list)
         self.index = 0
@@ -3819,6 +3952,10 @@ class ScenarioSelect(Select):
         cw.cwpy.sounds["page"].play()
         self.draw(True)
         self.enable_btn()
+
+class FindResult(object):
+    def __init__(self):
+        self.headers = []
 
 class UpdateNamesThread(threading.Thread):
 
