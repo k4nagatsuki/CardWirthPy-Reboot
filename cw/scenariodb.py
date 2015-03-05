@@ -22,6 +22,7 @@ TYPE_CLASSIC = 1
 DATA_TITLE = 0
 DATA_AUTHOR = 1
 DATA_DESC = 2
+DATA_LEVEL = 3
 
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
@@ -358,19 +359,26 @@ class Scenariodb(object):
             s = "SELECT * FROM scenariodb WHERE author LIKE ? ESCAPE '\\'"
         elif ftype == DATA_DESC:
             s = "SELECT * FROM scenariodb WHERE desc LIKE ? ESCAPE '\\'"
+        elif ftype == DATA_LEVEL:
+            s = "SELECT * FROM scenariodb WHERE levelmin <= ? AND ? <= levelmax"
         else:
             raise Exception()
-        value2 = value.replace("\\", "\\\\")
-        value2 = value2.replace("%", "\\%")
-        value2 = value2.replace("_", "\\_")
-        value2 = '%' + value2 + '%'
-        self.cur.execute(s, (value2,))
+        if ftype == DATA_LEVEL:
+            values = (value,value,)
+            v = value
+        else:
+            value2 = value.replace("\\", "\\\\")
+            value2 = value2.replace("%", "\\%")
+            value2 = value2.replace("_", "\\_")
+            value2 = '%' + value2 + '%'
+            values = (value2,)
+            v = value.lower()
+        self.cur.execute(s, values)
         data = self.cur.fetchall()
         headers, _names = self.create_headers(data)
 
         # 情報が更新されている可能性があるため再チェック
         seq = []
-        v = value.lower()
         for header in headers:
             if ftype == DATA_TITLE:
                 if not v in header.name.lower():
@@ -380,6 +388,9 @@ class Scenariodb(object):
                     continue
             elif ftype == DATA_DESC:
                 if not v in header.author.lower():
+                    continue
+            elif ftype == DATA_LEVEL:
+                if not (header.levelmin <= v <= header.levelmax):
                     continue
             else:
                 assert False

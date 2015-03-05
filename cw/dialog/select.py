@@ -2328,7 +2328,8 @@ class ScenarioSelect(Select):
         # 絞込条件
         choices = (cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
-                   cw.cwpy.msgs["author"])
+                   cw.cwpy.msgs["author"],
+                   cw.cwpy.msgs["target_level"])
         self._init_narrowpanel(choices, cw.cwpy.setting.scenario_narrow, cw.cwpy.setting.scenario_narrowtype)
 
         # 整列条件
@@ -2511,8 +2512,8 @@ class ScenarioSelect(Select):
     def OnFind(self, event):
         value = self.narrow.GetValue()
         if not value:
+            cw.cwpy.sounds["error"].play()
             return
-        cw.cwpy.sounds["harvest"].play()
         narrow = self.narrow_type.GetSelection()
         if narrow == 0:
             ftype = cw.scenariodb.DATA_TITLE
@@ -2520,8 +2521,16 @@ class ScenarioSelect(Select):
             ftype = cw.scenariodb.DATA_AUTHOR
         elif narrow == 2:
             ftype = cw.scenariodb.DATA_DESC
+        elif narrow == 3:
+            ftype = cw.scenariodb.DATA_LEVEL
+            try:
+                value = int(value)
+            except:
+                cw.cwpy.sounds["error"].play()
+                return
         else:
             assert False
+        cw.cwpy.sounds["harvest"].play()
         headers = self.db.find_headers(ftype, value)
 
         list = self.scetable[self.scedir]
@@ -3577,7 +3586,14 @@ class ScenarioSelect(Select):
         dseq = []
         seq = []
         narrow = self.narrow.GetValue().lower()
+        donarrow = bool(narrow)
         ntype = self.narrow_type.GetSelection()
+        if ntype == 3 and donarrow:
+            # レベル
+            try:
+                narrow = int(narrow)
+            except:
+                narrow = ""
         for header in headers:
             if isinstance(header, cw.header.ScenarioHeader):
                 if not cw.cwpy.setting.show_unfitnessscenario and\
@@ -3589,7 +3605,7 @@ class ScenarioSelect(Select):
                 if not cw.cwpy.setting.show_invisiblescenario and self.is_invisible(header):
                     continue
 
-                if narrow:
+                if donarrow:
                     if ntype == 0:
                         # タイトルで絞り込み
                         if not narrow in header.name.lower():
@@ -3601,6 +3617,10 @@ class ScenarioSelect(Select):
                     elif ntype == 2:
                         # 作者名で絞り込み
                         if not narrow in header.author.lower():
+                            continue
+                    elif ntype == 3:
+                        # 対象レベルで絞り込み
+                        if not (header.levelmin <= narrow <= header.levelmax):
                             continue
                     else:
                         assert False
