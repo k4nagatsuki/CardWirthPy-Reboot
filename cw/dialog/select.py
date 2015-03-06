@@ -2530,7 +2530,6 @@ class ScenarioSelect(Select):
                 return
         else:
             assert False
-        cw.cwpy.sounds["harvest"].play()
         headers = self.db.find_headers(ftype, value)
 
         list = self.scetable[self.scedir]
@@ -2543,6 +2542,8 @@ class ScenarioSelect(Select):
             self.scetable[self.scedir] = list
         self.scetable[findresult] = headers[:]
         findresult.headers = self._sort_headers(headers)
+
+        cw.cwpy.sounds["harvest"].play()
 
         # 検索結果ディレクトリを表示する
         if self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen():
@@ -2576,6 +2577,7 @@ class ScenarioSelect(Select):
         cw.cwpy.sounds["page"].play()
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
+        self._add_bookmark.Enable(not self._is_findresultselected())
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
     def OnBookmark2(self, event):
@@ -2583,7 +2585,12 @@ class ScenarioSelect(Select):
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
         size = self.bookmark.GetSize()
+        self._add_bookmark.Enable(not self._is_findresultselected())
         self.bookmark.PopupMenuXY(self.bookmarkmenu, size[0] / 2, size[1] / 2)
+
+    def _is_findresultselected(self):
+        return isinstance(self.nowdir, FindResult) or\
+               (self.list and isinstance(self.list[self.index], FindResult))
 
     def create_bookmarkmenu(self):
         if self.bookmarkmenu:
@@ -2600,11 +2607,11 @@ class ScenarioSelect(Select):
 
         font = cw.cwpy.rsrc.get_wxfont("menu", pixelsize=cw.wins(13), weight=wx.NORMAL)
 
-        add = wx.MenuItem(menu, -1, cw.cwpy.msgs["add_bookmark"])
-        add.SetBitmap(icon_add)
-        add.SetFont(font)
-        menu.AppendItem(add)
-        menu.Bind(wx.EVT_MENU, self.OnAddBookmark, add)
+        self._add_bookmark = wx.MenuItem(menu, -1, cw.cwpy.msgs["add_bookmark"])
+        self._add_bookmark.SetBitmap(icon_add)
+        self._add_bookmark.SetFont(font)
+        menu.AppendItem(self._add_bookmark)
+        menu.Bind(wx.EVT_MENU, self.OnAddBookmark, self._add_bookmark)
 
         arrange = wx.MenuItem(menu, -1, cw.cwpy.msgs["arrange_bookmark"])
         arrange.SetBitmap(icon_arrange)
@@ -3329,7 +3336,9 @@ class ScenarioSelect(Select):
             if header.levelmin == header.levelmax:
                 name = u"[    %2d] %s" % (header.levelmin, name)
             else:
-                name = u"[%2d～%2d] %s" % (header.levelmin, header.levelmax, name)
+                levelmin = str(header.levelmin) if header.levelmin else ""
+                levelmax = str(header.levelmax) if header.levelmax else ""
+                name = u"[%2s～%2s] %s" % (levelmin, levelmax, name)
 
         if self.sort.GetSelection() == 3:
             # 日時による整列中
