@@ -3605,7 +3605,7 @@ class ScenarioSelect(Select):
                 narrow = ""
         for header in headers:
             if isinstance(header, cw.header.ScenarioHeader):
-                if not cw.cwpy.setting.show_unfitnessscenario and\
+                if not cw.cwpy.setting.show_unfitnessscenario and not (ntype == 3 and donarrow) and\
                         ((header.levelmin <> 0 and level < header.levelmin) or\
                          (header.levelmax <> 0 and header.levelmax < level)):
                     continue
