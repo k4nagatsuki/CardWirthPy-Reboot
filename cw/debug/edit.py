@@ -35,13 +35,7 @@ class CouponEditDialog(wx.Dialog):
         self.pcards = cw.cwpy.get_pcards()
         self.coupons = []
         for pcard in self.pcards:
-            seq = []
-            for e in pcard.data.getfind("Property/Coupons"):
-                name = e.text
-                if name.startswith(u"＠") or name in self.syscoupons:
-                    continue
-                value = e.get("value")
-                seq.append((name, int(value)))
+            seq = self._get_coupons(pcard)
             seq.reverse()
             self.coupons.append(seq)
 
@@ -78,6 +72,8 @@ class CouponEditDialog(wx.Dialog):
         self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
         # 得点
         self.valbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"得点")
+        # 全て複製
+        self.copybtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"全て複製")
         # 上へ
         bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
         self.upbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_UP, (-1, -1), bmp=bmp)
@@ -107,6 +103,7 @@ class CouponEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnAddBtn, self.addbtn)
         self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
         self.Bind(wx.EVT_BUTTON, self.OnValueBtn, self.valbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnCopyBtn, self.copybtn)
         self.Bind(wx.EVT_BUTTON, self.OnUpBtn, self.upbtn)
         self.Bind(wx.EVT_BUTTON, self.OnDownBtn, self.downbtn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
@@ -126,6 +123,7 @@ class CouponEditDialog(wx.Dialog):
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.Add(self.valbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.copybtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.Add(self.upbtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.Add(self.downbtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.AddStretchSpacer(1)
@@ -211,6 +209,18 @@ class CouponEditDialog(wx.Dialog):
             # 誰か一人
             self.coupons[cindex-1].pop(index)
         self.values.DeleteItem(index)
+
+    def OnCopyBtn(self, event):
+        choices = map(lambda a: a.get_name(), self.pcards)
+        dlg = cw.dialog.edit.ComboEditDialog2(self, u"全て複製", u"選択したメンバの全ての称号を編集中の称号に上書きコピーします。\nコピー元を選択してください。", choices)
+        cw.cwpy.frame.move_dlg(dlg)
+        if dlg.ShowModal() == wx.ID_OK:
+            index = dlg.selected
+            pcard = self.pcards[index]
+            coupons = self._get_coupons(pcard)
+            for i in xrange(len(self.coupons)):
+                self.coupons[i] = coupons[:]
+            self._select_target()
 
     def OnValueBtn(self, event):
         index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -358,6 +368,16 @@ class CouponEditDialog(wx.Dialog):
                 self._append_couponlist(coupon[0], coupon[1])
 
         self._item_selected()
+
+    def _get_coupons(self, pcard):
+        seq = []
+        for e in pcard.data.getfind("Property/Coupons"):
+            name = e.text
+            if name.startswith(u"＠") or name in self.syscoupons:
+                continue
+            value = e.get("value")
+            seq.append((name, int(value)))
+        return seq
 
     def _item_selected(self):
         indexes = self.get_selectedindexes()

@@ -638,6 +638,81 @@ class ComboEditDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
+class ComboEditDialog2(wx.Dialog):
+    def __init__(self, parent, title, message, choices):
+        wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((-1, -1)),
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.message = cw.util.txtwrap(message, 0, width=40, wrapschars=cw.util.WRAPS_CHARS)
+
+        self.combo = wx.Choice(self, -1, size=cw.wins((200, -1)), choices=choices)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
+        self.combo.SetFont(font)
+        self.selected = 0
+        self.combo.Select(self.selected)
+
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+        self._do_layout()
+        self._bind()
+
+        w = cw.wins(318)
+        h = self.okbtn.GetSize()[1] + self.okbtn.GetPosition()[1] + cw.wins(10)
+        self.SetClientSize((w, h))
+
+    def OnOk(self, event):
+        cw.cwpy.sounds["harvest"].play()
+        self.selected = self.combo.GetSelection()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
+    def OnCancel(self, event):
+        cw.cwpy.sounds["click"].play()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+        # text
+        dc.SetTextForeground(wx.BLACK)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
+        dc.SetFont(font)
+        s = self.message
+        w, _h, _lineheight = dc.GetMultiLineTextExtent(s)
+        dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def _do_layout(self):
+        dc = wx.ClientDC(self)
+        self._textwidth, self._textheight, _lineheight = dc.GetMultiLineTextExtent(self.message)
+
+        csize = cw.wins(318), cw.wins(0)
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_1.Add((cw.wins(0), cw.wins(20)+self._textheight), 0, 0, 0)
+        margin = (csize[0] - self.combo.GetSize()[0]) / 2
+        sizer_1.Add(self.combo, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+
+        sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+
+        self.SetSizer(sizer_1)
+        self.Layout()
+
 #-------------------------------------------------------------------------------
 #  レベル調節ダイアログ
 #-------------------------------------------------------------------------------
