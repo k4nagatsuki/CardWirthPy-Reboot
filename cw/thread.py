@@ -595,12 +595,22 @@ class CWPy(_Singleton, threading.Thread):
         return breakflag
 
     def get_nextevent(self):
-        if self.events:
-            e = self.events[0]
-            self.events = self.events[1:]
-            return e
-        else:
-            return None
+        # BUG: 稀にbuttonのないMOUSEBUTTONUPが発生するらしい(環境による？)
+        #      そのため、buttonのないマウスイベントやkeyのないキーイベントが
+        #      発生していないかここでチェックし、そうしたイベントを無視する
+        while True:
+            if self.events:
+                e = self.events[0]
+                self.events = self.events[1:]
+                # ---
+                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP) and not hasattr(e, "button"):
+                    continue
+                elif e.type in (KEYDOWN, KEYUP) and not hasattr(e, "key"):
+                    continue
+                # ---
+                return e
+            else:
+                return None
 
     def clear_inputevents(self):
         pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
