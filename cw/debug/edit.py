@@ -216,8 +216,7 @@ class CouponEditDialog(wx.Dialog):
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             index = dlg.selected
-            pcard = self.pcards[index]
-            coupons = self._get_coupons(pcard)
+            coupons = self.coupons[index]
             for i in xrange(len(self.coupons)):
                 self.coupons[i] = coupons[:]
             self._select_target()
