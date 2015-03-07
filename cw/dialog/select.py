@@ -1495,7 +1495,8 @@ class PlayerSelect(MultiViewSelect):
         choices = [cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["history"],
-                   cw.cwpy.msgs["character_attribute"]]
+                   cw.cwpy.msgs["character_attribute"],
+                   cw.cwpy.msgs["sort_level"]]
         self._init_narrowpanel(choices, u"", cw.cwpy.setting.standbys_narrowtype)
 
         # sort
@@ -1559,7 +1560,7 @@ class PlayerSelect(MultiViewSelect):
         for i in xrange(0, 9):
             sortkeydown = wx.NewId()
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
-            seq.append((wx.ACCEL_NORMAL, ord('1')+i, sortkeydown))
+            seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
         cw.util.set_acceleratortable(self, seq)
 
@@ -1592,8 +1593,17 @@ class PlayerSelect(MultiViewSelect):
             self.list = cw.cwpy.ydata.standbys[:]
 
         narrow = self.narrow.GetValue().lower()
-        if narrow:
-            ntype = self.narrow_type.GetSelection()
+        donarrow = bool(narrow)
+        ntype = self.narrow_type.GetSelection()
+
+        if donarrow and ntype == 4:
+            # レベル
+            try:
+                narrow = int(narrow)
+            except:
+                donarrow = False
+
+        if donarrow:
 
             hiddens = set([u"＿", u"＠"])
             attrs = set(cw.cwpy.setting.periodnames)
@@ -1638,6 +1648,11 @@ class PlayerSelect(MultiViewSelect):
                                 if narrow in coupon.lower():
                                     break
                     else:
+                        continue
+
+                elif ntype == 4:
+                    # レベル
+                    if header.level <> narrow:
                         continue
 
                 seq.append(header)

@@ -198,7 +198,7 @@ class CharaInfo(wx.Dialog):
         # ダイアログの上半分でホイールを回した場合は
         # 表示メンバを交代し、下半分の場合は
         # 情報タブの切り替えを行う
-        rect = wx.Rect(rect[0], rect[1], rect[2], rect[3] / 2);
+        rect = wx.Rect(rect[0], rect[1], rect[2], rect[3] / 2)
         if rect.Contains(event.GetPosition()) and self.leftbtn.IsEnabled():
             if event.GetWheelRotation() > 0:
                 if self.leftbtn.IsEnabled():
