@@ -20,8 +20,8 @@ TYPE_WSN = 0
 TYPE_CLASSIC = 1
 
 DATA_TITLE = 0
-DATA_AUTHOR = 1
-DATA_DESC = 2
+DATA_DESC = 1
+DATA_AUTHOR = 2
 DATA_LEVEL = 3
 
 class ScenariodbUpdatingThread(threading.Thread):
@@ -355,10 +355,10 @@ class Scenariodb(object):
     def find_headers(self, ftype, value):
         if ftype == DATA_TITLE:
             s = "SELECT * FROM scenariodb WHERE name LIKE ? ESCAPE '\\'"
-        elif ftype == DATA_AUTHOR:
-            s = "SELECT * FROM scenariodb WHERE author LIKE ? ESCAPE '\\'"
         elif ftype == DATA_DESC:
             s = "SELECT * FROM scenariodb WHERE desc LIKE ? ESCAPE '\\'"
+        elif ftype == DATA_AUTHOR:
+            s = "SELECT * FROM scenariodb WHERE author LIKE ? ESCAPE '\\'"
         elif ftype == DATA_LEVEL:
             s = "SELECT * FROM scenariodb WHERE levelmin <= ? AND ? <= levelmax"
         else:
@@ -384,10 +384,10 @@ class Scenariodb(object):
                 if not v in header.name.lower():
                     continue
             elif ftype == DATA_AUTHOR:
-                if not v in header.desc.lower():
+                if not v in header.author.lower():
                     continue
             elif ftype == DATA_DESC:
-                if not v in header.author.lower():
+                if not v in header.desc.lower():
                     continue
             elif ftype == DATA_LEVEL:
                 if not (header.levelmin <= v <= header.levelmax):

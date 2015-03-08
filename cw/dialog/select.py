@@ -2533,9 +2533,9 @@ class ScenarioSelect(Select):
         if narrow == 0:
             ftype = cw.scenariodb.DATA_TITLE
         elif narrow == 1:
-            ftype = cw.scenariodb.DATA_AUTHOR
-        elif narrow == 2:
             ftype = cw.scenariodb.DATA_DESC
+        elif narrow == 2:
+            ftype = cw.scenariodb.DATA_AUTHOR
         elif narrow == 3:
             ftype = cw.scenariodb.DATA_LEVEL
             try:
