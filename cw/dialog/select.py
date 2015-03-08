@@ -3300,6 +3300,7 @@ class ScenarioSelect(Select):
             elif isinstance(header, FindResult):
                 item = self._create_findresultitem(index, treeitem, header)
                 itemlist.append(item)
+                dpaths.append("/find_result")
             else:
                 dpath = header
                 name = os.path.basename(dpath)
@@ -3380,7 +3381,11 @@ class ScenarioSelect(Select):
                 _pardir, selname = dirstack.pop(0)
                 index = -1
                 for i, dpath in enumerate(dpaths):
-                    if os.path.normcase(selname) == os.path.normcase(os.path.basename(dpath)):
+                    if dpath.startswith("/"):
+                        if dpath == selname:
+                            index = i
+                            break
+                    elif os.path.normcase(selname) == os.path.normcase(os.path.basename(dpath)):
                         index = i
                         break
                 if index == -1:
