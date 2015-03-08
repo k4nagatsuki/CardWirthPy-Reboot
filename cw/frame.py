@@ -588,7 +588,7 @@ class Frame(wx.Frame):
         if save:
             self.kill_dlg(dlg, lockmenucard=True)
             def func():
-                cw.cwpy.ydata.write()
+                cw.cwpy.ydata.save()
                 cw.cwpy.sounds["signal"].play()
                 if cw.cwpy.setting.show_savedmessage:
                     s = cw.cwpy.msgs["saved"]

@@ -954,7 +954,7 @@ def screenshot():
         bmp.blit(subimg, (cw.s(10), y))
     else:
         bmp = cw.cwpy.scr_draw
-    pygame.image.write(bmp, filename)
+    pygame.image.save(bmp, filename)
 
     return
 

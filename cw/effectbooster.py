@@ -851,7 +851,7 @@ class JpdcImage(cw.image.Image):
                 if not os.path.isdir(dpath):
                     os.makedirs(dpath)
                 encoding = sys.getfilesystemencoding()
-                pygame.image.write(saveimage, path.encode(encoding))
+                pygame.image.save(saveimage, path.encode(encoding))
 
                 # Jpy1の内部でのキャッシュヒットミスを
                 # 避けるため、Jpy1のキャッシュを全て取り除く
