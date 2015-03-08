@@ -271,7 +271,7 @@ class ScenarioData(SystemData):
             cw.cwpy.areaid = self.startid
         if os.path.isfile(self.fpath):
             # zip解凍・解凍したディレクトリを登録
-            self.tempdir = cw.cwpy.recenthistory.check(self.fpath)
+            self.tempdir = cw.cwpy.ydata.recenthistory.check(self.fpath)
 
             # 展開先のフォルダのサブフォルダ内にシナリオ本体がある場合、
             # self.tempdirをサブフォルダに設定する
@@ -286,7 +286,7 @@ class ScenarioData(SystemData):
                             break
 
             if self.tempdir:
-                cw.cwpy.recenthistory.moveend(self.fpath)
+                cw.cwpy.ydata.recenthistory.moveend(self.fpath)
                 findsummary_intemp()
             else:
                 self.tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
@@ -347,7 +347,7 @@ class ScenarioData(SystemData):
                     raise self._error
 
                 # 展開完了
-                cw.cwpy.recenthistory.append(self.fpath, self.tempdir)
+                cw.cwpy.ydata.recenthistory.append(self.fpath, self.tempdir)
                 findsummary_intemp()
         else:
             # 展開済みシナリオ
@@ -1021,6 +1021,10 @@ class YadoData(object):
             for e in be.getfind("."):
                 bookmark.append(e.text)
             self.bookmarks.append(bookmark)
+
+        # シナリオ履歴
+        sctempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
+        self.recenthistory = cw.setting.RecentHistory(sctempdir)
 
         # 現在選択中のパーティをセット
         optparty = cw.OPTIONS.party

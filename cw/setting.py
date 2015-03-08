@@ -50,8 +50,6 @@ class Setting(object):
         self.fps = 60
         # 1frame分のmillseconds
         self.frametime = 1000 / self.fps
-        # シナリオ履歴
-        self.recenthistory = RecentHistory(self.data)
 
     def init_settings(self):
         # "Settings.xml"がなかったら新しく作る
@@ -1586,41 +1584,66 @@ def get_resourcesize(path):
         return None
 
 class RecentHistory(object):
-    def __init__(self, data):
+    def __init__(self, tempdir):
         """起動してから開いたシナリオの情報を
         (wsn・zipファイルのパス, 最終更新日, "Data/Temp"に展開したフォルダパス)の
         形式で保存し、管理するクラス。
         古い順から"Data/Temp"のフォルダを削除していく。
-        data: Settings.xmlのElementTree。
+        tempdir: シナリオの一時展開先
         """
         self.scelist = []
-        temppaths = []
+        temppaths = set()
         limit = 5
+        limit = cw.util.numwrap(limit, 1, 100)
 
-        if data.hasfind("RecentHistory"):
-            limit = data.getint("RecentHistory", "limit", 5)
-            limit = cw.util.numwrap(limit, 1, 100)
+        fpath = cw.util.join_paths(tempdir, "RecentHistory.xml")
+        if os.path.isfile(fpath):
+            self.data = cw.data.xml2etree(fpath)
+        else:
+            self.data = cw.data.CWPyElementTree(element=cw.data.make_element("RecentHistory", ""))
+            self.data.fpath = fpath
+            self.data.write()
 
-            for e in data.getfind("RecentHistory"):
+        for e in self.data.getfind("."):
+            if e.tag == "Scenario":
                 path = e.gettext("WsnPath", "")
                 temppath = e.gettext("TempPath", "")
                 md5 = e.get("md5")
 
                 if os.path.isfile(path) and os.path.isdir(temppath) and md5:
                     self.scelist.append((path, md5, temppath))
-                    temppaths.append(temppath)
-
-        temppaths = set(temppaths)
-        tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
+                    temppath = os.path.normpath(temppath)
+                    temppath = os.path.normcase(temppath)
+                    temppaths.add(temppath)
 
         if os.path.isdir(tempdir):
             for name in os.listdir(tempdir):
                 path = cw.util.join_paths(tempdir, name)
+                if os.path.isdir(path):
+                    path = os.path.normpath(path)
+                    path = os.path.normcase(path)
 
-                if not path in temppaths:
-                    cw.util.remove(path)
+                    if not path in temppaths:
+                        cw.util.remove(path)
 
         self.set_limit(limit)
+
+    def write(self):
+        # シナリオ履歴
+        data = self.data.getroot()
+
+        while len(data):
+            data.remove(data[-1])
+
+        for path, md5, temppath in self.scelist:
+            e_sce = cw.data.make_element("Scenario", "", {"md5": str(md5)})
+            e = cw.data.make_element("WsnPath", path)
+            e_sce.append(e)
+            e = cw.data.make_element("TempPath", temppath)
+            e_sce.append(e)
+            data.append(e_sce)
+
+        self.data.write()
 
     def set_limit(self, value):
         """
@@ -1629,8 +1652,10 @@ class RecentHistory(object):
         """
         self.limit = value
 
-        while len(self.scelist) > self.limit:
-            self.remove()
+        if len(self.scelist) > self.limit:
+            while len(self.scelist) > self.limit:
+                self.remove(save=False)
+            self.write()
 
     def moveend(self, path):
         """
@@ -1642,10 +1667,12 @@ class RecentHistory(object):
             self.scelist.remove(i)
             self.scelist.append(i)
 
+        self.write()
+
     def append(self, path, temppath, md5=None):
         """
         path: wsn・zipファイルのパス。
-        temppath: "Data/Temp"に展開したフォルダパス。
+        temppath: "Data/Yado/<Yado>/Temp"に展開したフォルダパス。
         設定数以上になったら、古いデータから削除。
         """
         path = path.replace("\\", "/")
@@ -1654,13 +1681,15 @@ class RecentHistory(object):
             md5 = cw.util.get_md5(path)
 
         temppath = temppath.replace("\\", "/")
-        self.remove(path)
+        self.remove(path, save=False)
         self.scelist.append((path, md5, temppath))
 
         while len(self.scelist) > self.limit:
-            self.remove()
+            self.remove(save=False)
 
-    def remove(self, path=""):
+        self.write()
+
+    def remove(self, path="", save=True):
         """
         path: 登録削除するwsn・zipファイルのパス。
         空の場合は一番先頭にあるデータの登録を削除する。
@@ -1675,6 +1704,9 @@ class RecentHistory(object):
             for i in seq:
                 cw.util.remove(i[2])
                 self.scelist.remove(i)
+
+        if save:
+            self.write()
 
     def check(self, path, md5=None):
         """

@@ -342,23 +342,6 @@ def create_settings(setting):
             e.append(fe)
     element.append(e)
 
-    # シナリオ履歴
-    if not hasattr(setting, "recenthistory"):
-        e = cw.data.make_element("RecentHistory", "", {"limit": "5"})
-        element.append(e)
-    else:
-        e_history = cw.data.make_element("RecentHistory", "",
-                                    {"limit": str(setting.recenthistory.limit)})
-        element.append(e_history)
-
-        for path, md5, temppath in setting.recenthistory.scelist:
-            e_sce = cw.data.make_element("Scenario", "", {"md5": str(md5)})
-            e = cw.data.make_element("WsnPath", path)
-            e_sce.append(e)
-            e = cw.data.make_element("TempPath", temppath)
-            e_sce.append(e)
-            e_history.append(e_sce)
-
     # シナリオ絞込・整列条件
     e = cw.data.make_element("ScenarioNarrowType", str(setting.scenario_narrowtype))
     element.append(e)

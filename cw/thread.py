@@ -112,8 +112,6 @@ class CWPy(_Singleton, threading.Thread):
         self.skindir = self.setting.skindir
         # 宿ロード直後であればTrue
         self._clear_changed = False
-        # シナリオ履歴(起動してから開いたシナリオのデータを管理するクラス)
-        self.recenthistory = self.setting.recenthistory
         # MusicInterfaceインスタンス
         self.music = cw.util.MusicInterface()
         # 最後に再生した効果音(システム・シナリオの2種)
