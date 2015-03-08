@@ -3324,7 +3324,7 @@ class ScenarioSelect(Select):
         item = self.tree.InsertItemBefore(treeitem, index, cw.cwpy.msgs["find_result"], image)
         self.tree.SetItemPyData(item, (index, findresult))
         if findresult.headers:
-            for i, h in enumerate(findresult.headers):
+            for i, h in enumerate(self._narrow_scenario(findresult.headers)):
                 self.create_treeitem(i, item, h)
         else:
             child = self.tree.AppendItem(item, cw.cwpy.msgs["find_notfound"])
