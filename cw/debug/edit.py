@@ -396,6 +396,8 @@ class CouponEditDialog(wx.Dialog):
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
 
+        self.copybtn.Enable(1 < len(self.pcards))
+
         index = -1
         total = 0
         if 2 <= len(indexes):
