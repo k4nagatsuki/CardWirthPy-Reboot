@@ -881,7 +881,7 @@ class BranchCouponContent(BranchContent):
         coupon = self.data.get("coupon")
 
         if coupon.startswith(u"＠CardWirthPy Version."):
-            if coupon == u"＠CardWirthPy Version.0.12.2 Only":
+            if coupon == u"＠CardWirthPy Version.0.12.2x Only":
                 # 現在のバージョンが0.12.2か判定する特殊クーポン
                 return self.get_boolean_index(True)
             elif not coupon.endswith(u" Only"):
