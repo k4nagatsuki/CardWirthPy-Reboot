@@ -509,9 +509,11 @@ class ScenarioData(SystemData):
                 if lf.endswith(".xml"):
                     # wsnシナリオの基本要素一覧情報
                     e = xml2element(path, "Property")
-                    resid = e.getint("Id")
+                    resid = e.getint("Id", -1)
                     name = e.gettext("Name", "")
                 else:
+                    if not path.endswith(".wid"):
+                        continue
                     # クラシックなシナリオの基本要素一覧情報
                     wdata, _filedata = cw.cwpy.classicdata.load_file(path, nameonly=True)
                     if wdata is None:
