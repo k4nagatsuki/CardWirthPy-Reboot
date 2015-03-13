@@ -172,7 +172,7 @@ class CardHeader(object):
             # 付帯能力でなくてもリサイクル状態が有効になる
             reattachment = True
         else:
-            reattachment = self.attachment
+            reattachment = (self.attachment or self.type == "ItemCard")
         self.recycle = bool(self.type in ("ItemCard", "BeastCard") and u"リサイクル" in self.keycodes and reattachment)
 
         # 所持スキルカードだった場合は使用回数を設定
