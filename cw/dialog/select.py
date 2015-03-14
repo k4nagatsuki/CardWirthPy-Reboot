@@ -2599,7 +2599,7 @@ class ScenarioSelect(Select):
                     self.tree.SetItemPyData(item, (index+1, header))
                 item = self.tree.GetNextSibling(item)
             if headers and selfirstheader:
-                item, cookie = self.tree.GetFirstChild(item)
+                item, cookie = self.tree.GetFirstChild(parent)
                 self.tree.SelectItem(item)
                 list = self.scetable[self.find_result]
             else:
@@ -3217,9 +3217,8 @@ class ScenarioSelect(Select):
                     else:
                         dc.SetTextForeground((0, 0, 0))
                 else:
-                    if not isinstance(name, FindResult):
-                        name = os.path.basename(name)
-                        name = u"[%s]" % (name)
+                    if isinstance(dpath, FindResult):
+                        name = u"[%s]" % (os.path.basename(name))
                     dc.SetTextForeground((0, 0, 0))
 
                 dc.SetFont(font)
@@ -4105,6 +4104,7 @@ class UpdateNamesThread(threading.Thread):
     def __init__(self, dlg, dpath, dirstack, startdir, expandedset):
         threading.Thread.__init__(self)
         self.dlg = dlg
+        self.nowdir = dlg.nowdir
         self.dpath = dpath
         self.dirstack = dirstack
         self.dpaths = dlg.get_dpaths(dpath)
@@ -4134,11 +4134,12 @@ class UpdateNamesThread(threading.Thread):
         for path in self.dpaths:
             if path.lower().endswith(".lnk"):
                 path = path[0:-len(".lnk")]
-            dname = os.path.basename(path)
+            dname = u"[%s]" % (os.path.basename(path))
             dnames.append(dname)
         def func():
             if self.dlg:
-                self.dlg.names = dnames + headers
+                if self.dlg.nowdir == self.nowdir:
+                    self.dlg.names = dnames + headers
                 if self.quit: return
                 wx.CallAfter(self.dlg.updated_names, self.dpath, self.dirstack, self.startdir, self.expandedset)
                 self.dlg.updatenames_thr = None
