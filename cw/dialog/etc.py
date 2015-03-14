@@ -379,6 +379,7 @@ class BookmarkDialog(wx.Dialog):
             if bookmark:
                 if bookmarkpath:
                     path = bookmarkpath
+                    p = os.path.basename(path)
                 else:
                     path = scedir
                     for p in bookmark:
@@ -386,6 +387,7 @@ class BookmarkDialog(wx.Dialog):
                         path = cw.util.get_linktarget(path)
             else:
                 path = bookmarkpath
+                p = os.path.basename(path)
 
             path = cw.util.get_linktarget(path)
             if cw.scenariodb.is_scenario(path):

@@ -1022,7 +1022,23 @@ class YadoData(object):
             bookmark = []
             for e in be.getfind("."):
                 bookmark.append(e.text)
-            bookmarkpath = be.get("path", u"")
+            bookmarkpath = be.get("path", None)
+            if bookmarkpath is None and bookmark:
+                # 0.12.2以前のバージョンではフルパスが記録されていない場合があるので
+                # ここで探して記録する(見つからなかった場合は記録しない)
+                bookmarkpath = u""
+                scepath = cw.cwpy.setting.get_scedir()
+                for p in bookmark:
+                    scepath = cw.util.get_linktarget(scepath)
+                    scepath = cw.util.join_paths(scepath, p)
+                    if not os.path.exists(scepath):
+                        break
+                else:
+                    bookmarkpath = os.path.abspath(scepath)
+                    bookmarkpath = os.path.normpath(scepath)
+                    be.set("path", bookmarkpath)
+                    self.environment.is_edited = True
+
             self.bookmarks.append((bookmark, bookmarkpath))
 
         # シナリオ履歴

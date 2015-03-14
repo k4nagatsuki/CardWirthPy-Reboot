@@ -2680,19 +2680,22 @@ class ScenarioSelect(Select):
         if cw.cwpy.ydata.bookmarks:
             menu.AppendSeparator()
             for bookmark, bookmarkpath in cw.cwpy.ydata.bookmarks:
-                if not bookmark:
-                    path = bookmarkpath
-                else:
+                if bookmark:
                     path = self.scedir
                     for p in bookmark:
                         if p.startswith("/"):
                             path = bookmarkpath
+                            p = os.path.basename(path)
                             break
                         path = cw.util.join_paths(path, p)
                         if not os.path.exists(path):
                             path = bookmarkpath
+                            p = os.path.basename(path)
                             break
                         path = cw.util.get_linktarget(path)
+                else:
+                    path = bookmarkpath
+                    p = os.path.basename(path)
 
                 path = cw.util.get_linktarget(path)
                 if self.is_scenario(path):
@@ -2875,11 +2878,17 @@ class ScenarioSelect(Select):
                 break
 
         selfullpath = False
-        if not exists_spaths and self.is_scenario(fullpath):
+        if not exists_spaths:
             # 経路をたどれないがフルパスがある場合(検索結果として表示)
-            header = self.db.search_path(fullpath)
-            if header:
-                self._set_findresult([header], True)
+            if self.is_scenario(fullpath):
+                header = self.db.search_path(fullpath)
+                if header:
+                    self._set_findresult([header], True)
+                    selfullpath = True
+                else:
+                    exists_spaths = False
+            elif os.path.isdir(fullpath):
+                self._set_findresult([fullpath], True)
                 selfullpath = True
             else:
                 exists_spaths = False
@@ -3200,6 +3209,9 @@ class ScenarioSelect(Select):
                     else:
                         dc.SetTextForeground((0, 0, 0))
                 else:
+                    if not isinstance(name, FindResult):
+                        name = os.path.basename(name)
+                        name = u"[%s]" % (name)
                     dc.SetTextForeground((0, 0, 0))
 
                 dc.SetFont(font)
@@ -3409,8 +3421,7 @@ class ScenarioSelect(Select):
         item = self.tree.InsertItemBefore(treeitem, index, cw.cwpy.msgs["find_result"], image)
         self.tree.SetItemPyData(item, (index, findresult))
         if findresult.headers:
-            for i, h in enumerate(self._narrow_scenario(findresult.headers)):
-                self.create_treeitem(i, item, h)
+            self.create_treeitems(item)
         else:
             child = self.tree.AppendItem(item, cw.cwpy.msgs["find_notfound"])
             self.tree.SetItemPyData(child, None)
@@ -3631,7 +3642,12 @@ class ScenarioSelect(Select):
                 _i, data = self.tree.GetItemPyData(item)
                 if not data:
                     break
-                if not isinstance(data, (cw.header.ScenarioHeader, FindResult)):
+                if isinstance(data, (cw.header.ScenarioHeader, FindResult)):
+                    if dirstack[0][1] == "/find_result":
+                        parent = item
+                        dirstack.pop(0)
+                        break
+                else:
                     name = os.path.normcase(os.path.basename(data))
                     if name == os.path.normcase(os.path.basename(dirstack[0][1])):
                         parent = item
@@ -4110,7 +4126,7 @@ class UpdateNamesThread(threading.Thread):
         for path in self.dpaths:
             if path.lower().endswith(".lnk"):
                 path = path[0:-len(".lnk")]
-            dname = u"[%s]" % os.path.basename(path)
+            dname = os.path.basename(path)
             dnames.append(dname)
         def func():
             if self.dlg:

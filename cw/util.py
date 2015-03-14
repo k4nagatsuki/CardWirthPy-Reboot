@@ -2186,7 +2186,7 @@ def get_linktarget(fpath):
     """fileがショートカットだった場合はリンク先を、
     そうでない場合はfileを返す。
     """
-    if sys.platform <> "win32" or not fpath.lower().endswith(".lnk"):
+    if sys.platform <> "win32" or not fpath.lower().endswith(".lnk") or not os.path.isfile(fpath):
         return fpath
 
     _co_initialize()

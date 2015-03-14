@@ -251,6 +251,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata:
             changed = self.ydata.is_changed()
             self.ydata.set_skinname(skindirname)
+        scedir = self.setting.get_scedir()
         oldskindirname = self.setting.skindirname
         self.setting.skindirname = skindirname
         self.setting.init_skin()
@@ -296,6 +297,10 @@ class CWPy(_Singleton, threading.Thread):
                     ccard.decide_action()
 
         self.update_titlebar()
+
+        if scedir <> self.setting.get_scedir():
+            self.setting.lastscenario = []
+            self.setting.lastscenariopath = u""
 
         if self.ydata:
             self.ydata._changed = changed
