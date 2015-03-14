@@ -2703,7 +2703,13 @@ class ScenarioSelect(Select):
                 elif os.path.isdir(path):
                     header = None
                 else:
-                    continue
+                    header = None
+                    if bookmark and bookmark[-1]:
+                        p = bookmark[-1]
+                    elif bookmarkpath:
+                        p = os.path.basename(bookmarkpath)
+                    else:
+                        p = u""
 
                 if header:
                     item = wx.MenuItem(menu, -1, header.name.replace("&", "&&"))
@@ -2717,7 +2723,9 @@ class ScenarioSelect(Select):
                     else:
                         item.SetBitmap(icon_summary)
                 else:
-                    if sys.platform == "win32":
+                    if not p:
+                        p = u"[フォルダが見つかりません]"
+                    elif sys.platform == "win32":
                         sp = os.path.splitext(p)
                         if sp[1].lower() == ".lnk":
                             p = sp[0]

@@ -295,7 +295,27 @@ class TransferYadoDataDialog(wx.Dialog):
             def __init__(self, outer):
                 threading.Thread.__init__(self)
                 self.outer = outer
+
+                def _skindir_to_scedir(skindir):
+                    scedir = u"Scenario"
+                    if skindir:
+                        skindir = cw.util.join_paths(u"Data/Skin", skindir)
+                        fpath = cw.util.join_paths(skindir, u"Skin.xml")
+                        if os.path.isfile(fpath):
+                            prop = cw.header.GetProperty(fpath);
+                            skintype = prop.properties.get("Type", "")
+                            if skintype:
+                                for type, folder in cw.cwpy.setting.folderoftype:
+                                    if type == skintype:
+                                        scedir = folder
+                                        break
+                    return scedir
+
+                prop = cw.header.GetProperty(cw.util.join_paths(fromyado, u"Environment.xml"))
+                skindir = prop.properties.get("Skin", "")
+                self.fromscedir = _skindir_to_scedir(skindir)
                 self.environment = cw.data.xml2etree(cw.util.join_paths(toyado, u"Environment.xml"))
+                self.toscedir = _skindir_to_scedir(self.environment.gettext("Property/Skin", u""))
                 self.imgpaths = {}
                 self.membertable = {}
                 self.num = 0
@@ -332,7 +352,7 @@ class TransferYadoDataDialog(wx.Dialog):
                         if isinstance(data, cw.data.CWPyElement):
                             if data.tag == "Bookmarks":
                                 # ブックマーク
-                                self.outer._transfer_bookmark(fromyado, toyado, data, self)
+                                self.outer._transfer_bookmark(self.fromscedir, self.toscedir, fromyado, toyado, data, self)
                             elif data.tag == "Gossips":
                                 # ゴシップ
                                 self.outer._transfer_gossip(fromyado, toyado, data, self)
@@ -399,7 +419,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
-    def _transfer_bookmark(self, fromyado, toyado, be, counter):
+    def _transfer_bookmark(self, fromscedir, toscedir, fromyado, toyado, be, counter):
         # ブックマークを転送する
         # ただし転送先にすでに存在するアイテムは転送しない
         targetbookmarks = set()
@@ -410,24 +430,34 @@ class TransferYadoDataDialog(wx.Dialog):
             data.getroot().append(bookmark)
         else:
             for e in bookmark:
-                path = e.get("path", "")
-                path = os.path.abspath(path)
-                path = os.path.normpath(path)
-                path = os.path.normcase(path)
                 paths = []
                 for pe in e:
                     paths.append(pe.text)
+                path = e.get("path", None)
+                if path is None:
+                    # 0.12.2以前はフルパスがない
+                    path = cw.data.find_scefullpath(toscedir, paths)
+                    e.set("path", path)
+                if path:
+                    path = os.path.abspath(path)
+                    path = os.path.normpath(path)
+                    path = os.path.normcase(path)
                 paths = "/".join(paths)
                 targetbookmarks.add((paths, path))
 
         for e in be:
-            path = e.get("path", "")
-            path = os.path.abspath(path)
-            path = os.path.normpath(path)
-            path = os.path.normcase(path)
             paths = []
             for pe in e:
                 paths.append(pe.text)
+            path = e.get("path", None)
+            if path is None:
+                # 0.12.2以前はフルパスがない
+                path = cw.data.find_scefullpath(fromscedir, paths)
+                e.set("path", path)
+            if path:
+                path = os.path.abspath(path)
+                path = os.path.normpath(path)
+                path = os.path.normcase(path)
             paths = "/".join(paths)
             if not (paths, path) in targetbookmarks:
                 bookmark.append(e)

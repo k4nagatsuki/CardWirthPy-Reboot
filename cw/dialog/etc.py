@@ -395,7 +395,13 @@ class BookmarkDialog(wx.Dialog):
             elif os.path.isdir(path):
                 header = None
             else:
-                continue
+                header = None
+                if bookmark and bookmark[-1]:
+                    p = bookmark[-1]
+                elif bookmarkpath:
+                    p = os.path.basename(bookmarkpath)
+                else:
+                    p = u""
 
             if header:
                 item = self.values.InsertStringItem(i, header.name)
@@ -408,7 +414,10 @@ class BookmarkDialog(wx.Dialog):
                 else:
                     self.values.SetItemImage(item, self.values.imgidx_summary)
             else:
-                if sys.platform == "win32":
+                if not p:
+                    p = u"[フォルダが見つかりません]"
+
+                elif sys.platform == "win32":
                     sp = os.path.splitext(p)
                     if sp[1].lower() == ".lnk":
                         p = sp[0]

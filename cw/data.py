@@ -1021,21 +1021,13 @@ class YadoData(object):
                 continue
             bookmark = []
             for e in be.getfind("."):
-                bookmark.append(e.text)
+                bookmark.append(e.text if e.text else "")
             bookmarkpath = be.get("path", None)
             if bookmarkpath is None and bookmark:
                 # 0.12.2以前のバージョンではフルパスが記録されていない場合があるので
                 # ここで探して記録する(見つからなかった場合は記録しない)
-                bookmarkpath = u""
-                scepath = cw.cwpy.setting.get_scedir()
-                for p in bookmark:
-                    scepath = cw.util.get_linktarget(scepath)
-                    scepath = cw.util.join_paths(scepath, p)
-                    if not os.path.exists(scepath):
-                        break
-                else:
-                    bookmarkpath = os.path.abspath(scepath)
-                    bookmarkpath = os.path.normpath(scepath)
+                bookmarkpath = find_scefullpath(cw.cwpy.setting.get_scedir(), bookmark)
+                if bookmarkpath:
                     be.set("path", bookmarkpath)
                     self.environment.is_edited = True
 
@@ -1997,6 +1989,22 @@ class YadoData(object):
                 e.append(e2)
             e.set("path", path)
             be.append(e)
+
+def find_scefullpath(scepath, spaths):
+    """開始ディレクトリscepathから経路spathsを
+    辿った結果得られたフルパスを返す。
+    辿れなかった場合は""を返す。
+    """
+    bookmarkpath = u""
+    for p in spaths:
+        scepath = cw.util.get_linktarget(scepath)
+        scepath = cw.util.join_paths(scepath, p)
+        if not os.path.exists(scepath):
+            break
+    else:
+        bookmarkpath = os.path.abspath(scepath)
+        bookmarkpath = os.path.normpath(scepath)
+    return bookmarkpath
 
 class Party(object):
     def __init__(self, header, partyinfoonly=True):
