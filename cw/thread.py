@@ -1348,6 +1348,7 @@ class CWPy(_Singleton, threading.Thread):
         self.tempdir = ""
         self.setting.scenario_narrow = ""
         self.setting.lastscenario = []
+        self.setting.lastscenariopath = ""
         self.ydata = None
         self.sdata = cw.data.SystemData()
         cw.tempdir = cw.tempdir_init
@@ -1375,7 +1376,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
 
-    def set_scenario(self, header=None, lastscenario=[]):
+    def set_scenario(self, header=None, lastscenario=[], lastscenariopath=""):
         """シナリオ画面へ遷移。
         header: ScenarioHeader
         """
@@ -1395,8 +1396,8 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata.start()
             self.update_titlebar()
             areaid = self.sdata.startid
-            if lastscenario:
-                self.ydata.party.set_lastscenario(lastscenario)
+            if lastscenario or lastscenariopath:
+                self.ydata.party.set_lastscenario(lastscenario, lastscenariopath)
 
             if not loaded:
                 self.ydata.party.set_numbercoupon()
@@ -1530,7 +1531,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.set_compstamp(key)
 
         # scenario
-        self.ydata.party.set_lastscenario([])
+        self.ydata.party.set_lastscenario([], u"")
 
         # members
         self.ydata.party.data = cw.data.yadoxml2etree(self.ydata.party.data.fpath)
@@ -1731,9 +1732,9 @@ class CWPy(_Singleton, threading.Thread):
                 db.close()
                 if header2:
                     if header:
-                        scepath1 = cw.util.join_paths(header.dpath, header.fname)
+                        scepath1 = header.get_fpath()
                         scepath1 = os.path.normcase(os.path.normpath(os.path.abspath(scepath1)))
-                        scepath2 = cw.util.join_paths(header2.dpath, header2.fname)
+                        scepath2 = header2.get_fpath()
                         scepath2 = os.path.normcase(os.path.normpath(os.path.abspath(scepath2)))
                         if header and scepath1 <> scepath2:
                             self.sdata.set_log()

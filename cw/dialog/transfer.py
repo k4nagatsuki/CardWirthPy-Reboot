@@ -410,20 +410,28 @@ class TransferYadoDataDialog(wx.Dialog):
             data.getroot().append(bookmark)
         else:
             for e in bookmark:
+                path = e.get("path", "")
+                path = os.path.abspath(path)
+                path = os.path.normpath(path)
+                path = os.path.normcase(path)
                 paths = []
                 for pe in e:
                     paths.append(pe.text)
                 paths = "/".join(paths)
-                targetbookmarks.add(paths)
+                targetbookmarks.add((paths, path))
 
         for e in be:
+            path = e.get("path", "")
+            path = os.path.abspath(path)
+            path = os.path.normpath(path)
+            path = os.path.normcase(path)
             paths = []
             for pe in e:
                 paths.append(pe.text)
             paths = "/".join(paths)
-            if not paths in targetbookmarks:
+            if not (paths, path) in targetbookmarks:
                 bookmark.append(e)
-                targetbookmarks.add(paths)
+                targetbookmarks.add((paths, path))
 
         data.is_edited = True
         counter.num += 1

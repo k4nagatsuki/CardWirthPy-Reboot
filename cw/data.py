@@ -631,7 +631,7 @@ class ScenarioData(SystemData):
         """
         self.is_playing = False
 
-        cw.cwpy.ydata.party.set_lastscenario([])
+        cw.cwpy.ydata.party.set_lastscenario([], u"")
 
         # ロストした冒険者を削除
         for path in self.lostadventurers:
@@ -1022,7 +1022,8 @@ class YadoData(object):
             bookmark = []
             for e in be.getfind("."):
                 bookmark.append(e.text)
-            self.bookmarks.append(bookmark)
+            bookmarkpath = be.get("path", u"")
+            self.bookmarks.append((bookmark, bookmarkpath))
 
         # シナリオ履歴
         sctempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
@@ -1218,8 +1219,9 @@ class YadoData(object):
 
         if header:
             self.party = Party(header)
-            if self.party.lastscenario:
+            if self.party.lastscenario or self.party.lastscenariopath:
                 cw.cwpy.setting.lastscenario = self.party.lastscenario
+                cw.cwpy.setting.lastscenariopath = self.party.lastscenariopath
             if header.fpath.lower().startswith("yado"):
                 name = cw.util.relpath(header.fpath, self.yadodir)
             else:
@@ -1945,10 +1947,10 @@ class YadoData(object):
     # ブックマーク
     #---------------------------------------------------------------------------
 
-    def add_bookmark(self, spaths):
+    def add_bookmark(self, spaths, path):
         """シナリオのブックマークを追加する。"""
         self.changed()
-        self.bookmarks.append(spaths)
+        self.bookmarks.append((spaths, path))
         be = self.environment.find("Bookmarks")
         if be is None:
             be = make_element("Bookmarks")
@@ -1957,6 +1959,7 @@ class YadoData(object):
         for p in spaths:
             e2 = make_element("Path", p)
             e.append(e2)
+        e.set("path", path)
         be.append(e)
 
     def set_bookmarks(self, bookmarks):
@@ -1971,11 +1974,12 @@ class YadoData(object):
         else:
             be.clear()
 
-        for spaths in bookmarks:
+        for spaths, path in bookmarks:
             e = make_element("Bookmark")
             for p in spaths:
                 e2 = make_element("Path", p)
                 e.append(e2)
+            e.set("path", path)
             be.append(e)
 
 class Party(object):
@@ -2000,6 +2004,7 @@ class Party(object):
 
         # 現在プレイ中のシナリオ
         self.lastscenario = []
+        self.lastscenariopath = self.data.getattr("Property/LastScenario", "path", "")
         for e in self.data.getfind("Property/LastScenario", raiseerror=False):
             self.lastscenario.append(e.text)
 
@@ -2304,17 +2309,19 @@ class Party(object):
 
         return seq
 
-    def set_lastscenario(self, lastscenario):
+    def set_lastscenario(self, lastscenario, lastscenariopath):
         """
         プレイ中シナリオへの経路を記録する。
         """
         self.lastscenario = lastscenario
+        self.lastscenariopath = lastscenariopath
         e = self.data.find("Property/LastScenario")
         if e is None:
             e = make_element("LastScenario")
             self.data.append("Property", e)
 
         e.clear()
+        self.data.edit("Property/LastScenario", lastscenariopath, "path")
         for path in lastscenario:
             self.data.append("Property/LastScenario", make_element("Path", path))
 

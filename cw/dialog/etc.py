@@ -374,12 +374,27 @@ class BookmarkDialog(wx.Dialog):
         self.values.SetFont(font)
 
         self.bookmark = cw.cwpy.ydata.bookmarks[:]
-        for i, bookmark in enumerate(cw.cwpy.ydata.bookmarks):
-            path = scedir
-            for p in bookmark:
-                path = cw.util.join_paths(path, p)
-                path = cw.util.get_linktarget(path)
-            header = db.get_header(path)
+        for i, t in enumerate(cw.cwpy.ydata.bookmarks):
+            bookmark, bookmarkpath = t
+            if bookmark:
+                if bookmarkpath:
+                    path = bookmarkpath
+                else:
+                    path = scedir
+                    for p in bookmark:
+                        path = cw.util.join_paths(path, p)
+                        path = cw.util.get_linktarget(path)
+            else:
+                path = bookmarkpath
+
+            path = cw.util.get_linktarget(path)
+            if cw.scenariodb.is_scenario(path):
+                header = db.search_path(path)
+            elif os.path.isdir(path):
+                header = None
+            else:
+                continue
+
             if header:
                 item = self.values.InsertStringItem(i, header.name)
                 if self.Parent.is_playing(header):

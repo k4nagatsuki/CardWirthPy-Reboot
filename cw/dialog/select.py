@@ -2562,7 +2562,12 @@ class ScenarioSelect(Select):
         else:
             assert False
         headers = self.db.find_headers(ftype, value)
+        self._set_findresult(headers, False)
 
+        if not (self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen()):
+            self.draw(True)
+
+    def _set_findresult(self, headers, selfirstheader):
         list = self.scetable[self.scedir]
         if list and isinstance(list[0], FindResult):
             findresult = list[0]
@@ -2584,7 +2589,7 @@ class ScenarioSelect(Select):
                 if data and isinstance(data[1], FindResult):
                     self.tree.Delete(item)
             item = self._create_findresultitem(0, self.tree.root, findresult)
-            self.tree.SelectItem(item)
+            parent = item
             self.tree.Expand(item)
             item = self.tree.GetNextSibling(item)
             while item and item.IsOk():
@@ -2593,22 +2598,31 @@ class ScenarioSelect(Select):
                     index, header = data
                     self.tree.SetItemPyData(item, (index+1, header))
                 item = self.tree.GetNextSibling(item)
+            if headers and selfirstheader:
+                item, cookie = self.tree.GetFirstChild(item)
+                self.tree.SelectItem(item)
+                list = self.scetable[self.find_result]
+            else:
+                self.tree.SelectItem(parent)
             self._tree_selchanged()
         else:
-            self.nowdir = self.scedir
+            if headers and selfirstheader:
+                self.nowdir = self.find_result
+                list = self.scetable[self.find_result]
+            else:
+                self.nowdir = self.scedir
 
         self.list = self._narrow_scenario(list)
         self.index = 0
-
-        if not (self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen()):
-            self.draw(True)
+        if headers and selfirstheader:
+            self.dirstack = [(self.scedir, "/find_result")]
 
     def OnBookmark(self, event):
         # ブックマークメニューを生成して表示する
         cw.cwpy.sounds["page"].play()
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
-        self._add_bookmark.Enable(not self._is_findresultselected())
+        self._add_bookmark.Enable(not self._is_specialselected())
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
     def OnBookmark2(self, event):
@@ -2616,12 +2630,11 @@ class ScenarioSelect(Select):
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
         size = self.bookmark.GetSize()
-        self._add_bookmark.Enable(not self._is_findresultselected())
+        self._add_bookmark.Enable(not self._is_specialselected())
         self.bookmark.PopupMenuXY(self.bookmarkmenu, size[0] / 2, size[1] / 2)
 
-    def _is_findresultselected(self):
-        return isinstance(self.nowdir, FindResult) or\
-               (self.list and isinstance(self.list[self.index], FindResult))
+    def _is_specialselected(self):
+        return not self.list or isinstance(self.list[self.index], FindResult)
 
     def create_bookmarkmenu(self):
         if self.bookmarkmenu:
@@ -2652,24 +2665,43 @@ class ScenarioSelect(Select):
 
         # ブックマークを開くためのユーティリティクラス
         class OpenBookmark(object):
-            def __init__(self, outer, bookmark):
+            def __init__(self, outer, bookmark, bookmarkpath):
                 self.outer = outer
                 self.bookmark = bookmark
+                self.bookmarkpath = bookmarkpath
+
             def OnOpen(self, event):
                 cw.cwpy.sounds["equipment"].play()
                 if self.outer.narrow.GetValue():
                     self.outer.narrow.SetValue("")
                     self.outer.update_narrowcondition()
-                self.outer.set_selected(self.bookmark, opendir=True)
+                self.outer.set_selected(self.bookmark, self.bookmarkpath, opendir=True)
 
         if cw.cwpy.ydata.bookmarks:
             menu.AppendSeparator()
-            for bookmark in cw.cwpy.ydata.bookmarks:
-                path = self.scedir
-                for p in bookmark:
-                    path = cw.util.join_paths(path, p)
-                    path = cw.util.get_linktarget(path)
-                header = self.db.get_header(path)
+            for bookmark, bookmarkpath in cw.cwpy.ydata.bookmarks:
+                if not bookmark:
+                    path = bookmarkpath
+                else:
+                    path = self.scedir
+                    for p in bookmark:
+                        if p.startswith("/"):
+                            path = bookmarkpath
+                            break
+                        path = cw.util.join_paths(path, p)
+                        if not os.path.exists(path):
+                            path = bookmarkpath
+                            break
+                        path = cw.util.get_linktarget(path)
+
+                path = cw.util.get_linktarget(path)
+                if self.is_scenario(path):
+                    header = self.db.search_path(path)
+                elif os.path.isdir(path):
+                    header = None
+                else:
+                    continue
+
                 if header:
                     item = wx.MenuItem(menu, -1, header.name.replace("&", "&&"))
                     item.SetFont(font)
@@ -2690,7 +2722,7 @@ class ScenarioSelect(Select):
                     item.SetFont(font)
                     item.SetBitmap(icon_dir)
 
-                openbookmark = OpenBookmark(self, bookmark)
+                openbookmark = OpenBookmark(self, bookmark, bookmarkpath)
                 menu.AppendItem(item)
                 menu.Bind(wx.EVT_MENU, openbookmark.OnOpen, item)
 
@@ -2717,14 +2749,15 @@ class ScenarioSelect(Select):
             return
         dlg.Destroy()
 
-        def func(panel, selected):
-            cw.cwpy.ydata.add_bookmark(selected)
+        def func(panel, selected, selectedpath):
+            cw.cwpy.ydata.add_bookmark(selected, selectedpath)
             cw.cwpy.sounds["harvest"].play()
             def func(panel):
                 if panel:
                     panel.bookmarkmenu = None
             cw.cwpy.frame.exec_func(func, panel)
-        cw.cwpy.exec_func(func, self, self.get_selected())
+        sel, selpath = self.get_selected()
+        cw.cwpy.exec_func(func, self, sel, selpath)
 
     def OnArrangeBookmark(self, event):
         cw.cwpy.sounds["click"].play()
@@ -2787,18 +2820,27 @@ class ScenarioSelect(Select):
         """
         seq = []
         if not self.list:
-            return seq
+            return seq, u""
 
+        spdir = False
         for _dpath, selname in self._saved_dirstack:
+            if selname.startswith("/"):
+                seq = []
+                spdir = True
+                break
             seq.append(selname)
+
         sel = self._saved_list[self._saved_index]
         if isinstance(sel, cw.header.ScenarioHeader):
-            seq.append(sel.fname)
+            if not spdir:
+                seq.append(sel.fname)
+            return seq, os.path.abspath(sel.get_fpath())
         elif isinstance(sel, FindResult):
-            seq.append("/find_result")
+            return [], u""
         else:
-            seq.append(os.path.basename(sel))
-        return seq
+            if not spdir:
+                seq.append(os.path.basename(sel))
+            return seq, os.path.abspath(sel)
 
     def _get_nowlist(self, nowdir=None):
         if nowdir is None:
@@ -2812,21 +2854,47 @@ class ScenarioSelect(Select):
         seq.extend(self.get_dpaths(nowdir))
         return seq
 
-    def set_selected(self, spaths, opendir=False):
+    def set_selected(self, spaths, fullpath, opendir=False):
         """
         シナリオを経路形式(ディレクトリ・ファイル名の配列)で
         設定する。
         """
         processing = self._processing
         self._processing = True
-        if not spaths:
+
+        exists_spaths = bool(spaths)
+        spath = self.scedir
+        for path in spaths:
+            if path.startswith("/"):
+                exists_spaths = False
+                break
+            spath = cw.util.join_paths(spath, path)
+            spath = cw.util.get_linktarget(spath)
+            if not os.path.exists(spath):
+                exists_spaths = False
+                break
+
+        selfullpath = False
+        if not exists_spaths and self.is_scenario(fullpath):
+            # 経路をたどれないがフルパスがある場合(検索結果として表示)
+            header = self.db.search_path(fullpath)
+            if header:
+                self._set_findresult([header], True)
+                selfullpath = True
+            else:
+                exists_spaths = False
+
+        if not selfullpath and (not spaths or not exists_spaths):
+            # 対象が存在しない場合(初期ディレクトリを選択)
             self.nowdir = self.scedir
             self.index = 0
             self.dirstack = []
             self.list = self._get_nowlist()
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
-        else:
+
+        elif not selfullpath:
+            # 経路をたどれる場合
             parent = self.scedir
             self.dirstack = []
             exists = True
@@ -2893,7 +2961,7 @@ class ScenarioSelect(Select):
         self._update_saveddirstack()
 
     def _update_saveddirstack(self):
-        if self.dirstack and self.dirstack[0][0].startswith("/"):
+        if len(self.dirstack) == 1 and self.dirstack[0][0].startswith("/"):
             return
         self._saved_dirstack = self.dirstack[:]
         self._saved_list = self.list[:]
@@ -3516,7 +3584,7 @@ class ScenarioSelect(Select):
             _i, parpath = self.tree.GetItemPyData(paritem)
             _i, selpath = self.tree.GetItemPyData(paritem)
             if isinstance(parpath, FindResult):
-                parpath = "/find_result"
+                parpath = self.scedir
             else:
                 parpath = os.path.dirname(parpath)
             if isinstance(selpath, FindResult):
@@ -3814,21 +3882,7 @@ class ScenarioSelect(Select):
         """
         指定されたパスがシナリオならTrueを返す。
         """
-        ltarg = cw.util.get_linktarget(path)
-        if os.path.isdir(ltarg):
-            spath = cw.util.join_paths(ltarg, "Summary.wsm")
-            if os.path.isfile(spath):
-                return True
-            spath = cw.util.join_paths(ltarg, "Summary.xml")
-            if os.path.isfile(spath):
-                return True
-            return False
-        else:
-            lpath = ltarg.lower()
-            return lpath.endswith(".wsn") or\
-                   lpath.endswith(".zip") or\
-                   lpath.endswith(".lzh") or\
-                   lpath.endswith(".cab")
+        return cw.scenariodb.is_scenario(path)
 
     def get_texts(self):
         """
@@ -3838,7 +3892,7 @@ class ScenarioSelect(Select):
         seq = []
         if isinstance(self.list[self.index], cw.header.ScenarioHeader):
             header = self.list[self.index]
-            path = cw.util.join_paths(header.dpath, header.fname)
+            path = header.get_fpath()
             path = cw.util.get_linktarget(path)
             if os.path.isfile(path):
                 # 圧縮ファイル内から取得

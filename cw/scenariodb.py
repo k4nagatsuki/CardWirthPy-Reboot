@@ -401,6 +401,26 @@ class Scenariodb(object):
     def close(self):
         self.con.close()
 
+def is_scenario(path):
+    """
+    指定されたパスがシナリオならTrueを返す。
+    """
+    ltarg = cw.util.get_linktarget(path)
+    if os.path.isdir(ltarg):
+        spath = cw.util.join_paths(ltarg, "Summary.wsm")
+        if os.path.isfile(spath):
+            return True
+        spath = cw.util.join_paths(ltarg, "Summary.xml")
+        if os.path.isfile(spath):
+            return True
+        return False
+    else:
+        lpath = ltarg.lower()
+        return lpath.endswith(".wsn") or\
+               lpath.endswith(".zip") or\
+               lpath.endswith(".lzh") or\
+               lpath.endswith(".cab")
+
 def read_summary(basepath):
     path = cw.util.get_linktarget(basepath)
     if os.path.isdir(path):

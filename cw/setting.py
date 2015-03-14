@@ -56,6 +56,7 @@ class Setting(object):
         self.editor = "cwxeditor"
         self.lastyado = ""
         self.lastscenario = []
+        self.lastscenariopath = ""
         self.expanddrawing = 1
         self.expandmode = "FullScreen"
         self.is_expanded = False
@@ -194,6 +195,7 @@ class Setting(object):
         self.lastyado = data.gettext("LastYado", self.lastyado)
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)
         self.lastscenario = []
+        self.lastscenariopath = "" # 経路が辿れない時に使用するフルパス
         # 拡大モード
         self.expandmode = data.gettext("ExpandMode", self.expandmode)
         if self.expandmode == "None":
