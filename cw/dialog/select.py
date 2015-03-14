@@ -2965,7 +2965,7 @@ class ScenarioSelect(Select):
             if not selname.startswith("/"):
                 selname = os.path.normcase(selname)
                 for index, name in enumerate(self.list):
-                    if not isinstance(name, cw.header.ScenarioHeader):
+                    if not isinstance(name, (cw.header.ScenarioHeader, FindResult)):
                         name = os.path.normcase(os.path.basename(name))
                         if selname == name:
                             self.index = index
