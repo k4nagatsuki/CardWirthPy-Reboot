@@ -402,7 +402,7 @@ class EventEngine(object):
         """
         self.events = [Event(e) for e in data.getchildren()]
 
-    def start(self, keynum=None, keycodes=[], isinsideevent=False):
+    def start(self, keynum=None, keycodes=[], isinsideevent=False, successevent=False):
         """発火条件に適合するイベント
         (リストのindexが若いほど優先順位が高い)を起動させる。
         keynum: 発火キーナンバー。
@@ -411,7 +411,7 @@ class EventEngine(object):
         Trueの場合はイベントフロー例外をキャッチせず伝播させる。
         """
         if keycodes:
-            event = self.check_keycodes(keycodes)
+            event = self.check_keycodes(keycodes, successevent=successevent)
         else:
             event = self.check_keynum(keynum)
 
@@ -448,7 +448,7 @@ class EventEngine(object):
         else:
             return False
 
-    def check_keycodes(self, keycodes):
+    def check_keycodes(self, keycodes, successevent=False):
         kcset = set(keycodes)
         kcset.discard("")
         for event in self.events:
@@ -464,24 +464,26 @@ class EventEngine(object):
             if matching == "And":
                 match = True
                 for keycode in igkeycodes:
-                    if keycode and not self.check_keycode(keycode, kcset):
+                    if keycode and not self.check_keycode(keycode, kcset, successevent=successevent):
                         match = False
                         break
                 if match:
                     return event
             else:
                 for keycode in igkeycodes:
-                    if keycode and self.check_keycode(keycode, kcset):
+                    if keycode and self.check_keycode(keycode, kcset, successevent=successevent):
                         return event
 
         return None
 
-    def check_keycode(self, keycode, keycodes):
+    def check_keycode(self, keycode, keycodes, successevent=False):
         # 互換動作: 1.30以前では"！"で始まっていても普通のキーコード
         if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_AREA)):
             return keycode in keycodes
         else:
             if keycode.startswith(u"！"):
+                if successevent:
+                    return False
                 return not keycode[1:] in keycodes
             else:
                 return keycode in keycodes
@@ -918,7 +920,7 @@ class CardEvent(Event):
                         keycodes.append(keycode + u"×")
 
             cw.cwpy.event.set_selectedmember(self.user)
-            target.events.start(keycodes=keycodes, isinsideevent=True)
+            target.events.start(keycodes=keycodes, isinsideevent=True, successevent=True)
 
     def effect_cardmotion(self):
         """カード効果発動。イベント実行の最後に行う。"""
