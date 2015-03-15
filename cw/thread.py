@@ -1393,37 +1393,53 @@ class CWPy(_Singleton, threading.Thread):
             self.update_skin(self.ydata.skinname, changearea=False)
 
         if header and not isinstance(self.sdata, cw.data.ScenarioData):
-            if cw.cwpy.ydata:
-                cw.cwpy.ydata.changed()
-            self.sdata = cw.data.ScenarioData(header)
-            self.statusbar.change(False)
-            loaded, musicpath, inusecard = self.sdata.set_log()
-            self.sdata.start()
-            self.update_titlebar()
-            areaid = self.sdata.startid
-            if lastscenario or lastscenariopath:
-                self.ydata.party.set_lastscenario(lastscenario, lastscenariopath)
+            try:
+                self.sdata = cw.data.ScenarioData(header)
+                if cw.cwpy.ydata:
+                    cw.cwpy.ydata.changed()
+                self.statusbar.change(False)
+                loaded, musicpath, inusecard = self.sdata.set_log()
+                self.sdata.start()
+                self.update_titlebar()
+                areaid = self.sdata.startid
+                if lastscenario or lastscenariopath:
+                    self.ydata.party.set_lastscenario(lastscenario, lastscenariopath)
 
-            if not loaded:
-                self.ydata.party.set_numbercoupon()
+                if not loaded:
+                    self.ydata.party.set_numbercoupon()
 
-            def func(loaded, musicpath, inusecard, areaid):
-                self.is_processing = False
-                if not self.sdata.startid in self.sdata.areas:
-                    # 開始エリアが存在しない(帰還)
-                    self.check_level(True)
-                    self.sdata.end()
+                def func(loaded, musicpath, inusecard, areaid):
+                    self.is_processing = False
+                    if not self.sdata.startid in self.sdata.areas:
+                        # 開始エリアが存在しない(帰還)
+                        s = u"シナリオに開始エリアが設定されていません。"
+                        self.call_modaldlg("ERROR", text=s)
+                        self.check_level(True)
+                        self.sdata.end()
+                        self.set_yado()
+                    elif musicpath is None or\
+                                    self.music.path == self.music.get_path(musicpath, inusecard):
+                        self.change_area(areaid, not loaded, loaded)
+                    else:
+                        self.music.stop()
+                        self.change_area(areaid, not loaded, loaded)
+                        self.music.play(musicpath, inusecard=inusecard)
+                    if self.is_showingdebugger() and self.event:
+                        self.event.refresh_variablelist()
+                self.exec_func(func, loaded, musicpath, inusecard, areaid)
+            except:
+                cw.util.print_ex()
+                def func():
+                    # 読込失敗が存在しない(帰還)
+                    self.is_processing = False
+                    s = u"シナリオの読み込みに失敗しました。"
+                    self.call_modaldlg("ERROR", text=s)
+                    if isinstance(self.sdata, cw.data.ScenarioData):
+                        self.sdata.end()
                     self.set_yado()
-                elif musicpath is None or\
-                                self.music.path == self.music.get_path(musicpath, inusecard):
-                    self.change_area(areaid, not loaded, loaded)
-                else:
-                    self.music.stop()
-                    self.change_area(areaid, not loaded, loaded)
-                    self.music.play(musicpath, inusecard=inusecard)
-                if self.is_showingdebugger() and self.event:
-                    self.event.refresh_variablelist()
-            self.exec_func(func, loaded, musicpath, inusecard, areaid)
+                    if self.is_showingdebugger() and self.event:
+                        self.event.refresh_variablelist()
+                self.exec_func(func)
         else:
             self.statusbar.change(False)
             self.is_processing = False
