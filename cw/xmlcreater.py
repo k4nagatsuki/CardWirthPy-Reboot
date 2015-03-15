@@ -216,7 +216,7 @@ def create_settings(setting):
                                 {"speed": str(setting.transitionspeed)})
     element.append(e)
     # 背景のスムーススケーリング
-    e = cw.data.make_element("SmoothScaling", str(setting.smoothscale_bg))
+    e = cw.data.make_element("SmoothScaling", u"", attrs={"bg":str(setting.smoothscale_bg)})
     element.append(e)
     # 保存せずに終了しようとしたら警告
     e = cw.data.make_element("CautionBeforeSaving", str(setting.caution_beforesaving))
