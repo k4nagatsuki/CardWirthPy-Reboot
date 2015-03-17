@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="087bc9b64a17c5b2b569a12e1d9decda">1.20</Scenario><!-- 正義の籠城 -->
   <Scenario md5="5ea0aa8b5409210e0000bb422189a262">1.28</Scenario><!-- 彷徨いの迷宮の鬼獣帝 -->
   <Scenario md5="125f565922d63da3b7a12f75cd84085e">1.20</Scenario><!-- 盗賊物語 -->
   <Scenario md5="1247abf821057337ba2239cadfc2c95c" zIndexMode="1.20"></Scenario><!-- 真鍮の器 -->
