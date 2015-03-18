@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="117e53842fc0bbb29ab553a85904658c">1.20</Scenario><!-- 協奏曲＜ＦＡＴＥ＞第六楽章 -->
+  <Scenario md5="d95d7137108dc96b16df000df29806bb">1.20</Scenario><!-- 協奏曲＜ＦＡＴＥ＞第五楽章 -->
+  <Scenario md5="54d4fca0a7d7573ee6a66f58d6a67466">1.20</Scenario><!-- 協奏曲＜ＦＡＴＥ＞第四楽章 -->
+  <Scenario md5="a80ae1d8cffb925c639fce6004934c5f">1.20</Scenario><!-- 協奏曲＜ＦＡＴＥ＞第三楽章 -->
+  <Scenario md5="0597111b2470899c7a5b996ad950e36b">1.20</Scenario><!-- 協奏曲＜ＦＡＴＥ＞第二楽章 -->
+  <Scenario md5="af73623b06069724d65646b11797690c">1.20</Scenario><!-- 協奏曲＜ＦＡＴＥ＞第一楽章 -->
   <Scenario md5="087bc9b64a17c5b2b569a12e1d9decda">1.20</Scenario><!-- 正義の籠城 -->
   <Scenario md5="5ea0aa8b5409210e0000bb422189a262">1.28</Scenario><!-- 彷徨いの迷宮の鬼獣帝 -->
   <Scenario md5="125f565922d63da3b7a12f75cd84085e">1.20</Scenario><!-- 盗賊物語 -->
