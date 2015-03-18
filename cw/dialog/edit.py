@@ -885,6 +885,83 @@ class LevelEditDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
 #-------------------------------------------------------------------------------
+# テキスト入力ダイアログ
+#-------------------------------------------------------------------------------
+
+class InputTextDialog(wx.Dialog):
+    def __init__(self, parent, title, msg, maxlength=0):
+        wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.SetClientSize(cw.wins((312, 136)))
+        self.msg = msg
+        self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
+        self.textctrl.SetMaxLength(maxlength)
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
+        self.textctrl.SetFont(font)
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["decide"])
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
+                                                        cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
+        self.okbtn.Disable()
+        self._do_layout()
+        self._bind()
+
+    def OnInput(self, event):
+        self.text = self.textctrl.GetValue()
+
+        if self.text:
+            self.okbtn.Enable()
+        else:
+            self.okbtn.Disable()
+
+    def OnOk(self, event):
+        self.text = self.textctrl.GetValue()
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
+    def OnCancel(self, event):
+        self.text = u""
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        cw.util.fill_bitmap(dc, bmp, csize)
+        # text
+        dc.SetTextForeground(wx.BLACK)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
+        dc.SetFont(font)
+        s = self.msg
+        w = dc.GetTextExtent(s)[0]
+        dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
+
+    def _bind(self):
+        self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def _do_layout(self):
+        csize = self.GetClientSize()
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1.Add(cw.wins((0, 35)), 0, 0, 0)
+        margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
+        sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_1.Add(cw.wins((0, 25)), 0, 0, 0)
+        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+
+        margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
+        sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
+        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+
+        self.SetSizer(sizer_1)
+        self.Layout()
+
+#-------------------------------------------------------------------------------
 # 宿情報編集ダイアログ
 #-------------------------------------------------------------------------------
 

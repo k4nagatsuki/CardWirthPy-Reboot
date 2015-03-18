@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import itertools
 import wx
 
 import cw
@@ -217,6 +218,37 @@ class CharaInfo(object):
                 "trickish":self.race.trickish
             }
 
+    def set_randomfeatures(self):
+        """ランダムに特性を設定する。
+        """
+        self.race = cw.cwpy.dice.choice(cw.cwpy.setting.races) if cw.cwpy.setting.races else cw.cwpy.setting.unknown_race
+
+        self.sex = cw.cwpy.dice.choice(cw.cwpy.setting.sexcoupons)
+        self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
+        faces = []
+        for values in cw.util.get_facepaths(self.sex, self.age).itervalues():
+            faces.extend(values)
+        self.imgpath = cw.cwpy.dice.choice(faces) if faces else u""
+
+        natures = []
+        for nature in cw.cwpy.setting.natures:
+            if not nature.special:
+                natures.append(nature)
+        self.talent = u"＿" + cw.cwpy.dice.choice(natures).name
+
+        self.makings.clear()
+        mlen = len(cw.cwpy.setting.makingcoupons)
+        for i in xrange(0, mlen, 2):
+            if i + 1 < mlen:
+                pair = cw.cwpy.setting.makingcoupons[i:i+2]
+            else:
+                pair = cw.cwpy.setting.makingcoupons[i:i+1]
+            n = cw.cwpy.dice.roll(1, len(pair) + 1) - 1
+            if n < len(pair):
+                self.makings.add(pair[n])
+
+        self.type = None
+
     def get_paramtype(self, info):
         for ctype in cw.cwpy.setting.sampletypes:
             if self.race.agl + ctype.aglbonus == info.physical["agl"] and\
@@ -339,13 +371,14 @@ class CharaInfo(object):
 
         return updatebase or updateetc
 
-    def create_adventurer(self):
+    def create_adventurer(self, setlevel=True):
         makings = self.get_makingslist()
 
         data = cw.dialog.create.AdventurerData()
         data.set_name(self.name)
         data.set_age(self.age)
-        data.set_level(self.level)
+        if setlevel:
+            data.set_level(self.level)
         data.set_sex(self.sex)
         data.set_image(self.imgpath)
         data.set_race(self.race)

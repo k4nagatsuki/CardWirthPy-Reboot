@@ -333,6 +333,8 @@ class Select(wx.Dialog):
         self.narrow_type.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
 
     def OnNarrowCondition(self, event):
+        if self._processing:
+            return
         cw.cwpy.sounds["page"].play()
         # 日本語入力で一度に何度もイベントが発生する
         # 事があるので絞り込み実施を遅延する
@@ -1163,13 +1165,16 @@ class MultiViewSelect(Select):
         if self._processing:
             return
         cw.cwpy.sounds["equipment"].play()
+        self.change_view()
+        self.draw(True)
+
+    def change_view(self):
         if self.views == 1:
             self.views = self._views
             self.viewbtn.SetLabel(cw.cwpy.msgs["member_one"])
         else:
             self.views = 1
             self.viewbtn.SetLabel(cw.cwpy.msgs["member_list"])
-        self.draw(True)
 
     def get_page(self):
         return self.index / self.views
@@ -1866,6 +1871,7 @@ class PlayerSelect(MultiViewSelect):
             (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer, bool(self.list)),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer, bool(self.list)),
             (cw.cwpy.msgs["select_party_record"], cw.cwpy.msgs["select_party_record_description"], self.select_partyrecord, bool(cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord)),
+            (cw.cwpy.msgs["random_character"], cw.cwpy.msgs["random_character_description"], self.create_randomadventurer, True),
             (cw.cwpy.msgs["random_team"], cw.cwpy.msgs["random_team_description"], self.random_team, bool(cw.cwpy.ydata.standbys and self.addbtn.IsEnabled()))
         ]
         dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
@@ -1874,6 +1880,8 @@ class PlayerSelect(MultiViewSelect):
         dlg.Destroy()
 
     def grow_adventurer(self):
+        """冒険者を成長させる。
+        """
         header = self.list[self.index]
         age = header.age
         index = cw.cwpy.setting.periodcoupons.index(age)
@@ -1925,6 +1933,8 @@ class PlayerSelect(MultiViewSelect):
             dlg.Destroy()
 
     def delete_adventurer(self):
+        """冒険者を削除する。
+        """
         cw.cwpy.sounds["signal"].play()
         header = self.list[self.index]
         s = cw.cwpy.msgs["confirm_delete_character"] % (header.name)
@@ -1933,37 +1943,42 @@ class PlayerSelect(MultiViewSelect):
 
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.sounds["dump"].play()
-            if cw.cwpy.ydata:
-                cw.cwpy.ydata.changed()
-            # 手札カードを移動させる
-            data = cw.data.yadoxml2etree(header.fpath)
-            ccard = cw.character.Character(data)
-            for pocket in ccard.cardpocket:
-                for card in pocket:
-                    cw.cwpy.trade("STOREHOUSE", header=card, from_event=True, sort=False)
-            cw.cwpy.ydata.sort_storehouse()
-
-            # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
-            if header.level >= 3 and not header.leavenoalbum:
-                path = cw.xmlcreater.create_albumpage(header.fpath, nocoupon=True)
-                cw.cwpy.ydata.add_album(path)
-
-            for partyrecord in cw.cwpy.ydata.partyrecord:
-                partyrecord.vanish_member(header.fpath)
-            cw.cwpy.ydata.remove_emptypartyrecord()
-            cw.cwpy.remove_xml(header)
-            cw.cwpy.ydata.standbys.remove(header)
-            self.update_narrowcondition()
-            if len(self.list):
-                self.index %= len(self.list)
-            else:
-                self.index = 0
+            self._delete_adventurer(header)
             self.enable_btn()
             self.draw(True)
 
         dlg.Destroy()
 
+    def _delete_adventurer(self, header):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        # 手札カードを移動させる
+        data = cw.data.yadoxml2etree(header.fpath)
+        ccard = cw.character.Character(data)
+        for pocket in ccard.cardpocket:
+            for card in pocket:
+                cw.cwpy.trade("STOREHOUSE", header=card, from_event=True, sort=False)
+        cw.cwpy.ydata.sort_storehouse()
+
+        # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
+        if header.level >= 3 and not header.leavenoalbum:
+            path = cw.xmlcreater.create_albumpage(header.fpath, nocoupon=True)
+            cw.cwpy.ydata.add_album(path)
+
+        for partyrecord in cw.cwpy.ydata.partyrecord:
+            partyrecord.vanish_member(header.fpath)
+        cw.cwpy.ydata.remove_emptypartyrecord()
+        cw.cwpy.remove_xml(header)
+        cw.cwpy.ydata.standbys.remove(header)
+        self.update_narrowcondition()
+        if len(self.list):
+            self.index %= len(self.list)
+        else:
+            self.index = 0
+
     def select_partyrecord(self):
+        """編成記録ダイアログを開く。
+        """
         cw.cwpy.sounds["click"].play()
         dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
         self.Parent.move_dlg(dlg)
@@ -1971,6 +1986,8 @@ class PlayerSelect(MultiViewSelect):
         dlg.Destroy()
 
     def random_team(self):
+        """ランダムな編成のチームを組む。
+        """
         if self._processing:
             return
         self._processing = True
@@ -1983,6 +2000,8 @@ class PlayerSelect(MultiViewSelect):
 
             while cw.cwpy.ydata.standbys and (not cw.cwpy.ydata.party or\
                                               len(cw.cwpy.ydata.party.members) < 6):
+                if cw.cwpy.ydata:
+                    cw.cwpy.ydata.changed()
                 if not cw.cwpy.ydata.party:
                     PlayerSelect._add(cw.cwpy.dice.choice(cw.cwpy.ydata.standbys))
                 else:
@@ -2006,6 +2025,55 @@ class PlayerSelect(MultiViewSelect):
                     panel.draw(True)
             cw.cwpy.frame.exec_func(func, panel)
         cw.cwpy.exec_func(func, self)
+
+    def create_randomadventurer(self):
+        """ランダムな特性を持つキャラクターを生成する。
+        """
+        if self._processing:
+            return
+        self._processing = True
+        cw.cwpy.sounds["signal"].play()
+        info = cw.debug.charaedit.CharaInfo(None)
+        info.set_randomfeatures()
+        fpath = info.create_adventurer(setlevel=False)
+        header = cw.cwpy.ydata.add_standbys(fpath)
+
+        # リスト更新
+        self.narrow.SetValue(u"")
+        self.update_narrowcondition()
+        if header in self.list:
+            self.index = self.list.index(header)
+        chgviews = self.views <> 1
+        if chgviews:
+            self.change_view()
+        self.draw(True)
+
+        dlg = cw.dialog.edit.InputTextDialog(self, cw.cwpy.msgs["naming"],
+                                             cw.cwpy.msgs["naming_random_character"],
+                                             maxlength=14)
+        self.Parent.move_dlg(dlg, point=(cw.wins(130), cw.wins(0)))
+        if dlg.ShowModal() == wx.ID_OK:
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
+            cw.cwpy.sounds["harvest"].play()
+            data = cw.data.yadoxml2etree(header.fpath)
+            ccard = cw.character.Character(data)
+            ccard.set_name(dlg.text)
+            ccard.data.is_edited = True
+            ccard.data.write_xml()
+            header.name = dlg.text
+        else:
+            cw.cwpy.sounds["dump"].play()
+            self._delete_adventurer(header)
+
+        dlg.Destroy()
+
+        if chgviews:
+            self.change_view()
+        self.draw(True)
+        self.enable_btn()
+
+        self._processing = False
 
     def OnClickInfoBtn(self, event):
         if self._processing:
