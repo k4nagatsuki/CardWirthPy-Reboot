@@ -1281,11 +1281,12 @@ def zip_file(path, mode):
         finally:
             os.sep = sep
 
-def compress_zip(path, zpath):
+def compress_zip(path, zpath, unicodefilename=False):
     """pathのデータをzpathで指定したzipファイルに圧縮する。
     path: 圧縮するディレクトリパス
     """
-    encoding = sys.getfilesystemencoding()
+    if not unicodefilename:
+        encoding = sys.getfilesystemencoding()
     dpath = os.path.dirname(zpath)
 
     if dpath and not os.path.isdir(dpath):
@@ -1300,12 +1301,17 @@ def compress_zip(path, zpath):
             mtime = time.localtime(os.path.getmtime(fpath))[:6]
             zname = fpath.replace(rpl_dir, "", 1) + "/"
             zinfo = zipfile.ZipInfo(zname, mtime)
+            if unicodefilename:
+                zinfo.flag_bits |= 0x800
             z.writestr(zinfo, "")
 
         for fname in fnames:
             fpath = join_paths(dpath, fname)
             zname = fpath.replace(rpl_dir, "", 1)
-            z.write(fpath.encode(encoding), zname)
+            if unicodefilename:
+                z.write(fpath, zname)
+            else:
+                z.write(fpath, zname.encode(encoding))
 
     z.close()
     return zpath
