@@ -889,20 +889,22 @@ class LevelEditDialog(wx.Dialog):
 #-------------------------------------------------------------------------------
 
 class InputTextDialog(wx.Dialog):
-    def __init__(self, parent, title, msg, maxlength=0):
+    def __init__(self, parent, title, msg, text="", maxlength=0):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetClientSize(cw.wins((312, 136)))
         self.msg = msg
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(maxlength)
+        self.textctrl.SetValue(text)
+        self.textctrl.SelectAll()
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
                                                         cw.wins((100, 30)), cw.cwpy.msgs["decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
                                                         cw.wins((100, 30)), cw.cwpy.msgs["entry_cancel"])
-        self.okbtn.Disable()
+        self.okbtn.Enable(bool(text))
         self._do_layout()
         self._bind()
 

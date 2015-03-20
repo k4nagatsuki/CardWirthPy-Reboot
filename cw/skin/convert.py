@@ -12,7 +12,7 @@ class Converter(threading.Thread):
     def __init__(self, exe):
         threading.Thread.__init__(self)
 
-        self.maximum = 70
+        self.maximum = 80
         self.curnum = 0
         self.message = u"変換を開始しています..."
         self.failure = False
@@ -1057,8 +1057,19 @@ class Converter(threading.Thread):
             else:
                 os.makedirs(target)
 
-            # リソースオーバーライド
+            # Name
             self.curnum = 60
+            self.message = u"名前のリストをコピー中..."
+            target = cw.util.join_paths(dpath, u"Name")
+            if not os.path.isdir(target):
+                os.makedirs(target)
+            for fname in ("MaleNames.txt", "FemaleNames.txt", "CommonNames.txt"):
+                fpath = cw.util.join_paths(datadir, fname)
+                if os.path.isfile(fpath):
+                    shutil.copyfile(fpath, cw.util.join_paths(target, fname))
+
+            # リソースオーバーライド
+            self.curnum = 70
             self.message = u"オーバーライドされたリソースをコピー中..."
             resdir = cw.util.join_paths(datadir, u"Resource")
             for key, target in imgtbl.iteritems():
@@ -1072,7 +1083,7 @@ class Converter(threading.Thread):
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
                     shutil.copyfile(fpath, dist)
 
-            self.curnum = 70
+            self.curnum = 80
             self.message = u"スキンの生成が完了しました。"
 
             self.complete = True

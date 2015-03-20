@@ -583,7 +583,7 @@ class TransferYadoDataDialog(wx.Dialog):
             shutil.move(dname2, dname)
 
             wsl = cw.util.join_paths(dstdir, u"Party.wsl")
-            cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wsl)
+            cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wsl, unicodefilename=True)
             cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
         counter.num += 1
 

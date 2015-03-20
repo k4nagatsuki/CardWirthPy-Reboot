@@ -2048,8 +2048,37 @@ class PlayerSelect(MultiViewSelect):
             self.change_view()
         self.draw(True)
 
+        # *Names.txtファイルがある時は初期名を決める
+        randomname = u""
+        sex = header.get_sex()
+        if sex:
+            names = set()
+            for fname in (sex + u"Names.txt", u"CommonNames.txt"):
+                fpath = cw.util.join_paths(cw.cwpy.skindir, u"Name",  fname)
+                try:
+                    if os.path.isfile(fpath):
+                        with open(fpath, "rb") as f:
+                            t = f.read()
+                            t = cw.util.decode_zipname(t)
+                        lines = t.splitlines()
+                        names.update(lines)
+                except:
+                    cw.util.print_ex()
+            if names:
+                # 同名のメンバーを避ける
+                # (とりあえずパーティに所属しているメンバーとは重複可)
+                names2 = names.copy()
+                for standby in cw.cwpy.ydata.standbys:
+                    names.discard(standby.name)
+                if not names:
+                    # 候補がなくなってしまったら重複を許可
+                    names = names2
+                randomname = cw.cwpy.dice.choice(list(names))
+
+
         dlg = cw.dialog.edit.InputTextDialog(self, cw.cwpy.msgs["naming"],
                                              cw.cwpy.msgs["naming_random_character"],
+                                             text=randomname,
                                              maxlength=14)
         self.Parent.move_dlg(dlg, point=(cw.wins(130), cw.wins(0)))
         if dlg.ShowModal() == wx.ID_OK:
@@ -4104,7 +4133,7 @@ class ScenarioSelect(Select):
         zpath = os.path.basename(temppath) + ".wsn"
         zpath = cw.util.join_paths(self.nowdir, zpath)
         zpath = cw.util.dupcheck_plus(zpath, False)
-        cw.util.compress_zip(temppath, zpath)
+        cw.util.compress_zip(temppath, zpath, unicodefilename=True)
         cw.cwpy.sounds["harvest"].play()
         # 変換完了ダイアログ
         s = u"データの変換が完了しました。"

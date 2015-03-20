@@ -718,7 +718,7 @@ class ScenarioData(SystemData):
         if path.startswith(cw.cwpy.yadodir):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
-        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path)
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path, unicodefilename=True)
         cw.cwpy.ydata.deletedpaths.discard(path)
 
     def load_log(self, path, recording):
@@ -793,7 +793,7 @@ class ScenarioData(SystemData):
         if path.startswith("Yado"):
             path = path.replace(cw.cwpy.yadodir, cw.cwpy.tempdir, 1)
 
-        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path)
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path, unicodefilename=True)
 
     def get_bgmpaths(self):
         """現在使用可能なBGMのパスのリストを返す。"""
@@ -1140,7 +1140,7 @@ class YadoData(object):
                 shutil.move(party.fpath, cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party/Party.xml"))
 
                 wslpath2 = cw.util.join_paths(dpath, "Party.wsl")
-                cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wslpath2)
+                cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), wslpath2, unicodefilename=True)
                 cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
 
             # 現状のパーティデータ

@@ -482,7 +482,7 @@ class CWYado(object):
 
         # create_zip
         path = cw.util.splitext(party.xmlpath)[0] + ".wsl"
-        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path)
+        cw.util.compress_zip(cw.util.join_paths(cw.tempdir, u"ScenarioLog"), path, unicodefilename=True)
         cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
 
 class UnconvCWYado(object):
