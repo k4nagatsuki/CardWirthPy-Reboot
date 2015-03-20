@@ -2061,7 +2061,10 @@ class PlayerSelect(MultiViewSelect):
                             t = f.read()
                             t = cw.util.decode_zipname(t)
                         lines = t.splitlines()
-                        names.update(lines)
+                        for line in lines:
+                            line = line.strip()
+                            if not line.startswith('#'):
+                                names.add(line)
                 except:
                     cw.util.print_ex()
             if names:
