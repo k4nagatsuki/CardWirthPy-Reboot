@@ -236,15 +236,7 @@ class CharaInfo(object):
         self.talent = u"＿" + cw.cwpy.dice.choice(natures).name
 
         self.makings.clear()
-        mlen = len(cw.cwpy.setting.makingcoupons)
-        for i in xrange(0, mlen, 2):
-            if i + 1 < mlen:
-                pair = cw.cwpy.setting.makingcoupons[i:i+2]
-            else:
-                pair = cw.cwpy.setting.makingcoupons[i:i+1]
-            n = cw.cwpy.dice.roll(1, len(pair) + 1) - 1
-            if n < len(pair):
-                self.makings.add(pair[n])
+        self.makings.update(cw.dialog.create.get_randommakings())
 
         self.type = None
 
@@ -870,15 +862,7 @@ class CharaSelectablePanel(wx.Panel):
         # 特徴をランダムに設定する
         for info in self._get_infos():
             info.makings.clear()
-            mlen = len(cw.cwpy.setting.makingcoupons)
-            for i in xrange(0, mlen, 2):
-                if i + 1 < mlen:
-                    pair = cw.cwpy.setting.makingcoupons[i:i+2]
-                else:
-                    pair = cw.cwpy.setting.makingcoupons[i:i+1]
-                n = cw.cwpy.dice.roll(1, len(pair) + 1) - 1
-                if n < len(pair):
-                    info.makings.add(pair[n])
+            info.makings.update(cw.dialog.create.get_randommakings())
 
         self._select_target(self.cindex)
 

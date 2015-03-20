@@ -128,6 +128,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_ui.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards_init)
             self.pane_ui.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime_init)
             self.pane_ui.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton_init)
+            self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
 
             self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
             self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
@@ -427,6 +428,8 @@ class SettingsDialog(wx.Dialog):
                     if cw.cwpy.is_playingscenario():
                         cw.cwpy.sdata.autostart_round = False
                 cw.cwpy.exec_func(func)
+        value = self.pane_ui.cb_showautobuttoninentrydialog.GetValue()
+        cw.cwpy.setting.show_autobuttoninentrydialog = value
 
         # 背景の更新
         if updatebg:
@@ -1345,6 +1348,9 @@ class UISettingPanel(wx.Panel):
         self.cb_showroundautostartbutton = wx.CheckBox(
             self, -1, u"バトルで自動的に行動を開始できるようにする")
         self.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton)
+        self.cb_showautobuttoninentrydialog = wx.CheckBox(
+            self, -1, u"新規登録ダイアログに自動ボタンを表示する")
+        self.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog)
 
         # ダイアログオプション
         self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
@@ -1388,6 +1394,7 @@ class UISettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_openhandviewalways, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showroundautostartbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_showautobuttoninentrydialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_dlg.Add(self.cb_cautionbeforesaving, 0, wx.ALL, 3)

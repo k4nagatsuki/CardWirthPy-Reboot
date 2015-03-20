@@ -130,6 +130,7 @@ class Setting(object):
         self.statusbarmask = True
         self.show_experiencebar = True
         self.show_roundautostartbutton = False
+        self.show_autobuttoninentrydialog = False
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -410,6 +411,9 @@ class Setting(object):
 
         # バトルラウンドを自動開始可能にする
         self.show_roundautostartbutton = data.getbool("ShowRoundAutoStartButton", self.show_roundautostartbutton)
+
+        # 新規登録ダイアログに自動ボタンを表示する
+        self.show_autobuttoninentrydialog = data.getbool("ShowAutoButtonInEntryDialog", self.show_autobuttoninentrydialog)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)

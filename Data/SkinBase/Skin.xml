@@ -674,6 +674,7 @@
     <Message key="random_character_description">ランダムに選ばれた人物を、新しいメンバーとして宿帳に登録します。</Message>
     <Message key="naming">名前の決定</Message>
     <Message key="naming_random_character">新しいメンバーに名前をつけてください！</Message>
+    <Message key="auto_selection">自動選択</Message>
     <!-- 0.12.3 ここまで -->
   </Messages>
 </Skin>

@@ -2049,35 +2049,8 @@ class PlayerSelect(MultiViewSelect):
         self.draw(True)
 
         # *Names.txtファイルがある時は初期名を決める
-        randomname = u""
         sex = header.get_sex()
-        if sex:
-            names = set()
-            for fname in (sex + u"Names.txt", u"CommonNames.txt"):
-                fpath = cw.util.join_paths(cw.cwpy.skindir, u"Name",  fname)
-                try:
-                    if os.path.isfile(fpath):
-                        with open(fpath, "rb") as f:
-                            t = f.read()
-                            t = cw.util.decode_zipname(t)
-                        lines = t.splitlines()
-                        for line in lines:
-                            line = line.strip()
-                            if not line.startswith('#'):
-                                names.add(line)
-                except:
-                    cw.util.print_ex()
-            if names:
-                # 同名のメンバーを避ける
-                # (とりあえずパーティに所属しているメンバーとは重複可)
-                names2 = names.copy()
-                for standby in cw.cwpy.ydata.standbys:
-                    names.discard(standby.name)
-                if not names:
-                    # 候補がなくなってしまったら重複を許可
-                    names = names2
-                randomname = cw.cwpy.dice.choice(list(names))
-
+        randomname = cw.dialog.create.get_randomname(sex)
 
         dlg = cw.dialog.edit.InputTextDialog(self, cw.cwpy.msgs["naming"],
                                              cw.cwpy.msgs["naming_random_character"],

@@ -407,14 +407,23 @@ class AdventurerCreater(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.header = None
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_cancel"])
-        self.postbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_decide"])
+        if cw.cwpy.setting.show_autobuttoninentrydialog:
+            btnwidth = 75
+        else:
+            btnwidth = 85
         self.nextbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_next"])
+                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_next"])
+        if cw.cwpy.setting.show_autobuttoninentrydialog:
+            self.autobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
+                                                                cw.wins((btnwidth, 24)), cw.cwpy.msgs["auto_selection"])
+        else:
+            self.autobtn = None
         self.prevbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
-                                                            cw.wins((85, 24)), cw.cwpy.msgs["entry_previous"])
+                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_previous"])
+        self.postbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
+                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_decide"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1,
+                                                            cw.wins((btnwidth, 24)), cw.cwpy.msgs["entry_cancel"])
         self._init_pages()
         self.enable_btn()
         self.nextbtn.Disable()
@@ -443,11 +452,20 @@ class AdventurerCreater(wx.Dialog):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
-        w = self.closebtn.GetSize()[0] * 4
-        margin = (cw.wins(460 - 80) - w) / 3
-        sizer_panel.Add(cw.wins((40, 0)), 0, 0, 0)
+        if self.autobtn:
+            btncount = 5
+            space = 35
+        else:
+            btncount = 4
+            space = 40
+        w = self.closebtn.GetSize()[0] * btncount
+        margin = (cw.wins(460 - space*2) - w) / 3
+        sizer_panel.Add(cw.wins((space, 0)), 0, 0, 0)
         sizer_panel.Add(self.prevbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
+        if self.autobtn:
+            sizer_panel.Add(self.autobtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+            sizer_panel.Add((margin, 0), 0, 0, 0)
         sizer_panel.Add(self.nextbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_panel.Add((margin, 0), 0, 0, 0)
         sizer_panel.Add(self.postbtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
@@ -465,6 +483,8 @@ class AdventurerCreater(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickNextBtn, self.nextbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickPrevBtn, self.prevbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickPostBtn, self.postbtn)
+        if self.autobtn:
+            self.Bind(wx.EVT_BUTTON, self.OnClickAutoBtn, self.autobtn)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, self.closebtn)
 
     def enable_btn(self):
@@ -524,6 +544,10 @@ class AdventurerCreater(wx.Dialog):
             self.page.Thaw()
             self.page.Show()
             self.enable_btn()
+
+    def OnClickAutoBtn(self, event):
+        cw.cwpy.sounds["signal"].play()
+        self.page.select_autofeatures()
 
     def OnClickPostBtn(self, event):
         cw.cwpy.sounds["signal"].play()
@@ -716,6 +740,9 @@ class AdventurerCreaterPage(wx.Panel):
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         dc.DrawBitmap(bmp, 0, 0, False)
         return dc
+
+    def select_autofeatures(self):
+        pass
 
 class NamePage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -927,6 +954,60 @@ class NamePage(AdventurerCreaterPage):
     def set_previmg(self, name):
         _set_previmg(self, name)
 
+    def select_autofeatures(self):
+        sindex = cw.cwpy.dice.roll(1, len(cw.cwpy.setting.sexcoupons)) - 1
+        self.sex = cw.cwpy.setting.sexcoupons[sindex]
+        self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
+
+        randomname = get_randomname(cw.cwpy.setting.sexsubnames[sindex])
+        if randomname:
+            self.textctrl.SetValue(randomname)
+
+        self.set_imgpaths(True)
+        self.imgdpath = cw.cwpy.dice.roll(1, len(self.imgdpaths)) - 1
+        self.ch_imgdpath.SetSelection(self.imgdpath)
+        key = self.imgdpaths[self.imgdpath]
+        self.imgpath = cw.cwpy.dice.choice(self.imgpaths[key])
+        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+
+        self.draw(True)
+
+def get_randomname(sex):
+    """<Skin>/Name/*Names.txtから性別に基づいてランダムに名前を得る。
+    該当ファイルが存在しなかったり、ファイルに名前が登録されていない
+    場合は空文字列を返す。
+    """
+    names = set()
+    fnames = [u"CommonNames.txt"]
+    if sex:
+        fnames.append(sex + u"Names.txt")
+    for fname in fnames:
+        fpath = cw.util.join_paths(cw.cwpy.skindir, u"Name",  fname)
+        try:
+            if os.path.isfile(fpath):
+                with open(fpath, "rb") as f:
+                    t = f.read()
+                    t = cw.util.decode_zipname(t)
+                lines = t.splitlines()
+                for line in lines:
+                    line = line.strip()
+                    if not line.startswith('#'):
+                        names.add(line)
+        except:
+            cw.util.print_ex()
+    if names:
+        # 同名のメンバーを避ける
+        # (とりあえずパーティに所属しているメンバーとは重複可)
+        names2 = names.copy()
+        for standby in cw.cwpy.ydata.standbys:
+            names.discard(standby.name)
+        if not names:
+            # 候補がなくなってしまったら重複を許可
+            names = names2
+        return cw.cwpy.dice.choice(list(names))
+    else:
+        return u""
+
 class RacePage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
@@ -1001,6 +1082,13 @@ class RacePage(AdventurerCreaterPage):
             return False
         else:
             return True
+
+    def select_autofeatures(self):
+        index = cw.cwpy.dice.roll(1, self.choice.GetCount()) - 1
+        self.choice.SetSelection(index)
+        race = self.choice.GetStringSelection()
+        self.race = race
+        self.draw(True)
 
 class RelationPage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -1215,6 +1303,13 @@ class RelationPage(AdventurerCreaterPage):
         else:
             return True
 
+    def select_autofeatures(self):
+        cw.cwpy.sounds["signal"].play()
+        self.father = cw.cwpy.dice.choice(self.fathers)
+        self.mother = cw.cwpy.dice.choice(self.mothers)
+
+        self.draw(True)
+
 class TalentPage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
@@ -1270,6 +1365,16 @@ class TalentPage(AdventurerCreaterPage):
             cw.cwpy.sounds["click"].play()
             self.talent = name
             self.draw(True)
+
+    def select_autofeatures(self):
+        cw.cwpy.sounds["signal"].play()
+        talents = []
+        for talent in cw.cwpy.setting.natures:
+            if not talent.special:
+                talents.append(u"＿" + talent.name)
+        self.talent = cw.cwpy.dice.choice(talents)
+
+        self.draw(True)
 
 class AttrPage(AdventurerCreaterPage):
     def __init__(self, parent):
@@ -1351,6 +1456,32 @@ class AttrPage(AdventurerCreaterPage):
         seq = [value for value in self.couponsdata.itervalues() if value]
         seq.sort()
         return seq
+
+    def select_autofeatures(self):
+        cw.cwpy.sounds["signal"].play()
+        self.couponsdata = _get_randommakingsandpair()
+        self.draw(True)
+
+def _get_randommakingsandpair():
+    # どの程度の確率で左右どちらかの特徴が選択されるかの係数
+    nv = cw.cwpy.dice.roll(1, 5)
+
+    makings = {}
+    mlen = len(cw.cwpy.setting.makingnames)
+    for i in xrange(0, mlen, 2):
+        if i + 1 < mlen:
+            pair = cw.cwpy.setting.makingnames[i:i+2]
+        else:
+            pair = cw.cwpy.setting.makingnames[i:i+1]
+        n = cw.cwpy.dice.roll(1, len(pair) + nv) - 1
+        if n < len(pair):
+            makings[tuple(pair)] = u"＿" + pair[n]
+    return makings
+
+def get_randommakings():
+    """ランダムに選ばれた特徴のsetを返す。"""
+    makings = _get_randommakingsandpair()
+    return set(makings.itervalues())
 
 #-------------------------------------------------------------------------------
 # 宿の登録ダイアログ

@@ -381,6 +381,10 @@ def create_settings(setting):
     e = cw.data.make_element("ShowRoundAutoStartButton", str(setting.show_roundautostartbutton))
     element.append(e)
 
+    # 新規登録ダイアログに自動ボタンを表示する
+    e = cw.data.make_element("ShowAutoButtonInEntryDialog", str(setting.show_autobuttoninentrydialog))
+    element.append(e)
+
     # タイトルバーの表示内容
     e = cw.data.make_element("TitleFormat", setting.titleformat)
     element.append(e)
