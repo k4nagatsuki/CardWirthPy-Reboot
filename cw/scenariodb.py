@@ -27,20 +27,22 @@ DATA_LEVEL = 3
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
 
-    def __init__(self, setting, vacuum=False):
+    def __init__(self, setting, vacuum=False, dpath=u"Scenario", skintype=u""):
         threading.Thread.__init__(self)
         self.setting = setting
         self._vacuum = vacuum
+        self._dpath = dpath
+        self._skintype = skintype
 
     def run(self):
         type(self)._finished = False
         db = Scenariodb()
-        db.update()
+        db.update(skintype=self._skintype)
         folders = set()
-        folders.add(u"Scenario")
+        folders.add(self._dpath)
         for _skintype, folder in self.setting.folderoftype:
             if not folder in folders:
-                db.update(folder)
+                db.update(folder, skintype=self._skintype)
                 folders.add(folder)
 
         if self._vacuum:
@@ -98,6 +100,20 @@ class Scenariodb(object):
                 self.cur.execute("CREATE INDEX scenariodb_index1 ON scenariodb(dpath)")
                 needcommit = True
 
+            cur = self.con.execute("PRAGMA table_info('scenariotype')")
+            res = cur.fetchall()
+            if not res:
+                s = """
+                    CREATE TABLE scenariotype (
+                        dpath TEXT,
+                        fname TEXT,
+                        skintype TEXT,
+                        PRIMARY KEY (dpath, fname, skintype)
+                    )
+                """
+                self.cur.execute(s)
+                needcommit = True
+
             if needcommit:
                 self.con.commit()
         else:
@@ -114,13 +130,36 @@ class Scenariodb(object):
             self.cur.execute(s)
             self.cur.execute("CREATE INDEX scenariodb_index1 ON scenariodb(dpath)")
 
+            s = """
+                CREATE TABLE scenariotype (
+                    dpath TEXT,
+                    fname TEXT,
+                    skintype TEXT,
+                    PRIMARY KEY (dpath, fname, skintype)
+                )
+            """
+            self.cur.execute(s)
+            self.cur.execute("CREATE INDEX scenariotype_index1 ON scenariodb(dpath, fname)")
+
     @synclock(_lock)
-    def update(self, dpath=u"Scenario"):
+    def update(self, dpath=u"Scenario", skintype=u""):
         """データベースを更新する。"""
         s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
         self.cur.execute(s, (cw.util.get_linktarget(dpath),))
         data = self.cur.fetchall()
         dbpaths = []
+
+        skintype_s = "SELECT skintype FROM scenariotype WHERE dpath=? AND fname=? AND skintype=?"
+
+        def update_path(t, spath, path):
+            if os.path.getmtime(spath) > t[2]:
+                # 情報を更新
+                self._insert_scenario(path, False, skintype=skintype)
+            elif skintype:
+                self.cur.execute(skintype_s, (t[0], t[1], skintype,))
+                res = self.cur.fetchall()
+                if not res:
+                    self._insert_scenario(path, False, skintype=skintype)
 
         for t in data:
             path = "/".join((t[0], t[1]))
@@ -131,34 +170,27 @@ class Scenariodb(object):
                 if os.path.isfile(spath):
                     # クラシックなシナリオ
                     dbpaths.append(path)
-                    if os.path.getmtime(spath) > t[2]:
-                        # 情報を更新
-                        self._insert_scenario(path, False)
+                    update_path(t, spath, path)
                     continue
 
                 spath = cw.util.join_paths(ltarg, "Summary.xml")
                 if os.path.isfile(spath):
                     # 展開済みのシナリオ
                     dbpaths.append(path)
-                    if os.path.getmtime(spath) > t[2]:
-                        # 情報を更新
-                        self._insert_scenario(path, False)
+                    update_path(t, spath, path)
                     continue
 
                 self.delete(path, False)
             else:
                 dbpaths.append(path)
-
-                if os.path.getmtime(ltarg) > t[2]:
-                    # 情報を更新
-                    self._insert_scenario(path, False)
+                update_path(t, ltarg, path)
 
         self.con.commit()
         dbpaths = set(dbpaths)
 
         for path in get_scenariopaths(dpath):
             if not path in dbpaths:
-                self._insert_scenario(path, False)
+                self._insert_scenario(path, False, skintype=skintype)
 
         self.con.commit()
 
@@ -175,28 +207,34 @@ class Scenariodb(object):
         dpath, fname = os.path.split(path)
         s = "DELETE FROM scenariodb WHERE dpath=? AND fname=?"
         self.cur.execute(s, (dpath, fname,))
+        s = "DELETE FROM scenariotype WHERE dpath=? AND fname=?"
+        self.cur.execute(s, (dpath, fname,))
 
         if commit:
             self.con.commit()
 
-    def insert(self, t, commit=True):
+    def insert(self, t, commit=True, skintype=u""):
         s = """INSERT OR REPLACE INTO scenariodb
                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         self.cur.execute(s, t)
+        if skintype:
+            s = """INSERT OR REPLACE INTO scenariotype
+                   VALUES(?, ?, ?)"""
+            self.cur.execute(s, (t[0], t[2], skintype,))
 
         if commit:
             self.con.commit()
 
     @synclock(_lock)
-    def insert_scenario(self, path, commit=True):
+    def insert_scenario(self, path, commit=True, skintype=u""):
         """データベースにシナリオを登録する。"""
-        self._insert_scenario(path, commit)
+        self._insert_scenario(path, commit, skintype=skintype)
 
-    def _insert_scenario(self, path, commit=True):
+    def _insert_scenario(self, path, commit=True, skintype=u""):
         t = read_summary(path)
 
         if t:
-            self.insert(t, commit)
+            self.insert(t, commit, skintype=skintype)
             return True
         elif path.startswith(u"Scenario"):
             # 登録できなかったファイルを移動
@@ -211,7 +249,7 @@ class Scenariodb(object):
             ##shutil.move(path, dst)
             return False
 
-    def create_header(self, data):
+    def create_header(self, data, skintype=u""):
         """
         データベース内のシナリオ情報からヘッダ部分を返す。
         情報が古くなっている場合は更新する。
@@ -229,9 +267,9 @@ class Scenariodb(object):
                 if os.path.getmtime(spath) > header.mtime:
                     cs = read_summary(path)
                     if cs:
-                        self.insert(cs, True)
+                        self.insert(cs, True, skintype=skintype)
                         # 更新後の情報を取得
-                        header = self._search_path(path)
+                        header = self._search_path(path, skintype=skintype)
                         return header
                 else:
                     # 更新は不要
@@ -247,13 +285,13 @@ class Scenariodb(object):
         elif os.path.getmtime(ltarg) > header.mtime:
             if self._insert_scenario(path):
                 # 更新後の情報を取得
-                header = self._search_path(path)
+                header = self._search_path(path, skintype=skintype)
             else:
                 return None
 
         return header
 
-    def create_headers(self, data):
+    def create_headers(self, data, skintype=u""):
         """
         データベース内のシナリオ群のヘッダを返す。
         その際、情報が古くなっている場合は更新する。
@@ -262,7 +300,7 @@ class Scenariodb(object):
         names = set()
 
         for t in data:
-            header = self.create_header(t)
+            header = self.create_header(t, skintype=skintype)
 
             if header:
                 headers.append(header)
@@ -277,31 +315,48 @@ class Scenariodb(object):
         return headers
 
     @synclock(_lock)
-    def search_path(self, path):
-        return self._search_path(path)
+    def search_path(self, path, skintype=u""):
+        return self._search_path(path, skintype=skintype)
 
-    def _search_path(self, path):
+    def _search_path(self, path, skintype=u""):
         path = path.replace("\\", "/")
         dpath, fname = os.path.split(path)
-        s = "SELECT * FROM scenariodb WHERE dpath=? AND fname=?"
-        self.cur.execute(s, (dpath, fname,))
+        self._fetch(dpath, fname, skintype)
         data = self.cur.fetchone()
 
         ltarg = cw.util.get_linktarget(path)
         if not data and os.path.exists(ltarg):
-            if self._insert_scenario(path):
+            if self._insert_scenario(path, skintype=skintype):
                 self.cur.execute(s, (dpath, fname,))
                 data = self.cur.fetchone()
 
-        return self.create_header(data)
+        return self.create_header(data, skintype=skintype)
+
+    def _fetch(self, dpath, fname, skintype):
+        if skintype:
+            s = "SELECT A.* FROM scenariodb A LEFT JOIN scenariotype B" +\
+                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+                " WHERE A.dpath=? AND A.fname=? AND (B.skintype=? OR B.skintype IS NULL)"
+            self.cur.execute(s, (dpath, fname, skintype,))
+        else:
+            s = "SELECT * FROM scenariodb WHERE dpath=? AND fname=?"
+            self.cur.execute(s, (dpath, fname,))
 
     @synclock(_lock)
-    def search_dpath(self, dpath, create=False):
+    def search_dpath(self, dpath, create=False, skintype=u""):
         dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
-        s = "SELECT * FROM scenariodb WHERE dpath=?"
-        self.cur.execute(s, (dpath,))
+
+        if skintype:
+            s = "SELECT A.* FROM scenariodb A LEFT JOIN scenariotype B" +\
+                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+                " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
+            self.cur.execute(s, (dpath, skintype,))
+        else:
+            s = "SELECT * FROM scenariodb WHERE dpath=?"
+            self.cur.execute(s, (dpath,))
+
         data = self.cur.fetchall()
-        headers, names = self.create_headers(data)
+        headers, names = self.create_headers(data, skintype=skintype)
         # データベースに登録されていないシナリオファイルがないかチェック
         dbpaths = set([h.get_fpath() for h in headers])
 
@@ -324,7 +379,7 @@ class Scenariodb(object):
                          lname.endswith(".zip") or\
                          lname.endswith(".lzh") or\
                          lname.endswith(".cab")):
-                header = self._search_path(path)
+                header = self._search_path(path, skintype=skintype)
 
                 if header:
                     headers.append(header)
@@ -332,50 +387,60 @@ class Scenariodb(object):
         return self.sort_headers(headers)
 
     @synclock(_lock)
-    def search_wildcard(self, q, column):
-        q = "%%%s%%" % (q)
-        s = "SELECT * FROM scenariodb WHERE %s LIKE ?" % (column)
-        self.cur.execute(s, (q,))
-        data = self.cur.fetchall()
-        headers, _names = self.create_headers(data)
-        return self.sort_headers(headers)
-
-    @synclock(_lock)
-    def get_header(self, path):
-        s = "SELECT * FROM scenariodb WHERE dpath=? AND fname=?"
+    def get_header(self, path, skintype=u""):
         dpath = os.path.dirname(path)
         fname = os.path.basename(path)
-        self.cur.execute(s, (dpath, fname,))
+        self._fetch(dpath, fname, skintype)
         data = self.cur.fetchall()
         for t in data:
-            return self.create_header(t)
+            return self.create_header(t, skintype=skintype)
         return None
 
     @synclock(_lock)
-    def find_headers(self, ftype, value):
+    def find_headers(self, ftype, value, skintype=u""):
         if ftype == DATA_TITLE:
-            s = "SELECT * FROM scenariodb WHERE name LIKE ? ESCAPE '\\'"
+            where = "name LIKE ? ESCAPE '\\'"
         elif ftype == DATA_DESC:
-            s = "SELECT * FROM scenariodb WHERE desc LIKE ? ESCAPE '\\'"
+            where = "desc LIKE ? ESCAPE '\\'"
         elif ftype == DATA_AUTHOR:
-            s = "SELECT * FROM scenariodb WHERE author LIKE ? ESCAPE '\\'"
+            where = "author LIKE ? ESCAPE '\\'"
         elif ftype == DATA_LEVEL:
-            s = "SELECT * FROM scenariodb WHERE levelmin <= ? AND ? <= levelmax"
+            where = "levelmin <= ? AND ? <= levelmax"
         else:
             raise Exception()
-        if ftype == DATA_LEVEL:
-            values = (value,value,)
-            v = value
-        else:
+
+        def encode_like(value):
             value2 = value.replace("\\", "\\\\")
             value2 = value2.replace("%", "\\%")
             value2 = value2.replace("_", "\\_")
             value2 = '%' + value2 + '%'
-            values = (value2,)
+            return value2
+
+        if skintype:
+            s = "SELECT A.* FROM scenariodb A LEFT JOIN scenariotype B" +\
+                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+                " WHERE " + where +\
+                "     AND (B.skintype=? OR B.skintype IS NULL)"
+            if ftype == DATA_LEVEL:
+                values = (value, value, skintype,)
+            else:
+                values = (encode_like(value), skintype,)
+        else:
+            s = "SELECT * FROM scenariodb WHERE " + where
+            if ftype == DATA_LEVEL:
+                values = (value, value,)
+            else:
+                values = (encode_like(value),)
+
+        if ftype == DATA_LEVEL:
+            v = value
+        else:
             v = value.lower()
+
         self.cur.execute(s, values)
         data = self.cur.fetchall()
-        headers, _names = self.create_headers(data)
+        # 検索ではスキン情報は更新しない
+        headers, _names = self.create_headers(data, skintype=u"")
 
         # 情報が更新されている可能性があるため再チェック
         seq = []

@@ -391,7 +391,7 @@ class BookmarkDialog(wx.Dialog):
 
             path = cw.util.get_linktarget(path)
             if cw.scenariodb.is_scenario(path):
-                header = db.search_path(path)
+                header = db.search_path(path, skintype=cw.cwpy.setting.skintype)
             elif os.path.isdir(path):
                 header = None
             else:

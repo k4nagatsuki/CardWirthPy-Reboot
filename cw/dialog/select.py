@@ -2406,8 +2406,8 @@ class ScenarioSelect(Select):
         # シナリオデータベース
         self.db = db
         # nowdirにあるScenarioHeaderのリスト
-        self.db.update(self.nowdir)
-        headers = self.db.search_dpath(self.nowdir, create=True)
+        self.db.update(self.nowdir, skintype=cw.cwpy.setting.skintype)
+        headers = self.db.search_dpath(self.nowdir, create=True, skintype=cw.cwpy.setting.skintype)
         # nowdirにあるディレクトリリスト
         dpaths = self.get_dpaths(self.nowdir)
         # nowdirがディレクトリだった場合の内容リスト
@@ -2637,7 +2637,7 @@ class ScenarioSelect(Select):
                 return
         else:
             assert False
-        headers = self.db.find_headers(ftype, value)
+        headers = self.db.find_headers(ftype, value, skintype=cw.cwpy.setting.skintype)
         cw.cwpy.sounds["harvest"].play()
         self._set_findresult(headers, False)
 
@@ -2774,7 +2774,7 @@ class ScenarioSelect(Select):
 
                 path = cw.util.get_linktarget(path)
                 if self.is_scenario(path):
-                    header = self.db.search_path(path)
+                    header = self.db.search_path(path, skintype=cw.cwpy.setting.skintype)
                 elif os.path.isdir(path):
                     header = None
                 else:
@@ -2936,7 +2936,7 @@ class ScenarioSelect(Select):
         seq = []
         if nowdir == self.scedir and self.find_result:
             seq.append(self.find_result)
-        seq.extend(self.db.search_dpath(nowdir))
+        seq.extend(self.db.search_dpath(nowdir, skintype=cw.cwpy.setting.skintype))
         seq.extend(self.get_dpaths(nowdir))
         return seq
 
@@ -3220,7 +3220,9 @@ class ScenarioSelect(Select):
                         self.updatenames_thr.quit = True
                         self.updatenames_thr = None
                     self.names = [u"読込中..."]
-                    self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:], startdir=dpath, expandedset=set())
+                    self.updatenames_thr = UpdateNamesThread(self, dpath, self.dirstack[:],
+                                                             startdir=dpath, expandedset=set(),
+                                                             skintype=cw.cwpy.setting.skintype)
                     self.updatenames_thr.start()
 
             # Folder.bmpチェック
@@ -3626,7 +3628,9 @@ class ScenarioSelect(Select):
         self.names = [u"読込中..."]
         paritem = self.tree.GetItemParent(selitem)
         dirstack = self.get_dirstack(paritem)
-        self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack, startdir=startdir, expandedset=expandedset)
+        self.updatenames_thr = UpdateNamesThread(self, dpath, dirstack,
+                                                 startdir=startdir, expandedset=expandedset,
+                                                 skintype=cw.cwpy.setting.skintype)
         self.updatenames_thr.start()
 
     def OnTreeItemCollapsed(self, event):
@@ -4122,7 +4126,7 @@ class ScenarioSelect(Select):
         # tempを削除
         cw.util.remove(temppath)
         # 更新処理
-        self.db.insert_scenario(zpath)
+        self.db.insert_scenario(zpath, skintype=cw.cwpy.setting.skintype)
         self.list = self._get_nowlist()
         self.scetable[self.nowdir] = self.list
         self.list = self._narrow_scenario(self.list)
@@ -4176,7 +4180,7 @@ class FindResult(object):
 
 class UpdateNamesThread(threading.Thread):
 
-    def __init__(self, dlg, dpath, dirstack, startdir, expandedset):
+    def __init__(self, dlg, dpath, dirstack, startdir, expandedset, skintype):
         threading.Thread.__init__(self)
         self.dlg = dlg
         self.nowdir = dlg.nowdir
@@ -4186,6 +4190,7 @@ class UpdateNamesThread(threading.Thread):
         self.quit = False
         self.startdir = startdir
         self.expandedset = expandedset
+        self.skintype = skintype
 
     def run(self):
         """ScenarioSelectで現在表示中のディレクトリ内の
@@ -4198,10 +4203,10 @@ class UpdateNamesThread(threading.Thread):
         if self.quit: return
         # dpathの中にあるシナリオをDBに登録
         db = cw.scenariodb.Scenariodb()
-        db.update(self.dpath)
+        db.update(self.dpath, skintype=self.skintype)
         if self.quit: return
         # dpathの中にあるシナリオ名のリスト
-        headers = db.search_dpath(self.dpath)
+        headers = db.search_dpath(self.dpath, skintype=self.skintype)
         # dpathの中にあるディレクトリ名のリスト
         dnames = []
 
