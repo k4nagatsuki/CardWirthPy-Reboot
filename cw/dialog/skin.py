@@ -94,20 +94,21 @@ class SkinConversionDialog(wx.Dialog):
                 else:
                     targ = os.path.join(os.path.dirname(self.conv.exe), self.conv.scenariodir)
 
-                existslink = False
                 path1 = os.path.normcase(os.path.abspath(os.path.normpath(targ)))
-                for dpath in os.listdir(u"Scenario"):
-                    dpath = os.path.join(u"Scenario", dpath)
-                    path2 = os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(dpath))))
-                    if path1 == path2:
-                        existslink = True
-                        break
 
-                if not existslink:
-                    link = os.path.basename(self.conv.scenariodir)
-                    link = cw.util.join_paths(u"Scenario", link + ".lnk")
-                    link = cw.binary.util.check_duplicate(link)
-                    cw.util.create_link(link, targ)
+                ##existslink = False
+                ##for dpath in os.listdir(u"Scenario"):
+                ##    dpath = os.path.join(u"Scenario", dpath)
+                ##    path2 = os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(dpath))))
+                ##    if path1 == path2:
+                ##        existslink = True
+                ##        break
+                ##
+                ##if not existslink:
+                ##    link = os.path.basename(self.conv.scenariodir)
+                ##    link = cw.util.join_paths(u"Scenario", link + ".lnk")
+                ##    link = cw.binary.util.check_duplicate(link)
+                ##    cw.util.create_link(link, targ)
 
                 if cw.cwpy:
                     setting = cw.cwpy.setting
