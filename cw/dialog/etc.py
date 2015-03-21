@@ -587,7 +587,7 @@ class ConvertYadoDialog(wx.Dialog):
         self.SetClientSize((w + cw.wins(50), cw.wins(156)))
 
         self.targetengine = 1.50
-        self.dstpath = u"UnconvertedYado"
+        self.dstpath = cw.cwpy.setting.unconvert_targetfolder
 
         self.folder = wx.TextCtrl(self, size=(-1, -1))
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)

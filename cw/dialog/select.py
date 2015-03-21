@@ -869,6 +869,8 @@ class YadoSelect(Select):
             dlg.Destroy()
             return
 
+        cw.cwpy.setting.unconvert_targetfolder = dstpath
+
         # 宿データ
         cw.cwpy.yadodir = cw.util.join_paths(yadodir)
         cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)

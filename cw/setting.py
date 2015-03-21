@@ -132,6 +132,7 @@ class Setting(object):
         self.show_experiencebar = True
         self.show_roundautostartbutton = False
         self.show_autobuttoninentrydialog = False
+        self.unconvert_targetfolder = u"UnconvertedYado"
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -417,6 +418,9 @@ class Setting(object):
 
         # 新規登録ダイアログに自動ボタンを表示する
         self.show_autobuttoninentrydialog = data.getbool("ShowAutoButtonInEntryDialog", self.show_autobuttoninentrydialog)
+
+        # 逆変換先ディレクトリ
+        self.unconvert_targetfolder = data.gettext("UnconvertTargetFolder", self.unconvert_targetfolder)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
