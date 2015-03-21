@@ -225,7 +225,6 @@ class MessageWindow(base.CWPySprite):
                 self.text = cw.util.txtwrap(self.text, 3)
             posp = pos
 
-        r_halfwidth = re.compile(u"[ -~｡-ﾟ]") # 半角文字の集合
         r_specialfont = re.compile("#.") # 特殊文字(#)の集合
         # 文字色変更文字(&)の集合
         r_changecolour = re.compile("&[\x20-\x7E\n]")
@@ -319,7 +318,7 @@ class MessageWindow(base.CWPySprite):
             images.append((pos, image, image2))
 
             # 半角文字だったら文字幅は半分にする
-            if r_halfwidth.match(char):
+            if cw.util.is_hw(char):
                 pos = pos[0] + cw.s(10), pos[1]
             else:
                 pos = pos[0] + cw.s(20), pos[1]

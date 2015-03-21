@@ -21,6 +21,7 @@ import datetime
 import md5
 import ctypes
 import array
+import unicodedata
 
 if sys.platform == "win32":
     import importlib
@@ -1588,10 +1589,16 @@ def decodewrap(s, code="\n"):
     return "".join(r)
 
 def encodetextlist(arr):
+    """arrを\n区切りの文字列にする。"""
     return encodewrap("\n".join(arr))
 
 def decodetextlist(s):
+    """\n区切りの文字列を文字配列にする。"""
     return decodewrap(s).split("\n")
+
+def is_hw(unichr):
+    """unichrが半角文字であればTrueを返す。"""
+    return not unicodedata.east_asian_width(unichr) in ('F', 'W', 'A')
 
 WRAPS_CHARS = u"｡|､|，|、|。|．|）|」|』|〕|｝|】"
 
@@ -1625,8 +1632,6 @@ def txtwrap(s, mode, width=30, wrapschars=""):
 
     # \\nを改行コードに戻す
     s = cw.util.decodewrap(s)
-    # 半角文字集合
-    r_hwchar = re.compile(u"[ -~]|[｡-ﾟ]")
     # 行頭禁止文字集合
     r_wchar = re.compile(wrapschars) if not mode in (2, 3) and wrapschars else None
     # 特殊文字記号集合
@@ -1687,12 +1692,12 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             wraped = False
             wrapafter = False
         # 半角文字
-        elif r_hwchar.match(char):
+        elif is_hw(char):
             seq.append(char)
             cnt += 1
-            if not (mode in (2, 3)) and not (mode == 1 and index+1 < len(s) and not r_hwchar.match(s[index+1])):
+            if not (mode in (2, 3)) and not (mode == 1 and index+1 < len(s) and not is_hw(s[index+1])):
                 asciicnt += 1
-            if spchar2 or not (mode in (2, 3)) or len(s) <= index+1 or r_hwchar.match(s[index+1]):
+            if spchar2 or not (mode in (2, 3)) or len(s) <= index+1 or is_hw(s[index+1]):
                 width2 += 1
             wrapafter = False
 
@@ -1702,7 +1707,7 @@ def txtwrap(s, mode, width=30, wrapschars=""):
             cnt += 2
             asciicnt = 0
             wrapafter = False
-            if mode in (1, 2, 3) and index+1 < len(s) and r_hwchar.match(s[index+1]):
+            if mode in (1, 2, 3) and index+1 < len(s) and is_hw(s[index+1]):
                 width2 += 1
 
         # 互換動作: 1.28以降は行末に半角スペースがあると折り返し位置が変わる
