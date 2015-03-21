@@ -3205,7 +3205,7 @@ class ScenarioSelect(Select):
         s = str(self.index+1) if self.list else str(0)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (bmpw-w)/2, cw.wins(340))
+        cw.util.draw_witharound(dc, s, bmpw-w-cw.wins(10), cw.wins(10))
 
         if not isinstance(self.list[self.index], cw.header.ScenarioHeader):
             dpath = self.list[self.index]
