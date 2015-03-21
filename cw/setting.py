@@ -237,7 +237,7 @@ class Setting(object):
         self.vol_sound = data.getint("SoundVolume", int(self.vol_sound*100))
         self.vol_sound = self.wrap_volumevalue(self.vol_sound)
         # MIDIサウンドフォント
-        elements = data.getfind("SoundFonts", False)
+        elements = data.find("SoundFonts", False)
         if not elements is None:
             self.soundfonts = []
             for e in elements:
