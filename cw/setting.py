@@ -174,7 +174,9 @@ class Setting(object):
 
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
-                if hasattr(t[1], "copy"):
+                if isinstance(t[1], list):
+                    v = t[1][:]
+                elif hasattr(t[1], "copy"):
                     v = t[1].copy()
                 else:
                     v = t[1]
