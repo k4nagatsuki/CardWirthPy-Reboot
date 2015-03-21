@@ -144,22 +144,24 @@ class Scenariodb(object):
     @synclock(_lock)
     def update(self, dpath=u"Scenario", skintype=u""):
         """データベースを更新する。"""
-        s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
-        self.cur.execute(s, (cw.util.get_linktarget(dpath),))
+        if skintype:
+            s = "SELECT A.dpath, A.fname, mtime, B.skintype FROM scenariodb A LEFT JOIN scenariotype B" +\
+                " ON A.dpath=B.dpath AND A.fname=B.fname" +\
+                " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
+            self.cur.execute(s, (cw.util.get_linktarget(dpath),skintype,))
+        else:
+            s = "SELECT dpath, fname, mtime FROM scenariodb WHERE dpath=?"
+            self.cur.execute(s, (cw.util.get_linktarget(dpath),))
         data = self.cur.fetchall()
         dbpaths = []
-
-        skintype_s = "SELECT skintype FROM scenariotype WHERE dpath=? AND fname=? AND skintype=?"
 
         def update_path(t, spath, path):
             if os.path.getmtime(spath) > t[2]:
                 # 情報を更新
                 self._insert_scenario(path, False, skintype=skintype)
-            elif skintype:
-                self.cur.execute(skintype_s, (t[0], t[1], skintype,))
-                res = self.cur.fetchall()
-                if not res:
-                    self._insert_scenario(path, False, skintype=skintype)
+            elif skintype and t[3] is None:
+                # タイプ情報がないので収集
+                self._insert_scenario(path, False, skintype=skintype)
 
         for t in data:
             path = "/".join((t[0], t[1]))
