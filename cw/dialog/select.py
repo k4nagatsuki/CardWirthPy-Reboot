@@ -2638,6 +2638,7 @@ class ScenarioSelect(Select):
         else:
             assert False
         headers = self.db.find_headers(ftype, value)
+        cw.cwpy.sounds["harvest"].play()
         self._set_findresult(headers, False)
 
         if not (self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen()):
@@ -2654,8 +2655,6 @@ class ScenarioSelect(Select):
             self.scetable[self.scedir] = list
         self.scetable[findresult] = headers[:]
         findresult.headers = self._sort_headers(headers)
-
-        cw.cwpy.sounds["harvest"].play()
 
         # 検索結果ディレクトリを表示する
         if self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen():
