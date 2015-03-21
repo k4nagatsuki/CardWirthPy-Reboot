@@ -1492,7 +1492,7 @@ class YadoCreater(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["create_base_title"], size=(318, 180),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.yadodir = ""
-        self.SetClientSize(cw.wins((312, 156)))
+        self.SetDoubleBuffered(True)
 
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(18)
@@ -1500,15 +1500,23 @@ class YadoCreater(wx.Dialog):
         self.textctrl.SetFont(font)
         self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
 
+        self._msg1 = cw.cwpy.msgs["create_base_message_1"]
+        self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["create_base_message_2"], 0, 32)
+
         choices = []
+        self.command0s = []
+        self.cautions = []
         for name in os.listdir(u"Data/Skin"):
             path = cw.util.join_paths(u"Data/Skin", name)
-            skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+            skinpath = cw.util.join_paths(u"Data/Skin", name, u"Skin.xml")
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 try:
-                    cw.header.GetName(skinpath)
-                    choices.append(name)
+                    prop = cw.header.GetProperty(skinpath)
+                    choices.append(prop.properties[u"Name"])
+                    ext = prop.attrs.get(u"Extension", {}).get(u"image", u".bmp")
+                    self.command0s.append([cw.util.join_paths(path, u"Resource/Image/Card/COMMAND0" + ext), None])
+                    self.cautions.append([cw.util.join_paths(path, u"Resource/Image/Dialog/CAUTION" + ext), None])
                 except Exception:
                     # エラーのあるスキンは無視
                     cw.util.print_ex()
@@ -1552,6 +1560,10 @@ class YadoCreater(wx.Dialog):
         else:
             self.okbtn.Disable()
 
+    def OnChoice(self, event):
+        cw.cwpy.sounds["page"].play()
+        self.Refresh()
+
     def OnOk(self, event):
         self.create_yado()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -1565,29 +1577,57 @@ class YadoCreater(wx.Dialog):
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         # background
-        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        index = self.skin.GetSelection()
+        imgdata = self.cautions[index]
+        bmp = imgdata[1]
+        if not bmp:
+            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False), cw.setting.SIZE_RESOURCES[u"Dialog/CAUTION"]))
+            imgdata[1] = bmp
         csize = self.GetClientSize()
         cw.util.fill_bitmap(dc, bmp, csize)
+
+        # card image
+        imgdata = self.command0s[index]
+        bmp = imgdata[1]
+        if not bmp:
+            bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], True), cw.SIZE_CARDIMAGE))
+            imgdata[1] = bmp
+        bmph = bmp.GetHeight()
+        y = (self._inputareaheight-bmph) / 2
+        dc.DrawBitmap(bmp, cw.wins(10), y, True)
+        bmpw = bmp.GetWidth()
+
         # text
         dc.SetTextForeground(wx.BLACK)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
-        s = cw.cwpy.msgs["create_base_message_1"]
-        w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (csize[0]-w)/2, cw.wins(10))
+        s = self._msg1
+        y = cw.wins(10)
+        dc.DrawText(s, bmpw+cw.wins(20), y)
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
         dc.SetFont(font)
-        s = cw.cwpy.msgs["create_base_message_2"]
-        w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (csize[0]-w)/2, cw.wins(30))
+        _w, h, _lineheight = dc.GetMultiLineTextExtent(s)
+        y += h + cw.wins(5)
+        s = self._msg2
+        dc.DrawText(s, bmpw+cw.wins(20), y)
 
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
+
+        tw1, th1 = dc.GetTextExtent(cw.cwpy.msgs["input_name"])
+        tw2, th2 = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
+        tw = max(tw1, tw2)
+
+        s = cw.cwpy.msgs["input_name"]
+        x, y, w, h = self.textctrl.GetRect()
+        x -= tw + cw.wins(5)
+        y += (h-th1) / 2
+        dc.DrawText(s, x, y)
+
         s = cw.cwpy.msgs["select_skin"]
-        tw, th = dc.GetTextExtent(s)
         x, y, w, h = self.skin.GetRect()
         x -= tw + cw.wins(5)
-        y += (h-th) / 2
+        y += (h-th2) / 2
         dc.DrawText(s, x, y)
 
     def _bind(self):
@@ -1595,36 +1635,64 @@ class YadoCreater(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_CHOICE, self.OnChoice, self.skin)
 
     def _do_layout(self):
-        csize = self.GetClientSize()
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(cw.wins((0, 55)), 0, 0, 0)
-        margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
-        sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+        sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
 
         dc = wx.ClientDC(self)
+        cardw = cw.wins(cw.SIZE_CARDIMAGE[0])
+
         font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
-        w, _h = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
-        sizer_3.Add((w, 0), 0, wx.RIGHT|wx.CENTER, cw.wins(5))
-        sizer_3.Add(self.skin, 0, wx.CENTER, 0)
-        sizer_1.Add(sizer_3, 0, wx.CENTER, 0)
+        s = self._msg1
+        w1, h1, _lineheight = dc.GetMultiLineTextExtent(s)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        dc.SetFont(font)
+        s = self._msg2
+        w2, h2, _lineheight = dc.GetMultiLineTextExtent(s)
+        mw = max(w1, w2)
+
+        sizer_1.Add((cardw+mw+cw.wins(30), h1+h2+cw.wins(25)), 0, 0, 0)
+
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
+        dc.SetFont(font)
+        w1, _h = dc.GetTextExtent(cw.cwpy.msgs["input_name"])
+        w2, _h = dc.GetTextExtent(cw.cwpy.msgs["select_skin"])
+        w = max(w1, w2)
+
+        sizer_2.Add((cw.wins(20)+cardw, cw.wins(0)), 0, 0, 0)
+        sizer_2.Add((w+cw.wins(5), cw.wins(0)), 0, 0, 0)
+        sizer_2.Add(self.textctrl, 0, 0, 0)
+        sizer_2.Add(cw.wins((10, 0)), 0, 0, 0)
+        sizer_1.Add(sizer_2, 0, 0, 0)
+
+        sizer_1.Add(cw.wins((0, 5)), 0, 0, 0)
+
+        sizer_3.Add((cw.wins(20)+cardw, cw.wins(0)), 0, 0, 0)
+        sizer_3.Add((w+cw.wins(5), cw.wins(0)), 0, 0, 0)
+        sizer_3.Add(self.skin, 0, 0, 0)
+        sizer_3.Add(cw.wins((10, 00)), 0, 0, 0)
+        sizer_1.Add(sizer_3, 0, 0, 0)
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
+        csize = sizer_1.CalcMin()
+        self._inputareaheight = csize[1]
+
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
-        sizer_2.Add(self.okbtn, 0, wx.LEFT, margin)
-        sizer_2.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+        sizer_4.Add(self.okbtn, 0, wx.LEFT, margin)
+        sizer_4.Add(self.cnclbtn, 0, wx.LEFT|wx.RIGHT, margin)
+        sizer_1.Add(sizer_4, 1, wx.EXPAND, 0)
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
+        self.SetClientSize(sizer_1.CalcMin())
         self.Layout()
 
 #-------------------------------------------------------------------------------

@@ -664,8 +664,11 @@ class ConvertYadoDialog(wx.Dialog):
         dc.DrawText(s, x, y)
 
         s = u"生成先:"
-        _x2, _y2, _w2, h2 = self.reffolder.GetRect()
-        dc.DrawText(s, x, y - h2 - cw.wins(5))
+        tw, th = dc.GetTextExtent(s)
+        _x2, y, _w2, h = self.reffolder.GetRect()
+        h = max(h, self.folder.GetRect()[3])
+        y += (h-th) / 2
+        dc.DrawText(s, x, y)
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)

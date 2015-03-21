@@ -627,6 +627,7 @@ class YadoSelect(Select):
         """
         宿新規作成。
         """
+        cw.cwpy.sounds["click"].play()
         dlg = cw.dialog.create.YadoCreater(self)
         cw.cwpy.frame.move_dlg(dlg)
 
