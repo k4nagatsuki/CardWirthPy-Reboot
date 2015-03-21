@@ -11,6 +11,7 @@ import struct
 import shutil
 import weakref
 import array
+import re
 import wx
 import pygame
 
@@ -1738,7 +1739,41 @@ class RecentHistory(object):
 
         return None
 
-class ScenarioCompatibilityTable:
+class SystemCoupons(object):
+    """称号選択分岐で特殊処理するシステムクーポン群。
+    シナリオ側からのエンジンのバージョン判定等に利用する。
+    CardWirth由来の"＿１"～"＿６"や"＠ＭＰ３"は含まれない。
+    """
+    def __init__(self):
+        self._normal = set() # 固定値
+        self._regexes = [] # 正規表現
+        self._ats = True # u"＠"で始まる称号のみが含まれる場合はTrue
+        if os.path.isfile("Data/SystemCoupons.xml"):
+            data = cw.data.xml2element(path="Data/SystemCoupons.xml")
+            for e in data:
+                if self._ats and not e.text.startswith(u"＠"):
+                    self._ats = False
+
+                regex = e.getbool(".", "regex", False)
+                if regex:
+                    self._regexes.append(re.compile(e.text))
+                else:
+                    self._normal.add(e.text)
+
+    def match(self, coupon):
+        """couponがシステムクーポンに含まれている場合はTrueを返す。
+        """
+        if self._ats and not coupon.startswith(u"＠"):
+            return False
+        if coupon in self._normal:
+            return True
+
+        for r in self._regexes:
+            if r.match(coupon):
+                return True
+        return False
+
+class ScenarioCompatibilityTable(object):
     """互換性データベース。
     *.wsmまたは*.widファイルのMD5ダイジェストをキーに、
     本来そのファイルが再生されるべきCardWirthのバージョンを持つ。

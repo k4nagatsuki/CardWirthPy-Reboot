@@ -36,7 +36,10 @@ class CWPy(_Singleton, threading.Thread):
             threading.Thread.__init__(self)
             self.rsrc = None
             self.frame = frame   # 親フレーム
-            self.sct = cw.setting.ScenarioCompatibilityTable() # 互換性データベース
+            # 互換性データベース
+            self.sct = cw.setting.ScenarioCompatibilityTable()
+            # バージョン判定等で使用するシステムクーポン
+            self.syscoupons = cw.setting.SystemCoupons()
             self.ydata = None
             self._running = False
             self.init_pygame(setting)

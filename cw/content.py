@@ -880,20 +880,8 @@ class BranchCouponContent(BranchContent):
         """称号存在分岐コンテント。"""
         coupon = self.data.get("coupon")
 
-        if coupon.startswith(u"＠CardWirthPy Version."):
-            if coupon == u"＠CardWirthPy Version.0.12.2x Only":
-                # 現在のバージョンが0.12.2か判定する特殊クーポン
-                return self.get_boolean_index(True)
-            elif not coupon.endswith(u" Only"):
-                rpos = coupon.rfind(".")
-                try:
-                    # 現行のバージョンが0.12.2以下か判定する特殊クーポン
-                    # (ただし0.12.1以前はバージョン識別子機能が無いため除外する)
-                    ver = int(coupon[rpos+1:])
-                    if 2 <= ver and ver <= 2:
-                        return self.get_boolean_index(True)
-                except:
-                    pass
+        if cw.cwpy.syscoupons.match(coupon):
+            return self.get_boolean_index(True)
 
         scope = self.data.get("targets")
 
