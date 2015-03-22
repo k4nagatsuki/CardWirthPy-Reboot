@@ -713,6 +713,7 @@ class PlayerCard(CWPyCard, character.Player):
         # カード移動操作
         elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
+            cw.cwpy.clear_inusecardimg()
             cw.cwpy.trade("PLAYERCARD", self)
 
         # カード使用。USECARDダイアログを開く
@@ -727,7 +728,7 @@ class PlayerCard(CWPyCard, character.Player):
             elif cw.cwpy.status == "ScenarioBattle":
                 header = cw.cwpy.selectedheader
                 header.get_owner().set_action(self, header)
-                cw.cwpy.clear_specialarea()
+                cw.cwpy.clear_specialarea(redraw=False)
 
         # パーティ離脱
         elif cw.cwpy.areaid == -3:
@@ -915,7 +916,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             if cw.cwpy.is_battlestatus():
                 header = cw.cwpy.selectedheader
                 header.get_owner().set_action(self, header)
-                cw.cwpy.clear_specialarea()
+                cw.cwpy.clear_specialarea(redraw=False)
 
     def rclick_event(self):
         """右クリックイベント。"""
@@ -1012,6 +1013,8 @@ class MenuCard(CWPyCard):
         self.debug_only = data.getbool(".", "debugOnly", False)
         self.author = ""
         self.scenario = ""
+        self._is_backpack = False
+        self._is_storehouse = False
 
         # システムカード用の特殊パラメータ
         self.command = data.getattr(".", "command", "")
@@ -1073,6 +1076,12 @@ class MenuCard(CWPyCard):
         # pos
         self.set_pos_noscale(self._pos_noscale2)
 
+        command = self._data.getattr(".", "command", "")
+        if command == "MoveCard":
+            arg = self._data.getattr(".", "arg", "")
+            self._is_backpack = arg == "BACKPACK"
+            self._is_storehouse = arg == "STOREHOUSE"
+
         # 初期化後は不要
         self._data = None
         self._pos_noscale2 = None
@@ -1085,6 +1094,12 @@ class MenuCard(CWPyCard):
 
     def is_initialized(self):
         return self._init
+
+    def is_backpack(self):
+        return self._is_backpack
+
+    def is_storehouse(self):
+        return self._is_storehouse
 
     def update(self, scr):
         if self.status <> "hidden" and not self._init:
@@ -1105,6 +1120,7 @@ class MenuCard(CWPyCard):
         # カード移動操作
         elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
+            cw.cwpy.clear_inusecardimg()
             if self.command:
                 cw.content.PostEventContent.do_action(self.command, self.arg)
             else:

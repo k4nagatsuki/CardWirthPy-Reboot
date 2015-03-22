@@ -2413,12 +2413,13 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(True)
         self.disposition_pcards()
 
-    def clear_specialarea(self):
+    def clear_specialarea(self, redraw=True):
         """特殊エリアに移動する前のエリアに戻る。
         areaidが-3(パーティ解散)の場合はエリアチェンジする。
         """
-        self.clear_inusecardimg()
-        self.clear_guardcardimg()
+        if redraw:
+            self.clear_inusecardimg()
+            self.clear_guardcardimg()
         self._stored_partyrecord = None
         targetselectionarea = False
         callpredlg = False
@@ -2476,7 +2477,7 @@ class CWPy(_Singleton, threading.Thread):
         if not callpredlg:
             self.change_selection(self.selection)
 
-        if oldareaid <> cw.AREA_CAMP:
+        if oldareaid <> cw.AREA_CAMP and redraw:
             self.draw()
 
         if callpredlg:
@@ -2576,7 +2577,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 現在全員の戦闘行動を表示中か
         show_allselectedcards = self._show_allselectedcards
-        if sprite:
+        if sprite and not isinstance(sprite, cw.sprite.background.Curtain):
             # 特定の誰かが選択された場合は表示を更新
             show_allselectedcards = False
         elif not self._in_partyarea(self.mousepos):
@@ -2599,34 +2600,71 @@ class CWPy(_Singleton, threading.Thread):
         self.selection = sprite
 
         if (not self.is_runningevent()\
-                and not self.selectedheader\
                 and isinstance(sprite, cw.character.Character)\
-                and sprite.is_analyzable()) or\
-                show_allselectedcards:
-            for sprite in itertools.chain(self.get_pcards("unreversed"),
-                                          self.get_ecards("unreversed"),
-                                          self.get_fcards("unreversed")):
+                and (not self.selectedheader or self.is_battlestatus())\
+                and sprite.is_analyzable())\
+                or show_allselectedcards:
+            seq = itertools.chain(self.get_pcards("unreversed"),
+                                  self.get_ecards("unreversed"),
+                                  self.get_fcards("unreversed"))
+        elif not self.is_runningevent() and self.selectedheader and self.selectedheader.get_owner():
+            seq = [self.selectedheader.get_owner()]
+        else:
+            seq = []
+
+        for sprite in seq:
+            if not self.selectedheader or sprite <> self.selectedheader.get_owner():
                 if not (isinstance(sprite, cw.character.Character)\
-                        and sprite.actiondata and sprite.is_analyzable()\
+                        and sprite.actiondata\
+                        and sprite.is_analyzable()\
                         and sprite.status <> "hidden"):
                     continue
-                self.clear_inusecardimg(sprite)
-                targets, header, _beasts = sprite.actiondata
-                if header:
-                    if self.selection == sprite:
-                        self.set_inusecardimg(sprite, header)
-                        if header.target == "None":
-                            self.set_targetarrow([sprite])
-                        elif targets:
-                            self.set_targetarrow(targets)
-                    elif self.setting.show_allselectedcards:
-                        alpha = 160
-                        if not sprite.alpha is None:
-                            alpha = int(alpha * sprite.alpha / 255.0)
-                        self.set_inusecardimg(sprite, header, alpha=alpha)
 
-                    if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
-                        show_allselectedcards = True
+            selowner = self.selectedheader and self.selectedheader.get_owner() == sprite
+
+            if cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack == sprite:
+                mcards = self.get_mcards()
+                for mcard in mcards:
+                    if isinstance(mcard, cw.sprite.card.MenuCard) and mcard.is_backpack():
+                        sprite = mcard
+                        break
+                else:
+                    continue
+            elif cw.cwpy.ydata.storehouse == sprite:
+                mcards = self.get_mcards()
+                for mcard in mcards:
+                    if isinstance(mcard, cw.sprite.card.MenuCard) and mcard.is_storehouse():
+                        sprite = mcard
+                        break
+                else:
+                    continue
+
+            self.clear_inusecardimg(sprite)
+
+            if selowner:
+                header = self.selectedheader
+                targets = []
+            elif sprite.actiondata:
+                targets, header, _beasts = sprite.actiondata
+            else:
+                targets = []
+                header = None
+
+            if header:
+                if self.selection == sprite and not selowner:
+                    self.set_inusecardimg(sprite, header)
+                    if header.target == "None":
+                        self.set_targetarrow([sprite])
+                    elif targets:
+                        self.set_targetarrow(targets)
+                elif self.setting.show_allselectedcards or selowner:
+                    alpha = 160
+                    if not sprite.alpha is None:
+                        alpha = int(alpha * sprite.alpha / 255.0)
+                    self.set_inusecardimg(sprite, header, alpha=alpha)
+
+                if self.setting.show_allselectedcards and isinstance(sprite, cw.sprite.card.PlayerCard):
+                    show_allselectedcards = True
 
         self._show_allselectedcards = show_allselectedcards
 
@@ -2804,12 +2842,13 @@ class CWPy(_Singleton, threading.Thread):
         if self.is_curtained():
             self.sounds["click"].play()
 
-            # カード移動選択エリアだったら、事前に開いていたダイアログを開く
             if self.areaid in cw.AREAS_TRADE:
+                # カード移動選択エリアだったら、事前に開いていたダイアログを開く
+                self.selectedheader = None
                 self.call_predlg()
-            # それ以外だったら特殊エリアをクリアする
             else:
-                self.clear_specialarea()
+                # それ以外だったら特殊エリアをクリアする
+                self.clear_specialarea(redraw=False)
 
     def is_lockmenucards(self, sprite):
         """メニューカードをクリック出来ない状態か。"""
