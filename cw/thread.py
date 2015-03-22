@@ -3414,6 +3414,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # カード選択ダイアログを再び開く(イベントから呼ばれたのでなかったら)
         if not from_event and call_predlg:
+            self.selectedheader = None
             self.call_predlg()
 
     def remove_xml(self, target):
