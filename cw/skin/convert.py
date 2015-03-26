@@ -1063,10 +1063,31 @@ class Converter(threading.Thread):
             target = cw.util.join_paths(dpath, u"Name")
             if not os.path.isdir(target):
                 os.makedirs(target)
+            names = set()
             for fname in ("MaleNames.txt", "FemaleNames.txt", "CommonNames.txt"):
                 fpath = cw.util.join_paths(datadir, fname)
-                if os.path.isfile(fpath):
+                if os.path.isfile(fpath) and os.path.getsize(fpath):
                     shutil.copyfile(fpath, cw.util.join_paths(target, fname))
+                    names.add(fname)
+
+            # Exampleフォルダにスキンタイプに該当するファイルがあったら
+            # そちらを採用する
+            self.curnum = 65
+            exdirpath = cw.util.join_paths(dpath, u"Name/Example")
+            if os.path.isdir(exdirpath):
+                for fname in ("MaleNames.txt", "FemaleNames.txt", "CommonNames.txt"):
+                    if fname in names:
+                        continue
+                    sfname = os.path.splitext(fname)[0] + u"_"
+                    for fname2 in os.listdir(exdirpath):
+                        if fname2.startswith(sfname):
+                            types = os.path.splitext(fname2[len(sfname):])[0]
+                            types = types.lower().split("+")
+                            if self.skintype.lower() in types:
+                                fpath = cw.util.join_paths(exdirpath, fname2)
+                                fpath2 = cw.util.join_paths(dpath, u"Name", fname)
+                                shutil.copyfile(fpath, fpath2)
+                shutil.rmtree(exdirpath)
 
             # リソースオーバーライド
             self.curnum = 70

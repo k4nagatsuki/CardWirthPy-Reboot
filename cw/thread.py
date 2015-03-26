@@ -3071,6 +3071,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.selectedheader and not header:
             assert self.selectedheader
             header = self.selectedheader
+            self.selectedheader = None
 
         if not party:
             party = self.ydata.party
@@ -3414,7 +3415,6 @@ class CWPy(_Singleton, threading.Thread):
 
         # カード選択ダイアログを再び開く(イベントから呼ばれたのでなかったら)
         if not from_event and call_predlg:
-            self.selectedheader = None
             self.call_predlg()
 
     def remove_xml(self, target):
