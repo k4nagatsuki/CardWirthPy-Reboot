@@ -1531,9 +1531,9 @@ class Character(object):
                         Noneの場合はアクティブなパーティの荷物袋か
                         カード置場へ入る。
         """
+        # 調節前のレベル
+        limit = self.get_limitlevel()
         if regulate:
-            # 調節前のレベル
-            limit = self.get_limitlevel()
             value = min(value, limit)
 
         # レベル
@@ -1581,7 +1581,7 @@ class Character(object):
                     e.attrib["value"] = str(self.level)
                     self.coupons[e.text] = self.level, e
                 elif e.text == u"＠ＥＰ":
-                    value = e.getint(".", "value", 0) + uplevel * 10
+                    value = e.getint(".", "value", 0) + (value - limit) * 10
                     e.attrib["value"] = str(value)
                     self.coupons[e.text] = value, e
 
