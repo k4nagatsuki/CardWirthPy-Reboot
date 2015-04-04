@@ -1032,7 +1032,7 @@ class YadoData(object):
         self.partyrecord = self.yadodb.get_partyrecord()
         self.sort_partyrecord()
 
-        # 保存済みJPDCイメージ(TODO: DBで管理)
+        # 保存済みJPDCイメージ
         self.savedjpdcimage = self.yadodb.get_savedjpdcimage()
 
         self.yadodb.close()
