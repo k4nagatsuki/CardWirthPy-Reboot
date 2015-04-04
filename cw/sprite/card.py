@@ -713,7 +713,6 @@ class PlayerCard(CWPyCard, character.Player):
         # カード移動操作
         elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
-            cw.cwpy.clear_inusecardimg()
             cw.cwpy.trade("PLAYERCARD", self)
 
         # カード使用。USECARDダイアログを開く
@@ -1120,7 +1119,6 @@ class MenuCard(CWPyCard):
         # カード移動操作
         elif cw.cwpy.areaid in (-1, -2, -5) and cw.cwpy.selectedheader:
             cw.animation.animate_sprite(self, "click")
-            cw.cwpy.clear_inusecardimg()
             if self.command:
                 cw.content.PostEventContent.do_action(self.command, self.arg)
             else:

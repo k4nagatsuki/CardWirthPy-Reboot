@@ -3071,7 +3071,6 @@ class CWPy(_Singleton, threading.Thread):
         if self.selectedheader and not header:
             assert self.selectedheader
             header = self.selectedheader
-            self.selectedheader = None
 
         if not party:
             party = self.ydata.party
@@ -3194,6 +3193,9 @@ class CWPy(_Singleton, threading.Thread):
         # 宿状態の変化を通知
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+
+        if header == self.selectedheader:
+            self.clear_inusecardimg()
 
         #-----------------------------------------------------------------------
         # 移動元からデータを削除
@@ -3412,6 +3414,9 @@ class CWPy(_Singleton, threading.Thread):
                     header.moved = 0
                 header.write(party)
                 header.carddata = None
+
+        if header == self.selectedheader:
+            self.selectedheader = None
 
         # カード選択ダイアログを再び開く(イベントから呼ばれたのでなかったら)
         if not from_event and call_predlg:
