@@ -983,18 +983,13 @@ def get_randomname(sex):
         fnames.append(sex + u"Names.txt")
     for fname in fnames:
         fpath = cw.util.join_paths(cw.cwpy.skindir, u"Name",  fname)
-        try:
-            if os.path.isfile(fpath):
-                with open(fpath, "rb") as f:
-                    t = f.read()
-                    t = cw.util.decode_zipname(t)
-                lines = t.splitlines()
-                for line in lines:
-                    line = line.strip()
-                    if not line.startswith('#'):
-                        names.add(line)
-        except:
-            cw.util.print_ex()
+        names.update(_read_names(fpath))
+
+    if not names:
+        # スキン固有の名前リストがない場合は
+        # Exampleから取得する
+        names.update(_get_randomnamefromexample(sex, cw.cwpy.setting.skintype))
+
     if names:
         # 同名のメンバーを避ける
         # (とりあえずパーティに所属しているメンバーとは重複可)
@@ -1007,6 +1002,49 @@ def get_randomname(sex):
         return cw.cwpy.dice.choice(list(names))
     else:
         return u""
+
+def _get_randomnamefromexample(sex, skintype):
+    """Exampleフォルダにスキンタイプに該当するファイルがあったら
+    その内容を取得する。
+    """
+    names = set()
+    exdirpath = u"Data/SkinBase/Name/Example"
+    if os.path.isdir(exdirpath):
+        fnames = [u"CommonNames.txt"]
+        if sex:
+            fnames.append(sex + u"Names.txt")
+        for fname in fnames:
+            if fname in names:
+                continue
+            sfname = os.path.splitext(fname)[0] + u"_"
+            for fname2 in os.listdir(exdirpath):
+                if fname2.startswith(sfname):
+                    types = os.path.splitext(fname2[len(sfname):])[0]
+                    types = types.lower().split("+")
+                    if skintype.lower() in types:
+                        fpath = cw.util.join_paths(exdirpath, fname2)
+                        names.update(_read_names(fpath))
+
+    return names
+
+def _read_names(fpath):
+    """fpathから名前のリストを読み込む。
+    """
+    names = set()
+    try:
+        if os.path.isfile(fpath):
+            with open(fpath, "rb") as f:
+                t = f.read()
+                t = cw.util.decode_zipname(t)
+            lines = t.splitlines()
+            for line in lines:
+                line = line.strip()
+                if not line.startswith('#'):
+                    names.add(line)
+    except:
+        cw.util.print_ex()
+
+    return names
 
 class RacePage(AdventurerCreaterPage):
     def __init__(self, parent):
