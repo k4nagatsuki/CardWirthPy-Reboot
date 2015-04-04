@@ -13,6 +13,7 @@ import cw
 # ID
 ID_COMPSTAMP = wx.NewId()
 ID_GOSSIP = wx.NewId()
+ID_SAVEDJPDCIMAGE = wx.NewId()
 ID_MONEY = wx.NewId()
 ID_CARD = wx.NewId()
 ID_MEMBER = wx.NewId()
@@ -51,7 +52,7 @@ class Debugger(wx.Frame):
             self, parent, -1, u"CardWirthPy Debugger", size=wx.DefaultSize,
             style=wx.CLIP_CHILDREN|wx.CAPTION|wx.RESIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
-        self.SetClientSize((610, cw.cwpy.frame.GetClientSize()[1]))
+        self.SetClientSize((635, cw.cwpy.frame.GetClientSize()[1]))
         # set icon
         cw.cwpy.frame.set_icon(self)
         # aui manager
@@ -118,6 +119,10 @@ class Debugger(wx.Frame):
                          u"ゴシップリストを編集します。")
         self.mi_gossip.SetBitmap(rsrc["GOSSIP"])
         edit_menu.AppendItem(self.mi_gossip)
+        self.mi_savedjpdcimage = wx.MenuItem(edit_menu, ID_SAVEDJPDCIMAGE, u"保存済みJPDCイメージ(&G)",
+                         u"保存されたJPDCイメージを整理します。")
+        self.mi_savedjpdcimage.SetBitmap(rsrc["JPDCIMAGE"])
+        edit_menu.AppendItem(self.mi_savedjpdcimage)
         self.mi_money = wx.MenuItem(edit_menu, ID_MONEY, u"所持金(&M)",
                          u"所持金を変更します。")
         self.mi_money.SetBitmap(rsrc["MONEY"])
@@ -241,6 +246,9 @@ class Debugger(wx.Frame):
         self.tl_gossip = self.tb1.AddLabelTool(
             ID_GOSSIP, u"ゴシップ", rsrc["GOSSIP"],
             shortHelp=u"ゴシップリストを編集します。")
+        self.tl_savedjpdcimage = self.tb1.AddLabelTool(
+            ID_SAVEDJPDCIMAGE, u"保存済みJPDCイメージ", rsrc["JPDCIMAGE"],
+            shortHelp=u"保存されたJPDCイメージを整理します。")
         self.tl_money = self.tb1.AddLabelTool(
             ID_MONEY, u"所持金", rsrc["MONEY"],
             shortHelp=u"所持金を変更します。")
@@ -477,6 +485,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnLoadYadoTool, id=ID_LOAD_YADO)
         self.Bind(wx.EVT_MENU, self.OnCompStampTool, id=ID_COMPSTAMP)
         self.Bind(wx.EVT_MENU, self.OnGossipTool, id=ID_GOSSIP)
+        self.Bind(wx.EVT_MENU, self.OnSavedJPDCImageTool, id=ID_SAVEDJPDCIMAGE)
         self.Bind(wx.EVT_MENU, self.OnMoneyTool, id=ID_MONEY)
         self.Bind(wx.EVT_MENU, self.OnCardTool, id=ID_CARD)
         self.Bind(wx.EVT_MENU, self.OnRoundTool, id=ID_ROUND)
@@ -533,6 +542,20 @@ class Debugger(wx.Frame):
         dlg = cw.debug.edit.GossipEditDialog(self)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
+
+    def OnSavedJPDCImageTool(self, event):
+        def func(self):
+            if not cw.cwpy.ydata:
+                return
+            savedjpdcimage = cw.cwpy.ydata.savedjpdcimage.copy()
+            def func(self):
+                if not self:
+                    return
+                dlg = cw.debug.edit.SavedJPDCImageEditDialog(self, savedjpdcimage)
+                cw.cwpy.frame.move_dlg(dlg)
+                dlg.ShowModal()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
 
     def OnMoneyTool(self, event):
         if not cw.cwpy.ydata.party:
@@ -1120,6 +1143,7 @@ class Debugger(wx.Frame):
 
         def func(self):
             ydata = bool(cw.cwpy.ydata)
+            savedjpdcimage = bool(ydata and cw.cwpy.ydata.savedjpdcimage)
             event_paused = cw.cwpy.event._paused
             event_step = cw.cwpy.event._step
             battle = bool(cw.cwpy.battle)
@@ -1137,6 +1161,7 @@ class Debugger(wx.Frame):
 
                 enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, False)
                 enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, False)
+                enabled[self.mi_savedjpdcimage.GetId()] = (self.mi_savedjpdcimage, self.tl_savedjpdcimage, False)
                 enabled[self.mi_money.GetId()] = (self.mi_money, self.tl_money, False)
                 enabled[self.mi_card.GetId()] = (self.mi_card, self.tl_card, False)
                 enabled[self.mi_member.GetId()] = (self.mi_member, self.tl_member, False)
@@ -1172,6 +1197,8 @@ class Debugger(wx.Frame):
                 if ydata:
                     enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, True)
                     enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, True)
+                    if savedjpdcimage:
+                        enabled[self.mi_savedjpdcimage.GetId()] = (self.mi_savedjpdcimage, self.tl_savedjpdcimage, True)
                     enabled[self.mi_money.GetId()] = (self.mi_money, self.tl_money, True)
                     enabled[self.mi_card.GetId()] = (self.mi_card, self.tl_card, True)
                     enabled[self.mi_member.GetId()] = (self.mi_member, self.tl_member, True)

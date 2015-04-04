@@ -1289,6 +1289,7 @@ class SavedJPDCImageHeader(object):
         """シナリオ終了時にTempFileにある保存済みJPDCイメージを
         <Yado>/SavedJPDCImageに保存する。
         """
+        cw.cwpy.ydata.changed()
         savedjpdcimage = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage")
         tempfilepath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
 
@@ -1356,6 +1357,7 @@ class SavedJPDCImageHeader(object):
         """このオブジェクトで管理中の
         保存済みJPDCイメージを全て削除する。
         """
+        cw.cwpy.ydata.changed()
         dpath1 = cw.util.join_paths(cw.cwpy.yadodir, u"SavedJPDCImage", self.dpath)
         dpath2 = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage", self.dpath)
         for dpath3 in (dpath1, dpath2):

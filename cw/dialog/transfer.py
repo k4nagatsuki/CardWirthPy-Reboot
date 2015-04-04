@@ -67,7 +67,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_money = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["MONEY"]))
         self.imgidx_album = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["CARD"]))
         self.imgidx_partyrecord = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SELECTION"]))
-        self.imgidx_savedjpdcimage = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["AREA"]))
+        self.imgidx_savedjpdcimage = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["JPDCIMAGE"]))
         self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
 
         self._checking = False
@@ -369,9 +369,9 @@ class TransferYadoDataDialog(wx.Dialog):
                         elif isinstance(data, cw.header.SavedJPDCImageHeader):
                             # 保存されたJPDCイメージ
                             if data.scenarioauthor:
-                                name = "JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
+                                name = u"JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
                             else:
-                                name = "JPDC - %s" % (data.scenarioname)
+                                name = u"JPDC - %s" % (data.scenarioname)
                         else:
                             name = data.name
                         self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
