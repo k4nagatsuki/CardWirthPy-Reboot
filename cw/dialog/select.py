@@ -1803,6 +1803,8 @@ class PlayerSelect(MultiViewSelect):
             return None
 
     def update_standbys(self, selected):
+        self.update_narrowcondition()
+
         if selected and selected in self.list:
             self.index = self.list.index(selected)
         else:
