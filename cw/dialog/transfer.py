@@ -67,6 +67,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.imgidx_money = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["MONEY"]))
         self.imgidx_album = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["CARD"]))
         self.imgidx_partyrecord = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SELECTION"]))
+        self.imgidx_savedjpdcimage = self.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["AREA"]))
         self.datalist.SetImageList(self.imglist, wx.IMAGE_LIST_SMALL)
 
         self._checking = False
@@ -155,6 +156,7 @@ class TransferYadoDataDialog(wx.Dialog):
         album = yadodb.get_album()
         cards = yadodb.get_cards()
         partyrecord = yadodb.get_partyrecord()
+        savedjpdcimage = yadodb.get_savedjpdcimage()
         yadodb.close()
 
         partymembers = set()
@@ -173,6 +175,21 @@ class TransferYadoDataDialog(wx.Dialog):
             self.datalist.SetItemColumnImage(i, 1, self.imgidx_partyrecord)
             self.datalist.CheckItem(i, False)
             self.data.append(partyrecord)
+            i += 1
+
+        keys = savedjpdcimage.keys()
+        keys.sort()
+        for key in keys:
+            header = savedjpdcimage[key]
+            self.datalist.InsertStringItem(i, u"")
+            if header.scenarioauthor:
+                s = u"JPDC - %s(%s)" % (header.scenarioname, header.scenarioauthor)
+            else:
+                s = u"JPDC - %s" % (header.scenarioname)
+            self.datalist.SetStringItem(i, 1, s)
+            self.datalist.SetItemColumnImage(i, 1, self.imgidx_savedjpdcimage)
+            self.datalist.CheckItem(i, False)
+            self.data.append(header)
             i += 1
 
         for header in itertools.chain(parties, standbys, cards):
@@ -283,6 +300,9 @@ class TransferYadoDataDialog(wx.Dialog):
             elif isinstance(data, cw.header.CardHeader):
                 # 手札
                 counter += 1
+            elif isinstance(data, cw.header.SavedJPDCImageHeader):
+                # 保存されたJPDCイメージ
+                counter += 1
             else:
                 assert False
 
@@ -324,6 +344,7 @@ class TransferYadoDataDialog(wx.Dialog):
             def run(self):
                 seq2 = []
                 yadodb = cw.yadodb.YadoDB(toyado)
+                savedjpdcimage = yadodb.get_savedjpdcimage()
                 try:
                     for data in seq:
                         if isinstance(data, cw.data.CWPyElement):
@@ -345,6 +366,12 @@ class TransferYadoDataDialog(wx.Dialog):
                                 continue
                             else:
                                 assert False
+                        elif isinstance(data, cw.header.SavedJPDCImageHeader):
+                            # 保存されたJPDCイメージ
+                            if data.scenarioauthor:
+                                name = "JPDC - %s(%s)" % (data.scenarioname, data.scenarioauthor)
+                            else:
+                                name = "JPDC - %s" % (data.scenarioname)
                         else:
                             name = data.name
                         self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
@@ -377,6 +404,9 @@ class TransferYadoDataDialog(wx.Dialog):
                         elif isinstance(data, cw.header.CardHeader):
                             # 手札
                             self.outer._transfer_card(fromyado, toyado, data, yadodb, self)
+                        elif isinstance(data, cw.header.SavedJPDCImageHeader):
+                            # 保存されたJPDCイメージ
+                            self.outer._transfer_savedjpdcimage(fromyado, toyado, data, yadodb, savedjpdcimage, self)
                         else:
                             assert False
 
@@ -662,6 +692,41 @@ class TransferYadoDataDialog(wx.Dialog):
             if yadodb:
                 yadodb.insert_partyrecord(data.fpath, commit=False)
             counter.num += 1
+
+    def _transfer_savedjpdcimage(self, fromyado, toyado, header, yadodb, table, counter):
+        # 保存されたJPDCイメージの転送
+        key = (header.scenarioname, header.scenarioauthor)
+        savejpdcdir = cw.util.join_paths(toyado, u"SavedJPDCImage")
+
+        fromdir = cw.util.join_paths(fromyado, u"SavedJPDCImage", header.dpath)
+        todir = cw.util.join_paths(savejpdcdir, header.dpath)
+        todir = cw.util.dupcheck_plus(todir, yado=False)
+
+        dpath = os.path.dirname(todir)
+        if not os.path.isdir(dpath):
+            os.makedirs(dpath)
+        shutil.copytree(fromdir, todir)
+
+        toheader = table.get(key, None)
+        if toheader:
+            dpath = cw.util.join_paths(toyado, u"SavedJPDCImage", toheader.dpath)
+            cw.util.remove(dpath)
+            if yadodb:
+                fpath = cw.util.join_paths(u"SavedJPDCImage", toheader.dpath, u"SavedJPDCImage.xml")
+                yadodb.delete_savedjpdcimage(fpath, commit=False)
+
+        header.dpath = cw.util.relpath(todir, savejpdcdir)
+        header.fpath = cw.util.join_paths(todir, u"SavedJPDCImage.xml")
+
+        data = cw.data.xml2etree(cw.util.join_paths(fromdir, u"SavedJPDCImage.xml"))
+        data.edit("Materials", header.dpath, "dpath")
+        data.fpath = cw.util.join_paths(todir, u"SavedJPDCImage.xml")
+        data.write()
+
+        if yadodb:
+            yadodb.insert_savedjpdcimageheader(header, commit=False)
+
+        counter.num += 1
 
     def OnCancel(self, event):
         cw.cwpy.sounds["click"].play()

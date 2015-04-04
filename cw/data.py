@@ -720,7 +720,7 @@ class ScenarioData(SystemData):
         key = (self.name, self.author)
         header = cw.cwpy.ydata.savedjpdcimage.get(key, None)
         if header:
-            dpath2 = cw.util.join_paths(cw.tempdir, u"SavedJPDCImage", header.dpath)
+            dpath2 = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage", header.dpath)
             for fpath in header.fpaths:
                 frompath = cw.util.join_paths(dpath2, u"Materials", fpath)
                 frompath = cw.util.get_yadofilepath(frompath)
@@ -1033,16 +1033,7 @@ class YadoData(object):
         self.sort_partyrecord()
 
         # 保存済みJPDCイメージ(TODO: DBで管理)
-        self.savedjpdcimage = {}
-        dpath = cw.util.join_paths(self.yadodir, u"SavedJPDCImage")
-        if os.path.isdir(dpath):
-            for dname in os.listdir(dpath):
-                fpath = cw.util.join_paths(dpath, dname, u"SavedJPDCImage.xml")
-                if not os.path.isfile(fpath):
-                    continue
-                header = cw.header.SavedJPDCImageHeader(fpath=fpath)
-                key = (header.scenarioname, header.scenarioauthor)
-                self.savedjpdcimage[key] = header
+        self.savedjpdcimage = self.yadodb.get_savedjpdcimage()
 
         self.yadodb.close()
 
@@ -1657,11 +1648,25 @@ class YadoData(object):
                 header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
             partyrecord[fpath] = header
 
+        savedjpdcimage = {}
+        for header in self.savedjpdcimage.itervalues():
+            if header.fpath.lower().startswith("yado"):
+                fpath = cw.util.relpath(header.fpath, self.yadodir)
+            else:
+                fpath = cw.util.relpath(header.fpath, self.tempdir)
+                header.fpath = header.fpath.replace(self.tempdir, self.yadodir, 1)
+            savedjpdcimage[fpath] = header
+
         # カードデータベースを更新
         @synclock(_lock)
         def update_database(yadodir):
             yadodb = cw.yadodb.YadoDB(yadodir)
-            yadodb.update(cards=cardtable, adventurers=adventurertable, cardorder=cardorder, adventurerorder=adventurerorder, partyrecord=partyrecord)
+            yadodb.update(cards=cardtable,
+                          adventurers=adventurertable,
+                          cardorder=cardorder,
+                          adventurerorder=adventurerorder,
+                          partyrecord=partyrecord,
+                          savedjpdcimage=savedjpdcimage)
             yadodb.close()
         thr = threading.Thread(target=update_database, kwargs={"yadodir": self.yadodir})
         thr.start()

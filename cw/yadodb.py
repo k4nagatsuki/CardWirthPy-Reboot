@@ -156,6 +156,26 @@ class YadoDB(object):
                     self.cur.execute("UPDATE partyrecord SET membernames=?", ("",))
                     reqcommit = True
 
+            if self.mode == YADO:
+                # savedjpdcimageテーブルが存在しない場合は作成する
+                # (旧バージョンとの互換性維持)
+                cur = self.con.execute("PRAGMA table_info('savedjpdcimage')")
+                res = cur.fetchall()
+                if not res:
+                    s = """
+                        CREATE TABLE savedjpdcimage (
+                            fpath TEXT,
+                            scenarioname TEXT,
+                            scenarioauthor TEXT,
+                            dpath TEXT,
+                            fpaths TEXT,
+                            ctime INTEGER,
+                            mtime INTEGER,
+                            PRIMARY KEY (fpath)
+                        )
+                    """
+                    self.cur.execute(s)
+
             if reqcommit:
                 self.con.commit()
 
@@ -284,16 +304,37 @@ class YadoDB(object):
                 """
                 self.cur.execute(s)
 
+                # 保存されたJPDCイメージ
+                s = """
+                    CREATE TABLE savedjpdcimage (
+                        fpath TEXT,
+                        scenarioname TEXT,
+                        scenarioauthor TEXT,
+                        dpath TEXT,
+                        fpaths TEXT,
+                        ctime INTEGER,
+                        mtime INTEGER,
+                        PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
+
     @synclock(_lock)
-    def update(self, cards=True, adventurers=True, parties=True, cardorder={}, adventurerorder={}, partyrecord=True):
+    def update(self, cards=True, adventurers=True, parties=True, cardorder={},
+               adventurerorder={}, partyrecord=True, savedjpdcimage=True):
         """データベースを更新する。"""
-        def walk(dpath, headertable, insert, insertheader, *args):
+        def walk(dpath, headertable, xmlname, insert, insertheader, *args):
             dname = cw.util.join_paths(self.ypath, dpath)
             if os.path.isdir(dname):
                 for fname in os.listdir(dname):
-                    if not fname.lower().endswith(".xml"):
-                        continue
-                    path = cw.util.join_paths(dpath, fname)
+                    if xmlname:
+                        path = cw.util.join_paths(dpath, fname, xmlname)
+                        if not os.path.isfile(cw.util.join_paths(self.ypath, path)):
+                            continue
+                    else:
+                        if not fname.lower().endswith(".xml"):
+                            continue
+                        path = cw.util.join_paths(dpath, fname)
                     if not path in dbpaths:
                         if isinstance(headertable, dict) and path in headertable:
                             insertheader(headertable[path], *args)
@@ -317,9 +358,9 @@ class YadoDB(object):
                             self._insert_cardheader(cards[path], False)
                         else:
                             self._insert_card(path, False)
-            walk("SkillCard", cards, self._insert_card, self._insert_cardheader, False)
-            walk("ItemCard", cards, self._insert_card, self._insert_cardheader, False)
-            walk("BeastCard", cards, self._insert_card, self._insert_cardheader, False)
+            walk("SkillCard", cards, "", self._insert_card, self._insert_cardheader, False)
+            walk("ItemCard", cards, "", self._insert_card, self._insert_cardheader, False)
+            walk("BeastCard", cards, "", self._insert_card, self._insert_cardheader, False)
             if cardorder:
                 # カードの並び順を登録する
                 s = "DELETE FROM cardorder"
@@ -353,8 +394,8 @@ class YadoDB(object):
                             self._insert_adventurerheader(adventurers[path], bool(t[2]), False)
                         else:
                             self._insert_adventurer(path, bool(t[2]), False)
-            walk("Adventurer", adventurers, self._insert_adventurer, self._insert_adventurerheader, False, False)
-            walk("Album", {}, self._insert_adventurer, self._insert_adventurerheader, True, False)
+            walk("Adventurer", adventurers, "", self._insert_adventurer, self._insert_adventurerheader, False, False)
+            walk("Album", {}, "", self._insert_adventurer, self._insert_adventurerheader, True, False)
 
             if adventurerorder:
                 # 冒険者の並び順を登録する
@@ -390,7 +431,7 @@ class YadoDB(object):
                         else:
                             self._insert_party(path, False)
             for dpath in os.listdir(cw.util.join_paths(self.ypath, "Party")):
-                walk(cw.util.join_paths("Party", dpath), parties, self._insert_party, self._insert_partyheader, False)
+                walk(cw.util.join_paths("Party", dpath), parties, "", self._insert_party, self._insert_partyheader, False)
 
         if self.mode == YADO and partyrecord:
             s = "SELECT fpath, mtime FROM partyrecord"
@@ -405,11 +446,30 @@ class YadoDB(object):
                     dbpaths.add(t[0])
                     if os.path.getmtime(path) > t[1]:
                         # 情報を更新
-                        if isinstance(partyrecord, dict) and path in partyrecord:
-                            self._insert_partyrecordheader(partyrecord[path], False)
+                        if isinstance(partyrecord, dict) and t[0] in partyrecord:
+                            self._insert_partyrecordheader(partyrecord[t[0]], False)
                         else:
                             self._insert_partyrecord(path, False)
-            walk("PartyRecord", partyrecord, self._insert_partyrecord, self._insert_partyrecordheader, False)
+            walk("PartyRecord", partyrecord, "", self._insert_partyrecord, self._insert_partyrecordheader, False)
+
+        if self.mode == YADO and savedjpdcimage:
+            s = "SELECT fpath, mtime FROM savedjpdcimage"
+            self.cur.execute(s)
+            data = self.cur.fetchall()
+            dbpaths = set()
+            for t in data:
+                path = cw.util.join_paths(self.ypath, t[0])
+                if not os.path.isfile(path):
+                    self._delete_savedjpdcimage(t[0], False)
+                else:
+                    dbpaths.add(t[0])
+                    if os.path.getmtime(path) > t[1]:
+                        # 情報を更新
+                        if isinstance(savedjpdcimage, dict) and t[0] in savedjpdcimage:
+                            self._insert_savedjpdcimageheader(savedjpdcimage[t[0]], False)
+                        else:
+                            self._insert_savedjpdcimage(path, False)
+            walk("SavedJPDCImage", savedjpdcimage, u"SavedJPDCImage.xml", self._insert_savedjpdcimage, self._insert_savedjpdcimageheader, False)
 
         self.con.commit()
 
@@ -423,6 +483,8 @@ class YadoDB(object):
             s = "VACUUM party"
             self.cur.execute(s)
             s = "VACUUM partyrecord"
+            self.cur.execute(s)
+            s = "VACUUM savedjpdcimage"
             self.cur.execute(s)
 
         if commit:
@@ -451,6 +513,16 @@ class YadoDB(object):
         self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
+
+    def _delete_savedjpdcimage(self, path, commit=True):
+        s = "DELETE FROM savedjpdcimage WHERE fpath=?"
+        self.cur.execute(s, (path,))
+        if commit:
+            self.con.commit()
+
+    @synclock(_lock)
+    def delete_savedjpdcimage(self, path, commit=True):
+        self._delete_savedjpdcimage(path, commit)
 
     @synclock(_lock)
     def insert_cardheader(self, header, commit=True, cardorder=-1):
@@ -954,6 +1026,69 @@ class YadoDB(object):
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)
         return headers
+
+    @synclock(_lock)
+    def insert_savedjpdcimageheader(self, header, commit=True):
+        return self._insert_savedjpdcimageheader(header, commit)
+
+    def _insert_savedjpdcimageheader(self, header, commit=True):
+        """データベースに保存されたJPDCイメージの情報を登録する。"""
+        s = """
+        INSERT OR REPLACE INTO savedjpdcimage(
+            fpath,
+            scenarioname,
+            scenarioauthor,
+            dpath,
+            fpaths,
+            ctime,
+            mtime
+        ) VALUES(
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+        """
+        fpath = cw.util.relpath(header.fpath, self.ypath)
+        fpath = cw.util.join_paths(fpath)
+        ctime = time.time()
+        mtime = os.path.getmtime(header.fpath)
+        self.cur.execute(s, (
+            fpath,
+            header.scenarioname,
+            header.scenarioauthor,
+            header.dpath,
+            "\n".join(header.fpaths),
+            ctime,
+            mtime,
+        ))
+
+        if commit:
+            self.con.commit()
+
+    @synclock(_lock)
+    def insert_savedjpdcimage(self, path, commit=True):
+        return self._insert_savedjpdcimage(path, commit)
+
+    def _insert_savedjpdcimage(self, path, commit=True):
+        try:
+            header = cw.header.SavedJPDCImageHeader(fpath=path)
+            return self._insert_savedjpdcimageheader(header, commit)
+        except Exception:
+            cw.util.print_ex()
+
+    def get_savedjpdcimage(self):
+        s = "SELECT * FROM savedjpdcimage"
+        self.cur.execute(s)
+        d = {}
+        for rec in self.cur:
+            header = cw.header.SavedJPDCImageHeader(dbrec=rec)
+            header.fpath = cw.util.join_paths(self.ypath, header.fpath)
+            d[(header.scenarioname, header.scenarioauthor)] = header
+        return d
 
     @synclock(_lock)
     def commit(self):

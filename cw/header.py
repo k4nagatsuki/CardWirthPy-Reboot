@@ -1267,11 +1267,13 @@ class SavedJPDCImageHeader(object):
         savedjpdcimage: 保存済みJPDC情報から生成する場合は対象情報。
         """
         if dbrec:
+            self.fpath = dbrec["fpath"]
             self.scenarioname = dbrec["scenarioname"]
             self.scenarioauthor = dbrec["scenarioauthor"]
             self.dpath = dbrec["dpath"]
             self.fpaths = dbrec["fpaths"].split("\n")
         elif fpath:
+            self.fpath = fpath
             data = cw.data.xml2etree(fpath)
             self.scenarioname = data.gettext("Property/ScenarioName", u"")
             self.scenarioauthor = data.gettext("Property/ScenarioAuthor", u"")
@@ -1287,7 +1289,7 @@ class SavedJPDCImageHeader(object):
         """シナリオ終了時にTempFileにある保存済みJPDCイメージを
         <Yado>/SavedJPDCImageに保存する。
         """
-        savedjpdcimage = cw.util.join_paths(cw.tempdir, u"SavedJPDCImage")
+        savedjpdcimage = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage")
         tempfilepath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
 
         # ヘッダを構築
@@ -1340,6 +1342,7 @@ class SavedJPDCImageHeader(object):
             etree = cw.data.xml2etree(element=element)
             etree.write(fpath)
             cw.cwpy.ydata.deletedpaths.discard(fpath)
+            header.fpath = fpath
 
             cw.cwpy.ydata.savedjpdcimage[key] = header
 
