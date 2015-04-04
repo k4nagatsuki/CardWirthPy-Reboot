@@ -2734,7 +2734,7 @@ def yadoxml2etree(path, tag=""):
     return CWPyElementTree(element=element)
 
 def yadoxml2element(path, tag=""):
-    yadodir = u"Data/Temp/Local/Yado"
+    yadodir = cw.util.join_paths(cw.tempdir, u"Yado")
     if path.startswith("Yado"):
         temppath = path.replace("Yado", yadodir, 1)
     elif path.startswith(yadodir):
