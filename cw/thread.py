@@ -1737,7 +1737,7 @@ class CWPy(_Singleton, threading.Thread):
         cw.OPTIONS.scenario = ""
 
         self.yadodir = yadodir.replace("\\", "/")
-        self.tempdir = self.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)
+        self.tempdir = cw.tempdir
         self.music.stop()
         self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
         self.setting.lastyado = self.ydata.name

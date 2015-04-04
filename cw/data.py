@@ -650,6 +650,9 @@ class ScenarioData(SystemData):
 
         cw.cwpy.ydata.remove_emptypartyrecord()
 
+        # 保存済みJPDCイメージを宿フォルダへ移動
+        cw.header.SavedJPDCImageHeader.create_header()
+
         self.remove_log()
         cw.cwpy.ydata.deletedpaths.update(self.deletedpaths)
 
@@ -711,6 +714,23 @@ class ScenarioData(SystemData):
         path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Backpack.xml")
         etree = cw.data.xml2etree(element=element)
         etree.write(path)
+
+        # JPDCイメージ
+        dpath1 = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
+        key = (self.name, self.author)
+        header = cw.cwpy.ydata.savedjpdcimage.get(key, None)
+        if header:
+            dpath2 = cw.util.join_paths(cw.tempdir, u"SavedJPDCImage", header.dpath)
+            for fpath in header.fpaths:
+                frompath = cw.util.join_paths(dpath2, u"Materials", fpath)
+                frompath = cw.util.get_yadofilepath(frompath)
+                if not frompath:
+                    continue
+                topath = cw.util.join_paths(dpath1, fpath)
+                dpath3 = os.path.dirname(topath)
+                if not os.path.isdir(dpath3):
+                    os.makedirs(dpath3)
+                shutil.copy2(frompath, topath)
 
         # create_zip
         path = cw.util.splitext(cw.cwpy.ydata.party.data.fpath)[0] + ".wsl"
@@ -1011,6 +1031,18 @@ class YadoData(object):
         # パーティ記録
         self.partyrecord = self.yadodb.get_partyrecord()
         self.sort_partyrecord()
+
+        # 保存済みJPDCイメージ(TODO: DBで管理)
+        self.savedjpdcimage = {}
+        dpath = cw.util.join_paths(self.yadodir, u"SavedJPDCImage")
+        if os.path.isdir(dpath):
+            for dname in os.listdir(dpath):
+                fpath = cw.util.join_paths(dpath, dname, u"SavedJPDCImage.xml")
+                if not os.path.isfile(fpath):
+                    continue
+                header = cw.header.SavedJPDCImageHeader(fpath=fpath)
+                key = (header.scenarioname, header.scenarioauthor)
+                self.savedjpdcimage[key] = header
 
         self.yadodb.close()
 
@@ -2697,7 +2729,7 @@ def yadoxml2etree(path, tag=""):
     return CWPyElementTree(element=element)
 
 def yadoxml2element(path, tag=""):
-    yadodir = cw.util.join_paths(cw.tempdir, u"Yado")
+    yadodir = u"Data/Temp/Local/Yado"
     if path.startswith("Yado"):
         temppath = path.replace("Yado", yadodir, 1)
     elif path.startswith(yadodir):

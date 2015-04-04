@@ -617,11 +617,28 @@ def get_filepath_s(configpath, filename, dirtype=-1):
     if dirtype == -1:
         dirtype = 1
 
+    def find_materialpath(fpath):
+        ext = os.path.splitext(fpath)[1].lower()
+        if ext in cw.EXTS_SND:
+            mtype = cw.M_SND
+        else:
+            mtype = cw.M_IMG
+        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, mtype)
+        if inusecardpath:
+            fpath = inusecardpath
+        else:
+            fpath = cw.util.get_materialpath(filename, mtype, scedir=dpath)
+        fpath = cw.cwpy.rsrc.get_filepath(fpath)
+        return fpath
+
     if dirtype == 1:
         dpath = os.path.dirname(configpath)
+        fpath = cw.util.join_paths(dpath, filename)
+        fpath = find_materialpath(fpath)
         # シナリオ内に存在しなかった場合はTable内
-        if not os.path.isfile(cw.cwpy.rsrc.get_filepath(cw.util.join_paths(dpath, filename))):
+        if not os.path.isfile(fpath):
             return get_filepath_s(configpath, filename, 2)
+        dpath = os.path.dirname(fpath)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
         filename = cw.util.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
@@ -640,16 +657,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
 
         dpath = cw.cwpy.sdata.scedir
         fpath = cw.util.join_paths(dpath, filename)
-        ext = os.path.splitext(fpath)[1].lower()
-        if ext in cw.EXTS_SND:
-            mtype = cw.M_SND
-        else:
-            mtype = cw.M_IMG
-        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, mtype)
-        if inusecardpath:
-            fpath = inusecardpath
-        else:
-            fpath = cw.util.get_materialpath(filename, mtype, scedir=dpath)
+        fpath = find_materialpath(fpath)
         # 指定位置に存在しなかった場合は相対位置
         if not os.path.isfile(fpath):
             return get_filepath_s(configpath, filename, 1)

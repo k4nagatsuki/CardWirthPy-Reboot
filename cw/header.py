@@ -1256,6 +1256,112 @@ class PartyRecordHeader(object):
 
         return seq
 
+class SavedJPDCImageHeader(object):
+    """保存済みJPDCイメージ。
+    宿・シナリオごとにJPDCで生成されたファイルを保存する。
+    """
+    def __init__(self, fpath=None, dbrec=None):
+        """
+        fpath: ファイルから生成する場合はXMLファイルパス。
+        dbrec: データベースから生成する場合は対象レコード。
+        savedjpdcimage: 保存済みJPDC情報から生成する場合は対象情報。
+        """
+        if dbrec:
+            self.scenarioname = dbrec["scenarioname"]
+            self.scenarioauthor = dbrec["scenarioauthor"]
+            self.dpath = dbrec["dpath"]
+            self.fpaths = dbrec["fpaths"].split("\n")
+        elif fpath:
+            data = cw.data.xml2etree(fpath)
+            self.scenarioname = data.gettext("Property/ScenarioName", u"")
+            self.scenarioauthor = data.gettext("Property/ScenarioAuthor", u"")
+            self.dpath = data.getattr("Materials", "dpath", "")
+            self.fpaths = []
+            if self.dpath:
+                for e in data.getfind("Materials"):
+                    if e.text:
+                        self.fpaths.append(e.text)
+
+    @staticmethod
+    def create_header():
+        """シナリオ終了時にTempFileにある保存済みJPDCイメージを
+        <Yado>/SavedJPDCImageに保存する。
+        """
+        savedjpdcimage = cw.util.join_paths(cw.tempdir, u"SavedJPDCImage")
+        tempfilepath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile")
+
+        # ヘッダを構築
+        key = (cw.cwpy.sdata.name, cw.cwpy.sdata.author)
+        header = cw.cwpy.ydata.savedjpdcimage.get(key, None)
+        if header:
+            header.remove_all()
+        else:
+            header = cw.header.SavedJPDCImageHeader()
+            header.dpath = cw.util.join_paths(savedjpdcimage, cw.util.repl_dischar(cw.cwpy.sdata.name))
+            header.dpath = cw.util.dupcheck_plus(header.dpath)
+            header.dpath = cw.util.relpath(header.dpath, savedjpdcimage)
+            header.scenarioname = cw.cwpy.sdata.name
+            header.scenarioauthor = cw.cwpy.sdata.author
+        header.fpaths = []
+
+        sdpath = cw.util.join_paths(savedjpdcimage, header.dpath)
+        if os.path.isdir(tempfilepath):
+            # TempFileのファイルをSavedJPDCImageへコピーする
+            for dpath, dnames, fnames in os.walk(tempfilepath):
+                for fname in fnames:
+                    frompath = cw.util.join_paths(dpath, fname)
+                    relpathbase = cw.util.relpath(frompath, tempfilepath)
+                    relpath = cw.util.join_paths(u"Materials", relpathbase)
+                    topath = cw.util.join_paths(sdpath, relpath)
+                    dpath2 = os.path.dirname(topath)
+
+                    if not os.path.isdir(dpath2):
+                        os.makedirs(dpath2)
+                    shutil.copy2(frompath, topath)
+                    header.fpaths.append(relpathbase)
+                    cw.cwpy.ydata.deletedpaths.discard(topath)
+
+        if header.fpaths:
+            # 情報ファイル作成
+            fpath = cw.util.join_paths(sdpath, u"SavedJPDCImage.xml")
+            element = cw.data.make_element("SavedJPDCImage")
+            prop = cw.data.make_element("Property", u"")
+            e = cw.data.make_element("ScenarioName", cw.cwpy.sdata.name)
+            prop.append(e)
+            e = cw.data.make_element("ScenarioAuthor", cw.cwpy.sdata.author)
+            prop.append(e)
+            element.append(prop)
+            mates = cw.data.make_element("Materials", u"", attrs={"dpath": header.dpath})
+            for mfpath in header.fpaths:
+                e = cw.data.make_element("Material", mfpath)
+                mates.append(e)
+            element.append(mates)
+            # ファイル書き込み
+            etree = cw.data.xml2etree(element=element)
+            etree.write(fpath)
+            cw.cwpy.ydata.deletedpaths.discard(fpath)
+
+            cw.cwpy.ydata.savedjpdcimage[key] = header
+
+        elif key in cw.cwpy.ydata.savedjpdcimage:
+            # 保存された素材がない場合は削除
+            del cw.cwpy.ydata.savedjpdcimage[key]
+
+        return header
+
+    def remove_all(self):
+        """このオブジェクトで管理中の
+        保存済みJPDCイメージを全て削除する。
+        """
+        dpath1 = cw.util.join_paths(cw.cwpy.yadodir, u"SavedJPDCImage", self.dpath)
+        dpath2 = cw.util.join_paths(cw.cwpy.tempdir, u"SavedJPDCImage", self.dpath)
+        for dpath3 in (dpath1, dpath2):
+            if os.path.isdir(dpath3):
+                for dpath, dnames, fnames in os.walk(dpath3):
+                    for fname in fnames:
+                        fpath = cw.util.join_paths(dpath, fname)
+                        cw.cwpy.ydata.deletedpaths.add(fpath)
+
 class GetName(object):
     """XMLファイル中のProperty/Nameの内容を読む。"""
     def __init__(self, fpath, tagname="Name"):
