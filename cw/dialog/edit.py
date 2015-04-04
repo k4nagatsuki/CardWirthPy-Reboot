@@ -114,7 +114,11 @@ class MoneyEditPanel(wx.Panel):
         self.party = party
         self.value = self.party.money
         maxvalue = self.party.money + cw.cwpy.ydata.money
-        minvalue = 0
+        if maxvalue > 9999999:
+            minvalue = maxvalue - 9999999
+            maxvalue = 9999999
+        else:
+            minvalue = 0
         # パーティ所持金変更スライダ
         self.slider = wx.Slider(self, -1, 0, 0, 1,
             size=(cw.wins(165), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
@@ -161,17 +165,17 @@ class MoneyEditPanel(wx.Panel):
     def OnSlider(self, event):
         value = self.slider.GetValue()
         self.spinctrl.SetValue(value)
-        self.spinctrl2.SetValue(self.spinctrl2.GetMax() - value)
+        self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
 
     def OnSpinCtrl(self, event):
         value = self.spinctrl.GetValue()
         self.slider.SetValue(value)
-        self.spinctrl2.SetValue(self.spinctrl2.GetMax() - value)
+        self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
 
     def OnSpinCtrl2(self, event):
-        value = self.spinctrl.GetMax() - self.spinctrl2.GetValue()
+        value = self.spinctrl.GetMax() + self.spinctrl.GetMin() - self.spinctrl2.GetValue()
         self.slider.SetValue(value)
         self.spinctrl.SetValue(value)
         self.value = value
