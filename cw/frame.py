@@ -64,7 +64,7 @@ class Frame(wx.Frame):
         cw.cwpy.start()
         # データベースファイル更新をサブスレッドで実行
         folder = self._setting.get_scedir()
-        dbupdater = cw.scenariodb.ScenariodbUpdatingThread(self._setting, folder, self._setting.skintype)
+        dbupdater = cw.scenariodb.ScenariodbUpdatingThread(self._setting, vacuum=True, dpath=folder, skintype=self._setting.skintype)
         dbupdater.start()
 
         # スキン自動生成のためのドロップ受付

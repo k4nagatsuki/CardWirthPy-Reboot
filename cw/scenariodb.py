@@ -198,8 +198,24 @@ class Scenariodb(object):
 
     def vacuum(self, commit=True):
         """肥大化したDBファイルのサイズを最適化する。"""
-        s = "VACUUM scenariodb"
+        # 存在しないディレクトリが含まれる場合は除去
+        s = "SELECT dpath FROM scenariodb GROUP BY dpath"
         self.cur.execute(s)
+        res = self.cur.fetchall()
+        for t in res:
+            dpath = t[0]
+            if not dpath or not os.path.isdir(dpath):
+                s = "DELETE FROM scenariodb WHERE dpath=?"
+                self.cur.execute(s, (dpath,))
+                s = "DELETE FROM scenariotype WHERE dpath=?"
+                self.cur.execute(s, (dpath,))
+
+        # データ量によっては処理に秒単位で時間がかかる上、
+        # 再利用可能な領域が減ってパフォーマンスが落ちるため実施しない
+        ##s = "VACUUM scenariodb, scenariotype"
+        ##self.cur.execute(s)
+        ##s = "VACUUM scenariotype"
+        ##self.cur.execute(s)
 
         if commit:
             self.con.commit()
