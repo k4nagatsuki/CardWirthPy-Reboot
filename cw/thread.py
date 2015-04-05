@@ -1725,10 +1725,24 @@ class CWPy(_Singleton, threading.Thread):
 
     def load_yado(self, yadodir, createmutex=True):
         """指定されたディレクトリの宿をロード。"""
+        try:
+            self._load_yado(yadodir, createmutex)
+        except Exception, ex:
+            cw.util.print_ex()
+            cw.tempdir = cw.tempdir_init
+            self.yadodir = ""
+            self.tempdir = ""
+            self.setting.scenario_narrow = ""
+            self.setting.lastscenario = []
+            self.setting.lastscenariopath = ""
+            self.ydata = None
+            self.sdata = cw.data.SystemData()
+            raise ex
+
+    def _load_yado(self, yadodir, createmutex):
         if createmutex:
             if cw.util.create_mutex(yadodir):
                 cw.tempdir = cw.util.join_paths(u"Data/Temp/Local", yadodir)
-                cw.util.remove_temp()
             else:
                 cw.cwpy.sounds["error"].play()
                 return False

@@ -874,26 +874,28 @@ class YadoSelect(Select):
         # 宿データ
         cw.cwpy.yadodir = cw.util.join_paths(yadodir)
         cw.cwpy.tempdir = cw.cwpy.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)
-        ydata = cw.data.YadoData(cw.cwpy.yadodir, cw.cwpy.tempdir, loadparty=False)
+        try:
+            ydata = cw.data.YadoData(cw.cwpy.yadodir, cw.cwpy.tempdir, loadparty=False)
 
-        # コンバータ
-        unconv = cw.binary.cwyado.UnconvCWYado(ydata, dstpath, targetengine)
+            # コンバータ
+            unconv = cw.binary.cwyado.UnconvCWYado(ydata, dstpath, targetengine)
 
-        # プログレスダイアログ表示
-        dlg = wx.ProgressDialog(
-            u"%s 逆変換" % (yadoname), "", maximum=unconv.maxnum,
-            parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
-            wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
-        thread = cw.binary.ConvertingThread(unconv)
-        thread.start()
+            # プログレスダイアログ表示
+            dlg = wx.ProgressDialog(
+                u"%s 逆変換" % (yadoname), "", maximum=unconv.maxnum,
+                parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
+                wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
+            thread = cw.binary.ConvertingThread(unconv)
+            thread.start()
 
-        while not thread.complete:
-            dlg.Update(unconv.curnum, unconv.message)
-            wx.MilliSleep(1)
+            while not thread.complete:
+                dlg.Update(unconv.curnum, unconv.message)
+                wx.MilliSleep(1)
 
-        cw.cwpy.yadodir = ""
-        cw.cwpy.tempdir = ""
-        dlg.Destroy()
+            dlg.Destroy()
+        finally:
+            cw.cwpy.yadodir = ""
+            cw.cwpy.tempdir = ""
 
         # エラーログ表示
         if unconv.errorlog:

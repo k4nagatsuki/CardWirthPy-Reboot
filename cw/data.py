@@ -177,7 +177,7 @@ class SystemData(object):
         cw.cwpy.event.refresh_areaname()
         self.events = cw.event.EventEngine(self.data.getfind("Events"))
 
-    def start_event(self, keynum=None, keycodes=[]):
+    def start_event(self, keynum=None, keycodes=[][:]):
         cw.cwpy.statusbar.change(False)
         self.events.start(keynum=keynum, keycodes=keycodes)
         if not cw.cwpy.is_dealing() and not cw.cwpy.battle:
@@ -930,6 +930,28 @@ class YadoDeletedPathSet(set):
         self.tempdir = tempdir
         set.__init__(self)
 
+    def write_list(self):
+        fpath = cw.util.join_paths(self.tempdir, u"~DeletedPaths.temp")
+        with open(fpath, "w") as f:
+            f.write("\n".join(map(lambda u: u.encode("utf-8"), self)))
+            f.flush()
+            f.close()
+        dstpath = cw.util.join_paths(self.tempdir, u"DeletedPaths.temp")
+        cw.util.rename_file(fpath, dstpath)
+
+    def read_list(self):
+        fpath = cw.util.join_paths(self.tempdir, u"DeletedPaths.temp")
+        if os.path.isfile(fpath):
+            with open(fpath, "r") as f:
+                for s in f.xreadlines():
+                    s = s.rstrip('\n')
+                    if s:
+                        self.add(s.decode("utf-8"))
+                f.close()
+            return True
+        else:
+            return False
+
     def __contains__(self, path):
         if path.startswith(self.tempdir):
             path = path.replace(self.tempdir, self.yadodir, 1)
@@ -961,6 +983,13 @@ class YadoData(object):
         self.yadodir = yadodir
         self.tempdir = tempdir
 
+        # セーブ時に削除する予定のファイルパスの集合
+        self.deletedpaths = YadoDeletedPathSet(self.yadodir, self.tempdir)
+
+        # 前回の保存が転送途中で失敗していた場合はリトライする
+        self._retry_save()
+        cw.util.remove_temp()
+
         # 冒険の再開ダイアログを開いた時に
         # 選択状態にするパーティのパス
         self.lastparty = ""
@@ -971,8 +1000,6 @@ class YadoData(object):
         # セーブが必要な状況であればTrue
         self._changed = False
 
-        # セーブ時に削除する予定のファイルパスの集合
-        self.deletedpaths = YadoDeletedPathSet(self.yadodir, self.tempdir)
         # Environment(CWPyElementTree)
         path = cw.util.join_paths(self.yadodir, "Environment.xml")
         self.environment = yadoxml2etree(path)
@@ -1570,45 +1597,9 @@ class YadoData(object):
         if self.party:
             self.party.write()
 
-        # TEMPのファイルを移動
-        for dpath, _dnames, fnames in os.walk(self.tempdir):
-            for fname in fnames:
-                path = cw.util.join_paths(dpath, fname)
-                dstpath = path.replace(self.tempdir, self.yadodir, 1)
-                cw.util.rename_file(path, dstpath)
+        self.deletedpaths.write_list()
 
-        # 削除予定のファイル削除
-        # Materialディレクトリにある空のフォルダも削除
-        materialdir = cw.util.join_paths(self.yadodir, "Material")
-
-        # 安全のためこれらのパスは削除の際に無視する
-        ignores = set()
-        for ipath in (cw.cwpy.yadodir, cw.cwpy.tempdir,
-                      os.path.join(cw.cwpy.yadodir, "Adventurer"),
-                      os.path.join(cw.cwpy.yadodir, "Party"),
-                      os.path.join(cw.cwpy.yadodir, "Album"),
-                      os.path.join(cw.cwpy.yadodir, "CastCard"),
-                      os.path.join(cw.cwpy.yadodir, "SkillCard"),
-                      os.path.join(cw.cwpy.yadodir, "ItemCard"),
-                      os.path.join(cw.cwpy.yadodir, "BeastCard"),
-                      os.path.join(cw.cwpy.yadodir, "InfoCard"),
-                      os.path.join(cw.cwpy.yadodir, "Material")):
-            ignores.add(os.path.normpath(os.path.normcase(ipath)))
-
-        # 削除実行
-        for path in self.deletedpaths:
-            if os.path.normpath(os.path.normcase(path)) in ignores:
-                continue
-            cw.util.remove(path)
-            dpath = os.path.dirname(path)
-
-            if dpath.startswith(materialdir) and os.path.isdir(dpath)\
-                                                    and not os.listdir(dpath):
-                cw.util.remove(dpath)
-
-        self.deletedpaths.clear()
-        # 宿のtempフォルダを空にする
-        cw.util.remove(self.tempdir)
+        self._transfer_temp()
 
         # 各パーティの荷物袋のデータを保存する
         def update_backpack(party):
@@ -1674,6 +1665,56 @@ class YadoData(object):
         cw.cwpy.clear_selection()
         cw.cwpy.draw()
         self._changed = False
+
+    def _retry_save(self):
+        """TempからYadoへの転送中に失敗した保存処理を再実行する。
+        """
+        if self.deletedpaths.read_list():
+            self._transfer_temp()
+
+    def _transfer_temp(self):
+        # TEMPのファイルを移動
+        deltempfpath = cw.util.join_paths(self.deletedpaths.tempdir, u"DeletedPaths.temp")
+        for dpath, _dnames, fnames in os.walk(self.tempdir):
+            for fname in fnames:
+                path = cw.util.join_paths(dpath, fname)
+                if path == deltempfpath:
+                    continue
+                dstpath = path.replace(self.tempdir, self.yadodir, 1)
+                cw.util.rename_file(path, dstpath)
+
+        # 削除予定のファイル削除
+        # Materialディレクトリにある空のフォルダも削除
+        materialdir = cw.util.join_paths(self.yadodir, "Material")
+
+        # 安全のためこれらのパスは削除の際に無視する
+        ignores = set()
+        for ipath in (cw.cwpy.yadodir, cw.cwpy.tempdir,
+                      os.path.join(cw.cwpy.yadodir, "Adventurer"),
+                      os.path.join(cw.cwpy.yadodir, "Party"),
+                      os.path.join(cw.cwpy.yadodir, "Album"),
+                      os.path.join(cw.cwpy.yadodir, "CastCard"),
+                      os.path.join(cw.cwpy.yadodir, "SkillCard"),
+                      os.path.join(cw.cwpy.yadodir, "ItemCard"),
+                      os.path.join(cw.cwpy.yadodir, "BeastCard"),
+                      os.path.join(cw.cwpy.yadodir, "InfoCard"),
+                      os.path.join(cw.cwpy.yadodir, "Material")):
+            ignores.add(os.path.normpath(os.path.normcase(ipath)))
+
+        # 削除実行
+        for path in self.deletedpaths:
+            if os.path.normpath(os.path.normcase(path)) in ignores:
+                continue
+            cw.util.remove(path)
+            dpath = os.path.dirname(path)
+
+            if dpath.startswith(materialdir) and os.path.isdir(dpath)\
+                                                    and not os.listdir(dpath):
+                cw.util.remove(dpath)
+
+        self.deletedpaths.clear()
+        # 宿のtempフォルダを空にする
+        cw.util.remove(self.tempdir)
 
     #---------------------------------------------------------------------------
     # ゴシップ・シナリオ終了印用メソッド
@@ -2499,7 +2540,7 @@ class _CWPyElementInterface(object):
 
 class CWPyElement(_ElementInterface, _CWPyElementInterface):
 
-    def __init__(self, tag, attrib={}):
+    def __init__(self, tag, attrib={}.copy()):
         _ElementInterface.__init__(self, tag, attrib)
         # CWXパスを構築するための親要素情報
         self.cwxparent = None
@@ -2723,7 +2764,7 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
 # xmlパーサ
 #-------------------------------------------------------------------------------
 
-def make_element(name, text="", attrs={}, tail=""):
+def make_element(name, text="", attrs={}.copy(), tail=""):
     element = CWPyElement(name, attrs)
     element.text = text
     element.tail = tail
