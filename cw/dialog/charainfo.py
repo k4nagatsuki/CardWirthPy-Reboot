@@ -1330,7 +1330,7 @@ class CardPanel(wx.Panel):
             header.subrect = pygame.Rect(pos[0] - cw.wins(20), pos[1] - cw.wins(1), size[0] + cw.wins(20), size[1] + cw.wins(2))
             if header.type == "SkillCard":
                 # 適性値
-                key = "HAND%s" % (header.get_vocation_level(self.ccard))
+                key = "HAND%s" % (min(3, header.get_vocation_level(self.ccard)))
                 bmp = cw.cwpy.rsrc.wxstones[key]
                 dc.DrawBitmap(bmp, pos[0]+(fw*6)+cw.wins(1), pos[1]-cw.wins(1), True)
                 # 使用回数

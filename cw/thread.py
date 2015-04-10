@@ -436,6 +436,15 @@ class CWPy(_Singleton, threading.Thread):
         for sprite in self.backloggrp.sprites():
             sprite.update_scale()
 
+    def update_vocation120(self, vocation120):
+        """適性表示を1.20に合わせる設定を変更する。"""
+        if self.setting.vocation120 <> vocation120:
+            self.setting.vocation120 = vocation120
+            for sprite in itertools.chain(self.mcardgrp.sprites(), self.pcardgrp.sprites()):
+                if isinstance(sprite, cw.sprite.background.InuseCardImage) or\
+                        isinstance(sprite, cw.character.Character) and sprite.test_aptitude:
+                    sprite.update_scale()
+
     def update_curtainstyle(self):
         """カーテンの描画形式の変更を反映する。"""
         for sprite in itertools.chain(self.mcardgrp.sprites(),

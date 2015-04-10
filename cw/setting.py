@@ -89,6 +89,7 @@ class Setting(object):
         self.all_quickdeal = False
         self.skindirname = "Classic"
         self.classicstyletext = True
+        self.vocation120 = False
         self.sort_standbys = "None"
         self.sort_storehouse = "None"
         self.sort_storehousewithstar = True
@@ -456,6 +457,7 @@ class Setting(object):
         self.skintype = data.gettext("Property/Type", "")
         self.skinexts = data.getfind("Property/Extension").attrib
         self.classicstyletext = data.getbool("Property/ClassicStyleText", True)
+        self.vocation120 = data.getbool("Property/CW120VocationLevel", False)
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("Races")]
 

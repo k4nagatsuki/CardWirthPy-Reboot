@@ -257,16 +257,30 @@ class CardHeader(object):
         """
         value = self.get_vocation_val(owner, enhance_act)
 
-        if value < 3:
-            value = 0
-        elif value < 9:
-            value = 1
-        elif value < 15:
-            value = 2
-        elif value < 20:
-            value = 3
+        if cw.cwpy.setting.vocation120:
+            # スキンによる互換機能
+            # 1.20相当の適性表示を行う
+            if value < 4:
+                value = 0
+            elif value < 8:
+                value = 1
+            elif value < 12:
+                value = 2
+            elif value < 16:
+                value = 3
+            else:
+                value = 4
         else:
-            value = 4
+            if value < 3:
+                value = 0
+            elif value < 9:
+                value = 1
+            elif value < 15:
+                value = 2
+            elif value < 20:
+                value = 3
+            else:
+                value = 4
 
         return value
 

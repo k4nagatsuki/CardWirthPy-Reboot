@@ -631,7 +631,8 @@ class GeneralSettingPanel(wx.Panel):
                     author = e.gettext("Author", "")
                     desc = e.gettext("Description", "")
                     classictext = e.getbool("ClassicStyleText", True)
-                    self.skin_summarys[name] = (skintype, skinname, author, desc, classictext)
+                    vocation120 = e.getbool("CW120VocationLevel", False)
+                    self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120)
                 except Exception:
                     # エラーのあるスキンは無視
                     cw.util.print_ex()
@@ -647,7 +648,7 @@ class GeneralSettingPanel(wx.Panel):
     def _choice_skin(self):
         skin = self.skins[self.ch_skin.GetSelection()]
         s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
-        skintype, skinname, author, desc, _classictext = self.skin_summarys[skin]
+        skintype, skinname, author, desc, _classictext, _vocation120 = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
         self.st_skin.SetLabel(s % (skintype, skinname, author, desc))
         self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
@@ -1186,7 +1187,7 @@ class ScenarioSettingPanel(wx.Panel):
 
         types = set()
         for t in self.Parent.Parent.pane_gene.skin_summarys.itervalues():
-            skintype, _skinname, _author, _desc, _classictext = t
+            skintype, _skinname, _author, _desc, _classictext, _vocation120 = t
             types.add(skintype)
 
         types = list(types)

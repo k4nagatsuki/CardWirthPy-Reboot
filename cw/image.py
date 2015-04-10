@@ -159,7 +159,7 @@ class CardImage(Image):
         owner = header.get_owner()
         if isinstance(owner, cw.character.Character):
             # 適性値
-            key = "HAND" + str(header.get_vocation_level(owner))
+            key = "HAND" + str(min(3, header.get_vocation_level(owner)))
             subimg = cw.cwpy.rsrc.stones[key]
             image.blit(subimg, cw.s((60, 90)))
 
@@ -307,7 +307,7 @@ class CardImage(Image):
         owner = header.get_owner()
         if isinstance(owner, cw.character.Character):
             # 適性値
-            key = "HAND" + str(header.get_vocation_level(owner))
+            key = "HAND" + str(min(3, header.get_vocation_level(owner)))
             subimg = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(subimg, cw.wins(60), cw.wins(90), True)
 
@@ -537,7 +537,7 @@ class CharacterCardImage(CardImage):
 
         if header:
             # 適性表示(カード移動時)
-            key = "HAND" + str(header.get_vocation_level(ccard))
+            key = "HAND" + str(min(3, header.get_vocation_level(ccard)))
             subimg = cw.cwpy.rsrc.stones[key]
             self.image.blit(subimg, cw.s((73, 95)))
 
