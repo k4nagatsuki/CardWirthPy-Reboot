@@ -755,6 +755,7 @@ class ScenarioData(SystemData):
 
         ##        if not cw.cwpy.debug and cw.cwpy.is_showingdebugger():
         ##            cw.cwpy.frame.exec_func(cw.cwpy.frame.close_debugger)
+        self.autostart_round = etree.getbool("Property/RoundAutoStart", False)
 
         for e in etree.getfind("Flags"):
             if e.text in self.flags:

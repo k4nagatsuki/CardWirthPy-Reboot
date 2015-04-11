@@ -578,6 +578,8 @@ def create_scenariolog(sdata, path, recording):
     e_prop.append(e)
     e = cw.data.make_element("WsnPath", sdata.fpath)
     e_prop.append(e)
+    e = cw.data.make_element("RoundAutoStart", str(sdata.autostart_round))
+    e_prop.append(e)
 
     if cw.cwpy.areaid >= 0:
         areaid = cw.cwpy.areaid

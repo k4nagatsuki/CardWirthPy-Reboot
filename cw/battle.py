@@ -44,6 +44,8 @@ class BattleEngine(object):
         self._ready = False
         # 戦闘行動中フラグ
         self._running = False
+        # 前回のラウンドで逃走を試みた場合
+        self._ranaway = False
         # 表示中の敵の数
         self.numenemy = 0
         if cw.cwpy.is_autospread():
@@ -170,10 +172,13 @@ class BattleEngine(object):
         elif self.check_win():
             raise BattleWinError()
 
+        ran = self._ranaway
         self._running = False
+        self._ranaway = False
 
         # 2ラウンド目移行は自動で行動開始可能
-        if cw.cwpy.setting.show_roundautostartbutton and cw.cwpy.sdata.autostart_round:
+        # ただし逃走を試みた時は自動で行動開始はしたくないはずなので開始しない
+        if cw.cwpy.setting.show_roundautostartbutton and cw.cwpy.sdata.autostart_round and not ran:
             self.ready(redraw=False)
             cw.cwpy.exec_func(self.start)
         else:
@@ -253,8 +258,7 @@ class BattleEngine(object):
         cw.cwpy.clear_fcardsprites()
         self.clear_playersaction()
         event = cw.cwpy.sdata.events.check_keynum(2)
-        # 逃走を試みる時は自動で行動開始はしたくないはず
-        cw.cwpy.sdata.autostart_round = False
+        self._ranaway = True
 
         if event:
             # 逃走イベント開始

@@ -359,6 +359,8 @@ class CWYado(object):
         e_prop.append(e)
         e = cw.data.make_element("WsnPath", partymembers.scenariopath)
         e_prop.append(e)
+        e = cw.data.make_element("RoundAutoStart", str(False))
+        e_prop.append(e)
 
         e = cw.data.make_element("Debug", str(bool(self.wyd.yadotype == 2)))
         e_prop.append(e)
