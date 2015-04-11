@@ -63,6 +63,10 @@ class SystemData(object):
     def _init_debugger(self):
         cw.cwpy.event.refresh_variablelist()
 
+    def update_skin(self):
+        self._init_xmlpaths()
+        self._init_sparea_mcards()
+
     def _init_xmlpaths(self):
         self.areas = {}
         self.battles = {}

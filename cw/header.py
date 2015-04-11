@@ -259,14 +259,14 @@ class CardHeader(object):
 
         if cw.cwpy.setting.vocation120:
             # スキンによる互換機能
-            # 1.20相当の適性表示を行う
-            if value < 4:
+            # 1.20相当の適性計算を行う
+            if value < 3:
                 value = 0
-            elif value < 8:
+            elif value < 7:
                 value = 1
-            elif value < 12:
+            elif value < 11:
                 value = 2
-            elif value < 16:
+            elif value < 15:
                 value = 3
             else:
                 value = 4
@@ -283,6 +283,28 @@ class CardHeader(object):
                 value = 4
 
         return value
+
+    def get_showed_vocation_level(self, owner):
+        """
+        表示される適性値の段階値を返す。値は0～3の範囲となる。
+        1.20相当の計算を行う時は、実際の能力値と厳密には一致しない。
+        """
+        if cw.cwpy.setting.vocation120:
+            # スキンによる互換機能
+            # 1.20相当の適性計算を行う
+            value = self.get_vocation_val(owner, enhance_act=False)
+            if value < 4:
+                value = 0
+            elif value < 8:
+                value = 1
+            elif value < 12:
+                value = 2
+            else:
+                value = 3
+            return value
+        else:
+            return min(3, self.get_vocation_level(owner, enhance_act=False))
+
 
     def get_vocation_val(self, owner, enhance_act=False):
         """

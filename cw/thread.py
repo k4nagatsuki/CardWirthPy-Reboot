@@ -270,8 +270,7 @@ class CWPy(_Singleton, threading.Thread):
             repl_cardimg(sprite)
 
         if self.sdata:
-            self.sdata._init_xmlpaths()
-            self.sdata._init_sparea_mcards()
+            self.sdata.update_skin()
 
         if not self.is_battlestatus() and changearea:
             for sprite in self.mcardgrp.sprites()[:]:
@@ -1393,7 +1392,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
 
-    def set_scenario(self, header=None, lastscenario=[], lastscenariopath=""):
+    def set_scenario(self, header=None, lastscenario=[][:], lastscenariopath=""):
         """シナリオ画面へ遷移。
         header: ScenarioHeader
         """
@@ -1735,7 +1734,7 @@ class CWPy(_Singleton, threading.Thread):
     def load_yado(self, yadodir, createmutex=True):
         """指定されたディレクトリの宿をロード。"""
         try:
-            self._load_yado(yadodir, createmutex)
+            return self._load_yado(yadodir, createmutex)
         except Exception, ex:
             cw.util.print_ex()
             cw.tempdir = cw.tempdir_init
