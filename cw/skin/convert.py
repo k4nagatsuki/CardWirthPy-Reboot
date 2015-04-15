@@ -975,6 +975,7 @@ class Converter(threading.Thread):
                 with open(fpath, "wb") as f:
                     f.write(res)
                 f = None
+
             for resname, target in curtbl.iteritems():
                 res = self.res.get_cursor(resname)
                 if res is None:
@@ -1085,6 +1086,14 @@ class Converter(threading.Thread):
                 if os.path.isfile(fpath):
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
                     shutil.copyfile(fpath, dist)
+                fpath = cw.util.join_paths(resdir, key + ".png")
+                if os.path.isfile(fpath):
+                    dist = cw.util.join_paths(dpath, "Resource/Image", target + ".png")
+                    shutil.copyfile(fpath, dist)
+                    # ".bmp"より".png"を優先する(アレンジパック対応)
+                    dist = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
+                    if os.path.isfile(dist):
+                        cw.util.remove(dist)
             for key, target in curtbl.iteritems():
                 fpath = cw.util.join_paths(resdir, key + ".cur")
                 if os.path.isfile(fpath):

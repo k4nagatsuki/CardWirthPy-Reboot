@@ -1714,14 +1714,15 @@ class CardHolder(CardControl):
         else:
             # カード置場・荷物袋・情報カードマーク
             if self.callname == "BACKPACK":
-                path = "Resource/Image/Card/COMMAND7" + cw.cwpy.rsrc.ext_img
+                path = "Resource/Image/Card/COMMAND7"
             elif self.callname == "STOREHOUSE":
-                path = "Resource/Image/Card/COMMAND5" + cw.cwpy.rsrc.ext_img
+                path = "Resource/Image/Card/COMMAND5"
             elif self.callname == "INFOVIEW":
-                path = "Resource/Image/Card/COMMAND8" + cw.cwpy.rsrc.ext_img
+                path = "Resource/Image/Card/COMMAND8"
             elif self.callname == "CARDPOCKETB":
                 path = cw.cwpy.rsrc.backpackcards["ItemCard"].imgpath
-            path = cw.util.join_paths(cw.cwpy.skindir, path)
+                path = os.path.splitext(path)[0]
+            path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
             self._leftmark = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
 
         CardControl.draw_cards(self, update, mode)

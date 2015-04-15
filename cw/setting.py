@@ -455,7 +455,6 @@ class Setting(object):
         data = self._update_skin(path)
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
-        self.skinexts = data.getfind("Property/Extension").attrib
         self.classicstyletext = data.getbool("Property/ClassicStyleText", True)
         self.vocation120 = data.getbool("Property/CW120VocationLevel", False)
         # スキン・種族
@@ -661,9 +660,9 @@ class Resource(object):
         # 現在選択しているスキンのディレクトリ
         self.skindir = setting.skindir
         # 各種データの拡張子
-        self.ext_img = setting.skinexts.get("image")
-        self.ext_bgm = setting.skinexts.get("bgm")
-        self.ext_snd = setting.skinexts.get("sound")
+        self.ext_img = "image"
+        self.ext_bgm = "bgm"
+        self.ext_snd = "sound"
         # システムフォントテーブルの設定
         self.fontpaths = self.get_fontpaths()
         self.fontnames, self.fontnames_init = self.set_systemfonttable()
@@ -1174,10 +1173,14 @@ class Resource(object):
         """
         d, dpath = {}, unicode(dpath)
 
-        for fname in os.listdir(dpath):
-            if fname.endswith(ext):
-                fpath = cw.util.join_paths(dpath, fname)
+        names = set()
 
+        for fname in os.listdir(dpath):
+            names.add(os.path.splitext(fname)[0])
+
+        for fname in names:
+            fpath = cw.util.find_resource(cw.util.join_paths(dpath, fname), ext)
+            if fpath:
                 if mask:
                     resource = func(fpath, mask=mask)
                 else:
@@ -1289,22 +1292,22 @@ class Resource(object):
         d = self.get_resources(func, dpath, self.ext_img)
 
         for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
-            path = cw.util.join_paths(dpath, name + self.ext_img)
+            path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
             bmp = load_image(path, mask=True, maskpos=(1, 1))
             if load_image == cw.util.load_wxbmp:
                 d[name + "_dbg"] = bmp
             d[name] = ss((bmp, get_resourcesize(path)))
 
         name = "TARGET"
-        path = cw.util.join_paths(dpath, name + self.ext_img)
+        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
         d[name] = ss((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
 
         name = "LIFEGUAGE"
-        path = cw.util.join_paths(dpath, name + self.ext_img)
+        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
         d[name] = load_image(path, mask=True, maskpos="center")
 
         name = "LIFEBAR"
-        path = cw.util.join_paths(dpath, name + self.ext_img)
+        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
         d[name] = load_image(path)
 
         return d
@@ -1326,19 +1329,19 @@ class Resource(object):
         d = self.get_resources(func, dpath, self.ext_img, True)
 
         name = "LINK"
-        path = cw.util.join_paths(dpath, name + self.ext_img)
+        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
         d[name] = ss((load_image(path, mask=False), get_resourcesize(path)))
 
         name = "MONEYY"
-        path = cw.util.join_paths(dpath, name + self.ext_img)
+        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
         d[name] = ss((load_image(path, mask=False), get_resourcesize(path)))
 
         name = "STATUS8"
-        path = cw.util.join_paths(dpath, name + self.ext_img)
+        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
         d[name] = ss((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
 
         for key in ["CAUTION", "INVISIBLE"]:
-            path = cw.util.join_paths(dpath, key + self.ext_img)
+            path = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
             d[key] = ss((load_image(path), get_resourcesize(path)))
         return d
 
@@ -1351,7 +1354,7 @@ class Resource(object):
             bmp = load_image(path, mask)
             return bmp, bmp
         dpath = u"Data/Debugger"
-        d = self.get_resources(func, dpath, ".png", True)
+        d = self.get_resources(func, dpath, "image", True)
         return d
 
     def get_cardbgs(self, load_image):
@@ -1372,7 +1375,7 @@ class Resource(object):
 
         for img in (("HOLD", "center"), ("PENALTY", "center"), ("PREMIER", "right"), ("RARE", "right")):
             name = img[0]
-            path = cw.util.join_paths(dpath, name + self.ext_img)
+            path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
             d[name] = ss((load_image(path, True, maskpos = img[1]), get_resourcesize(path)))
 
         return d
@@ -1425,7 +1428,7 @@ class Resource(object):
             # 拡張子をスキンに合わせて差し替える
             imgpath = carddata.gettext("Property/ImagePath", "")
             if imgpath:
-                imgpath = os.path.splitext(imgpath)[0] + self.ext_img
+                imgpath = cw.util.find_resource(os.path.splitext(imgpath)[0], self.ext_img)
                 carddata.find("Property/ImagePath").text = imgpath
         else:
             carddata = cw.data.xml2element(fpath)
@@ -1442,38 +1445,34 @@ class Resource(object):
         """
         self.specialchars_is_changed = False
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Font")
-        ext = self.ext_img
 
-        ndict = {"ANGRY" + ext   : "#a",
-                 "CLUB" + ext    : "#b",
-                 "DIAMOND" + ext : "#d",
-                 "EASY" + ext    : "#e",
-                 "FLY" + ext     : "#f",
-                 "GRIEVE" + ext  : "#g",
-                 "HEART" + ext   : "#h",
-                 "JACK" + ext    : "#j",
-                 "KISS" + ext    : "#k",
-                 "LAUGH" + ext   : "#l",
-                 "NIKO" + ext    : "#n",
-                 "ONSEN" + ext   : "#o",
-                 "PUZZLE" + ext  : "#p",
-                 "QUICK" + ext   : "#q",
-                 "SPADE" + ext   : "#s",
-                 "WORRY" + ext   : "#w",
-                 "X" + ext       : "#x",
-                 "ZAP" + ext     : "#z",
+        ndict = {"ANGRY"   : "#a",
+                 "CLUB"    : "#b",
+                 "DIAMOND" : "#d",
+                 "EASY"    : "#e",
+                 "FLY"     : "#f",
+                 "GRIEVE"  : "#g",
+                 "HEART"   : "#h",
+                 "JACK"    : "#j",
+                 "KISS"    : "#k",
+                 "LAUGH"   : "#l",
+                 "NIKO"    : "#n",
+                 "ONSEN"   : "#o",
+                 "PUZZLE"  : "#p",
+                 "QUICK"   : "#q",
+                 "SPADE"   : "#s",
+                 "WORRY"   : "#w",
+                 "X"       : "#x",
+                 "ZAP"     : "#z",
                  }
 
         d = {}
 
-        for fname in os.listdir(dpath):
-            fpath = cw.util.join_paths(dpath, fname)
-
-            if fname.endswith(ext) and fname in ndict:
-                name = ndict[fname]
-                image = cw.util.load_image(fpath)
-                image.set_colorkey((255, 255, 255))
-                d[name] = image, False
+        for key, name in ndict.iteritems():
+            fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
+            image = cw.util.load_image(fpath)
+            image.set_colorkey((255, 255, 255))
+            d[name] = image, False
 
         return d
 

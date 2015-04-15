@@ -237,8 +237,8 @@ class SelectPartyRecord(select.Select):
 
         dc = select.Select.draw(self, update)
         # 背景
-        path = "Table/Book" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Table/Book"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)

@@ -90,8 +90,8 @@ class Party(base.CWBinaryBase):
         else:
             yadoname = table["yadoname"]
             nowadventuring = False
-        imgpath = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
-        imgpath = cw.util.join_paths(cw.cwpy.skindir, imgpath)
+        imgpath = "Resource/Image/Card/COMMAND0"
+        imgpath = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, imgpath), cw.cwpy.rsrc.ext_img)
         image = base.CWBinaryBase.import_image(imgpath, fullpath=True)
         memberslist = ""
         name = ""

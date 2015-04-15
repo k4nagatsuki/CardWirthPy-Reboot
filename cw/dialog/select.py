@@ -683,14 +683,12 @@ class YadoSelect(Select):
 
         if self.list:
             skindir = self.skins[self.index]
-            extimg = self.extimgs[self.index]
         else:
             skindir = cw.cwpy.skindir
-            extimg = cw.cwpy.rsrc.ext_img
 
         # 背景
-        path = "Table/Bill" + extimg
-        path = cw.util.join_paths(skindir, path)
+        path = "Table/Bill"
+        path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
@@ -711,8 +709,8 @@ class YadoSelect(Select):
                 dc.DrawText(s, (bmpw-w)/2, cw.wins(20))
 
         # 宿画像
-        path = "Resource/Image/Card/COMMAND0" + extimg
-        path = cw.util.join_paths(skindir, path)
+        path = "Resource/Image/Card/COMMAND0"
+        path = cw.util.find_resource(cw.util.join_paths(skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
         # 宿名前
@@ -1321,8 +1319,8 @@ class PartySelect(MultiViewSelect):
     def draw(self, update=False):
         dc = Select.draw(self, update)
         # 背景
-        path = "Table/Book" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Table/Book"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
@@ -1337,8 +1335,8 @@ class PartySelect(MultiViewSelect):
             if sceheader:
                 bmp = sceheader.get_wxbmp()
             else:
-                path = "Resource/Image/Card/COMMAND0" + cw.cwpy.rsrc.ext_img
-                path = cw.util.join_paths(cw.cwpy.skindir, path)
+                path = "Resource/Image/Card/COMMAND0"
+                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
                 bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
 
             paths = header.get_memberpaths()
@@ -2153,8 +2151,8 @@ class PlayerSelect(MultiViewSelect):
     def draw(self, update=False):
         dc = MultiViewSelect.draw(self, update)
         # 背景
-        path = "Table/Book" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Table/Book"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
@@ -3195,8 +3193,8 @@ class ScenarioSelect(Select):
             dc = Select.draw(self, update)
 
         # 背景
-        path = "Table/Bill" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Table/Bill"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)

@@ -735,8 +735,8 @@ class AdventurerCreaterPage(wx.Panel):
             dc = wx.PaintDC(self)
 
         # 共通背景
-        path = "Table/Book" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Table/Book"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
         dc.DrawBitmap(bmp, 0, 0, False)
         return dc
@@ -1184,8 +1184,8 @@ class RelationPage(AdventurerCreaterPage):
         if self.father:
             path = self.father.get_imgpath()
         else:
-            path = "Resource/Image/Card/FATHER" + cw.cwpy.rsrc.ext_img
-            path = cw.util.join_paths(cw.cwpy.skindir, path)
+            path = "Resource/Image/Card/FATHER"
+            path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
 
         bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         pos = cw.wins((100, 110))
@@ -1195,8 +1195,8 @@ class RelationPage(AdventurerCreaterPage):
         if self.mother:
             path = self.mother.get_imgpath()
         else:
-            path = "Resource/Image/Card/MOTHER" + cw.cwpy.rsrc.ext_img
-            path = cw.util.join_paths(cw.cwpy.skindir, path)
+            path = "Resource/Image/Card/MOTHER"
+            path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
 
         bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         pos = cw.wins((275, 110))
@@ -1949,8 +1949,8 @@ class DesignPanel(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
 
         # 背景
-        path = "Table/Bill" + cw.cwpy.rsrc.ext_img
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+        path = "Table/Bill"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         dc.DrawBitmap(bmp, 0, 0, False)
 

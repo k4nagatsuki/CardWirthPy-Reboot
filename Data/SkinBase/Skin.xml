@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Skin dataVersion="6">
+<Skin dataVersion="7">
   <Property>
     <Name></Name>
     <Type></Type>
     <Author></Author>
     <Description></Description>
-    <Extension image=".bmp" bgm=".mid" sound=".wav" />
     <ClassicStyleText>True</ClassicStyleText>
     <CW120VocationLevel>False</CW120VocationLevel>
   </Property>

@@ -183,8 +183,8 @@ class MusicInterface(object):
         self.path = ""
         # pygame.mixer.musicで読み込んだ音楽ファイルを解放する
         if cw.cwpy.rsrc:
-            path = "DefReset" + cw.cwpy.rsrc.ext_bgm
-            path = join_paths(cw.cwpy.setting.skindir, "Bgm", path)
+            path = "DefReset"
+            path = find_resource(join_paths(cw.cwpy.setting.skindir, "Bgm", path), cw.cwpy.rsrc.ext_bgm)
             load_bgm(path)
 
     def _get_volumevalue(self, fpath):
@@ -1075,6 +1075,24 @@ def get_yadofilepath(path):
     else:
         return ""
 
+def find_resource(path, mtype):
+    """pathとmtypeに該当する素材を拡張子の優先順に沿って探す。"""
+    imgpath = ""
+    if mtype == "image":
+        t = (".png", ".bmp", ".gif", ".jpg")
+    elif mtype == "bgm":
+        t = (".ogg", ".mp3", ".mid", ".wav")
+    elif mtype == "sound":
+        t = (".wav", ".ogg", ".mp3", ".mid")
+    else:
+        assert False, mtype
+
+    for ext in t:
+        path2 = path + ext
+        if os.path.isfile(path2):
+            return path2
+    return u""
+
 def get_inusecardmaterialpath(path, mtype, inusecard=None):
     """pathが宿からシナリオへ持ち込んだカードの
     素材を指していればそのパスを返す。
@@ -1111,18 +1129,23 @@ def get_materialpath(path, mtype, scedir="", system=False):
 
 def get_materialpathfromskin(path, mtype):
     if not os.path.isfile(path):
-        if mtype == cw.M_IMG:
+        if path.startswith(cw.cwpy.skindir):
+            fname = cw.util.splitext(path)[0]
+            if mtype == cw.M_IMG:
+                path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_img)
+            elif mtype == cw.M_MSC:
+                path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_bgm)
+            elif mtype == cw.M_SND:
+                path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_snd)
+        else:
             fname = os.path.basename(path)
-            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_img
-            path = cw.util.join_paths(cw.cwpy.skindir, "Table", fname)
-        elif mtype == cw.M_MSC:
-            fname = os.path.basename(path)
-            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_bgm
-            path = cw.util.join_paths(cw.cwpy.skindir, "Bgm", fname)
-        elif mtype == cw.M_SND:
-            fname = os.path.basename(path)
-            fname = cw.util.splitext(fname)[0] + cw.cwpy.rsrc.ext_snd
-            path = cw.util.join_paths(cw.cwpy.skindir, "Sound", fname)
+            fname = cw.util.splitext(fname)[0]
+            if mtype == cw.M_IMG:
+                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Table", fname), cw.cwpy.rsrc.ext_img)
+            elif mtype == cw.M_MSC:
+                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Bgm", fname), cw.cwpy.rsrc.ext_bgm)
+            elif mtype == cw.M_SND:
+                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, "Sound", fname), cw.cwpy.rsrc.ext_snd)
     return path
 
 def remove_temp():

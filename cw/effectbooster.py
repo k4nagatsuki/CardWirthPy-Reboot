@@ -641,7 +641,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         dpath = os.path.dirname(fpath)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
-        filename = cw.util.splitext(filename)[0] + cw.cwpy.rsrc.ext_img
+        filename = cw.util.find_resource(cw.util.splitext(filename)[0], cw.cwpy.rsrc.ext_img)
     elif dirtype == 3:
         dpath = "Data/EffectBooster"
     elif dirtype == 4:
@@ -663,7 +663,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
             return get_filepath_s(configpath, filename, 1)
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
-        filename = cw.util.splitext(filename)[0] + cw.cwpy.rsrc.ext_snd
+        filename = cw.util.find_resource(cw.util.splitext(filename)[0], cw.cwpy.rsrc.ext_snd)
     elif dirtype == 6:
         dpath = os.path.dirname(os.path.dirname(configpath))
     elif dirtype == 7:

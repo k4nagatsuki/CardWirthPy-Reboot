@@ -864,8 +864,7 @@ class CWPy(_Singleton, threading.Thread):
             elif self.setting.fullscreenbackgroundtype == 2:
                 self.scr_fullscreen.fill((255, 255, 255))
                 fname = self.setting.fullscreenbackgroundfile
-                fname += self.rsrc.ext_img
-                fname = cw.util.join_paths(self.skindir, fname)
+                fname = cw.util.find_resource(cw.util.join_paths(self.skindir, fname), self.rsrc.ext_img)
 
             if fname:
                 back = cw.util.load_image(fname)
@@ -1285,18 +1284,17 @@ class CWPy(_Singleton, threading.Thread):
 
         self.sdata = cw.data.SystemData()
         self.statusbar.change()
-        ext = self.rsrc.ext_img
         white = cw.sprite.background.TitleCell("white", 3, 0, False, None)
-        path = cw.util.join_paths(resdir, "TITLE_CARD1") + ext
+        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CARD1"), self.rsrc.ext_img)
         card1 = cw.sprite.background.TitleCell(path, 1, 120, True, white)
-        path = cw.util.join_paths(resdir, "TITLE_CARD2") + ext
+        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CARD2"), self.rsrc.ext_img)
         card2 = cw.sprite.background.TitleCell(path, 1, 120, True, white)
-        path = cw.util.join_paths(resdir, "TITLE_CELL1") + ext
-        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False, white)
-        path = cw.util.join_paths(resdir, "TITLE_CELL2") + ext
-        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False, white)
-        path = cw.util.join_paths(resdir, "TITLE_CELL3") + ext
-        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, white)
+        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL1"), self.rsrc.ext_img)
+        cell1 = cw.sprite.background.TitleCell(path, 2, 195, False, white, center=True)
+        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL2"), self.rsrc.ext_img)
+        cell2 = cw.sprite.background.TitleCell(path, 2, 195, False, white, center=True)
+        path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL3"), self.rsrc.ext_img)
+        cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, white, center=True)
 
         cw.cwpy.topgrp.add(card1, layer="title")
         cw.cwpy.topgrp.add(card2, layer="title")
