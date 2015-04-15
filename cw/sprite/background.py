@@ -71,11 +71,11 @@ class BackGround(base.CWPySprite):
         """
         if nocheckvisible:
             if not visible:
-                return None, False, False
+                return None, False, False, (0, 0)
         else:
             # 対応フラグチェック
             if not cw.cwpy.sdata.flags.get(flag, True):
-                return None, False, False
+                return None, False, False, (0, 0)
         anime = False
 
         try:
@@ -88,7 +88,8 @@ class BackGround(base.CWPySprite):
             ext = cw.util.splitext(path)[1].lower()
 
             if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, cw.UP_SCR, mask) in cw.cwpy.sdata.resource_cache:
-                return cw.cwpy.sdata.resource_cache[(path, mtime, size, cw.UP_SCR, mask)].copy(), False, False
+                image, size_noscale = cw.cwpy.sdata.resource_cache[(path, mtime, size, cw.UP_SCR, mask)]
+                return image.copy(), False, False, size_noscale
 
             if ext == ".jptx":
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
@@ -108,7 +109,7 @@ class BackGround(base.CWPySprite):
             raise ex
         except Exception:
             cw.util.print_ex()
-            return None, False, False
+            return None, False, False, (0, 0)
 
         # 指定したサイズに拡大縮小する
         # FIXME: エフェクトブースターファイルで正しく動かない可能性がある
@@ -129,7 +130,7 @@ class BackGround(base.CWPySprite):
                 image = pygame.transform.scale(image, size)
 
         if not anime and cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.resource_cache[(path, mtime, size, cw.UP_SCR, mask)] = image
+            cw.cwpy.sdata.resource_cache[(path, mtime, size, cw.UP_SCR, mask)] = image, size_noscale
 
         return image, anime, True, size_noscale
 
