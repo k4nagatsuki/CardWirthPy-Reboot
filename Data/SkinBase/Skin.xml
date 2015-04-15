@@ -7,6 +7,7 @@
     <Description></Description>
     <Extension image=".bmp" bgm=".mid" sound=".wav" />
     <ClassicStyleText>True</ClassicStyleText>
+    <CW120VocationLevel>False</CW120VocationLevel>
   </Property>
   <Races />
   <Sexes>
