@@ -1078,11 +1078,11 @@ def get_yadofilepath(path):
 def find_resource(path, mtype):
     """pathとmtypeに該当する素材を拡張子の優先順に沿って探す。"""
     imgpath = ""
-    if mtype == "image":
+    if mtype == cw.M_IMG:
         t = (".png", ".bmp", ".gif", ".jpg")
-    elif mtype == "bgm":
+    elif mtype == cw.M_MSC:
         t = (".ogg", ".mp3", ".mid", ".wav")
-    elif mtype == "sound":
+    elif mtype == cw.M_SND:
         t = (".wav", ".ogg", ".mp3", ".mid")
     else:
         assert False, mtype

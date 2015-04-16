@@ -12,7 +12,7 @@ class Converter(threading.Thread):
     def __init__(self, exe):
         threading.Thread.__init__(self)
 
-        self.maximum = 80
+        self.maximum = 90
         self.curnum = 0
         self.message = u"変換を開始しています..."
         self.failure = False
@@ -1100,7 +1100,45 @@ class Converter(threading.Thread):
                     dist = cw.util.join_paths(dpath, "Resource/Image", target + ".cur")
                     shutil.copyfile(fpath, dist)
 
+            # タイトル画面の背景セルの位置調節
             self.curnum = 80
+            fpath = cw.util.join_paths(dpath, "Resource/Xml/Title/01_Title.xml")
+            if os.path.isfile(fpath):
+                data = cw.data.xml2etree(fpath)
+                fpath = cw.util.find_resource(cw.util.join_paths(dpath, "Resource/Image/Other/TITLE_CELL3"), cw.M_IMG)
+                tsize = cw.util.load_wxbmp(fpath).GetSize()
+                fpath = cw.util.find_resource(cw.util.join_paths(dpath, "Resource/Image/Other/TITLE_VERSION"), cw.M_IMG)
+                vsize = cw.util.load_wxbmp(fpath).GetSize()
+
+                tleft = (cw.SIZE_AREA[0]-tsize[0]) // 2
+                ttop = (cw.SIZE_AREA[1]-tsize[1]) // 2
+                vleft = (cw.SIZE_AREA[0]-vsize[0]) // 2
+                vtop = ttop + tsize[1] + 12
+
+                # TITLE_SHADOW
+                if tsize[0] <> 0:
+                    data.edit("BgImages/BgImage[2]/Location", str(tleft), "left")
+                    data.edit("BgImages/BgImage[2]/Location", str(ttop), "top")
+                    data.edit("BgImages/BgImage[2]/Size", str(tsize[0]), "width")
+                    data.edit("BgImages/BgImage[2]/Size", str(tsize[1]), "height")
+
+                # TITLE_CELL3
+                if tsize[0] <> 0:
+                    data.edit("BgImages/BgImage[3]/Location", str(tleft), "left")
+                    data.edit("BgImages/BgImage[3]/Location", str(ttop), "top")
+                    data.edit("BgImages/BgImage[3]/Size", str(tsize[0]), "width")
+                    data.edit("BgImages/BgImage[3]/Size", str(tsize[1]), "height")
+
+                # TITLE_VERSION
+                if vsize[0] <> 0:
+                    data.edit("BgImages/BgImage[4]/Location", str(vleft), "left")
+                    data.edit("BgImages/BgImage[4]/Location", str(vtop), "top")
+                    data.edit("BgImages/BgImage[4]/Size", str(vsize[0]), "width")
+                    data.edit("BgImages/BgImage[4]/Size", str(vsize[1]), "height")
+
+                data.write()
+
+            self.curnum = 90
             self.message = u"スキンの生成が完了しました。"
 
             self.complete = True

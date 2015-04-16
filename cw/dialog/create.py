@@ -1552,9 +1552,8 @@ class YadoCreater(wx.Dialog):
                 try:
                     prop = cw.header.GetProperty(skinpath)
                     choices.append(prop.properties[u"Name"])
-                    ext = prop.attrs.get(u"Extension", {}).get(u"image", u".bmp")
-                    self.command0s.append([cw.util.join_paths(path, u"Resource/Image/Card/COMMAND0" + ext), None])
-                    self.cautions.append([cw.util.join_paths(path, u"Resource/Image/Dialog/CAUTION" + ext), None])
+                    self.command0s.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Card/COMMAND0"), cw.M_IMG), None])
+                    self.cautions.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Dialog/CAUTION"), cw.M_IMG), None])
                 except Exception:
                     # エラーのあるスキンは無視
                     cw.util.print_ex()

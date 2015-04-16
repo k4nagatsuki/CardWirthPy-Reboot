@@ -14,14 +14,14 @@
     <BgImage mask="True">
       <ImagePath>Resource/Image/Other/TITLE_SHADOW.bmp</ImagePath>
       <Flag></Flag>
-      <Location left="Center" top="Center" />
-      <Size width="Original" height="Original" />
+      <Location left="113" top="160" />
+      <Size width="406" height="99" />
     </BgImage>
     <BgImage mask="True">
       <ImagePath>Resource/Image/Other/TITLE_CELL3.bmp</ImagePath>
       <Flag></Flag>
-      <Location left="Center" top="Center" />
-      <Size width="Original" height="Original" />
+      <Location left="113" top="160" />
+      <Size width="406" height="99" />
     </BgImage>
     <BgImage mask="True">
       <ImagePath>Resource/Image/Other/TITLE_VERSION.bmp</ImagePath>

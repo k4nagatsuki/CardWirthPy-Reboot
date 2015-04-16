@@ -660,9 +660,9 @@ class Resource(object):
         # 現在選択しているスキンのディレクトリ
         self.skindir = setting.skindir
         # 各種データの拡張子
-        self.ext_img = "image"
-        self.ext_bgm = "bgm"
-        self.ext_snd = "sound"
+        self.ext_img = cw.M_IMG
+        self.ext_bgm = cw.M_MSC
+        self.ext_snd = cw.M_SND
         # システムフォントテーブルの設定
         self.fontpaths = self.get_fontpaths()
         self.fontnames, self.fontnames_init = self.set_systemfonttable()
@@ -1354,7 +1354,7 @@ class Resource(object):
             bmp = load_image(path, mask)
             return bmp, bmp
         dpath = u"Data/Debugger"
-        d = self.get_resources(func, dpath, "image", True)
+        d = self.get_resources(func, dpath, cw.M_IMG, True)
         return d
 
     def get_cardbgs(self, load_image):

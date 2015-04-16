@@ -363,7 +363,7 @@ class YadoSelect(Select):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["select_base_title"])
         # 宿情報
-        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic, self.isshortcuts = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.classic, self.isshortcuts = self.get_yadolist()
         self.index = 0
         for index, name in enumerate(self.names):
             if cw.cwpy.setting.lastyado == name:
@@ -575,7 +575,7 @@ class YadoSelect(Select):
                         dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
                         cw.cwpy.frame.move_dlg(dlg)
                         if dlg.ShowModal() == wx.ID_OK:
-                            self.names, self.list, self.list2, self.skins, self.extimgs, self.classic, self.isshortcuts = self.get_yadolist()
+                            self.names, self.list, self.list2, self.skins, self.classic, self.isshortcuts = self.get_yadolist()
                             self.index = self.list.index(path)
                             draw = True
                         dlg.Destroy()
@@ -746,7 +746,7 @@ class YadoSelect(Select):
             dc.DrawText(name, x, y)
 
         if cw.util.exists_mutex(self.list[self.index]):
-            fpath = cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING" + extimg)
+            fpath = cw.util.find_resource(cw.util.join_paths(skindir, "Resource/Image/Dialog/PLAYING"), cw.M_IMG)
             if os.path.isfile(fpath):
                 bmp = cw.wins((cw.util.load_wxbmp(fpath, True), cw.setting.SIZE_RESOURCES["Dialog/PLAYING"]))
             else:
@@ -915,7 +915,7 @@ class YadoSelect(Select):
         登録されている宿のリストを更新して、
         引数のnameの宿までページを移動する。
         """
-        self.names, self.list, self.list2, self.skins, self.extimgs, self.classic, self.isshortcuts = self.get_yadolist()
+        self.names, self.list, self.list2, self.skins, self.classic, self.isshortcuts = self.get_yadolist()
 
         try:
             self.index = self.list.index(yadodir)
@@ -930,11 +930,8 @@ class YadoSelect(Select):
         names = []
         yadodirs = []
         skins = []
-        extimgs = []
         classic = []
         isshortcuts = []
-
-        skinexttable = {}
 
         if not os.path.exists(u"Yado"):
             os.makedirs(u"Yado")
@@ -955,19 +952,10 @@ class YadoSelect(Select):
                     skinxml = cw.util.join_paths(skin, u"Skin.xml")
                     if os.path.isfile(skinxml):
                         skins.append(skin)
-                        if skin in skinexttable:
-                            extimgs.append(skinexttable[skin])
-                        else:
-                            skinprop = cw.header.GetProperty(skinxml)
-                            extimg = skinprop.attrs.get("Extension", {}).get("image", cw.cwpy.rsrc.ext_img)
-                            extimgs.append(extimg)
-                            skinexttable[skin] = extimg
                     else:
                         skins.append(cw.cwpy.skindir)
-                        extimgs.append(cw.cwpy.rsrc.ext_img)
                 else:
                     skins.append(cw.cwpy.skindir)
-                    extimgs.append(cw.cwpy.rsrc.ext_img)
 
                 path  = cw.util.join_paths(u"Yado", dname)
                 yadodirs.append(path)
@@ -986,7 +974,6 @@ class YadoSelect(Select):
                 name = os.path.basename(path2)
                 names.append(name)
                 skins.append(cw.cwpy.skindir)
-                extimgs.append(cw.cwpy.rsrc.ext_img)
                 yadodirs.append(path2)
                 classic.append(True)
                 if isshortcut:
@@ -1039,7 +1026,7 @@ class YadoSelect(Select):
 
             advnames.append(seq)
 
-        return names, yadodirs, advnames, skins, extimgs, classic, isshortcuts
+        return names, yadodirs, advnames, skins, classic, isshortcuts
 
 #-------------------------------------------------------------------------------
 #　一覧表示可能な選択ダイアログ(抽象クラス)

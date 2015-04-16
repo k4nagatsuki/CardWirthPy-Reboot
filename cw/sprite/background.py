@@ -66,16 +66,16 @@ class BackGround(base.CWPySprite):
         """背景サーフェスを作成。
         path: 背景画像ファイルのパス。
         mask: (0, 0)の色でマスクするか否か。透過画像を使う場合は無視。
-        size: 背景のサイズ。特殊な値としてOriginal(画像のサイズを使用)がある
+        size: 背景のサイズ。
         flag: 背景に対応するフラグ。
         """
         if nocheckvisible:
             if not visible:
-                return None, False, False, (0, 0)
+                return None, False, False
         else:
             # 対応フラグチェック
             if not cw.cwpy.sdata.flags.get(flag, True):
-                return None, False, False, (0, 0)
+                return None, False, False
         anime = False
 
         try:
@@ -87,9 +87,8 @@ class BackGround(base.CWPySprite):
             # 画像読み込み
             ext = cw.util.splitext(path)[1].lower()
 
-            if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, cw.UP_SCR, mask) in cw.cwpy.sdata.resource_cache:
-                image, size_noscale = cw.cwpy.sdata.resource_cache[(path, mtime, size, cw.UP_SCR, mask)]
-                return image.copy(), False, False, size_noscale
+            if ext <> ".jpdc" and cw.cwpy.is_playingscenario() and (path, mtime, size, mask) in cw.cwpy.sdata.resource_cache:
+                return cw.cwpy.sdata.resource_cache[(path, mtime, size, mask)].copy(), False, False
 
             if ext == ".jptx":
                 image = cw.effectbooster.JptxImage(path, mask).get_image()
@@ -109,18 +108,10 @@ class BackGround(base.CWPySprite):
             raise ex
         except Exception:
             cw.util.print_ex()
-            return None, False, False, (0, 0)
+            return None, False, False
 
         # 指定したサイズに拡大縮小する
-        # FIXME: エフェクトブースターファイルで正しく動かない可能性がある
         isize = image.get_size()
-        if size[0] == "Original":
-            size = (isize[0], size[1])
-        if size[1] == "Original":
-            size = (size[0], isize[1])
-        size_noscale = size
-        size = cw.s(size)
-
         if not isize in (size, cw.s((0, 0))):
             if cw.cwpy.setting.smoothscale_bg and not (float(size[0]) % isize[0] == 0 and float(size[1]) % isize[1] == 0):
                 if not (image.get_flags() & pygame.locals.SRCALPHA) and image.get_colorkey():
@@ -130,9 +121,9 @@ class BackGround(base.CWPySprite):
                 image = pygame.transform.scale(image, size)
 
         if not anime and cw.cwpy.is_playingscenario():
-            cw.cwpy.sdata.resource_cache[(path, mtime, size, cw.UP_SCR, mask)] = image, size_noscale
+            cw.cwpy.sdata.resource_cache[(path, mtime, size, mask)] = image
 
-        return image, anime, True, size_noscale
+        return image, anime, True
 
     def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True):
         """背景画面を構成する。
@@ -168,32 +159,15 @@ class BackGround(base.CWPySprite):
             self.bgs.append((BG_SEPARATOR, None))
         for e in elements:
             if e.tag <> "Redisplay":
-                spflg = False
-                left = e.getattr("Location", "left")
-                if left == "Center":
-                    spflg = True
-                else:
-                    left = int(left)
-                top = e.getattr("Location", "top")
-                if top == "Center":
-                    spflg = True
-                else:
-                    top = int(top)
+                left = e.getint("Location", "left")
+                top = e.getint("Location", "top")
                 pos = (left, top)
-                width = e.getattr("Size", "width")
-                if width == "Original":
-                    spflg = True
-                else:
-                    width = int(width)
-                height = e.getattr("Size", "height")
-                if height == "Original":
-                    spflg = True
-                else:
-                    height = int(height)
+                width = e.getint("Size", "width")
+                height = e.getint("Size", "height")
                 size = (width, height)
                 flag = e.gettext("Flag", "")
                 visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
-                          (not spflg and self.rect.colliderect(cw.s(pygame.Rect(pos, size))))
+                    self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
 
             def getcolor(e, xpath, r, g, b, a):
                 r = e.getint(xpath, "r", r)
@@ -387,12 +361,7 @@ class BackGround(base.CWPySprite):
         if not os.path.isfile(path):
             return False, False, bginhrt
 
-        image, anime, update, size_noscale = self.load_surface(path, mask, size, flag, doanime=doanime, visible=visible, nocheckvisible=nocheckvisible)
-        size = size_noscale
-        if pos[0] == u"Center":
-            pos = ((cw.SIZE_AREA[0]-size_noscale[0])/2, pos[1])
-        if pos[1] == u"Center":
-            pos = (pos[0], (cw.SIZE_AREA[1]-size_noscale[1])/2)
+        image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime, visible=visible, nocheckvisible=nocheckvisible)
 
         ext = os.path.splitext(path)[1].lower()
         if not anime and ext <> ".jpdc" and pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask and not flag:
@@ -412,10 +381,6 @@ class BackGround(base.CWPySprite):
     def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\
             btype, bcolor, bwidth, size, pos, flag, visible = d
-        if pos[0] == u"Center":
-            pos = ((cw.SIZE_AREA-size[0])/2, pos[1])
-        if pos[1] == u"Center":
-            pos = (pos[0], (cw.SIZE_AREA-size[1])/2)
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
@@ -443,10 +408,6 @@ class BackGround(base.CWPySprite):
 
     def _add_colorcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         blend, color1, gradient, color2, size, pos, flag, visible = d
-        if pos[0] == u"Center":
-            pos = ((cw.SIZE_AREA-size[0])/2, pos[1])
-        if pos[1] == u"Center":
-            pos = (pos[0], (cw.SIZE_AREA-size[1])/2)
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
