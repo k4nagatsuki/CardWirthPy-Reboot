@@ -3060,7 +3060,7 @@ class ScenarioSelect(Select):
 
     def OnClickInfoBtn(self, event):
         cw.cwpy.sounds["click"].play()
-        dlg = text.Readme(self, cw.cwpy.msgs["description"], self.get_texts())
+        dlg = text.Readme(self, cw.cwpy.msgs["description"], self.texts)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
@@ -3866,8 +3866,10 @@ class ScenarioSelect(Select):
             self.left2btn.Disable()
             self.SetTitle(u"貼紙を見る")
             return
-        elif len(self.list) == 1:
-            self.infobtn.Enable()
+
+        self.texts = self.get_texts()
+        if len(self.list) == 1:
+            self.infobtn.Enable(bool(self.texts))
             self.viewbtn.Enable()
             self.nobtn.Enable()
             self.rightbtn.Disable()
@@ -3875,7 +3877,7 @@ class ScenarioSelect(Select):
             self.leftbtn.Disable()
             self.left2btn.Disable()
         else:
-            self.infobtn.Enable()
+            self.infobtn.Enable(bool(self.texts))
             self.viewbtn.Enable()
             self.nobtn.Enable()
             self.rightbtn.Enable()
@@ -3980,6 +3982,9 @@ class ScenarioSelect(Select):
         選択中シナリオに同梱されている
         テキストファイルのファイル名とデータのリストを返す。
         """
+        if not self.list:
+            return []
+
         seq = []
         if isinstance(self.list[self.index], cw.header.ScenarioHeader):
             header = self.list[self.index]
@@ -4034,6 +4039,15 @@ class ScenarioSelect(Select):
                     name = cw.util.relpath(fpath, path)
                     name = cw.util.join_paths(name)
                     seq.append(text.ReadmeData(name, data))
+
+        elif not isinstance(self.list[self.index], FindResult):
+            dpath = cw.util.get_linktarget(self.list[self.index])
+            for fname in os.listdir(dpath):
+                if os.path.splitext(fname)[1].lower().endswith(".txt"):
+                    fpath = cw.util.join_paths(dpath, fname)
+                    with open(fpath, "r") as f:
+                        data = f.read()
+                    seq.append(text.ReadmeData(fname, data))
 
         return seq
 
