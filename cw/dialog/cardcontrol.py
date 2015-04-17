@@ -3,6 +3,7 @@
 
 import itertools
 
+import os
 import wx.combo
 import wx.lib.buttons
 import wx.lib.intctrl
@@ -1167,13 +1168,11 @@ class CardHolder(CardControl):
 
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
-
             # 選択中カード色反転
             self.Parent.change_selection(self.selection)
 
         else:
             # カード置き場、荷物袋、情報カード
-
             if self.callname <> "INFOVIEW":
                 # 選択中カード色反転
                 self.Parent.change_selection(self.selection)
