@@ -940,7 +940,77 @@ class Converter(threading.Thread):
                 "STONE_HAND9":"Stone/HAND9",
             }
 
-            if ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
+            curtbl = {
+                "CURSOR_BACK":"Cursor/CURSOR_BACK",
+                "CURSOR_DRIVER":"Cursor/CURSOR_DRIVER",
+                "CURSOR_FINGER":"Cursor/CURSOR_FINGER",
+                "CURSOR_FORE":"Cursor/CURSOR_FORE",
+            }
+
+            if self.version <= (1, 2, 0, 99):
+                for repl in (("BUTTON_ARROW", ""),
+                             ("BUTTON_CAST", ""),
+                             ("BUTTON_DECK", ""),
+                             ("BUTTON_DOWN", ""),
+                             ("BUTTON_LSMALL", ""),
+                             ("BUTTON_RSMALL", ""),
+                             ("BUTTON_SACK", ""),
+                             ("BUTTON_SHELF", ""),
+                             ("BUTTON_TRUSH", ""),
+                             ("BUTTON_UP", ""),
+                             ("CARD_REVERSE", ""),
+                             ("CHECK_FOLDER", "IMAGE_FOLDER"),
+                             ("CHECK_LINK", ""),
+                             ("CHECK_UTILITY", ""),
+                             ("IMAGE_COMMAND5", ""),
+                             ("IMAGE_SHELF", "IMAGE_COMMAND5"),
+                             ("IMAGE_ALARM", ""),
+                             ("MARK_STATUS7", "MARK_STATUS4"),
+                             ("MARK_STATUS8", "DBG_CARD0"),
+                             ("MARK_STATUS9", "DBG_CARD1"),
+                             ("MARK_STATUS10", "MARK_STATUS6"),
+                             ("MARK_STATUS11", "MARK_STATUS5"),
+                             ("MARK_STATUS12", ""),
+                             ("MARK_STATUS13", ""),
+                             ("SIGN_HOLD", ""),
+                             ("SIGN_PENALTY", ""),
+                             ("SIGN_PREMIER", ""),
+                             ("SIGN_RARE", ""),
+                             ("STATUS_BODY0", "STATUS_POISON"),
+                             ("STATUS_BODY1", "STATUS_PARALY"),
+                             ("STATUS_MIND0", ""),
+                             ("STONE_HAND0", "MARK_HAND0"),
+                             ("STONE_HAND1", "MARK_HAND1"),
+                             ("STONE_HAND2", "MARK_HAND2"),
+                             ("STONE_HAND3", "MARK_HAND3"),
+                             ("STONE_HAND4", ""),
+                             ("STONE_HAND5", "MARK_HAND4"),
+                             ("STONE_HAND6", "MARK_HAND5"),
+                             ("STONE_HAND7", "MARK_HAND6"),
+                             ("STONE_HAND8", "MARK_HAND7"),
+                             ("STONE_HAND9", "MARK_HAND8"),
+                             ("TITLE_SHADOW", "TITLE_CARDWIRTH")):
+                    fname = imgtbl[repl[0]]
+                    del imgtbl[repl[0]]
+                    if repl[1]:
+                        imgtbl[repl[1]] = fname
+
+                imgtbl["BUTTON_SKILL"] = "Button/SKILL"
+                imgtbl["BUTTON_ITEM"] = "Button/ITEM"
+                imgtbl["BUTTON_BEAST"] = "Button/BEAST"
+
+                imgtbl["MARK_STATUS0"] = ("Dialog/STATUS1", "Dialog/STATUS2", "Dialog/STATUS3")
+                imgtbl["MARK_STATUS1"] = "Dialog/STATUS0"
+                imgtbl["MARK_STATUS2"] = "Dialog/STATUS5"
+                imgtbl["MARK_STATUS3"] = "Dialog/STATUS6"
+
+                glyphtbl = {
+                    "TMAINWINDOW/MainWindow/DebugBtn/Glyph.Data":"Dialog/STATUS12",
+                    "TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                }
+
+                curtbl = {}
+            elif ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
                 glyphtbl = {
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
@@ -959,26 +1029,24 @@ class Converter(threading.Thread):
                     "TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
                 }
 
-            curtbl = {
-                "CURSOR_BACK":"Cursor/CURSOR_BACK",
-                "CURSOR_DRIVER":"Cursor/CURSOR_DRIVER",
-                "CURSOR_FINGER":"Cursor/CURSOR_FINGER",
-                "CURSOR_FORE":"Cursor/CURSOR_FORE",
-            }
-
             # Resource/Image/*
             for resname, target in imgtbl.iteritems():
                 res = self.res.get_bitmap(resname)
                 if res is None:
                     print "Resource not found: %s" % (resname)
                     continue
-                fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
-                resdir = os.path.dirname(fpath)
-                if not os.path.isdir(resdir):
-                    os.makedirs(resdir)
-                with open(fpath, "wb") as f:
-                    f.write(res)
-                f = None
+                if isinstance(target, (str, unicode)):
+                    targets = [target]
+                else:
+                    targets = target
+                for target in targets:
+                    fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
+                    resdir = os.path.dirname(fpath)
+                    if not os.path.isdir(resdir):
+                        os.makedirs(resdir)
+                    with open(fpath, "wb") as f:
+                        f.write(res)
+                    f = None
 
             for resname, target in curtbl.iteritems():
                 res = self.res.get_cursor(resname)
@@ -1058,7 +1126,13 @@ class Converter(threading.Thread):
             folder = cw.util.join_paths(datadir, u"Table")
             target = cw.util.join_paths(dpath, u"Table")
             if os.path.isdir(folder):
-                shutil.copytree(folder, target)
+                for fname in os.listdir(folder):
+                    fpath1 = cw.util.join_paths(folder, fname)
+                    fpath2 = cw.util.join_paths(target, fname)
+                    if os.path.isdir(fpath1):
+                        shutil.copytree(fpath1, fpath2)
+                    else:
+                        shutil.copyfile(fpath1, fpath2)
             else:
                 os.makedirs(target)
 

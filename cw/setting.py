@@ -1172,7 +1172,7 @@ class Resource(object):
         ファイル名から拡張子を除いたのがkey。
         """
         d, dpath = {}, unicode(dpath)
-        if os.path.isdir(dpath):
+        if not os.path.isdir(dpath):
             return d
 
         names = set()

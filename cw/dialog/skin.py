@@ -143,7 +143,7 @@ class SkinConversionDialog(wx.Dialog):
             except:
                 cw.util.print_ex()
 
-        if self.conv.scenariodir:
+        if self.conv.yadodir and (1, 2, 8, 0) <= self.conv.version:
             try:
                 if os.path.isabs(self.conv.yadodir):
                     targ = self.conv.yadodir
