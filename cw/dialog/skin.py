@@ -363,7 +363,10 @@ class SkinBasePanel(wx.Panel):
         self.info.authorctrl.SetValue(conv.data.gettext("Property/Author", ""))
         self.info.descctrl.SetValue(conv.data.gettext("Property/Description", ""))
         self.info.classictext.SetValue(conv.data.getbool("Property/ClassicStyleText", True))
-        self.info.vocation120.SetValue(conv.data.getbool("Property/CW120VocationLevel", False))
+        if self.conv and self.conv.version <= (1, 2, 0, 99):
+            self.info.vocation120.SetValue(True)
+        else:
+            self.info.vocation120.SetValue(conv.data.getbool("Property/CW120VocationLevel", False))
 
         self._do_layout()
         self._bind()
@@ -434,6 +437,7 @@ class SkinBasePanel(wx.Panel):
         self.info.namectrl.SetValue(self.conv.data.gettext("Property/Name", ""))
         self.info.authorctrl.SetValue(self.conv.data.gettext("Property/Author", ""))
         self.info.descctrl.SetValue(self.conv.data.gettext("Property/Description", ""))
+        self.info.vocation120.SetValue(self.conv.version <= (1, 2, 0, 99))
 
         self.Parent.Parent.pane_feature.set_values(self.conv)
         self.Parent.Parent.pane_sound.set_values(self.conv)

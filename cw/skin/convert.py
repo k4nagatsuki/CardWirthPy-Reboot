@@ -20,6 +20,7 @@ class Converter(threading.Thread):
         self.errormessage = ""
 
         self.res = None
+        self.version = (1, 2, 8, 0)
         self.init(exe)
 
     def __del__(self):
@@ -40,6 +41,9 @@ class Converter(threading.Thread):
                 self.exebinary = f.read()
 
             self.res = cw.skin.win32res.Win32Res(self.exe)
+            self.version = self.res.get_rcdata(cw.skin.win32res.RT_VERSION, 1)
+            self.version = struct.Struct("<HHHH").unpack(self.version[56:64])
+            self.version = (self.version[1], self.version[0], self.version[3], self.version[2])
 
         self.datadir = self.find_datadir()
         self.scenariodir = self.find_scenariodir()
@@ -94,7 +98,7 @@ class Converter(threading.Thread):
             return u""
 
     def find_datadir(self):
-        if self.exe and len(self.exebinary) < 3000000:
+        if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             key = "\\Midi\\DefReset.mid"
             index = self.exebinary.find(key)
             try:
@@ -104,7 +108,7 @@ class Converter(threading.Thread):
         return u"Data"
 
     def find_scenariodir(self):
-        if self.exe and len(self.exebinary) < 3000000:
+        if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             key = "\0\\\0\\\0\\Summary.wsm\0\\\0\\\0.wid\0"
             index = self.exebinary.find(key)
             try:
@@ -115,7 +119,7 @@ class Converter(threading.Thread):
         return u"Scenario"
 
     def find_yadodir(self):
-        if self.exe and len(self.exebinary) < 3000000:
+        if self.exe and ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             key = "\\\0\\Environment.wyd\0"
             index = self.exebinary.find(key)
             try:
@@ -146,7 +150,7 @@ class Converter(threading.Thread):
 
     def _get_features(self):
         # バイナリ断片を手がかりにして特性値を探す。
-        if not self.exe or 3000000 < len(self.exebinary):
+        if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         key = "TStatusItem\x81\x89" # "TStatusItem♂"
         index = self.exebinary.find(key) + len(key) - len("\x81\x89")
@@ -257,7 +261,7 @@ class Converter(threading.Thread):
 
     def _get_sounds(self):
         # バイナリ断片を手がかりにして音声ファイル名を探す。
-        if not self.exe or 3000000 < len(self.exebinary):
+        if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
             sounds = self.data.getfind("Sounds")
@@ -321,7 +325,7 @@ class Converter(threading.Thread):
             cw.util.print_ex()
 
     def _get_cards(self):
-        if not self.exe or 3000000 < len(self.exebinary):
+        if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
             key = "\0CARD_SKILL\0CARD_ACTION\0IMAGE_ACTION\0"
@@ -439,7 +443,7 @@ class Converter(threading.Thread):
             cw.util.print_ex()
 
     def _get_messages(self):
-        if not self.exe or 3000000 < len(self.exebinary):
+        if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
             return
         try:
             # ゲームオーバー
@@ -936,7 +940,7 @@ class Converter(threading.Thread):
                 "STONE_HAND9":"Stone/HAND9",
             }
 
-            if 3000000 < len(self.exebinary):
+            if ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
                 glyphtbl = {
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",

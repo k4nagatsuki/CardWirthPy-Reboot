@@ -1172,6 +1172,8 @@ class Resource(object):
         ファイル名から拡張子を除いたのがkey。
         """
         d, dpath = {}, unicode(dpath)
+        if os.path.isdir(dpath):
+            return d
 
         names = set()
 
@@ -1388,7 +1390,9 @@ class Resource(object):
         d = {}
         for key in ("ACTION", "BEAST", "BIND", "DANGER", "FAINT", "INFO", "INJURY", "ITEM",
                     "LARGE", "NORMAL", "OPTION", "PARALY", "PETRIF", "SKILL", "SLEEP"):
-            bmp = cardbgs[key]
+            bmp = cardbgs.get(key, "")
+            if not bmp:
+                continue
             rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
             sub = bmp.subsurface(rect)
             buf = pygame.image.tostring(sub, "RGB")
