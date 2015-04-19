@@ -1294,6 +1294,8 @@ class CWPy(_Singleton, threading.Thread):
         cell1 = cw.sprite.background.TitleCell(path, 2, 195, False, white, center=True)
         path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL2"), self.rsrc.ext_img)
         cell2 = cw.sprite.background.TitleCell(path, 2, 195, False, white, center=True)
+        cell1.set_y_noscale(cell2.y_noscale)
+
         path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL3"), self.rsrc.ext_img)
         cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, white, center=True)
 

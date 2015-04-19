@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import shutil
 import struct
 import threading
@@ -1230,7 +1231,7 @@ class Converter(threading.Thread):
             self.complete = True
 
         except Exception, ex:
-            cw.util.print_ex()
+            cw.util.print_ex(file=sys.stderr)
             self.failure = True
             self.complete = True
             self.errormessage = u"スキンの自動生成に失敗しました。"

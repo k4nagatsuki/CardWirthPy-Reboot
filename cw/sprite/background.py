@@ -699,14 +699,15 @@ class TitleCell(base.CWPySprite):
             self._image = pygame.surface.Surface(cw.s(cw.SIZE_AREA)).convert()
             self._image.fill((255, 255, 255))
         else:
-            self._image = cw.s((cw.util.load_image(self.path, True), cw.setting.get_resourcesize(self.path)))
+            image_noscale = cw.util.load_image(self.path, True)
+            self._image = cw.s((image_noscale, cw.setting.get_resourcesize(self.path)))
         self._srcalpha = bool(self._image.get_flags() & pygame.locals.SRCALPHA)
         self._rect = self._image.get_rect()
         x = (cw.s(cw.SIZE_AREA[0]) - self._rect.width) / 2
         if self.center:
-            self._rect.topleft = (x, (cw.s(cw.SIZE_AREA[1])-self._rect[3])/2)
-        else:
-            self._rect.topleft = (x, cw.s(self.y_noscale))
+            self.y_noscale = (cw.SIZE_AREA[1]-image_noscale.get_height())/2
+
+        self._rect.topleft = (x, cw.s(self.y_noscale))
 
         if self.iscard:
             if self.status == "hidden":
@@ -718,6 +719,10 @@ class TitleCell(base.CWPySprite):
 
         if not cw.cwpy.selection:
             cw.cwpy.selection = self.selsprite
+
+    def set_y_noscale(self, y_noscale):
+        self.y_noscale = y_noscale
+        self._rect.topleft = (self._rect[0], cw.s(self.y_noscale))
 
     def lclick_event(self):
         cw.cwpy.cut_animation = True
