@@ -217,8 +217,13 @@ bass.dll, bassmidi.dll, bass32.so, bassmidi32.so, bass64.so, bassmidi64.so
 
 CardWirthPyは"CWXEditor"のリソースの画像ファイルを一部改変して同梱しています。
 
-Resource/Image/Debug にあるすべての画像ファイル
+Data/Debugger にあるすべての画像ファイル
  : [CWXEditor](https://bitbucket.org/k4nagatsuki/cwxeditor/)
+ : License: Public Domain
+
+Data/SkinBase 以下にあるすべての画像及び音声ファイル
+ : CWXEditorからの流用か、CardWirthPy用に作成されたものです。
+ : "システム・スクリーンショット.wav"は、CardWirth 1.50のパッケージに含まれるPublic Domainのファイルを流用したものです。
  : License: Public Domain
 
 "src.zip"に同梱しているプログラミングコードの著作権は作者が保持し、以下のライセンスが適用されます。

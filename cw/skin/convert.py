@@ -42,7 +42,7 @@ class Converter(threading.Thread):
 
             self.res = cw.skin.win32res.Win32Res(self.exe)
             self.version = self.res.get_rcdata(cw.skin.win32res.RT_VERSION, 1)
-            self.version = struct.Struct("<HHHH").unpack(self.version[56:64])
+            self.version = struct.Struct("<HHHH").unpack(self.version[48:56])
             self.version = (self.version[1], self.version[0], self.version[3], self.version[2])
 
         self.datadir = self.find_datadir()
@@ -1015,18 +1015,18 @@ class Converter(threading.Thread):
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data":"Button/SKILL",
-                    "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
-                    "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
-                    "TMAINWINDOW/MainWindow/BottomBar/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                    "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
+                    "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
+                    "TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
                 }
             else:
                 glyphtbl = {
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/BeastBtn/Glyph.Data":"Button/BEAST",
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/ItemBtn/Glyph.Data":"Button/ITEM",
                     "TCARDDLG/CardDlg/TablePanel/SpeedPanel/SkillBtn/Glyph.Data":"Button/SKILL",
-                    "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
-                    "TMAINWINDOW/MainWindow/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
-                    "TMAINWINDOW/MainWindow/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
+                    "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/PursePanel/PurseImage/Picture.Data":"Dialog/MONEYP",
+                    "TMAINWINDOW/MainWindow/BottomBar/ButtonControl/NormalSheet/VaultPanel/VaultImage/Picture.Data":"Dialog/MONEYY",
+                    "TMAINWINDOW/MainWindow/BottomBar/SystemBtn/Glyph.Data":"Dialog/SETTINGS",
                 }
 
             # Resource/Image/*
@@ -1116,9 +1116,13 @@ class Converter(threading.Thread):
             folder = cw.util.join_paths(datadir, u"Wave")
             target = cw.util.join_paths(dpath, u"Sound")
             if os.path.isdir(folder):
-                shutil.copytree(folder, target)
-            else:
-                os.makedirs(target)
+                for fname in os.listdir(folder):
+                    fpath1 = cw.util.join_paths(folder, fname)
+                    fpath2 = cw.util.join_paths(target, fname)
+                    if os.path.isdir(fpath1):
+                        shutil.copytree(fpath1, fpath2)
+                    else:
+                        shutil.copyfile(fpath1, fpath2)
 
             # Table
             self.curnum = 50
@@ -1133,8 +1137,6 @@ class Converter(threading.Thread):
                         shutil.copytree(fpath1, fpath2)
                     else:
                         shutil.copyfile(fpath1, fpath2)
-            else:
-                os.makedirs(target)
 
             # Name
             self.curnum = 60
