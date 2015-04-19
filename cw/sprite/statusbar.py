@@ -366,6 +366,7 @@ class StatusBarButton(base.SelectableSprite):
         self.enabled = enabled
         self.notice = notice
         self.number = number
+        self.is_showing = None
         # ボタン画像
         self.btnimg = {}
         self._statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
@@ -490,6 +491,10 @@ class StatusBarButton(base.SelectableSprite):
         if not self.enabled:
             return
 
+        if self.is_showing and not self.is_showing():
+            self.image = self.noimg
+            return
+
         flags = 0
         if self.is_pushed:
             flags |= cw.setting.SB_PRESSED
@@ -513,6 +518,7 @@ class CampButton(StatusBarButton):
     def __init__(self, parent, pos):
         is_pushed = cw.cwpy.areaid in (-4, -5)
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True, is_pushed=is_pushed)
+        self.is_showing = cw.cwpy.is_playingscenario
 
     def update(self, scr):
         self.update_selection()
@@ -538,6 +544,7 @@ class TableButton(StatusBarButton):
     def __init__(self, parent, pos):
         is_pushed = not cw.cwpy.areaid in (-4, -5)
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True, is_pushed=is_pushed)
+        self.is_showing = cw.cwpy.is_playingscenario
 
     def update(self, scr):
         self.update_selection()
@@ -566,6 +573,7 @@ class ActionButton(StatusBarButton):
             cw.cwpy.sdata.autostart_round
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["start_action"], pos,
                                  is_emphasize=autostart)
+        self.is_showing = cw.cwpy.is_playingscenario
 
     def update(self, scr):
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
@@ -582,6 +590,7 @@ class ActionButton(StatusBarButton):
 class RunAwayButton(StatusBarButton):
     def __init__(self, parent, pos):
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["runaway"], pos)
+        self.is_showing = cw.cwpy.is_playingscenario
 
     def update(self, scr):
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
@@ -609,6 +618,7 @@ class ShowFriendCardsButton(StatusBarButton):
         name = cw.cwpy.msgs["show_fcards"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
                                  is_pushed=cw.cwpy.setting.show_fcardsinbattle)
+        self.is_showing = cw.cwpy.is_playingscenario
 
     def update(self, scr):
         self.update_selection()
@@ -635,6 +645,7 @@ class AutoStartButton(StatusBarButton):
                                  is_pushed=pushed)
         self._selectable_on_event = True
         self.actionbtn = None
+        self.is_showing = cw.cwpy.is_battlestatus
 
     def update(self, scr):
         self.update_selection()
@@ -665,6 +676,7 @@ class InfoCardsButton(StatusBarButton):
         number = len(cw.cwpy.sdata.infocards)
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  notice=notice, number=number)
+        self.is_showing = cw.cwpy.is_playingscenario
 
     def lclick_event(self):
         cw.cwpy.sounds["click"].play()

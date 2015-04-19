@@ -3677,7 +3677,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def is_playingscenario(self):
         return bool(isinstance(self.sdata, cw.data.ScenarioData)\
-                                                    and self.sdata.is_playing)
+                    and self.sdata.is_playing and self.ydata and self.ydata.party)
 
     def is_runningevent(self):
         return self.event.get_event() or\
