@@ -17,7 +17,7 @@ def compress_all(zpath, targ):
 
     for dpath, dnames, fnames in os.walk(targ):
         for dname in dnames:
-            fpath = os.path.join(dpath, dname).encode(encoding)
+            fpath = os.path.join(dpath, dname)
             mtime = time.localtime(os.path.getmtime(fpath))[:6]
             zinfo = zipfile.ZipInfo(fpath + "/", mtime)
             z.writestr(zinfo, "")
