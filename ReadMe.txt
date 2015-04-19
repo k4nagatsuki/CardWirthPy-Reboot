@@ -223,7 +223,7 @@ Data/Debugger にあるすべての画像ファイル
 
 Data/SkinBase 以下にあるすべての画像及び音声ファイル
  : CWXEditorからの流用か、CardWirthPy用に作成されたものです。
- : "システム・スクリーンショット.wav"は、CardWirth 1.50のパッケージに含まれるPublic Domainのファイルを流用したものです。
+ : "Sound/System_ScreenShot.wav"は、CardWirth 1.50のパッケージに含まれるPublic Domainのファイル"システム・スクリーンショット.wav"を流用したものです。
  : License: Public Domain
 
 "src.zip"に同梱しているプログラミングコードの著作権は作者が保持し、以下のライセンスが適用されます。

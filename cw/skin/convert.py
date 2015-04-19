@@ -1123,6 +1123,11 @@ class Converter(threading.Thread):
                         shutil.copytree(fpath1, fpath2)
                     else:
                         shutil.copyfile(fpath1, fpath2)
+            renames = {u"Sound/System_ScreenShot.wav":u"Sound/システム・スクリーンショット.wav"}
+            for key, value in renames.iteritems():
+                fpath1 = cw.util.join_paths(dpath, key)
+                fpath2 = cw.util.join_paths(dpath, value)
+                shutil.move(fpath1, fpath2)
 
             # Table
             self.curnum = 50
