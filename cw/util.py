@@ -1079,13 +1079,17 @@ def find_resource(path, mtype):
     """pathとmtypeに該当する素材を拡張子の優先順に沿って探す。"""
     imgpath = ""
     if mtype == cw.M_IMG:
-        t = (".png", ".bmp", ".gif", ".jpg")
+        t = [".png", ".bmp", ".gif", ".jpg"]
     elif mtype == cw.M_MSC:
-        t = (".ogg", ".mp3", ".mid", ".wav")
+        t = [".ogg", ".mp3", ".mid", ".wav"]
     elif mtype == cw.M_SND:
-        t = (".wav", ".ogg", ".mp3", ".mid")
+        t = [".wav", ".ogg", ".mp3", ".mid"]
     else:
         assert False, mtype
+
+    if os.path.normcase("A") <> os.path.normcase("a"):
+        for t2 in t[:]:
+            t.append(t2.upper())
 
     for ext in t:
         path2 = path + ext
