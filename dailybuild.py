@@ -23,7 +23,7 @@ def compress_all(zpath, targ):
             z.writestr(zinfo, "")
 
         for fname in fnames:
-            fpath = os.path.join(dpath, fname).encode(encoding)
+            fpath = os.path.join(dpath, fname)
             z.write(fpath, fpath)
 
     z.close()
