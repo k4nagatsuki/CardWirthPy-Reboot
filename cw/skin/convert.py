@@ -775,6 +775,12 @@ class Converter(threading.Thread):
         shutil.copytree(u"Data/SkinBase", dpath)
         f = None
         try:
+            renames = {u"Sound/System_ScreenShot.wav":u"Sound/システム・スクリーンショット.wav"}
+            for key, value in renames.iteritems():
+                fpath1 = cw.util.join_paths(dpath, key)
+                fpath2 = cw.util.join_paths(dpath, value)
+                shutil.move(fpath1, fpath2)
+
             # Resource
             self.curnum = 10
             self.message = u"リソースを抽出中..."
@@ -1123,11 +1129,6 @@ class Converter(threading.Thread):
                         shutil.copytree(fpath1, fpath2)
                     else:
                         shutil.copyfile(fpath1, fpath2)
-            renames = {u"Sound/System_ScreenShot.wav":u"Sound/システム・スクリーンショット.wav"}
-            for key, value in renames.iteritems():
-                fpath1 = cw.util.join_paths(dpath, key)
-                fpath2 = cw.util.join_paths(dpath, value)
-                shutil.move(fpath1, fpath2)
 
             # Table
             self.curnum = 50
