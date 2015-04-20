@@ -33,7 +33,7 @@ class Frame(wx.Frame):
         wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
         self.thread = threading.currentThread()
         self.SetClientSize(cw.wins(cw.SIZE_GAME))
-        self._skindirname = skindirname;
+        self._skindirname = skindirname
 
         # SDLを描画するパネル
         self.panel = wx.Panel(self, -1, size=cw.wins(cw.SIZE_GAME), style=wx.NO_BORDER)
@@ -391,7 +391,7 @@ class Frame(wx.Frame):
             try:
                 cw.cwpy.load_yado(yadodir)
             except:
-                cw.util.print_ex()
+                cw.util.print_ex(file=sys.stderr)
                 cw.cwpy.sounds["error"].play()
                 return
 

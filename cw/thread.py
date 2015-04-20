@@ -1737,7 +1737,7 @@ class CWPy(_Singleton, threading.Thread):
         try:
             return self._load_yado(yadodir, createmutex)
         except Exception, ex:
-            cw.util.print_ex()
+            cw.util.print_ex(file=sys.stderr)
             cw.tempdir = cw.tempdir_init
             self.yadodir = ""
             self.tempdir = ""

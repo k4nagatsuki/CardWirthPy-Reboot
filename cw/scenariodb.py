@@ -345,7 +345,7 @@ class Scenariodb(object):
         ltarg = cw.util.get_linktarget(path)
         if not data and os.path.exists(ltarg):
             if self._insert_scenario(path, skintype=skintype):
-                self.cur.execute(s, (dpath, fname,))
+                self._fetch(dpath, fname, skintype)
                 data = self.cur.fetchone()
 
         return self.create_header(data, skintype=skintype)
