@@ -120,14 +120,15 @@ def create_settings(setting):
     if setting.lastyado <> setting.lastyado_init:
         e = cw.data.make_element("LastYado", setting.lastyado)
         element.append(e)
-    # 描画倍率
-    if setting.expanddrawing <> setting.expanddrawing_init:
-        e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
-        element.append(e)
     # 拡大モード
-    if setting.expandmode <> setting.expandmode_init or\
+    if setting.expanddrawing <> setting.expanddrawing_init or\
+            setting.expandmode <> setting.expandmode_init or\
             setting.is_expanded <> setting.is_expanded_init or\
             setting.smoothexpand <> setting.smoothexpand_init:
+        # 描画倍率
+        e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
+        element.append(e)
+        # 表示倍率
         e = cw.data.make_element("ExpandMode", str(setting.expandmode),
                                  attrs={"expanded": str(setting.is_expanded),
                                         "smooth":str(setting.smoothexpand)})
