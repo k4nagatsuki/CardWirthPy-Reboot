@@ -721,6 +721,7 @@ class TitleCell(base.CWPySprite):
             cw.cwpy.selection = self.selsprite
 
     def set_y_noscale(self, y_noscale):
+        self.center = False
         self.y_noscale = y_noscale
         self._rect.topleft = (self._rect[0], cw.s(self.y_noscale))
 
