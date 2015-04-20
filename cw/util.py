@@ -1852,7 +1852,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
     if not f and (not cw.binary.image.code_to_data(name) and not os.path.isfile(name)) and not image:
         return wx.EmptyBitmap(0, 0)
 
-    if cw.cwpy.rsrc:
+    if cw.cwpy and cw.cwpy.rsrc:
         name = cw.cwpy.rsrc.get_filepath(name)
     if mask:
         if not image:
