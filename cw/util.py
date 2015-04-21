@@ -2060,6 +2060,22 @@ def create_fileselection(parent, target, message, wildcard="*.*", seldir=False, 
     parent.Bind(wx.EVT_BUTTON, OnOpen, button)
     return button
 
+def adjust_position(frame):
+    """frameの位置がいずれかのモニタ内に収まるように調節する。
+    サイズ変更は行わない。
+    """
+    win = wx.Display.GetFromWindow(frame)
+    if win == wx.NOT_FOUND: win = 0
+    cax, cay, caw, cah = wx.Display(win).GetClientArea()
+    caw += cax
+    cah += cay
+    x, y, w, h = frame.GetRect()
+    if caw <= x + w: x = caw - w
+    if cah <= y + h: y = cah - h
+    if x < cax: x = cax
+    if y < cay: y = cay
+    frame.SetPosition((x, y))
+
 class CWPyStaticBitmap(wx.Panel):
     """wx.StaticBitmapはアルファチャンネル付きの画像を
     正しく表示できない場合があるので代替する。

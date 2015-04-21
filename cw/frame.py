@@ -38,6 +38,15 @@ class Frame(wx.Frame):
         # SDLを描画するパネル
         self.panel = wx.Panel(self, -1, size=cw.wins(cw.SIZE_GAME), style=wx.NO_BORDER)
 
+        if not (self._setting.window_position[0] is None and self._setting.window_position[1] is None):
+            pos = self.GetPosition()
+            if not self._setting.window_position[0] is None:
+                pos = (self._setting.window_position[0], pos[1])
+            if not self._setting.window_position[1] is None:
+                pos = (pos[0], self._setting.window_position[1])
+            self.SetPosition(pos)
+            cw.util.adjust_position(self)
+
         if sys.platform <> "win32":
             # Xではウィンドウが表示されるまでウィンドウハンドルが取れない
             self.Show()
@@ -84,6 +93,7 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
+        self.Bind(wx.EVT_MOVE, self.OnMove)
 
         if sys.platform == "win32":
             self.panel.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
@@ -350,6 +360,12 @@ class Frame(wx.Frame):
             self.OnCLOSE(event)
         else:
             self.Destroy()
+
+    def OnMove(self, event):
+        # ウィンドウの移動またはサイズ変更(フルスクリーン化等)
+        if not self.IsFullScreen() and not self.IsMaximized():
+            if cw.cwpy and cw.cwpy.setting:
+                cw.cwpy.setting.window_position = self.GetPosition()
 
     def OnCLOSE(self, event):
         while cw.cwpy.is_processing:
@@ -766,22 +782,10 @@ class Frame(wx.Frame):
         x += int(point[0] * cw.cwpy.scr_scale)
         y += int(point[1] * cw.cwpy.scr_scale)
 
-        # モニタ内に収める
-        rect = dlg.Parent.GetRect()
-        size = dlg.GetSize()
-        for i in xrange(wx.Display.GetCount()):
-            drect = wx.Display(i).GetClientArea()
-            if rect.Intersects(drect):
-                if drect[0]+drect[2] < x+size[0]:
-                    x -= (x+size[0]) - (drect[0]+drect[2])
-                if drect[1]+drect[3] < y+size[1]:
-                    y -= (y+size[1]) - (drect[1]+drect[3])
-                if x < drect[0]:
-                    x = drect[0]
-                if y < drect[1]:
-                    y = drect[1]
-
         dlg.MoveXY(x, y)
+
+        # モニタ内に収める
+        cw.util.adjust_position(dlg)
 
     def kill_dlg(self, dlg=None, lockmenucard=False):
         if dlg:

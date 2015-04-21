@@ -58,6 +58,7 @@ class Setting(object):
         self.lastyado = ""
         self.lastscenario = []
         self.lastscenariopath = ""
+        self.window_position = (None, None)
         self.expanddrawing = 1
         self.expandmode = "FullScreen"
         self.is_expanded = False
@@ -202,6 +203,14 @@ class Setting(object):
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)
         self.lastscenario = []
         self.lastscenariopath = "" # 経路が辿れない時に使用するフルパス
+        # ウィンドウ位置
+        win_x = data.getint("WindowPosition", "left", -sys.maxint-1)
+        win_y = data.getint("WindowPosition", "top", -sys.maxint-1)
+        if -sys.maxint-1 == win_x:
+            win_x = None
+        if -sys.maxint-1 == win_y:
+            win_y = None
+        self.window_position = (win_x, win_y)
         # 拡大モード
         self.expandmode = data.gettext("ExpandMode", self.expandmode)
         if self.expandmode == "None":

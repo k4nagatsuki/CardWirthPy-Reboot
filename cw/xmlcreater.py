@@ -120,6 +120,11 @@ def create_settings(setting):
     if setting.lastyado <> setting.lastyado_init:
         e = cw.data.make_element("LastYado", setting.lastyado)
         element.append(e)
+    # ウィンドウ位置
+    if setting.window_position <> setting.window_position_init:
+        e = cw.data.make_element("WindowPosition", attrs={"left":str(setting.window_position[0]),
+                                                            "top":str(setting.window_position[1])})
+        element.append(e)
     # 拡大モード
     if setting.expanddrawing <> setting.expanddrawing_init or\
             setting.expandmode <> setting.expandmode_init or\
