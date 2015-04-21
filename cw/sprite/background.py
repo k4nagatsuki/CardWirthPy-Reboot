@@ -125,7 +125,7 @@ class BackGround(base.CWPySprite):
 
         return image, anime, True
 
-    def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True):
+    def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True, nocheckvisible=False):
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
@@ -166,8 +166,12 @@ class BackGround(base.CWPySprite):
                 height = e.getint("Size", "height")
                 size = (width, height)
                 flag = e.gettext("Flag", "")
-                visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
-                    self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+                visible = e.getattr(".", "visible", "")
+                if visible in (u"True", u"False"):
+                    visible = visible == u"True"
+                else:
+                    visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
+                        self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
 
             def getcolor(e, xpath, r, g, b, a):
                 r = e.getint(xpath, "r", r)
@@ -190,7 +194,8 @@ class BackGround(base.CWPySprite):
 
                 d = (path, inusecard, mask, size, pos, flag, visible)
                 try:
-                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, self._doanime)
+                    animated2, update2, bginhrt2 = self._add_imagecell(blitlist, self.bgs, oldbgs, d, self._doanime,
+                                                                       nocheckvisible=nocheckvisible)
                     animated |= animated2
                     bginhrt &= bginhrt2
                     update |= update2
@@ -216,7 +221,8 @@ class BackGround(base.CWPySprite):
 
                 d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
                      btype, bcolor, bwidth, size, pos, flag, visible)
-                if self._add_textcell(blitlist, self.bgs, oldbgs, d):
+                if self._add_textcell(blitlist, self.bgs, oldbgs, d,
+                                      nocheckvisible=nocheckvisible):
                     forcedraw = True
 
             elif e.tag == "ColorCell":
@@ -227,7 +233,8 @@ class BackGround(base.CWPySprite):
                 color2 = getcolor(e, "Gradient/EndColor", 0, 0, 0, 255)
 
                 d = blend, color1, gradient, color2, size, pos, flag, visible
-                if self._add_colorcell(blitlist, self.bgs, oldbgs, d):
+                if self._add_colorcell(blitlist, self.bgs, oldbgs, d,
+                                       nocheckvisible=nocheckvisible):
                     forcedraw = True
 
             elif e.tag == "Redisplay":
