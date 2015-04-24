@@ -916,16 +916,24 @@ def print_ex(file=None):
     return
 
 def screenshot():
-    """スクリーンショットを書き出す。
+    """スクリーンショットをファイルへ書き出す。
     """
+    cw.cwpy.sounds["screenshot"].play()
     date = datetime.datetime.today()
+    filename = create_screenshotfilename(date)
+    bmp, y = create_screenshot(date)
+    pygame.image.save(bmp, filename)
 
+def create_screenshotfilename(date):
+    """スクリーンショット用のファイルパスを作成する。
+    """
     if not os.path.isdir("ScreenShot"):
         os.mkdir("ScreenShot")
+    return os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
 
-    cw.cwpy.sounds["screenshot"].play()
-
-    filename = os.path.join("ScreenShot", date.strftime("%Y%m%d_%H%M%S_%f.png"))
+def create_screenshot(date):
+    """スクリーンショットを作成する。
+    """
     d = cw.cwpy.get_titledic()
     d["date"] = date.strftime("%Y-%m-%d")
     d["year"] = date.strftime("%Y")
@@ -953,11 +961,12 @@ def screenshot():
             size = (swmax, subimg.get_height())
             subimg = cw.image.smoothscale(subimg, size)
         bmp.blit(subimg, (cw.s(10), y))
+        y = cw.s(20)
     else:
         bmp = cw.cwpy.scr_draw
-    pygame.image.save(bmp, filename)
+        y = cw.s(0)
 
-    return
+    return bmp, y
 
 #-------------------------------------------------------------------------------
 #　ファイル操作関連
@@ -1998,6 +2007,33 @@ def draw_witharound(dc, s, x, y, textcolor=wx.BLACK, framecolor=wx.WHITE):
                 dc.DrawText(s, xv, yv)
     dc.SetTextForeground(textcolor)
     dc.DrawText(s, x, y)
+
+def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None):
+    """スムージングが施された、背景が透明なテキストを描画して返す。"""
+    if quality is None:
+        quality = cw.RESCALE_QUALITY
+    w, h = dc.GetTextExtent(text)
+    subimg = wx.EmptyBitmap(w, h)
+    dc.SelectObject(subimg)
+    dc.SetBrush(wx.BLACK_BRUSH)
+    dc.SetPen(wx.BLACK_PEN)
+    dc.DrawRectangle(-1, -1, w + 2, h + 2)
+    dc.SetTextForeground(wx.WHITE)
+    dc.DrawText(text, 0, 0)
+    subimg = subimg.ConvertToImage()
+    if white:
+        subimg.ConvertColourToAlpha(255, 255, 255)
+    else:
+        subimg.ConvertColourToAlpha(0, 0, 0)
+
+    if 0 < maxwidth and w/2 + padding*2 > maxwidth:
+        size = (maxwidth - padding*2, h/2)
+        subimg = subimg.Rescale(size[0], h/2, quality=quality)
+    else:
+        subimg = subimg.Rescale(w/2, h/2, quality=quality)
+
+    subimg = subimg.ConvertToBitmap()
+    return subimg
 
 def get_boxpointlist(pos, size):
     """StaticBoxの囲い描画用のposlistを返す。"""

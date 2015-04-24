@@ -51,6 +51,10 @@ class ScenariodbUpdatingThread(threading.Thread):
         db.close()
         type(self)._finished = True
 
+    @staticmethod
+    def is_finished():
+        return ScenariodbUpdatingThread._finished
+
 class Scenariodb(object):
 
     """シナリオデータベース。ロックのタイムアウトは30秒指定。

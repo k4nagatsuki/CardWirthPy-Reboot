@@ -955,11 +955,15 @@ class CWPy(_Singleton, threading.Thread):
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
         event.args = kwargs
         if threading.currentThread() == self:
+            def func():
+                self.frame.app.SetCallFilterEvent(True)
+            self.frame.exec_func(func)
             self.frame.AddPendingEvent(event)
             if sys.platform == "win32":
                 while self.is_running() and self.frame.IsEnabled() and stack < self._showingdlg:
                     pass
         else:
+            self.frame.app.SetCallFilterEvent(True)
             self.frame.ProcessEvent(event)
 
     def call_modaldlg(self, name, **kwargs):
@@ -1000,6 +1004,11 @@ class CWPy(_Singleton, threading.Thread):
 
         else:
             self.lock_menucards = False
+
+    def kill_showingdlg(self):
+        self._showingdlg -= 1
+        if self._showingdlg <= 0:
+            self.frame.app.SetCallFilterEvent(False)
 
     def exec_func(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行する。

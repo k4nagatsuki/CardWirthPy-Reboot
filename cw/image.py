@@ -233,31 +233,10 @@ class CardImage(Image):
         font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
         dc.SetFont(font)
         if self.name:
-            w, h = dc.GetTextExtent(self.name)
-            subimg = wx.EmptyBitmap(w, h)
-            dc.SelectObject(subimg)
-            dc.SetBrush(wx.BLACK_BRUSH)
-            dc.SetPen(wx.BLACK_PEN)
-            dc.DrawRectangle(-1, -1, w + 2, h + 2)
-            dc.SetTextForeground(wx.WHITE)
-            dc.DrawText(self.name, cw.wins(0), cw.wins(0))
+            white = cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder
+            subimg = cw.util.draw_antialiasedtext(dc, self.name, white, self.wxrect.width, cw.wins(5))
             dc.SelectObject(bmp)
-            subimg = subimg.ConvertToImage()
-            if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
-                subimg.ConvertColourToAlpha(255, 255, 255)
-            else:
-                subimg.ConvertColourToAlpha(0, 0, 0)
-
-            left = cw.wins(5)
-            if w/2 + left*2 > self.wxrect.width:
-                size = (self.wxrect.width - left*2, h/2)
-                subimg = subimg.Rescale(size[0], h/2, quality=cw.RESCALE_QUALITY)
-            else:
-                subimg = subimg.Rescale(w/2, h/2, quality=cw.RESCALE_QUALITY)
-
-            subimg = subimg.ConvertToBitmap()
-
-            dc.DrawBitmap(subimg, left, cw.wins(5))
+            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(5))
 
         dc.SelectObject(wx.NullBitmap)
 
@@ -404,28 +383,10 @@ class LargeCardImage(CardImage):
         font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
         dc.SetFont(font)
         if self.name:
-            w, h = dc.GetTextExtent(self.name)
-            subimg = wx.EmptyBitmap(w, h)
-            dc.SelectObject(subimg)
-            dc.SetBrush(wx.BLACK_BRUSH)
-            dc.SetPen(wx.BLACK_PEN)
-            dc.DrawRectangle(-1, -1, w + 2, h + 2)
-            dc.SetTextForeground(wx.WHITE)
-            dc.DrawText(self.name, cw.wins(0), cw.wins(0))
+            white = False
+            subimg = cw.util.draw_antialiasedtext(dc, self.name, False, w, cw.wins(6))
             dc.SelectObject(bmp)
-            subimg = subimg.ConvertToImage()
-            subimg.ConvertColourToAlpha(0, 0, 0)
-
-            left = cw.wins(6)
-            if w/2 + left*2 > w:
-                size = (w - left*2, h/2)
-                subimg = subimg.Rescale(size[0], h/2, quality=cw.RESCALE_QUALITY)
-            else:
-                subimg = subimg.Rescale(w/2, h/2, quality=cw.RESCALE_QUALITY)
-
-            subimg = subimg.ConvertToBitmap()
-
-            dc.DrawBitmap(subimg, left, cw.wins(6))
+            dc.DrawBitmap(subimg, cw.wins(6), cw.wins(6))
 
         dc.SelectObject(wx.NullBitmap)
 

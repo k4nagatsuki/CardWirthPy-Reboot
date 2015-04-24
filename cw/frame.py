@@ -4,6 +4,7 @@
 import sys
 import os
 import time
+import datetime
 import threading
 import wx
 import pygame
@@ -12,7 +13,8 @@ import cw
 
 
 class Frame(wx.Frame):
-    def __init__(self, skindirname=""):
+    def __init__(self, app, skindirname=""):
+        self.app = app
         # 設定
         self._setting = cw.setting.Setting()
         if self._setting.is_expanded:
@@ -465,7 +467,7 @@ class Frame(wx.Frame):
 
     def OnSCENARIOSELECT(self, event):
         # Scenariodb更新用のサブスレッドの処理が終わるまで待機
-        while not cw.scenariodb.ScenariodbUpdatingThread._finished:
+        while not cw.scenariodb.ScenariodbUpdatingThread.is_finished():
             pass
 
         try:
@@ -795,8 +797,102 @@ class Frame(wx.Frame):
             cw.cwpy.mousepos = (-1, -1)
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
-        cw.cwpy._showingdlg -= 1
+        cw.cwpy.kill_showingdlg()
         cw.cwpy.exec_func(func, lockmenucard)
+
+    def save_screenshot(self):
+        """スクリーンショットを撮影する。
+        """
+        if cw.cwpy.is_showingdlg():
+            # ダイアログを表示中の場合
+            def func(self):
+                cw.cwpy.sounds["screenshot"].play()
+                date = datetime.datetime.today()
+                image, y = cw.util.create_screenshot(date)
+                w, h = image.get_size()
+                if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey():
+                    buf = pygame.image.tostring(image, "RGBA")
+                    alpha = True
+                else:
+                    buf = pygame.image.tostring(image, "RGB")
+                    alpha = False
+
+                if image.get_colorkey():
+                    colorkey = image.get_at(maskpos)
+                else:
+                    colorkey = None
+
+                def func(w, h, alpha, buf, colorkey, date, y, fore, back):
+                    if alpha:
+                        bmp = wx.BitmapFromBufferRGBA(w, h, buf)
+                    else:
+                        bmp = wx.BitmapFromBuffer(w, h, buf)
+                    self._put_dlgscreenshots(bmp, y, fore, back)
+                    if colorkey:
+                        r, g, b, a = colorkey
+                        bmp.SetMaskColour(wx.Colour(r, g, b))
+                    filename = cw.util.create_screenshotfilename(date)
+                    bmp.SaveFile(filename, wx.BITMAP_TYPE_PNG)
+
+                fore = cw.cwpy.setting.ssinfofontcolor
+                back = cw.cwpy.setting.ssinfobackcolor
+                self.exec_func(func, w, h, alpha, buf, colorkey, date, y, fore, back)
+
+            cw.cwpy.exec_func(func, self)
+            return True
+        else:
+            # ダイアログを表示中でない場合は
+            # pygame側のイベントハンドラに任せる
+            return False
+
+    def _put_dlgscreenshots(self, bmp, y, fore, back):
+        w, h = bmp.GetSize()
+        mem = wx.MemoryDC(bmp)
+        h -= y
+        # タイトルバー以外の領域に描画する
+        mem.SetClippingRect(wx.Rect(0, y, w, h))
+        mem.SetBrush(wx.Brush(back))
+        mem.SetPen(wx.Pen(back))
+        def recurse(win):
+            for child in win.GetChildren():
+                if child.IsTopLevel():
+                    # ダイアログを描画
+                    dc = wx.ClientDC(child)
+                    rect = child.GetClientRect()
+                    ww = rect[2]
+                    wh = rect[3]
+                    bmp = wx.EmptyBitmap(ww, wh)
+                    mem2 = wx.MemoryDC(bmp)
+                    mem2.Blit(0, 0, ww, wh, dc, 0, 0)
+                    del dc
+                    mem2.SelectObject(wx.NullBitmap)
+                    del mem2
+                    # サイズを適正に変換
+                    img = cw.util.convert_to_image(bmp)
+                    img = cw.win2scr_s(img)
+                    bmp = img.ConvertToBitmap()
+                    # 全体スクリーンショットへ描画
+                    mem3 = wx.MemoryDC()
+                    font = cw.cwpy.rsrc.get_wxfont("screenshot", pixelsize=cw.s(14)*2, weight=wx.NORMAL)
+                    mem3.SetFont(font)
+                    title = child.GetTitle()
+                    white = fore[:3] == (255, 255, 255)
+                    if 20 <= cw.s(14):
+                        quality = wx.IMAGE_QUALITY_HIGH
+                    else:
+                        quality = wx.IMAGE_QUALITY_BILINEAR
+                    titleimg = cw.util.draw_antialiasedtext(mem3, title, white, ww,
+                                                            cw.s(5), quality)
+                    del mem3
+                    ww, wh = bmp.GetSize()
+                    xx = (w-ww) / 2
+                    yy = y + (h-(wh+cw.s(16)+2)) / 2
+                    mem.DrawRectangle(xx - 2, yy - 2, ww + 4, wh + 4 + cw.s(16) + 2)
+                    mem.DrawBitmap(bmp, xx, yy + cw.s(16) + 2, False)
+                    mem.DrawBitmap(titleimg, xx + cw.s(5), yy + 1, False)
+                    recurse(child)
+        recurse(self)
+        mem.SelectObject(wx.NullBitmap)
 
     def change_selection(self, selection):
         """選択カードを変更し、色反転させる。
@@ -845,7 +941,7 @@ class MyApp(wx.App):
             self.skindlg.Show()
         else:
             # 通常起動
-            frame = Frame()
+            frame = Frame(self)
             self.SetTopWindow(frame)
             frame.Show()
         return True
@@ -857,11 +953,23 @@ class MyApp(wx.App):
 
         if 0 < skincount:
             if self.skindlg.select_skin:
-                frame = Frame(self.skindlg.skindirname)
+                frame = Frame(self, self.skindlg.skindirname)
             else:
-                frame = Frame()
+                frame = Frame(self)
             self.SetTopWindow(frame)
             frame.Show()
+
+    def FilterEvent(self, event):
+        if not (cw.cwpy and cw.cwpy.frame):
+            return -1
+
+        # スクリーンショットの撮影
+        if event.GetEventType() == wx.EVT_KEY_UP.typeId and\
+                wx.WXK_SNAPSHOT == event.GetKeyCode():
+            if cw.cwpy.frame.save_screenshot():
+                event.Skip()
+                return True
+        return -1
 
 def get_skincount():
     skincount = 0
