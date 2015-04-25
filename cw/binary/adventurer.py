@@ -651,7 +651,7 @@ class AdventurerWithImage(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, logdata):
-        f.write_image(base.CWBinaryBase.import_image(data.findtext("Property/ImagePath")))
+        f.write_image(base.CWBinaryBase.import_image(data.gettext("Property/ImagePath", "")))
         if logdata is None:
             cw.character.Character(data=cw.data.xml2etree(element=data)).set_fullrecovery()
         Adventurer.unconv(f, data, logdata)

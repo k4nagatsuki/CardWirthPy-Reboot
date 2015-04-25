@@ -238,7 +238,7 @@ class UnusedCard(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data, fname):
         f.write_rawstring(cw.util.splitext(fname)[0])
-        f.write_dword(int(data.findtext("Property/UseLimit", "0")))
+        f.write_dword(data.getint("Property/UseLimit", 0))
         f.write_byte(0)
 
 class YadoCard(base.CWBinaryBase):
@@ -257,8 +257,8 @@ class YadoCard(base.CWBinaryBase):
 
     @staticmethod
     def unconv(f, data, fname):
-        name = data.findtext("Property/Name", "")
-        description = data.findtext("Property/Description", "")
+        name = data.gettext("Property/Name", "")
+        description = data.gettext("Property/Description", "")
         if data.tag == "SkillCard":
             restype = 1
         elif data.tag == "ItemCard":
@@ -270,7 +270,7 @@ class YadoCard(base.CWBinaryBase):
         f.write_byte(0)
         f.write_byte(0)
         f.write_string(name)
-        f.write_string(description)
+        f.write_string(description, True)
         f.write_byte(restype)
         f.write_rawstring(cw.util.splitext(fname)[0])
         f.write_dword(number)

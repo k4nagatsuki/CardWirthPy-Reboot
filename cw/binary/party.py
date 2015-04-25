@@ -372,7 +372,7 @@ class BackpackCard(base.CWBinaryBase):
     @staticmethod
     def unconv(f, data, fname, mine):
         f.write_rawstring(cw.util.splitext(fname)[0])
-        f.write_dword(int(data.findtext("Property/UseLimit", "0")))
+        f.write_dword(data.getint("Property/UseLimit", 0))
         f.write_bool(mine)
 
 def main():
