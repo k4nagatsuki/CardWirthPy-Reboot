@@ -498,7 +498,7 @@ def put_number(image, num):
     """アイコンサイズの画像imageの上に
     numの値を表示する。
     """
-    image = image.copy()
+    image = image.convert_alpha()
     s = str(num)
     if len(s) == 1:
         font = cw.cwpy.rsrc.fonts["statusimg1"]
