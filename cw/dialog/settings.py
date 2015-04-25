@@ -14,6 +14,7 @@ SETTINGS_WIDTH = 250
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, u"設定")
+        self.cwpy_debug = True
         self.note = wx.Notebook(self)
         self.pane_gene = GeneralSettingPanel(self.note)
         self.pane_draw = DrawingSettingPanel(self.note)

@@ -14,6 +14,7 @@ class SkinConversionDialog(wx.Dialog):
     def __init__(self, parent, exe, from_settings=False):
         wx.Dialog.__init__(self, parent, -1, u"スキンの自動生成",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+        self.cwpy_debug = True
 
         self.successful = False
         self.select_skin = False
@@ -227,6 +228,7 @@ class SkinEditDialog(wx.Dialog):
     def __init__(self, parent, skindirname, skinsummary):
         wx.Dialog.__init__(self, parent, -1, u"スキンの編集",
                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+        self.cwpy_debug = True
 
         self.skindirname = skindirname
         self.skinsummary = skinsummary

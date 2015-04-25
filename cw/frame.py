@@ -804,6 +804,12 @@ class Frame(wx.Frame):
         """スクリーンショットを撮影する。
         """
         if cw.cwpy.is_showingdlg():
+            fc = wx.Window.FindFocus()
+            while fc and fc.GetTopLevelParent():
+                top = fc.GetTopLevelParent()
+                if hasattr(top, "cwpy_debug") and top.cwpy_debug:
+                    return False
+                fc = fc.GetParent()
             # ダイアログを表示中の場合
             def func(self):
                 cw.cwpy.sounds["screenshot"].play()
@@ -855,7 +861,7 @@ class Frame(wx.Frame):
         mem.SetPen(wx.Pen(back))
         def recurse(win):
             for child in win.GetChildren():
-                if child.IsTopLevel():
+                if child.IsTopLevel() and not (hasattr(child, "cwpy_debug") and child.cwpy_debug):
                     # ダイアログを描画
                     dc = wx.ClientDC(child)
                     rect = child.GetClientRect()

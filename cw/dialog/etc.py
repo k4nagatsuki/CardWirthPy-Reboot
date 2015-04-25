@@ -251,6 +251,7 @@ class BattleCommand(wx.Dialog):
 class ErrorLogDialog(wx.Dialog):
     def __init__(self, parent, log):
         wx.Dialog.__init__(self, parent, -1, u"エラーログ")
+        self.cwpy_debug = True
         self.tc = wx.TextCtrl(
             self, -1, log, size=(250, 200),
             style=wx.TE_MULTILINE|wx.TE_READONLY)

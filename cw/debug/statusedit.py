@@ -15,6 +15,7 @@ class StatusEditDialog(wx.Dialog):
     def __init__(self, parent, mlist, selected=-1):
         wx.Dialog.__init__(self, parent, -1, u"キャラクターの状態の編集",
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
+        self.cwpy_debug = True
         self.SetDoubleBuffered(True)
 
         self.pcards = mlist
