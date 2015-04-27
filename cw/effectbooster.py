@@ -617,12 +617,15 @@ def get_filepath_s(configpath, filename, dirtype=-1):
     if dirtype == -1:
         dirtype = 1
 
-    def find_materialpath(fpath):
+    def get_mtype(fpath):
         ext = os.path.splitext(fpath)[1].lower()
         if ext in cw.EXTS_SND:
-            mtype = cw.M_SND
+            return cw.M_SND
         else:
-            mtype = cw.M_IMG
+            return cw.M_IMG
+
+    def find_materialpath(fpath):
+        mtype = get_mtype(fpath)
         inusecardpath = cw.util.get_inusecardmaterialpath(fpath, mtype)
         if inusecardpath:
             fpath = inusecardpath
@@ -641,9 +644,13 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         dpath = os.path.dirname(fpath)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
-        filename = cw.util.find_resource(cw.util.splitext(filename)[0], cw.cwpy.rsrc.ext_img)
+        fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
+        fpath = cw.util.find_resource(fpath, get_mtype(fpath))
+        return fpath
     elif dirtype == 3:
         dpath = "Data/EffectBooster"
+        fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
+        fpath = cw.util.find_resource(fpath, get_mtype(fpath))
     elif dirtype == 4:
         if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
             inusecard = cw.cwpy.event.get_inusecard()
@@ -663,7 +670,8 @@ def get_filepath_s(configpath, filename, dirtype=-1):
             return get_filepath_s(configpath, filename, 1)
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
-        filename = cw.util.find_resource(cw.util.splitext(filename)[0], cw.cwpy.rsrc.ext_snd)
+        fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
+        fpath = cw.util.find_resource(fpath, get_mtype(fpath))
     elif dirtype == 6:
         dpath = os.path.dirname(os.path.dirname(configpath))
     elif dirtype == 7:
