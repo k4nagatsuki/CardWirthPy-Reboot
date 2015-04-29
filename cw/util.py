@@ -69,7 +69,7 @@ class MusicInterface(object):
             cw.cwpy.ydata.changed()
         fpath = self.get_path(path, inusecard)
         self.path = path
-        if not pygame.mixer and not cw.bassplayer.is_alivablewithpath(path):
+        if not pygame.mixer.get_init() and not cw.bassplayer.is_alivablewithpath(path):
             return
 
         if cw.cwpy.rsrc:
@@ -111,18 +111,18 @@ class MusicInterface(object):
                             mciSendStringW(u"play %s" % (name), 0, 0, 0)
                             self._winmm = True
                         elif cw.util.splitext(fpath)[1].lower() in (".mpg", ".mpeg"):
-                            if pygame.mixer.get_init():
-                                try:
+                            try:
+                                if pygame.mixer.get_init():
                                     pygame.mixer.quit()
-                                    encoding = sys.getfilesystemencoding()
-                                    self._movie = pygame.movie.Movie(fpath.encode(encoding))
-                                    self._movie.set_volume(self._get_volumevalue(fpath))
-                                    self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
-                                    rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
-                                    self._movie.set_display(self.movie_scr, rect)
-                                    self._movie.play()
-                                except Exception:
-                                    cw.util.print_ex()
+                                encoding = sys.getfilesystemencoding()
+                                self._movie = pygame.movie.Movie(fpath.encode(encoding))
+                                self._movie.set_volume(self._get_volumevalue(fpath))
+                                self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
+                                rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
+                                self._movie.set_display(self.movie_scr, rect)
+                                self._movie.play()
+                            except Exception:
+                                cw.util.print_ex()
                     elif filesize == 57 and cw.util.get_md5(fpath) == "d11be4c76fc63a6ba299c2f3bd3880b0":
                         # FIXME: reset.mid
                         # 繰り返し流すとハングアップ pygame 1.9.1
@@ -172,11 +172,8 @@ class MusicInterface(object):
             self._movie.stop()
             self._movie = None
             self.movie_scr = None
-            try:
-                pygame.mixer.init(44100, -16, 2, 1024)
-            except:
-                cw.util.print_ex()
-        elif pygame.mixer and pygame.mixer.get_init():
+            cw.util.sdlmixer_init()
+        elif pygame.mixer.get_init():
             pygame.mixer.music.stop()
         remove_soundtempfile("Bgm")
         self.fpath = ""
@@ -203,9 +200,6 @@ class MusicInterface(object):
     def set_volume(self, volume=None):
         if threading.currentThread() <> cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, volume)
-            return
-
-        if not pygame.mixer:
             return
 
         if volume is None:
@@ -362,8 +356,9 @@ class SoundInterface(object):
 
 def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     """pygame初期化。"""
-    pygame.mixer.pre_init(44100, -16, 2, 1024)
-    pygame.init()
+    pygame.display.init()
+    pygame.font.init()
+    pygame.joystick.init()
     flags = 0
     size = cw.s(size_noscale)
     if fullscreen:
@@ -382,8 +377,6 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     if title:
         pygame.display.set_caption(title)
 
-    if pygame.mixer.get_init():
-        pygame.mixer.set_num_channels(2)
     pygame.event.set_blocked(None)
     pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
 
@@ -391,9 +384,20 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     if soundfonts is None:
         soundfonts = [(cw.DEFAULT_SOUNDFONT, True)]
     soundfonts = [sfont[0] for sfont in soundfonts if sfont[1]]
-    cw.bassplayer.init_bass(soundfonts)
+    if not cw.bassplayer.init_bass(soundfonts):
+        # BASS Audioが使用できない場合に限りpygame.mixerを初期化
+        # (BASSとpygame.mixerを同時に初期化した場合、
+        # 環境によっては音が出なくなるなどの不具合が出る)
+        sdlmixer_init()
 
     return scr, scr_draw, scr_fullscreen, clock
+
+def sdlmixer_init():
+    try:
+        pygame.mixer.init(44100, -16, 2, 1024)
+        pygame.mixer.set_num_channels(2)
+    except:
+        cw.util.print_ex(file=sys.stderr)
 
 def convert_maskpos(maskpos, width, height):
     """maskposが座標ではなくキーワード"center"または"right"
@@ -620,7 +624,7 @@ def load_bgm(path):
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
 
-    if not pygame.mixer or not os.path.isfile(path):
+    if not os.path.isfile(path) or (not pygame.mixer.get_init() and not cw.bassplayer.is_alivablewithpath(path)):
         return
 
     if cw.util.splitext(path)[1].lower() in (".mpg", ".mpeg"):
@@ -663,7 +667,7 @@ def load_sound(path):
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
 
-    if not pygame.mixer or not os.path.isfile(path):
+    if not os.path.isfile(path) or (not pygame.mixer.get_init() and not cw.bassplayer.is_alivablewithpath(path)):
         return SoundInterface()
 
     if cw.cwpy.is_playingscenario() and path in cw.cwpy.sdata.resource_cache:

@@ -5,6 +5,7 @@ import os
 import sys
 import itertools
 import wx.grid
+import pygame
 
 import cw
 
@@ -297,14 +298,22 @@ class SettingsDialog(wx.Dialog):
             sfonts2 = [sfont[0] for sfont in cw.cwpy.setting.soundfonts if sfont[1]]
             cw.cwpy.setting.soundfonts = soundfonts
             if sfonts1 <> sfonts2:
-                if cw.bassplayer.is_alivable():
-                    cw.bassplayer.dispose_bass()
-                if soundfonts:
-                    sfonts = [sfont[0] for sfont in soundfonts if sfont[1]]
-                    cw.bassplayer.init_bass(sfonts)
-                if bool(sfonts1) <> bool(sfonts2):
-                    cw.cwpy.exec_func(cw.cwpy.init_sounds)
-                cw.cwpy.exec_func(cw.cwpy.music.play, cw.cwpy.music.path, updatepredata=False, restart=True)
+                def func():
+                    if cw.bassplayer.is_alivable():
+                        cw.bassplayer.dispose_bass()
+                    if pygame.mixer.get_init():
+                        pygame.mixer.quit()
+
+                    if sfonts1:
+                        cw.bassplayer.init_bass(sfonts1)
+                    else:
+                        cw.util.sdlmixer_init()
+
+                    if bool(sfonts1) <> bool(sfonts2):
+                        cw.cwpy.init_sounds()
+                    cw.cwpy.music.play(cw.cwpy.music.path, updatepredata=False, restart=True)
+
+                cw.cwpy.exec_func(func)
 
         # 配色(メッセージ)
         alpha = self.pane_draw.sc_mwin.GetValue()
