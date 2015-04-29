@@ -642,6 +642,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         if not os.path.isfile(fpath):
             return get_filepath_s(configpath, filename, 2)
         dpath = os.path.dirname(fpath)
+        filename = os.path.basename(fpath)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
@@ -651,6 +652,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         dpath = "Data/EffectBooster"
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
         fpath = cw.util.find_resource(fpath, get_mtype(fpath))
+        return fpath
     elif dirtype == 4:
         if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
             inusecard = cw.cwpy.event.get_inusecard()
@@ -668,10 +670,12 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         # 指定位置に存在しなかった場合は相対位置
         if not os.path.isfile(fpath):
             return get_filepath_s(configpath, filename, 1)
+        return fpath
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
         fpath = cw.util.find_resource(fpath, get_mtype(fpath))
+        return fpath
     elif dirtype == 6:
         dpath = os.path.dirname(os.path.dirname(configpath))
     elif dirtype == 7:
