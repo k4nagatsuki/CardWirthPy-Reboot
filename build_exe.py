@@ -89,7 +89,7 @@ class BuildExe(object):
 
         #Extra new dirs
         self.extra_dirs = ["Scenario", "Yado", "Data/Temp",
-            "Data/EffectBooster"]
+            "Data/Skin"]
 
         #Additional modules
         self.includes = ["win32com.shell.shell", "win32com.client"]

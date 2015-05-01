@@ -13,7 +13,7 @@ class Converter(threading.Thread):
     def __init__(self, exe):
         threading.Thread.__init__(self)
 
-        self.maximum = 90
+        self.maximum = 100
         self.curnum = 0
         self.message = u"変換を開始しています..."
         self.failure = False
@@ -1145,8 +1145,22 @@ class Converter(threading.Thread):
                     else:
                         shutil.copyfile(fpath1, fpath2)
 
-            # Name
+            # Scheme
             self.curnum = 60
+            self.message = u"エフェクトブースターファイルをコピー中..."
+            folder = cw.util.join_paths(os.path.dirname(self.exe), u"Scheme")
+            target = cw.util.join_paths(dpath, u"EffectBooster")
+            if os.path.isdir(folder):
+                for fname in os.listdir(folder):
+                    fpath1 = cw.util.join_paths(folder, fname)
+                    fpath2 = cw.util.join_paths(target, fname)
+                    if os.path.isdir(fpath1):
+                        shutil.copytree(fpath1, fpath2)
+                    else:
+                        shutil.copyfile(fpath1, fpath2)
+
+            # Name
+            self.curnum = 70
             self.message = u"名前のリストをコピー中..."
             target = cw.util.join_paths(dpath, u"Name")
             if not os.path.isdir(target):
@@ -1159,13 +1173,13 @@ class Converter(threading.Thread):
                     names.add(fname)
 
             # Exampleフォルダは不要なので削除
-            self.curnum = 65
+            self.curnum = 75
             exdirpath = cw.util.join_paths(dpath, u"Name/Example")
             if os.path.isdir(exdirpath):
                 shutil.rmtree(exdirpath)
 
             # リソースオーバーライド
-            self.curnum = 70
+            self.curnum = 80
             self.message = u"オーバーライドされたリソースをコピー中..."
             resdir = cw.util.join_paths(datadir, u"Resource")
             for key, target in imgtbl.iteritems():
@@ -1188,7 +1202,7 @@ class Converter(threading.Thread):
                     shutil.copyfile(fpath, dist)
 
             # タイトル画面の背景セルの位置調節
-            self.curnum = 80
+            self.curnum = 90
             fpath = cw.util.join_paths(dpath, "Resource/Xml/Title/01_Title.xml")
             if os.path.isfile(fpath):
                 data = cw.data.xml2etree(fpath)
@@ -1225,7 +1239,7 @@ class Converter(threading.Thread):
 
                 data.write()
 
-            self.curnum = 90
+            self.curnum = 100
             self.message = u"スキンの生成が完了しました。"
 
             self.complete = True

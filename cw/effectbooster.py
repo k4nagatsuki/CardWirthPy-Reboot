@@ -649,7 +649,7 @@ def get_filepath_s(configpath, filename, dirtype=-1):
         fpath = cw.util.find_resource(fpath, get_mtype(fpath))
         return fpath
     elif dirtype == 3:
-        dpath = "Data/EffectBooster"
+        dpath = cw.util.join_paths(cw.cwpy.skindir, "EffectBooster")
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
         fpath = cw.util.find_resource(fpath, get_mtype(fpath))
         return fpath
