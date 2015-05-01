@@ -995,7 +995,8 @@ class CWPy(_Singleton, threading.Thread):
                 indexs = pre_info[1]
                 index2 = indexs[1]
                 if isinstance(index2, cw.character.Character) and\
-                        (index2.is_vanished() or (not index2.is_active() and not cw.cwpy.setting.openhandviewalways)):
+                        (index2.is_vanished() or ((not index2.is_active() and not self.areaid in cw.AREAS_TRADE) and\
+                                                  not cw.cwpy.setting.openhandviewalways)):
                     self.pre_dialogs.pop()
                     self.lock_menucards = False
                     return
