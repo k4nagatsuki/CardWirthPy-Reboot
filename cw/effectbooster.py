@@ -1325,7 +1325,8 @@ class EffectBoosterConfig(object):
                     val = m.group(2).strip()
                     if val.startswith('"') and val.startswith('"'):
                         val = val[1:-1]
-                    cur_sec[opt] = val
+                    if not opt in cur_sec:
+                        cur_sec[opt] = val
                     continue
 
         if jptxtxt:
