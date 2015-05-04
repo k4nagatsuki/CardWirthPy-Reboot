@@ -1113,7 +1113,7 @@ def find_resource(path, mtype):
             return path2
     return u""
 
-def get_inusecardmaterialpath(path, mtype, inusecard=None):
+def get_inusecardmaterialpath(path, mtype, inusecard=None, findskin=True):
     """pathが宿からシナリオへ持ち込んだカードの
     素材を指していればそのパスを返す。
     そうでない場合は空文字列を返す。"""
@@ -1124,10 +1124,10 @@ def get_inusecardmaterialpath(path, mtype, inusecard=None):
                 inusecard = cw.cwpy.event.get_inusecard()
             if not inusecard.carddata.getbool(".", "scenariocard", False):
                 imgpath = cw.util.join_yadodir(path)
-                imgpath = get_materialpathfromskin(imgpath, mtype)
+                imgpath = get_materialpathfromskin(imgpath, mtype, findskin=findskin)
     return imgpath
 
-def get_materialpath(path, mtype, scedir="", system=False):
+def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
     """pathが指す素材を、シナリオプレイ中はシナリオ内から探し、
     プレイ中でない場合や存在しない場合はスキンから探す。
     path: 素材の相対パス。
@@ -1145,6 +1145,8 @@ def get_materialpath(path, mtype, scedir="", system=False):
             path = cw.util.join_paths(scedir, path)
     elif not os.path.isfile(path):
         path = cw.util.join_paths(cw.cwpy.skindir, path)
+    if os.path.isfile(path) or not findskin:
+        return path
     return get_materialpathfromskin(path, mtype)
 
 def get_materialpathfromskin(path, mtype):

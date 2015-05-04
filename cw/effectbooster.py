@@ -80,6 +80,7 @@ class CutAnimation(AnimationCounter):
 class _JpySubImage(cw.image.Image):
     def __init__(self, config, section, cache):
         self.configpath = config.path
+        self.configdepth = config.dirdepth
         self.cache = cache
         # image load
         self.dirtype = config.get_int(section, "dirtype", 1)
@@ -608,11 +609,11 @@ class _JpySubImage(cw.image.Image):
         if self.filename:
             if dirtype == -1:
                 dirtype = self.dirtype
-            return get_filepath_s(self.configpath, self.filename, dirtype)
+            return get_filepath_s(self.configpath, self.configdepth, self.filename, dirtype)
         else:
             return ""
 
-def get_filepath_s(configpath, filename, dirtype=-1):
+def get_filepath_s(configpath, dirdepth, filename, dirtype=-1):
     """dirtypeに基づいて読み込むファイルのパスを取得する。"""
     if dirtype == -1:
         dirtype = 1
@@ -626,32 +627,37 @@ def get_filepath_s(configpath, filename, dirtype=-1):
 
     def find_materialpath(fpath):
         mtype = get_mtype(fpath)
-        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, mtype)
+        inusecardpath = cw.util.get_inusecardmaterialpath(fpath, mtype, findskin=False)
         if inusecardpath:
             fpath = inusecardpath
         else:
-            fpath = cw.util.get_materialpath(filename, mtype, scedir=dpath)
+            fpath = cw.util.get_materialpath(filename, mtype, scedir=dpath, findskin=False)
         fpath = cw.cwpy.rsrc.get_filepath(fpath)
         return fpath
 
     if dirtype == 1:
-        dpath = os.path.dirname(configpath)
-        fpath = cw.util.join_paths(dpath, filename)
-        fpath = find_materialpath(fpath)
-        # シナリオ内に存在しなかった場合はTable内
-        if not os.path.isfile(fpath):
-            return get_filepath_s(configpath, filename, 2)
+        if configpath:
+            dpath = os.path.dirname(configpath)
+            fpath = cw.util.join_paths(dpath, filename)
+            fpath = find_materialpath(fpath)
+        else:
+            fpath = u""
+        if not fpath or not os.path.isfile(fpath):
+            # シナリオ内に存在しなかった
+            return ""
         dpath = os.path.dirname(fpath)
         filename = os.path.basename(fpath)
     elif dirtype == 2:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Table")
+        mtype = get_mtype(filename)
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
-        fpath = cw.util.find_resource(fpath, get_mtype(fpath))
+        fpath = cw.util.find_resource(fpath, mtype)
         return fpath
     elif dirtype == 3:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "EffectBooster")
+        mtype = get_mtype(filename)
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
-        fpath = cw.util.find_resource(fpath, get_mtype(fpath))
+        fpath = cw.util.find_resource(fpath, mtype)
         return fpath
     elif dirtype == 4:
         if cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard():
@@ -659,28 +665,42 @@ def get_filepath_s(configpath, filename, dirtype=-1):
             if not inusecard.carddata.getbool(".", "scenariocard", False):
                 e_mates = inusecard.carddata.find("Property/Materials")
                 if not e_mates is None:
-                    fpath = cw.util.join_paths(e_mates.text, filename)
+                    dpath = e_mates.text
+                    # dirtype=4にはdirdepthが影響する
+                    for _i in xrange(dirdepth):
+                        dpath = os.path.dirname(dpath)
+
+                    fpath = cw.util.join_paths(dpath, filename)
                     fpath = cw.util.join_yadodir(fpath)
                     if os.path.isfile(fpath):
                         return fpath
 
-        dpath = cw.cwpy.sdata.scedir
+        dpath = os.path.dirname(configpath)
+        # dirtype=4にはdirdepthが影響する
+        for _i in xrange(dirdepth):
+            dpath = os.path.dirname(dpath)
+
         fpath = cw.util.join_paths(dpath, filename)
         fpath = find_materialpath(fpath)
-        # 指定位置に存在しなかった場合は相対位置
+        # 指定位置に存在しなかった
         if not os.path.isfile(fpath):
-            return get_filepath_s(configpath, filename, 1)
+            return u""
         return fpath
     elif dirtype == 5:
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Sound")
+        mtype = get_mtype(filename)
         fpath = cw.util.join_paths(dpath, cw.util.splitext(filename)[0])
-        fpath = cw.util.find_resource(fpath, get_mtype(fpath))
+        fpath = cw.util.find_resource(fpath, mtype)
         return fpath
     elif dirtype == 6:
+        if not configpath:
+            return ""
         dpath = os.path.dirname(os.path.dirname(configpath))
     elif dirtype == 7:
         dpath = ""
     else:
+        if not configpath:
+            return ""
         dpath = os.path.dirname(configpath)
 
     path = cw.util.join_paths(os.path.normpath(cw.util.join_paths(dpath, filename)))
@@ -706,6 +726,8 @@ class JpyBackGroundImage(_JpySubImage):
         self.width = cw.s(config.get_int("init", "backwidth", -1))
         self.height = cw.s(config.get_int("init", "backheight", -1))
         self.transparent = config.get_bool("init", "transparent", False)
+        self.dirdepth = config.get_int("init", "dirdepth", 0)
+        self.dirdepth = max(0, self.dirdepth)
         self.position_noscale = (0, 0)
         self.position = cw.s(self.position_noscale)
         self.savecache = 0
@@ -720,6 +742,9 @@ class JpyImage(cw.image.Image):
 
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
+        config.path = os.path.abspath(config.path)
+        config.dirdepth = back.dirdepth
+
         back.load(doanime)
         defaultcopymode = 1
         self.is_cacheable = not back.transparent
@@ -1253,6 +1278,7 @@ class JptxImage(cw.image.Image):
 class EffectBoosterConfig(object):
     def __init__(self, path, firstsection):
         self.path = path
+        self.dirdepth = 0
         r_sec = re.compile(r'\[([^]]+)\]')
         r_opt = re.compile(r'([^:=\s][^:=]*)\s*[:=]\s*(.*)$')
         self._orderedsecs = []
