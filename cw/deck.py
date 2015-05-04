@@ -25,7 +25,7 @@ class Deck(object):
 
         return seq
 
-    def get_skillcards(self, ccard, handcounts={}):
+    def get_skillcards(self, ccard, handcounts={}.copy()):
         seq = []
 
         for header in ccard.get_pocketcards(cw.POCKET_SKILL):

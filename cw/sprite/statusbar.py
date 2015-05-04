@@ -366,7 +366,7 @@ class StatusBarButton(base.SelectableSprite):
         self.enabled = enabled
         self.notice = notice
         self.number = number
-        self.is_showing = None
+        self.is_showing = lambda: True
         # ボタン画像
         self.btnimg = {}
         self._statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
@@ -643,7 +643,7 @@ class AutoStartButton(StatusBarButton):
             pushed = False
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
                                  is_pushed=pushed)
-        self._selectable_on_event = True
+        self.selectable_on_event = True
         self.actionbtn = None
         self.is_showing = cw.cwpy.is_battlestatus
 
@@ -688,7 +688,7 @@ class SettingsButton(StatusBarButton):
         image = cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
         name = u"設定"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
-        self._selectable_on_event = True
+        self.selectable_on_event = True
         if self.is_selection():
             self.update_image()
 
@@ -701,7 +701,7 @@ class DebuggerButton(StatusBarButton):
         image = cw.cwpy.rsrc.pygamedialogs["STATUS12"]
         name = u"デバッガ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
-        self._selectable_on_event = True
+        self.selectable_on_event = True
         if self.is_selection():
             self.update_image()
 
@@ -714,7 +714,7 @@ class BacklogButton(StatusBarButton):
         image = cw.s(cw.cwpy.rsrc.pygamedebugs["BACKLOG"])
         name = u"バックログ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
-        self._selectable_on_event = enabled
+        self.selectable_on_event = enabled
         if enabled and self.is_selection():
             self.update_image()
 

@@ -1490,7 +1490,7 @@ class FontSettingPanel(wx.Panel):
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
             grid.SetRowLabelSize(100)
-            grid.SetColLabelValue(0, u"フォント名");
+            grid.SetColLabelValue(0, u"フォント名")
             grid.SetColSize(0, 150)
             for i, name in enumerate(seq):
                 grid.SetRowLabelValue(i, self.typenames[name])

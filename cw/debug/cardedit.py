@@ -126,13 +126,13 @@ class CardEditDialog(wx.Dialog):
         self._update_cards()
 
     def _bind(self):
-        self.Bind(wx.EVT_BUTTON, self.OnScenario, self.scenario);
-        self.Bind(wx.EVT_BUTTON, self.OnDetailBtn, self.dtlbtn);
-        self.Bind(wx.EVT_BUTTON, self.OnDealBtn, self.dealbtn);
-        self.Bind(wx.EVT_BUTTON, self.OnFindBtn, self.findbtn);
-        self.Bind(wx.EVT_BUTTON, self.OnStopBtn, self.stopbtn);
-        self.Bind(wx.EVT_BUTTON, self.OnUpdateBtn, self.updbtn);
-        self.Bind(wx.EVT_BUTTON, self.OnDeleteBtn, self.delbtn);
+        self.Bind(wx.EVT_BUTTON, self.OnScenario, self.scenario)
+        self.Bind(wx.EVT_BUTTON, self.OnDetailBtn, self.dtlbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDealBtn, self.dealbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnFindBtn, self.findbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnStopBtn, self.stopbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUpdateBtn, self.updbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnDeleteBtn, self.delbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnCardSelected, self.cards)
         self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnCardSelected, self.cards)
@@ -289,7 +289,7 @@ class CardEditDialog(wx.Dialog):
                 if matcher in self.target_table:
                     self.target_table[matcher][item] = (toplevel, owner, data, not insce)
                 else:
-                    t = {}
+                    t = {}.copy()
                     t[item] = (toplevel, owner, data, not insce)
                     self.target_table[matcher] = t
 

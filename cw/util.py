@@ -902,12 +902,12 @@ def number_normalization(value, fromvalue, tovalue):
     tovalue: 範囲の最大値+1。
     """
     if 0 == tovalue:
-        return value;
+        return value
     if tovalue <= value or value < fromvalue:
-        value -= (value / tovalue) * tovalue;
+        value -= (value / tovalue) * tovalue
     if value < fromvalue:
-        value += tovalue;
-    return value;
+        value += tovalue
+    return value
 
 def print_ex(file=None):
     """例外の内容を標準出力に書き足す。
@@ -1028,7 +1028,7 @@ def repl_dischar(fname):
     """
     d = {'\\': u'￥', '/': u'／', ':': u'：', ',': u'，', ';': u'；',
          '*': u'＊', '?': u'？','"': u'”', '<': u'＜', '>': u'＞',
-         '|': u'｜','"': u'”'}
+         '|': u'｜'}
 
     for key, value in d.iteritems():
         fname = fname.replace(key, value)
@@ -1587,7 +1587,7 @@ def cab_hasfile(cab, fname):
                 name = "".join(name)
                 _A_NAME_IS_UTF = 0x80
                 if not (attribs & _A_NAME_IS_UTF):
-                    name = unicode(name, encoding);
+                    name = unicode(name, encoding)
                 if fname == os.path.normcase(os.path.basename(name)):
                     return name
     except Exception:
@@ -2046,7 +2046,7 @@ def get_boxpointlist(pos, size):
     """StaticBoxの囲い描画用のposlistを返す。"""
     x, y = pos
     width, height = size
-    poslist = []
+    poslist = [][:]
     poslist.append((x, y, x + width, y))
     poslist.append((x, y, x, y + height))
     poslist.append((x + width, y, x + width, y + height))

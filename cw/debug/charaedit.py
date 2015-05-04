@@ -64,7 +64,7 @@ class CharacterEditDialog(wx.Dialog):
         self._bind()
         self._do_layout()
 
-        self._select_target()
+        self.select_target()
 
     def _bind(self):
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectTarget, self.target)
@@ -104,7 +104,7 @@ class CharacterEditDialog(wx.Dialog):
             self.target.SetSelection(len(self.infos))
         else:
             self.target.SetSelection(index - 1)
-        self._select_target()
+        self.select_target()
 
     def OnRightBtn(self, event):
         index = self.target.GetSelection()
@@ -112,10 +112,10 @@ class CharacterEditDialog(wx.Dialog):
             self.target.SetSelection(0)
         else:
             self.target.SetSelection(index + 1)
-        self._select_target()
+        self.select_target()
 
     def OnSelectTarget(self, event):
-        self._select_target()
+        self.select_target()
 
     def OnStandardType(self, event):
         seq = [u"カスタム"]
@@ -138,11 +138,11 @@ class CharacterEditDialog(wx.Dialog):
                     info.type = ctype
             else:
                 self.infos[cindex-1].type = ctype
-            self.pane_req._select_target(cindex)
+            self.pane_req.select_target(cindex)
 
     def OnAutoBtn(self, event):
-        self.pane_req._set_random()
-        self.pane_sel._set_random()
+        self.pane_req.set_random()
+        self.pane_sel.set_random()
 
     def OnOkBtn(self, event):
         if self.create:
@@ -168,10 +168,10 @@ class CharacterEditDialog(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
-    def _select_target(self):
+    def select_target(self):
         cindex = self.target.GetSelection()
-        self.pane_req._select_target(cindex)
-        self.pane_sel._select_target(cindex)
+        self.pane_req.select_target(cindex)
+        self.pane_sel.select_target(cindex)
 
 class CharaInfo(object):
 
@@ -571,7 +571,7 @@ class CharaRequirementPanel(wx.Panel):
         self._update_images()
 
     def OnAutoBtn(self, event):
-        self._set_random()
+        self.set_random()
 
     def _update_images(self):
         fpaths = set()
@@ -633,7 +633,7 @@ class CharaRequirementPanel(wx.Panel):
             # 誰か一人
             return [self.infos[self.cindex-1]]
 
-    def _select_target(self, cindex):
+    def select_target(self, cindex):
         self._proc = True
         self.cindex = cindex
         name = ""
@@ -719,7 +719,7 @@ class CharaRequirementPanel(wx.Panel):
         self.Layout()
         self._proc = False
 
-    def _set_random(self):
+    def set_random(self):
         infos = self._get_infos()
 
         for info in infos:
@@ -739,7 +739,7 @@ class CharaRequirementPanel(wx.Panel):
 
             info.imgpath = cw.cwpy.dice.choice(seq)
 
-        self._select_target(self.cindex)
+        self.select_target(self.cindex)
 
 class CharaSelectablePanel(wx.Panel):
 
@@ -824,12 +824,12 @@ class CharaSelectablePanel(wx.Panel):
                         info.makings.remove(making)
 
     def OnAutoBtn(self, event):
-        self._set_random()
+        self.set_random()
 
     def OnClearBtn(self, event):
         for info in self._get_infos():
             info.makings.clear()
-        self._select_target(self.cindex)
+        self.select_target(self.cindex)
 
     def _get_infos(self):
         if self.cindex == 0:
@@ -839,7 +839,7 @@ class CharaSelectablePanel(wx.Panel):
             # 誰か一人
             return [self.infos[self.cindex-1]]
 
-    def _select_target(self, cindex):
+    def select_target(self, cindex):
         self.cindex = cindex
         if self.cindex == 0:
             # 全員
@@ -859,13 +859,13 @@ class CharaSelectablePanel(wx.Panel):
                 making = u"＿" + check.GetLabel()
                 check.SetValue(making in self.infos[cindex-1].makings)
 
-    def _set_random(self):
+    def set_random(self):
         # 特徴をランダムに設定する
         for info in self._get_infos():
             info.makings.clear()
             info.makings.update(cw.dialog.create.get_randommakings())
 
-        self._select_target(self.cindex)
+        self.select_target(self.cindex)
 
 def main():
     pass

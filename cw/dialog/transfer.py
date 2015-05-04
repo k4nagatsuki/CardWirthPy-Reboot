@@ -322,7 +322,7 @@ class TransferYadoDataDialog(wx.Dialog):
                         skindir = cw.util.join_paths(u"Data/Skin", skindir)
                         fpath = cw.util.join_paths(skindir, u"Skin.xml")
                         if os.path.isfile(fpath):
-                            prop = cw.header.GetProperty(fpath);
+                            prop = cw.header.GetProperty(fpath)
                             skintype = prop.properties.get("Type", "")
                             if skintype:
                                 for type, folder in cw.cwpy.setting.folderoftype:
@@ -379,13 +379,13 @@ class TransferYadoDataDialog(wx.Dialog):
                         if isinstance(data, cw.data.CWPyElement):
                             if data.tag == "Bookmarks":
                                 # ブックマーク
-                                self.outer._transfer_bookmark(self.fromscedir, self.toscedir, fromyado, toyado, data, self)
+                                self.outer.transfer_bookmark(self.fromscedir, self.toscedir, fromyado, toyado, data, self)
                             elif data.tag == "Gossips":
                                 # ゴシップ
-                                self.outer._transfer_gossip(fromyado, toyado, data, self)
+                                self.outer.transfer_gossip(fromyado, toyado, data, self)
                             elif data.tag == "CompleteStamps":
                                 # 終了印
-                                self.outer._transfer_completestamp(fromyado, toyado, data, self)
+                                self.outer.transfer_completestamp(fromyado, toyado, data, self)
                         elif isinstance(data, int):
                             # 資金
                             money = self.environment.getint("Property/Cashbox", 0) + data
@@ -394,19 +394,19 @@ class TransferYadoDataDialog(wx.Dialog):
                             self.num += 1
                         elif isinstance(data, list):
                             # アルバム
-                            self.outer._transfer_album(fromyado, toyado, data, yadodb, self)
+                            self.outer.transfer_album(fromyado, toyado, data, yadodb, self)
                         elif isinstance(data, cw.header.PartyHeader):
                             # パーティ
-                            self.outer._transfer_party(fromyado, toyado, data, yadodb, self)
+                            self.outer.transfer_party(fromyado, toyado, data, yadodb, self)
                         elif isinstance(data, cw.header.AdventurerHeader):
                             # プレイヤーカード
-                            self.outer._transfer_adventurer(fromyado, toyado, data, yadodb, self)
+                            self.outer.transfer_adventurer(fromyado, toyado, data, yadodb, self)
                         elif isinstance(data, cw.header.CardHeader):
                             # 手札
-                            self.outer._transfer_card(fromyado, toyado, data, yadodb, self)
+                            self.outer.transfer_card(fromyado, toyado, data, yadodb, self)
                         elif isinstance(data, cw.header.SavedJPDCImageHeader):
                             # 保存されたJPDCイメージ
-                            self.outer._transfer_savedjpdcimage(fromyado, toyado, data, yadodb, savedjpdcimage, self)
+                            self.outer.transfer_savedjpdcimage(fromyado, toyado, data, yadodb, savedjpdcimage, self)
                         else:
                             assert False
 
@@ -416,7 +416,7 @@ class TransferYadoDataDialog(wx.Dialog):
                                 # 編成記録
                                 name = cw.cwpy.msgs["select_party_record"]
                                 self.msg = cw.cwpy.msgs["transfer_processing"] % (name)
-                                self.outer._transfer_partyrecord(fromyado, toyado, data, yadodb, self)
+                                self.outer.transfer_partyrecord(fromyado, toyado, data, yadodb, self)
                             else:
                                 assert False
                         else:
@@ -449,7 +449,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
-    def _transfer_bookmark(self, fromscedir, toscedir, fromyado, toyado, be, counter):
+    def transfer_bookmark(self, fromscedir, toscedir, fromyado, toyado, be, counter):
         # ブックマークを転送する
         # ただし転送先にすでに存在するアイテムは転送しない
         targetbookmarks = set()
@@ -496,17 +496,17 @@ class TransferYadoDataDialog(wx.Dialog):
         data.is_edited = True
         counter.num += 1
 
-    def _transfer_gossip(self, fromyado, toyado, ge, counter):
+    def transfer_gossip(self, fromyado, toyado, ge, counter):
         # ゴシップを転送する
         # ただし転送先にすでに存在するアイテムは転送しない
         self._transfer_elementlist(fromyado, toyado, ge, counter, "Gossips")
 
-    def _transfer_completestamp(self, fromyado, toyado, ce, counter):
+    def transfer_completestamp(self, fromyado, toyado, ce, counter):
         # 終了印を転送する
         # ただし転送先にすでに存在するアイテムは転送しない
         self._transfer_elementlist(fromyado, toyado, ce, counter, "CompleteStamps")
 
-    def _transfer_elementlist(self, fromyado, toyado, ee, counter, tag):
+    def transfer_elementlist(self, fromyado, toyado, ee, counter, tag):
         exists = set()
         edata = counter.environment.find(tag)
         for e in edata:
@@ -520,7 +520,7 @@ class TransferYadoDataDialog(wx.Dialog):
         counter.environment.is_edited = True
         counter.num += 1
 
-    def _transfer_party(self, fromyado, toyado, header, yadodb, counter):
+    def transfer_party(self, fromyado, toyado, header, yadodb, counter):
         # パーティを転送する
         pdata = cw.data.xml2etree(header.fpath)
         for i, fpath in enumerate(header.get_memberpaths(fromyado)):
@@ -621,7 +621,7 @@ class TransferYadoDataDialog(wx.Dialog):
         fpath = cw.util.join_paths(dstdir, os.path.basename(header.fpath))
         yadodb.insert_party(fpath)
 
-    def _transfer_album(self, fromyado, toyado, album, yadodb, counter):
+    def transfer_album(self, fromyado, toyado, album, yadodb, counter):
         # アルバムの転送
         for header in album:
             data = cw.data.xml2etree(header.fpath)
@@ -634,7 +634,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 yadodb.insert_adventurer(data.fpath, album=True, commit=False)
             counter.num += 1
 
-    def _transfer_adventurer(self, fromyado, toyado, data, yadodb, counter, overwrite=False):
+    def transfer_adventurer(self, fromyado, toyado, data, yadodb, counter, overwrite=False):
         # 冒険者の転送
         if isinstance(data, cw.header.AdventurerHeader):
             data = cw.data.xml2etree(data.fpath)
@@ -658,7 +658,7 @@ class TransferYadoDataDialog(wx.Dialog):
             counter.num += 1
         return data.fpath
 
-    def _transfer_card(self, fromyado, toyado, data, yadodb, counter):
+    def transfer_card(self, fromyado, toyado, data, yadodb, counter):
         # 個別のカードの転送
         if isinstance(data, cw.header.CardHeader):
             data = cw.data.xml2etree(data.fpath)
@@ -678,7 +678,7 @@ class TransferYadoDataDialog(wx.Dialog):
             yadodb.insert_card(data.fpath, commit=False)
             counter.num += 1
 
-    def _transfer_partyrecord(self, fromyado, toyado, partyrecord, yadodb, counter):
+    def transfer_partyrecord(self, fromyado, toyado, partyrecord, yadodb, counter):
         # 編成記録の転送
         for header in partyrecord:
             data = cw.data.xml2etree(header.fpath)
@@ -693,7 +693,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 yadodb.insert_partyrecord(data.fpath, commit=False)
             counter.num += 1
 
-    def _transfer_savedjpdcimage(self, fromyado, toyado, header, yadodb, table, counter):
+    def transfer_savedjpdcimage(self, fromyado, toyado, header, yadodb, table, counter):
         # 保存されたJPDCイメージの転送
         key = (header.scenarioname, header.scenarioauthor)
         savejpdcdir = cw.util.join_paths(toyado, u"SavedJPDCImage")

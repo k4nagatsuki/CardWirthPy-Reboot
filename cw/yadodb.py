@@ -320,8 +320,8 @@ class YadoDB(object):
                 self.cur.execute(s)
 
     @synclock(_lock)
-    def update(self, cards=True, adventurers=True, parties=True, cardorder={},
-               adventurerorder={}, partyrecord=True, savedjpdcimage=True):
+    def update(self, cards=True, adventurers=True, parties=True, cardorder={}.copy(),
+               adventurerorder={}.copy(), partyrecord=True, savedjpdcimage=True):
         """データベースを更新する。"""
         def walk(dpath, headertable, xmlname, insert, insertheader, *args):
             dname = cw.util.join_paths(self.ypath, dpath)

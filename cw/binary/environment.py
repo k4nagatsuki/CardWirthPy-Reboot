@@ -20,7 +20,6 @@ class Environment(base.CWBinaryBase):
             self.dataversion_int = int(self.dataversion[len("DATAVERSION_"):])
         else:
             self.dataversion_int = 0
-        self.dataversion_int
         self.yadotype = f.byte()
         self.drawcard_speed = f.dword()
         self.drawbg_speed = f.dword()

@@ -2970,7 +2970,8 @@ class SimpleXmlParser(object):
             with open(self.fpath, "rb") as f:
                 self.parse_file(f)
 
-        return self.root
+        root = self.root
+        return root
 
     def parse_file(self, fname):
         try:

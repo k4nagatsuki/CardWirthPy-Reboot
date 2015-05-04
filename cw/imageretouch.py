@@ -846,7 +846,7 @@ class Font(object):
                 self.bold = bold
                 self.italic = italic
                 self.underline = False
-                self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic);
+                self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic)
             except:
                 if pixels < 0:
                     # FIXME: CreateFont()で高さにマイナス値を指定した場合には

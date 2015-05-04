@@ -1030,7 +1030,7 @@ class Debugger(wx.Frame):
 
         step = bool(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
 
-        enabled = {}
+        enabled = {}.copy()
         enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, step)
         enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, step)
         enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, step)
@@ -1054,7 +1054,7 @@ class Debugger(wx.Frame):
 
     def _refresh_pausetool(self):
         assert threading.currentThread() <> cw.cwpy
-        if cw.cwpy.event._paused:
+        if cw.cwpy.event.is_paused():
             bmp = cw.cwpy.rsrc.debugs["EVTCTRL_PLAY"]
             text = u"イベント実行再開(&P)\tF10"
             helptext = u"イベント実行を再開します。"
@@ -1078,7 +1078,7 @@ class Debugger(wx.Frame):
             else:
                 cw.cwpy.event._stoped = True
 
-        enabled = {}
+        enabled = {}.copy()
         enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, False)
         enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, False)
         enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, False)
@@ -1145,8 +1145,8 @@ class Debugger(wx.Frame):
         def func(self):
             ydata = bool(cw.cwpy.ydata)
             savedjpdcimage = bool(ydata and cw.cwpy.ydata.savedjpdcimage)
-            event_paused = cw.cwpy.event._paused
-            event_step = cw.cwpy.event._step
+            event_paused = cw.cwpy.event.is_paused()
+            event_step = cw.cwpy.event.is_stepexec()
             battle = bool(cw.cwpy.battle)
             battle_is_running = cw.cwpy.battle and cw.cwpy.battle.is_running()
             is_showparty = cw.cwpy.is_showparty
@@ -1158,7 +1158,7 @@ class Debugger(wx.Frame):
                 if not self:
                     return
 
-                enabled = {}
+                enabled = {}.copy()
 
                 enabled[self.mi_comp.GetId()] = (self.mi_comp, self.tl_comp, False)
                 enabled[self.mi_gossip.GetId()] = (self.mi_gossip, self.tl_gossip, False)
@@ -1268,7 +1268,7 @@ class Debugger(wx.Frame):
 
     def _refresh_showpartytools(self):
         assert threading.currentThread() <> cw.cwpy
-        enabled = {}
+        enabled = {}.copy()
 
         enabled[self.mi_showparty.GetId()] = (self.mi_showparty, self.tl_showparty, False)
         enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, False)

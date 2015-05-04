@@ -230,7 +230,8 @@ class EventInterface(object):
         if not self.has_selectedmember():
             self.set_selectedmember(self.get_randommember())
 
-        return self._selectedmember
+        card = self._selectedmember
+        return card
 
     def clear_selectedmember(self):
         """選択中のメンバをクリアする。"""
@@ -260,7 +261,8 @@ class EventInterface(object):
 
     def get_inusecard(self):
         """使用カード(CardHeaderインスタンス)を返す。"""
-        return self._inusecard
+        card = self._inusecard
+        return card
 
     #---------------------------------------------------------------------------
     # デバッガ更新用メソッド
@@ -395,6 +397,21 @@ class EventInterface(object):
             self.get_event().skip_action = True
             self.refresh_activeitem()
 
+    def set_stepexec(self, step):
+        self._step = step
+
+    def is_stepexec(self):
+        return self._step
+
+    def set_stoped(self, stoped):
+        self._stoped = stoped
+
+    def is_stoped(self):
+        return self._stoped
+
+    def is_paused(self):
+        return self._paused
+
 class EventEngine(object):
     def __init__(self, data):
         """引数のEventsElementからEventインスタンスのリストを生成。
@@ -402,7 +419,7 @@ class EventEngine(object):
         """
         self.events = [Event(e) for e in data.getchildren()]
 
-    def start(self, keynum=None, keycodes=[], isinsideevent=False, successevent=False):
+    def start(self, keynum=None, keycodes=[][:], isinsideevent=False, successevent=False):
         """発火条件に適合するイベント
         (リストのindexが若いほど優先順位が高い)を起動させる。
         keynum: 発火キーナンバー。
@@ -705,7 +722,7 @@ class Event(object):
         self.nowrunningcontents = []
 
     def action(self):
-        if cw.cwpy.event._stoped:
+        if cw.cwpy.event.is_stoped():
             raise EffectBreakError()
 
         if self.skip_action:
@@ -725,7 +742,7 @@ class Event(object):
             (self.cur_content.tag == "Elapse" and self.cur_content.get("type") == "Time"):
             self.check_gameover()
 
-        if cw.cwpy.event._stoped:
+        if cw.cwpy.event.is_stoped():
             raise EffectBreakError()
 
     def get_nextcontents(self):
@@ -775,8 +792,10 @@ class Event(object):
             for pcard in cw.cwpy.get_pcards():
                 if not pcard.is_paralyze() and not pcard.is_unconscious():
                     flag = False
+                    break
 
-            cw.cwpy._gameover |= flag
+            if flag:
+                cw.cwpy.set_gameoverstatus(flag, force=False)
 
 class CardEvent(Event):
     def __init__(self, event, inusecard, user, targets):
@@ -930,7 +949,7 @@ class CardEvent(Event):
 
         # 各種データ取得
         data = self.inusecard.carddata
-        d = {}
+        d = {}.copy()
         d["user"] = self.user
         d["inusecard"] = self.inusecard
         d["successrate"] = data.getint("Property/SuccessRate", 0)

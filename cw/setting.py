@@ -1249,7 +1249,7 @@ class Resource(object):
         ダイアログで使用されるカーソルを読み込んで、
         wxCursorのインスタンスの辞書で返す。
         """
-        d = {}
+        d = {}.copy()
         d["CURSOR_BACK"] = wx.StockCursor(wx.CURSOR_POINT_LEFT)
         d["CURSOR_FORE"] = wx.StockCursor(wx.CURSOR_POINT_RIGHT)
         d["CURSOR_FINGER"] = wx.StockCursor(wx.CURSOR_HAND)

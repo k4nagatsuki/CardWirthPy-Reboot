@@ -96,6 +96,9 @@ class Select(wx.Dialog):
         if buttonlist:
             buttonlist[0].SetFocus()
 
+    def is_processing(self):
+        return self._processing
+
     def OnPrevButton(self, event):
         focus = wx.Window.FindFocus()
         buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)

@@ -193,7 +193,7 @@ class BuildExe(object):
             manifest = ""
 
         #Use the default pygame icon, if none given
-        if self.icon_file == None:
+        if self.icon_file is None:
             path = os.path.split(pygame.__file__)[0]
             self.icon_file = os.path.join(path, 'pygame.ico')
 

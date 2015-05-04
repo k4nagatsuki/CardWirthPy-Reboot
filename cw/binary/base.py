@@ -26,34 +26,34 @@ class CWBinaryBase(object):
         self.xmlpath = ""
 
         if parent:
-            self._yadodata = parent._yadodata
+            self.yadodata = parent.yadodata
         else:
-            self._yadodata = yadodata
+            self.yadodata = yadodata
 
     def set_root(self, parent):
         if parent:
-            self._root = parent._root
+            self.root = parent.root
         else:
-            self._root = weakref.ref(self)
+            self.root = weakref.ref(self)
 
     def get_root(self):
-        return self._root()
+        return self.root()
 
     def set_dir(self, path):
-        self.get_root()._dir = path
+        self.get_root().dir = path
 
     def get_dir(self):
         try:
-            return self.get_root()._dir
+            return self.get_root().dir
         except:
             return ""
 
     def set_imgdir(self, path):
-        self.get_root()._imgdir = path
+        self.get_root().imgdir = path
 
     def get_imgdir(self):
         try:
-            return self.get_root()._imgdir
+            return self.get_root().imgdir
         except:
             return ""
 
@@ -65,7 +65,7 @@ class CWBinaryBase(object):
         return bool(self == self.get_root())
 
     def is_yadodata(self):
-        return self._yadodata
+        return self.yadodata
 
     def set_materialdir(self, materialdir):
         """materialdirを素材ディレクトリとして登録する。

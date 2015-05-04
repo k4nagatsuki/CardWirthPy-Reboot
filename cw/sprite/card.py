@@ -95,6 +95,9 @@ class CWPyCard(base.SelectableSprite):
         else:
             return self._rect
 
+    def get_baserect(self):
+        return self._rect
+
     def update(self, scr):
         method = getattr(self, "update_" + self.status, None)
 

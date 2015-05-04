@@ -768,7 +768,7 @@ class Character(object):
                     self.deck.use(header)
                     self.use_card(targets, header)
 
-    def set_action(self, target, header, beasts=[], auto=False):
+    def set_action(self, target, header, beasts=[][:], auto=False):
         """
         戦闘行動を設定。
         auto: 自動手札選択から設定されたかどうか。
@@ -1232,7 +1232,7 @@ class Character(object):
 
         return d
 
-    def replace_allcoupons(self, seq, syscoupons={}):
+    def replace_allcoupons(self, seq, syscoupons={}.copy()):
         """システムクーポン以外の全てのクーポンを
         listの内容に入れ替える。
         seq: クーポン情報のタプル(name, value)のリスト。

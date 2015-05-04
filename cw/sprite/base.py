@@ -16,7 +16,7 @@ class CWPySprite(pygame.sprite.DirtySprite):
 
 class SelectableSprite(CWPySprite):
     def __init__(self, *groups):
-        self._selectable_on_event = False
+        self.selectable_on_event = False
         CWPySprite.__init__(self, *groups)
 
     def lclick_event(self):
@@ -48,15 +48,15 @@ class SelectableSprite(CWPySprite):
 
     def is_selection(self):
         """選択中スプライトか判定。"""
-        if cw.cwpy.is_dealing() and not self._selectable_on_event:
+        if cw.cwpy.is_dealing() and not self.selectable_on_event:
             return False
         # 戦闘行動中時
         elif not cw.cwpy.is_runningevent()\
                         and cw.cwpy.battle and cw.cwpy.battle.is_running()\
-                        and not self._selectable_on_event:
+                        and not self.selectable_on_event:
             return False
         # イベント中時、メッセージ選択バー以外
-        elif cw.cwpy.is_runningevent() and not self._selectable_on_event:
+        elif cw.cwpy.is_runningevent() and not self.selectable_on_event:
             return False
         # 通常の衝突判定
         elif not cw.cwpy.mousemotion and cw.cwpy.index >= 0:

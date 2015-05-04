@@ -200,7 +200,7 @@ class Step(base.CWBinaryBase):
         f.write_string(name)
         f.write_dword(default)
         for variable_name in variable_names:
-            f.write_string(variable_name);
+            f.write_string(variable_name)
 
 class Flag(base.CWBinaryBase):
     """フラグ定義。"""
@@ -240,7 +240,7 @@ class Flag(base.CWBinaryBase):
         f.write_string(name)
         f.write_bool(default)
         for variable_name in variable_names:
-            f.write_string(variable_name);
+            f.write_string(variable_name)
 
 def main():
     pass

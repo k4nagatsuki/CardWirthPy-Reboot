@@ -554,18 +554,18 @@ class SkinFeaturePanel(wx.Panel):
         nedit = wx.grid.GridCellNumberEditor(-99, 99)
         fedit = wx.grid.GridCellFloatEditor(4, 1)
 
-        self.grid.SetColLabelValue(0, u"名称");
-        self.grid.SetColLabelValue(1, u"器用");
-        self.grid.SetColLabelValue(2, u"敏捷");
-        self.grid.SetColLabelValue(3, u"知力");
-        self.grid.SetColLabelValue(4, u"筋力");
-        self.grid.SetColLabelValue(5, u"生命");
-        self.grid.SetColLabelValue(6, u"精神");
-        self.grid.SetColLabelValue(7, u"好戦");
-        self.grid.SetColLabelValue(8, u"社交");
-        self.grid.SetColLabelValue(9, u"勇猛");
-        self.grid.SetColLabelValue(10, u"慎重");
-        self.grid.SetColLabelValue(11, u"狡猾");
+        self.grid.SetColLabelValue(0, u"名称")
+        self.grid.SetColLabelValue(1, u"器用")
+        self.grid.SetColLabelValue(2, u"敏捷")
+        self.grid.SetColLabelValue(3, u"知力")
+        self.grid.SetColLabelValue(4, u"筋力")
+        self.grid.SetColLabelValue(5, u"生命")
+        self.grid.SetColLabelValue(6, u"精神")
+        self.grid.SetColLabelValue(7, u"好戦")
+        self.grid.SetColLabelValue(8, u"社交")
+        self.grid.SetColLabelValue(9, u"勇猛")
+        self.grid.SetColLabelValue(10, u"慎重")
+        self.grid.SetColLabelValue(11, u"狡猾")
 
         self.grid.SetColSize(0, 80)
         for col in xrange(1, 7):
@@ -676,7 +676,7 @@ class SkinSoundPanel(wx.Panel):
         self.grid.CreateGrid(len(basesounds), 1)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        self.grid.SetColLabelValue(0, u"ファイル名(拡張子を除く)");
+        self.grid.SetColLabelValue(0, u"ファイル名(拡張子を除く)")
         self.grid.SetColSize(0, 170)
 
         for row, e in enumerate(basesounds):
@@ -719,7 +719,7 @@ class SkinMessagePanel(wx.Panel):
         self.grid.SetRowLabelSize(150)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        self.grid.SetColLabelValue(0, u"メッセージ(\\n=改行, \\\\=\\)");
+        self.grid.SetColLabelValue(0, u"メッセージ(\\n=改行, \\\\=\\)")
         self.grid.SetColSize(0, 380)
 
         row = 0
@@ -815,8 +815,8 @@ class SkinCardPanel(wx.Panel):
         self.grid.CreateGrid(0, 2)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        self.grid.SetColLabelValue(0, u"名称");
-        self.grid.SetColLabelValue(1, u"解説(\\n=改行, \\\\=\\)");
+        self.grid.SetColLabelValue(0, u"名称")
+        self.grid.SetColLabelValue(1, u"解説(\\n=改行, \\\\=\\)")
         self.grid.SetColSize(0, 80)
         self.grid.SetColSize(1, 300)
 

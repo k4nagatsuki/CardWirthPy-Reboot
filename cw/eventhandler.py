@@ -217,7 +217,7 @@ class EventHandler(object):
         """
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
-                     cw.cwpy.selection._selectable_on_event)) or\
+                     cw.cwpy.selection.selectable_on_event)) or\
                 cw.cwpy.is_processing:
             return
 
@@ -237,7 +237,7 @@ class EventHandler(object):
         """
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
-                     cw.cwpy.selection._selectable_on_event)) or\
+                     cw.cwpy.selection.selectable_on_event)) or\
                 cw.cwpy.is_processing:
             return
 
@@ -400,7 +400,7 @@ class EventHandler(object):
         """
         if (cw.cwpy.is_runningevent() or cw.cwpy.is_processing) and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
-                     cw.cwpy.selection._selectable_on_event):
+                     cw.cwpy.selection.selectable_on_event):
             return
 
         if cw.cwpy.selection:
@@ -631,7 +631,7 @@ class EventHandlerForMessageWindow(EventHandler):
             sbar = cw.cwpy.list[cw.cwpy.index]
             sbar.lclick_event(skip=True)
 
-    def dirkey_event(self, x=0, y=0, pushing=False):
+    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
         """
         方向キーイベント。選択肢バーをフォーカスする。
         """
@@ -832,7 +832,7 @@ class EventHandlerForBacklog(EventHandler):
             return
         self.wheel_event(y=1)
 
-    def dirkey_event(self, x=0, y=0, pushing=False):
+    def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
         """
         方向キーイベント。
         バックログを進めたり戻したりする。

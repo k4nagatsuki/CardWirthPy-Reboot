@@ -1011,7 +1011,7 @@ class AdventurerHeader(object):
         return cw.cwpy.setting.unknown_race
 
 class Gene(object):
-    def __init__(self, bits=[]):
+    def __init__(self, bits=[][:]):
         if bits:
             self.bits = bits
         else:

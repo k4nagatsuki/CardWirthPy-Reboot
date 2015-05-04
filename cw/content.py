@@ -86,16 +86,16 @@ class EventContentBase(object):
             "vit" : u"生命力",
             "min" : u"精神力",
             # 精神能力
-            "aggressive" : u"好戦性",
-            "unaggressive" : u"平和性",
-            "cheerful" : u"社交性",
-            "uncheerful" : u"内向性",
-            "brave" : u"勇猛性",
-            "unbrave" : u"臆病性",
-            "cautious" : u"慎重性",
-            "uncautious" : u"大胆性",
-            "trickish" : u"狡猾性",
-            "untrickish" : u"正直性",
+            "mental_aggressive" : u"好戦性",
+            "mental_unaggressive" : u"平和性",
+            "mental_cheerful" : u"社交性",
+            "mental_uncheerful" : u"内向性",
+            "mental_brave" : u"勇猛性",
+            "mental_unbrave" : u"臆病性",
+            "mental_cautious" : u"慎重性",
+            "mental_uncautious" : u"大胆性",
+            "mental_trickish" : u"狡猾性",
+            "mental_untrickish" : u"正直性",
             # ステータス
             "active" : u"行動可能",
             "inactive" : u"行動不可",
@@ -1270,7 +1270,7 @@ class BranchAbilityContent(BranchContent):
     def get_childname(self, child):
         level = self.data.get("value", "0")
         physical = self.textdict.get(self.data.get("physical").lower())
-        mental = self.textdict.get(self.data.get("mental").lower())
+        mental = self.textdict.get("mental_" + self.data.get("mental").lower())
         scope = self.data.get("targetm")
         s2 = self.textdict.get(scope.lower(), "")
         s = u"%sがレベル%sで %sと %sで行う" % (s2, level, physical, mental)
@@ -1717,7 +1717,7 @@ class EffectContent(EventContentBase):
     def __init__(self, data):
         EventContentBase.__init__(self, data)
         # 各種データ取得
-        d = {}
+        d = {}.copy()
         d["level"] = self.data.getint(".", "level", 0)
         d["successrate"] = self.data.getint(".", "successrate", 0)
         d["effecttype"] = self.data.get("effecttype", "Physic")

@@ -1046,8 +1046,8 @@ class Converter(threading.Thread):
                     targets = [target]
                 else:
                     targets = target
-                for target in targets:
-                    fpath = cw.util.join_paths(dpath, "Resource/Image", target + ".bmp")
+                for target2 in targets:
+                    fpath = cw.util.join_paths(dpath, "Resource/Image", target2 + ".bmp")
                     resdir = os.path.dirname(fpath)
                     if not os.path.isdir(resdir):
                         os.makedirs(resdir)

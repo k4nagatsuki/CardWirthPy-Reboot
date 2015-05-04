@@ -59,7 +59,7 @@ class SelectPartyRecord(select.Select):
 
     def OnClickSaveBtn(self, event):
         """パーティの記録。"""
-        if self.Parent._processing:
+        if self.Parent.is_processing():
             return
         header = self.list[self.index]
         cw.cwpy.sounds["signal"].play()
@@ -133,7 +133,7 @@ class SelectPartyRecord(select.Select):
 
     def OnClickDeleteBtn(self, event):
         """パーティ記録の削除。"""
-        if self.Parent._processing:
+        if self.Parent.is_processing():
             return
         header = self.list[self.index]
         assert bool(header)

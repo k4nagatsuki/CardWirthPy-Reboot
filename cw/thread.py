@@ -1138,7 +1138,7 @@ class CWPy(_Singleton, threading.Thread):
         locks = self.lock_menucards
         self.lock_menucards = False
 
-        if self.is_showingdebugger() and self.event and self.event._step:
+        if self.is_showingdebugger() and self.event and self.event.is_stepexec():
             self.event.refresh_tools()
 
         self.event.refresh_activeitem()
@@ -1489,12 +1489,13 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change()
         self.change_area(1)
 
-    def set_gameoverstatus(self, gameover):
+    def set_gameoverstatus(self, gameover, force=True):
         """パーティの状態に係わらず
         現状のゲームオーバー状態を設定する。
         """
         self._gameover = gameover
-        self._forcegameover = gameover
+        if force:
+            self._forcegameover = gameover
 
     def f9(self, load_failure=False):
         """cw.data.ScenarioDataのf9()から呼び出され、
@@ -2180,12 +2181,13 @@ class CWPy(_Singleton, threading.Thread):
         for index, pcard in enumerate(self.get_pcards()):
             x = 9 + 95 * index + 9 * index
             y = pcard._pos_noscale[1]
-            pcard._rect[0] = cw.s(x)
+            pcard.get_baserect()[0] = cw.s(x)
             y2 = pcard.rect.top
             size = pcard.rect.size
+            baserect = pcard.get_baserect()
             if pcard.rect.size == (0, 0):
-                pcard.rect.size = pcard._rect.size
-            pcard.rect.center = pcard._rect.center
+                pcard.rect.size = baserect.size
+            pcard.rect.center = baserect.center
             pcard.rect.top = y2
             pcard.cardimg.rect[0] = cw.s(x)
             pcard._pos_noscale = (x, y)
@@ -2829,10 +2831,10 @@ class CWPy(_Singleton, threading.Thread):
                                 size = dummyimage.get_size()
 
                             (area2_y, ), (card_y, ), (card_h, ) = \
-                                    pos_noscale2[1:], card._pos_noscale[1:], size[1:]
+                                    pos_noscale2[1:], card.get_pos_noscale()[1:], size[1:]
                             # pos_noscale2 の領域に enemycard が重なっているか
                             if area2_y < card_y + card_h:
-                                rect_card = pygame.Rect(card._pos_noscale, size)
+                                rect_card = pygame.Rect(card.get_pos_noscale(), size)
                                 clip = rect_area.clip(rect_card)
                                 # curtain が重なって濃くならないよう、透過色で塗るrectのリスト
                                 cutarealist = []
@@ -2856,7 +2858,7 @@ class CWPy(_Singleton, threading.Thread):
                     for card in cards:
                         cw.sprite.background.Curtain(self.pcardgrp,
                                                      size_noscale=size_noscale_castcard,
-                                                     pos_noscale=card._pos_noscale)
+                                                     pos_noscale=card.get_pos_noscale())
 
             self._curtained = True
 

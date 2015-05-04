@@ -11,7 +11,7 @@ import base
 class MessageWindow(base.CWPySprite):
     def __init__(self, text, names, path="", talker=None,
                  pos_noscale=None, size_noscale=None, talkerimage=None,
-                 nametable={}, namesubtable={}, flagtable={}, steptable={},
+                 nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
                  backlog=False, result=None, versionhint="", specialchars=None):
         base.CWPySprite.__init__(self)
         if pos_noscale is None:
@@ -489,7 +489,7 @@ class MemberSelectWindow(SelectWindow):
 class SelectionBar(base.SelectableSprite):
     def __init__(self, name, pos, backlog=False, selected=False):
         base.SelectableSprite.__init__(self)
-        self._selectable_on_event = True
+        self.selectable_on_event = True
         # 各種データ
         self.backlog = backlog
         self.selected = selected

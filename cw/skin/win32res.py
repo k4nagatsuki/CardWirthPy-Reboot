@@ -280,15 +280,15 @@ class Win32Res(object):
             else:
                 pass
         else:
-            header_size += RGBQUAD_SIZE * clr_used;
-        header_size += BITMAPFILEHEADER_SIZE;
+            header_size += RGBQUAD_SIZE * clr_used
+        header_size += BITMAPFILEHEADER_SIZE
         size = BITMAPFILEHEADER_SIZE + len(data) # file size
 
         # BITMAPFILEHEADER
-        header = "BM" + uint32.pack(size) + uint16.pack(0) + uint16.pack(0) + uint32.pack(header_size);
+        header = "BM" + uint32.pack(size) + uint16.pack(0) + uint16.pack(0) + uint32.pack(header_size)
         assert len(header) == BITMAPFILEHEADER_SIZE
 
-        return header + data;
+        return header + data
 
     def get_tpf0form(self, name):
         data = self.get_rcdata(RT_RCDATA, name)
