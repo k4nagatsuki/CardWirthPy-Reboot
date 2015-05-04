@@ -1145,13 +1145,13 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
             path = cw.util.join_paths(scedir, path)
     elif not os.path.isfile(path):
         path = cw.util.join_paths(cw.cwpy.skindir, path)
-    if os.path.isfile(path) or not findskin:
-        return path
-    return get_materialpathfromskin(path, mtype)
+    return get_materialpathfromskin(path, mtype, findskin=findskin)
 
-def get_materialpathfromskin(path, mtype):
+def get_materialpathfromskin(path, mtype, findskin=True):
     if not os.path.isfile(path):
-        if path.startswith(cw.cwpy.skindir):
+        if not findskin:
+            path = ""
+        elif path.startswith(cw.cwpy.skindir):
             fname = cw.util.splitext(path)[0]
             if mtype == cw.M_IMG:
                 path = cw.util.find_resource(fname, cw.cwpy.rsrc.ext_img)
