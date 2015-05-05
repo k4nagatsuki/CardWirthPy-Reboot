@@ -1185,10 +1185,18 @@ def remove_temp():
             removeall = False
         else:
             path = join_paths(dpath, name)
-            remove(path)
+            try:
+                remove(path)
+            except:
+                print_ex()
+                remove_treefiles(path)
 
     if removeall and cw.tempdir <> cw.tempdir_init:
-        remove(cw.tempdir)
+        try:
+            remove(cw.tempdir)
+        except:
+            print_ex()
+            remove_treefiles(cw.tempdir)
 
 def remove(path):
     if os.path.isfile(path):
@@ -1253,6 +1261,14 @@ def remove_tree2(treepath):
             path = join_paths(dpath, fname)
             os.remove(path)
     os.rmdir(treepath)
+
+def remove_treefiles(treepath):
+    # remove_tree2()でもたまにエラーになる環境があるらしいので、
+    # せめてディレクトリだけでなくファイルだけでも削除を試みる
+    for dpath, dnames, fnames in os.walk(treepath, topdown=False):
+        for fname in fnames:
+            path = join_paths(dpath, fname)
+            os.remove(path)
 
 def rename_file(path, dstpath):
     """pathをdstpathへ移動する。
