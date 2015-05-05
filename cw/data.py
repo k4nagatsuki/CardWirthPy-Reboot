@@ -1709,19 +1709,38 @@ class YadoData(object):
             ignores.add(os.path.normpath(os.path.normcase(ipath)))
 
         # 削除実行
+        delfailurepaths = set()
         for path in self.deletedpaths:
             if os.path.normpath(os.path.normcase(path)) in ignores:
                 continue
-            cw.util.remove(path)
-            dpath = os.path.dirname(path)
+            try:
+                cw.util.remove(path)
+                dpath = os.path.dirname(path)
 
-            if dpath.startswith(materialdir) and os.path.isdir(dpath)\
-                                                    and not os.listdir(dpath):
-                cw.util.remove(dpath)
+                if dpath.startswith(materialdir) and os.path.isdir(dpath)\
+                                                        and not os.listdir(dpath):
+                    cw.util.remove(dpath)
+            except:
+                cw.util.print_ex()
+                delfailurepaths.add(path)
 
         self.deletedpaths.clear()
         # 宿のtempフォルダを空にする
-        cw.util.remove(self.tempdir)
+        try:
+            cw.util.remove(self.tempdir)
+        except:
+            cw.util.print_ex()
+            for dpath, dnames, fnames in os.walk(self.tempdir):
+                for fname in fnames:
+                    fpath = cw.util.join_paths(dpath, fname)
+                    if deltempfpath <> fpath:
+                        delfailurepaths.add(fpath)
+
+        # BUG: 環境によってファイルやフォルダの削除が失敗する事がある
+        #      (WindowsError: [Error 5] アクセスが拒否されました)。
+        #      そうしたファイルは削除リストに残しておき、後で削除する。
+        for path in delfailurepaths:
+            self.deletedpaths.add(path)
 
     #---------------------------------------------------------------------------
     # ゴシップ・シナリオ終了印用メソッド
