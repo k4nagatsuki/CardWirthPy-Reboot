@@ -325,6 +325,7 @@ class CastCard(base.CWBinaryBase):
                         level = int(prop.text)
                     elif prop.tag == "Money":
                         money = int(prop.text)
+                        money = cw.util.numwrap(money, 0, 100000)
                     elif prop.tag == "Life":
                         life = int(prop.text)
                         maxlife = int(prop.get("max"))

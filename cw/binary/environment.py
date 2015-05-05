@@ -157,6 +157,7 @@ class Environment(base.CWBinaryBase):
                 for prop in e:
                     if prop.tag == "Cashbox":
                         money = int(prop.text)
+                        money = cw.util.numwrap(money, 0, 999999)
                     elif prop.tag == "NowSelectingParty":
                         partyname = table["party"].get(prop.text, "")
             elif e.tag == "CompleteStamps":

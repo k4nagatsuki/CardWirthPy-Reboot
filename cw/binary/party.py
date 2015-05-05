@@ -104,6 +104,7 @@ class Party(base.CWBinaryBase):
                         name = prop.text
                     elif prop.tag == "Money":
                         money = int(prop.text)
+                        money = cw.util.numwrap(money, 0, 999999)
                     elif prop.tag == "Members":
                         atbl = table["adventurers"]
                         seq = []
@@ -264,6 +265,7 @@ class PartyMembers(base.CWBinaryBase):
             e_log = cw.data.xml2etree(cw.util.join_paths(logdir, "ScenarioLog.xml"))
             e_party = cw.data.xml2etree(cw.util.join_paths(logdir, "Party/Party.xml"))
             money_beforeadventure = e_party.getint("Property/Money", party.money)
+            money_beforeadventure = cw.util.numwrap(money_beforeadventure, 0, 999999)
             nowadventuring = True
             scenariopath = e_log.gettext("Property/WsnPath", "")
             areaid = e_log.getint("Property/AreaId", 0)
@@ -320,7 +322,7 @@ class PartyMembers(base.CWBinaryBase):
                 fpath, data = btbl[header.fpath]
                 scenariocard = cw.util.str2bool(data.get("scenariocard", "False"))
                 cards.append(BackpackCard.unconv(f, data, fpath, not scenariocard))
-        f.write_dword(party.money) # パーティの所持金(現在値)
+        f.write_dword(cw.util.numwrap(party.money, 0, 999999)) # パーティの所持金(現在値)
 
         # プレイ中のシナリオの状況
         if nowadventuring:
