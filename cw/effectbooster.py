@@ -745,6 +745,7 @@ class JpyImage(cw.image.Image):
         config.path = os.path.abspath(config.path)
         config.dirdepth = back.dirdepth
 
+        can_mask = True
         back.load(doanime)
         defaultcopymode = 1
         self.is_cacheable = not back.transparent
@@ -765,6 +766,7 @@ class JpyImage(cw.image.Image):
                     self.is_cacheable = False
                 if parts.animation in (1, 2, 3):
                     defaultcopymode = 2
+                can_mask &= parts.can_mask
 
         back.retouch()
         if not parent:
@@ -772,17 +774,18 @@ class JpyImage(cw.image.Image):
         back.drawtemp(doanime)
         if not back.is_cacheable:
             self.is_cacheable = False
+        can_mask &= back.can_mask
         self.image = back.get_image()
 
         # 互換動作: 1.30以前はレタッチ内容によってセルとして配置した時に
         #           指定したマスク設定が無効にされてしまう場合があるが、
         #           1.50では無効にならない
         if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-            if mask and back.can_mask:
+            if mask and can_mask:
                 self.image = self.image.convert()
                 self.image.set_colorkey(self.image.get_at((0, 0)))
         else:
-            if mask and (parent is None or back.can_mask):
+            if mask and (parent is None or can_mask):
                 self.image = self.image.convert()
                 self.image.set_colorkey(self.image.get_at((0, 0)))
 
