@@ -465,6 +465,7 @@ class Scenariodb(object):
         headers, _names = self.create_headers(data, skintype=u"")
 
         # 情報が更新されている可能性があるため再チェック
+        paths = set()
         seq = []
         for header in headers:
             if ftype == DATA_TITLE:
@@ -481,7 +482,14 @@ class Scenariodb(object):
                     continue
             else:
                 assert False
-            seq.append(header)
+
+            fpath = header.get_fpath()
+            fpath = os.path.abspath(fpath)
+            fpath = os.path.normpath(fpath)
+            fpath = os.path.normcase(fpath)
+            if not fpath in paths:
+                paths.add(fpath)
+                seq.append(header)
 
         return self.sort_headers(seq)
 
