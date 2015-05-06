@@ -1291,6 +1291,7 @@ class EffectBoosterConfig(object):
         cur_sec = {}
         jptxtxt = []
         in_jptxtxt = False
+        ext = os.path.splitext(path)[1].lower()
 
         with open(path, "rb") as f:
 
@@ -1330,7 +1331,9 @@ class EffectBoosterConfig(object):
                     val = m.group(2).strip()
                     if val.startswith('"') and val.startswith('"'):
                         val = val[1:-1]
-                    if not opt in cur_sec:
+                    # BUG: セクション内でコマンドが重複した時、
+                    #      JPY1は先の定義が優先だがJPTXは後が優先？
+                    if not opt in cur_sec or ext == ".jptx":
                         cur_sec[opt] = val
                     continue
 
