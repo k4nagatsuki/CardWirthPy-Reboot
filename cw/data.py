@@ -1727,6 +1727,7 @@ class YadoData(object):
         self.deletedpaths.clear()
         # 宿のtempフォルダを空にする
         try:
+            cw.util.remove(deltempfpath)
             cw.util.remove(self.tempdir)
         except:
             cw.util.print_ex()
