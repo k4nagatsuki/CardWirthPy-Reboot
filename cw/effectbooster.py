@@ -779,9 +779,11 @@ class JpyImage(cw.image.Image):
         #           1.50では無効にならない
         if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
             if mask and back.can_mask:
+                self.image = self.image.convert()
                 self.image.set_colorkey(self.image.get_at((0, 0)))
         else:
             if mask and (parent is None or back.can_mask):
+                self.image = self.image.convert()
                 self.image.set_colorkey(self.image.get_at((0, 0)))
 
 class JpyCache(object):
