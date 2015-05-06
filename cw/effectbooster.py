@@ -138,7 +138,7 @@ class _JpySubImage(cw.image.Image):
                     elif self.mask == 2:
                         back.image = cw.imageretouch.add_transparentline(back.image, False, True, rect, True)
                     elif self.mask == 3:
-                        back.image = cw.imageretouch.add_transparentline(back.image, True, True, rect, True)
+                        back.image = cw.imageretouch.add_transparentmesh(back.image, setalpha=True)
 
     def drawtemp(self, doanime):
         """一時描画。"""
