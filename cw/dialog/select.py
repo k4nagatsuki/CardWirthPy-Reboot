@@ -2645,8 +2645,13 @@ class ScenarioSelect(Select):
             list.insert(0, findresult)
             self.find_result = findresult
             self.scetable[self.scedir] = list
+
         self.scetable[findresult] = headers[:]
-        findresult.headers = self._sort_headers(headers)
+        cansort = 1 < len(headers) and isinstance(headers[0], cw.header.ScenarioHeader)
+        if cansort:
+            findresult.headers = self._sort_headers(headers)
+        else:
+            findresult.headers = headers[:]
 
         # 検索結果ディレクトリを表示する
         if self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen():
@@ -3092,13 +3097,13 @@ class ScenarioSelect(Select):
             else:
                 self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
                 self.nowdir = cw.util.get_linktarget(self.list[self.index])
-            self._update_saveddirstack()
             self.list = self._get_nowlist()
             self.scetable[self.nowdir] = self.list
             self.list = self._narrow_scenario(self.list)
             self.index = 0
             self.enable_btn()
             self.draw(True)
+            self._update_saveddirstack()
         elif self.yesbtn.GetLabel() == cw.cwpy.msgs["decide"]:
             self._update_saveddirstack()
             cw.cwpy.sounds["signal"].play()
