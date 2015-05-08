@@ -1393,6 +1393,8 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata.party:
             areaid = 2
             self.ydata.party.remove_numbercoupon()
+            for pcard in self.get_pcards():
+                pcard.clear_action()
         else:
             areaid = 1
 

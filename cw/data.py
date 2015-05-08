@@ -1713,29 +1713,24 @@ class YadoData(object):
         for path in self.deletedpaths:
             if os.path.normpath(os.path.normcase(path)) in ignores:
                 continue
-            try:
-                cw.util.remove(path)
-                dpath = os.path.dirname(path)
-
-                if dpath.startswith(materialdir) and os.path.isdir(dpath)\
-                                                        and not os.listdir(dpath):
-                    cw.util.remove(dpath)
-            except:
-                cw.util.print_ex()
-                delfailurepaths.add(path)
+            cw.util.remove(path)
+            dpath = os.path.dirname(path)
+            if dpath.startswith(materialdir) and os.path.isdir(dpath)\
+                                                    and not os.listdir(dpath):
+                try:
+                        cw.util.remove(dpath)
+                except:
+                    cw.util.print_ex(file=sys.stderr)
+                    cw.util.remove_treefiles(dpath)
 
         self.deletedpaths.clear()
         # 宿のtempフォルダを空にする
+        cw.util.remove(deltempfpath)
         try:
-            cw.util.remove(deltempfpath)
             cw.util.remove(self.tempdir)
         except:
-            cw.util.print_ex()
-            for dpath, dnames, fnames in os.walk(self.tempdir):
-                for fname in fnames:
-                    fpath = cw.util.join_paths(dpath, fname)
-                    if deltempfpath <> fpath:
-                        delfailurepaths.add(fpath)
+            cw.util.print_ex(file=sys.stderr)
+            cw.util.remove_treefiles(self.tempdir)
 
         # BUG: 環境によってファイルやフォルダの削除が失敗する事がある
         #      (WindowsError: [Error 5] アクセスが拒否されました)。
