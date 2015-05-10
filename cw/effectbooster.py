@@ -470,17 +470,18 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyPartsImage
         if not hasattr(self, "backcolor"):
-            width = self.width if self.width >= 0 else image.get_width()
-            height = self.height if self.height >= 0 else image.get_height()
+            width = self.width if 0 <= self.width else image.get_width()
+            height = self.height if 0 <= self.height else image.get_height()
             size = (width, height)
 
-            if width <= 0 or height <= 0:
-                image = pygame.Surface(cw.s((0, 0))).convert()
-            elif not size == image.get_size() and not size == cw.s((0, 0)):
-                if self.smooth:
-                    image = cw.image.smoothscale(image, size)
-                else:
-                    image = pygame.transform.scale(image, size)
+            if 0 <= width and 0 <= height:
+                if width == 0 or height == 0:
+                    image = pygame.Surface(cw.s((0, 0))).convert()
+                elif not size == image.get_size() and not size == cw.s((0, 0)):
+                    if self.smooth:
+                        image = cw.image.smoothscale(image, size)
+                    else:
+                        image = pygame.transform.scale(image, size)
 
         # 透過ライン
         if self.mask:
@@ -716,7 +717,10 @@ class JpyPartsImage(_JpySubImage):
     def __init__(self, config, section, cache, mask):
         _JpySubImage.__init__(self, config, section, cache)
         self.height = cw.s(config.get_int(section, "height", -1))
-        self.width = cw.s(config.get_int(section, "width", -1))
+        self.width = cw.s(config.get_int(section, "width", None))
+        self.haswidth = not self.width is None
+        if self.width is None:
+            self.width = -1
         self.color = config.get_color(section, "color", (0, 0, 0))
         self.position_noscale = config.get_ints(section, "position", 2, (0, 0))
         self.position = cw.s(self.position_noscale)
@@ -751,7 +755,7 @@ class JpyImage(cw.image.Image):
         if back.width < 0:
             # ドキュメントではbackwidthとbackheightは
             # 省略か-1指定で(632, 420)になると書かれているが、
-            # 実際には消滅する
+            # 実際にはbackwidthが0未満だと消滅する
             self.image = pygame.Surface(cw.s((0, 0))).convert()
             self.is_cacheable = True
 
@@ -769,6 +773,11 @@ class JpyImage(cw.image.Image):
             for section in config.sections():
                 if not section == "init":
                     parts = JpyPartsImage(config, section, cache, mask)
+                    if parts.haswidth and parts.width < 0 and parts.dirtype == 2:
+                        # ドキュメントではwidthとheightは
+                        # 省略か-1指定で画像のサイズになると書かれているが、
+                        # 実際にはwidthが0未満かつdirtype=2だと処理が中断される
+                        break
                     parts.defaultcopymode = defaultcopymode
                     parts.load(doanime)
                     parts.retouch()
