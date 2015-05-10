@@ -792,9 +792,9 @@ class JpyImage(cw.image.Image):
                     can_mask &= parts.can_mask
 
             back.retouch()
+            back.drawtemp(doanime)
             if not parent:
                 cache.restore()
-            back.drawtemp(doanime)
             if not back.is_cacheable:
                 self.is_cacheable = False
             can_mask &= back.can_mask
