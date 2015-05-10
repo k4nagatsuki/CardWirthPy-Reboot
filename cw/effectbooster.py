@@ -142,6 +142,7 @@ class _JpySubImage(cw.image.Image):
 
     def drawtemp(self, doanime):
         """一時描画。"""
+
         # 一時描画せずにウェイトだけ
         if self.animation == 4:
             if doanime.countup():
@@ -469,11 +470,13 @@ class _JpySubImage(cw.image.Image):
 
         # リサイズ for JpyPartsImage
         if not hasattr(self, "backcolor"):
-            width = self.width if self.width > 0 else image.get_width()
-            height = self.height if self.height > 0 else image.get_height()
+            width = self.width if self.width >= 0 else image.get_width()
+            height = self.height if self.height >= 0 else image.get_height()
             size = (width, height)
 
-            if not size == image.get_size() and not size == cw.s((0, 0)):
+            if width <= 0 or height <= 0:
+                image = pygame.Surface(cw.s((0, 0))).convert()
+            elif not size == image.get_size() and not size == cw.s((0, 0)):
                 if self.smooth:
                     image = cw.image.smoothscale(image, size)
                 else:
@@ -595,7 +598,9 @@ class _JpySubImage(cw.image.Image):
             size = (width, height)
 
             if not size == image.get_size():
-                if image.get_width() == 0 or image.get_height() == 0:
+                if width == 0 or height == 0:
+                    image = pygame.Surface(cw.s((0, 0))).convert()
+                elif image.get_width() == 0 or image.get_height() == 0:
                     image = pygame.Surface(size).convert()
                 elif self.smooth:
                     image = cw.image.smoothscale(image, size)
@@ -723,8 +728,8 @@ class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache, mask):
         _JpySubImage.__init__(self, config, "init", cache)
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
-        self.width = cw.s(config.get_int("init", "backwidth", -1))
-        self.height = cw.s(config.get_int("init", "backheight", -1))
+        self.width = cw.s(config.get_int("init", "backwidth", cw.SIZE_AREA[0]))
+        self.height = cw.s(config.get_int("init", "backheight", cw.SIZE_AREA[1]))
         self.transparent = config.get_bool("init", "transparent", False)
         self.dirdepth = config.get_int("init", "dirdepth", 0)
         self.dirdepth = max(0, self.dirdepth)
@@ -742,52 +747,61 @@ class JpyImage(cw.image.Image):
 
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
-        config.path = os.path.abspath(config.path)
-        config.dirdepth = back.dirdepth
 
-        can_mask = True
-        back.load(doanime)
-        defaultcopymode = 1
-        self.is_cacheable = not back.transparent
-        if parent and back.loadcache:
-            self.is_cacheable = False
+        if back.width < 0:
+            # ドキュメントではbackwidthとbackheightは
+            # 省略か-1指定で(632, 420)になると書かれているが、
+            # 実際には消滅する
+            self.image = pygame.Surface(cw.s((0, 0))).convert()
+            self.is_cacheable = True
 
-        for section in config.sections():
-            if not section == "init":
-                parts = JpyPartsImage(config, section, cache, mask)
-                parts.defaultcopymode = defaultcopymode
-                parts.load(doanime)
-                parts.retouch()
-                parts.drawtemp(doanime)
-                parts.draw2back(back, mask)
-                if not parts.is_cacheable:
-                    self.is_cacheable = False
-                if parent and parts.loadcache:
-                    self.is_cacheable = False
-                if parts.animation in (1, 2, 3):
-                    defaultcopymode = 2
-                can_mask &= parts.can_mask
-
-        back.retouch()
-        if not parent:
-            cache.restore()
-        back.drawtemp(doanime)
-        if not back.is_cacheable:
-            self.is_cacheable = False
-        can_mask &= back.can_mask
-        self.image = back.get_image()
-
-        # 互換動作: 1.30以前はレタッチ内容によってセルとして配置した時に
-        #           指定したマスク設定が無効にされてしまう場合があるが、
-        #           1.50では無効にならない
-        if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-            if mask and can_mask:
-                self.image = self.image.convert()
-                self.image.set_colorkey(self.image.get_at((0, 0)))
         else:
-            if mask and (parent is None or can_mask):
-                self.image = self.image.convert()
-                self.image.set_colorkey(self.image.get_at((0, 0)))
+            config.path = os.path.abspath(config.path)
+            config.dirdepth = back.dirdepth
+
+            can_mask = True
+            back.load(doanime)
+            defaultcopymode = 1
+            self.is_cacheable = not back.transparent
+            if parent and back.loadcache:
+                self.is_cacheable = False
+
+            for section in config.sections():
+                if not section == "init":
+                    parts = JpyPartsImage(config, section, cache, mask)
+                    parts.defaultcopymode = defaultcopymode
+                    parts.load(doanime)
+                    parts.retouch()
+                    parts.drawtemp(doanime)
+                    parts.draw2back(back, mask)
+                    if not parts.is_cacheable:
+                        self.is_cacheable = False
+                    if parent and parts.loadcache:
+                        self.is_cacheable = False
+                    if parts.animation in (1, 2, 3):
+                        defaultcopymode = 2
+                    can_mask &= parts.can_mask
+
+            back.retouch()
+            if not parent:
+                cache.restore()
+            back.drawtemp(doanime)
+            if not back.is_cacheable:
+                self.is_cacheable = False
+            can_mask &= back.can_mask
+            self.image = back.get_image()
+
+            # 互換動作: 1.30以前はレタッチ内容によってセルとして配置した時に
+            #           指定したマスク設定が無効にされてしまう場合があるが、
+            #           1.50では無効にならない
+            if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+                if mask and can_mask:
+                    self.image = self.image.convert()
+                    self.image.set_colorkey(self.image.get_at((0, 0)))
+            else:
+                if mask and (parent is None or can_mask):
+                    self.image = self.image.convert()
+                    self.image.set_colorkey(self.image.get_at((0, 0)))
 
 class JpyCache(object):
     """Jpy1ファイル読み込み時に使うキャッシュ。
