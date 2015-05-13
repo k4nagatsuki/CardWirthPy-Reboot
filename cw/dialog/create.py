@@ -1037,6 +1037,7 @@ def _read_names(fpath):
             with open(fpath, "rb") as f:
                 t = f.read()
                 t = cw.util.decode_zipname(t)
+                f.close()
             lines = t.splitlines()
             for line in lines:
                 line = line.strip()

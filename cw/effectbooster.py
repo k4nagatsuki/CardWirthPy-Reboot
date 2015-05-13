@@ -1359,6 +1359,7 @@ class EffectBoosterConfig(object):
                     if not opt in cur_sec or ext == ".jptx":
                         cur_sec[opt] = val
                     continue
+            f.close()
 
         if jptxtxt:
             self._sections["jptx:begin"] = {"jptx:end": "".join(jptxtxt)}

@@ -999,11 +999,13 @@ class YadoSelect(Select):
                             fpath = cw.util.join_paths(yadodir, fname)
                             with cw.binary.cwfile.CWFile(fpath, "rb") as f:
                                 adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
+                                f.close()
                             seq.append(adv.name)
                         elif ext == ".wpl":
                             fpath = cw.util.join_paths(yadodir, fname)
                             with cw.binary.cwfile.CWFile(fpath, "rb") as f:
                                 party = cw.binary.party.Party(None, f)
+                                f.close()
                             for member in party.memberslist:
                                 seq.append(member)
                         if 25 <= len(seq):
@@ -4015,6 +4017,7 @@ class ScenarioSelect(Select):
                                         dpath2 = cw.util.decode_zipname(dpath2)
                                         with open(cw.util.join_paths(dpath2, fname), "r") as f:
                                             content = f.read()
+                                            f.close()
                                         seq.append(text.ReadmeData(fname, content))
                     finally:
                         for fpath in os.listdir(dpath):
@@ -4031,6 +4034,7 @@ class ScenarioSelect(Select):
                             name = os.path.basename(name)
                             name = cw.util.decode_zipname(name)
                             seq.append(text.ReadmeData(name, data))
+                        z.close()
 
             else:
 
@@ -4044,6 +4048,7 @@ class ScenarioSelect(Select):
                 for fpath in paths:
                     with open(fpath, "r") as f:
                         data = f.read()
+                        f.close()
                     name = cw.util.relpath(fpath, path)
                     name = cw.util.join_paths(name)
                     seq.append(text.ReadmeData(name, data))
@@ -4055,6 +4060,7 @@ class ScenarioSelect(Select):
                     fpath = cw.util.join_paths(dpath, fname)
                     with open(fpath, "r") as f:
                         data = f.read()
+                        f.close()
                     seq.append(text.ReadmeData(fname, data))
 
         return seq

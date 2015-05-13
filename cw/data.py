@@ -1225,6 +1225,7 @@ class YadoData(object):
                             if os.path.isfile(path):
                                 with open(path, "rb") as f:
                                     imagedata = f.read()
+                                    f.close()
                                 e2.text = cw.binary.image.data_to_code(imagedata)
                                 header.imgpath = e2.text
 
@@ -1717,20 +1718,12 @@ class YadoData(object):
             dpath = os.path.dirname(path)
             if dpath.startswith(materialdir) and os.path.isdir(dpath)\
                                                     and not os.listdir(dpath):
-                try:
-                        cw.util.remove(dpath)
-                except:
-                    cw.util.print_ex(file=sys.stderr)
-                    cw.util.remove_treefiles(dpath)
+                cw.util.remove(dpath)
 
         self.deletedpaths.clear()
         # 宿のtempフォルダを空にする
         cw.util.remove(deltempfpath)
-        try:
-            cw.util.remove(self.tempdir)
-        except:
-            cw.util.print_ex(file=sys.stderr)
-            cw.util.remove_treefiles(self.tempdir)
+        cw.util.remove(self.tempdir)
 
         # BUG: 環境によってファイルやフォルダの削除が失敗する事がある
         #      (WindowsError: [Error 5] アクセスが拒否されました)。
@@ -2695,8 +2688,11 @@ class CWPyElementTree(ElementTree, _CWPyElementInterface):
                     f.write('<?xml version="1.0" encoding="utf-8" ?>\n')
                     ElementTree.write(self, f, "utf-8")
                     sbytes = f.getvalue()
+                    f.close()
                 with open(path, "wb") as f:
                     f.write(sbytes)
+                    f.flush()
+                    f.close()
                     break
             except IOError, ex:
                 if 5 <= retry:
@@ -2984,6 +2980,7 @@ class SimpleXmlParser(object):
         else:
             with open(self.fpath, "rb") as f:
                 self.parse_file(f)
+                f.close()
 
         root = self.root
         return root

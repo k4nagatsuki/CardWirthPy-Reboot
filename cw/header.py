@@ -1115,6 +1115,7 @@ class ScenarioHeader(object):
                 with io.BytesIO(str(self.image)) as f:
                     # TODO scaleinfo
                     self._wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE))
+                    f.close()
             else:
                 self._wxbmp = wx.EmptyBitmap(cw.wins(0), cw.wins(0))
         return self._wxbmp
@@ -1415,11 +1416,12 @@ class GetName(object):
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.character_data
 
-        with open(fpath) as f:
+        with open(fpath, "r") as f:
             try:
                 parser.ParseFile(f)
             except Exception:
                 pass
+            f.close()
 
     def start_element(self, name, attrs):
         self.stack.append(name)
@@ -1448,11 +1450,12 @@ class GetProperty(object):
         parser.EndElementHandler = self.end_element
         parser.CharacterDataHandler = self.character_data
 
-        with open(fpath) as f:
+        with open(fpath, "r") as f:
             try:
                 parser.ParseFile(f)
             except Exception:
                 pass
+            f.close()
 
     def start_element(self, name, attrs):
         self.stack.append(name)

@@ -524,7 +524,9 @@ def read_summary(basepath):
             spath = cw.util.join_paths(path, "Summary.wsm")
             if os.path.isfile(spath):
                 with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                    return read_summary_classic(basepath, spath, f)
+                    r = read_summary_classic(basepath, spath, f)
+                    f.close()
+                return r
 
             spath = cw.util.join_paths(path, "Summary.xml")
             if os.path.isfile(spath):
@@ -536,6 +538,7 @@ def read_summary(basepath):
                     if os.path.isfile(imgpath):
                         with open(imgpath, "rb") as f2:
                             imgbuf = f2.read()
+                            f2.close()
                 imgbuf = buffer(imgbuf)
                 summaryinfos.append(imgbuf)
                 return tuple(summaryinfos)
@@ -557,7 +560,9 @@ def read_summary(basepath):
                     f = None
                     try:
                         with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                            return read_summary_classic(basepath, path, f)
+                            r = read_summary_classic(basepath, path, f)
+                            f.close()
+                            return r
                     finally:
                         os.remove(spath)
                 else:
@@ -592,6 +597,7 @@ def read_summary(basepath):
                                 if ret == 0 and os.path.isfile(imgpath2):
                                     with open(imgpath2, "rb") as f:
                                         imgbuf = f.read()
+                                        f.close()
 
                             imgbuf = buffer(imgbuf)
                             summaryinfos.append(imgbuf)

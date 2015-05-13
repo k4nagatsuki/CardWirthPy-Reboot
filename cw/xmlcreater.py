@@ -17,6 +17,8 @@ def _create_xml(name, path, d):
 
     with open(path, "wb") as f:
         f.write(s.encode("utf-8"))
+        f.flush()
+        f.close()
 
 def create_party(headers, moneyamount=0, pname=None):
     """

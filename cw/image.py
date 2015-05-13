@@ -819,6 +819,7 @@ def fix_cwnext16bitbitmap(data):
                     return data, True
                 except:
                     pass
+                f.close()
         # bfOffBitsをヘッダ直後に修正
         bfOffBits = 14 + 40
         if biCompression == 3:

@@ -67,6 +67,7 @@ class Win32Res(object):
 
         with open(fpath, "rb") as f:
             data = f.read()
+            f.close()
         base = data[:]
 
         uint32 = struct.Struct("<L")

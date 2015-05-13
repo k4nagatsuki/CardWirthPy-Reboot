@@ -2035,6 +2035,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
                     if os.path.isfile(path):
                         with open(path, "rb") as f:
                             imagedata = f.read()
+                            f.close()
                         e2.text = cw.binary.image.data_to_code(imagedata)
                         header.imgpath = e2.text
         else:

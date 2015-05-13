@@ -435,12 +435,14 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             #return pygame.Surface((0, 0)).convert()
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
+                f2.close()
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
             ispng = os.path.splitext(path)[1].lower() == ".png"
             with io.BufferedReader(io.FileIO(path)) as f2:
                 image = pygame.image.load(f2)
+                f2.close()
     except:
         print u"画像が読み込めません(load_image)。リトライします", path
         if retry:
@@ -455,9 +457,12 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                         return pygame.Surface((0, 0)).convert()
                     with open(path, "rb") as f2:
                         data = f2.read()
+                        f2.close()
                 data, _ok = cw.image.fix_cwnext16bitbitmap(data)
                 with io.BytesIO(data) as f2:
-                    return load_image(path, mask, maskpos, f2, False, isback=isback)
+                    r = load_image(path, mask, maskpos, f2, False, isback=isback)
+                    f2.close()
+                return r
             except:
                 print u"画像が読み込めません(リトライ後)", path
         return pygame.Surface((0, 0)).convert()
@@ -686,6 +691,7 @@ def load_sound(path):
         elif pygame.mixer.get_init():
             with open(path, "rb") as f:
                 sound = pygame.mixer.Sound(f)
+                f.close()
             sound = SoundInterface(sound, path)
         else:
             return SoundInterface()
@@ -875,6 +881,7 @@ def get_truetypefontname(path):
                 elif dname[:3] == (3, 1, 1033):
                     s = s.split("\x00")
                     fontname = "".join(s)
+        f.close()
 
     return fontname
 
@@ -892,6 +899,7 @@ def get_md5(path):
                 break
 
             m.update(data)
+        f.close()
 
     return m.hexdigest()
 
@@ -1202,7 +1210,16 @@ def remove(path):
     if os.path.isfile(path):
         remove_file(path)
     elif os.path.isdir(path):
-        remove_tree(path)
+        if join_paths(path).lower().startswith("data/temp/"):
+            # Tempフォルダは、フォルダの内容さえ消えていれば
+            # 空フォルダが残っていてもほとんど無害
+            try:
+                remove_tree(path)
+            except:
+                print_ex(file=sys.stderr)
+                remove_treefiles(path)
+        else:
+            remove_tree(path)
 
 def remove_file(path, retry=0):
     try:
@@ -1287,6 +1304,9 @@ def rename_file(path, dstpath):
         with open(path, "rb") as f1:
             with open(dstpath, "wb") as f2:
                 f2.write(f1.read())
+                f2.flush()
+                f2.close()
+            f1.close()
         remove_file(path)
 
 #-------------------------------------------------------------------------------
@@ -1423,6 +1443,8 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progres
 
             with open(fpath, "wb") as f:
                 f.write(data)
+                f.flush()
+                f.close()
 
     z.close()
 
@@ -1481,6 +1503,7 @@ def read_zipdata(zfile, name):
 def get_elementfromzip(zpath, name, tag=""):
     with zip_file(zpath, "r") as z:
         data = read_zipdata(z, name)
+        z.close()
     f = StringIO.StringIO(data)
     try:
         element = cw.data.xml2element(name, tag, stream=f)
@@ -1564,6 +1587,7 @@ def cab_filenum(cab):
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
             # ヘッダ
             buf = f.read(36)
+            f.close()
             if buf[:4] <> "MSCF":
                 return 0
 
@@ -1587,6 +1611,7 @@ def cab_hasfile(cab, fname):
             # ヘッダ
             buf = f.read(36)
             if buf[:4] <> "MSCF":
+                f.close()
                 return ""
 
             cofffiles = dword.unpack(buf[16:20])[0]
@@ -1607,7 +1632,9 @@ def cab_hasfile(cab, fname):
                 if not (attribs & _A_NAME_IS_UTF):
                     name = unicode(name, encoding)
                 if fname == os.path.normcase(os.path.basename(name)):
+                    f.close()
                     return name
+            f.close()
     except Exception:
         cw.util.print_ex()
     return ""
@@ -1900,6 +1927,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                         return wx.EmptyBitmap(0, 0)
                     with open(name, "rb") as f2:
                         data = f2.read()
+                        f2.close()
 
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)
                 if name and ok and not cw.binary.image.path_is_code(name):
@@ -1909,6 +1937,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                 else:
                     with io.BytesIO(data) as f2:
                         image = wx.ImageFromStream(f2, wx.BITMAP_TYPE_ANY, -1)
+                        f2.close()
             except:
                 print u"画像が読み込めません(load_wxbmp)", name
                 return wx.EmptyBitmap(0, 0)
@@ -2383,6 +2412,8 @@ def t_print():
     if lines:
         with open("performance.txt", "w") as f:
             f.write("\n".join(lines))
+            f.flush()
+            f.close()
 
 #-------------------------------------------------------------------------------
 #  同時起動制御

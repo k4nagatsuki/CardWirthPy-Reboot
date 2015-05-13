@@ -3665,6 +3665,8 @@ class CWPy(_Singleton, threading.Thread):
                 imgdst = cw.util.dupcheck_plus(imgdst, False)
                 with open(imgdst, "wb") as f:
                     f.write(idata)
+                    f.flush()
+                    f.close()
             else:
                 shutil.copy2(imgpath, imgdst)
             # ElementTree編集

@@ -207,6 +207,8 @@ class CWBinaryBase(object):
 
         with open(path, "wb") as f:
             f.write(self.image)
+            f.flush()
+            f.close()
 
         # 最後に参照パスを返す
         path = path.replace(basedir + "/", "", 1)
@@ -236,13 +238,16 @@ class CWBinaryBase(object):
 
             with open(fpath, "rb") as f:
                 image = f.read()
+                f.close()
 
         if convertbitmap and cw.util.get_imageext(image) <> ".bmp":
             with io.BytesIO(image) as f:
                 data = wx.ImageFromStream(f)
+                f.close()
             with io.BytesIO() as f:
                 data.SaveStream(f, wx.BITMAP_TYPE_BMP)
                 image = f.getvalue()
+                f.close()
 
         return image
 

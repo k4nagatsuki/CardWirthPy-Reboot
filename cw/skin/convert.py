@@ -40,6 +40,7 @@ class Converter(threading.Thread):
         if self.exe:
             with open(self.exe, "rb") as f:
                 self.exebinary = f.read()
+                f.close()
 
             self.res = cw.skin.win32res.Win32Res(self.exe)
             self.version = self.res.get_rcdata(cw.skin.win32res.RT_VERSION, 1)
@@ -1053,6 +1054,8 @@ class Converter(threading.Thread):
                         os.makedirs(resdir)
                     with open(fpath, "wb") as f:
                         f.write(res)
+                        f.flush()
+                        f.close()
                     f = None
 
             for resname, target in curtbl.iteritems():
@@ -1066,6 +1069,8 @@ class Converter(threading.Thread):
                     os.makedirs(resdir)
                 with open(fpath, "wb") as f:
                     f.write(res)
+                    f.flush()
+                    f.close()
                 f = None
 
             for respath, target in glyphtbl.iteritems():
@@ -1090,6 +1095,8 @@ class Converter(threading.Thread):
                     res = str(res[4:])
                 with open(fpath, "wb") as f:
                     f.write(res)
+                    f.flush()
+                    f.close()
                 f = None
 
             if not os.path.isabs(self.datadir):
