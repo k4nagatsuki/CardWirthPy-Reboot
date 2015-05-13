@@ -865,6 +865,11 @@ class JpdcImage(cw.image.Image):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA))
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
+        # 互換動作: 1.50では`copymode=2`指定は`copymode=1`指定のように動く
+        if not (cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
+            if copymode == 1:
+                copymode = 2
+
         if not copymode:
             copymode = defaultcopymode
 
