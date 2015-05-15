@@ -4036,7 +4036,7 @@ class ScenarioSelect(Select):
                             seq.append(text.ReadmeData(name, data))
                         z.close()
 
-            else:
+            elif os.path.isdir(path):
 
                 # フォルダ内から取得
                 paths = []
@@ -4055,13 +4055,14 @@ class ScenarioSelect(Select):
 
         elif not isinstance(self.list[self.index], FindResult):
             dpath = cw.util.get_linktarget(self.list[self.index])
-            for fname in os.listdir(dpath):
-                if os.path.splitext(fname)[1].lower().endswith(".txt"):
-                    fpath = cw.util.join_paths(dpath, fname)
-                    with open(fpath, "r") as f:
-                        data = f.read()
-                        f.close()
-                    seq.append(text.ReadmeData(fname, data))
+            if os.path.isdir(dpath):
+                for fname in os.listdir(dpath):
+                    if os.path.splitext(fname)[1].lower().endswith(".txt"):
+                        fpath = cw.util.join_paths(dpath, fname)
+                        with open(fpath, "r") as f:
+                            data = f.read()
+                            f.close()
+                        seq.append(text.ReadmeData(fname, data))
 
         return seq
 
