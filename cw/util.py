@@ -1273,10 +1273,12 @@ def remove_tree2(treepath):
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
         for dname in dnames:
             path = join_paths(dpath, dname)
-            os.rmdir(path)
+            if os.path.isdir(path):
+                os.rmdir(path)
         for fname in fnames:
             path = join_paths(dpath, fname)
-            os.remove(path)
+            if os.path.isfile(path):
+                os.remove(path)
     os.rmdir(treepath)
 
 def remove_treefiles(treepath):
@@ -1285,7 +1287,8 @@ def remove_treefiles(treepath):
     for dpath, dnames, fnames in os.walk(treepath, topdown=False):
         for fname in fnames:
             path = join_paths(dpath, fname)
-            os.remove(path)
+            if os.path.isfile(path):
+                os.remove(path)
 
 def rename_file(path, dstpath):
     """pathをdstpathへ移動する。
@@ -1380,20 +1383,22 @@ def compress_zip(path, zpath, unicodefilename=False):
     for dpath, dnames, fnames in os.walk(unicode(path)):
         for dname in dnames:
             fpath = join_paths(dpath, dname)
-            mtime = time.localtime(os.path.getmtime(fpath))[:6]
-            zname = fpath.replace(rpl_dir, "", 1) + "/"
-            zinfo = zipfile.ZipInfo(zname, mtime)
-            if unicodefilename:
-                zinfo.flag_bits |= 0x800
-            z.writestr(zinfo, "")
+            if os.path.isdir(fpath):
+                mtime = time.localtime(os.path.getmtime(fpath))[:6]
+                zname = fpath.replace(rpl_dir, "", 1) + "/"
+                zinfo = zipfile.ZipInfo(zname, mtime)
+                if unicodefilename:
+                    zinfo.flag_bits |= 0x800
+                z.writestr(zinfo, "")
 
         for fname in fnames:
             fpath = join_paths(dpath, fname)
-            zname = fpath.replace(rpl_dir, "", 1)
-            if unicodefilename:
-                z.write(fpath, zname)
-            else:
-                z.write(fpath, zname.encode(encoding))
+            if os.path.isfile(fpath):
+                zname = fpath.replace(rpl_dir, "", 1)
+                if unicodefilename:
+                    z.write(fpath, zname)
+                else:
+                    z.write(fpath, zname.encode(encoding))
 
     z.close()
     return zpath

@@ -1350,6 +1350,8 @@ class SavedJPDCImageHeader(object):
             for dpath, dnames, fnames in os.walk(tempfilepath):
                 for fname in fnames:
                     frompath = cw.util.join_paths(dpath, fname)
+                    if not os.path.isfile(frompath):
+                        continue
                     relpathbase = cw.util.relpath(frompath, tempfilepath)
                     relpath = cw.util.join_paths(u"Materials", relpathbase)
                     topath = cw.util.join_paths(sdpath, relpath)
@@ -1402,7 +1404,8 @@ class SavedJPDCImageHeader(object):
                 for dpath, dnames, fnames in os.walk(dpath3):
                     for fname in fnames:
                         fpath = cw.util.join_paths(dpath, fname)
-                        cw.cwpy.ydata.deletedpaths.add(fpath)
+                        if os.path.isfile(fpath):
+                            cw.cwpy.ydata.deletedpaths.add(fpath)
 
 class GetName(object):
     """XMLファイル中のProperty/Nameの内容を読む。"""

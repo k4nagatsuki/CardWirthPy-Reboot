@@ -3231,9 +3231,6 @@ class CWPy(_Singleton, threading.Thread):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
 
-        if header == self.selectedheader:
-            self.clear_inusecardimg()
-
         #-----------------------------------------------------------------------
         # 移動元からデータを削除
         #-----------------------------------------------------------------------
@@ -3337,6 +3334,9 @@ class CWPy(_Singleton, threading.Thread):
         else:
             assert not move
             header.contain_xml()
+
+        if header == self.selectedheader:
+            self.clear_inusecardimg()
 
         #-----------------------------------------------------------------------
         # ファイル削除

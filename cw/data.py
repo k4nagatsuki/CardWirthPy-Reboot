@@ -429,7 +429,8 @@ class ScenarioData(SystemData):
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
                 path = cw.util.join_paths(dpath, fname)
-                self.ignorecase_table[path.lower()] = path
+                if os.path.isfile(path):
+                    self.ignorecase_table[path.lower()] = path
 
     def get_versionhint(self, frompos=0):
         """現在有効になっている互換性マークを返す。"""
@@ -504,6 +505,8 @@ class ScenarioData(SystemData):
                         continue
 
                 path = cw.util.join_paths(dpath, fname)
+                if not os.path.isfile(path):
+                    continue
 
                 if (lf == "summary.xml" or lf == "summary.wsm") and not self.summary:
                     self.scedir = dpath.replace("\\", "/")
@@ -564,7 +567,8 @@ class ScenarioData(SystemData):
 
         for dpath, _dnames, fnames in os.walk(self.tempdir):
             for fname in fnames:
-                self.eat_spchar(dpath, fname)
+                if os.path.isfile(cw.util.join_paths(dpath, fname)):
+                    self.eat_spchar(dpath, fname)
 
     def eat_spchar(self, dpath, fname):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
@@ -1688,8 +1692,9 @@ class YadoData(object):
                 path = cw.util.join_paths(dpath, fname)
                 if path == deltempfpath:
                     continue
-                dstpath = path.replace(self.tempdir, self.yadodir, 1)
-                cw.util.rename_file(path, dstpath)
+                if os.path.isfile(path):
+                    dstpath = path.replace(self.tempdir, self.yadodir, 1)
+                    cw.util.rename_file(path, dstpath)
 
         # 削除予定のファイル削除
         # Materialディレクトリにある空のフォルダも削除

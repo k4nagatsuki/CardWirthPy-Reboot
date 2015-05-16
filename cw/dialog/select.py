@@ -4015,10 +4015,12 @@ class ScenarioSelect(Select):
                                     fname = cw.util.decode_zipname(fname)
                                     if fname.lower().endswith(".txt"):
                                         dpath2 = cw.util.decode_zipname(dpath2)
-                                        with open(cw.util.join_paths(dpath2, fname), "r") as f:
-                                            content = f.read()
-                                            f.close()
-                                        seq.append(text.ReadmeData(fname, content))
+                                        fpath = cw.util.join_paths(dpath2, fname)
+                                        if os.path.isfile(fpath):
+                                            with open(fpath, "r") as f:
+                                                content = f.read()
+                                                f.close()
+                                            seq.append(text.ReadmeData(fname, content))
                     finally:
                         for fpath in os.listdir(dpath):
                             fpath = cw.util.decode_zipname(fpath)
@@ -4043,7 +4045,9 @@ class ScenarioSelect(Select):
                 for dpath, _dnames, fnames in os.walk(path):
                     for fname in fnames:
                         if fname.lower().endswith(".txt"):
-                            paths.append(cw.util.join_paths(dpath, fname))
+                            fpath = cw.util.join_paths(dpath, fname)
+                            if os.path.isfile(fpath):
+                                paths.append(fpath)
 
                 for fpath in paths:
                     with open(fpath, "r") as f:

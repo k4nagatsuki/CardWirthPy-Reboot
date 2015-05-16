@@ -30,7 +30,8 @@ if sys.platform <> "win32":
             for fname in fnames:
                 if fname.lower().endswith(".ttf"):
                     path = os.path.join(dpath, fname)
-                    fontconfig.FcConfigAppFontAddFile(fcconfig, path)
+                    if os.path.isfile(path):
+                        fontconfig.FcConfigAppFontAddFile(fcconfig, path)
 
 # マウスホイールを上回転させた時の挙動
 WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ
@@ -728,7 +729,8 @@ class Resource(object):
                 for dpath, dnames, fnames in os.walk(resdir):
                     for fname in fnames:
                         path = cw.util.join_paths(dpath, fname)
-                        self.ignorecase_table[path.lower()] = path
+                        if os.path.isfile(path):
+                            self.ignorecase_table[path.lower()] = path
 
     def get_filepath(self, fpath):
         if not fpath or os.path.isfile(fpath) or cw.binary.image.path_is_code(fpath):
