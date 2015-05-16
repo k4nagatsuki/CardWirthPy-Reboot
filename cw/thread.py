@@ -3247,7 +3247,7 @@ class CWPy(_Singleton, threading.Thread):
             owner.data.remove(path, header.carddata)
             # 戦闘中だった場合はデッキからも削除
             owner.deck.remove(owner, header)
-            if target <> owner and clearinusecard:
+            if target <> owner and clearinusecard and not self.areaid in cw.AREAS_TRADE:
                 self.clear_inusecardimgfromheader(header)
 
             # 行動予定に入っていればキャンセル
