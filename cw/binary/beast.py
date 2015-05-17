@@ -87,15 +87,16 @@ class BeastCard(base.CWBinaryBase):
         if 5 <= dataversion:
             # 宿データだとここに付帯召喚のデータ
             self.attachment = f.bool()
-        elif isinstance(parent, cw.binary.adventurer.Adventurer):
-            # キャラクターが所持
-            self.attachment = bool(self.limit <> 0)
-        elif parent:
-            # 召喚獣召喚効果
-            self.attachment = True
-        else:
-            # カード置場・荷物袋
-            self.attachment = False
+        elif self.get_root().is_yadodata():
+            if isinstance(parent, cw.binary.adventurer.Adventurer):
+                # キャラクターが所持
+                self.attachment = bool(self.limit <> 0)
+            elif parent:
+                # 召喚獣召喚効果
+                self.attachment = True
+            else:
+                # カード置場・荷物袋
+                self.attachment = False
 
         self.data = None
 
