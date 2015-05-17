@@ -10,7 +10,8 @@ class Summary(base.CWBinaryBase):
     """見出しデータ(Summary.wsm)。
     type:見出しデータには"-1"の値を付与する。
     """
-    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True):
+    def __init__(self, parent, f, yadodata=False, nameonly=False, materialdir="Material", image_export=True,
+                 wpt120=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata, materialdir, image_export)
         self.type = -1
         self.image = f.image()
@@ -38,6 +39,8 @@ class Summary(base.CWBinaryBase):
         self.steps = [Step(self, f) for _cnt in xrange(steps_num)]
         flags_num = f.dword()
         self.flags = [Flag(self, f) for _cnt in xrange(flags_num)]
+        if wpt120:
+            return
         _w = f.dword() # 不明
         if 0 < self.version:
             self.level_min = f.dword()

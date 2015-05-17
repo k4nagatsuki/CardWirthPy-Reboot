@@ -11,7 +11,7 @@ class Environment(base.CWBinaryBase):
     """Environment.wyd(type=-1)
     システム設定とかゴシップとか終了印とかいろいろまとめているデータ。
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, versiononly=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.name = os.path.basename(os.path.dirname(self.fpath))
         self.type = -1
@@ -20,44 +20,65 @@ class Environment(base.CWBinaryBase):
             self.dataversion_int = int(self.dataversion[len("DATAVERSION_"):])
         else:
             self.dataversion_int = 0
-        self.yadotype = f.byte()
-        self.drawcard_speed = f.dword()
-        self.drawbg_speed = f.dword()
-        self.message_speed = f.dword()
-        self.play_bgm = f.bool()
-        self.play_sound = f.bool()
-        self.correct_scaledown = f.bool()
-        self.correct_scaleup = f.bool()
-        self.autoselect_party = f.bool()
-        self.clickcancel = f.bool()
-        self.effect_getmoney = f.bool()
-        self.clickjump = f.bool()
-        self.keep_levelmax = f.bool()
+
+        if versiononly:
+            return
+
+        self.yadotype = f.byte() # 宿タイプ(1:通常, 2:デバッグ)
+        self.drawcard_speed = f.dword() # カード速度
+        self.drawbg_speed = f.dword() # 背景速度
+        self.message_speed = f.dword() # メッセージ速度
+        self.play_bgm = f.bool() # BGM再生
+        self.play_sound = f.bool() # 効果音再生
+        if 10 <= self.dataversion_int:
+            self.correct_scaledown = f.bool() # カードのスムージング(縮小)
+            self.correct_scaleup = f.bool() # カードのスムージング(拡大)
+        else:
+            _b = f.bool() # レアリティのないカードも買い戻せるようにする
+            _b = f.bool() # 売却・破棄時に確認メッセージの表示
+        self.autoselect_party = f.bool() # 宿を開いた時に最後のパーティを選択
+        self.clickcancel = f.bool() # 背景右クリックでキャンセル
+        if 10 <= self.dataversion_int:
+            self.effect_getmoney = f.bool() # 所持金増減時に点滅させる
+            self.clickjump = f.bool() # 右クリックで待機時間を飛ばす
+            self.keep_levelmax = f.bool() # レベルを最大値に維持する
         if 11 <= self.dataversion_int:
-            self.bgeffectatselmode = f.bool()
+            self.bgeffectatselmode = f.bool() # 選択モードでカーテンをかける
         else:
             self.bgeffectatselmode = True
-        self.viewtype_poster = f.byte()
-        self.bgcolor_message = f.dword()
-        self.use_decofont = f.bool()
-        self.changetype_bg = f.byte()
-        self.compstamps = f.string(True)
-        self.scenarioname = f.string()
-        self.gossips = f.string(True)
-        unusedcards_num = f.dword()
-        self.unusedcards = [UnusedCard(self, f)
-                                    for _cnt in xrange(unusedcards_num)]
-        yadocards_num = f.dword()
-        self.yadocards = [YadoCard(self, f) for _cnt in xrange(yadocards_num)]
-        self.money = f.dword()
+        self.viewtype_poster = f.byte() # 貼紙の表示条件
+        self.bgcolor_message = f.dword() # メッセージ背景濃度
+        self.use_decofont = f.bool() # 装飾フォントの使用
+        self.changetype_bg = f.byte() # 背景切替方式
+        self.compstamps = f.string(True) # 終了印のリスト
+        self.scenarioname = f.string() # 選択中パーティのいるシナリオ名(用途不明)
+        self.gossips = f.string(True) # ゴシップのリスト
+        if 10 <= self.dataversion_int:
+            # 1.28以降
+            # カード置場のカードデータ
+            unusedcards_num = f.dword()
+            self.unusedcards = [UnusedCard(self, f)
+                                        for _cnt in xrange(unusedcards_num)]
+            # カード置場と荷物袋のカードヘッダ
+            yadocards_num = f.dword()
+            self.yadocards = [YadoCard(self, f) for _cnt in xrange(yadocards_num)]
+            # 宿の資金
+            self.money = f.dword()
+        else:
+            # 1.20
+            self.unusedcards = []
+            self.yadocards = []
+            self.money = 0
+        # 選択中のパーティ名
         self.partyname = f.string()
+
         # CardWirthPyにおける選択中パーティ
         # パーティ変換後に操作する
         self.cwpypartyname = ""
         # スキンタイプ。読み込み後に操作する
         self.skintype = ""
         # スキンディレクトリ。現在の設定を使用
-        self.skinname = cw.cwpy.setting.skinname
+        self.skinname = cw.cwpy.setting.skindirname
         # データの取得に失敗したカード。変換時に追加する
         self.errorcards = []
 
@@ -211,9 +232,13 @@ class UnusedCard(base.CWBinaryBase):
     """
     def __init__(self, parent, f, yadodata=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        self.fname = f.rawstring()
-        self.uselimit = f.dword()
-        f.byte()
+        if f:
+            self.fname = f.rawstring()
+            self.uselimit = f.dword()
+            f.byte()
+        else:
+            self.fname = ""
+            self.uselimit = 0
         self.data = None
 
     def set_data(self, data):

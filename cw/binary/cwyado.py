@@ -46,8 +46,9 @@ class CWYado(object):
         self.errorlog = ""
         # pathにあるファイル・ディレクトリを
         # (宿ファイル,シナリオファイル,その他のファイル,ディレクトリ)に種類分け。
-        exts_yado = set(["wch", "wcp", "wpl", "wpt", "wrm"])
-        exts_sce  = set(["wsm", "wid"])
+        exts_yado = set(["wch", "wcp", "wpl", "wpt", "wrm", "whs"])
+        exts_sce  = set(["wsm", "wid", "wcl"])
+        exts_ignore = set(["wck", "wci", "wcb"])
         self.yadofiles = []
         self.cardfiles = []
         self.otherfiles = []
@@ -67,7 +68,7 @@ class CWYado(object):
                     self.yadofiles.append(path)
                 elif ext in exts_sce:
                     self.cardfiles.append(path)
-                else:
+                elif not ext in exts_ignore:
                     self.otherfiles.append(path)
 
             else:
@@ -83,11 +84,13 @@ class CWYado(object):
         try:
             data = self.load_yadofile(self.environmentpath)
         except:
+            cw.util.print_ex()
             return False
 
         self.wyd = None
 
-        if data.dataversion_int in (10, 11):
+        if data.dataversion_int in (8, 10, 11):
+            self.dataversion_int = data.dataversion_int
             return True
         else:
             return False
@@ -239,12 +242,17 @@ class CWYado(object):
         self.curnum_n += 1
         self.curnum = self.curnum_n * 50 / self.maxnum
 
-        # wchの埋め込み画像をwcpに格納する。
-        for wch in self.wchs:
-            for wcp in self.wcps:
+        # wchの埋め込み画像をwcpに格納する
+        for wcp in self.wcps:
+            for wch in self.wchs:
                 if wch.fname == wcp.fname:
                     wcp.set_image(wch.image)
                     break
+
+            # 1.20以前は個人ごとに所持金があるので、宿の金庫に集める
+            if self.dataversion_int <= 8:
+                self.wyd.money += wcp.adventurer.money
+                wcp.adventurer.money = 0
 
         # wptの荷物袋のカードリストをwplに格納する
         for wpt in self.wpts:
@@ -254,6 +262,11 @@ class CWYado(object):
                     wpt.wpl = wpl
                     if wpt.nowadventuring:
                         self.nowadventuringparties.append((wpl, wpt))
+                    if self.dataversion_int <= 8:
+                        # wptのパーティ名をwplに格納する
+                        wpl.name = wpt.name
+                        # wptの所持金データをwplに格納する
+                        wpl.money = wpt.money
                     break
 
         # 荷物袋・カード置場に同一カードが複数存在する場合
@@ -268,17 +281,35 @@ class CWYado(object):
                 dictrecord.add(cardname)
             return data
 
-        # wplの荷物袋のカードリストにカードデータ(wid)と種類のデータを付与する。
-        for wpl in self.wpls:
-            for card in wpl.cards:
-                card.type = cardtypes.get(card.fname)
-                card.set_data(get_dictdata(card.fname))
+        if 10 <= self.dataversion_int:
+            # wplの荷物袋のカードリストにカードデータ(wid)と種類のデータを付与する。
+            for wpl in self.wpls:
+                for card in wpl.cards:
+                    card.type = cardtypes.get(card.fname)
+                    card.set_data(get_dictdata(card.fname))
 
-        # wydのカード置き場のカードリストにカードデータ(wid)と
-        # 種類のデータを付与する。
-        for card in self.wyd.unusedcards:
-            card.type = cardtypes.get(card.fname)
-            card.data = get_dictdata(card.fname)
+            # wydのカード置き場のカードリストにカードデータ(wid)と
+            # 種類のデータを付与する。
+            for card in self.wyd.unusedcards:
+                card.type = cardtypes.get(card.fname)
+                card.data = get_dictdata(card.fname)
+
+        else:
+            # 宿で販売されているカードをカード置場に置く
+            for fname, card in carddatadict.iteritems():
+                carddata = cw.binary.environment.UnusedCard(None, None, True)
+                cd = {
+                    ".wck":1,
+                    ".wci":2,
+                    ".wcb":3
+                }
+                type = cd.get(os.path.splitext(fname)[1], 0)
+                if type:
+                    carddata.type = type
+                    carddata.fname = fname
+                    carddata.uselimit = card.limit
+                    carddata.set_data(card)
+                    self.wyd.unusedcards.append(carddata)
 
     #---------------------------------------------------------------------------
     # ここまで
@@ -306,7 +337,7 @@ class CWYado(object):
                 data.skintype = self.skintype
                 self.wyd = data
             elif path.endswith(".wch"):
-                data = adventurer.AdventurerHeader(None, f, True)
+                data = adventurer.AdventurerHeader(None, f, True, dataversion=self.dataversion_int)
                 self.wchs.append(data)
             elif path.endswith(".wcp"):
                 data = adventurer.AdventurerCard(None, f, True)
@@ -315,11 +346,18 @@ class CWYado(object):
                 data = album.Album(None, f, True)
                 self.wrms.append(data)
             elif path.endswith(".wpl"):
-                data = party.Party(None, f, True)
+                data = party.Party(None, f, True, dataversion=self.dataversion_int)
                 self.wpls.append(data)
             elif path.endswith(".wpt"):
-                data = party.PartyMembers(None, f, True)
+                data = party.PartyMembers(None, f, True, dataversion=self.dataversion_int)
                 self.wpts.append(data)
+            elif path.endswith(".whs"):
+                cards, albums = party.load_album120(None, f)
+                for data in cards:
+                    self.wcps.append(data)
+                for albumdata in albums:
+                    self.wrms.append(albumdata)
+                data = None
             else:
                 f.close()
                 raise ValueError(path)
@@ -335,17 +373,41 @@ class CWYado(object):
         with cwfile.CWFile(path, "rb") as f:
             # 1:スキル, 2:アイテム, 3:召喚獣
             fname = os.path.basename(path)
-            restype = d.get(cw.util.splitext(fname)[0])
-
-            if restype == 1:
-                data = skill.SkillCard(None, f, True)
-            elif restype == 2:
-                data = item.ItemCard(None, f, True)
-            elif restype == 3:
-                data = beast.BeastCard(None, f, True)
+            if fname.lower().endswith(".wcl"):
+                # 1.20以前の「カード購入」にあるカード
+                name = os.path.splitext(path)[0]
+                # 拡張子で識別する
+                cd = {
+                    ".wck":skill.SkillCard,
+                    ".wci":item.ItemCard,
+                    ".wcb":beast.BeastCard
+                }
+                for ext in (".wck", ".wci", ".wcb"):
+                    if os.path.isfile(name + ext):
+                        with cwfile.CWFile(name + ext, "rb") as f2:
+                            data = cd[ext](None, f2, True)
+                            f2.close()
+                        _dataversion = f.string()
+                        _name = f.string()
+                        data.image = f.image()
+                        data.fname = os.path.basename(name + ext)
+                        break
+                else:
+                    raise ValueError(path)
             else:
-                f.close()
-                raise ValueError(path)
+                # 1.28以降のカード置場と荷物袋
+                restype = d.get(cw.util.splitext(fname)[0])
+
+                if restype == 1:
+                    data = skill.SkillCard(None, f, True)
+                elif restype == 2:
+                    data = item.ItemCard(None, f, True)
+                elif restype == 3:
+                    data = beast.BeastCard(None, f, True)
+                else:
+                    f.close()
+                    raise ValueError(path)
+
             f.close()
 
         return data

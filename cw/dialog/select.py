@@ -789,7 +789,7 @@ class YadoSelect(Select):
 
         # 変換可能なデータかどうか確認
         if not cwdata.is_convertible():
-            s = u"CardWirth ver1.28以降の宿しか変換できません。"
+            s = u"CardWirth ver1.20以降の宿しか変換できません。"
             dlg = message.ErrorMessage(self, s)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
@@ -992,28 +992,47 @@ class YadoSelect(Select):
 
             if classic[i]:
                 # クラシックな宿
-                for fname in os.listdir(yadodir):
-                    try:
-                        ext = os.path.splitext(fname)[1].lower()
-                        if ext == ".wch":
-                            fpath = cw.util.join_paths(yadodir, fname)
-                            with cw.binary.cwfile.CWFile(fpath, "rb") as f:
-                                adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
-                                f.close()
-                            seq.append(adv.name)
-                        elif ext == ".wpl":
-                            fpath = cw.util.join_paths(yadodir, fname)
-                            with cw.binary.cwfile.CWFile(fpath, "rb") as f:
-                                party = cw.binary.party.Party(None, f)
-                                f.close()
-                            for member in party.memberslist:
-                                seq.append(member)
-                        if 25 <= len(seq):
-                            seq = seq[:23]
-                            seq.append(cw.cwpy.msgs["scenario_etc"])
-                            break
-                    except:
-                        cw.util.print_ex()
+                try:
+                    wyd = cw.util.join_paths(yadodir, u"Environment.wyd")
+                    if not os.path.isfile(wyd):
+                        continue
+
+                    with cw.binary.cwfile.CWFile(wyd, "rb") as f:
+                        wyd = cw.binary.environment.Environment(None, f, True, versiononly=True)
+                        f.close()
+
+                    # 1.20のアルバムデータは時間がかかる可能性があるため
+                    # リストに表示しない
+                    for fname in os.listdir(yadodir):
+                            ext = os.path.splitext(fname)[1].lower()
+                            if ext == ".wch":
+                                fpath = cw.util.join_paths(yadodir, fname)
+                                if wyd.dataversion_int <= 8:
+                                    # 1.20
+                                    with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                                        f.string()
+                                        name = f.string()
+                                        f.close()
+                                    seq.append(name)
+                                else:
+                                    # 1.28以降
+                                    with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                                        adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
+                                        f.close()
+                                    seq.append(adv.name)
+                            elif ext == ".wpl":
+                                fpath = cw.util.join_paths(yadodir, fname)
+                                with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                                    party = cw.binary.party.Party(None, f, dataversion=wyd.dataversion_int)
+                                    f.close()
+                                for member in party.memberslist:
+                                    seq.append(member)
+                            if 25 <= len(seq):
+                                seq = seq[:23]
+                                seq.append(cw.cwpy.msgs["scenario_etc"])
+                                break
+                except:
+                    cw.util.print_ex()
 
             else:
                 yadodb = cw.yadodb.YadoDB(yadodir)

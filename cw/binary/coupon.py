@@ -1,17 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
+
 import base
 
 import cw
 
+_120gene = re.compile(ur"\A＠Ｇ[01]{10}-[0-9]+\Z")
 
 class Coupon(base.CWBinaryBase):
     """クーポンデータ。"""
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, dataversion=5):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
-        self.name = f.string()
-        self.value = f.dword()
+        if f:
+            self.name = f.string()
+            self.value = f.dword()
+            if dataversion <= 4:
+                if _120gene.match(self.name):
+                    self.value = int(self.name[13:])
+                    self.name = self.name[:12]
+        else:
+            self.name = ""
+            self.value = 0
 
         self.data = None
 

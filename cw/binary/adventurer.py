@@ -14,12 +14,144 @@ class Adventurer(base.CWBinaryBase):
     """冒険者データ。埋め込み画像はないので
     wch・wptファイルから個別に引っ張ってくる必要がある。
     """
-    def __init__(self, parent, f, yadodata=False, nameonly=False):
+    def __init__(self, parent, f, yadodata=False, nameonly=False, album120=False):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
+
+        def add_128coupons():
+            epc = coupon.Coupon(self, None)
+            epc.name = u"＠ＥＰ"
+            epc.value = max(0, self.level - 1) * 10
+            self.coupons.insert(0, epc)
+            lbc = coupon.Coupon(self, None)
+            lbc.name = u"＠レベル原点"
+            lbc.value = self.level
+            self.coupons.insert(0, lbc)
+
+        if album120:
+            # 1.20のアルバムデータ
+            self.id = 0
+
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明(表示順？)
+            self.name = f.string()
+            self.imgpath = ""
+            self.level = f.dword()
+            self.money = f.dword()
+            # 能力修正値(デフォルト)
+            self.avoid = f.dword()
+            self.resist = f.dword()
+            self.defense = f.dword()
+            # 各能力値*5
+            self.dex = f.dword()
+            self.agl = f.dword()
+            self.int = f.dword()
+            self.str = f.dword()
+            self.vit = f.dword()
+            self.min = f.dword()
+            # 性格値*5
+            self.aggressive = f.dword()
+            self.cheerful = f.dword()
+            self.brave = f.dword()
+            self.cautious = f.dword()
+            self.trickish = f.dword()
+            # mate特有の属性値(真偽値)*10
+            self.noeffect_weapon = f.bool()
+            self.noeffect_magic = f.bool()
+            self.undead = f.bool()
+            self.automaton = f.bool()
+            self.unholy = f.bool()
+            self.constructure = f.bool()
+            self.resist_fire = f.bool()
+            self.resist_ice = f.bool()
+            self.weakness_fire = f.bool()
+            self.weakness_ice = f.bool()
+
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+            _dw = f.dword() # 不明
+
+            self.image = f.image()
+            self.description = f.string(True).replace("TEXT\\n", "", 1)
+
+            # 体力を計算
+            vit = max(1, self.vit)
+            minval = max(1, self.min)
+            self.life = int((vit // 2 + 4) * (self.level + 1) + minval // 2)
+            self.maxlife = self.life
+
+            # クーポン
+            self.is_dead = False
+            coupons_num = f.dword()
+            self.coupons = []
+            for _cnt in xrange(coupons_num):
+                c = coupon.Coupon(self, f, dataversion=4)
+                if c.name == u"＿死亡":
+                    self.is_dead = True
+                self.coupons.append(c)
+            add_128coupons()
+
+            # 精神状態
+            self.mentality = 0
+            self.duration_mentality = 0
+
+            # 状態異常の値(持続ターン数)
+            self.paralyze = 0
+            self.poison = 0
+
+            # 各状態異常の持続ターン数
+            self.duration_bind = 0
+            self.duration_silence = 0
+            self.duration_faceup = 0
+            self.duration_antimagic = 0
+
+            # 能力修正値(効果モーション)
+            self.enhance_action = 0
+            self.duration_enhance_action = 0
+            self.enhance_avoid = 0
+            self.duration_enhance_avoid = 0
+            self.enhance_resist = 0
+            self.duration_enhance_resist = 0
+            self.enhance_defense = 0
+            self.duration_enhance_defense = 0
+
+            # 所持カード
+            self.items = []
+            self.skills = []
+            self.beasts = []
+
+            self.data = None
+            self.f9data = None
+
+            return
+
+        self.image = None
         self.name = f.string()
         if nameonly:
             return
-        self.id = f.dword() % 10000
+
+        idl = f.dword()
+
+        if idl < 19999:
+            dataversion = 0
+            self.id = idl
+        elif idl < 39999:
+            dataversion = 2
+            self.id = idl - 20000
+        elif idl < 49999:
+            dataversion = 4
+            self.id = idl - 40000
+        else:
+            dataversion = 5
+            self.id = idl - 50000
+
         self.imgpath = ""
 
         # mate特有の属性値(真偽値)*10
@@ -35,6 +167,10 @@ class Adventurer(base.CWBinaryBase):
         self.weakness_ice = f.bool()
 
         self.level = f.dword()
+        if dataversion <= 4:
+            self.money = f.dword()
+        else:
+            self.money = 0
         self.description = f.string(True).replace("TEXT\\n", "", 1)
         self.life = f.dword()
         self.maxlife = f.dword()
@@ -93,7 +229,9 @@ class Adventurer(base.CWBinaryBase):
 
         # クーポン
         coupons_num = f.dword()
-        self.coupons = [coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
+        self.coupons = [coupon.Coupon(self, f, dataversion=dataversion) for _cnt in xrange(coupons_num)]
+        if dataversion <= 4:
+            add_128coupons()
 
         self.data = None
         self.f9data = None
@@ -601,11 +739,15 @@ class AdventurerCard(base.CWBinaryBase):
         self.type = 1
         self.fname = self.get_fname()
 
-        # 不明(0,0,0,0,0)
-        for _cnt in xrange(5):
-            _b = f.byte()
+        if f:
+            # 不明(0,0,0,0,0)
+            for _cnt in xrange(5):
+                _b = f.byte()
 
-        self.adventurer = Adventurer(self, f, yadodata=yadodata)
+            self.adventurer = Adventurer(self, f, yadodata=yadodata)
+
+        else:
+            self.adventurer = None
 
     def set_image(self, image):
         """埋め込み画像を取り込む時のメソッド。"""
@@ -660,33 +802,47 @@ class AdventurerHeader(base.CWBinaryBase):
     """wchファイル(type=0)。おそらく宿帳表示用の簡易データと思われる。
     必要なデータは埋め込み画像くらい？
     """
-    def __init__(self, parent, f, yadodata=False):
+    def __init__(self, parent, f, yadodata=False, dataversion=10):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 0
         self.fname = self.get_fname()
-        _b = f.byte() # 不明(0)
-        _b = f.byte() # 不明(0)
-        self.name = f.string()
-        self.image = f.image()
-        self.level = f.byte()
-        _b = f.byte() # 不明(0)
-        self.coupons = f.string(True)
-        _w = f.word() # 不明(0)
-        # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
-        self.ep = f.byte()
-        _b = f.byte()
-        self.dex = f.byte()
-        _b = f.byte()
-        self.agl = f.byte()
-        _b = f.byte()
-        self.int = f.byte()
-        _b = f.byte()
-        self.str = f.byte()
-        _b = f.byte()
-        self.vit = f.byte()
-        _b = f.byte()
-        self.min = f.byte()
-        _b = f.byte()
+        if 10 <= dataversion:
+            # 1.28以降
+            _b = f.byte() # 不明(0)
+            _b = f.byte() # 不明(0)
+            self.name = f.string()
+            self.image = f.image()
+            self.level = f.byte()
+            _b = f.byte() # 不明(0)
+            self.coupons = f.string(True)
+            _w = f.word() # 不明(0)
+            # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
+            self.ep = f.byte()
+            _b = f.byte()
+            self.dex = f.byte()
+            _b = f.byte()
+            self.agl = f.byte()
+            _b = f.byte()
+            self.int = f.byte()
+            _b = f.byte()
+            self.str = f.byte()
+            _b = f.byte()
+            self.vit = f.byte()
+            _b = f.byte()
+            self.min = f.byte()
+            _b = f.byte()
+        else:
+            # 1.20
+            _dataversion = f.string()
+            self.name = f.string()
+            self.image = f.image()
+            self.level = f.dword()
+            _dw = f.dword() # 不明(F)
+            self.coupons = []
+            couponnum = f.dword()
+            for _i in xrange(couponnum):
+                self.coupons.append(f.string())
+            self.ep = self.level * 10
 
     @staticmethod
     def unconv(f, data, fname):

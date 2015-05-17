@@ -1563,7 +1563,7 @@ class Character(object):
         self.level = value
         self.data.edit("Property/Level", str(self.level))
         # 最大HPとHP
-        maxlife = int((vit / 2 + 4) * (self.level + 1) + minval / 2)
+        maxlife = int((vit // 2 + 4) * (self.level + 1) + minval // 2)
         if coeff <> 1:
             maxlife = round(maxlife * coeff)
         maxlife = int(max(1, maxlife))

@@ -13,51 +13,72 @@ class Album(base.CWBinaryBase):
         base.CWBinaryBase.__init__(self, parent, f, yadodata)
         self.type = 4
         self.fname = self.get_fname()
-        f.byte()
-        f.byte()
-        self.name = f.string()
-        self.image = f.image()
-        self.level = f.word()
-        _w = f.word() # 不明(能力修正？)
-        _w = f.word() # 不明(能力修正？)
-        _w = f.word() # 不明(能力修正？)
-        # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
-        # 能力値
-        self.dex = f.byte()
-        f.byte()
-        self.agl = f.byte()
-        f.byte()
-        self.int = f.byte()
-        f.byte()
-        self.str = f.byte()
-        f.byte()
-        self.vit = f.byte()
-        f.byte()
-        self.min = f.byte()
-        f.byte()
-        # 性格値
-        self.aggressive = f.byte()
-        f.byte()
-        self.cheerful = f.byte()
-        f.byte()
-        self.brave = f.byte()
-        f.byte()
-        self.cautious = f.byte()
-        f.byte()
-        self.trickish = f.byte()
-        f.byte()
-        # 修正能力値
-        self.avoid = f.byte()
-        f.byte()
-        self.resist = f.byte()
-        f.byte()
-        self.defense = f.byte()
-        f.byte()
-        f.dword()
-        self.description = f.string(True).replace("TEXT\\n", "", 1)
-        # クーポン
-        coupons_num = f.dword()
-        self.coupons = [coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
+        if f:
+            f.byte()
+            f.byte()
+            self.name = f.string()
+            self.image = f.image()
+            self.level = f.word()
+            _w = f.word() # 不明(能力修正？)
+            _w = f.word() # 不明(能力修正？)
+            _w = f.word() # 不明(能力修正？)
+            # ここからは16ビット符号付き整数が並んでると思われるが面倒なので
+            # 能力値
+            self.dex = f.byte()
+            f.byte()
+            self.agl = f.byte()
+            f.byte()
+            self.int = f.byte()
+            f.byte()
+            self.str = f.byte()
+            f.byte()
+            self.vit = f.byte()
+            f.byte()
+            self.min = f.byte()
+            f.byte()
+            # 性格値
+            self.aggressive = f.byte()
+            f.byte()
+            self.cheerful = f.byte()
+            f.byte()
+            self.brave = f.byte()
+            f.byte()
+            self.cautious = f.byte()
+            f.byte()
+            self.trickish = f.byte()
+            f.byte()
+            # 修正能力値
+            self.avoid = f.byte()
+            f.byte()
+            self.resist = f.byte()
+            f.byte()
+            self.defense = f.byte()
+            f.byte()
+            f.dword()
+            self.description = f.string(True).replace("TEXT\\n", "", 1)
+            # クーポン
+            coupons_num = f.dword()
+            self.coupons = [coupon.Coupon(self, f) for _cnt in xrange(coupons_num)]
+        else:
+            self.name = 0
+            self.image = 0
+            self.level = 0
+            self.dex = 0
+            self.agl = 0
+            self.int = 0
+            self.str = 0
+            self.vit = 0
+            self.min = 0
+            self.aggressive = 0
+            self.cheerful = 0
+            self.brave = 0
+            self.cautious = 0
+            self.trickish = 0
+            self.avoid = 0
+            self.resist = 0
+            self.defense = 0
+            self.description = u""
+            self.coupons = []
 
         self.data = None
 
