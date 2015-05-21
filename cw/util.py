@@ -1214,11 +1214,15 @@ def remove(path):
             # Tempフォルダは、フォルダの内容さえ消えていれば
             # 空フォルダが残っていてもほとんど無害
             try:
-                remove_tree(path)
+                remove_treefiles(path)
+                remove_tree(path, noretry=True)
             except:
-                print_ex(file=sys.stderr)
+                # まれにフォルダ削除に失敗する環境がある
+                #print_ex(file=sys.stderr)
+                print_ex()
                 remove_treefiles(path)
         else:
+            remove_treefiles(path)
             remove_tree(path)
 
 def remove_file(path, retry=0):
@@ -1234,11 +1238,11 @@ def remove_file(path, retry=0):
         else:
             raise err
 
-def remove_tree(treepath, retry=0):
+def remove_tree(treepath, retry=0, noretry=False):
     try:
         shutil.rmtree(treepath)
     except WindowsError, err:
-        if err.errno == 13 and retry < 5:
+        if err.errno == 13 and retry < 5 and not noretry:
             for dpath, dnames, fnames in os.walk(treepath):
                 for dname in dnames:
                     path = join_paths(dpath, dname)
@@ -1261,7 +1265,7 @@ def remove_tree(treepath, retry=0):
                             return
 
             remove_tree(treepath, retry + 1)
-        elif retry < 5:
+        elif retry < 5 and not noretry:
             time.sleep(1)
             remove_tree(treepath, retry + 1)
         else:
