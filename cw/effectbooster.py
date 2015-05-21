@@ -737,6 +737,8 @@ class JpyBackGroundImage(_JpySubImage):
         self.transparent = config.get_bool("init", "transparent", False)
         self.dirdepth = config.get_int("init", "dirdepth", 0)
         self.dirdepth = max(0, self.dirdepth)
+        self.configpath = os.path.abspath(config.path)
+        self.configdepth = self.dirdepth
         self.position_noscale = (0, 0)
         self.position = cw.s(self.position_noscale)
         self.savecache = 0
