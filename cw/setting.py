@@ -1404,13 +1404,28 @@ class Resource(object):
             bmp = cardbgs.get(key, "")
             if not bmp:
                 continue
-            rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
-            sub = bmp.subsurface(rect)
-            buf = pygame.image.tostring(sub, "RGB")
-            buf = array.array('B', buf)
-            rgb = sum(buf) / len(buf)
-            d[key] = rgb
+            d[key] = self.calc_cardnamecolorhint(bmp)
         return d
+
+    def calc_cardnamecolorhint(self, bmp):
+        """文字描画領域の色を平均化した値を返す。
+        """
+        rect = pygame.Rect(cw.s(5), cw.s(5), bmp.get_width() - cw.s(10), cw.s(15))
+        sub = bmp.subsurface(rect)
+        buf = pygame.image.tostring(sub, "RGB")
+        buf = array.array('B', buf)
+        rgb = sum(buf) / len(buf)
+        return rgb
+
+    def calc_wxcardnamecolorhint(self, wxbmp):
+        """文字描画領域の色を平均化した値を返す。
+        """
+        rect = wx.Rect(cw.s(5), cw.s(5), wxbmp.GetWidth() - cw.s(10), cw.s(15))
+        sub = wxbmp.GetSubBitmap(rect)
+        buf = array.array('B', '\0' * (rect[2] * rect[3] * 3))
+        sub.CopyToBuffer(buf, format=wx.BitmapBufferFormat_RGB)
+        rgb = sum(buf) / len(buf)
+        return rgb
 
     def get_actioncards(self):
         """
