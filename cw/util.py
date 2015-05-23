@@ -561,6 +561,8 @@ def get_facepaths(sexcoupon, agecoupon, rel=False):
     agecoupon: 年代クーポン。
     rel: TrueならlistにFaceディレクトリからの相対パスを格納する。
     """
+    imgpaths = {}
+
     sex = ""
     for f in cw.cwpy.setting.sexes:
         if sexcoupon == u"＿" + f.name:
@@ -577,42 +579,63 @@ def get_facepaths(sexcoupon, agecoupon, rel=False):
     # 性別・年代限定
     if sex and age:
         dpath = sex + "-" + age
+        dpath = join_paths(facedir, dpath)
         dpaths.append(dpath)
     # 性別限定
     if sex:
         dpath = sex
+        dpath = join_paths(facedir, dpath)
         dpaths.append(dpath)
     # 年代限定
     if age:
         dpath = "Common-" + age
+        dpath = join_paths(facedir, dpath)
         dpaths.append(dpath)
     # 汎用
     dpath = "Common"
+    dpath = join_paths(facedir, dpath)
     dpaths.append(dpath)
 
-    imgpaths = {}
-
-    for dpath in dpaths:
-        dpath2 = cw.util.join_paths(facedir, dpath)
-        if not os.path.isdir(dpath2):
-            continue
-        for dpath3, _dnames, fnames in os.walk(dpath2):
-            seq = []
-            for fname in fnames:
-                path = join_paths(dpath3, fname)
-                if os.path.isfile(path):
-                    ext = os.path.splitext(path)[1].lower()
-                    if ext in cw.EXTS_IMG:
-                        if rel:
-                            p = relpath(path, facedir)
-                            seq.append(p)
-                        else:
-                            seq.append(path)
-            if seq:
-                p = relpath(dpath3, facedir)
-                imgpaths[join_paths(p)] = seq
-
+    passed = set()
+    _get_facepaths(facedir, imgpaths, dpaths, rel, passed)
     return imgpaths
+
+def _get_facepaths(facedir, imgpaths, dpaths, rel, passed):
+    for dpath in dpaths:
+        if not os.path.isdir(dpath):
+            continue
+        abs = os.path.abspath(dpath)
+        abs = os.path.normpath(abs)
+        abs = os.path.normcase(abs)
+        if abs in passed:
+            continue
+        passed.add(abs)
+
+        dpaths2 = [][:]
+        seq = []
+        for fname in os.listdir(dpath):
+            path = join_paths(dpath, fname)
+            path = get_linktarget(path)
+            if os.path.isfile(path):
+                ext = os.path.splitext(path)[1].lower()
+                if ext in cw.EXTS_IMG:
+                    if rel:
+                        p = join_paths(relpath(path, facedir))
+                        if p.startswith("../"):
+                            p = path
+                        seq.append(p)
+                    else:
+                        seq.append(path)
+            elif os.path.isdir(path):
+                dpaths2.append(path)
+
+        if seq:
+            p = join_paths(relpath(dpath, facedir))
+            if p.startswith("../"):
+                p = dpath
+            imgpaths[join_paths(p)] = seq
+        if dpaths2:
+            _get_facepaths(facedir, imgpaths, dpaths2, rel, passed)
 
 def load_bgm(path):
     """Pathの音楽ファイルをBGMとして読み込む。
