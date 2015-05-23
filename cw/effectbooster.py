@@ -867,7 +867,7 @@ class JpdcImage(cw.image.Image):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA))
         copymode = config.get_int("jpdc:init", "copymode", 0)
 
-        # 互換動作: 1.50では`copymode=2`指定は`copymode=1`指定のように動く
+        # 互換動作: 1.50では`copymode=1`指定は`copymode=2`指定のように動く
         if not (cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
             if copymode == 1:
                 copymode = 2
@@ -1349,7 +1349,15 @@ class EffectBoosterConfig(object):
                 if m:
                     sec = m.group(1).strip()
                     cur_sec = {}
-                    self._sections[sec] = cur_sec
+                    # 互換動作: セクション名が重複した時、セクションの内容が上書きされて
+                    #           同一のセクションが複数回実行されるような挙動が発生するが、
+                    #           1.30以前では後に定義されたセクションが、
+                    #           1.50では先に定義されたセクションが複数回実行される
+                    if cw.cwpy.sdata and cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+                        self._sections[sec] = cur_sec
+                    else:
+                        if not sec in self._sections:
+                            self._sections[sec] = cur_sec
                     self._orderedsecs.append(sec)
                     continue
 
