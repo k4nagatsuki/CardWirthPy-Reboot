@@ -732,8 +732,11 @@ class JpyBackGroundImage(_JpySubImage):
     def __init__(self, config, cache, mask):
         _JpySubImage.__init__(self, config, "init", cache)
         self.backcolor = config.get_color("init", "backcolor", (0, 0, 0))
-        self.width = cw.s(config.get_int("init", "backwidth", cw.SIZE_AREA[0]))
-        self.height = cw.s(config.get_int("init", "backheight", cw.SIZE_AREA[1]))
+        self.width = cw.s(config.get_int("init", "backwidth", None))
+        self.vanish_anime = not self.width is None and self.width < 0
+        if self.width is None:
+            self.width = -1
+        self.height = cw.s(config.get_int("init", "backheight", -1))
         self.transparent = config.get_bool("init", "transparent", False)
         self.dirdepth = config.get_int("init", "dirdepth", 0)
         self.dirdepth = max(0, self.dirdepth)
@@ -754,7 +757,7 @@ class JpyImage(cw.image.Image):
         config = EffectBoosterConfig(path, "init")
         back = JpyBackGroundImage(config, cache, mask)
 
-        if back.width < 0:
+        if back.vanish_anime:
             # ドキュメントではbackwidthとbackheightは
             # 省略か-1指定で(632, 420)になると書かれているが、
             # 実際にはbackwidthが0未満だと消滅する
