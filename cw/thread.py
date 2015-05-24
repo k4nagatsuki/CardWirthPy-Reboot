@@ -2060,6 +2060,8 @@ class CWPy(_Singleton, threading.Thread):
                 if not alpha is None:
                     fcard.update_image()
                 fcard.deal()
+        self.list = self.get_mcards("visible")
+        self.index = -1
 
     def clear_fcardsprites(self):
         """mcardgrpから同行NPCのスプライトを取り除く。"""
@@ -2070,6 +2072,8 @@ class CWPy(_Singleton, threading.Thread):
                 fcard.hide()
                 fcards.append(fcard)
         self.mcardgrp.remove(fcards)
+        self.list = self.get_mcards("visible")
+        self.index = -1
 
     def set_autospread(self, mcards, maxcol, campwithfriend=False, anime=False):
         """自動整列設定時のメニューカードの配置位置を設定する。
@@ -3796,8 +3800,13 @@ class CWPy(_Singleton, threading.Thread):
             mcards = self._mcardtable.get(flag, [])
         else:
             mcards = self.mcardgrp.get_sprites_from_layer(0)
-            mcards = [m for m in mcards
-                      if not isinstance(m, cw.sprite.background.InuseCardImage)]
+            if self.areaid == cw.AREA_CAMP or (self.is_battlestatus() and self.battle and self.battle.is_ready()):
+                # キャンプモードあるいはバトルで準備中の時はNPCも表示される
+                mcards = [m for m in mcards
+                          if not isinstance(m, cw.sprite.background.InuseCardImage)]
+            else:
+                mcards = [m for m in mcards
+                          if not isinstance(m, (cw.character.Friend, cw.sprite.background.InuseCardImage))]
 
         return mcards
 
