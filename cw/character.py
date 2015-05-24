@@ -496,7 +496,7 @@ class Character(object):
         ターゲットの選択に使用される判定であるため、
         実際には有効であっても必ずしもTrueを返さない。
         """
-        if self.is_reversed() or self.is_vanished() or self.status == "hidden":
+        if self.is_reversed() or self.is_vanished() or (self.status == "hidden" and not isinstance(self, Friend)):
             return False
 
         mtype = motion.get("type", "")
