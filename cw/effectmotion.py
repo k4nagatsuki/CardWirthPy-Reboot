@@ -286,7 +286,7 @@ class Effect(object):
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
         """
         # 隠れているカードやFriendCardはアニメーションさせない
-        if target.status == "hidden" or isinstance(target, cw.character.Friend):
+        if target.status == "hidden":
             if update_image:
                 target.update_image()
 

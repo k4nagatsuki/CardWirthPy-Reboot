@@ -672,9 +672,6 @@ class Character(object):
             cw.cwpy.wait_frame(waitrate, True)
             # カード消去
             cw.cwpy.clear_inusecardimg(self)
-            # NPC消去
-            cw.animation.animate_sprite(self, "hide")
-            grp.remove(self)
         else:
             cw.cwpy.set_inusecardimg(self, header)
             cw.animation.animate_sprite(self, "zoomin")
@@ -698,6 +695,10 @@ class Character(object):
             e = data.find("Events/Event")
             cw.event.CardEvent(e, header, self, targets).start()
         finally:
+            if isinstance(self, cw.character.Friend):
+                # NPC消去
+                cw.animation.animate_sprite(self, "hide")
+                grp.remove(self)
             # 特殊文字を元に戻す
             cw.cwpy.rsrc.specialchars = specialchars
             cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed

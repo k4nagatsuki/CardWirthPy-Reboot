@@ -3830,7 +3830,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             pcards = self.pcardgrp.get_sprites_from_layer(0)
             pcards = [m for m in pcards
-                      if not isinstance(m, cw.sprite.background.InuseCardImage)]
+                      if not isinstance(m, (cw.character.Friend, cw.sprite.background.InuseCardImage))]
 
         return pcards
 
