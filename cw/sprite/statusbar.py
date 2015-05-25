@@ -235,6 +235,20 @@ class StatusBarPanel(base.CWPySprite):
             self.panelimg.blit(self.icon, cw.s((3, 3)))
         _draw_edge(self.panelimg)
 
+    def get_scaledimage(self, image):
+        """imageの横幅が大きすぎる場合は
+        パネル内に収まるようにリサイズして返す。
+        """
+        wmax = self.panelimg.get_width() - cw.s(5) - cw.s(5)
+        if self.icon:
+            wmax = wmax - self.icon.get_width() - cw.s(3)
+
+        rect = image.get_rect()
+        if wmax < rect.width:
+            rect.width = wmax
+            image = cw.image.smoothscale(image, rect.size)
+        return image
+
 def _draw_edge(image):
     def put(x, y):
         rect = pygame.Rect((x, y), (1, 1))
@@ -269,14 +283,13 @@ class YadoMoneyPanel(StatusBarPanel):
 
     def update_image(self):
         s = cw.cwpy.msgs["currency"] % (self.text)
-
-        if len(s) > 10:
-            s = s[-10::]
-
         image = self.font.render(s, True, (255, 255, 255))
+        image = self.get_scaledimage(image)
+
         rect = image.get_rect()
         rect.left = self.rect.w - (rect.w + cw.s(5))
         rect.top = (self.rect.h - rect.h) / 2
+
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
 
@@ -316,6 +329,7 @@ class EncounterPanel(StatusBarPanel):
         s = cw.cwpy.msgs["encounter"]
 
         image = self.font.render(s, True, (255, 255, 255))
+        image = self.get_scaledimage(image)
         rect = image.get_rect()
         rect.left = (self.rect.w - rect.w) / 2
         rect.top = (self.rect.h - rect.h) / 2
@@ -340,11 +354,8 @@ class RoundCounterPanel(YadoMoneyPanel):
 
     def update_image(self):
         s = cw.cwpy.msgs["round"] % (self.text)
-
-        if len(s) > 9:
-            s = s[:9]
-
         image = self.font.render(s, True, (255, 255, 255))
+        image = self.get_scaledimage(image)
         rect = image.get_rect()
         rect.left = (self.rect.w - rect.w) / 2
         rect.top = (self.rect.h - rect.h) / 2

@@ -102,10 +102,10 @@ class PartyEditor(wx.Dialog):
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
         s = cw.cwpy.msgs["party_name"]
-        left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) / 2
+        left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) // 2
         dc.DrawText(s, left, cw.wins(15))
         s = cw.cwpy.msgs["party_money"]
-        left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) / 2
+        left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) // 2
         dc.DrawText(s, left, cw.wins(73))
 
 class MoneyEditPanel(wx.Panel):
@@ -123,11 +123,11 @@ class MoneyEditPanel(wx.Panel):
         self.slider = wx.Slider(self, -1, 0, 0, 1,
             size=(cw.wins(165), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("slider", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
+        self.slider.SetTickFreq(n, 1)
         self.slider.SetMin(minvalue)
         self.slider.SetMax(maxvalue)
         self.slider.SetValue(self.value)
-        n = maxvalue / 10 if maxvalue else 0
-        self.slider.SetTickFreq(n, 1)
         # パーティ所持金変更スピン
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.wins(88), -1))
         self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14), weight=wx.NORMAL))
@@ -508,11 +508,19 @@ class NumberEditor(wx.Panel):
         self.spinctrl.SetValue(value)
 
     def set_max(self, value):
+        maxvalue = value
+        minvalue = self.slider.GetMin()
+        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
+        self.slider.SetTickFreq(n, 1)
         self.slider.SetMax(value)
         self.spinctrl.SetRange(self.spinctrl.GetMin(), value)
         self._enable()
 
     def set_min(self, value):
+        maxvalue = self.slider.GetMax()
+        minvalue = value
+        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
+        self.slider.SetTickFreq(n, 1)
         self.slider.SetMin(value)
         self.spinctrl.SetRange(value, self.spinctrl.GetMax())
         self._enable()
