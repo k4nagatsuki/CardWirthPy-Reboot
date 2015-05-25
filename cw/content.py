@@ -3085,8 +3085,9 @@ class TalkDialogContent(TalkContent):
         if dialogtext:
             mwin = cw.sprite.message.MessageWindow(dialogtext, names, imgpath, talker)
             index = cw.cwpy.show_message(mwin)
-        elif not dialogtext is None and len(names) > 0:
-            # 選択されたDialogに空文字列が設定されていた場合は選択肢を表示
+        elif not dialogtext is None and len(names) > 1:
+            # 選択されたDialogに空文字列が設定されており、
+            # かつ選択肢が2つ以上ある場合は選択肢を表示
             mwin = cw.sprite.message.SelectWindow(names)
             index = cw.cwpy.show_message(mwin)
         else:
