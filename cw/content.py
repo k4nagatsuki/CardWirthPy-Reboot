@@ -3085,11 +3085,12 @@ class TalkDialogContent(TalkContent):
         if dialogtext:
             mwin = cw.sprite.message.MessageWindow(dialogtext, names, imgpath, talker)
             index = cw.cwpy.show_message(mwin)
-        # テキストが存在せず、選択肢が複数存在する場合はSelectWindowを表示
-        elif len(names) > 1:
+        elif not dialogtext is None and len(names) > 0:
+            # 選択されたDialogに空文字列が設定されていた場合は選択肢を表示
             mwin = cw.sprite.message.SelectWindow(names)
             index = cw.cwpy.show_message(mwin)
         else:
+            # どのDialogも選択されなかった場合は常に最初の分岐
             index = 0
 
         return index
@@ -3164,7 +3165,7 @@ class TalkDialogContent(TalkContent):
         return dialogs
 
     def get_dialogtext(self, dialogs, coupons):
-        dialogtext = ""
+        dialogtext = None
         for req_coupons, text in dialogs:
             hasallcoupons = True
             for req_coupon in req_coupons:
