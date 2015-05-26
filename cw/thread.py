@@ -2664,7 +2664,7 @@ class CWPy(_Singleton, threading.Thread):
             selowner = self.selectedheader and self.selectedheader.get_owner() == sprite
 
             if cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack == sprite:
-                mcards = self.get_mcards()
+                mcards = self.get_mcards("visible")
                 for mcard in mcards:
                     if isinstance(mcard, cw.sprite.card.MenuCard) and mcard.is_backpack():
                         sprite = mcard
@@ -2672,7 +2672,7 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     continue
             elif cw.cwpy.ydata.storehouse == sprite:
-                mcards = self.get_mcards()
+                mcards = self.get_mcards("visible")
                 for mcard in mcards:
                     if isinstance(mcard, cw.sprite.card.MenuCard) and mcard.is_storehouse():
                         sprite = mcard
@@ -3800,13 +3800,13 @@ class CWPy(_Singleton, threading.Thread):
             mcards = self._mcardtable.get(flag, [])
         else:
             mcards = self.mcardgrp.get_sprites_from_layer(0)
-            if self.areaid == cw.AREA_CAMP or (self.is_battlestatus() and self.battle and self.battle.is_ready()):
-                # キャンプモードあるいはバトルで準備中の時はNPCも表示される
-                mcards = [m for m in mcards
-                          if not isinstance(m, cw.sprite.background.InuseCardImage)]
-            else:
+            if self.is_battlestatus() and self.battle and self.battle.is_running():
+                # 戦闘行動中はNPCを除外(一時的に表示されている可能性があるため)
                 mcards = [m for m in mcards
                           if not isinstance(m, (cw.character.Friend, cw.sprite.background.InuseCardImage))]
+            else:
+                mcards = [m for m in mcards
+                          if not isinstance(m, cw.sprite.background.InuseCardImage)]
 
         return mcards
 
