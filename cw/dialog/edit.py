@@ -471,6 +471,7 @@ class SliderWithButton(wx.Panel):
     """左右ボタンつきのスライダ。"""
     def __init__(self, parent, value, minvalue, maxvalue, sliderwidth):
         wx.Panel.__init__(self, parent, -1)
+        self.SetDoubleBuffered(True)
 
         # スライダ
         self.slider = wx.Slider(self, -1, 0, 0, 1,
@@ -526,6 +527,8 @@ class SliderWithButton(wx.Panel):
         self.rightbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
         self.leftbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
         self.rightbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
+        self.leftbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
+        self.rightbtn.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocusBtn)
 
     def _do_layout(self):
         sizer_slider = wx.BoxSizer(wx.HORIZONTAL)
@@ -540,30 +543,46 @@ class SliderWithButton(wx.Panel):
     def OnMouseDownBtn(self, event):
         if event.GetId() == self.leftbtn.GetId():
             self._timerfunc = self._on_leftbtn
+            self._timerbtn = self.leftbtn
         elif event.GetId() == self.rightbtn.GetId():
             self._timerfunc = self._on_rightbtn
+            self._timerbtn = self.rightbtn
         else:
             assert False
         self._timerfunc()
         self.Bind(wx.EVT_TIMER, self.OnTimer1, self._timer)
-        self._timer.Start(SliderWithButton._repeat_first)
+        self._timer.Start(SliderWithButton._repeat_first, wx.TIMER_ONE_SHOT)
+        event.Skip()
+
+    def OnKillFocusBtn(self, event):
+        f = wx.Window.FindFocus()
+        if f <> self.leftbtn and f <> self.rightbtn:
+            self._end()
         event.Skip()
 
     def OnMouseUpBtn(self, event):
+        self._end()
+        event.Skip()
+
+    def _end(self):
         self._timer.Stop()
         def func():
             self._timerfunc = None
+            self._timerbtn = None
         wx.CallAfter(func)
-        event.Skip()
 
     def OnTimer1(self, event):
-        self._timerfunc()
+        pos = self.ScreenToClient(wx.GetMousePosition())
+        if self._timerbtn.GetRect().Contains(pos):
+            self._timerfunc()
         self._timer.Stop()
         self.Bind(wx.EVT_TIMER, self.OnTimer2, self._timer)
         self._timer.Start(SliderWithButton._repeat_second)
 
     def OnTimer2(self, event):
-        self._timerfunc()
+        pos = self.ScreenToClient(wx.GetMousePosition())
+        if self._timerbtn.GetRect().Contains(pos):
+            self._timerfunc()
 
     def OnLeftBtn(self, event):
         if self._timerfunc:
