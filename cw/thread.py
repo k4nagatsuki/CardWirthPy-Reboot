@@ -1798,6 +1798,10 @@ class CWPy(_Singleton, threading.Thread):
                         scepath2 = os.path.normcase(os.path.normpath(os.path.abspath(scepath2)))
                         if header and scepath1 <> scepath2:
                             self.sdata.set_log()
+                            self.ydata.party.lastscenario = []
+                            self.ydata.party.lastscenariopath = optscenario
+                            self.setting.lastscenario = []
+                            self.setting.lastscenariopath = optscenario
                             self._f9impl(startotherscenario=True)
                     else:
                         for idx, data in enumerate(self.ydata.party.members):
