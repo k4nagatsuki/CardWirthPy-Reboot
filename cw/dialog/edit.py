@@ -120,14 +120,7 @@ class MoneyEditPanel(wx.Panel):
         else:
             minvalue = 0
         # パーティ所持金変更スライダ
-        self.slider = wx.Slider(self, -1, 0, 0, 1,
-            size=(cw.wins(165), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("slider", pixelsize=cw.wins(14), weight=wx.NORMAL))
-        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
-        self.slider.SetTickFreq(n, 1)
-        self.slider.SetMin(minvalue)
-        self.slider.SetMax(maxvalue)
-        self.slider.SetValue(self.value)
+        self.slider = SliderWithButton(self, self.value, minvalue, maxvalue, cw.wins(150))
         # パーティ所持金変更スピン
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.wins(88), -1))
         self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14), weight=wx.NORMAL))
@@ -150,7 +143,6 @@ class MoneyEditPanel(wx.Panel):
         self.text_yado = wx.StaticText(self, -1, cw.cwpy.msgs["base_money"])
         self.text_yado.SetFont(font)
 
-        self.slider.Enable(minvalue < maxvalue)
         self.spinctrl.Enable(minvalue < maxvalue)
         self.spinctrl2.Enable(minvalue < maxvalue)
 
@@ -160,23 +152,23 @@ class MoneyEditPanel(wx.Panel):
     def _bind(self):
         self.spinctrl.Bind(wx.EVT_SPINCTRL, self.OnSpinCtrl)
         self.spinctrl2.Bind(wx.EVT_SPINCTRL, self.OnSpinCtrl2)
-        self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
+        self.slider.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
 
     def OnSlider(self, event):
-        value = self.slider.GetValue()
+        value = self.slider.slider.GetValue()
         self.spinctrl.SetValue(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
 
     def OnSpinCtrl(self, event):
         value = self.spinctrl.GetValue()
-        self.slider.SetValue(value)
+        self.slider.set_value(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
 
     def OnSpinCtrl2(self, event):
         value = self.spinctrl.GetMax() + self.spinctrl.GetMin() - self.spinctrl2.GetValue()
-        self.slider.SetValue(value)
+        self.slider.set_value(value)
         self.spinctrl.SetValue(value)
         self.value = value
 
@@ -472,13 +464,17 @@ class NumberComboEditDialog(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-class NumberEditor(wx.Panel):
-    def __init__(self, parent, value, minvalue, maxvalue):
+class SliderWithButton(wx.Panel):
+    _repeat_first = 500
+    _repeat_second = 20
+
+    """左右ボタンつきのスライダ。"""
+    def __init__(self, parent, value, minvalue, maxvalue, sliderwidth):
         wx.Panel.__init__(self, parent, -1)
 
         # スライダ
         self.slider = wx.Slider(self, -1, 0, 0, 1,
-            size=(cw.wins(200), -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
+            size=(sliderwidth, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("slider", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
         # smallleft
@@ -487,6 +483,120 @@ class NumberEditor(wx.Panel):
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((20, 40)), bmp=bmp)
+
+        self.set_min(minvalue)
+        self.set_max(maxvalue)
+        self.set_value(value)
+
+        self._timer = wx.Timer(self)
+
+        self._do_layout()
+        self._bind()
+
+    def set_value(self, value):
+        self.slider.SetValue(value)
+
+    def set_max(self, value):
+        maxvalue = value
+        minvalue = self.slider.GetMin()
+        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
+        self.slider.SetTickFreq(n, 1)
+        self.slider.SetMax(value)
+        self._enable()
+
+    def set_min(self, value):
+        maxvalue = self.slider.GetMax()
+        minvalue = value
+        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
+        self.slider.SetTickFreq(n, 1)
+        self.slider.SetMin(value)
+        self._enable()
+
+    def _enable(self):
+        maxvalue = self.slider.GetMax()
+        minvalue = self.slider.GetMin()
+        self.slider.Enable(minvalue < maxvalue)
+        self.leftbtn.Enable(minvalue < maxvalue)
+        self.rightbtn.Enable(minvalue < maxvalue)
+
+    def _bind(self):
+        self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
+        self.leftbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
+        self.rightbtn.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDownBtn)
+        self.leftbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
+        self.rightbtn.Bind(wx.EVT_LEFT_UP, self.OnMouseUpBtn)
+
+    def _do_layout(self):
+        sizer_slider = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_slider.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
+        sizer_slider.Add(self.slider, 1, wx.LEFT|wx.RIGHT, cw.wins(3))
+        sizer_slider.Add(self.rightbtn, 0, wx.ALIGN_CENTER)
+
+        self.SetSizer(sizer_slider)
+        sizer_slider.Fit(self)
+        self.Layout()
+
+    def OnMouseDownBtn(self, event):
+        if event.GetId() == self.leftbtn.GetId():
+            self._timerfunc = self._on_leftbtn
+        elif event.GetId() == self.rightbtn.GetId():
+            self._timerfunc = self._on_rightbtn
+        else:
+            assert False
+        self._timerfunc()
+        self.Bind(wx.EVT_TIMER, self.OnTimer1, self._timer)
+        self._timer.Start(SliderWithButton._repeat_first)
+        event.Skip()
+
+    def OnMouseUpBtn(self, event):
+        self._timer.Stop()
+        def func():
+            self._timerfunc = None
+        wx.CallAfter(func)
+        event.Skip()
+
+    def OnTimer1(self, event):
+        self._timerfunc()
+        self._timer.Stop()
+        self.Bind(wx.EVT_TIMER, self.OnTimer2, self._timer)
+        self._timer.Start(SliderWithButton._repeat_second)
+
+    def OnTimer2(self, event):
+        self._timerfunc()
+
+    def OnLeftBtn(self, event):
+        if self._timerfunc:
+            return
+        self._on_leftbtn()
+
+    def OnRightBtn(self, event):
+        if self._timerfunc:
+            return
+        self._on_rightbtn()
+
+    def _on_leftbtn(self):
+        value = self.slider.GetValue()
+        if self.slider.GetMin() < value:
+            self.slider.SetValue(value-1)
+            event = wx.PyCommandEvent(wx.wxEVT_COMMAND_SLIDER_UPDATED, self.slider.GetId())
+            event.SetInt(value-1)
+            self.slider.ProcessEvent(event)
+
+    def _on_rightbtn(self):
+        value = self.slider.GetValue()
+        if value < self.slider.GetMax():
+            self.slider.SetValue(value+1)
+            event = wx.PyCommandEvent(wx.wxEVT_COMMAND_SLIDER_UPDATED, self.slider.GetId())
+            event.SetInt(value+1)
+            self.slider.ProcessEvent(event)
+
+class NumberEditor(wx.Panel):
+    def __init__(self, parent, value, minvalue, maxvalue):
+        wx.Panel.__init__(self, parent, -1)
+
+        # スライダー
+        self.slider = SliderWithButton(self, value, minvalue, maxvalue, cw.wins(200))
 
         # スピン
         self.spinlabel = wx.StaticText(self, -1, u"直接入力:")
@@ -504,77 +614,48 @@ class NumberEditor(wx.Panel):
         self._bind()
 
     def set_value(self, value):
-        self.slider.SetValue(value)
+        self.slider.set_value(value)
         self.spinctrl.SetValue(value)
 
     def set_max(self, value):
-        maxvalue = value
-        minvalue = self.slider.GetMin()
-        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
-        self.slider.SetTickFreq(n, 1)
-        self.slider.SetMax(value)
+        self.slider.set_max(value)
         self.spinctrl.SetRange(self.spinctrl.GetMin(), value)
         self._enable()
 
     def set_min(self, value):
-        maxvalue = self.slider.GetMax()
-        minvalue = value
-        n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
-        self.slider.SetTickFreq(n, 1)
-        self.slider.SetMin(value)
+        self.slider.set_min(value)
         self.spinctrl.SetRange(value, self.spinctrl.GetMax())
         self._enable()
 
     def _enable(self):
-        maxvalue = self.slider.GetMax()
-        minvalue = self.slider.GetMin()
-        self.slider.Enable(minvalue < maxvalue)
-        self.leftbtn.Enable(minvalue < maxvalue)
-        self.rightbtn.Enable(minvalue < maxvalue)
+        maxvalue = self.slider.slider.GetMax()
+        minvalue = self.slider.slider.GetMin()
         self.spinctrl.Enable(minvalue < maxvalue)
 
     def _bind(self):
-        self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
-        self.Bind(wx.EVT_BUTTON, self.OnRightBtn, self.rightbtn)
-        self.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
+        self.slider.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
         self.spinctrl.Bind(wx.EVT_SPINCTRL, self.OnSpinCtrl)
 
     def _do_layout(self):
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_slider = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_slider.Add(self.leftbtn, 0, wx.ALIGN_CENTER)
-        sizer_slider.Add(self.slider, 1, wx.LEFT|wx.RIGHT|wx.ALL, cw.wins(5))
-        sizer_slider.Add(self.rightbtn, 0, wx.ALIGN_CENTER)
+        sizer_v1.Add(self.slider, 1, wx.BOTTOM|wx.EXPAND, cw.wins(5))
 
         sizer_spinctrl = wx.BoxSizer(wx.HORIZONTAL)
         sizer_spinctrl.Add(self.spinlabel, 0, wx.ALIGN_CENTER|wx.RIGHT, cw.wins(5))
         sizer_spinctrl.Add(self.spinctrl, 0, 0, cw.wins(0))
 
-        sizer_v1.Add(sizer_slider, 0, wx.BOTTOM, cw.wins(5))
         sizer_v1.Add(sizer_spinctrl, 0, wx.ALIGN_RIGHT, cw.wins(0))
 
         self.SetSizer(sizer_v1)
         sizer_v1.Fit(self)
         self.Layout()
 
-    def OnLeftBtn(self, evt):
-        value = self.slider.GetValue()
-        if self.slider.GetMin() < value:
-            self.slider.SetValue(value-1)
-            self.spinctrl.SetValue(value-1)
-
-    def OnRightBtn(self, evt):
-        value = self.slider.GetValue()
-        if value < self.slider.GetMax():
-            self.slider.SetValue(value+1)
-            self.spinctrl.SetValue(value+1)
-
     def OnSlider(self, evt):
-        self.spinctrl.SetValue(self.slider.GetValue())
+        self.spinctrl.SetValue(self.slider.slider.GetValue())
 
     def OnSpinCtrl(self, evt):
-        self.slider.SetValue(self.spinctrl.GetValue())
+        self.slider.slider.SetValue(self.spinctrl.GetValue())
 
 class ComboEditDialog(wx.Dialog):
 
