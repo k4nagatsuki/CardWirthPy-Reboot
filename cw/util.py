@@ -421,6 +421,18 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
     try:
+        def cantreadimage():
+            image = pygame.Surface((74, 94)).convert_alpha()
+            image.fill((255, 255, 255, 0))
+            font = cw.imageretouch.Font(u"IPAUIGothic", 13, True)
+            s = u"読込できない\nイメージです"
+            y = 5
+            for line in s.splitlines():
+                subimg = font.render(line, True, (0, 0, 0, 255))
+                image.blit(subimg, (0, y))
+                y += font.get_height()
+            return image
+
         if f:
             try:
                 pos = f.tell()
@@ -431,7 +443,11 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 image = pygame.image.load(f, path)
         elif cw.binary.image.path_is_code(path):
             data = cw.binary.image.code_to_data(path)
-            ispng = get_imageext(data) == ".png"
+            ext = get_imageext(data)
+            ispng = ext == ".png"
+            if ext == ".bmp" and len(data) == 2978 and md5.new(data).hexdigest() == "80ea935c6d3f8e581311bf89a60e5f70":
+                # どうしても読込時にメモリアクセス違反が発生するイメージ(ドア１.bmp)
+                return cantreadimage()
             #return pygame.Surface((0, 0)).convert()
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
@@ -439,11 +455,25 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
-            ispng = os.path.splitext(path)[1].lower() == ".png"
-            with io.BufferedReader(io.FileIO(path)) as f2:
-                image = pygame.image.load(f2)
-                f2.close()
+            ext = os.path.splitext(path)[1].lower()
+            ispng = ext == ".png"
+            if ext == ".bmp" and os.path.getsize(path) == 2978:
+                with open(path, "rb") as f2:
+                    data = f2.read()
+                    f2.close()
+                if md5.new(data).hexdigest() == "80ea935c6d3f8e581311bf89a60e5f70":
+                    # どうしても読込時にメモリアクセス違反が発生するイメージ(ドア１.bmp)
+                    return cantreadimage()
+                else:
+                    with io.BytesIO(data) as f2:
+                        image = pygame.image.load(f2)
+                        f2.close()
+            else:
+                with io.BufferedReader(io.FileIO(path)) as f2:
+                    image = pygame.image.load(f2)
+                    f2.close()
     except:
+        print_ex()
         print u"画像が読み込めません(load_image)。リトライします", path
         if retry:
             try:
@@ -1961,6 +1991,10 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                         data = f2.read()
                         f2.close()
 
+                if len(data) == 2978 and md5.new(data).hexdigest() == "80ea935c6d3f8e581311bf89a60e5f70":
+                    # どうしても読込時にメモリアクセス違反が発生するイメージ(ドア１.bmp)
+                    return wx.EmptyBitmap(0, 0)
+
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)
                 if name and ok and not cw.binary.image.path_is_code(name):
                     # BUG: io.BytesIO()を用いてのwx.ImageFromStream()は、
@@ -1971,6 +2005,7 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                         image = wx.ImageFromStream(f2, wx.BITMAP_TYPE_ANY, -1)
                         f2.close()
             except:
+                print_ex()
                 print u"画像が読み込めません(load_wxbmp)", name
                 return wx.EmptyBitmap(0, 0)
 
