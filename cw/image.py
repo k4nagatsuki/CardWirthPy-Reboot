@@ -5,6 +5,7 @@ import os
 import io
 import struct
 import threading
+import cStringIO
 import wx
 import pygame
 
@@ -813,6 +814,7 @@ def fix_cwnext16bitbitmap(data):
         if threading.currentThread() <> cw.cwpy:
             # wxPythonは無理やり読み込んで壊れた画像を作ってしまうので
             # pygame側でエラーが出るか調べる
+            data = cw.image.patch_rle4bitmap(data)
             with io.BytesIO(data) as f:
                 try:
                     pygame.image.load(f)
@@ -827,8 +829,53 @@ def fix_cwnext16bitbitmap(data):
             bfOffBits += 4 * 3
         b = struct.pack("<I", bfOffBits)
         data = data[0:10] + b + data[14:]
+        data = cw.image.patch_rle4bitmap(data)
         return data, False
+    data = cw.image.patch_rle4bitmap(data)
     return data, True
+
+def patch_rle4bitmap(data):
+    if len(data) < 14 + 40:
+        return data
+    s = struct.unpack("<BBIhhIIIiHHiIIIII", data[0:14+40])
+    if s[0] <> ord('B'):
+        return data
+    if s[1] <> ord('M'):
+        return data
+    _bfSize = s[2]
+    _bfReserved1 = s[3]
+    _bfReserved2 = s[4]
+    bfOffBits = s[5]
+    if bfOffBits == 0:
+        return data
+    biSize = s[6]
+    if biSize <> 40:
+        return data
+    biWidth = s[7]
+    biHeight = s[8]
+    _biPlanes = s[9]
+    biBitCount = s[10]
+    biCompression = s[11]
+    if biCompression == 2: # RLE4
+        # FIXME: RLE4の場合、メモリアクセス違反が発生する事がある(SDL_imageのバグ？)
+        #        問題を避けるために予め展開する
+        bmpdata = data[bfOffBits:]
+        bpl = ((biWidth * biBitCount + 31) / 32) * 4
+        h = -biHeight if biHeight < 0 else biHeight
+        bmpdata = cw.imageretouch.decode_rle4data(bmpdata, h, bpl)
+
+        f = cStringIO.StringIO()
+        f.write(data[:2])
+        f.write(struct.pack("<I", bfOffBits + len(bmpdata)))
+        f.write(data[2+4:2+4+8+16])
+        f.write(struct.pack("<I", 0))
+        f.write(struct.pack("<I", len(bmpdata)))
+        f.write(data[2+4+8+16+4+4:bfOffBits])
+        f.write(bmpdata)
+        data = f.getvalue()
+        f.close()
+
+    return data
 
 def main():
     pass

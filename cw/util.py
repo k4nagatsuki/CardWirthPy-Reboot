@@ -445,10 +445,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             data = cw.binary.image.code_to_data(path)
             ext = get_imageext(data)
             ispng = ext == ".png"
-            if ext == ".bmp" and len(data) == 2978 and md5.new(data).hexdigest() == "80ea935c6d3f8e581311bf89a60e5f70":
-                # どうしても読込時にメモリアクセス違反が発生するイメージ(ドア１.bmp)
-                return cantreadimage()
-            #return pygame.Surface((0, 0)).convert()
+            if ext == ".bmp":
+                data = cw.image.patch_rle4bitmap(data)
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
                 f2.close()
@@ -457,17 +455,14 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 return pygame.Surface((0, 0)).convert()
             ext = os.path.splitext(path)[1].lower()
             ispng = ext == ".png"
-            if ext == ".bmp" and os.path.getsize(path) == 2978:
+            if ext == ".bmp":
                 with open(path, "rb") as f2:
                     data = f2.read()
                     f2.close()
-                if md5.new(data).hexdigest() == "80ea935c6d3f8e581311bf89a60e5f70":
-                    # どうしても読込時にメモリアクセス違反が発生するイメージ(ドア１.bmp)
-                    return cantreadimage()
-                else:
-                    with io.BytesIO(data) as f2:
-                        image = pygame.image.load(f2)
-                        f2.close()
+                data = cw.image.patch_rle4bitmap(data)
+                with io.BytesIO(data) as f2:
+                    image = pygame.image.load(f2)
+                    f2.close()
             else:
                 with io.BufferedReader(io.FileIO(path)) as f2:
                     image = pygame.image.load(f2)
@@ -1990,10 +1985,6 @@ def load_wxbmp(name="", mask=False, image=None, maskpos=(0, 0), f=None, retry=Tr
                     with open(name, "rb") as f2:
                         data = f2.read()
                         f2.close()
-
-                if len(data) == 2978 and md5.new(data).hexdigest() == "80ea935c6d3f8e581311bf89a60e5f70":
-                    # どうしても読込時にメモリアクセス違反が発生するイメージ(ドア１.bmp)
-                    return wx.EmptyBitmap(0, 0)
 
                 data, ok = cw.image.fix_cwnext16bitbitmap(data)
                 if name and ok and not cw.binary.image.path_is_code(name):

@@ -813,6 +813,9 @@ def colorwrap(num):
     """numを0～255の値に丸める。"""
     return cw.util.numwrap(num, 0, 255)
 
+def decode_rle4data(data, h, bpl):
+    return _imageretouch.decode_rle4data(data, h, bpl)
+
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
         d = {(u"IPAゴシック", u"IPAGothic"):"gothic.ttf",

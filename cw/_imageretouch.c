@@ -591,6 +591,142 @@ to_disabledimage(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+static PyObject *
+decode_rle4data(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    size_t outlen, slen, si = 0, linepos = 0, x = 0, y = 0, pixels = 0, lines = 0, j = 0;
+    int h, bpl;
+    unsigned char count = 0, sb = 0;
+    int low = 0; /* Next pixel is lower bits. */
+    unsigned char *dest, *source, *outdata;
+
+    if (!PyArg_ParseTuple(args, "s#ii", &source, &slen, &h, &bpl))
+        return NULL;
+
+    outlen = h * bpl;
+    string = PyBytes_FromStringAndSize(NULL, outlen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
+
+    memset(outdata, 0, outlen);
+
+#define GET_BYTE(b) {\
+    if (slen <= si / 2 || (si & 1) == 1)\
+    {\
+        /* PySys_WriteStdout("%d\n", __LINE__); */\
+        goto exit_error;\
+    }\
+    b = source[si / 2];\
+    si += 2;\
+}
+#define GET_PIXEL(b) {\
+    if (slen <= si / 2)\
+    {\
+        /* PySys_WriteStdout("%d\n", __LINE__); */\
+        goto exit_error;\
+    }\
+    if ((si & 1) == 0)\
+    {\
+        b = (source[si / 2] >> 4) & 0x0f;\
+    }\
+    else\
+    {\
+        b = source[si / 2] & 0x0f;\
+    }\
+    si++;\
+}
+#define PUT_PIXEL(b) {\
+    if (outlen <= linepos + x / 2)\
+    {\
+        /* PySys_WriteStdout("%d\n", __LINE__); */\
+        goto exit_error;\
+    }\
+    if ((x & 1) == 0)\
+    {\
+        outdata[linepos + x / 2] |= ((b) & 0x0f) << 4;\
+    }\
+    else\
+    {\
+        outdata[linepos + x / 2] |= (b) & 0x0f;\
+    }\
+    x++;\
+}
+    while (si < slen * 2)
+    {
+        GET_BYTE(count);
+        if (count == 0)
+        {
+            GET_BYTE(count);
+            switch (count)
+            {
+            case 0:
+                /* EOL */
+                x = 0;
+                y++;
+                linepos = y * bpl;
+                break;
+            case 1:
+                /* EOB */
+                si = slen * 2;
+                break;
+            case 2:
+                /* Jump */
+                GET_BYTE(pixels);
+                GET_BYTE(lines);
+                x += pixels;
+                y += lines;
+                linepos = y * bpl;
+                break;
+            default:
+                /* Absolute Data */
+                if ((count & 1) == 1)
+                {
+                    /* PySys_WriteStdout("%d\n", __LINE__); */
+                    goto exit_error;
+                }
+                for (j = 0; j < count; j++)
+                {
+                    GET_PIXEL(sb);
+                    PUT_PIXEL(sb);
+                }
+                if ((((count + 1) / 2) & 1) == 1) si += 2;
+                break;
+            }
+        }
+        else
+        {
+            /* Encoded Data */
+            if ((count & 1) == 1)
+            {
+                /* PySys_WriteStdout("%d\n", __LINE__); */
+                goto exit_error;
+            }
+            GET_BYTE(sb);
+            for (j = 0; j < count; j++)
+            {
+                if ((j & 1) == 0)
+                {
+                    PUT_PIXEL((sb >> 4) & 0x0f);
+                }
+                else
+                {
+                    PUT_PIXEL(sb & 0x0f);
+                }
+            }
+        }
+    }
+
+    return string;
+
+exit_error:
+    memset(outdata, 0, outlen);
+    return string;
+}
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #include <windows.h>
@@ -1099,6 +1235,8 @@ _imageretouchMethods[] =
         "blend_sub_1_50(rgba_str, size, rgba_str)"},
     {"to_disabledimage", to_disabledimage, METH_VARARGS,
         "to_disabledimage(char*, size)"},
+    {"decode_rle4data", decode_rle4data, METH_VARARGS,
+        "decode_rle4data(char*, h, bpl)"},
 #if defined(_WIN32) || defined(_WIN64)
     {"font_new", font_new, METH_VARARGS,
         "font_new(face, pixels, bold, italic)"},
