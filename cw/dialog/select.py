@@ -2923,7 +2923,7 @@ class ScenarioSelect(Select):
         (ディレクトリ・ファイル名の配列)で返す。
         """
         seq = []
-        if not self.list:
+        if not self.list or not self._saved_list:
             return seq, u""
 
         spdir = False
