@@ -984,7 +984,7 @@ class CWPy(_Singleton, threading.Thread):
             pre_info = self.pre_dialogs[-1]
             callname = pre_info[0]
 
-            if callname == "CARDPOCKET":
+            if callname in ("CARDPOCKET", "CARDPOCKETB"):
                 # ゲームオーバーになった場合は開かない
                 if cw.cwpy.is_gameover():
                     self.pre_dialogs.pop()

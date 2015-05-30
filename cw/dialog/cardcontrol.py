@@ -1048,7 +1048,16 @@ class CardHolder(CardControl):
                 self._init_cardpocketlist()
             else:
                 assert self.callname == "CARDPOCKETB"
-                self._set_backpacklist(narrow=False)
+                cspace = self.selection.get_cardpocketspace()[self.index3]
+                ccount = len(self.selection.cardpocket[self.index3])
+                if ccount < cspace:
+                    # 荷物袋を開く
+                    self._set_backpacklist(narrow=False)
+                else:
+                    # 前回使用時に起きたイベントでスペースが
+                    # 一杯になっているなどの場合
+                    self.callname = "CARDPOCKET"
+                    self._init_cardpocketlist()
 
         # 左右ボタンでの移動先の有無(情報カードは左右移動無し)
         if self.callname <> "INFOVIEW":
