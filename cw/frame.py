@@ -426,7 +426,7 @@ class Frame(wx.Frame):
             # シナリオプレイ途中から再開
             if sceheader:
                 cw.cwpy.exec_func(cw.cwpy.ydata.load_party, header)
-                cw.cwpy.exec_func(cw.cwpy.set_scenario, sceheader)
+                cw.cwpy.exec_func(cw.cwpy.set_scenario, sceheader, resume=True)
             # シナリオロードに失敗
             elif header.is_adventuring():
                 cw.cwpy.sounds["error"].play()
