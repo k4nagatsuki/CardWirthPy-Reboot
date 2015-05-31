@@ -17,20 +17,11 @@ intwrap(int i, int min, int max)
 
 #define colorwrap(i) intwrap(i, 0, 255)
 
-static int
-equals_rgb(unsigned char *data1, size_t index1, int r, int g, int b)
-{
-    if (data1[index1 + 0] != r) return 0;
-    if (data1[index1 + 1] != g) return 0;
-    if (data1[index1 + 2] != b) return 0;
-    return 1;
-}
-
 static PyObject *
 add_mosaic(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, x2, y2, val;
     unsigned char *data, *outdata;
     unsigned long idx;
@@ -73,7 +64,7 @@ static PyObject *
 to_binaryformat(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, val, br, bg, bb;
     unsigned char *data, *outdata;
     unsigned char r, g, b;
@@ -122,7 +113,7 @@ static PyObject *
 add_noise(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int r, g, b, w, h, x, y, val, randmax, i, colornoise = 0;
     unsigned char *data, *outdata;
 
@@ -201,9 +192,10 @@ static PyObject *
 exchange_rgbcolor(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y;
-    unsigned char *data, *outdata, *colormodel;
+    char *colormodel;
+    unsigned char *data, *outdata;
     unsigned char r, g, b;
 
     if (!PyArg_ParseTuple(args, "s#(ii)s", &data, &len, &w, &h, &colormodel))
@@ -265,7 +257,7 @@ static PyObject *
 to_sepiatone(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, r, g, b, tone_r, tone_g, tone_b, bright;
     unsigned char *data, *outdata;
 
@@ -306,7 +298,7 @@ static PyObject *
 spread_pixels(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int w, h, x, y, x2, y2;
     unsigned char *data, *outdata;
     unsigned long idx;
@@ -343,7 +335,7 @@ static PyObject *
 filter(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t len;
+    Py_ssize_t len;
     int r, g, b, w, h, x, y, wt[3][3], offset, div, i, i2, x2, y2;
     unsigned char *data, *outdata;
     unsigned long idx;
@@ -398,8 +390,8 @@ static PyObject *
 bordering(PyObject *self, PyObject *args)
 {
     PyObject *points = NULL;
-    size_t len;
-    int w, h, x, y, r, g, b;
+    Py_ssize_t len;
+    int w, h, x, y;
     unsigned char *data;
     unsigned char *data_lt, *data_mt, *data_rt, *data_lm, *data_rm, *data_lb, *data_mb, *data_rb;
     int find;
@@ -459,7 +451,7 @@ static PyObject *
 blend_add_1_50(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t dlen, slen;
+    Py_ssize_t dlen, slen;
     int w, h, x, y, dr, dg, db, sr, sg, sb, sa;
     unsigned char *dest, *source, *outdata;
 
@@ -509,7 +501,7 @@ static PyObject *
 blend_sub_1_50(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t dlen, slen;
+    Py_ssize_t dlen, slen;
     int w, h, x, y, dr, dg, db, sr, sg, sb, sa, a, b;
     unsigned char *dest, *source, *outdata;
 
@@ -560,7 +552,6 @@ blend_sub_1_50(PyObject *self, PyObject *args)
 static PyObject *
 to_disabledimage(PyObject *self, PyObject *args)
 {
-    size_t dlen;
     int px, w, h, keyR, keyG, keyB;
     Py_buffer buf;
     unsigned char *dest;
@@ -595,11 +586,10 @@ static PyObject *
 decode_rle4data(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
-    size_t outlen, slen, si = 0, linepos = 0, x = 0, y = 0, pixels = 0, lines = 0, j = 0;
+    Py_ssize_t outlen, slen, si = 0, linepos = 0, x = 0, y = 0, pixels = 0, lines = 0, j = 0;
     int h, bpl;
     unsigned char count = 0, sb = 0;
-    int low = 0; /* Next pixel is lower bits. */
-    unsigned char *dest, *source, *outdata;
+    unsigned char *source, *outdata;
 
     if (!PyArg_ParseTuple(args, "s#ii", &source, &slen, &h, &bpl))
         return NULL;
@@ -1162,9 +1152,9 @@ font_render(PyObject *self, PyObject *args)
 cleanup:
     if (str) HeapFree(heap, 0, str);
 
-    /* BUG: ƒ^ƒvƒ‹‚ğ•Ô‚»‚¤‚Æ‚·‚é‚Æstring‚ªGC‚Å‰ñû‚³‚ê‚È‚­
-            ‚È‚Á‚Ä‚µ‚Ü‚¤‚½‚ßA‚±‚±‚Å‚Ístring‚Ì‚İ‚ğ•Ô‚·‚æ‚¤‚É‚µA
-            (w, h)æ“¾—p‚Éfont_imagesize()‚ğ—pˆÓ‚·‚éB */
+    /* BUG: ã‚¿ãƒ—ãƒ«ã‚’è¿”ãã†ã¨ã™ã‚‹ã¨stringãŒGCã§å›åã•ã‚Œãªã
+            ãªã£ã¦ã—ã¾ã†ãŸã‚ã€ã“ã“ã§ã¯stringã®ã¿ã‚’è¿”ã™ã‚ˆã†ã«ã—ã€
+            (w, h)å–å¾—ç”¨ã«font_imagesize()ã‚’ç”¨æ„ã™ã‚‹ã€‚ */
     /*return Py_BuildValue("s(ii)", string, w, h);*/
     return string;
 }
