@@ -2353,7 +2353,7 @@ class CWPy(_Singleton, threading.Thread):
             # 一部ステータスは回復
             for pcard in self.get_pcards():
                 if pcard.is_bind() or pcard.mentality <> "Normal":
-                    if pcard.status == "hidden" or not pcard.reversed:
+                    if pcard.status == "hidden":
                         pcard.set_bind(0)
                         pcard.set_mentality("Normal", 0)
                         pcard.update_image()
