@@ -4,7 +4,11 @@
 #include <math.h>
 #include <time.h>
 
-static int
+#if defined(_WIN32) || defined(_WIN64)
+#   define inline __inline
+#endif
+
+static inline int
 intwrap(int i, int min, int max)
 {
     if (i > max)
@@ -574,9 +578,9 @@ to_disabledimage(PyObject *self, PyObject *args)
         {
             continue;
         }
-        dest[px+0] = r * (max - min) / 255  + min;
-        dest[px+1] = g * (max - min) / 255  + min;
-        dest[px+2] = b * (max - min) / 255  + min;
+        dest[px+0] = (unsigned char)(r * (max - min) / 255 + min);
+        dest[px+1] = (unsigned char)(g * (max - min) / 255 + min);
+        dest[px+2] = (unsigned char)(b * (max - min) / 255 + min);
     }
 
     Py_RETURN_NONE;
@@ -732,10 +736,8 @@ typedef struct FontInfo_ {
     BOOL underline;
 } FontInfo;
 
-static void _clear_font(FontInfo *font)
+static inline void _clear_font(FontInfo *font)
 {
-    HANDLE heap = GetProcessHeap();
-
     if (font->hfont)
     {
         DeleteObject(font->hfont);
@@ -764,7 +766,7 @@ static PyObject *
 font_new(PyObject *self, PyObject *args)
 {
     FontInfo *font = NULL;
-    unsigned char *face;
+    char *face;
     size_t facelen, bufSize;
     int pixels, bold, italic;
     HANDLE heap = GetProcessHeap();
@@ -797,8 +799,6 @@ cleanup:
 
 static void _init_font(FontInfo *font)
 {
-    HANDLE heap = GetProcessHeap();
-
     if (!font)
         return;
 
@@ -913,7 +913,7 @@ font_size(PyObject *self, PyObject *args)
 {
     FontInfo *font = NULL;
     size_t utf8strlen = 0, bufSize = 0;
-    unsigned char *utf8str = NULL;
+    char *utf8str = NULL;
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
@@ -977,11 +977,11 @@ static void _get_imagesize(FontInfo *font, LPWSTR str, UINT format, size_t *rw, 
         bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
         if (str[i+1])
         {
-        	w2 += max(0, gm.gmCellIncX);
+            w2 += max(0, gm.gmCellIncX);
         }
         else
         {
-            w2 += max(max(0, gm.gmCellIncX), max(0, gm.gmptGlyphOrigin.x) + max(0, gm.gmBlackBoxX));
+            w2 += max(max(0U, gm.gmCellIncX), max(0U, gm.gmptGlyphOrigin.x) + gm.gmBlackBoxX);
         }
         if (font->underline)
         {
@@ -1007,16 +1007,17 @@ font_render(PyObject *self, PyObject *args)
 {
     PyObject *string = NULL;
     FontInfo *font = NULL;
-    size_t utf8strlen = 0, bufSize = 0, outlen = 0;
+    Py_ssize_t utf8strlen = 0, bufSize = 0, outlen = 0;
     int r = 0, g = 0, b = 0, antialias = 0, draw = 0;
     int val = 0;
-    unsigned char *outdata = NULL, *utf8str = NULL, *buf = NULL;
+    char *utf8str = NULL;
+    unsigned char *outdata = NULL, *buf = NULL;
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
     GLYPHMETRICS gm = { 0 };
     MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
-    size_t i = 0, w = 0, w2 = 0, h = 0, x = 0, y = 0;
+    size_t i = 0, w = 0, h = 0, x = 0, y = 0;
     size_t bpl = 0, xx = 0, yy = 0, p1 = 0, p2 = 0, x0 = 0, y0 = 0;
     unsigned char a = 0;
     UINT format = 0;
@@ -1116,7 +1117,7 @@ font_render(PyObject *self, PyObject *args)
                                 val = a * 64;
                                 break;
                             }
-                            outdata[p2+3] = min(255, val);
+                            outdata[p2+3] = (unsigned char)min(255, val);
                         }
                     }
                 }
@@ -1124,7 +1125,7 @@ font_render(PyObject *self, PyObject *args)
         }
         if (font->underline)
         {
-            for (y = 0; y < font->otm.otmsUnderscoreSize; y++)
+            for (y = 0; (int)y < font->otm.otmsUnderscoreSize; y++)
             {
                 yy = y0 + font->otm.otmTextMetrics.tmHeight
                     + font->otm.otmsUnderscorePosition + y;
@@ -1152,9 +1153,9 @@ font_render(PyObject *self, PyObject *args)
 cleanup:
     if (str) HeapFree(heap, 0, str);
 
-    /* BUG: タプルを返そうとするとstringがGCで回収されなく
-            なってしまうため、ここではstringのみを返すようにし、
-            (w, h)取得用にfont_imagesize()を用意する。 */
+    /* BUG: If returned a tuple here, GC doesn't correct this string.
+            Therefore, Returns only string here.
+            And Created font_imagesize for getting (w, h). */
     /*return Py_BuildValue("s(ii)", string, w, h);*/
     return string;
 }
@@ -1165,11 +1166,11 @@ font_imagesize(PyObject *self, PyObject *args)
     FontInfo *font = NULL;
     size_t utf8strlen = 0, bufSize = 0;
     int antialias = 0;
-    unsigned char *utf8str = NULL;
+    char *utf8str = NULL;
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
-    size_t i = 0, w = 0, h = 0;
+    size_t w = 0, h = 0;
     UINT format = 0;
 
     if (!PyArg_ParseTuple(args, "ns#i", &font, &utf8str, &utf8strlen, &antialias))
