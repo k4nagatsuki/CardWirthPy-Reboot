@@ -293,7 +293,7 @@ class NumberEditDialog(wx.Dialog):
 
     def OnOk(self, event):
         cw.cwpy.sounds["harvest"].play()
-        self.value = self.slider.slider.GetValue()
+        self.value = self.slider.get_value()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
@@ -369,8 +369,8 @@ class Number2EditDialog(wx.Dialog):
 
     def OnOk(self, event):
         cw.cwpy.sounds["harvest"].play()
-        self.value1 = self.slider1.slider.GetValue()
-        self.value2 = self.slider2.slider.GetValue()
+        self.value1 = self.slider1.get_value()
+        self.value2 = self.slider2.get_value()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
@@ -455,7 +455,7 @@ class NumberComboEditDialog(wx.Dialog):
     def OnOk(self, event):
         cw.cwpy.sounds["harvest"].play()
         self.selected = self.combo.GetSelection()
-        self.value = self.slider.slider.GetValue()
+        self.value = self.slider.get_value()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
@@ -631,6 +631,9 @@ class NumberEditor(wx.Panel):
 
         self._do_layout()
         self._bind()
+
+    def get_value(self):
+        return self.slider.slider.GetValue()
 
     def set_value(self, value):
         self.slider.set_value(value)
@@ -985,7 +988,7 @@ class LevelEditDialog(wx.Dialog):
                 cw.cwpy.sounds["harvest"].play()
 
         selected = self.get_selected()
-        level = self.slider.slider.GetValue()
+        level = self.slider.get_value()
         cw.cwpy.exec_func(func, selected, level, self.party)
 
         self.SetReturnCode(wx.ID_OK)
