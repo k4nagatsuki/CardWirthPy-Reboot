@@ -442,7 +442,10 @@ class _JpySubImage(cw.image.Image):
 
         # マスク
         if self.transparent and self.can_mask:
-            colorkey = image.get_at((0, 0))
+            if self.clip:
+                colorkey = image.get_at(self.clip[:2])
+            else:
+                colorkey = image.get_at((0, 0))
             image.set_colorkey(colorkey, pygame.locals.RLEACCEL)
         else:
             colorkey = None
