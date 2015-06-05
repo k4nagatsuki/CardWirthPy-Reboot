@@ -929,14 +929,14 @@ class Resource(object):
             fonts["message_classic"] = font
         # メッセージウィンドウの選択肢描画用
         font = cw.imageretouch.Font(self.get_fontfromtype("selectionbar"), cw.s(16))
+        if cw.UP_SCR == 1:
+            font.set_bold(True)
+        fonts["selectionbar"] = font
         if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
             fontface = u"MS UI Gothic"
             font = cw.imageretouch.Font(fontface, cw.s(15))
             font.set_bold(True)
             fonts["selectionbar_classic"] = font
-        if cw.UP_SCR == 1:
-            font.set_bold(True)
-        fonts["selectionbar"] = font
         # メッセージログのページ表示描画用
         font = cw.imageretouch.Font(self.get_fontfromtype("logpage"), cw.s(24))
         fonts["backlog_page"] = font
