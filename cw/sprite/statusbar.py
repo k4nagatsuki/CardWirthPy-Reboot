@@ -161,7 +161,7 @@ class ProgressView(base.CWPySprite):
         image.fill((255, 255, 255), rect)
         w = self.rect.width - cw.s(2)
 
-        subimg = self.font.render(self.text, True, (0, 0, 0))
+        subimg = self.font.render(self.text, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
         if w-cw.s(4) < subimg.get_width():
             subimg = cw.image.smoothscale(subimg, (w-cw.s(4), subimg.get_height()))
         x = (image.get_width() - subimg.get_width()) / 2
@@ -283,7 +283,7 @@ class YadoMoneyPanel(StatusBarPanel):
 
     def update_image(self):
         s = cw.cwpy.msgs["currency"] % (self.text)
-        image = self.font.render(s, True, (255, 255, 255))
+        image = self.font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
 
         rect = image.get_rect()
@@ -328,7 +328,7 @@ class EncounterPanel(StatusBarPanel):
     def update_image(self):
         s = cw.cwpy.msgs["encounter"]
 
-        image = self.font.render(s, True, (255, 255, 255))
+        image = self.font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
         rect = image.get_rect()
         rect.left = (self.rect.w - rect.w) / 2
@@ -354,7 +354,7 @@ class RoundCounterPanel(YadoMoneyPanel):
 
     def update_image(self):
         s = cw.cwpy.msgs["round"] % (self.text)
-        image = self.font.render(s, True, (255, 255, 255))
+        image = self.font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
         rect = image.get_rect()
         rect.left = (self.rect.w - rect.w) / 2
@@ -387,7 +387,7 @@ class StatusBarButton(base.SelectableSprite):
             self.icon = icon
         else:
             font = cw.cwpy.rsrc.fonts["sbarbtn"]
-            self.icon = font.render(name, True, (0, 0, 0))
+            self.icon = font.render(name, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
 
         if not self.enabled:
             self.icon = cw.imageretouch.to_disabledsurface(self.icon)

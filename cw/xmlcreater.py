@@ -417,6 +417,13 @@ def create_settings(setting):
     if len(e):
         element.append(e)
 
+    # カード名の文字を滑らかにする
+    e = cw.data.make_element("FontSmoothingCardName", str(setting.fontsmoothing_cardname))
+    element.append(e)
+    # ステータスバーの文字を滑らかにする
+    e = cw.data.make_element("FontSmoothingStatusBar", str(setting.fontsmoothing_statusbar))
+    element.append(e)
+
     # シナリオ絞込・整列条件
     if setting.scenario_narrowtype <> setting.scenario_narrowtype_init:
         e = cw.data.make_element("ScenarioNarrowType", str(setting.scenario_narrowtype))

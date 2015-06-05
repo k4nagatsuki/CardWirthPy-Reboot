@@ -421,18 +421,6 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
     if cw.cwpy.rsrc:
         path = cw.cwpy.rsrc.get_filepath(path)
     try:
-        def cantreadimage():
-            image = pygame.Surface((74, 94)).convert_alpha()
-            image.fill((255, 255, 255, 0))
-            font = cw.imageretouch.Font(u"IPAUIGothic", 13, True)
-            s = u"読込できない\nイメージです"
-            y = 5
-            for line in s.splitlines():
-                subimg = font.render(line, True, (0, 0, 0, 255))
-                image.blit(subimg, (0, y))
-                y += font.get_height()
-            return image
-
         if f:
             try:
                 pos = f.tell()
@@ -2120,7 +2108,7 @@ def draw_witharound(dc, s, x, y, textcolor=wx.BLACK, framecolor=wx.WHITE):
     dc.SetTextForeground(textcolor)
     dc.DrawText(s, x, y)
 
-def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None):
+def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None, scaledown=True):
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
         quality = cw.RESCALE_QUALITY
@@ -2138,11 +2126,16 @@ def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None):
     else:
         subimg.ConvertColourToAlpha(0, 0, 0)
 
-    if 0 < maxwidth and w/2 + padding*2 > maxwidth:
-        size = (maxwidth - padding*2, h/2)
-        subimg = subimg.Rescale(size[0], h/2, quality=quality)
+    if scaledown:
+        if 0 < maxwidth and w/2 + padding*2 > maxwidth:
+            size = (maxwidth - padding*2, h/2)
+            subimg = subimg.Rescale(size[0], h/2, quality=quality)
+        else:
+            subimg = subimg.Rescale(w/2, h/2, quality=quality)
     else:
-        subimg = subimg.Rescale(w/2, h/2, quality=quality)
+        if 0 < maxwidth and w + padding*2 > maxwidth:
+            size = (maxwidth - padding*2, h)
+            subimg = subimg.Rescale(size[0], h, quality=quality)
 
     subimg = subimg.ConvertToBitmap()
     return subimg

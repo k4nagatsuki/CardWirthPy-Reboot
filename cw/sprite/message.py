@@ -495,6 +495,7 @@ class SelectionBar(base.SelectableSprite):
         self.selected = selected
         self.index = name[0]
         self.name = name[1]
+        self.classicstyletext = cw.UP_SCR == 1 and cw.cwpy.setting.classicstyletext and "selectionbar_classic" in cw.cwpy.rsrc.fonts
         # 通常画像
         size = cw.s((470, 25))
         self._image = self.get_image(size)
@@ -561,10 +562,13 @@ class SelectionBar(base.SelectableSprite):
         # 外枠描画
         draw_frame(image, size, pos=cw.s((0, 0)), backlog=self.backlog)
         # 選択肢描画
-        font = cw.cwpy.rsrc.fonts["selectionbar"]
-        nameimg = font.render(self.name, True, (255, 255, 255))
+        if self.classicstyletext:
+            font = cw.cwpy.rsrc.fonts["selectionbar_classic"]
+        else:
+            font = cw.cwpy.rsrc.fonts["selectionbar"]
+        nameimg = font.render(self.name, not self.classicstyletext, (255, 255, 255))
         nameimg = decorate(nameimg, angle=16, basecolour=(255, 255, 255))
-        nameimg2 = font.render(self.name, True, (0, 0, 0))
+        nameimg2 = font.render(self.name, not self.classicstyletext, (0, 0, 0))
         w = size[0] - cw.s(10)
         if w < nameimg.get_width():
             nameimg = cw.image.smoothscale(nameimg, (w, nameimg.get_height()))

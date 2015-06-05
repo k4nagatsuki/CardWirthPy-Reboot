@@ -176,6 +176,9 @@ class Setting(object):
             self.fonttypes["button"] = ("", "MS UI Gothic")
             self.fonttypes["tab"] = ("", "MS UI Gothic")
 
+        self.fontsmoothing_cardname = True
+        self.fontsmoothing_statusbar = True
+
         for t in inspect.getmembers(self, lambda t: not inspect.isroutine(t)):
             if not t[0].startswith("__"):
                 if isinstance(t[1], list):
@@ -346,6 +349,11 @@ class Setting(object):
             fonttype = e.getattr(".", "type", "")
             name = e.text if e.text else u""
             self.fonttypes[key] = (fonttype, name)
+
+        # カード名の文字を滑らかにする
+        self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname)
+        # ステータスバーの文字を滑らかにする
+        self.fontsmoothing_statusbar = data.getbool("FontSmoothingStatusBar", self.fontsmoothing_statusbar)
 
         self.showfps = False
 
@@ -921,6 +929,11 @@ class Resource(object):
             fonts["message_classic"] = font
         # メッセージウィンドウの選択肢描画用
         font = cw.imageretouch.Font(self.get_fontfromtype("selectionbar"), cw.s(16))
+        if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
+            fontface = u"MS UI Gothic"
+            font = cw.imageretouch.Font(fontface, cw.s(15))
+            font.set_bold(True)
+            fonts["selectionbar_classic"] = font
         if cw.UP_SCR == 1:
             font.set_bold(True)
         fonts["selectionbar"] = font

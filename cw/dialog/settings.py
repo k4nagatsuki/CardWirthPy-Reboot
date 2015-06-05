@@ -117,6 +117,8 @@ class SettingsDialog(wx.Dialog):
                 if fonttype:
                     name = u"[%s]" % (self.pane_font.typenames[fonttype])
                 self.pane_font.type.SetCellValue(i, 0, name)
+            self.pane_font.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname_init)
+            self.pane_font.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar_init)
         elif selpane == 4:
             # スキン毎のシナリオ開始位置の設定は変更しない
             self.pane_scenario.tx_editor.SetValue(cw.cwpy.setting.editor_init)
@@ -166,6 +168,15 @@ class SettingsDialog(wx.Dialog):
                 fonttypes[typename] = (fonttype, "")
             else:
                 fonttypes[typename] = ("", value)
+
+        value = self.pane_font.cb_fontsmoothingcardname.GetValue()
+        if value <> cw.cwpy.setting.fontsmoothing_cardname:
+            cw.cwpy.setting.fontsmoothing_cardname = value
+            flag_fontupdate = True
+        value = self.pane_font.cb_fontsmoothingstatusbar.GetValue()
+        if value <> cw.cwpy.setting.fontsmoothing_statusbar:
+            cw.cwpy.setting.fontsmoothing_statusbar = value
+            flag_fontupdate = True
 
         # フォント変更チェック
         if basefont <> cw.cwpy.setting.basefont:
@@ -1482,6 +1493,13 @@ class FontSettingPanel(wx.Panel):
         self.st_example = wx.StaticText(self, -1, size=(100, 30), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
+        # 描画オプション
+        self.box_gene = wx.StaticBox(self, -1, u"詳細")
+        self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
+        self.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname)
+        self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
+        self.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar)
+
         def create_grid(seq, faces, editor):
             grid = wx.grid.Grid(self, -1, size=(-1, 0), style=wx.BORDER)
             grid.SetDoubleBuffered(True)
@@ -1601,10 +1619,15 @@ class FontSettingPanel(wx.Panel):
         bsizer_example = wx.StaticBoxSizer(self.box_example, wx.VERTICAL)
         bsizer_example.Add(self.st_example, 1, wx.ALL|wx.EXPAND, 3)
 
+        bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
+
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_base.Add(self.base, 1, wx.ALL|wx.EXPAND, 3)
 
         bsizer_left.Add(bsizer_example, 0, wx.EXPAND|wx.BOTTOM, 3)
+        bsizer_left.Add(bsizer_gene, 0, wx.EXPAND|wx.BOTTOM, 3)
         bsizer_left.Add(bsizer_base, 1, wx.EXPAND, 3)
 
         bsizer_type = wx.StaticBoxSizer(self.box_type, wx.VERTICAL)

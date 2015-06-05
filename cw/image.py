@@ -108,7 +108,7 @@ class CardImage(Image):
         if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
             colour = (255, 255, 255)
         if self.name:
-            subimg = font.render(self.name, True, colour)
+            subimg = font.render(self.name, cw.cwpy.setting.fontsmoothing_cardname, colour)
             w, h = subimg.get_size()
 
             left = cw.s(5)
@@ -231,11 +231,15 @@ class CardImage(Image):
         subimg = cw.util.load_wxbmp(path, True)
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
         dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
-        font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+        if cw.cwpy.setting.fontsmoothing_cardname:
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+        else:
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14), weight=wx.BOLD)
         dc.SetFont(font)
         if self.name:
             white = cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder
-            subimg = cw.util.draw_antialiasedtext(dc, self.name, white, self.wxrect.width, cw.wins(5))
+            subimg = cw.util.draw_antialiasedtext(dc, self.name, white, self.wxrect.width, cw.wins(5),
+                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname)
             dc.SelectObject(bmp)
             dc.DrawBitmap(subimg, cw.wins(5), cw.wins(5))
 
@@ -350,7 +354,7 @@ class LargeCardImage(CardImage):
         image.blit(subimg, cw.s((10, 23)))
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         if self.name:
-            subimg = font.render(self.name, True, (0, 0, 0))
+            subimg = font.render(self.name, cw.cwpy.setting.fontsmoothing_cardname, (0, 0, 0))
             w, h = subimg.get_size()
 
             if w + cw.s(3) > self.rect.w:
@@ -381,11 +385,15 @@ class LargeCardImage(CardImage):
         subimg = cw.util.load_wxbmp(self.path, True)
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
         dc.DrawBitmap(subimg, cw.wins(10), cw.wins(23), True)
-        font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+        if cw.cwpy.setting.fontsmoothing_cardname:
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+        else:
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14), weight=wx.BOLD)
         dc.SetFont(font)
         if self.name:
             white = False
-            subimg = cw.util.draw_antialiasedtext(dc, self.name, False, w, cw.wins(6))
+            subimg = cw.util.draw_antialiasedtext(dc, self.name, False, w, cw.wins(6),
+                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname)
             dc.SelectObject(bmp)
             dc.DrawBitmap(subimg, cw.wins(6), cw.wins(6))
 
@@ -427,7 +435,7 @@ class CharacterCardImage(CardImage):
     def set_nameimg(self, name):
         if name:
             font = cw.cwpy.rsrc.fonts["pcard_name"]
-            self.nameimg = font.render(name, True, (0, 0, 0))
+            self.nameimg = font.render(name, cw.cwpy.setting.fontsmoothing_cardname, (0, 0, 0))
             w, h = self.nameimg.get_size()
 
             if w + cw.s(14) > cw.s(95):
