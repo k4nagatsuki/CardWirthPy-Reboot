@@ -158,7 +158,7 @@ class Setting(object):
                           "datadesc"     : ("gothic",   "", -1, None, None, None),
                           "charadesc"    : ("mincho",   "", -1, None, None, None),
                           "dlglist"      : ("mincho",   "", -1, None, None, None),
-                          "uselimit"     : ("mincho",   "", 17, True, True, False),
+                          "uselimit"     : ("mincho",   "", 18, False, False, False),
                           "cardname"     : ("uigothic", "", 13, True, True, False), # キャストはサイズ+2
                           "level"        : ("mincho",   "", 37, False, False, True),
                           "message"      : ("mincho",   "", 22, True, False, False),
@@ -895,7 +895,7 @@ class Resource(object):
 
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM,
-                        adjustsize=False):
+                        adjustsize=False, adjustsizewx3=True):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
@@ -905,6 +905,8 @@ class Resource(object):
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
         if not pixelsize:
             pixelsize = int((1.0/72 * 96) * size + 0.5)
+        elif not adjustsizewx3:
+            pixelsize += 1
         elif 3 <= wx.VERSION[0]:
             # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
             pixelsize -= 1
@@ -942,7 +944,7 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = {}
         # 所持カードの使用回数描画用
-        font = self.create_font("uselimit", 17, True, True, False)
+        font = self.create_font("uselimit", 17, False, False, False)
         fonts["card_uselimit"] = font
         # メニューカードの名前描画用
         font = self.create_font("cardname", 13, True, True, False)

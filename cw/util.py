@@ -2112,7 +2112,7 @@ def draw_witharound(dc, s, x, y, textcolor=wx.BLACK, framecolor=wx.WHITE):
 def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None, scaledown=True):
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
-        quality = cw.RESCALE_QUALITY
+        quality = wx.IMAGE_QUALITY_BICUBIC
     w, h = dc.GetTextExtent(text)
     subimg = wx.EmptyBitmap(w, h)
     dc.SelectObject(subimg)

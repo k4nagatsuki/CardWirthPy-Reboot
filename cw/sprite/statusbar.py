@@ -163,7 +163,7 @@ class ProgressView(base.CWPySprite):
 
         subimg = self.font.render(self.text, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
         if w-cw.s(4) < subimg.get_width():
-            subimg = cw.image.smoothscale(subimg, (w-cw.s(4), subimg.get_height()))
+            subimg = cw.image.smoothscale(subimg.convert_alpha(), (w-cw.s(4), subimg.get_height()))
         x = (image.get_width() - subimg.get_width()) / 2
         y = (image.get_height() - subimg.get_height()) / 2
 
@@ -246,7 +246,7 @@ class StatusBarPanel(base.CWPySprite):
         rect = image.get_rect()
         if wmax < rect.width:
             rect.width = wmax
-            image = cw.image.smoothscale(image, rect.size)
+            image = cw.image.smoothscale(image.convert_alpha(), rect.size)
         return image
 
 def _draw_edge(image):

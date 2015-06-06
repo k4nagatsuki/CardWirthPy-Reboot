@@ -114,7 +114,7 @@ class CardImage(Image):
             left = cw.s(5)
             if w + left*2 > self.rect.w:
                 size = (self.rect.w - left*2, h)
-                subimg = cw.image.smoothscale(subimg, size)
+                subimg = cw.image.smoothscale(subimg.convert_alpha(), size)
 
             image.blit(subimg, (left, cw.s(5)))
         self._bmp = image.copy()
@@ -136,7 +136,7 @@ class CardImage(Image):
             if maxn or header.recycle or (header.type == "BeastCard" and maxn):
                 font = cw.cwpy.rsrc.fonts["card_uselimit"]
                 s = str(uselimit)
-                pos = cw.s((5, 90))
+                pos = (cw.s(5), self.rect[3] - font.get_height() - cw.s(3))
                 for c in s:
                     subimg = font.render(c, True, (0, 0, 0))
                     image.blit(subimg, (pos[0]+1, pos[1]-1))
@@ -231,10 +231,13 @@ class CardImage(Image):
         subimg = cw.util.load_wxbmp(path, True)
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
         dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
+        pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
+        bold = wx.BOLD if cw.cwpy.setting.fonttypes["cardname"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
+        italic = wx.ITALIC if cw.cwpy.setting.fonttypes["cardname"][5] else wx.NORMAL
         if cw.cwpy.setting.fontsmoothing_cardname:
-            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(pixelsize)*2, style=italic, weight=bold, adjustsizewx3=False)
         else:
-            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14), weight=wx.BOLD)
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
         dc.SetFont(font)
         if self.name:
             white = cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder
@@ -265,10 +268,13 @@ class CardImage(Image):
 
             # 使用回数(数字)
             if maxn or header.recycle or (header.type == "BeastCard" and maxn):
-                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(18), weight=wx.NORMAL)
+                pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
+                bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
+                italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
+                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=pixelsize, style=italic, weight=bold, adjustsizewx3=False)
                 dc.SetFont(font)
                 s = str(uselimit)
-                pos = cw.wins((5, 90))
+                pos = (cw.wins(5), self.wxrect[3] - cw.wins(pixelsize) - cw.wins(3))
                 for c in s:
                     dc.SetTextForeground(wx.BLACK)
                     dc.DrawText(c, pos[0]+1, pos[1]-1)
@@ -359,7 +365,7 @@ class LargeCardImage(CardImage):
 
             if w + cw.s(3) > self.rect.w:
                 size = (self.rect.w - cw.s(12), h)
-                subimg = cw.image.smoothscale(subimg, size)
+                subimg = cw.image.smoothscale(subimg.convert_alpha(), size)
 
             image.blit(subimg, cw.s((6, 6)))
         return image
@@ -385,10 +391,13 @@ class LargeCardImage(CardImage):
         subimg = cw.util.load_wxbmp(self.path, True)
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
         dc.DrawBitmap(subimg, cw.wins(10), cw.wins(23), True)
+        pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
+        bold = wx.BOLD if cw.cwpy.setting.fonttypes["cardname"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
+        italic = wx.ITALIC if cw.cwpy.setting.fonttypes["cardname"][5] else wx.NORMAL
         if cw.cwpy.setting.fontsmoothing_cardname:
-            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14)*2, weight=wx.BOLD)
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(pixelsize)*2, style=italic, weight=bold, adjustsizewx3=False)
         else:
-            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(14), weight=wx.BOLD)
+            font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
         dc.SetFont(font)
         if self.name:
             white = False
@@ -440,7 +449,7 @@ class CharacterCardImage(CardImage):
 
             if w + cw.s(14) > cw.s(95):
                 size = (cw.s(95 - 14), h)
-                self.nameimg = cw.image.smoothscale(self.nameimg, size)
+                self.nameimg = cw.image.smoothscale(self.nameimg.convert_alpha(), size)
         else:
             self.nameimg = None
 
