@@ -113,10 +113,14 @@ class SettingsDialog(wx.Dialog):
                     name = u"[デフォルト]"
                 self.pane_font.base.SetCellValue(i, 0, name)
             for i, typename in enumerate(self.pane_font.types):
-                fonttype, name = cw.cwpy.setting.fonttypes_init[typename]
+                fonttype, name, pixels, bold, bold_upscr, italic = cw.cwpy.setting.fonttypes_init[typename]
                 if fonttype:
                     name = u"[%s]" % (self.pane_font.typenames[fonttype])
                 self.pane_font.type.SetCellValue(i, 0, name)
+                self.pane_font.type.SetCellValue(i, 1, str(pixels) if 0 < pixels else u"-")
+                self.pane_font.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
+                self.pane_font.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
+                self.pane_font.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
             self.pane_font.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname_init)
             self.pane_font.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar_init)
         elif selpane == 4:
@@ -163,11 +167,34 @@ class SettingsDialog(wx.Dialog):
         fonttypes = {}
         for i, typename in enumerate(self.pane_font.types):
             value = self.pane_font.type.GetCellValue(i, 0)
+            pixels = self.pane_font.type.GetCellValue(i, 1)
+            try:
+                if pixels <> u"-":
+                    pixels = int(pixels)
+                else:
+                    pixels = -1
+            except:
+                pixels = -1
+            bold = self.pane_font.type.GetCellValue(i, 2)
+            if bold in (u"1", u""):
+                bold = bold == u"1"
+            else:
+                bold = None
+            bold_upscr = self.pane_font.type.GetCellValue(i, 3)
+            if bold_upscr in (u"1", u""):
+                bold_upscr = bold_upscr == u"1"
+            else:
+                bold_upscr = None
+            italic = self.pane_font.type.GetCellValue(i, 4)
+            if italic in (u"1", u""):
+                italic = italic == u"1"
+            else:
+                italic = None
             fonttype = basetable.get(value, "")
             if fonttype:
-                fonttypes[typename] = (fonttype, "")
+                fonttypes[typename] = (fonttype, u"", pixels, bold, bold_upscr, italic)
             else:
-                fonttypes[typename] = ("", value)
+                fonttypes[typename] = (u"", value, pixels, bold, bold_upscr, italic)
 
         value = self.pane_font.cb_fontsmoothingcardname.GetValue()
         if value <> cw.cwpy.setting.fontsmoothing_cardname:
@@ -371,7 +398,7 @@ class SettingsDialog(wx.Dialog):
         skin = self.pane_gene.ch_skin.GetSelection()
         skin = self.pane_gene.skins[skin]
         if flag_fontupdate or cw.cwpy.setting.skindirname <> skin:
-            cw.cwpy.exec_func(cw.cwpy.update_skin, skin)
+            cw.cwpy.exec_func(cw.cwpy.update_skin, skin, restartop=cw.cwpy.setting.skindirname <> skin)
             updatebg = False
 
         # レベル調節
@@ -668,7 +695,7 @@ class GeneralSettingPanel(wx.Panel):
 
     def _choice_skin(self):
         skin = self.skins[self.ch_skin.GetSelection()]
-        s = u"種別: %s\n名前: %s\n作者: %s\n" + "-" * 45 + "\n%s"
+        s = u"種別: %s\n名前: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
         skintype, skinname, author, desc, _classictext, _vocation120 = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
         self.st_skin.SetLabel(s % (skintype, skinname, author, desc))
@@ -1500,10 +1527,10 @@ class FontSettingPanel(wx.Panel):
         self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
         self.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar)
 
-        def create_grid(seq, faces, editor):
-            grid = wx.grid.Grid(self, -1, size=(-1, 0), style=wx.BORDER)
+        def create_grid(seq, faces, editor, cols):
+            grid = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
             grid.SetDoubleBuffered(True)
-            grid.CreateGrid(len(seq), 1)
+            grid.CreateGrid(len(seq), cols)
             grid.DisableDragRowSize()
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
@@ -1518,7 +1545,7 @@ class FontSettingPanel(wx.Panel):
         # 基本フォント
         self.box_base = wx.StaticBox(self, -1, u"基本フォント")
         self.choicebase = wx.grid.GridCellChoiceEditor(fontface_array)
-        self.base = create_grid(self.bases, fontface_array, self.choicebase)
+        self.base = create_grid(self.bases, fontface_array, self.choicebase, 1)
         for i, name, in enumerate(self.bases):
             str_font = cw.cwpy.setting.basefont[name]
             if not str_font:
@@ -1528,13 +1555,60 @@ class FontSettingPanel(wx.Panel):
         # 役割別フォント
         self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
         self.choicetype = wx.grid.GridCellChoiceEditor(types)
-        self.type = create_grid(self.types, types, self.choicetype)
-        for i, name, in enumerate(self.types):
-            fonttype, face = cw.cwpy.setting.fonttypes[name]
+        self.type = create_grid(self.types, types, self.choicetype, 5)
+        self.type.SetColLabelValue(1, u"サイズ")
+        self.type.SetColSize(1, 80)
+        self.type.SetColLabelValue(2, u"太字\n(通常)")
+        self.type.SetColSize(2, 70)
+        self.type.SetColLabelValue(3, u"太字\n(拡大)")
+        self.type.SetColSize(3, 70)
+        self.type.SetColLabelValue(4, u"斜体")
+        self.type.SetColSize(4, 70)
+        boolrenderer = wx.grid.GridCellBoolRenderer()
+        numberrenderer = wx.grid.GridCellNumberRenderer()
+        for i, name in enumerate(self.types):
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.fonttypes_init[name]
+            fonttype, face, pixels, bold, bold_upscr, italic = cw.cwpy.setting.fonttypes[name]
             if fonttype:
                 self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[fonttype]))
             else:
                 self.type.SetCellValue(i, 0, face)
+            if 0 < defpixels:
+                epixels = wx.grid.GridCellNumberEditor(1, 99)
+                self.type.SetCellEditor(i, 1, epixels)
+                self.type.SetCellValue(i, 1, str(pixels))
+                self.type.SetCellRenderer(i, 1, numberrenderer)
+            else:
+                self.type.SetCellValue(i, 1, u"-")
+                self.type.GetOrCreateCellAttr(i, 1).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 1, wx.ALIGN_CENTER, 0)
+            if not defbold is None:
+                ebold = wx.grid.GridCellBoolEditor()
+                self.type.SetCellEditor(i, 2, ebold)
+                self.type.SetCellValue(i, 2, u"1" if bold else u"")
+                self.type.SetCellRenderer(i, 2, boolrenderer)
+            else:
+                self.type.SetCellValue(i, 2, u"-")
+                self.type.GetOrCreateCellAttr(i, 2).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 2, wx.ALIGN_CENTER, 0)
+            if not defbold_upscr is None:
+                ebold_upscr = wx.grid.GridCellBoolEditor()
+                self.type.SetCellEditor(i, 3, ebold_upscr)
+                self.type.SetCellValue(i, 3, u"1" if bold_upscr else u"")
+                self.type.SetCellRenderer(i, 3, boolrenderer)
+            else:
+                self.type.SetCellValue(i, 3, u"-")
+                self.type.GetOrCreateCellAttr(i, 3).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 3, wx.ALIGN_CENTER, 0)
+            if not defitalic is None:
+                eitalic = wx.grid.GridCellBoolEditor()
+                self.type.SetCellEditor(i, 4, eitalic)
+                self.type.SetCellValue(i, 4, u"1" if italic else u"")
+                self.type.SetCellRenderer(i, 4, boolrenderer)
+            else:
+                self.type.SetCellValue(i, 4, u"-")
+                self.type.GetOrCreateCellAttr(i, 4).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 4, wx.ALIGN_CENTER, 0)
 
         self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
         font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
@@ -1596,7 +1670,9 @@ class FontSettingPanel(wx.Panel):
         event.Skip()
 
     def OnEditorCreatedType(self, event):
-        self.choicetype.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
+        ctrl = self.choicetype.GetControl()
+        if ctrl:
+           self.choicetype.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
 
     def get_typefontface(self, fonttype):
         ctrl = self.choicetype.GetControl()

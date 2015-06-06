@@ -245,8 +245,8 @@ class CWPy(_Singleton, threading.Thread):
         self.topgrp.set_clip(clip)
         self.backloggrp.set_clip(clip)
 
-    def update_skin(self, skindirname, changearea=True):
-        if self.status == "Title":
+    def update_skin(self, skindirname, changearea=True, restartop=True):
+        if self.status == "Title" and restartop:
             changearea=False
             self.mcardgrp.empty()
             self.background.bgs = []
@@ -272,7 +272,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.sdata:
             self.sdata.update_skin()
 
-        if not self.is_battlestatus() and changearea:
+        if not self.is_battlestatus() and changearea and not (self.status == "Title" and self.topgrp.sprites()):
             for sprite in self.mcardgrp.sprites()[:]:
                 if not isinstance(sprite, cw.sprite.card.FriendCard):
                     self.mcardgrp.remove(sprite)
@@ -307,7 +307,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata:
             self.ydata._changed = changed
 
-        if self.status == "Title":
+        if self.status == "Title" and restartop:
             # タイトル画面にいる場合はロゴ表示前まで戻す
             if self.topgrp.sprites():
                 # アニメーション中なら中止してから戻す

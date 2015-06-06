@@ -143,38 +143,38 @@ class Setting(object):
                           "pmincho" : "",
                           "pgothic" : "",
                           }
-        self.fonttypes = {"button"       : ("uigothic", ""),
-                          "combo"        : ("uigothic", ""),
-                          "slider"       : ("gothic",   ""),
-                          "spin"         : ("gothic",   ""),
-                          "tree"         : ("gothic",   ""),
-                          "list"         : ("uigothic", ""),
-                          "tab"          : ("uigothic", ""),
-                          "menu"         : ("uigothic", ""),
-                          "paneltitle"   : ("uigothic", ""),
-                          "dlgmsg"       : ("uigothic", ""),
-                          "dlgtitle"     : ("mincho",   ""),
-                          "inputname"    : ("mincho",   ""),
-                          "datadesc"     : ("gothic",   ""),
-                          "charadesc"    : ("mincho",   ""),
-                          "dlglist"      : ("mincho",   ""),
-                          "uselimit"     : ("mincho",   ""),
-                          "cardname"     : ("uigothic", ""),
-                          "level"        : ("mincho",   ""),
-                          "message"      : ("mincho",   ""),
-                          "selectionbar" : ("uigothic", ""),
-                          "logpage"      : ("mincho",   ""),
-                          "sbarpanel"    : ("pmincho",  ""),
-                          "sbarbtn"      : ("uigothic", ""),
-                          "statusnum"    : ("mincho",   ""),
-                          "screenshot"   : ("uigothic", ""),
+        self.fonttypes = {"button"       : ("uigothic", "", -1, None, None, None),
+                          "combo"        : ("uigothic", "", -1, None, None, None),
+                          "slider"       : ("gothic",   "", -1, None, None, None),
+                          "spin"         : ("gothic",   "", -1, None, None, None),
+                          "tree"         : ("gothic",   "", -1, None, None, None),
+                          "list"         : ("uigothic", "", -1, None, None, None),
+                          "tab"          : ("uigothic", "", -1, None, None, None),
+                          "menu"         : ("uigothic", "", -1, None, None, None),
+                          "paneltitle"   : ("uigothic", "", -1, None, None, None),
+                          "dlgmsg"       : ("uigothic", "", -1, None, None, None),
+                          "dlgtitle"     : ("mincho",   "", -1, None, None, None),
+                          "inputname"    : ("mincho",   "", -1, None, None, None),
+                          "datadesc"     : ("gothic",   "", -1, None, None, None),
+                          "charadesc"    : ("mincho",   "", -1, None, None, None),
+                          "dlglist"      : ("mincho",   "", -1, None, None, None),
+                          "uselimit"     : ("mincho",   "", 17, True, True, False),
+                          "cardname"     : ("uigothic", "", 13, True, True, False), # キャストはサイズ+2
+                          "level"        : ("mincho",   "", 37, False, False, True),
+                          "message"      : ("mincho",   "", 22, True, False, False),
+                          "selectionbar" : ("uigothic", "", 16, True, False, False),
+                          "logpage"      : ("mincho",   "", 24, False, False, False),
+                          "sbarpanel"    : ("pmincho",  "", 16, True, True, False),
+                          "sbarbtn"      : ("uigothic", "", 14, True, True, False),
+                          "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
+                          "screenshot"   : ("uigothic", "", 18, False, False, False),
                           }
 
         # "MS UI GOTHIC"が使えるかどうか
         msuigothic = bool("MS UI Gothic" in wx.FontEnumerator.GetFacenames())
         if msuigothic:
-            self.fonttypes["button"] = ("", "MS UI Gothic")
-            self.fonttypes["tab"] = ("", "MS UI Gothic")
+            self.fonttypes["button"] = ("", "MS UI Gothic", -1, None, None, None)
+            self.fonttypes["tab"] = ("", "MS UI Gothic", -1, None, None, None)
 
         self.fontsmoothing_cardname = True
         self.fontsmoothing_statusbar = True
@@ -344,11 +344,29 @@ class Setting(object):
         # 役割別フォント
         for e in data.getfind("Fonts", raiseerror=False):
             key = e.getattr(".", "key", "")
-            if not key:
+            if not key or not key in self.fonttypes:
                 continue
+            _deftype, _defname, defpixels, defbold, defbold_upscr, defitalic = self.fonttypes[key]
+
             fonttype = e.getattr(".", "type", "")
             name = e.text if e.text else u""
-            self.fonttypes[key] = (fonttype, name)
+            pixels = e.getint(".", "pixels", defpixels)
+            bold = e.getattr(".", "bold", "")
+            if bold == "":
+                bold = defbold
+            else:
+                bold = cw.util.str2bool(bold)
+            bold_upscr = e.getattr(".", "expandedbold", "")
+            if bold_upscr == "":
+                bold_upscr = defbold_upscr
+            else:
+                bold_upscr = cw.util.str2bool(bold_upscr)
+            italic = e.getattr(".", "italic", "")
+            if italic == "":
+                italic = defitalic
+            else:
+                italic = cw.util.str2bool(italic)
+            self.fonttypes[key] = (fonttype, name, pixels, bold, bold_upscr, italic)
 
         # カード名の文字を滑らかにする
         self.fontsmoothing_cardname = data.getbool("FontSmoothingCardName", self.fontsmoothing_cardname)
@@ -867,13 +885,13 @@ class Resource(object):
 
     def get_fontfromtype(self, name):
         """フォントタイプ名から抽象フォント名を取得する。"""
-        basename = self.setting().fonttypes.get(name, name)
-        basename, fontname = basename
+        basename = self.setting().fonttypes.get(name, (name, "", -1, None, None, None))
+        basename, fontname, pixels, bold, bold_upscr, italic = basename
         if basename:
             fontname = self.setting().basefont[basename]
             if not fontname:
                 fontname = self.fontnames[basename]
-        return fontname
+        return fontname, pixels, bold, bold_upscr, italic
 
     def get_wxfont(self, name="uigothic", size=None, pixelsize=None,
                         family=wx.DEFAULT, style=wx.NORMAL, weight=wx.BOLD, encoding=wx.FONTENCODING_SYSTEM,
@@ -881,7 +899,7 @@ class Resource(object):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
-        fontname = self.get_fontfromtype(name)
+        fontname, _pixels, _bold, _bold_upscr, _italic = self.get_fontfromtype(name)
 
         # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
@@ -899,66 +917,73 @@ class Resource(object):
         wxfont = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, fontname, encoding)
         return wxfont
 
+    def create_font(self, type, size_noscale, defbold, defbold_upscr, defitalic, pixelsadd=0, nobold=False):
+        fontname, pixels_noscale, bold, bold_upscr, italic = self.get_fontfromtype(type)
+        if pixels_noscale <= 0:
+            pixels_noscale = size_noscale
+        pixels_noscale += pixelsadd
+        if bold is None:
+            bold = defbold
+        if bold_upscr is None:
+            bold_upscr = defbold_upscr
+        if italic is None:
+            italic = defitalic
+        if nobold:
+            bold = False
+            bold_upscr = False
+
+        if cw.UP_SCR > 1:
+            bold = bold_upscr
+
+        return cw.imageretouch.Font(fontname, cw.s(pixels_noscale), bold=bold, italic=italic)
+
     def create_fonts(self):
         """ゲーム内で頻繁に使用するpygame.Fontはここで設定する。"""
         # 使用フォント(辞書)
         fonts = {}
         # 所持カードの使用回数描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("uselimit"), cw.s(17))
-        font.set_bold(True)
+        font = self.create_font("uselimit", 17, True, True, False)
         fonts["card_uselimit"] = font
         # メニューカードの名前描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("cardname"), cw.s(13))
-        font.set_bold(True)
+        font = self.create_font("cardname", 13, True, True, False)
         fonts["mcard_name"] = font
         # プレイヤカードの名前描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("cardname"), cw.s(15))
-        font.set_bold(True)
+        font = self.create_font("cardname", 13, True, True, False, pixelsadd=2)
         fonts["pcard_name"] = font
         # プレイヤカードのレベル描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("level"), cw.s(37))
-        font.set_italic(True)
+        font = self.create_font("level", 37, False, False, True)
         fonts["pcard_level"] = font
         # メッセージウィンドウのテキスト描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("message"), cw.s(22))
+        font = self.create_font("message", 22, True, False, False, nobold=True)
         fonts["message"] = font
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             fontface = u"ＭＳ 明朝"
-            font = cw.imageretouch.Font(fontface, cw.s(22))
-            font.set_bold(True)
+            font = cw.imageretouch.Font(fontface, cw.s(22), bold=True)
             fonts["message_classic"] = font
         # メッセージウィンドウの選択肢描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("selectionbar"), cw.s(16))
-        if cw.UP_SCR == 1:
-            font.set_bold(True)
+        font = self.create_font("selectionbar", 16, True, False, False)
         fonts["selectionbar"] = font
         if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
             fontface = u"MS UI Gothic"
-            font = cw.imageretouch.Font(fontface, cw.s(15))
-            font.set_bold(True)
+            font = cw.imageretouch.Font(fontface, cw.s(15), bold=True)
             fonts["selectionbar_classic"] = font
         # メッセージログのページ表示描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("logpage"), cw.s(24))
+        font = self.create_font("logpage", 24, False, False, False)
         fonts["backlog_page"] = font
         # ステータスバーパネル描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("sbarpanel"), cw.s(16))
-        font.set_bold(True)
+        font = self.create_font("sbarpanel", 16, True, True, False)
         fonts["sbarpanel"] = font
         # ステータスバーボタン描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("sbarbtn"), cw.s(14))
-        font.set_bold(True)
+        font = self.create_font("sbarbtn", 14, True, True, False)
         fonts["sbarbtn"] = font
         # ステータス画像の召喚回数描画用
-        font = cw.imageretouch.Font(self.get_fontfromtype("statusnum"), cw.s(12))
-        font.set_bold(True)
+        font = self.create_font("statusnum", 12, True, True, False)
         fonts["statusimg1"] = font
-        font = cw.imageretouch.Font(self.get_fontfromtype("statusnum"), cw.s(10))
-        font.set_bold(True)
+        font = self.create_font("statusnum", 12, True, True, False, pixelsadd=-2)
         fonts["statusimg2"] = font
-        font = cw.imageretouch.Font(self.get_fontfromtype("statusnum"), cw.s(8))
-        font.set_bold(True)
+        font = self.create_font("statusnum", 12, True, True, False, pixelsadd=-4)
         fonts["statusimg3"] = font
-        font = cw.imageretouch.Font(self.get_fontfromtype("screenshot"), cw.s(18))
+        font = self.create_font("screenshot", 18, False, False, False)
         fonts["screenshot"] = font
         return fonts
 

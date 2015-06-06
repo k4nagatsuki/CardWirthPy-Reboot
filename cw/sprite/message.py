@@ -160,7 +160,7 @@ class MessageWindow(base.CWPySprite):
         chridx = self.frame / self.speed
         sbold = (not cw.cwpy.setting.classicstyletext or\
                  not "message_classic" in cw.cwpy.rsrc.fonts) and\
-                lineheight <= 24
+                cw.cwpy.setting.fonttypes["message"][3 if cw.UP_SCR <= 1 else 4]
         if chridx < len(self.charimgs):
             pos, txtimg, txtimg2 = self.charimgs[chridx]
 

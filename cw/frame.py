@@ -879,11 +879,14 @@ class Frame(wx.Frame):
                     bmp = img.ConvertToBitmap()
                     # 全体スクリーンショットへ描画
                     mem3 = wx.MemoryDC()
-                    font = cw.cwpy.rsrc.get_wxfont("screenshot", pixelsize=cw.s(14)*2, weight=wx.NORMAL)
+                    pixelsize = int(cw.cwpy.setting.fonttypes["screenshot"][2] * 0.8)
+                    bold = wx.BOLD if cw.cwpy.setting.fonttypes["screenshot"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
+                    italic = wx.ITALIC if cw.cwpy.setting.fonttypes["screenshot"][5] else wx.NORMAL
+                    font = cw.cwpy.rsrc.get_wxfont("screenshot", pixelsize=cw.s(pixelsize)*2, style=italic, weight=bold)
                     mem3.SetFont(font)
                     title = child.GetTitle()
                     white = fore[:3] == (255, 255, 255)
-                    if 20 <= cw.s(14):
+                    if 20 <= cw.s(pixelsize):
                         quality = wx.IMAGE_QUALITY_HIGH
                     else:
                         quality = wx.IMAGE_QUALITY_BILINEAR
@@ -892,9 +895,9 @@ class Frame(wx.Frame):
                     del mem3
                     ww, wh = bmp.GetSize()
                     xx = (w-ww) / 2
-                    yy = y + (h-(wh+cw.s(16)+2)) / 2
-                    mem.DrawRectangle(xx - 2, yy - 2, ww + 4, wh + 4 + cw.s(16) + 2)
-                    mem.DrawBitmap(bmp, xx, yy + cw.s(16) + 2, False)
+                    yy = y + (h-(wh+cw.s(pixelsize + 2)+2)) / 2
+                    mem.DrawRectangle(xx - 2, yy - 2, ww + 4, wh + 4 + cw.s(pixelsize + 2) + 2)
+                    mem.DrawBitmap(bmp, xx, yy + cw.s(pixelsize + 2) + 2, False)
                     mem.DrawBitmap(titleimg, xx + cw.s(5), yy + 1, False)
                     recurse(child)
         recurse(self)

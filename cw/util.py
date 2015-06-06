@@ -995,21 +995,22 @@ def create_screenshot(date):
     if title:
         fore = cw.cwpy.setting.ssinfofontcolor
         back = cw.cwpy.setting.ssinfobackcolor
-        w = cw.s(cw.SIZE_GAME[0])
-        h = cw.s(cw.SIZE_GAME[1] + 20)
-        bmp = pygame.Surface((w, h)).convert()
-        bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, cw.s(20)))
-        bmp.blit(cw.cwpy.scr_draw, cw.s((0, 20)))
         font = cw.cwpy.rsrc.fonts["screenshot"]
         fh = font.get_height()
+        lh = fh + 2
+        w = cw.s(cw.SIZE_GAME[0])
+        h = cw.s(cw.SIZE_GAME[1]) + lh
+        bmp = pygame.Surface((w, h)).convert()
+        bmp.fill(back, rect=pygame.Rect(cw.s(0), cw.s(0), w, lh))
+        bmp.blit(cw.cwpy.scr_draw, (cw.s(0), lh))
         subimg = font.render(title, True, fore)
-        y = (cw.s(20) - fh) / 2
+        y = (lh - fh) / 2
         swmax = w - cw.s(10)*2
         if swmax < subimg.get_width():
             size = (swmax, subimg.get_height())
             subimg = cw.image.smoothscale(subimg, size)
         bmp.blit(subimg, (cw.s(10), y))
-        y = cw.s(20)
+        y = lh
     else:
         bmp = cw.cwpy.scr_draw
         y = cw.s(0)

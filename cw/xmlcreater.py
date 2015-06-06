@@ -408,11 +408,19 @@ def create_settings(setting):
     e = cw.data.make_element("Fonts")
     for key, value in setting.fonttypes.iteritems():
         if setting.fonttypes[key] <> setting.fonttypes_init[key]:
-            fonttype, name = value
+            fonttype, name, pixels, bold, bold_upscr, italic = value
+            attrs = {"key": key}.copy()
             if fonttype:
-                fe = cw.data.make_element("Font", "", {"key": key, "type":fonttype})
-            else:
-                fe = cw.data.make_element("Font", name, {"key": key})
+                attrs["type"] = fonttype
+            if 0 < pixels:
+                attrs["pixels"] = str(pixels)
+            if not bold is None:
+                attrs["bold"] = str(bold)
+            if not bold_upscr is None:
+                attrs["expandedbold"] = str(bold_upscr)
+            if not italic is None:
+                attrs["italic"] = str(italic)
+            fe = cw.data.make_element("Font", name, attrs=attrs)
             e.append(fe)
     if len(e):
         element.append(e)
