@@ -271,7 +271,7 @@ class CardImage(Image):
                 pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
                 bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
                 italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
-                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=pixelsize, style=italic, weight=bold, adjustsizewx3=False)
+                font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
                 dc.SetFont(font)
                 s = str(uselimit)
                 pos = (cw.wins(5), self.wxrect[3] - cw.wins(pixelsize) - cw.wins(2))
