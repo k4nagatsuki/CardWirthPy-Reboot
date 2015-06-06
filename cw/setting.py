@@ -944,7 +944,7 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = {}
         # 所持カードの使用回数描画用
-        font = self.create_font("uselimit", 17, False, False, False)
+        font = self.create_font("uselimit", 18, False, False, False)
         fonts["card_uselimit"] = font
         # メニューカードの名前描画用
         font = self.create_font("cardname", 13, True, True, False)
