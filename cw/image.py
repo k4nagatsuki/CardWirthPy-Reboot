@@ -456,8 +456,8 @@ class CharacterCardImage(CardImage):
             self.nameimg = font.render(name, cw.cwpy.setting.fontsmoothing_cardname, (0, 0, 0))
             w, h = self.nameimg.get_size()
 
-            if w + cw.s(14) > cw.s(95):
-                size = (cw.s(95 - 14), h)
+            if w + cw.s(10) > cw.s(95):
+                size = (cw.s(95 - 10), h)
                 self.nameimg = cw.image.smoothscale(self.nameimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
         else:
             self.nameimg = None
@@ -510,7 +510,7 @@ class CharacterCardImage(CardImage):
                 nameimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
             else:
                 nameimg = self.nameimg
-            self.image.blit(nameimg, cw.s((7, 4)))
+            self.image.blit(nameimg, cw.s((5, 5)))
 
         # ライフ
         if ccard.is_analyzable():
