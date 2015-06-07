@@ -288,6 +288,14 @@ class ScenarioData(SystemData):
                             # アーカイヴのサブフォルダにシナリオがある
                             self.tempdir = dpath
                             break
+                    else:
+                        # "Summary.wsm"がキャメルケースでない場合、見つからない可能性がある
+                        for dpath, _dnames, fnames in os.walk(self.tempdir):
+                            fnames = map(lambda f: f.lower(), fnames)
+                            if "summary.wsm" in fnames or "summary.xml" in fnames:
+                                # アーカイヴのサブフォルダにシナリオがある
+                                self.tempdir = dpath
+                                break
 
             if self.tempdir:
                 cw.cwpy.ydata.recenthistory.moveend(self.fpath)
