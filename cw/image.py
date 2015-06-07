@@ -518,7 +518,7 @@ class CharacterCardImage(CardImage):
             lifeper = ccard.get_lifeper()
             self.lifeimg.blit(self.lifebar, (int(0.79 * (lifeper - 100)), 1))
             self.lifeimg.blit(self.lifeguage, (0, 0))
-            self.image.blit(cw.s((self.lifeimg, guagesize)), cw.s((9, 111)))
+            self.image.blit(cw.s((self.lifeimg, guagesize)), cw.s((8, 110)))
 
         # ステータス画像追加
         self.update_statusimg(ccard)

@@ -2137,7 +2137,7 @@ class CWPy(_Singleton, threading.Thread):
             y = (285 - maxh) / 2 - 2
             set_mcardpos_noscale(mcards, (maxw, maxh), y)
         else:
-            y = (285 - maxh * 2) / 2
+            y = (285 - 10 - maxh * 2) / 2
             y2 = y + maxh + 5
             p = n / 2 + n % 2
             set_mcardpos_noscale(mcards[:p], (maxw, maxh), y)
