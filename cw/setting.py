@@ -159,7 +159,8 @@ class Setting(object):
                           "charadesc"    : ("mincho",   "", -1, None, None, None),
                           "dlglist"      : ("mincho",   "", -1, None, None, None),
                           "uselimit"     : ("mincho",   "", 18, False, False, False),
-                          "cardname"     : ("uigothic", "", 13, True, True, False), # キャストはサイズ+2
+                          "cardname"     : ("uigothic", "", 13, True, True, False),
+                          "ccardname"    : ("uigothic", "", 15, True, True, False),
                           "level"        : ("mincho",   "", 37, False, False, True),
                           "message"      : ("mincho",   "", 22, True, False, False),
                           "selectionbar" : ("uigothic", "", 16, True, False, False),
@@ -950,7 +951,7 @@ class Resource(object):
         font = self.create_font("cardname", 13, True, True, False)
         fonts["mcard_name"] = font
         # プレイヤカードの名前描画用
-        font = self.create_font("cardname", 13, True, True, False, pixelsadd=2)
+        font = self.create_font("ccardname", 15, True, True, False)
         fonts["pcard_name"] = font
         # プレイヤカードのレベル描画用
         font = self.create_font("level", 37, False, False, True)

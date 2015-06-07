@@ -1486,6 +1486,7 @@ class FontSettingPanel(wx.Panel):
                           "dlglist"      : u"ダイアログリスト",
                           "uselimit"     : u"カード使用回数",
                           "cardname"     : u"カード名",
+                          "ccardname"     : u"キャストカード名",
                           "level"        : u"カードレベル",
                           "message"      : u"メッセージ",
                           "selectionbar" : u"選択肢",
@@ -1499,7 +1500,7 @@ class FontSettingPanel(wx.Panel):
         self.bases = ("gothic", "pgothic", "mincho", "pmincho", "uigothic")
         self.types = ("button", "combo", "slider", "spin", "tree", "list", "tab", "menu",
                       "paneltitle", "dlgmsg", "dlgtitle", "inputname", "datadesc", "charadesc",
-                      "dlglist", "uselimit", "cardname", "level", "message", "selectionbar",
+                      "dlglist", "uselimit", "cardname", "ccardname", "level", "message", "selectionbar",
                       "logpage", "sbarpanel", "sbarbtn", "statusnum", "screenshot")
 
         # フォント配列のロード
