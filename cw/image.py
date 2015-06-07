@@ -45,9 +45,14 @@ class CardImage(Image):
     def update_scale(self):
         self._bmp = None
         self._wxbmp = None
-        self._upwin = 0
+        self._upwin = self._upwinmemo()
         self.cardbg = cw.cwpy.rsrc.cardbgs[self.bgtype]
         self.rect = self.cardbg.get_rect()
+
+    def _upwinmemo(self):
+        return (cw.UP_WIN, cw.cwpy.setting.fontsmoothing_cardname,
+                 cw.cwpy.setting.fonttypes["cardname"],
+                 cw.cwpy.setting.fonttypes["uselimit"])
 
     @property
     def wxcardbg(self):
@@ -114,7 +119,7 @@ class CardImage(Image):
             left = cw.s(5)
             if w + left*2 > self.rect.w:
                 size = (self.rect.w - left*2, h)
-                subimg = cw.image.smoothscale(subimg.convert_alpha(), size)
+                subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
             image.blit(subimg, (left, cw.s(5)))
         self._bmp = image.copy()
@@ -199,9 +204,9 @@ class CardImage(Image):
         return pygame.transform.scale(negaimg, size)
 
     def get_wxbmp(self):
-        if self._wxbmp and self._upwin == cw.UP_WIN:
+        if self._wxbmp and self._upwin == self._upwinmemo():
             return cw.util.copy_wxbmp(self._wxbmp)
-        self._upwin = cw.UP_WIN
+        self._upwin = self._upwinmemo()
 
         w, h = self.wxrect.size
         bmp = wx.EmptyBitmap(w, h)
@@ -241,8 +246,10 @@ class CardImage(Image):
         dc.SetFont(font)
         if self.name:
             white = cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder
+            quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
             subimg = cw.util.draw_antialiasedtext(dc, self.name, white, self.wxrect.width, cw.wins(5),
-                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname)
+                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname,
+                                                  quality=quality)
             dc.SelectObject(bmp)
             dc.DrawBitmap(subimg, cw.wins(5), cw.wins(5))
 
@@ -365,7 +372,7 @@ class LargeCardImage(CardImage):
 
             if w + cw.s(3) > self.rect.w:
                 size = (self.rect.w - cw.s(12), h)
-                subimg = cw.image.smoothscale(subimg.convert_alpha(), size)
+                subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
             image.blit(subimg, cw.s((6, 6)))
         return image
@@ -401,8 +408,10 @@ class LargeCardImage(CardImage):
         dc.SetFont(font)
         if self.name:
             white = False
+            quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
             subimg = cw.util.draw_antialiasedtext(dc, self.name, False, w, cw.wins(6),
-                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname)
+                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname,
+                                                  quality=quality)
             dc.SelectObject(bmp)
             dc.DrawBitmap(subimg, cw.wins(6), cw.wins(6))
 
@@ -449,7 +458,7 @@ class CharacterCardImage(CardImage):
 
             if w + cw.s(14) > cw.s(95):
                 size = (cw.s(95 - 14), h)
-                self.nameimg = cw.image.smoothscale(self.nameimg.convert_alpha(), size)
+                self.nameimg = cw.image.smoothscale(self.nameimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
         else:
             self.nameimg = None
 
@@ -785,13 +794,16 @@ def create_colorcell(size, color1, gradient, color2):
 # ユーティリティ
 #-------------------------------------------------------------------------------
 
-def smoothscale(surface, size):
+def smoothscale(surface, size, smoothing=True):
     """surfaceをリサイズする。
     可能であればスムージングする。
     """
-    if surface.get_bitsize() < 24:
-        surface = surface.convert(24)
-    return pygame.transform.smoothscale(surface, size)
+    if smoothing:
+        if surface.get_bitsize() < 24:
+            surface = surface.convert(24)
+        return pygame.transform.smoothscale(surface, size)
+    else:
+        return pygame.transform.scale(surface, size)
 
 def fix_cwnext16bitbitmap(data):
     """一部バージョンのCardWirthNextが生成するBitmap(16 bit)は

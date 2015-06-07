@@ -251,8 +251,8 @@ class CWPy(_Singleton, threading.Thread):
             self.mcardgrp.empty()
             self.background.bgs = []
 
-        if self.ydata:
-            changed = self.ydata.is_changed()
+        changed = self.ydata.is_changed()
+        if self.ydata and self.setting.skindirname <> skindirname:
             self.ydata.set_skinname(skindirname)
         scedir = self.setting.get_scedir()
         oldskindirname = self.setting.skindirname
@@ -348,9 +348,6 @@ class CWPy(_Singleton, threading.Thread):
         """画面の表示倍率を変更する。
         scale: 倍率。1は拡大しない。2で縦横2倍サイズの表示になる。
         """
-        self.clear_selection()
-        self.mousepos = (-1, -1)
-
         if self.ydata:
             changed = self.ydata.is_changed()
         else:
@@ -407,6 +404,9 @@ class CWPy(_Singleton, threading.Thread):
 
         if self.ydata:
             self.ydata._changed = changed
+
+        self.clear_selection()
+        self.mousepos = (-1, -1)
 
         # 一度マウスポインタを画面外へ出さないと
         # フォーカスを失うことがある
