@@ -906,9 +906,7 @@ class Resource(object):
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換
         if not pixelsize:
             pixelsize = int((1.0/72 * 96) * size + 0.5)
-        elif not adjustsizewx3:
-            pixelsize += 1
-        elif 3 <= wx.VERSION[0]:
+        elif 3 <= wx.VERSION[0] and adjustsizewx3:
             # FIXME: wxPython 3.0.1.1でフォントが1ピクセル大きくなってしまった
             pixelsize -= 1
 
