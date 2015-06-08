@@ -859,6 +859,7 @@ class Frame(wx.Frame):
         mem.SetClippingRect(wx.Rect(0, y, w, h))
         mem.SetBrush(wx.Brush(back))
         mem.SetPen(wx.Pen(back))
+        frect = self.GetRect()
         def recurse(win):
             for child in win.GetChildren():
                 if child.IsTopLevel() and not (hasattr(child, "cwpy_debug") and child.cwpy_debug):
@@ -873,10 +874,19 @@ class Frame(wx.Frame):
                     del dc
                     mem2.SelectObject(wx.NullBitmap)
                     del mem2
+
                     # サイズを適正に変換
                     img = cw.util.convert_to_image(bmp)
                     img = cw.win2scr_s(img)
                     bmp = img.ConvertToBitmap()
+
+                    # 位置を調節
+                    crect = child.GetRect()
+                    crect.X -= frect.X
+                    crect.Y -= frect.Y
+                    centerx = (crect.X + crect.Width / 2.0) / frect.Width
+                    centery = (crect.Y + crect.Height / 2.0) / frect.Height
+
                     # 全体スクリーンショットへ描画
                     mem3 = wx.MemoryDC()
                     pixelsize = int(cw.cwpy.setting.fonttypes["screenshot"][2] * 0.8)
@@ -893,10 +903,18 @@ class Frame(wx.Frame):
                     titleimg = cw.util.draw_antialiasedtext(mem3, title, white, ww,
                                                             cw.s(5), quality)
                     del mem3
+
+                    # 位置の決定(画面外には出さない)
                     ww, wh = bmp.GetSize()
-                    xx = (w-ww) / 2
-                    yy = y + (h-(wh+cw.s(pixelsize + 2)+2)) / 2
-                    mem.DrawRectangle(xx - 2, yy - 2, ww + 4, wh + 4 + cw.s(pixelsize + 2) + 2)
+                    wh += cw.s(pixelsize+2) + 2
+                    xx = (w * centerx) - (ww / 2)
+                    yy = (h * centery) - (wh / 2) + y
+                    if w <= xx + (ww+2): xx = w - (ww+2)
+                    if h <= yy+y + (wh+2): yy = h+y - (wh+2)
+                    if xx < 2: xx = 2
+                    if yy < 2+y: yy = 2+y
+
+                    mem.DrawRectangle(xx - 2, yy - 2, ww + 4, bmp.GetHeight() + 4 + cw.s(pixelsize + 2) + 2)
                     mem.DrawBitmap(bmp, xx, yy + cw.s(pixelsize + 2) + 2, False)
                     mem.DrawBitmap(titleimg, xx + cw.s(5), yy + 1, False)
                     recurse(child)
