@@ -609,7 +609,8 @@ decode_rle4data(PyObject *self, PyObject *args)
     memset(outdata, 0, outlen);
 
 #define GET_BYTE(b) {\
-    if (slen <= si / 2 || (si & 1) == 1)\
+    if ((si & 1) == 1) si++;\
+    if (slen <= si / 2)\
     {\
         /* PySys_WriteStdout("%d\n", __LINE__); */\
         goto exit_error;\
@@ -677,11 +678,6 @@ decode_rle4data(PyObject *self, PyObject *args)
                 break;
             default:
                 /* Absolute Data */
-                if ((count & 1) == 1)
-                {
-                    /* PySys_WriteStdout("%d\n", __LINE__); */
-                    goto exit_error;
-                }
                 for (j = 0; j < count; j++)
                 {
                     GET_PIXEL(sb);
@@ -694,11 +690,6 @@ decode_rle4data(PyObject *self, PyObject *args)
         else
         {
             /* Encoded Data */
-            if ((count & 1) == 1)
-            {
-                /* PySys_WriteStdout("%d\n", __LINE__); */
-                goto exit_error;
-            }
             GET_BYTE(sb);
             for (j = 0; j < count; j++)
             {
