@@ -1422,8 +1422,17 @@ class UISettingPanel(wx.Panel):
         self._do_layout()
         self._bind()
 
+    def OnQuickDeal(self, event):
+        if not self.cb_quickdeal.GetValue():
+            self.cb_allquickdeal.SetValue(False)
+
+    def OnAllQuickDeal(self, event):
+        if self.cb_allquickdeal.GetValue():
+            self.cb_quickdeal.SetValue(True)
+
     def _bind(self):
-        pass
+        self.Bind(wx.EVT_CHECKBOX, self.OnQuickDeal, self.cb_quickdeal)
+        self.Bind(wx.EVT_CHECKBOX, self.OnAllQuickDeal, self.cb_allquickdeal)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)

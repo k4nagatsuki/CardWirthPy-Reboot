@@ -1444,7 +1444,7 @@ class CWPy(_Singleton, threading.Thread):
 
                 def func(loaded, musicpath, inusecard, areaid):
                     self.is_processing = False
-                    quickdeal = resume and (self.setting.quickdeal or self.setting.all_quickdeal)
+                    quickdeal = resume and self.setting.all_quickdeal
                     try:
                         if not self.sdata.startid in self.sdata.areas:
                             if resume:
@@ -1859,9 +1859,9 @@ class CWPy(_Singleton, threading.Thread):
     def deal_cards(self, quickdeal=False, updatelist=True, flag=""):
         """hidden状態のMenuCard(対応フラグがFalseだったら表示しない)と
         PlayerCardを全て表示する。
-        quickdeal: 前カードを同時に表示する。
+        quickdeal: 全カードを同時に表示する。
         """
-        if not self.setting.quickdeal:
+        if not (self.setting.quickdeal or self.setting.all_quickdeal):
             quickdeal = False
         self._dealing = True
 
@@ -1915,7 +1915,7 @@ class CWPy(_Singleton, threading.Thread):
         各カードのhidecards()の最後に呼ばれる。
         hideallがTrueだった場合、全てのカードを非表示にする。
         """
-        if not self.setting.quickdeal:
+        if not (self.setting.quickdeal or self.setting.all_quickdeal):
             quickhide = False
         self._dealing = True
         if updatelist:
