@@ -1444,6 +1444,7 @@ class CWPy(_Singleton, threading.Thread):
 
                 def func(loaded, musicpath, inusecard, areaid):
                     self.is_processing = False
+                    quickdeal = resume and (self.setting.quickdeal or self.setting.all_quickdeal)
                     try:
                         if not self.sdata.startid in self.sdata.areas:
                             if resume:
@@ -1458,10 +1459,10 @@ class CWPy(_Singleton, threading.Thread):
                             self.set_yado()
                         elif musicpath is None or\
                                         self.music.path == self.music.get_path(musicpath, inusecard):
-                            self.change_area(areaid, not loaded, loaded)
+                            self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal)
                         else:
                             self.music.stop()
-                            self.change_area(areaid, not loaded, loaded)
+                            self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal)
                             self.music.play(musicpath, inusecard=inusecard)
                         if self.is_showingdebugger() and self.event:
                             self.event.refresh_variablelist()
