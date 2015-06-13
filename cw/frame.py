@@ -40,14 +40,30 @@ class Frame(wx.Frame):
         # SDLを描画するパネル
         self.panel = wx.Panel(self, -1, size=cw.wins(cw.SIZE_GAME), style=wx.NO_BORDER)
 
-        if not (self._setting.window_position[0] is None and self._setting.window_position[1] is None):
-            pos = self.GetPosition()
-            if not self._setting.window_position[0] is None:
-                pos = (self._setting.window_position[0], pos[1])
-            if not self._setting.window_position[1] is None:
-                pos = (pos[0], self._setting.window_position[1])
-            self.SetPosition(pos)
-            cw.util.adjust_position(self)
+        def adjust_position():
+            if not (self._setting.window_position[0] is None and self._setting.window_position[1] is None):
+                pos = self.GetPosition()
+                if not self._setting.window_position[0] is None:
+                    pos = (self._setting.window_position[0], pos[1])
+                if not self._setting.window_position[1] is None:
+                    pos = (pos[0], self._setting.window_position[1])
+                self.SetPosition(pos)
+                cw.util.adjust_position(self)
+
+        adjust_position()
+
+        # 拡大後のウィンドウがモニタに収まらない場合は縮小状態に戻す
+        d = wx.Display.GetFromWindow(self)
+        if d == wx.NOT_FOUND: d = 0
+        drect = wx.Display(d).GetClientArea()
+        wsize = self.GetBestSize()
+        if self._setting.is_expanded and (drect[2] < wsize[0] or drect[3] < wsize[1]):
+            self._setting.is_expanded = False
+            cw.UP_WIN = 1
+            cw.UP_SCR = 1
+            self.SetClientSize(cw.wins(cw.SIZE_GAME))
+            self.panel.SetSize(cw.wins(cw.SIZE_GAME))
+            adjust_position()
 
         if sys.platform <> "win32":
             # Xではウィンドウが表示されるまでウィンドウハンドルが取れない
