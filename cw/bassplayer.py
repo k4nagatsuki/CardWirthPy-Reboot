@@ -91,7 +91,7 @@ def init_bass(soundfonts):
     if not _bass:
         return False
 
-    if not _bass.BASS_Init(-1, 44100, BASS_DEVICE_DEFAULT, None, None):
+    if not _bass.BASS_Init(-1, 44100, BASS_DEFAULT, None, None):
         dispose_bass()
         return False
 
