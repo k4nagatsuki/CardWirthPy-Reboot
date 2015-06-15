@@ -801,7 +801,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_act <> self.value
+        eff = target.enhance_act <> self.value or target.enhance_act_dur < duration
         if eff:
             target.set_enhance_act(self.value, duration)
         return eff
@@ -814,7 +814,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_avo <> self.value
+        eff = target.enhance_avo <> self.value or target.enhance_avo_dur < duration
         if eff:
             target.set_enhance_avo(self.value, duration)
         return eff
@@ -827,7 +827,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_res <> self.value
+        eff = target.enhance_res <> self.value or target.enhance_res_dur < duration
         if eff:
             target.set_enhance_res(self.value, duration)
         return eff
@@ -840,7 +840,7 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_def <> self.value
+        eff = target.enhance_def <> self.value or target.enhance_def_dur < duration
         if eff:
             target.set_enhance_def(self.value, duration)
         return eff
