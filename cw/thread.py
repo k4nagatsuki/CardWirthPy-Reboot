@@ -251,7 +251,7 @@ class CWPy(_Singleton, threading.Thread):
             self.mcardgrp.empty()
             self.background.bgs = []
 
-        changed = self.ydata.is_changed()
+        changed = self.ydata and self.ydata.is_changed()
         if self.ydata and self.setting.skindirname <> skindirname:
             self.ydata.set_skinname(skindirname)
         scedir = self.setting.get_scedir()

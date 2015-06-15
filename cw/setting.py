@@ -647,8 +647,31 @@ class Setting(object):
                         if updatemcards:
                             e.write()
 
+            if skinversion <= 6:
+                # dataVersion=6までは標準混乱カードの効果が
+                # 回避・抵抗共に-5だったが、CardWirthでは-10なので
+                # 7以降それに合わせる。
+                update = True
+
+                # バックアップを作成
+                iver = skinversion
+                if iver % 1 == 0:
+                    iver = int(iver)
+                fpath = cw.util.join_paths(self.skindir, u"Resource/Xml/ActionCard/-1_Confuse.xml")
+                dst = "%s.v%s" % (fpath, iver)
+                dst = cw.util.dupcheck_plus(dst, yado=False)
+                shutil.copy2(fpath, dst)
+                e = cw.data.xml2etree(fpath)
+                avoid = e.getint("Property/Enhance", "avoid", -10)
+                if avoid == -5:
+                    e.edit("Property/Enhance", "-10", "avoid")
+                resist = e.getint("Property/Enhance", "resist", -10)
+                if resist == -5:
+                    e.edit("Property/Enhance", "-10", "resist")
+                e.write()
+
             if update:
-                data.edit(".", "6", "dataVersion")
+                data.edit(".", "7", "dataVersion")
                 data.write()
 
             return data
