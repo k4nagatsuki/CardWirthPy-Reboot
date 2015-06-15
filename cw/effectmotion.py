@@ -801,8 +801,9 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_act <> self.value or target.enhance_act_dur <> duration
-        target.set_enhance_act(self.value, duration)
+        eff = target.enhance_act <> self.value
+        if eff:
+            target.set_enhance_act(self.value, duration)
         return eff
 
     def enhanceavoid_motion(self, target, success_res):
@@ -813,8 +814,9 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_avo <> self.value or target.enhance_avo_dur <> duration
-        target.set_enhance_avo(self.value, duration)
+        eff = target.enhance_avo <> self.value
+        if eff:
+            target.set_enhance_avo(self.value, duration)
         return eff
 
     def enhanceresist_motion(self, target, success_res):
@@ -825,8 +827,9 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_res <> self.value or target.enhance_res_dur <> duration
-        target.set_enhance_res(self.value, duration)
+        eff = target.enhance_res <> self.value
+        if eff:
+            target.set_enhance_res(self.value, duration)
         return eff
 
     def enhancedefense_motion(self, target, success_res):
@@ -837,8 +840,9 @@ class EffectMotion(object):
             duration = self.calc_durationvalue(True)
         else:
             duration = 0
-        eff = target.enhance_def <> self.value or target.enhance_def_dur <> duration
-        target.set_enhance_def(self.value, duration)
+        eff = target.enhance_def <> self.value
+        if eff:
+            target.set_enhance_def(self.value, duration)
         return eff
 
     #-----------------------------------------------------------------------
