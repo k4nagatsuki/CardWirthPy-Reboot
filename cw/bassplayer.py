@@ -124,8 +124,13 @@ def _play(fpath, volume, loop):
     flag = (BASS_MUSIC_STOPBACK|BASS_SAMPLE_LOOP) if loop else BASS_DEFAULT
 
     _BASS_CONFIG_MIDI_DEFFONT = 0x10403
-    ext = cw.util.splitext(fpath)[1].lower()
-    if ext == ".mid" or ext == ".midi":
+    ismidi = False
+    if os.path.isfile(fpath) and 4 <= os.path.getsize(fpath):
+        with open(fpath, "rb") as f:
+            head = f.read(4)
+            f.close()
+        ismidi = (head == "MThd")
+    if ismidi:
         if not is_alivablemidi():
             return
         stream = _bassmidi.BASS_MIDI_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag, 44100)
