@@ -2905,22 +2905,18 @@ class TalkContent(EventContentBase):
         for e in self.data.getfind("Contents"):
             name = e.get("name")
 
-            if name:
-                # フラグ判定コンテントの場合、対応フラグがTrueだったら選択肢追加
-                if e.tag == "Check":
-                    ctype = e.get("type")
-                    if ctype == "Flag":
-                        if get_content(e).action() == 0:
-                            seq.append((index, name))
-                            index += 1
-                    elif ctype == "Step":
-                        if get_content(e).action() == 0:
-                            seq.append((index, name))
-                            index += 1
-
+            # フラグ判定コンテントの場合、対応フラグがTrueだったら選択肢追加
+            if e.tag == "Check":
+                ctype = e.get("type")
+                if ctype in ("Flag", "Step"):
+                    if get_content(e).action() <> 0:
+                        continue
                 else:
-                    seq.append((index, name))
-                    index += 1
+                    continue
+
+            if name:
+                seq.append((index, name))
+                index += 1
             else:
                 # 選択できないが後続コンテントとしては存在する
                 index += 1
