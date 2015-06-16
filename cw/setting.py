@@ -1379,7 +1379,7 @@ class Resource(object):
 
         name = "LIFEGUAGE"
         path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-        d[name] = load_image(path, mask=True, maskpos="center")
+        d[name] = load_image(path, mask=True, maskpos=(5, 5))
 
         name = "LIFEBAR"
         path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
