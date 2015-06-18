@@ -198,6 +198,8 @@ class BattleEngine(object):
         # NPCの状態を初期化
         cw.cwpy.sdata.reset_fcards()
 
+        cw.cwpy.event.clear_selectedmember()
+
         self._running = False
         self._ready = True
 
