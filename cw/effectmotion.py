@@ -1016,11 +1016,10 @@ def get_effectivetargets(header, targets):
                 targets2.append(target)
         return targets2
 
-    if header.type == "ActionCard" and header.id == 7 and len(targets) == 1:
+    if header.type == "ActionCard" and header.id == 7 and len(targets) == 1 and targets[0].is_heavyinjured():
         # 重症時は逃走を優先する
-        if targets[0].is_heavyinjured():
-            sets.append(targets[0])
-            setshp.append(targets[0])
+        sets.append(targets[0])
+        setshp.append(targets[0])
     else:
         # カード効果を上から順に見ていき、対象の存在する効果があれば
         # その効果の対象群を返す
