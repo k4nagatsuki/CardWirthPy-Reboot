@@ -446,9 +446,9 @@ class EffectMotion(object):
         # レベル比の効果値を計算(レベル比じゃない場合はそのままの効果値)
         if self.damagetype == "LevelRatio":
             bonus = self.vocation_val + self.enhance_act
-            bonus = bonus / 2 + bonus % 2
+            bonus = bonus // 2 + bonus % 2
             value = value * (self.level + bonus)
-            value = value / 2 + value % 2
+            value = value // 2 + value % 2
 
         # 弱点属性だったら効果値+10
         if self.is_weakness(target):
@@ -456,10 +456,13 @@ class EffectMotion(object):
 
         # 中毒・麻痺なら効果値のまま返す
         if physical:
+            # 最低でも0とする
+            if value < 0:
+                value = 0
             return value
 
         # 効果値から実数値を計算
-        n = value / 5
+        n = value // 5
         out_value = cw.cwpy.dice.roll(n, 10)
         n = value % 5 * 2
 
