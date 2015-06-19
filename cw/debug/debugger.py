@@ -1450,6 +1450,8 @@ class EventView(wx.ScrolledWindow):
         pass
 
     def OnPaint(self, event):
+        if not cw.cwpy.rsrc:
+            return
         if not self.itemlist:
             return
         dc = wx.PaintDC(self)
