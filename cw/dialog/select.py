@@ -4036,6 +4036,7 @@ class ScenarioSelect(Select):
                                         dpath2 = cw.util.decode_zipname(dpath2)
                                         fpath = cw.util.join_paths(dpath2, fname)
                                         if os.path.isfile(fpath):
+                                            cw.util.add_winauth(fpath)
                                             with open(fpath, "r") as f:
                                                 content = f.read()
                                                 f.close()

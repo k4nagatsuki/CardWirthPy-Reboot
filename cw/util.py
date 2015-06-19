@@ -1275,6 +1275,10 @@ def remove_file(path, retry=0):
         else:
             raise err
 
+def add_winauth(file):
+    if os.path.isfile(file) and sys.platform == "win32":
+        os.chmod(file, stat.S_IWRITE|stat.S_IREAD)
+
 def remove_tree(treepath, retry=0, noretry=False):
     try:
         shutil.rmtree(treepath)
@@ -1329,6 +1333,7 @@ def remove_treefiles(treepath):
         for fname in fnames:
             path = join_paths(dpath, fname)
             if os.path.isfile(path):
+                add_winauth(path)
                 os.remove(path)
 
 def rename_file(path, dstpath):
