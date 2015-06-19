@@ -499,12 +499,12 @@ class TransferYadoDataDialog(wx.Dialog):
     def transfer_gossip(self, fromyado, toyado, ge, counter):
         # ゴシップを転送する
         # ただし転送先にすでに存在するアイテムは転送しない
-        self._transfer_elementlist(fromyado, toyado, ge, counter, "Gossips")
+        self.transfer_elementlist(fromyado, toyado, ge, counter, "Gossips")
 
     def transfer_completestamp(self, fromyado, toyado, ce, counter):
         # 終了印を転送する
         # ただし転送先にすでに存在するアイテムは転送しない
-        self._transfer_elementlist(fromyado, toyado, ce, counter, "CompleteStamps")
+        self.transfer_elementlist(fromyado, toyado, ce, counter, "CompleteStamps")
 
     def transfer_elementlist(self, fromyado, toyado, ee, counter, tag):
         exists = set()
@@ -527,7 +527,7 @@ class TransferYadoDataDialog(wx.Dialog):
             # パーティメンバーの転送
             data = cw.data.xml2etree(fpath)
             name1 = os.path.splitext(os.path.basename(fpath))[0]
-            fpath = self._transfer_adventurer(fromyado, toyado, data, yadodb, counter=counter)
+            fpath = self.transfer_adventurer(fromyado, toyado, data, yadodb, counter=counter)
             name = os.path.splitext(os.path.basename(fpath))[0]
             pdata.find("Property/Members/Member[%s]" % (i+1)).text = name
             counter.membertable[name1] = name
@@ -554,7 +554,7 @@ class TransferYadoDataDialog(wx.Dialog):
             basename = os.path.basename(fpath)
             e = cw.data.xml2etree(fpath)
             e.fpath = u""
-            self._transfer_card(fromyado, toyado, e, None, counter=counter)
+            self.transfer_card(fromyado, toyado, e, None, counter=counter)
             e.fpath = cw.util.join_paths(dstdir, cardtype, basename)
             e.fpath = cw.util.dupcheck_plus(e.fpath, yado=False)
             e.write()
@@ -608,7 +608,7 @@ class TransferYadoDataDialog(wx.Dialog):
                 e = cw.data.xml2etree(cw.util.join_paths(dname, p))
                 p2 = counter.membertable[os.path.splitext(p)[0]] + ".xml"
                 e.fpath = cw.util.join_paths(dname2, p2)
-                self._transfer_adventurer(fromyado, toyado, e, None, counter=counter, overwrite=True)
+                self.transfer_adventurer(fromyado, toyado, e, None, counter=counter, overwrite=True)
             cw.util.remove(dname)
             shutil.move(dname2, dname)
 
@@ -649,7 +649,7 @@ class TransferYadoDataDialog(wx.Dialog):
                                  data.getfind("ItemCards"),
                                  data.getfind("BeastCards")):
             e.fpath = u""
-            self._transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
+            self.transfer_card(fromyado, toyado, cw.data.xml2etree(element=e), yadodb=None, counter=counter)
 
         data.write()
         if yadodb:
