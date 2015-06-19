@@ -457,7 +457,7 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                     f2.close()
     except:
         print_ex()
-        print u"画像が読み込めません(load_image)。リトライします", path
+        #print u"画像が読み込めません(load_image)。リトライします", path
         if retry:
             try:
                 if f:
@@ -477,7 +477,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                     f2.close()
                 return r
             except:
-                print u"画像が読み込めません(リトライ後)", path
+                print_ex()
+                #print u"画像が読み込めません(リトライ後)", path
         return pygame.Surface((0, 0)).convert()
 
     # アルファチャンネルを持った透過画像を読み込んだ場合は

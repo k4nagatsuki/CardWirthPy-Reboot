@@ -699,7 +699,7 @@ class Character(object):
             e = data.find("Events/Event")
             cw.event.CardEvent(e, header, self, targets).start()
         finally:
-            if isinstance(self, cw.character.Friend) and self in targets:
+            if header.type <> "BeastCard" and isinstance(self, cw.character.Friend) and self in targets:
                 # NPC消去
                 cw.animation.animate_sprite(self, "hide")
                 grp.remove(self)
@@ -995,7 +995,7 @@ class Character(object):
 
             # 選択値を計算
             d = cw.cwpy.dice.roll()
-            d = (1 + vocation) / 2 + d
+            d = (1 + vocation) // 2 + d
             if maxd < d:
                 # 選択する
                 selected = t
