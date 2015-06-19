@@ -2324,6 +2324,9 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         if self.status == "ScenarioBattle":
+            if isinstance(self.event.get_selectedmember(), cw.character.Enemy):
+                self.event.clear_selectedmember()
+
             # 勝利イベントを保持しておく
             battleevents = self.sdata.events
             if eventkeynum:

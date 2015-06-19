@@ -236,6 +236,7 @@ class EventInterface(object):
     def clear_selectedmember(self):
         """選択中のメンバをクリアする。"""
         self._selectedmember = None
+        self.refresh_selectedmembername()
 
     def get_unselectedmember(self):
         """選択外のPlayerCardインスタンスを返す。"""
