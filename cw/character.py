@@ -361,7 +361,7 @@ class Character(object):
         """
         重傷状態かどうかをbool値で返す
         """
-        return bool(self.get_lifeper() < 20 and not self.is_unconscious())
+        return bool(self.get_lifeper() <= 20 and not self.is_unconscious())
 
     def is_injured(self):
         """
@@ -640,6 +640,7 @@ class Character(object):
         soundpath = data.gettext("Property/SoundPath", "")
 
         # 使用アニメーション
+        removeafter = False
         if header.type == "BeastCard":
             cw.cwpy.set_inusecardimg(self, header, "hidden", center=True)
             inusecardimg = cw.cwpy.get_inusecardimg()
@@ -676,12 +677,13 @@ class Character(object):
             if not self in targets:
                 cw.animation.animate_sprite(self, "hide")
                 grp.remove(self)
+            else:
+                removeafter = True
         else:
             cw.cwpy.set_inusecardimg(self, header)
             cw.animation.animate_sprite(self, "zoomin")
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
-
 
         # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える
         specialchars = cw.cwpy.rsrc.specialchars
@@ -699,7 +701,7 @@ class Character(object):
             e = data.find("Events/Event")
             cw.event.CardEvent(e, header, self, targets).start()
         finally:
-            if header.type <> "BeastCard" and isinstance(self, cw.character.Friend) and self in targets:
+            if removeafter:
                 # NPC消去
                 cw.animation.animate_sprite(self, "hide")
                 grp.remove(self)
@@ -913,18 +915,14 @@ class Character(object):
 
         for header in self.get_pocketcards(cw.POCKET_BEAST):
             if header.is_autoselectable():
-                targets, effectivetargets, highprioritys = header.get_targets()
+                targets, effectivetargets = header.get_targets()
 
-                if highprioritys:
-                    efftargets = highprioritys
-                elif effectivetargets:
-                    efftargets = effectivetargets
-                else:
-                    efftargets = []
+                if effectivetargets:
+                    # 優先度の高いターゲットが存在する場合はそちらを優先選択する
+                    bonus, effectivetargets = self._get_targetingbonus_and_targets(header, effectivetargets)
 
-                if efftargets:
                     if not header.allrange and len(targets) > 1:
-                        targets = [cw.cwpy.dice.choice(efftargets)]
+                        targets = [cw.cwpy.dice.choice(effectivetargets)]
 
                     beasts.append((targets, header))
                     # 優先行動済みリストへ追加する
@@ -937,24 +935,18 @@ class Character(object):
 
         # 使用するカード
         headers = []
-        highs = []
 
         for header in self.deck.hand:
             if header.is_autoselectable():
-                targets, effectivetargets, highprioritys = header.get_targets()
+                targets, effectivetargets = header.get_targets()
 
-                if highprioritys:
-                    highs.append((highprioritys, header))
-                elif effectivetargets or header.target == "None":
+                if effectivetargets or header.target == "None":
                     if not header.allrange:
                         targets = effectivetargets
 
                     headers.append((targets, header))
 
-        if highs:
-            targets, header = self.decide_usecard(highs)
-        else:
-            targets, header = self.decide_usecard(headers)
+        targets, header = self.decide_usecard(headers)
 
         if header and not header.allrange and len(targets) > 1:
             targets = [cw.cwpy.dice.choice(targets)]
@@ -988,24 +980,115 @@ class Character(object):
         selected = (None, None)
         for i, t in enumerate(itertools.chain(seq, exchange)):
             header = t[1]
+
             # 適性値
             vocation = int(header.get_vocation_val(self))
             if len(seq) <= i:
                 vocation -= 6 # 手札交換なので-6
+            else:
+                vocation = max(0, vocation)
+
+            # 優先選択ボーナス
+            bonus, targs = self._get_targetingbonus_and_targets(header, t[0])
 
             # 選択値を計算
             d = cw.cwpy.dice.roll()
-            d = (1 + vocation) // 2 + d
+            d = (1 + vocation) // 2 + d + bonus
             if maxd < d:
                 # 選択する
-                selected = t
+                selected = (targs, header)
                 maxd = d
 
         return selected
 
+    def _get_targetingbonus_and_targets(self, header, targets):
+        bonus = -2147483647
+        maxbonustargs = []
+        if header.type == "ActionCard" and header.id == 7:
+            # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
+            motions = [{"type":"Runaway"}]
+        else:
+            motions = header.carddata.getfind("Motions").getchildren()
+        # 最大ボーナスを取得
+        for motion in motions:
+            mtype = motion.get("type", "")
+            for targ in targets:
+                b = targ.get_targetingbonus(mtype)
+                if bonus == b:
+                    maxbonustargs.append(targ)
+                elif bonus < b:
+                    maxbonustargs = [targ]
+                    bonus = b
+
+        if bonus == -2147483647:
+            return 0, targets
+        return bonus, targets if header.allrange else maxbonustargs
+
     #---------------------------------------------------------------------------
     #　状態取得用
     #---------------------------------------------------------------------------
+
+    def get_targetingbonus(self, mtype):
+        """
+        効果のターゲットとして選ばれやすくなるボーナス値を返す。
+        現在は"Heal"タイプに対する体力減時ボーナスと
+        "Runaway"(逃走効果に対する特殊タイプ)に対する重症時ボーナスのみ。
+        mtype: 効果タイプ。
+        """
+        bonus = 0
+        if mtype == "Heal":
+            per = self.get_lifeper()
+            if 50 <= per:
+                bonus = -1
+            elif 33 <= per:
+                bonus = 0
+            elif 25 <= per:
+                bonus = 1
+            elif 20 <= per:
+                bonus = 2
+            elif 16 <= per:
+                bonus = 3
+            elif 14 <= per:
+                bonus = 4
+            elif 12 <= per:
+                bonus = 5
+            elif 1 <= per:
+                bonus = 6 + (11 - per)
+            else:
+                return 100
+
+        elif mtype == "Runaway":
+            per = self.get_lifeper()
+            if 50 <= per:
+                bonus = 3
+            elif 33 <= per:
+                bonus = 4
+            elif 25 <= per:
+                bonus = 5
+            elif 20 <= per:
+                bonus = 6
+            elif 16 <= per:
+                bonus = 7
+            elif 14 <= per:
+                bonus = 8
+            elif 12 <= per:
+                bonus = 9
+            else:
+                bonus = 10 + (11 - per)
+
+        if cw.cwpy.battle and 0 < bonus:
+            # すでにその行動のターゲットになっている場合はボーナスを入れない
+            for s, tarr, _user in cw.cwpy.battle.priorityacts:
+                if mtype == s:
+                    if isinstance(tarr, cw.character.Character):
+                        if tarr == self:
+                            bonus = 0
+                            break
+                    elif self in tarr:
+                        bonus = 0
+                        break
+
+        return bonus
 
     def get_pocketcards(self, index):
         """

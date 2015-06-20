@@ -664,8 +664,8 @@ class CardHeader(object):
         elif self.target == "None":
             targets = []
 
-        effective, highpriority = cw.effectmotion.get_effectivetargets(self, targets)
-        return targets, effective, highpriority
+        effective = cw.effectmotion.get_effectivetargets(self, targets)
+        return targets, effective
 
     def is_noeffect(self, target):
         effecttype = self.carddata.gettext("Property/EffectType", "")

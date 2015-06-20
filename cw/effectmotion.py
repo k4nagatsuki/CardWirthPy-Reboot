@@ -1007,7 +1007,6 @@ def get_effectivetargets(header, targets):
     """
     motions = header.carddata.getfind("Motions").getchildren()
     sets = []
-    setshp = []
 
     def narrow(targets):
         targets2 = []
@@ -1016,56 +1015,19 @@ def get_effectivetargets(header, targets):
                 targets2.append(target)
         return targets2
 
-    if header.type == "ActionCard" and header.id == 7 and len(targets) == 1 and targets[0].is_heavyinjured():
-        # 重症時は逃走を優先する
-        sets.append(targets[0])
-        setshp.append(targets[0])
-    else:
-        # カード効果を上から順に見ていき、対象の存在する効果があれば
-        # その効果の対象群を返す
-        for motion in motions:
-            # まだ対象群が見つかっていない場合のみ対象セットに追加
-            # (優先行動の判定があるため処理は続ける)
-            if not sets:
-                sets.extend([t for t in targets if t.is_effective(motion)])
+    # カード効果を上から順に見ていき、対象の存在する効果があれば
+    # その効果の対象群を返す
+    for motion in motions:
+        # まだ対象群が見つかっていない場合のみ対象セットに追加
+        # (優先行動の判定があるため処理は続ける)
+        if not sets:
+            sets.extend([t for t in targets if t.is_effective(motion)])
 
-            s = motion.get("type", "")
-
-            if s in highpriority_dict:
-                # 優先度の高い行動
-                method, flag = highpriority_dict[s]
-                ts = []
-                for t in targets:
-                    if getattr(t, method)() == flag:
-                        if header.allrange:
-                            ts.extend(targets)
-                            break
-                        else:
-                            ts.append(t)
-                if cw.cwpy.battle:
-                    # すでにその行動のターゲットになっている場合は行わない
-                    for s2, tarr, _user in cw.cwpy.battle.priorityacts:
-                        if s == s2:
-                            if isinstance(tarr, cw.character.Character):
-                                if tarr in ts:
-                                    ts.remove(tarr)
-                            else:
-                                for t in tarr:
-                                    if t in ts:
-                                        ts.remove(t)
-                                        break
-                    if ts and header.allrange:
-                        # 一部だけ取り除かれている可能性があるので
-                        # 改めて全員追加
-                        ts = []
-                        ts.extend(targets)
-                setshp.extend(ts)
-
-    return narrow(sets), narrow(setshp)
+    return narrow(sets)
 
 # key: モーション名, value: チェック用メソッド名の辞書
-highpriority_dict = {"Heal" : ("is_unconscious", True),
-                     }
+bonus_dict = {"Heal" : ("get_targetingbonus", True),
+              }
 
 def main():
     pass
