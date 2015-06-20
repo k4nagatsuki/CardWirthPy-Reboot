@@ -2729,7 +2729,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_inusecardimg(self, owner, header, status="normal", center=False, spritegrp=None, alpha=255):
         """PlayerCardの前に使用中カードの画像を表示。"""
-        if not owner.inusecardimg and self.background.rect.colliderect(owner.rect):
+        if center or (not owner.inusecardimg and self.background.rect.colliderect(owner.rect) and owner.status <> "hidden"):
             inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, spritegrp, alpha=alpha)
             owner.inusecardimg = inusecard
             self.inusecards.append(inusecard)
@@ -2770,7 +2770,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_guardcardimg(self, owner, header):
         """PlayerCardの前に回避・抵抗ボーナスカードの画像を表示。"""
-        if not self.get_guardcardimg():
+        if not self.get_guardcardimg() and self.background.rect.colliderect(owner.rect) and owner.status <> "hidden":
             card = cw.sprite.background.InuseCardImage(owner, header, status="normal", center=False)
             self.guardcards.append(card)
 

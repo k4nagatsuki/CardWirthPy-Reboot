@@ -13,6 +13,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     if not hasattr(sprite, "update_" + anitype):
         print "Not found " + anitype + " animation."
+        print sprite
         return
 
     if clearevent:
@@ -75,6 +76,7 @@ def animate_sprites2(sprandanimes, clearevent=True):
     for spr, anitype in sprandanimes:
         if not hasattr(spr, "update_" + anitype):
             print "Not found " + anitype + " animation."
+            print sprite
             return
 
     if clearevent:
