@@ -497,6 +497,15 @@ def create_settings(setting):
         e = cw.data.make_element("UnconvertTargetFolder", setting.unconvert_targetfolder)
         element.append(e)
 
+    # 空白時間をスキップ可能にする
+    if setting.can_skipwait <> setting.can_skipwait_init:
+        e = cw.data.make_element("CanSkipWait", str(setting.can_skipwait))
+        element.append(e)
+    # アニメーションをスキップ可能にする
+    if setting.can_skipanimation <> setting.can_skipanimation_init:
+        e = cw.data.make_element("CanSkipAnimation", str(setting.can_skipanimation))
+        element.append(e)
+
     # ファイル書き込み
     path = "Settings.xml"
     etree = cw.data.xml2etree(element=element)

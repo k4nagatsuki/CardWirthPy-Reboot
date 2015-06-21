@@ -3209,22 +3209,23 @@ class WaitContent(EventContentBase):
         tick = pygame.time.get_ticks() + (value * 100)
         cw.cwpy.event.breakwait = False
         while cw.cwpy.is_running() and pygame.time.get_ticks() < tick:
-            keyin = cw.cwpy.keyevent.get_pressed()
+            if cw.cwpy.setting.can_skipwait:
+                keyin = cw.cwpy.keyevent.get_pressed()
 
-            # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-            if keyin[pygame.locals.K_RETURN] > cw.cwpy.keyevent.threshold or cw.cwpy.event.breakwait:
-                break
+                # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
+                if keyin[pygame.locals.K_RETURN] > cw.cwpy.keyevent.threshold or cw.cwpy.event.breakwait:
+                    break
 
             cw.cwpy.event.refresh_activeitem()
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
             cw.cwpy.draw()
-            breakflag = cw.cwpy.get_breakflag()
+            breakflag = cw.cwpy.get_breakflag() if cw.cwpy.setting.can_skipwait else False
             cw.cwpy.input()
             cw.cwpy.eventhandler.run()
             if breakflag:
                 break
 
-            cw.cwpy.wait_frame(1, False)
+            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipwait)
 
         return 0
 

@@ -735,7 +735,7 @@ class Debugger(wx.Frame):
                         pcard.set_fullrecovery()
                         pcard.update_image()
                         waitrate = (cw.cwpy.setting.dealspeed+1) * 2
-                        cw.cwpy.wait_frame(waitrate, True)
+                        cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     else:
                         cw.animation.animate_sprite(pcard, "hide")
                         pcard.set_fullrecovery()

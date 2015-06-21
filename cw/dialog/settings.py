@@ -131,6 +131,9 @@ class SettingsDialog(wx.Dialog):
             self.pane_scenario.cb_showcompletedscenario.SetValue(cw.cwpy.setting.show_completedscenario_init)
             self.pane_scenario.cb_showinvisiblescenario.SetValue(cw.cwpy.setting.show_invisiblescenario_init)
         elif selpane == 5:
+            self.pane_ui.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait_init)
+            self.pane_ui.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation_init)
+
             self.pane_ui.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal_init)
             self.pane_ui.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal_init)
             self.pane_ui.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards_init)
@@ -434,6 +437,11 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.setting.folderoftype.append((skintype, folder))
 
         # 操作
+        value = self.pane_ui.cb_can_skipwait.GetValue()
+        cw.cwpy.setting.can_skipwait = value
+        value = self.pane_ui.cb_can_skipanimation.GetValue()
+        cw.cwpy.setting.can_skipanimation = value
+
         value = self.pane_ui.cb_quickdeal.GetValue()
         cw.cwpy.setting.quickdeal = value
         value = self.pane_ui.cb_allquickdeal.GetValue()
@@ -1361,9 +1369,19 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row + 1, col, value1)
         self.grid_folderoftype.SetGridCursor(row + 1, self.grid_folderoftype.GetGridCursorCol())
 
-class UISettingPanel(wx.Panel):
+class UISettingPanel(wx.ScrolledWindow):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+        wx.ScrolledWindow.__init__(self, parent)
+        self.SetScrollbars(1, 10, 1, 1)
+
+        # 空白時間オプション
+        self.box_wait = wx.StaticBox(self, -1, u"スキップ")
+        self.cb_can_skipwait = wx.CheckBox(
+            self, -1, u"空白時間をスキップ可能にする")
+        self.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait)
+        self.cb_can_skipanimation = wx.CheckBox(
+            self, -1, u"アニメーションをスキップ可能にする")
+        self.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation)
 
         # 描画オプション
         self.box_draw = wx.StaticBox(self, -1, u"カード")
@@ -1437,9 +1455,14 @@ class UISettingPanel(wx.Panel):
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+        bsizer_wait = wx.StaticBoxSizer(self.box_wait, wx.VERTICAL)
         bsizer_draw = wx.StaticBoxSizer(self.box_draw, wx.VERTICAL)
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_dlg = wx.StaticBoxSizer(self.box_dlg, wx.VERTICAL)
+
+        bsizer_wait.Add(self.cb_can_skipwait, 0, wx.ALL, 3)
+        bsizer_wait.Add(self.cb_can_skipanimation, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_wait.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_draw.Add(self.cb_quickdeal, 0, wx.ALL, 3)
         bsizer_draw.Add(self.cb_allquickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -1462,6 +1485,7 @@ class UISettingPanel(wx.Panel):
         bsizer_dlg.Add(self.cb_noticeimpossibleaction, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.SetMinSize((SETTINGS_WIDTH, -1))
 
+        sizer_v1.Add(bsizer_wait, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_dlg, 0, wx.EXPAND, 0)

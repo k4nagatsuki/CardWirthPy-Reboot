@@ -147,7 +147,7 @@ def _inputevent(clip, clearevent, statusbutton):
     return clip
 
 def _get_skipstatus(clearevent):
-    if not clearevent:
+    if not clearevent or not cw.cwpy.setting.can_skipanimation:
         return False
 
     keyin = cw.cwpy.keyevent.get_pressed()

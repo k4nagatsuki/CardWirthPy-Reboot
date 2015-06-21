@@ -553,7 +553,7 @@ class BattleCardImage(card.CWPyCard):
         cw.animation.animate_sprite(self, "zoomin")
         cw.animation.animate_sprite(self, "deal")
         waitrate = (cw.cwpy.setting.dealspeed+1) * 4
-        cw.cwpy.wait_frame(waitrate, True)
+        cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
         self.highspeed = False
 
     def update_image(self):

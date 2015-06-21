@@ -176,7 +176,7 @@ class Effect(object):
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
                 waitrate = (cw.cwpy.setting.dealspeed+1) * 2
-                cw.cwpy.wait_frame(waitrate, True)
+                cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 cw.cwpy.clear_guardcardimg()
                 cw.cwpy.draw()
 
@@ -193,7 +193,7 @@ class Effect(object):
         if success_avo:
             cw.cwpy.sounds["avoid"].play(True)
             cw.cwpy.draw()
-            cw.cwpy.wait_frame(1, True)
+            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
             return False
         elif noeffect or (success_res and not hasdamage):
             cw.cwpy.sounds["ineffective"].play(True)
@@ -293,7 +293,7 @@ class Effect(object):
             if self.soundpath and cw.cwpy.has_sound(self.soundpath):
                 cw.cwpy.draw()
                 waitrate = (cw.cwpy.setting.dealspeed+1) * 2
-                cw.cwpy.wait_frame(waitrate, True)
+                cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
         # 横振動(地震)
         elif self.visualeffect == "Horizontal":
@@ -323,7 +323,7 @@ class Effect(object):
             if update_image:
                 target.update_image()
             cw.cwpy.draw()
-            cw.cwpy.wait_frame(1, True)
+            cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
 
     def check_enabledtarget(self, target, event=False):
         """

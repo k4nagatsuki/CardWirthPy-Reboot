@@ -136,6 +136,8 @@ class Setting(object):
         self.show_roundautostartbutton = False
         self.show_autobuttoninentrydialog = False
         self.unconvert_targetfolder = u"UnconvertedYado"
+        self.can_skipwait = True
+        self.can_skipanimation = True
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -459,6 +461,11 @@ class Setting(object):
 
         # 逆変換先ディレクトリ
         self.unconvert_targetfolder = data.gettext("UnconvertTargetFolder", self.unconvert_targetfolder)
+
+        # 空白時間をスキップ可能にする
+        self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait)
+        # アニメーションをスキップ可能にする
+        self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
