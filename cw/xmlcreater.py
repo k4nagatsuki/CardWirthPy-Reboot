@@ -505,6 +505,10 @@ def create_settings(setting):
     if setting.can_skipanimation <> setting.can_skipanimation_init:
         e = cw.data.make_element("CanSkipAnimation", str(setting.can_skipanimation))
         element.append(e)
+    # マウスの左ボタンを押し続けた時は連打状態にする
+    if setting.can_repeatlclick <> setting.can_repeatlclick_init:
+        e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))
+        element.append(e)
 
     # ファイル書き込み
     path = "Settings.xml"

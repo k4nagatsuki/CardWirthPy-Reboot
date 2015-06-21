@@ -138,6 +138,7 @@ class Setting(object):
         self.unconvert_targetfolder = u"UnconvertedYado"
         self.can_skipwait = True
         self.can_skipanimation = True
+        self.can_repeatlclick = True
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -466,6 +467,8 @@ class Setting(object):
         self.can_skipwait = data.getbool("CanSkipWait", self.can_skipwait)
         # アニメーションをスキップ可能にする
         self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation)
+        # マウスの左ボタンを押し続けた時は連打状態にする
+        self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)

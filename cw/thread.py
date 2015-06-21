@@ -574,10 +574,8 @@ class CWPy(_Singleton, threading.Thread):
         self.event.eventtimer = 0
         for _i in xrange(count):
             if canskip:
-                keyin = self.keyevent.get_pressed()
-
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-                if keyin[pygame.locals.K_RETURN] > self.keyevent.threshold:
+                if self.keyevent.is_keyin(pygame.locals.K_RETURN) or self.keyevent.is_mousein(1):
                     break
 
                 sel = self.selection

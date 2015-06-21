@@ -3210,10 +3210,8 @@ class WaitContent(EventContentBase):
         cw.cwpy.event.breakwait = False
         while cw.cwpy.is_running() and pygame.time.get_ticks() < tick:
             if cw.cwpy.setting.can_skipwait:
-                keyin = cw.cwpy.keyevent.get_pressed()
-
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-                if keyin[pygame.locals.K_RETURN] > cw.cwpy.keyevent.threshold or cw.cwpy.event.breakwait:
+                if cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein(1) or cw.cwpy.event.breakwait:
                     break
 
             cw.cwpy.event.refresh_activeitem()

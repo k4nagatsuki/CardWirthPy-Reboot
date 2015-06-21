@@ -24,6 +24,9 @@ class EventHandler(object):
         # 右方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_RIGHT):
             self.dirkey_event(x=1)
+        # 左クリック押しっぱなし
+        elif cw.cwpy.keyevent.is_mousein(1):
+            self.returnkey_event()
 
         exception = None
 
@@ -31,6 +34,9 @@ class EventHandler(object):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
+            if self.check_puressedbutton(event):
+                continue
+
             if event.type == KEYDOWN:
                 # 上方向キー
                 if event.key == K_UP:
@@ -108,6 +114,16 @@ class EventHandler(object):
 
         if exception:
             raise exception
+
+    def check_puressedbutton(self, event):
+        if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
+            return
+        button = event.button - 1
+        if 0 <= button and button < len(cw.cwpy.keyevent.mousein):
+            if event.type == MOUSEBUTTONDOWN:
+                cw.cwpy.keyevent.mousein[button] = pygame.time.get_ticks()
+            elif event.type == MOUSEBUTTONUP:
+                cw.cwpy.keyevent.mousein[button] = 0
 
     def calc_index(self, value):
         length = len(cw.cwpy.list)
@@ -457,6 +473,9 @@ class EventHandlerForMessageWindow(EventHandler):
         # 下方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
+        # 左クリック押しっぱなし
+        elif cw.cwpy.keyevent.is_mousein(1):
+            self.returnkey_event(True)
 
         exception = None
 
@@ -464,6 +483,8 @@ class EventHandlerForMessageWindow(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
+            if self.check_puressedbutton(event):
+                continue
             if event.type == KEYDOWN:
                 # 上方向キー
                 if event.key == K_UP:
@@ -711,6 +732,9 @@ class EventHandlerForBacklog(EventHandler):
         # 下方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
+        # 左クリック押しっぱなし
+        elif cw.cwpy.keyevent.is_mousein(1):
+            self.returnkey_event(True)
 
         exception = None
 
@@ -718,6 +742,8 @@ class EventHandlerForBacklog(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
+            if self.check_puressedbutton(event):
+                continue
             if event.type == KEYDOWN:
                 # 上方向キー
                 if event.key == K_UP:
@@ -918,6 +944,9 @@ class EventHandlerForEffectBooster(EventHandler):
         # リターンキー押しっぱなし
         if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event(True)
+        # 左クリック押しっぱなし
+        elif cw.cwpy.keyevent.is_mousein(1):
+            self.returnkey_event(True)
 
         exception = None
 
@@ -925,6 +954,9 @@ class EventHandlerForEffectBooster(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
+            if self.check_puressedbutton(event):
+                continue
+
             if event.type == KEYDOWN:
                 pass
 

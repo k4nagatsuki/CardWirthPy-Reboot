@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import cw
+
 import wx
 import pygame
 from pygame.locals import K_RETURN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
@@ -36,15 +38,14 @@ class KeyEventRelay(object):
             wx.WXK_SHIFT : K_LSHIFT}
         # キー入力(pygame用)
         self.keyin = [0 for _cnt in xrange(322)]
+        # マウス入力。EventHandlerから受信
+        self.mousein = [0, 0, 0]
         # キー押しっぱなし閾値
         self.threshold = 1
 
     def clear(self):
         self.keyin = [0 for _cnt in xrange(322)]
-
-    def clear_keyin(self, wxkeycode):
-        if wxkeycode in self.keymap:
-            self.keyin[self.keymap[wxkeycode]] = 0
+        self.mousein = [0, 0, 0]
 
     def keydown(self, keycode):
         key = self.keymap.get(keycode, None)
@@ -70,6 +71,15 @@ class KeyEventRelay(object):
 
     def is_keyin(self, keycode):
         return self.threshold < self.keyin[keycode]
+
+    def is_mousein(self, button):
+        if cw.cwpy.setting.can_repeatlclick:
+            button -= 1
+            if 0 <= button and button < len(self.mousein) and 0 < self.mousein[button]:
+                # マウスボタン押下時間閾値
+                mousethreshold = 1.0 / cw.cwpy.setting.fps * 1000 * 30
+                return self.mousein[button] + mousethreshold <= pygame.time.get_ticks()
+        return False
 
 def main():
     pass

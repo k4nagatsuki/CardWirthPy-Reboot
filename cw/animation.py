@@ -150,13 +150,12 @@ def _get_skipstatus(clearevent):
     if not clearevent or not cw.cwpy.setting.can_skipanimation:
         return False
 
-    keyin = cw.cwpy.keyevent.get_pressed()
     breakflag = pygame.event.peek((pygame.locals.MOUSEBUTTONDOWN,
                                    pygame.locals.MOUSEBUTTONUP,
                                    pygame.locals.KEYDOWN,
                                    pygame.locals.KEYUP))
 
-    if breakflag or keyin[pygame.locals.K_RETURN] > cw.cwpy.keyevent.threshold:
+    if breakflag or cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein(1):
         return True
 
     return False
