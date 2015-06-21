@@ -76,11 +76,14 @@ class KeyEventRelay(object):
         if cw.cwpy.setting.can_repeatlclick:
             button -= 1
             pressed = pygame.mouse.get_pressed()
-            if 0 <= button and button < len(pressed) and pressed[button]:
-                if 0 <= button and button < len(self.mousein) and 0 < self.mousein[button]:
+            if 0 <= button and button < len(self.mousein) and 0 < self.mousein[button]:
+                if 0 <= button and button < len(pressed) and pressed[button]:
                     # マウスボタン押下時間閾値
                     mousethreshold = 1.0 / cw.cwpy.setting.fps * 1000 * 30
                     return self.mousein[button] + mousethreshold <= pygame.time.get_ticks()
+                else:
+                    # 押されていない
+                    self.mousein[button] = 0
         return False
 
 def main():
