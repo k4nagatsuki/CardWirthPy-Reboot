@@ -30,7 +30,7 @@ if sys.platform == "win32":
 
 import wx.lib.mixins.listctrl
 import pygame
-from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
+from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT
 
 import cw
 
@@ -378,7 +378,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
         pygame.display.set_caption(title)
 
     pygame.event.set_blocked(None)
-    pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT])
+    pygame.event.set_allowed([KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT])
 
     # BASS Audioを初期化(使用できない事もある)
     if soundfonts is None:

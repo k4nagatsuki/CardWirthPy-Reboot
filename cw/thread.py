@@ -12,7 +12,7 @@ import shutil
 import re
 import wx
 import pygame
-from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
+from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP, USEREVENT
 
 import cw
 
@@ -625,16 +625,16 @@ class CWPy(_Singleton, threading.Thread):
                 return None
 
     def clear_inputevents(self):
-        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP))
         events = []
         for e in self.events:
-            if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+            if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP):
                 events.append(e)
         self.events = events
 
     def input(self, eventclear=False, inputonly=False, noinput=False):
         if eventclear:
-            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP))
             return
 
         self.mousein = pygame.mouse.get_pressed()
@@ -654,11 +654,11 @@ class CWPy(_Singleton, threading.Thread):
         if inputonly:
             seq = []
             for e in self.events:
-                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP):
                     seq.append(e)
                 else:
                     pygame.event.post(e)
-            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, MOUSEMOTION, KEYDOWN, KEYUP))
             if events:
                 events = [events[-1]]
             seq.extend(events)
@@ -668,11 +668,11 @@ class CWPy(_Singleton, threading.Thread):
             if noinput:
                 seq = []
                 for e in self.events:
-                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
+                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP):
                         seq.append(e)
                 del self.events[:]
                 self.events.extend(seq)
-                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
+                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP))
             self.events.extend(pygame.event.get())
 
     def _in_partyarea(self, mousepos):

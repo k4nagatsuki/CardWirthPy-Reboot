@@ -556,7 +556,7 @@ class EffectMotion(object):
         回復。抵抗成功で無効化。
         """
         value = self.calc_effectvalue(target)
-        target.set_life(value)
+        value = target.set_life(value)
         return 0 < value
 
     def damage_motion(self, target, success_res):
@@ -639,7 +639,7 @@ class EffectMotion(object):
         if self.damagetype == "Max":
             value = 40
 
-        target.set_paralyze(-value)
+        value = target.set_paralyze(-value)
         return 0 < value
 
     def poison_motion(self, target, success_res):
@@ -663,7 +663,7 @@ class EffectMotion(object):
         if self.damagetype == "Max":
             value = 40
 
-        target.set_poison(-value)
+        value = target.set_poison(-value)
         return 0 < value
 
     #-----------------------------------------------------------------------

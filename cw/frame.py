@@ -304,6 +304,13 @@ class Frame(wx.Frame):
             pos = cw.win2scr_s((event.GetX(), event.GetY()))
         cw.cwpy.wxmousepos = pos
 
+        button1 = event.ButtonIsDown(1)
+        button2 = event.ButtonIsDown(2)
+        button3 = event.ButtonIsDown(3)
+        buttons = (button1, button2, button3)
+        evt = pygame.event.Event(pygame.locals.MOUSEMOTION, pos=pos, rel=False, buttons=buttons)
+        pygame.event.post(evt)
+
     def OnLeftUp(self, event):
         evt = pygame.event.Event(pygame.locals.MOUSEBUTTONUP, button=1)
         pygame.event.post(evt)

@@ -7,7 +7,7 @@ import pygame
 from pygame.locals import K_RETURN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
                           K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F9,\
                           K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN,\
-                          MOUSEBUTTONUP, MOUSEBUTTONDOWN, USEREVENT
+                          MOUSEBUTTONUP, MOUSEBUTTONDOWN, MOUSEMOTION, USEREVENT
 
 import cw
 
@@ -34,8 +34,7 @@ class EventHandler(object):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            if self.check_puressedbutton(event):
-                continue
+            self.check_puressedbutton(event)
 
             if event.type == KEYDOWN:
                 # 上方向キー
@@ -116,8 +115,17 @@ class EventHandler(object):
             raise exception
 
     def check_puressedbutton(self, event):
-        if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
+        if event.type == MOUSEMOTION:
+            for i in xrange(len(cw.cwpy.keyevent.mousein)):
+                if not cw.cwpy.keyevent.mousein[i] in (0, -1):
+                    # マウスポインタが動いた場合は連打開始までの待ち時間を延期する
+                    # (-1はすでに連打状態)
+                    cw.cwpy.keyevent.mousein[i] = pygame.time.get_ticks()
             return
+
+        elif not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
+            return
+
         button = event.button - 1
         if 0 <= button and button < len(cw.cwpy.keyevent.mousein):
             if event.type == MOUSEBUTTONDOWN:
@@ -483,8 +491,8 @@ class EventHandlerForMessageWindow(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            if self.check_puressedbutton(event):
-                continue
+            self.check_puressedbutton(event)
+
             if event.type == KEYDOWN:
                 # 上方向キー
                 if event.key == K_UP:
@@ -742,8 +750,8 @@ class EventHandlerForBacklog(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            if self.check_puressedbutton(event):
-                continue
+            self.check_puressedbutton(event)
+
             if event.type == KEYDOWN:
                 # 上方向キー
                 if event.key == K_UP:
@@ -954,8 +962,7 @@ class EventHandlerForEffectBooster(EventHandler):
             event = cw.cwpy.get_nextevent()
             if not event:
                 break
-            if self.check_puressedbutton(event):
-                continue
+            self.check_puressedbutton(event)
 
             if event.type == KEYDOWN:
                 pass
