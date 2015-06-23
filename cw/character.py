@@ -1832,12 +1832,14 @@ class Character(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+        oldlife = self.life
         self.life += value
         self.life = cw.util.numwrap(self.life, 0, self.maxlife)
         self.data.edit("Property/Life", str(int(self.life)))
         self.adjust_action()
         if self.is_unconscious():
             self.set_unconsciousstatus()
+        return self.life - oldlife
 
     def set_paralyze(self, value):
         """
@@ -1846,11 +1848,13 @@ class Character(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+        old = self.paralyze
         self.paralyze += value
         self.paralyze = cw.util.numwrap(self.paralyze, 0, 40)
         self.set_mentality("Normal", 0)
         self.data.edit("Property/Status/Paralyze", str(self.paralyze))
         self.adjust_action()
+        return self.paralyze - old
 
     def set_poison(self, value):
         """
@@ -1859,9 +1863,11 @@ class Character(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
+        old = self.poison
         self.poison += value
         self.poison = cw.util.numwrap(self.poison, 0, 40)
         self.data.edit("Property/Status/Poison", str(self.poison))
+        return self.poison - old
 
     def set_mentality(self, name, value, overwrite=True):
         """
