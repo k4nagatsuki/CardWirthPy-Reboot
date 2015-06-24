@@ -609,7 +609,7 @@ class Character(object):
         elif mtype == "DealDistanceCard":
             return self.is_active()
         elif mtype == "DealConfuseCard":
-            return self.is_alive()
+            return self.is_active()
         elif mtype == "DealSkillCard":
             return self.is_active()
         elif mtype == "CancelAction": # 1.50
