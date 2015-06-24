@@ -1415,11 +1415,6 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showbackpackcardb = wx.CheckBox(
             self, -1, u"荷物袋カードを最後尾に配置する")
         self.cb_showbackpackcardb.SetValue(cw.cwpy.setting.show_backpackcardb)
-        # 荷物袋設定がオフの場合CBを無効にする
-        if cw.cwpy.setting.show_backpackcard:
-            self.cb_showbackpackcardb.Enable()
-        else:
-            self.cb_showbackpackcardb.Disable()
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
         self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
