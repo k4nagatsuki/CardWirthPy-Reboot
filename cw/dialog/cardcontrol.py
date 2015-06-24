@@ -1752,8 +1752,14 @@ class CardHolder(CardControl):
                     for header in cw.cwpy.ydata.party.backpack:
                         # 荷物袋に存在する場合のみ選択肢「荷物袋」を表示
                         if header.type == cardtype:
-                            self.list.insert(0, cw.cwpy.rsrc.backpackcards[cardtype])
-                            break
+                            # 「荷物袋」の表示順
+                            if not cw.cwpy.setting.show_backpackcardb:
+                                self.list.insert(0, cw.cwpy.rsrc.backpackcards[cardtype])
+                                break
+                            else:
+                                self.list.insert(10, cw.cwpy.rsrc.backpackcards[cardtype])
+                                break
+
 
     def get_headers(self):
         li = self.index * 10

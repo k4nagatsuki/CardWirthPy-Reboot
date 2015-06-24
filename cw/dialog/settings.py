@@ -144,6 +144,7 @@ class SettingsDialog(wx.Dialog):
 
             self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
             self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
+            self.pane_ui.cb_showbackpackcardb.SetValue(cw.cwpy.setting.show_backpackcardb_init)
             self.pane_ui.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket_init)
             self.pane_ui.cb_openhandviewalways.SetValue(cw.cwpy.setting.openhandviewalways_init)
             self.pane_ui.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation_init == cw.setting.WHEEL_SHOWLOG)
@@ -466,6 +467,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.caution_beforesaving = value
         value = self.pane_ui.cb_showbackpackcard.GetValue()
         cw.cwpy.setting.show_backpackcard = value
+        value = self.pane_ui.cb_showbackpackcardb.GetValue()
+        cw.cwpy.setting.show_backpackcardb = value
         value = self.pane_ui.cb_revertcardpocket.GetValue()
         cw.cwpy.setting.revert_cardpocket = value
         value = self.pane_ui.cb_openhandviewalways.GetValue()
@@ -1409,6 +1412,14 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showbackpackcard = wx.CheckBox(
             self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
         self.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard)
+        self.cb_showbackpackcardb = wx.CheckBox(
+            self, -1, u"荷物袋カードを最後尾に配置する")
+        self.cb_showbackpackcardb.SetValue(cw.cwpy.setting.show_backpackcardb)
+        # 荷物袋設定がオフの場合CBを無効にする
+        if cw.cwpy.setting.show_backpackcard:
+            self.cb_showbackpackcardb.Enable()
+        else:
+            self.cb_showbackpackcardb.Disable()
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
         self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
@@ -1478,6 +1489,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_draw.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_showbackpackcardb, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_openhandviewalways, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)

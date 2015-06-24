@@ -344,6 +344,10 @@ def create_settings(setting):
     if setting.show_backpackcard <> setting.show_backpackcard_init:
         e = cw.data.make_element("ShowBackpackCard", str(setting.show_backpackcard))
         element.append(e)
+    # 荷物袋カードを最後尾に配置する
+    if setting.show_backpackcardb <> setting.show_backpackcardb_init:
+        e = cw.data.make_element("ShowBackpackCardb", str(setting.show_backpackcardb))
+        element.append(e)
     # 各種ステータスの残り時間を表示する
     if setting.show_statustime <> setting.show_statustime_init:
         e = cw.data.make_element("ShowStatusTime", str(setting.show_statustime))
