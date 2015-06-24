@@ -113,7 +113,7 @@ class Setting(object):
         self.confirm_beforesaving = True
         self.show_savedmessage = True
         self.show_backpackcard = True
-        self.show_backpackcardb = False
+        self.show_backpackcardatend = False
         self.show_statustime = True
         self.openhandviewalways = False
         self.noticeimpossibleaction = True
@@ -407,8 +407,8 @@ class Setting(object):
 
         # 荷物袋のカードを一時的に取り出して使えるようにする
         self.show_backpackcard = data.getbool("ShowBackpackCard", self.show_backpackcard)
-        # 荷物袋カードを最後尾に配置する
-        self.show_backpackcard = data.getbool("ShowBackpackCardb", self.show_backpackcardb)
+        # 荷物袋カードを最後に配置する
+        self.show_backpackcardatend = data.getbool("ShowBackpackCardAtEnd", self.show_backpackcardatend)
         # 各種ステータスの残り時間を表示する
         self.show_statustime = data.getbool("ShowStatusTime", self.show_statustime)
 

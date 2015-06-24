@@ -1753,7 +1753,7 @@ class CardHolder(CardControl):
                         # 荷物袋に存在する場合のみ選択肢「荷物袋」を表示
                         if header.type == cardtype:
                             # 「荷物袋」の表示順
-                            if not cw.cwpy.setting.show_backpackcardb:
+                            if not cw.cwpy.setting.show_backpackcardatend:
                                 self.list.insert(0, cw.cwpy.rsrc.backpackcards[cardtype])
                                 break
                             else:
