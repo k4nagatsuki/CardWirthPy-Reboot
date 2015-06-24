@@ -7,7 +7,7 @@ import pygame
 from pygame.locals import K_RETURN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
                           K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F9,\
                           K_LSHIFT, K_RSHIFT, K_PRINT, KEYUP, KEYDOWN,\
-                          MOUSEBUTTONUP, MOUSEBUTTONDOWN, MOUSEMOTION, USEREVENT
+                          MOUSEBUTTONUP, MOUSEBUTTONDOWN, USEREVENT
 
 import cw
 
@@ -115,15 +115,7 @@ class EventHandler(object):
             raise exception
 
     def check_puressedbutton(self, event):
-        if event.type == MOUSEMOTION:
-            for i in xrange(len(cw.cwpy.keyevent.mousein)):
-                if not cw.cwpy.keyevent.mousein[i] in (0, -1):
-                    # マウスポインタが動いた場合は連打開始までの待ち時間を延期する
-                    # (-1はすでに連打状態)
-                    cw.cwpy.keyevent.mousein[i] = pygame.time.get_ticks()
-            return
-
-        elif not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
+        if not event.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP):
             return
 
         button = event.button - 1

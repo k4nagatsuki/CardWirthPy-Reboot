@@ -12,7 +12,7 @@ import shutil
 import re
 import wx
 import pygame
-from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP, USEREVENT
+from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREVENT
 
 import cw
 
@@ -625,22 +625,29 @@ class CWPy(_Singleton, threading.Thread):
                 return None
 
     def clear_inputevents(self):
-        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP))
+        pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
         events = []
         for e in self.events:
-            if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP):
+            if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
                 events.append(e)
         self.events = events
 
     def input(self, eventclear=False, inputonly=False, noinput=False):
         if eventclear:
-            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP))
+            pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             return
 
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
         if self.update_mousepos():
             self.mousemotion = False if self.mousepos == mousepos else True
+
+        if self.mousemotion:
+            for i in xrange(len(self.keyevent.mousein)):
+                if not self.keyevent.mousein[i] in (0, -1):
+                    # マウスポインタが動いた場合は連打開始までの待ち時間を延期する
+                    # (-1はすでに連打状態)
+                    self.keyevent.mousein[i] = pygame.time.get_ticks()
 
         if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and self.battle.is_ready():
             # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
@@ -654,11 +661,11 @@ class CWPy(_Singleton, threading.Thread):
         if inputonly:
             seq = []
             for e in self.events:
-                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP):
+                if e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
                     seq.append(e)
                 else:
                     pygame.event.post(e)
-            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, MOUSEMOTION, KEYDOWN, KEYUP))
+            events = pygame.event.get((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             if events:
                 events = [events[-1]]
             seq.extend(events)
@@ -668,11 +675,11 @@ class CWPy(_Singleton, threading.Thread):
             if noinput:
                 seq = []
                 for e in self.events:
-                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP):
+                    if not e.type in (MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP):
                         seq.append(e)
                 del self.events[:]
                 self.events.extend(seq)
-                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, KEYDOWN, KEYUP))
+                pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             self.events.extend(pygame.event.get())
 
     def _in_partyarea(self, mousepos):
