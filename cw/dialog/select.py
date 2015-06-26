@@ -1929,6 +1929,7 @@ class PlayerSelect(MultiViewSelect):
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()
 
+                self._move_allcards(header)
                 if not header.leavenoalbum:
                     path = cw.xmlcreater.create_albumpage(header.fpath)
                     cw.cwpy.ydata.add_album(path)
@@ -1965,16 +1966,19 @@ class PlayerSelect(MultiViewSelect):
 
         dlg.Destroy()
 
-    def _delete_adventurer(self, header):
-        if cw.cwpy.ydata:
-            cw.cwpy.ydata.changed()
-        # 手札カードを移動させる
+    def _move_allcards(self, header):
+        # 全ての手札カードをカード置場へ移動する
         data = cw.data.yadoxml2etree(header.fpath)
         ccard = cw.character.Character(data)
         for pocket in ccard.cardpocket:
-            for card in pocket:
+            for card in pocket[:]:
                 cw.cwpy.trade("STOREHOUSE", header=card, from_event=True, sort=False)
         cw.cwpy.ydata.sort_storehouse()
+
+    def _delete_adventurer(self, header):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self._move_allcards(header)
 
         # レベル3以上・"＿消滅予約"を持ってない場合、アルバムに残す
         if header.level >= 3 and not header.leavenoalbum:
