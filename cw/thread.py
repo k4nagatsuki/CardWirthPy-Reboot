@@ -353,6 +353,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             changed = False
 
+        resizewin = False
         if not rsrconly:
             cw.UP_SCR = scale
             flags = 0
@@ -369,7 +370,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_draw = self.scr
                 else:
                     self.scr_draw = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
-                cw.cwpy.frame.exec_func(cw.cwpy.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
+                resizewin = True
 
         if udpatedrawsize:
             self._init_resources()
@@ -419,6 +420,10 @@ class CWPy(_Singleton, threading.Thread):
                 self.update()
                 self.draw()
             self.exec_func(func)
+
+        def func():
+            self.frame.exec_func(self.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
+        self.exec_func(func)
 
     def update_messagefontstyle(self, classicstyletext):
         """メッセージの描画フォント設定を変更する。
