@@ -38,6 +38,8 @@ class CWPyCard(base.SelectableSprite):
         self.escape = False
         # Trueなら高速でアニメーションする
         self.highspeed = False
+        # Trueなら戦闘時のアニメーション速度設定を使用する
+        self.battlespeed = False
         # Trueの間はカード消去で使用中カードをクリアしない
         self.hide_inusecardimg = True
 
@@ -97,6 +99,15 @@ class CWPyCard(base.SelectableSprite):
 
     def get_baserect(self):
         return self._rect
+
+    def _get_dealingscales(self):
+        if self.battlespeed and cw.cwpy.setting.use_battlespeed:
+            return cw.cwpy.setting.dealing_scales_battle
+        else:
+            return cw.cwpy.setting.dealing_scales
+
+    def _get_dealspeed(self):
+        return cw.cwpy.setting.get_dealspeed(self.battlespeed and cw.cwpy.setting.use_battlespeed)
 
     def update(self, scr):
         method = getattr(self, "update_" + self.status, None)
@@ -205,7 +216,7 @@ class CWPyCard(base.SelectableSprite):
         """
         カード表示時のアニメーションを呼び出すメソッド。
         """
-        if self.frame >= len(cw.cwpy.setting.dealing_scales):
+        if self.frame >= len(self._get_dealingscales()):
             self.deal()
             self.frame = 0
             return
@@ -213,7 +224,7 @@ class CWPyCard(base.SelectableSprite):
         if self.frame == 0 and hasattr(self, "cardimg") and self.cardimg.is_modifiedfile():
             self.update_image()
 
-        n = cw.cwpy.setting.dealing_scales[::-1][self.frame]
+        n = self._get_dealingscales()[::-1][self.frame]
         rect = self.get_animerect()
         size = rect.w * n / 100, rect.h
         self.image = pygame.transform.scale(self.get_animeimage(), size)
@@ -242,12 +253,12 @@ class CWPyCard(base.SelectableSprite):
         """
         カード非表示時のアニメーションを呼び出すメソッド。
         """
-        if self.frame >= len(cw.cwpy.setting.dealing_scales):
+        if self.frame >= len(self._get_dealingscales()):
             self.hide()
             self.frame = 0
             return
 
-        n = cw.cwpy.setting.dealing_scales[self.frame]
+        n = self._get_dealingscales()[self.frame]
         rect = self.get_animerect()
         size = rect.w * n / 100, rect.h
         self.image = pygame.transform.scale(self.get_animeimage(), size)
@@ -273,7 +284,7 @@ class CWPyCard(base.SelectableSprite):
         """
         横振動させる。
         """
-        n = (cw.cwpy.setting.dealspeed+1) * 3
+        n = (self._get_dealspeed()+1) * 3
         if self.frame >= n:
             self.rect = pygame.Rect(self.get_animerect())
             self.status = "normal"
@@ -313,7 +324,7 @@ class CWPyCard(base.SelectableSprite):
         縦振動させる。
         実際には横幅の周期的変動によって表現される。
         """
-        n = (cw.cwpy.setting.dealspeed+1) * 3
+        n = (self._get_dealspeed()+1) * 3
         if self.frame >= n:
             self.rect = pygame.Rect(self.get_animerect())
             if self.image.get_size() <> self.rect.size:
@@ -366,16 +377,16 @@ class CWPyCard(base.SelectableSprite):
             w = maxw
             h = maxh
         else:
-            value = zoom_w / (cw.cwpy.setting.dealspeed+1)
+            value = zoom_w / (self._get_dealspeed()+1)
 
-            if zoom_w % (cw.cwpy.setting.dealspeed+1):
+            if zoom_w % (self._get_dealspeed()+1):
                 value += 1
 
             w = cw.util.numwrap(self.rect.w + value, 0, maxw)
 
-            value = zoom_h / (cw.cwpy.setting.dealspeed+1)
+            value = zoom_h / (self._get_dealspeed()+1)
 
-            if zoom_h % (cw.cwpy.setting.dealspeed+1):
+            if zoom_h % (self._get_dealspeed()+1):
                 value += 1
 
             h = cw.util.numwrap(self.rect.h + value, 0, maxh)
@@ -422,7 +433,7 @@ class CWPyCard(base.SelectableSprite):
 
     def update_shiftup(self):
         """下にさげていたカードを上にあげる。"""
-        speed = (cw.cwpy.setting.dealspeed+1) * 3
+        speed = (self._get_dealspeed()+1) * 3
         if self.frame == 0:
             self.image = self.get_animeimage()
 
@@ -452,7 +463,7 @@ class CWPyCard(base.SelectableSprite):
 
     def update_shiftdown(self):
         """上にあげていたカードを下にさげる。"""
-        speed = (cw.cwpy.setting.dealspeed+1) * 3
+        speed = (self._get_dealspeed()+1) * 3
 
         shift = int(float(cw.s(150)) / speed * self.frame)
         y = self._rect[1] + shift

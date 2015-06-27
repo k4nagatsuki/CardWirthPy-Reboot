@@ -81,6 +81,8 @@ class Setting(object):
         self.curtaincolour = (0, 0, 80, 128)
         self.blcurtaincolour = (0, 0, 0, 192)
         self.dealspeed = 5
+        self.dealspeed_battle = 5
+        self.use_battlespeed = False
         self.transition = "Fade"
         self.transitionspeed = 5
         self.smoothscale_bg = False
@@ -197,7 +199,7 @@ class Setting(object):
         if not os.path.isfile("Settings.xml"):
             self.write()
             self.init_skin()
-            self.set_dealspeed(self.dealspeed)
+            self.set_dealspeed(self.dealspeed, self.dealspeed_battle, self.use_battlespeed)
             self.data = cw.data.xml2etree("Settings.xml")
             return
 
@@ -307,7 +309,10 @@ class Setting(object):
         self.curtaincolour = (r, g, b, a)
         # カードの表示スピード(数字が小さいほど速い)(1～100)
         dealspeed = data.getint("CardDealingSpeed", self.dealspeed)
-        self.set_dealspeed(dealspeed)
+        # 戦闘行動の表示スピード(数字が小さいほど速い)(1～100)
+        dealspeed_battle = data.getint("CardDealingSpeedInBattle", self.dealspeed_battle)
+        use_battlespeed = data.getbool("CardDealingSpeedInBattle", "enabled", self.use_battlespeed)
+        self.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
         # トランジション効果の種類
         self.transition = data.gettext("Transition", self.transition)
 
@@ -691,7 +696,7 @@ class Setting(object):
         finally:
             cw.util.release_mutex()
 
-    def set_dealspeed(self, value):
+    def set_dealspeed(self, value, battlevalue, usebattle):
         self.dealspeed = value
         self.dealspeed = cw.util.numwrap(self.dealspeed, 0, 10)
         scales_len = int((self.dealspeed+1) * 1.2)
@@ -700,6 +705,23 @@ class Setting(object):
             for i in xrange(scales_len)
                 if i
         ]
+
+        self.dealspeed_battle = battlevalue
+        self.dealspeed_battle = cw.util.numwrap(self.dealspeed_battle, 0, 10)
+        scales_len = int((self.dealspeed_battle+1) * 1.2)
+        self.dealing_scales_battle = [
+            int(math.cos(math.radians(90.0 * i / scales_len)) * 100)
+            for i in xrange(scales_len)
+                if i
+        ]
+
+        self.use_battlespeed = usebattle
+
+    def get_dealspeed(self, isbattle=False):
+        if isbattle and self.use_battlespeed:
+            return self.dealspeed_battle
+        else:
+            return self.dealspeed
 
     def write(self):
         cw.xmlcreater.create_settings(self)

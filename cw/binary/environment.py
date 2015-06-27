@@ -169,7 +169,7 @@ class Environment(base.CWBinaryBase):
 
         def roundval(value):
             return int(round((value-5) / 10.0 * 8.0)) + 4
-        drawcard_speed = roundval(cw.cwpy.setting.dealspeed)
+        drawcard_speed = roundval(cw.cwpy.setting.get_dealspeed(False))
         drawbg_speed = roundval(cw.cwpy.setting.transitionspeed)
         message_speed = roundval(cw.cwpy.setting.messagespeed)
 

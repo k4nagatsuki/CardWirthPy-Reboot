@@ -1259,7 +1259,8 @@ class CWPy(_Singleton, threading.Thread):
 #-------------------------------------------------------------------------------
 
     def set_status(self, name):
-        quickhide = (self.setting.all_quickdeal and not ("ScenarioBattle" in (name, self.status)))
+        isbattle = "ScenarioBattle" in (name, self.status)
+        quickhide = (self.setting.all_quickdeal and not isbattle)
         self.status = name
         self.hide_cards(True, quickhide=quickhide)
         self.pre_areaids = []
@@ -1866,7 +1867,7 @@ class CWPy(_Singleton, threading.Thread):
 # エリアチェンジ関係メソッド
 #-------------------------------------------------------------------------------
 
-    def deal_cards(self, quickdeal=False, updatelist=True, flag=""):
+    def deal_cards(self, quickdeal=False, updatelist=True, flag="", startbattle=False):
         """hidden状態のMenuCard(対応フラグがFalseだったら表示しない)と
         PlayerCardを全て表示する。
         quickdeal: 全カードを同時に表示する。
@@ -2256,7 +2257,7 @@ class CWPy(_Singleton, threading.Thread):
         self.areaid = areaid
         self.sdata.change_data(areaid)
         bginhrt |= bool(self.areaid < 0)
-        cw.cwpy.hide_cards(True, quickhide=quickdeal)
+        self.hide_cards(True, quickhide=quickdeal)
         self.set_sprites(bginhrt=bginhrt, ttype=ttype)
 
         if not self.is_playingscenario() and not self.is_showparty:
@@ -2274,7 +2275,7 @@ class CWPy(_Singleton, threading.Thread):
         # エリアイベントを開始(特殊エリアからの帰還だったら開始しない)
         if eventstarting and oldareaid >= 0:
             if not self.wait_showcards:
-                self.deal_cards(quickdeal=quickdeal)
+                self.deal_cards(quickdeal=quickdeal, startbattle=startbattle)
             else:
                 self.draw()
 
@@ -2287,7 +2288,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self.sdata.start_event(keynum=1)
         else:
-            self.deal_cards(quickdeal=quickdeal)
+            self.deal_cards(quickdeal=quickdeal, startbattle=startbattle)
             if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
                 self.show_party()
 
@@ -2375,9 +2376,9 @@ class CWPy(_Singleton, threading.Thread):
                         self.sounds["harvest"].play()
                         pcard.set_bind(0)
                         pcard.set_mentality("Normal", 0)
-                        cw.animation.animate_sprite(pcard, "hide")
+                        cw.animation.animate_sprite(pcard, "hide", battlespeed=True)
                         pcard.update_image()
-                        cw.animation.animate_sprite(pcard, "deal")
+                        cw.animation.animate_sprite(pcard, "deal", battlespeed=True)
 
             if areachange and not eventkeynum == 3 and not cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint()):
                 # 勝利・逃走成功時に時間経過

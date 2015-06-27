@@ -828,10 +828,11 @@ class CardEvent(Event):
 
         if flag:
             cw.cwpy.sounds["confuse"].play(True)
-            cw.animation.animate_sprite(self.user, "axialvibe")
-            cw.animation.animate_sprite(self.user, "hide")
+            battlespeed = cw.cwpy.is_battlestatus()
+            cw.animation.animate_sprite(self.user, "axialvibe", battlespeed=battlespeed)
+            cw.animation.animate_sprite(self.user, "hide", battlespeed=battlespeed)
             cw.cwpy.clear_inusecardimg(self.user)
-            cw.animation.animate_sprite(self.user, "deal")
+            cw.animation.animate_sprite(self.user, "deal", battlespeed=battlespeed)
             self.end()
         else:
             # 使用可能なのでイベント実行
@@ -871,7 +872,7 @@ class CardEvent(Event):
 
         # effect_cardmotionでウェイトをとってない場合はここでとる
         if not self.waited:
-            waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+            waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1) * 2
             cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
         # InuseCardImage削除
@@ -962,14 +963,14 @@ class CardEvent(Event):
 
         # Effectインスタンス作成
         motions = data.getfind("Motions").getchildren()
-        eff = cw.effectmotion.Effect(motions, d)
+        eff = cw.effectmotion.Effect(motions, d, battlespeed=cw.cwpy.is_battlestatus())
 
         # ターゲット色反転＆ウェイト
         if len(self.targets) == 1:
             if eff.check_enabledtarget(self.targets[0], False):
                 self.targets[0].set_cardtarget()
                 cw.cwpy.draw()
-                waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+                waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1) * 2
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 targets = self.targets
             else:
@@ -983,7 +984,7 @@ class CardEvent(Event):
                     target.set_cardtarget()
                     cw.cwpy.draw()
                     cw.cwpy.play_sound(path)
-                    waitrate = cw.cwpy.setting.dealspeed+1
+                    waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                     cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     targets.append(target)
 

@@ -731,16 +731,17 @@ class Debugger(wx.Frame):
             def recovery_all(self):
                 for pcard in cw.cwpy.get_pcards("unreversed"):
                     cw.cwpy.sounds["harvest"].play()
+                    battlespeed = cw.cwpy.is_battlestatus()
                     if pcard.status == "hidden":
                         pcard.set_fullrecovery()
                         pcard.update_image()
-                        waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+                        waitrate = (cw.cwpy.setting.get_dealspeed(battlespeed)+1) * 2
                         cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     else:
-                        cw.animation.animate_sprite(pcard, "hide")
+                        cw.animation.animate_sprite(pcard, "hide", battlespeed=battlespeed)
                         pcard.set_fullrecovery()
                         pcard.update_image()
-                        cw.animation.animate_sprite(pcard, "deal")
+                        cw.animation.animate_sprite(pcard, "deal", battlespeed=battlespeed)
                 def func(self):
                     if self:
                         self._recovering = False

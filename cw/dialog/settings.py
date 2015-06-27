@@ -65,8 +65,10 @@ class SettingsDialog(wx.Dialog):
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
-            self.pane_draw.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont_init)
             self.pane_draw.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
+            self.pane_draw.sl_deal_battle.SetValue(cw.cwpy.setting.dealspeed_battle_init)
+            self.pane_draw.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed_init)
+            self.pane_draw.sl_deal_battle.Enable(cw.cwpy.setting.use_battlespeed_init)
             self.pane_draw.sl_msgs.SetValue(cw.cwpy.setting.messagespeed_init)
             self.pane_draw.ch_tran.SetSelection(self.pane_draw.transitions.index(cw.cwpy.setting.transition_init))
             self.pane_draw.sl_tran.SetValue(cw.cwpy.setting.transitionspeed_init)
@@ -121,6 +123,7 @@ class SettingsDialog(wx.Dialog):
                 self.pane_font.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
                 self.pane_font.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
                 self.pane_font.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
+            self.pane_font.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont_init)
             self.pane_font.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname_init)
             self.pane_font.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar_init)
         elif selpane == 4:
@@ -161,6 +164,7 @@ class SettingsDialog(wx.Dialog):
 
         # フォント
         flag_fontupdate = False
+        updatemessage = False
         basetable = {}
         basefont = {}
         for i, basename in enumerate(self.pane_font.bases):
@@ -201,6 +205,10 @@ class SettingsDialog(wx.Dialog):
             else:
                 fonttypes[typename] = (u"", value, pixels, bold, bold_upscr, italic)
 
+        value = self.pane_font.cb_decorationfont.GetValue()
+        if value <> cw.cwpy.setting.decorationfont:
+            cw.cwpy.setting.decorationfont = value
+            updatemessage = True
         value = self.pane_font.cb_fontsmoothingcardname.GetValue()
         if value <> cw.cwpy.setting.fontsmoothing_cardname:
             cw.cwpy.setting.fontsmoothing_cardname = value
@@ -276,7 +284,6 @@ class SettingsDialog(wx.Dialog):
                 cw.cwpy.setting.expanddrawing = expanddrawing
 
         # 描画
-        updatemessage = False
         updatebg = False
         value = self.pane_draw.cb_smooth_bg.GetValue()
         if cw.cwpy.setting.smoothscale_bg <> value:
@@ -286,12 +293,10 @@ class SettingsDialog(wx.Dialog):
         if value <> cw.cwpy.setting.statusbarmask:
             cw.cwpy.setting.statusbarmask = value
             updatestatusbar = True
-        value = self.pane_draw.cb_decorationfont.GetValue()
-        if value <> cw.cwpy.setting.decorationfont:
-            cw.cwpy.setting.decorationfont = value
-            updatemessage = True
-        value = self.pane_draw.sl_deal.GetValue()
-        cw.cwpy.setting.set_dealspeed(value)
+        dealspeed = self.pane_draw.sl_deal.GetValue()
+        dealspeed_battle = self.pane_draw.sl_deal_battle.GetValue()
+        use_battlespeed = not self.pane_draw.cb_use_battlespeed.GetValue()
+        cw.cwpy.setting.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
         value = self.pane_draw.sl_msgs.GetValue()
         cw.cwpy.setting.messagespeed = value
         value = self.pane_draw.ch_tran.GetSelection()
@@ -608,7 +613,7 @@ class GeneralSettingPanel(wx.Panel):
 
         self.sl_expand = wx.Slider(
             self, -1, n, 10, nmax, size=(120, -1),
-            style=wx.SL_HORIZONTAL)
+            style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.st_expand = wx.StaticText(self, -1)
         self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
         self.cb_fullscreen.SetValue(cw.cwpy.setting.expandmode == "FullScreen")
@@ -803,7 +808,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode_draw.Add(self.st_expandwin, 0, wx.CENTER, 0)
         bsizer_expandmode_draw.Add(self.st_expand, 0, wx.CENTER, 0)
         bsizer_expandmode.Add(bsizer_expandmode_draw, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_expandmode.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        bsizer_expandmode.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 3)
         bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
         bsizer_expandmode.Add(self.ln_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         bsizer_expandmode.Add(self.cb_smoothexpand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -851,10 +856,6 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_statusbarmask = wx.CheckBox(
             self, -1, u"イベント中にステータスバーの色を変える")
         self.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask)
-        # メッセージで装飾フォントを使用する
-        self.cb_decorationfont = wx.CheckBox(
-            self, -1, u"メッセージで装飾フォントを使用する")
-        self.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -878,6 +879,17 @@ class DrawingSettingPanel(wx.Panel):
             self, -1, cw.cwpy.setting.dealspeed, 0, 10, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_deal.SetTickFreq(1, 1)
+        # 戦闘行動描画速度
+        self.box_deal_battle = wx.StaticBox(
+            self, -1, u"戦闘行動描画速度(速い⇔遅い)")
+        self.sl_deal_battle = wx.Slider(
+            self, -1, cw.cwpy.setting.dealspeed_battle, 0, 10, size=(SETTINGS_WIDTH-10, -1),
+            style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
+        self.sl_deal_battle.SetTickFreq(1, 1)
+        self.cb_use_battlespeed = wx.CheckBox(
+            self, -1, u"カード描画速度に合わせる")
+        self.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed)
+        self.sl_deal_battle.Enable(cw.cwpy.setting.use_battlespeed)
         # メッセージ表示速度
         self.box_msgs = wx.StaticBox(
             self, -1, u"メッセージ表示速度(速い⇔遅い)")
@@ -885,36 +897,6 @@ class DrawingSettingPanel(wx.Panel):
             self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_msgs.SetTickFreq(1, 1)
-
-        # フルスクリーンの背景
-        self.box_fscrback = wx.StaticBox(self, -1, u"フルスクリーンの背景")
-        choices = [u"<背景なし>", u"<ファイルから選択>", u"ダイアログの壁紙", u"スキンのロゴ"]
-        self.ch_fscrbacktype = wx.Choice(self, -1, size=(-1, -1), choices=choices)
-        self.tx_fscrbackfile = wx.TextCtrl(self, -1, size=(150, -1))
-        self.ref_fscrbackfile = cw.util.create_fileselection(self,
-            target=self.tx_fscrbackfile,
-            message=u"フルスクリーンの背景にするファイルを選択",
-            wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
-
-        if cw.cwpy.setting.fullscreenbackgroundtype == 0:
-            self.ch_fscrbacktype.SetSelection(0)
-            self.tx_fscrbackfile.SetValue(u"")
-        elif cw.cwpy.setting.fullscreenbackgroundtype == 1:
-            self.ch_fscrbacktype.SetSelection(1)
-            self.tx_fscrbackfile.SetValue(cw.cwpy.setting.fullscreenbackgroundfile)
-        elif cw.cwpy.setting.fullscreenbackgroundtype == 2:
-            if cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
-                self.ch_fscrbacktype.SetSelection(2)
-                self.tx_fscrbackfile.SetValue(u"")
-            elif cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
-                self.ch_fscrbacktype.SetSelection(3)
-                self.tx_fscrbackfile.SetValue(u"")
-            else:
-                self.ch_fscrbacktype.SetSelection(0)
-                self.tx_fscrbackfile.SetValue(u"")
-
-        self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
-        self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
 
         # メッセージウィンドウ背景色
         self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
@@ -961,11 +943,42 @@ class DrawingSettingPanel(wx.Panel):
         self.sc_curtain.SetRange(0, 255)
         self.sc_curtain.SetValue(cw.cwpy.setting.curtaincolour[3])
 
+        # フルスクリーンの背景
+        self.box_fscrback = wx.StaticBox(self, -1, u"フルスクリーンの背景")
+        choices = [u"<背景なし>", u"<ファイルから選択>", u"ダイアログの壁紙", u"スキンのロゴ"]
+        self.ch_fscrbacktype = wx.Choice(self, -1, size=(-1, -1), choices=choices)
+        self.tx_fscrbackfile = wx.TextCtrl(self, -1, size=(150, -1))
+        self.ref_fscrbackfile = cw.util.create_fileselection(self,
+            target=self.tx_fscrbackfile,
+            message=u"フルスクリーンの背景にするファイルを選択",
+            wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
+
+        if cw.cwpy.setting.fullscreenbackgroundtype == 0:
+            self.ch_fscrbacktype.SetSelection(0)
+            self.tx_fscrbackfile.SetValue(u"")
+        elif cw.cwpy.setting.fullscreenbackgroundtype == 1:
+            self.ch_fscrbacktype.SetSelection(1)
+            self.tx_fscrbackfile.SetValue(cw.cwpy.setting.fullscreenbackgroundfile)
+        elif cw.cwpy.setting.fullscreenbackgroundtype == 2:
+            if cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
+                self.ch_fscrbacktype.SetSelection(2)
+                self.tx_fscrbackfile.SetValue(u"")
+            elif cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
+                self.ch_fscrbacktype.SetSelection(3)
+                self.tx_fscrbackfile.SetValue(u"")
+            else:
+                self.ch_fscrbacktype.SetSelection(0)
+                self.tx_fscrbackfile.SetValue(u"")
+
+        self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+        self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
+
         self._do_layout()
         self._bind()
 
     def _bind(self):
         self.ch_fscrbacktype.Bind(wx.EVT_CHOICE, self.OnFullScreenBackgroundType, id=self.ch_fscrbacktype.GetId())
+        self.cb_use_battlespeed.Bind(wx.EVT_CHECKBOX, self.OnUseBattleSpeed, id=self.cb_use_battlespeed.GetId())
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -977,15 +990,17 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_tran = wx.StaticBoxSizer(self.box_tran, wx.VERTICAL)
         bsizer_deal = wx.StaticBoxSizer(self.box_deal, wx.VERTICAL)
+        bsizer_deal_battle = wx.StaticBoxSizer(self.box_deal_battle, wx.VERTICAL)
         bsizer_msgs = wx.StaticBoxSizer(self.box_msgs, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.ALL, 3)
         bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)
         bsizer_deal.Add(self.sl_deal, 0, wx.EXPAND, 0)
+        bsizer_deal_battle.Add(self.sl_deal_battle, 0, wx.EXPAND, 0)
+        bsizer_deal_battle.Add(self.cb_use_battlespeed, 0, wx.ALIGN_RIGHT, 0)
         bsizer_msgs.Add(self.sl_msgs, 0, wx.EXPAND, 0)
 
         bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
@@ -1030,13 +1045,14 @@ class DrawingSettingPanel(wx.Panel):
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_tran, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_deal, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_msgs, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_left.Add(bsizer_fscrback, 0, wx.EXPAND, 3)
+        sizer_left.Add(bsizer_deal_battle, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_msgs, 0, wx.EXPAND, 3)
 
         sizer_right.Add(bsizer_mwin, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_right.Add(bsizer_mframe, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_right.Add(bsizer_blcurtain, 0, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_right.Add(bsizer_curtain, 0, wx.EXPAND, 3)
+        sizer_right.Add(bsizer_curtain, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_right.Add(bsizer_fscrback, 0, wx.EXPAND, 3)
 
         sizer_h1.Add(sizer_left, 1, wx.RIGHT|wx.EXPAND, 5)
         sizer_h1.Add(sizer_right, 0, wx.EXPAND, 3)
@@ -1045,6 +1061,9 @@ class DrawingSettingPanel(wx.Panel):
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def OnUseBattleSpeed(self, event):
+        self.sl_deal_battle.Enable(not self.cb_use_battlespeed.GetValue())
 
     def OnFullScreenBackgroundType(self, event):
         self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
@@ -1570,6 +1589,8 @@ class FontSettingPanel(wx.Panel):
 
         # 描画オプション
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
+        self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
+        self.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont)
         self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
         self.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname)
         self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
@@ -1744,7 +1765,8 @@ class FontSettingPanel(wx.Panel):
         bsizer_example.Add(self.st_example, 1, wx.ALL|wx.EXPAND, 3)
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
-        bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_decorationfont, 0, wx.ALL, 3)
+        bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)

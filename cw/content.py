@@ -1727,7 +1727,7 @@ class EffectContent(EventContentBase):
 
         # Effectインスタンス作成
         motions = self.data.getfind("Motions").getchildren()
-        self.eff = cw.effectmotion.Effect(motions, d)
+        self.eff = cw.effectmotion.Effect(motions, d, battlespeed=False)
 
         # 対象メンバ取得
         self.targetm = self.data.get("targetm", "Selected")

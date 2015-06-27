@@ -71,7 +71,7 @@ def check_noeffect(effecttype, target):
     return False
 
 class Effect(object):
-    def __init__(self, motions, d):
+    def __init__(self, motions, d, battlespeed=False):
         self.user = d.get("user", None)
         self.inusecard = d.get("inusecard", None)
         self.level = d.get("level", 0)
@@ -80,6 +80,7 @@ class Effect(object):
         self.resisttype = d.get("resisttype", "Avoid")
         self.soundpath = d.get("soundpath", "")
         self.visualeffect = d.get("visualeffect", "None")
+        self.battlespeed = battlespeed
 
         if self.user and self.inusecard:
             self.motions = [EffectMotion(e, self.user, self.inusecard)
@@ -175,7 +176,7 @@ class Effect(object):
                 cw.cwpy.sounds["equipment"].play(True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
-                waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+                waitrate = (cw.cwpy.setting.get_dealspeed(self.battlespeed)+1) * 2
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 cw.cwpy.clear_guardcardimg()
                 cw.cwpy.draw()
@@ -231,9 +232,9 @@ class Effect(object):
         if self.user and self.count_motion("absorb")\
                      and userlife < self.user.life:
             cw.cwpy.sounds["bind"].play(True)
-            cw.animation.animate_sprite(self.user, "hide")
+            cw.animation.animate_sprite(self.user, "hide", battlespeed=self.battlespeed)
             self.user.update_image()
-            cw.animation.animate_sprite(self.user, "deal")
+            cw.animation.animate_sprite(self.user, "deal", battlespeed=self.battlespeed)
 
         return True
 
@@ -285,6 +286,7 @@ class Effect(object):
         targetにtypenameの効果アニメーションを実行する。
         update_imageがTrueだったら、アニメ後にtargetの画像を更新する。
         """
+        battlespeed = self.battlespeed
         # 隠れているカードやFriendCardはアニメーションさせない
         if target.status == "hidden":
             if update_image:
@@ -292,32 +294,32 @@ class Effect(object):
 
             if self.soundpath and cw.cwpy.has_sound(self.soundpath):
                 cw.cwpy.draw()
-                waitrate = (cw.cwpy.setting.dealspeed+1) * 2
+                waitrate = (cw.cwpy.setting.get_dealspeed(battlespeed)+1) * 2
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
         # 横振動(地震)
         elif self.visualeffect == "Horizontal":
-            cw.animation.animate_sprite(target, "lateralvibe")
+            cw.animation.animate_sprite(target, "lateralvibe", battlespeed=battlespeed)
 
             if update_image:
                 target.update_image()
 
         # 縦振動(振動)
         elif self.visualeffect == "Vertical":
-            cw.animation.animate_sprite(target, "axialvibe")
+            cw.animation.animate_sprite(target, "axialvibe", battlespeed=battlespeed)
 
             if update_image:
                 target.update_image()
         # 反転
         elif self.visualeffect == "Reverse":
             target.hide_inusecardimg = False
-            cw.animation.animate_sprite(target, "hide")
+            cw.animation.animate_sprite(target, "hide", battlespeed=battlespeed)
             target.hide_inusecardimg = True
 
             if update_image:
                 target.update_image()
 
-            cw.animation.animate_sprite(target, "deal")
+            cw.animation.animate_sprite(target, "deal", battlespeed=battlespeed)
         # アニメーションなし
         else:
             if update_image:
@@ -855,7 +857,7 @@ class EffectMotion(object):
         """
         対象消去。
         """
-        target.set_vanish()
+        target.set_vanish(battlespeed=self.cardheader and cw.cwpy.is_battlestatus())
         return True
 
     def vanishcard_motion(self, target, success_res):

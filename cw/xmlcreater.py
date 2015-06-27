@@ -243,6 +243,11 @@ def create_settings(setting):
     if setting.dealspeed <> setting.dealspeed_init:
         e = cw.data.make_element("CardDealingSpeed", str(setting.dealspeed))
         element.append(e)
+    # 戦闘行動の表示スピード(数字が小さいほど速い)(1～100)
+    if setting.dealspeed_battle <> setting.dealspeed_battle_init or setting.use_battlespeed <> setting.use_battlespeed_init:
+        e = cw.data.make_element("CardDealingSpeedInBattle", str(setting.dealspeed_battle),
+                                 attrs={"enabled":str(setting.use_battlespeed)})
+        element.append(e)
     # トランジション効果の種類
     if setting.transition <> setting.transition_init or\
             setting.transitionspeed <> setting.transitionspeed_init:

@@ -7,7 +7,7 @@ import pygame
 import cw
 
 
-def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbutton=False):
+def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbutton=False, battlespeed=False):
     if threading.currentThread() <> cw.cwpy:
         raise Exception()
 
@@ -22,6 +22,10 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     sprite.old_status = sprite.status
     sprite.status = anitype
+
+    if battlespeed:
+        if hasattr(sprite, "battlespeed"):
+            sprite.battlespeed = True
 
     skip = _get_skipstatus(clearevent)
 
@@ -47,6 +51,10 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
                 cw.cwpy.draw(clip=clip)
             cw.cwpy.tick_clock()
 
+    if battlespeed:
+        if hasattr(sprite, "battlespeed"):
+            sprite.battlespeed = False
+
     if statusbutton:
         cw.cwpy.clear_inputevents()
     else:
@@ -60,14 +68,14 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
 
-def animate_sprites(sprites, anitype, clearevent=True):
+def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
     """spritesに含まれる全てのスプライトをanitypeの
     アニメーションで動かす。
     """
     sprandanimes = map(lambda s: (s, anitype), sprites)
-    animate_sprites2(sprandanimes, clearevent)
+    animate_sprites2(sprandanimes, clearevent, battlespeed)
 
-def animate_sprites2(sprandanimes, clearevent=True):
+def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     """スプライト毎にアニメーション内容を指定する。
     """
     if threading.currentThread() <> cw.cwpy:
@@ -86,6 +94,9 @@ def animate_sprites2(sprandanimes, clearevent=True):
     for sprite, anitype in sprandanimes:
         sprite.old_status = sprite.status
         sprite.status = anitype
+        if battlespeed:
+            if hasattr(sprite, "battlespeed"):
+                sprite.battlespeed = True
 
     animating = True
     skip = _get_skipstatus(clearevent)
@@ -122,6 +133,11 @@ def animate_sprites2(sprandanimes, clearevent=True):
             if sprite.status == anitype:
                 animating = True
                 break
+
+    for sprite, anitype in sprandanimes:
+        if battlespeed:
+            if hasattr(sprite, "battlespeed"):
+                sprite.battlespeed = False
 
     cw.cwpy.update_mousepos()
     cw.cwpy.input(inputonly=clearevent)

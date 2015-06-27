@@ -641,17 +641,18 @@ class Character(object):
 
         # 使用アニメーション
         removeafter = False
+        battlespeed = cw.cwpy.is_battlestatus()
         if header.type == "BeastCard":
             cw.cwpy.set_inusecardimg(self, header, "hidden", center=True)
             inusecardimg = cw.cwpy.get_inusecardimg()
-            cw.animation.animate_sprite(inusecardimg, "deal")
-            cw.animation.animate_sprite(inusecardimg, "zoomin")
+            cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)
+            cw.animation.animate_sprite(inusecardimg, "zoomin", battlespeed=battlespeed)
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
-            waitrate = cw.cwpy.setting.dealspeed+1
+            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
-            cw.animation.animate_sprite(inusecardimg, "zoomout")
-            cw.animation.animate_sprite(inusecardimg, "hide")
+            cw.animation.animate_sprite(inusecardimg, "zoomout", battlespeed=battlespeed)
+            cw.animation.animate_sprite(inusecardimg, "hide", battlespeed=battlespeed)
         elif isinstance(self, cw.character.Friend):
             self.set_pos_noscale(center_noscale=(316, 142))
             # NPC表示
@@ -662,26 +663,26 @@ class Character(object):
             else:
                 grp = cw.cwpy.pcardgrp
             grp.add(self)
-            cw.animation.animate_sprite(self, "deal")
-            cw.animation.animate_sprite(self, "zoomin")
+            cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
+            cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
             inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
             # 表示中に効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
             cw.cwpy.draw()
-            waitrate = cw.cwpy.setting.dealspeed+1
+            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
             # カード消去
             cw.cwpy.clear_inusecardimg(self)
             # 自分が対象の時でなければNPC消去
             if not self in targets:
-                cw.animation.animate_sprite(self, "hide")
+                cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                 grp.remove(self)
             else:
                 removeafter = True
         else:
             cw.cwpy.set_inusecardimg(self, header)
-            cw.animation.animate_sprite(self, "zoomin")
+            cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
 
@@ -703,7 +704,7 @@ class Character(object):
         finally:
             if removeafter:
                 # NPC消去
-                cw.animation.animate_sprite(self, "hide")
+                cw.animation.animate_sprite(self, "hide", battlespeed=cw.cwpy.is_battlestatus())
                 grp.remove(self)
             # 特殊文字を元に戻す
             cw.cwpy.rsrc.specialchars = specialchars
@@ -1962,7 +1963,7 @@ class Character(object):
         self.antimagic = cw.util.numwrap(self.antimagic, 0, 999)
         self.data.edit("Property/Status/AntiMagic", str(self.antimagic), "duration")
 
-    def set_vanish(self):
+    def set_vanish(self, battlespeed=False):
         """
         対象消去を行う。
         """
@@ -1973,7 +1974,7 @@ class Character(object):
             return
         if not self.is_vanished():
             self._vanished = True
-            cw.animation.animate_sprite(self, "delete")
+            cw.animation.animate_sprite(self, "delete", battlespeed=battlespeed)
             self.lost()
             cw.cwpy.vanished_card(self)
 
@@ -2161,7 +2162,7 @@ class Character(object):
                 self.set_life(-value)
 
                 if self.status <> "reversed" and self.status <> "hidden":
-                    cw.animation.animate_sprite(self, "lateralvibe")
+                    cw.animation.animate_sprite(self, "lateralvibe", battlespeed=cw.cwpy.is_battlestatus())
                 self.update_image()
 
         # 麻痺
@@ -2280,9 +2281,10 @@ class Character(object):
         if flag or updateimage:
             if self.status <> "reversed" and self.status <> "hidden":
                 if flag:
-                    cw.animation.animate_sprite(self, "hide")
+                    battlespeed = cw.cwpy.is_battlestatus()
+                    cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
                     self.update_image()
-                    cw.animation.animate_sprite(self, "deal")
+                    cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
                 else:
                     self.update_image()
             else:
