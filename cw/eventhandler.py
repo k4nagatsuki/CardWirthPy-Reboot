@@ -139,10 +139,15 @@ class EventHandler(object):
 
         return index
 
+    def can_input(self):
+        return not (cw.cwpy.is_showingdlg() or pygame.event.peek(pygame.locals.USEREVENT))
+
     def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
         """
         方向キーイベント。カードのフォーカスを変更する。
         """
+        if cw.cwpy.is_showingdlg():
+            return
         if cw.cwpy.is_runningevent() or cw.cwpy.is_processing or\
                 cw.cwpy.is_lockmenucards(None):
             return
@@ -231,6 +236,8 @@ class EventHandler(object):
         """
         左クリックイベント。
         """
+        if cw.cwpy.is_showingdlg():
+            return
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event)) or\
@@ -251,6 +258,8 @@ class EventHandler(object):
         """
         右クリックイベント。
         """
+        if cw.cwpy.is_showingdlg():
+            return
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event)) or\
@@ -297,6 +306,10 @@ class EventHandler(object):
         """
         ESCAPEキーイベント。終了ダイアログ。
         """
+        if cw.cwpy.is_showingdlg():
+            return
+        if cw.cwpy.is_lockmenucards(None):
+            return
         # メニューカードの表示を待っている場合は表示
         if cw.cwpy.wait_showcards:
             cw.cwpy.deal_cards()
@@ -315,6 +328,8 @@ class EventHandler(object):
         """
         F2キーイベント。設定ダイアログを開く。
         """
+        if cw.cwpy.is_showingdlg():
+            return
         cw.cwpy.has_inputevent = True
         cw.cwpy.sounds["click"].play()
         cw.cwpy.call_modaldlg("SETTINGS")
@@ -323,6 +338,8 @@ class EventHandler(object):
         """
         F3キーイベント。デバッガを開閉する。
         """
+        if cw.cwpy.is_showingdlg():
+            return
         cw.cwpy.sounds["page"].play()
         if cw.cwpy.setting.expandmode == "FullScreen":
             cw.cwpy.set_expanded(False)
@@ -337,6 +354,8 @@ class EventHandler(object):
         """
         F4キーイベント。
         """
+        if cw.cwpy.is_showingdlg():
+            return
         cw.cwpy.set_expanded(not cw.cwpy.is_expanded())
 
     def f5key_event(self):
@@ -344,6 +363,8 @@ class EventHandler(object):
         F5キーイベント。バックログを開く。
         すでに開いている場合は遡る。
         """
+        if cw.cwpy.is_showingdlg():
+            return
         if cw.cwpy.is_showingbacklog():
             event = pygame.event.Event(KEYDOWN, key=K_UP)
             pygame.event.post(event)
@@ -381,6 +402,8 @@ class EventHandler(object):
         F6キーイベント。
         情報カードビューを表示する。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.is_playingscenario() and\
                 not (cw.cwpy.is_runningevent() or cw.cwpy.is_processing or cw.cwpy.is_battlestatus()) and\
                 cw.cwpy.sdata.infocards:
@@ -392,6 +415,8 @@ class EventHandler(object):
         F7キーイベント。
         バトルの自動行動のオン・オフを切り替える。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.setting.show_roundautostartbutton and cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
             cw.cwpy.sounds["page"].play()
             cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
@@ -402,6 +427,8 @@ class EventHandler(object):
         """
         F9キーイベント。緊急避難。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_showingdlg() and not pygame.event.peek():
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
             path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", fname)
@@ -414,6 +441,8 @@ class EventHandler(object):
         """
         リターンキーイベント。
         """
+        if not self.can_input():
+            return
         if (cw.cwpy.is_runningevent() or cw.cwpy.is_processing) and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event):
@@ -433,12 +462,16 @@ class EventHandler(object):
         """
         PrintScreenキーイベント。
         """
+        if not self.can_input():
+            return
         cw.util.screenshot()
 
     def wheel_event(self, y=0):
         """
         ホイールイベント。
         """
+        if not self.can_input():
+            return
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
             self.f5key_event()
             return
@@ -582,6 +615,8 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         左クリックイベント。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.selection:
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos) or\
                     isinstance(cw.cwpy.selection, cw.sprite.message.SelectionBar):
@@ -600,6 +635,8 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         ミドルクリックイベント。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.selection and len(cw.cwpy.list) > 1:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event(skip=True)
@@ -608,6 +645,8 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         右クリックイベント。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.selection:
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
@@ -619,6 +658,8 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         F4キーイベント。
         """
+        if not self.can_input():
+            return
         hidden = not cw.cwpy.topgrp.get_sprites_from_layer("message")
 
         if hidden:
@@ -633,6 +674,8 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         リターンキーイベント。
         """
+        if not self.can_input():
+            return
         # 文字描画中の時は文字全て描画
         if self.mwin.is_drawing:
             cw.cwpy.has_inputevent = True
@@ -656,6 +699,8 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         方向キーイベント。選択肢バーをフォーカスする。
         """
+        if not self.can_input():
+            return
         if not self.mwin.is_drawing:
             cw.cwpy.has_inputevent = True
             cw.cwpy.index = self.calc_index(y)
@@ -666,6 +711,8 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         ホイールイベント。
         """
+        if not self.can_input():
+            return
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
             self.f5key_event()
             return
@@ -687,6 +734,8 @@ class EventHandlerForMessageWindow(EventHandler):
         シフトキーイベント。
         メッセージウィンドウを一時的に非表示にする。
         """
+        if not self.can_input():
+            return
         if down:
             if self.mwin.is_drawing:
                 self.mwin.draw_all()
@@ -834,6 +883,8 @@ class EventHandlerForBacklog(EventHandler):
         右クリックイベント。
         バックログ終了。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.rclick_event()
@@ -845,6 +896,8 @@ class EventHandlerForBacklog(EventHandler):
         ESCAPEキーイベント。
         バックログ終了。
         """
+        if not self.can_input():
+            return
         self.exit_backlog()
 
     def returnkey_event(self, pushing=False):
@@ -852,6 +905,8 @@ class EventHandlerForBacklog(EventHandler):
         リターンキーイベント。
         バックログを進める。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
@@ -863,6 +918,8 @@ class EventHandlerForBacklog(EventHandler):
         方向キーイベント。
         バックログを進めたり戻したりする。
         """
+        if not self.can_input():
+            return
         # 縦方向の操作を優先
         if 0 < y:
             # バックログを進める
@@ -882,6 +939,8 @@ class EventHandlerForBacklog(EventHandler):
         ホイールイベント。
         バックログを進めたり戻したりする。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.has_inputevent:
             return
 
@@ -1024,6 +1083,8 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         右クリックイベント。
         """
+        if not self.can_input():
+            return
         if cw.cwpy.selection:
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.lclick_event()
@@ -1035,6 +1096,8 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         ホイールイベント。
         """
+        if not self.can_input():
+            return
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
             self.f5key_event()
             return
@@ -1045,18 +1108,24 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         ESCAPEキーイベント。
         """
+        if not self.can_input():
+            return
         self.running = False
 
     def returnkey_event(self, pushing=False):
         """
         リターンキーイベント。
         """
+        if not self.can_input():
+            return
         self.running = False
 
     def f4key_event(self):
         """
         F4キーイベント。
         """
+        if not self.can_input():
+            return
         cw.cwpy.exec_func(EventHandler.f4key_event, self)
         if cw.cwpy.setting.expanddrawing <> 1:
             raise cw.effectbooster.ScreenRescale()

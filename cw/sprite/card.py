@@ -1017,6 +1017,7 @@ class MenuCard(CWPyCard):
         メニューカード用のスプライトを作成。
         """
         CWPyCard.__init__(self, status)
+        assert hasattr(self, "alpha")
         # カード情報
         self._data = data
         self._pos_noscale2 = pos_noscale
