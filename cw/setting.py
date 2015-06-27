@@ -141,7 +141,7 @@ class Setting(object):
         self.unconvert_targetfolder = u"UnconvertedYado"
         self.can_skipwait = True
         self.can_skipanimation = True
-        self.can_repeatlclick = True
+        self.can_repeatlclick = False
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
