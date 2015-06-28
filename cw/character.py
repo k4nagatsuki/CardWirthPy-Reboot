@@ -1163,106 +1163,96 @@ class Character(object):
 
     def get_enhance_def(self):
         """
-        現在かけられている全ての防御力強化値の合計を返す。
-        デフォルト強化値 + 効果コンテント強化値 + カード所持強化値 + カード使用強化値。
+        初期・状態・カードによる防御力修正の計算結果を返す。
         単体で+10の修正がない場合は、合計値が+10を越えていても+9を返す。
         """
-        val1 = self.enhance.get("defense")
-        val1 = cw.util.numwrap(val1, -10, 10)
-        val2 = self.enhance_def
-        val2 = cw.util.numwrap(val2, -10, 10)
-
-        val3 = 0
-        b = False
-
-        for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
-            _avoid, _resist, defense = header.get_enhance_val()
-
-            if defense >= 10:
-                b = True
-
-            val3 += defense
-
-        if b:
-            val3 = cw.util.numwrap(val3, -10, 10)
-        else:
-            val3 = cw.util.numwrap(val3, -10, 9)
-
-        val4 = 0
-        if self.actiondata and self.actiondata[1]:
-            header = self.actiondata[1]
-            _avoid, _resist, defense = header.get_enhance_val_used()
-            val4 += defense
-        val4 = cw.util.numwrap(val4, -10, 10)
-
-        value = 0
-        b = False
-
-        for n in (val1, val2, val3, val4):
-            if n == 10:
-                b = True
-
-            value += n
-
-        if b:
-            value = cw.util.numwrap(value, -10, 10)
-        else:
-            value = cw.util.numwrap(value, -10, 9)
-
-        return value
+        return self._get_enhance_impl("defense", self.enhance_def, 2)
 
     def get_enhance_res(self):
         """
-        現在かけられている全ての抵抗力強化値の合計を返す。
-        デフォルト強化値 + 効果コンテント強化値 + カード所持強化値 + カード使用強化値。
+        初期・状態・カードによる抵抗力修正の計算結果を返す。
         """
-        val1 = self.enhance.get("resist")
-        val1 = cw.util.numwrap(val1, -10, 10)
-        val2 = self.enhance_res
-        val2 = cw.util.numwrap(val2, -10, 10)
-
-        val3 = 0
-        for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
-            _avoid, resist, _defense = header.get_enhance_val()
-            val3 += resist
-        val3 = cw.util.numwrap(val3, -10, 10)
-
-        val4 = 0
-        if self.actiondata and self.actiondata[1]:
-            header = self.actiondata[1]
-            _avoid, resist, _defense = header.get_enhance_val_used()
-            val4 += resist
-        val4 = cw.util.numwrap(val4, -10, 10)
-
-        value = val1 + val2 + val3 + val4
-        value = cw.util.numwrap(value, -10, 10)
-        return value
+        return self._get_enhance_impl("resist", self.enhance_res, 1)
 
     def get_enhance_avo(self):
         """
-        現在かけられている全ての回避力強化値の合計を返す。
-        デフォルト強化値 + 効果コンテント強化値 + カード所持強化値 + カード使用強化値。
+        初期・状態・カードによる回避力修正の計算結果を返す。
         """
-        val1 = self.enhance.get("avoid")
-        val1 = cw.util.numwrap(val1, -10, 10)
-        val2 = self.enhance_avo
-        val2 = cw.util.numwrap(val2, -10, 10)
+        return self._get_enhance_impl("avoid", self.enhance_avo, 0)
 
-        val3 = 0
-        for header in self.get_pocketcards(cw.POCKET_ITEM) + self.get_pocketcards(cw.POCKET_BEAST):
-            avoid, _resist, _defense = header.get_enhance_val()
-            val3 += avoid
-        val3 = cw.util.numwrap(val3, -10, 10)
+    def _calc_enhancevalue(self, header, value):
+        """使用・所持ボーナス値に適性による補正を加える。
+        BUG: CardWirthではアイテムの所持ボーナスに限り
+              最低適性(level=0)の時に補正係数が50%となるが、
+             それ以外の全てのパターンではそのような計算が
+             行われないため、バグと思われる
+        """
+        if value <= 0:
+            return value
+        level = header.get_vocation_level(self, enhance_act=False)
+        if level <= 2:
+            return cw.util.numwrap(value, -10, 10)
+        else:
+            return cw.util.numwrap(value * 150 / 100, -10, 10)
+
+    def _get_enhance_impl(self, name, initvalue, enhindex):
+        """
+        現在かけられている全ての能力修正値の合計を返す(ただし単純な加算ではない)。
+        デフォルト修正値 + 状態修正値 + カード所持修正値 + カード使用修正値。
+        ただしカードの修正値は適性による補正を受ける。
+        """
+        val1 = self.enhance.get(name)
+        val1 = cw.util.numwrap(val1, -10, 10)
+        val2 = initvalue
+        val2 = cw.util.numwrap(val2, -10, 10)
+        seq = [val1, val2]
+
+        for header in itertools.chain(self.get_pocketcards(cw.POCKET_ITEM), self.get_pocketcards(cw.POCKET_BEAST)):
+            val3 = header.get_enhance_val()[enhindex]
+            val3 = self._calc_enhancevalue(header, val3)
+            seq.append(val3)
 
         val4 = 0
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
-            avoid, _resist, _defense = header.get_enhance_val_used()
-            val4 += avoid
-        val4 = cw.util.numwrap(val4, -10, 10)
+            val4 = header.get_enhance_val_used()[enhindex]
+            val4 = self._calc_enhancevalue(header, val4)
+            seq.append(val4)
 
-        value = val1 + val2 + val3 + val4
-        value = cw.util.numwrap(value, -10, 10)
+        a = 0
+        b = 0
+        ac = 0
+        bc = 0
+        max10 = False
+        for val in seq:
+            if val < 0:
+                if a == 0:
+                    a = (10 + val)
+                else:
+                    a *= (10 + val)
+                ac += 1
+            elif 0 < val:
+                if b == 0:
+                    b = (10 - val)
+                else:
+                    b *= (10 - val)
+                bc += 1
+                if 10 <= val:
+                    max10 = True
+        if ac:
+            a /= math.pow(10, ac-1)
+            a = 10 - a
+        if bc:
+            b /= math.pow(10, bc-1)
+            b = 10 - b
+
+        value = int(b) - int(a)
+        if not max10 and name == "defense":
+            # 防御ボーナスは単体の+10がない限り最大で+9になる
+            value = cw.util.numwrap(value, -10, 9)
+        else:
+            value = cw.util.numwrap(value, -10, 10)
+
         return value
 
     #---------------------------------------------------------------------------
