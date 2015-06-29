@@ -172,7 +172,7 @@ class Effect(object):
                         consume.add(header)
 
             # ボーナス・ペナルティの発動したカードを一時表示する
-            if not event and guardcard:
+            if guardcard:
                 cw.cwpy.sounds["equipment"].play(True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
