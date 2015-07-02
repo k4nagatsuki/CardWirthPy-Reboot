@@ -1011,6 +1011,9 @@ class Character(object):
         if header.type == "ActionCard" and header.id == 7:
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
             motions = [{"type":"Runaway"}]
+        elif header.type == "ActionCard" and header.id == -1:
+            # 混乱カード
+            return 1, targets
         else:
             motions = header.carddata.getfind("Motions").getchildren()
         # 最大ボーナスを取得
