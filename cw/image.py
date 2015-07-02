@@ -185,6 +185,11 @@ class CardImage(Image):
                 subimg = cw.cwpy.rsrc.cardbgs["PENALTY"]
                 image.blit(subimg, cw.s((0, 0)))
 
+            # ペナルティが自動選択されたため変更不可
+            if owner.is_autoselectedpenalty(header):
+                subimg = cw.cwpy.rsrc.pygamedialogs["FIXED"]
+                image.blit(subimg, cw.s((20, 0)))
+
         return image
 
     def get_negaimg(self):
@@ -323,6 +328,11 @@ class CardImage(Image):
             if header.penalty:
                 subimg = cw.cwpy.rsrc.wxcardbgs["PENALTY"]
                 dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
+
+            # ペナルティが自動選択されたため変更不可
+            if owner.is_autoselectedpenalty(header):
+                subimg = cw.cwpy.rsrc.dialogs["FIXED"]
+                dc.DrawBitmap(subimg, cw.wins(20), cw.wins(0), True)
 
         dc.SelectObject(wx.NullBitmap)
 

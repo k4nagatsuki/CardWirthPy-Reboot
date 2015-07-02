@@ -80,13 +80,14 @@ class Deck(object):
             n += 1
         return n
 
-    def set(self, ccard):
+    def set(self, ccard, draw=True):
         self.clear(ccard)
         self.talon.extend(self.get_actioncards(ccard))
         self.talon.extend(self.get_skillcards(ccard))
         self.shuffle()
         self.set_hand(ccard)
-        self.draw(ccard)
+        if draw:
+            self.draw(ccard)
 
     def set_hand(self, ccard):
         hand = [h for h in self.hand if h.type == "SkillCard" or

@@ -29,10 +29,10 @@ class BattleEngine(object):
         """
         # PlayerCard・FriendCardの戦闘用デッキを構築
         for pcard in cw.cwpy.get_pcards():
-            pcard.deck.set(pcard)
+            pcard.deck.set(pcard, draw=False)
 
         for fcard in cw.cwpy.get_fcards():
-            fcard.deck.set(fcard)
+            fcard.deck.set(fcard, draw=False)
 
         self.priorityacts = []
 
