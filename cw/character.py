@@ -1965,13 +1965,13 @@ class Character(object):
         if isinstance(self, cw.character.Friend):
             # 1.50までは同行NPCに対象消去は効かない
             return
-        if not self.is_vanished():
-            # プレミアカードを荷物袋へ移動する
+        elif isinstance(self, cw.character.Player):
+                        # PCの場合、プレミアカードを荷物袋へ移動する
             for pocket in self.cardpocket:
                 for card in pocket[:]:
                     if card.premium == "Premium":
                         cw.cwpy.trade("BACKPACK", header=card, from_event=True, sort=False)
-                    
+        if not self.is_vanished():
             self._vanished = True
             cw.animation.animate_sprite(self, "delete", battlespeed=battlespeed)
             self.lost()
