@@ -563,13 +563,15 @@ class BattleCardImage(card.CWPyCard):
         pass
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False, spritegrp=None, alpha=255):
+    def __init__(self, user, header, status="normal", center=False, spritegrp=None, alpha=255, fore=False):
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
         status: すぐ表示したくない場合は"hidden"を指定。
         center: 画面中央に表示するかどうか。
         spritegrp: 追加先のスプライトグループ。Noneの場合は自動選択。
+        alpha: 不透明度。0～255。
+        fore: 常に手前に表示する場合はTrue。
         """
         card.CWPyCard.__init__(self, status)
         self.status = status
@@ -584,7 +586,7 @@ class InuseCardImage(card.CWPyCard):
         # spritegroupに追加
         if spritegrp:
             self.group = spritegrp
-        elif center:
+        elif center or fore:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                 self.group = cw.cwpy.mcardgrp
@@ -594,7 +596,7 @@ class InuseCardImage(card.CWPyCard):
             self.group = cw.cwpy.pcardgrp
         else:
             self.group = cw.cwpy.mcardgrp
-        if user and not center:
+        if user and not center and not fore:
             sprites = self.group.sprites()[:]
             self.group.empty()
             index = sprites.index(user)

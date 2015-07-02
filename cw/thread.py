@@ -2723,7 +2723,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if header:
                 if self.selection == sprite and not selowner:
-                    self.set_inusecardimg(sprite, header)
+                    self.set_inusecardimg(sprite, header, fore=True)
                     if header.target == "None":
                         self.set_targetarrow([sprite])
                     elif targets:
@@ -2739,10 +2739,10 @@ class CWPy(_Singleton, threading.Thread):
 
         self._show_allselectedcards = show_allselectedcards
 
-    def set_inusecardimg(self, owner, header, status="normal", center=False, spritegrp=None, alpha=255):
+    def set_inusecardimg(self, owner, header, status="normal", center=False, spritegrp=None, alpha=255, fore=False):
         """PlayerCardの前に使用中カードの画像を表示。"""
         if center or (not owner.inusecardimg and self.background.rect.colliderect(owner.rect) and owner.status <> "hidden"):
-            inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, spritegrp, alpha=alpha)
+            inusecard = cw.sprite.background.InuseCardImage(owner, header, status, center, spritegrp, alpha=alpha, fore=fore)
             owner.inusecardimg = inusecard
             self.inusecards.append(inusecard)
         return owner.inusecardimg
