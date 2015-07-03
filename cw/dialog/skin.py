@@ -551,9 +551,6 @@ class SkinFeaturePanel(wx.Panel):
                              len(basenatures) + len(basemakings), 12)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
-        nedit = wx.grid.GridCellNumberEditor(-99, 99)
-        fedit = wx.grid.GridCellFloatEditor(4, 1)
-
         self.grid.SetColLabelValue(0, u"名称")
         self.grid.SetColLabelValue(1, u"器用")
         self.grid.SetColLabelValue(2, u"敏捷")
@@ -572,12 +569,12 @@ class SkinFeaturePanel(wx.Panel):
             self.grid.SetColFormatNumber(col)
             self.grid.SetColSize(col, 40)
             for row in xrange(0, self.grid.GetNumberRows()):
-                self.grid.SetCellEditor(row, col, nedit)
+                self.grid.SetCellEditor(row, col, wx.grid.GridCellNumberEditor(-99, 99))
         for col in xrange(7, 12):
             self.grid.SetColFormatFloat(col, 2, 1)
             self.grid.SetColSize(col, 40)
             for row in xrange(0, self.grid.GetNumberRows()):
-                self.grid.SetCellEditor(row, col, fedit)
+                self.grid.SetCellEditor(row, col, wx.grid.GridCellFloatEditor(4, 1))
 
         row = 0
         for data in basesexes:
