@@ -276,7 +276,7 @@ https://bitbucket.org/tachi_gigas/cardwirthpy-reboot-lessor
 Ganma Shadow は、いくつかの問題の報告を行った他、プレイヤーキャラクターの自動生成機能を提案し、Modern・School・Oedo・Monstersの各スキンタイプ向けに名前のリストを提供しました。
 
 https://bitbucket.org/akkw/cardwirthpy-reboot
- : 暗黒騎士 は、バグの報告、CardWirthとの仕様の食い違いの指摘と調査などに加え、それら問題の解消作業や、荷物袋からのカード使用に関するオプションの実装を行いました。
+ : 暗黒騎士 は、バグの報告、CardWirthとの仕様の食い違いの指摘と調査などに加え、それらの問題の解消作業や、荷物袋からのカード使用に関するオプションの実装を行いました。
 
 
 謝辞
