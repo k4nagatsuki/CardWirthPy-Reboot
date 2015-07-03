@@ -1233,8 +1233,8 @@ class CWPy(_Singleton, threading.Thread):
                     eventhandler.update_sprites()
         finally:
             self.change_cursor(cursor)
-        # 表示終了
-        eventhandler.exit_backlog(playsound=False)
+            # 表示終了
+            eventhandler.exit_backlog(playsound=False)
 
     def set_backlogmax(self, backlogmax):
         """メッセージログの最大数を設定する。
