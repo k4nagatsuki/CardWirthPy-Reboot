@@ -523,10 +523,10 @@ class CharacterCardImage(CardImage):
             self.image.blit(nameimg, cw.s((5, 5)))
 
         # ライフ
-        if ccard.is_analyzable():
+        if ccard.is_analyzable() and not ccard.is_unconscious():
             guagesize = cw.setting.SIZE_RESOURCES["Status/LIFEGUAGE"]
-            lifeper = ccard.get_lifeper()
-            self.lifeimg.blit(self.lifebar, (int(0.79 * (lifeper - 100)), 1))
+            lifeper = float(ccard.life) / ccard.maxlife
+            self.lifeimg.blit(self.lifebar, (int(lifeper*(guagesize[0]+1) + 0.5) - (guagesize[0]+1), 1))
             self.lifeimg.blit(self.lifeguage, (0, 0))
             self.image.blit(cw.s((self.lifeimg, guagesize)), cw.s((8, 110)))
 

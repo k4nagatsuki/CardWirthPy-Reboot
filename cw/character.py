@@ -1120,7 +1120,7 @@ class Character(object):
         """
         ライフのパーセンテージを返す。
         """
-        return 100 * self.life / self.maxlife
+        return int(100.0 * self.life / self.maxlife + 0.5)
 
     def get_bonus(self, vocation):
         """

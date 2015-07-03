@@ -468,7 +468,7 @@ class EffectMotion(object):
         out_value = cw.cwpy.dice.roll(n, 10)
         n = value % 5 * 2
 
-        if n:
+        if 0 < value and n:
             out_value += cw.cwpy.dice.roll(1, n)
 
         # 最低でも1ダメージとする
