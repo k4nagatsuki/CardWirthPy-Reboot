@@ -965,10 +965,14 @@ class NamePage(AdventurerCreaterPage):
             self.textctrl.SetValue(randomname)
 
         self.set_imgpaths(True)
-        self.imgdpath = cw.cwpy.dice.roll(1, len(self.imgdpaths)) - 1
-        self.ch_imgdpath.SetSelection(self.imgdpath)
-        key = self.imgdpaths[self.imgdpath]
-        self.imgpath = cw.cwpy.dice.choice(self.imgpaths[key])
+        if self.imgdpaths:
+            self.imgdpath = cw.cwpy.dice.roll(1, len(self.imgdpaths)) - 1
+            self.ch_imgdpath.SetSelection(self.imgdpath)
+            key = self.imgdpaths[self.imgdpath]
+            self.imgpath = cw.cwpy.dice.choice(self.imgpaths[key])
+        else:
+            self.imgdpath = ""
+            self.imgpath = ""
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
 
         self.draw(True)
