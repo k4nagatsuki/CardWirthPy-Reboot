@@ -37,7 +37,11 @@ class CardControl(wx.Dialog):
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((90, 24)), cw.cwpy.msgs["close"])
+        if self.callname == "HANDVIEW":
+            s = cw.cwpy.msgs["entry_cancel"]
+        else:
+            s = cw.cwpy.msgs["close"]
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((90, 24)), s)
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
@@ -1987,7 +1991,7 @@ def get_poslist(num, mode=1):
             numb = 6
             leftm = cw.wins(0)
 
-        if num < numb or mode ==3 and num == numb:
+        if num < numb or mode == 3 and num == numb:
             x = (w - cw.wins(83) * num) / 2 + leftm
             y = cw.wins(95)
             poslist = [(x + (cw.wins(83) * cnt), y) for cnt in xrange(num)]
