@@ -37,7 +37,7 @@ class CardControl(wx.Dialog):
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((90, 24)), cw.cwpy.msgs["cancel"])
+        self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((90, 24)), cw.cwpy.msgs["close"])
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
