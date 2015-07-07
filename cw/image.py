@@ -586,7 +586,7 @@ class CharacterCardImage(CardImage):
             self._put_enhanceimg(seq, cw.cwpy.rsrc.statuses["DOWN3"], ccard.enhance_def, ccard.enhance_def_dur if az else 0)
 
         x = cw.s(7)
-        if ccard.is_analyzable():
+        if ccard.is_analyzable() and not ccard.is_unconscious():
             y = cw.s(92)
         else:
             y = cw.s(107)
