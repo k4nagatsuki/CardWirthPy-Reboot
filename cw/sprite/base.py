@@ -52,7 +52,7 @@ class SelectableSprite(CWPySprite):
             return False
         # 戦闘行動中時
         elif not cw.cwpy.is_runningevent()\
-                        and cw.cwpy.battle and cw.cwpy.battle.is_running()\
+                        and cw.cwpy.battle and not cw.cwpy.battle.is_ready()\
                         and not self.selectable_on_event:
             return False
         # イベント中時、メッセージ選択バー以外
