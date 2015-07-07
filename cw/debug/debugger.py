@@ -1398,7 +1398,8 @@ class VariableListCtrl(wx.ListCtrl):
                 cw.cwpy.frame.exec_func(func, self, vlist)
             else:
                 def func(self):
-                    self.Refresh()
+                    if self:
+                        self.Refresh()
                 cw.cwpy.frame.exec_func(func, self)
 
         cw.cwpy.exec_func(func, self)
