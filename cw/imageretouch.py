@@ -816,6 +816,18 @@ def colorwrap(num):
 def decode_rle4data(data, h, bpl):
     return _imageretouch.decode_rle4data(data, h, bpl)
 
+def patch_alphadata(image):
+    """CardWirthのビットマップデコーダは、32ビットイメージの
+    各ピクセルの4バイト中、予備領域に1件でも0以外のデータがある時に限り
+    予備領域をアルファ値として使用するので、それに合わせる。
+    """
+    if image.get_bitsize() == 32:
+        buf = pygame.image.tostring(image, "RGBA")
+        if not _imageretouch.has_alpha(buf):
+            # アルファ値が存在しないので予備領域を無視
+            image = pygame.image.fromstring(buf, image.get_size(), "RGBX")
+    return image
+
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
         d = {(u"IPAゴシック", u"IPAGothic"):"gothic.ttf",

@@ -438,6 +438,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
             with io.BytesIO(data) as f2:
                 image = pygame.image.load(f2)
                 f2.close()
+            if ext == ".bmp":
+                image = cw.imageretouch.patch_alphadata(image)
         else:
             if not os.path.isfile(path):
                 return pygame.Surface((0, 0)).convert()
@@ -451,6 +453,8 @@ def load_image(path, mask=False, maskpos=(0, 0), f=None, retry=True, isback=Fals
                 with io.BytesIO(data) as f2:
                     image = pygame.image.load(f2)
                     f2.close()
+                if ext == ".bmp":
+                    image = cw.imageretouch.patch_alphadata(image)
             else:
                 with io.BufferedReader(io.FileIO(path)) as f2:
                     image = pygame.image.load(f2)

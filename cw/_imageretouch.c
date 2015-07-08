@@ -712,6 +712,24 @@ exit_error:
     return string;
 }
 
+static PyObject *
+has_alpha(PyObject *self, PyObject *args)
+{
+    Py_ssize_t i, slen;
+    unsigned char *source;
+
+    if (!PyArg_ParseTuple(args, "s#", &source, &slen))
+        return NULL;
+
+    for (i = 0; i < slen; i += 4) {
+        if (source[i + 3] != 0) {
+            Py_RETURN_TRUE;
+        }
+    }
+
+    Py_RETURN_FALSE;
+}
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #include <windows.h>
@@ -1219,6 +1237,8 @@ _imageretouchMethods[] =
         "to_disabledimage(char*, size)"},
     {"decode_rle4data", decode_rle4data, METH_VARARGS,
         "decode_rle4data(char*, h, bpl)"},
+    {"has_alpha", has_alpha, METH_VARARGS,
+        "has_alpha(char*, len)"},
 #if defined(_WIN32) || defined(_WIN64)
     {"font_new", font_new, METH_VARARGS,
         "font_new(face, pixels, bold, italic)"},
