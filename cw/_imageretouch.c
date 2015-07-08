@@ -1238,7 +1238,7 @@ _imageretouchMethods[] =
     {"decode_rle4data", decode_rle4data, METH_VARARGS,
         "decode_rle4data(char*, h, bpl)"},
     {"has_alpha", has_alpha, METH_VARARGS,
-        "has_alpha(char*, len)"},
+        "has_alpha(char*)"},
 #if defined(_WIN32) || defined(_WIN64)
     {"font_new", font_new, METH_VARARGS,
         "font_new(face, pixels, bold, italic)"},
