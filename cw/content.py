@@ -1559,7 +1559,7 @@ def call_package(resid, call):
         event.nowrunningcontents.append((packevent, event.cur_content, versionhint_base))
         cw.cwpy.event.append_event(packevent)
     else:
-        cw.cwpy.event.replace_event(packevent)
+        cw.cwpy.event.replace_event(packevent, (cw.HINT_AREA, versionhint_base))
         event = cw.cwpy.event.get_event()
     event.cur_content = packevent.starttree
     if cw.cwpy.is_playingscenario():

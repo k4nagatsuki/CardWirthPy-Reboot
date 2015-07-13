@@ -53,11 +53,11 @@ class EventInterface(object):
 
         self._nowrunningevents.append(event)
 
-    def replace_event(self, event):
+    def replace_event(self, event, versionhint_base=None):
         """パッケージへのリンクによって
         実行中のイベントを置換する。
         """
-        self._nowrunningevents[-1].copy_from(event)
+        self._nowrunningevents[-1].copy_from(event, versionhint_base)
 
     def clear_events(self):
         self._nowrunningevents = []
@@ -560,6 +560,8 @@ class Event(object):
         self.exit_func = None
         # パッケージイベントであればパッケージIDを設定
         self.packageid = 0
+        # 実行後に互換性情報を書き戻す必要があれば設定
+        self._versionhint_base = None
 
         if event is not None:
             if event.hasfind("Ignitions//Number"):
@@ -587,7 +589,7 @@ class Event(object):
         self.force_nextcontent = None
         self.skip_action = False
 
-    def copy_from(self, event):
+    def copy_from(self, event, versionhint_base=None):
         """実行中の処理をパッケージのイベントに差し替えるため、
         eventの情報をこのEventへコピーする。
         """
@@ -596,6 +598,8 @@ class Event(object):
             self.base = Event(None)
             self.base._copy_from(self)
         self._copy_from(event)
+        if not self._versionhint_base:
+            self._versionhint_base = versionhint_base
 
     def _copy_from(self, event):
         self.trees = event.trees
@@ -643,28 +647,35 @@ class Event(object):
         """
         cw.cwpy.event.append_event(self)
 
-        while True:
-            self.index = 0
-            nextcontents = self.get_nextcontents()
-
-            while cw.cwpy.is_running() and nextcontents and not self.index < 0:
-                if len(nextcontents) <= self.index:
-                    # デバッガによって処理フローが変わった場合
-                    self.index = 0
-                self.cur_content = nextcontents[self.index]
-                cw.cwpy.event.wait()
-                self.action()
+        try:
+            while True:
+                self.index = 0
                 nextcontents = self.get_nextcontents()
 
-            # コールコンテントを呼んでいた場合、呼んだところから再開
+                while cw.cwpy.is_running() and nextcontents and not self.index < 0:
+                    if len(nextcontents) <= self.index:
+                        # デバッガによって処理フローが変わった場合
+                        self.index = 0
+                    self.cur_content = nextcontents[self.index]
+                    cw.cwpy.event.wait()
+                    self.action()
+                    nextcontents = self.get_nextcontents()
+
+                # コールコンテントを呼んでいた場合、呼んだところから再開
+                if self.nowrunningcontents:
+                    packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
+                    if packevent:
+                        packevent.run_exit()
+                        cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
+                else:
+                    self.run_exit()
+                    break
+        finally:
+            # イベント中断時は互換性情報のみ書き戻す
             if self.nowrunningcontents:
-                packevent, self.cur_content, versionhint = self.nowrunningcontents.pop()
+                packevent, self.cur_content, versionhint = self.nowrunningcontents[0]
                 if packevent:
-                    packevent.run_exit()
                     cw.cwpy.sdata.set_versionhint(cw.HINT_AREA, versionhint)
-            else:
-                self.run_exit()
-                break
 
     def run_exit(self):
         if self.base:
@@ -680,6 +691,10 @@ class Event(object):
             self._copy_from(self.base)
             self.clear()
             self.base = None
+            if cw.cwpy.sdata and not self._versionhint_base is None:
+                versionlevel, versionhint = self._versionhint_base
+                cw.cwpy.sdata.set_versionhint(versionlevel, versionhint)
+            self._versionhint_base = None
 
         if not (isinstance(self.error, AreaChangeError) or\
                 isinstance(self.error, ScenarioBadEndError)) and\
@@ -689,7 +704,7 @@ class Event(object):
                 cw.cwpy.disposition_pcards()
 
         if not isinstance(self.error, AreaChangeError):
-            # BUG: 全滅時は選択メンバがクリアされない
+            # BUG: CardWirthでは全滅時は選択メンバがクリアされない
             if not (cw.cwpy.is_battlestatus() and cw.cwpy.is_gameover()):
                 cw.cwpy.event.set_selectedmember(None)
 

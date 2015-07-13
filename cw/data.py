@@ -164,8 +164,8 @@ class SystemData(object):
 
         return "", False
 
-    def change_data(self, resid):
-        if cw.cwpy.is_battlestatus():
+    def get_resdata(self, isbattle, resid):
+        if isbattle:
             if not resid in self.battles:
                 return
             path = self.battles[resid][1]
@@ -174,7 +174,10 @@ class SystemData(object):
                 return
             path = self.areas[resid][1]
 
-        self.data = xml2etree(path)
+        return xml2etree(path)
+
+    def change_data(self, resid):
+        self.data = self.get_resdata(cw.cwpy.is_battlestatus(), resid)
 
         if isinstance(self, ScenarioData):
             self.set_versionhint(cw.HINT_AREA, cw.cwpy.sct.from_basehint(self.data.getattr("Property", "versionHint", "")))

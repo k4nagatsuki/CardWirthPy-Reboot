@@ -2314,13 +2314,17 @@ class CWPy(_Singleton, threading.Thread):
         if self.sdata.pre_battleareadata:
             oldareaid = self.sdata.pre_battleareadata[0]
             oldbgmpath = self.sdata.pre_battleareadata[1]
+
+        # 戦闘音楽を流す
+        data = self.sdata.get_resdata(True, areaid)
+        if not data is None:
+            path = data.gettext("Property/MusicPath", "")
+            self.music.play(path)
+
         self.set_battle()
         self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
         cw.animation.animate_sprite(sprite, "hide")
         sprite.remove(cw.cwpy.topgrp)
-        # 戦闘音楽を流す
-        path = self.sdata.data.gettext("Property/MusicPath", "")
-        self.music.play(path)
 
         self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
         self.battle = cw.battle.BattleEngine()
