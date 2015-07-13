@@ -1848,7 +1848,7 @@ class Character(object):
         self.set_mentality("Normal", 0)
         self.data.edit("Property/Status/Paralyze", str(self.paralyze))
         self.adjust_action()
-        return self.paralyze + old
+        return self.paralyze - old
 
     def set_poison(self, value):
         """
@@ -1861,7 +1861,7 @@ class Character(object):
         self.poison += value
         self.poison = cw.util.numwrap(self.poison, 0, 40)
         self.data.edit("Property/Status/Poison", str(self.poison))
-        return self.poison + old
+        return self.poison - old
 
     def set_mentality(self, name, value, overwrite=True):
         """
