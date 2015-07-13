@@ -642,7 +642,7 @@ class EffectMotion(object):
             value = 40
 
         value = target.set_paralyze(-value)
-        return 0 < value
+        return value < 0
 
     def poison_motion(self, target, success_res):
         """
@@ -666,7 +666,7 @@ class EffectMotion(object):
             value = 40
 
         value = target.set_poison(-value)
-        return 0 < value
+        return value < 0
 
     #-----------------------------------------------------------------------
     #「技能」関連効果
