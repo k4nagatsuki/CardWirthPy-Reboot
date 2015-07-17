@@ -338,12 +338,12 @@ class MessageWindow(base.CWPySprite):
             if key in self.step_table:
                 return self.step_table[key]
             else:
-                return ""
+                return None
 
         if key in cw.cwpy.sdata.steps:
             s = cw.cwpy.sdata.steps[key].get_valuename()
         else:
-            s = ""
+            s = None
 
         self.step_table[key] = s
         return s
@@ -353,12 +353,12 @@ class MessageWindow(base.CWPySprite):
             if key in self.flag_table:
                 return self.flag_table[key]
             else:
-                return ""
+                return None
 
         if key in cw.cwpy.sdata.flags:
             s = cw.cwpy.sdata.flags[key].get_valuename()
         else:
-            s = ""
+            s = None
 
         self.flag_table[key] = s
         return s
@@ -821,14 +821,14 @@ def _get_stepvalue(key):
     if key in cw.cwpy.sdata.steps:
         s = cw.cwpy.sdata.steps[key].get_valuename()
     else:
-        s = ""
+        s = None
     return s
 
 def _get_flagvalue(key):
     if key in cw.cwpy.sdata.flags:
         s = cw.cwpy.sdata.flags[key].get_valuename()
     else:
-        s = ""
+        s = None
     return s
 
 def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
@@ -851,8 +851,11 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
             if nextpos < 0:
                 return 0
             fl = s[i+1:i+1+nextpos]
+            val = get(fl)
+            if val is None:
+                return 0 if full else -1
             skip = 1 + nextpos
-            buf.append(get(fl))
+            buf.append(val)
             return skip
 
         if c == '#':

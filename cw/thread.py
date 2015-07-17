@@ -1540,6 +1540,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def _f9impl(self, startotherscenario=False):
         self.sdata.is_playing = False
+        self.statusbar.change(False)
         self.pre_dialogs = []
 
         self.clear_inusecardimg()
