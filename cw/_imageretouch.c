@@ -996,7 +996,7 @@ static void _get_imagesize(FontInfo *font, LPWSTR str, UINT format, size_t *rw, 
         {
             yy = font->otm.otmTextMetrics.tmHeight
                 + font->otm.otmsUnderscorePosition + font->otm.otmsUnderscoreSize;
-            h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY);
+            /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
         }
         else
         {
