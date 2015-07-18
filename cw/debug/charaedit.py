@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import wx
 
 import cw
@@ -549,7 +550,8 @@ class CharaRequirementPanel(wx.Panel):
         else:
             facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
             fpath = self.imgcombo.GetValue()
-            fpath = cw.util.join_paths(facedir, fpath)
+            if not os.path.isabs(fpath):
+                fpath = cw.util.join_paths(facedir, fpath)
             for info in infos:
                 info.imgpath = fpath
 
@@ -622,8 +624,9 @@ class CharaRequirementPanel(wx.Panel):
             # パスを選択
             facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
             img = self.imgcombo.GetValue()
-            path = cw.util.join_paths(facedir, img)
-            self.img.SetBitmap(cw.util.load_wxbmp(path, mask=True))
+            if not os.path.isabs(img):
+                img = cw.util.join_paths(facedir, img)
+            self.img.SetBitmap(cw.util.load_wxbmp(img, mask=True))
 
     def _get_infos(self):
         if self.cindex == 0:

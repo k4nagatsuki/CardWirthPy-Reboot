@@ -1798,7 +1798,7 @@ class AdventurerDesignDialog(wx.Dialog):
         desc = self.toppanel.descctrl.GetValue()
         self.ccard.set_name(name)
         self.ccard.set_description(desc)
-        if self.toppanel.imgpath.startswith(cw.util.join_paths(cw.cwpy.skindir, u"Face")):
+        if self.toppanel.is_changedimgpath():
             self.ccard.set_image(self.toppanel.imgpath)
         self.ccard.data.is_edited = True
         self.ccard.data.write_xml()
@@ -1850,6 +1850,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.imgpath = self.ccard.get_imagepath()
         if self.imgpath <> "":
             self.imgpath = cw.util.join_yadodir(self.imgpath)
+        self._oldimgpath = self.imgpath
 
         self.name = self.ccard.get_name()
         self.desc = self.ccard.get_description()
@@ -1873,6 +1874,9 @@ class DesignPanel(AdventurerCreaterPage):
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downkeyid),
         ]
         cw.util.set_acceleratortable(self, seq)
+
+    def is_changedimgpath(self):
+        return self._oldimgpath <> self.imgpath
 
     def _bind(self):
         AdventurerCreaterPage._bind(self)

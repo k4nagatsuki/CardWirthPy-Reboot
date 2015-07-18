@@ -802,6 +802,7 @@ def new_order(seq, mode=1):
 
 def join_paths(*paths):
     """パス結合。ディレクトリの区切り文字はプラットホームに関わらず"/"固定。
+    セキュリティ上の問題を避けるため、あえて絶対パスは取り扱わない。
     *paths: パス結合する文字列
     """
     return "/".join(filter(lambda a: a, paths)).replace("\\", "/").rstrip("/")
