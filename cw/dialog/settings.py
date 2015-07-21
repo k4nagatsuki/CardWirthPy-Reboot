@@ -1454,7 +1454,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
         self.cb_cautionbeforesaving = wx.CheckBox(
             self, -1, u"保存せずに終了しようとしたら警告する")
-        self.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.store_skinoneachbase)
+        self.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving)
         self.cb_confirmbeforesaving = wx.CheckBox(
             self, -1, u"セーブ前に確認ダイアログを表示")
         self.cb_confirmbeforesaving.SetValue(cw.cwpy.setting.confirm_beforesaving)
