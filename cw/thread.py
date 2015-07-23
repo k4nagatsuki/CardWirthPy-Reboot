@@ -421,9 +421,10 @@ class CWPy(_Singleton, threading.Thread):
                 self.draw()
             self.exec_func(func)
 
-        def func():
-            self.frame.exec_func(self.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
-        self.exec_func(func)
+        if not rsrconly:
+            def func():
+                self.frame.exec_func(self.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
+            self.exec_func(func)
 
     def update_messagefontstyle(self, classicstyletext):
         """メッセージの描画フォント設定を変更する。

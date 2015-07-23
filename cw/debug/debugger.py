@@ -957,12 +957,15 @@ class Debugger(wx.Frame):
             u"BGMの選択", choices)
 
         if dlg.ShowModal() == wx.ID_OK:
-            func = cw.cwpy.music.play
             index = dlg.GetSelection()
             if 0 < index:
                 path = choices[index]
             else:
                 path = ""
+            def func(path):
+                if not cw.cwpy.is_playingscenario():
+                    path = cw.util.join_paths(u"Bgm", path)
+                cw.cwpy.music.play(path)
             cw.cwpy.exec_func(func, path)
 
         dlg.Destroy()
