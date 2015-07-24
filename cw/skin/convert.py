@@ -69,6 +69,8 @@ class Converter(threading.Thread):
         self._get_sounds()
         self._get_messages()
         self._get_cards()
+        self.partyinfo_res = None
+        self._get_partyinfo()
 
     def _get_resources(self, dpath):
         dpath = cw.util.join_paths(u"Data/SkinBase/Resource/Xml/", dpath)
@@ -323,6 +325,20 @@ class Converter(threading.Thread):
             # "\0を捨てます。よろしいですか？\0"
             key = "\x00\x82\xF0\x8E\xCC\x82\xC4\x82\xDC\x82\xB7\x81\x42\x82\xE6\x82\xEB\x82\xB5\x82\xA2\x82\xC5\x82\xB7\x82\xA9\x81\x48\x00"
             get_keyafter(sounds[10], key, 14)
+        except Exception:
+            cw.util.print_ex()
+
+    def _get_partyinfo(self):
+        if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
+            return
+        try:
+            key = "\0IMAGE_COMMAND3\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                index += len(key) + 98
+                s = unicode(self.exebinary[index:index+12], cw.MBCS)
+                if s <> "IMAGE_FATHER":
+                    self.partyinfo_res = s
         except Exception:
             cw.util.print_ex()
 
@@ -947,6 +963,12 @@ class Converter(threading.Thread):
                 "STONE_HAND8":"Stone/HAND8",
                 "STONE_HAND9":"Stone/HAND9",
             }
+            if self.partyinfo_res:
+                if self.partyinfo_res.startswith("IMAGE_"):
+                    partyinfo = "Card/" + self.partyinfo_res[6:]
+                else:
+                    partyinfo = "Card/" + self.partyinfo_res
+                imgtbl[self.partyinfo_res] = partyinfo
 
             curtbl = {
                 "CURSOR_BACK":"Cursor/CURSOR_BACK",
@@ -1245,6 +1267,15 @@ class Converter(threading.Thread):
                     data.edit("BgImages/BgImage[4]/Size", str(vsize[1]), "height")
 
                 data.write()
+
+            # 一部バリアントで「パーティ情報」のリソースが
+            # "IMAGE_FATHER"から差し替えられているのに対応
+            if self.partyinfo_res:
+                fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/02_Yado2.xml")
+                if os.path.isfile(fpath):
+                    data = cw.data.xml2etree(fpath)
+                    data.edit("MenuCards/MenuCard[8]/Property/ImagePath", cw.util.join_paths(u"Resource/Image", partyinfo))
+                    data.write()
 
             self.curnum = 100
             self.message = u"スキンの生成が完了しました。"
