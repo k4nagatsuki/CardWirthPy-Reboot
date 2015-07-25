@@ -408,9 +408,7 @@ class SettingsDialog(wx.Dialog):
         skin = self.pane_gene.ch_skin.GetSelection()
         skin = self.pane_gene.skins[skin]
         if flag_fontupdate or cw.cwpy.setting.skindirname <> skin:
-            def func():
-                cw.cwpy.exec_func(cw.cwpy.update_skin, skin, restartop=cw.cwpy.setting.skindirname <> skin)
-            cw.cwpy.frame.exec_func(func)
+            cw.cwpy.exec_func(cw.cwpy.update_skin, skin, restartop=cw.cwpy.setting.skindirname <> skin)
             updatebg = False
 
         # レベル調節
@@ -503,12 +501,10 @@ class SettingsDialog(wx.Dialog):
         # 背景の更新
         if updatebg:
             def func():
-                def func():
-                    if cw.cwpy.is_playingscenario():
-                        cw.cwpy.sdata.resource_cache = {}
-                    cw.cwpy.background.reload()
-                cw.cwpy.exec_func(func)
-            cw.cwpy.frame.exec_func(func)
+                if cw.cwpy.is_playingscenario():
+                    cw.cwpy.sdata.resource_cache = {}
+                cw.cwpy.background.reload()
+            cw.cwpy.exec_func(func)
 
         # イメージの更新
         if updatecardimg:
@@ -528,7 +524,15 @@ class SettingsDialog(wx.Dialog):
         if cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
             cw.cwpy.frame.debugger.refresh_tools()
 
-        self.Close()
+        # FIXME: クローズしながらスキンを切り替えると時々エラーになる
+        #        原因不明の不具合があるので、ダイアログのクローズを遅延する
+        def func(self):
+            def func(self):
+                if self:
+                    self.Close()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+        self.Disable()
 
     def OnClose(self, event):
         # 開いたタブを記憶

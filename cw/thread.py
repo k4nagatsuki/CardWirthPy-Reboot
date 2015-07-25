@@ -1273,7 +1273,11 @@ class CWPy(_Singleton, threading.Thread):
         """起動時のアニメーションを表示してから
         タイトル画面へ遷移する。"""
         resdir = cw.util.join_paths(cw.cwpy.skindir, u"Resource/Image/Other")
-        self.events = []
+        seq = []
+        for event in self.events:
+            if event.type == pygame.locals.USEREVENT:
+                seq.append(event)
+        self.events = seq
         self.cut_animation = False
         self.wait_showcards = False
 
