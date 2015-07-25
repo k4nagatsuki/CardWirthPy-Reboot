@@ -195,7 +195,7 @@ class MessageWindow(base.CWPySprite):
             for index, name in enumerate(self.names):
                 # 互換動作: 1.30以前は選択肢に特殊文字を使用しない
                 if not self.backlog and self._barspchr and not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-                    name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable))
+                    name = (name[0], self.rpl_specialstr(False, name[1], self.name_subtable, encodedtext=False))
                 pos = (x, cw.s(25) * index + y)
                 selected = 1 < len(self.names) and self.backlog and self.result == index
                 sbar = SelectionBar(name, pos, backlog=self.backlog, selected=selected)
@@ -325,13 +325,13 @@ class MessageWindow(base.CWPySprite):
 
         return images
 
-    def rpl_specialstr(self, full, s, nametable=None):
+    def rpl_specialstr(self, full, s, nametable=None, encodedtext=True):
         """
         特殊文字列(#, $)を置換した文字列を返す。
         """
         if not nametable:
             nametable = self.name_table
-        return _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue)
+        return _rpl_specialstr(full, s, nametable, self.get_stepvalue, self.get_flagvalue, encodedtext=encodedtext)
 
     def get_stepvalue(self, key):
         if self.backlog:
