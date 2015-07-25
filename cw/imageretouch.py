@@ -823,6 +823,7 @@ def patch_alphadata(image):
     """
     if image.get_bitsize() == 32:
         buf = pygame.image.tostring(image, "RGBA")
+        assert len(buf) % 4 == 0
         if not _imageretouch.has_alpha(buf):
             # アルファ値が存在しないので予備領域を無視
             image = pygame.image.fromstring(buf, image.get_size(), "RGBX")
