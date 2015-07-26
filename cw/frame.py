@@ -575,7 +575,7 @@ class Frame(wx.Frame):
 
     def OnHANDVIEW(self, event):
         selection, preinfo = self._get_cardcontrolparams()
-        if not hasattr(selection, "deck"):
+        if not isinstance(selection, cw.character.Character):
             self.kill_dlg(None)
             return
 
