@@ -520,10 +520,6 @@ class Frame(wx.Frame):
 
     def OnBACKPACK(self, event):
         selection, preinfo = self._get_cardcontrolparams()
-        if not isinstance(selection, cw.sprite.card.MenuCard):
-            self.kill_dlg(None)
-            return
-
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "BACKPACK", selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
@@ -535,10 +531,6 @@ class Frame(wx.Frame):
 
     def OnSTOREHOUSE(self, event):
         selection, preinfo = self._get_cardcontrolparams()
-        if not isinstance(selection, cw.sprite.card.MenuCard):
-            self.kill_dlg(None)
-            return
-
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, "STOREHOUSE", selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
@@ -556,10 +548,6 @@ class Frame(wx.Frame):
 
     def _cardpocket_impl(self, callname):
         selection, preinfo = self._get_cardcontrolparams()
-        if not isinstance(selection, cw.character.Character):
-            self.kill_dlg(None)
-            return
-
         areaid = self.change_cardcontrolarea()
         dlg = cw.dialog.cardcontrol.CardHolder(self, callname, selection, preinfo, areaid=areaid)
         self.move_dlg(dlg, (0, -63))
@@ -575,10 +563,6 @@ class Frame(wx.Frame):
 
     def OnHANDVIEW(self, event):
         selection, preinfo = self._get_cardcontrolparams()
-        if not isinstance(selection, cw.character.Character):
-            self.kill_dlg(None)
-            return
-
         dlg = cw.dialog.cardcontrol.HandView(self, selection, preinfo)
         self.move_dlg(dlg, (0, -63))
 

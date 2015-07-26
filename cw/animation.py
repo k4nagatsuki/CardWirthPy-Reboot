@@ -19,6 +19,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards
         cw.cwpy.lock_menucards = True
+        selection = cw.cwpy.selection
 
     sprite.old_status = sprite.status
     sprite.status = anitype
@@ -67,6 +68,8 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
+    if clearevent and not cw.cwpy.selection is selection:
+        cw.cwpy.change_selection(selection)
 
 def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
     """spritesに含まれる全てのスプライトをanitypeの
@@ -90,6 +93,7 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
     if clearevent:
         lock_menucards = cw.cwpy.lock_menucards
         cw.cwpy.lock_menucards = True
+        selection = cw.cwpy.selection
 
     for sprite, anitype in sprandanimes:
         sprite.old_status = sprite.status
@@ -148,6 +152,8 @@ def animate_sprites2(sprandanimes, clearevent=True, battlespeed=False):
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
+    if clearevent and not cw.cwpy.selection is selection:
+        cw.cwpy.change_selection(selection)
 
 def _inputevent(clip, clearevent, statusbutton):
     if statusbutton:
