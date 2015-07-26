@@ -272,6 +272,8 @@ class EventHandler(object):
             cw.cwpy.has_inputevent = True
             cw.cwpy.selection.rclick_event()
         elif cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
+            if cw.cwpy.is_lockmenucards(None):
+                return
             # シナリオプレイ時、キャンプモード切替
             if cw.cwpy.status == "Scenario" and not cw.cwpy.is_dealing():
                 cw.cwpy.has_inputevent = True
@@ -284,7 +286,6 @@ class EventHandler(object):
 
             # パーティの宿滞在時、冒険の中断
             elif cw.cwpy.status == "Yado" and not cw.cwpy.is_dealing():
-
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.sounds["click"].play()
 
