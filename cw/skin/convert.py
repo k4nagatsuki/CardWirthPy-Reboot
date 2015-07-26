@@ -1276,6 +1276,11 @@ class Converter(threading.Thread):
                     data = cw.data.xml2etree(fpath)
                     data.edit("MenuCards/MenuCard[8]/Property/ImagePath", cw.util.join_paths(u"Resource/Image", partyinfo))
                     data.write()
+                fpath = cw.util.join_paths(dpath, "Resource/Xml/Scenario/-4_Camp.xml")
+                if os.path.isfile(fpath):
+                    data = cw.data.xml2etree(fpath)
+                    data.edit("MenuCards/MenuCard[3]/Property/ImagePath", cw.util.join_paths(u"Resource/Image", partyinfo))
+                    data.write()
 
             self.curnum = 100
             self.message = u"スキンの生成が完了しました。"
