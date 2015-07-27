@@ -73,7 +73,10 @@ class CWPyCard(base.SelectableSprite):
         return mcardflag
 
     def get_unselectedimage(self):
-        return self.get_animeimage()
+        if self.status == "click":
+            return self.image
+        else:
+            return self.get_animeimage()
 
     def get_selectedimage(self):
         return cw.imageretouch.to_negative_for_card(self.get_animeimage())

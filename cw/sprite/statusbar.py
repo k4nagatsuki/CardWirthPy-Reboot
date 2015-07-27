@@ -532,6 +532,7 @@ class CampButton(StatusBarButton):
         is_pushed = cw.cwpy.areaid in (-4, -5)
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True, is_pushed=is_pushed)
         self.is_showing = cw.cwpy.is_playingscenario
+        self.selectable_on_event = False
 
     def update(self, scr):
         self.update_selection()
@@ -558,6 +559,7 @@ class TableButton(StatusBarButton):
         is_pushed = not cw.cwpy.areaid in (-4, -5)
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True, is_pushed=is_pushed)
         self.is_showing = cw.cwpy.is_playingscenario
+        self.selectable_on_event = False
 
     def update(self, scr):
         self.update_selection()
@@ -587,6 +589,7 @@ class ActionButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["start_action"], pos,
                                  is_emphasize=autostart)
         self.is_showing = cw.cwpy.is_playingscenario
+        self.selectable_on_event = False
 
     def update(self, scr):
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
@@ -604,6 +607,7 @@ class RunAwayButton(StatusBarButton):
     def __init__(self, parent, pos):
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["runaway"], pos)
         self.is_showing = cw.cwpy.is_playingscenario
+        self.selectable_on_event = False
 
     def update(self, scr):
         if cw.cwpy.battle and cw.cwpy.battle.is_running() or cw.cwpy.areaid < 0:
@@ -620,6 +624,7 @@ class RunAwayButton(StatusBarButton):
 class CancelButton(StatusBarButton):
     def __init__(self, parent, pos):
         StatusBarButton.__init__(self, parent, cw.cwpy.msgs["entry_cancel"], pos)
+        self.selectable_on_event = False
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
@@ -632,6 +637,7 @@ class ShowFriendCardsButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
                                  is_pushed=cw.cwpy.setting.show_fcardsinbattle)
         self.is_showing = cw.cwpy.is_playingscenario
+        self.selectable_on_event = False
 
     def update(self, scr):
         self.update_selection()
@@ -690,6 +696,7 @@ class InfoCardsButton(StatusBarButton):
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  notice=notice, number=number)
         self.is_showing = cw.cwpy.is_playingscenario
+        self.selectable_on_event = False
 
     def lclick_event(self):
         cw.cwpy.sounds["click"].play()
