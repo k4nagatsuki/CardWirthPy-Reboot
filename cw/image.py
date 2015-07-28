@@ -81,16 +81,22 @@ class CardImage(Image):
             return self._bmp.copy()
 
         image = self.cardbg.copy()
+        w = image.get_width()
+        h = image.get_height()
 
         # プレミア画像
         if self.premium == "Rare":
             subimg = cw.cwpy.rsrc.cardbgs["RARE"]
-            image.blit(subimg, cw.s((64, 5)))
-            image.blit(subimg, cw.s((5, 64)))
+            sw = subimg.get_width()
+            sh = subimg.get_height()
+            image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
+            image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
         elif self.premium == "Premium":
             subimg = cw.cwpy.rsrc.cardbgs["PREMIER"]
-            image.blit(subimg, cw.s((64, 5)))
-            image.blit(subimg, cw.s((5, 41)))
+            sw = subimg.get_width()
+            sh = subimg.get_height()
+            image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
+            image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
         pisc = cw.binary.image.path_is_code(self.path)
         if pisc:
@@ -222,12 +228,16 @@ class CardImage(Image):
         # プレミア画像
         if self.premium == "Rare":
             subimg = cw.cwpy.rsrc.wxcardbgs["RARE"]
-            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
-            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(64), True)
+            sw = subimg.GetWidth()
+            sh = subimg.GetHeight()
+            dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
         elif self.premium == "Premium":
             subimg = cw.cwpy.rsrc.wxcardbgs["PREMIER"]
-            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
-            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(41), True)
+            sw = subimg.GetWidth()
+            sh = subimg.GetHeight()
+            dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
         pisc = cw.binary.image.path_is_code(self.path)
         if pisc:
@@ -362,16 +372,22 @@ class LargeCardImage(CardImage):
 
     def get_image(self):
         image = self.cardbg.copy()
+        w = image.get_width()
+        h = image.get_height()
 
         # プレミア画像
         if self.premium == "Rare":
             subimg = cw.cwpy.rsrc.cardbgs["RARE"]
-            image.blit(subimg, cw.s((64, 5)))
-            image.blit(subimg, cw.s((5, 64)))
+            sw = subimg.get_width()
+            sh = subimg.get_height()
+            image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
+            image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
         elif self.premium == "Premium":
             subimg = cw.cwpy.rsrc.cardbgs["PREMIER"]
-            image.blit(subimg, cw.s((64, 5)))
-            image.blit(subimg, cw.s((5, 41)))
+            sw = subimg.get_width()
+            sh = subimg.get_height()
+            image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
+            image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
         subimg = cw.s((cw.util.load_image(self.path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
         image.blit(subimg, cw.s((10, 18)))
@@ -398,12 +414,16 @@ class LargeCardImage(CardImage):
         # プレミア画像
         if self.premium == "Rare":
             subimg = cw.cwpy.rsrc.wxcardbgs["RARE"]
-            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
-            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(64), True)
+            sw = subimg.GetWidth()
+            sh = subimg.GetHeight()
+            dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
         elif self.premium == "Premium":
             subimg = cw.cwpy.rsrc.wxcardbgs["PREMIER"]
-            dc.DrawBitmap(subimg, cw.wins(64), cw.wins(5), True)
-            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(41), True)
+            sw = subimg.GetWidth()
+            sh = subimg.GetHeight()
+            dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
+            dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
         subimg = cw.util.load_wxbmp(self.path, True)
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
