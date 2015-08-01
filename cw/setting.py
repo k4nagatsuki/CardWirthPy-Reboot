@@ -147,6 +147,7 @@ class Setting(object):
         self.can_skipanimation = True
         self.can_repeatlclick = False
         self.cursor_type = CURSOR_BLACK
+        self.autoenter_on_sprite = False
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -481,9 +482,10 @@ class Setting(object):
         self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation)
         # マウスの左ボタンを押し続けた時は連打状態にする
         self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick)
-
         # カーソルタイプ
         self.cursor_type = data.gettext("CursorType", self.cursor_type)
+        # 連打状態の時、カードなどの選択を自動的に決定する
+        self.autoenter_on_sprite = data.getbool("AutoEnterOnSprite", self.autoenter_on_sprite)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)

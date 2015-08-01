@@ -169,6 +169,10 @@ def _inputevent(clip, clearevent, statusbutton):
     return clip
 
 def _get_skipstatus(clearevent):
+    if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein(1)):
+        cw.cwpy.cut_animation = True
+        return True
+
     if not clearevent or not cw.cwpy.setting.can_skipanimation:
         return False
 

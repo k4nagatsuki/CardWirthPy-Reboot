@@ -518,10 +518,13 @@ def create_settings(setting):
     if setting.can_repeatlclick <> setting.can_repeatlclick_init:
         e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))
         element.append(e)
-
     # カーソルタイプ
     if setting.cursor_type <> setting.cursor_type_init:
-        e = cw.data.make_element("CursorType", str(setting.cursor_type))
+        e = cw.data.make_element("CursorType", setting.cursor_type)
+        element.append(e)
+    # 連打状態の時、カードなどの選択を自動的に決定する
+    if setting.autoenter_on_sprite <> setting.autoenter_on_sprite_init:
+        e = cw.data.make_element("AutoEnterOnSprite", str(setting.autoenter_on_sprite))
         element.append(e)
 
     # ファイル書き込み

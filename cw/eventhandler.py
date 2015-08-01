@@ -16,7 +16,7 @@ class EventHandler(object):
         cw.cwpy.has_inputevent = False
 
         # リターンキー押しっぱなし
-        if cw.cwpy.keyevent.is_keyin(K_RETURN):
+        if cw.cwpy.keyevent.is_keyin(K_RETURN) and cw.cwpy.setting.autoenter_on_sprite:
             self.returnkey_event()
         # 左方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_LEFT):
@@ -25,7 +25,7 @@ class EventHandler(object):
         elif cw.cwpy.keyevent.is_keyin(K_RIGHT):
             self.dirkey_event(x=1)
         # 左クリック押しっぱなし
-        elif cw.cwpy.keyevent.is_mousein(1):
+        elif cw.cwpy.keyevent.is_mousein(1) and cw.cwpy.setting.autoenter_on_sprite:
             self.returnkey_event()
 
         exception = None
@@ -122,7 +122,7 @@ class EventHandler(object):
         if 0 <= button and button < len(cw.cwpy.keyevent.mousein):
             if event.type == MOUSEBUTTONDOWN:
                 cw.cwpy.keyevent.mousein[button] = pygame.time.get_ticks()
-            elif event.type == MOUSEBUTTONUP:
+            elif event.type == MOUSEBUTTONUP and not hasattr(event, "ignoreup"):
                 cw.cwpy.keyevent.mousein[button] = 0
 
     def calc_index(self, value):
@@ -497,9 +497,10 @@ class EventHandlerForMessageWindow(EventHandler):
 
     def run(self):
         cw.cwpy.has_inputevent = False
+        autoenter_on_sprite = (cw.cwpy.setting.autoenter_on_sprite or len(self.mwin.selections) <= 1)
 
         # リターンキー押しっぱなし
-        if cw.cwpy.keyevent.is_keyin(K_RETURN):
+        if cw.cwpy.keyevent.is_keyin(K_RETURN) and autoenter_on_sprite:
             self.returnkey_event(True)
         # 上方向キー押しっぱなし
         elif cw.cwpy.keyevent.is_keyin(K_UP):
@@ -508,7 +509,7 @@ class EventHandlerForMessageWindow(EventHandler):
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
         # 左クリック押しっぱなし
-        elif cw.cwpy.keyevent.is_mousein(1):
+        elif cw.cwpy.keyevent.is_mousein(1) and autoenter_on_sprite:
             self.returnkey_event(True)
 
         exception = None

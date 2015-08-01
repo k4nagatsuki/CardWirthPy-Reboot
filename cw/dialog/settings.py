@@ -138,6 +138,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_ui.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait_init)
             self.pane_ui.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation_init)
             self.pane_ui.cb_can_repeatlclick.SetValue(cw.cwpy.setting.can_repeatlclick_init)
+            self.pane_ui.cb_autoenter_on_sprite.SetValue(cw.cwpy.setting.autoenter_on_sprite_init)
 
             self.pane_ui.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal_init)
             self.pane_ui.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal_init)
@@ -461,6 +462,8 @@ class SettingsDialog(wx.Dialog):
         cw.cwpy.setting.can_skipanimation = value
         value = self.pane_ui.cb_can_repeatlclick.GetValue()
         cw.cwpy.setting.can_repeatlclick = value
+        value = self.pane_ui.cb_autoenter_on_sprite.GetValue()
+        cw.cwpy.setting.autoenter_on_sprite = value
 
         value = self.pane_ui.cb_quickdeal.GetValue()
         cw.cwpy.setting.quickdeal = value
@@ -1434,6 +1437,9 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_can_repeatlclick = wx.CheckBox(
             self, -1, u"マウスの左ボタンを押し続けた時は連打状態にする")
         self.cb_can_repeatlclick.SetValue(cw.cwpy.setting.can_repeatlclick)
+        self.cb_autoenter_on_sprite = wx.CheckBox(
+            self, -1, u"連打状態の時、カードなどの選択を自動的に決定する")
+        self.cb_autoenter_on_sprite.SetValue(cw.cwpy.setting.autoenter_on_sprite)
 
         # 描画オプション
         self.box_draw = wx.StaticBox(self, -1, u"カード")
@@ -1518,6 +1524,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_wait.Add(self.cb_can_skipwait, 0, wx.ALL, 3)
         bsizer_wait.Add(self.cb_can_skipanimation, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_wait.Add(self.cb_can_repeatlclick, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_wait.Add(self.cb_autoenter_on_sprite, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_wait.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_draw.Add(self.cb_quickdeal, 0, wx.ALL, 3)
