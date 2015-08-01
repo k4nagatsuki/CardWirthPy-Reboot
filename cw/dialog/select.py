@@ -2440,6 +2440,24 @@ class ScenarioSelect(Select):
         # 検索結果
         self.find_result = None
 
+        # ツリー表示用のビュー
+        self.tree = wx.TreeCtrl(self, -1, size=cw.wins((400, 370)),
+            style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
+        self.tree.SetDoubleBuffered(True)
+        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
+        self.tree.Hide()
+        self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
+        self.tree.imgidx_summary = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"]))
+        self.tree.imgidx_complete = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"]))
+        self.tree.imgidx_playing = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"]))
+        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"]))
+        self.tree.imgidx_dir = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"]))
+        self.tree.imgidx_findresult = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["FIND_SCENARIO"]))
+        self.tree.root = self.tree.AddRoot(self.scedir)
+        self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
+        self.tree.SetImageList(self.tree.imglist)
+        self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+
         # 絞込条件
         choices = (cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
@@ -2480,24 +2498,6 @@ class ScenarioSelect(Select):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((400, 370)))
 
-        # ツリー表示用のビュー
-        self.tree = wx.TreeCtrl(self, -1, size=cw.wins((400, 370)),
-            style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
-        self.tree.SetDoubleBuffered(True)
-        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
-        self.tree.Hide()
-        self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
-        self.tree.imgidx_summary = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"]))
-        self.tree.imgidx_complete = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"]))
-        self.tree.imgidx_playing = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"]))
-        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"]))
-        self.tree.imgidx_dir = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"]))
-        self.tree.imgidx_findresult = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["FIND_SCENARIO"]))
-        self.tree.root = self.tree.AddRoot(self.scedir)
-        self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
-        self.tree.SetImageList(self.tree.imglist)
-        self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
-
         # ok
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, cw.wins((55, 24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.yesbtn)
@@ -2534,7 +2534,7 @@ class ScenarioSelect(Select):
         self.tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnTreeItemCollapsed)
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
         self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
-        self.tree.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+        self.tree.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         self.sort.Bind(wx.EVT_CHOICE, self.OnNarrowCondition)
         self.find.Bind(wx.EVT_BUTTON, self.OnFind)
@@ -2547,10 +2547,15 @@ class ScenarioSelect(Select):
         seq = self.accels
         upkey = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnUpKeyDown, id=upkey)
-        seq.append((wx.ACCEL_NORMAL, wx.WXK_UP, upkey))
+        seq.append((wx.ACCEL_CTRL, wx.WXK_UP, upkey))
         downkey = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnDownKeyDown, id=downkey)
-        seq.append((wx.ACCEL_NORMAL, wx.WXK_DOWN, downkey))
+        seq.append((wx.ACCEL_CTRL, wx.WXK_DOWN, downkey))
+
+        seq = self.accels
+        esckey = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnEscape, id=esckey)
+        seq.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, esckey))
 
         bookmarkkey = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnBookmark2, id=bookmarkkey)
@@ -2568,6 +2573,26 @@ class ScenarioSelect(Select):
             seq.append((wx.ACCEL_ALT, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
         cw.util.set_acceleratortable(self, seq)
+
+    def OnEscape(self, event):
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
+        self.ProcessEvent(btnevent)
+
+    def OnPrevButton(self, event):
+        if wx.Window.FindFocus() is self.tree:
+            selitem = self.tree.GetSelection()
+            if selitem:
+                self._collapse_tree(selitem)
+                return
+        Select.OnPrevButton(self, event)
+
+    def OnNextButton(self, event):
+        if wx.Window.FindFocus() is self.tree:
+            selitem = self.tree.GetSelection()
+            if selitem:
+                self._expand_tree(selitem)
+                return
+        Select.OnPrevButton(self, event)
 
     def OnMouseWheel(self, event):
         if self._processing:
@@ -2883,7 +2908,9 @@ class ScenarioSelect(Select):
     def OnLeftDClick(self, event):
         if not (self.tree.HitTest(event.GetPosition())[1] & wx.TREE_HITTEST_ONITEM):
             return
+        self._tree_dclick()
 
+    def _tree_dclick(self):
         selitem = self.tree.GetSelection()
         if not selitem:
             return
@@ -2903,8 +2930,9 @@ class ScenarioSelect(Select):
                 cw.cwpy.sounds["equipment"].play()
                 self.tree.Expand(selitem)
 
-    def OnKeyUp(self, event):
+    def OnKeyDown(self, event):
         if event.GetKeyCode() <> wx.WXK_RETURN:
+            event.Skip()
             return
 
         selitem = self.tree.GetSelection()
@@ -2917,6 +2945,8 @@ class ScenarioSelect(Select):
         if isinstance(pathorheader, cw.header.ScenarioHeader):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
             self.ProcessEvent(btnevent)
+        else:
+            self._tree_dclick()
 
     def can_clickcenter(self):
         return self.yesbtn.IsEnabled()
@@ -3612,6 +3642,9 @@ class ScenarioSelect(Select):
             return
 
         selitem = event.GetItem()
+        self._expand_tree(selitem)
+
+    def _expand_tree(self, selitem):
         data = self.tree.GetItemPyData(selitem)
         if data is None or isinstance(data[1], FindResult):
             return
@@ -3658,8 +3691,11 @@ class ScenarioSelect(Select):
     def OnTreeItemCollapsed(self, event):
         if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
             return
-        # 一旦リストをクリアして次に開いた時に再読込を行う
         item = event.GetItem()
+        self._collapse_tree(item)
+
+    def _collapse_tree(self, item):
+        # 一旦リストをクリアして次に開いた時に再読込を行う
         data = self.tree.GetItemPyData(item)
         if data and isinstance(data[1], FindResult):
             # 検索結果はクリアしない
