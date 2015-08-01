@@ -65,6 +65,7 @@ class SettingsDialog(wx.Dialog):
         elif selpane == 1:
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
+            self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
             self.pane_draw.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
             self.pane_draw.sl_deal_battle.SetValue(cw.cwpy.setting.dealspeed_battle_init)
             self.pane_draw.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed_init)
@@ -320,6 +321,16 @@ class SettingsDialog(wx.Dialog):
         def func1():
             cw.cwpy.update_fullscreenbackground()
         cw.cwpy.exec_func(func1)
+
+        value = self.pane_draw.cb_whitecursor.GetValue()
+        if value <> (cw.cwpy.setting.cursor_type == cw.setting.CURSOR_WHITE):
+            if value:
+                cw.cwpy.setting.cursor_type = cw.setting.CURSOR_WHITE
+            else:
+                cw.cwpy.setting.cursor_type = cw.setting.CURSOR_BLACK
+            def func():
+                cw.cwpy.change_cursor(cw.cwpy.cursor, force=True)
+            cw.cwpy.exec_func(func)
 
         # オーディオ
         value = self.pane_sound.cb_playbgm.GetValue()
@@ -864,6 +875,10 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_statusbarmask = wx.CheckBox(
             self, -1, u"イベント中にステータスバーの色を変える")
         self.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask)
+        # メイン画面で白いカーソルを使用する
+        self.cb_whitecursor = wx.CheckBox(
+            self, -1, u"メイン画面で白いカーソルを使用する")
+        self.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type == cw.setting.CURSOR_WHITE)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -1003,6 +1018,7 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.ALL, 3)
         bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)

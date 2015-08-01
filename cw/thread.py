@@ -176,7 +176,8 @@ class CWPy(_Singleton, threading.Thread):
         self.expanding_max = 100
         self.expanding_cur = 0
         # 現在のカーソル名
-        self.cursor = "arrow"
+        self.cursor = ""
+        self.change_cursor()
 
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
@@ -898,16 +899,48 @@ class CWPy(_Singleton, threading.Thread):
             sur.fill((255, 255, 255, 192))
             self.scr_fullscreen.blit(sur, (x, y))
 
-    def change_cursor(self, name="arrow"):
+    def change_cursor(self, name="arrow", force=False):
         """マウスカーソルを変更する。
         name: 変更するマウスカーソルの名前。
         (arrow, diamond, broken_x, tri_left, tri_right, mouse)"""
-        if self.cursor == name:
+        if not force and self.cursor == name:
             return
 
         self.cursor = name
         if name == "arrow":
-            pygame.mouse.set_cursor(*pygame.cursors.arrow)
+            # 24x24
+            s = (
+              "##                      ",
+              "#.#                     ",
+              "#..#                    ",
+              "#...#                   ",
+              "#....#                  ",
+              "#.....#                 ",
+              "#......#                ",
+              "#.......#               ",
+              "#........#              ",
+              "#.........#             ",
+              "#..........#            ",
+              "#......#####            ",
+              "#...#..#                ",
+              "#.####..#               ",
+              "##   #..#               ",
+              "      #..#              ",
+              "      #..#              ",
+              "       #.#              ",
+              "       ##               ",
+              "                        ",
+              "                        ",
+              "                        ",
+              "                        ",
+              "                        ",)
+
+            if self.setting.cursor_type == cw.setting.CURSOR_WHITE:
+                cursor = pygame.cursors.compile(s, ".", "#", "o")
+            else:
+                cursor = pygame.cursors.compile(s, "#", ".", "o")
+            pygame.mouse.set_cursor((24, 24), (0, 0), *cursor)
+            #pygame.mouse.set_cursor(*pygame.cursors.arrow)
         elif name == "diamond":
             pygame.mouse.set_cursor(*pygame.cursors.diamond)
         elif name == "broken_x":
@@ -919,32 +952,35 @@ class CWPy(_Singleton, threading.Thread):
         elif name == "mouse":
             # 24x24
             s = (
-              "    .#.#...........     ",
-              "    .#.#.#########.     ",
-              "    .#.#.#####.###.     ",
-              "  .........##.####.     ",
-              " .####.####.######.     ",
-              ".#####.#####.#..##.     ",
-              ".#####.#####.#####.     ",
-              ".#####.#####.#..##.     ",
-              ".#####.#####.#####.     ",
-              ".#####.#####.#####.     ",
-              "......#......#####.     ",
-              ".###########.#####.     ",
-              ".###########.#####.     ",
-              ".###########.#####.     ",
-              ".###########.......     ",
-              ".###########.           ",
-              ".###########.           ",
-              " .#########.            ",
-              "  .......... ... .  .   ",
-              " .###.#. .#..###.#..#.  ",
-              ".#....#. .#.#....###.   ",
-              ".#....#...#.#....#.#.   ",
-              " .###.###.#..###.#..#.  ",
-              "  .........  ... .  .   ",)
+              "    #.#.###########     ",
+              "    #.#.#.........#     ",
+              "    #.#.#.....#...#     ",
+              "  #########..#....#     ",
+              " #....#....#......#     ",
+              "#.....#.....#.##..#     ",
+              "#.....#.....#.....#     ",
+              "#.....#.....#.##..#     ",
+              "#.....#.....#.....#     ",
+              "#.....#.....#.....#     ",
+              "######.######.....#     ",
+              "#...........#.....#     ",
+              "#...........#.....#     ",
+              "#...........#.....#     ",
+              "#...........#######     ",
+              "#...........#           ",
+              "#...........#           ",
+              " #.........#            ",
+              "  ########## ### #  #   ",
+              " #...#.# #.##...#.##.#  ",
+              "#.####.# #.#.####...#   ",
+              "#.####.###.#.####.#.#   ",
+              " #...#...#.##...#.##.#  ",
+              "  #########  ### #  #   ",)
 
-            cursor = pygame.cursors.compile(s, ".", "#", "o")
+            if self.setting.cursor_type == cw.setting.CURSOR_WHITE:
+                cursor = pygame.cursors.compile(s, ".", "#", "o")
+            else:
+                cursor = pygame.cursors.compile(s, "#", ".", "o")
             pygame.mouse.set_cursor((24, 24), (7, 7), *cursor)
 
         # FIXME: 一度マウスポインタを移動しないと変更されない

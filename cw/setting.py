@@ -37,6 +37,10 @@ if sys.platform <> "win32":
 WHEEL_SELECTION = "Selection" # カードや選択肢を選ぶ
 WHEEL_SHOWLOG   = "ShowLog"   # バックログを表示
 
+# カーソルのタイプ
+CURSOR_BLACK = "Black" # 黒いカーソル(デフォルト)
+CURSOR_WHITE = "White" # 白いカーソル
+
 # ステータスバーのボタン状態
 SB_PRESSED   = 0b00000001 # 押下
 SB_CURRENT   = 0b00000010 # カーソル下
@@ -142,6 +146,7 @@ class Setting(object):
         self.can_skipwait = True
         self.can_skipanimation = True
         self.can_repeatlclick = False
+        self.cursor_type = CURSOR_BLACK
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -476,6 +481,9 @@ class Setting(object):
         self.can_skipanimation = data.getbool("CanSkipAnimation", self.can_skipanimation)
         # マウスの左ボタンを押し続けた時は連打状態にする
         self.can_repeatlclick = data.getbool("CanRepeatLClick", self.can_repeatlclick)
+
+        # カーソルタイプ
+        self.cursor_type = data.gettext("CursorType", self.cursor_type)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)

@@ -519,6 +519,11 @@ def create_settings(setting):
         e = cw.data.make_element("CanRepeatLClick", str(setting.can_repeatlclick))
         element.append(e)
 
+    # カーソルタイプ
+    if setting.cursor_type <> setting.cursor_type_init:
+        e = cw.data.make_element("CursorType", str(setting.cursor_type))
+        element.append(e)
+
     # ファイル書き込み
     path = "Settings.xml"
     etree = cw.data.xml2etree(element=element)
