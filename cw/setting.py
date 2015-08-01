@@ -1131,15 +1131,15 @@ class Resource(object):
         else:
             # グラデーションとなるよう、全面に線を引く
             # (フラグによって明るさを変える)
-            if flags & SB_CURRENT & SB_PRESSED:
-                r1 = g1 = b1 = 228
-                r2 = g2 = b2 = 216
+            if (flags & SB_CURRENT) and (flags & SB_PRESSED):
+                r1 = g1 = b1 = 234
+                r2 = g2 = b2 = 222
             elif flags & SB_PRESSED:
                 r1 = g1 = b1 = 220
                 r2 = g2 = b2 = 208
             elif flags & SB_CURRENT:
                 r1 = g1 = b1 = 255
-                r2 = g2 = b2 = 240
+                r2 = g2 = b2 = 250
             else:
                 r1 = g1 = b1 = 255
                 r2 = g2 = b2 = 232
