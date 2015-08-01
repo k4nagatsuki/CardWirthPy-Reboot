@@ -49,14 +49,14 @@ class EventHandler(object):
                 # 右方向キー
                 elif event.key == K_RIGHT:
                     self.dirkey_event(x=1)
+                # ESCAPEキー
+                elif event.key == K_ESCAPE:
+                    self.escapekey_event()
 
             elif event.type == KEYUP:
                 # リターンキー
                 if event.key == K_RETURN:
                     self.returnkey_event()
-                # ESCAPEキー
-                elif event.key == K_ESCAPE:
-                    self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
@@ -274,30 +274,7 @@ class EventHandler(object):
         elif cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
             if cw.cwpy.is_lockmenucards(None):
                 return
-            # シナリオプレイ時、キャンプモード切替
-            if cw.cwpy.status == "Scenario" and not cw.cwpy.is_dealing():
-                cw.cwpy.has_inputevent = True
-                cw.cwpy.sounds["click"].play()
-
-                if cw.cwpy.areaid == -4:
-                    cw.cwpy.clear_specialarea()
-                else:
-                    cw.cwpy.change_specialarea(-4)
-
-            # パーティの宿滞在時、冒険の中断
-            elif cw.cwpy.status == "Yado" and not cw.cwpy.is_dealing():
-                cw.cwpy.has_inputevent = True
-                cw.cwpy.sounds["click"].play()
-
-                if cw.cwpy.areaid == 1:
-                    cw.cwpy.call_modaldlg("RETURNTITLE")
-                if cw.cwpy.areaid == 2:
-                    cw.cwpy.exec_func(cw.cwpy.load_party, None)
-
-            # シナリオ戦闘時、戦闘行動選択ダイアログ表示
-            elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
-                cw.cwpy.sounds["click"].play()
-                cw.cwpy.call_modaldlg("BATTLECOMMAND")
+            self.background_event()
 
         elif cw.cwpy.wait_showcards:
             # メニューカードの表示を待っている場合は表示
@@ -315,9 +292,48 @@ class EventHandler(object):
         if cw.cwpy.wait_showcards:
             cw.cwpy.deal_cards()
         else:
-            cw.cwpy.has_inputevent = True
-            cw.cwpy.sounds["click"].play()
-            cw.cwpy.call_modaldlg("CLOSE")
+            self.background_event()
+
+    def background_event(self):
+        # シナリオプレイ時、キャンプモード切替
+        if not cw.cwpy.is_runningevent():
+
+            # 選択エリアの時、キャンセル
+            if ((cw.cwpy.is_curtained() and cw.cwpy.areaid <> cw.AREA_CAMP) or cw.cwpy.selectedheader) and\
+                    cw.cwpy.statusbar.showbuttons:
+                cw.cwpy.cancel_cardcontrol()
+                return
+
+            # シナリオプレイ中、テーブル・キャンプモード切替
+            elif cw.cwpy.status == "Scenario" and not cw.cwpy.is_dealing():
+                cw.cwpy.has_inputevent = True
+                cw.cwpy.sounds["click"].play()
+
+                if cw.cwpy.areaid == -4:
+                    cw.cwpy.clear_specialarea()
+                else:
+                    cw.cwpy.change_specialarea(-4)
+                return
+
+            # パーティの宿滞在時、冒険の中断
+            elif cw.cwpy.status == "Yado" and not cw.cwpy.is_dealing():
+                cw.cwpy.has_inputevent = True
+                cw.cwpy.sounds["click"].play()
+
+                if cw.cwpy.areaid == 1:
+                    cw.cwpy.call_modaldlg("RETURNTITLE")
+                if cw.cwpy.areaid == 2:
+                    cw.cwpy.exec_func(cw.cwpy.load_party, None)
+                return
+
+            # シナリオ戦闘時、戦闘行動選択ダイアログ表示
+            elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
+                cw.cwpy.sounds["click"].play()
+                cw.cwpy.call_modaldlg("BATTLECOMMAND")
+                return
+
+        cw.cwpy.sounds["click"].play()
+        cw.cwpy.call_modaldlg("CLOSE")
 
     def f1key_event(self):
         """
@@ -530,14 +546,14 @@ class EventHandlerForMessageWindow(EventHandler):
                 # Shiftキー
                 elif event.key == K_RSHIFT or event.key == K_LSHIFT:
                     self.shiftkey_event(True)
+                # ESCAPEキー
+                elif event.key == K_ESCAPE:
+                    self.escapekey_event()
 
             elif event.type == KEYUP:
                 # リターンキー
                 if event.key == K_RETURN:
                     self.returnkey_event()
-                # ESCAPEキー
-                elif event.key == K_ESCAPE:
-                    self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
@@ -802,14 +818,14 @@ class EventHandlerForBacklog(EventHandler):
                 # 下方向キー
                 elif event.key == K_DOWN:
                     self.dirkey_event(y=1)
+                # ESCAPEキー
+                elif event.key == K_ESCAPE:
+                    self.escapekey_event()
 
             elif event.type == KEYUP:
                 # リターンキー
                 if event.key == K_RETURN:
                     self.returnkey_event()
-                # ESCAPEキー
-                elif event.key == K_ESCAPE:
-                    self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
@@ -1018,15 +1034,14 @@ class EventHandlerForEffectBooster(EventHandler):
             self.check_puressedbutton(event)
 
             if event.type == KEYDOWN:
-                pass
+                # ESCAPEキー
+                if event.key == K_ESCAPE:
+                    self.escapekey_event()
 
             elif event.type == KEYUP:
                 # リターンキー
                 if event.key == K_RETURN:
                     self.returnkey_event()
-                # ESCAPEキー
-                elif event.key == K_ESCAPE:
-                    self.escapekey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
