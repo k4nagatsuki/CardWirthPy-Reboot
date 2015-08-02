@@ -24,6 +24,8 @@ import array
 import unicodedata
 
 if sys.platform == "win32":
+    import win32api
+    import win32con
     import importlib
     pythoncom = importlib.import_module("pythoncom")
     win32shell = importlib.import_module("win32com.shell.shell")
@@ -2347,6 +2349,30 @@ def set_acceleratortable(panel, seq):
         for child in widget.GetChildren():
             recurse(child)
     recurse(panel)
+
+def adjust_dropdownwidth(choice):
+    """wx.Choiceまたはwx.ComboBoxのドロップダウンリストの
+    横幅を内容に合わせて広げる。
+    """
+    if sys.platform == "win32":
+        # スクロールバーの幅
+        scwidth = win32api.GetSystemMetrics(win32con.SM_CXVSCROLL)
+        w = win32api.SendMessage(choice.GetHandle(), win32con.CB_GETDROPPEDWIDTH, 0, 0)
+
+        # 項目ごとに幅を計算
+        dc = wx.ClientDC(choice)
+        for s in choice.GetItems():
+            w = max(w, dc.GetTextExtent(s)[0] + 5 + scwidth)
+        dc.SetFont(choice.GetFont())
+
+        # モニタの横幅よりは大きくしない
+        d = wx.Display.GetFromWindow(choice)
+        if d == wx.NOT_FOUND: d = 0
+        drect = wx.Display(d).GetClientArea()
+        w = min(w, drect[2])
+
+        # 幅を設定
+        win32api.SendMessage(choice.GetHandle(), win32con.CB_SETDROPPEDWIDTH, w, 0)
 
 #-------------------------------------------------------------------------------
 #  スレッド関係

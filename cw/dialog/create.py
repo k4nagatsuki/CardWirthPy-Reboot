@@ -726,6 +726,7 @@ class AdventurerCreaterPage(wx.Panel):
             self.ch_imgdpath.Hide()
 
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        cw.util.adjust_dropdownwidth(self.ch_imgdpath)
         self.Layout()
 
     def draw(self, update=False):

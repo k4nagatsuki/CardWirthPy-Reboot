@@ -592,6 +592,7 @@ class CharaRequirementPanel(wx.Panel):
         flist.sort()
         flist.insert(0, cw.cwpy.msgs["no_change"])
         self.imgcombo.SetItems(flist)
+        cw.util.adjust_dropdownwidth(self.imgcombo)
 
         if img in fpaths:
             # 一覧に選択済みのイメージが含まれていれば復元

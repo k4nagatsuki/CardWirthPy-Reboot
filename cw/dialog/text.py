@@ -46,6 +46,7 @@ class Text(wx.Dialog):
         # choice
         self.combo = wx.ComboBox(self.toppanel, size=cw.wins((140, 20)), choices=self.list, style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        cw.util.adjust_dropdownwidth(self.combo)
 
         if self.list:
             self.combo.SetSelection(self.index)
@@ -111,6 +112,7 @@ class Text(wx.Dialog):
 
         self._set_text(value)
         self.combo.SetItems(self.list)
+        cw.util.adjust_dropdownwidth(self.combo)
 
         if self.list:
             self.combo.SetSelection(self.index)
@@ -138,6 +140,7 @@ class Text(wx.Dialog):
 
         self._set_text(value)
         self.combo.SetItems(self.list)
+        cw.util.adjust_dropdownwidth(self.combo)
 
         if self.list:
             self.combo.SetSelection(self.index)
