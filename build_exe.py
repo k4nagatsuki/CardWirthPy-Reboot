@@ -290,6 +290,18 @@ def compress_src(zpath):
     z.close()
     return zpath
 
+def create_versioninfo():
+    # ビルド情報を生成する
+    print "Create versioninfo.py."
+    date = datetime.datetime.today()
+    s = "build_datetime = \"%s\"\n" % (date.strftime("%Y-%m-%d %H:%M:%S"))
+    with open("versioninfo.py", "w") as f:
+        f.write(s)
+
+def remove_versioninfo():
+    print "Remove versioninfo.py."
+    os.remove("versioninfo.py")
+
 if __name__ == '__main__':
     if operator.lt(len(sys.argv), 2):
         sys.argv.append('py2exe')
@@ -299,18 +311,12 @@ if __name__ == '__main__':
         nokey = True
         sys.argv.remove("-nokey")
 
-    # ビルド情報を生成
-    print "Create versioninfo.py."
-    date = datetime.datetime.today()
-    s = "build_datetime = \"%s\"\n" % (date.strftime("%Y-%m-%d %H:%M:%S"))
-    with open("versioninfo.py", "w") as f:
-        f.write(s)
+    create_versioninfo()
 
     try:
         BuildExe().run() #Run generation
     finally:
-        print "Remove versioninfo.py."
-        os.remove("versioninfo.py")
+        remove_versioninfo()
 
     if not nokey:
         raw_input("\nPress any key to continue") #Pause to let user see that things ends

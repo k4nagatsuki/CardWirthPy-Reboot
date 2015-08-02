@@ -36,8 +36,14 @@ if __name__ == '__main__':
         sys.argv.pop()
 
     sys.argv = [sys.argv[0], 'py2exe']
-    exe = build_exe.BuildExe()
-    exe.run()
+
+    build_exe.create_versioninfo()
+
+    try:
+        exe = build_exe.BuildExe()
+        exe.run()
+    finally:
+        build_exe.remove_versioninfo()
 
     # フォント類は別配布するため削除
     shutil.rmtree("CardWirthPy/Data/Font")
