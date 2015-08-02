@@ -188,13 +188,13 @@ class MoneyEditPanel(wx.Panel):
         sizer_v2.Add(self.spinctrl, 0, wx.CENTER, 0)
 
         sizer_h3.Add(self.bmp_ymoney, 0, wx.CENTER, 0)
-        sizer_h3.Add(sizer_v3, 0, wx.CENTER|wx.LEFT, cw.wins(5))
+        sizer_h3.Add(sizer_v3, 1, wx.CENTER|wx.LEFT, cw.wins(5))
 
         sizer_h2.Add(self.bmp_pmoney, 0, wx.CENTER, 0)
-        sizer_h2.Add(sizer_v2, 0, wx.CENTER|wx.LEFT, cw.wins(5))
+        sizer_h2.Add(sizer_v2, 1, wx.CENTER|wx.LEFT, cw.wins(5))
 
-        sizer_v1.Add(sizer_h2, 0, wx.CENTER, 0)
-        sizer_v1.Add(sizer_h3, 0, wx.CENTER, 0)
+        sizer_v1.Add(sizer_h2, 0, wx.CENTER|wx.EXPAND, 0)
+        sizer_v1.Add(sizer_h3, 0, wx.CENTER|wx.EXPAND, 0)
 
         sizer_h1.Add(self.slider, 0, wx.CENTER, 0)
         sizer_h1.Add(sizer_v1, 0, wx.CENTER|wx.LEFT, cw.wins(5))
