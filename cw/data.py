@@ -58,6 +58,11 @@ class SystemData(object):
         self.resource_cache = {}
         self.autostart_round = False
         self.breakpoints = set()
+
+        # シナリオごとのブレークポイントを保存する
+        if isinstance(cw.cwpy.sdata, ScenarioData):
+            cw.cwpy.sdata.save_breakpoints()
+
         # refresh debugger
         self._init_debugger()
 
@@ -423,7 +428,7 @@ class ScenarioData(SystemData):
         self.backlog = []
 
         # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
-        self.breakpoints = set()
+        self.breakpoints = cw.cwpy.breakpoint_table.get((self.name, self.author), set())
 
         # 各段階の互換性マーク
         self.versionhint = [
@@ -460,6 +465,13 @@ class ScenarioData(SystemData):
         self.versionhint[pos] = hint
         if cw.cwpy.sct.to_basehint(last) <> cw.cwpy.sct.to_basehint(self.get_versionhint()):
             cw.cwpy.update_titlebar()
+
+    def save_breakpoints(self):
+        key = (self.name, self.author)
+        if self.breakpoints:
+            cw.cwpy.breakpoint_table[key] = self.breakpoints
+        elif key in cw.cwpy.breakpoint_table:
+            del cw.cwpy.breakpoint_table[key]
 
     def reload(self):
         flagvals = {}

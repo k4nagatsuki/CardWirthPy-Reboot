@@ -175,6 +175,9 @@ class CWPy(_Singleton, threading.Thread):
         self._stored_partyrecord = None
         # 対象消去によってメンバの位置を再計算する必要があるか
         self._need_disposition = False
+        # シナリオごとのブレークポイント情報
+        self.breakpoint_table = {}
+        self._load_breakpoints()
 
         # アーカイヴを展開中のシナリオ
         self.expanding = u""
@@ -188,6 +191,54 @@ class CWPy(_Singleton, threading.Thread):
 
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
+
+    def _load_breakpoints(self):
+        """シナリオごとのブレークポイント情報をロードする。
+        """
+        if not os.path.isfile("Breakpoints.xml"):
+            return
+
+        data = cw.data.xml2element("Breakpoints.xml")
+        for e_sc in data:
+            if e_sc.tag <> "Breakpoints":
+                continue
+
+            scenario = e_sc.get("scenario", "")
+            author = e_sc.get("author", "")
+            key = (scenario, author)
+            bps = set()
+            for e in e_sc:
+                if e.tag <> "Breakpoint":
+                    continue
+                if e.text:
+                    bps.add(e.text)
+            self.breakpoint_table[key] = bps
+
+    def _save_breakpoints(self):
+        """シナリオごとのブレークポイント情報を保存する。
+        """
+        if isinstance(self.sdata, cw.data.ScenarioData):
+            self.sdata.save_breakpoints()
+
+        element = cw.data.make_element("AllBreakpoints")
+
+        for key, bps in self.breakpoint_table.iteritems():
+            scenario, author = key
+            e_sc = cw.data.make_element("Breakpoints", attrs={"scenario":scenario,
+                                                             "author":author})
+            for bp in bps:
+                if bp:
+                    e = cw.data.make_element("Breakpoint", bp)
+                    e_sc.append(e)
+            if len(e_sc):
+                element.append(e_sc)
+
+        path = "Breakpoints.xml"
+        if len(element):
+            etree = cw.data.xml2etree(element=element)
+            etree.write(path)
+        elif os.path.isfile(path):
+            cw.util.remove(path)
 
     def _init_resources(self):
         try:
@@ -576,6 +627,7 @@ class CWPy(_Singleton, threading.Thread):
             self.lastsound_system = None
         pygame.quit()
         cw.util.remove_temp()
+        self._save_breakpoints()
         self.setting.write()
         if self.rsrc:
             self.rsrc.clear_systemfonttable()
