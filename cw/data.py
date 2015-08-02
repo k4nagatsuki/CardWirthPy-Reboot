@@ -131,6 +131,9 @@ class SystemData(object):
     def end(self):
         pass
 
+    def save_breakpoints(self):
+        pass
+
     def set_log(self):
         """
         wslファイルの読み込みまたは新規作成を行う。

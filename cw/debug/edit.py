@@ -774,6 +774,114 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         indexes = self.get_selectedindexes()
         self.rmvbtn.Enable(bool(indexes))
 
+#-------------------------------------------------------------------------------
+#  ブレークポイント整理ダイアログ
+#-------------------------------------------------------------------------------
+
+class BreakpointEditDialog(wx.Dialog):
+
+    def __init__(self, parent, breakpoint_table):
+        wx.Dialog.__init__(self, parent, -1, u"ブレークポイントを設定したシナリオ",
+                style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
+        self.cwpy_debug = True
+        keys = breakpoint_table.iterkeys()
+        self.list = list(sorted(keys))
+        self._removed = []
+
+        # リスト
+        image = cw.cwpy.rsrc.debugs["BREAKPOINT_dbg"]
+        self.values = AutoWidthListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER|wx.BORDER)
+        self.values.imglist = wx.ImageList(image.GetWidth(), image.GetHeight())
+        self.values.imgidx = self.values.imglist.Add(image)
+        self.values.SetImageList(self.values.imglist, wx.IMAGE_LIST_SMALL)
+        self.values.InsertColumn(0, u"項目名")
+        self.values.SetColumnWidth(0, 170)
+        self.values.setResizeColumn(0)
+
+        # 削除
+        self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
+
+        # 決定
+        self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["entry_decide"])
+        # 中止
+        self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["entry_cancel"])
+
+        self._bind()
+        self._do_layout()
+
+        for name, author in self.list:
+            index = self.values.GetItemCount()
+            if author:
+                s = u"%s(%s)" % (name, author)
+            else:
+                s = u"%s" % (name)
+            self.values.InsertStringItem(index, s)
+            self.values.SetItemImage(index, self.values.imgidx)
+
+        self._item_selected()
+
+    def _bind(self):
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemSelected, self.values)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveBtn, self.rmvbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+
+    def _do_layout(self):
+        sizer_right = wx.BoxSizer(wx.VERTICAL)
+        sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
+        sizer_right.AddStretchSpacer(1)
+        sizer_right.Add(self.okbtn, 0, wx.EXPAND)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.values, 1, wx.EXPAND|wx.ALL, border=5)
+        sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def OnRemoveBtn(self, event):
+        while True:
+            index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            self._removed.append(self.list.pop(index))
+            self.values.DeleteItem(index)
+        self._item_selected()
+
+    def OnOkBtn(self, event):
+        def func(removedlist):
+            cw.cwpy.sounds["harvest"].play()
+            for removed in removedlist:
+                if removed in cw.cwpy.breakpoint_table:
+                    del cw.cwpy.breakpoint_table[removed]
+            if cw.cwpy.event:
+                cw.cwpy.event.refresh_tools()
+        cw.cwpy.exec_func(func, self._removed)
+        self.SetReturnCode(wx.ID_OK)
+        self.Destroy()
+
+    def OnItemSelected(self, event):
+        self._item_selected()
+
+    def get_removed(self):
+        return self._removed
+
+    def get_selectedindexes(self):
+        index = -1
+        indexes = []
+        while True:
+            index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index <= -1:
+                break
+            indexes.append(index)
+        return indexes
+
+    def _item_selected(self):
+        indexes = self.get_selectedindexes()
+        self.rmvbtn.Enable(bool(indexes))
+
 class AutoWidthListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, cid, size, style):
         wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)

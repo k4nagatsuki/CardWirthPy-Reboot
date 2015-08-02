@@ -45,6 +45,7 @@ ID_ROUND = wx.NewId()
 ID_STARTEVENT = wx.NewId()
 ID_EDITOR = wx.NewId()
 ID_BREAKPOINT = wx.NewId()
+ID_CLEAR_BREAKPOINT = wx.NewId()
 
 
 class Debugger(wx.Frame):
@@ -224,6 +225,11 @@ class Debugger(wx.Frame):
         self.mi_breakpoint.SetBitmap(rsrc["BREAKPOINT"])
         run_menu.AppendItem(self.mi_breakpoint)
         run_menu.AppendSeparator()
+        self.mi_clear_breakpoint = wx.MenuItem(run_menu, ID_CLEAR_BREAKPOINT, u"ブレークポイントの整理(&C)",
+                         u"シナリオごとのブレークポイントをクリアします。")
+        self.mi_clear_breakpoint.SetBitmap(rsrc["CLEAR_BREAKPOINT"])
+        run_menu.AppendItem(self.mi_clear_breakpoint)
+        run_menu.AppendSeparator()
         self.mi_select = wx.MenuItem(run_menu, ID_SELECTION, u"選択メンバ(&S)",
                          u"選択中のキャラクターを変更します。")
         self.mi_select.SetBitmap(rsrc["SELECTION"])
@@ -355,6 +361,10 @@ class Debugger(wx.Frame):
             ID_BREAKPOINT, u"ブレークポイントの切替", rsrc["BREAKPOINT"],
             shortHelp=u"ブレークポイントを設定、または解除します。")
         self.tb_event.AddSeparator()
+        self.tl_clear_breakpoint = self.tb_event.AddLabelTool(
+            ID_CLEAR_BREAKPOINT, u"ブレークポイントの整理", rsrc["CLEAR_BREAKPOINT"],
+            shortHelp=u"シナリオごとのブレークポイントをクリアします。")
+        self.tb_event.AddSeparator()
         self.sc_waittime = wx.SpinCtrl(
             self.tb_event, -1, u"イベント待機時間", size=(40, 20))
         self.sc_waittime.SetRange(0, 99)
@@ -481,6 +491,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnPauseTool, id=ID_PAUSE)
         self.Bind(wx.EVT_MENU, self.OnStopTool, id=ID_STOP)
         self.Bind(wx.EVT_MENU, self.OnBreakpointTool, id=ID_BREAKPOINT)
+        self.Bind(wx.EVT_MENU, self.OnClearBreakpointTool, id=ID_CLEAR_BREAKPOINT)
         self.Bind(wx.EVT_MENU, self.OnRecoveryTool, id=ID_RECOVERY)
         self.Bind(wx.EVT_MENU, self.OnPackageTool, id=ID_PACK)
         self.Bind(wx.EVT_MENU, self.OnBattleTool, id=ID_BATTLE)
@@ -1129,6 +1140,39 @@ class Debugger(wx.Frame):
             cw.cwpy.frame.debugger.tl_breakpoint.Enable(enable)
             cw.cwpy.frame.debugger.tb_event.Realize()
 
+    def OnClearBreakpointTool(self, event):
+        def func(self):
+            if not cw.cwpy.sdata:
+                return
+            cw.cwpy.sdata.save_breakpoints()
+            breakpoint_table = cw.cwpy.breakpoint_table.copy()
+            def func(self):
+                if not self:
+                    return
+                dlg = cw.debug.edit.BreakpointEditDialog(self, breakpoint_table)
+                cw.cwpy.frame.move_dlg(dlg)
+                if dlg.ShowModal() == wx.ID_OK:
+                    def func(self):
+                        if cw.cwpy.is_playingscenario():
+                            key = (cw.cwpy.sdata.name, cw.cwpy.sdata.author)
+                            cw.cwpy.sdata.breakpoints = cw.cwpy.breakpoint_table.get(key, set())
+                            def func(self):
+                                if self:
+                                    self.view_tree.Refresh()
+                                    self.refresh_clearbreakpointtool()
+                            cw.cwpy.frame.exec_func(func, self)
+                    cw.cwpy.exec_func(func, self)
+
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+
+    def refresh_clearbreakpointtool(self):
+        enable = bool(cw.cwpy.breakpoint_table or cw.cwpy.sdata.breakpoints)
+        if cw.cwpy.frame.debugger.mi_clear_breakpoint.IsEnabled() <> enable:
+            cw.cwpy.frame.debugger.mi_clear_breakpoint.Enable(enable)
+            cw.cwpy.frame.debugger.tl_clear_breakpoint.Enable(enable)
+            cw.cwpy.frame.debugger.tb_event.Realize()
+
     def refresh_areaname(self):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
@@ -1184,6 +1228,7 @@ class Debugger(wx.Frame):
             is_showingmessage = cw.cwpy.is_showingmessage()
             is_runningevent = cw.cwpy.is_runningevent()
             is_playingscenario = cw.cwpy.is_playingscenario()
+            breakpoints = cw.cwpy.sdata.breakpoints.copy()
             def func(self):
                 if not self:
                     return
@@ -1223,6 +1268,7 @@ class Debugger(wx.Frame):
                 enabled[self.mi_area.GetId()] = (self.mi_area, self.tl_area, False)
                 enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, False)
                 enabled[self.mi_breakpoint.GetId()] = (self.mi_breakpoint, self.tl_breakpoint, False)
+                enabled[self.mi_clear_breakpoint.GetId()] = (self.mi_clear_breakpoint, self.tl_clear_breakpoint, False)
 
                 enabled[self.mi_bgm.GetId()] = (self.mi_bgm, self.tl_bgm, True)
 
@@ -1281,6 +1327,9 @@ class Debugger(wx.Frame):
 
                 if self.view_tree.selectionitem:
                     enabled[self.mi_breakpoint.GetId()] = (self.mi_breakpoint, self.tl_breakpoint, True)
+
+                if breakpoints or cw.cwpy.breakpoint_table:
+                    enabled[self.mi_clear_breakpoint.GetId()] = (self.mi_clear_breakpoint, self.tl_clear_breakpoint, True)
 
                 bars = set()
                 for mi, tl, enable in enabled.itervalues():
@@ -1662,6 +1711,8 @@ class EventView(wx.ScrolledWindow):
         else:
             cw.cwpy.sdata.breakpoints.add(item.cwxpath)
         self.Refresh()
+        if cw.cwpy.frame.debugger:
+            cw.cwpy.frame.debugger.refresh_clearbreakpointtool()
 
     def OnLeftDown(self, event):
         self.SetFocus()
