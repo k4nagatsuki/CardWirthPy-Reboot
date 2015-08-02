@@ -16,6 +16,13 @@ from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP, USEREV
 
 import cw
 
+# build_exe.pyによって作られる一時モジュール
+# cw.versioninfoからビルド時間の情報を得る
+try:
+    import versioninfo
+except ImportError:
+    versioninfo = None
+
 
 class CWPyRunningError(Exception):
     pass
@@ -514,7 +521,10 @@ class CWPy(_Singleton, threading.Thread):
             vstr = []
             for v in cw.APP_VERSION:
                 vstr.append(str(v))
-            sys.stderr.write("Version : %s\n" % ".".join(vstr))
+            sys.stderr.write("Version : %s" % ".".join(vstr))
+            if versioninfo:
+                sys.stderr.write(" / %s" % (versioninfo.build_datetime))
+            sys.stderr.write("\n")
             d = datetime.datetime.today()
             sys.stderr.write(d.strftime("DateTime: %Y-%m-%d %H:%M:%S\n"))
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stderr)

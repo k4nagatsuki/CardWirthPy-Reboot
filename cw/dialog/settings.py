@@ -9,6 +9,12 @@ import pygame
 
 import cw
 
+# build_exe.pyによって作られる一時モジュール
+# cw.versioninfoからビルド時間の情報を得る
+try:
+    import versioninfo
+except ImportError:
+    versioninfo = None
 
 SETTINGS_WIDTH = 250
 
@@ -29,10 +35,19 @@ class SettingsDialog(wx.Dialog):
         self.note.AddPage(self.pane_font, u"フォント")
         self.note.AddPage(self.pane_scenario, u"シナリオ")
         self.note.AddPage(self.pane_ui, u"操作")
+
+        s = "%s %s" % (cw.APP_NAME, ".".join(map(lambda a: str(a), cw.APP_VERSION)))
+        if versioninfo:
+            s = "%s / Build: %s" % (s, versioninfo.build_datetime)
+        self.versioninfo = wx.TextCtrl(self, -1, s, size=(-1, -1), style=wx.TE_READONLY|wx.NO_BORDER)
+        dc = wx.ClientDC(self.versioninfo)
+        self.versioninfo.SetMinSize((dc.GetTextExtent(s)[0] + 5, -1))
+
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
         self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
         self.note.SetSelection(cw.cwpy.settingtab)
+
         self._do_layout()
         self._bind()
 
@@ -557,12 +572,14 @@ class SettingsDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer_btn = wx.BoxSizer(wx.HORIZONTAL)
 
+        sizer_btn.Add(self.versioninfo, 0, wx.ALIGN_CENTER, 0)
+        sizer_btn.AddStretchSpacer(1)
         sizer_btn.Add(self.btn_ok, 0, 0, 0)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT, 5)
         sizer_btn.Add(self.btn_dflt, 0, wx.LEFT, 5)
 
         sizer.Add(self.note, 0, 0, 0)
-        sizer.Add(sizer_btn, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+        sizer.Add(sizer_btn, 0, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()

@@ -18,6 +18,7 @@ try:
     import sys, os, shutil
     import operator
     import time
+    import datetime
     import zipfile
     import py2exe.mf
     import win32com
@@ -298,7 +299,18 @@ if __name__ == '__main__':
         nokey = True
         sys.argv.remove("-nokey")
 
-    BuildExe().run() #Run generation
+    # ビルド情報を生成
+    print "Create versioninfo.py."
+    date = datetime.datetime.today()
+    s = "build_datetime = \"%s\"\n" % (date.strftime("%Y-%m-%d %H:%M:%S"))
+    with open("versioninfo.py", "w") as f:
+        f.write(s)
+
+    try:
+        BuildExe().run() #Run generation
+    finally:
+        print "Remove versioninfo.py."
+        os.remove("versioninfo.py")
 
     if not nokey:
         raw_input("\nPress any key to continue") #Pause to let user see that things ends
