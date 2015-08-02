@@ -351,7 +351,15 @@ class EventInterface(object):
             cnt = 0
 
             if self._step:
+                # ステップ実行中
                 self._paused = True
+
+            if not self._paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
+                # ブレークポイント到達
+                self._paused = True
+                def func():
+                    cw.cwpy.frame.debugger.pause(True)
+                cw.cwpy.frame.exec_func(func)
 
             tick = pygame.time.get_ticks()
             tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100

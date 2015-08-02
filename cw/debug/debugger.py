@@ -1026,10 +1026,14 @@ class Debugger(wx.Frame):
             mwin.result = 0
 
     def OnPauseTool(self, event):
+        self.pause(not cw.cwpy.event._paused)
+
+    def pause(self, paused):
+        assert threading.currentThread() <> cw.cwpy
         # メッセージウィンドウ表示中の場合は一時停止できない
         cw.cwpy.event.breakwait = True
         cw.cwpy.event._targetstack = -2
-        cw.cwpy.event._paused = not cw.cwpy.event._paused
+        cw.cwpy.event._paused = paused
         cw.cwpy.event._step = False
 
         step = bool(cw.cwpy.event._paused and cw.cwpy.is_runningevent())
@@ -1414,6 +1418,9 @@ class EventView(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.SetBackgroundColour(wx.WHITE)
 
+        # 左側の垂直バーの幅
+        self.leftbarwidth = 24
+
         # 現在実行中のイベントツリーとイベント
         self.current_event = None
         self.current_tree = None
@@ -1458,22 +1465,34 @@ class EventView(wx.ScrolledWindow):
     def OnPaint(self, event):
         if not cw.cwpy.rsrc:
             return
-        if not self.itemlist:
-            return
+
         dc = wx.PaintDC(self)
         try:
             dc = wx.GCDC(dc)
         except:
             pass
 
+        csize = self.GetClientSize()
+        csize = (csize[0]+self.leftbarwidth, csize[1])
+
+        # ブレークポイント表示欄
+        linepen = wx.Pen(wx.Colour(128, 128, 128))
+        dc.SetPen(linepen)
+        dc.SetBrush(wx.Brush(wx.Colour(240, 240, 240)))
+        dc.DrawRectangle(-1, -1, self.leftbarwidth+2, csize[1]+2)
+
+        if not self.itemlist:
+            return
+
         selpen = wx.Pen(wx.Colour(255, 128, 128))
         selbrush = wx.Brush(wx.Colour(255, 240, 240))
         actpen =wx.Pen(wx.Colour(255, 192, 192))
         actbrush =wx.Brush(wx.Colour(255, 192, 192))
-        linepen = wx.Pen(wx.Colour(128, 128, 128))
+        bppen = wx.Pen(wx.Colour(128, 0, 0))
+        bpbrush = wx.Brush(wx.Colour(128, 0, 0))
+        bpbackbrush = wx.Brush(wx.Colour(255, 240, 232))
 
         x, y = self.GetViewStart()
-        csize = self.GetClientSize()
         xtop = x * self.scrollrate_x
         ytop = y * self.scrollrate_y
         y = self.get_index((0, ytop))
@@ -1484,17 +1503,30 @@ class EventView(wx.ScrolledWindow):
         for item in self.itemlist[y:]:
             if item.parent is None and item <> self.itemlist[0]:
                 dc.SetPen(linepen)
-                dc.DrawLine(0, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+
+            if item.cwxpath in cw.cwpy.sdata.breakpoints:
+                dc.SetPen(bppen)
+                dc.SetBrush(bpbrush)
+                circlesize = 6
+                dc.DrawCircle(self.leftbarwidth-circlesize-5, item.pos[1]-ytop+self.lineheight/2, circlesize)
+                dc.SetPen(wx.TRANSPARENT_PEN)
+                dc.SetBrush(bpbackbrush)
+                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
 
             if item == self.activeitem:
                 dc.SetPen(actpen)
                 dc.SetBrush(actbrush)
-                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0]+1, self.lineheight)
+                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
             else:
                 dc.SetBrush(selbrush)
             if item == self.selectionitem:
+                dc.SetPen(wx.TRANSPARENT_PEN)
+                dc.DrawRectangle(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], self.lineheight)
                 dc.SetPen(selpen)
-                dc.DrawRectangle(0, item.pos[1]-ytop, csize[0]+1, self.lineheight)
+                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop, csize[0], item.pos[1]-ytop)
+                dc.DrawLine(self.leftbarwidth + 1, item.pos[1]-ytop+self.lineheight-1, csize[0], item.pos[1]-ytop+self.lineheight-1)
+
             if last == item:
                 break
 
@@ -1514,7 +1546,7 @@ class EventView(wx.ScrolledWindow):
             ix, iy = item.pos
             ix -= xtop
             iy -= ytop
-            cx = ix + iw/2
+            cx = ix + iw/2 + self.leftbarwidth
             cy = iy + self.lineheight/2
             if item.nextlen == 0:
                 bottom = cy+self.lineheight-4
@@ -1543,7 +1575,7 @@ class EventView(wx.ScrolledWindow):
         yg = (self.lineheight - dc.GetTextExtent("#")[1]) / 2
         for item in self.itemlist[y:]:
             if item.image:
-                dc.DrawBitmap(item.image, item.pos[0]-xtop, item.pos[1]-ytop, True)
+                dc.DrawBitmap(item.image, item.pos[0]-xtop+self.leftbarwidth, item.pos[1]-ytop, True)
             s = item.text
             if item == self.activeitem:
                 dc.SetTextForeground(wx.RED)
@@ -1555,7 +1587,7 @@ class EventView(wx.ScrolledWindow):
             else:
                 imgwidth = 0
             dc.DrawText(s,
-                        item.pos[0]+imgwidth+2-xtop,
+                        item.pos[0]+imgwidth+2-xtop+self.leftbarwidth,
                         item.pos[1]-ytop+yg)
 
             if last == item:
@@ -1592,6 +1624,18 @@ class EventView(wx.ScrolledWindow):
         x, y = self.GetViewStart()
         xtop = x * self.scrollrate_x
         ytop = y * self.scrollrate_y
+
+        if event.GetX() < self.leftbarwidth:
+            # ブレークポイント切替
+            item = self.get_item((event.GetX()+xtop, event.GetY()+ytop))
+            if item:
+                if item.cwxpath in cw.cwpy.sdata.breakpoints:
+                    cw.cwpy.sdata.breakpoints.remove(item.cwxpath)
+                else:
+                    cw.cwpy.sdata.breakpoints.add(item.cwxpath)
+                self.Refresh()
+            return
+
         index = self.get_index((event.GetX()+xtop, event.GetY()+ytop))
         if index <> -1:
             item = self.itemlist[index]
@@ -1604,6 +1648,8 @@ class EventView(wx.ScrolledWindow):
     def OnDClick(self, event):
         self.SetFocus()
         x, y = self.GetViewStart()
+        if event.GetX() < self.leftbarwidth:
+            return
         xtop = x * self.scrollrate_x
         ytop = y * self.scrollrate_y
         item = self.get_item((event.GetX()+xtop, event.GetY()+ytop))
@@ -1837,6 +1883,7 @@ class EventViewItem(object):
         assert threading.currentThread() <> cw.cwpy
         self.parent = parent
         self.content = content
+        self.cwxpath = content.get_cwxpath()
         self.pos = pos
         s = u""
         if not self.parent is None:

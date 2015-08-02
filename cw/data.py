@@ -57,6 +57,7 @@ class SystemData(object):
         self.data_cache = {}
         self.resource_cache = {}
         self.autostart_round = False
+        self.breakpoints = set()
         # refresh debugger
         self._init_debugger()
 
@@ -420,6 +421,9 @@ class ScenarioData(SystemData):
         self.resource_cache = {}
         # メッセージのバックログ
         self.backlog = []
+
+        # イベントが任意箇所に到達した時に実行を停止するためのブレークポイント
+        self.breakpoints = set()
 
         # 各段階の互換性マーク
         self.versionhint = [
@@ -2578,6 +2582,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
         self.content = None
         self.nextelements = None
         self.needcheck = None
+        self.cwxpath = None
 
     def append(self, subelement):
         subelement.cwxparent = self
@@ -2607,6 +2612,9 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
         """CWXパスを構築して返す。
         イベントまたはその親要素でなければ正しいパスは構築されない。
         """
+        if not self.cwxpath is None:
+            return self.cwxpath
+
         cwxpath = []
 
         e = self
@@ -2667,9 +2675,11 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
             e = e.cwxparent
 
         if scenariodata:
-            return "/".join(reversed(cwxpath))
+            self.cwxpath = "/".join(reversed(cwxpath))
         else:
-            return ""
+            self.cwxpath = ""
+
+        return self.cwxpath
 
 
 #-------------------------------------------------------------------------------
