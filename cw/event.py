@@ -331,7 +331,18 @@ class EventInterface(object):
         """
         if not self.get_event():
             return
+
         cur_content= self.get_event().cur_content
+
+        if cw.cwpy.is_showingdebugger() and\
+                 cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
+            if not self._paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
+                # ブレークポイント到達
+                self._paused = True
+                def func():
+                    cw.cwpy.frame.debugger.pause(True)
+                cw.cwpy.frame.exec_func(func)
+
         if cur_content.tag == "Talk":
             # メッセージの場合は表示後に待機するので
             # ここでは待ち合わせない
@@ -353,13 +364,6 @@ class EventInterface(object):
             if self._step:
                 # ステップ実行中
                 self._paused = True
-
-            if not self._paused and cw.cwpy.sdata.breakpoints and cur_content.get_cwxpath() in cw.cwpy.sdata.breakpoints:
-                # ブレークポイント到達
-                self._paused = True
-                def func():
-                    cw.cwpy.frame.debugger.pause(True)
-                cw.cwpy.frame.exec_func(func)
 
             tick = pygame.time.get_ticks()
             tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100

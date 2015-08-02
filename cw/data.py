@@ -2664,7 +2664,7 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
             elif e.tag in ("SkillCards", "ItemCards", "BeastCards", "Beasts", "Motions",
                            "Contents", "Events", "MenuCards", "EnemyCards"):
                 pass
-            elif e.tag in ("Adventurer", "CastCards"):
+            elif e.tag in ("Adventurer", "CastCards", "System"):
                 break
             else:
                 # Content
