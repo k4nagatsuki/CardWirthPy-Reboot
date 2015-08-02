@@ -227,7 +227,7 @@ class CharaInfo(object):
         self.sex = cw.cwpy.dice.choice(cw.cwpy.setting.sexcoupons)
         self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
         faces = []
-        for values in cw.util.get_facepaths(self.sex, self.age).itervalues():
+        for values in cw.util.get_facepaths(self.sex, self.age, rel=True).itervalues():
             faces.extend(values)
         self.imgpath = cw.cwpy.dice.choice(faces) if faces else u""
 
@@ -678,9 +678,12 @@ class CharaRequirementPanel(wx.Panel):
         self.name.SetValue(name)
         self.levelbtn.SetLabel("Lv %s" % (level))
         if imgpath:
-            facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
-            fpath = cw.util.relpath(imgpath, facedir)
-            fpath = cw.util.join_paths(fpath)
+            if os.path.abspath(imgpath):
+                fpath = imgpath
+            else:
+                facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
+                fpath = cw.util.relpath(imgpath, facedir)
+                fpath = cw.util.join_paths(fpath)
             # SetValue()を有効にするため一時的に追加
             # _update_images()で上書きされる
             self.imgcombo.Append(fpath)
@@ -737,7 +740,7 @@ class CharaRequirementPanel(wx.Panel):
             info.talent = arr[cw.cwpy.dice.roll(1, len(arr))-1]
 
             seq = []
-            for paths in cw.util.get_facepaths(info.sex, info.age).itervalues():
+            for paths in cw.util.get_facepaths(info.sex, info.age, rel=True).itervalues():
                 seq.extend(paths)
 
             info.imgpath = cw.cwpy.dice.choice(seq)

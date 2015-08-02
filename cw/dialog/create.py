@@ -719,7 +719,7 @@ class AdventurerCreaterPage(wx.Panel):
                 if key is None:
                     self.ch_imgdpath.Append(cw.cwpy.msgs["no_change"])
                 else:
-                    self.ch_imgdpath.Append(key)
+                    self.ch_imgdpath.Append(key[1])
             self.ch_imgdpath.Select(self.imgdpath)
             self.ch_imgdpath.Show()
         else:
