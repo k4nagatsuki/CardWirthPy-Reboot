@@ -407,10 +407,7 @@ class Debugger(wx.Frame):
         # create variable view
         self.view_var = VariableListCtrl(self)
         # create eventtree view
-        if cw.cwpy.setting.show_straighteventtree:
-            self.view_tree = EventView(self)
-        else:
-            self.view_tree = EventTreeCtrl(self)
+        self.view_tree = EventView(self)
 
         # add pane
         self._mgr.AddPane(
@@ -989,7 +986,10 @@ class Debugger(wx.Frame):
                     except cw.battle.BattleError, ex:
                         if cw.cwpy.is_battlestatus():
                             cw.cwpy.battle.process_exception(ex)
-                cw.cwpy.exec_func(func, dlg.events.get_selectedevent().start)
+                if dlg.start_event:
+                    cw.cwpy.exec_func(func, dlg.events.get_selectedevent().start)
+                else:
+                    self.view_tree.set_event(dlg.events.get_selectedevent())
             dlg.Destroy()
 
     def OnStepReturnTool(self, event):
@@ -1415,6 +1415,7 @@ class EventView(wx.ScrolledWindow):
         self.SetBackgroundColour(wx.WHITE)
 
         # 現在実行中のイベントツリーとイベント
+        self.current_event = None
         self.current_tree = None
         self.current_content = None
         # 現在実行中のContent(item)
@@ -1621,7 +1622,7 @@ class EventView(wx.ScrolledWindow):
             data = e[0]
 
         if not data is None:
-            cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data)
+            cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data, self.current_event)
 
     def OnKeyDown(self, event):
         if not self.itemlist:
@@ -1733,57 +1734,81 @@ class EventView(wx.ScrolledWindow):
                 if not self:
                     return
 
-                if nowrunning is None:
-                    self.items = {}
-                    self.itemlist = []
-                    self.activeitem = None
-                    self.selectionitem = None
-                    self.selectionindex = -1
-                    self.current_tree = None
-                    self.current_content = None
-                    self.processing = processing
-                    self.SetVirtualSize((1, 1))
-                    self.Refresh()
-                    return
-
-                self.maxwidth, self.maxheight = 0, 0
-                icon = cw.cwpy.rsrc.debugs["EVT_START"]
-                dc = wx.ClientDC(self)
-                actw, self.lineheight = dc.GetTextExtent(" // ACTIVE!")
-                shiftx = icon.GetWidth()
-                self.lineheight = max(icon.GetHeight() + 2, self.lineheight)
-                if self.current_tree <> trees:
-                    trees = nowrunning.trees
-                    self.current_tree = trees
-                    self.Parent.statusbar.SetStatusText(u"", 1)
-                    self.activeitem = None
-                    self.selectionitem = None
-                    self.selectionindex = -1
-                    self.items = {}
-                    self.itemlist = []
-
-                    if self.current_tree:
-                        for name in nowrunning.treekeys:
-                            tree = trees[name]
-                            self.create_item(None, tree, shiftx, dc)
-
-                    if self.itemlist:
-                        item = self.itemlist[-1]
-                        self.maxheight = item.pos[1] + item.height
-                    self.maxwidth += actw
-
-                    self.SetVirtualSize((self.maxwidth, self.maxheight))
-                    self.scrollrate_x = shiftx
-                    self.scrollrate_y = self.lineheight
-                    self.SetScrollRate(self.scrollrate_x, self.scrollrate_y)
-                    self.Scroll(0, 0)
-                    self.Refresh()
-
+                self._refresh_tree(nowrunning, trees)
                 self.processing = processing
 
             cw.cwpy.frame.exec_func(func, self, nowrunning, trees)
 
         cw.cwpy.exec_func(func, self)
+
+    def set_event(self, event):
+        assert threading.currentThread() <> cw.cwpy
+        if cw.cwpy.frame.debugger is None:
+            return
+        processing = self.processing
+        self.processing = True
+
+        def func(self, event):
+            trees = event.trees if not event is None else None
+
+            def func(self, event, trees):
+                if not self:
+                    return
+
+                self._refresh_tree(event, trees)
+                self.processing = processing
+
+            cw.cwpy.frame.exec_func(func, self, event, trees)
+
+        cw.cwpy.exec_func(func, self, event)
+
+    def _refresh_tree(self, nowrunning, trees):
+        if nowrunning is None:
+            self.items = {}
+            self.itemlist = []
+            self.activeitem = None
+            self.selectionitem = None
+            self.selectionindex = -1
+            self.current_event = None
+            self.current_tree = None
+            self.current_content = None
+            self.SetVirtualSize((1, 1))
+            self.Refresh()
+            return
+
+        self.maxwidth, self.maxheight = 0, 0
+        icon = cw.cwpy.rsrc.debugs["EVT_START"]
+        dc = wx.ClientDC(self)
+        actw, self.lineheight = dc.GetTextExtent(" // ACTIVE!")
+        shiftx = icon.GetWidth()
+        self.lineheight = max(icon.GetHeight() + 2, self.lineheight)
+        if self.current_tree <> trees:
+            trees = nowrunning.trees
+            self.current_event = nowrunning
+            self.current_tree = trees
+            self.Parent.statusbar.SetStatusText(u"", 1)
+            self.activeitem = None
+            self.selectionitem = None
+            self.selectionindex = -1
+            self.items = {}
+            self.itemlist = []
+
+            if self.current_tree:
+                for name in nowrunning.treekeys:
+                    tree = trees[name]
+                    self.create_item(None, tree, shiftx, dc)
+
+            if self.itemlist:
+                item = self.itemlist[-1]
+                self.maxheight = item.pos[1] + item.height
+            self.maxwidth += actw
+
+            self.SetVirtualSize((self.maxwidth, self.maxheight))
+            self.scrollrate_x = shiftx
+            self.scrollrate_y = self.lineheight
+            self.SetScrollRate(self.scrollrate_x, self.scrollrate_y)
+            self.Scroll(0, 0)
+            self.Refresh()
 
     def create_item(self, parentitem, content, shiftx, dc):
         assert threading.currentThread() <> cw.cwpy
@@ -1848,160 +1873,6 @@ class EventViewItem(object):
 
     def is_contains(self, pos):
         return self.pos[1] <= pos[1] and pos[1] < self.pos[1] + self.height
-
-class EventTreeCtrl(wx.TreeCtrl):
-    def __init__(self, parent):
-        wx.TreeCtrl.__init__(
-            self, parent, style=wx.TR_HIDE_ROOT|wx.TR_NO_BUTTONS)
-        self.SetDoubleBuffered(True)
-        # 現在実行中のイベントツリーとイベント
-        self.current_tree = None
-        self.current_content = None
-        # 現在実行中のContent(item)
-        self.activeitem = None
-        # itemの辞書(keyはコンテントデータ)
-        self.items = {}
-        self.imglist = wx.ImageList(16, 16)
-        self.imgidxs = {}
-
-        for key, value in cw.cwpy.rsrc.debugs.iteritems():
-            if key.startswith("EVT_"):
-                self.imgidxs[key] = self.imglist.Add(value)
-
-        self.SetImageList(self.imglist)
-        root = self.AddRoot("Event Root")
-        self.SetPyData(root, None)
-        self.refresh_tree()
-        self.refresh_activeitem()
-        self.processing = False
-        self._bind()
-
-    def _bind(self):
-        self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
-        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelectionChanged)
-
-    def OnSelectionChanged(self, event):
-        try:
-            item = self.GetSelection()
-            data = self.GetItemPyData(item)
-            content = cw.content.get_content(data)
-            self.Parent.statusbar.SetStatusText(content.get_status(), 1)
-        except:
-            pass
-
-    def OnDClick(self, event):
-        item = self.GetSelection()
-
-        if not item:
-            return
-        data = self.GetItemPyData(item)
-        if data is None:
-            return
-
-        # スタートコンテントの場合は次のコンテントへ遷移
-        if item.parent is None:
-            item, _cookie = self.GetFirstChild(item)
-            if not item.IsOk():
-                return
-            data = self.GetItemPyData(item)
-        if not data is None:
-            cw.cwpy.exec_func(cw.cwpy.event.set_curcontent, data)
-
-    def refresh_activeitem(self):
-        assert threading.currentThread() <> cw.cwpy
-        if cw.cwpy.frame.debugger is None:
-            return
-        processing = self.processing
-        self.processing = True
-        event = cw.cwpy.event.get_event()
-
-        if event and event.cur_content in self.items:
-            if self.current_content == event.cur_content:
-                self.processing = processing
-                return
-            self.current_content = event.cur_content
-
-            self.UnselectAll()
-            if self.activeitem:
-                content = self.GetItemPyData(self.activeitem)
-                parent = self.GetItemParent(self.activeitem)
-                parent = self.GetItemPyData(parent)
-                if parent is None:
-                    self.processing = processing
-                    return
-                s = self.get_contentname(parent, content)
-                self.SetItemText(self.activeitem, s)
-                self.SetItemTextColour(self.activeitem, wx.BLACK)
-
-            self.activeitem = self.items[event.cur_content]
-            self.SelectItem(self.activeitem)
-            s = self.GetItemText(self.activeitem) + u" // ACTIVE!"
-            self.SetItemText(self.activeitem, s)
-            self.SetItemTextColour(self.activeitem, wx.RED)
-        else:
-            self.current_content = None
-        self.processing = processing
-
-    def refresh_tree(self):
-        assert threading.currentThread() <> cw.cwpy
-        if cw.cwpy.frame.debugger is None:
-            return
-        processing = self.processing
-        self.processing = True
-
-        nowrunning = cw.cwpy.event.get_nowrunningevent()
-        if nowrunning is None:
-            self.DeleteChildren(self.GetRootItem())
-            self.items = {}
-            self.activeitem = None
-            self.current_tree = None
-            self.current_content = None
-            self.processing = processing
-            return
-
-        trees = nowrunning.trees
-        if self.current_tree <> trees:
-            trees = nowrunning.trees
-            self.current_tree = trees
-            self.Parent.statusbar.SetStatusText("", 1)
-            self.activeitem = None
-            self.items = {}
-            self.DeleteChildren(self.GetRootItem())
-
-            if self.current_tree:
-                for name in nowrunning.treekeys:
-                    tree = trees[name]
-                    self.set_content(self.GetRootItem(), tree, name)
-
-            self.ExpandAll()
-        self.processing = processing
-
-    def set_content(self, parentitem, content, name):
-        assert threading.currentThread() <> cw.cwpy
-        item = self.AppendItem(parentitem, name)
-        self.SetPyData(item, content)
-        s = "EVT_" + content.tag.upper()
-
-        if "type" in content.attrib:
-            s += "_" + content.get("type").upper()
-
-        self.SetItemImage(item, self.imgidxs.get(s, -1), wx.TreeItemIcon_Normal)
-        self.items[content] = item
-        element = content.find("Contents")
-
-        if element is not None:
-            for e in element:
-                self.set_content(item, e, self.get_contentname(content, e))
-
-    def get_contentname(self, parent, child):
-        """分岐コンテントの子コンテント見出し取得。"""
-        assert threading.currentThread() <> cw.cwpy
-        content = cw.content.get_content(parent)
-
-        if content:
-            return content.get_childname(child)
-        else:
-            return ""
 
 def main():
     pass

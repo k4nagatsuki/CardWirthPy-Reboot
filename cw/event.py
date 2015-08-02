@@ -387,16 +387,31 @@ class EventInterface(object):
             if self._stoped:
                 raise EffectBreakError()
 
-    def set_curcontent(self, content):
-        if not self.get_event():
-            return
-        self.get_event().force_nextcontent = content
-        mwin = cw.cwpy.get_messagewindow()
-        if mwin:
-            mwin.result = 0
+    def set_curcontent(self, content, event=None):
+        """次に実行するイベントコンテントを強制的に差し替える。
+        イベント実行中でなければ、イベントを開始する。
+        content: 次に実行するイベントコンテント。現在実行中のイベント
+                 またはeventに属していなければならない。
+        event: contentが属するイベント。
+               現在イベントが実行中であれば無視される。
+        """
+        if self.get_event():
+            if not event is None and not self.get_event() is event:
+                return
+            self.get_event().force_nextcontent = content
+            mwin = cw.cwpy.get_messagewindow()
+            if mwin:
+                mwin.result = 0
+            else:
+                self.get_event().skip_action = True
+                self.refresh_activeitem()
         else:
-            self.get_event().skip_action = True
-            self.refresh_activeitem()
+            event.force_nextcontent = content
+            try:
+                event.start()
+            except cw.battle.BattleError, ex:
+                if cw.cwpy.is_battlestatus():
+                    cw.cwpy.battle.process_exception(ex)
 
     def set_stepexec(self, step):
         self._step = step

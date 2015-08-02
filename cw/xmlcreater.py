@@ -471,11 +471,6 @@ def create_settings(setting):
         e = cw.data.make_element("ScreenShotInformationBackgroundColor", "", d)
         element.append(e)
 
-    # デバッガでイベントツリーを垂直表示する
-    if setting.show_straighteventtree <> setting.show_straighteventtree_init:
-        e = cw.data.make_element("ShowStraightEventTree", str(setting.show_straighteventtree))
-        element.append(e)
-
     # イベント中にステータスバーの色を変える
     if setting.statusbarmask <> setting.statusbarmask_init:
         e = cw.data.make_element("StatusBarMask", str(setting.statusbarmask))

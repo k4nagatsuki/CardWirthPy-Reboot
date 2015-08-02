@@ -678,5 +678,9 @@
     <Message key="auto_selection">自動選択</Message>
     <Message key="input_name">名称:</Message>
     <!-- 0.12.3 ここまで -->
+    <!-- 0.12.4 ここから -->
+    <Message key="run_event">実行</Message>
+    <Message key="open_event">開く</Message>
+    <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>

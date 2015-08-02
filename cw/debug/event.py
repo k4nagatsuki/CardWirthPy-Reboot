@@ -20,9 +20,12 @@ class EventListDialog(wx.Dialog):
         self.showhiddencards = showhiddencards
         self.showallcards = wx.CheckBox(self, -1, u"表示フラグがオフのカードも表示する")
         self.showallcards.SetValue(self.showhiddencards)
+        self.start_event = False
 
-        # 決定
-        self.okbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["decide"])
+        # 開く
+        self.openbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["open_event"])
+        # 実行
+        self.startbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), cw.cwpy.msgs["run_event"])
         # 中止
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_CANCEL, (-1, -1), cw.cwpy.msgs["cancel"])
 
@@ -37,9 +40,10 @@ class EventListDialog(wx.Dialog):
         sizer_left.Add(self.showallcards, 0, flag=wx.EXPAND|wx.TOP, border=5)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
+        sizer_right.Add(self.openbtn, 0, wx.EXPAND)
+        sizer_right.Add(self.startbtn, 0, wx.EXPAND|wx.TOP, border=5)
         sizer_right.AddStretchSpacer(1)
-        sizer_right.Add(self.okbtn, 0, wx.EXPAND)
-        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
+        sizer_right.Add(self.cnclbtn, 0, wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
@@ -51,15 +55,18 @@ class EventListDialog(wx.Dialog):
 
     def _bind(self):
         self.Bind(wx.EVT_CHECKBOX, self.OnShowAllCards, self.showallcards)
-        self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnOpenBtn, self.openbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnStartBtn, self.startbtn)
         self.events.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
-        self.events.Bind(wx.EVT_LEFT_DCLICK, self.OnOkBtn)
+        self.events.Bind(wx.EVT_LEFT_DCLICK, self.OnOpenBtn)
 
     def _changed_selection(self):
         if self.events.get_selectedevent():
-            self.okbtn.Enable()
+            self.openbtn.Enable()
+            self.startbtn.Enable()
         else:
-            self.okbtn.Disable()
+            self.openbtn.Disable()
+            self.startbtn.Disable()
 
     def OnTreeSelChanged(self, event):
         self._changed_selection()
@@ -69,9 +76,16 @@ class EventListDialog(wx.Dialog):
         self.events.set_showallcards(self.showhiddencards)
         self._changed_selection()
 
-    def OnOkBtn(self, event):
+    def OnStartBtn(self, event):
         if self.events.get_selectedevent():
             cw.cwpy.sounds["signal"].play()
+            self.start_event = True
+            self.EndModal(wx.ID_OK)
+
+    def OnOpenBtn(self, event):
+        if self.events.get_selectedevent():
+            cw.cwpy.sounds["signal"].play()
+            self.start_event = False
             self.EndModal(wx.ID_OK)
 
 class EventList(wx.TreeCtrl):
