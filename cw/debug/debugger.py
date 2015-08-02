@@ -44,6 +44,7 @@ ID_STOP = wx.NewId()
 ID_ROUND = wx.NewId()
 ID_STARTEVENT = wx.NewId()
 ID_EDITOR = wx.NewId()
+ID_BREAKPOINT = wx.NewId()
 
 
 class Debugger(wx.Frame):
@@ -204,6 +205,7 @@ class Debugger(wx.Frame):
                          u"イベントを1コンテントだけ実行します。サブルーチンに入ります。")
         self.mi_stepin.SetBitmap(rsrc["EVTCTRL_STEPIN"])
         run_menu.AppendItem(self.mi_stepin)
+        run_menu.AppendSeparator()
         self.mi_pause = wx.MenuItem(run_menu, ID_PAUSE, u"イベント一時停止(&P)\tF10",
                          u"イベントを一時停止します。", kind=wx.ITEM_CHECK)
         bmp1 = rsrc["EVTCTRL_PLAY"]
@@ -216,6 +218,11 @@ class Debugger(wx.Frame):
                          u"イベントを強制終了します。")
         self.mi_stop.SetBitmap(rsrc["EVTCTRL_STOP"])
         run_menu.AppendItem(self.mi_stop)
+        run_menu.AppendSeparator()
+        self.mi_breakpoint = wx.MenuItem(run_menu, ID_BREAKPOINT, u"ブレークポイントの切替(&W)\tCtrl+B",
+                         u"ブレークポイントを設定、または解除します。")
+        self.mi_breakpoint.SetBitmap(rsrc["BREAKPOINT"])
+        run_menu.AppendItem(self.mi_breakpoint)
         run_menu.AppendSeparator()
         self.mi_select = wx.MenuItem(run_menu, ID_SELECTION, u"選択メンバ(&S)",
                          u"選択中のキャラクターを変更します。")
@@ -344,6 +351,10 @@ class Debugger(wx.Frame):
             ID_STOP, u"イベント強制終了", rsrc["EVTCTRL_STOP"],
             shortHelp=u"イベントを強制終了します。")
         self.tb_event.AddSeparator()
+        self.tl_breakpoint = self.tb_event.AddLabelTool(
+            ID_BREAKPOINT, u"ブレークポイントの切替", rsrc["BREAKPOINT"],
+            shortHelp=u"ブレークポイントを設定、または解除します。")
+        self.tb_event.AddSeparator()
         self.sc_waittime = wx.SpinCtrl(
             self.tb_event, -1, u"イベント待機時間", size=(40, 20))
         self.sc_waittime.SetRange(0, 99)
@@ -469,6 +480,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnStepInTool, id=ID_STEPIN)
         self.Bind(wx.EVT_MENU, self.OnPauseTool, id=ID_PAUSE)
         self.Bind(wx.EVT_MENU, self.OnStopTool, id=ID_STOP)
+        self.Bind(wx.EVT_MENU, self.OnBreakpointTool, id=ID_BREAKPOINT)
         self.Bind(wx.EVT_MENU, self.OnRecoveryTool, id=ID_RECOVERY)
         self.Bind(wx.EVT_MENU, self.OnPackageTool, id=ID_PACK)
         self.Bind(wx.EVT_MENU, self.OnBattleTool, id=ID_BATTLE)
@@ -1107,6 +1119,16 @@ class Debugger(wx.Frame):
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
 
+    def OnBreakpointTool(self, event):
+        self.view_tree.switch_breakpoint()
+
+    def refresh_breakpointtool(self):
+        enable = bool(self.view_tree.selectionitem)
+        if cw.cwpy.frame.debugger.mi_breakpoint.IsEnabled() <> enable:
+            cw.cwpy.frame.debugger.mi_breakpoint.Enable(enable)
+            cw.cwpy.frame.debugger.tl_breakpoint.Enable(enable)
+            cw.cwpy.frame.debugger.tb_event.Realize()
+
     def refresh_areaname(self):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
@@ -1200,6 +1222,7 @@ class Debugger(wx.Frame):
                 enabled[self.mi_hideparty.GetId()] = (self.mi_hideparty, self.tl_hideparty, False)
                 enabled[self.mi_area.GetId()] = (self.mi_area, self.tl_area, False)
                 enabled[self.mi_startevent.GetId()] = (self.mi_startevent, self.tl_startevent, False)
+                enabled[self.mi_breakpoint.GetId()] = (self.mi_breakpoint, self.tl_breakpoint, False)
 
                 enabled[self.mi_bgm.GetId()] = (self.mi_bgm, self.tl_bgm, True)
 
@@ -1255,6 +1278,9 @@ class Debugger(wx.Frame):
                 enabled[self.mi_stepreturn.GetId()] = (self.mi_stepreturn, self.tl_stepreturn, step)
                 enabled[self.mi_stepover.GetId()] = (self.mi_stepover, self.tl_stepover, step)
                 enabled[self.mi_stepin.GetId()] = (self.mi_stepin, self.tl_stepin, step)
+
+                if self.view_tree.selectionitem:
+                    enabled[self.mi_breakpoint.GetId()] = (self.mi_breakpoint, self.tl_breakpoint, True)
 
                 bars = set()
                 for mi, tl, enable in enabled.itervalues():
@@ -1619,6 +1645,24 @@ class EventView(wx.ScrolledWindow):
                 i = len(seq) / 2
         return index + ii
 
+    def set_selectionitem(self, item):
+        enable = bool(self.selectionitem)
+        self.selectionitem = item
+        if cw.cwpy.frame.debugger:
+            cw.cwpy.frame.debugger.refresh_breakpointtool()
+
+    def switch_breakpoint(self, item=None):
+        if item is None:
+            item = self.selectionitem
+        if not item:
+            return
+
+        if item.cwxpath in cw.cwpy.sdata.breakpoints:
+            cw.cwpy.sdata.breakpoints.remove(item.cwxpath)
+        else:
+            cw.cwpy.sdata.breakpoints.add(item.cwxpath)
+        self.Refresh()
+
     def OnLeftDown(self, event):
         self.SetFocus()
         x, y = self.GetViewStart()
@@ -1629,18 +1673,14 @@ class EventView(wx.ScrolledWindow):
             # ブレークポイント切替
             item = self.get_item((event.GetX()+xtop, event.GetY()+ytop))
             if item:
-                if item.cwxpath in cw.cwpy.sdata.breakpoints:
-                    cw.cwpy.sdata.breakpoints.remove(item.cwxpath)
-                else:
-                    cw.cwpy.sdata.breakpoints.add(item.cwxpath)
-                self.Refresh()
+                self.switch_breakpoint(item)
             return
 
         index = self.get_index((event.GetX()+xtop, event.GetY()+ytop))
         if index <> -1:
             item = self.itemlist[index]
             content = cw.content.get_content(item.content)
-            self.selectionitem = item
+            self.set_selectionitem(item)
             self.selectionindex = index
             self.Parent.statusbar.SetStatusText(content.get_status(), 1)
             self.Refresh()
@@ -1678,12 +1718,12 @@ class EventView(wx.ScrolledWindow):
             if self.selectionitem:
                 index = self.selectionindex
                 if 0 < index:
-                    self.selectionitem = self.itemlist[index-1]
+                    self.set_selectionitem(self.itemlist[index-1])
                     self.selectionindex = index-1
                     self.show_item(self.selectionitem)
                     self.Refresh()
             else:
-                self.selectionitem = self.itemlist[0]
+                self.set_selectionitem(self.itemlist[0])
                 self.selectionindex = 0
                 self.show_item(self.selectionitem)
                 self.Refresh()
@@ -1692,12 +1732,12 @@ class EventView(wx.ScrolledWindow):
             if self.selectionitem:
                 index = self.selectionindex
                 if index+1 < len(self.itemlist):
-                    self.selectionitem = self.itemlist[index+1]
+                    self.set_selectionitem(self.itemlist[index+1])
                     self.selectionindex = index+1
                     self.show_item(self.selectionitem)
                     self.Refresh()
             else:
-                self.selectionitem = self.itemlist[0]
+                self.set_selectionitem(self.itemlist[0])
                 self.selectionindex = 0
                 self.show_item(self.selectionitem)
                 self.Refresh()
@@ -1813,7 +1853,7 @@ class EventView(wx.ScrolledWindow):
             self.items = {}
             self.itemlist = []
             self.activeitem = None
-            self.selectionitem = None
+            self.set_selectionitem(None)
             self.selectionindex = -1
             self.current_event = None
             self.current_tree = None
@@ -1834,7 +1874,7 @@ class EventView(wx.ScrolledWindow):
             self.current_tree = trees
             self.Parent.statusbar.SetStatusText(u"", 1)
             self.activeitem = None
-            self.selectionitem = None
+            self.set_selectionitem(None)
             self.selectionindex = -1
             self.items = {}
             self.itemlist = []
