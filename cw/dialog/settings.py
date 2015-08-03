@@ -81,6 +81,7 @@ class SettingsDialog(wx.Dialog):
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
             self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
+            self.pane_draw.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard_init)
             self.pane_draw.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
             self.pane_draw.sl_deal_battle.SetValue(cw.cwpy.setting.dealspeed_battle_init)
             self.pane_draw.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed_init)
@@ -316,6 +317,8 @@ class SettingsDialog(wx.Dialog):
         if value <> cw.cwpy.setting.statusbarmask:
             cw.cwpy.setting.statusbarmask = value
             updatestatusbar = True
+        value = self.pane_draw.cb_wait_usecard.GetValue()
+        cw.cwpy.setting.wait_usecard = value
         dealspeed = self.pane_draw.sl_deal.GetValue()
         dealspeed_battle = self.pane_draw.sl_deal_battle.GetValue()
         use_battlespeed = not self.pane_draw.cb_use_battlespeed.GetValue()
@@ -905,6 +908,10 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_whitecursor = wx.CheckBox(
             self, -1, u"メイン画面で白いカーソルを使用する")
         self.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type == cw.setting.CURSOR_WHITE)
+        # カードの使用前に空白時間を入れる
+        self.cb_wait_usecard = wx.CheckBox(
+            self, -1, u"カードの使用前に空白時間を入れる")
+        self.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard)
         # トランジション効果
         self.box_tran = wx.StaticBox(
             self, -1, u"背景の切り替え方式(速い⇔遅い)")
@@ -1045,6 +1052,7 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_wait_usecard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
         bsizer_tran.Add(self.ch_tran, 0, wx.ALL, 3)
         bsizer_tran.Add(self.sl_tran, 0, wx.EXPAND, 0)

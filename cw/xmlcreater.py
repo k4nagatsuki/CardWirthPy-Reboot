@@ -248,6 +248,10 @@ def create_settings(setting):
         e = cw.data.make_element("CardDealingSpeedInBattle", str(setting.dealspeed_battle),
                                  attrs={"enabled":str(setting.use_battlespeed)})
         element.append(e)
+    # カードの使用前に空白時間を入れる
+    if setting.wait_usecard <> setting.wait_usecard_init:
+        e = cw.data.make_element("WaitUseCard", str(setting.wait_usecard))
+        element.append(e)
     # トランジション効果の種類
     if setting.transition <> setting.transition_init or\
             setting.transitionspeed <> setting.transitionspeed_init:

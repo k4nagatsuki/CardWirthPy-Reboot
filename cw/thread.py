@@ -641,10 +641,12 @@ class CWPy(_Singleton, threading.Thread):
     def wait_frame(self, count, canskip):
         """countフレーム分待機する。"""
         self.event.eventtimer = 0
+        skip = False
         for _i in xrange(count):
             if canskip:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
                 if self.keyevent.is_keyin(pygame.locals.K_RETURN) or self.keyevent.is_mousein(1):
+                    skip = True
                     break
 
                 sel = self.selection
@@ -655,9 +657,11 @@ class CWPy(_Singleton, threading.Thread):
                 self.input(inputonly=True)
                 self.eventhandler.run()
                 if breakflag:
+                    skip = True
                     break
 
             self.tick_clock()
+        return skip
 
     def get_breakflag(self):
         """待機時間を飛ばすべき入力がある場合にTrueを返す。"""

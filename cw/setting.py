@@ -86,6 +86,7 @@ class Setting(object):
         self.blcurtaincolour = (0, 0, 0, 192)
         self.dealspeed = 5
         self.dealspeed_battle = 5
+        self.wait_usecard = True
         self.use_battlespeed = False
         self.transition = "Fade"
         self.transitionspeed = 5
@@ -318,6 +319,8 @@ class Setting(object):
         dealspeed_battle = data.getint("CardDealingSpeedInBattle", self.dealspeed_battle)
         use_battlespeed = data.getbool("CardDealingSpeedInBattle", "enabled", self.use_battlespeed)
         self.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
+        # カードの使用前に空白時間を入れる
+        self.wait_usecard = data.getbool("WaitUseCard", self.wait_usecard)
         # トランジション効果の種類
         self.transition = data.gettext("Transition", self.transition)
 

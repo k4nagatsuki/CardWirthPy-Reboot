@@ -1008,12 +1008,13 @@ class CardEvent(Event):
         eff = cw.effectmotion.Effect(motions, d, battlespeed=cw.cwpy.is_battlestatus())
 
         # ターゲット色反転＆ウェイト
+        skipped = False
         if len(self.targets) == 1:
             if eff.check_enabledtarget(self.targets[0], False):
                 self.targets[0].set_cardtarget()
                 cw.cwpy.draw()
                 waitrate = (cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1) * 2
-                cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                 targets = self.targets
             else:
                 targets = []
@@ -1027,8 +1028,12 @@ class CardEvent(Event):
                     cw.cwpy.draw()
                     cw.cwpy.play_sound(path)
                     waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
-                    cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
+                    skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     targets.append(target)
+
+        if not skipped and cw.cwpy.setting.wait_usecard:
+            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
+            cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
         self.waited = True
 
