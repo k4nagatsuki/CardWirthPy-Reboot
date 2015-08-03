@@ -480,7 +480,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.draw()
             self.exec_func(func)
 
-        if not rsrconly and self.setting.expandmode <> "FullScreen":
+        if not rsrconly and not (self.setting.expandmode == "FullScreen" and self.is_expanded()):
             def func():
                 self.frame.exec_func(self.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
             self.exec_func(func)

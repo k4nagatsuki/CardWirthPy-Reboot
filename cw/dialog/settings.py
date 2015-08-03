@@ -38,10 +38,9 @@ class SettingsDialog(wx.Dialog):
 
         s = "%s %s" % (cw.APP_NAME, ".".join(map(lambda a: str(a), cw.APP_VERSION)))
         if versioninfo:
-            s = "%s / Build: %s" % (s, versioninfo.build_datetime)
+            s += "%s Build: %s" % (s, versioninfo)
         self.versioninfo = wx.TextCtrl(self, -1, s, size=(-1, -1), style=wx.TE_READONLY|wx.NO_BORDER)
-        dc = wx.ClientDC(self.versioninfo)
-        self.versioninfo.SetMinSize((dc.GetTextExtent(s)[0] + 5, -1))
+        self.versioninfo.SetMinSize((self.versioninfo.GetBestSize()[0] + 20, -1))
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
@@ -290,12 +289,24 @@ class SettingsDialog(wx.Dialog):
         expanddrawing = int(2 ** self.pane_gene.ch_expanddrawing.GetSelection())
         if str(value) <> str(cw.cwpy.setting.expandmode) or expanddrawing <> cw.cwpy.setting.expanddrawing:
             if cw.cwpy.is_expanded():
-                # 一旦拡大状態を解除
-                def func(value):
-                    cw.cwpy.setting.expandmode = value
-                    cw.cwpy.setting.expanddrawing = expanddrawing
-                    cw.cwpy.set_expanded(True, value, force=True)
-                cw.cwpy.exec_func(func, value)
+                # 設定が変更されたので拡大状態を切り替え
+                if value == "FullScreen":
+                    # FIXME: FullScreen以外の拡大設定で拡大しておき、
+                    #        設定をFullScreenに変更し、その後F4キーで
+                    #        拡大を解除するとウィンドウの操作が効かなくなる
+                    def func(value):
+                        def func(value):
+                            cw.cwpy.setting.expandmode = value
+                            cw.cwpy.setting.expanddrawing = expanddrawing
+                            cw.cwpy.set_expanded(True, value, force=True)
+                        cw.cwpy.exec_func(func, value)
+                    cw.cwpy.frame.exec_func(func, value)
+                else:
+                    def func(value):
+                        cw.cwpy.setting.expandmode = value
+                        cw.cwpy.setting.expanddrawing = expanddrawing
+                        cw.cwpy.set_expanded(True, value, force=True)
+                    cw.cwpy.exec_func(func, value)
             else:
                 cw.cwpy.setting.expandmode = value
                 cw.cwpy.setting.expanddrawing = expanddrawing
