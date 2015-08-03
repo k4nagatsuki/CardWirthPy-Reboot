@@ -187,7 +187,7 @@ class CWPy(_Singleton, threading.Thread):
         self.expanding_cur = 0
         # 現在のカーソル名
         self.cursor = ""
-        self.change_cursor()
+        self.change_cursor(force=True)
 
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
@@ -1045,12 +1045,13 @@ class CWPy(_Singleton, threading.Thread):
                 cursor = pygame.cursors.compile(s, "#", ".", "o")
             pygame.mouse.set_cursor((24, 24), (7, 7), *cursor)
 
-        # FIXME: 一度マウスポインタを移動しないと変更されない
-        pos = pygame.mouse.get_pos()
-        x = pos[0] - 1 if 0 < pos[0] else pos[0] + 1
-        y = pos[1] - 1 if 0 < pos[1] else pos[1] + 1
-        pygame.mouse.set_pos(x, y)
-        pygame.mouse.set_pos(pos)
+        if not force:
+            # FIXME: 一度マウスポインタを移動しないと変更されない
+            pos = pygame.mouse.get_pos()
+            x = pos[0] - 1 if 0 < pos[0] else pos[0] + 1
+            y = pos[1] - 1 if 0 < pos[1] else pos[1] + 1
+            pygame.mouse.set_pos(x, y)
+            pygame.mouse.set_pos(pos)
 
     def call_dlg(self, name, **kwargs):
         """ダイアログを開く。
