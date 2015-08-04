@@ -682,11 +682,11 @@ class Character(object):
                 removeafter = True
         else:
             cw.cwpy.set_inusecardimg(self, header)
-            cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
+            cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             if cw.cwpy.setting.wait_usecard:
-                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
+                waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
                 cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
         # 宿へ取り込んだ特殊文字の使用時イベントでの表示に備える

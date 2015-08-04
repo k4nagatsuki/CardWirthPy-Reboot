@@ -1032,7 +1032,7 @@ class CardEvent(Event):
                     targets.append(target)
 
         if not skipped and cw.cwpy.setting.wait_usecard:
-            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
+            waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
             cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
 
         self.waited = True
