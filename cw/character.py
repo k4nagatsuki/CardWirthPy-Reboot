@@ -646,9 +646,9 @@ class Character(object):
             cw.cwpy.set_inusecardimg(self, header, "hidden", center=True)
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)
-            cw.animation.animate_sprite(inusecardimg, "zoomin", battlespeed=battlespeed)
             # 効果音を鳴らす
             cw.cwpy.play_sound(soundpath, header)
+            cw.animation.animate_sprite(inusecardimg, "zoomin", battlespeed=battlespeed)
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
             cw.animation.animate_sprite(inusecardimg, "zoomout", battlespeed=battlespeed)
@@ -664,11 +664,11 @@ class Character(object):
                 grp = cw.cwpy.pcardgrp
             grp.add(self)
             cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
+            # 表示中に効果音を鳴らす
+            cw.cwpy.play_sound(soundpath, header)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
             inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
-            # 表示中に効果音を鳴らす
-            cw.cwpy.play_sound(soundpath, header)
             cw.cwpy.draw()
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
