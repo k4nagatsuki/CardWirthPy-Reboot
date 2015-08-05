@@ -12,6 +12,7 @@ import shutil
 import weakref
 import array
 import re
+import threading
 import wx
 import pygame
 
@@ -898,14 +899,17 @@ class Resource(object):
             winplatform = sys.getwindowsversion()[3]
 
             for name, path in self.fontpaths.iteritems():
-                if winplatform == 2:
-                    gdi32.AddFontResourceExA(path, 0x10, 0)
-                else:
-                    gdi32.AddFontResourceA(path)
-                    user32 = ctypes.windll.user32
-                    HWND_BROADCAST = 0xFFFF
-                    WM_FONTCHANGE = 0x001D
-                    user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
+                def func():
+                    if winplatform == 2:
+                        gdi32.AddFontResourceExA(path, 0x10, 0)
+                    else:
+                        gdi32.AddFontResourceA(path)
+                        user32 = ctypes.windll.user32
+                        HWND_BROADCAST = 0xFFFF
+                        WM_FONTCHANGE = 0x001D
+                        user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
+                thr = threading.Thread(target=func)
+                thr.start()
 
                 fontname = cw.util.get_truetypefontname(path)
 
