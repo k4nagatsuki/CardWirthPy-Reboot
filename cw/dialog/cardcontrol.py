@@ -322,7 +322,7 @@ class CardControl(wx.Dialog):
         self.Layout()
 
     def OnNarrowCondition(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         # 日本語入力で一度に何度もイベントが発生する
         # 事があるので絞り込み実施を遅延する
         self._reserved_narrowconditin = True
@@ -365,7 +365,7 @@ class CardControl(wx.Dialog):
         if eid == self.returnkeyid:
             for header in self.get_headers():
                 if header.negaflag:
-                    cw.cwpy.sounds["click"].play()
+                    cw.cwpy.play_sound("click")
                     def func():
                         self.lclick_event(header)
                     self.animate_click(header, func)
@@ -441,7 +441,7 @@ class CardControl(wx.Dialog):
             if header.wxrect.collidepoint(mousepos):
                 rect, _x, _y = self._get_starrect(header)
                 if rect.Contains(mousepos):
-                    cw.cwpy.sounds["page"].play()
+                    cw.cwpy.play_sound("page")
                     def func():
                         if header.star:
                             header.set_star(0)
@@ -456,7 +456,7 @@ class CardControl(wx.Dialog):
                     self.animate_starclick(header, func)
                     return
                 else:
-                    cw.cwpy.sounds["click"].play()
+                    cw.cwpy.play_sound("click")
                     def func():
                         self.lclick_event(header)
                     self.animate_click(header, func)
@@ -476,7 +476,7 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
 
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
 
         for header in self.get_headers():
             if header.wxrect.collidepoint(event.GetPosition()):
@@ -494,7 +494,7 @@ class CardControl(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnRightUp2(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         # キャンセルボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.closebtn.GetId())
         self.ProcessEvent(btnevent)
@@ -855,7 +855,7 @@ class CardControl(wx.Dialog):
             self.Parent.move_dlg(dlg)
 
             if dlg.ShowModal() == wx.ID_OK:
-                cw.cwpy.sounds["dump"].play()
+                cw.cwpy.play_sound("dump")
                 if isinstance(owner, cw.character.Character):
                     owner.throwaway_card(header)
                 else:
@@ -928,7 +928,7 @@ class CardControl(wx.Dialog):
     def check_using(self, owner, header):
         # 行動不能だったら使用不可
         if owner.is_inactive():
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
             if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["inactive"] % owner.name
                 dlg = message.Message(self, cw.cwpy.msgs["message"], s)
@@ -941,12 +941,12 @@ class CardControl(wx.Dialog):
         # 使用回数が0以下だったら処理中止
         if header.uselimit <= 0:
             if not header.type in ("ItemCard", "BeastCard") or header.recycle or not header.maxuselimit == 0:
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 return False
 
         # 戦闘中にペナルティカードを行動選択していたら処理中止
         if owner.is_autoselectedpenalty() and not cw.cwpy.debug:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
             if cw.cwpy.setting.noticeimpossibleaction:
                 s = cw.cwpy.msgs["selected_penalty"]
                 dlg = message.Message(self, cw.cwpy.msgs["message"], s)
@@ -1241,17 +1241,17 @@ class CardHolder(CardControl):
             sorttype = "None"
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
             if cw.cwpy.setting.sort_backpack <> sorttype:
-                cw.cwpy.sounds["page"].play()
+                cw.cwpy.play_sound("page")
                 cw.cwpy.setting.sort_backpack = sorttype
                 self._update_sortattr()
         elif self.callname == "STOREHOUSE":
             if cw.cwpy.setting.sort_storehouse <> sorttype:
-                cw.cwpy.sounds["page"].play()
+                cw.cwpy.play_sound("page")
                 cw.cwpy.setting.sort_storehouse = sorttype
                 self._update_sortattr()
 
     def OnSortWithStar(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
             if cw.cwpy.setting.sort_backpackwithstar:
                 cw.cwpy.setting.sort_backpackwithstar = False
@@ -1298,7 +1298,7 @@ class CardHolder(CardControl):
             self.draw_cards()
 
     def OnClickLeftBtn(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         old_callname = self.callname
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
@@ -1342,7 +1342,7 @@ class CardHolder(CardControl):
         self.draw_cards()
 
     def OnClickRightBtn(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         old_callname = self.callname
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
@@ -1392,7 +1392,7 @@ class CardHolder(CardControl):
 
     def OnCancel(self, event):
         if self.callname == "CARDPOCKETB":
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             old_callname = self.callname
             self.index = 0
             self.callname = "CARDPOCKET"
@@ -1525,7 +1525,7 @@ class CardHolder(CardControl):
 
         elif header.type == "UseCardInBackpack":
             if owner.is_inactive():
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 if cw.cwpy.setting.noticeimpossibleaction:
                     s = cw.cwpy.msgs["inactive"] % owner.name
                     dlg = message.Message(self, cw.cwpy.msgs["message"], s)
@@ -1545,7 +1545,7 @@ class CardHolder(CardControl):
             CardControl.lclick_event(self, header)
 
     def OnClickToggleBtn(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
 
         l = [self.skillbtn, self.itembtn, self.beastbtn]
 
@@ -1585,7 +1585,7 @@ class CardHolder(CardControl):
             self.ProcessEvent(btnevent)
 
     def OnClickUpBtn(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         negaindex = -1
 
         for index, header in enumerate(self.get_headers()):
@@ -1610,7 +1610,7 @@ class CardHolder(CardControl):
         self.draw_cards()
 
     def OnClickDownBtn(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         negaindex = -1
 
         for index, header in enumerate(self.get_headers()):
@@ -1641,7 +1641,7 @@ class CardHolder(CardControl):
             return
         index = self.page.GetValue()-1
         if self.index <> index:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             negaindex = -1
             if not negaindex == -1:
                 for index, header in enumerate(self.get_headers()):
@@ -1906,7 +1906,7 @@ class HandView(CardControl):
         CardControl._bind(self)
 
     def OnClickLeftBtn(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
 
         if self.index2 == self.list2[0]:
             self.index2 = self.list2[-1]
@@ -1918,7 +1918,7 @@ class HandView(CardControl):
         self.draw_cards()
 
     def OnClickRightBtn(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
 
         if self.index2 == self.list2[-1]:
             self.index2 = self.list2[0]

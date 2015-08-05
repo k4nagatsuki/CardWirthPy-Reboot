@@ -62,7 +62,7 @@ class SelectPartyRecord(select.Select):
         if self.Parent.is_processing():
             return
         header = self.list[self.index]
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         if header:
             s = cw.cwpy.msgs["overwrite_party_record"] % (header.name)
         else:
@@ -75,7 +75,7 @@ class SelectPartyRecord(select.Select):
             return
 
         def func(panel, header, index):
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             partyrecord = cw.cwpy.get_partyrecord()
             if header:
                 header = cw.cwpy.ydata.set_partyrecord(index, partyrecord)
@@ -99,7 +99,7 @@ class SelectPartyRecord(select.Select):
         assert bool(header)
 
         if cw.cwpy.ydata.party:
-            cw.cwpy.sounds["signal"].play()
+            cw.cwpy.play_sound("signal")
             s = cw.cwpy.msgs["restore_party"] % (header.name)
             dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
             cw.cwpy.frame.move_dlg(dlg)
@@ -109,7 +109,7 @@ class SelectPartyRecord(select.Select):
                 return
 
         def func(header, panel, parent, selected):
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             updatelist = bool(cw.cwpy.ydata.party)
             if updatelist:
                 cw.cwpy.save_partyrecord()
@@ -138,7 +138,7 @@ class SelectPartyRecord(select.Select):
         header = self.list[self.index]
         assert bool(header)
 
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         s = cw.cwpy.msgs["delete_party_record"] % (header.name)
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -147,7 +147,7 @@ class SelectPartyRecord(select.Select):
             dlg.Destroy()
             return
 
-        cw.cwpy.sounds["dump"].play()
+        cw.cwpy.play_sound("dump")
         def func(header):
             cw.cwpy.ydata.remove_partyrecord(header)
         cw.cwpy.exec_func(func, header)

@@ -548,10 +548,10 @@ class CampButton(StatusBarButton):
 
     def lclick_event(self):
         if cw.cwpy.areaid >= 0:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.cwpy.change_specialarea(-4)
         elif cw.cwpy.areaid == -4:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.cwpy.clear_specialarea()
 
 class TableButton(StatusBarButton):
@@ -575,10 +575,10 @@ class TableButton(StatusBarButton):
 
     def lclick_event(self):
         if cw.cwpy.areaid == -4:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.cwpy.clear_specialarea()
         elif cw.cwpy.areaid >= 0:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.cwpy.change_specialarea(-4)
 
 class ActionButton(StatusBarButton):
@@ -647,7 +647,7 @@ class ShowFriendCardsButton(StatusBarButton):
         self.update_image()
 
     def lclick_event(self):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         if cw.cwpy.is_battlestatus():
             cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
             cw.cwpy.battle.update_showfcards()
@@ -678,7 +678,7 @@ class AutoStartButton(StatusBarButton):
 
     def lclick_event(self):
         if cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
             if self.actionbtn:
                 autostart = cw.cwpy.setting.show_roundautostartbutton and\
@@ -699,7 +699,7 @@ class InfoCardsButton(StatusBarButton):
         self.selectable_on_event = False
 
     def lclick_event(self):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.cwpy.clear_selection()
         cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
 

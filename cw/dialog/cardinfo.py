@@ -90,7 +90,7 @@ class CardInfo(wx.Dialog):
             self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -99,7 +99,7 @@ class CardInfo(wx.Dialog):
 
     def draw(self, update=False):
         if update:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             dc = wx.ClientDC(self.toppanel)
             self.selection = self.list[self.index]
         else:

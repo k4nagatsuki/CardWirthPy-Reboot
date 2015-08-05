@@ -647,7 +647,7 @@ class Character(object):
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)
             # 効果音を鳴らす
-            cw.cwpy.play_sound(soundpath, header)
+            cw.cwpy.play_sound_with(soundpath, header)
             cw.animation.animate_sprite(inusecardimg, "zoomin", battlespeed=battlespeed)
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
@@ -668,7 +668,7 @@ class Character(object):
             grp.add(self)
             cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
             # 表示中に効果音を鳴らす
-            cw.cwpy.play_sound(soundpath, header)
+            cw.cwpy.play_sound_with(soundpath, header)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
             inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
@@ -686,7 +686,7 @@ class Character(object):
         else:
             cw.cwpy.set_inusecardimg(self, header)
             # 効果音を鳴らす
-            cw.cwpy.play_sound(soundpath, header)
+            cw.cwpy.play_sound_with(soundpath, header)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             if cw.cwpy.setting.wait_usecard:
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
@@ -798,7 +798,7 @@ class Character(object):
             self.clear_action()
             self.actiondata = (target, header, beasts)
             self.actionautoselected = auto
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             assert cw.cwpy.pre_dialogs, "%s, %s" % (self.name, header.name)
             if cw.cwpy.pre_dialogs:
                 cw.cwpy.pre_dialogs.pop()
@@ -2155,7 +2155,7 @@ class Character(object):
             if not self.is_poison():
                 flag = True
             else:
-                cw.cwpy.sounds["dump"].play()
+                cw.cwpy.play_sound("dump")
                 value = 1 * self.poison
                 n = value / 5
                 n2 = value % 5 * 2

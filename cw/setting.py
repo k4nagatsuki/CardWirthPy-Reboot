@@ -775,7 +775,7 @@ class Resource(object):
         self.msgs = self.get_msgs(setting)
         # wxダイアログのボタン画像(辞書)
         # wxスレッドから初期化
-        self.buttons = {}
+        self.buttons = ResourceTable()
         # カード背景画像(辞書)
         self.cardbgs = self.get_cardbgs(cw.util.load_image)
         self.cardnamecolorhints = self.get_cardnamecolorhints(self.cardbgs)
@@ -783,14 +783,14 @@ class Resource(object):
         # wxダイアログで使う画像(辞書)
         self.pygamedialogs = self.get_dialogs(cw.util.load_image)
         # wx版。wxスレッドから初期化
-        self.dialogs = {}
+        self.dialogs = ResourceTable()
         # デバッガで使う画像(辞書)
         self.pygamedebugs = self.get_debugs(cw.util.load_image)
         # wx版。wxスレッドから初期化
-        self.debugs = {}
+        self.debugs = ResourceTable()
         # ダイアログで使うカーソル(辞書)
         # wxスレッドから初期化
-        self.cursors = {}
+        self.cursors = ResourceTable()
         # 特殊文字の画像(辞書)
         self.specialchars_is_changed = False
         self.specialchars = self.get_specialchars()
@@ -799,12 +799,11 @@ class Resource(object):
         # 適性値・使用回数値画像(辞書)
         self.stones = self.get_stones()
         # wx版。wxスレッドから初期化
-        self.wxstones = {}
+        self.wxstones = ResourceTable()
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
         self.fonts = self.create_fonts()
         # StatusBarで使用するボタンイメージ
-        # wxスレッドから初期化
         self._statusbtnbmp0 = {}
         self._statusbtnbmp1 = {}
         self._statusbtnbmp2 = {}
@@ -1007,51 +1006,34 @@ class Resource(object):
     def create_fonts(self):
         """ゲーム内で頻繁に使用するpygame.Fontはここで設定する。"""
         # 使用フォント(辞書)
-        fonts = {}
+        fonts = ResourceTable()
         # 所持カードの使用回数描画用
-        font = self.create_font("uselimit", 18, False, False, False)
-        fonts["card_uselimit"] = font
+        fonts.set("card_uselimit", self.create_font, "uselimit", 18, False, False, False)
         # メニューカードの名前描画用
-        font = self.create_font("cardname", 13, True, True, False)
-        fonts["mcard_name"] = font
+        fonts.set("mcard_name", self.create_font, "cardname", 13, True, True, False)
         # プレイヤカードの名前描画用
-        font = self.create_font("ccardname", 15, True, True, False)
-        fonts["pcard_name"] = font
+        fonts.set("pcard_name", self.create_font, "ccardname", 15, True, True, False)
         # プレイヤカードのレベル描画用
-        font = self.create_font("level", 37, False, False, True)
-        fonts["pcard_level"] = font
+        fonts.set("pcard_level", self.create_font, "level", 37, False, False, True)
         # メッセージウィンドウのテキスト描画用
-        font = self.create_font("message", 22, True, False, False, nobold=True)
-        fonts["message"] = font
+        fonts.set("message", self.create_font, "message", 22, True, False, False, nobold=True)
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-            fontface = u"ＭＳ 明朝"
-            font = cw.imageretouch.Font(fontface, cw.s(22), bold=True)
-            fonts["message_classic"] = font
+            fonts.set("message_classic", cw.imageretouch.Font, u"ＭＳ 明朝", cw.s(22), bold=True)
         # メッセージウィンドウの選択肢描画用
-        font = self.create_font("selectionbar", 16, True, False, False)
-        fonts["selectionbar"] = font
+        fonts.set("selectionbar", self.create_font, "selectionbar", 16, True, False, False)
         if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
-            fontface = u"MS UI Gothic"
-            font = cw.imageretouch.Font(fontface, cw.s(15), bold=True)
-            fonts["selectionbar_classic"] = font
+            fonts.set("selectionbar_classic", cw.imageretouch.Font, u"MS UI Gothic", cw.s(15), bold=True)
         # メッセージログのページ表示描画用
-        font = self.create_font("logpage", 24, False, False, False)
-        fonts["backlog_page"] = font
+        fonts.set("backlog_page", self.create_font, "logpage", 24, False, False, False)
         # ステータスバーパネル描画用
-        font = self.create_font("sbarpanel", 16, True, True, False)
-        fonts["sbarpanel"] = font
+        fonts.set("sbarpanel", self.create_font, "sbarpanel", 16, True, True, False)
         # ステータスバーボタン描画用
-        font = self.create_font("sbarbtn", 14, True, True, False)
-        fonts["sbarbtn"] = font
+        fonts.set("sbarbtn", self.create_font, "sbarbtn", 14, True, True, False)
         # ステータス画像の召喚回数描画用
-        font = self.create_font("statusnum", 12, True, True, False)
-        fonts["statusimg1"] = font
-        font = self.create_font("statusnum", 12, True, True, False, pixelsadd=-2)
-        fonts["statusimg2"] = font
-        font = self.create_font("statusnum", 12, True, True, False, pixelsadd=-4)
-        fonts["statusimg3"] = font
-        font = self.create_font("screenshot", 18, False, False, False)
-        fonts["screenshot"] = font
+        fonts.set("statusimg1", self.create_font, "statusnum", 12, True, True, False)
+        fonts.set("statusimg2", self.create_font, "statusnum", 12, True, True, False, pixelsadd=-2)
+        fonts.set("statusimg3", self.create_font, "statusnum", 12, True, True, False, pixelsadd=-4)
+        fonts.set("screenshot", self.create_font, "screenshot", 18, False, False, False)
         return fonts
 
     def create_wxbutton(self, parent, cid, size, name=None, bmp=None):
@@ -1282,12 +1264,12 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func, dpath, ext, mask=False):
+    def get_resources(self, func, dpath, ext, mask=False, ss=None, noresize=(), nodbg=False):
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
         """
-        d, dpath = {}, unicode(dpath)
+        d, dpath = ResourceTable(), unicode(dpath)
         if not os.path.isdir(dpath):
             return d
 
@@ -1299,16 +1281,42 @@ class Resource(object):
         for fname in names:
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, fname), ext)
             if fpath:
-                if mask:
-                    resource = func(fpath, mask=mask)
-                else:
-                    resource = func(fpath)
+                def ssize(bmp, fpath):
+                    ressize = get_resourcesize(fpath)
+                    if ressize is None:
+                        return ss(bmp)
+                    else:
+                        return ss((bmp, ressize))
 
-                if isinstance(resource, tuple):
-                    d[os.path.splitext(fname)[0]] = resource[1]
-                    d[os.path.splitext(fname)[0] + "_dbg"] = resource[0]
+                key = os.path.splitext(fname)[0]
+                if ss and nodbg:
+                    if mask:
+                        if key in noresize:
+                            f = lambda key, fpath: d.set(key, func, fpath, mask=mask)
+                        else:
+                            f = lambda key, fpath: d.set(key, lambda: ssize(func(fpath, mask=mask), fpath))
+                    else:
+                        if key in noresize:
+                            f = lambda key, fpath: d.set(key, func, fpath)
+                        else:
+                            f = lambda key, fpath: d.set(key, lambda: ssize(func(fpath), fpath))
+                    f(key, fpath)
+                elif ss:
+                    if mask:
+                        d.set(key + "_dbg", func, fpath, mask=mask)
+                    else:
+                        d.set(key + "_dbg", func, fpath)
+                    if key in noresize:
+                        f = lambda key: d.set(key, lambda: d[key + "_dbg"])
+                        f(key)
+                    else:
+                        f = lambda key, fpath: d.set(key, lambda: ssize(d[key + "_dbg"], fpath))
+                        f(key, fpath)
                 else:
-                    d[os.path.splitext(fname)[0]] = resource
+                    if mask:
+                        d.set(key, func, fpath, mask=mask)
+                    else:
+                        d.set(key, func, fpath)
 
         return d
 
@@ -1317,12 +1325,13 @@ class Resource(object):
         システム効果音を読み込んで、
         pygameのsoundインスタンスの辞書で返す。
         """
-        d = {}
+        d = ResourceTable()
         for key, sound in setting.sounds.items():
             if sound in skinsounds:
-                d[key] = skinsounds[sound]
+                f = lambda sound: d.set(key, lambda: skinsounds[sound])
+                f(sound)
             else:
-                d[key] = cw.util.SoundInterface(None, "")
+                d.set(key, cw.util.SoundInterface, None, "")
         return d
 
     def get_skinsounds(self):
@@ -1330,9 +1339,8 @@ class Resource(object):
         スキン付属の効果音を読み込んで、
         pygameのsoundインスタンスの辞書で返す。
         """
-        func = cw.util.load_sound
         dpath = cw.util.join_paths(self.skindir, "Sound")
-        return self.get_resources(func, dpath, self.ext_snd)
+        return self.get_resources(cw.util.load_sound, dpath, self.ext_snd)
 
     def get_msgs(self, setting):
         """
@@ -1345,29 +1353,26 @@ class Resource(object):
         ダイアログのボタン画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        def func(path, mask):
-            bmp = cw.util.load_wxbmp(path, mask)
-            return bmp, cw.wins((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
-        return self.get_resources(func, dpath, self.ext_img, True)
+        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins)
 
     def get_cursors(self):
         """
         ダイアログで使用されるカーソルを読み込んで、
         wxCursorのインスタンスの辞書で返す。
         """
-        d = {}.copy()
-        d["CURSOR_BACK"] = wx.StockCursor(wx.CURSOR_POINT_LEFT)
-        d["CURSOR_FORE"] = wx.StockCursor(wx.CURSOR_POINT_RIGHT)
-        d["CURSOR_FINGER"] = wx.StockCursor(wx.CURSOR_HAND)
-        d["CURSOR_ARROW"] = wx.StockCursor(wx.CURSOR_ARROW)
+        d = ResourceTable()
+        d.set("CURSOR_BACK", wx.StockCursor, wx.CURSOR_POINT_LEFT)
+        d.set("CURSOR_FORE", wx.StockCursor, wx.CURSOR_POINT_RIGHT)
+        d.set("CURSOR_FINGER", wx.StockCursor, wx.CURSOR_HAND)
+        d.set("CURSOR_ARROW", wx.StockCursor, wx.CURSOR_ARROW)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Cursor")
         if os.path.isdir(dpath):
             for fname in os.listdir(dpath):
                 if fname.endswith(".cur"):
                     fpath = cw.util.join_paths(dpath, fname)
-                    d[os.path.splitext(fname)[0]] = wx.Cursor(fpath, wx.BITMAP_TYPE_CUR)
+                    d.set(os.path.splitext(fname)[0], wx.Cursor, fpath, wx.BITMAP_TYPE_CUR)
         return d
 
     def get_stones(self):
@@ -1375,22 +1380,16 @@ class Resource(object):
         適性・カード残り回数の画像を読み込んで、
         pygameのサーフェスの辞書で返す。
         """
-        def func(path, mask):
-            bmp = cw.util.load_image(path, mask)
-            return bmp, cw.s((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(func, dpath, self.ext_img, True)
+        return self.get_resources(cw.util.load_image, dpath, self.ext_img, True, cw.s)
 
     def get_wxstones(self):
         """
         適性・カード残り回数の画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        def func(path, mask):
-            bmp = cw.util.load_wxbmp(path, mask)
-            return bmp, cw.wins((bmp, get_resourcesize(path)))
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(func, dpath, self.ext_img, True)
+        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins)
 
     def get_statuses(self, load_image):
         """
@@ -1403,30 +1402,22 @@ class Resource(object):
         else:
             ss = cw.s
 
-        def func(path):
-            bmp = load_image(path)
-            return bmp, ss((bmp, get_resourcesize(path)))
+        def load_image2(fpath, mask=False):
+            fname = os.path.basename(fpath)
+            key = os.path.splitext(fname)[0]
+            if key in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
+                return load_image(fpath, mask=True, maskpos=(1, 1))
+            elif key == "TARGET":
+                return load_image(fpath, mask=True, maskpos="right")
+            elif key == "LIFEGUAGE":
+                return load_image(fpath, mask=True, maskpos=(5, 5))
+            elif key == "LIFEBAR":
+                return load_image(fpath, mask=False)
+            else:
+                return load_image(fpath, mask=False)
+
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
-        d = self.get_resources(func, dpath, self.ext_img)
-
-        for name in ("LIFE", "UP0", "UP1", "UP2", "UP3", "DOWN0", "DOWN1", "DOWN2", "DOWN3"):
-            path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-            bmp = load_image(path, mask=True, maskpos=(1, 1))
-            if load_image == cw.util.load_wxbmp:
-                d[name + "_dbg"] = bmp
-            d[name] = ss((bmp, get_resourcesize(path)))
-
-        name = "TARGET"
-        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-        d[name] = ss((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
-
-        name = "LIFEGUAGE"
-        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-        d[name] = load_image(path, mask=True, maskpos=(5, 5))
-
-        name = "LIFEBAR"
-        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-        d[name] = load_image(path)
+        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"))
 
         return d
 
@@ -1440,27 +1431,21 @@ class Resource(object):
         else:
             ss = cw.s
 
-        def func(path, mask):
-            bmp = load_image(path, mask)
-            return bmp, ss((bmp, get_resourcesize(path)))
+        def load_image2(fpath, mask=False):
+            fname = os.path.basename(fpath)
+            key = os.path.splitext(fname)[0]
+            if key in ("LINK", "MONEYY"):
+                return load_image(fpath, mask=False)
+            elif key == "STATUS8":
+                return load_image(fpath, mask=True, maskpos="right")
+            elif key in ("CAUTION", "INVISIBLE"):
+                return load_image(fpath)
+            else:
+                return load_image(fpath, mask=mask)
+
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
-        d = self.get_resources(func, dpath, self.ext_img, True)
+        d = self.get_resources(load_image2, dpath, self.ext_img, True, ss)
 
-        name = "LINK"
-        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-        d[name] = ss((load_image(path, mask=False), get_resourcesize(path)))
-
-        name = "MONEYY"
-        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-        d[name] = ss((load_image(path, mask=False), get_resourcesize(path)))
-
-        name = "STATUS8"
-        path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-        d[name] = ss((load_image(path, mask=True, maskpos="right"), get_resourcesize(path)))
-
-        for key in ["CAUTION", "INVISIBLE"]:
-            path = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
-            d[key] = ss((load_image(path), get_resourcesize(path)))
         return d
 
     def get_debugs(self, load_image):
@@ -1468,11 +1453,8 @@ class Resource(object):
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        def func(path, mask):
-            bmp = load_image(path, mask)
-            return bmp, bmp
         dpath = u"Data/Debugger"
-        d = self.get_resources(func, dpath, cw.M_IMG, True)
+        d = self.get_resources(load_image, dpath, cw.M_IMG, True, lambda bmp: bmp)
         return d
 
     def get_cardbgs(self, load_image):
@@ -1486,15 +1468,18 @@ class Resource(object):
         else:
             ss = cw.s
 
-        def func(path):
-            return ss((load_image(path), get_resourcesize(path)))
-        dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
-        d = self.get_resources(func, dpath, self.ext_img)
+        def load_image2(fpath, mask=False):
+            fname = os.path.basename(fpath)
+            key = os.path.splitext(fname)[0]
+            if key in ("HOLD", "PENALTY"):
+                return load_image(fpath, mask=True, maskpos="center")
+            elif key in ("PREMIER", "RARE"):
+                return load_image(fpath, mask=True, maskpos="right")
+            else:
+                return load_image(fpath, mask=mask)
 
-        for img in (("HOLD", "center"), ("PENALTY", "center"), ("PREMIER", "right"), ("RARE", "right")):
-            name = img[0]
-            path = cw.util.find_resource(cw.util.join_paths(dpath, name), self.ext_img)
-            d[name] = ss((load_image(path, True, maskpos = img[1]), get_resourcesize(path)))
+        dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
+        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, nodbg=True)
 
         return d
 
@@ -1503,13 +1488,11 @@ class Resource(object):
         カードの各台紙について、文字描画領域の色を
         平均化した辞書を作成する。
         """
-        d = {}
+        d = ResourceTable()
         for key in ("ACTION", "BEAST", "BIND", "DANGER", "FAINT", "INFO", "INJURY", "ITEM",
                     "LARGE", "NORMAL", "OPTION", "PARALY", "PETRIF", "SKILL", "SLEEP"):
-            bmp = cardbgs.get(key, "")
-            if not bmp:
-                continue
-            d[key] = self.calc_cardnamecolorhint(bmp)
+            f = lambda key: d.set(key, lambda: self.calc_cardnamecolorhint(cardbgs[key]))
+            f(key)
         return d
 
     def calc_cardnamecolorhint(self, bmp):
@@ -1602,13 +1585,15 @@ class Resource(object):
                  "ZAP"     : "#z",
                  }
 
-        d = {}
-
-        for key, name in ndict.iteritems():
+        d = ResourceTable()
+        def load(key, name):
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
             image = cw.util.load_image(fpath)
             image.set_colorkey((255, 255, 255))
-            d[name] = image, False
+            return image, False
+
+        for key, name in ndict.iteritems():
+            d.set(name, load, key, name)
 
         return d
 
@@ -1732,6 +1717,69 @@ def get_resourcesize(path):
         return SIZE_RESOURCES[key]
     else:
         return None
+
+class LazyResource(object):
+    def __init__(self, func, args, kwargs):
+        """リソースをfunc(*args, **kwargs)によって
+        遅延読み込みする。
+        """
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        self.deffunc = None
+        self.defargs = None
+        self.defkwargs = None
+        self._res = None
+        self.load = False
+
+    @property
+    def res(self):
+        if not self.load:
+            try:
+                self._res = self.func(*self.args, **self.kwargs)
+            except:
+                cw.util.print_ex(file=sys.stderr)
+                if self.deffunc:
+                    self._res = self.deffunc(*self.defargs, **self.defkwargs)
+            self.load = True
+        return self._res
+
+class ResourceTable(object):
+    def __init__(self, init=None):
+        """文字列をキーとしたリソーステーブル。
+        各リソースは必要になった時に遅延読み込みされる。
+        """
+        if init:
+            self.dic = init
+        else:
+            self.dic = {}.copy()
+
+    def __getitem__(self, key):
+        return self.dic[key].res
+
+    def get(self, key, defvalue=None):
+        if key in self.dic:
+            return self[key]
+        return defvalue
+
+    def set(self, key, func, *args, **kwargs):
+        self.dic[key] = LazyResource(func, args, kwargs)
+
+    def setdef(self, key, func, *args, **kwargs):
+        lazy = self.dic[key]
+        lazy.deffunc = func
+        lazy.defargs = args
+        lazy.defkwargs = kwargs
+
+    def __contains__(self, key):
+        return key in self.dic
+
+    def copy(self):
+        return ResourceTable(self.dic.copy())
+
+    def iterkeys(self):
+        for key in self.dic.iterkeys():
+            yield key
 
 class RecentHistory(object):
     def __init__(self, tempdir):

@@ -603,11 +603,13 @@ class ScenarioData(SystemData):
     def eat_spchar(self, dpath, fname):
         # "font_*.*"のファイルパスの画像を特殊文字に指定
         if self._r_specialchar.match(fname.lower()):
+            def load(dpath, fname):
+                path = cw.util.join_paths(dpath, fname)
+                image = cw.util.load_image(path, True)
+                return image, True
             m = self._r_specialchar.match(fname.lower())
-            path = cw.util.join_paths(dpath, fname)
-            image = cw.util.load_image(path, True)
             name = "#%s" % (m.group(1))
-            cw.cwpy.rsrc.specialchars[name] = (image, True)
+            cw.cwpy.rsrc.specialchars.set(name, load, dpath, fname)
             cw.cwpy.rsrc.specialchars_is_changed = True
             return True
 
@@ -1939,7 +1941,7 @@ class YadoData(object):
 
             # 必須クーポンを所持していなかったら補填
             if not fcard.has_age() or not fcard.has_sex():
-                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.play_sound("signal")
                 cw.cwpy.call_modaldlg("DATACOMP", ccard=fcard)
 
             # システムクーポン

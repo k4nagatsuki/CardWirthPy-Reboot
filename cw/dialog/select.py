@@ -152,7 +152,7 @@ class Select(wx.Dialog):
         else:
             self.index -= 1
 
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
 
@@ -164,7 +164,7 @@ class Select(wx.Dialog):
         else:
             self.index -= 10
 
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
 
@@ -174,7 +174,7 @@ class Select(wx.Dialog):
         else:
             self.index += 1
 
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
 
@@ -186,7 +186,7 @@ class Select(wx.Dialog):
         else:
             self.index += 10
 
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
 
@@ -233,7 +233,7 @@ class Select(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -338,7 +338,7 @@ class Select(wx.Dialog):
     def OnNarrowCondition(self, event):
         if self._processing:
             return
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         # 日本語入力で一度に何度もイベントが発生する
         # 事があるので絞り込み実施を遅延する
         self._reserved_narrowconditin = True
@@ -452,13 +452,13 @@ class YadoSelect(Select):
             finally:
                 cw.util.release_mutex()
         else:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
 
     def OnClickExBtn(self, event):
         """
         拡張。
         """
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         yname = self.names[self.index]
         title = cw.cwpy.msgs["extension_title"] % (yname)
         classic = self.classic[self.index]
@@ -490,13 +490,13 @@ class YadoSelect(Select):
             return
         if cw.util.create_mutex(self.list[self.index]):
             try:
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
                 path = self.list[self.index]
                 dlg = cw.dialog.edit.YadoEditDialog(self, path)
                 cw.cwpy.frame.move_dlg(dlg)
 
                 if dlg.ShowModal() == wx.ID_OK:
-                    cw.cwpy.sounds["harvest"].play()
+                    cw.cwpy.play_sound("harvest")
                     cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
                     self.update_list(dlg.yadodir)
 
@@ -504,7 +504,7 @@ class YadoSelect(Select):
             finally:
                 cw.util.release_mutex()
         else:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
 
     def copy_yado(self):
         """
@@ -514,7 +514,7 @@ class YadoSelect(Select):
             return
         if cw.util.create_mutex(self.list[self.index]):
             try:
-                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.play_sound("signal")
                 path = self.list[self.index]
                 yname = self.names[self.index]
                 s = cw.cwpy.msgs["copy_base"] % (yname)
@@ -538,14 +538,14 @@ class YadoSelect(Select):
                     shutil.copytree(path, newpath)
                     env = cw.util.join_paths(newpath, "Environment.xml")
                     data.write(env)
-                    cw.cwpy.sounds["harvest"].play()
+                    cw.cwpy.play_sound("harvest")
                     self.update_list(newpath)
 
                 dlg.Destroy()
             finally:
                 cw.util.release_mutex()
         else:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
 
     def trasnfer_yadodata(self):
         """
@@ -564,7 +564,7 @@ class YadoSelect(Select):
                 draw = False
                 try:
                     if mutexes <> len(self.list):
-                        cw.cwpy.sounds["error"].play()
+                        cw.cwpy.play_sound("error")
                         return
                     path = self.list[self.index]
                     dirs = []
@@ -574,7 +574,7 @@ class YadoSelect(Select):
                             dirs.append(dname)
                             names.append(self.names[i])
                     if names:
-                        cw.cwpy.sounds["click"].play()
+                        cw.cwpy.play_sound("click")
                         dlg = cw.dialog.transfer.TransferYadoDataDialog(self, dirs, names, path)
                         cw.cwpy.frame.move_dlg(dlg)
                         if dlg.ShowModal() == wx.ID_OK:
@@ -590,7 +590,7 @@ class YadoSelect(Select):
             finally:
                 cw.util.release_mutex()
         else:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
 
     def delete_yado(self):
         """
@@ -600,7 +600,7 @@ class YadoSelect(Select):
             return
         if cw.util.create_mutex(self.list[self.index]):
             try:
-                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.play_sound("signal")
                 path = self.list[self.index]
                 if self.isshortcuts[self.index]:
                     yname = u"%sへのショートカット" % (self.names[self.index])
@@ -617,25 +617,25 @@ class YadoSelect(Select):
                         cw.util.remove(path)
                     if not self.classic[self.index]:
                         cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
-                    cw.cwpy.sounds["dump"].play()
+                    cw.cwpy.play_sound("dump")
                     self.update_list()
 
                 dlg.Destroy()
             finally:
                 cw.util.release_mutex()
         else:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
 
     def OnClickNewBtn(self, event):
         """
         宿新規作成。
         """
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         dlg = cw.dialog.create.YadoCreater(self)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             self.update_list(dlg.yadodir)
 
         dlg.Destroy()
@@ -664,7 +664,7 @@ class YadoSelect(Select):
             finally:
                 cw.util.release_mutex()
         else:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
 
     def _convert_current(self):
         if not (self.list and self.classic[self.index]):
@@ -673,7 +673,7 @@ class YadoSelect(Select):
         s = u"%sをCardWirthPy用に変換します。\nよろしいですか？" % yname
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         if dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
             path = self.list[self.index]
@@ -772,7 +772,7 @@ class YadoSelect(Select):
 
         # 変換確認ダイアログ
         if not ok:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             s = os.path.basename(path) + u" を変換します。\nよろしいですか？"
             dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
             self.Parent.move_dlg(dlg)
@@ -819,7 +819,7 @@ class YadoSelect(Select):
             dlg.Destroy()
 
         # 変換完了ダイアログ
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         s = u"データの変換が完了しました。"
         dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
         self.Parent.move_dlg(dlg)
@@ -835,7 +835,7 @@ class YadoSelect(Select):
             topath = cw.binary.util.check_duplicate(topath)
             shutil.move(path, topath)
 
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.update_list(yadodir)
 
     def unconv_yado(self):
@@ -846,7 +846,7 @@ class YadoSelect(Select):
         yadoname = self.names[self.index]
 
         # 変換確認ダイアログ
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         dlg = cw.dialog.etc.ConvertYadoDialog(self, yadoname)
         self.Parent.move_dlg(dlg)
 
@@ -906,7 +906,7 @@ class YadoSelect(Select):
             dlg.Destroy()
 
         # 変換完了ダイアログ
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         s = u"データの逆変換が完了しました。\n%s" % (unconv.dir)
         dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
         self.Parent.move_dlg(dlg)
@@ -1093,7 +1093,7 @@ class MultiViewSelect(Select):
             self.index = cw.util.number_normalization(self.index + count, 0, self.get_pagecount() * self.views)
         if len(self.list) <= self.index:
             self.index = len(self.list) - 1
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
 
     def OnClickLeftBtn(self, evt):
@@ -1105,7 +1105,7 @@ class MultiViewSelect(Select):
         self.index = cw.util.number_normalization(self.index - self.views, 0, self.get_pagecount() * self.views)
         if len(self.list) <= self.index:
             self.index = len(self.list) - 1
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
 
     def OnClickLeft2Btn(self, evt):
@@ -1120,7 +1120,7 @@ class MultiViewSelect(Select):
             self.index = 0
         else:
             self.index = self.index - self.views * self._views
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
 
     def OnClickRightBtn(self, evt):
@@ -1132,7 +1132,7 @@ class MultiViewSelect(Select):
         self.index = cw.util.number_normalization(self.index + self.views, 0, self.get_pagecount() * self.views)
         if len(self.list) <= self.index:
             self.index = len(self.list) - 1
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
 
     def OnClickRight2Btn(self, evt):
@@ -1147,7 +1147,7 @@ class MultiViewSelect(Select):
             self.index = len(self.list) - 1
         else:
             self.index = self.index + self.views * self._views
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
 
     def OnSelect(self, event):
@@ -1170,7 +1170,7 @@ class MultiViewSelect(Select):
             page = self.get_page()
             index = page * self.views + sindex
             if self.index <> index:
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
                 self.index = min(index, len(self.list)-1)
                 self.enable_btn()
                 self.draw(True)
@@ -1178,7 +1178,7 @@ class MultiViewSelect(Select):
     def OnClickViewBtn(self, event):
         if self._processing:
             return
-        cw.cwpy.sounds["equipment"].play()
+        cw.cwpy.play_sound("equipment")
         self.change_view()
         self.draw(True)
 
@@ -1288,7 +1288,7 @@ class PartySelect(MultiViewSelect):
     def OnClickPartyRecordBtn(self, event):
         if self._processing:
             return
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -1745,7 +1745,7 @@ class PlayerSelect(MultiViewSelect):
             sorttype = "None"
 
         if cw.cwpy.setting.sort_standbys <> sorttype:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             cw.cwpy.setting.sort_standbys = sorttype
             cw.cwpy.ydata.sort_standbys()
             self.update_narrowcondition()
@@ -1787,7 +1787,7 @@ class PlayerSelect(MultiViewSelect):
     def OnClickNewBtn(self, event):
         if self._processing:
             return
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         if cw.cwpy.setting.debug:
             dlg = cw.debug.charaedit.CharacterEditDialog(self, create=True)
             cw.cwpy.frame.move_dlg(dlg)
@@ -1796,7 +1796,7 @@ class PlayerSelect(MultiViewSelect):
             cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             header = cw.cwpy.ydata.add_standbys(dlg.fpath)
             # リスト更新
             self.update_narrowcondition()
@@ -1858,7 +1858,7 @@ class PlayerSelect(MultiViewSelect):
         assert threading.currentThread() == cw.cwpy
         if cw.cwpy.ydata.party:
             if len(cw.cwpy.ydata.party.members) < 6:
-                cw.cwpy.sounds["harvest"].play()
+                cw.cwpy.play_sound("harvest")
                 cw.cwpy.ydata.standbys.remove(header)
                 cw.cwpy.ydata.party.add(header)
                 return True
@@ -1866,7 +1866,7 @@ class PlayerSelect(MultiViewSelect):
                 # 追加できなかった
                 return False
         else:
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             cw.cwpy.ydata.standbys.remove(header)
             cw.cwpy.ydata.create_party(header, chgarea=False)
             return True
@@ -1877,7 +1877,7 @@ class PlayerSelect(MultiViewSelect):
         """
         if self._processing:
             return
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         if self.list:
             name = self.list[self.index].name
             title = cw.cwpy.msgs["extension_title"] % (name)
@@ -1904,7 +1904,7 @@ class PlayerSelect(MultiViewSelect):
 
         if index < 0:
             # 年代が不正。スキンが違う場合は発生しうる
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
             return
 
         if index == len(cw.cwpy.setting.periodcoupons) - 1:
@@ -1914,13 +1914,13 @@ class PlayerSelect(MultiViewSelect):
             nextage= cw.cwpy.setting.periodcoupons[index + 1]
             s = cw.cwpy.msgs["confirm_grow"] % (header.name, age[1:], nextage[1:])
 
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             dlg.Destroy()
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             if nextage:
                 header.grow()
             else:
@@ -1952,14 +1952,14 @@ class PlayerSelect(MultiViewSelect):
     def delete_adventurer(self):
         """冒険者を削除する。
         """
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         header = self.list[self.index]
         s = cw.cwpy.msgs["confirm_delete_character"] % (header.name)
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds["dump"].play()
+            cw.cwpy.play_sound("dump")
             self._delete_adventurer(header)
             self.enable_btn()
             self.draw(True)
@@ -1999,7 +1999,7 @@ class PlayerSelect(MultiViewSelect):
     def select_partyrecord(self):
         """編成記録ダイアログを開く。
         """
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         dlg = cw.dialog.partyrecord.SelectPartyRecord(self)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -2052,7 +2052,7 @@ class PlayerSelect(MultiViewSelect):
         if self._processing:
             return
         self._processing = True
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         info = cw.debug.charaedit.CharaInfo(None)
         info.set_randomfeatures()
         fpath = info.create_adventurer(setlevel=False)
@@ -2080,7 +2080,7 @@ class PlayerSelect(MultiViewSelect):
         if dlg.ShowModal() == wx.ID_OK:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             data = cw.data.yadoxml2etree(header.fpath)
             ccard = cw.character.Character(data)
             ccard.set_name(dlg.text)
@@ -2088,7 +2088,7 @@ class PlayerSelect(MultiViewSelect):
             ccard.data.write_xml()
             header.name = dlg.text
         else:
-            cw.cwpy.sounds["dump"].play()
+            cw.cwpy.play_sound("dump")
             self._delete_adventurer(header)
 
         dlg.Destroy()
@@ -2103,7 +2103,7 @@ class PlayerSelect(MultiViewSelect):
     def OnClickInfoBtn(self, event):
         if self._processing:
             return
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         dlg = charainfo.StandbyCharaInfo(self, self.list, self.index, self.update_character)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -2344,14 +2344,14 @@ class Album(PlayerSelect):
         pass
 
     def OnClickDelBtn(self, event):
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         header = self.list[self.index]
         s = cw.cwpy.msgs["confirm_delete_character_in_album"] % (header.name)
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds["dump"].play()
+            cw.cwpy.play_sound("dump")
             cw.cwpy.remove_xml(header)
             cw.cwpy.ydata.album.remove(header)
             if len(self.list):
@@ -2661,7 +2661,7 @@ class ScenarioSelect(Select):
     def OnFind(self, event):
         value = self.narrow.GetValue()
         if not value:
-            cw.cwpy.sounds["error"].play()
+            cw.cwpy.play_sound("error")
             return
         narrow = self.narrow_type.GetSelection()
         if narrow == 0:
@@ -2675,12 +2675,12 @@ class ScenarioSelect(Select):
             try:
                 value = int(value)
             except:
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 return
         else:
             assert False
         headers = self.db.find_headers(ftype, value, skintype=cw.cwpy.setting.skintype)
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         self._set_findresult(headers, False)
 
         if not (self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen()):
@@ -2741,14 +2741,14 @@ class ScenarioSelect(Select):
 
     def OnBookmark(self, event):
         # ブックマークメニューを生成して表示する
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
         self._add_bookmark.Enable(not self._is_specialselected())
         self.bookmark.PopupMenu(self.bookmarkmenu)
 
     def OnBookmark2(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         if not self.bookmarkmenu:
             self.create_bookmarkmenu()
         size = self.bookmark.GetSize()
@@ -2793,7 +2793,7 @@ class ScenarioSelect(Select):
                 self.bookmarkpath = bookmarkpath
 
             def OnOpen(self, event):
-                cw.cwpy.sounds["equipment"].play()
+                cw.cwpy.play_sound("equipment")
                 if self.outer.narrow.GetValue():
                     self.outer.narrow.SetValue("")
                     self.outer.update_narrowcondition()
@@ -2864,7 +2864,7 @@ class ScenarioSelect(Select):
         header = self.list[self.index]
         if isinstance(header, FindResult):
             return
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         if isinstance(header, cw.header.ScenarioHeader):
             name = header.name
         else:
@@ -2884,7 +2884,7 @@ class ScenarioSelect(Select):
 
         def func(panel, selected, selectedpath):
             cw.cwpy.ydata.add_bookmark(selected, selectedpath)
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             def func(panel):
                 if panel:
                     panel.bookmarkmenu = None
@@ -2893,7 +2893,7 @@ class ScenarioSelect(Select):
         cw.cwpy.exec_func(func, self, sel, selpath)
 
     def OnArrangeBookmark(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         dlg = cw.dialog.etc.BookmarkDialog(self, self.scedir, self.db)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -2924,10 +2924,10 @@ class ScenarioSelect(Select):
                 self.ProcessEvent(btnevent)
         else:
             if self.tree.IsExpanded(selitem):
-                cw.cwpy.sounds["page"].play()
+                cw.cwpy.play_sound("page")
                 self.tree.Collapse(selitem)
             else:
-                cw.cwpy.sounds["equipment"].play()
+                cw.cwpy.play_sound("equipment")
                 self.tree.Expand(selitem)
 
     def OnKeyDown(self, event):
@@ -3122,7 +3122,7 @@ class ScenarioSelect(Select):
             time.sleep(0.3)
 
     def OnClickInfoBtn(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         dlg = text.Readme(self, cw.cwpy.msgs["description"], self.texts)
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
@@ -3145,7 +3145,7 @@ class ScenarioSelect(Select):
     def OnClickYesBtn(self, event):
         if self.yesbtn.GetLabel() == cw.cwpy.msgs["see"]:
             assert not self.tree.IsShown()
-            cw.cwpy.sounds["equipment"].play()
+            cw.cwpy.play_sound("equipment")
             if isinstance(self.list[self.index], FindResult):
                 self.dirstack.append((self.nowdir, "/find_result"))
                 self.nowdir = self.list[self.index]
@@ -3161,14 +3161,14 @@ class ScenarioSelect(Select):
             self._update_saveddirstack()
         elif self.yesbtn.GetLabel() == cw.cwpy.msgs["decide"]:
             self._update_saveddirstack()
-            cw.cwpy.sounds["signal"].play()
+            cw.cwpy.play_sound("signal")
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
             self.ProcessEvent(btnevent)
 
     def OnClickNoBtn(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["return"]:
             assert not self.tree.IsShown()
-            cw.cwpy.sounds["equipment"].play()
+            cw.cwpy.play_sound("equipment")
             self.nowdir, selname = self.dirstack.pop()
             self.list = self._get_nowlist()
             self.scetable[self.nowdir] = self.list
@@ -3190,7 +3190,7 @@ class ScenarioSelect(Select):
             self.ProcessEvent(btnevent)
 
     def OnClickViewBtn(self, event):
-        cw.cwpy.sounds["equipment"].play()
+        cw.cwpy.play_sound("equipment")
         if self.tree.IsShown():
             self.tree.Hide()
             self.toppanel.Show()
@@ -3212,7 +3212,7 @@ class ScenarioSelect(Select):
 
     def OnCancel(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["entry_cancel"]:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_NO)
         self.ProcessEvent(btnevent)
@@ -4145,7 +4145,7 @@ class ScenarioSelect(Select):
             return
 
         # 変換確認ダイアログ
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         s = os.path.basename(path) + u"　を変換します。\nよろしいですか？"
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
@@ -4198,7 +4198,7 @@ class ScenarioSelect(Select):
         zpath = cw.util.join_paths(self.nowdir, zpath)
         zpath = cw.util.dupcheck_plus(zpath, False)
         cw.util.compress_zip(temppath, zpath, unicodefilename=True)
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         # 変換完了ダイアログ
         s = u"データの変換が完了しました。"
         dlg = message.Message(self, cw.cwpy.msgs["message"], s, mode=2)
@@ -4252,7 +4252,7 @@ class ScenarioSelect(Select):
             self.tree.SelectItem(item)
             self.tree.SetItemPyData(item, (self.index, header))
 
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.draw(True)
         self.enable_btn()
 

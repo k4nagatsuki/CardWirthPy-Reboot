@@ -506,12 +506,12 @@ class AdventurerCreater(wx.Dialog):
 
     def OnCancel(self, event):
         if not self.page1.name:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
             return
 
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         s = cw.cwpy.msgs["entry_cancel_message"]
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -526,7 +526,7 @@ class AdventurerCreater(wx.Dialog):
         nextpage = self.page.get_next()
 
         if nextpage:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.page.Freeze()
             self.page.Hide()
             self.page = nextpage
@@ -538,7 +538,7 @@ class AdventurerCreater(wx.Dialog):
         prevpage = self.page.get_prev()
 
         if prevpage:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.page.Freeze()
             self.page.Hide()
             self.page = prevpage
@@ -547,11 +547,11 @@ class AdventurerCreater(wx.Dialog):
             self.enable_btn()
 
     def OnClickAutoBtn(self, event):
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         self.page.select_autofeatures()
 
     def OnClickPostBtn(self, event):
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         s = cw.cwpy.msgs["entry_decide_message"] % (self.page1.name)
         dlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -833,7 +833,7 @@ class NamePage(AdventurerCreaterPage):
     def OnChoiceImgDPath(self, event):
         index = self.ch_imgdpath.GetSelection()
         if index <> self.imgdpath:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.imgdpath = index
             key = self.imgdpaths[index]
             self.imgpath = self.imgpaths[key][0]
@@ -932,14 +932,14 @@ class NamePage(AdventurerCreaterPage):
 
     def set_sex(self, name):
         if not self.sex == name:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             self.sex = name
             self.set_imgpaths(True)
             self.draw(True)
 
     def set_age(self, name):
         if not self.age == name:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             self.age = name
             self.set_imgpaths(True)
             self.draw(True)
@@ -1258,7 +1258,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_nextfather(self, name):
         if 1 < len(self.fathers):
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             index = self.fathers.index(self.father) + 1
 
             try:
@@ -1270,7 +1270,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_prevfather(self, name):
         if 1 < len(self.fathers):
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             index = self.fathers.index(self.father) - 1
 
             try:
@@ -1282,7 +1282,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_nextmother(self, name):
         if 1 < len(self.mothers):
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             index = self.mothers.index(self.mother) + 1
 
             try:
@@ -1294,7 +1294,7 @@ class RelationPage(AdventurerCreaterPage):
 
     def set_prevmother(self, name):
         if 1 < len(self.mothers):
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             index = self.mothers.index(self.mother) - 1
 
             try:
@@ -1349,7 +1349,7 @@ class RelationPage(AdventurerCreaterPage):
             return True
 
     def select_autofeatures(self):
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         self.father = cw.cwpy.dice.choice(self.fathers)
         self.mother = cw.cwpy.dice.choice(self.mothers)
 
@@ -1407,12 +1407,12 @@ class TalentPage(AdventurerCreaterPage):
 
     def set_talent(self, name):
         if not self.talent == name:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             self.talent = name
             self.draw(True)
 
     def select_autofeatures(self):
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         talents = []
         for talent in cw.cwpy.setting.natures:
             if not talent.special:
@@ -1494,7 +1494,7 @@ class AttrPage(AdventurerCreaterPage):
         else:
             self.couponsdata[coupons] = name
 
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         self.draw(True)
 
     def get_coupons(self):
@@ -1503,7 +1503,7 @@ class AttrPage(AdventurerCreaterPage):
         return seq
 
     def select_autofeatures(self):
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         self.couponsdata = _get_randommakingsandpair()
         self.draw(True)
 
@@ -1605,7 +1605,7 @@ class YadoCreater(wx.Dialog):
             self.okbtn.Disable()
 
     def OnChoice(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         self.Refresh()
 
     def OnOk(self, event):
@@ -1614,7 +1614,7 @@ class YadoCreater(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -1805,7 +1805,7 @@ class AdventurerDesignDialog(wx.Dialog):
         self.ccard.data.write_xml()
 
         def func(ccard):
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             if isinstance(ccard, cw.sprite.card.CWPyCard):
                 cw.animation.animate_sprite(ccard, "hide")
                 ccard.update_image()
@@ -1816,7 +1816,7 @@ class AdventurerDesignDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -1930,7 +1930,7 @@ class DesignPanel(AdventurerCreaterPage):
     def OnChoiceImgDPath(self, event):
         index = self.ch_imgdpath.GetSelection()
         if index <> self.imgdpath:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.imgdpath = index
             key = self.imgdpaths[index]
             self.imgpath = self.imgpaths[key][0]
@@ -2025,7 +2025,7 @@ class DesignPanel(AdventurerCreaterPage):
 
 def _set_nextimg(panel, name):
     if panel.imgpaths:
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         key = panel.imgdpaths[panel.imgdpath]
         if key is None and 1 < len(panel.imgdpaths):
             panel.imgdpath = 1
@@ -2047,7 +2047,7 @@ def _set_nextimg(panel, name):
 
 def _set_previmg(panel, name):
     if panel.imgpaths:
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         key = panel.imgdpaths[panel.imgdpath]
         if key is None and 1 < len(panel.imgdpaths):
             panel.imgdpath = 1

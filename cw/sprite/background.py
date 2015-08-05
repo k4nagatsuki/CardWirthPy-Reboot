@@ -899,14 +899,14 @@ class ClickableSprite(base.SelectableSprite):
     def lclick_event(self):
         """左クリックイベント。"""
         if self._lclickevent:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             self._lclickevent()
 
     def rclick_event(self):
         """右クリックイベント。"""
         if self._rclickevent:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             self._rclickevent()
 

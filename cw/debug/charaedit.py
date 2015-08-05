@@ -152,13 +152,13 @@ class CharacterEditDialog(wx.Dialog):
             def func(updates, pcards):
                 for i in updates:
                     pcard = pcards[i]
-                    cw.cwpy.sounds["harvest"].play()
+                    cw.cwpy.play_sound("harvest")
                     cw.animation.animate_sprite(pcard, "hide")
                     pcard.cardimg.set_levelimg(pcard.level)
                     pcard.update_image()
                     cw.animation.animate_sprite(pcard, "deal")
                 if not updates:
-                    cw.cwpy.sounds["harvest"].play()
+                    cw.cwpy.play_sound("harvest")
 
             updates = []
             for i, info in enumerate(self.infos):

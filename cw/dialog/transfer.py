@@ -77,7 +77,7 @@ class TransferYadoDataDialog(wx.Dialog):
             if self._checking:
                 return
             self._checking = True
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             cw.util.CheckableListCtrl.OnCheckItem(self.datalist, index, flag)
             i = self.datalist.GetNextItem(index-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index == i:
@@ -237,7 +237,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.datalist.Enable(bool(self.data))
 
     def OnFromYado(self, event):
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         index = self.fromyado.GetSelection()
         if index == self.index:
             return
@@ -253,7 +253,7 @@ class TransferYadoDataDialog(wx.Dialog):
         index2 = self.toyado.GetSelection()
         if index1 == index2:
             return
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         name1 = self.yadonames[index1]
         name2 = self.yadonames[index2]
         seq = []
@@ -438,7 +438,7 @@ class TransferYadoDataDialog(wx.Dialog):
 
         dlg.Destroy()
 
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         s = cw.cwpy.msgs["transfer_success"]
         dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
@@ -729,7 +729,7 @@ class TransferYadoDataDialog(wx.Dialog):
         counter.num += 1
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 

@@ -316,7 +316,7 @@ class CouponEditDialog(wx.Dialog):
                     update |= pcard.adjust_level(False)
 
             if not update:
-                cw.cwpy.sounds["harvest"].play()
+                cw.cwpy.play_sound("harvest")
 
         cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons)
         self.SetReturnCode(wx.ID_OK)
@@ -629,7 +629,7 @@ class GossipEditDialog(ListEditDialog):
 
     def OnOkBtn(self, event):
         def func(seq):
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             cw.cwpy.ydata.clear_gossips()
             for name in seq:
                 cw.cwpy.ydata.set_gossip(name)
@@ -644,7 +644,7 @@ class CompStampEditDialog(ListEditDialog):
 
     def OnOkBtn(self, event):
         def func(seq):
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             cw.cwpy.ydata.clear_compstamps()
             for name in seq:
                 cw.cwpy.ydata.set_compstamp(name)
@@ -745,7 +745,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
 
     def OnOkBtn(self, event):
         def func(removedlist):
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             for removed in removedlist:
                 if removed in cw.cwpy.ydata.savedjpdcimage:
                     header = cw.cwpy.ydata.savedjpdcimage[removed]
@@ -852,7 +852,7 @@ class BreakpointEditDialog(wx.Dialog):
 
     def OnOkBtn(self, event):
         def func(removedlist):
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             for removed in removedlist:
                 if removed in cw.cwpy.breakpoint_table:
                     del cw.cwpy.breakpoint_table[removed]

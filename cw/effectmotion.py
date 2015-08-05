@@ -173,7 +173,7 @@ class Effect(object):
 
             # ボーナス・ペナルティの発動したカードを一時表示する
             if guardcard:
-                cw.cwpy.sounds["equipment"].play(True)
+                cw.cwpy.play_sound("equipment", True)
                 cw.cwpy.set_guardcardimg(target, guardcard)
                 cw.cwpy.draw()
                 waitrate = (cw.cwpy.setting.get_dealspeed(self.battlespeed)+1) * 2
@@ -189,15 +189,15 @@ class Effect(object):
 
         # 音鳴らす
         if not success_avo:
-            cw.cwpy.play_sound(self.soundpath)
+            cw.cwpy.play_sound_with(self.soundpath)
 
         if success_avo:
-            cw.cwpy.sounds["avoid"].play(True)
+            cw.cwpy.play_sound("avoid", True)
             cw.cwpy.draw()
             cw.cwpy.wait_frame(1, cw.cwpy.setting.can_skipanimation)
             return False
         elif noeffect or (success_res and not hasdamage):
-            cw.cwpy.sounds["ineffective"].play(True)
+            cw.cwpy.play_sound("ineffective", True)
             self.animate(target, True)
             return False
 
@@ -208,7 +208,7 @@ class Effect(object):
 
         if not effectual:
             # 効果無し
-            cw.cwpy.sounds["ineffective"].play(True)
+            cw.cwpy.play_sound("ineffective", True)
 
         # ダメージ軽減によるカード消耗
         if hasdamage:
@@ -231,7 +231,7 @@ class Effect(object):
         # 吸収効果があったら、使用者のカードを回転させて更新する。
         if self.user and self.count_motion("absorb")\
                      and userlife < self.user.life:
-            cw.cwpy.sounds["bind"].play(True)
+            cw.cwpy.play_sound("bind", True)
             cw.animation.animate_sprite(self.user, "hide", battlespeed=self.battlespeed)
             self.user.update_image()
             cw.animation.animate_sprite(self.user, "deal", battlespeed=self.battlespeed)

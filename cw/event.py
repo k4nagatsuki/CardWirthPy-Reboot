@@ -869,7 +869,7 @@ class CardEvent(Event):
         flag |= bool(0 < level and not self.user.decide_misfire(level))
 
         if flag:
-            cw.cwpy.sounds["confuse"].play(True)
+            cw.cwpy.play_sound("confuse", True)
             battlespeed = cw.cwpy.is_battlestatus()
             cw.animation.animate_sprite(self.user, "axialvibe", battlespeed=battlespeed)
             cw.animation.animate_sprite(self.user, "hide", battlespeed=battlespeed)
@@ -970,7 +970,7 @@ class CardEvent(Event):
             cw.cwpy.lock_menucards = lock
             self.error = event.error
         else:
-            cw.cwpy.sounds["ineffective"].play(True)
+            cw.cwpy.play_sound("ineffective", True)
 
     def run_successevent(self, target, successflag, can_unconscious):
         if isinstance(target, Enemy):
@@ -1026,7 +1026,7 @@ class CardEvent(Event):
                 if eff.check_enabledtarget(target, False):
                     target.set_cardtarget()
                     cw.cwpy.draw()
-                    cw.cwpy.play_sound(path)
+                    cw.cwpy.play_sound_with(path)
                     waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                     skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     targets.append(target)
@@ -1083,7 +1083,7 @@ class CardEvent(Event):
                 target.clear_cardtarget()
 
                 if isinstance(target, cw.sprite.card.MenuCard):
-                    cw.cwpy.play_sound(eff.soundpath)
+                    cw.cwpy.play_sound_with(eff.soundpath)
                     eff.animate(target)
                     self.run_menucardevent(target)
                 elif d["target"] <> "None":

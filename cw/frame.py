@@ -426,7 +426,7 @@ class Frame(wx.Frame):
                 cw.cwpy.load_yado(yadodir)
             except:
                 cw.util.print_ex(file=sys.stderr)
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 return
 
         self.kill_dlg(dlg)
@@ -445,7 +445,7 @@ class Frame(wx.Frame):
                 cw.cwpy.exec_func(cw.cwpy.set_scenario, sceheader, resume=True)
             # シナリオロードに失敗
             elif header.is_adventuring():
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 s = (cw.cwpy.msgs["load_scenario_failure"])
                 mdlg = cw.dialog.message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
                 self.move_dlg(mdlg)
@@ -625,7 +625,7 @@ class Frame(wx.Frame):
             self.kill_dlg(dlg, lockmenucard=True)
             def func():
                 cw.cwpy.ydata.save()
-                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.play_sound("signal")
                 if cw.cwpy.setting.show_savedmessage:
                     s = cw.cwpy.msgs["saved"]
                     cw.cwpy.call_dlg("MESSAGE", text=s)
@@ -744,7 +744,7 @@ class Frame(wx.Frame):
             self.kill_dlg(dlg)
 
     def OnNOTICE(self, event):
-        cw.cwpy.sounds["error"].play()
+        cw.cwpy.play_sound("error")
         if cw.cwpy.setting.noticeimpossibleaction:
             text = event.args.get("text", "")
             dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], text)
@@ -810,10 +810,13 @@ class Frame(wx.Frame):
             dlg.Destroy()
 
         def func(lockmenucard):
+            cw.cwpy.has_inputevent = True
             cw.cwpy.mousepos = (-1, -1)
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()
+        if wx.GetKeyState(wx.WXK_RETURN):
+            cw.cwpy.keyevent.nokeyupevent = True
         cw.cwpy.exec_func(func, lockmenucard)
 
     def save_screenshot(self):
@@ -828,7 +831,7 @@ class Frame(wx.Frame):
                 fc = fc.GetParent()
             # ダイアログを表示中の場合
             def func(self):
-                cw.cwpy.sounds["screenshot"].play()
+                cw.cwpy.play_sound("screenshot")
                 date = datetime.datetime.today()
                 image, y = cw.util.create_screenshot(date)
                 w, h = image.get_size()

@@ -42,10 +42,15 @@ class KeyEventRelay(object):
         self.mousein = [0, 0, 0]
         # キー押しっぱなし閾値
         self.threshold = 1
+        # 連続押下は最初の1回のみKeyUpしたかのように動作するが、
+        # ダイアログを閉じた直後にその処理が誤爆する可能性があるので
+        # このフラグが立っている時に限り当該処理を行わない
+        self.nokeyupevent = False
 
     def clear(self):
         self.keyin = [0 for _cnt in xrange(322)]
         self.mousein = [0, 0, 0]
+        self.nokeyupevent = False
 
     def keydown(self, keycode):
         key = self.keymap.get(keycode, None)
@@ -65,6 +70,7 @@ class KeyEventRelay(object):
             event = pygame.event.Event(KEYUP, key=key)
             pygame.event.post(event)
             self.keyin[key] = 0
+            self.nokeyupevent = False
 
     def get_pressed(self):
         return tuple(self.keyin)
@@ -72,11 +78,15 @@ class KeyEventRelay(object):
     def is_keyin(self, keycode):
         if self.threshold + 1 == self.keyin[keycode]:
             # 連続押下は最初の1回のみKeyUpしたかのように動作する
-            if not cw.cwpy.setting.autoenter_on_sprite:
+            if not cw.cwpy.setting.autoenter_on_sprite and not self.nokeyupevent:
                 event = pygame.event.Event(KEYUP, key=keycode)
                 pygame.event.post(event)
             self.keyin[keycode] += 1
-        return self.threshold < self.keyin[keycode]
+        if self.threshold < self.keyin[keycode]:
+            self.nokeyupevent = False
+            return True
+        else:
+            return False
 
     def is_mousein(self, button):
         if cw.cwpy.setting.can_repeatlclick:

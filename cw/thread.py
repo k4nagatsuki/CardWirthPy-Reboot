@@ -535,7 +535,7 @@ class CWPy(_Singleton, threading.Thread):
                     sprite.update_scale()
 
         if not debug and self.is_showingdebugger():
-            self.sounds["page"].play()
+            self.play_sound("page")
             self.frame.exec_func(self.frame.debugger.Close)
 
         cw.data.redraw_cards(debug)
@@ -1184,7 +1184,7 @@ class CWPy(_Singleton, threading.Thread):
         elif expandmode == "FullScreen":
             # フルスクリーン
             if self.is_showingdebugger() and flag:
-                self.sounds["error"].play()
+                self.play_sound("error")
                 s = u"デバッガ表示中はフルスクリーン化できません。"
                 self.call_modaldlg("MESSAGE", text=s)
             else:
@@ -1898,7 +1898,7 @@ class CWPy(_Singleton, threading.Thread):
             if cw.util.create_mutex(yadodir):
                 cw.tempdir = cw.util.join_paths(u"Data/Temp/Local", yadodir)
             else:
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 return False
 
         optscenario = cw.OPTIONS.scenario
@@ -1950,7 +1950,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.exec_func(self.set_scenario, header, resume=True)
             # シナリオロードに失敗
             elif self.ydata.party.is_adventuring():
-                self.sounds["error"].play()
+                self.play_sound("error")
                 s = (cw.cwpy.msgs["load_scenario_failure"])
                 self.call_modaldlg("YESNO", text=s)
 
@@ -2413,7 +2413,7 @@ class CWPy(_Singleton, threading.Thread):
         self.lock_menucards = True
         self.clean_specials()
 
-        self.sounds["battle"].play(from_scenario=True)
+        self.play_sound("battle", from_scenario=True)
         self.statusbar.change(False, encounter=True)
         # 戦闘開始アニメーション
         sprite = cw.sprite.background.BattleCardImage()
@@ -2487,7 +2487,7 @@ class CWPy(_Singleton, threading.Thread):
                         pcard.set_mentality("Normal", 0)
                         pcard.update_image()
                     else:
-                        self.sounds["harvest"].play()
+                        self.play_sound("harvest", )
                         pcard.set_bind(0)
                         pcard.set_mentality("Normal", 0)
                         cw.animation.animate_sprite(pcard, "hide", battlespeed=True)
@@ -3024,7 +3024,7 @@ class CWPy(_Singleton, threading.Thread):
     def cancel_cardcontrol(self):
         """カードの移動や使用の対象選択をキャンセルする。"""
         if self.is_curtained():
-            self.sounds["click"].play()
+            self.play_sound("click", )
 
             if self.areaid in cw.AREAS_TRADE:
                 # カード移動選択エリアだったら、事前に開いていたダイアログを開く
@@ -3107,7 +3107,7 @@ class CWPy(_Singleton, threading.Thread):
         if pcard:
             if not breakuparea:
                 return
-            self.sounds["page"].play()
+            self.play_sound("page")
             pcard.remove_numbercoupon()
             pcards = self.get_pcards()
             index = pcards.index(pcard)
@@ -3210,7 +3210,13 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.ydata.add_partyrecord(partyrecord)
 
-    def play_sound(self, path, inusecard=None):
+    def play_sound(self, name, from_scenario=False):
+        if self <> threading.currentThread():
+            self.exec_func(self.play_sound, name, from_scenario)
+            return
+        self.sounds[name].play(from_scenario)
+
+    def play_sound_with(self, path, inusecard=None):
         """効果音を再生する。
         シナリオ効果音・スキン効果音を適宜使い分ける。
         """
@@ -3318,7 +3324,7 @@ class CWPy(_Singleton, threading.Thread):
                     price = calc_price(header)
                 if not from_event:
                     if sound:
-                        cw.cwpy.sounds["page"].play()
+                        cw.cwpy.play_sound("page")
                     s = cw.cwpy.msgs["confirm_sell"] % (header.name, price)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
@@ -3326,7 +3332,7 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 if not from_event:
                     if sound:
-                        cw.cwpy.sounds["page"].play()
+                        cw.cwpy.play_sound("page")
                     s = cw.cwpy.msgs["confirm_dump"] % (header.name)
                     self.call_modaldlg("YESNO", text=s, parentdialog=parentdialog)
                     if self.get_yesnoresult() <> wx.ID_OK:
@@ -3368,11 +3374,11 @@ class CWPy(_Singleton, threading.Thread):
         # 音を鳴らす
         if not from_event:
             if targettype == "TRASHBOX":
-                self.sounds["dump"].play()
+                self.play_sound("dump")
             elif targettype == "PAWNSHOP":
-                self.sounds["signal"].play()
+                self.play_sound("signal")
             elif sound:
-                self.sounds["page"].play()
+                self.play_sound("page")
 
         # 宿状態の変化を通知
         if cw.cwpy.ydata:

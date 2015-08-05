@@ -191,7 +191,7 @@ class StatusEditDialog(wx.Dialog):
         def func(pcards, oldactive, updates):
             for i in updates:
                 pcard = pcards[i]
-                cw.cwpy.sounds["harvest"].play()
+                cw.cwpy.play_sound("harvest")
                 battlespeed = cw.cwpy.is_battlestatus()
                 if pcard.status == "hidden":
                     pcard.update_image()
@@ -213,7 +213,7 @@ class StatusEditDialog(wx.Dialog):
                         cw.cwpy.clear_inusecardimg(pcard)
 
             if not updates:
-                cw.cwpy.sounds["harvest"].play()
+                cw.cwpy.play_sound("harvest")
 
         updates = []
         oldactive = []

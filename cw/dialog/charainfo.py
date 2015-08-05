@@ -226,7 +226,7 @@ class CharaInfo(wx.Dialog):
             self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -251,11 +251,11 @@ class CharaInfo(wx.Dialog):
                 self.ccard = cw.character.Player(data)
 
             if isinstance(self, StandbyPartyCharaInfo):
-                cw.cwpy.sounds["page"].play()
+                cw.cwpy.play_sound("page")
             else:
                 self.Parent.OnClickLeftBtn(event)
         else:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.ccard = self.list[self.index]
             self.Parent.change_selection(self.list[self.index])
 
@@ -284,11 +284,11 @@ class CharaInfo(wx.Dialog):
                 self.ccard = cw.character.Player(data)
 
             if isinstance(self, StandbyPartyCharaInfo):
-                cw.cwpy.sounds["page"].play()
+                cw.cwpy.play_sound("page")
             else:
                 self.Parent.OnClickRightBtn(event)
         else:
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.ccard = self.list[self.index]
             self.Parent.change_selection(self.list[self.index])
 
@@ -304,7 +304,7 @@ class CharaInfo(wx.Dialog):
         pass
 
     def OnPageChanging(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
 
     def draw(self, update):
         win = self.notebook.GetCurrentPage()
@@ -575,7 +575,7 @@ class DescPanel(wx.ScrolledWindow):
         self.draw(True)
 
     def OnLeftUp(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
         dlg = cw.debug.charaedit.CharacterEditDialog(parent, selected=selected)
@@ -667,7 +667,7 @@ class HistoryPanel(wx.ScrolledWindow):
         return wxbmp
 
     def OnLeftUp(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
         dlg = cw.debug.edit.CouponEditDialog(parent, selected=selected)
@@ -810,7 +810,7 @@ class EditPanel(wx.Panel):
             if header.negaflag:
                 if header.type == 0:
                     # デザインを変更する
-                    cw.cwpy.sounds["click"].play()
+                    cw.cwpy.play_sound("click")
                     dlg = cw.dialog.create.AdventurerDesignDialog(self.Parent.Parent, self.ccard)
                     cw.cwpy.frame.move_dlg(dlg)
                     if wx.ID_OK == dlg.ShowModal():
@@ -822,7 +822,7 @@ class EditPanel(wx.Panel):
                     dlg.Destroy()
                 else:
                     # レベルを調節する
-                    cw.cwpy.sounds["click"].play()
+                    cw.cwpy.play_sound("click")
                     mlist = self.get_charalist()
                     self.selected = mlist.index(self.ccard)
                     party = self.Parent.Parent.party
@@ -1000,7 +1000,7 @@ class StatusPanel(wx.ScrolledWindow):
             self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
 
     def OnLeftUp(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         parent = self.GetTopLevelParent()
         selected = self.Parent.Parent.index
         dlg = cw.debug.statusedit.StatusEditDialog(parent, mlist=self.list, selected=selected)
@@ -1183,9 +1183,9 @@ class CardPanel(wx.Panel):
                 # ホールド状態切り替え(召喚獣以外)
                 dc = wx.ClientDC(self)
                 if header.penalty:
-                    cw.cwpy.sounds["error"].play()
+                    cw.cwpy.play_sound("error")
                     return
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
                 if cw.cwpy.ydata:
                     cw.cwpy.ydata.changed()
                 header.set_hold(not header.hold)
@@ -1200,7 +1200,7 @@ class CardPanel(wx.Panel):
     def _open_cardinfo(self):
         for header in self.headers:
             if header.negaflag:
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
                 dlg = cardinfo.YadoCardInfo(self.Parent.Parent, self.headers, header)
                 cw.cwpy.frame.move_dlg(dlg)
                 dlg.ShowModal()

@@ -69,7 +69,7 @@ class PartyEditor(wx.Dialog):
         self.Layout()
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         name = self.textctrl.GetValue()
 
         if not name == self.party.name:
@@ -88,7 +88,7 @@ class PartyEditor(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -292,13 +292,13 @@ class NumberEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         self.value = self.slider.get_value()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -368,14 +368,14 @@ class Number2EditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         self.value1 = self.slider1.get_value()
         self.value2 = self.slider2.get_value()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -453,14 +453,14 @@ class NumberComboEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
         self.value = self.slider.get_value()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -743,13 +743,13 @@ class ComboEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
         self.SetReturnCode(wx.ID_OK)
         self.Destroy()
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -777,13 +777,13 @@ class ComboEditDialog2(wx.Dialog):
         self.SetClientSize((w, h))
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -978,14 +978,14 @@ class LevelEditDialog(wx.Dialog):
                 ccard.is_edited = True
                 if hasattr(ccard, "cardimg") and hasattr(ccard.cardimg, "set_levelimg"):
                     update = True
-                    cw.cwpy.sounds["harvest"].play()
+                    cw.cwpy.play_sound("harvest")
                     cw.animation.animate_sprite(ccard, "hide")
                     ccard.cardimg.set_levelimg(ccard.level)
                     ccard.update_image()
                     cw.animation.animate_sprite(ccard, "deal")
 
             if not update:
-                cw.cwpy.sounds["harvest"].play()
+                cw.cwpy.play_sound("harvest")
 
         selected = self.get_selected()
         level = self.slider.get_value()
@@ -995,7 +995,7 @@ class LevelEditDialog(wx.Dialog):
         self.Destroy()
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -1113,7 +1113,7 @@ class YadoEditDialog(wx.Dialog):
             self.okbtn.Disable()
 
     def OnOk(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         name = self.textctrl.GetValue().strip()
         if name <> self.name:
 
@@ -1142,7 +1142,7 @@ class YadoEditDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 

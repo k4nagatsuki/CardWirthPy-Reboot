@@ -2654,7 +2654,7 @@ class PlaySoundContent(EventContentBase):
     def action(self):
         """効果音コンテント。"""
         path = self.data.get("path", "")
-        cw.cwpy.play_sound(path)
+        cw.cwpy.play_sound_with(path)
         return 0
 
     def get_status(self):

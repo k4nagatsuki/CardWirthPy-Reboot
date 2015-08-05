@@ -977,7 +977,7 @@ def print_ex(file=None):
 def screenshot():
     """スクリーンショットをファイルへ書き出す。
     """
-    cw.cwpy.sounds["screenshot"].play()
+    cw.cwpy.play_sound("screenshot")
     date = datetime.datetime.today()
     filename = create_screenshotfilename(date)
     bmp, y = create_screenshot(date)

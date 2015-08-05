@@ -596,7 +596,7 @@ class SelectionBar(base.SelectableSprite):
         if not mwin:
             return
 
-        cw.cwpy.sounds["click"].play(True)
+        cw.cwpy.play_sound("click", True)
 
         # クリックした時だけ、軽く下に押されるアニメーションを行う
         if not skip:

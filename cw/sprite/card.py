@@ -707,7 +707,7 @@ class PlayerCard(CWPyCard, character.Player):
 
         # CARDPOCKETダイアログを開く(通常)
         elif not cw.cwpy.is_curtained():
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
 
             if cw.cwpy.is_battlestatus():
@@ -734,7 +734,7 @@ class PlayerCard(CWPyCard, character.Player):
 
         # カード使用。USECARDダイアログを開く
         elif cw.cwpy.selectedheader:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
 
             # USECARDダイアログを開く
@@ -753,13 +753,13 @@ class PlayerCard(CWPyCard, character.Player):
 
         # キャンプ
         elif cw.cwpy.areaid == cw.AREA_CAMP:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             cw.cwpy.call_modaldlg("CARDPOCKET")
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
         cw.cwpy.call_modaldlg("CHARAINFO")
 
@@ -807,7 +807,7 @@ class PlayerCard(CWPyCard, character.Player):
         # 回復処理
         if fromscenario or levelup <> 0:
             result = True
-            cw.cwpy.sounds["harvest"].play(True)
+            cw.cwpy.play_sound("harvest", True)
             cw.animation.animate_sprite(self, "hide")
             if fromscenario:
                 self.set_fullrecovery()
@@ -915,7 +915,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
 
         # CARDPOCKETダイアログを開く(通常)
@@ -936,7 +936,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
 
         if self.is_analyzable():
@@ -986,7 +986,7 @@ class FriendCard(CWPyCard, character.Friend):
 
     def lclick_event(self):
         """左クリックイベント。"""
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
 
         if cw.cwpy.is_battlestatus():
@@ -1004,7 +1004,7 @@ class FriendCard(CWPyCard, character.Friend):
 
     def rclick_event(self):
         """右クリックイベント。"""
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.animation.animate_sprite(self, "click")
 
         if self.is_analyzable():
@@ -1127,7 +1127,7 @@ class MenuCard(CWPyCard):
         """左クリックイベント。"""
         # 通常のクリックイベント
         if not cw.cwpy.is_curtained():
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             if self.command:
                 cw.content.PostEventContent.do_action(self.command, self.arg)
@@ -1144,7 +1144,7 @@ class MenuCard(CWPyCard):
 
         # カード使用イベント
         elif cw.cwpy.selectedheader:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
 
             # USECARDダイアログを開く
@@ -1159,9 +1159,9 @@ class MenuCard(CWPyCard):
         # キャンプ・パーティ解散
         elif cw.cwpy.areaid in (cw.AREA_CAMP, cw.AREA_BREAKUP):
             if cw.cwpy.areaid == cw.AREA_BREAKUP:
-                cw.cwpy.sounds["page"].play()
+                cw.cwpy.play_sound("page")
             else:
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             if self.command:
                 cw.content.PostEventContent.do_action(self.command, self.arg)
@@ -1171,7 +1171,7 @@ class MenuCard(CWPyCard):
     def rclick_event(self):
         """右クリックイベント。"""
         if not cw.cwpy.is_showingdlg():
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.animation.animate_sprite(self, "click")
             if self.desc:
                 cw.cwpy.call_modaldlg("MENUCARDINFO")

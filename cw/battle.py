@@ -293,10 +293,10 @@ class BattleEngine(object):
                 # 行動内容のクリア
                 for member in self.members:
                     member.clear_action()
-                cw.cwpy.sounds["run"].play()
+                cw.cwpy.play_sound("run")
                 self.end()
             else:
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 self.start()
 
     def win(self, runevent=True):

@@ -540,7 +540,7 @@ class Debugger(wx.Frame):
     def OnUpdateTool(self, event):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             def func():
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
                 cw.cwpy.sdata.reload()
                 if 0 <= cw.cwpy.areaid and not cw.cwpy.selectedheader:
                     # キャンプ等
@@ -550,12 +550,12 @@ class Debugger(wx.Frame):
                     # バトル中
                     cw.cwpy.battle.ready()
                     cw.cwpy.battle.round -= 1
-                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.play_sound("signal")
             cw.cwpy.exec_func(func)
 
     def OnRedisplayTool(self, event):
         def func():
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
             cw.cwpy.background.reload()
         cw.cwpy.exec_func(func)
 
@@ -750,7 +750,7 @@ class Debugger(wx.Frame):
             self._recovering = True
             def recovery_all(self):
                 for pcard in cw.cwpy.get_pcards("unreversed"):
-                    cw.cwpy.sounds["harvest"].play()
+                    cw.cwpy.play_sound("harvest")
                     battlespeed = cw.cwpy.is_battlestatus()
                     if pcard.status == "hidden":
                         pcard.set_fullrecovery()
@@ -1023,7 +1023,7 @@ class Debugger(wx.Frame):
         mwin = cw.cwpy.get_messagewindow()
         if mwin:
             # メッセージウィンドウ表示中の場合で処理を分ける
-            cw.cwpy.sounds["click"].play(True)
+            cw.cwpy.play_sound("click", True)
             mwin.result = 0
 
     def OnStepOverTool(self, event):
@@ -1034,7 +1034,7 @@ class Debugger(wx.Frame):
         mwin = cw.cwpy.get_messagewindow()
         if mwin:
             # メッセージウィンドウ表示中の場合で処理を分ける
-            cw.cwpy.sounds["click"].play(True)
+            cw.cwpy.play_sound("click", True)
             mwin.result = 0
 
     def OnStepInTool(self, event):
@@ -1045,7 +1045,7 @@ class Debugger(wx.Frame):
         mwin = cw.cwpy.get_messagewindow()
         if mwin:
             # メッセージウィンドウ表示中の場合で処理を分ける
-            cw.cwpy.sounds["click"].play(True)
+            cw.cwpy.play_sound("click", True)
             mwin.result = 0
 
     def OnPauseTool(self, event):

@@ -307,7 +307,7 @@ class EventHandler(object):
             # シナリオプレイ中、テーブル・キャンプモード切替
             elif cw.cwpy.status == "Scenario" and not cw.cwpy.is_dealing():
                 cw.cwpy.has_inputevent = True
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
 
                 if cw.cwpy.areaid == -4:
                     cw.cwpy.clear_specialarea()
@@ -318,7 +318,7 @@ class EventHandler(object):
             # パーティの宿滞在時、冒険の中断
             elif cw.cwpy.status == "Yado" and not cw.cwpy.is_dealing():
                 cw.cwpy.has_inputevent = True
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
 
                 if cw.cwpy.areaid == 1:
                     cw.cwpy.call_modaldlg("RETURNTITLE")
@@ -328,11 +328,11 @@ class EventHandler(object):
 
             # シナリオ戦闘時、戦闘行動選択ダイアログ表示
             elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
                 cw.cwpy.call_modaldlg("BATTLECOMMAND")
                 return
 
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.cwpy.call_modaldlg("CLOSE")
 
     def f1key_event(self):
@@ -348,7 +348,7 @@ class EventHandler(object):
         if cw.cwpy.is_showingdlg():
             return
         cw.cwpy.has_inputevent = True
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         cw.cwpy.call_modaldlg("SETTINGS")
 
     def f3key_event(self):
@@ -357,7 +357,7 @@ class EventHandler(object):
         """
         if cw.cwpy.is_showingdlg():
             return
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         if cw.cwpy.setting.expandmode == "FullScreen":
             cw.cwpy.set_expanded(False)
 
@@ -386,7 +386,7 @@ class EventHandler(object):
             event = pygame.event.Event(KEYDOWN, key=K_UP)
             pygame.event.post(event)
         elif cw.cwpy.has_backlog():
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             cw.cwpy.show_backlog()
 
         # PCの山札内のカード数を表示する
@@ -424,7 +424,7 @@ class EventHandler(object):
         if cw.cwpy.is_playingscenario() and\
                 not (cw.cwpy.is_runningevent() or cw.cwpy.is_processing or cw.cwpy.is_battlestatus()) and\
                 cw.cwpy.sdata.infocards:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
             cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
 
     def f7key_event(self):
@@ -435,7 +435,7 @@ class EventHandler(object):
         if not self.can_input():
             return
         if cw.cwpy.setting.show_roundautostartbutton and cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
             cw.cwpy.statusbar.change(showbuttons=cw.cwpy.statusbar.showbuttons)
             cw.cwpy.draw(clip=cw.s(pygame.Rect(cw.RECT_STATUSBAR)))
@@ -451,7 +451,7 @@ class EventHandler(object):
             path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", fname)
             if os.path.isfile(path):
                 cw.cwpy.has_inputevent = True
-                cw.cwpy.sounds["signal"].play()
+                cw.cwpy.play_sound("signal")
                 cw.cwpy.call_modaldlg("F9")
 
     def returnkey_event(self):
@@ -969,23 +969,23 @@ class EventHandlerForBacklog(EventHandler):
                 self.exit_backlog()
                 return
 
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.index += 1
 
             self.update_sprites()
         else:
             # バックログを遡る
             if self.index <= 0:
-                cw.cwpy.sounds["error"].play()
+                cw.cwpy.play_sound("error")
                 return
-            cw.cwpy.sounds["page"].play()
+            cw.cwpy.play_sound("page")
             self.index -= 1
 
             self.update_sprites()
 
     def exit_backlog(self, playsound=True):
         if playsound:
-            cw.cwpy.sounds["click"].play()
+            cw.cwpy.play_sound("click")
         # バックログ終了
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")

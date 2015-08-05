@@ -103,7 +103,7 @@ class BattleCommand(wx.Dialog):
         if resid == self.returnkeyid:
             for header in self.list:
                 if header.negaflag:
-                    cw.cwpy.sounds["click"].play()
+                    cw.cwpy.play_sound("click")
                     self.animate_click(header)
                     header.lclick_event()
                     return
@@ -138,7 +138,7 @@ class BattleCommand(wx.Dialog):
     def OnLeftUp(self, event):
         for header in self.list:
             if header.rect.collidepoint(event.GetPosition()):
-                cw.cwpy.sounds["click"].play()
+                cw.cwpy.play_sound("click")
                 self.animate_click(header)
                 header.lclick_event()
                 return
@@ -169,7 +169,7 @@ class BattleCommand(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         self.cancel()
 
     def OnMove(self, event):
@@ -346,7 +346,7 @@ class ExtensionDialog(wx.Dialog):
         self.items[index][2]()
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
@@ -469,7 +469,7 @@ class BookmarkDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, self.GetClientSize())
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         self.Destroy()
 
     def _do_layout(self):
@@ -490,7 +490,7 @@ class BookmarkDialog(wx.Dialog):
         self.Layout()
 
     def OnRemoveBtn(self, event):
-        cw.cwpy.sounds["dump"].play()
+        cw.cwpy.play_sound("dump")
         while True:
             index = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= -1:
@@ -501,7 +501,7 @@ class BookmarkDialog(wx.Dialog):
 
     def OnUpBtn(self, event):
         index = -1
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         while True:
             index = self.values.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
             if index <= 0:
@@ -514,7 +514,7 @@ class BookmarkDialog(wx.Dialog):
         if not indexes or self.values.GetItemCount() <= indexes[-1] + 1:
             return
 
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         indexes.reverse()
         for index in indexes:
             self._swap(index, index+1)
@@ -562,7 +562,7 @@ class BookmarkDialog(wx.Dialog):
             self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
 
     def OnOkBtn(self, event):
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
         def func(bookmarks):
             cw.cwpy.ydata.set_bookmarks(bookmarks)
         cw.cwpy.exec_func(func, self.bookmark)
@@ -618,7 +618,7 @@ class ConvertYadoDialog(wx.Dialog):
         self._bind()
 
     def OnOk(self, event):
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         self.dstpath = self.folder.GetValue()
         index = self.target.GetSelection()
         if index == 0:
@@ -636,7 +636,7 @@ class ConvertYadoDialog(wx.Dialog):
         self.ProcessEvent(btnevent)
 
     def OnCancel(self, event):
-        cw.cwpy.sounds["click"].play()
+        cw.cwpy.play_sound("click")
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 

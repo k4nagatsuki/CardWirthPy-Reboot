@@ -726,7 +726,7 @@ class GeneralSettingPanel(wx.Panel):
     ##            self.Parent.Parent, cw.cwpy.msgs["message"],
     ##            u"シナリオプレイ中はデバッグモードの切替はできません。")
     ##        cw.cwpy.frame.move_dlg(dlg)
-    ##        cw.cwpy.sounds["error"].play()
+    ##        cw.cwpy.play_sound("error")
     ##        dlg.ShowModal()
 
     def update_skins(self, skindirname):
@@ -794,9 +794,9 @@ class GeneralSettingPanel(wx.Panel):
         s = u"スキンを削除すると元に戻すことはできません。\n%sを削除しますか？" % (skin)
         dlg = cw.dialog.message.YesNoMessage(self.TopLevelParent, cw.cwpy.msgs["message"], s)
         cw.cwpy.frame.move_dlg(dlg)
-        cw.cwpy.sounds["signal"].play()
+        cw.cwpy.play_sound("signal")
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sounds["dump"].play()
+            cw.cwpy.play_sound("dump")
             dpath = cw.util.join_paths(u"Data/Skin", skin)
             cw.util.remove(dpath)
             self.update_skins(cw.cwpy.setting.skindirname)

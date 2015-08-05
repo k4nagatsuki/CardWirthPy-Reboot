@@ -78,13 +78,13 @@ class EventListDialog(wx.Dialog):
 
     def OnStartBtn(self, event):
         if self.events.get_selectedevent():
-            cw.cwpy.sounds["signal"].play()
+            cw.cwpy.play_sound("signal")
             self.start_event = True
             self.EndModal(wx.ID_OK)
 
     def OnOpenBtn(self, event):
         if self.events.get_selectedevent():
-            cw.cwpy.sounds["signal"].play()
+            cw.cwpy.play_sound("signal")
             self.start_event = False
             self.EndModal(wx.ID_OK)
 

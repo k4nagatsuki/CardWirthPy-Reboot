@@ -159,7 +159,7 @@ class Text(wx.Dialog):
     def OnUp(self, event):
         if self.combo.GetCount() <= 1:
             return
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         index = self.combo.GetSelection()
         if index <= 0:
             self.combo.SetSelection(self.combo.GetCount()-1)
@@ -171,7 +171,7 @@ class Text(wx.Dialog):
     def OnDown(self, event):
         if self.combo.GetCount() <= 1:
             return
-        cw.cwpy.sounds["page"].play()
+        cw.cwpy.play_sound("page")
         index = self.combo.GetSelection()
         self.combo.SetSelection((index+1) % self.combo.GetCount())
         event = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, self.combo.GetId())

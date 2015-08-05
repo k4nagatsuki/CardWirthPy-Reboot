@@ -252,7 +252,7 @@ class CardEditDialog(wx.Dialog):
             count += 1
 
         if 0 < count:
-            cw.cwpy.sounds["harvest"].play()
+            cw.cwpy.play_sound("harvest")
 
     def OnFindBtn(self, event):
         """キャラクター・荷物袋・宿に存在するカードを検索する。"""
@@ -442,7 +442,7 @@ class CardEditDialog(wx.Dialog):
                 count += len(array)
             set_status(u"%s件のカードが見つかりました。" % (count))
 
-            cw.cwpy.sounds["signal"].play()
+            cw.cwpy.play_sound("signal")
             def update_enable():
                 self._find = False
                 self._update_enable()
@@ -499,7 +499,7 @@ class CardEditDialog(wx.Dialog):
         self.status.SetLabel(u"%s件のカードを更新しました。" % (count))
 
         self._update_enable()
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
 
     def OnDeleteBtn(self, event):
         """カードの除去。"""
@@ -531,7 +531,7 @@ class CardEditDialog(wx.Dialog):
         self.status.SetLabel(u"%s件のカードを除去しました。" % (count))
 
         self._update_enable()
-        cw.cwpy.sounds["harvest"].play()
+        cw.cwpy.play_sound("harvest")
 
     def _get_list(self, matcher, owner, data):
         if isinstance(owner, cw.data.Party):
