@@ -41,7 +41,7 @@ class SettingsDialog(wx.Dialog):
             s = "%s / Build: %s" % (s, versioninfo.build_datetime)
         self.versioninfo = wx.TextCtrl(self, -1, s, size=(-1, -1), style=wx.TE_READONLY|wx.NO_BORDER)
         dc = wx.ClientDC(self.versioninfo)
-        self.versioninfo.SetMinSize((dc.GetTextExtent(s)[0] + 5, -1))
+        self.versioninfo.SetMinSize((dc.GetTextExtent(s)[0] + 10, -1))
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")

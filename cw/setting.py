@@ -1181,7 +1181,18 @@ class Resource(object):
             bottomright.fill(emcolor, special_flags=pygame.locals.BLEND_RGBA_ADD)
             color = (min(255, color[0]+96), color[1], color[2])
 
-        pygame.draw.rect(bmp, color, (1, 1, w-2, h-2), 1)
+        if not (flags & SB_CURRENT) and not (flags & SB_DISABLE):
+            opacity = 92
+            lightcolor = (0, 0, 0, opacity)
+            topleft.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            topright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            bottomleft.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            bottomright.fill(lightcolor, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            linecolor = (color[0], color[1], color[2], 255-opacity)
+        else:
+            linecolor = color
+
+        pygame.draw.rect(bmp, linecolor, (1, 1, w-2, h-2), 1)
         bmp.blit(topleft, (1, 1))
         bmp.blit(topright, (w-6-1, 1))
         bmp.blit(bottomleft, (1, h-6-1))
