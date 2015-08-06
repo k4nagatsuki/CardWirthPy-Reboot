@@ -776,7 +776,7 @@ class Resource(object):
         self.msgs = self.get_msgs(setting)
         # wxダイアログのボタン画像(辞書)
         # wxスレッドから初期化
-        self.buttons = ResourceTable()
+        self.buttons = ResourceTable("Button", {}.copy(), empty_wxbmp)
         # カード背景画像(辞書)
         self.cardbgs = self.get_cardbgs(cw.util.load_image)
         self.cardnamecolorhints = self.get_cardnamecolorhints(self.cardbgs)
@@ -784,14 +784,14 @@ class Resource(object):
         # wxダイアログで使う画像(辞書)
         self.pygamedialogs = self.get_dialogs(cw.util.load_image)
         # wx版。wxスレッドから初期化
-        self.dialogs = ResourceTable()
+        self.dialogs = ResourceTable("Dialog", {}.copy(), empty_wxbmp)
         # デバッガで使う画像(辞書)
         self.pygamedebugs = self.get_debugs(cw.util.load_image)
         # wx版。wxスレッドから初期化
-        self.debugs = ResourceTable()
+        self.debugs = ResourceTable("Debug", {}.copy(), empty_wxbmp)
         # ダイアログで使うカーソル(辞書)
         # wxスレッドから初期化
-        self.cursors = ResourceTable()
+        self.cursors = ResourceTable("Cursor", {}.copy(), empty_wxbmp)
         # 特殊文字の画像(辞書)
         self.specialchars_is_changed = False
         self.specialchars = self.get_specialchars()
@@ -800,7 +800,7 @@ class Resource(object):
         # 適性値・使用回数値画像(辞書)
         self.stones = self.get_stones()
         # wx版。wxスレッドから初期化
-        self.wxstones = ResourceTable()
+        self.wxstones = ResourceTable("Stone", {}.copy(), empty_wxbmp)
         # 使用フォント(辞書)。スプライトを作成するたびにフォントインスタンスを
         # 新規作成すると重いのであらかじめ用意しておく(wxスレッドから初期化)
         self.fonts = self.create_fonts()
@@ -1010,7 +1010,7 @@ class Resource(object):
     def create_fonts(self):
         """ゲーム内で頻繁に使用するpygame.Fontはここで設定する。"""
         # 使用フォント(辞書)
-        fonts = ResourceTable()
+        fonts = ResourceTable("Font", {}.copy(), lambda: None)
         # 所持カードの使用回数描画用
         fonts.set("card_uselimit", self.create_font, "uselimit", 18, False, False, False)
         # メニューカードの名前描画用
@@ -1268,12 +1268,12 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func, dpath, ext, mask=False, ss=None, noresize=(), nodbg=False):
+    def get_resources(self, func, dpath, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None):
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
         """
-        d, dpath = ResourceTable(), unicode(dpath)
+        d, dpath = ResourceTable(dpath, {}.copy(), emptyfunc), unicode(dpath)
         if not os.path.isdir(dpath):
             return d
 
@@ -1329,13 +1329,13 @@ class Resource(object):
         システム効果音を読み込んで、
         pygameのsoundインスタンスの辞書で返す。
         """
-        d = ResourceTable()
+        d = ResourceTable("SystemSound", {}.copy(), empty_sound)
         for key, sound in setting.sounds.items():
             if sound in skinsounds:
                 f = lambda sound: d.set(key, lambda: skinsounds[sound])
                 f(sound)
             else:
-                d.set(key, cw.util.SoundInterface, None, "")
+                d.set(key, empty_sound)
         return d
 
     def get_skinsounds(self):
@@ -1344,7 +1344,7 @@ class Resource(object):
         pygameのsoundインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Sound")
-        return self.get_resources(cw.util.load_sound, dpath, self.ext_snd)
+        return self.get_resources(cw.util.load_sound, dpath, self.ext_snd, emptyfunc=empty_sound)
 
     def get_msgs(self, setting):
         """
@@ -1358,14 +1358,14 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
-        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins)
+        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
 
     def get_cursors(self):
         """
         ダイアログで使用されるカーソルを読み込んで、
         wxCursorのインスタンスの辞書で返す。
         """
-        d = ResourceTable()
+        d = ResourceTable("Resource/Image/Cursor", {}.copy(), lambda: wx.StockCursor(wx.CURSOR_ARROW))
         d.set("CURSOR_BACK", wx.StockCursor, wx.CURSOR_POINT_LEFT)
         d.set("CURSOR_FORE", wx.StockCursor, wx.CURSOR_POINT_RIGHT)
         d.set("CURSOR_FINGER", wx.StockCursor, wx.CURSOR_HAND)
@@ -1385,7 +1385,7 @@ class Resource(object):
         pygameのサーフェスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_image, dpath, self.ext_img, True, cw.s)
+        return self.get_resources(cw.util.load_image, dpath, self.ext_img, True, cw.s, emptyfunc=empty_image)
 
     def get_wxstones(self):
         """
@@ -1393,7 +1393,7 @@ class Resource(object):
         wxBitmapのインスタンスの辞書で返す。
         """
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins)
+        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
 
     def get_statuses(self, load_image):
         """
@@ -1403,8 +1403,10 @@ class Resource(object):
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
+            emptyfunc=empty_wxbmp
         else:
             ss = cw.s
+            emptyfunc=empty_image
 
         def load_image2(fpath, mask=False):
             fname = os.path.basename(fpath)
@@ -1421,7 +1423,7 @@ class Resource(object):
                 return load_image(fpath, mask=False)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
-        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"))
+        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
 
         return d
 
@@ -1432,8 +1434,10 @@ class Resource(object):
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
+            emptyfunc=empty_wxbmp
         else:
             ss = cw.s
+            emptyfunc=empty_image
 
         def load_image2(fpath, mask=False):
             fname = os.path.basename(fpath)
@@ -1448,7 +1452,7 @@ class Resource(object):
                 return load_image(fpath, mask=mask)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
-        d = self.get_resources(load_image2, dpath, self.ext_img, True, ss)
+        d = self.get_resources(load_image2, dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
 
         return d
 
@@ -1457,8 +1461,13 @@ class Resource(object):
         デバッガで使う画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
+        if load_image == cw.util.load_wxbmp:
+            emptyfunc=empty_wxbmp
+        else:
+            emptyfunc=empty_image
+
         dpath = u"Data/Debugger"
-        d = self.get_resources(load_image, dpath, cw.M_IMG, True, lambda bmp: bmp)
+        d = self.get_resources(load_image, dpath, cw.M_IMG, True, lambda bmp: bmp, emptyfunc=emptyfunc)
         return d
 
     def get_cardbgs(self, load_image):
@@ -1469,8 +1478,10 @@ class Resource(object):
         """
         if load_image == cw.util.load_wxbmp:
             ss = cw.wins
+            emptyfunc=empty_wxbmp
         else:
             ss = cw.s
+            emptyfunc=empty_image
 
         def load_image2(fpath, mask=False):
             fname = os.path.basename(fpath)
@@ -1483,7 +1494,7 @@ class Resource(object):
                 return load_image(fpath, mask=mask)
 
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
-        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, nodbg=True)
+        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)
 
         return d
 
@@ -1492,7 +1503,7 @@ class Resource(object):
         カードの各台紙について、文字描画領域の色を
         平均化した辞書を作成する。
         """
-        d = ResourceTable()
+        d = ResourceTable("CardBgColorHints", {}.copy(), lambda: 255)
         for key in ("ACTION", "BEAST", "BIND", "DANGER", "FAINT", "INFO", "INJURY", "ITEM",
                     "LARGE", "NORMAL", "OPTION", "PARALY", "PETRIF", "SKILL", "SLEEP"):
             f = lambda key: d.set(key, lambda: self.calc_cardnamecolorhint(cardbgs[key]))
@@ -1589,7 +1600,7 @@ class Resource(object):
                  "ZAP"     : "#z",
                  }
 
-        d = ResourceTable()
+        d = ResourceTable("Resource/Image/Font", {}.copy(), empty_image)
         def load(key, name):
             fpath = cw.util.find_resource(cw.util.join_paths(dpath, key), self.ext_img)
             image = cw.util.load_image(fpath)
@@ -1722,6 +1733,26 @@ def get_resourcesize(path):
     else:
         return None
 
+def empty_wxbmp():
+    """空のwx.Bitmapを返す。"""
+    wxbmp = wx.EmptyBitmap(1, 1)
+    image = wxbmp.ConvertToImage()
+    r = image.GetRed(0, 0)
+    g = image.GetGreen(0, 0)
+    b = image.GetBlue(0, 0)
+    image.SetMaskColour(r, g, b)
+    return image.ConvertToBitmap()
+
+def empty_image():
+    """空のpygame.Surfaceを返す。"""
+    image = pygame.Surface((1, 1)).convert()
+    image.set_colorkey(image.get_at((0, 0)), pygame.locals.RLEACCEL)
+    return image
+
+def empty_sound():
+    """空のcw.util.SoundInterfaceを返す。"""
+    return cw.util.SoundInterface(None, "")
+
 class LazyResource(object):
     def __init__(self, func, args, kwargs):
         """リソースをfunc(*args, **kwargs)によって
@@ -1730,36 +1761,55 @@ class LazyResource(object):
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.deffunc = None
-        self.defargs = None
-        self.defkwargs = None
         self._res = None
         self.load = False
+        self.failure = False
 
-    @property
-    def res(self):
+    def get_res(self):
         if not self.load:
             try:
                 self._res = self.func(*self.args, **self.kwargs)
             except:
                 cw.util.print_ex(file=sys.stderr)
-                if self.deffunc:
-                    self._res = self.deffunc(*self.defargs, **self.defkwargs)
+                self.failure = True
             self.load = True
         return self._res
 
 class ResourceTable(object):
-    def __init__(self, init=None):
+    def __init__(self, name, init={}.copy(), deffunc=None):
         """文字列をキーとしたリソーステーブル。
         各リソースは必要になった時に遅延読み込みされる。
         """
-        if init:
-            self.dic = init
-        else:
-            self.dic = {}.copy()
+        self.name = name
+        self.dic = init
+
+        self.deffunc = deffunc
+        self.defvalue = None
+        self.defload = False
 
     def __getitem__(self, key):
-        return self.dic[key].res
+        lazy = self.dic.get(key, None)
+        if lazy:
+            first = not lazy.load
+            val = lazy.get_res()
+            if lazy.failure:
+                if first:
+                    s = u"リソース [%s/%s] の読み込みに失敗しました。\n" % (self.name, key)
+                    sys.stderr.write(s)
+                return self.get_defvalue()
+            else:
+                return val
+        else:
+            if not self.defload:
+                s = u"リソース [%s/%s] が見つかりません。\n" % (self.name, key)
+                sys.stderr.write(s)
+            val = self.get_defvalue()
+
+    def get_defvalue(self):
+        if not self.defload:
+            self.defvalue = self.deffunc()
+            self.defload = True
+        return self.defvalue
 
     def get(self, key, defvalue=None):
         if key in self.dic:
@@ -1769,17 +1819,14 @@ class ResourceTable(object):
     def set(self, key, func, *args, **kwargs):
         self.dic[key] = LazyResource(func, args, kwargs)
 
-    def setdef(self, key, func, *args, **kwargs):
-        lazy = self.dic[key]
-        lazy.deffunc = func
-        lazy.defargs = args
-        lazy.defkwargs = kwargs
-
     def __contains__(self, key):
         return key in self.dic
 
     def copy(self):
-        return ResourceTable(self.dic.copy())
+        tbl = ResourceTable(self.name, self.dic.copy(), self.deffunc)
+        tbl.defvalue = self.defvalue
+        tbl.defload = self.defload
+        return tbl
 
     def iterkeys(self):
         for key in self.dic.iterkeys():
