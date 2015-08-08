@@ -18,10 +18,15 @@ except ImportError:
 
 SETTINGS_WIDTH = 250
 
+##class SimpleSettingsDialog(wx.Dialog):
+##    def __init__(self, parent):
+##        wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定")
+##        self.cwpy_debug = True # このダイアログではスクリーンショットの撮影を行わない
+
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, u"設定")
-        self.cwpy_debug = True
+        wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定(詳細モード)")
+        self.cwpy_debug = True # このダイアログではスクリーンショットの撮影を行わない
         self.note = wx.Notebook(self)
         self.pane_gene = GeneralSettingPanel(self.note)
         self.pane_draw = DrawingSettingPanel(self.note)
@@ -64,12 +69,12 @@ class SettingsDialog(wx.Dialog):
             self.pane_gene.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
             self.pane_gene.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax_init)
             if cw.cwpy.setting.expandmode_init == "FullScreen":
-                self.pane_gene.cb_fullscreen.SetValue(True)
+                self.pane_gene.expand.cb_fullscreen.SetValue(True)
             else:
-                self.pane_gene.ch_expanddrawing.SetSelection(int(cw.cwpy.setting.expandmode_init)-1)
-                self.pane_gene.cb_fullscreen.SetValue(False)
+                self.pane_gene.expand.ch_expanddrawing.SetSelection(int(cw.cwpy.setting.expandmode_init)-1)
+                self.pane_gene.expand.cb_fullscreen.SetValue(False)
             self.pane_gene.makeExpandInfo()
-            self.pane_gene.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand_init)
+            self.pane_gene.expand.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand_init)
             self.pane_gene.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount_init)
             self.pane_gene.cb_autosavepartyrecord.SetValue(cw.cwpy.setting.autosave_partyrecord_init)
             self.pane_gene.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord_init)
@@ -278,17 +283,17 @@ class SettingsDialog(wx.Dialog):
             updatestatusbar = True
 
         # 拡大倍率
-        value = self.pane_gene.cb_smoothexpand.GetValue()
+        value = self.pane_gene.expand.cb_smoothexpand.GetValue()
         cw.cwpy.setting.smoothexpand = value
-        if self.pane_gene.cb_fullscreen.IsChecked():
+        if self.pane_gene.expand.cb_fullscreen.IsChecked():
             value = "FullScreen"
-        elif self.pane_gene.sl_expand.GetValue() == 10: # 1倍 == 拡大なし
+        elif self.pane_gene.expand.sl_expand.GetValue() == 10: # 1倍 == 拡大なし
             value = "None"
-        elif self.pane_gene.sl_expand.GetValue() % 10 == 0: # 整数倍
-            value = self.pane_gene.sl_expand.GetValue() / 10
+        elif self.pane_gene.expand.sl_expand.GetValue() % 10 == 0: # 整数倍
+            value = self.pane_gene.expand.sl_expand.GetValue() / 10
         else:
-            value = float(self.pane_gene.sl_expand.GetValue()) / 10
-        expanddrawing = int(2 ** self.pane_gene.ch_expanddrawing.GetSelection())
+            value = float(self.pane_gene.expand.sl_expand.GetValue()) / 10
+        expanddrawing = int(2 ** self.pane_gene.expand.ch_expanddrawing.GetSelection())
         if str(value) <> str(cw.cwpy.setting.expandmode) or expanddrawing <> cw.cwpy.setting.expanddrawing:
             if cw.cwpy.is_expanded():
                 # 設定が変更されたので拡大状態を切り替え
@@ -441,8 +446,8 @@ class SettingsDialog(wx.Dialog):
             cw.cwpy.exec_func(cw.cwpy.update_curtainstyle)
 
         # スキン
-        skin = self.pane_gene.ch_skin.GetSelection()
-        skin = self.pane_gene.skins[skin]
+        skin = self.pane_gene.skin.ch_skin.GetSelection()
+        skin = self.pane_gene.skin.skins[skin]
         if flag_fontupdate or cw.cwpy.setting.skindirname <> skin:
             cw.cwpy.exec_func(cw.cwpy.update_skin, skin, restartop=cw.cwpy.setting.skindirname <> skin)
             updatebg = False
@@ -593,141 +598,32 @@ class SettingsDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
-class GeneralSettingPanel(wx.Panel):
-    def __init__(self, parent):
+class SkinPanel(wx.Panel):
+    def __init__(self, parent, editbuttons):
+        """スキンの選択と編集を行う。"""
         wx.Panel.__init__(self, parent)
-        # デバッグモード
-        self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする")
-        self.cb_debug.SetValue(cw.cwpy.debug)
-        self.cb_nolevelup = wx.CheckBox(
-            self, -1, u"デバッグ中はレベル上昇を停止する")
-        self.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode)
-        self.cb_showexperiencebar = wx.CheckBox(
-            self, -1, u"次のレベルアップまでの割合を表示する")
-        self.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar)
-
-        # 基本的なオプション
-        self.cb_storeskinoneachbase = wx.CheckBox(
-            self, -1, u"拠点ごとにスキンを記憶する")
-        self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
-        self.st_backlogmax = wx.StaticText(self, -1, u"メッセージログの最大数:")
-        self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(80, -1), max=9999, min=0)
-        self.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax)
+        self.editbuttons = editbuttons
 
         # スキン
-        self.box_skin = wx.StaticBox(self, -1, u"スキン",)
         self.ch_skin = wx.Choice(self, -1, size=(-1, -1))
         self.st_skin = wx.StaticText(self, -1, u"")
 
-        self.btn_convertskin = wx.Button(self, -1, u"自動生成...")
-        self.btn_editskin = wx.Button(self, -1, u"編集...")
-        self.btn_deleteskin = wx.Button(self, -1, u"削除")
+        if self.editbuttons:
+            self.btn_convertskin = wx.Button(self, -1, u"自動生成...")
+            self.btn_editskin = wx.Button(self, -1, u"編集...")
+            self.btn_deleteskin = wx.Button(self, -1, u"削除")
 
         self.update_skins(cw.cwpy.setting.skindirname)
-
-        # 拡大表示モード
-        self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F4キーで拡大)")
-        self.st_expandscr = wx.StaticText(self, -1, u"描画倍率:")
-        self.st_expandwin = wx.StaticText(self, -1, u"表示倍率:")
-
-        # 最大倍率を概算
-        x, y = wx.DisplaySize()
-        x = 10 * x / cw.SIZE_SCR[0]
-        y = 10 * y / cw.SIZE_SCR[1]
-        if cw.cwpy.setting.expandmode == "FullScreen" or cw.cwpy.setting.expandmode == "None":
-            n = 10 # FullScreen中はスライドを1.0倍に仮設定
-        else:
-            n = int(10 * float(cw.cwpy.setting.expandmode))
-        nmax = x if x < y else y
-        if nmax < 10:
-            nmax = 10
-        if nmax < n:
-            n = nmax
-
-        self.ch_expanddrawing = wx.ComboBox(self, -1, style=wx.CB_DROPDOWN|wx.CB_READONLY)
-        i = 0
-        val = 1
-        while True:
-            self.ch_expanddrawing.Append(u"%s倍" % (val))
-            if cw.cwpy.setting.expanddrawing == val:
-                self.ch_expanddrawing.Select(i)
-            i += 1
-            val *= 2
-            if nmax < val*10:
-                break
-        if self.ch_expanddrawing.GetSelection() == -1:
-            self.ch_expanddrawing.Select(0)
-
-        self.sl_expand = wx.Slider(
-            self, -1, n, 10, nmax, size=(120, -1),
-            style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
-        self.st_expand = wx.StaticText(self, -1)
-        self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
-        self.cb_fullscreen.SetValue(cw.cwpy.setting.expandmode == "FullScreen")
-
-        self.makeExpandInfo()
-
-        self.ln_expand = wx.StaticLine(self, -1, style=wx.HORIZONTAL)
-        self.cb_smoothexpand = wx.CheckBox(self, -1,
-                                           u"拡大後の画面を滑らかにする")
-        self.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand)
-
-        # 持出金額
-        self.box_party = wx.StaticBox(self, -1, u"パーティ")
-        self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
-        self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(80, -1), min=0, max=999999)
-        self.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount)
-
-        self.cb_autosavepartyrecord = wx.CheckBox(
-            self, -1, u"解散時、自動的にパーティ情報を記録する")
-        self.cb_autosavepartyrecord.SetValue(cw.cwpy.setting.autosave_partyrecord)
-        self.cb_overwritepartyrecord = wx.CheckBox(
-            self, -1, u"自動記録時、同名のパーティ記録へ上書きする")
-        self.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord)
-        self.cb_overwritepartyrecord.Enable(cw.cwpy.setting.autosave_partyrecord)
-
-        # スクリーンショット情報
-        self.box_ss = wx.StaticBox(self, -1, u"スクリーンショット情報(画像上部に表示)")
-        self.tx_ssinfoformat = wx.TextCtrl(self, -1, size=(150, -1))
-        self.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat)
-        # スクリーンショット情報の色
-        choices = [u"黒文字", u"白文字"]
-        self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
-        if cw.cwpy.setting.ssinfofontcolor[:3] == (255, 255, 255):
-            self.ch_ssinfocolor.Select(1)
-        else:
-            self.ch_ssinfocolor.Select(0)
-
-        self.st_ssinfodesc = wx.StaticText(self, -1,
-                                           u"次の各情報を表示できます:\n" +
-                                           u" %application% = ソフト名, %skin% = スキン名,\n" +
-                                           u" %yado% = 拠点名, %party% = パーティ名,\n" +
-                                           u" %scenario% = シナリオ名, %author% = 作者名,\n" +
-                                           u" %date% = 日付, %time% = 時刻")
 
         self._do_layout()
         self._bind()
 
     def _bind(self):
-        ##self.cb_debug.Bind(wx.EVT_CHECKBOX, self.OnDebugCheck)
         self.ch_skin.Bind(wx.EVT_CHOICE, self.OnSkinChoice)
-        self.sl_expand.Bind(wx.EVT_SLIDER, self.OnExpandChange)
-        self.cb_fullscreen.Bind(wx.EVT_CHECKBOX, self.OnExpandChange)
-        self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
-        self.btn_convertskin.Bind(wx.EVT_BUTTON, self.OnConvertSkin)
-        self.btn_editskin.Bind(wx.EVT_BUTTON, self.OnEditSkin)
-        self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
-
-    ##def OnDebugCheck(self, event):
-    ##    if cw.cwpy.is_playingscenario():
-    ##        self.cb_debug.SetValue(not self.cb_debug.GetValue())
-    ##        dlg = cw.dialog.message.Message(
-    ##            self.Parent.Parent, cw.cwpy.msgs["message"],
-    ##            u"シナリオプレイ中はデバッグモードの切替はできません。")
-    ##        cw.cwpy.frame.move_dlg(dlg)
-    ##        cw.cwpy.play_sound("error")
-    ##        dlg.ShowModal()
+        if self.editbuttons:
+            self.btn_convertskin.Bind(wx.EVT_BUTTON, self.OnConvertSkin)
+            self.btn_editskin.Bind(wx.EVT_BUTTON, self.OnEditSkin)
+            self.btn_deleteskin.Bind(wx.EVT_BUTTON, self.OnDeleteSkin)
 
     def update_skins(self, skindirname):
         self.skins = []
@@ -739,23 +635,35 @@ class GeneralSettingPanel(wx.Panel):
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
                 self.skins.append(name)
-                try:
-                    e = cw.data.xml2element(skinpath, "Property")
-                    skintype = e.gettext("Type", "")
-                    skinname = e.gettext("Name", "")
-                    author = e.gettext("Author", "")
-                    desc = e.gettext("Description", "")
-                    classictext = e.getbool("ClassicStyleText", True)
-                    vocation120 = e.getbool("CW120VocationLevel", False)
-                    self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120)
-                except Exception:
-                    # エラーのあるスキンは無視
-                    cw.util.print_ex()
 
         self.ch_skin.SetItems(self.skins)
         n = self.skins.index(skindirname)
         self.ch_skin.SetSelection(n)
         self._choice_skin()
+
+    def _load_skinproperties(self, name):
+        if name in self.skin_summarys:
+            return
+        skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
+        try:
+            prop = cw.header.GetProperty(skinpath)
+            skintype = prop.properties.get("Type", "")
+            skinname = prop.properties.get("Name", "")
+            author = prop.properties.get("Author", "")
+            desc = prop.properties.get("Description", "")
+            classictext = cw.util.str2bool(prop.properties.get("ClassicStyleText", "True"))
+            vocation120 = cw.util.str2bool(prop.properties.get("CW120VocationLevel", "False"))
+            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120)
+        except Exception:
+            # エラーのあるスキン
+            cw.util.print_ex()
+            skintype = u"*読込エラー*"
+            skinname = u"*読込エラー*"
+            author = u""
+            desc = u"Skin.xmlの読み込みでエラーが発生しました。"
+            classictext = False
+            vocation120 = False
+            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120)
 
     def OnSkinChoice(self, event):
         self._choice_skin()
@@ -763,6 +671,8 @@ class GeneralSettingPanel(wx.Panel):
     def _choice_skin(self):
         skin = self.skins[self.ch_skin.GetSelection()]
         s = u"種別: %s\n名前: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
+        if not skin in self.skin_summarys:
+            self._load_skinproperties(skin)
         skintype, skinname, author, desc, _classictext, _vocation120 = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
         self.st_skin.SetLabel(s % (skintype, skinname, author, desc))
@@ -801,7 +711,85 @@ class GeneralSettingPanel(wx.Panel):
             cw.util.remove(dpath)
             self.update_skins(cw.cwpy.setting.skindirname)
 
-    def makeExpandInfo(self):
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        if self.editbuttons:
+            bsizer_skinbtn = wx.BoxSizer(wx.HORIZONTAL)
+            bsizer_skinbtn.Add(self.btn_convertskin, 0, wx.RIGHT, 3)
+            bsizer_skinbtn.Add(self.btn_editskin, 0, wx.RIGHT, 3)
+            bsizer_skinbtn.Add(self.btn_deleteskin, 0, 0, 3)
+
+        sizer.Add(self.ch_skin, 0, wx.CENTER, 0)
+        sizer.Add(self.st_skin, 1, wx.CENTER|wx.TOP, 3)
+        if self.editbuttons:
+            sizer.Add(bsizer_skinbtn, 0, wx.ALIGN_RIGHT|wx.TOP, 3)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+class ExpandPanel(wx.Panel):
+    def __init__(self, parent, options):
+        """拡大表示モードの設定を行う。"""
+        wx.Panel.__init__(self, parent)
+        self.options = options
+
+        # 拡大表示モード
+        self.st_expandscr = wx.StaticText(self, -1, u"描画倍率:")
+        self.st_expandwin = wx.StaticText(self, -1, u"表示倍率:")
+
+        # 最大倍率を概算
+        x, y = wx.DisplaySize()
+        x = 10 * x / cw.SIZE_SCR[0]
+        y = 10 * y / cw.SIZE_SCR[1]
+        if cw.cwpy.setting.expandmode == "FullScreen" or cw.cwpy.setting.expandmode == "None":
+            n = 10 # FullScreen中はスライドを1.0倍に仮設定
+        else:
+            n = int(10 * float(cw.cwpy.setting.expandmode))
+        nmax = x if x < y else y
+        if nmax < 10:
+            nmax = 10
+        if nmax < n:
+            n = nmax
+
+        self.ch_expanddrawing = wx.ComboBox(self, -1, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+        i = 0
+        val = 1
+        while True:
+            self.ch_expanddrawing.Append(u"%s倍" % (val))
+            if cw.cwpy.setting.expanddrawing == val:
+                self.ch_expanddrawing.Select(i)
+            i += 1
+            val *= 2
+            if nmax < val*10:
+                break
+        if self.ch_expanddrawing.GetSelection() == -1:
+            self.ch_expanddrawing.Select(0)
+
+        self.sl_expand = wx.Slider(
+            self, -1, n, 10, nmax, size=(120, -1),
+            style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
+        self.st_expand = wx.StaticText(self, -1)
+        self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
+        self.cb_fullscreen.SetValue(cw.cwpy.setting.expandmode == "FullScreen")
+
+        self.make_expandinfo()
+
+        if self.options:
+            self.ln_expand = wx.StaticLine(self, -1, style=wx.HORIZONTAL)
+            self.cb_smoothexpand = wx.CheckBox(self, -1,
+                                               u"拡大後の画面を滑らかにする")
+            self.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand)
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.sl_expand.Bind(wx.EVT_SLIDER, self.OnExpandChange)
+        self.cb_fullscreen.Bind(wx.EVT_CHECKBOX, self.OnExpandChange)
+
+    def make_expandinfo(self):
         if self.cb_fullscreen.IsChecked():
             self.sl_expand.Disable()
             self.st_expand.SetLabel(u"フルスクリーン")
@@ -814,7 +802,96 @@ class GeneralSettingPanel(wx.Panel):
             self.st_expand.SetLabel(s)
 
     def OnExpandChange(self, event):
-        self.makeExpandInfo()
+        self.make_expandinfo()
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        bsizer_expandmode_draw = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_expandmode_draw.Add(self.st_expandscr, 0, wx.RIGHT|wx.CENTER, 3)
+        bsizer_expandmode_draw.Add(self.ch_expanddrawing, 0, wx.CENTER|wx.RIGHT, 10)
+        bsizer_expandmode_draw.Add(self.st_expandwin, 0, wx.CENTER, 0)
+        bsizer_expandmode_draw.Add(self.st_expand, 0, wx.CENTER, 0)
+
+        sizer.Add(bsizer_expandmode_draw, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer.Add(self.sl_expand, 0, wx.EXPAND, 3)
+        sizer.Add(self.cb_fullscreen, 0, wx.ALIGN_RIGHT, 0)
+        if self.options:
+            sizer.Add(self.ln_expand, 0, wx.TOP|wx.EXPAND, 3)
+            sizer.Add(self.cb_smoothexpand, 0, wx.TOP, 3)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+class GeneralSettingPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        # デバッグモード
+        self.box_gene = wx.StaticBox(self, -1, u"詳細")
+        self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする")
+        self.cb_debug.SetValue(cw.cwpy.debug)
+        self.cb_nolevelup = wx.CheckBox(
+            self, -1, u"デバッグ中はレベル上昇を停止する")
+        self.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode)
+        self.cb_showexperiencebar = wx.CheckBox(
+            self, -1, u"次のレベルアップまでの割合を表示する")
+        self.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar)
+
+        # 基本的なオプション
+        self.cb_storeskinoneachbase = wx.CheckBox(
+            self, -1, u"拠点ごとにスキンを記憶する")
+        self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
+        self.st_backlogmax = wx.StaticText(self, -1, u"メッセージログの最大数:")
+        self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(80, -1), max=9999, min=0)
+        self.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax)
+
+        # スキン
+        self.box_skin = wx.StaticBox(self, -1, u"スキン",)
+        self.skin = SkinPanel(self, True)
+
+        # 拡大表示モード
+        self.box_expandmode = wx.StaticBox(self, -1, u"拡大表示方式(F4キーで拡大)")
+        self.expand = ExpandPanel(self, True)
+
+        # 持出金額
+        self.box_party = wx.StaticBox(self, -1, u"パーティ")
+        self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
+        self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(80, -1), min=0, max=999999)
+        self.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount)
+
+        self.cb_autosavepartyrecord = wx.CheckBox(
+            self, -1, u"解散時、自動的にパーティ情報を記録する")
+        self.cb_autosavepartyrecord.SetValue(cw.cwpy.setting.autosave_partyrecord)
+        self.cb_overwritepartyrecord = wx.CheckBox(
+            self, -1, u"自動記録時、同名のパーティ記録へ上書きする")
+        self.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord)
+        self.cb_overwritepartyrecord.Enable(cw.cwpy.setting.autosave_partyrecord)
+
+        # スクリーンショット情報
+        self.box_ss = wx.StaticBox(self, -1, u"スクリーンショット情報(画像上部に表示)")
+        self.tx_ssinfoformat = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat)
+        # スクリーンショット情報の色
+        choices = [u"黒文字", u"白文字"]
+        self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
+        if cw.cwpy.setting.ssinfofontcolor[:3] == (255, 255, 255):
+            self.ch_ssinfocolor.Select(1)
+        else:
+            self.ch_ssinfocolor.Select(0)
+
+        self.st_ssinfodesc = wx.StaticText(self, -1,
+                                           u"次の各情報を表示できます:\n" +
+                                           u" %application% = ソフト名, %skin% = スキン名,\n" +
+                                           u" %yado% = 拠点名, %party% = パーティ名,\n" +
+                                           u" %scenario% = シナリオ名, %author% = 作者名,\n" +
+                                           u" %date% = 日付, %time% = 時刻")
+
+        self._do_layout()
+        self._bind()
+
+    def _bind(self):
+        self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
 
     def OnAutoSavePartyRecord(self, event):
         self.cb_overwritepartyrecord.Enable(self.cb_autosavepartyrecord.GetValue())
@@ -829,7 +906,6 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
-        bsizer_expandmode_draw = wx.BoxSizer(wx.HORIZONTAL)
 
         bsizer_gene.Add(self.cb_debug, 0, wx.ALL, 3)
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -841,25 +917,10 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(bsizer_backlogmax)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
-        bsizer_skinbtn = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_skinbtn.Add(self.btn_convertskin, 0, wx.RIGHT, 3)
-        bsizer_skinbtn.Add(self.btn_editskin, 0, wx.RIGHT, 3)
-        bsizer_skinbtn.Add(self.btn_deleteskin, 0, 0, 3)
-
-        bsizer_skin.Add(self.ch_skin, 0, wx.CENTER, 0)
-        bsizer_skin.Add(self.st_skin, 1, wx.CENTER|wx.ALL, 3)
-        bsizer_skin.Add(bsizer_skinbtn, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_skin.Add(self.skin, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_skin.SetMinSize((SETTINGS_WIDTH, 180))
 
-        bsizer_expandmode_draw.Add(self.st_expandscr, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_expandmode_draw.Add(self.ch_expanddrawing, 0, wx.CENTER|wx.RIGHT, 10)
-        bsizer_expandmode_draw.Add(self.st_expandwin, 0, wx.CENTER, 0)
-        bsizer_expandmode_draw.Add(self.st_expand, 0, wx.CENTER, 0)
-        bsizer_expandmode.Add(bsizer_expandmode_draw, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_expandmode.Add(self.sl_expand, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 3)
-        bsizer_expandmode.Add(self.cb_fullscreen, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_RIGHT, 3)
-        bsizer_expandmode.Add(self.ln_expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
-        bsizer_expandmode.Add(self.cb_smoothexpand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_expandmode.Add(self.expand, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         bsizer_expandmode.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_party = wx.StaticBoxSizer(self.box_party, wx.VERTICAL)
@@ -1325,7 +1386,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.grid_folderoftype.SetColSize(1, 370)
 
         types = set()
-        for t in self.Parent.Parent.pane_gene.skin_summarys.itervalues():
+        for t in self.Parent.Parent.pane_gene.skin.skin_summarys.itervalues():
             skintype, _skinname, _author, _desc, _classictext, _vocation120 = t
             types.add(skintype)
 
