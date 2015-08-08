@@ -60,6 +60,7 @@ class Setting(object):
 
     def init_settings(self):
         # "Settings.xml"がなかったら新しく作る
+        self.show_advancedsettings = False
         self.editor = "cwxeditor"
         self.lastyado = ""
         self.lastscenario = []
@@ -212,6 +213,9 @@ class Setting(object):
 
         self.data = cw.data.xml2etree("Settings.xml")
         data = self.data
+
+        # 最初から詳細モードで設定を行う
+        self.show_advancedsettings = data.getbool("ShowAdvancedSettings", self.show_advancedsettings)
 
         # シナリオエディタ
         self.editor = data.gettext("ScenarioEditor", self.editor)

@@ -468,11 +468,12 @@ class CWPy(_Singleton, threading.Thread):
         self.clear_selection()
         self.mousepos = (-1, -1)
 
-        # 一度マウスポインタを画面外へ出さないと
-        # フォーカスを失うことがある
-        pos = pygame.mouse.get_pos()
-        pygame.mouse.set_pos([-1, -1])
-        pygame.mouse.set_pos(pos)
+        if not self.is_showingdlg():
+            # 一度マウスポインタを画面外へ出さないと
+            # フォーカスを失うことがある
+            pos = pygame.mouse.get_pos()
+            pygame.mouse.set_pos([-1, -1])
+            pygame.mouse.set_pos(pos)
 
         if changearea:
             def func():

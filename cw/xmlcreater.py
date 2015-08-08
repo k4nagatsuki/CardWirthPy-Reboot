@@ -114,6 +114,10 @@ def create_settings(setting):
     setting: Settingインスタンス。
     """
     element = cw.data.make_element("Settings")
+    # 最初から詳細モードで設定を行う
+    if setting.show_advancedsettings <> setting.show_advancedsettings_init:
+        e = cw.data.make_element("ShowAdvancedSettings", str(setting.show_advancedsettings))
+        element.append(e)
     # シナリオエディタ
     if setting.editor <> setting.editor_init:
         e = cw.data.make_element("ScenarioEditor", setting.editor)
