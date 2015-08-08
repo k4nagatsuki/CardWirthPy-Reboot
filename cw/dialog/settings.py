@@ -223,10 +223,11 @@ class SimpleSettingsPanel(wx.Panel):
         sizer_right.Add(sizer_expand, 0, wx.EXPAND, 0)
         sizer_right.Add(self.speed, 0, wx.EXPAND|wx.TOP, 3)
 
-        sizer_btn.Add(self.versioninfo, 0, wx.ALIGN_CENTER, 0)
-        sizer_btn.AddStretchSpacer(1)
         sizer_btn.Add(self.btn_details, 0, wx.ALIGN_CENTER, 0)
-        sizer_btn.Add(self.btn_ok, 0, wx.LEFT|wx.ALIGN_CENTER, 10)
+        sizer_btn.AddStretchSpacer(1)
+        sizer_btn.Add(self.versioninfo, 0, wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, 10)
+        sizer_btn.AddStretchSpacer(1)
+        sizer_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER)
         sizer_btn.Add(self.btn_apply, 0, wx.LEFT|wx.ALIGN_CENTER, 5)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT|wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER, 5)
 

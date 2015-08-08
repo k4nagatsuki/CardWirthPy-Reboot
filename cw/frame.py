@@ -810,8 +810,8 @@ class Frame(wx.Frame):
             dlg.Destroy()
 
         def func(lockmenucard):
-            cw.cwpy.has_inputevent = True
             cw.cwpy.mousepos = (-1, -1)
+            cw.cwpy.mousemotion = True
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()
