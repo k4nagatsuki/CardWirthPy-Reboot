@@ -458,7 +458,7 @@ class SelectWindow(MessageWindow):
     def update_scale(self):
         self._init_style()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
-        self.charimgs = self.create_charimgs()
+        self.charimgs = self.create_charimgs(cw.s((15, 9)))
         if self.backlog:
             cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         else:
