@@ -586,7 +586,7 @@ class Debugger(wx.Frame):
         cw.cwpy.frame.move_dlg(dlg)
         if dlg.ShowModal() == wx.ID_OK:
             def func(value):
-                cw.cwpy.ydata.party.set_money(value - cw.cwpy.ydata.party.money)
+                cw.cwpy.ydata.party.set_money(value - cw.cwpy.ydata.party.money, blink=True)
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func, dlg.value)
 

@@ -168,6 +168,30 @@ def _inputevent(clip, clearevent, statusbutton):
         cw.cwpy.eventhandler.run()
     return clip
 
+def start_animation(sprite, anitype):
+    """spriteのアニメーションを開始する。
+    アニメーションは他のイベント進行と平行して実行される。
+    animate_sprite()と違ってフレームが進まなかったり飛んだりする
+    場合があるので、update_<anitype>()の実装は、そうした場合でも
+    正しく動くように行わなければならない。
+    """
+    if threading.currentThread() <> cw.cwpy:
+        raise Exception()
+
+    if not hasattr(sprite, "update_" + anitype):
+        print "Not found " + anitype + " animation."
+        print sprite
+        return
+
+    if sprite.anitype == "":
+        sprite.old_status = sprite.status
+    sprite.status = anitype
+    sprite.anitype = anitype
+    sprite.start_animation = pygame.time.get_ticks()
+    sprite.frame = 0
+
+    cw.cwpy.animations.add(sprite)
+
 def _get_skipstatus(clearevent):
     if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein(1)):
         cw.cwpy.cut_animation = True

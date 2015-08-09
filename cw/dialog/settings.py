@@ -307,6 +307,7 @@ class SettingsPanel(wx.Panel):
             self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
             self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
             self.pane_draw.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard_init)
+            self.pane_draw_cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney_init)
             self.pane_draw.speed.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
             self.pane_draw.speed.sl_deal_battle.SetValue(cw.cwpy.setting.dealspeed_battle_init)
             self.pane_draw.speed.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed_init)
@@ -540,6 +541,8 @@ class SettingsPanel(wx.Panel):
             updatestatusbar = True
         value = self.pane_draw.cb_wait_usecard.GetValue()
         cw.cwpy.setting.wait_usecard = value
+        value = self.pane_draw.cb_blink_partymoney.GetValue()
+        cw.cwpy.setting.blink_partymoney = value
 
         self.pane_draw.speed.apply_speed()
 
@@ -1350,6 +1353,10 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_wait_usecard = wx.CheckBox(
             self, -1, u"カードの使用前に空白時間を入れる")
         self.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard)
+        # 所持金が増減した時に所持金欄を点滅させる
+        self.cb_blink_partymoney = wx.CheckBox(
+            self, -1, u"所持金が増減した時に所持金欄を点滅させる")
+        self.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney)
 
         # 背景切替方式と各種速度
         self.speed = SpeedPanel(self, True)
@@ -1449,6 +1456,7 @@ class DrawingSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_wait_usecard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_blink_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)

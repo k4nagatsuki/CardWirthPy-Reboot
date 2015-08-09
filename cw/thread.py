@@ -178,6 +178,8 @@ class CWPy(_Singleton, threading.Thread):
         # シナリオごとのブレークポイント情報
         self.breakpoint_table = {}
         self._load_breakpoints()
+        # アニメーション中のスプライト
+        self.animations = set()
 
         # アーカイヴを展開中のシナリオ
         self.expanding = u""
@@ -711,6 +713,8 @@ class CWPy(_Singleton, threading.Thread):
             pygame.event.clear((MOUSEBUTTONDOWN, MOUSEBUTTONUP, KEYDOWN, KEYUP))
             return
 
+        self.proc_animation()
+
         self.mousein = pygame.mouse.get_pressed()
         mousepos = self.mousepos
         if self.update_mousepos():
@@ -817,6 +821,38 @@ class CWPy(_Singleton, threading.Thread):
                 self.clear_inusecardimg(self.card_takenouttemporarily.get_owner())
                 cw.cwpy.trade("BACKPACK", header=self.card_takenouttemporarily, from_event=False, parentdialog=None, sound=False, call_predlg=False, sort=True)
             cw.cwpy.card_takenouttemporarily = None
+
+    def proc_animation(self):
+        removes = set()
+        for sprite in self.animations:
+            if sprite.status <> sprite.anitype:
+                removes.add(sprite)
+                continue # アニメーション終了
+
+            clip = pygame.Rect(sprite.rect)
+            ticks = pygame.time.get_ticks()
+            if ticks < sprite.start_animation:
+                sprite.start_animation = ticks
+            frame = int((ticks - sprite.start_animation) / 1000.0 * 60.0)
+            if frame <= sprite.frame:
+                continue # フレーム進行無し
+            sprite.frame = frame
+            method = getattr(sprite, "update_" + sprite.status, None)
+            if method:
+                method()
+            else:
+                removes.add(sprite)
+                continue # アニメーション中止
+            clip.union_ip(sprite.rect)
+            self.draw(clip=clip)
+            if sprite.status <> sprite.anitype:
+                removes.add(sprite) # アニメーション終了
+
+        for sprite in removes:
+            sprite.anitype = ""
+            sprite.start_animation = 0
+            sprite.frame = 0
+            self.animations.remove(sprite)
 
     def draw_cards(self, scr):
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
@@ -3586,9 +3622,9 @@ class CWPy(_Singleton, threading.Thread):
             assert not move
             # パーティの所持金または金庫に下取金を追加
             if party:
-                self.exec_func(party.set_money, price)
+                self.exec_func(party.set_money, price, blink=True)
             else:
-                self.exec_func(self.ydata.set_money, price)
+                self.exec_func(self.ydata.set_money, price, blink=True)
             self.exec_func(self.draw)
 
         if targettype in ("BACKPACK", "STOREHOUSE") and not toself:

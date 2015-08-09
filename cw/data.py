@@ -1912,7 +1912,7 @@ class YadoData(object):
                     cw.cwpy.sdata.gossips[name] = False
         assert len(self.environment.getfind("Gossips")) == 0
 
-    def set_money(self, value):
+    def set_money(self, value, blink=False):
         """金庫に入っている金額を変更する。
         現在の所持金にvalue値をプラスするので注意。
         """
@@ -1925,6 +1925,9 @@ class YadoData(object):
             showbuttons = not cw.cwpy.is_playingscenario() or not cw.cwpy.is_runningevent()
             cw.cwpy.statusbar.change(showbuttons)
             cw.cwpy.has_inputevent = True
+            if blink:
+                if cw.cwpy.statusbar.yadomoney:
+                    cw.animation.start_animation(cw.cwpy.statusbar.yadomoney, "blink")
 
     #---------------------------------------------------------------------------
     # パーティ連れ込み
@@ -2336,7 +2339,7 @@ class Party(object):
             self.name = name
             self.data.edit("Property/Name", name)
 
-    def set_money(self, value, fromevent=False):
+    def set_money(self, value, fromevent=False, blink=False):
         """
         パーティの所持金を変更する。
         """
@@ -2346,6 +2349,9 @@ class Party(object):
             self.money += value
             self.money = cw.util.numwrap(self.money, 0, 9999999)
             self.data.edit("Property/Money", str(self.money))
+            if blink:
+                if cw.cwpy.statusbar.partymoney:
+                    cw.animation.start_animation(cw.cwpy.statusbar.partymoney, "blink")
             if not fromevent:
                 showbuttons = not cw.cwpy.is_playingscenario() or not cw.cwpy.is_runningevent()
                 cw.cwpy.statusbar.change(showbuttons)

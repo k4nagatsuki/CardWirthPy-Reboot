@@ -11,6 +11,8 @@ class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
         self.image = pygame.Surface(cw.s((632, 33))).convert()
+        self.yadomoney = None
+        self.partymoney = None
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
         self.showbuttons = False
@@ -70,26 +72,38 @@ class StatusBar(base.CWPySprite):
             rmargin += cw.s(27)
             DebuggerButton(self, (left, cw.s(3)))
 
+        def create_yadomoney(pos):
+            if self.yadomoney:
+                self.yadomoney.reset(pos)
+            else:
+                self.yadomoney = YadoMoneyPanel(self, pos)
+
+        def create_partymoney(pos):
+            if self.partymoney:
+                self.partymoney.reset(pos)
+            else:
+                self.partymoney = PartyMoneyPanel(self, pos)
+
         if encounter:
             EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif (cw.cwpy.is_curtained() and cw.cwpy.areaid <> cw.AREA_CAMP) or cw.cwpy.selectedheader:
             if cw.cwpy.status == "Yado":
                 if not cw.cwpy.expanding:
-                    YadoMoneyPanel(self, cw.s((10, 6)))
+                    create_yadomoney(cw.s((10, 6)))
                     if showbuttons:
                         CancelButton(self, cw.s((133, 6)))
-                    PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                    create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             else:
                 if showbuttons:
                     CancelButton(self, cw.s((10, 6)))
                 if cw.cwpy.status == "Scenario":
-                    PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                    create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                 elif cw.cwpy.is_battlestatus():
                     RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Yado":
             if not cw.cwpy.expanding:
-                YadoMoneyPanel(self, cw.s((10, 6)))
-                PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+                create_yadomoney(cw.s((10, 6)))
+                create_partymoney((cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
                 lmargin = 10
@@ -97,7 +111,7 @@ class StatusBar(base.CWPySprite):
                 lmargin += 123
                 TableButton(self, cw.s((lmargin, 6)))
                 lmargin += 123
-            PartyMoneyPanel(self, (cw.s(474) - rmargin, cw.s(6)))
+            create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
             if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards:
                 InfoCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
@@ -199,6 +213,7 @@ class ExpandView(ProgressView):
 
 class StatusBarPanel(base.CWPySprite):
     def __init__(self, parent, color, pos, size=None, icon=None):
+        self.parent = parent
         if size is None:
             size = cw.s((120, 22))
         base.CWPySprite.__init__(self)
@@ -223,6 +238,12 @@ class StatusBarPanel(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.top = parent.rect.top + pos[1]
         self.rect.left = parent.rect.left + pos[0]
+        # spritegroupに追加
+        cw.cwpy.sbargrp.add(self, layer="panel")
+
+    def reset(self, pos):
+        self.rect.top = self.parent.rect.top + pos[1]
+        self.rect.left = self.parent.rect.left + pos[0]
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="panel")
 
@@ -279,9 +300,12 @@ class YadoMoneyPanel(StatusBarPanel):
         self.update(None)
 
     def update(self, scr):
-        if not self.text == cw.cwpy.ydata.money:
-            self.text = cw.cwpy.ydata.money
+        if not self.text == self.get_money():
+            self.text = self.get_money()
             self.update_image()
+
+    def get_money(self):
+        return cw.cwpy.ydata.money if cw.cwpy.ydata else 0
 
     def update_image(self):
         s = cw.cwpy.msgs["currency"] % (self.text)
@@ -295,18 +319,38 @@ class YadoMoneyPanel(StatusBarPanel):
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
 
+    def update_blink(self):
+        if 30 <= self.frame or not cw.cwpy.setting.blink_partymoney:
+            self.status = self.old_status
+            self.frame = 0
+            self.text = self.get_money()
+            self.update_image()
+            return
+
+        if self.frame / 5 % 2 == 1:
+            self.text = ""
+        else:
+            self.text = self.get_money()
+
+        self.update_image()
+
 class PartyMoneyPanel(YadoMoneyPanel):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYP"]
         StatusBarPanel.__init__(self, parent, (0, 0, 128), pos, icon=image)
-        self.text = None
+        self.text = ""
         self.update(None)
 
+    def get_money(self):
+        return cw.cwpy.ydata.party.money if cw.cwpy.ydata and cw.cwpy.ydata.party else 0
+
     def update(self, scr):
+        if self.status == "blink":
+            return
         if cw.cwpy.ydata.party:
-            if not self.text == cw.cwpy.ydata.party.money:
-                self.text = cw.cwpy.ydata.party.money
-                if cw.cwpy.ydata.party.money == 0:
+            if not self.text == self.get_money():
+                self.text = self.get_money()
+                if self.get_money() == 0:
                     self.set_backcolor((128, 0, 0))
                 else:
                     self.set_backcolor((0, 0, 128))
@@ -314,7 +358,7 @@ class PartyMoneyPanel(YadoMoneyPanel):
 
         else:
             self.image = self.noimg
-            self.text = None
+            self.text = ""
 
 class EncounterPanel(StatusBarPanel):
     def __init__(self, parent, pos):

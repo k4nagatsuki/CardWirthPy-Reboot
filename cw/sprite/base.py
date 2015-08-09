@@ -11,6 +11,12 @@ class CWPySprite(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self, *groups)
         self.dirty = 2
 
+        self.status = ""
+        self.old_status = ""
+        self.anitype = ""
+        self.start_animation = 0
+        self.frame = 0
+
     def update_scale(self):
         pass
 

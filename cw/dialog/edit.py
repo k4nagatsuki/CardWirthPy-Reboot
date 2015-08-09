@@ -79,8 +79,8 @@ class PartyEditor(wx.Dialog):
             pmoney = self.panel.value - self.party.money
             ymoney = self.party.money - self.panel.value
             def func(party, pmoney, ymoney):
-                cw.cwpy.ydata.set_money(ymoney)
-                party.set_money(pmoney)
+                cw.cwpy.ydata.set_money(ymoney, blink=True)
+                party.set_money(pmoney, blink=True)
                 cw.cwpy.draw(True)
             cw.cwpy.exec_func(func, self.party, pmoney, ymoney)
 

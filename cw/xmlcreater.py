@@ -533,6 +533,10 @@ def create_settings(setting):
     if setting.bordering_cardname <> setting.bordering_cardname_init:
         e = cw.data.make_element("BorderingCardName", str(setting.bordering_cardname))
         element.append(e)
+    # 所持金が増減した時に所持金欄を点滅させる
+    if setting.blink_partymoney <> setting.blink_partymoney_init:
+        e = cw.data.make_element("BlinkPartyMoney", str(setting.blink_partymoney))
+        element.append(e)
 
     # ファイル書き込み
     path = "Settings.xml"
