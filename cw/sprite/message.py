@@ -162,21 +162,26 @@ class MessageWindow(base.CWPySprite):
                  not "message_classic" in cw.cwpy.rsrc.fonts) and\
                 cw.cwpy.setting.fonttypes["message"][3 if cw.UP_SCR <= 1 else 4]
         if chridx < len(self.charimgs):
-            pos, txtimg, txtimg2 = self.charimgs[chridx]
+            pos, txtimg, txtimg2, txtimg3 = self.charimgs[chridx]
+
+            if txtimg2:
+                self._back.blit(txtimg2, pos)
+                size = txtimg2.get_size()
 
             # 通常のテキスト描画
-            if txtimg2:
+            if txtimg3:
                 for x in xrange(pos[0]-1, pos[0]+2):
                     for y in xrange(pos[1]-1, pos[1]+2):
-                        self._back.blit(txtimg2, (x, y))
+                        self._back.blit(txtimg3, (x, y))
                         if sbold:
-                            self._back.blit(txtimg2, (x+1, y))
+                            self._back.blit(txtimg3, (x+1, y))
 
-            self._fore.blit(txtimg, pos)
-            if sbold:
-                self._fore.blit(txtimg, (pos[0]+1, pos[1]))
+            if txtimg:
+                self._fore.blit(txtimg, pos)
+                if sbold:
+                    self._fore.blit(txtimg, (pos[0]+1, pos[1]))
 
-            size = txtimg.get_size()
+                size = txtimg.get_size()
             area = pygame.Rect(pos[0]-1, pos[1]-1, size[0]+3, size[1]+2)
             self.image.fill((0, 0, 0, 0), rect=area)
             self.image.blit(self._back, area, area)
@@ -204,7 +209,7 @@ class MessageWindow(base.CWPySprite):
 
     def create_charimgs(self, pos=None):
         if pos is None:
-            pos = cw.s((14, 12))
+            pos = cw.s((14, 9))
         if self.talker_image:
             if not self.backlog:
                 self.text = self.rpl_specialstr(True, self.text)
@@ -234,7 +239,8 @@ class MessageWindow(base.CWPySprite):
         else:
             font = cw.cwpy.rsrc.fonts["message"]
         colour = (255, 255, 255)
-        lineheight = font.get_height() - 1
+        lineheight = cw.s(22)
+        cheight = font.get_height()
         # 各種変数
         cnt = 0
         skip = False
@@ -263,6 +269,7 @@ class MessageWindow(base.CWPySprite):
             chars = "".join(self.text[index:index+2]).lower()
 
             # 特殊文字
+            image2 = None
             if r_specialfont.match(chars):
                 specialchars = self.specialchars if self.specialchars else cw.cwpy.rsrc.specialchars
                 if chars in specialchars:
@@ -270,18 +277,19 @@ class MessageWindow(base.CWPySprite):
 
                     if userfont:
                         # TODO scaleinfo
-                        images.append((pos, cw.s(charimg), None))
+                        cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
+                        images.append((cpos, None, cw.s(charimg), None))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
                         continue
 
                     size = charimg.get_size()
-                    image = pygame.Surface(size).convert()
-                    image.fill(colour)
-                    image.blit(charimg, (0, 0))
-                    image.set_colorkey(image.get_at((0, 0)), pygame.locals.RLEACCEL)
-                    image = cw.s((image, cw.setting.SIZE_SPFONT))
-                    images.append((pos, decorate(image, basecolour=colour), None))
+                    image2 = pygame.Surface(size).convert()
+                    image2.fill(colour)
+                    image2.blit(charimg, (0, 0))
+                    image2.set_colorkey(image2.get_at((0, 0)), pygame.locals.RLEACCEL)
+                    image2 = cw.s((image2, cw.setting.SIZE_SPFONT))
+                    images.append((pos, None, decorate(image2, basecolour=colour), None))
                     pos = pos[0] + cw.s(20), pos[1]
                     skip = True
                     continue
@@ -298,30 +306,38 @@ class MessageWindow(base.CWPySprite):
                 # クラシック形式
                 image = font.render(char, False, colour)
                 image = decorate(image, basecolour=colour)
-                image2 = font.render(char, False, (0, 0, 0))
+                image3 = font.render(char, False, (0, 0, 0))
 
             else:
                 # CardWirthPy形式
                 image = font.render(char, True, colour)
                 image = decorate(image, basecolour=colour)
-                image2 = font.render(char, True, (0, 0, 0))
+                image3 = font.render(char, True, (0, 0, 0))
 
                 # u"―"の場合、左右の線が繋がるように補完する
                 if r_join.match(char):
                     rect = image.get_rect()
                     size = (rect.w + cw.s(20), rect.h)
                     image = pygame.transform.scale(image, size)
-                    image2 = pygame.transform.scale(image2, size)
+                    image3 = pygame.transform.scale(image3, size)
                     image = image.subsurface((10, 0, rect.w, rect.h))
-                    image2 = image2.subsurface((10, 0, rect.w, rect.h))
+                    image3 = image3.subsurface((10, 0, rect.w, rect.h))
 
-            images.append((pos, image, image2))
+            px = pos[0]
+            py = pos[1]
 
             # 半角文字だったら文字幅は半分にする
             if cw.util.is_hw(char):
-                pos = pos[0] + cw.s(10), pos[1]
+                cwidth = cw.s(10)
             else:
-                pos = pos[0] + cw.s(20), pos[1]
+                cwidth = cw.s(20)
+            pos = pos[0] + cwidth, pos[1]
+
+            if not self.classicstyletext:
+                if image:
+                    px += (cwidth-image.get_width() + cw.s(2)) / 2
+                py += (lineheight-cheight) / 2
+            images.append(((px, py), image, image2, image3))
 
         return images
 
@@ -377,7 +393,7 @@ class MessageWindow(base.CWPySprite):
             return (255, 255, 255)
 
         # 互換動作: 1.30以前はO,P,L,Dの各色が無い
-        if not cw.cwpy.sct.lessthan("1.50", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
+        if not cw.cwpy.sct.lessthan("1.30", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
             if s == "o": # 1.50
                 return (255, 165, 0)
             elif s == "p": # 1.50
@@ -396,7 +412,7 @@ class SelectWindow(MessageWindow):
         if pos_noscale is None:
             pos_noscale = (81, 50)
         if size_noscale is None:
-            size_noscale = (470, 38)
+            size_noscale = (470, 40)
 
         self.backlog = backlog
         self._barspchr = False
@@ -419,7 +435,7 @@ class SelectWindow(MessageWindow):
         self.talker = None
         self._init_image(size_noscale, pos_noscale)
         # 描画する文字画像のリスト作成
-        self.charimgs = self.create_charimgs(cw.s((15, 9)))
+        self.charimgs = self.create_charimgs(cw.s((14, 9)))
         # frame
         self.frame = 0
         # メッセージスピード
@@ -428,7 +444,7 @@ class SelectWindow(MessageWindow):
         self.is_drawing = True
         # SelectionBarインスタンスリスト
         self.selections = []
-        self.selection_pos = cw.s((81, 88))
+        self.selection_pos = cw.s((81, 90))
         # メッセージ全て表示
         self.draw_all()
         # spritegroupに追加
@@ -458,13 +474,13 @@ class SelectWindow(MessageWindow):
     def update_scale(self):
         self._init_style()
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
-        self.charimgs = self.create_charimgs(cw.s((15, 9)))
+        self.charimgs = self.create_charimgs(cw.s((14, 9)))
         if self.backlog:
             cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
         else:
             cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
         self.selections = []
-        self.selection_pos = cw.s((81, 88))
+        self.selection_pos = cw.s((81, 90))
 
         self.is_drawing = True
         self.frame = 0
@@ -478,7 +494,7 @@ class MemberSelectWindow(SelectWindow):
         if pos_noscale is None:
             pos_noscale = (81, 50)
         if size_noscale is None:
-            size_noscale = (470, 38)
+            size_noscale = (470, 40)
         self.selectmembers = pcards
         names = [(index, pcard.name)
                         for index, pcard in enumerate(self.selectmembers)]
