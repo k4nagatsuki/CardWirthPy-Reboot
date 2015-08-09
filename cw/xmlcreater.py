@@ -529,6 +529,10 @@ def create_settings(setting):
     if setting.autoenter_on_sprite <> setting.autoenter_on_sprite_init:
         e = cw.data.make_element("AutoEnterOnSprite", str(setting.autoenter_on_sprite))
         element.append(e)
+    # カード名を縁取りする
+    if setting.bordering_cardname <> setting.bordering_cardname_init:
+        e = cw.data.make_element("BorderingCardName", str(setting.bordering_cardname))
+        element.append(e)
 
     # ファイル書き込み
     path = "Settings.xml"

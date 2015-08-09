@@ -302,6 +302,7 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
             self.pane_gene.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
         elif selpane == 1:
+            self.pane_draw.cb_bordering_cardname.SetValue(cw.cwpy.setting.bordering_cardname_init)
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
             self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
@@ -418,7 +419,8 @@ class SettingsPanel(wx.Panel):
     def apply(self):
         # 設定変更前はレベル上昇が可能な状態だったか
         can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
-        updatecardimg = False # カードイメージの更新が必要か
+        updatecardimg = False # キャラクターカードイメージの更新が必要か
+        updatemcardimg = False # メニューカードイメージの更新が必要か
         updatestatusbar = False # ステータスバーの更新が必要か
 
         # フォント
@@ -523,6 +525,11 @@ class SettingsPanel(wx.Panel):
 
         # 描画
         updatebg = False
+        value = self.pane_draw.cb_bordering_cardname.GetValue()
+        if cw.cwpy.setting.bordering_cardname <> value:
+            cw.cwpy.setting.bordering_cardname = value
+            updatecardimg = True
+            updatemcardimg = True
         value = self.pane_draw.cb_smooth_bg.GetValue()
         if cw.cwpy.setting.smoothscale_bg <> value:
             updatebg = True
@@ -648,6 +655,8 @@ class SettingsPanel(wx.Panel):
 
         # スキン
         if self.pane_gene.skin.apply_skin(flag_fontupdate):
+            updatecardimg = False
+            updatemcardimg = False
             updatebg = False
 
         # レベル調節
@@ -739,12 +748,19 @@ class SettingsPanel(wx.Panel):
             cw.cwpy.exec_func(func)
 
         # イメージの更新
-        if updatecardimg:
+        if updatecardimg or updatemcardimg:
             def func():
-                for ccard in itertools.chain(cw.cwpy.get_pcards("unreversed"),\
-                                             cw.cwpy.get_ecards("unreversed"),\
-                                             cw.cwpy.get_fcards("unreversed")):
+                for ccard in cw.cwpy.get_pcards("unreversed"):
                     ccard.update_image()
+                if updatemcardimg:
+                    for mcard in itertools.chain(cw.cwpy.get_mcards()):
+                        if mcard.is_initialized():
+                            mcard.update_scale()
+                else:
+                    for mcard in itertools.chain(cw.cwpy.get_ecards("unreversed"),\
+                                                  cw.cwpy.get_fcards("unreversed")):
+                        if mcard.is_initialized():
+                            mcard.update_image()
             cw.cwpy.exec_func(func)
 
         # ステータスバーの更新
@@ -1314,6 +1330,10 @@ class DrawingSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
+        # カード名を縁取りする
+        self.cb_bordering_cardname = wx.CheckBox(
+            self, -1, u"カード名を縁取りする")
+        self.cb_bordering_cardname.SetValue(cw.cwpy.setting.bordering_cardname)
         # 背景拡大縮小補正
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
@@ -1424,6 +1444,7 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
 
+        bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)

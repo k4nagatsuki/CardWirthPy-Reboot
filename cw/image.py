@@ -127,6 +127,17 @@ class CardImage(Image):
                 size = (self.rect.w - left*2, h)
                 subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
+            if cw.cwpy.setting.bordering_cardname:
+                subimg2 = subimg.copy()
+                if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
+                    subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
+                else:
+                    subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                for x in xrange(cw.s(5)-1, cw.s(5)+2):
+                    for y in xrange(cw.s(5)-1, cw.s(5)+2):
+                        if x <> cw.s(5) or y <> cw.s(5):
+                            image.blit(subimg2, (x, y))
+
             image.blit(subimg, (left, cw.s(5)))
         self._bmp = image.copy()
         return image
@@ -262,6 +273,15 @@ class CardImage(Image):
         if self.name:
             white = cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder
             quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
+            if cw.cwpy.setting.bordering_cardname:
+                subimg = cw.util.draw_antialiasedtext(dc, self.name, not white, self.wxrect.width, cw.wins(5),
+                                                      scaledown=cw.cwpy.setting.fontsmoothing_cardname,
+                                                      quality=quality)
+                dc.SelectObject(bmp)
+                for x in xrange(cw.wins(5)-1, cw.wins(5)+2):
+                    for y in xrange(cw.wins(5)-1, cw.wins(5)+2):
+                        if x <> cw.wins(5) <> y <> cw.wins(5):
+                            dc.DrawBitmap(subimg, x, y)
             subimg = cw.util.draw_antialiasedtext(dc, self.name, white, self.wxrect.width, cw.wins(5),
                                                   scaledown=cw.cwpy.setting.fontsmoothing_cardname,
                                                   quality=quality)
@@ -400,6 +420,14 @@ class LargeCardImage(CardImage):
                 size = (self.rect.w - cw.s(10), h)
                 subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
+            if cw.cwpy.setting.bordering_cardname:
+                subimg2 = subimg.copy()
+                subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                for x in xrange(cw.s(5)-1, cw.s(5)+2):
+                    for y in xrange(cw.s(5)-1, cw.s(5)+2):
+                        if x <> cw.s(5) or y <> cw.s(5):
+                            image.blit(subimg2, (x, y))
+
             image.blit(subimg, cw.s((5, 5)))
         return image
 
@@ -439,7 +467,16 @@ class LargeCardImage(CardImage):
         if self.name:
             white = False
             quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
-            subimg = cw.util.draw_antialiasedtext(dc, self.name, False, w, cw.wins(6),
+            if cw.cwpy.setting.bordering_cardname:
+                subimg = cw.util.draw_antialiasedtext(dc, self.name, not white, w, cw.wins(6),
+                                                      scaledown=cw.cwpy.setting.fontsmoothing_cardname,
+                                                      quality=quality)
+                dc.SelectObject(bmp)
+                for x in xrange(cw.wins(5)-1, cw.wins(5)+2):
+                    for y in xrange(cw.wins(5)-1, cw.wins(5)+2):
+                        if x <> cw.wins(5) <> y <> cw.wins(5):
+                            dc.DrawBitmap(subimg, x, y)
+            subimg = cw.util.draw_antialiasedtext(dc, self.name, white, w, cw.wins(6),
                                                   scaledown=cw.cwpy.setting.fontsmoothing_cardname,
                                                   quality=quality)
             dc.SelectObject(bmp)
@@ -535,12 +572,24 @@ class CharacterCardImage(CardImage):
 
         # 名前
         if self.nameimg:
-            if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
-                nameimg = self.nameimg.copy()
-                nameimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+            if cw.cwpy.setting.bordering_cardname:
+                nameimg1 = self.nameimg
+                nameimg2 = self.nameimg.copy()
+                nameimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
+                    nameimg1, nameimg2 = nameimg2, nameimg1
+                for x in xrange(cw.s(5)-1, cw.s(5)+2):
+                    for y in xrange(cw.s(5)-1, cw.s(5)+2):
+                        if x <> cw.s(5) or y <> cw.s(5):
+                            self.image.blit(nameimg2, (x, y))
+                self.image.blit(nameimg1, cw.s((5, 5)))
             else:
-                nameimg = self.nameimg
-            self.image.blit(nameimg, cw.s((5, 5)))
+                if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
+                    nameimg = self.nameimg.copy()
+                    nameimg.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                else:
+                    nameimg = self.nameimg
+                self.image.blit(nameimg, cw.s((5, 5)))
 
         # ライフ
         if ccard.is_analyzable() and not ccard.is_unconscious():

@@ -150,6 +150,7 @@ class Setting(object):
         self.can_repeatlclick = False
         self.cursor_type = CURSOR_BLACK
         self.autoenter_on_sprite = False
+        self.bordering_cardname = True
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -490,6 +491,8 @@ class Setting(object):
         self.cursor_type = data.gettext("CursorType", self.cursor_type)
         # 連打状態の時、カードなどの選択を自動的に決定する
         self.autoenter_on_sprite = data.getbool("AutoEnterOnSprite", self.autoenter_on_sprite)
+        # カード名を縁取りする
+        self.bordering_cardname = data.getbool("BorderingCardName", self.bordering_cardname)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
@@ -784,7 +787,6 @@ class Resource(object):
         # カード背景画像(辞書)
         self.cardbgs = self.get_cardbgs(cw.util.load_image)
         self.cardnamecolorhints = self.get_cardnamecolorhints(self.cardbgs)
-        self.cardnamecolorborder = 116
         # wxダイアログで使う画像(辞書)
         self.pygamedialogs = self.get_dialogs(cw.util.load_image)
         # wx版。wxスレッドから初期化
@@ -841,6 +843,13 @@ class Resource(object):
                 fpath = cw.cwpy.sdata.ignorecase_table.get(lpath, fpath)
 
         return fpath
+
+    @property
+    def cardnamecolorborder(self):
+        if cw.cwpy.setting.bordering_cardname:
+            return 92
+        else:
+            return 116
 
     def update_winscale(self):
         self.init_wxresources()
