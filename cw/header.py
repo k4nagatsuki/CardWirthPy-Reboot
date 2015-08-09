@@ -138,6 +138,7 @@ class CardHeader(object):
         self._cardscale = cw.UP_SCR
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
+        self._bordering_cardname = cw.cwpy.setting.bordering_cardname
 
         # スキルカードと召喚獣カードは価格固定
         if self.type == "SkillCard":
@@ -212,6 +213,7 @@ class CardHeader(object):
         self._cardscale = cw.UP_SCR
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
+        self._bordering_cardname = cw.cwpy.setting.bordering_cardname
 
     def get_owner(self):
         if self._owner == "BACKPACK":
@@ -240,7 +242,8 @@ class CardHeader(object):
     def cardimg(self):
         if not self._cardimg or self._cardscale <> cw.UP_SCR or\
                 self._wxcardscale <> cw.UP_WIN or\
-                self._skindirname <> cw.cwpy.setting.skindirname:
+                self._skindirname <> cw.cwpy.setting.skindirname or\
+                self._bordering_cardname <> cw.cwpy.setting.bordering_cardname:
             self.set_cardimg(self.imgpath)
         return self._cardimg
 
@@ -770,12 +773,14 @@ class InfoCardHeader(object):
         self._cardscale = cw.UP_SCR
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
+        self._bordering_cardname = cw.cwpy.setting.bordering_cardname
 
     @property
     def cardimg(self):
         if self._cardscale <> cw.UP_SCR or\
                 self._wxcardscale <> cw.UP_WIN or\
-                self._skindirname <> cw.cwpy.setting.skindirname:
+                self._skindirname <> cw.cwpy.setting.skindirname or\
+                self._bordering_cardname <> cw.cwpy.setting.bordering_cardname:
             self.set_cardimg()
         return self._cardimg
 
