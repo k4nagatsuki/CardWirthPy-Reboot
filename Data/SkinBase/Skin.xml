@@ -468,7 +468,7 @@
     <Message key="transfer">転送</Message>
     <Message key="rename_base_description">この拠点の名称を変更します。</Message>
     <Message key="copy_base_description">この拠点の複製を生成します。</Message>
-    <Message key="delete_base_description">この拠点を破棄し、すべての情報を削除します。</Message>
+    <Message key="delete_base_description">この拠点を破棄し、全ての情報を削除します。</Message>
     <Message key="transfer_base_description">他の拠点のカードやブックマークをこの拠点へコピーします。</Message>
     <Message key="rename_base_title">名称の変更</Message>
     <Message key="rename_base_message">新しい名称を入力して下さい。</Message>
@@ -681,6 +681,7 @@
     <!-- 0.12.4 ここから -->
     <Message key="run_event">実行</Message>
     <Message key="open_event">開く</Message>
+    <Message key="hold_all">全てホールド</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>

@@ -22,6 +22,12 @@ class Character(object):
         self.level = self.data.getint("Property/Level")
         # 各種所持カードのリスト
         self.cardpocket = self.get_cardpocket()
+        # 全てホールド
+        self.hold_all = [
+            self.data.getbool("SkillCards", "hold_all", False),
+            self.data.getbool("ItemCards", "hold_all", False),
+            self.data.getbool("BeastCards", "hold_all", False),
+        ]
         # 現在ライフ・最大ライフ
         self.life = self.data.getint("Property/Life")
         self.maxlife = self.data.getint("Property/Life", "max")

@@ -1158,9 +1158,15 @@ class CardPanel(wx.Panel):
         self.headers = []
         # bmp
         self.watermark = cw.cwpy.rsrc.dialogs["PAD"]
+        # 「全てホールド」の領域
+        if self.pocket <> cw.POCKET_BEAST and (cw.cwpy.debug or isinstance(self.ccard, cw.character.Player)):
+            self.hold_all = HoldAll()
+        else:
+            self.hold_all = None
         # bind
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_MOTION, self.OnMove)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         self.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
@@ -1173,9 +1179,22 @@ class CardPanel(wx.Panel):
                 del header.subrect
 
     def OnLeftUp(self, event):
+        self._switch_hold()
+
+    def OnKeyUp(self, event):
+        if event.GetKeyCode() == wx.WXK_SPACE:
+            self._switch_hold()
+
+    def _switch_hold(self):
         if not cw.cwpy.debug and not isinstance(self.ccard, cw.character.Player):
             # ホールド不可
             self._open_cardinfo()
+            return
+
+        if self.hold_all and self.hold_all.negaflag:
+            cw.cwpy.play_sound("click")
+            self.ccard.hold_all[self.pocket] = not self.ccard.hold_all[self.pocket]
+            self.Refresh()
             return
 
         for header in self.headers:
@@ -1232,6 +1251,9 @@ class CardPanel(wx.Panel):
         dc = wx.ClientDC(self)
         mousepos = event.GetPosition()
 
+        if self.hold_all:
+            self.hold_all.negaflag = self.hold_all.subrect.collidepoint(mousepos)
+
         for header in self.headers:
             if header.subrect.collidepoint(mousepos):
                 if not header.negaflag:
@@ -1243,6 +1265,9 @@ class CardPanel(wx.Panel):
         self.Refresh()
 
     def draw_header(self, dc, header):
+        if isinstance(header, HoldAll):
+            self.Refresh()
+            return
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
         if header.negaflag:
@@ -1253,34 +1278,46 @@ class CardPanel(wx.Panel):
             dc.DrawText(header.name, header.textpos[0], header.textpos[1])
 
     def up(self):
-        if not self.headers:
+        if not self.headers and not self.hold_all:
             return
+        if self.hold_all:
+            headers = [self.hold_all]
+            headers.extend(self.headers)
+        else:
+            headers = self.headers
+
         dc = wx.ClientDC(self)
-        for i, header in enumerate(self.headers):
+        for i, header in enumerate(headers):
             if header.negaflag:
                 header.negaflag = False
                 self.draw_header(dc, header)
-                header = self.headers[i-1]
+                header = headers[i-1]
                 header.negaflag = True
                 self.draw_header(dc, header)
                 return
-        header = self.headers[-1]
+        header = headers[-1]
         header.negaflag = True
         self.draw_header(dc, header)
 
     def down(self):
-        if not self.headers:
+        if not self.headers and not self.hold_all:
             return
+        if self.hold_all:
+            headers = [self.hold_all]
+            headers.extend(self.headers)
+        else:
+            headers = self.headers
+
         dc = wx.ClientDC(self)
-        for i, header in enumerate(self.headers):
+        for i, header in enumerate(headers):
             if header.negaflag:
                 header.negaflag = False
                 self.draw_header(dc, header)
-                header = self.headers[(i+1) % len(self.headers)]
+                header = headers[(i+1) % len(headers)]
                 header.negaflag = True
                 self.draw_header(dc, header)
                 return
-        header = self.headers[0]
+        header = headers[0]
         header.negaflag = True
         self.draw_header(dc, header)
 
@@ -1306,11 +1343,30 @@ class CardPanel(wx.Panel):
 
         fw = dc.GetTextExtent(u"―")[0]
 
+        if self.hold_all:
+            yp = 20
+            s = cw.cwpy.msgs["hold_all"]
+            if self.hold_all.negaflag:
+                dc.SetTextForeground(wx.RED)
+                dc.DrawText(s, cw.wins(30), cw.wins(30))
+                dc.SetTextForeground(wx.WHITE)
+            else:
+                dc.DrawText(s, cw.wins(30), cw.wins(30))
+            if self.ccard.hold_all[self.pocket]:
+                bmp = cw.cwpy.rsrc.dialogs["STATUS6"]
+            else:
+                bmp = cw.cwpy.rsrc.dialogs["STATUS5"]
+            dc.DrawBitmap(bmp, cw.wins(10), cw.wins(29), True)
+            size = dc.GetTextExtent(s)
+            self.hold_all.subrect = pygame.Rect(cw.wins(10), cw.wins(29), size[0] + cw.wins(20), size[1] + cw.wins(2))
+        else:
+            yp = 0
+
         for index, header in enumerate(self.headers):
             if index < 5:
-                pos = cw.wins((30, 30+17*index))
+                pos = cw.wins((30, 30+yp+17*index))
             else:
-                pos = (self.csize[0]/2+cw.wins(30-6), cw.wins(30+17*(index-5)))
+                pos = (self.csize[0]/2+cw.wins(30-6), cw.wins(30+yp+17*(index-5)))
 
             # カード名
             s = header.name
@@ -1363,6 +1419,11 @@ class CardPanel(wx.Panel):
 
         if update:
             self.Refresh()
+
+class HoldAll(object):
+    def __init__(self):
+        self.negaflag = False
+        self.subrect = pygame.Rect(0, 0, 0, 0)
 
 class SkillPanel(CardPanel):
     def __init__(self, parent, ccard):

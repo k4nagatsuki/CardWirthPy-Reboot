@@ -598,12 +598,22 @@ class CardHeader(object):
 
     def is_autoselectable(self):
         card = self.ref_original()
+        owner = card.get_owner()
 
         if card.recycle and card.uselimit <= 0:
             # 使用回数0(リサイクルカードのみ)
             return False
 
-        if card.hold and not card.penalty and card.type <> "BeastCard":
+        if self.type == "SkillCard":
+            pocket = cw.POCKET_SKILL
+        elif self.type == "ItemCard":
+            pocket = cw.POCKET_ITEM
+        elif self.type == "BeastCard":
+            pocket = cw.POCKET_BEAST
+        else:
+            assert False
+
+        if (card.hold or (owner and owner.hold_all[pocket])) and not card.penalty and card.type <> "BeastCard":
             # ホールド(ペナルティカード以外)
             return False
 
@@ -612,7 +622,6 @@ class CardHeader(object):
         if not card.carddata is None:
             noeffect |= card.carddata.find("Motions/Motion") is None
 
-        owner = card.get_owner()
         silence = False
         if not card.carddata is None and owner:
             # 沈黙
