@@ -1195,7 +1195,7 @@ class Character(object):
         """
         return self._get_enhance_impl("avoid", self.enhance_avo, 0)
 
-    def _calc_enhancevalue(self, header, value, limit9):
+    def _calc_enhancevalue(self, header, value):
         """使用・所持ボーナス値に適性による補正を加える。
         BUG: CardWirthではアイテムの所持ボーナスに限り
               最低適性(level=0)の時に補正係数が50%となるが、
@@ -1209,10 +1209,6 @@ class Character(object):
             value2 = cw.util.numwrap(value, -10, 10)
         else:
             value2 = cw.util.numwrap(value * 150 / 100, -10, 10)
-
-        # 防御ボーナスには単独で10を指定されない限り限界がある
-        if value < 10 and limit9:
-            value2 = min(9, value2)
 
         return value2
 
@@ -1230,14 +1226,16 @@ class Character(object):
 
         for header in itertools.chain(self.get_pocketcards(cw.POCKET_ITEM), self.get_pocketcards(cw.POCKET_BEAST)):
             val3 = header.get_enhance_val()[enhindex]
-            val3 = self._calc_enhancevalue(header, val3, name == "defense")
+            if name <> "defense":
+                val3 = self._calc_enhancevalue(header, val3)
             seq.append(val3)
 
         val4 = 0
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
             val4 = header.get_enhance_val_used()[enhindex]
-            val4 = self._calc_enhancevalue(header, val4, name == "defense")
+            if name <> "defense":
+                val4 = self._calc_enhancevalue(header, val4)
             seq.append(val4)
 
         a = 0
