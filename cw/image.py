@@ -193,7 +193,7 @@ class CardImage(Image):
                 image.blit(subimg, cw.s((60, 75)))
 
             # ホールド
-            if header.ref_original() and header.ref_original().hold:
+            if header.ref_original() and header.ref_original().is_hold():
                 subimg = cw.cwpy.rsrc.cardbgs["HOLD"]
                 image.blit(subimg, cw.s((0, 0)))
 
@@ -350,7 +350,7 @@ class CardImage(Image):
                 dc.DrawBitmap(subimg, cw.wins(60), cw.wins(75), True)
 
             # ホールド
-            if header.ref_original() and header.ref_original().hold:
+            if header.ref_original() and header.ref_original().is_hold():
                 subimg = cw.cwpy.rsrc.wxcardbgs["HOLD"]
                 dc.DrawBitmap(subimg, cw.wins(0), cw.wins(0), True)
 
