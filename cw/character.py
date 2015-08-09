@@ -1245,6 +1245,8 @@ class Character(object):
         ac = 0
         bc = 0
         max10 = False
+        maxval = 0
+        minval = 0
         for val in seq:
             if val < 0:
                 if a == 0:
@@ -1252,6 +1254,7 @@ class Character(object):
                 else:
                     a *= (10 + val)
                 ac += 1
+                minval = min(minval, val)
             elif 0 < val:
                 if b == 0:
                     b = (10 - val)
@@ -1260,12 +1263,15 @@ class Character(object):
                 bc += 1
                 if 10 <= val:
                     max10 = True
+                maxval = max(maxval, val)
         if ac:
             a /= math.pow(10, ac-1)
             a = 10 - a
+            a = max(-minval, a)
         if bc:
             b /= math.pow(10, bc-1)
             b = 10 - b
+            b = max(maxval, b)
 
         value = int(b) - int(a)
         if not max10 and name == "defense":
