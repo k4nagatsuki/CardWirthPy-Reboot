@@ -232,7 +232,7 @@ class MessageWindow(base.CWPySprite):
 
         r_specialfont = re.compile("#.") # 特殊文字(#)の集合
         # 文字色変更文字(&)の集合
-        r_changecolour = re.compile("&[\x20-\x7E\n]")
+        r_changecolour = re.compile("&[\x20-\x7E]")
         # フォントデータ
         if self.classicstyletext:
             font = cw.cwpy.rsrc.fonts["message_classic"]
