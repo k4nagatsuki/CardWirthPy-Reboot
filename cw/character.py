@@ -2323,6 +2323,18 @@ class Player(Character):
             for header in cw.cwpy.ydata.partyrecord:
                 header.rename_member(self.data.fpath, name)
 
+    def set_hold_all(self, pocket, value):
+        self.hold_all[pocket] = value
+        if pocket == cw.POCKET_SKILL:
+            type = "SkillCards"
+        elif pocket == cw.POCKET_ITEM:
+            type = "ItemCards"
+        elif pocket == cw.POCKET_BEAST:
+            type = "BeastCards"
+        else:
+            assert False
+        self.data.edit(type, str(value), "hold_all")
+
 class Enemy(Character):
     def is_dead(self):
         """

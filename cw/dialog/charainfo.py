@@ -1193,7 +1193,7 @@ class CardPanel(wx.Panel):
 
         if self.hold_all and self.hold_all.negaflag:
             cw.cwpy.play_sound("click")
-            self.ccard.hold_all[self.pocket] = not self.ccard.hold_all[self.pocket]
+            self.ccard.set_hold_all(self.pocket, not self.ccard.hold_all[self.pocket])
             self.Refresh()
             return
 

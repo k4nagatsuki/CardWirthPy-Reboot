@@ -611,11 +611,12 @@ class CardHeader(object):
         elif self.type == "BeastCard":
             pocket = cw.POCKET_BEAST
         else:
-            assert False
+            pocket = -1
 
-        if (card.hold or (owner and owner.hold_all[pocket])) and not card.penalty and card.type <> "BeastCard":
-            # ホールド(ペナルティカード以外)
-            return False
+        if pocket <> -1:
+            if (card.hold or (owner and owner.hold_all[pocket])) and not card.penalty and card.type <> "BeastCard":
+                # ホールド(ペナルティカード以外)
+                return False
 
         # 対象無しまたは効果無し
         noeffect = bool(card.target == "None")
