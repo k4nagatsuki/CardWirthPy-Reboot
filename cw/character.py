@@ -1246,6 +1246,7 @@ class Character(object):
         max10counter = 0
         maxval = 0
         minval = 0
+        up8 = 0
         for val in seq:
             if val < 0:
                 if a == 0:
@@ -1262,6 +1263,8 @@ class Character(object):
                     b *= (10 - val)
                 bc += 1
                 max10 += val // 10
+                if 8 <= val < 10:
+                    up8 += 1
                 maxval = max(maxval, val)
         if ac:
             a /= math.pow(10, ac-1)
@@ -1271,6 +1274,10 @@ class Character(object):
             b /= math.pow(10, bc-1)
             b = 10 - b
             b = max(maxval, b)
+
+        # +8以上3回で+10と同等の効果を得られる(1回限り)
+        if 3 <= up8:
+            max10 += 1
 
         if max10 < 3:
             # 防御修正で+10があると完全にダメージが無くなるが、
