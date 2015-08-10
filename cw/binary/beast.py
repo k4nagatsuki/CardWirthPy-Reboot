@@ -153,7 +153,7 @@ class BeastCard(base.CWBinaryBase):
             prop.append(e)
             if 2 < self.premium:
                 self.data.set("scenariocard", "True")
-                e = cw.data.make_element("Premium", self.conv_card_premium(self.premium - 2))
+                e = cw.data.make_element("Premium", self.conv_card_premium(self.premium - 3))
             else:
                 e = cw.data.make_element("Premium", self.conv_card_premium(self.premium))
             prop.append(e)
@@ -262,7 +262,7 @@ class BeastCard(base.CWBinaryBase):
                     elif prop.tag == "Premium":
                         premium = base.CWBinaryBase.unconv_card_premium(prop.text)
                         if ownerisadventurer and scenariocard:
-                            premium += 2
+                            premium += 3
                     elif prop.tag == "UseLimit":
                         limit = int(prop.text)
                     elif prop.tag == "Hold":
