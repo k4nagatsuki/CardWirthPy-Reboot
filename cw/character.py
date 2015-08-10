@@ -1242,7 +1242,8 @@ class Character(object):
         b = 0
         ac = 0
         bc = 0
-        max10 = False
+        max10 = 0
+        max10counter = 0
         maxval = 0
         minval = 0
         for val in seq:
@@ -1253,14 +1254,14 @@ class Character(object):
                     a *= (10 + val)
                 ac += 1
                 minval = min(minval, val)
+                max10counter += -val//6 + 1
             elif 0 < val:
                 if b == 0:
                     b = (10 - val)
                 else:
                     b *= (10 - val)
                 bc += 1
-                if 10 <= val:
-                    max10 = True
+                max10 += val // 10
                 maxval = max(maxval, val)
         if ac:
             a /= math.pow(10, ac-1)
@@ -1271,10 +1272,19 @@ class Character(object):
             b = 10 - b
             b = max(maxval, b)
 
+        if max10 < 3:
+            # 防御修正で+10があると完全にダメージが無くなるが、
+            # -1～5で1回、-6以上で2回分、+10効果を打ち消すことができる
+            # ただし+30以上は無効化不可
+            max10 -= max10counter
+
         value = int(b) - int(a)
-        if not max10 and name == "defense":
-            # 防御ボーナスは単体の+10がない限り最大で+9になる
-            value = cw.util.numwrap(value, -10, 9)
+        if name == "defense":
+            if 0 < max10:
+                value = 10
+            else:
+                # 防御ボーナスは単体の+10がない限り最大で+9になる
+                value = cw.util.numwrap(value, -10, 9)
         else:
             value = cw.util.numwrap(value, -10, 10)
 
