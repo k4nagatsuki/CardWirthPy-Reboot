@@ -198,6 +198,7 @@ class CardHeader(object):
         if not cw.binary.image.path_is_code(path):
             if self.type in ("ActionCard", "UseCardInBackpack"):
                 path = cw.util.join_paths(cw.cwpy.skindir, path)
+                path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
             elif self.scenariocard:
                 path = cw.util.get_materialpath(path, cw.M_IMG, scedir=self.scedir)
             else:
