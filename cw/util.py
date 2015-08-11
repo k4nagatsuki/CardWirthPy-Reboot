@@ -2542,7 +2542,7 @@ def create_mutex(dpath):
                 kernel32.CloseHandle(handle)
             handle = None
         else:
-            _mutex.append(handle)
+            _mutex.append((handle, name))
             return True
     else:
         # Posix
@@ -2570,7 +2570,7 @@ def exists_mutex(dpath):
         _SYNCHRONIZE = 0x00100000
         kernel32 = ctypes.windll.kernel32
         handle = kernel32.OpenMutexW(MUTEX_ALL_ACCESS, 0, name)
-        if handle and not handle in _mutex:
+        if handle and not name in map(lambda m: m[1], _mutex):
             kernel32.ReleaseMutex(handle)
             kernel32.CloseHandle(handle)
             return True
@@ -2579,7 +2579,7 @@ def exists_mutex(dpath):
     else:
         name = "/CardWirthPy_%s" % (name)
         handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
-        if (handle, name) in _mutex:
+        if name in map(lambda m: m[1], _mutex):
             return False
         if SEM_FAILED <> handle and handle:
             _librt.sem_close(handle)
@@ -2594,8 +2594,8 @@ def release_mutex():
     if _mutex:
         if sys.platform == "win32":
             kernel32 = ctypes.windll.kernel32
-            kernel32.ReleaseMutex(_mutex[-1])
-            kernel32.CloseHandle(_mutex[-1])
+            kernel32.ReleaseMutex(_mutex[-1][0])
+            kernel32.CloseHandle(_mutex[-1][0])
         else:
             _librt.sem_close(_mutex[-1][0])
             _librt.sem_unlink(_mutex[-1][1])
@@ -2604,14 +2604,14 @@ def release_mutex():
 @synclock(_lock_mutex)
 def clear_mutex():
     global _mutex
-    for mutex in _mutex:
+    for mutex, name in _mutex:
         if sys.platform == "win32":
             kernel32 = ctypes.windll.kernel32
             kernel32.ReleaseMutex(mutex)
             kernel32.CloseHandle(mutex)
         else:
-            _librt.sem_close(mutex[0])
-            _librt.sem_unlink(mutex[1])
+            _librt.sem_close(mutex)
+            _librt.sem_unlink(name)
     _mutex = []
 
 def main():
