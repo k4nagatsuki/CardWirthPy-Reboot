@@ -100,10 +100,14 @@ class Character(object):
         # ラウンド処理中で行動開始前ならTrue
         self.actionend = True
 
+        self.reversed = False
+
         # クーポン一覧
         self.coupons = {}
         for e in self.data.getfind("Property/Coupons"):
             self.coupons[e.text] = int(e.get("value")), e
+            if e.text == u"：Ｒ":
+                self.reversed = True
         # 時限クーポンのデータのリスト(name, flag_countable)
         self.timedcoupons = self.get_timedcoupons()
 
@@ -119,8 +123,6 @@ class Character(object):
 
         # 適性検査用のCardHeader。
         self.test_aptitude = None
-
-        self.reversed = False
 
         # キャッシュ
         self._voc_tbl = {}
