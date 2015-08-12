@@ -27,7 +27,7 @@ def create_versioninfo(parent):
     parent.versioninfo.SetBackgroundColour(parent.GetBackgroundColour())
     dc = wx.ClientDC(parent.versioninfo)
     w, h, _lh = dc.GetMultiLineTextExtent(s)
-    parent.versioninfo.SetMinSize((w + 10, h))
+    parent.versioninfo.SetMinSize((w + 15, h))
 
 def apply_levelupparams(can_levelup):
     """レベル調節に関する状況が変わった時に呼び出され、
@@ -100,7 +100,8 @@ class SimpleSettingsPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
 
         self.panel = wx.Panel(self, -1, style=wx.SIMPLE_BORDER)
-        self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT))
+        if sys.platform == "win32":
+            self.panel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT))
 
         # デバッグモード
         self.box_debug = wx.StaticBox(self.panel, -1, u"デバッグ")
