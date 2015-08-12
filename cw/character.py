@@ -1220,9 +1220,9 @@ class Character(object):
         デフォルト修正値 + 状態修正値 + カード所持修正値 + カード使用修正値。
         ただしカードの修正値は適性による補正を受ける。
         """
-        val1 = self.enhance.get(name)
+        val1 = int(self.enhance.get(name))
         val1 = cw.util.numwrap(val1, -10, 10)
-        val2 = initvalue
+        val2 = int(initvalue)
         val2 = cw.util.numwrap(val2, -10, 10)
         seq = [val1, val2]
         pvals = [0] * 9
@@ -1245,6 +1245,7 @@ class Character(object):
             else:
                 val = self._calc_enhancevalue(header, val)
                 pval = 3
+            val = int(val)
             seq.append(val)
             if 0 < val and val < 10:
                 pvals[val-1] += pval
