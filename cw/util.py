@@ -2574,6 +2574,8 @@ def exists_mutex(dpath):
             kernel32.ReleaseMutex(handle)
             kernel32.CloseHandle(handle)
             return True
+        elif handle:
+            kernel32.CloseHandle(handle)
 
         return False
     else:
