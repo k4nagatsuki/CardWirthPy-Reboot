@@ -328,11 +328,13 @@ class YadoMoneyPanel(StatusBarPanel):
             return
 
         if self.frame / 5 % 2 == 1:
-            self.text = ""
+            text = ""
         else:
-            self.text = self.get_money()
+            text = self.get_money()
 
-        self.update_image()
+        if text <> self.text:
+            self.text = text
+            self.update_image()
 
 class PartyMoneyPanel(YadoMoneyPanel):
     def __init__(self, parent, pos):

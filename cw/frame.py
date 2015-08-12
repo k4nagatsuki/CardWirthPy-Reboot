@@ -814,6 +814,7 @@ class Frame(wx.Frame):
             # cw.cwpy.mousemotionがFalseになるため、
             # 異なる値を設定する
             cw.cwpy.mousepos = (-2, -2)
+            cw.cwpy.draw()
             if not lockmenucard:
                 cw.cwpy.lock_menucards = False
         cw.cwpy.kill_showingdlg()
