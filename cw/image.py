@@ -133,6 +133,7 @@ class CardImage(Image):
                     subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
                 else:
                     subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                subimg2 = cw.imageretouch.mul_alpha(subimg2, 92)
                 for x in xrange(cw.s(5)-1, cw.s(5)+2):
                     for y in xrange(cw.s(5)-1, cw.s(5)+2):
                         if x <> cw.s(5) or y <> cw.s(5):
@@ -276,7 +277,7 @@ class CardImage(Image):
             if cw.cwpy.setting.bordering_cardname:
                 subimg = cw.util.draw_antialiasedtext(dc, self.name, not white, self.wxrect.width, cw.wins(5),
                                                       scaledown=cw.cwpy.setting.fontsmoothing_cardname,
-                                                      quality=quality)
+                                                      quality=quality, alpha=160)
                 dc.SelectObject(bmp)
                 for x in xrange(cw.wins(5)-1, cw.wins(5)+2):
                     for y in xrange(cw.wins(5)-1, cw.wins(5)+2):
@@ -423,6 +424,7 @@ class LargeCardImage(CardImage):
             if cw.cwpy.setting.bordering_cardname:
                 subimg2 = subimg.copy()
                 subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+                subimg2 = cw.imageretouch.mul_alpha(subimg2, 92)
                 for x in xrange(cw.s(5)-1, cw.s(5)+2):
                     for y in xrange(cw.s(5)-1, cw.s(5)+2):
                         if x <> cw.s(5) or y <> cw.s(5):
@@ -470,7 +472,7 @@ class LargeCardImage(CardImage):
             if cw.cwpy.setting.bordering_cardname:
                 subimg = cw.util.draw_antialiasedtext(dc, self.name, not white, w, cw.wins(6),
                                                       scaledown=cw.cwpy.setting.fontsmoothing_cardname,
-                                                      quality=quality)
+                                                      quality=quality, alpha=160)
                 dc.SelectObject(bmp)
                 for x in xrange(cw.wins(5)-1, cw.wins(5)+2):
                     for y in xrange(cw.wins(5)-1, cw.wins(5)+2):
@@ -578,6 +580,7 @@ class CharacterCardImage(CardImage):
                 nameimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
                 if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
                     nameimg1, nameimg2 = nameimg2, nameimg1
+                nameimg2 = cw.imageretouch.mul_alpha(nameimg2, 92)
                 for x in xrange(cw.s(5)-1, cw.s(5)+2):
                     for y in xrange(cw.s(5)-1, cw.s(5)+2):
                         if x <> cw.s(5) or y <> cw.s(5):

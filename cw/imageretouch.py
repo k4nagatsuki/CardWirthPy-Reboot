@@ -829,6 +829,22 @@ def patch_alphadata(image):
             image = pygame.image.fromstring(buf, image.get_size(), "RGBX")
     return image
 
+def mul_wxalpha(wximg, alpha):
+    """alpha/255分まで、wximgのアルファ値を減少させる。"""
+    buf = wximg.GetAlphaData()
+    assert len(buf) == wximg.GetWidth() * wximg.GetHeight()
+    buf = _imageretouch.mul_alphaonly(buf, alpha)
+    wximg.SetAlphaData(buf)
+    return wximg
+
+def mul_alpha(image, alpha):
+    """alpha/255分まで、imageのアルファ値を減少させる。"""
+    buf = pygame.image.tostring(image, "RGBA")
+    assert len(buf) % 4 == 0
+    buf = _imageretouch.mul_alpha(buf, alpha)
+    image = pygame.image.fromstring(buf, image.get_size(), "RGBA")
+    return image
+
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
         d = {(u"IPAゴシック", u"IPAGothic"):"gothic.ttf",

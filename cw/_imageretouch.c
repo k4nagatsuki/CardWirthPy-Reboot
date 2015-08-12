@@ -730,6 +730,65 @@ has_alpha(PyObject *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
+static PyObject *
+mul_alphaonly(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    Py_ssize_t slen, alpha, i;
+    unsigned char *source, *outdata;
+    double alnum;
+
+    if (!PyArg_ParseTuple(args, "s#i", &source, &slen, &alpha))
+        return NULL;
+
+    alnum = alpha / 255.0;
+
+    string = PyBytes_FromStringAndSize(NULL, slen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &slen);
+
+    for (i = 0; i < slen; i++)
+    {
+        outdata[i] = (char)(source[i] * alnum);
+    }
+
+    return string;
+}
+
+static PyObject *
+mul_alpha(PyObject *self, PyObject *args)
+{
+    PyObject *string = NULL;
+    Py_ssize_t slen, alpha, i;
+    unsigned char *source, *outdata;
+    double alnum;
+
+    if (!PyArg_ParseTuple(args, "s#i", &source, &slen, &alpha))
+        return NULL;
+
+    alnum = alpha / 255.0;
+
+    string = PyBytes_FromStringAndSize(NULL, slen);
+
+    if (!string)
+        return NULL;
+
+    PyBytes_AsStringAndSize(string, (char**)&outdata, &slen);
+
+    for (i = 0; i < slen + 3; i += 4)
+    {
+        outdata[i+0] = source[i+0];
+        outdata[i+1] = source[i+1];
+        outdata[i+2] = source[i+2];
+        outdata[i+3] = (char)(source[i+3] * alnum);
+    }
+
+    return string;
+}
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #include <windows.h>
@@ -1239,6 +1298,10 @@ _imageretouchMethods[] =
         "decode_rle4data(char*, h, bpl)"},
     {"has_alpha", has_alpha, METH_VARARGS,
         "has_alpha(char*)"},
+    {"mul_alpha", mul_alpha, METH_VARARGS,
+        "mul_alpha(rgba_str, alpha)"},
+    {"mul_alphaonly", mul_alphaonly, METH_VARARGS,
+        "mul_alphaonly(a_str, alpha)"},
 #if defined(_WIN32) || defined(_WIN64)
     {"font_new", font_new, METH_VARARGS,
         "font_new(face, pixels, bold, italic)"},
