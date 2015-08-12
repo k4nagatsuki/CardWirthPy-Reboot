@@ -1228,7 +1228,7 @@ class Character(object):
 
         for header in itertools.chain(self.get_pocketcards(cw.POCKET_ITEM), self.get_pocketcards(cw.POCKET_BEAST)):
             val3 = header.get_enhance_val()[enhindex]
-            if not (name == "defense" and header.type == "BeastCard"):
+            if name <> "defense":
                 val3 = self._calc_enhancevalue(header, val3)
             seq.append(val3)
 
@@ -1236,7 +1236,7 @@ class Character(object):
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
             val4 = header.get_enhance_val_used()[enhindex]
-            if not (name == "defense" and header.type == "BeastCard"):
+            if name <> "defense":
                 val4 = self._calc_enhancevalue(header, val4)
             seq.append(val4)
 
