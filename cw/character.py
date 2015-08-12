@@ -1225,20 +1225,38 @@ class Character(object):
         val2 = initvalue
         val2 = cw.util.numwrap(val2, -10, 10)
         seq = [val1, val2]
+        pvals = [0] * 9
+        for val in seq:
+            if 0 < val and val < 10:
+                pvals[val-1] += 3
+
+        def addval(header, val):
+            if name == "defense":
+                if header.type == "BeastCard":
+                    pval = 3
+                else:
+                    level = header.get_vocation_level(self, enhance_act=False)
+                    if level <= 0:
+                        pval = 1
+                    elif level <= 1:
+                        pval = 2.4
+                    else:
+                        pval = 3
+            else:
+                val = self._calc_enhancevalue(header, val)
+                pval = 3
+            seq.append(val)
+            if 0 < val and val < 10:
+                pvals[val-1] += pval
 
         for header in itertools.chain(self.get_pocketcards(cw.POCKET_ITEM), self.get_pocketcards(cw.POCKET_BEAST)):
             val3 = header.get_enhance_val()[enhindex]
-            if name <> "defense":
-                val3 = self._calc_enhancevalue(header, val3)
-            seq.append(val3)
+            addval(header, val3)
 
-        val4 = 0
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
             val4 = header.get_enhance_val_used()[enhindex]
-            if name <> "defense":
-                val4 = self._calc_enhancevalue(header, val4)
-            seq.append(val4)
+            addval(header, val4)
 
         a = 0
         b = 0
@@ -1248,7 +1266,6 @@ class Character(object):
         max10counter = 0
         maxval = 0
         minval = 0
-        up8 = 0
         for val in seq:
             if val < 0:
                 if a == 0:
@@ -1265,8 +1282,6 @@ class Character(object):
                     b *= (10 - val)
                 bc += 1
                 max10 += val // 10
-                if 8 <= val < 10:
-                    up8 += 1
                 maxval = max(maxval, val)
         if ac:
             a /= math.pow(10, ac-1)
@@ -1277,9 +1292,14 @@ class Character(object):
             b = 10 - b
             b = max(maxval, b)
 
-        # +8以上3回で+10と同等の効果を得られる(1回限り)
-        if 3 <= up8:
-            max10 += 1
+        for i in reversed(xrange(1, len(pvals))):
+            pvals[i-1] += pvals[i]
+        # +10未満の値でも+10効果を得られる基準値
+        pvalborder = (72, 51, 33, 27, 21, 15, 12, 9, 9)
+        for i, pval in enumerate(pvals):
+            if pvalborder[i] <= pval:
+                max10 += 1
+                break
 
         if max10 < 3:
             # 防御修正で+10があると完全にダメージが無くなるが、
