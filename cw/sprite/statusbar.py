@@ -241,9 +241,13 @@ class StatusBarPanel(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="panel")
 
+    def update_image(self):
+        pass
+
     def reset(self, pos):
         self.rect.top = self.parent.rect.top + pos[1]
         self.rect.left = self.parent.rect.left + pos[0]
+        self.update(None)
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="panel")
 
@@ -297,18 +301,23 @@ class YadoMoneyPanel(StatusBarPanel):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYY"]
         StatusBarPanel.__init__(self, parent, (0, 69, 0), pos, icon=image)
         self.text = None
+        self.currency = ""
         self.update(None)
 
     def update(self, scr):
-        if not self.text == self.get_money():
+        if self.status == "blink":
+            return
+
+        if self.text <> self.get_money() or self.currency <> cw.cwpy.msgs["currency"]:
             self.text = self.get_money()
+            self.currency = cw.cwpy.msgs["currency"]
             self.update_image()
 
     def get_money(self):
         return cw.cwpy.ydata.money if cw.cwpy.ydata else 0
 
     def update_image(self):
-        s = cw.cwpy.msgs["currency"] % (self.text)
+        s = self.currency % (self.text)
         image = self.font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
 
@@ -324,16 +333,20 @@ class YadoMoneyPanel(StatusBarPanel):
             self.status = self.old_status
             self.frame = 0
             self.text = self.get_money()
+            self.currency = cw.cwpy.msgs["currency"]
             self.update_image()
             return
 
         if self.frame / 5 % 2 == 1:
             text = ""
+            currency = "%s"
         else:
             text = self.get_money()
+            currency = cw.cwpy.msgs["currency"]
 
-        if text <> self.text:
+        if text <> self.text or self.currency <> cw.cwpy.msgs["currency"]:
             self.text = text
+            self.currency = currency
             self.update_image()
 
 class PartyMoneyPanel(YadoMoneyPanel):
@@ -348,10 +361,15 @@ class PartyMoneyPanel(YadoMoneyPanel):
 
     def update(self, scr):
         if self.status == "blink":
+            if self.get_money() == 0:
+                self.set_backcolor((128, 0, 0))
+            else:
+                self.set_backcolor((0, 0, 128))
             return
         if cw.cwpy.ydata.party:
-            if not self.text == self.get_money():
+            if self.text <> self.get_money() or self.currency <> cw.cwpy.msgs["currency"]:
                 self.text = self.get_money()
+                self.currency = cw.cwpy.msgs["currency"]
                 if self.get_money() == 0:
                     self.set_backcolor((128, 0, 0))
                 else:
