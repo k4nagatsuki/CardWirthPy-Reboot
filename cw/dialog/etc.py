@@ -334,9 +334,11 @@ class ExtensionDialog(wx.Dialog):
     def OnEnter(self, event):
         index = self.buttons.index(event.GetEventObject())
         self.desc.SetLabel(self.items[index][1])
+        event.Skip()
 
     def OnLeave(self, event):
         self.desc.SetLabel("")
+        event.Skip()
 
     def OnBotton(self, event):
         index = self.buttons.index(event.GetEventObject())

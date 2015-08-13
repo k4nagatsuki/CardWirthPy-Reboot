@@ -227,7 +227,7 @@ class CharaInfo(object):
         self.sex = cw.cwpy.dice.choice(cw.cwpy.setting.sexcoupons)
         self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
         faces = []
-        for values in cw.util.get_facepaths(self.sex, self.age, rel=True).itervalues():
+        for values in cw.util.get_facepaths(self.sex, self.age, rel=False).itervalues():
             faces.extend(values)
         self.imgpath = cw.cwpy.dice.choice(faces) if faces else u""
 
@@ -575,12 +575,13 @@ class CharaRequirementPanel(wx.Panel):
     def OnAutoBtn(self, event):
         self.set_random()
 
-    def _update_images(self):
+    def _update_images(self, img=None):
         fpaths = set()
-        if 0 >= self.imgcombo.GetSelection():
-            img = ""
-        else:
-            img = self.imgcombo.GetValue()
+        if img is None:
+            if 0 >= self.imgcombo.GetSelection():
+                img = ""
+            else:
+                img = self.imgcombo.GetValue()
 
         infos = self._get_infos()
 
@@ -678,19 +679,6 @@ class CharaRequirementPanel(wx.Panel):
 
         self.name.SetValue(name)
         self.levelbtn.SetLabel("Lv %s" % (level))
-        if imgpath:
-            if os.path.abspath(imgpath):
-                fpath = imgpath
-            else:
-                facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
-                fpath = cw.util.relpath(imgpath, facedir)
-                fpath = cw.util.join_paths(fpath)
-            # SetValue()を有効にするため一時的に追加
-            # _update_images()で上書きされる
-            self.imgcombo.Append(fpath)
-            self.imgcombo.SetValue(fpath)
-        else:
-            self.imgcombo.SetSelection(0)
         if isinstance(ctype, cw.features.SampleType):
             self.type.SetLabel(ctype.name)
         elif ctype:
@@ -722,7 +710,7 @@ class CharaRequirementPanel(wx.Panel):
             index = 0
         self.natures.SetSelection(index)
 
-        self._update_images()
+        self._update_images(imgpath)
         self.Layout()
         self._proc = False
 
