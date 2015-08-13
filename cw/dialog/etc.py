@@ -147,8 +147,7 @@ class BattleCommand(wx.Dialog):
         if cw.cwpy.battle and cw.cwpy.battle.is_ready():
             cw.cwpy.exec_func(cw.cwpy.battle.start)
 
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-        self.ProcessEvent(btnevent)
+        self.Destroy()
 
     def runaway(self):
         s = cw.cwpy.msgs["confirm_runaway"]
@@ -159,14 +158,14 @@ class BattleCommand(wx.Dialog):
             if cw.cwpy.battle:
                 cw.cwpy.exec_func(cw.cwpy.battle.runaway)
 
-            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-            self.ProcessEvent(btnevent)
+            dlg.Destroy()
+            self.Destroy()
+            return
 
         dlg.Destroy()
 
     def cancel(self):
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
-        self.ProcessEvent(btnevent)
+        self.Destroy()
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
