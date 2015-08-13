@@ -273,11 +273,17 @@ class SettingsDialog(wx.Dialog):
         expanddrawing = int(2 ** self.pane_gene.ch_expanddrawing.GetSelection())
         if str(value) <> str(cw.cwpy.setting.expandmode) or expanddrawing <> cw.cwpy.setting.expanddrawing:
             if cw.cwpy.is_expanded():
-                # 一旦拡大状態を解除
+                # 設定が変更されたので拡大状態を切り替え
                 def func(value):
                     cw.cwpy.setting.expandmode = value
                     cw.cwpy.setting.expanddrawing = expanddrawing
-                    cw.cwpy.set_expanded(True, value, force=True)
+                    if value == "FullScreen":
+                        # FIXME: FullScreen以外の拡大設定で拡大しておき、
+                        #        設定をFullScreenに変更し、その後F4キーで
+                        #        拡大を解除するとウィンドウの操作が効かなくなる
+                        cw.cwpy.set_expanded(False, value, force=True)
+                    else:
+                        cw.cwpy.set_expanded(True, value, force=True)
                 cw.cwpy.exec_func(func, value)
             else:
                 cw.cwpy.setting.expandmode = value
