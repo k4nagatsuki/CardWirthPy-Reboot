@@ -2447,12 +2447,12 @@ class ScenarioSelect(Select):
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
         self.tree.Hide()
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
-        self.tree.imgidx_summary = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"]))
-        self.tree.imgidx_complete = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"]))
-        self.tree.imgidx_playing = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"]))
-        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"]))
-        self.tree.imgidx_dir = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"]))
-        self.tree.imgidx_findresult = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.debugs["FIND_SCENARIO"]))
+        self.tree.imgidx_summary = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY"]))
+        self.tree.imgidx_complete = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY_COMPLETE"]))
+        self.tree.imgidx_playing = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY_PLAYING"]))
+        self.tree.imgidx_invisible = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY_INVISIBLE"]))
+        self.tree.imgidx_dir = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.dialogs["DIRECTORY"]))
+        self.tree.imgidx_findresult = self.tree.imglist.Add(cw.wins(cw.cwpy.rsrc.dialogs["FIND_SCENARIO"]))
         self.tree.root = self.tree.AddRoot(self.scedir)
         self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
         self.tree.SetImageList(self.tree.imglist)
@@ -2486,12 +2486,12 @@ class ScenarioSelect(Select):
         self.index = 0
 
         # 検索
-        bmp = cw.wins(cw.cwpy.rsrc.debugs["FIND_SCENARIO2"])
+        bmp = cw.wins(cw.cwpy.rsrc.dialogs["FIND_SCENARIO2"])
         self.find = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(32)), bmp=bmp)
         self.find.SetToolTip(wx.ToolTip(cw.cwpy.msgs["find_scenario"]))
 
         # ブックマーク
-        bmp = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK2"])
+        bmp = cw.wins(cw.cwpy.rsrc.dialogs["BOOKMARK2"])
         self.bookmark = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(32)), bmp=bmp)
         self.bookmark.SetToolTip(wx.ToolTip(cw.cwpy.msgs["bookmark"]))
 
@@ -2763,13 +2763,13 @@ class ScenarioSelect(Select):
             self.bookmarkmenu.Destroy()
         menu = wx.Menu()
         self.bookmarkmenu = menu
-        icon_add = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK"])
-        icon_arrange = cw.wins(cw.cwpy.rsrc.debugs["ARRANGE_BOOKMARK"])
-        icon_summary = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY"])
-        icon_complete = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_COMPLETE"])
-        icon_playing = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_PLAYING"])
-        icon_invisible = cw.wins(cw.cwpy.rsrc.debugs["SUMMARY_INVISIBLE"])
-        icon_dir = cw.wins(cw.cwpy.rsrc.debugs["DIRECTORY"])
+        icon_add = cw.wins(cw.cwpy.rsrc.dialogs["BOOKMARK"])
+        icon_arrange = cw.wins(cw.cwpy.rsrc.dialogs["ARRANGE_BOOKMARK"])
+        icon_summary = cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY"])
+        icon_complete = cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY_COMPLETE"])
+        icon_playing = cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY_PLAYING"])
+        icon_invisible = cw.wins(cw.cwpy.rsrc.dialogs["SUMMARY_INVISIBLE"])
+        icon_dir = cw.wins(cw.cwpy.rsrc.dialogs["DIRECTORY"])
 
         font = cw.cwpy.rsrc.get_wxfont("menu", pixelsize=cw.wins(13), weight=wx.NORMAL)
 

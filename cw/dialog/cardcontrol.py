@@ -57,9 +57,9 @@ class CardControl(wx.Dialog):
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
 
         # sort
-        self.star = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK"])
-        self.nostar = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK_EMPTY"])
-        self.starlight = cw.wins(cw.cwpy.rsrc.debugs["BOOKMARK_LIGHTUP"])
+        self.star = cw.wins(cw.cwpy.rsrc.dialogs["BOOKMARK"])
+        self.nostar = cw.wins(cw.cwpy.rsrc.dialogs["BOOKMARK_EMPTY"])
+        self.starlight = cw.wins(cw.cwpy.rsrc.dialogs["BOOKMARK_LIGHTUP"])
         self._laststar = None
 
         choices = [cw.cwpy.msgs["sort_no"],

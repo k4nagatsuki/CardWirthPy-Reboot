@@ -700,7 +700,7 @@ class ShowFriendCardsButton(StatusBarButton):
 
 class AutoStartButton(StatusBarButton):
     def __init__(self, parent, pos):
-        image = cw.s(cw.cwpy.rsrc.pygamedebugs["AUTO_START"])
+        image = cw.s(cw.cwpy.rsrc.pygamedialogs["AUTO_START"])
         name = cw.cwpy.msgs["autostart_round"]
         if cw.cwpy.is_playingscenario():
             pushed = cw.cwpy.sdata.autostart_round
@@ -735,7 +735,7 @@ class AutoStartButton(StatusBarButton):
 
 class InfoCardsButton(StatusBarButton):
     def __init__(self, parent, pos):
-        image = cw.s(cw.cwpy.rsrc.pygamedebugs["INFOVIEW"])
+        image = cw.s(cw.cwpy.rsrc.pygamedialogs["INFOVIEW"])
         name = cw.cwpy.msgs["info_card"]
         notice = cw.cwpy.sdata.notice_infoview
         number = len(cw.cwpy.sdata.infocards)
@@ -777,7 +777,7 @@ class DebuggerButton(StatusBarButton):
 
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos, enabled):
-        image = cw.s(cw.cwpy.rsrc.pygamedebugs["BACKLOG"])
+        image = cw.s(cw.cwpy.rsrc.pygamedialogs["BACKLOG"])
         name = u"バックログ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
         self.selectable_on_event = enabled

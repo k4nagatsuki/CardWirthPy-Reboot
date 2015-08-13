@@ -1295,12 +1295,14 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func, dpath, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None):
+    def get_resources(self, func, dpath, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None, d=None):
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
         """
-        d, dpath = ResourceTable(dpath, {}.copy(), emptyfunc), unicode(dpath)
+        if not d:
+            d = ResourceTable(dpath, {}.copy(), emptyfunc)
+        dpath = unicode(dpath)
         if not os.path.isdir(dpath):
             return d
 
@@ -1370,8 +1372,9 @@ class Resource(object):
         スキン付属の効果音を読み込んで、
         pygameのsoundインスタンスの辞書で返す。
         """
+        d = self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", self.ext_snd, emptyfunc=empty_sound)
         dpath = cw.util.join_paths(self.skindir, "Sound")
-        return self.get_resources(cw.util.load_sound, dpath, self.ext_snd, emptyfunc=empty_sound)
+        return self.get_resources(cw.util.load_sound, dpath, self.ext_snd, emptyfunc=empty_sound, d=d)
 
     def get_msgs(self, setting):
         """
@@ -1384,8 +1387,9 @@ class Resource(object):
         ダイアログのボタン画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
+        d = self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Button", self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
-        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
+        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp, d=d)
 
     def get_cursors(self):
         """
@@ -1398,12 +1402,14 @@ class Resource(object):
         d.set("CURSOR_FINGER", wx.StockCursor, wx.CURSOR_HAND)
         d.set("CURSOR_ARROW", wx.StockCursor, wx.CURSOR_ARROW)
 
-        dpath = cw.util.join_paths(self.skindir, "Resource/Image/Cursor")
-        if os.path.isdir(dpath):
-            for fname in os.listdir(dpath):
-                if fname.endswith(".cur"):
-                    fpath = cw.util.join_paths(dpath, fname)
-                    d.set(os.path.splitext(fname)[0], wx.Cursor, fpath, wx.BITMAP_TYPE_CUR)
+        dpaths = ("Data/SkinBase/Resource/Image/Cursor",
+                  cw.util.join_paths(self.skindir, "Resource/Image/Cursor"))
+        for dpath in dpaths:
+            if os.path.isdir(dpath):
+                for fname in os.listdir(dpath):
+                    if fname.endswith(".cur"):
+                        fpath = cw.util.join_paths(dpath, fname)
+                        d.set(os.path.splitext(fname)[0], wx.Cursor, fpath, wx.BITMAP_TYPE_CUR)
         return d
 
     def get_stones(self):
@@ -1411,16 +1417,18 @@ class Resource(object):
         適性・カード残り回数の画像を読み込んで、
         pygameのサーフェスの辞書で返す。
         """
+        d = self.get_resources(cw.util.load_image, "Data/SkinBase/Resource/Image/Stone", self.ext_img, True, cw.s, emptyfunc=empty_image)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_image, dpath, self.ext_img, True, cw.s, emptyfunc=empty_image)
+        return self.get_resources(cw.util.load_image, dpath, self.ext_img, True, cw.s, emptyfunc=empty_image, d=d)
 
     def get_wxstones(self):
         """
         適性・カード残り回数の画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
+        d = self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Stone", self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
+        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp, d=d)
 
     def get_statuses(self, load_image):
         """
@@ -1449,10 +1457,9 @@ class Resource(object):
             else:
                 return load_image(fpath, mask=False)
 
+        d = self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
-        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
-
-        return d
+        return self.get_resources(load_image2, dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc, d=d)
 
     def get_dialogs(self, load_image):
         """
@@ -1478,10 +1485,9 @@ class Resource(object):
             else:
                 return load_image(fpath, mask=mask)
 
+        d = self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", self.ext_img, True, ss, emptyfunc=emptyfunc)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
-        d = self.get_resources(load_image2, dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
-
-        return d
+        return self.get_resources(load_image2, dpath, self.ext_img, True, ss, emptyfunc=emptyfunc, d=d)
 
     def get_debugs(self, load_image):
         """
@@ -1494,8 +1500,7 @@ class Resource(object):
             emptyfunc=empty_image
 
         dpath = u"Data/Debugger"
-        d = self.get_resources(load_image, dpath, cw.M_IMG, True, lambda bmp: bmp, emptyfunc=emptyfunc)
-        return d
+        return self.get_resources(load_image, dpath, cw.M_IMG, True, lambda bmp: bmp, emptyfunc=emptyfunc)
 
     def get_cardbgs(self, load_image):
         """
@@ -1520,10 +1525,9 @@ class Resource(object):
             else:
                 return load_image(fpath, mask=mask)
 
+        d = self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
-        d = self.get_resources(load_image2, dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)
-
-        return d
+        return self.get_resources(load_image2, dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc, d=d)
 
     def get_cardnamecolorhints(self, cardbgs):
         """
