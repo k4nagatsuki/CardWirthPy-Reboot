@@ -103,6 +103,7 @@ class StatusBar(base.CWPySprite):
         elif cw.cwpy.status == "Yado":
             if not cw.cwpy.expanding:
                 create_yadomoney(cw.s((10, 6)))
+            if cw.cwpy.ydata.party:
                 create_partymoney((cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
@@ -339,6 +340,9 @@ class YadoMoneyPanel(StatusBarPanel):
         self.image = self.panelimg.copy()
         self.image.blit(image, rect.topleft)
 
+    def update_color(self):
+        pass
+
     def update_blink(self):
         if 30 <= self.frame or not cw.cwpy.setting.blink_partymoney:
             self.status = self.old_status
@@ -355,6 +359,7 @@ class YadoMoneyPanel(StatusBarPanel):
             currency = cw.cwpy.msgs["currency"]
 
         if self.need_update(text, currency):
+            self.update_color()
             self.put_updatekey(text, currency)
             self.update_image()
 
@@ -370,20 +375,20 @@ class PartyMoneyPanel(YadoMoneyPanel):
     def get_money(self):
         return cw.cwpy.ydata.party.money if cw.cwpy.ydata and cw.cwpy.ydata.party else 0
 
+    def update_color(self):
+        if self.get_money() == 0:
+            self.set_backcolor((128, 0, 0))
+        else:
+            self.set_backcolor((0, 0, 128))
+
     def update(self, scr):
         if self.status == "blink":
-            if self.get_money() == 0:
-                self.set_backcolor((128, 0, 0))
-            else:
-                self.set_backcolor((0, 0, 128))
+            self.update_color()
             return
         if cw.cwpy.ydata.party:
             if self.need_update(self.get_money(), cw.cwpy.msgs["currency"]):
                 self.put_updatekey(self.get_money(), cw.cwpy.msgs["currency"])
-                if self.get_money() == 0:
-                    self.set_backcolor((128, 0, 0))
-                else:
-                    self.set_backcolor((0, 0, 128))
+                self.update_color()
                 self.update_image()
 
         else:
