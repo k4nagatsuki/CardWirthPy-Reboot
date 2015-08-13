@@ -74,13 +74,13 @@ class StatusBar(base.CWPySprite):
 
         def create_yadomoney(pos):
             if self.yadomoney:
-                self.yadomoney.reset(pos)
+                self.yadomoney.reset(self, pos, cw.s((120, 22)), cw.cwpy.rsrc.pygamedialogs["MONEYY"])
             else:
                 self.yadomoney = YadoMoneyPanel(self, pos)
 
         def create_partymoney(pos):
             if self.partymoney:
-                self.partymoney.reset(pos)
+                self.partymoney.reset(self, pos, cw.s((120, 22)), cw.cwpy.rsrc.pygamedialogs["MONEYP"])
             else:
                 self.partymoney = PartyMoneyPanel(self, pos)
 
@@ -217,15 +217,19 @@ class StatusBarPanel(base.CWPySprite):
         if size is None:
             size = cw.s((120, 22))
         base.CWPySprite.__init__(self)
-        self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
-        self.icon = icon
         # panelimg
+        self._color = color
+        self._create_paneimg(pos, size, icon)
+
+    def _create_paneimg(self, pos, size, icon):
+        self.icon = icon
+        self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
         self.panelimg = pygame.Surface(size).convert_alpha()
         self.panelimg.fill((0, 0, 0))
         rect = self.panelimg.get_rect()
         rect.topleft = cw.s((1, 1))
         rect.size = (size[0] - cw.s(2), size[1] - cw.s(2))
-        self.panelimg.fill(color, rect)
+        self.panelimg.fill(self._color, rect)
         _draw_edge(self.panelimg)
 
         if self.icon:
@@ -236,19 +240,21 @@ class StatusBarPanel(base.CWPySprite):
         self.noimg = pygame.Surface(cw.s((0, 0))).convert()
         # rect
         self.rect = self.image.get_rect()
-        self.rect.top = parent.rect.top + pos[1]
-        self.rect.left = parent.rect.left + pos[0]
-        # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer="panel")
-
-    def reset(self, pos):
         self.rect.top = self.parent.rect.top + pos[1]
         self.rect.left = self.parent.rect.left + pos[0]
-        self.update(None)
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="panel")
 
+    def update_image(self):
+        pass
+
+    def reset(self, parent, pos, size, icon):
+        self.parent = parent
+        self._create_paneimg(pos, size, icon)
+        self.update_image()
+
     def set_backcolor(self, color):
+        self._color = color
         rect = self.panelimg.get_rect()
         size = rect.size
         rect.topleft = cw.s((1, 1))
@@ -298,16 +304,24 @@ class YadoMoneyPanel(StatusBarPanel):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYY"]
         StatusBarPanel.__init__(self, parent, (0, 69, 0), pos, icon=image)
         self.text = None
-        self.currency = ""
+        self.currency = "%s"
+        self.up_scr = 0
         self.update(None)
+
+    def need_update(self, text, currency):
+        return self.text <> text or self.currency <> currency or self.up_scr <> cw.UP_SCR
+
+    def put_updatekey(self, text, currency):
+        self.text = text
+        self.currency = currency
+        self.up_scr = cw.UP_SCR
 
     def update(self, scr):
         if self.status == "blink":
             return
 
-        if self.text <> self.get_money() or self.currency <> cw.cwpy.msgs["currency"]:
-            self.text = self.get_money()
-            self.currency = cw.cwpy.msgs["currency"]
+        if self.need_update(self.get_money(), cw.cwpy.msgs["currency"]):
+            self.put_updatekey(self.get_money(), cw.cwpy.msgs["currency"])
             self.update_image()
 
     def get_money(self):
@@ -329,8 +343,7 @@ class YadoMoneyPanel(StatusBarPanel):
         if 30 <= self.frame or not cw.cwpy.setting.blink_partymoney:
             self.status = self.old_status
             self.frame = 0
-            self.text = self.get_money()
-            self.currency = cw.cwpy.msgs["currency"]
+            self.put_updatekey(self.get_money(), cw.cwpy.msgs["currency"])
             self.update_image()
             return
 
@@ -341,16 +354,17 @@ class YadoMoneyPanel(StatusBarPanel):
             text = self.get_money()
             currency = cw.cwpy.msgs["currency"]
 
-        if text <> self.text or self.currency <> cw.cwpy.msgs["currency"]:
-            self.text = text
-            self.currency = currency
+        if self.need_update(text, currency):
+            self.put_updatekey(text, currency)
             self.update_image()
 
 class PartyMoneyPanel(YadoMoneyPanel):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYP"]
         StatusBarPanel.__init__(self, parent, (0, 0, 128), pos, icon=image)
-        self.text = ""
+        self.text = None
+        self.currency = "%s"
+        self.up_scr = 0
         self.update(None)
 
     def get_money(self):
@@ -364,9 +378,8 @@ class PartyMoneyPanel(YadoMoneyPanel):
                 self.set_backcolor((0, 0, 128))
             return
         if cw.cwpy.ydata.party:
-            if self.text <> self.get_money() or self.currency <> cw.cwpy.msgs["currency"]:
-                self.text = self.get_money()
-                self.currency = cw.cwpy.msgs["currency"]
+            if self.need_update(self.get_money(), cw.cwpy.msgs["currency"]):
+                self.put_updatekey(self.get_money(), cw.cwpy.msgs["currency"])
                 if self.get_money() == 0:
                     self.set_backcolor((128, 0, 0))
                 else:
@@ -715,7 +728,7 @@ class ShowFriendCardsButton(StatusBarButton):
 
 class AutoStartButton(StatusBarButton):
     def __init__(self, parent, pos):
-        image = cw.s(cw.cwpy.rsrc.pygamedialogs["AUTO_START"])
+        image = cw.cwpy.rsrc.pygamedialogs["AUTO_START"]
         name = cw.cwpy.msgs["autostart_round"]
         if cw.cwpy.is_playingscenario():
             pushed = cw.cwpy.sdata.autostart_round
@@ -750,7 +763,7 @@ class AutoStartButton(StatusBarButton):
 
 class InfoCardsButton(StatusBarButton):
     def __init__(self, parent, pos):
-        image = cw.s(cw.cwpy.rsrc.pygamedialogs["INFOVIEW"])
+        image = cw.cwpy.rsrc.pygamedialogs["INFOVIEW"]
         name = cw.cwpy.msgs["info_card"]
         notice = cw.cwpy.sdata.notice_infoview
         number = len(cw.cwpy.sdata.infocards)
@@ -792,7 +805,7 @@ class DebuggerButton(StatusBarButton):
 
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos, enabled):
-        image = cw.s(cw.cwpy.rsrc.pygamedialogs["BACKLOG"])
+        image = cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
         name = u"バックログ"
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
         self.selectable_on_event = enabled

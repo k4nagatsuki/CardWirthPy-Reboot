@@ -2739,13 +2739,13 @@ class CWPy(_Singleton, threading.Thread):
         self.topgrp.empty()
 
         def get_image():
-            return cw.s(self.rsrc.pygamedialogs["REPLACE_POSITION"])
+            return self.rsrc.pygamedialogs["REPLACE_POSITION"]
 
         def get_selimage():
             bmp = self.rsrc.pygamedialogs["REPLACE_POSITION"].convert_alpha()
-            return cw.s(cw.imageretouch.add_lightness(bmp, 64))
+            return cw.imageretouch.add_lightness(bmp, 64)
 
-        size_noscale = self.rsrc.pygamedialogs["REPLACE_POSITION"].get_size()
+        size_noscale = self.rsrc.pygamedialogs["REPLACE_POSITION_dbg"].get_size()
         pcards = self.get_pcards()
 
         class Replace(object):
