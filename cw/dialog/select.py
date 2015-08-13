@@ -1531,7 +1531,6 @@ class PlayerSelect(MultiViewSelect):
         self.sort_label.SetFont(font)
         self.sort = wx.Choice(self, size=cw.wins((75, 20)))
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
-        self.sort.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])

@@ -1400,7 +1400,7 @@ class Resource(object):
         d.set("CURSOR_BACK", wx.StockCursor, wx.CURSOR_POINT_LEFT)
         d.set("CURSOR_FORE", wx.StockCursor, wx.CURSOR_POINT_RIGHT)
         d.set("CURSOR_FINGER", wx.StockCursor, wx.CURSOR_HAND)
-        d.set("CURSOR_ARROW", wx.StockCursor, wx.CURSOR_ARROW)
+        d.set("CURSOR_ARROW", lambda: wx.NullCursor)
 
         dpaths = ("Data/SkinBase/Resource/Image/Cursor",
                   cw.util.join_paths(self.skindir, "Resource/Image/Cursor"))

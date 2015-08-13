@@ -134,6 +134,8 @@ class CardControl(wx.Dialog):
         self._after_event = None
         self._starclickedflag = False
 
+        self.smallctrls = []
+
         self._proc = False
 
         if drawcards:
@@ -405,6 +407,19 @@ class CardControl(wx.Dialog):
         mousepos = self.toppanel.ScreenToClient(scrpos)
         for header in self.get_headers():
             if header.wxrect.collidepoint(mousepos):
+                return False
+        return self._cursor_in_ctrlsarea(mousepos)
+
+    def _cursor_in_ctrlsarea(self, mousepos):
+        for ctrl in self.smallctrls:
+            if not (ctrl.IsShown() and ctrl.IsEnabled()):
+                continue
+            rect = ctrl.GetRect()
+            rect.X -= 10
+            rect.Y -= 10
+            rect.Width += 20
+            rect.Height += 20
+            if rect.Contains(mousepos):
                 return False
         return True
 
@@ -1126,6 +1141,7 @@ class CardHolder(CardControl):
         self.page.SetMax(1)
         self.page.SetLimited(True)
         self.page.SetNoneAllowed(False)
+        self.smallctrls.append(self.page)
         # down
         bmp = cw.cwpy.rsrc.buttons["DOWN"]
         self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp)
