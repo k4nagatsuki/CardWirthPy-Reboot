@@ -241,9 +241,6 @@ class StatusBarPanel(base.CWPySprite):
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="panel")
 
-    def update_image(self):
-        pass
-
     def reset(self, pos):
         self.rect.top = self.parent.rect.top + pos[1]
         self.rect.left = self.parent.rect.left + pos[0]
