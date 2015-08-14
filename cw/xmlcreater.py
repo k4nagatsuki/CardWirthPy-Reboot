@@ -541,6 +541,10 @@ def create_settings(setting):
     if setting.blink_partymoney <> setting.blink_partymoney_init:
         e = cw.data.make_element("BlinkPartyMoney", str(setting.blink_partymoney))
         element.append(e)
+    # ステータスバーのボタンの解説を表示する
+    if setting.show_btndesc <> setting.show_btndesc_init:
+        e = cw.data.make_element("ShowButtonDescription", str(setting.show_btndesc))
+        element.append(e)
 
     # ファイル書き込み
     path = "Settings.xml"

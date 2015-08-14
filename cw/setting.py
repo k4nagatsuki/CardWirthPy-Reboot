@@ -142,7 +142,7 @@ class Setting(object):
         self.show_fcardsinbattle = False
         self.statusbarmask = True
         self.show_experiencebar = True
-        self.show_roundautostartbutton = False
+        self.show_roundautostartbutton = True
         self.show_autobuttoninentrydialog = False
         self.unconvert_targetfolder = u"UnconvertedYado"
         self.can_skipwait = True
@@ -153,6 +153,7 @@ class Setting(object):
         self.bordering_cardname = True
         self.blink_statusbutton = True
         self.blink_partymoney = True
+        self.show_btndesc = True
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -185,6 +186,7 @@ class Setting(object):
                           "sbarpanel"    : ("pmincho",  "", 16, True, True, False),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
                           "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
+                          "sbardesc"     : ("pgothic",  "", 14, True, False, False),
                           "screenshot"   : ("uigothic", "", 18, False, False, False),
                           }
 
@@ -499,6 +501,8 @@ class Setting(object):
         self.blink_statusbutton = data.getbool("BlinkStatusButton", self.blink_statusbutton)
         # 所持金が増減した時に所持金欄を点滅させる
         self.blink_partymoney = data.getbool("BlinkPartyMoney", self.blink_partymoney)
+        # ステータスバーのボタンの解説を表示する
+        self.show_btndesc = data.getbool("ShowButtonDescription", self.show_btndesc)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
@@ -1052,6 +1056,8 @@ class Resource(object):
         fonts.set("sbarpanel", self.create_font, "sbarpanel", 16, True, True, False)
         # ステータスバーボタン描画用
         fonts.set("sbarbtn", self.create_font, "sbarbtn", 14, True, True, False)
+        # ステータスバーボタン解説描画用
+        fonts.set("sbardesc", self.create_font, "sbardesc", 14, True, False, False)
         # ステータス画像の召喚回数描画用
         fonts.set("statusimg1", self.create_font, "statusnum", 12, True, True, False)
         fonts.set("statusimg2", self.create_font, "statusnum", 12, True, True, False, pixelsadd=-2)
@@ -1085,8 +1091,9 @@ class Resource(object):
 
         return button
 
-    def _create_statusbtnbmp(self, w, h, flags=0):
-        """ボタン風の画像を生成する。"""
+    @staticmethod
+    def create_cornerimg(rgb):
+        r, g, b = rgb
         linedata = struct.pack(
            "BBBB BBBB BBBB BBBB BBBB BBBB"
            "BBBB BBBB BBBB BBBB BBBB BBBB"
@@ -1094,13 +1101,33 @@ class Resource(object):
            "BBBB BBBB BBBB BBBB BBBB BBBB"
            "BBBB BBBB BBBB BBBB BBBB BBBB"
            "BBBB BBBB BBBB BBBB BBBB BBBB",
-            208,208,208,255, 208,208,208,255, 208,208,208,255, 208,208,208,255, 208,208,208,255, 208,208,208,255,
-            208,208,208,255, 208,208,208,255, 208,208,208,224, 208,208,208,128, 208,208,208, 68, 208,208,208, 40,
-            208,208,208,255, 208,208,208,224, 208,208,208, 68, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0,
-            208,208,208,255, 208,208,208,128, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0,
-            208,208,208,255, 208,208,208, 68, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0,
-            208,208,208,255, 208,208,208, 40, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0, 208,208,208,  0
+            r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  255,
+            r,  g,  b,  255, r,  g,  b,  255, r,  g,  b,  224, r,  g,  b,  128, r,  g,  b,   68, r,  g,  b,   40,
+            r,  g,  b,  255, r,  g,  b,  224, r,  g,  b,   68, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0,
+            r,  g,  b,  255, r,  g,  b,  128, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0,
+            r,  g,  b,  255, r,  g,  b,   68, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0,
+            r,  g,  b,  255, r,  g,  b,   40, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0, r,  g,  b,    0
         )
+
+        topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+        topright = pygame.transform.flip(topleft, True, False)
+        bottomleft = pygame.transform.flip(topleft, False, True)
+        bottomright = pygame.transform.flip(topleft, True, True)
+        return topleft, topright, bottomleft, bottomright
+
+    @staticmethod
+    def draw_frame(bmp, rect, color):
+        topleft, topright, bottomleft, bottomright = Resource.create_cornerimg(color)
+        pygame.draw.rect(bmp, color, rect, 1)
+        x, y, w, h = rect
+        bmp.blit(topleft, (x, y))
+        bmp.blit(topright, (x+w-6, y))
+        bmp.blit(bottomleft, (x, y+h-6))
+        bmp.blit(bottomright, (x+w-6, y+h-6))
+        Resource.draw_corneroutimg(bmp, rect)
+
+    @staticmethod
+    def draw_corneroutimg(bmp, rect=None, outframe=0):
         outdata = struct.pack(
            "BBBB BBBB BBBB BBBB BBBB BBBB"
            "BBBB BBBB BBBB BBBB BBBB BBBB"
@@ -1115,11 +1142,23 @@ class Resource(object):
             0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0,
             0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0, 0,0,0,  0
         )
-
-        topleft = pygame.image.fromstring(linedata, (6, 6), "RGBA")
+        topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
         topright = pygame.transform.flip(topleft, True, False)
         bottomleft = pygame.transform.flip(topleft, False, True)
         bottomright = pygame.transform.flip(topleft, True, True)
+
+        if not rect:
+            rect = bmp.get_rect()
+        x, y, w, h = rect
+        o = outframe
+        bmp.blit(topleft, (x+o, y+o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(topright, (x+w-6-o, y+o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(bottomleft, (x+o, y+h-6-o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        bmp.blit(bottomright, (x+w-6-o, y+h-6-o), special_flags=pygame.locals.BLEND_RGBA_SUB)
+
+    def _create_statusbtnbmp(self, w, h, flags=0):
+        """ボタン風の画像を生成する。"""
+        topleft, topright, bottomleft, bottomright = Resource.create_cornerimg((208, 208, 208))
 
         def subtract_corner(value):
             # 角部分の線の色を濃くする
@@ -1255,15 +1294,7 @@ class Resource(object):
             bmp.fill((0, 96, 96, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
 
         # 枠の外の部分を透明にする
-        topleft = pygame.image.fromstring(outdata, (6, 6), "RGBA")
-        topright = pygame.transform.flip(topleft, True, False)
-        bottomleft = pygame.transform.flip(topleft, False, True)
-        bottomright = pygame.transform.flip(topleft, True, True)
-
-        bmp.blit(topleft, (1, 1), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(topright, (w-6-1, 1), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(bottomleft, (1, h-6-1), special_flags=pygame.locals.BLEND_RGBA_SUB)
-        bmp.blit(bottomright, (w-6-1, h-6-1), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        Resource.draw_corneroutimg(bmp, outframe=1)
 
         pygame.draw.rect(bmp, (0, 0, 0, 0), (0, 0, w, h), 1)
 

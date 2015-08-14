@@ -465,7 +465,8 @@ class RoundCounterPanel(YadoMoneyPanel):
 class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, sizetype=0,
                  toggle=False, icon=None, enabled=True, is_pushed=False,
-                 notice=False, number=None, is_emphasize=False):
+                 notice=False, number=None, is_emphasize=False,
+                 desc=""):
         base.SelectableSprite.__init__(self)
         self.parent = parent
         # 各種データ
@@ -474,6 +475,9 @@ class StatusBarButton(base.SelectableSprite):
         self.status = "normal"
         self.frame = 0
         self.is_showing = lambda: True
+
+        self.desc = desc
+        self._desc = None
 
         self._upscr = 0
         self._blink_notice = False
@@ -647,6 +651,17 @@ class StatusBarButton(base.SelectableSprite):
         self._blink_notice = blink_notice
         self._upscr = cw.UP_SCR
 
+    def set_desc(self, desc):
+        self.desc = desc
+        if self._desc:
+            cw.cwpy.sbargrp.remove(self._desc)
+            rect = self._desc.rect
+            self._desc = None
+            self._desc = Desc(self, self.desc)
+            cw.cwpy.sbargrp.add(self._desc, layer="desc")
+            cw.cwpy.draw(rect)
+            cw.cwpy.draw(self._desc.rect)
+
     def update_image(self):
         if not self.enabled:
             return
@@ -654,6 +669,17 @@ class StatusBarButton(base.SelectableSprite):
         if self.is_showing and not self.is_showing():
             self.image = self.noimg
             return
+
+        if cw.cwpy.setting.show_btndesc and self.is_selection() and self.desc and not cw.cwpy.is_showingdlg():
+            if not self._desc:
+                self._desc = Desc(self, self.desc)
+                cw.cwpy.sbargrp.add(self._desc, layer="desc")
+                cw.cwpy.draw(self._desc.rect)
+        else:
+            if self._desc:
+                cw.cwpy.sbargrp.remove(self._desc)
+                cw.cwpy.draw(self._desc.rect)
+                self._desc = None
 
         flags = 0
         if self.is_pushed:
@@ -672,8 +698,66 @@ class StatusBarButton(base.SelectableSprite):
         cw.cwpy.stop_animation(self)
         cw.animation.animate_sprite(self, "click", statusbutton=True)
 
+        if self._desc:
+            cw.cwpy.sbargrp.remove(self._desc)
+            self._desc = None
+
     def rclick_event(self):
         pass
+
+class Desc(base.CWPySprite):
+    def __init__(self, parent, desc):
+        base.CWPySprite.__init__(self)
+        self.parent = parent
+        self.desc = desc
+
+        font = cw.cwpy.rsrc.fonts["sbardesc"]
+        h = font.get_height()
+
+        # 必要サイズを計算
+        lines = self.desc.splitlines()
+        spx = cw.s(8)
+        spy = cw.s(4)
+        tw, th = cw.s(1), spy*2
+        for line in lines:
+            fw, fh = font.size(line)
+            tw = max(tw, fw + spx*2)
+            th += h
+
+        # 解説画像を作成
+        arroww = cw.s(8)
+        arrowh = cw.s(12)
+        self.image = pygame.Surface((tw, th+arrowh)).convert_alpha()
+        color = (255, 255, 200)
+        self.image.fill(color)
+        self.image.fill((0, 0, 0, 255), (cw.s(0), th, tw, arrowh), special_flags=pygame.locals.BLEND_RGBA_SUB)
+        linecolor = (0, 0, 0)
+        cw.setting.Resource.draw_frame(self.image, pygame.Rect(cw.s(0), cw.s(0), tw, th), linecolor)
+        self.rect = self.image.get_rect()
+        x, y = spx, spy
+        for line in lines:
+            subimg = font.render(line, True, linecolor)
+            self.image.blit(subimg, (x, y))
+            y += h
+
+        # ボタンに合わせて位置を調節
+        _px, py = self.parent.rect.topleft
+        self.rect.center = self.parent.rect.center
+        self.rect.top = py - th - cw.s(5)
+
+        # 画面内に収める
+        if self.rect.left < cw.s(2):
+            self.rect.left = cw.s(2)
+        gw = cw.s(cw.SIZE_GAME[0])
+        if gw <= self.rect.left + self.rect.width:
+            self.rect.left = gw - cw.s(2) - self.rect.width
+
+        # ボタンを指す部分
+        x = self.parent.rect.center[0]-self.rect.left
+        y = th-1
+        pl = [(x-arroww/2, y), (x, y+arrowh), (x+arroww/2, y)]
+        pygame.draw.polygon(self.image, color, pl)
+        pygame.draw.aalines(self.image, linecolor, False, pl)
 
 class CampButton(StatusBarButton):
     def __init__(self, parent, pos):
@@ -782,8 +866,9 @@ class ShowFriendCardsButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST"])
         name = cw.cwpy.msgs["show_fcards"]
+        desc = cw.cwpy.msgs["desc_show_friend_card"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
-                                 is_pushed=cw.cwpy.setting.show_fcardsinbattle)
+                                 is_pushed=cw.cwpy.setting.show_fcardsinbattle, desc=desc)
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
@@ -808,8 +893,12 @@ class AutoStartButton(StatusBarButton):
             pushed = cw.cwpy.sdata.autostart_round
         else:
             pushed = False
+        if pushed:
+            desc = cw.cwpy.msgs["desc_auto_start_round"]
+        else:
+            desc = cw.cwpy.msgs["desc_manual_start_round"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
-                                 is_pushed=pushed)
+                                 is_pushed=pushed, desc=desc)
         self.selectable_on_event = True
         self.actionbtn = None
         self.is_showing = cw.cwpy.is_battlestatus
@@ -827,7 +916,12 @@ class AutoStartButton(StatusBarButton):
     def lclick_event(self):
         if cw.cwpy.is_playingscenario() and cw.cwpy.is_battlestatus():
             cw.cwpy.play_sound("page")
-            cw.cwpy.sdata.autostart_round = not cw.cwpy.sdata.autostart_round
+            if cw.cwpy.sdata.autostart_round:
+                self.set_desc(cw.cwpy.msgs["desc_manual_start_round"])
+                cw.cwpy.sdata.autostart_round = False
+            else:
+                self.set_desc(cw.cwpy.msgs["desc_auto_start_round"])
+                cw.cwpy.sdata.autostart_round = True
             if self.actionbtn:
                 autostart = cw.cwpy.setting.show_roundautostartbutton and\
                     cw.cwpy.is_playingscenario() and\
@@ -839,10 +933,11 @@ class InfoCardsButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["INFOVIEW"]
         name = cw.cwpy.msgs["info_card"]
+        desc = cw.cwpy.msgs["desc_info_cards"]
         notice = cw.cwpy.sdata.notice_infoview
         number = len(cw.cwpy.sdata.infocards)
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
-                                 notice=notice, number=number)
+                                 notice=notice, number=number, desc=desc)
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
@@ -861,7 +956,8 @@ class SettingsButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
         name = u"設定"
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
+        desc = u"%sの設定を行います" % (cw.APP_NAME)
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc)
         self.selectable_on_event = True
         if self.is_selection():
             self.update_image()
@@ -874,7 +970,8 @@ class DebuggerButton(StatusBarButton):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["STATUS12"]
         name = u"デバッガ"
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image)
+        desc = u"デバッガを表示します"
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc)
         self.selectable_on_event = True
         if self.is_selection():
             self.update_image()
@@ -886,7 +983,8 @@ class DebuggerButton(StatusBarButton):
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos, enabled):
         image = cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
-        name = u"バックログ"
+        name = cw.cwpy.msgs["message_log"]
+        desc = cw.cwpy.msgs["desc_message_log"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
         self.selectable_on_event = enabled
         if enabled and self.is_selection():

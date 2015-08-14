@@ -1110,6 +1110,7 @@ class CWPy(_Singleton, threading.Thread):
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
         event.args = kwargs
         if threading.currentThread() == self:
+            self.draw()
             def func():
                 self.frame.app.SetCallFilterEvent(True)
             self.frame.exec_func(func)

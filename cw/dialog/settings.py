@@ -388,6 +388,7 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton_init)
             self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
 
+            self.pane_ui.cb_show_btndesc.SetValue(cw.cwpy.setting.show_btndesc_init)
             self.pane_ui.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
             self.pane_ui.cb_blink_statusbutton.SetValue(cw.cwpy.setting.blink_statusbutton_init)
             self.pane_ui.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney_init)
@@ -707,6 +708,8 @@ class SettingsPanel(wx.Panel):
         else:
             cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SELECTION
 
+        value = self.pane_ui.cb_show_btndesc.GetValue()
+        cw.cwpy.setting.show_btndesc = value
         value = self.pane_ui.cb_statusbarmask.GetValue()
         if value <> cw.cwpy.setting.statusbarmask:
             cw.cwpy.setting.statusbarmask = value
@@ -1906,7 +1909,11 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog)
 
         # 通知オプション
-        self.box_notice = wx.StaticBox(self, -1, u"通知")
+        self.box_notice = wx.StaticBox(self, -1, u"通知と解説")
+        # ステータスバーのボタンの解説を表示する
+        self.cb_show_btndesc = wx.CheckBox(
+            self, -1, u"ステータスバーのボタンの解説を表示する")
+        self.cb_show_btndesc.SetValue(cw.cwpy.setting.show_btndesc)
         # イベント中にステータスバーの色を変える
         self.cb_statusbarmask = wx.CheckBox(
             self, -1, u"イベント中にステータスバーの色を変える")
@@ -1987,6 +1994,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_gene.Add(self.cb_showautobuttoninentrydialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
+        bsizer_notice.Add(self.cb_show_btndesc, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_notice.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_notice.Add(self.cb_blink_statusbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_notice.Add(self.cb_blink_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -2041,6 +2049,7 @@ class FontSettingPanel(wx.Panel):
                           "logpage"      : u"メッセージログ頁",
                           "sbarpanel"    : u"ステータスパネル",
                           "sbarbtn"      : u"ステータスボタン",
+                          "sbardesc"     : u"ボタン解説",
                           "statusnum"    : u"状態値",
                           "screenshot"   : u"撮影情報",
                           }
@@ -2049,7 +2058,7 @@ class FontSettingPanel(wx.Panel):
         self.types = ("button", "combo", "slider", "spin", "tree", "list", "tab", "menu",
                       "paneltitle", "dlgmsg", "dlgtitle", "inputname", "datadesc", "charadesc",
                       "dlglist", "uselimit", "cardname", "ccardname", "level", "message", "selectionbar",
-                      "logpage", "sbarpanel", "sbarbtn", "statusnum", "screenshot")
+                      "logpage", "sbarpanel", "sbarbtn", "sbardesc", "statusnum", "screenshot")
 
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())

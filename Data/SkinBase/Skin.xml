@@ -682,6 +682,13 @@
     <Message key="run_event">実行</Message>
     <Message key="open_event">開く</Message>
     <Message key="hold_all">全てホールド</Message>
+    <Message key="desc_manual_start_round">手動で行動を選択します</Message>
+    <Message key="desc_auto_start_round">自動的に行動を開始します</Message>
+    <Message key="desc_show_friend_card">同行キャストを表示し、
+行動の選択を行います</Message>
+    <Message key="desc_info_cards">情報カードを表示します</Message>
+    <Message key="message_log">メッセージログ</Message>
+    <Message key="desc_message_log">これまでに読んだ\nメッセージを表示します</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>
