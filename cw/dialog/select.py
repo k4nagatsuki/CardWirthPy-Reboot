@@ -796,19 +796,22 @@ class YadoSelect(Select):
             dlg.Destroy()
             return
 
-        # プログレスダイアログ表示
-        dlg = wx.ProgressDialog(
-            cwdata.name + u" 変換", "", maximum=100,
-            parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
-            wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
         thread = cw.binary.ConvertingThread(cwdata)
         thread.start()
 
-        while not thread.complete:
-            dlg.Update(cwdata.curnum, cwdata.message)
-            wx.MilliSleep(1)
+        # プログレスダイアログ表示
+        dlg = cw.dialog.progress.ProgressDialog(self, cwdata.name + u"の変換", "",
+                                                maximum=100)
+        def progress():
+            while not thread.complete:
+                wx.CallAfter(dlg.Update, cwdata.curnum, cwdata.message)
+                time.sleep(0.001)
+            wx.CallAfter(dlg.Destroy)
+        thread2 = threading.Thread(target=progress)
+        thread2.start()
+        self.Parent.move_dlg(dlg)
+        dlg.ShowModal()
 
-        dlg.Destroy()
         yadodir = thread.path
 
         # エラーログ表示
@@ -881,19 +884,21 @@ class YadoSelect(Select):
             # コンバータ
             unconv = cw.binary.cwyado.UnconvCWYado(ydata, dstpath, targetengine)
 
-            # プログレスダイアログ表示
-            dlg = wx.ProgressDialog(
-                u"%s 逆変換" % (yadoname), "", maximum=unconv.maxnum,
-                parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
-                wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
             thread = cw.binary.ConvertingThread(unconv)
             thread.start()
 
-            while not thread.complete:
-                dlg.Update(unconv.curnum, unconv.message)
-                wx.MilliSleep(1)
-
-            dlg.Destroy()
+            # プログレスダイアログ表示
+            dlg = cw.dialog.progress.ProgressDialog(self, u"%sの逆変換" % (yadoname), "",
+                                                    maximum=unconv.maxnum)
+            def progress():
+                while not thread.complete:
+                    wx.CallAfter(dlg.Update, unconv.curnum, unconv.message)
+                    time.sleep(0.001)
+                wx.CallAfter(dlg.Destroy)
+            thread2 = threading.Thread(target=progress)
+            thread2.start()
+            self.Parent.move_dlg(dlg)
+            dlg.ShowModal()
         finally:
             cw.cwpy.yadodir = ""
             cw.cwpy.tempdir = ""
@@ -4168,22 +4173,38 @@ class ScenarioSelect(Select):
             dlg.Destroy()
             return
 
-        # 宿データ読み込み
+        # シナリオデータ読み込み
         cwdata.load()
-        # プログレスダイアログ表示
-        dlg = wx.ProgressDialog(
-            cwdata.name + u" 変換", "", maximum=cwdata.maxnum,
-            parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
-            wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
+
         thread = cw.binary.ConvertingThread(cwdata)
         thread.start()
 
-        while not thread.complete:
-            dlg.Update(cwdata.curnum, cwdata.message)
-            wx.MilliSleep(1)
+        # プログレスダイアログ表示
+        dlg = cw.dialog.progress.ProgressDialog(self,
+            cwdata.name + u"の変換", "", maximum=cwdata.maxnum+2)
 
-        dlg.Destroy()
-        temppath = thread.path
+        zpaths = [""]
+        def progress():
+            while not thread.complete:
+                wx.CallAfter(dlg.Update, cwdata.curnum, cwdata.message)
+                time.sleep(0.001)
+            wx.CallAfter(dlg.Update, cwdata.curnum+1, u"シナリオを圧縮しています...")
+            # zip圧縮
+            temppath = thread.path
+            zpath = os.path.basename(temppath) + ".wsn"
+            zpath = cw.util.join_paths(self.nowdir, zpath)
+            zpath = cw.util.dupcheck_plus(zpath, False)
+            cw.util.compress_zip(temppath, zpath, unicodefilename=True)
+            # tempを削除
+            wx.CallAfter(dlg.Update, cwdata.curnum+2, u"一時フォルダを削除しています...")
+            cw.util.remove(temppath)
+            zpaths[0] = zpath
+            wx.CallAfter(dlg.Destroy)
+        thread2 = threading.Thread(target=progress)
+        thread2.start()
+        self.Parent.move_dlg(dlg)
+        dlg.ShowModal()
+        zpath = zpaths[0]
 
         # エラーログ表示
         if cwdata.errorlog:
@@ -4192,11 +4213,6 @@ class ScenarioSelect(Select):
             dlg.ShowModal()
             dlg.Destroy()
 
-        # zip圧縮
-        zpath = os.path.basename(temppath) + ".wsn"
-        zpath = cw.util.join_paths(self.nowdir, zpath)
-        zpath = cw.util.dupcheck_plus(zpath, False)
-        cw.util.compress_zip(temppath, zpath, unicodefilename=True)
         cw.cwpy.play_sound("harvest")
         # 変換完了ダイアログ
         s = u"データの変換が完了しました。"
@@ -4204,8 +4220,6 @@ class ScenarioSelect(Select):
         self.Parent.move_dlg(dlg)
         dlg.ShowModal()
         dlg.Destroy()
-        # tempを削除
-        cw.util.remove(temppath)
         # 更新処理
         self.db.insert_scenario(zpath, skintype=cw.cwpy.setting.skintype)
         self.list = self._get_nowlist()

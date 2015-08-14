@@ -31,7 +31,7 @@ class Message(wx.Dialog):
             self.closebtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL, cw.wins((120, 30)), cw.cwpy.msgs["close"])
 
         # layout
-        self.__do_layout()
+        self._do_layout()
         # bind
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -41,7 +41,7 @@ class Message(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint (self, evt):
+    def OnPaint(self, evt):
         dc = wx.PaintDC(self)
         # background
         bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
@@ -52,7 +52,7 @@ class Message(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
         dc.DrawLabel(self.text, (0, 0, csize[0], cw.wins(50)), wx.ALIGN_CENTER)
 
-    def __do_layout(self):
+    def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add(cw.wins((0, 55)), 0, 0, 0)

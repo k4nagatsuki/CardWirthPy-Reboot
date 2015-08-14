@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
+import threading
 import wx.grid
 
 import cw
@@ -78,17 +80,25 @@ class SkinConversionDialog(wx.Dialog):
         e = self.conv.data.find("Property/CW120VocationLevel")
         e.text = str(self.pane_base.info.vocation120.GetValue())
 
-        # プログレスダイアログ表示
-        dlg = wx.ProgressDialog(
-            u"スキンの変換 [%s]" % (self.conv.exe), "", maximum=self.conv.maximum,
-            parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
-            wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
         self.conv.start()
 
-        while not self.conv.complete:
-            dlg.Update(self.conv.curnum, self.conv.message)
-            wx.MilliSleep(1)
-        dlg.Destroy()
+        # プログレスダイアログ表示
+        dlg = cw.dialog.progress.SysProgressDialog(self,
+            u"スキンの変換 [%s]" % (self.conv.exe), "", maximum=self.conv.maximum)
+        x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
+        y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
+        x += dlg.Parent.GetPosition()[0]
+        y += dlg.Parent.GetPosition()[1]
+        dlg.MoveXY(x, y)
+
+        def progress():
+            while not self.conv.complete:
+                wx.CallAfter(dlg.Update, self.conv.curnum, self.conv.message)
+                time.sleep(0.001)
+            wx.CallAfter(dlg.Destroy)
+        thread2 = threading.Thread(target=progress)
+        thread2.start()
+        dlg.ShowModal()
 
         if self.conv.scenariodir:
             try:

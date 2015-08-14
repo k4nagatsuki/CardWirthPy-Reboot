@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 import itertools
 import threading
 import shutil
@@ -306,11 +307,6 @@ class TransferYadoDataDialog(wx.Dialog):
             else:
                 assert False
 
-        # プログレスダイアログ表示
-        dlg = wx.ProgressDialog(cw.cwpy.msgs["transfer_data"], "", maximum=counter,
-            parent=self, style=wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|
-            wx.PD_ELAPSED_TIME|wx.PD_REMAINING_TIME)
-
         class TransferThread(threading.Thread):
             def __init__(self, outer):
                 threading.Thread.__init__(self)
@@ -359,7 +355,7 @@ class TransferYadoDataDialog(wx.Dialog):
                         elif isinstance(data, int):
                             name = cw.cwpy.msgs["currency"] % (data)
                         elif isinstance(data, list):
-                            if isinstance(data[0], cw.header.AdventurerHeader) and list[0].album:
+                            if isinstance(data[0], cw.header.AdventurerHeader) and data[0].album:
                                 name = cw.cwpy.msgs["album"] % (data)
                             elif isinstance(data[0], cw.header.PartyRecordHeader):
                                 seq2.append(data) # 編成記録はAdventurerHeaderよりも遅延させる
@@ -432,11 +428,18 @@ class TransferYadoDataDialog(wx.Dialog):
         thread = TransferThread(self)
         thread.start()
 
-        while thread.is_alive():
-            dlg.Update(thread.num, thread.msg)
-            wx.MilliSleep(1)
-
-        dlg.Destroy()
+        # プログレスダイアログ表示
+        dlg = cw.dialog.progress.ProgressDialog(self, cw.cwpy.msgs["transfer_data"],
+                                                "", maximum=counter)
+        def progress():
+            while thread.is_alive():
+                wx.CallAfter(dlg.Update, thread.num, thread.msg)
+                time.sleep(0.001)
+            wx.CallAfter(dlg.Destroy)
+        thread2 = threading.Thread(target=progress)
+        thread2.start()
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
 
         cw.cwpy.play_sound("harvest")
         s = cw.cwpy.msgs["transfer_success"]

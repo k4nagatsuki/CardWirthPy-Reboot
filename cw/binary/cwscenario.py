@@ -215,7 +215,7 @@ class CWScenario(object):
 
         # シナリオファイルをxmlに変換
         for data in self.datalist:
-            self.message = u"%s を変換中" % (os.path.basename(data.fpath))
+            self.message = u"%s を変換中..." % (os.path.basename(data.fpath))
             self.curnum += 1
 
             try:
@@ -233,7 +233,7 @@ class CWScenario(object):
             os.makedirs(materialdir)
 
         for path in self.materials:
-            self.message = u"%s をコピー中" % (os.path.basename(path))
+            self.message = u"%s をコピー中..." % (os.path.basename(path))
             self.curnum += 1
             dst = util.join_paths(materialdir, os.path.basename(path))
             dst = util.check_duplicate(dst)
@@ -241,7 +241,7 @@ class CWScenario(object):
 
         # その他のファイルをシナリオディレクトリにコピー
         for path in self.otherfiles:
-            self.message = u"%s をコピー中" % (os.path.basename(path))
+            self.message = u"%s をコピー中..." % (os.path.basename(path))
             self.curnum += 1
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)
@@ -249,7 +249,7 @@ class CWScenario(object):
 
         # ディレクトリをシナリオディレクトリにコピー
         for path in self.otherdirs:
-            self.message = u"%s をコピー中" % (os.path.basename(path))
+            self.message = u"%s をコピー中..." % (os.path.basename(path))
             self.curnum += 1
             dst = util.join_paths(self.dir, os.path.basename(path))
             dst = util.check_duplicate(dst)

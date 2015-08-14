@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import wx
+
+import cw
+
+
+#-------------------------------------------------------------------------------
+# 進捗表示ダイアログ
+#-------------------------------------------------------------------------------
+
+class ProgressDialog(wx.Dialog):
+    def __init__(self, parent, title, message, maximum=100, minimum=0):
+        wx.Dialog.__init__(self, parent, -1, title,
+                           style=wx.DEFAULT_DIALOG_STYLE)
+        self.SetClientSize(cw.wins((300, 60)))
+        self.EnableCloseButton(False)
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        self.text = message
+        self.minimum = minimum
+        self.maximum = maximum
+        self.gauge = wx.Gauge(self, -1, range=self.maximum-self.minimum,
+                              size=(-1, cw.wins(20)),
+                              style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
+
+        # layout
+        self._do_layout()
+        # bind
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def Update(self, value, message):
+        value -= self.minimum
+        if value <> self.gauge.GetValue() or self.text <> message:
+            self.gauge.SetValue(value-self.minimum)
+            self.text = message
+            self.Refresh()
+
+    def OnPaint(self, event):
+        csize = self.GetClientSize()
+        wxbmp = wx.EmptyBitmap(csize[0], csize[1])
+        dc = wx.MemoryDC(wxbmp)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        cw.util.fill_bitmap(dc, bmp, csize)
+        # massage
+        dc.SetTextForeground(wx.BLACK)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
+        dc.DrawLabel(self.text, (cw.s(10), cw.s(36), csize[0]-cw.s(20), cw.wins(50)), wx.ALIGN_RIGHT)
+
+        dc.SelectObject(wx.NullBitmap)
+        dc2 = wx.PaintDC(self)
+        dc2.DrawBitmap(wxbmp, 0, 0)
+
+    def _do_layout(self):
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+        sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.wins(10))
+        sizer_1.Add(cw.wins((0, 30)), 0, 0, 0)
+
+        self.SetSizer(sizer_1)
+        self.Layout()
+
+#-------------------------------------------------------------------------------
+# 進捗表示ダイアログ(デバッガ・設定ダイアログ変換用)
+#-------------------------------------------------------------------------------
+
+class SysProgressDialog(wx.Dialog):
+    def __init__(self, parent, title, message, maximum=100, minimum=0):
+        wx.Dialog.__init__(self, parent, -1, title,
+                           style=wx.DEFAULT_DIALOG_STYLE)
+        self.SetClientSize((300, 60))
+        self.EnableCloseButton(False)
+        self.SetDoubleBuffered(True)
+        self.text = message
+        self.minimum = minimum
+        self.maximum = maximum
+        self.gauge = wx.Gauge(self, -1, range=self.maximum-self.minimum,
+                              size=(-1, 20),
+                              style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
+        self.message = wx.StaticText(self, -1, self.text,
+                                     size=(-1, -1),
+                                     style=wx.ALIGN_RIGHT)
+
+        # layout
+        self._do_layout()
+
+    def Update(self, value, message):
+        value -= self.minimum
+        if value <> self.gauge.GetValue() or self.text <> message:
+            self.gauge.SetValue(value-self.minimum)
+            self.text = message
+            self.message.SetLabel(self.text)
+
+    def _do_layout(self):
+        sizer_1 = wx.BoxSizer(wx.VERTICAL)
+
+        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+        sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.wins(10))
+        sizer_1.Add(cw.wins((0, 4)), 0, 0, 0)
+        sizer_1.Add(self.message, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.wins(10))
+        sizer_1.Add(cw.wins((0, 30)), 0, 0, 0)
+
+        self.SetSizer(sizer_1)
+        self.Layout()

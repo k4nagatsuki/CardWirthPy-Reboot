@@ -109,7 +109,7 @@ class CWYado(object):
         yadodb = cw.yadodb.YadoDB(self.dir)
         for data in self.datalist:
             data.yadodb = yadodb
-            self.message = u"%s を変換中" % (os.path.basename(data.fpath))
+            self.message = u"%s を変換中..." % (os.path.basename(data.fpath))
             self.curnum_n += 1
             self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
 
@@ -135,7 +135,7 @@ class CWYado(object):
 
         # 冒険中情報を変換
         for partyinfo, partymembers in self.nowadventuringparties:
-            self.message = u"%s の冒険中情報を変換中" % (partyinfo.name)
+            self.message = u"%s の冒険中情報を変換中..." % (partyinfo.name)
             self.curnum_n += 1
             self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
 
@@ -153,7 +153,7 @@ class CWYado(object):
 
         # その他のファイルを宿ディレクトリにコピー
         for path in self.otherfiles:
-            self.message = u"%s をコピー中" % (os.path.basename(path))
+            self.message = u"%s をコピー中..." % (os.path.basename(path))
             self.curnum_n += 1
             self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
             dst = util.join_paths(self.dir, os.path.basename(path))
@@ -165,7 +165,7 @@ class CWYado(object):
 
         # ディレクトリを宿ディレクトリにコピー
         for path in self.otherdirs:
-            self.message = u"%s をコピー中" % (os.path.basename(path))
+            self.message = u"%s をコピー中..." % (os.path.basename(path))
             self.curnum_n += 1
             self.curnum = min(99, 50 + self.curnum_n * 50 / self.maxnum)
             dst = util.join_paths(self.dir, os.path.basename(path))
@@ -205,7 +205,7 @@ class CWYado(object):
         self.maxnum = len(self.yadofiles) + len(self.cardfiles) + 1
 
         for path in self.yadofiles:
-            self.message = u"%s を読込中" % (os.path.basename(path))
+            self.message = u"%s を読込中..." % (os.path.basename(path))
             self.curnum_n += 1
             self.curnum = self.curnum_n * 50 / self.maxnum
             try:
@@ -222,7 +222,7 @@ class CWYado(object):
         carddatadict = {}
 
         for path in self.cardfiles:
-            self.message = u"%s を読込中" % (os.path.basename(path))
+            self.message = u"%s を読込中..." % (os.path.basename(path))
             self.curnum_n += 1
             self.curnum = self.curnum_n * 50 / self.maxnum
             try:
@@ -238,7 +238,7 @@ class CWYado(object):
     # ここからxml変換するためのもろもろのデータ加工
     #---------------------------------------------------------------------------
 
-        self.message = u"データリストを作成中"
+        self.message = u"データリストを作成中..."
         self.curnum_n += 1
         self.curnum = self.curnum_n * 50 / self.maxnum
 
@@ -613,7 +613,7 @@ class UnconvCWYado(object):
         yadocards = {}
         for header in self.ydata.storehouse:
             try:
-                self.message = u"%s を変換中" % (header.name)
+                self.message = u"%s を変換中..." % (header.name)
                 self.curnum += 1
                 data, fpath = write_card(header)
                 unusedcards.append((os.path.basename(fpath), data))
@@ -630,7 +630,7 @@ class UnconvCWYado(object):
         # 待機中冒険者(*.wcp)とそのヘッダ(*.wch)
         for header in self.ydata.standbys:
             try:
-                self.message = u"%s を変換中" % (header.name)
+                self.message = u"%s を変換中..." % (header.name)
                 self.curnum += 1
 
                 data = cw.data.xml2element(header.fpath)
@@ -667,7 +667,7 @@ class UnconvCWYado(object):
         # 荷物袋のカード(*.wid)
         parties = []
         for partyheader in self.ydata.partys:
-            self.message = u"%s の荷物袋を変換中" % (partyheader.name)
+            self.message = u"%s の荷物袋を変換中..." % (partyheader.name)
             self.curnum += 1
 
             pt = cw.data.Party(partyheader)
@@ -695,7 +695,7 @@ class UnconvCWYado(object):
         tempdir = self.ydata.tempdir
         for partyheader, pt in parties:
             try:
-                self.message = u"%s を変換中" % (partyheader.name)
+                self.message = u"%s を変換中..." % (partyheader.name)
                 self.curnum += 1
 
                 # log
@@ -764,7 +764,7 @@ class UnconvCWYado(object):
         # アルバム(*.wrm)
         for header in self.ydata.album:
             try:
-                self.message = u"%s を変換中" % (header.name)
+                self.message = u"%s を変換中..." % (header.name)
                 self.curnum += 1
 
                 data = cw.data.xml2element(header.fpath)
@@ -788,7 +788,7 @@ class UnconvCWYado(object):
                 cw.util.remove(fpath)
 
         # Environment.wyd
-        self.message = u"宿情報を変換中"
+        self.message = u"宿情報を変換中..."
         self.curnum += 1
         try:
             data = self.ydata.environment.find(".")

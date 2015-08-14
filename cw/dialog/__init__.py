@@ -14,6 +14,7 @@ import settings
 import skin
 import partyrecord
 import transfer
+import progress
 
 
 def main():
