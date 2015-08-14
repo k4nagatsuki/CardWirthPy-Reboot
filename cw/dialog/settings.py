@@ -260,7 +260,7 @@ class SettingsPanel(wx.Panel):
         self.note.AddPage(self.pane_sound, u"音声")
         self.note.AddPage(self.pane_font, u"フォント")
         self.note.AddPage(self.pane_scenario, u"シナリオ")
-        self.note.AddPage(self.pane_ui, u"操作")
+        self.note.AddPage(self.pane_ui, u"詳細")
 
         create_versioninfo(self)
 
@@ -305,11 +305,7 @@ class SettingsPanel(wx.Panel):
         elif selpane == 1:
             self.pane_draw.cb_bordering_cardname.SetValue(cw.cwpy.setting.bordering_cardname_init)
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
-            self.pane_draw.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
             self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
-            self.pane_draw.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard_init)
-            self.pane_draw_cb_blink_statusbutton.SetValue(cw.cwpy.setting.blink_statusbutton_init)
-            self.pane_draw_cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney_init)
             self.pane_draw.speed.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
             self.pane_draw.speed.sl_deal_battle.SetValue(cw.cwpy.setting.dealspeed_battle_init)
             self.pane_draw.speed.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed_init)
@@ -381,6 +377,7 @@ class SettingsPanel(wx.Panel):
         elif selpane == 5:
             self.pane_ui.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait_init)
             self.pane_ui.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation_init)
+            self.pane_ui.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard_init)
             self.pane_ui.cb_can_repeatlclick.SetValue(cw.cwpy.setting.can_repeatlclick_init)
             self.pane_ui.cb_autoenter_on_sprite.SetValue(cw.cwpy.setting.autoenter_on_sprite_init)
 
@@ -390,6 +387,10 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime_init)
             self.pane_ui.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton_init)
             self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
+
+            self.pane_ui.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
+            self.pane_ui.cb_blink_statusbutton.SetValue(cw.cwpy.setting.blink_statusbutton_init)
+            self.pane_ui.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney_init)
 
             self.pane_ui.cb_show_advancedsettings.SetValue(cw.cwpy.setting.show_advancedsettings_init)
             self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
@@ -537,16 +538,6 @@ class SettingsPanel(wx.Panel):
         if cw.cwpy.setting.smoothscale_bg <> value:
             updatebg = True
             cw.cwpy.setting.smoothscale_bg = value
-        value = self.pane_draw.cb_statusbarmask.GetValue()
-        if value <> cw.cwpy.setting.statusbarmask:
-            cw.cwpy.setting.statusbarmask = value
-            updatestatusbar = True
-        value = self.pane_draw.cb_wait_usecard.GetValue()
-        cw.cwpy.setting.wait_usecard = value
-        value = self.pane_draw.cb_blink_statusbutton.GetValue()
-        cw.cwpy.setting.blink_statusbutton = value
-        value = self.pane_draw.cb_blink_partymoney.GetValue()
-        cw.cwpy.setting.blink_partymoney = value
 
         self.pane_draw.speed.apply_speed()
 
@@ -687,11 +678,13 @@ class SettingsPanel(wx.Panel):
             folder = self.pane_scenario.grid_folderoftype.GetCellValue(row, 1)
             cw.cwpy.setting.folderoftype.append((skintype, folder))
 
-        # 操作
+        # 詳細
         value = self.pane_ui.cb_can_skipwait.GetValue()
         cw.cwpy.setting.can_skipwait = value
         value = self.pane_ui.cb_can_skipanimation.GetValue()
         cw.cwpy.setting.can_skipanimation = value
+        value = self.pane_ui.cb_wait_usecard.GetValue()
+        cw.cwpy.setting.wait_usecard = value
         value = self.pane_ui.cb_can_repeatlclick.GetValue()
         cw.cwpy.setting.can_repeatlclick = value
         value = self.pane_ui.cb_autoenter_on_sprite.GetValue()
@@ -713,6 +706,15 @@ class SettingsPanel(wx.Panel):
             cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SHOWLOG
         else:
             cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SELECTION
+
+        value = self.pane_ui.cb_statusbarmask.GetValue()
+        if value <> cw.cwpy.setting.statusbarmask:
+            cw.cwpy.setting.statusbarmask = value
+            updatestatusbar = True
+        value = self.pane_ui.cb_blink_statusbutton.GetValue()
+        cw.cwpy.setting.blink_statusbutton = value
+        value = self.pane_ui.cb_blink_partymoney.GetValue()
+        cw.cwpy.setting.blink_partymoney = value
 
         value = self.pane_ui.cb_show_advancedsettings.GetValue()
         cw.cwpy.setting.show_advancedsettings = value
@@ -1345,26 +1347,10 @@ class DrawingSettingPanel(wx.Panel):
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
         self.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg)
-        # イベント中にステータスバーの色を変える
-        self.cb_statusbarmask = wx.CheckBox(
-            self, -1, u"イベント中にステータスバーの色を変える")
-        self.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask)
         # メイン画面で白いカーソルを使用する
         self.cb_whitecursor = wx.CheckBox(
             self, -1, u"メイン画面で白いカーソルを使用する")
         self.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type == cw.setting.CURSOR_WHITE)
-        # カードの使用前に空白時間を入れる
-        self.cb_wait_usecard = wx.CheckBox(
-            self, -1, u"カードの使用前に空白時間を入れる")
-        self.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard)
-        # 通知のあるステータスボタンを点滅させる
-        self.cb_blink_statusbutton = wx.CheckBox(
-            self, -1, u"通知のあるステータスボタンを点滅させる")
-        self.cb_blink_statusbutton.SetValue(cw.cwpy.setting.blink_statusbutton)
-        # 所持金が増減した時に所持金欄を点滅させる
-        self.cb_blink_partymoney = wx.CheckBox(
-            self, -1, u"所持金が増減した時に所持金欄を点滅させる")
-        self.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney)
 
         # 背景切替方式と各種速度
         self.speed = SpeedPanel(self, True)
@@ -1461,11 +1447,7 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_wait_usecard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_blink_statusbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_blink_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_mwin = wx.StaticBoxSizer(self.box_mwin, wx.HORIZONTAL)
@@ -1866,13 +1848,17 @@ class UISettingPanel(wx.ScrolledWindow):
         self.SetScrollbars(1, 10, 1, 1)
 
         # 空白時間オプション
-        self.box_wait = wx.StaticBox(self, -1, u"スキップ")
+        self.box_wait = wx.StaticBox(self, -1, u"スキップと空白時間")
         self.cb_can_skipwait = wx.CheckBox(
             self, -1, u"空白時間をスキップ可能にする")
         self.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait)
         self.cb_can_skipanimation = wx.CheckBox(
             self, -1, u"アニメーションをスキップ可能にする")
         self.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation)
+        # カードの使用前に空白時間を入れる
+        self.cb_wait_usecard = wx.CheckBox(
+            self, -1, u"カードの使用前に空白時間を入れる")
+        self.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard)
         self.cb_can_repeatlclick = wx.CheckBox(
             self, -1, u"マウスの左ボタンを押し続けた時は連打状態にする")
         self.cb_can_repeatlclick.SetValue(cw.cwpy.setting.can_repeatlclick)
@@ -1919,6 +1905,21 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, u"新規登録ダイアログに自動ボタンを表示する")
         self.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog)
 
+        # 通知オプション
+        self.box_notice = wx.StaticBox(self, -1, u"通知")
+        # イベント中にステータスバーの色を変える
+        self.cb_statusbarmask = wx.CheckBox(
+            self, -1, u"イベント中にステータスバーの色を変える")
+        self.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask)
+        # 通知のあるステータスボタンを点滅させる
+        self.cb_blink_statusbutton = wx.CheckBox(
+            self, -1, u"通知のあるステータスボタンを点滅させる")
+        self.cb_blink_statusbutton.SetValue(cw.cwpy.setting.blink_statusbutton)
+        # 所持金が増減した時に所持金欄を点滅させる
+        self.cb_blink_partymoney = wx.CheckBox(
+            self, -1, u"所持金が増減した時に所持金欄を点滅させる")
+        self.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney)
+
         # ダイアログオプション
         self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
         self.cb_show_advancedsettings = wx.CheckBox(
@@ -1961,10 +1962,12 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_wait = wx.StaticBoxSizer(self.box_wait, wx.VERTICAL)
         bsizer_draw = wx.StaticBoxSizer(self.box_draw, wx.VERTICAL)
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        bsizer_notice = wx.StaticBoxSizer(self.box_notice, wx.VERTICAL)
         bsizer_dlg = wx.StaticBoxSizer(self.box_dlg, wx.VERTICAL)
 
         bsizer_wait.Add(self.cb_can_skipwait, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_wait.Add(self.cb_can_skipanimation, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_wait.Add(self.cb_wait_usecard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_wait.Add(self.cb_can_repeatlclick, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_wait.Add(self.cb_autoenter_on_sprite, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_wait.SetMinSize((SETTINGS_WIDTH, -1))
@@ -1984,6 +1987,10 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_gene.Add(self.cb_showautobuttoninentrydialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
+        bsizer_notice.Add(self.cb_statusbarmask, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_notice.Add(self.cb_blink_statusbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_notice.Add(self.cb_blink_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+
         bsizer_dlg.Add(self.cb_show_advancedsettings, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -1995,6 +2002,7 @@ class UISettingPanel(wx.ScrolledWindow):
         sizer_v1.Add(bsizer_wait, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_draw, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_notice, 0, wx.BOTTOM|wx.EXPAND, 5)
         sizer_v1.Add(bsizer_dlg, 0, wx.EXPAND, 0)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
