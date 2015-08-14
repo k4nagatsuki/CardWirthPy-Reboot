@@ -2342,6 +2342,8 @@ class CWPy(_Singleton, threading.Thread):
                     status2 = "hidden"
 
             if e.tag == "EnemyCard":
+                if not e.getint("Property/Id", -1) in self.sdata.casts:
+                    continue
                 mcard = cw.sprite.card.EnemyCard(e, pos_noscale, status2, addgroup)
             else:
                 mcard = cw.sprite.card.MenuCard(e, pos_noscale, status2, addgroup)

@@ -1225,30 +1225,30 @@ class Character(object):
         val2 = int(initvalue)
         val2 = cw.util.numwrap(val2, -10, 10)
         seq = [val1, val2]
-        pvals = [0] * 9
-        for val in seq:
+        pval = [1.0]
+        def add_pval(val):
             if 0 < val and val < 10:
-                pvals[val-1] += 3
+                pval[0] *= (10.0-val) / 10.0
+        add_pval(val1)
+        add_pval(val2)
 
         def addval(header, val):
             if name == "defense":
                 if header.type == "BeastCard":
-                    pval = 3
+                    add_pval(val)
                 else:
                     level = header.get_vocation_level(self, enhance_act=False)
                     if level <= 0:
-                        pval = 1
+                        add_pval(val * 0.5)
                     elif level <= 1:
-                        pval = 2.4
+                        add_pval(val * 0.75)
                     else:
-                        pval = 3
+                        add_pval(val)
             else:
                 val = self._calc_enhancevalue(header, val)
-                pval = 3
+                add_pval(val)
             val = int(val)
             seq.append(val)
-            if 0 < val and val < 10:
-                pvals[val-1] += pval
 
         for header in itertools.chain(self.get_pocketcards(cw.POCKET_ITEM), self.get_pocketcards(cw.POCKET_BEAST)):
             val3 = header.get_enhance_val()[enhindex]
@@ -1293,14 +1293,13 @@ class Character(object):
             b = 10 - b
             b = max(maxval, b)
 
-        for i in reversed(xrange(1, len(pvals))):
-            pvals[i-1] += pvals[i]
-        # +10未満の値でも+10効果を得られる基準値
-        pvalborder = (72, 51, 33, 27, 21, 15, 12, 9, 9)
-        for i, pval in enumerate(pvals):
-            if pvalborder[i] <= pval:
-                max10 += 1
-                break
+        if pval[0] < 0.01:
+            # 防御修正でn1,n2,n3,...の値がある時、
+            # (1-n1/10)*(1-n2/10)*...の結果が0.01未満になれば
+            # +10効果を得られる。
+            # ただし召喚獣カード以外のカードは
+            # 適性レベル1の時に修正値を50%、レベル2で75%にして計算する
+            max10 += 1
 
         if max10 < 3:
             # 防御修正で+10があると完全にダメージが無くなるが、
