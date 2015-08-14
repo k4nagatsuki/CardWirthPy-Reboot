@@ -151,6 +151,7 @@ class Setting(object):
         self.cursor_type = CURSOR_BLACK
         self.autoenter_on_sprite = False
         self.bordering_cardname = True
+        self.blink_statusbutton = True
         self.blink_partymoney = True
 
         self.basefont  = {"gothic"  : "",
@@ -494,6 +495,8 @@ class Setting(object):
         self.autoenter_on_sprite = data.getbool("AutoEnterOnSprite", self.autoenter_on_sprite)
         # カード名を縁取りする
         self.bordering_cardname = data.getbool("BorderingCardName", self.bordering_cardname)
+        # 通知のあるステータスボタンを点滅させる
+        self.blink_statusbutton = data.getbool("BlinkStatusButton", self.blink_statusbutton)
         # 所持金が増減した時に所持金欄を点滅させる
         self.blink_partymoney = data.getbool("BlinkPartyMoney", self.blink_partymoney)
 

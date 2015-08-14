@@ -533,6 +533,10 @@ def create_settings(setting):
     if setting.bordering_cardname <> setting.bordering_cardname_init:
         e = cw.data.make_element("BorderingCardName", str(setting.bordering_cardname))
         element.append(e)
+    # 通知のあるステータスボタンを点滅させる
+    if setting.blink_statusbutton <> setting.blink_statusbutton_init:
+        e = cw.data.make_element("BlinkStatusButton", str(setting.blink_statusbutton))
+        element.append(e)
     # 所持金が増減した時に所持金欄を点滅させる
     if setting.blink_partymoney <> setting.blink_partymoney_init:
         e = cw.data.make_element("BlinkPartyMoney", str(setting.blink_partymoney))
@@ -645,6 +649,8 @@ def create_scenariolog(sdata, path, recording):
     e = cw.data.make_element("WsnPath", sdata.fpath)
     e_prop.append(e)
     e = cw.data.make_element("RoundAutoStart", str(sdata.autostart_round))
+    e_prop.append(e)
+    e = cw.data.make_element("NoticeInfoView", str(sdata.notice_infoview))
     e_prop.append(e)
 
     if cw.cwpy.areaid >= 0:

@@ -13,10 +13,12 @@ class StatusBar(base.CWPySprite):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
         self.yadomoney = None
         self.partymoney = None
+        self.infocards = None
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
         self.showbuttons = False
         self._statusbarmask = cw.cwpy.setting.statusbarmask
+        self.loading = False
         self._init_image()
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self)
@@ -84,6 +86,17 @@ class StatusBar(base.CWPySprite):
             else:
                 self.partymoney = PartyMoneyPanel(self, pos)
 
+        def create_infocards(pos):
+            if self.infocards:
+                notice = self.infocards.notice
+                self.infocards.reset(pos, cw.cwpy.rsrc.pygamedialogs["INFOVIEW"])
+                if not self.loading and notice <> self.infocards.notice and self.infocards.notice:
+                    cw.animation.start_animation(self.infocards, "blink")
+            else:
+                self.infocards = InfoCardsButton(self, pos)
+                if not self.loading and self.infocards.notice:
+                    cw.animation.start_animation(self.infocards, "blink")
+
         if encounter:
             EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif (cw.cwpy.is_curtained() and cw.cwpy.areaid <> cw.AREA_CAMP) or cw.cwpy.selectedheader:
@@ -116,7 +129,7 @@ class StatusBar(base.CWPySprite):
             create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
             if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards:
-                InfoCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
+                create_infocards((cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
             if cw.cwpy.setting.show_roundautostartbutton:
                 autostart = AutoStartButton(self, cw.s((5, 3)))
@@ -134,6 +147,11 @@ class StatusBar(base.CWPySprite):
             if showbuttons and cw.cwpy.is_debugmode() and\
                     cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
                 ShowFriendCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
+
+        if self.infocards and not cw.cwpy.is_playingscenario():
+            self.infocards.notice = False
+
+        self.loading = False
 
         # デバッガのツールが使用可能かどうかを更新
         cw.cwpy.event.refresh_tools()
@@ -449,17 +467,25 @@ class StatusBarButton(base.SelectableSprite):
                  toggle=False, icon=None, enabled=True, is_pushed=False,
                  notice=False, number=None, is_emphasize=False):
         base.SelectableSprite.__init__(self)
+        self.parent = parent
         # 各種データ
         self.name = name
         self.sizetype = sizetype
         self.status = "normal"
         self.frame = 0
+        self.is_showing = lambda: True
+
+        self._upscr = 0
+        self._blink_notice = False
+
         self.is_pushed = is_pushed
         self.is_emphasize = is_emphasize
         self.enabled = enabled
         self.notice = notice
         self.number = number
-        self.is_showing = lambda: True
+        self._create_paneimg(pos, icon)
+
+    def _create_paneimg(self, pos, icon):
         # ボタン画像
         self.btnimg = {}
         self._statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
@@ -469,7 +495,7 @@ class StatusBarButton(base.SelectableSprite):
             self.icon = icon
         else:
             font = cw.cwpy.rsrc.fonts["sbarbtn"]
-            self.icon = font.render(name, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
+            self.icon = font.render(self.name, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
 
         if not self.enabled:
             self.icon = cw.imageretouch.to_disabledsurface(self.icon)
@@ -479,11 +505,22 @@ class StatusBarButton(base.SelectableSprite):
         self.noimg = pygame.Surface(cw.s((0, 0))).convert()
         # rect
         self.rect = self.image.get_rect()
-        self.rect.top = parent.rect.top + pos[1]
-        self.rect.left = parent.rect.left + pos[0]
+        self.rect.top = self.parent.rect.top + pos[1]
+        self.rect.left = self.parent.rect.left + pos[0]
 
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="button")
+
+    def reset(self, pos, icon):
+        self._create_paneimg(pos, icon)
+        self._upscr = 0
+        self.update(None)
+
+    def _is_notice(self):
+        if self.status == "blink":
+            return self._blink_notice
+        else:
+            return self.notice
 
     def get_btnimg(self, flags):
         statusbarmask = cw.cwpy.setting.statusbarmask and cw.cwpy.is_playingscenario()
@@ -528,7 +565,7 @@ class StatusBarButton(base.SelectableSprite):
         if self.enabled:
             if self.is_pushed:
                 flags |= cw.setting.SB_PRESSED
-            if self.notice:
+            if self._is_notice():
                 flags |= cw.setting.SB_NOTICE
             if self.is_emphasize:
                 flags |= cw.setting.SB_EMPHASIZE
@@ -542,7 +579,7 @@ class StatusBarButton(base.SelectableSprite):
         if self.enabled:
             if self.is_pushed:
                 flags |= cw.setting.SB_PRESSED
-            if self.notice:
+            if self._is_notice():
                 flags |= cw.setting.SB_NOTICE
             if self.is_emphasize:
                 flags |= cw.setting.SB_EMPHASIZE
@@ -580,6 +617,36 @@ class StatusBarButton(base.SelectableSprite):
 
         self.frame += 1
 
+    def update_blink(self):
+        sel = cw.cwpy.selection
+        mousein = cw.cwpy.mousein[0]
+        self.update_selection()
+
+        if cw.cwpy.selection == self and cw.cwpy.mousein[0]:
+            self.is_pushed = True
+        else:
+            self.is_pushed = False
+        update = sel <> cw.cwpy.selection or mousein <> cw.cwpy.mousein[0]
+
+        if 30 <= self.frame or not cw.cwpy.setting.blink_statusbutton:
+            self.status = self.old_status
+            self.frame = 0
+            self.update_image()
+            return
+
+        blink_notice = self.frame / 5 % 2 == 0
+
+        if self.need_update(blink_notice) or update:
+            self.put_updatekey(blink_notice)
+            self.update_image()
+
+    def need_update(self, blink_notice):
+        return self._blink_notice <> blink_notice or self._upscr <> cw.UP_SCR
+
+    def put_updatekey(self, blink_notice):
+        self._blink_notice = blink_notice
+        self._upscr = cw.UP_SCR
+
     def update_image(self):
         if not self.enabled:
             return
@@ -594,7 +661,7 @@ class StatusBarButton(base.SelectableSprite):
         if self.is_selection():
             flags |= cw.setting.SB_CURRENT
             cw.cwpy.has_inputevent = True
-        if self.notice:
+        if self._is_notice():
             flags |= cw.setting.SB_NOTICE
         if self.is_emphasize:
             flags |= cw.setting.SB_EMPHASIZE
@@ -602,6 +669,7 @@ class StatusBarButton(base.SelectableSprite):
         self.image = self.get_btnimg(flags)
 
     def lclick_event(self):
+        cw.cwpy.stop_animation(self)
         cw.animation.animate_sprite(self, "click", statusbutton=True)
 
     def rclick_event(self):
@@ -778,7 +846,13 @@ class InfoCardsButton(StatusBarButton):
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
+    def reset(self, pos, icon):
+        self.notice = cw.cwpy.sdata.notice_infoview
+        self.number = len(cw.cwpy.sdata.infocards)
+        StatusBarButton.reset(self, pos, icon)
+
     def lclick_event(self):
+        StatusBarButton.lclick_event(self)
         cw.cwpy.play_sound("click")
         cw.cwpy.clear_selection()
         cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")

@@ -849,6 +849,10 @@ class CWPy(_Singleton, threading.Thread):
                 removes.add(sprite) # アニメーション終了
 
         for sprite in removes:
+            self.stop_animation(sprite)
+
+    def stop_animation(self, sprite):
+        if sprite in self.animations:
             sprite.anitype = ""
             sprite.start_animation = 0
             sprite.frame = 0
