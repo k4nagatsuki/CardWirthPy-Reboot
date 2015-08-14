@@ -227,7 +227,6 @@ class AdventurerData(object):
 
     def set_name(self, name):
         self.name = name
-        self.set_coupon(u"＿" + name, 0)
 
     def set_image(self, path):
         self.imgpath = path
