@@ -126,10 +126,6 @@ class CardControl(wx.Dialog):
             self.narrow.Hide()
             self.narrow_type.Hide()
 
-        # focus
-        self.panel.SetFocusIgnoringChildren()
-        self.toppanel.SetFocusIgnoringChildren()
-
         self._drawlist = {}
         self._leftmark = None
         self._after_event = None
@@ -343,7 +339,7 @@ class CardControl(wx.Dialog):
 
     def OnSendTo(self, event):
         cw.cwpy.play_sound("page")
-        self.closebtn.SetFocus()
+        self.toppanel.SetFocusIgnoringChildren()
 
     def update_narrowcondition(self):
         self.draw_cards()
@@ -506,7 +502,7 @@ class CardControl(wx.Dialog):
                     self.Parent.move_dlg(dlg)
                     dlg.ShowModal()
                     dlg.Destroy()
-                    self.closebtn.SetFocus()
+                    self.toppanel.SetFocusIgnoringChildren()
                 self.animate_click(header, func)
                 return
 
@@ -877,7 +873,7 @@ class CardControl(wx.Dialog):
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
-            self.closebtn.SetFocus()
+            self.toppanel.SetFocusIgnoringChildren()
             return
         else:
             owner = header.get_owner()
@@ -899,7 +895,7 @@ class CardControl(wx.Dialog):
 
             dlg.Destroy()
             self.draw_cards()
-            self.closebtn.SetFocus()
+            self.toppanel.SetFocusIgnoringChildren()
             return
         elif not self.areaid in cw.AREAS_TRADE and isinstance(owner, cw.character.Character):
             if not self.check_using(owner, header):
@@ -937,7 +933,7 @@ class CardControl(wx.Dialog):
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
             dlg.Destroy()
-            self.closebtn.SetFocus()
+            self.toppanel.SetFocusIgnoringChildren()
             return
 
         # 開いていたダイアログの情報
@@ -970,7 +966,7 @@ class CardControl(wx.Dialog):
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-                self.closebtn.SetFocus()
+                self.toppanel.SetFocusIgnoringChildren()
             return False
 
         # 使用回数が0以下だったら処理中止
@@ -988,7 +984,7 @@ class CardControl(wx.Dialog):
                 self.Parent.move_dlg(dlg)
                 dlg.ShowModal()
                 dlg.Destroy()
-                self.closebtn.SetFocus()
+                self.toppanel.SetFocusIgnoringChildren()
             return False
 
         return True
@@ -1264,7 +1260,7 @@ class CardHolder(CardControl):
             cw.cwpy.lastcardpocket = self.index3
 
     def OnSort(self, event):
-        self.closebtn.SetFocus()
+        self.toppanel.SetFocusIgnoringChildren()
         index = self.sort.GetSelection()
         if index == 1:
             sorttype = "Name"
@@ -1569,7 +1565,7 @@ class CardHolder(CardControl):
                     self.Parent.move_dlg(dlg)
                     dlg.ShowModal()
                     dlg.Destroy()
-                    self.closebtn.SetFocus()
+                    self.toppanel.SetFocusIgnoringChildren()
                 self.draw_cards()
                 return
             old_callname = self.callname
