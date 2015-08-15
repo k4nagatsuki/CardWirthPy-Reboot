@@ -545,6 +545,14 @@ def create_settings(setting):
     if setting.show_btndesc <> setting.show_btndesc_init:
         e = cw.data.make_element("ShowButtonDescription", str(setting.show_btndesc))
         element.append(e)
+    # スターつきのカードの売却や破棄を禁止する
+    if setting.protect_staredcard <> setting.protect_staredcard_init:
+        e = cw.data.make_element("ProtectStaredCard", str(setting.protect_staredcard))
+        element.append(e)
+    # プレミアカードの売却や破棄を禁止する
+    if setting.protect_premiercard <> setting.protect_premiercard_init:
+        e = cw.data.make_element("ProtectPremierCard", str(setting.protect_premiercard))
+        element.append(e)
 
     # ファイル書き込み
     path = "Settings.xml"

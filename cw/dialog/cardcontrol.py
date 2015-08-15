@@ -660,7 +660,7 @@ class CardControl(wx.Dialog):
             x += (header.wxrect.width-w) / 2
             y += (header.wxrect.height-h) / 2
             dc.DrawBitmap(bmp, x, y, usemask)
-            if self.callname in ("BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
+            if self._show_star(header):
                 rect, x, y = self._get_starrect(header)
                 if rect.Contains(mousepos):
                     bmp = self.starlight
@@ -725,10 +725,17 @@ class CardControl(wx.Dialog):
             cw.cwpy.frame.exec_func(self._after_event)
             self._after_event = None
 
-    def _get_starrect(self, header):
-        if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
-            return wx.Rect(0, 0, 0, 0), 0, 0
+    def _show_star(self, header):
+        if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "CARDPOCKET"):
+            return False
+        if self.callname == "CARDPOCKET" and not isinstance(header.get_owner(), cw.character.Player):
+            return False
         if not header in self._drawlist:
+            return False
+        return True
+
+    def _get_starrect(self, header):
+        if not self._show_star(header):
             return wx.Rect(0, 0, 0, 0), 0, 0
         x = header.wxrect.left
         y = header.wxrect.top
@@ -741,6 +748,13 @@ class CardControl(wx.Dialog):
         sh = self.star.GetHeight()
         x = x+w - sw - cw.wins(5)
         y = y+h - sh - cw.wins(5)
+
+        if self.callname == "CARDPOCKET":
+            if header.type == "SkillCard":
+                y -= cw.wins(32)
+            else:
+                y -= cw.wins(16)
+
         return wx.Rect(x-cw.wins(4), y-cw.wins(4), sw+cw.wins(8), sh+cw.wins(8)), x, y
 
     def draw(self, update=True):

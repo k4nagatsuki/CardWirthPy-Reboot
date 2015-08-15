@@ -3333,13 +3333,25 @@ class CWPy(_Singleton, threading.Thread):
             target = self.ydata.storehouse
         elif targettype in ("PAWNSHOP", "TRASHBOX"):
 
-            # プレミアカードは売却・破棄処理できない(イベントからの呼出以外)
-            if not cw.cwpy.debug and header.premium == "Premium" and not from_event:
+            # プレミアカードは売却・破棄できない(イベントからの呼出以外)
+            if not self.debug and self.setting.protect_premiercard and\
+                    header.premium == "Premium" and not from_event:
                 if targettype == "PAWNSHOP":
-                    s = cw.cwpy.msgs["error_sell_premier_card"]
+                    s = self.msgs["error_sell_premier_card"]
                     self.call_modaldlg("NOTICE", text=s, parentdialog=parentdialog)
                 elif targettype == "TRASHBOX":
-                    s = cw.cwpy.msgs["error_dump_premier_card"] % (header.name)
+                    s = self.msgs["error_dump_premier_card"] % (header.name)
+                    self.call_modaldlg("NOTICE", text=s, parentdialog=parentdialog)
+
+                return
+
+            # スターつきのカードは売却・破棄できない(イベントからの呼出以外)
+            if self.setting.protect_staredcard and header.star and not from_event:
+                if targettype == "PAWNSHOP":
+                    s = self.msgs["error_sell_stared_card"]
+                    self.call_modaldlg("NOTICE", text=s, parentdialog=parentdialog)
+                elif targettype == "TRASHBOX":
+                    s = self.msgs["error_dump_stared_card"]
                     self.call_modaldlg("NOTICE", text=s, parentdialog=parentdialog)
 
                 return

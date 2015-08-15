@@ -387,6 +387,8 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime_init)
             self.pane_ui.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton_init)
             self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
+            self.pane_ui.cb_protect_staredcard.SetValue(cw.cwpy.setting.protect_staredcard_init)
+            self.pane_ui.cb_protect_premiercard.SetValue(cw.cwpy.setting.protect_premiercard_init)
 
             self.pane_ui.cb_show_btndesc.SetValue(cw.cwpy.setting.show_btndesc_init)
             self.pane_ui.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
@@ -750,6 +752,10 @@ class SettingsPanel(wx.Panel):
                 cw.cwpy.exec_func(func)
         value = self.pane_ui.cb_showautobuttoninentrydialog.GetValue()
         cw.cwpy.setting.show_autobuttoninentrydialog = value
+        value = self.pane_ui.cb_protect_staredcard.GetValue()
+        cw.cwpy.setting.protect_staredcard = value
+        value = self.pane_ui.cb_protect_premiercard.GetValue()
+        cw.cwpy.setting.protect_premiercard = value
 
         # 背景の更新
         if updatebg:
@@ -1907,6 +1913,12 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog = wx.CheckBox(
             self, -1, u"新規登録ダイアログに自動ボタンを表示する")
         self.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog)
+        self.cb_protect_staredcard = wx.CheckBox(
+            self, -1, u"スターつきのカードの売却や破棄を禁止する")
+        self.cb_protect_staredcard.SetValue(cw.cwpy.setting.protect_staredcard)
+        self.cb_protect_premiercard = wx.CheckBox(
+            self, -1, u"プレミアカードの売却や破棄を禁止する")
+        self.cb_protect_premiercard.SetValue(cw.cwpy.setting.protect_premiercard)
 
         # 通知オプション
         self.box_notice = wx.StaticBox(self, -1, u"通知と解説")
@@ -1992,6 +2004,8 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showroundautostartbutton, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showautobuttoninentrydialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_protect_staredcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_protect_premiercard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_notice.Add(self.cb_show_btndesc, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
