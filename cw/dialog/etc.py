@@ -147,7 +147,16 @@ class BattleCommand(wx.Dialog):
         if cw.cwpy.battle and cw.cwpy.battle.is_ready():
             cw.cwpy.exec_func(cw.cwpy.battle.start)
 
-        self.Destroy()
+        # FXIME: Skypeと同時起動するとEnter押し続けで
+        #        しばらくフリーズする原因不明の不具合があるので、
+        #        ダイアログのクローズを遅延する
+        def func(self):
+            def func(self):
+                if self:
+                    self.Destroy()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+        self.Disable()
 
     def runaway(self):
         s = cw.cwpy.msgs["confirm_runaway"]
@@ -159,13 +168,33 @@ class BattleCommand(wx.Dialog):
                 cw.cwpy.exec_func(cw.cwpy.battle.runaway)
 
             dlg.Destroy()
-            self.Destroy()
+
+            # FXIME: Skypeと同時起動するとEnter押し続けで
+            #        しばらくフリーズする原因不明の不具合があるので、
+            #        ダイアログのクローズを遅延する
+            def func(self):
+                def func(self):
+                    if self:
+                        self.Destroy()
+                cw.cwpy.frame.exec_func(func, self)
+            cw.cwpy.exec_func(func, self)
+            self.Disable()
+
             return
 
         dlg.Destroy()
 
     def cancel(self):
-        self.Destroy()
+        # FXIME: Skypeと同時起動するとEnter押し続けで
+        #        しばらくフリーズする原因不明の不具合があるので、
+        #        ダイアログのクローズを遅延する
+        def func(self):
+            def func(self):
+                if self:
+                    self.Destroy()
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self)
+        self.Disable()
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
