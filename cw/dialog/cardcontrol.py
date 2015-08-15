@@ -53,6 +53,7 @@ class CardControl(wx.Dialog):
         self.toppanel.SetMinSize(cw.wins((500, 285)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
         self.toppanel.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
+        self.toppanel.SetDoubleBuffered(True)
 
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -161,6 +162,7 @@ class CardControl(wx.Dialog):
             child.Bind(wx.EVT_RIGHT_UP, self.OnRightUp2)
         self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
         self.narrow_type.Bind(wx.EVT_COMBOBOX, self.OnNarrowCondition)
+        self.combo.Bind(wx.EVT_COMBOBOX, self.OnSendTo)
 
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
@@ -327,9 +329,8 @@ class CardControl(wx.Dialog):
         cw.cwpy.play_sound("page")
         # 日本語入力で一度に何度もイベントが発生する
         # 事があるので絞り込み実施を遅延する
+        self.narrow.SetFocus()
         self._reserved_narrowconditin = True
-        if wx.Window.FindFocus() <> self.narrow:
-            self.toppanel.SetFocus()
         def func():
             if not self._reserved_narrowconditin:
                 return
@@ -337,7 +338,12 @@ class CardControl(wx.Dialog):
             cw.cwpy.setting.card_narrow = self.narrow.GetValue()
             cw.cwpy.setting.card_narrowtype = self.narrow_type.GetSelection()
             self.update_narrowcondition()
+            self.narrow.SetFocus()
         wx.CallAfter(func)
+
+    def OnSendTo(self, event):
+        cw.cwpy.play_sound("page")
+        self.closebtn.SetFocus()
 
     def update_narrowcondition(self):
         self.draw_cards()
@@ -1244,6 +1250,7 @@ class CardHolder(CardControl):
             cw.cwpy.lastcardpocket = self.index3
 
     def OnSort(self, event):
+        self.closebtn.SetFocus()
         index = self.sort.GetSelection()
         if index == 1:
             sorttype = "Name"
@@ -1685,20 +1692,14 @@ class CardHolder(CardControl):
                         index += 1
                 combo.Select(index)
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED, combo.GetId())
-                self.ProcessEvent(btnevent)
+                combo.ProcessEvent(btnevent)
                 return True
             return False
         if selcombo(self.sort):
             return
         elif selcombo(self.narrow_type):
             return
-        elif self.combo.IsShown() and self.combo.GetRect().Contains(mousepos):
-            if event.GetWheelRotation() > 0:
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.leftbtn2.GetId())
-                self.ProcessEvent(btnevent)
-            else:
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.rightbtn2.GetId())
-                self.ProcessEvent(btnevent)
+        elif selcombo(self.combo):
             return
         elif mousepos[0] < lwidth or self.callname == "INFOVIEW":
             if self.callname == "CARDPOCKET":
