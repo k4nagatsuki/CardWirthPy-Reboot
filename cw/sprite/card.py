@@ -883,7 +883,7 @@ class EnemyCard(CWPyCard, character.Enemy):
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Enemy.__init__(self)
-        self.deck.set(self)
+        self.deck.set(self, draw=False)
         # カード画像
         path = self.data.gettext("Property/ImagePath", "")
         self.imgpath = cw.util.get_materialpath(path, cw.M_IMG)
@@ -964,7 +964,7 @@ class FriendCard(CWPyCard, character.Friend):
         self.fpath = self.data.fpath
         # CharacterCard初期化
         character.Friend.__init__(self)
-        self.deck.set(self)
+        self.deck.set(self, draw=False)
         # カード画像
         path = self.data.gettext("Property/ImagePath", "")
         self.imgpath = cw.util.get_materialpath(path, cw.M_IMG)

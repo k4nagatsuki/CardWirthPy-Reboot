@@ -1228,36 +1228,60 @@ class Character(object):
         pvals = []
         def add_pval(val):
             if 0 < val and val < 10:
-                pvals.append(val)
-        add_pval(val1)
-        add_pval(val2)
+                pvals.append(int(val))
 
-        def addval(header, val):
+        def addval(header, val, using=False):
             if name == "defense":
-                if header.type == "BeastCard":
+                val = int(val)
+                if header.type == "SkillCard":
+                    # 特殊技能使用
+                    assert using
+                    level = header.get_vocation_level(self, enhance_act=False)
+                    if 2 <= level:
+                        val = val * 120 // 100
+                    add_pval(val)
+                elif header.type == "ItemCard" and using:
+                    # アイテム使用
+                    add_pval(val)
+                elif header.type == "ItemCard":
+                    # アイテム所持
+                    level = header.get_vocation_level(self, enhance_act=False)
+                    if val < 0:
+                        if 3 <= level:
+                            val = val * 80 // 100
+                        elif level <= 0:
+                            val = val * 150 // 100
+                        add_pval(val)
+                    elif 0 < val:
+                        if level <= 0:
+                            val = val * 50 // 100
+                        elif level <= 1:
+                            val = val * 80 // 100
+                        add_pval(val)
+                elif header.type == "BeastCard":
+                    # 召喚獣所持
                     add_pval(val)
                 else:
-                    level = header.get_vocation_level(self, enhance_act=False)
-                    if level <= 0:
-                        add_pval(val * 0.5)
-                    elif level <= 1:
-                        add_pval(val * 0.75)
-                    else:
-                        add_pval(val)
+                    assert header.type == "ActionCard"
+                    add_pval(val)
             else:
                 val = self._calc_enhancevalue(header, val)
                 add_pval(val)
             val = int(val)
             seq.append(val)
 
-        for header in itertools.chain(self.get_pocketcards(cw.POCKET_ITEM), self.get_pocketcards(cw.POCKET_BEAST)):
-            val3 = header.get_enhance_val()[enhindex]
-            addval(header, val3)
-
         if self.actiondata and self.actiondata[1]:
             header = self.actiondata[1]
             val4 = header.get_enhance_val_used()[enhindex]
-            addval(header, val4)
+            addval(header, val4, True)
+
+        for header in itertools.chain(self.get_pocketcards(cw.POCKET_BEAST),
+                                      self.get_pocketcards(cw.POCKET_ITEM)):
+            val3 = header.get_enhance_val()[enhindex]
+            addval(header, val3)
+
+        add_pval(val1)
+        add_pval(val2)
 
         a = 0
         b = 0
@@ -1296,15 +1320,14 @@ class Character(object):
         pvalr = 100
         for pval in reversed(pvals):
             pvalr *= 10
-            pvalr *= int(10-pval)
+            pvalr *= 10-pval
             pvalr //= 100
 
         if pvalr < 1:
-            # 防御修正でn1,n2,n3,...の値がある時、
-            # (1-n1/10)*(1-n2/10)*...の結果が0.01未満になれば
-            # +10効果を得られる。
-            # ただし召喚獣カード以外のカードは
-            # 適性レベル1の時に修正値を50%、レベル2で75%にして計算する
+            # 防御修正でn[1],n[2],n[3],...,n[N]の値がある時、
+            # (1-n[N]/10)*(1-n[N-1]/10)*...,(1-n[1]/10)の結果が
+            # 0.01未満になれば+10効果を得られる(計算途中の誤差は切り捨て)。
+            # ただし適性による変動がある
             max10 += 1
 
         if max10 < 3:
