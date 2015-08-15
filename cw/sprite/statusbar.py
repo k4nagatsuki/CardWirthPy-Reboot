@@ -759,6 +759,8 @@ class Desc(base.CWPySprite):
         pygame.draw.polygon(self.image, color, pl)
         pygame.draw.aalines(self.image, linecolor, False, pl)
 
+        self.image.fill((255, 255, 255, 224), special_flags=pygame.locals.BLEND_RGBA_MULT)
+
 class CampButton(StatusBarButton):
     def __init__(self, parent, pos):
         is_pushed = cw.cwpy.areaid in (-4, -5)
@@ -985,7 +987,8 @@ class BacklogButton(StatusBarButton):
         image = cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
         name = cw.cwpy.msgs["message_log"]
         desc = cw.cwpy.msgs["desc_message_log"]
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled)
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled,
+                                 desc=desc)
         self.selectable_on_event = enabled
         if enabled and self.is_selection():
             self.update_image()

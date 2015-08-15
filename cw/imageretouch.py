@@ -839,10 +839,7 @@ def mul_wxalpha(wximg, alpha):
 
 def mul_alpha(image, alpha):
     """alpha/255分まで、imageのアルファ値を減少させる。"""
-    buf = pygame.image.tostring(image, "RGBA")
-    assert len(buf) % 4 == 0
-    buf = _imageretouch.mul_alpha(buf, alpha)
-    image = pygame.image.fromstring(buf, image.get_size(), "RGBA")
+    image.fill((255, 255, 255, alpha), special_flags=pygame.locals.BLEND_RGBA_MULT)
     return image
 
 class Font(object):

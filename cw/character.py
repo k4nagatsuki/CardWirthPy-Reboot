@@ -1225,10 +1225,10 @@ class Character(object):
         val2 = int(initvalue)
         val2 = cw.util.numwrap(val2, -10, 10)
         seq = [val1, val2]
-        pval = [1.0]
+        pvals = []
         def add_pval(val):
             if 0 < val and val < 10:
-                pval[0] *= (10.0-val) / 10.0
+                pvals.append(val)
         add_pval(val1)
         add_pval(val2)
 
@@ -1293,7 +1293,13 @@ class Character(object):
             b = 10 - b
             b = max(maxval, b)
 
-        if pval[0] < 0.01:
+        pvalr = 100
+        for pval in reversed(pvals):
+            pvalr *= 10
+            pvalr *= int(10-pval)
+            pvalr //= 100
+
+        if pvalr < 1:
             # 防御修正でn1,n2,n3,...の値がある時、
             # (1-n1/10)*(1-n2/10)*...の結果が0.01未満になれば
             # +10効果を得られる。

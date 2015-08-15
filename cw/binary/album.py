@@ -219,7 +219,7 @@ class Album(base.CWBinaryBase):
         f.write_word(resist)
         f.write_word(defense)
         f.write_dword(0)
-        f.write_string("TEXT\n" + description, True)
+        f.write_string("TEXT\n" + (description if description else u""), True)
         f.write_dword(len(coupons))
         for cp in coupons:
             coupon.Coupon.unconv(f, cp)
