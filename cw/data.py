@@ -1060,15 +1060,15 @@ class YadoData(object):
         self.money = int(self.environment.getroot().find("Property/Cashbox").text)
 
         # スキン
-        self.skinname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skinname)
-        if not self.skinname or not os.path.isfile(cw.util.join_paths("Data/Skin", self.skinname, "Skin.xml")):
-            self.skinname = cw.cwpy.setting.skinname
+        self.skindirname = self.environment.gettext("Property/Skin", cw.cwpy.setting.skindirname)
+        if not self.skindirname or not os.path.isfile(cw.util.join_paths("Data/Skin", self.skindirname, "Skin.xml")):
+            self.skindirname = cw.cwpy.setting.skindirname
             e = self.environment.find("Property/Skin")
             if e is None:
-                e = make_element("Skin", self.skinname)
+                e = make_element("Skin", self.skindirname)
                 self.environment.append("Property", e)
             else:
-                self.environment.edit("Property/Skin", self.skinname)
+                self.environment.edit("Property/Skin", self.skindirname)
 
         dataversion = self.environment.getattr(".", "dataVersion", 0)
         if dataversion < 1:
@@ -1292,14 +1292,14 @@ class YadoData(object):
     def is_changed(self):
         return self._changed
 
-    def set_skinname(self, skinname):
-        self.skinname = skinname
+    def set_skinname(self, skindirname):
+        self.skindirname = skindirname
         e = self.environment.find("Property/Skin")
         if e is None:
             prop = self.environment.find("Property")
-            prop.append(make_element("Skin", skinname))
+            prop.append(make_element("Skin", skindirname))
         else:
-            e.text = skinname
+            e.text = skindirname
         self.environment.is_edited = True
 
     def load_party(self, header=None):

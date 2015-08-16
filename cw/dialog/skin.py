@@ -162,6 +162,8 @@ class SkinConversionDialog(wx.Dialog):
                     targ = os.path.join(os.path.dirname(self.conv.exe), self.conv.yadodir)
 
                 exists = set()
+                if not os.path.isdir(u"Yado"):
+                    os.makedirs(u"Yado")
                 for fpath in os.listdir(u"Yado"):
                     fpath = cw.util.join_paths(u"Yado", fpath)
                     exists.add(os.path.normcase(os.path.abspath(os.path.normpath(cw.util.get_linktarget(fpath)))))

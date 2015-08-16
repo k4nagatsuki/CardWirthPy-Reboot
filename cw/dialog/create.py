@@ -1550,6 +1550,7 @@ class YadoCreater(wx.Dialog):
         choices = []
         self.command0s = []
         self.cautions = []
+        self.skindirnames = []
         for name in os.listdir(u"Data/Skin"):
             path = cw.util.join_paths(u"Data/Skin", name)
             skinpath = cw.util.join_paths(u"Data/Skin", name, u"Skin.xml")
@@ -1560,6 +1561,7 @@ class YadoCreater(wx.Dialog):
                     choices.append(prop.properties[u"Name"])
                     self.command0s.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Card/COMMAND0"), cw.M_IMG), None])
                     self.cautions.append([cw.util.find_resource(cw.util.join_paths(path, u"Resource/Image/Dialog/CAUTION"), cw.M_IMG), None])
+                    self.skindirnames.append(name)
                 except Exception:
                     # エラーのあるスキンは無視
                     cw.util.print_ex()
@@ -1567,8 +1569,8 @@ class YadoCreater(wx.Dialog):
         self.skin = wx.Choice(self, size=(cw.wins(150), -1), choices=choices)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.skin.SetFont(font)
-        if cw.cwpy.setting.skindirname in choices:
-            index = choices.index(cw.cwpy.setting.skindirname)
+        if cw.cwpy.setting.skindirname in self.skindirnames:
+            index = self.skindirnames.index(cw.cwpy.setting.skindirname)
             self.skin.Select(index)
         else:
             self.skin.Select(0)
@@ -1582,7 +1584,7 @@ class YadoCreater(wx.Dialog):
 
     def create_yado(self):
         name = self.textctrl.GetValue().strip()
-        skindirname = self.skin.GetItems()[self.skin.GetSelection()]
+        skindirname = self.skindirnames[self.skin.GetSelection()]
         self.yadodir = cw.util.join_paths("Yado", cw.binary.util.check_filename(name))
         self.yadodir = cw.binary.util.check_duplicate(self.yadodir)
         os.makedirs(self.yadodir)
