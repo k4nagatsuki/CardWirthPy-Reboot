@@ -580,6 +580,7 @@ class CharacterCardImage(CardImage):
                 nameimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
                 if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
                     nameimg1, nameimg2 = nameimg2, nameimg1
+                    nameimg2 = nameimg2.copy()
                 nameimg2 = cw.imageretouch.mul_alpha(nameimg2, 92)
                 for x in xrange(cw.s(5)-1, cw.s(5)+2):
                     for y in xrange(cw.s(5)-1, cw.s(5)+2):
