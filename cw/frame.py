@@ -733,10 +733,13 @@ class Frame(wx.Frame):
 
     def OnERROR(self, event):
         text = event.args.get("text", "")
+        parent = event.args.get("parentdialog", self)
         shutdown = event.args.get("shutdown", False)
-        dlg = cw.dialog.message.ErrorMessage(self, text)
+        dlg = cw.dialog.message.ErrorMessage(parent, text)
         self.move_dlg(dlg)
         dlg.ShowModal()
+        if hasattr(parent, "after_message"):
+            parent.after_message()
 
         if shutdown:
             self.Destroy()
@@ -747,9 +750,12 @@ class Frame(wx.Frame):
         cw.cwpy.play_sound("error")
         if cw.cwpy.setting.noticeimpossibleaction:
             text = event.args.get("text", "")
-            dlg = cw.dialog.message.Message(self, cw.cwpy.msgs["message"], text)
+            parent = event.args.get("parentdialog", self)
+            dlg = cw.dialog.message.Message(parent, cw.cwpy.msgs["message"], text)
             self.move_dlg(dlg)
             dlg.ShowModal()
+            if hasattr(parent, "after_message"):
+                parent.after_message()
         else:
             dlg = None
 
@@ -757,27 +763,23 @@ class Frame(wx.Frame):
 
     def OnMESSAGE(self, event):
         text = event.args.get("text", "")
-        parent = event.args.get("parentdialog", None)
-        if not parent:
-            parent = self
+        parent = event.args.get("parentdialog", self)
         dlg = cw.dialog.message.Message(parent, cw.cwpy.msgs["message"], text)
         self.move_dlg(dlg)
         dlg.ShowModal()
-        self.kill_dlg(dlg)
         if hasattr(parent, "after_message"):
             parent.after_message()
+        self.kill_dlg(dlg)
 
     def OnYESNO(self, event):
         text = event.args.get("text", "")
-        parent = event.args.get("parentdialog", None)
-        if not parent:
-            parent = self
+        parent = event.args.get("parentdialog", self)
         dlg = cw.dialog.message.YesNoMessage(parent, cw.cwpy.msgs["message"], text)
         self.move_dlg(dlg)
         cw.cwpy._yesnoresult = dlg.ShowModal()
-        self.kill_dlg(dlg)
         if hasattr(parent, "after_message"):
             parent.after_message()
+        self.kill_dlg(dlg)
 
     def move_dlg(self, dlg, point=(0, 0)):
         """引数のダイアログをゲーム画面中央に移動させる。
