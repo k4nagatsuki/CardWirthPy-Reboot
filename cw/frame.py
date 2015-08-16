@@ -764,6 +764,8 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
         dlg.ShowModal()
         self.kill_dlg(dlg)
+        if hasattr(parent, "after_message"):
+            parent.after_message()
 
     def OnYESNO(self, event):
         text = event.args.get("text", "")
@@ -774,6 +776,8 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
         cw.cwpy._yesnoresult = dlg.ShowModal()
         self.kill_dlg(dlg)
+        if hasattr(parent, "after_message"):
+            parent.after_message()
 
     def move_dlg(self, dlg, point=(0, 0)):
         """引数のダイアログをゲーム画面中央に移動させる。

@@ -135,6 +135,8 @@ class CardControl(wx.Dialog):
 
         self._proc = False
 
+        self.toppanel.SetFocusIgnoringChildren()
+
         if drawcards:
             self.draw_cards()
 
@@ -867,6 +869,7 @@ class CardControl(wx.Dialog):
         if self._proc:
             return
         header.negaflag = False
+        self.toppanel.SetFocusIgnoringChildren()
 
         if header in cw.cwpy.sdata.infocards:
             dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
@@ -890,7 +893,7 @@ class CardControl(wx.Dialog):
                 if isinstance(owner, cw.character.Character):
                     owner.throwaway_card(header)
                 else:
-                # デバッガから配布した召喚獣を、荷物袋から処分する場合
+                    # デバッガから配布した召喚獣を、荷物袋から処分する場合
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True)
 
             dlg.Destroy()
@@ -955,6 +958,9 @@ class CardControl(wx.Dialog):
         # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
+
+    def after_message(self):
+        self.toppanel.SetFocusIgnoringChildren()
 
     def check_using(self, owner, header):
         # 行動不能だったら使用不可
