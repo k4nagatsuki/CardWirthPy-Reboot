@@ -734,6 +734,8 @@ class Frame(wx.Frame):
     def OnERROR(self, event):
         text = event.args.get("text", "")
         parent = event.args.get("parentdialog", self)
+        if not parent:
+            parent = self
         shutdown = event.args.get("shutdown", False)
         dlg = cw.dialog.message.ErrorMessage(parent, text)
         self.move_dlg(dlg)
@@ -751,6 +753,8 @@ class Frame(wx.Frame):
         if cw.cwpy.setting.noticeimpossibleaction:
             text = event.args.get("text", "")
             parent = event.args.get("parentdialog", self)
+            if not parent:
+                parent = self
             dlg = cw.dialog.message.Message(parent, cw.cwpy.msgs["message"], text)
             self.move_dlg(dlg)
             dlg.ShowModal()
@@ -764,6 +768,8 @@ class Frame(wx.Frame):
     def OnMESSAGE(self, event):
         text = event.args.get("text", "")
         parent = event.args.get("parentdialog", self)
+        if not parent:
+            parent = self
         dlg = cw.dialog.message.Message(parent, cw.cwpy.msgs["message"], text)
         self.move_dlg(dlg)
         dlg.ShowModal()
@@ -774,6 +780,8 @@ class Frame(wx.Frame):
     def OnYESNO(self, event):
         text = event.args.get("text", "")
         parent = event.args.get("parentdialog", self)
+        if not parent:
+            parent = self
         dlg = cw.dialog.message.YesNoMessage(parent, cw.cwpy.msgs["message"], text)
         self.move_dlg(dlg)
         cw.cwpy._yesnoresult = dlg.ShowModal()
