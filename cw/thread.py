@@ -1560,8 +1560,8 @@ class CWPy(_Singleton, threading.Thread):
         else:
             areaid = 1
 
-        if self.setting.store_skinoneachbase and self.ydata.skinname <> cw.cwpy.setting.skinname:
-            self.update_skin(self.ydata.skinname, changearea=False)
+        if self.setting.store_skinoneachbase and self.ydata.skindirname <> cw.cwpy.setting.skindirname:
+            self.update_skin(self.ydata.skindirname, changearea=False)
 
         self.change_area(areaid)
 
@@ -1575,8 +1575,8 @@ class CWPy(_Singleton, threading.Thread):
         self.set_status("Scenario")
         self.battle = None
 
-        if self.setting.store_skinoneachbase and self.ydata.skinname <> cw.cwpy.setting.skinname:
-            self.update_skin(self.ydata.skinname, changearea=False)
+        if self.setting.store_skinoneachbase and self.ydata.skindirname <> cw.cwpy.setting.skindirname:
+            self.update_skin(self.ydata.skindirname, changearea=False)
 
         if header and not isinstance(self.sdata, cw.data.ScenarioData):
             def load_failure():

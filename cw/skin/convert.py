@@ -1033,6 +1033,8 @@ class Converter(threading.Thread):
                 imgtbl["MARK_STATUS1"] = "Dialog/STATUS0"
                 imgtbl["MARK_STATUS2"] = "Dialog/STATUS5"
                 imgtbl["MARK_STATUS3"] = "Dialog/STATUS6"
+                imgtbl["MARK_HAND9"] = "Dialog/RARE_ICON"
+                imgtbl["MARK_HAND10"] = "Dialog/PREMIER_ICON"
 
                 glyphtbl = {
                     "TMAINWINDOW/MainWindow/DebugBtn/Glyph.Data":"Dialog/STATUS12",

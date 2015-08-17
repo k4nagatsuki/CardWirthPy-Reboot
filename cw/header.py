@@ -139,6 +139,7 @@ class CardHeader(object):
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
         self._bordering_cardname = cw.cwpy.setting.bordering_cardname
+        self._show_premiumicon = cw.cwpy.setting.show_premiumicon
 
         # スキルカードと召喚獣カードは価格固定
         if self.type == "SkillCard":
@@ -215,6 +216,7 @@ class CardHeader(object):
         self._wxcardscale = cw.UP_WIN
         self._skindirname = cw.cwpy.setting.skindirname
         self._bordering_cardname = cw.cwpy.setting.bordering_cardname
+        self._show_premiumicon = cw.cwpy.setting.show_premiumicon
 
     def get_owner(self):
         if self._owner == "BACKPACK":
@@ -244,7 +246,8 @@ class CardHeader(object):
         if not self._cardimg or self._cardscale <> cw.UP_SCR or\
                 self._wxcardscale <> cw.UP_WIN or\
                 self._skindirname <> cw.cwpy.setting.skindirname or\
-                self._bordering_cardname <> cw.cwpy.setting.bordering_cardname:
+                self._bordering_cardname <> cw.cwpy.setting.bordering_cardname or\
+                self._show_premiumicon <> cw.cwpy.setting.show_premiumicon:
             self.set_cardimg(self.imgpath)
         return self._cardimg
 

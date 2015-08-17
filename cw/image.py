@@ -84,19 +84,20 @@ class CardImage(Image):
         w = image.get_width()
         h = image.get_height()
 
-        # プレミア画像
-        if self.premium == "Rare":
-            subimg = cw.cwpy.rsrc.cardbgs["RARE"]
-            sw = subimg.get_width()
-            sh = subimg.get_height()
-            image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
-            image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
-        elif self.premium == "Premium":
-            subimg = cw.cwpy.rsrc.cardbgs["PREMIER"]
-            sw = subimg.get_width()
-            sh = subimg.get_height()
-            image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
-            image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
+        if not cw.cwpy.setting.show_premiumicon:
+            # プレミア画像
+            if self.premium == "Rare":
+                subimg = cw.cwpy.rsrc.cardbgs["RARE"]
+                sw = subimg.get_width()
+                sh = subimg.get_height()
+                image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
+                image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
+            elif self.premium == "Premium":
+                subimg = cw.cwpy.rsrc.cardbgs["PREMIER"]
+                sw = subimg.get_width()
+                sh = subimg.get_height()
+                image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
+                image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
         pisc = cw.binary.image.path_is_code(self.path)
         if pisc:
@@ -152,6 +153,7 @@ class CardImage(Image):
         if not hasattr(header, "type"):
             return image
 
+        uselimith = cw.s(0)
         if header.type in ("ItemCard", "BeastCard"):
             uselimit, maxn = header.get_uselimit()
 
@@ -179,19 +181,23 @@ class CardImage(Image):
                     subimg = font.render(c, True, colour)
                     image.blit(subimg, pos)
                     pos = pos[0] + cw.s(10), pos[1]
+                uselimith = cw.s(font.get_height() - 2)
 
         owner = header.get_owner()
+        icony = cw.s(90)
         if isinstance(owner, cw.character.Character):
             # 適性値
             key = "HAND" + str(header.get_showed_vocation_level(owner))
             subimg = cw.cwpy.rsrc.stones[key]
             image.blit(subimg, cw.s((60, 90)))
+            icony -= cw.s(15)
 
             # 使用回数(画像)
             if header.type == "SkillCard":
                 key = "HAND" + str(header.get_uselimit_level() + 5)
                 subimg = cw.cwpy.rsrc.stones[key]
                 image.blit(subimg, cw.s((60, 75)))
+                icony -= cw.s(15)
 
             # ホールド
             if header.ref_original() and header.ref_original().is_hold():
@@ -207,6 +213,30 @@ class CardImage(Image):
             if owner.is_autoselectedpenalty(header):
                 subimg = cw.cwpy.rsrc.pygamedialogs["FIXED"]
                 image.blit(subimg, cw.s((20, 0)))
+
+        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or\
+                                             (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
+            # 種別アイコン(カード置場・荷物袋・移動中)
+            if header.type == "SkillCard":
+                icon = cw.cwpy.rsrc.pygamedialogs["STATUS8"]
+            elif header.type == "ItemCard":
+                icon = cw.cwpy.rsrc.pygamedialogs["STATUS9"]
+            elif header.type == "BeastCard":
+                icon = cw.cwpy.rsrc.pygamedialogs["STATUS10"]
+            else:
+                icon = None
+            if icon:
+                image.blit(icon, (cw.s(60), icony))
+
+        if cw.cwpy.setting.show_premiumicon:
+            if header.premium == "Premium":
+                icon = cw.cwpy.rsrc.pygamedialogs["PREMIER_ICON"]
+            elif header.premium == "Rare":
+                icon = cw.cwpy.rsrc.pygamedialogs["RARE_ICON"]
+            else:
+                icon = None
+            if icon:
+                image.blit(icon, (cw.s(5), cw.s(90)-uselimith))
 
         return image
 
@@ -237,19 +267,20 @@ class CardImage(Image):
         dc.SelectObject(bmp)
         dc.DrawBitmap(self.wxcardbg, 0, 0, False)
 
-        # プレミア画像
-        if self.premium == "Rare":
-            subimg = cw.cwpy.rsrc.wxcardbgs["RARE"]
-            sw = subimg.GetWidth()
-            sh = subimg.GetHeight()
-            dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
-            dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
-        elif self.premium == "Premium":
-            subimg = cw.cwpy.rsrc.wxcardbgs["PREMIER"]
-            sw = subimg.GetWidth()
-            sh = subimg.GetHeight()
-            dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
-            dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
+        if not cw.cwpy.setting.show_premiumicon:
+            # プレミア画像
+            if self.premium == "Rare":
+                subimg = cw.cwpy.rsrc.wxcardbgs["RARE"]
+                sw = subimg.GetWidth()
+                sh = subimg.GetHeight()
+                dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
+                dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
+            elif self.premium == "Premium":
+                subimg = cw.cwpy.rsrc.wxcardbgs["PREMIER"]
+                sw = subimg.GetWidth()
+                sh = subimg.GetHeight()
+                dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
+                dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
         pisc = cw.binary.image.path_is_code(self.path)
         if pisc:
@@ -306,6 +337,7 @@ class CardImage(Image):
         dc = wx.MemoryDC()
         dc.SelectObject(image)
 
+        uselimith = cw.wins(0)
         if header.type in ("ItemCard", "BeastCard"):
             uselimit, maxn = header.get_uselimit()
 
@@ -336,19 +368,23 @@ class CardImage(Image):
 
                     dc.DrawText(c, pos[0], pos[1])
                     pos = pos[0] + cw.wins(10), pos[1]
+                uselimith = cw.wins(pixelsize - 2)
 
         owner = header.get_owner()
+        icony = cw.wins(90)
         if isinstance(owner, cw.character.Character):
             # 適性値
             key = "HAND" + str(header.get_showed_vocation_level(owner))
             subimg = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(subimg, cw.wins(60), cw.wins(90), True)
+            icony -= cw.wins(15)
 
             # 使用回数(画像)
             if header.type == "SkillCard":
                 key = "HAND" + str(header.get_uselimit_level() + 5)
                 subimg = cw.cwpy.rsrc.wxstones[key]
                 dc.DrawBitmap(subimg, cw.wins(60), cw.wins(75), True)
+                icony -= cw.wins(15)
 
             # ホールド
             if header.ref_original() and header.ref_original().is_hold():
@@ -364,6 +400,30 @@ class CardImage(Image):
             if owner.is_autoselectedpenalty(header):
                 subimg = cw.cwpy.rsrc.dialogs["FIXED"]
                 dc.DrawBitmap(subimg, cw.wins(20), cw.wins(0), True)
+
+        if cw.cwpy.setting.show_cardkind and (not isinstance(owner, cw.character.Character) or\
+                                             (cw.cwpy.selectedheader == header and cw.cwpy.areaid in cw.AREAS_TRADE)):
+            # 種別アイコン(カード置場・荷物袋・移動中)
+            if header.type == "SkillCard":
+                icon = cw.cwpy.rsrc.dialogs["STATUS8"]
+            elif header.type == "ItemCard":
+                icon = cw.cwpy.rsrc.dialogs["STATUS9"]
+            elif header.type == "BeastCard":
+                icon = cw.cwpy.rsrc.dialogs["STATUS10"]
+            else:
+                icon = None
+            if icon:
+                dc.DrawBitmap(icon, cw.wins(60), icony, True)
+
+        if cw.cwpy.setting.show_premiumicon:
+            if header.premium == "Premium":
+                icon = cw.cwpy.rsrc.dialogs["PREMIER_ICON"]
+            elif header.premium == "Rare":
+                icon = cw.cwpy.rsrc.dialogs["RARE_ICON"]
+            else:
+                icon = None
+            if icon:
+                dc.DrawBitmap(icon, cw.wins(5), cw.wins(90)-uselimith, True)
 
         dc.SelectObject(wx.NullBitmap)
 

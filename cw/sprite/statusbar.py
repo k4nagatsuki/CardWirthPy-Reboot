@@ -13,6 +13,7 @@ class StatusBar(base.CWPySprite):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
         self.yadomoney = None
         self.partymoney = None
+        self.autostart = None
         self.infocards = None
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
@@ -74,51 +75,28 @@ class StatusBar(base.CWPySprite):
             rmargin += cw.s(27)
             DebuggerButton(self, (left, cw.s(3)))
 
-        def create_yadomoney(pos):
-            if self.yadomoney:
-                self.yadomoney.reset(self, pos, cw.s((120, 22)), cw.cwpy.rsrc.pygamedialogs["MONEYY"])
-            else:
-                self.yadomoney = YadoMoneyPanel(self, pos)
-
-        def create_partymoney(pos):
-            if self.partymoney:
-                self.partymoney.reset(self, pos, cw.s((120, 22)), cw.cwpy.rsrc.pygamedialogs["MONEYP"])
-            else:
-                self.partymoney = PartyMoneyPanel(self, pos)
-
-        def create_infocards(pos):
-            if self.infocards:
-                notice = self.infocards.notice
-                self.infocards.reset(pos, cw.cwpy.rsrc.pygamedialogs["INFOVIEW"])
-                if not self.loading and notice <> self.infocards.notice and self.infocards.notice:
-                    cw.animation.start_animation(self.infocards, "blink")
-            else:
-                self.infocards = InfoCardsButton(self, pos)
-                if not self.loading and self.infocards.notice:
-                    cw.animation.start_animation(self.infocards, "blink")
-
         if encounter:
             EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif (cw.cwpy.is_curtained() and cw.cwpy.areaid <> cw.AREA_CAMP) or cw.cwpy.selectedheader:
             if cw.cwpy.status == "Yado":
                 if not cw.cwpy.expanding:
-                    create_yadomoney(cw.s((10, 6)))
+                    self._create_yadomoney(cw.s((10, 6)))
                     if showbuttons:
                         CancelButton(self, cw.s((133, 6)))
                     if cw.cwpy.ydata.party:
-                        create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                        self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             else:
                 if showbuttons:
                     CancelButton(self, cw.s((10, 6)))
                 if cw.cwpy.status == "Scenario":
-                    create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                    self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                 elif cw.cwpy.is_battlestatus():
                     RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Yado":
             if not cw.cwpy.expanding:
-                create_yadomoney(cw.s((10, 6)))
+                self._create_yadomoney(cw.s((10, 6)))
             if cw.cwpy.ydata.party:
-                create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+                self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
         elif cw.cwpy.status == "Scenario":
             if showbuttons:
                 lmargin = 10
@@ -126,21 +104,20 @@ class StatusBar(base.CWPySprite):
                 lmargin += 123
                 TableButton(self, cw.s((lmargin, 6)))
                 lmargin += 123
-            create_partymoney((cw.s(474) - rmargin, cw.s(6)))
+            self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
             if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards:
-                create_infocards((cw.s(474) - rmargin, cw.s(3)))
+                self._create_infocards((cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
             if cw.cwpy.setting.show_roundautostartbutton:
-                autostart = AutoStartButton(self, cw.s((5, 3)))
+                self._create_autostart(cw.s((5, 3)))
                 left = cw.s(36)
             else:
-                autostart = None
                 left = cw.s(10)
             if showbuttons:
                 btn = ActionButton(self, (left, cw.s((6))))
-                if autostart:
-                    autostart.actionbtn = btn
+                if self.autostart:
+                    self.autostart.actionbtn = btn
                 RunAwayButton(self, (cw.s(123) + left, cw.s((6))))
             RoundCounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
@@ -159,6 +136,35 @@ class StatusBar(base.CWPySprite):
     def clear(self):
         cw.cwpy.sbargrp.empty()
         cw.cwpy.sbargrp.add(self)
+
+    def _create_autostart(self, pos):
+        if self.autostart:
+            self.autostart.reset(pos)
+        else:
+            self.autostart = AutoStartButton(self, pos)
+
+    def _create_yadomoney(self, pos):
+        if self.yadomoney:
+            self.yadomoney.reset(self, pos, cw.s((120, 22)))
+        else:
+            self.yadomoney = YadoMoneyPanel(self, pos)
+
+    def _create_partymoney(self, pos):
+        if self.partymoney:
+            self.partymoney.reset(self, pos, cw.s((120, 22)))
+        else:
+            self.partymoney = PartyMoneyPanel(self, pos)
+
+    def _create_infocards(self, pos):
+        if self.infocards:
+            notice = self.infocards.notice
+            self.infocards.reset(pos)
+            if not self.loading and notice <> self.infocards.notice and self.infocards.notice:
+                cw.animation.start_animation(self.infocards, "blink")
+        else:
+            self.infocards = InfoCardsButton(self, pos)
+            if not self.loading and self.infocards.notice:
+                cw.animation.start_animation(self.infocards, "blink")
 
 class ProgressView(base.CWPySprite):
     def __init__(self, parent, pos, size=None, text="", nmax=0, nmin=100, current=0):
@@ -268,9 +274,12 @@ class StatusBarPanel(base.CWPySprite):
     def update_image(self):
         pass
 
-    def reset(self, parent, pos, size, icon):
+    def get_icon(self):
+        return None
+
+    def reset(self, parent, pos, size):
         self.parent = parent
-        self._create_paneimg(pos, size, icon)
+        self._create_paneimg(pos, size, self.get_icon())
         self.update_image()
 
     def set_backcolor(self, color):
@@ -327,6 +336,9 @@ class YadoMoneyPanel(StatusBarPanel):
         self.currency = "%s"
         self.up_scr = 0
         self.update(None)
+
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["MONEYY"]
 
     def need_update(self, text, currency):
         return self.text <> text or self.currency <> currency or self.up_scr <> cw.UP_SCR
@@ -390,6 +402,9 @@ class PartyMoneyPanel(YadoMoneyPanel):
         self.currency = "%s"
         self.up_scr = 0
         self.update(None)
+
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["MONEYP"]
 
     def get_money(self):
         return cw.cwpy.ydata.party.money if cw.cwpy.ydata and cw.cwpy.ydata.party else 0
@@ -515,9 +530,15 @@ class StatusBarButton(base.SelectableSprite):
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer="button")
 
-    def reset(self, pos, icon):
-        self._create_paneimg(pos, icon)
+    def get_icon(self):
+        return None
+
+    def reset(self, pos):
+        self._create_paneimg(pos, self.get_icon())
         self._upscr = 0
+        if self._desc:
+            cw.cwpy.sbargrp.remove(self._desc)
+            self._desc = None
         self.update(None)
 
     def _is_notice(self):
@@ -874,6 +895,9 @@ class ShowFriendCardsButton(StatusBarButton):
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
+    def get_icon(self):
+        return cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST"])
+
     def update(self, scr):
         self.update_selection()
 
@@ -904,6 +928,9 @@ class AutoStartButton(StatusBarButton):
         self.selectable_on_event = True
         self.actionbtn = None
         self.is_showing = cw.cwpy.is_battlestatus
+
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["AUTO_START"]
 
     def update(self, scr):
         self.update_selection()
@@ -943,10 +970,13 @@ class InfoCardsButton(StatusBarButton):
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
-    def reset(self, pos, icon):
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["INFOVIEW"]
+
+    def reset(self, pos):
         self.notice = cw.cwpy.sdata.notice_infoview
         self.number = len(cw.cwpy.sdata.infocards)
-        StatusBarButton.reset(self, pos, icon)
+        StatusBarButton.reset(self, pos)
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
@@ -964,6 +994,9 @@ class SettingsButton(StatusBarButton):
         if self.is_selection():
             self.update_image()
 
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
+
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
         cw.cwpy.eventhandler.f2key_event()
@@ -977,6 +1010,9 @@ class DebuggerButton(StatusBarButton):
         self.selectable_on_event = True
         if self.is_selection():
             self.update_image()
+
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["STATUS12"]
 
     def lclick_event(self):
         StatusBarButton.lclick_event(self)
@@ -992,6 +1028,9 @@ class BacklogButton(StatusBarButton):
         self.selectable_on_event = enabled
         if enabled and self.is_selection():
             self.update_image()
+
+    def get_icon(self):
+        return cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
 
     def lclick_event(self):
         if not self.enabled:

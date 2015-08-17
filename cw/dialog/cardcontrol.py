@@ -753,6 +753,9 @@ class CardControl(wx.Dialog):
             else:
                 y -= cw.wins(16)
 
+        if cw.cwpy.setting.show_cardkind and self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+            y -= cw.wins(16)
+
         return wx.Rect(x-cw.wins(4), y-cw.wins(4), sw+cw.wins(8), sh+cw.wins(8)), x, y
 
     def draw(self, update=True):

@@ -1233,6 +1233,7 @@ class Character(object):
         def addval(header, val, using=False):
             if name == "defense":
                 val = int(val)
+                val2 = val
                 if header.type == "SkillCard":
                     # 特殊技能使用
                     assert using
@@ -1240,6 +1241,7 @@ class Character(object):
                     if 2 <= level:
                         val = val * 120 // 100
                     add_pval(val)
+                    val = val2
                 elif header.type == "ItemCard" and using:
                     # アイテム使用
                     add_pval(val)

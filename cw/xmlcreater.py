@@ -553,6 +553,14 @@ def create_settings(setting):
     if setting.protect_premiercard <> setting.protect_premiercard_init:
         e = cw.data.make_element("ProtectPremierCard", str(setting.protect_premiercard))
         element.append(e)
+    # カード置場と荷物袋でカードの種類を表示する
+    if setting.show_cardkind <> setting.show_cardkind_init:
+        e = cw.data.make_element("ShowCardKind", str(setting.show_cardkind))
+        element.append(e)
+    # カードの希少度をアイコンで表示する
+    if setting.show_premiumicon <> setting.show_premiumicon_init:
+        e = cw.data.make_element("ShowPremiumIcon", str(setting.show_premiumicon))
+        element.append(e)
 
     # ファイル書き込み
     path = "Settings.xml"

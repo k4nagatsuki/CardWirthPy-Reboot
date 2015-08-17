@@ -261,6 +261,7 @@ class SettingsPanel(wx.Panel):
         self.note.AddPage(self.pane_font, u"フォント")
         self.note.AddPage(self.pane_scenario, u"シナリオ")
         self.note.AddPage(self.pane_ui, u"詳細")
+        self.pane_gene.skin.pane_scenario = self.pane_scenario
 
         create_versioninfo(self)
 
@@ -385,6 +386,8 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal_init)
             self.pane_ui.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards_init)
             self.pane_ui.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime_init)
+            self.pane_ui.cb_show_cardkind.SetValue(cw.cwpy.setting.show_cardkind_init)
+            self.pane_ui.cb_show_premiumicon.SetValue(cw.cwpy.setting.show_premiumicon_init)
             self.pane_ui.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton_init)
             self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
             self.pane_ui.cb_protect_staredcard.SetValue(cw.cwpy.setting.protect_staredcard_init)
@@ -703,6 +706,14 @@ class SettingsPanel(wx.Panel):
         if cw.cwpy.setting.show_statustime <> value:
             cw.cwpy.setting.show_statustime = value
             updatecardimg = True
+        value = self.pane_ui.cb_show_cardkind.GetValue()
+        if cw.cwpy.setting.show_cardkind <> value:
+            cw.cwpy.setting.show_cardkind = value
+            updatemcardimg = True
+        value = self.pane_ui.cb_show_premiumicon.GetValue()
+        if cw.cwpy.setting.show_premiumicon <> value:
+            cw.cwpy.setting.show_premiumicon = value
+            updatemcardimg = True
 
         value = self.pane_ui.cb_showlogwithwheelup.GetValue()
         if value:
@@ -818,6 +829,7 @@ class SkinPanel(wx.Panel):
         """スキンの選択と編集を行う。"""
         wx.Panel.__init__(self, parent)
         self.editbuttons = editbuttons
+        self.pane_scenario = None
 
         # スキン
         self.ch_skin = wx.Choice(self, -1, size=(-1, -1))
@@ -904,6 +916,8 @@ class SkinPanel(wx.Panel):
         dlg.ShowModal()
         if dlg.successful:
             self.update_skins(dlg.skindirname)
+            if self.pane_scenario:
+                self.pane_scenario.celleditor = None
         dlg.Destroy()
 
     def OnEditSkin(self, event):
@@ -915,6 +929,8 @@ class SkinPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             self.skin_summarys[skin] = dlg.skinsummary
             self._choice_skin()
+            if self.pane_scenario:
+                self.pane_scenario.celleditor = None
         dlg.Destroy()
 
     def OnDeleteSkin(self, event):
@@ -930,6 +946,8 @@ class SkinPanel(wx.Panel):
             dpath = cw.util.join_paths(u"Data/Skin", skin)
             cw.util.remove(dpath)
             self.update_skins(cw.cwpy.setting.skindirname)
+            if self.pane_scenario:
+                self.pane_scenario.celleditor = None
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -953,6 +971,8 @@ class SkinPanel(wx.Panel):
         skinname = self.ch_skin.GetSelection()
         skinname = self.skins[skinname]
         if forceupdate or cw.cwpy.setting.skindirname <> skinname:
+            if self.editbuttons:
+                self.btn_deleteskin.Disable()
             cw.cwpy.exec_func(cw.cwpy.update_skin, skinname, restartop=cw.cwpy.setting.skindirname <> skinname)
             return True
         return False
@@ -1889,6 +1909,12 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showstatustime = wx.CheckBox(
             self, -1, u"状態の残り時間をカード上に表示する")
         self.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime)
+        self.cb_show_cardkind = wx.CheckBox(
+            self, -1, u"カード置場と荷物袋でカードの種類を表示する")
+        self.cb_show_cardkind.SetValue(cw.cwpy.setting.show_cardkind)
+        self.cb_show_premiumicon = wx.CheckBox(
+            self, -1, u"カードの希少度をアイコンで表示する")
+        self.cb_show_premiumicon.SetValue(cw.cwpy.setting.show_premiumicon)
 
         # インタフェースオプション
         self.box_gene = wx.StaticBox(self, -1, u"操作")
@@ -1995,6 +2021,8 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_draw.Add(self.cb_allquickdeal, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.Add(self.cb_showallselectedcards, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.Add(self.cb_showstatustime, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_draw.Add(self.cb_show_cardkind, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_draw.Add(self.cb_show_premiumicon, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)

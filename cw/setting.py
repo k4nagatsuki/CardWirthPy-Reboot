@@ -156,6 +156,8 @@ class Setting(object):
         self.show_btndesc = True
         self.protect_staredcard = True
         self.protect_premiercard = True
+        self.show_cardkind = True
+        self.show_premiumicon = False
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -509,6 +511,10 @@ class Setting(object):
         self.protect_staredcard = data.getbool("ProtectStaredCard", self.protect_staredcard)
         # プレミアカードの売却や破棄を禁止する
         self.protect_premiercard = data.getbool("ProtectPremierCard", self.protect_premiercard)
+        # カード置場と荷物袋でカードの種類を表示する
+        self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind)
+        # カードの希少度をアイコンで表示する
+        self.show_premiumicon = data.getbool("ShowPremiumIcon", self.show_premiumicon)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
