@@ -69,7 +69,8 @@ class SelectableSprite(CWPySprite):
             if self is cw.cwpy.list[cw.cwpy.index]:
                 return True
 
-        elif self.rect.collidepoint(cw.cwpy.mousepos):
+        elif 0 <= cw.cwpy.mousepos[0] and 0 <= cw.cwpy.mousepos[1] and\
+                self.rect.collidepoint(cw.cwpy.mousepos):
             return True
 
         return False
