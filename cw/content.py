@@ -1978,7 +1978,7 @@ class GetContent(EventContentBase):
                 etree = cw.data.xml2etree(path, nocache=True)
                 get_card(etree, target, from_getcontent=True)
 
-def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom="", fromdebugger=False, from_getcontent=False):
+def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom="", fromdebugger=False, from_getcontent=False, attachment=False):
     """対象インスタンスにカードを配布する。cwpy.trade()参照。
     etree: ElementTree or Element
     target: Character or list(Backpack, Storehouse)
@@ -2000,8 +2000,6 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
     if etree.getroot().tag == "BeastCard":
         if not notscenariocard or fromdebugger or from_getcontent:
             attachment = True
-        else:
-            attachment = False
 
         if etree.gettext("Property/UseLimit") == "0":
             recycle = u"リサイクル" in cw.util.decodetextlist(etree.gettext("Property/KeyCodes"))

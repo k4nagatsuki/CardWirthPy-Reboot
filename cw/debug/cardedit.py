@@ -473,17 +473,18 @@ class CardEditDialog(wx.Dialog):
                 index = self._indexof(matcher, owner, data)
                 if isinstance(data, cw.header.CardHeader):
                     order = data.order
-                self._remove(owner, data, index)
+                header2 = self._remove(owner, data, index)
 
                 header, data = self.target_cards[matcher]
                 data = cw.data.copydata(data)
                 name = data.gettext("Property/Name", "")
+                attachment = header2.attachment if header2.type == "BeastCard" else False
                 if cw.cwpy.ydata.storehouse is owner:
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir)
+                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment)
                 elif isinstance(owner, cw.data.Party):
-                    cw.content.get_card(data, owner.backpack, notscenariocard=notscenariocard, toindex=index, insertorder=order, party=owner, copymaterialfrom=header.scedir)
+                    cw.content.get_card(data, owner.backpack, notscenariocard=notscenariocard, toindex=index, insertorder=order, party=owner, copymaterialfrom=header.scedir, attachment=attachment)
                 elif isinstance(owner, cw.character.Character):
-                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir)
+                    cw.content.get_card(data, owner, notscenariocard=notscenariocard, toindex=index, insertorder=order, copymaterialfrom=header.scedir, attachment=attachment)
                 else:
                     assert False
 
@@ -567,9 +568,11 @@ class CardEditDialog(wx.Dialog):
         if isinstance(owner, cw.data.Party):
             header = data
             cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True, sort=False, party=owner)
+            return header
         elif isinstance(owner, list):
             header = owner[index]
             cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True, sort=False)
+            return header
         elif isinstance(owner, cw.character.Character):
             if isinstance(data, cw.header.CardHeader):
                 header = data
@@ -581,6 +584,7 @@ class CardEditDialog(wx.Dialog):
                 elif data.tag == "BeastCard":
                     header = owner.cardpocket[cw.POCKET_BEAST][index]
             cw.cwpy.trade(targettype="TRASHBOX", header=header, from_event=True, sort=False)
+            return header
         else:
             assert False
 
