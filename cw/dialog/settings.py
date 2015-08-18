@@ -210,7 +210,8 @@ class SimpleSettingsPanel(wx.Panel):
         sizer_debug = wx.StaticBoxSizer(self.box_debug, wx.VERTICAL)
         sizer_debug.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         sizer_skin = wx.StaticBoxSizer(self.box_skin, wx.VERTICAL)
-        sizer_skin.Add(self.skin, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        sizer_skin.Add(self.skin, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        sizer_skin.SetMinSize((270, -1))
         sizer_expand = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
         sizer_expand.Add(self.expand, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         sizer_audio = wx.StaticBoxSizer(self.box_audio, wx.VERTICAL)
@@ -854,6 +855,7 @@ class SkinPanel(wx.Panel):
 
     def update_skins(self, skindirname):
         self.skins = []
+        self.skindirs = []
         self.skin_summarys = {}
 
         for name in os.listdir(u"Data/Skin"):
@@ -861,15 +863,20 @@ class SkinPanel(wx.Panel):
             skinpath = cw.util.join_paths(u"Data/Skin", name, "Skin.xml")
 
             if os.path.isdir(path) and os.path.isfile(skinpath):
-                self.skins.append(name)
+                try:
+                    self.skins.append(cw.header.GetName(skinpath).name)
+                    self.skindirs.append(name)
+                except:
+                    # エラーのあるスキンは無視
+                    cw.util.print_ex()
 
         self.ch_skin.SetItems(self.skins)
-        n = self.skins.index(skindirname)
+        n = self.skindirs.index(skindirname)
         self.ch_skin.SetSelection(n)
         self._choice_skin()
 
     def load_allskins(self):
-        for skin in self.skins:
+        for skin in self.skindirs:
             self._load_skinproperties(skin)
 
     def _load_skinproperties(self, name):
@@ -900,13 +907,13 @@ class SkinPanel(wx.Panel):
         self._choice_skin()
 
     def _choice_skin(self):
-        skin = self.skins[self.ch_skin.GetSelection()]
-        s = u"種別: %s\n名前: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
+        skin = self.skindirs[self.ch_skin.GetSelection()]
+        s = u"種別: %s\n場所: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
         if not skin in self.skin_summarys:
             self._load_skinproperties(skin)
-        skintype, skinname, author, desc, _classictext, _vocation120 = self.skin_summarys[skin]
+        skintype, _skinname, author, desc, _classictext, _vocation120 = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
-        self.st_skin.SetLabel(s % (skintype, skinname, author, desc))
+        self.st_skin.SetLabel(s % (skintype, cw.util.join_paths(u"Data/Skin", skin), author, desc))
         if self.editbuttons:
             self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
 
@@ -921,20 +928,20 @@ class SkinPanel(wx.Panel):
         dlg.Destroy()
 
     def OnEditSkin(self, event):
-        skin = self.skins[self.ch_skin.GetSelection()]
+        skin = self.skindirs[self.ch_skin.GetSelection()]
         skinsummary = self.skin_summarys[skin]
         dlg = cw.dialog.skin.SkinEditDialog(self.TopLevelParent, skin, skinsummary)
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
             self.skin_summarys[skin] = dlg.skinsummary
-            self._choice_skin()
+            self.update_skins(skin)
             if self.pane_scenario:
                 self.pane_scenario.celleditor = None
         dlg.Destroy()
 
     def OnDeleteSkin(self, event):
-        skin = self.skins[self.ch_skin.GetSelection()]
+        skin = self.skindirs[self.ch_skin.GetSelection()]
         if cw.cwpy.setting.skindirname == skin:
             return
         s = u"スキンを削除すると元に戻すことはできません。\n%sを削除しますか？" % (skin)
@@ -969,7 +976,7 @@ class SkinPanel(wx.Panel):
 
     def apply_skin(self, forceupdate):
         skinname = self.ch_skin.GetSelection()
-        skinname = self.skins[skinname]
+        skinname = self.skindirs[skinname]
         if forceupdate or cw.cwpy.setting.skindirname <> skinname:
             if self.editbuttons:
                 self.btn_deleteskin.Disable()
