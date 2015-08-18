@@ -364,18 +364,12 @@ class AdventurerData(object):
                     self.set_coupon(coupon[0], coupon[1])
                     break
 
-    def set_attrbutes(self, attrs):
-        for attr in cw.cwpy.setting.makingcoupons:
-            if attr in attrs:
-                self.set_attribute(attr)
-
-    def set_attribute(self, attr):
-        for making in cw.cwpy.setting.makings:
-            if u"＿" + making.name == attr:
-                making.modulate(self)
-                break
-
-        self.set_coupon(attr, 0)
+    def set_attributes(self, attrs):
+        for attr in cw.cwpy.setting.makings:
+            coupon = u"＿" + attr.name
+            if coupon in attrs:
+                attr.modulate(self)
+                self.set_coupon(coupon, 0)
 
     def set_desc(self, talent, attrs):
         desc = create_description(talent, attrs)
@@ -591,9 +585,9 @@ class AdventurerCreater(wx.Dialog):
         data.set_image(s)
         #型と特徴で解説を作る
         data.set_talent(talent)
-        seq = self.page5.get_coupons()
-        data.set_attrbutes(seq)
-        data.set_desc(talent, seq)
+        coupons = self.page5.get_coupons()
+        data.set_attributes(coupons)
+        data.set_desc(talent, coupons)
         #最後に熟練・老獪を付与
         s = self.page1.age
         data.set_aging(s)
@@ -1512,9 +1506,7 @@ class AttrPage(AdventurerCreaterPage):
         self.draw(True)
 
     def get_coupons(self):
-        seq = [value for value in self.couponsdata.itervalues() if value]
-        seq.sort()
-        return seq
+        return set(value for value in self.couponsdata.itervalues() if value)
 
     def select_autofeatures(self):
         cw.cwpy.play_sound("signal")

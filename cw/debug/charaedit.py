@@ -377,7 +377,7 @@ class CharaInfo(object):
         data.set_race(self.race)
         data.set_image(self.imgpath)
         data.set_talent(self.talent)
-        data.set_attrbutes(makings)
+        data.set_attributes(makings)
         data.set_aging(self.age)
         if setlevel:
             data.set_level(self.level)
@@ -585,6 +585,12 @@ class CharaRequirementPanel(wx.Panel):
                 img = ""
             else:
                 img = self.imgcombo.GetValue()
+        elif img:
+            facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
+            if img.startswith(facedir):
+                img2 = cw.util.relpath(img, facedir)
+                if not img2.startswith("../"):
+                    img = img2
 
         infos = self._get_infos()
 
@@ -719,6 +725,7 @@ class CharaRequirementPanel(wx.Panel):
 
     def set_random(self):
         infos = self._get_infos()
+        facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
 
         for info in infos:
             arr = cw.cwpy.setting.sexcoupons
@@ -735,7 +742,10 @@ class CharaRequirementPanel(wx.Panel):
             for paths in cw.util.get_facepaths(info.sex, info.age, rel=True).itervalues():
                 seq.extend(paths)
 
-            info.imgpath = cw.cwpy.dice.choice(seq)
+            fpath = cw.cwpy.dice.choice(seq)
+            if not os.path.isabs(fpath):
+                fpath = cw.util.join_paths(facedir, fpath)
+            info.imgpath = fpath
 
         self.select_target(self.cindex)
 
