@@ -3,7 +3,6 @@
 
 import os
 import sys
-import argparse
 
 import wx
 import pygame
@@ -38,6 +37,8 @@ import binary
 import dialog
 import debug
 import sprite
+
+import argparser
 
 # CWPyThread
 cwpy = None
@@ -114,31 +115,39 @@ if 3 <= wx.VERSION[0]:
 else:
     RESCALE_QUALITY = wx.IMAGE_QUALITY_HIGH
 
-# 起動オプション(スキン自動生成元)
-SKIN_CONV_ARGS = []
-for arg in sys.argv[1:]:
-    if os.path.isfile(arg) and os.path.splitext(arg)[1].lower() == ".exe":
-        SKIN_CONV_ARGS.append(arg)
-        sys.argv.remove(arg)
 
-# 起動オプション(その他)
-_argparser = argparse.ArgumentParser(add_help=True,
-    description=u"オープンソースのCardWirthエンジン")
-_argparser.add_argument("-debug", action="store_true",
+# 起動オプション
+_argparser = argparser.ArgParser(appname=APP_NAME,
+    description=u"%s %s\n\nオープンソースのCardWirthエンジン" % (APP_NAME, ".".join(map(lambda a: str(a), APP_VERSION))))
+_argparser.add_argument("-h", type=bool, nargs=0,
+    help=u"このメッセージを表示して終了します。", arg2="--help")
+_argparser.add_argument("-debug", type=bool, nargs=0,
     help=u"デバッグモードで起動します。")
-_argparser.add_argument("-yado", default="",
-    help=u"起動と同時にYADOのパスにある宿を読み込みます。")
-_argparser.add_argument("-party", default="",
-    help=u"起動と同時にPARTYのパスにあるパーティを読み込みます。"
-       + u"-yadoと同時に指定する必要があります。")
-_argparser.add_argument("-scenario", default="",
-    help=u"起動と同時にSCENARIOのパスにあるシナリオを開始します。"
-       + u"-yado及び-partyと同時に指定する必要があります。")
+_argparser.add_argument("-yado", type=str, nargs=1, default="",
+    help=u"起動と同時に<YADO>のパスにある宿を読み込みます。")
+_argparser.add_argument("-party", type=str, nargs=1, default="",
+    help=u"起動と同時に<PARTY>のパスにあるパーティを読み込みます。\n"
+       + u"-yadoと同時に指定しなかった場合は無視されます。")
+_argparser.add_argument("-scenario", type=str, nargs=1, default="",
+    help=u"起動と同時に<SCENARIO>のパスにあるシナリオを開始します。\n"
+       + u"-yado及び-partyと同時に指定しなかった場合は無視されます。")
 OPTIONS = _argparser.parse_args(sys.argv[1:])
+if OPTIONS.help:
+    _argparser.print_help()
+    sys.exit(0)
+
 _encoding = sys.getfilesystemencoding()
 OPTIONS.yado = OPTIONS.yado.decode(_encoding)
 OPTIONS.party = OPTIONS.party.decode(_encoding)
 OPTIONS.scenario = OPTIONS.scenario.decode(_encoding)
+
+# 起動オプション(スキン自動生成元)
+SKIN_CONV_ARGS = []
+for arg in OPTIONS.leftovers:
+    if os.path.isfile(arg) and os.path.splitext(arg)[1].lower() == ".exe":
+        SKIN_CONV_ARGS.append(arg)
+        sys.argv.remove(arg)
+
 
 def wins(num):
     """numを実際の表示サイズに変換する。
