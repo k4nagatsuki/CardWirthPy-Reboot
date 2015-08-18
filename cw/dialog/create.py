@@ -382,8 +382,8 @@ class AdventurerData(object):
         self.description = cw.util.encodewrap(desc)
 
     def set_specialcoupon(self):
-        self.set_coupon(u"＠レベル原点", self.level)
         self.set_coupon(u"＠ＥＰ", 0)
+        self.set_coupon(u"＠レベル原点", self.level)
 
     def set_life(self):
         self.life = (self.vit / 2 + 4) * (self.level + 1) + self.min / 2
