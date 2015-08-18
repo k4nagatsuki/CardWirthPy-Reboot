@@ -341,7 +341,7 @@ class AdventurerData(object):
                     # 遺伝子の1が素質の条件個数以上の場合
                     # 特定の素質のみから派生する素質も存在する
                     talent = u"＿" + nature.name
-                    self.gene.reverse()
+                    self.gene = self.gene.reverse()
                     break
 
         self.set_coupon(talent, 0)
