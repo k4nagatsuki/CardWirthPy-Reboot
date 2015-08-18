@@ -243,8 +243,6 @@ class AdventurerData(object):
             if age == u"＿" + f.name:
                 self.level = f.level
                 self.set_coupon(age, 0)
-                for coupon in f.coupons:
-                    self.set_coupon(coupon[0], coupon[1])
                 f.modulate(self)
                 break
 
@@ -314,7 +312,7 @@ class AdventurerData(object):
 
         self.gene = fgene.fusion(mgene)
 
-    def set_talent(self, talent):
+    def set_gene(self, talent):
         if not self.gene:
             self.set_parents()
 
@@ -343,21 +341,33 @@ class AdventurerData(object):
                     talent = u"＿" + nature.name
                     self.gene = self.gene.reverse()
                     break
-
-        self.set_coupon(talent, 0)
-        self.gene.set_talentbit(talent, oldtalent)
-
+                
         for nature in cw.cwpy.setting.natures:
-            if u"＿" + nature.name == talent:
-                nature.modulate(self)
-                self.set_coupon(u"＠レベル上限", nature.levelmax)
-                break
+               if u"＿" + nature.name == talent:
+                   nature.modulate(self)
+                   self.set_coupon(u"＠レベル上限", nature.levelmax)
+                   break
+
+        self.gene.set_talentbit(talent, oldtalent)
+        self.set_coupon(u"＠Ｇ" + self.gene.get_str(), 0)
 
         return talent
 
+    def set_talent(self, talent):
+        self.set_coupon(talent, 0)
+
+    def set_aging(self, age):
+        for f in cw.cwpy.setting.periods:
+            if age == u"＿" + f.name:
+                self.level = f.level
+                for coupon in f.coupons:
+                    self.set_coupon(coupon[0], coupon[1])
+                    break
+
     def set_attrbutes(self, attrs):
-        for attr in attrs:
-            self.set_attribute(attr)
+        for attr in cw.cwpy.setting.makingcoupons:
+            if attr in attrs:
+                self.set_attribute(attr)
 
     def set_attribute(self, attr):
         for making in cw.cwpy.setting.makings:
@@ -372,9 +382,8 @@ class AdventurerData(object):
         self.description = cw.util.encodewrap(desc)
 
     def set_specialcoupon(self):
-        self.set_coupon(u"＠レベル原点", self.level)
         self.set_coupon(u"＠ＥＰ", 0)
-        self.set_coupon(u"＠Ｇ" + self.gene.get_str(), 0)
+        self.set_coupon(u"＠レベル原点", self.level)
 
     def set_life(self):
         self.life = (self.vit / 2 + 4) * (self.level + 1) + self.min / 2
@@ -564,24 +573,30 @@ class AdventurerCreater(wx.Dialog):
 
     def create_adventurer(self):
         data = AdventurerData()
+        #親、遺伝情報、＠レベル上限、性別、年代、（種族）の順
         father = self.page3.father
         mother = self.page3.mother
         data.set_parents(father, mother)
-        race = self.page2.get_race()
-        data.set_race(race)
+        s = self.page4.talent
+        talent = data.set_gene(s)
         s = self.page1.name
         data.set_name(s)
-        s = self.page1.age
-        data.set_age(s)
         s = self.page1.sex
         data.set_sex(s)
+        s = self.page1.age
+        data.set_age(s)
+        race = self.page2.get_race()
+        data.set_race(race)
         s = self.page1.imgpath
         data.set_image(s)
-        s = self.page4.talent
-        s = data.set_talent(s)
+        #型と特徴で解説を作る
+        data.set_talent(talent)
         seq = self.page5.get_coupons()
         data.set_attrbutes(seq)
-        data.set_desc(s, seq)
+        data.set_desc(talent, seq)
+        #最後に熟練・老獪を付与
+        s = self.page1.age
+        data.set_aging(s)
         data.set_specialcoupon()
         data.set_life()
         cw.features.wrap_ability(data)

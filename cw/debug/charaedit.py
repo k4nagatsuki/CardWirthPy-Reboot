@@ -369,15 +369,18 @@ class CharaInfo(object):
 
         data = cw.dialog.create.AdventurerData()
         data.set_name(self.name)
-        data.set_age(self.age)
-        if setlevel:
-            data.set_level(self.level)
-        data.set_sex(self.sex)
-        data.set_image(self.imgpath)
-        data.set_race(self.race)
         data.set_parents(None, None)
+        #遺伝情報、レベル上限、性別、年代、型、特徴、熟練の順で配布
+        data.set_gene(self.talent)
+        data.set_sex(self.sex)
+        data.set_age(self.age)
+        data.set_race(self.race)
+        data.set_image(self.imgpath)
         data.set_talent(self.talent)
         data.set_attrbutes(makings)
+        data.set_aging(self.age)
+        if setlevel:
+            data.set_level(self.level)
         if self.type:
             data.agl = self.race.agl + self.type.aglbonus
             data.dex = self.race.dex + self.type.dexbonus
