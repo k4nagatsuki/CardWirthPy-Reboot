@@ -1023,7 +1023,7 @@ class Character(object):
         return selected
 
     def _get_targetingbonus_and_targets(self, header, targets):
-        bonus = -2147483647
+        bonus = -2147483648
         maxbonustargs = []
         if header.type == "ActionCard" and header.id == 7:
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
@@ -1041,7 +1041,7 @@ class Character(object):
                     maxbonustargs = [targ]
                     bonus = b
 
-        if bonus == -2147483647:
+        if bonus == -2147483648:
             return 0, targets
         return bonus, targets if header.allrange else maxbonustargs
 
@@ -1098,16 +1098,21 @@ class Character(object):
                 bonus = 10 + (11 - per)
 
         if cw.cwpy.battle and 0 < bonus:
-            # すでにその行動のターゲットになっている場合はボーナスを入れない
+            # すでにその行動のターゲットになっている場合はボーナスを入れず、
+            # ターゲット回数分をペナルティとする(選択されにくくなる)
+            penalty = 0
             for s, tarr, _user in cw.cwpy.battle.priorityacts:
                 if mtype == s:
                     if isinstance(tarr, cw.character.Character):
                         if tarr == self:
-                            bonus = 0
-                            break
+                            penalty += 1
                     elif self in tarr:
-                        bonus = 0
-                        break
+                        penalty += 1
+            if penalty:
+                if mtype == "Heal":
+                    bonus = -penalty
+                else:
+                    bonus = 0
 
         return bonus
 
