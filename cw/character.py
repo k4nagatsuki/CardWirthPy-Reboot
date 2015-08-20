@@ -1023,7 +1023,7 @@ class Character(object):
         return selected
 
     def _get_targetingbonus_and_targets(self, header, targets):
-        bonus = -2147483648
+        bonus = -2147483647
         maxbonustargs = []
         if header.type == "ActionCard" and header.id == 7:
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
@@ -1041,7 +1041,7 @@ class Character(object):
                     maxbonustargs = [targ]
                     bonus = b
 
-        if bonus == -2147483648:
+        if bonus == -2147483647:
             return 0, targets
         return bonus, targets if header.allrange else maxbonustargs
 
