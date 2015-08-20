@@ -507,6 +507,9 @@ class Character(object):
         if self.is_reversed() or self.is_vanished() or (self.status == "hidden" and not isinstance(self, Friend)):
             return False
 
+        if cw.effectmotion.is_noeffect(motion.get("element", ""), self):
+            return False
+
         mtype = motion.get("type", "")
         if mtype == "Heal":
             return self.is_injuredall()

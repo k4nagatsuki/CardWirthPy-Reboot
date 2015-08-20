@@ -1008,24 +1008,17 @@ def get_effectivetargets(header, targets):
     targets: Characters
     """
     motions = header.carddata.getfind("Motions").getchildren()
-    sets = []
+    sets = set()
 
-    def narrow(targets):
-        targets2 = []
-        for target in targets:
-            if not header.is_noeffect(target):
-                targets2.append(target)
-        return targets2
+    for t in targets:
+        # カード効果を上から順に見ていき、対象の存在する効果があれば
+        # その効果の対象群を返す
+        for motion in motions:
+            if t.is_effective(motion):
+                sets.add(t)
+                break
 
-    # カード効果を上から順に見ていき、対象の存在する効果があれば
-    # その効果の対象群を返す
-    for motion in motions:
-        # まだ対象群が見つかっていない場合のみ対象セットに追加
-        # (優先行動の判定があるため処理は続ける)
-        if not sets:
-            sets.extend([t for t in targets if t.is_effective(motion)])
-
-    return narrow(sets)
+    return list(sets)
 
 # key: モーション名, value: チェック用メソッド名の辞書
 bonus_dict = {"Heal" : ("get_targetingbonus", True),
