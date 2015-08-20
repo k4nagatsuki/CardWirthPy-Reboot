@@ -1097,22 +1097,21 @@ class Character(object):
             else:
                 bonus = 10 + (11 - per)
 
-        if cw.cwpy.battle and 0 < bonus:
+        if cw.cwpy.battle:
             # すでにその行動のターゲットになっている場合はボーナスを入れず、
             # ターゲット回数分をペナルティとする(選択されにくくなる)
-            penalty = 0
+            targeting = 0
             for s, tarr, _user in cw.cwpy.battle.priorityacts:
                 if mtype == s:
                     if isinstance(tarr, cw.character.Character):
                         if tarr == self:
-                            penalty += 1
+                            targeting += 1
                     elif self in tarr:
-                        penalty += 1
-            if penalty:
+                        targeting += 1
+            if targeting:
+                bonus = min(0, bonus)
                 if mtype == "Heal":
-                    bonus = -penalty
-                else:
-                    bonus = 0
+                    bonus -= targeting
 
         return bonus
 
