@@ -218,8 +218,14 @@ class CouponEditDialog(wx.Dialog):
         if dlg.ShowModal() == wx.ID_OK:
             index = dlg.selected
             coupons = self.coupons[index]
-            for i in xrange(len(self.coupons)):
-                self.coupons[i] = coupons[:]
+            cindex = self.target.GetSelection()
+            if cindex == 0:
+                # 全員
+                for i in xrange(len(self.coupons)):
+                    self.coupons[i] = coupons[:]
+            else:
+                # 誰か一人
+                self.coupons[cindex-1] = coupons[:]
             self._select_target()
 
     def OnValueBtn(self, event):
