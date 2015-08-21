@@ -1001,16 +1001,18 @@ class EffectMotion(object):
 
 def get_effectivetargets(header, targets):
     """
-    (カード効果が有効なターゲットのリスト,
-     優先してターゲットにするべき対象のリスト)
-    を返す。
+    カード効果が有効なターゲットのリストを返す。
     header: CardHeader
     targets: Characters
     """
+    effecttype = header.carddata.gettext("Property/EffectType", "")
     motions = header.carddata.getfind("Motions").getchildren()
+
     sets = set()
 
     for t in targets:
+        if check_noeffect(effecttype, t):
+            continue
         # カード効果を上から順に見ていき、対象の存在する効果があれば
         # その効果の対象群を返す
         for motion in motions:
