@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="978ff5a3863fdd25e94acc01f7adeb9c">1.28</Scenario><!-- 追放者の幸福/Mate1.wid -->
+  <Scenario md5="7081a76051c01568442dad507f02be71">1.28</Scenario><!-- 家鴨の仔/Mate1.wid -->
+  <Scenario md5="64010b90dce08817b6206793a4235a55">1.28</Scenario><!-- 永き眠りの果てに/Mate1.wid -->
+  <Scenario md5="604b5c045c9f4e2939a18ee6a010fb86">1.28</Scenario><!-- 紅に降る白/Mate4.wid -->
+  <Scenario md5="a27644a50930914557480d086bc69231">1.28</Scenario><!-- 護り手の宝/Mate3.wid -->
+  <Scenario md5="8653552f163ceadca0dc6e6d66f6d50f">1.28</Scenario><!-- 護り手の宝/Mate7.wid -->
+  <Scenario md5="6f2a9a4359f3ce6208042a41cb5382bb">1.28</Scenario><!-- 迷犬らしい/Mate1.wid -->
+  <Scenario md5="5a84f8532e9adbe6dc94295abddff563">1.28</Scenario><!-- 迷犬らしい/Mate2.wid -->
   <Scenario md5="b312f47a9ce33a8c440df5547c18c8f8">1.28</Scenario><!-- 白霧に朽ちる竜 -->
   <Scenario md5="c2f47320c8e24f8a60b2f8acb3cee09f">1.28</Scenario><!-- 白光 -ⅰ- -->
   <Scenario md5="117e53842fc0bbb29ab553a85904658c">1.20</Scenario><!-- 協奏曲＜ＦＡＴＥ＞第六楽章 -->

@@ -2546,6 +2546,9 @@ class CWPy(_Singleton, threading.Thread):
                     self.set_gameover()
                     return
 
+            # NPCの状態を回復
+            cw.cwpy.sdata.fullrecovery_fcards()
+
             if areachange:
                 # 戦闘前のエリアに戻る
                 self.change_area(areaid, False, ttype=("None", "Default"), bginhrt=True)

@@ -266,7 +266,7 @@ class SystemData(object):
                     seq.append(cw.util.join_paths(dname, fname))
         return seq
 
-    def reset_fcards(self):
+    def fullrecovery_fcards(self):
         """同行中のNPCの状態を初期化する。"""
         pass # stub
 
@@ -466,7 +466,7 @@ class ScenarioData(SystemData):
         """互換性モードを設定する。"""
         last = self.get_versionhint()
         self.versionhint[pos] = hint
-        if cw.cwpy.sct.to_basehint(last) <> cw.cwpy.sct.to_basehint(self.get_versionhint()):
+        if cw.HINT_AREA <= pos and cw.cwpy.sct.to_basehint(last) <> cw.cwpy.sct.to_basehint(self.get_versionhint()):
             cw.cwpy.update_titlebar()
 
     def save_breakpoints(self):
@@ -872,12 +872,19 @@ class ScenarioData(SystemData):
                     seq.append(cw.util.join_paths(dname, fname))
         return seq
 
-    def reset_fcards(self):
-        """同行中のNPCの状態を初期化する。"""
+    def fullrecovery_fcards(self):
+        """同行中のNPCを回復する。"""
         seq = []
         for fcard in self.friendcards:
-            fcard = cw.sprite.card.FriendCard(castid=fcard.id)
+            self.set_versionhint(cw.HINT_MESSAGE, fcard.versionhint)
+            # 互換動作: 1.28以前は戦闘毎に同行キャストの状態が完全に復元される
+            if cw.cwpy.sct.lessthan("1.28", self.get_versionhint(cw.HINT_MESSAGE)):
+                fcard = cw.sprite.card.FriendCard(castid=fcard.id)
+            else:
+                fcard.set_fullrecovery()
+                fcard.update_image()
             seq.append(fcard)
+            self.set_versionhint(cw.HINT_MESSAGE, None)
         self.friendcards = seq
 
 class Flag(object):
