@@ -43,10 +43,10 @@ def is_noeffect(element, target):
     else:
         return False
 
-def check_noeffect(effecttype, target):
+def check_noeffect(effecttype, target, ignore_antimagic=False):
     noeffect_wpn = target.noeffect.get("weapon")
     noeffect_mgc = target.noeffect.get("magic")
-    antimagic = target.is_antimagic()
+    antimagic = target.is_antimagic() if not ignore_antimagic else False
 
     # 物理属性
     if effecttype == "Physic":
@@ -1008,10 +1008,14 @@ def get_effectivetargets(header, targets):
     effecttype = header.carddata.gettext("Property/EffectType", "")
     motions = header.carddata.getfind("Motions").getchildren()
 
+    ignore_antimagic = header.type == "BeastCard" or\
+                       header.penalty or\
+                       not isinstance(header.get_owner(), cw.character.Player)
+
     sets = set()
 
     for t in targets:
-        if check_noeffect(effecttype, t):
+        if check_noeffect(effecttype, t, ignore_antimagic=ignore_antimagic):
             continue
         # カード効果を上から順に見ていき、対象の存在する効果があれば
         # その効果の対象群を返す
