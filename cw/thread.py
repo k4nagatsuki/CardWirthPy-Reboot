@@ -1707,6 +1707,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.battle and self.battle.is_running:
             # バトルを強制終了
             self.battle.end(True, True)
+            self.battle = None
 
         # party copy
         fname = os.path.basename(self.ydata.party.data.fpath)

@@ -327,7 +327,7 @@ class EventHandler(object):
                 return
 
             # シナリオ戦闘時、戦闘行動選択ダイアログ表示
-            elif cw.cwpy.battle and cw.cwpy.battle.is_ready():
+            elif cw.cwpy.is_battlestatus() and cw.cwpy.battle.is_ready():
                 cw.cwpy.play_sound("click")
                 cw.cwpy.call_modaldlg("BATTLECOMMAND")
                 return
