@@ -14,6 +14,9 @@ class StatusBar(base.CWPySprite):
         self.yadomoney = None
         self.partymoney = None
         self.autostart = None
+        self.debugger = None
+        self.backlog = None
+        self.settings = None
         self.infocards = None
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
@@ -62,18 +65,17 @@ class StatusBar(base.CWPySprite):
 
         left = cw.s(602)
         rmargin = cw.s(0)
-        SettingsButton(self, (left, cw.s(3)))
+        self._create_settings((left, cw.s(3)))
 
         if cw.cwpy.setting.backlogmax:
             left -= cw.s(28)
             rmargin += cw.s(27)
-            hasbacklog = cw.cwpy.has_backlog()
-            BacklogButton(self, (left, cw.s(3)), hasbacklog)
+            self._create_backlog((left, cw.s(3)))
 
         if cw.cwpy.is_debugmode():
             left -= cw.s(28)
             rmargin += cw.s(27)
-            DebuggerButton(self, (left, cw.s(3)))
+            self._create_debugger((left, cw.s(3)))
 
         if encounter:
             EncounterPanel(self, (cw.s(474) - rmargin, cw.s(6)))
@@ -142,6 +144,24 @@ class StatusBar(base.CWPySprite):
             self.autostart.reset(pos)
         else:
             self.autostart = AutoStartButton(self, pos)
+
+    def _create_debugger(self, pos):
+        if self.debugger:
+            self.debugger.reset(pos)
+        else:
+            self.debugger = DebuggerButton(self, pos)
+
+    def _create_backlog(self, pos):
+        if self.backlog:
+            self.backlog.reset(pos)
+        else:
+            self.backlog = BacklogButton(self, pos)
+
+    def _create_settings(self, pos):
+        if self.settings:
+            self.settings.reset(pos)
+        else:
+            self.settings = SettingsButton(self, pos)
 
     def _create_yadomoney(self, pos):
         if self.yadomoney:
@@ -680,8 +700,6 @@ class StatusBarButton(base.SelectableSprite):
             self._desc = None
             self._desc = Desc(self, self.desc)
             cw.cwpy.sbargrp.add(self._desc, layer="desc")
-            cw.cwpy.draw(rect)
-            cw.cwpy.draw(self._desc.rect)
 
     def update_image(self):
         if not self.enabled:
@@ -695,11 +713,9 @@ class StatusBarButton(base.SelectableSprite):
             if not self._desc:
                 self._desc = Desc(self, self.desc)
                 cw.cwpy.sbargrp.add(self._desc, layer="desc")
-                cw.cwpy.draw(self._desc.rect)
         else:
             if self._desc:
                 cw.cwpy.sbargrp.remove(self._desc)
-                cw.cwpy.draw(self._desc.rect)
                 self._desc = None
 
         flags = 0
@@ -1019,7 +1035,8 @@ class DebuggerButton(StatusBarButton):
         cw.cwpy.eventhandler.f3key_event()
 
 class BacklogButton(StatusBarButton):
-    def __init__(self, parent, pos, enabled):
+    def __init__(self, parent, pos):
+        enabled = cw.cwpy.has_backlog()
         image = cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
         name = cw.cwpy.msgs["message_log"]
         desc = cw.cwpy.msgs["desc_message_log"]
@@ -1028,6 +1045,10 @@ class BacklogButton(StatusBarButton):
         self.selectable_on_event = enabled
         if enabled and self.is_selection():
             self.update_image()
+
+    def reset(self, pos):
+        self.enabled = cw.cwpy.has_backlog()
+        StatusBarButton.reset(self, pos)
 
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
