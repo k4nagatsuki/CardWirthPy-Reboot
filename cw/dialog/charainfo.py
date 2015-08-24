@@ -610,7 +610,7 @@ class DescPanel(wx.ScrolledWindow):
         dc = wx.PaintDC(self)
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
         # 解説文
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
@@ -732,7 +732,7 @@ class HistoryPanel(wx.ScrolledWindow):
         dc = wx.PaintDC(self)
 
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # クーポン
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
@@ -953,7 +953,7 @@ class EditPanel(wx.Panel):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # 編集ボタン
         dc.SetTextForeground(wx.WHITE)
@@ -1020,7 +1020,7 @@ class StatusPanel(wx.ScrolledWindow):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
 
         # 状態
         dc.SetTextForeground(wx.WHITE)
@@ -1333,7 +1333,7 @@ class CardPanel(wx.Panel):
 
         dc.BeginDrawing()
         # 背景の透かし
-        dc.DrawBitmap(self.watermark, (self.csize[0]-cw.wins(226))/2, (self.csize[1]-cw.wins(132))/2, True)
+        dc.DrawBitmap(self.watermark, (self.csize[0]-self.watermark.GetWidth())/2, (self.csize[1]-self.watermark.GetHeight())/2, True)
         # 所持スキル
         dc.SetTextForeground(wx.WHITE)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
