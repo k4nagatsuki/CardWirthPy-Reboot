@@ -88,6 +88,8 @@ class BattleCommand(wx.Dialog):
         self.SetAcceleratorTable(accel)
 
     def OnMouseWheel(self, event):
+        if not self.toppanel.IsEnabled():
+            return
         if event.GetWheelRotation() > 0:
             e = wx.PyCommandEvent(wx.wxEVT_COMMAND_MENU_SELECTED, self.leftkeyid)
             self.ProcessEvent(e)
@@ -96,6 +98,8 @@ class BattleCommand(wx.Dialog):
             self.ProcessEvent(e)
 
     def OnKeyDown(self, event):
+        if not self.toppanel.IsEnabled():
+            return
         dc = wx.ClientDC(self.toppanel)
         resid = event.GetId()
 
@@ -136,6 +140,8 @@ class BattleCommand(wx.Dialog):
             self.draw_card(dc, c2, True)
 
     def OnLeftUp(self, event):
+        if not self.toppanel.IsEnabled():
+            return
         for header in self.list:
             if header.rect.collidepoint(event.GetPosition()):
                 cw.cwpy.play_sound("click")
@@ -156,7 +162,7 @@ class BattleCommand(wx.Dialog):
                     self.Destroy()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
-        self.Disable()
+        self.toppanel.Disable()
 
     def runaway(self):
         s = cw.cwpy.msgs["confirm_runaway"]
@@ -178,7 +184,7 @@ class BattleCommand(wx.Dialog):
                         self.Destroy()
                 cw.cwpy.frame.exec_func(func, self)
             cw.cwpy.exec_func(func, self)
-            self.Disable()
+            self.toppanel.Disable()
 
             return
 
@@ -194,13 +200,17 @@ class BattleCommand(wx.Dialog):
                     self.Destroy()
             cw.cwpy.frame.exec_func(func, self)
         cw.cwpy.exec_func(func, self)
-        self.Disable()
+        self.toppanel.Disable()
 
     def OnCancel(self, event):
+        if not self.toppanel.IsEnabled():
+            return
         cw.cwpy.play_sound("click")
         self.cancel()
 
     def OnMove(self, event):
+        if not self.toppanel.IsEnabled():
+            return
         dc = wx.ClientDC(self.toppanel)
         mousepos = event.GetPosition()
 
@@ -215,9 +225,13 @@ class BattleCommand(wx.Dialog):
                 self.draw_card(dc, header)
 
     def OnEnter(self, event):
+        if not self.toppanel.IsEnabled():
+            return
         self.draw(True)
 
     def OnLeave(self, event):
+        if not self.toppanel.IsEnabled():
+            return
         if self.IsActive():
             for header in self.list:
                 if header.negaflag:
