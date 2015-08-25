@@ -1007,7 +1007,7 @@ class InputTextDialog(wx.Dialog):
     def __init__(self, parent, title, msg, text="", maxlength=0):
         wx.Dialog.__init__(self, parent, -1, title, size=cw.wins((318, 180)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.SetClientSize(cw.wins((312, 136)))
+        self.SetClientSize(cw.wins((312, 112)))
         self.msg = msg
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(maxlength)
@@ -1068,7 +1068,7 @@ class InputTextDialog(wx.Dialog):
         sizer_1.Add(cw.wins((0, 35)), 0, 0, 0)
         margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
         sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(cw.wins((0, 25)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 12)), 0, 0, 0)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3

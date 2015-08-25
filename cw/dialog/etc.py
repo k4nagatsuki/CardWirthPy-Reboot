@@ -352,7 +352,7 @@ class ExtensionDialog(wx.Dialog):
     def _do_layout(self):
         sizer_buttons = wx.BoxSizer(wx.VERTICAL)
         for btn in self.buttons:
-            sizer_buttons.Add(btn, 0, wx.EXPAND|wx.BOTTOM, cw.wins(5))
+            sizer_buttons.Add(btn, 0, wx.EXPAND|wx.BOTTOM, cw.wins(2))
         sizer_buttons.AddStretchSpacer(1)
         sizer_buttons.Add(self.btn_cncl, 0, wx.EXPAND)
 
