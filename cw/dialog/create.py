@@ -700,7 +700,8 @@ class AdventurerCreaterPage(wx.Panel):
             self.imgpaths = {None:[self.imgpath]}
             self.imgdpath = 0
 
-        imgpaths = cw.util.get_facepaths(self.sex, self.age)
+        adddefaults = reset or self.imgpath == ""
+        imgpaths = cw.util.get_facepaths(self.sex, self.age, adddefaults=adddefaults)
         if 1 == len(imgpaths):
             if self.imgpaths:
                 self.imgpaths[None].extend(imgpaths.values()[0])

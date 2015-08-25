@@ -227,7 +227,7 @@ class CharaInfo(object):
         self.sex = cw.cwpy.dice.choice(cw.cwpy.setting.sexcoupons)
         self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
         faces = []
-        for values in cw.util.get_facepaths(self.sex, self.age, rel=False).itervalues():
+        for values in cw.util.get_facepaths(self.sex, self.age).itervalues():
             faces.extend(values)
         self.imgpath = cw.cwpy.dice.choice(faces) if faces else u""
 
@@ -439,6 +439,7 @@ class CharaRequirementPanel(wx.Panel):
         self.defaultface = cw.util.load_wxbmp(path, mask=True)
         self.img = cw.util.CWPyStaticBitmap(self, -1, self.defaultface, size=(74, 94))
         self.imgcombo = wx.ComboBox(self, -1, size=(125, -1), style=wx.CB_READONLY)
+        self.imgpaths = []
 
         self.lvlbox = wx.StaticBox(self, -1, u"レベル")
         self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"Lv ―")
@@ -551,10 +552,7 @@ class CharaRequirementPanel(wx.Panel):
             for info in infos:
                 info.imgpath = info.imgpath_base
         else:
-            facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
-            fpath = self.imgcombo.GetValue()
-            if not os.path.isabs(fpath):
-                fpath = cw.util.join_paths(facedir, fpath)
+            fpath = self.imgpaths[self.imgcombo.GetSelection()-1]
             for info in infos:
                 info.imgpath = fpath
 
@@ -584,29 +582,25 @@ class CharaRequirementPanel(wx.Panel):
             if 0 >= self.imgcombo.GetSelection():
                 img = ""
             else:
-                img = self.imgcombo.GetValue()
-        elif img:
-            facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
-            if img.startswith(facedir):
-                img2 = cw.util.relpath(img, facedir)
-                if not img2.startswith("../"):
-                    img = img2
+                img = self.imgpaths[self.imgcombo.GetSelection()-1]
 
         infos = self._get_infos()
 
         # 使用可能なイメージの一覧を取得
         for info in infos:
-            for paths in cw.util.get_facepaths(info.sex, info.age, rel=True).itervalues():
-                fpaths.update(paths)
+            for dpaths, paths in cw.util.get_facepaths(info.sex, info.age).iteritems():
+                fpaths.update(map(lambda a: (cw.util.join_paths(dpaths[1], os.path.basename(a)), a), paths))
         flist = list(fpaths)
         flist.sort()
+        self.imgpaths = map(lambda a: a[1], flist)
+        flist = map(lambda a: a[0], flist)
         flist.insert(0, cw.cwpy.msgs["no_change"])
         self.imgcombo.SetItems(flist)
         cw.util.adjust_dropdownwidth(self.imgcombo)
 
-        if img in fpaths:
+        if img in self.imgpaths:
             # 一覧に選択済みのイメージが含まれていれば復元
-            self.imgcombo.SetValue(img)
+            self.imgcombo.SetSelection(self.imgpaths.index(img)+1)
         else:
             # 一覧に選択済みのイメージが無ければ[変更しない]を選択
             self.imgcombo.SetSelection(0)
@@ -633,10 +627,7 @@ class CharaRequirementPanel(wx.Panel):
                 self.img.SetBitmap(self.defaultface)
         else:
             # パスを選択
-            facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
-            img = self.imgcombo.GetValue()
-            if not os.path.isabs(img):
-                img = cw.util.join_paths(facedir, img)
+            img = self.imgpaths[self.imgcombo.GetSelection()-1]
             self.img.SetBitmap(cw.util.load_wxbmp(img, mask=True))
 
     def _get_infos(self):
@@ -725,7 +716,6 @@ class CharaRequirementPanel(wx.Panel):
 
     def set_random(self):
         infos = self._get_infos()
-        facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
 
         for info in infos:
             arr = cw.cwpy.setting.sexcoupons
@@ -739,12 +729,10 @@ class CharaRequirementPanel(wx.Panel):
             info.talent = arr[cw.cwpy.dice.roll(1, len(arr))-1]
 
             seq = []
-            for paths in cw.util.get_facepaths(info.sex, info.age, rel=True).itervalues():
+            for paths in cw.util.get_facepaths(info.sex, info.age).itervalues():
                 seq.extend(paths)
 
             fpath = cw.cwpy.dice.choice(seq)
-            if not os.path.isabs(fpath):
-                fpath = cw.util.join_paths(facedir, fpath)
             info.imgpath = fpath
 
         self.select_target(self.cindex)

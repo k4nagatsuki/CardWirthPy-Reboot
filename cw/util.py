@@ -573,13 +573,14 @@ def get_imageext(b):
             return ".tiff"
     return ""
 
-def get_facepaths(sexcoupon, agecoupon, rel=False):
+def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
     """sexとageに対応したFaceディレクトリ内の画像パスを辞書で返す。
-    辞書の内容は、サブディレクトリをキーにした
+    辞書の内容は、(ディレクトリ, ディレクトリ表示名)をキーにした
     当該ディレクトリ内のファイルパスのlistとなる。
     sexcoupon: 性別クーポン。
     agecoupon: 年代クーポン。
-    rel: TrueならlistにFaceディレクトリからの相対パスを格納する。
+    adddefaults: 1件もなかった場合、Resource/Image/Cardにある
+                 FATHERまたはMOTHERを使用する。
     """
     imgpaths = {}
 
@@ -617,10 +618,26 @@ def get_facepaths(sexcoupon, agecoupon, rel=False):
     dpaths.append((dpath, dpath1))
 
     passed = set()
-    _get_facepaths(facedir, imgpaths, dpaths, rel, passed)
+    _get_facepaths(facedir, imgpaths, dpaths, passed)
+    if not imgpaths and adddefaults:
+        seq = []
+        dpath = join_paths(cw.cwpy.skindir, u"Resource/Image/Card")
+        for sex in cw.cwpy.setting.sexes:
+            if u"＿" + sex.name == sexcoupon:
+                if sex.father:
+                    fpath = join_paths(dpath, "FATHER")
+                    fpath = find_resource(fpath, cw.M_IMG)
+                    seq.append(fpath)
+                if sex.mother:
+                    fpath = join_paths(dpath, "MOTHER")
+                    fpath = find_resource(fpath, cw.M_IMG)
+                    seq.append(fpath)
+                break
+        if seq:
+            imgpaths[(dpath, u"Resource/Image/Card")] = seq
     return imgpaths
 
-def _get_facepaths(facedir, imgpaths, dpaths, rel, passed):
+def _get_facepaths(facedir, imgpaths, dpaths, passed):
     for dpath, showdpath in dpaths:
         if not os.path.isdir(dpath):
             continue
@@ -658,7 +675,7 @@ def _get_facepaths(facedir, imgpaths, dpaths, rel, passed):
                 p = dpath
             imgpaths[(join_paths(p), showdpath)] = seq
         if dpaths2:
-            _get_facepaths(facedir, imgpaths, dpaths2, rel, passed)
+            _get_facepaths(facedir, imgpaths, dpaths2, passed)
 
 def load_bgm(path):
     """Pathの音楽ファイルをBGMとして読み込む。

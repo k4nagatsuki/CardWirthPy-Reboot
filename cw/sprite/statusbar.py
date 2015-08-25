@@ -1048,6 +1048,7 @@ class BacklogButton(StatusBarButton):
 
     def reset(self, pos):
         self.enabled = cw.cwpy.has_backlog()
+        self.selectable_on_event = self.enabled
         StatusBarButton.reset(self, pos)
 
     def get_icon(self):
