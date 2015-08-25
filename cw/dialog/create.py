@@ -769,6 +769,7 @@ class NamePage(AdventurerCreaterPage):
         self.ch_imgdpath.SetFont(font)
 
         self.name = ""
+        self.input_name = ""
         self.sex = cw.cwpy.setting.sexcoupons[0]
         self.age = cw.cwpy.setting.periodcoupons[0]
         for period in cw.cwpy.setting.periods:
@@ -833,6 +834,7 @@ class NamePage(AdventurerCreaterPage):
 
     def OnInputText(self, event):
         self.name = self.textctrl.GetValue()
+        self.input_name = self.name
 
         if self.name.strip():
             self.Parent.nextbtn.Enable()
@@ -970,9 +972,11 @@ class NamePage(AdventurerCreaterPage):
         self.sex = cw.cwpy.setting.sexcoupons[sindex]
         self.age = cw.cwpy.dice.choice(cw.cwpy.setting.periodcoupons)
 
-        randomname = get_randomname(cw.cwpy.setting.sexsubnames[sindex])
-        if randomname:
-            self.textctrl.SetValue(randomname)
+        if not self.input_name:
+            randomname = get_randomname(cw.cwpy.setting.sexsubnames[sindex])
+            if randomname:
+                self.textctrl.SetValue(randomname)
+                self.input_name = ""
 
         self.set_imgpaths(True)
         if self.imgdpaths:

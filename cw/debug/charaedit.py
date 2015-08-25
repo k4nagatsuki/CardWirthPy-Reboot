@@ -45,8 +45,8 @@ class CharacterEditDialog(wx.Dialog):
             self.rightbtn.Hide()
 
         self.note = wx.Notebook(self)
-        self.pane_req = CharaRequirementPanel(self.note, self.infos)
-        self.pane_sel = CharaSelectablePanel(self.note, self.infos)
+        self.pane_req = CharaRequirementPanel(self.note, self.infos, self.create)
+        self.pane_sel = CharaSelectablePanel(self.note, self.infos, self.create)
         self.note.AddPage(self.pane_req, u"必須情報")
         self.note.AddPage(self.pane_sel, u"選択情報")
 
@@ -218,6 +218,7 @@ class CharaInfo(object):
                 "cheerful":self.race.cheerful,
                 "trickish":self.race.trickish
             }
+        self.input_name = self.name
 
     def set_randomfeatures(self):
         """ランダムに特性を設定する。
@@ -412,9 +413,10 @@ class CharaInfo(object):
 
 class CharaRequirementPanel(wx.Panel):
 
-    def __init__(self, parent, infos):
+    def __init__(self, parent, infos, create):
         wx.Panel.__init__(self, parent, -1)
         self.infos = infos
+        self.create = create
         self.cindex = 0
         self._proc = False
 
@@ -522,8 +524,13 @@ class CharaRequirementPanel(wx.Panel):
             return
         self.Parent.Parent.okbtn.Enable(False)
         for info in self._get_infos():
-            info.name = self.name.GetValue().strip()
-            self.Parent.Parent.okbtn.Enable(0 < len(info.name))
+            info.name = self.name.GetValue()
+            info.input_name = info.name
+        self._update_okbtn()
+
+    def _update_okbtn(self):
+        for info in self._get_infos():
+            self.Parent.Parent.okbtn.Enable(0 < len(info.name.strip()))
 
     def OnLevelBtn(self, event):
         infos = self._get_infos()
@@ -735,13 +742,20 @@ class CharaRequirementPanel(wx.Panel):
             fpath = cw.cwpy.dice.choice(seq)
             info.imgpath = fpath
 
+            if not info.input_name:
+                name = cw.dialog.create.get_randomname(info.sex)
+                if name:
+                    info.name = name
+
         self.select_target(self.cindex)
+        self._update_okbtn()
 
 class CharaSelectablePanel(wx.Panel):
 
-    def __init__(self, parent, infos):
+    def __init__(self, parent, infos, create):
         wx.Panel.__init__(self, parent, -1)
         self.infos = infos
+        self.create = create
         self.cindex = 0
 
         self.mkgbox = wx.StaticBox(self, -1, u"特性")
