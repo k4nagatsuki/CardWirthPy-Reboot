@@ -575,7 +575,7 @@ def get_imageext(b):
 
 def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
     """sexとageに対応したFaceディレクトリ内の画像パスを辞書で返す。
-    辞書の内容は、(ディレクトリ, ディレクトリ表示名)をキーにした
+    辞書の内容は、(ソートキー, ディレクトリ, ディレクトリ表示名)をキーにした
     当該ディレクトリ内のファイルパスのlistとなる。
     sexcoupon: 性別クーポン。
     agecoupon: 年代クーポン。
@@ -595,27 +595,28 @@ def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
             age = f.abbr
 
     dpaths = [] # (実際のパス, 表示するパス)
-    facedir = cw.util.join_paths(cw.cwpy.skindir, u"Face")
+    facedir1 = cw.util.join_paths(cw.cwpy.skindir, u"Face") # スキン付属
+    facedir2 = u"Data/Face" # 全スキン共通
 
-    # 性別・年代限定
-    if sex and age:
-        dpath1 = sex + "-" + age
-        dpath = join_paths(facedir, dpath1)
-        dpaths.append((dpath, dpath1))
-    # 性別限定
-    if sex:
-        dpath1 = sex
-        dpath = join_paths(facedir, dpath1)
-        dpaths.append((dpath, dpath1))
-    # 年代限定
-    if age:
-        dpath1 = "Common-" + age
-        dpath = join_paths(facedir, dpath1)
-        dpaths.append((dpath, dpath1))
-    # 汎用
-    dpath1 = "Common"
-    dpath = join_paths(facedir, dpath1)
-    dpaths.append((dpath, dpath1))
+    for i, facedir in enumerate((facedir1, facedir2)):
+        def add(weight, dpath1):
+            dpath = join_paths(facedir, dpath1)
+            if i == 0:
+                name = cw.cwpy.setting.skinname
+            else:
+                name = cw.cwpy.msgs["common"]
+            dpaths.append((i * 10 + weight, u"<%s> %s" % (name, dpath1), dpath))
+        # 性別・年代限定
+        if sex and age:
+            add(0, sex + u"-" + age)
+        # 性別限定
+        if sex:
+            add(1, sex)
+        # 年代限定
+        if age:
+            add(2, u"Common-" + age)
+        # 汎用
+        add(3, u"Common")
 
     passed = set()
     _get_facepaths(facedir, imgpaths, dpaths, passed)
@@ -638,7 +639,7 @@ def get_facepaths(sexcoupon, agecoupon, adddefaults=True):
     return imgpaths
 
 def _get_facepaths(facedir, imgpaths, dpaths, passed):
-    for dpath, showdpath in dpaths:
+    for sortkey, showdpath, dpath in dpaths:
         if not os.path.isdir(dpath):
             continue
         abs = os.path.abspath(dpath)
@@ -656,24 +657,18 @@ def _get_facepaths(facedir, imgpaths, dpaths, passed):
             if os.path.isfile(path):
                 ext = os.path.splitext(path)[1].lower()
                 if ext in cw.EXTS_IMG:
-                    if rel:
-                        p = join_paths(relpath(path, facedir))
-                        if p.startswith("../"):
-                            p = path
-                        seq.append(p)
-                    else:
-                        seq.append(path)
+                    seq.append(path)
             elif os.path.isdir(path):
                 showpath = join_paths(showdpath, fname)
                 if sys.platform == "win32" and path1 <> path and showpath.lower().endswith(".lnk"):
                     showpath = os.path.splitext(showpath)[0]
-                dpaths2.append((path, showpath))
+                dpaths2.append((sortkey, showpath, path))
 
         if seq:
             p = join_paths(relpath(dpath, facedir))
             if p.startswith("../"):
                 p = dpath
-            imgpaths[(join_paths(p), showdpath)] = seq
+            imgpaths[(sortkey, showdpath, join_paths(p))] = seq
         if dpaths2:
             _get_facepaths(facedir, imgpaths, dpaths2, passed)
 

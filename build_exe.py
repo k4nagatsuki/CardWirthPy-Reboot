@@ -90,8 +90,10 @@ class BuildExe(object):
         self.dist_dir ='CardWirthPy'
 
         #Extra new dirs
-        self.extra_dirs = ["Scenario", "Yado", "Data/Temp",
-            "Data/Skin"]
+        self.extra_dirs = ["Scenario", "Yado", "Data/Temp", "Data/Skin",
+            "Data/Face/Common", "Data/Face/Common-ADT", "Data/Face/Common-CHD", "Data/Face/Common-OLD", "Data/Face/Common-YNG",
+            "Data/Face/Female", "Data/Face/Female-ADT", "Data/Face/Female-CHD", "Data/Face/Female-OLD", "Data/Face/Female-YNG",
+            "Data/Face/Male", "Data/Face/Male-ADT", "Data/Face/Male-CHD", "Data/Face/Male-OLD", "Data/Face/Male-YNG"]
 
         #Additional modules
         self.includes = ["win32com.shell.shell", "win32com.client"]

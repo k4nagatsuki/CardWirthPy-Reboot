@@ -589,11 +589,11 @@ class CharaRequirementPanel(wx.Panel):
         # 使用可能なイメージの一覧を取得
         for info in infos:
             for dpaths, paths in cw.util.get_facepaths(info.sex, info.age).iteritems():
-                fpaths.update(map(lambda a: (cw.util.join_paths(dpaths[1], os.path.basename(a)), a), paths))
+                fpaths.update(map(lambda a: (dpaths[0], cw.util.join_paths(dpaths[1], os.path.basename(a)), a), paths))
         flist = list(fpaths)
         flist.sort()
-        self.imgpaths = map(lambda a: a[1], flist)
-        flist = map(lambda a: a[0], flist)
+        self.imgpaths = map(lambda a: a[2], flist)
+        flist = map(lambda a: a[1], flist)
         flist.insert(0, cw.cwpy.msgs["no_change"])
         self.imgcombo.SetItems(flist)
         cw.util.adjust_dropdownwidth(self.imgcombo)

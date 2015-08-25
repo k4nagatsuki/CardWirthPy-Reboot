@@ -692,6 +692,12 @@
 メッセージを表示します</Message>
     <Message key="error_sell_stared_card">スターつきのカードは売却できません。</Message>
     <Message key="error_dump_stared_card">スターつきのカードは破棄できません。</Message>
+    <Message key="common">共通</Message>
+    <Message key="select_creator">作成方式の選択</Message>
+    <Message key="create_normal">標準方式</Message>
+    <Message key="create_normal_description">デバッグモードでない時と同じ方式でキャラクターを作成します。</Message>
+    <Message key="create_debug">簡易方式</Message>
+    <Message key="create_debug_description">簡易方式でキャラクターを作成します。血縁関係など、一部設定は省略されます。</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>

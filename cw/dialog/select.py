@@ -1793,12 +1793,29 @@ class PlayerSelect(MultiViewSelect):
             return
         cw.cwpy.play_sound("click")
         if cw.cwpy.setting.debug:
-            dlg = cw.debug.charaedit.CharacterEditDialog(self, create=True)
+            title = cw.cwpy.msgs["select_creator"]
+            items = [
+                (cw.cwpy.msgs["create_normal"], cw.cwpy.msgs["create_normal_description"], self._create_normal, True),
+                (cw.cwpy.msgs["create_debug"], cw.cwpy.msgs["create_debug_description"], self._create_debug, True),
+            ]
+            dlg = cw.dialog.etc.ExtensionDialog(self, title, items)
             cw.cwpy.frame.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
         else:
-            dlg = cw.dialog.create.AdventurerCreater(self)
-            cw.cwpy.frame.move_dlg(dlg)
+            self._create_normal()
 
+    def _create_normal(self):
+        dlg = cw.dialog.create.AdventurerCreater(self)
+        cw.cwpy.frame.move_dlg(dlg)
+        self._create_common(dlg)
+
+    def _create_debug(self):
+        dlg = cw.debug.charaedit.CharacterEditDialog(self, create=True)
+        cw.cwpy.frame.move_dlg(dlg)
+        self._create_common(dlg)
+
+    def _create_common(self, dlg):
         if dlg.ShowModal() == wx.ID_OK:
             cw.cwpy.play_sound("page")
             header = cw.cwpy.ydata.add_standbys(dlg.fpath)
