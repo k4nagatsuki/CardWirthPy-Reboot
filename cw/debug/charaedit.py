@@ -743,9 +743,12 @@ class CharaRequirementPanel(wx.Panel):
             info.imgpath = fpath
 
             if not info.input_name:
-                name = cw.dialog.create.get_randomname(info.sex)
-                if name:
-                    info.name = name
+                for sex in cw.cwpy.setting.sexes:
+                    if info.sex == u"＿" + sex.name:
+                        name = cw.dialog.create.get_randomname(sex.subname)
+                        if name:
+                            info.name = name
+                        break
 
         self.select_target(self.cindex)
         self._update_okbtn()
