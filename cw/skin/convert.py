@@ -205,10 +205,26 @@ class Converter(threading.Thread):
 
                 return index
 
+            key = "\x00\x49\x4D\x41\x47\x45\x5F\x46\x41\x54\x48\x45\x52\x00\x49\x4D\x41\x47\x45\x5F\x4D\x4F\x54\x48\x45\x52\x00\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x81\x40\x00\x00\x81\x51\x00\x81\x51\x00\x81\x51\x00\x81\x51\x00\x81\x40\x00"
+            index2 = self.exebinary.find(key)
+            if 0 <= index2:
+                index2 += len(key)
+                # 大人に付加される「熟練」クーポン
+                skillful, index2 = self._get_text(index2)
+                e = self.data.find("Periods/Period[3]/Coupons/Coupon")
+                if not e is None:
+                    e.text = skillful
+                # 老人に付加される「老獪」クーポン
+                foxy, index2 = self._get_text(index2)
+                e = self.data.find("Periods/Period[4]/Coupons/Coupon")
+                if not e is None:
+                    e.text = foxy
+
             for e in self.data.getfind("Sexes"):
                 index = set_params(e, index, False)
             for e in self.data.getfind("Periods"):
                 index = set_params(e, index, False)
+
             # 使用されていない年代「古老」を飛ばす
             index += 20 + 2*6 + 2*5
             for e in self.data.getfind("Natures"):

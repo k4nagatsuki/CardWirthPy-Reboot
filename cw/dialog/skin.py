@@ -724,7 +724,7 @@ class SkinMessagePanel(wx.Panel):
         basemsgs = base.find("Messages")
 
         self.grid = wx.grid.Grid(self, -1, size=(200, 200))
-        self.grid.CreateGrid(len(basemsgs) + 6 + 4, 1)
+        self.grid.CreateGrid(len(basemsgs) + 6 + 2 + 4, 1)
         self.grid.SetRowLabelSize(150)
         self.grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
 
@@ -742,6 +742,13 @@ class SkinMessagePanel(wx.Panel):
             s = cw.util.encodewrap(e.text)
             self.grid.SetRowLabelValue(row, s)
             row += 1
+
+        e = base.find("Periods/Period[3]/Coupons/Coupon")
+        self.grid.SetRowLabelValue(row, cw.util.encodewrap(e.text))
+        row += 1
+        e = base.find("Periods/Period[4]/Coupons/Coupon")
+        self.grid.SetRowLabelValue(row, cw.util.encodewrap(e.text))
+        row += 1
 
         basegameover = cw.data.xml2etree(u"Data/SkinBase/Resource/Xml/GameOver/01_GameOver.xml")
         e = basegameover.find("Events/Event//Talk")
@@ -771,6 +778,13 @@ class SkinMessagePanel(wx.Panel):
             self.grid.SetCellValue(row, 0, s)
             row += 1
 
+        e = conv.data.find("Periods/Period[3]/Coupons/Coupon")
+        self.grid.SetCellValue(row, 0, cw.util.encodewrap(e.text))
+        row += 1
+        e = conv.data.find("Periods/Period[4]/Coupons/Coupon")
+        self.grid.SetCellValue(row, 0, cw.util.encodewrap(e.text))
+        row += 1
+
         data = conv.gameover["01_GameOver"]
         e = data.find("Events/Event//Talk")
         self.grid.SetCellValue(row, 0, e.find("Text").text)
@@ -792,6 +806,13 @@ class SkinMessagePanel(wx.Panel):
             e = e.find("Description")
             e.text = cw.util.decodewrap(self.grid.GetCellValue(row, 0))
             row += 1
+
+        e = conv.data.find("Periods/Period[3]/Coupons/Coupon")
+        e.text = self.grid.GetCellValue(row, 0)
+        row += 1
+        e = conv.data.find("Periods/Period[4]/Coupons/Coupon")
+        e.text = self.grid.GetCellValue(row, 0)
+        row += 1
 
         data = conv.gameover["01_GameOver"]
         e = data.find("Events/Event//Talk")
