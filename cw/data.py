@@ -1586,28 +1586,14 @@ class YadoData(object):
 
     def sort_standbys(self):
         if cw.cwpy.setting.sort_standbys == "Level":
-            cw.util.sort_by_attr(self.standbys, "level", "order")
+            cw.util.sort_by_attr(self.standbys, "level", "name", "order")
         elif cw.cwpy.setting.sort_standbys == "Name":
-            cw.util.sort_by_attr(self.standbys, "name", "order")
+            cw.util.sort_by_attr(self.standbys, "name", "level", "order")
         else:
             cw.util.sort_by_attr(self.standbys, "order")
 
     def sort_storehouse(self):
-        seq = []
-        if cw.cwpy.setting.sort_storehousewithstar:
-            seq.append("negastar")
-
-        if cw.cwpy.setting.sort_storehouse == "Level":
-            seq.append("level")
-        elif cw.cwpy.setting.sort_storehouse == "Name":
-            seq.append("name")
-        elif cw.cwpy.setting.sort_storehouse == "Type":
-            seq.append("type_id")
-        elif cw.cwpy.setting.sort_storehouse == "Price":
-            seq.append("price")
-        seq.append("order")
-
-        cw.util.sort_by_attr(self.storehouse, *seq)
+        sort_cards(self.storehouse, cw.cwpy.setting.sort_storehouse, cw.cwpy.setting.sort_storehousewithstar)
 
     def sort_partyrecord(self):
         cw.util.sort_by_attr(self.partyrecord, "name")
@@ -2197,21 +2183,7 @@ class Party(object):
             self.sort_backpack()
 
     def sort_backpack(self):
-        seq = []
-        if cw.cwpy.setting.sort_backpackwithstar:
-            seq.append("negastar")
-
-        if cw.cwpy.setting.sort_backpack == "Level":
-            seq.append("level")
-        elif cw.cwpy.setting.sort_backpack == "Name":
-            seq.append("name")
-        elif cw.cwpy.setting.sort_backpack == "Type":
-            seq.append("type_id")
-        elif cw.cwpy.setting.sort_backpack == "Price":
-            seq.append("price")
-        seq.append("order")
-
-        cw.util.sort_by_attr(self.backpack, *seq)
+        sort_cards(self.backpack, cw.cwpy.setting.sort_backpack, cw.cwpy.setting.sort_backpackwithstar)
 
     def get_backpackkeycodes(self, skill=True, item=True, beast=True):
         """荷物袋内のキーコード一覧を返す。"""
@@ -2493,6 +2465,38 @@ class Party(object):
         self.data.edit("Property/LastScenario", lastscenariopath, "path")
         for path in lastscenario:
             self.data.append("Property/LastScenario", make_element("Path", path))
+
+def sort_cards(cards, condition, withstar):
+    seq = []
+    if withstar:
+        seq.append("negastar")
+
+    def addetckey():
+        for key in ("name", "scenario", "author", "type_id", "level", "price"):
+            if key <> seq[0]:
+                seq.append(key)
+
+    if condition == "Level":
+        seq.append("level")
+        addetckey()
+    elif condition == "Name":
+        seq.append("name")
+        addetckey()
+    elif condition == "Type":
+        seq.append("type_id")
+        addetckey()
+    elif condition == "Price":
+        seq.append("price")
+        addetckey()
+    elif condition == "Scenario":
+        seq.append("scenario")
+        addetckey()
+    elif condition == "Author":
+        seq.append("author")
+        addetckey()
+    seq.append("order")
+
+    cw.util.sort_by_attr(cards, *seq)
 
 #-------------------------------------------------------------------------------
 #  CWPyElement

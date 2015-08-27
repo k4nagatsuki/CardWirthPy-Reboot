@@ -1126,6 +1126,11 @@ class ScenarioHeader(object):
         self.image = t[15]
         self._wxbmp = None
 
+    @property
+    def mtime_reversed(self):
+        """整列用の逆転した変更日時。"""
+        return -self.mtime
+
     def header2tuple(self):
         return (self.dpath, self.type, self.fname, self.name, self.author, self.desc,
                 self.skintype, self.levelmin, self.levelmax, self.coupons,

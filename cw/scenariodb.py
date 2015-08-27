@@ -23,6 +23,7 @@ DATA_TITLE = 0
 DATA_DESC = 1
 DATA_AUTHOR = 2
 DATA_LEVEL = 3
+DATA_FNAME = 4
 
 class ScenariodbUpdatingThread(threading.Thread):
     _finished = False
@@ -331,9 +332,7 @@ class Scenariodb(object):
         return headers, names
 
     def sort_headers(self, headers):
-        cw.util.sort_by_attr(headers, "name")
-        cw.util.sort_by_attr(headers, "levelmax")
-        cw.util.sort_by_attr(headers, "levelmin")
+        cw.util.sort_by_attr(headers, "levelmin", "levelmax", "name", "author", "fname", "mtime_reversed")
         return headers
 
     @synclock(_lock)
@@ -428,6 +427,8 @@ class Scenariodb(object):
             where = "author LIKE ? ESCAPE '\\'"
         elif ftype == DATA_LEVEL:
             where = "levelmin <= ? AND ? <= levelmax"
+        elif ftype == DATA_FNAME:
+            where = "A.fname LIKE ? ESCAPE '\\'"
         else:
             raise Exception()
 
@@ -479,6 +480,9 @@ class Scenariodb(object):
                     continue
             elif ftype == DATA_LEVEL:
                 if not (header.levelmin <= v <= header.levelmax):
+                    continue
+            elif ftype == DATA_FNAME:
+                if not v in header.fname.lower():
                     continue
             else:
                 assert False

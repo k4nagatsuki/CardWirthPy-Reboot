@@ -67,7 +67,9 @@ class CardControl(wx.Dialog):
                    cw.cwpy.msgs["sort_name"],
                    cw.cwpy.msgs["sort_level"],
                    cw.cwpy.msgs["sort_type"],
-                   cw.cwpy.msgs["sort_price"]]
+                   cw.cwpy.msgs["sort_price"],
+                   cw.cwpy.msgs["scenario_name"],
+                   cw.cwpy.msgs["author"]]
         self.sort = wx.ComboBox(self.toppanel, -1, size=cw.wins((75, 24)), choices=choices, style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
         self.sortwithstar = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=self.star)
@@ -1279,6 +1281,10 @@ class CardHolder(CardControl):
             sorttype = "Type"
         elif index == 4:
             sorttype = "Price"
+        elif index == 5:
+            sorttype = "Scenario"
+        elif index == 6:
+            sorttype = "Author"
         else:
             sorttype = "None"
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
@@ -1537,6 +1543,10 @@ class CardHolder(CardControl):
                 self.sort.Select(3)
             elif sorttype == "Price":
                 self.sort.Select(4)
+            elif sorttype == "Scenario":
+                self.sort.Select(5)
+            elif sorttype == "Author":
+                self.sort.Select(6)
             else:
                 self.sort.Select(0)
 

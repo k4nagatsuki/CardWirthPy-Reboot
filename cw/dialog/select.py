@@ -2483,7 +2483,8 @@ class ScenarioSelect(Select):
         choices = (cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["description"],
                    cw.cwpy.msgs["author"],
-                   cw.cwpy.msgs["target_level"])
+                   cw.cwpy.msgs["target_level"],
+                   cw.cwpy.msgs["file_name"])
         self._init_narrowpanel(choices, cw.cwpy.setting.scenario_narrow,
                                cw.cwpy.setting.scenario_narrowtype, tworows=True)
 
@@ -2495,6 +2496,7 @@ class ScenarioSelect(Select):
         choices = (cw.cwpy.msgs["target_level"],
                    cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["author"],
+                   cw.cwpy.msgs["file_name"],
                    cw.cwpy.msgs["modified_date"])
         self.sort = wx.Choice(self, -1, size=(-1, -1), choices=choices)
         self.sort.SetFont(font)
@@ -2698,6 +2700,8 @@ class ScenarioSelect(Select):
             except:
                 cw.cwpy.play_sound("error")
                 return
+        elif narrow == 4:
+            ftype = cw.scenariodb.DATA_FNAME
         else:
             assert False
         headers = self.db.find_headers(ftype, value, skintype=cw.cwpy.setting.skintype)
@@ -3352,7 +3356,14 @@ class ScenarioSelect(Select):
                         # 整列条件: 作者名
                         if header.author:
                             addition = u"(%s)" % (header.author)
-                    elif self.sort.GetSelection() == 3:
+                    ## FIXME: ファイル名の表示は横長になりすぎるので保留
+                    ##elif self.sort.GetSelection() == 3:
+                    ##    # 整列条件: ファイル名
+                    ##    fname = header.fname
+                    ##    if sys.platform == "win32" and fname.lower().endswith(".lnk"):
+                    ##        fname = os.path.splitext(fname)[0]
+                    ##    addition = fname
+                    elif self.sort.GetSelection() == 4:
                         # 整列条件: 更新日時
                         addition = u"[%s]" % (self._formatted_mtime(header.mtime, False))
                     elif header.levelmin or header.levelmax:
@@ -3608,9 +3619,15 @@ class ScenarioSelect(Select):
                 levelmax = str(header.levelmax) if header.levelmax else ""
                 name = u"[%2s～%2s] %s" % (levelmin, levelmax, name)
 
-        if self.sort.GetSelection() == 3:
+        if self.sort.GetSelection() == 4:
             # 日時による整列中
             name = u"%s (%s)" % (name, self._formatted_mtime(header.mtime, True))
+        elif self.sort.GetSelection() == 3:
+            # ファイル名による整列中
+            fname = header.fname
+            if sys.platform == "win32" and fname.lower().endswith(".lnk"):
+                fname = os.path.splitext(fname)[0]
+            name = u"%s (%s)" % (name, fname)
         elif self.sort.GetSelection() == 2 and header.author:
             # 作者名による整列中
             name = u"%s (%s)" % (name, header.author)
@@ -3916,6 +3933,10 @@ class ScenarioSelect(Select):
                         # 対象レベルで絞り込み
                         if not (header.levelmin <= narrow <= header.levelmax):
                             continue
+                    elif ntype == 4:
+                        # ファイル名で絞り込み
+                        if not narrow in header.fname.lower():
+                            continue
                     else:
                         assert False
                 seq.append(header)
@@ -3931,14 +3952,16 @@ class ScenarioSelect(Select):
             pass
         elif sort == 1:
             # タイトル
-            cw.util.sort_by_attr(seq, "name")
+            cw.util.sort_by_attr(seq, "name", "levelmin", "levelmax", "author", "fname", "mtime_reversed")
         elif sort == 2:
             # 作者名
-            cw.util.sort_by_attr(seq, "author")
+            cw.util.sort_by_attr(seq, "author", "levelmin", "levelmax", "name", "fname", "mtime_reversed")
         elif sort == 3:
             # 更新日時
-            cw.util.sort_by_attr(seq, "mtime")
-            seq.reverse()
+            cw.util.sort_by_attr(seq, "mtime_reversed", "levelmin", "levelmax", "name", "author", "fname")
+        elif sort == 4:
+            # ファイル名
+            cw.util.sort_by_attr(seq, "fname", "levelmin", "levelmax", "name", "author", "mtime_reversed")
         return seq
 
     def enable_btn(self):
