@@ -49,8 +49,8 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
         # toppanel
-        self.toppanel = wx.Panel(self, -1, size=cw.wins((500, 285)))
-        self.toppanel.SetMinSize(cw.wins((500, 285)))
+        self.toppanel = wx.Panel(self, -1, size=cw.wins((520, 285)))
+        self.toppanel.SetMinSize(cw.wins((520, 285)))
         self.toppanel.SetBackgroundColour(self.bgcolour)
         self.toppanel.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.toppanel.SetDoubleBuffered(True)
@@ -78,6 +78,12 @@ class CardControl(wx.Dialog):
         if not sort:
             self.sort.Hide()
             self.sortwithstar.Hide()
+
+        ##self.show = [None] * 3
+        ##self.show[cw.POCKET_SKILL] = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
+        ##bmp = cw.cwpy.rsrc.dialogs["STATUS8"]
+        ##self.show[cw.POCKET_SKILL].SetBitmapLabel(bmp, False)
+        ##self.show[cw.POCKET_SKILL].SetBitmapSelected(bmp)
 
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
@@ -231,20 +237,22 @@ class CardControl(wx.Dialog):
         # toppanelはSizerを使わず自前で座標を計算
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
+            x = cw.wins(10)
             y = cw.wins(64)
-            self.skillbtn.SetPosition((cw.wins(4), y))
+            self.skillbtn.SetPosition((x, y))
             y += self.skillbtn.GetSize()[1]
-            self.itembtn.SetPosition((cw.wins(4), y))
+            self.itembtn.SetPosition((x, y))
             y += self.itembtn.GetSize()[1]
-            self.beastbtn.SetPosition((cw.wins(4), y))
+            self.beastbtn.SetPosition((x, y))
         elif self.callname <> "HANDVIEW":
             # カード置き場、荷物袋、情報カード
+            x = cw.wins(10)
             y = cw.wins(50)
-            self.upbtn.SetPosition((cw.wins(6), y))
+            self.upbtn.SetPosition((x, y))
             self.upbtn.SetSize(cw.wins((70, 40)))
             y += self.upbtn.GetSize()[1]
             y += cw.wins(240-110)
-            self.downbtn.SetPosition((cw.wins(6), y))
+            self.downbtn.SetPosition((x, y))
             self.downbtn.SetSize(cw.wins((70, 40)))
 
             # ページ番号入力欄
@@ -264,7 +272,7 @@ class CardControl(wx.Dialog):
             self.page.SetPosition((sx-psize[0], y))
             self.page.SetSize(psize)
 
-        cwidth = cw.wins(500)
+        cwidth = cw.wins(520)
         cheight = cw.wins(285)
 
         # 絞込条件
@@ -608,10 +616,10 @@ class CardControl(wx.Dialog):
         # ライン
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
         dc.SetPen(wx.Pen(colour, cw.wins(1), wx.SOLID))
-        dc.DrawLine(cw.wins(1), cw.wins(24), cw.wins(499), cw.wins(24))
+        dc.DrawLine(cw.wins(1), cw.wins(24), cw.wins(520), cw.wins(24))
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW)
         dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
-        dc.DrawLine(cw.wins(1), cw.wins(25), cw.wins(499), cw.wins(25))
+        dc.DrawLine(cw.wins(1), cw.wins(25), cw.wins(520), cw.wins(25))
         # モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
@@ -2014,7 +2022,7 @@ def get_poslist(num, mode=1):
         # 描画エリアサイズ
         w, _h = cw.wins((425, 230))
         # 左,上の余白
-        leftm = cw.wins(80)
+        leftm = cw.wins(90)
 
         poslist = []
 
@@ -2031,7 +2039,7 @@ def get_poslist(num, mode=1):
             # 折り返し枚数
             numb = 5
             # 左,上の余白
-            leftm = cw.wins(78)
+            leftm = cw.wins(88)
         elif mode == 3:
             w, _h = cw.wins((505, 230))
             numb = 6

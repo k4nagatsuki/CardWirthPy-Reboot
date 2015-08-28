@@ -699,6 +699,9 @@
     <Message key="create_debug">簡易方式</Message>
     <Message key="create_debug_description">簡易方式でキャラクターを作成します。血縁関係など、一部設定は省略されます。</Message>
     <Message key="file_name">ファイル名</Message>
+    <Message key="show_skillcards">特殊技能カードを表示する</Message>
+    <Message key="show_itemcards">アイテムカードを表示する</Message>
+    <Message key="show_beastcards">召喚獣カードを表示する</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>
