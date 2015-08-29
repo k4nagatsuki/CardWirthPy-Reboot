@@ -740,6 +740,9 @@ class Event(object):
         # イベント中にカード移動が発生していた場合に備えてソート
         if cw.cwpy.ydata and cw.cwpy.ydata.party:
             cw.cwpy.ydata.party.sort_backpack()
+            for header in cw.cwpy.ydata.party.backpack:
+                # 書き込みを遅延しているカードは書き込み実施
+                header.do_write()
 
         cw.cwpy.update_mcardlist()
 

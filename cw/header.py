@@ -189,6 +189,9 @@ class CardHeader(object):
         else:
             self.type_id = 2
 
+        # 遅延書き込み
+        self._lazy_write = None
+
     @property
     def negastar(self):
         if self.star is None:
@@ -256,6 +259,17 @@ class CardHeader(object):
 
     def get_cardimg(self):
         return self.cardimg.get_cardimg(self)
+
+    def do_write(self, dupcheck=True):
+        if not self._lazy_write is None:
+            if dupcheck:
+                self._lazy_write.fpath = cw.util.dupcheck_plus(self._lazy_write.fpath)
+            self._lazy_write.write_xml(True)
+            self.fpath = self._lazy_write.fpath
+            self._lazy_write = None
+
+            # self.fpathを削除予定のfpathリストから削除
+            cw.cwpy.ydata.deletedpaths.discard(self.fpath)
 
     def get_vocation_level(self, owner, enhance_act=False):
         """
@@ -469,7 +483,7 @@ class CardHeader(object):
                 if header in owner.cardpocket[cw.POCKET_BEAST] and header.get_owner() == owner:
                     cw.cwpy.trade("TRASHBOX", header=header, from_event=True, clearinusecard=False)
 
-    def write(self, party=None, move=False):
+    def write(self, party=None, move=False, from_getcontent=False):
         def create_newpath(party):
             fname = cw.util.repl_dischar(self.name) + ".xml"
             if self._owner == "BACKPACK":
@@ -510,27 +524,33 @@ class CardHeader(object):
 
             if self.fpath:
                 path = self.fpath
+                dupcheck = False
             else:
                 path = create_newpath(party)
                 self.fpath = path
+                dupcheck = True
 
             etree = cw.data.xml2etree(element=self.carddata)
             etree.fpath = self.fpath
 
-            if not self.type == "BeastCard":
+            if not from_getcontent and not self.type == "BeastCard":
                 etree.edit("Property/Hold", "False")
 
-            etree.write_xml(True)
-            self.fpath = etree.fpath
-        # self.fpathを削除予定のfpathリストから削除
-        cw.cwpy.ydata.deletedpaths.discard(self.fpath)
+            self._lazy_write = etree
+            if not from_getcontent or not self.scenariocard:
+                self.do_write(dupcheck=dupcheck)
 
-    def contain_xml(self):
+    def contain_xml(self, load=True):
+        if not load and not self._lazy_write is None:
+            return
         if self.carddata is None:
-            e = cw.data.yadoxml2etree(self.fpath)
-            self.carddata = e.getroot()
-            # self.fpathを削除予定のfpathリストに追加
-            cw.cwpy.ydata.deletedpaths.add(self.fpath, self.scenariocard)
+            if load:
+                self.do_write()
+                e = cw.data.yadoxml2etree(self.fpath)
+                self.carddata = e.getroot()
+            if self._lazy_write is None:
+                # self.fpathを削除予定のfpathリストに追加
+                cw.cwpy.ydata.deletedpaths.add(self.fpath, self.scenariocard)
 
     def set_scenariostart(self):
         """
@@ -551,6 +571,7 @@ class CardHeader(object):
         非付帯召喚カードを削除したり、
         シナリオで取得したカードの素材ファイルを宿にコピーしたりする。
         """
+        self.do_write()
         if self.scenariocard:
             if self.carddata is None:
                 assert self.fpath, self.name
@@ -725,6 +746,7 @@ class CardHeader(object):
             return
 
         cw.cwpy.ydata.changed()
+        self.do_write()
         self.star = star
         owner = self.get_owner()
         if isinstance(owner, cw.character.Player):

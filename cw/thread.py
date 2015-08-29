@@ -3328,6 +3328,9 @@ class CWPy(_Singleton, threading.Thread):
         toself = (targettype == "BACKPACK" and party and owner == party.backpack) or\
                  (targettype == "STOREHOUSE" and owner == self.ydata.storehouse)
 
+        if not toself and not targettype in ("PAWNSHOP", "TRASHBOX"):
+            header.do_write()
+
         # 移動先を設定。
         if targettype == "PLAYERCARD":
             target = target
@@ -3500,7 +3503,7 @@ class CWPy(_Singleton, threading.Thread):
                 pass
             elif header.scenariocard:
                 # シナリオで入手したカードはそのまま削除してよい
-                header.contain_xml()
+                header.contain_xml(load=not targettype in ("PAWNSHOP", "TRASHBOX"))
             else:
                 if self.is_playingscenario():
                     if not header.carddata:
@@ -3658,11 +3661,12 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 header.fpath = ""
                 etree = cw.data.xml2etree(element=header.carddata)
-                # 削除フラグを除去
-                if etree.getint("Property", "moved", 0) <> 0:
-                    etree.remove("Property", attrname="moved")
-                    header.moved = 0
-                header.write(party)
+                if not from_getcontent:
+                    # 削除フラグを除去
+                    if etree.getint("Property", "moved", 0) <> 0:
+                        etree.remove("Property", attrname="moved")
+                        header.moved = 0
+                header.write(party, from_getcontent=from_getcontent)
                 header.carddata = None
 
         if header == self.selectedheader:

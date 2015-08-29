@@ -308,6 +308,7 @@ class ScenarioData(SystemData):
                                 # アーカイヴのサブフォルダにシナリオがある
                                 self.tempdir = dpath
                                 break
+                    self.tempdir = cw.util.join_paths(self.tempdir)
 
             if self.tempdir:
                 cw.cwpy.ydata.recenthistory.moveend(self.fpath)
@@ -1649,6 +1650,7 @@ class YadoData(object):
             tempdir = party.get_tempdir()
             cardtable = {}
             for header in party.backpack:
+                header.do_write()
                 if header.fpath.lower().startswith("yado"):
                     fpath = cw.util.relpath(header.fpath, yadodir)
                 else:

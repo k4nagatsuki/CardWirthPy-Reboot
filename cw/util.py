@@ -2511,17 +2511,17 @@ def t_print():
     lines = []
     for i, t in enumerate(times):
         if 0 < t:
-            s = "time[%s] = %s" % (i, t)
+            s = u"time[%s] = %s" % (i, t)
             lines.append(s)
             print s
     for key, t in dictimes.iteritems():
         if 0 < t:
-            s = "time[%s] = %s" % (key, t)
+            s = u"time[%s] = %s" % (key, t)
             lines.append(s)
             print s
     if lines:
         with open("performance.txt", "w") as f:
-            f.write("\n".join(lines))
+            f.write(u"\n".join(lines))
             f.flush()
             f.close()
 

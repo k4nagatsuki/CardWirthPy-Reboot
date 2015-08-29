@@ -1975,7 +1975,8 @@ class GetContent(EventContentBase):
 
         for _cnt in xrange(num):
             for target in cw.cwpy.event.get_targetscope(scope):
-                etree = cw.data.xml2etree(path, nocache=True)
+                nocache = not (cw.cwpy.ydata and cw.cwpy.ydata.party and cw.cwpy.ydata.party.backpack == target)
+                etree = cw.data.xml2etree(path, nocache=nocache)
                 get_card(etree, target, from_getcontent=True)
 
 def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, party=None, copymaterialfrom="", fromdebugger=False, from_getcontent=False, attachment=False):
