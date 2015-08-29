@@ -754,7 +754,7 @@ def _blend_sub_1_50(dest, source):
     buf = "".join(buf)
     return pygame.image.frombuffer(buf, (w, h), "RGBA").convert_alpha()
 
-def to_disabledimage(wxbmp):
+def to_disabledimage(wxbmp, maskpos=(0, 0)):
     """
     通常時のボタン画像からdisabled用の画像を作る。
     RGB値の範囲を 0～255 から min～max に変更する。
@@ -774,7 +774,8 @@ def to_disabledimage(wxbmp):
 
     wximg = wx.ImageFromBuffer(w, h, buffer(buf))
     wxbmp = wx.BitmapFromImage(wximg)
-    wxbmp.SetMaskColour((wximg.GetRed(0, 0), wximg.GetGreen(0, 0), wximg.GetBlue(0, 0)))
+    x, y = maskpos
+    wxbmp.SetMaskColour((wximg.GetRed(x, y), wximg.GetGreen(x, y), wximg.GetBlue(x, y)))
     return wxbmp
 
 def _to_disabledimage(buf, size):

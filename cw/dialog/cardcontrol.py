@@ -72,18 +72,31 @@ class CardControl(wx.Dialog):
                    cw.cwpy.msgs["author"]]
         self.sort = wx.ComboBox(self.toppanel, -1, size=cw.wins((75, 24)), choices=choices, style=wx.CB_READONLY)
         self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
-        self.sortwithstar = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((24, 24)), bmp=self.star)
+        self.sortwithstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
         self.sortwithstar.SetToolTipString(cw.cwpy.msgs["sort_with_star"])
         self._update_sortwithstar()
         if not sort:
             self.sort.Hide()
             self.sortwithstar.Hide()
 
-        ##self.show = [None] * 3
-        ##self.show[cw.POCKET_SKILL] = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
-        ##bmp = cw.cwpy.rsrc.dialogs["STATUS8"]
-        ##self.show[cw.POCKET_SKILL].SetBitmapLabel(bmp, False)
-        ##self.show[cw.POCKET_SKILL].SetBitmapSelected(bmp)
+        self.show = [None] * 3
+        self._typeicon_e = [None] * 3
+        self._typeicon_d = [None] * 3
+        for cardtype, bmp, msg in ((cw.POCKET_SKILL, cw.cwpy.rsrc.dialogs["STATUS8"], cw.cwpy.msgs["show_skillcards"]),
+                                   (cw.POCKET_ITEM, cw.cwpy.rsrc.dialogs["STATUS9"], cw.cwpy.msgs["show_itemcards"]),
+                                   (cw.POCKET_BEAST, cw.cwpy.rsrc.dialogs["STATUS10"], cw.cwpy.msgs["show_beastcards"])):
+            btn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
+            self._typeicon_e[cardtype] = bmp
+            dbmp = cw.imageretouch.to_disabledimage(bmp, maskpos=(bmp.GetWidth()-1, 0))
+            self._typeicon_d[cardtype] = dbmp
+            btn.SetBitmapFocus(bmp)
+            btn.SetBitmapLabel(bmp, False)
+            btn.SetBitmapSelected(bmp)
+            btn.SetToolTipString(msg)
+            btn.SetToggle(True)
+            self.show[cardtype] = btn
+            if not self.callname in ("BACKPACK", "STOREHOUSE"):
+                btn.Hide()
 
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
@@ -155,6 +168,9 @@ class CardControl(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn2, self.rightbtn2)
         self.Bind(wx.EVT_BUTTON, self.OnSortWithStar, self.sortwithstar)
+        self.Bind(wx.EVT_BUTTON, self.OnShowSkill, self.show[cw.POCKET_SKILL])
+        self.Bind(wx.EVT_BUTTON, self.OnShowItem, self.show[cw.POCKET_ITEM])
+        self.Bind(wx.EVT_BUTTON, self.OnShowBeast, self.show[cw.POCKET_BEAST])
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_COMBOBOX, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMove)
@@ -303,7 +319,15 @@ class CardControl(wx.Dialog):
             x -= cw.wins(20)
             self.leftbtn2.SetPosition((x, y))
             self.leftbtn2.SetSize(cw.wins((20, 24)))
-            x -= cw.wins(60)
+            x -= cw.wins(50)
+
+        if self.callname in ("BACKPACK", "STOREHOUSE"):
+            for cardtype in (cw.POCKET_BEAST, cw.POCKET_ITEM, cw.POCKET_SKILL):
+                x -= cw.wins(24)
+                btn = self.show[cardtype]
+                btn.SetPosition((x, y))
+                btn.SetSize(cw.wins((24, 24)))
+            x -= cw.wins(5)
 
         if self.sort.IsShown():
             x -= cw.wins(24)
@@ -360,6 +384,15 @@ class CardControl(wx.Dialog):
         pass
 
     def OnSortWithStar(self, event):
+        pass
+
+    def OnShowSkill(self, event):
+        pass
+
+    def OnShowItem(self, event):
+        pass
+
+    def OnShowBeast(self, event):
         pass
 
     def _update_sortwithstar(self):
@@ -1181,10 +1214,7 @@ class CardHolder(CardControl):
         bmp = cw.cwpy.rsrc.buttons["DOWN"]
         self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp)
 
-        # リストが空か1ページ分しかなかったら上下ボタンを無効化
-        if len(self.list) <= 10:
-            self.upbtn.Disable()
-            self.downbtn.Disable()
+        self._enable_updown()
 
         # 移動先選択コンボボックス(情報カードの場合は無し)
         self._combo_storehouse = -1
@@ -1327,18 +1357,21 @@ class CardHolder(CardControl):
 
     def _update_sortwithstar(self):
         bmp = self.star
+        toggle = True
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
             if not cw.cwpy.setting.sort_backpackwithstar:
                 bmp = self.nostar
+                toggle = False
         elif self.callname == "STOREHOUSE":
             if not cw.cwpy.setting.sort_storehousewithstar:
                 bmp = self.nostar
+                toggle = False
         else:
             return
         self.sortwithstar.SetBitmapFocus(bmp)
-        self.sortwithstar.SetBitmapHover(bmp)
         self.sortwithstar.SetBitmapLabel(bmp)
         self.sortwithstar.SetBitmapSelected(bmp)
+        self.sortwithstar.SetToggle(toggle)
 
     def _update_sortattr(self):
         if self.callname in ("BACKPACK", "CARDPOCKETB"):
@@ -1352,6 +1385,34 @@ class CardHolder(CardControl):
             cw.cwpy.ydata.sort_storehouse()
             self.list = self._narrow(cw.cwpy.ydata.storehouse)
             self.draw_cards()
+
+    def OnShowSkill(self, event):
+        self._on_show(cw.POCKET_SKILL)
+
+    def OnShowItem(self, event):
+        self._on_show(cw.POCKET_ITEM)
+
+    def OnShowBeast(self, event):
+        self._on_show(cw.POCKET_BEAST)
+
+    def _on_show(self, cardtype):
+        btn = self.show[cardtype]
+        if btn.GetToggle():
+            bmp = self._typeicon_e[cardtype]
+        else:
+            bmp = self._typeicon_d[cardtype]
+        btn.SetBitmapFocus(bmp)
+        btn.SetBitmapLabel(bmp)
+        btn.SetBitmapSelected(bmp)
+
+        if self.callname in ("BACKPACK"):
+            self.list = self._narrow(cw.cwpy.ydata.party.backpack)
+        elif self.callname in ("STOREHOUSE"):
+            self.list = self._narrow(cw.cwpy.ydata.storehouse)
+        else:
+            assert False
+        self.draw_cards()
+        self._enable_updown()
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.play_sound("page")
@@ -1486,17 +1547,21 @@ class CardHolder(CardControl):
             self._show_controls()
             self._do_layout()
 
+        self._enable_updown()
+
+        if self.callname == "CARDPOCKETB":
+            self.closebtn.SetLabel(cw.cwpy.msgs["return"])
+        else:
+            self.closebtn.SetLabel(cw.cwpy.msgs["close"])
+
+    def _enable_updown(self):
+        # リストが空か1ページ分しかなかったら上下ボタンを無効化
         if self.callname == "CARDPOCKET" or len(self.list) <= 10:
             self.upbtn.Disable()
             self.downbtn.Disable()
         else:
             self.upbtn.Enable()
             self.downbtn.Enable()
-
-        if self.callname == "CARDPOCKETB":
-            self.closebtn.SetLabel(cw.cwpy.msgs["return"])
-        else:
-            self.closebtn.SetLabel(cw.cwpy.msgs["close"])
 
     def _show_controls(self):
         if self.callname == "CARDPOCKET":
@@ -1534,6 +1599,10 @@ class CardHolder(CardControl):
                 self.sortwithstar.Hide()
                 self.narrow.Hide()
                 self.narrow_type.Hide()
+
+        # 種別ごと表示有無
+        for btn in self.show:
+            btn.Show(self.callname in ("BACKPACK", "STOREHOUSE"))
 
         if self.callname == "STOREHOUSE":
             sorttype = cw.cwpy.setting.sort_storehouse
@@ -1830,7 +1899,12 @@ class CardHolder(CardControl):
             return self._fulllist
         narrow = self.narrow.GetValue().lower()
         ntype = self.narrow_type.GetSelection()
-        if not narrow:
+
+        show = [True] * 3
+        for cardtype, btn in enumerate(self.show):
+            show[cardtype] = btn.GetToggle()
+
+        if not narrow and all(show):
             return self._fulllist
 
         seq = []
@@ -1850,6 +1924,12 @@ class CardHolder(CardControl):
 
         else:
             for header in self._fulllist:
+                if header.type == "SkillCard" and not show[cw.POCKET_SKILL]:
+                    continue
+                if header.type == "ItemCard" and not show[cw.POCKET_ITEM]:
+                    continue
+                if header.type == "BeastCard" and not show[cw.POCKET_BEAST]:
+                    continue
                 if ntype in (0, 1, 2, 3):
                     if ntype == 0:
                         # カード名
