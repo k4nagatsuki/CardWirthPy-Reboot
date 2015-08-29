@@ -758,13 +758,14 @@ class AdventurerCreaterPage(wx.Panel):
 class NamePage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
+        self.SetDoubleBuffered(True)
         self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
         self.textctrl.SetFocus()
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
 
-        self.ch_imgdpath = wx.Choice(self, size=(cw.wins(110), -1))
+        self.ch_imgdpath = wx.Choice(self, size=(cw.wins(140), -1))
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.ch_imgdpath.SetFont(font)
 
@@ -853,29 +854,13 @@ class NamePage(AdventurerCreaterPage):
             self.textctrl.SetFocus()
 
     def _do_layout(self):
-        sizer_1 = wx.BoxSizer(wx.VERTICAL)
         csize = self.GetClientSize()
-        _w1, h1 = self.textctrl.GetSize()
+        w1, _h1 = self.textctrl.GetSize()
         w2, _h2 = self.ch_imgdpath.GetSize()
 
-        sizer_1.Add((csize[0], cw.wins(90)), 0, 0, 0)
-        sizer_1.Add(self.textctrl, 0, wx.CENTER, 0)
-
-        margin = cw.wins(135) - h1
-        sizer_1.Add((0, margin), 0, 0, 0)
-
-        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        margin = cw.wins(275) + cw.wins(cw.SIZE_CARDIMAGE[0])/2 - w2/2
-        sizer_2.Add((margin, 0), 0, 0, 0)
-        sizer_2.Add(self.ch_imgdpath, 0, 0, 0)
-        sizer_1.Add(sizer_2, 0, 0, 0)
-
-        margin = csize[1] - sizer_1.CalcMin()[1]
-        sizer_1.Add((0, margin), 0, 0, 0)
-
-        self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
-        self.Layout()
+        self.textctrl.SetPosition(((csize[0]-w1)/2, cw.wins(90)))
+        x = cw.wins(275) + cw.wins(cw.SIZE_CARDIMAGE[0])/2 - w2/2
+        self.ch_imgdpath.SetPosition((x, cw.wins(225)))
 
     def draw(self, update=False):
         dc = AdventurerCreaterPage.draw(self, update)
@@ -1846,7 +1831,7 @@ class DesignPanel(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.namectrl.SetFont(font)
 
-        self.ch_imgdpath = wx.Choice(self, size=(cw.wins(110), -1))
+        self.ch_imgdpath = wx.Choice(self, size=(cw.wins(140), -1))
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
         self.ch_imgdpath.SetFont(font)
 
