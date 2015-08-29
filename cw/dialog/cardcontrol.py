@@ -509,11 +509,8 @@ class CardControl(wx.Dialog):
                             header.set_star(0)
                         else:
                             header.set_star(1)
-                        if self.callname == "STOREHOUSE":
-                            if cw.cwpy.setting.sort_storehousewithstar:
-                                self._update_sortattr()
-                        elif self.callname in ("BACKPACK", "CARDPOCKETB"):
-                            if cw.cwpy.setting.sort_backpackwithstar:
+                        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+                            if cw.cwpy.setting.sort_cardswithstar:
                                 self._update_sortattr()
                     self.animate_starclick(header, func)
                     return
@@ -1325,32 +1322,20 @@ class CardHolder(CardControl):
             sorttype = "Author"
         else:
             sorttype = "None"
-        if self.callname in ("BACKPACK", "CARDPOCKETB"):
-            if cw.cwpy.setting.sort_backpack <> sorttype:
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+            if cw.cwpy.setting.sort_cards <> sorttype:
                 cw.cwpy.play_sound("page")
-                cw.cwpy.setting.sort_backpack = sorttype
-                self._update_sortattr()
-        elif self.callname == "STOREHOUSE":
-            if cw.cwpy.setting.sort_storehouse <> sorttype:
-                cw.cwpy.play_sound("page")
-                cw.cwpy.setting.sort_storehouse = sorttype
+                cw.cwpy.setting.sort_cards = sorttype
                 self._update_sortattr()
 
     def OnSortWithStar(self, event):
         cw.cwpy.play_sound("page")
-        if self.callname in ("BACKPACK", "CARDPOCKETB"):
-            if cw.cwpy.setting.sort_backpackwithstar:
-                cw.cwpy.setting.sort_backpackwithstar = False
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+            if cw.cwpy.setting.sort_cardswithstar:
+                cw.cwpy.setting.sort_cardswithstar = False
                 self._update_sortattr()
             else:
-                cw.cwpy.setting.sort_backpackwithstar = True
-                self._update_sortattr()
-        elif self.callname == "STOREHOUSE":
-            if cw.cwpy.setting.sort_storehousewithstar:
-                cw.cwpy.setting.sort_storehousewithstar = False
-                self._update_sortattr()
-            else:
-                cw.cwpy.setting.sort_storehousewithstar = True
+                cw.cwpy.setting.sort_cardswithstar = True
                 self._update_sortattr()
 
         self._update_sortwithstar()
@@ -1358,12 +1343,8 @@ class CardHolder(CardControl):
     def _update_sortwithstar(self):
         bmp = self.star
         toggle = True
-        if self.callname in ("BACKPACK", "CARDPOCKETB"):
-            if not cw.cwpy.setting.sort_backpackwithstar:
-                bmp = self.nostar
-                toggle = False
-        elif self.callname == "STOREHOUSE":
-            if not cw.cwpy.setting.sort_storehousewithstar:
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+            if not cw.cwpy.setting.sort_cardswithstar:
                 bmp = self.nostar
                 toggle = False
         else:
@@ -1604,10 +1585,8 @@ class CardHolder(CardControl):
         for btn in self.show:
             btn.Show(self.callname in ("BACKPACK", "STOREHOUSE"))
 
-        if self.callname == "STOREHOUSE":
-            sorttype = cw.cwpy.setting.sort_storehouse
-        elif self.callname in ("BACKPACK", "CARDPOCKETB"):
-            sorttype = cw.cwpy.setting.sort_backpack
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
+            sorttype = cw.cwpy.setting.sort_cards
         else:
             sorttype = None
 

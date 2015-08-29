@@ -290,14 +290,10 @@ def create_settings(setting):
     e = cw.data.make_element("SortKey")
     if setting.sort_standbys <> setting.sort_standbys_init:
         e.set("standbys", setting.sort_standbys)
-    if setting.sort_storehouse <> setting.sort_storehouse_init:
-        e.set("storehouse", setting.sort_storehouse)
-    if setting.sort_storehousewithstar <> setting.sort_storehousewithstar_init:
-        e.set("storehousewithstar", str(setting.sort_storehousewithstar))
-    if setting.sort_backpack <> setting.sort_backpack_init:
-        e.set("backpack", setting.sort_backpack)
-    if setting.sort_backpackwithstar <> setting.sort_backpackwithstar_init:
-        e.set("backpackwithstar", str(setting.sort_backpackwithstar))
+    if setting.sort_cards <> setting.sort_cards_init:
+        e.set("cards", setting.sort_cards)
+    if setting.sort_cardswithstar <> setting.sort_cardswithstar_init:
+        e.set("cardswithstar", str(setting.sort_cardswithstar))
     if e.attrib:
         element.append(e)
     # 宿帳絞込条件

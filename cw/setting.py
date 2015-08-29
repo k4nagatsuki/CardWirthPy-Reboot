@@ -102,10 +102,8 @@ class Setting(object):
         self.classicstyletext = True
         self.vocation120 = False
         self.sort_standbys = "None"
-        self.sort_storehouse = "None"
-        self.sort_storehousewithstar = True
-        self.sort_backpack = "None"
-        self.sort_backpackwithstar = True
+        self.sort_cards = "None"
+        self.sort_cardswithstar = True
         self.card_narrow = ""
         self.card_narrowtype = 0
         self.standbys_narrowtype = 0
@@ -354,10 +352,8 @@ class Setting(object):
         self.all_quickdeal = data.getbool("AllQuickDeal", self.all_quickdeal)
         # ソート基準
         self.sort_standbys = data.getattr("SortKey", "standbys", self.sort_standbys)
-        self.sort_storehouse = data.getattr("SortKey", "storehouse", self.sort_storehouse)
-        self.sort_storehousewithstar = data.getbool("SortKey", "storehousewithstar", self.sort_storehousewithstar)
-        self.sort_backpack = data.getattr("SortKey", "backpack", self.sort_backpack)
-        self.sort_backpackwithstar = data.getbool("SortKey", "backpackwithstar", self.sort_backpackwithstar)
+        self.sort_cards = data.getattr("SortKey", "cards", self.sort_cards)
+        self.sort_cardswithstar = data.getbool("SortKey", "cardswithstar", self.sort_cardswithstar)
         # 宿帳絞込条件
         self.standbys_narrowtype = data.getint("StandbysNarrowType", self.standbys_narrowtype)
         # カード絞込条件

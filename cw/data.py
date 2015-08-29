@@ -1594,7 +1594,7 @@ class YadoData(object):
             cw.util.sort_by_attr(self.standbys, "order")
 
     def sort_storehouse(self):
-        sort_cards(self.storehouse, cw.cwpy.setting.sort_storehouse, cw.cwpy.setting.sort_storehousewithstar)
+        sort_cards(self.storehouse, cw.cwpy.setting.sort_cards, cw.cwpy.setting.sort_cardswithstar)
 
     def sort_partyrecord(self):
         cw.util.sort_by_attr(self.partyrecord, "name")
@@ -2185,7 +2185,7 @@ class Party(object):
             self.sort_backpack()
 
     def sort_backpack(self):
-        sort_cards(self.backpack, cw.cwpy.setting.sort_backpack, cw.cwpy.setting.sort_backpackwithstar)
+        sort_cards(self.backpack, cw.cwpy.setting.sort_cards, cw.cwpy.setting.sort_cardswithstar)
 
     def get_backpackkeycodes(self, skill=True, item=True, beast=True):
         """荷物袋内のキーコード一覧を返す。"""
