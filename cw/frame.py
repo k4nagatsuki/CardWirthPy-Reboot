@@ -936,8 +936,8 @@ class Frame(wx.Frame):
                         quality = wx.IMAGE_QUALITY_HIGH
                     else:
                         quality = wx.IMAGE_QUALITY_BILINEAR
-                    titleimg = cw.util.draw_antialiasedtext(mem3, title, white, ww,
-                                                            cw.s(5), quality)
+                    titleimg = cw.util.render_antialiasedtext(mem3, title, white, ww,
+                                                              cw.s(5), quality)
                     del mem3
 
                     # 位置の決定(画面外には出さない)

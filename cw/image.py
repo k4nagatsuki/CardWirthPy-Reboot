@@ -305,20 +305,9 @@ class CardImage(Image):
         if self.name:
             white = cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder
             quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
-            if cw.cwpy.setting.bordering_cardname:
-                subimg = cw.util.draw_antialiasedtext(dc, self.name, not white, self.wxrect.width, cw.wins(5),
-                                                      scaledown=cw.cwpy.setting.fontsmoothing_cardname,
-                                                      quality=quality, alpha=160)
-                dc.SelectObject(bmp)
-                for x in xrange(cw.wins(5)-1, cw.wins(5)+2):
-                    for y in xrange(cw.wins(5)-1, cw.wins(5)+2):
-                        if x <> cw.wins(5) <> y <> cw.wins(5):
-                            dc.DrawBitmap(subimg, x, y)
-            subimg = cw.util.draw_antialiasedtext(dc, self.name, white, self.wxrect.width, cw.wins(5),
-                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname,
-                                                  quality=quality)
-            dc.SelectObject(bmp)
-            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(5))
+            cw.util.draw_antialiasedtext(dc, self.name, cw.wins(5), cw.wins(5), white, self.wxrect.width, cw.wins(5),
+                                         quality=quality, scaledown=cw.cwpy.setting.fontsmoothing_cardname,
+                                         alpha=128, bordering=cw.cwpy.setting.bordering_cardname)
 
         dc.SelectObject(wx.NullBitmap)
 
@@ -529,20 +518,9 @@ class LargeCardImage(CardImage):
         if self.name:
             white = False
             quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
-            if cw.cwpy.setting.bordering_cardname:
-                subimg = cw.util.draw_antialiasedtext(dc, self.name, not white, w, cw.wins(6),
-                                                      scaledown=cw.cwpy.setting.fontsmoothing_cardname,
-                                                      quality=quality, alpha=160)
-                dc.SelectObject(bmp)
-                for x in xrange(cw.wins(5)-1, cw.wins(5)+2):
-                    for y in xrange(cw.wins(5)-1, cw.wins(5)+2):
-                        if x <> cw.wins(5) <> y <> cw.wins(5):
-                            dc.DrawBitmap(subimg, x, y)
-            subimg = cw.util.draw_antialiasedtext(dc, self.name, white, w, cw.wins(6),
-                                                  scaledown=cw.cwpy.setting.fontsmoothing_cardname,
-                                                  quality=quality)
-            dc.SelectObject(bmp)
-            dc.DrawBitmap(subimg, cw.wins(5), cw.wins(5))
+            cw.util.draw_antialiasedtext(dc, self.name, cw.wins(5), cw.wins(5), white, w, cw.wins(6),
+                                         quality=quality, scaledown=cw.cwpy.setting.fontsmoothing_cardname,
+                                         alpha=128, bordering=cw.cwpy.setting.bordering_cardname)
 
         dc.SelectObject(wx.NullBitmap)
 

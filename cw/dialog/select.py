@@ -721,14 +721,25 @@ class YadoSelect(Select):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(22)))
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
+
         if self.isshortcuts[self.index]:
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(30))
+            y = cw.wins(30)
+        else:
+            y = cw.wins(40)
+
+        # シナリオ名
+        w = dc.GetTextExtent(s)[0]
+        maxwidth = bmpw - cw.wins(5)*2
+        if maxwidth < w:
+            cw.util.draw_witharound(dc, s, cw.wins(5), y, maxwidth=maxwidth)
+        else:
+            cw.util.draw_witharound(dc, s, (bmpw-w)/2, y)
+
+        if self.isshortcuts[self.index]:
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(12)))
             s = u"ショートカット"
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(56))
-        else:
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
         # ページ番号
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
@@ -3314,14 +3325,15 @@ class ScenarioSelect(Select):
 
             else:
                 # ディレクトリ名
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(22)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(21)))
                 if isinstance(dpath, FindResult):
                     s = cw.cwpy.msgs["find_result"]
                 else:
                     s = os.path.basename(dpath)
                     if s.lower().endswith(".lnk"):
                         s = s[0:-len(".lnk")]
-                dc.DrawText(s, cw.wins(135), cw.wins(65))
+                maxwidth = bmpw-cw.wins(135)-cw.wins(5)
+                cw.util.draw_witharound(dc, s, cw.wins(135), cw.wins(65), maxwidth=maxwidth)
                 # フォルダ画像
                 bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
                 dc.DrawBitmap(bmp, cw.wins(65), cw.wins(30), True)
@@ -3420,7 +3432,12 @@ class ScenarioSelect(Select):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(22)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(35))
+            maxwidth = bmpw - cw.wins(5)*2
+            if maxwidth < w:
+                cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(35), maxwidth=maxwidth)
+            else:
+                cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(35))
+
             # 解説文
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
             s = header.desc

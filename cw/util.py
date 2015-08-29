@@ -2127,26 +2127,51 @@ def draw_box(dc, pos, size):
     box = get_boxpointlist(pos, size)
     dc.DrawLineList(box)
 
-def draw_witharound(dc, s, x, y, textcolor=wx.BLACK, framecolor=wx.WHITE):
+def draw_witharound(dc, s, x, y, maxwidth=0):
     """テキストsを縁取りしながら描画する。"""
-    for xv in xrange(x-1, x+2):
-        for yv in xrange(y-1, y+2):
-            if x <> xv or y <> yv:
-                dc.SetTextForeground(framecolor)
-                dc.DrawText(s, xv, yv)
-    dc.SetTextForeground(textcolor)
-    dc.DrawText(s, x, y)
+    draw_antialiasedtext(dc, s, x, y, False, maxwidth, 0, scaledown=False, bordering=True)
 
-def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None, scaledown=True, alpha=255):
+def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,
+                         quality=None, scaledown=True, alpha=64,
+                         bordering=False):
+    if bordering:
+        subimg = cw.util.render_antialiasedtext(dc, text, not white, maxwidth, padding,
+                                                scaledown=scaledown, quality=quality, alpha=alpha)
+        for xx in xrange(x-1, x+2):
+            for yy in xrange(y-1, y+2):
+                if xx <> x or yy <> y:
+                    dc.DrawBitmap(subimg, xx, yy)
+    subimg = cw.util.render_antialiasedtext(dc, text, white, maxwidth, padding,
+                                            scaledown=scaledown, quality=quality)
+    dc.DrawBitmap(subimg, x, y)
+
+def render_antialiasedtext(basedc, text, white, maxwidth, padding,
+                           quality=None, scaledown=True, alpha=255):
     """スムージングが施された、背景が透明なテキストを描画して返す。"""
     if quality is None:
         if 3 <= wx.VERSION[0]:
             quality = wx.IMAGE_QUALITY_BICUBIC
         else:
             quality = wx.IMAGE_QUALITY_NORMAL
-    w, h = dc.GetTextExtent(text)
+    w, h = basedc.GetTextExtent(text)
+    font = basedc.GetFont()
+    upfont = 0 < maxwidth and maxwidth < w and not scaledown
+    if upfont:
+        scaledown = True
+        basefont = font
+        pixelsize = font.GetPixelSize()[1]
+        family = font.GetFamily()
+        style = font.GetStyle()
+        weight = font.GetWeight()
+        underline = font.GetUnderlined()
+        facename = font.GetFaceName()
+        encoding = font.GetEncoding()
+        font = wx.FontFromPixelSize((0, pixelsize*2), family, style, weight, 0, facename, encoding)
+        basedc.SetFont(font)
+        w, h = basedc.GetTextExtent(text)
     subimg = wx.EmptyBitmap(w, h)
-    dc.SelectObject(subimg)
+    dc = wx.MemoryDC(subimg)
+    dc.SetFont(font)
     dc.SetBrush(wx.BLACK_BRUSH)
     dc.SetPen(wx.BLACK_PEN)
     dc.DrawRectangle(-1, -1, w + 2, h + 2)
@@ -2157,6 +2182,8 @@ def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None, scale
         subimg.ConvertColourToAlpha(255, 255, 255)
     else:
         subimg.ConvertColourToAlpha(0, 0, 0)
+
+    dc.SelectObject(wx.NullBitmap)
 
     if scaledown:
         if 0 < maxwidth and w/2 + padding*2 > maxwidth:
@@ -2171,6 +2198,10 @@ def draw_antialiasedtext(dc, text, white, maxwidth, padding, quality=None, scale
 
     if alpha <> 255:
         cw.imageretouch.mul_wxalpha(subimg, alpha)
+
+    if upfont:
+        font = wx.FontFromPixelSize((0, pixelsize), family, style, weight, 0, facename, encoding)
+        basedc.SetFont(font)
 
     subimg = subimg.ConvertToBitmap()
     return subimg
