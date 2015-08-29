@@ -1413,6 +1413,7 @@ class CardHolder(CardControl):
             assert False
         self.draw_cards()
         self._enable_updown()
+        self._update_page()
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.play_sound("page")
@@ -1577,9 +1578,7 @@ class CardHolder(CardControl):
             self.upbtn.Show()
             self.downbtn.Show()
             self.page.Show()
-            page = self.index+1
-            self.page.SetMax((len(self.list)+9)/10 if len(self.list) > 0 else 1)
-            self.page.SetValue(page)
+            self._update_page()
             if self.callname <> "INFOVIEW":
                 self.skillbtn.Hide()
                 self.itembtn.Hide()
@@ -1626,6 +1625,11 @@ class CardHolder(CardControl):
                 self.sort.Select(6)
             else:
                 self.sort.Select(0)
+
+    def _update_page(self):
+        page = self.index+1
+        self.page.SetMax((len(self.list)+9)/10 if len(self.list) > 0 else 1)
+        self.page.SetValue(page)
 
     def _set_backpacklist(self, narrow=True):
         if self.index3 == cw.POCKET_SKILL:
