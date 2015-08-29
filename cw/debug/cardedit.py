@@ -362,11 +362,12 @@ class CardEditDialog(wx.Dialog):
                     break
                 member = cw.data.yadoxml2etree(header.fpath)
                 set_status(u"%sの手札カードを検索中..." % (header.name))
+                pcard = None
                 for cardpocket in [member.getfind("SkillCards"), member.getfind("ItemCards"), member.getfind("BeastCards")]:
                     for data in cardpocket:
                         matcher = self._get_matcher(data)
                         if matcher in cards:
-                            def func(roots, items, matcher, member, cardpocket, data):
+                            def func(roots, items, matcher,  member, pcard, data):
                                 if not self._find:
                                     return
                                 image = self.timgidx_yado
@@ -374,14 +375,16 @@ class CardEditDialog(wx.Dialog):
                                 root = get_item(roots, "STANDBYS", self.root, name, image)
 
                                 image = self.timgidx_member
-                                name = header.name
-                                item = get_item(items, header, root, name, image)
+                                name = pcard.name
+                                item = get_item(items, pcard, root, name, image)
 
                                 image = self._get_imgidx(data)
                                 name = data.gettext("Property/Name")
                                 item = self.targets.AppendItem(item, name, 1, image=image)
-                                add_target(item, matcher, member, cardpocket, data, False)
-                            wx.CallAfter(func, roots, items, matcher, member, cardpocket, data)
+                                add_target(item, matcher, member, pcard, data, False)
+                            if not pcard:
+                                pcard = cw.character.Character(data=member)
+                            wx.CallAfter(func, roots, items, matcher, member, pcard, data)
 
             for partyheader in cw.cwpy.ydata.partys:
                 if not self._find:
