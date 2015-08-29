@@ -1396,6 +1396,7 @@ class CardHolder(CardControl):
         self._on_show(cw.POCKET_BEAST)
 
     def _on_show(self, cardtype):
+        cw.cwpy.play_sound("page")
         btn = self.show[cardtype]
         if btn.GetToggle():
             bmp = self._typeicon_e[cardtype]
