@@ -157,6 +157,10 @@ class Setting(object):
         self.show_cardkind = True
         self.show_premiumicon = False
 
+        # カード種の表示・非表示
+        # (カード選択ダイアログを閉じた時にリセット)
+        self.show_cardtype = [True] * 3
+
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
                           "mincho"  : "",

@@ -89,11 +89,15 @@ class CardControl(wx.Dialog):
             self._typeicon_e[cardtype] = bmp
             dbmp = cw.imageretouch.to_disabledimage(bmp, maskpos=(bmp.GetWidth()-1, 0))
             self._typeicon_d[cardtype] = dbmp
+            if cw.cwpy.setting.show_cardtype[cardtype]:
+                btn.SetToggle(True)
+            else:
+                bmp = dbmp
+                btn.SetToggle(False)
             btn.SetBitmapFocus(bmp)
             btn.SetBitmapLabel(bmp, False)
             btn.SetBitmapSelected(bmp)
             btn.SetToolTipString(msg)
-            btn.SetToggle(True)
             self.show[cardtype] = btn
             if not self.callname in ("BACKPACK", "STOREHOUSE"):
                 btn.Hide()
@@ -1105,6 +1109,8 @@ class CardHolder(CardControl):
                 self.index = indexs[0]
 
         else:
+            for i in xrange(len(cw.cwpy.setting.show_cardtype)):
+                cw.cwpy.setting.show_cardtype[i] = True
             cw.cwpy.setting.card_narrow = ""
             self.index = 0
             self.index3 = cw.cwpy.lastcardpocket
@@ -1355,15 +1361,16 @@ class CardHolder(CardControl):
         self.sortwithstar.SetToggle(toggle)
 
     def _update_sortattr(self):
-        if self.callname in ("BACKPACK", "CARDPOCKETB"):
+        if cw.cwpy.ydata.party:
             cw.cwpy.ydata.party.sort_backpack()
+        cw.cwpy.ydata.sort_storehouse()
+        if self.callname in ("BACKPACK", "CARDPOCKETB"):
             if self.callname == "CARDPOCKETB":
                 self._set_backpacklist()
             else:
                 self.list = self._narrow(cw.cwpy.ydata.party.backpack)
             self.draw_cards()
         elif self.callname == "STOREHOUSE":
-            cw.cwpy.ydata.sort_storehouse()
             self.list = self._narrow(cw.cwpy.ydata.storehouse)
             self.draw_cards()
 
@@ -1379,7 +1386,9 @@ class CardHolder(CardControl):
     def _on_show(self, cardtype):
         cw.cwpy.play_sound("page")
         btn = self.show[cardtype]
-        if btn.GetToggle():
+        toggle = btn.GetToggle()
+        cw.cwpy.setting.show_cardtype[cardtype] = toggle
+        if toggle:
             bmp = self._typeicon_e[cardtype]
         else:
             bmp = self._typeicon_d[cardtype]
