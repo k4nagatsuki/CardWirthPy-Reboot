@@ -1278,8 +1278,8 @@ class PartySelect(MultiViewSelect):
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            party.data.write_xml()
             header = cw.cwpy.ydata.create_partyheader(element=party.data.find("Property"))
+            header.data = party
             self.list[self.index] = header
             cw.cwpy.ydata.partys[self.index] = header
             self.draw(True)
