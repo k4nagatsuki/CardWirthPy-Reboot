@@ -52,11 +52,6 @@ class EventHandler(object):
                 # ESCAPEキー
                 elif event.key == K_ESCAPE:
                     self.escapekey_event()
-
-            elif event.type == KEYUP:
-                # リターンキー
-                if event.key == K_RETURN:
-                    self.returnkey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
@@ -81,6 +76,11 @@ class EventHandler(object):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # PrintScreenキー
                 elif event.key == K_PRINT:
                     self.printkey_event()
@@ -551,11 +551,6 @@ class EventHandlerForMessageWindow(EventHandler):
                 # ESCAPEキー
                 elif event.key == K_ESCAPE:
                     self.escapekey_event()
-
-            elif event.type == KEYUP:
-                # リターンキー
-                if event.key == K_RETURN:
-                    self.returnkey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
@@ -577,6 +572,11 @@ class EventHandlerForMessageWindow(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # PrintScreenキー
                 elif event.key == K_PRINT:
                     self.printkey_event()
@@ -823,11 +823,6 @@ class EventHandlerForBacklog(EventHandler):
                 # ESCAPEキー
                 elif event.key == K_ESCAPE:
                     self.escapekey_event()
-
-            elif event.type == KEYUP:
-                # リターンキー
-                if event.key == K_RETURN:
-                    self.returnkey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
@@ -849,6 +844,11 @@ class EventHandlerForBacklog(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # PrintScreenキー
                 elif event.key == K_PRINT:
                     self.printkey_event()
@@ -1039,11 +1039,6 @@ class EventHandlerForEffectBooster(EventHandler):
                 # ESCAPEキー
                 if event.key == K_ESCAPE:
                     self.escapekey_event()
-
-            elif event.type == KEYUP:
-                # リターンキー
-                if event.key == K_RETURN:
-                    self.returnkey_event()
                 # F1キー
                 elif event.key == K_F1:
                     self.f1key_event()
@@ -1065,6 +1060,11 @@ class EventHandlerForEffectBooster(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+
+            elif event.type == KEYUP:
+                # リターンキー
+                if event.key == K_RETURN:
+                    self.returnkey_event()
                 # PrintScreenキー
                 elif event.key == K_PRINT:
                     self.printkey_event()

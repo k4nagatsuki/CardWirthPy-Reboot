@@ -516,6 +516,66 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
         self.Bind(wx.EVT_MENU, self.OnEditorTool, id=ID_EDITOR)
 
+        # F1～F9キーをメイン画面へ転送
+        self.f1keyid = wx.NewId()
+        self.f2keyid = wx.NewId()
+        self.f3keyid = wx.NewId()
+        self.f4keyid = wx.NewId()
+        self.f5keyid = wx.NewId()
+        self.f6keyid = wx.NewId()
+        self.f7keyid = wx.NewId()
+        self.f8keyid = wx.NewId()
+        self.f9keyid = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnF1KeyDown, id=self.f1keyid)
+        self.Bind(wx.EVT_MENU, self.OnF2KeyDown, id=self.f2keyid)
+        self.Bind(wx.EVT_MENU, self.OnF3KeyDown, id=self.f3keyid)
+        self.Bind(wx.EVT_MENU, self.OnF4KeyDown, id=self.f4keyid)
+        self.Bind(wx.EVT_MENU, self.OnF5KeyDown, id=self.f5keyid)
+        self.Bind(wx.EVT_MENU, self.OnF6KeyDown, id=self.f6keyid)
+        self.Bind(wx.EVT_MENU, self.OnF7KeyDown, id=self.f7keyid)
+        self.Bind(wx.EVT_MENU, self.OnF8KeyDown, id=self.f8keyid)
+        self.Bind(wx.EVT_MENU, self.OnF9KeyDown, id=self.f9keyid)
+        seq = [
+            (wx.ACCEL_NORMAL, wx.WXK_F1, self.f1keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F2, self.f2keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F3, self.f3keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F4, self.f4keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F5, self.f5keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F6, self.f6keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F7, self.f7keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F8, self.f8keyid),
+            (wx.ACCEL_NORMAL, wx.WXK_F9, self.f9keyid),
+        ]
+        cw.util.set_acceleratortable(self, seq)
+
+    def OnF1KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F1)
+        cw.cwpy.keyevent.keyup(wx.WXK_F1)
+    def OnF2KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F2)
+        cw.cwpy.keyevent.keyup(wx.WXK_F2)
+    def OnF3KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F3)
+        cw.cwpy.keyevent.keyup(wx.WXK_F3)
+    def OnF4KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F4)
+        cw.cwpy.keyevent.keyup(wx.WXK_F4)
+    def OnF5KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F5)
+        cw.cwpy.keyevent.keyup(wx.WXK_F5)
+    def OnF6KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F6)
+        cw.cwpy.keyevent.keyup(wx.WXK_F6)
+    def OnF7KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F7)
+        cw.cwpy.keyevent.keyup(wx.WXK_F7)
+    def OnF8KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F8)
+        cw.cwpy.keyevent.keyup(wx.WXK_F8)
+    def OnF9KeyDown(self, event):
+        cw.cwpy.keyevent.keydown(wx.WXK_F9)
+        cw.cwpy.keyevent.keyup(wx.WXK_F9)
+
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
         self.Destroy()
