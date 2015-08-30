@@ -71,21 +71,25 @@ class PartyEditor(wx.Dialog):
     def OnOk(self, event):
         cw.cwpy.play_sound("harvest")
         name = self.textctrl.GetValue()
+        money = self.panel.value
 
-        if not name == self.party.name:
-            self.party.set_name(name)
+        def func(self, party):
+            if not name == party.name:
+                party.set_name(name)
 
-        if not self.panel.value == self.party.money:
-            pmoney = self.panel.value - self.party.money
-            ymoney = self.party.money - self.panel.value
-            def func(party, pmoney, ymoney):
+            if not money == party.money:
+                pmoney = money - party.money
+                ymoney = party.money - money
                 cw.cwpy.ydata.set_money(ymoney, blink=True)
                 party.set_money(pmoney, blink=True)
+                party.write()
                 cw.cwpy.draw(True)
-            cw.cwpy.exec_func(func, self.party, pmoney, ymoney)
-
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-        self.ProcessEvent(btnevent)
+            def func(self):
+                if self:
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+                    self.ProcessEvent(btnevent)
+            cw.cwpy.frame.exec_func(func, self)
+        cw.cwpy.exec_func(func, self, self.party)
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
