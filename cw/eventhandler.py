@@ -357,6 +357,8 @@ class EventHandler(object):
         """
         if cw.cwpy.is_showingdlg():
             return
+        if not cw.cwpy.is_debugmode():
+            return
         cw.cwpy.play_sound("page")
         if cw.cwpy.setting.expandmode == "FullScreen":
             cw.cwpy.set_expanded(False)
