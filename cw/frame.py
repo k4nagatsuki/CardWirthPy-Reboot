@@ -578,7 +578,7 @@ class Frame(wx.Frame):
     def _get_cardcontrolparams(self):
         if cw.cwpy.pre_dialogs:
             preinfo = cw.cwpy.pre_dialogs.pop()
-            selection = preinfo[1][1]
+            selection = preinfo[1]
         else:
             selection = cw.cwpy.selection
             preinfo = None

@@ -162,8 +162,6 @@ class CWPy(_Singleton, threading.Thread):
         # イベント終了時にメニューカードのリストを
         # 更新する必要がある場合はTrue
         self._after_update_mcardlist = False
-        # カード選択ダイアログで選択中のカード種別
-        self.lastcardpocket = 0
         # クラシックなシナリオの再生中であればそのデータ
         self.classicdata = None
         # イベントハンドラ
@@ -1148,8 +1146,7 @@ class CWPy(_Singleton, threading.Thread):
 
                 # 手札カードダイアログの選択者が行動不能か
                 # 対象消去されている場合は開かない
-                indexs = pre_info[1]
-                index2 = indexs[1]
+                index2 = pre_info[1]
                 if isinstance(index2, cw.character.Character) and\
                         (index2.is_vanished() or ((not index2.is_active() and not self.areaid in cw.AREAS_TRADE) and\
                                                   not cw.cwpy.setting.openhandviewalways)):
@@ -2792,6 +2789,21 @@ class CWPy(_Singleton, threading.Thread):
             return
         self.ydata.party.replace_order(index1, index2)
         self._create_poschangearrow()
+
+    def show_numberofcards(self, type):
+        """カードの所持枚数を表示する。"""
+        if type == "SkillCard":
+            cardtype = cw.POCKET_SKILL
+        elif type == "ItemCard":
+            cardtype = cw.POCKET_ITEM
+        elif type == "BeastCard":
+            cardtype = cw.POCKET_BEAST
+        for pcard in self.get_pcards("unreversed"):
+            cw.sprite.background.NumberOfCards(pcard, cardtype, self.topgrp)
+
+    def clear_numberofcards(self):
+        """所持枚数表示を消去する。"""
+        self.topgrp.remove_sprites_of_layer("numberofcards")
 
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド

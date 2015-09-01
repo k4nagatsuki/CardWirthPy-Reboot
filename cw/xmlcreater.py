@@ -557,6 +557,10 @@ def create_settings(setting):
     if setting.show_premiumicon <> setting.show_premiumicon_init:
         e = cw.data.make_element("ShowPremiumIcon", str(setting.show_premiumicon))
         element.append(e)
+    # カード選択ダイアログの背景クリックで左右移動を行う
+    if setting.can_clicksidesofcardcontrol <> setting.can_clicksidesofcardcontrol_init:
+        e = cw.data.make_element("CanClickSidesOfCardControl", str(setting.can_clicksidesofcardcontrol))
+        element.append(e)
 
     # ファイル書き込み
     path = "Settings.xml"

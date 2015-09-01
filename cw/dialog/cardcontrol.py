@@ -379,6 +379,7 @@ class CardControl(wx.Dialog):
 
     def OnSendTo(self, event):
         cw.cwpy.play_sound("page")
+        cw.cwpy.setting.last_sendto = self.combo.GetSelection()
         self.toppanel.SetFocusIgnoringChildren()
 
     def update_narrowcondition(self):
@@ -454,6 +455,8 @@ class CardControl(wx.Dialog):
             self.draw_card(c2, True)
 
     def _can_sideclick(self):
+        if not cw.cwpy.setting.can_clicksidesofcardcontrol:
+            return False
         scrpos = wx.GetMousePosition()
         mousepos = self.toppanel.ScreenToClient(scrpos)
         for header in self.get_headers():
@@ -736,8 +739,8 @@ class CardControl(wx.Dialog):
 
         if self.callname == "CARDPOCKET":
             # 所持カード数
-            num = len(self.selection.cardpocket[self.index3])
-            maxnum = self.selection.get_cardpocketspace()[self.index3]
+            num = len(self.selection.cardpocket[cw.cwpy.setting.last_cardpocket])
+            maxnum = self.selection.get_cardpocketspace()[cw.cwpy.setting.last_cardpocket]
             s = "Cap " + str(num) + "/" + str(maxnum)
             w = dc.GetTextExtent(s)[0]
             rect = self.beastbtn.GetRect()
@@ -987,10 +990,9 @@ class CardControl(wx.Dialog):
             return
 
         # 開いていたダイアログの情報
-        indexes = (self.index, self.index2, self.index3, self.combo.GetSelection())
-        def append_predialogs(callname, indexes, pos):
-            cw.cwpy.pre_dialogs.append((callname, indexes, pos, cw.UP_WIN))
-        cw.cwpy.exec_func(append_predialogs, self.callname, indexes, self.GetPosition())
+        def append_predialogs(callname, index2, pos):
+            cw.cwpy.pre_dialogs.append((callname, index2, pos, cw.UP_WIN))
+        cw.cwpy.exec_func(append_predialogs, self.callname, self.index2, self.GetPosition())
 
         # カード操作用データ(移動元データ, CardHeader)を設定
         cw.cwpy.selectedheader = header
@@ -1001,6 +1003,8 @@ class CardControl(wx.Dialog):
                 for pcard in cw.cwpy.get_pcards("unreversed"):
                     pcard.test_aptitude = header
                     pcard.update_image()
+                # 枚数表示
+                cw.cwpy.show_numberofcards(header.type)
             cw.cwpy.exec_func(test_aptitude, header)
         # OKボタンイベント
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
@@ -1062,12 +1066,13 @@ class CardHolder(CardControl):
         else:
             status = "active"
 
-        # 適性表示を除去
+        # 適性表示と枚数表示を除去
         def func():
             for pcard in cw.cwpy.get_pcards():
                 if pcard.test_aptitude:
                     pcard.test_aptitude = None
                     pcard.update_image()
+                cw.cwpy.clear_numberofcards()
             cw.cwpy.draw()
         cw.cwpy.exec_func(func)
 
@@ -1093,28 +1098,29 @@ class CardHolder(CardControl):
         # 前に開いていたときのindex値と位置があったら取得する
         if pre_info:
             self.pre_pos = pre_info[2]
-            indexs = pre_info[1]
-            self.index2 = indexs[1]
-            self.index3 = indexs[2]
-            self.index_combo = indexs[3]
+            self.index2 = pre_info[1]
             if cw.UP_WIN <> pre_info[3]:
                 self.pre_pos = None
 
+            self._load_index()
             if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
-                self.index = 0
                 self.list2 = cw.cwpy.get_pcards(status)
                 self.selection = self.index2
-
-            else:
-                self.index = indexs[0]
+            if self.callname == "CARDPOCKETB" and cw.cwpy.setting.sort_cards == "None":
+                # 整列していない場合は使用されたカードが一番上へ行くため
+                # 最上位ページを表示する
+                self.index = 0
 
         else:
             for i in xrange(len(cw.cwpy.setting.show_cardtype)):
                 cw.cwpy.setting.show_cardtype[i] = True
+                cw.cwpy.setting.last_cardpocketbpage[i] = 0
+            cw.cwpy.setting.last_storehousepage = 0
+            cw.cwpy.setting.last_backpackpage = 0
+
             cw.cwpy.setting.card_narrow = ""
-            self.index = 0
-            self.index3 = cw.cwpy.lastcardpocket
-            self.index_combo = 0
+
+            self._load_index()
             if self.callname == "CARDPOCKET":
                 self.selection = selection
                 if isinstance(self.selection, cw.character.Player):
@@ -1123,9 +1129,7 @@ class CardHolder(CardControl):
                 else:
                     # NPCの手札カード
                     self.list2 = cw.cwpy.get_fcards()
-                self.index2 = self.selection
-            else:
-                self.index2 = cw.cwpy.lastcardpocket
+            self.index2 = self.selection
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
             name =  cw.cwpy.msgs["cards_hand"] % (self.selection.name)
@@ -1133,13 +1137,13 @@ class CardHolder(CardControl):
             sendto = (not cw.cwpy.is_playingscenario()\
                         or self.areaid == cw.AREA_CAMP or self.areaid in cw.AREAS_TRADE)\
                         and isinstance(self.selection, cw.character.Player)
-            # self.index3(0:スキル, 1:アイテム, 2:召喚獣)。トグルボタンで切り替える
+            # cw.cwpy.setting.last_cardpocket(0:スキル, 1:アイテム, 2:召喚獣)。トグルボタンで切り替える
             if self.callname == "CARDPOCKET":
                 self._init_cardpocketlist()
             else:
                 assert self.callname == "CARDPOCKETB"
-                cspace = self.selection.get_cardpocketspace()[self.index3]
-                ccount = len(self.selection.cardpocket[self.index3])
+                cspace = self.selection.get_cardpocketspace()[cw.cwpy.setting.last_cardpocket]
+                ccount = len(self.selection.cardpocket[cw.cwpy.setting.last_cardpocket])
                 if ccount < cspace:
                     # 荷物袋を開く
                     self._set_backpacklist(narrow=False)
@@ -1191,13 +1195,10 @@ class CardHolder(CardControl):
             bmp = cw.cwpy.rsrc.buttons["BEAST"]
             self.beastbtn.SetBitmapLabel(bmp, False)
             self.beastbtn.SetBitmapSelected(bmp)
-            # self.index3の値からトグルをセットする
+            # cw.cwpy.setting.last_cardpocketの値からトグルをセットする
             for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn)):
                 btn.SetBackgroundColour(self.bgcolour)
-                if self.index3 == index:
-                    btn.SetToggle(True)
-                else:
-                    btn.SetToggle(False)
+                btn.SetToggle(cw.cwpy.setting.last_cardpocket == index)
 
         # カード置き場、荷物袋、情報カード用のコントロール
         # up
@@ -1252,7 +1253,7 @@ class CardHolder(CardControl):
                 self._combo_trush = len(self.combo.GetItems())
                 bmp = cw.cwpy.rsrc.buttons["TRUSH"]
                 self.combo.Append(cw.cwpy.msgs["send_to_trush"], bmp)
-            self.combo.Select(self.index_combo)
+            self.combo.Select(cw.cwpy.setting.last_sendto)
 
         # パーティが組まれていない(カード置き場のみ)か、
         # 使用モードや閲覧モードで対象が一人だけの場合は
@@ -1299,6 +1300,34 @@ class CardHolder(CardControl):
 
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
+    def _load_index(self):
+        if self.callname == "CARDPOCKET":
+            self.index = 0
+        elif self.callname == "CARDPOCKETB":
+            self.index = cw.cwpy.setting.last_cardpocketbpage[cw.cwpy.setting.last_cardpocket]
+        elif self.callname == "STOREHOUSE":
+            self.index = cw.cwpy.setting.last_storehousepage
+        elif self.callname == "BACKPACK":
+            self.index = cw.cwpy.setting.last_backpackpage
+        elif self.callname == "INFOVIEW":
+            self.index = 0
+        else:
+            assert False
+
+    def _store_index(self):
+        if self.callname == "CARDPOCKET":
+            pass
+        elif self.callname == "CARDPOCKETB":
+            cw.cwpy.setting.last_cardpocketbpage[cw.cwpy.setting.last_cardpocket] = self.index
+        elif self.callname == "STOREHOUSE":
+            cw.cwpy.setting.last_storehousepage = self.index
+        elif self.callname == "BACKPACK":
+            cw.cwpy.setting.last_backpackpage = self.index
+        elif self.callname == "INFOVIEW":
+            pass
+        else:
+            assert False
+
     def OnPageSetFocus(self, event):
         def func():
             self.page.SetSelection(0, len(str(self.page.GetValue())))
@@ -1308,8 +1337,6 @@ class CardHolder(CardControl):
     def OnDestroy(self, event):
         for header in self._fulllist:
             header.negaflag = False
-        if self.callname in ("CARDPOCKET", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
-            cw.cwpy.lastcardpocket = self.index3
 
     def OnSort(self, event):
         self.toppanel.SetFocusIgnoringChildren()
@@ -1414,12 +1441,10 @@ class CardHolder(CardControl):
             if self.index2 is self.list2[0]:
                 if self._can_open_backpack:
                     # 荷物袋 ← 左端
-                    self.index = 0
                     self.callname = "BACKPACK"
                     self._change_callname(old_callname)
                 else:
                     # 右端 ← 左端
-                    self.index = 0
                     self.callname = "CARDPOCKET"
                     self.index2 = self.list2[-1]
                     self.selection = self.index2
@@ -1428,7 +1453,6 @@ class CardHolder(CardControl):
                         self._change_callname(old_callname)
             else:
                 # 一つ左のメンバ
-                self.index = 0
                 self.callname = "CARDPOCKET"
                 self.index2 = self.list2[self.list2.index(self.index2) - 1]
                 self.selection = self.index2
@@ -1436,7 +1460,6 @@ class CardHolder(CardControl):
                 if self.callname <> old_callname:
                     self._change_callname(old_callname)
         else:
-            self.index = 0
             if self.callname == "BACKPACK" and self._can_open_storehouse:
                 # カード置き場 ← 荷物袋
                 self.callname = "STOREHOUSE"
@@ -1448,6 +1471,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
+        self._load_index()
         self.draw_cards()
 
     def OnClickRightBtn(self, event):
@@ -1458,17 +1482,14 @@ class CardHolder(CardControl):
             if self.index2 is self.list2[-1]:
                 if self._can_open_storehouse:
                     # 右端 → カード置き場
-                    self.index = 0
                     self.callname = "STOREHOUSE"
                     self._change_callname(old_callname)
                 elif self._can_open_backpack:
                     # 右端 → 荷物袋
-                    self.index = 0
                     self.callname = "BACKPACK"
                     self._change_callname(old_callname)
                 else:
                     # 右端 → 左端
-                    self.index = 0
                     self.callname = "CARDPOCKET"
                     self.index2 = self.list2[0]
                     self.selection = self.index2
@@ -1477,7 +1498,6 @@ class CardHolder(CardControl):
                         self._change_callname(old_callname)
             else:
                 # 一つ右のメンバ
-                self.index = 0
                 self.callname = "CARDPOCKET"
                 self.index2 = self.list2[self.list2.index(self.index2) + 1]
                 self.selection = self.index2
@@ -1485,7 +1505,6 @@ class CardHolder(CardControl):
                 if self.callname <> old_callname:
                     self._change_callname(old_callname)
         else:
-            self.index = 0
             if self.callname == "STOREHOUSE":
                 # カード置き場 → 荷物袋
                 self.callname = "BACKPACK"
@@ -1503,7 +1522,6 @@ class CardHolder(CardControl):
         if self.callname == "CARDPOCKETB":
             cw.cwpy.play_sound("page")
             old_callname = self.callname
-            self.index = 0
             self.callname = "CARDPOCKET"
             self._change_callname(old_callname)
             self.draw_cards()
@@ -1511,6 +1529,7 @@ class CardHolder(CardControl):
             CardControl.OnCancel(self, event)
 
     def _change_callname(self, old_callname):
+        self._load_index()
         if self.callname == "CARDPOCKET":
             self.bgcolour = wx.Colour(0, 0, 128)
             self.toppanel.SetBackgroundColour(self.bgcolour)
@@ -1616,17 +1635,19 @@ class CardHolder(CardControl):
                 self.sort.Select(0)
 
     def _update_page(self):
+        max = (len(self.list)+9)/10 if len(self.list) > 0 else 1
+        self.page.SetMax(max)
+        self.index = min(self.index, max-1)
         page = self.index+1
-        self.page.SetMax((len(self.list)+9)/10 if len(self.list) > 0 else 1)
         self.page.SetValue(page)
 
     def _set_backpacklist(self, narrow=True):
-        if self.index3 == cw.POCKET_SKILL:
+        if cw.cwpy.setting.last_cardpocket == cw.POCKET_SKILL:
             cardtype = "SkillCard"
-        elif self.index3 == cw.POCKET_ITEM:
+        elif cw.cwpy.setting.last_cardpocket == cw.POCKET_ITEM:
             cardtype = "ItemCard"
         else:
-            assert self.index3 == cw.POCKET_BEAST
+            assert cw.cwpy.setting.last_cardpocket == cw.POCKET_BEAST
             cardtype = "BeastCard"
         self.list = filter(lambda header: header.type == cardtype, cw.cwpy.ydata.party.backpack)
         if narrow:
@@ -1658,7 +1679,6 @@ class CardHolder(CardControl):
                 self.draw_cards()
                 return
             old_callname = self.callname
-            self.index = 0
             self.callname = "CARDPOCKETB"
             self._change_callname(old_callname)
             self.draw_cards()
@@ -1673,7 +1693,7 @@ class CardHolder(CardControl):
 
         for index, btn in enumerate(l):
             if btn == event.GetEventObject():
-                self.index3 = index
+                cw.cwpy.setting.last_cardpocket = index
                 btn.SetToggle(True)
             else:
                 btn.SetToggle(False)
@@ -1685,7 +1705,7 @@ class CardHolder(CardControl):
             # キャストの手札カード
             # 特殊技能、アイテム、召喚獣を切り替え
             l = [self.skillbtn, self.itembtn, self.beastbtn]
-            btn = l[self.index3 - 1] if not self.index3 == 0 else l[len(l) -1]
+            btn = l[cw.cwpy.setting.last_cardpocket - 1] if not cw.cwpy.setting.last_cardpocket == 0 else l[len(l) -1]
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
             btnevent.SetEventObject(btn)
             self.ProcessEvent(btnevent)
@@ -1698,7 +1718,7 @@ class CardHolder(CardControl):
             # キャストの手札カード
             # 特殊技能、アイテム、召喚獣を切り替え
             l = [self.skillbtn, self.itembtn, self.beastbtn]
-            btn = l[self.index3 + 1] if not self.index3 == len(l) -1 else l[0]
+            btn = l[cw.cwpy.setting.last_cardpocket + 1] if not cw.cwpy.setting.last_cardpocket == len(l) -1 else l[0]
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
             btnevent.SetEventObject(btn)
             self.ProcessEvent(btnevent)
@@ -1806,9 +1826,9 @@ class CardHolder(CardControl):
                 # 特殊技能、アイテム、召喚獣を切り替え
                 l = [self.skillbtn, self.itembtn, self.beastbtn]
                 if event.GetWheelRotation() > 0:
-                    btn = l[self.index3 - 1] if not self.index3 == 0 else l[len(l) -1]
+                    btn = l[cw.cwpy.setting.last_cardpocket - 1] if not cw.cwpy.setting.last_cardpocket == 0 else l[len(l) -1]
                 else:
-                    btn = l[self.index3 + 1] if not self.index3 == len(l) -1 else l[0]
+                    btn = l[cw.cwpy.setting.last_cardpocket + 1] if not cw.cwpy.setting.last_cardpocket == len(l) -1 else l[0]
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
                 btnevent.SetEventObject(btn)
                 self.ProcessEvent(btnevent)
@@ -1832,6 +1852,7 @@ class CardHolder(CardControl):
                 self.index = (len(self.list)+9) / 10 - 1
                 if self.index < 0:
                     self.index = 0
+        self._store_index()
         if self.selection:
             self._init_cardpocketlist()
             s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
@@ -1859,14 +1880,14 @@ class CardHolder(CardControl):
         if self.callname <> "CARDPOCKET":
             return
 
-        self.list = self.selection.cardpocket[self.index3][:]
-        if cw.cwpy.setting.show_backpackcard and self.index3 <> cw.POCKET_SKILL and self.get_mode() == CCMODE_USE:
-            space = self.selection.get_cardpocketspace()[self.index3]
+        self.list = self.selection.cardpocket[cw.cwpy.setting.last_cardpocket][:]
+        if cw.cwpy.setting.show_backpackcard and cw.cwpy.setting.last_cardpocket <> cw.POCKET_SKILL and self.get_mode() == CCMODE_USE:
+            space = self.selection.get_cardpocketspace()[cw.cwpy.setting.last_cardpocket]
             if len(self.list) < space:
                 cardtype = ""
-                if self.index3 == cw.POCKET_ITEM:
+                if cw.cwpy.setting.last_cardpocket == cw.POCKET_ITEM:
                     cardtype = "ItemCard"
-                elif self.index3 == cw.POCKET_BEAST:
+                elif cw.cwpy.setting.last_cardpocket == cw.POCKET_BEAST:
                     cardtype = "BeastCard"
                 if cardtype:
                     for header in cw.cwpy.ydata.party.backpack:
@@ -1957,6 +1978,7 @@ class CardHolder(CardControl):
 
     def update_narrowcondition(self):
         self.list = self._narrow(self._fulllist)
+        self._update_page()
         self.draw_cards()
 
 #-------------------------------------------------------------------------------
@@ -1990,23 +2012,17 @@ class HandView(CardControl):
             self.list2 = filter(lambda pcard: not pcard.is_autoselectedpenalty(), self.list2)
 
         # 前に開いていたときのindex値があったら取得する
+        self.index = 0
         if pre_info:
             self.pre_pos = pre_info[2]
-            indexs = pre_info[1]
-            self.index = indexs[0]
-            self.index2 = indexs[1]
-            self.index3 = indexs[2]
-            self.index_combo = indexs[3]
+            self.index2 = pre_info[1]
             if cw.UP_WIN <> pre_info[3]:
                 self.pre_pos = None
             self.selection = self.index2
         else:
             cw.cwpy.setting.card_narrow = ""
             self.selection = selection
-            self.index = 0
             self.index2 = self.selection
-            self.index3 = 0
-            self.index_combo = 0
 
         # 手札リスト
         self.list = self.selection.deck.hand

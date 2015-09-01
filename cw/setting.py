@@ -156,10 +156,18 @@ class Setting(object):
         self.protect_premiercard = True
         self.show_cardkind = True
         self.show_premiumicon = False
+        self.can_clicksidesofcardcontrol = True
 
         # カード種の表示・非表示
-        # (カード選択ダイアログを閉じた時にリセット)
         self.show_cardtype = [True] * 3
+        # カード選択ダイアログで選択中のカード種別
+        self.last_cardpocket = 0
+        # カード選択ダイアログでの転送先
+        self.last_sendto = 0
+        # カード選択ダイアログでのページ
+        self.last_storehousepage = 0
+        self.last_backpackpage = 0
+        self.last_cardpocketbpage = [0] * 3 # 荷物袋からの使用
 
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
@@ -186,6 +194,7 @@ class Setting(object):
                           "cardname"     : ("uigothic", "", 13, True, True, False),
                           "ccardname"    : ("uigothic", "", 15, True, True, False),
                           "level"        : ("mincho",   "", 37, False, False, True),
+                          "numcards"     : ("uigothic", "", 18, False, False, False),
                           "message"      : ("mincho",   "", 22, True, False, False),
                           "selectionbar" : ("uigothic", "", 16, True, False, False),
                           "logpage"      : ("mincho",   "", 24, False, False, False),
@@ -515,6 +524,8 @@ class Setting(object):
         self.show_cardkind = data.getbool("ShowCardKind", self.show_cardkind)
         # カードの希少度をアイコンで表示する
         self.show_premiumicon = data.getbool("ShowPremiumIcon", self.show_premiumicon)
+        # カード選択ダイアログの背景クリックで左右移動を行う
+        self.can_clicksidesofcardcontrol = data.getbool("CanClickSidesOfCardControl", self.can_clicksidesofcardcontrol)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
@@ -1064,6 +1075,8 @@ class Resource(object):
             fonts.set("selectionbar_classic", cw.imageretouch.Font, u"MS UI Gothic", cw.s(15), bold=True)
         # メッセージログのページ表示描画用
         fonts.set("backlog_page", self.create_font, "logpage", 24, False, False, False)
+        # カード枚数描画用
+        fonts.set("numcards", self.create_font, "numcards", 18, False, False, False)
         # ステータスバーパネル描画用
         fonts.set("sbarpanel", self.create_font, "sbarpanel", 16, True, True, False)
         # ステータスバーボタン描画用

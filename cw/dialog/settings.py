@@ -403,6 +403,7 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
             self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
             self.pane_ui.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend_init)
+            self.pane_ui.cb_can_clicksidesofcardcontrol.SetValue(cw.cwpy.setting.can_clicksidesofcardcontrol_init)
             self.pane_ui.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket_init)
             self.pane_ui.cb_openhandviewalways.SetValue(cw.cwpy.setting.openhandviewalways_init)
             self.pane_ui.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation_init == cw.setting.WHEEL_SHOWLOG)
@@ -741,6 +742,8 @@ class SettingsPanel(wx.Panel):
         cw.cwpy.setting.show_backpackcard = value
         value = self.pane_ui.cb_showbackpackcardatend.GetValue()
         cw.cwpy.setting.show_backpackcardatend = value
+        value = self.pane_ui.cb_can_clicksidesofcardcontrol.GetValue()
+        cw.cwpy.setting.can_clicksidesofcardcontrol = value
         value = self.pane_ui.cb_revertcardpocket.GetValue()
         cw.cwpy.setting.revert_cardpocket = value
         value = self.pane_ui.cb_openhandviewalways.GetValue()
@@ -1931,6 +1934,9 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showbackpackcardatend = wx.CheckBox(
             self, -1, u"荷物袋カードを最後に配置する")
         self.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend)
+        self.cb_can_clicksidesofcardcontrol = wx.CheckBox(
+            self, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
+        self.cb_can_clicksidesofcardcontrol.SetValue(cw.cwpy.setting.can_clicksidesofcardcontrol)
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
         self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
@@ -2034,6 +2040,7 @@ class UISettingPanel(wx.ScrolledWindow):
 
         bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showbackpackcardatend, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_can_clicksidesofcardcontrol, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_revertcardpocket, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_openhandviewalways, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showlogwithwheelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -2091,8 +2098,9 @@ class FontSettingPanel(wx.Panel):
                           "dlglist"      : u"ダイアログリスト",
                           "uselimit"     : u"カード使用回数",
                           "cardname"     : u"カード名",
-                          "ccardname"     : u"キャストカード名",
+                          "ccardname"    : u"キャストカード名",
                           "level"        : u"カードレベル",
+                          "numcards"     : u"カード枚数",
                           "message"      : u"メッセージ",
                           "selectionbar" : u"選択肢",
                           "logpage"      : u"メッセージログ頁",
@@ -2106,8 +2114,9 @@ class FontSettingPanel(wx.Panel):
         self.bases = ("gothic", "pgothic", "mincho", "pmincho", "uigothic")
         self.types = ("button", "combo", "slider", "spin", "tree", "list", "tab", "menu",
                       "paneltitle", "dlgmsg", "dlgtitle", "inputname", "datadesc", "charadesc",
-                      "dlglist", "uselimit", "cardname", "ccardname", "level", "message", "selectionbar",
-                      "logpage", "sbarpanel", "sbarbtn", "sbardesc", "statusnum", "screenshot")
+                      "dlglist", "uselimit", "cardname", "ccardname", "level", "numcards",
+                      "message", "selectionbar", "logpage",
+                      "sbarpanel", "sbarbtn", "sbardesc", "statusnum", "screenshot")
 
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())

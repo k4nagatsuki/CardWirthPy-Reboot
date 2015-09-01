@@ -971,6 +971,56 @@ class ClickableSprite(base.SelectableSprite):
         if self.status == "hidden":
             self.spritegrp.remove(self)
 
+class NumberOfCards(base.CWPySprite):
+    def __init__(self, pcard, cardtype, spritegrp):
+        """カード所持枚数を表示するスプライト。
+        pcard: カード所持者。
+        cardtype: カード種別。
+        spritegrp: 登録するSpriteGroup。"numberofcards"レイヤに追加される。
+        """
+        base.CWPySprite.__init__(self)
+        self.pcard = pcard
+        self.cardtype = cardtype
+        self.update_scale()
+        # spritegroupに追加
+        spritegrp.add(self, layer="numberofcards")
+
+    def update_scale(self):
+        num = len(self.pcard.get_cardpocket()[self.cardtype])
+        cap = self.pcard.get_cardpocketspace()[self.cardtype]
+
+        font = cw.cwpy.rsrc.fonts["numcards"]
+        wl = font.size(str(num))[0]
+        wm = font.size("/")[0]
+        wr = font.size(str(cap))[0]
+        wn = max(wl, wr)
+
+        h = font.get_height()
+        w = wn*2 + wm
+        image = pygame.Surface((w, h)).convert_alpha()
+        image.fill((0, 0, 0, 0))
+
+        subimg1 = font.render(str(num), True, (0, 0, 0))
+        subimg2 = font.render("/", True, (0, 0, 0))
+        subimg3 = font.render(str(cap), True, (0, 0, 0))
+        x = (w-subimg2.get_width()) / 2
+        image.blit(subimg1, (x-subimg1.get_width(), 0))
+        image.blit(subimg2, (x, 0))
+        image.blit(subimg3, (x+subimg2.get_width(), 0))
+
+        self.image = pygame.Surface((w+2, h+2)).convert_alpha()
+        self.image.fill((0, 0, 0, 0))
+        for x in xrange(3):
+            for y in xrange(3):
+                if x <> 1 or y <> 1:
+                    self.image.blit(image, (x, y))
+        image.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+        self.image.blit(image, (1, 1))
+
+        self.rect = self.image.get_rect()
+        self.rect.center = self.pcard.rect.center
+        self.rect.top = self.pcard.rect.top - (h+1) - cw.s(5)
+
 def main():
     pass
 
