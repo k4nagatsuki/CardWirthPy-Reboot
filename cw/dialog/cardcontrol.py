@@ -1836,13 +1836,12 @@ class CardHolder(CardControl):
             else:
                 # カード置き場、荷物袋、情報カード
                 # ページを切り替え
-                if self.list and len(self.list) > 10:
-                    if event.GetWheelRotation() > 0:
-                        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
-                    else:
-                        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
-                    self.ProcessEvent(btnevent)
-                    return
+                if event.GetWheelRotation() > 0:
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+                else:
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
+                self.ProcessEvent(btnevent)
+                return
 
         CardControl.OnMouseWheel(self, event)
 
