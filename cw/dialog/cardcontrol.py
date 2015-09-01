@@ -1471,7 +1471,6 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
-        self._load_index()
         self.draw_cards()
 
     def OnClickRightBtn(self, event):
@@ -1635,10 +1634,12 @@ class CardHolder(CardControl):
                 self.sort.Select(0)
 
     def _update_page(self):
+        index = self.index
         max = (len(self.list)+9)/10 if len(self.list) > 0 else 1
         self.page.SetMax(max)
-        self.index = min(self.index, max-1)
-        page = self.index+1
+        index = min(index, max-1)
+        page = index+1
+        self.index = index
         self.page.SetValue(page)
 
     def _set_backpacklist(self, narrow=True):
