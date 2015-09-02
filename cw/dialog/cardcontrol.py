@@ -1117,6 +1117,7 @@ class CardHolder(CardControl):
                 cw.cwpy.setting.last_cardpocketbpage[i] = 0
             cw.cwpy.setting.last_storehousepage = 0
             cw.cwpy.setting.last_backpackpage = 0
+            cw.cwpy.setting.last_sendto = 0
 
             cw.cwpy.setting.card_narrow = ""
 
