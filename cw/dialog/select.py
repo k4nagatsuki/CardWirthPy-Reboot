@@ -3093,6 +3093,7 @@ class ScenarioSelect(Select):
                             assert not data is None
                             index, header = data
                             if not isinstance(header, cw.header.ScenarioHeader) and\
+                               not isinstance(header, FindResult) and\
                                     os.path.normcase(os.path.basename(header)) ==\
                                     os.path.normcase(fname):
                                 treeitem = item

@@ -352,10 +352,14 @@ class YadoMoneyPanel(StatusBarPanel):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYY"]
         StatusBarPanel.__init__(self, parent, (0, 69, 0), pos, icon=image)
-        self.text = None
+        self.text = self.get_money()
         self.currency = "%s"
         self.up_scr = 0
         self.update(None)
+
+    def reset(self, parent, pos, size):
+        self.text = self.get_money()
+        StatusBarPanel.reset(self, parent, pos, size)
 
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["MONEYY"]
@@ -418,7 +422,7 @@ class PartyMoneyPanel(YadoMoneyPanel):
     def __init__(self, parent, pos):
         image = cw.cwpy.rsrc.pygamedialogs["MONEYP"]
         StatusBarPanel.__init__(self, parent, (0, 0, 128), pos, icon=image)
-        self.text = None
+        self.text = self.get_money()
         self.currency = "%s"
         self.up_scr = 0
         self.update(None)
