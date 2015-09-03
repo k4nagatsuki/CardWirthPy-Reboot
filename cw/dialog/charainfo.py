@@ -80,6 +80,8 @@ class CharaInfo(wx.Dialog):
         self._bind()
         cw.util.add_sideclickhandlers(self.toppanel, self.leftbtn, self.rightbtn)
 
+        self.notebook.SetFocus()
+
         self.leftpagekeyid = wx.NewId()
         self.rightpagekeyid = wx.NewId()
         self.upkeyid = wx.NewId()
