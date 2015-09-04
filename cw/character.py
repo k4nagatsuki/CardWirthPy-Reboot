@@ -1025,7 +1025,7 @@ class Character(object):
     def _get_targetingbonus_and_targets(self, header, targets):
         bonus = -2147483647
         maxbonustargs = []
-        if header.type == "ActionCard" and header.id == 7:
+        if header.type == "ActionCard" and header.iget_cardpocketd == 7:
             # 逃走の場合は"VanishTarget"を"Runaway"というボーナス判定用特殊効果に置換する
             motions = [{"type":"Runaway"}]
         else:

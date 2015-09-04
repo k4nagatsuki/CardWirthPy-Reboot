@@ -986,7 +986,7 @@ class NumberOfCards(base.CWPySprite):
         spritegrp.add(self, layer="numberofcards")
 
     def update_scale(self):
-        num = len(self.pcard.get_cardpocket()[self.cardtype])
+        num = len(self.pcard.get_pocketcards(self.cardtype))
         cap = self.pcard.get_cardpocketspace()[self.cardtype]
 
         font = cw.cwpy.rsrc.fonts["numcards"]
