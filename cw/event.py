@@ -953,6 +953,9 @@ class CardEvent(Event):
             target.events.start(keycodes=keycodes, isinsideevent=True)
 
     def run_deadevent(self, target):
+        if self.inusecard.id == 7 and self.inusecard.type == "ActionCard":
+            # 逃走カードは死亡イベントを発生させない
+            return False
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
             cw.cwpy.event.set_selectedmember(self.user)
             return target.events.start(1, isinsideevent=True)
