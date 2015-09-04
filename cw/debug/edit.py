@@ -19,6 +19,8 @@ class CouponEditDialog(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.cwpy_debug = True
 
+        self._processing = False
+
         # システムクーポンは除外する
         self.syscoupons = set()
         for coupon in cw.cwpy.setting.sexcoupons:
@@ -159,6 +161,8 @@ class CouponEditDialog(wx.Dialog):
         self._select_target()
 
     def OnItemSelected(self, event):
+        if self._processing:
+            return
         self._item_selected()
 
     def OnAddBtn(self, event):
@@ -276,6 +280,7 @@ class CouponEditDialog(wx.Dialog):
         if cindex == 0:
             # 全員を選択中
             return
+        self._processing = True
         seq = self.coupons[cindex-1]
         seq[index1], seq[index2] = seq[index2], seq[index1]
 
@@ -289,6 +294,7 @@ class CouponEditDialog(wx.Dialog):
             self.values.SetItemImage(index, self._get_valueimage(seq[index][1]))
         set_item(index1)
         set_item(index2)
+        self._processing = False
 
     def OnEndLabelEdit(self, event):
         index = event.GetIndex()
@@ -402,6 +408,7 @@ class CouponEditDialog(wx.Dialog):
             # 全員を選択中
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
+            pass
 
         self.copybtn.Enable(1 < len(self.pcards))
 
@@ -471,6 +478,8 @@ class ListEditDialog(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.cwpy_debug = True
         self.list = mlist
+
+        self._processing = False
 
         # リスト
         self.values = EditableListCtrl(self, -1, size=(250, 300), style=wx.LC_REPORT|wx.MULTIPLE|wx.LC_NO_HEADER)
@@ -583,6 +592,7 @@ class ListEditDialog(wx.Dialog):
         self._item_selected()
 
     def _swap(self, index1, index2):
+        self._processing = True
         self.list[index1], self.list[index2] = self.list[index2], self.list[index1]
 
         mask = wx.LIST_STATE_SELECTED
@@ -591,6 +601,7 @@ class ListEditDialog(wx.Dialog):
         self.values.SetItemState(index2, temp, mask)
         self.values.SetStringItem(index1, 0, self.list[index1])
         self.values.SetStringItem(index2, 0, self.list[index2])
+        self._processing = False
 
     def OnEndLabelEdit(self, event):
         index = event.GetIndex()
@@ -605,6 +616,8 @@ class ListEditDialog(wx.Dialog):
         pass
 
     def OnItemSelected(self, event):
+        if self._processing:
+            return
         self._item_selected()
 
     def get_selectedindexes(self):
