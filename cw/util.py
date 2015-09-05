@@ -233,7 +233,7 @@ class MusicInterface(object):
                 path = inusepath
                 self.inusecard = True
             else:
-                path = get_materialpath(path, cw.M_MSC, system=cw.cwpy.areaid < 0)
+                path = get_materialpath(path, cw.M_MSC)
                 self.inusecard = False
 
         return path
