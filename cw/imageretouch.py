@@ -849,7 +849,7 @@ class Font(object):
              (u"IPA UIゴシック", u"IPAUIGothic"):"uigothic.ttf",
              (u"IPA明朝", u"IPAMincho"):"mincho.ttf",
              (u"IPA P明朝", u"IPAPMincho"):"pmincho.ttf",
-             (u"IPA Pゴシック", u"IPAPGothic"):"uigothic.ttf"}
+             (u"IPA Pゴシック", u"IPAPGothic"):"pgothic.ttf"}
         for names, ttf in d.iteritems():
             if face in names:
                 path = cw.util.join_paths(u"Data/Font", ttf)
