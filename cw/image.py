@@ -161,7 +161,7 @@ class CardImage(Image):
             if maxn or header.recycle or (header.type == "BeastCard" and maxn):
                 font = cw.cwpy.rsrc.fonts["card_uselimit"]
                 s = str(uselimit)
-                pos = (cw.s(5), self.rect[3] - font.get_height() - cw.s(2))
+                pos = (cw.s(5), self.rect[3] - font.get_height() - cw.s(4))
                 for c in s:
                     subimg = font.render(c, True, (0, 0, 0))
                     image.blit(subimg, (pos[0]+1, pos[1]-1))
@@ -338,7 +338,7 @@ class CardImage(Image):
                 font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
                 dc.SetFont(font)
                 s = str(uselimit)
-                pos = (cw.wins(5), self.wxrect[3] - cw.wins(pixelsize) - cw.wins(2))
+                pos = (cw.wins(5), self.wxrect[3] - cw.wins(pixelsize) - cw.wins(4))
                 for c in s:
                     dc.SetTextForeground(wx.BLACK)
                     dc.DrawText(c, pos[0]+1, pos[1]-1)
@@ -870,7 +870,7 @@ def get_textcellfont(size, face, color, bold, italic,
     if uline:
         font.set_underline(True)
 
-    return font, font.get_height()
+    return font, font.get_linesize()
 
 def create_colorcell(size, color1, gradient, color2):
     """ブレンド前のカラーセルを生成し、

@@ -1051,7 +1051,7 @@ class Resource(object):
         if cw.UP_SCR > 1:
             bold = bold_upscr
 
-        return cw.imageretouch.Font(fontname, cw.s(pixels_noscale), bold=bold, italic=italic)
+        return cw.imageretouch.Font(fontname, -cw.s(pixels_noscale), bold=bold, italic=italic)
 
     def create_fonts(self):
         """ゲーム内で頻繁に使用するpygame.Fontはここで設定する。"""

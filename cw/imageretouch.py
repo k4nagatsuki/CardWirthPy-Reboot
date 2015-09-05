@@ -843,6 +843,19 @@ def mul_alpha(image, alpha):
     image.fill((255, 255, 255, alpha), special_flags=pygame.locals.BLEND_RGBA_MULT)
     return image
 
+def _create_mfont(name, pixels, bold, italic, func):
+    if pixels < 0:
+        # FIXME: CreateFont()で高さにマイナス値を指定した場合には
+        #         行ではなく文字の高さでフォントが選択される
+        pixels = -pixels
+        font = func(name, pixels, bold, italic)
+        h = font.get_height()
+        if pixels < h:
+            pixels = int(float(pixels) / h * pixels)
+        return func(name, pixels, bold, italic)
+    else:
+        return func(name, pixels, bold, italic)
+
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
         d = {(u"IPAゴシック", u"IPAGothic"):"gothic.ttf",
@@ -854,16 +867,7 @@ class Font(object):
             if face in names:
                 path = cw.util.join_paths(u"Data/Font", ttf)
                 if os.path.isfile(path):
-                    if pixels < 0:
-                        # FIXME: CreateFont()で高さにマイナス値を指定した場合には
-                        #         行ではなく文字の高さでフォントが選択される
-                        pixels = -pixels
-                    font = pygame.font.Font(path, pixels)
-                    if bold:
-                        font.set_bold(bold)
-                    if italic:
-                        font.set_italic(italic)
-                    self.font = font
+                    self.font = _create_mfont(path, pixels, bold, italic, pygame.font.Font)
                     return
 
         face = get_fontface(face)
@@ -878,21 +882,13 @@ class Font(object):
                 self.underline = False
                 self.fontinfo = func(face.encode("utf-8"), pixels, bold, italic)
             except:
-                if pixels < 0:
-                    # FIXME: CreateFont()で高さにマイナス値を指定した場合には
-                    #         行ではなく文字の高さでフォントが選択される
-                    pixels = -pixels
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
-                self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
+                self.font = _create_mfont(face, pixels, bold, italic, pygame.sysfont.SysFont)
         else:
             encoding = sys.getfilesystemencoding()
             face = face.encode(encoding)
-            if pixels < 0:
-                # FIXME: CreateFont()で高さにマイナス値を指定した場合には
-                #         行ではなく文字の高さでフォントが選択される
-                pixels = -pixels
-            self.font = pygame.sysfont.SysFont(face, pixels, bold, italic)
+            self.font = _create_mfont(face, pixels, bold, italic, pygame.sysfont.SysFont)
 
     def __del__(self):
         if not self.font:
@@ -937,6 +933,14 @@ class Font(object):
     def get_height(self):
         if self.font:
             return self.font.get_height()
+        elif self.pixels < 0:
+            return -self.pixels
+        else:
+            return self.pixels
+
+    def get_linesize(self):
+        if self.font:
+            return self.font.get_linesize()
         else:
             return _imageretouch.font_height(self.fontinfo)
 
