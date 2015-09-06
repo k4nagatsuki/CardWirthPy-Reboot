@@ -1005,7 +1005,8 @@ static void _get_imagesize(FontInfo *font, LPWSTR str, size_t bufSize, size_t *r
     }
 
 cleanup:
-    return;
+    *rw = max(1, *rw);
+    *rh = max(1, *rh);
 }
 
 static PyObject *
@@ -1076,32 +1077,44 @@ font_render(PyObject *self, PyObject *args)
         str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
     }
-    _get_imagesize(font, str, bufSize, &w, &h);
 
-    info.bmiHeader.biSize = sizeof(info);
-    info.bmiHeader.biWidth = w;
-    info.bmiHeader.biHeight = -(LONG)h;
-    info.bmiHeader.biPlanes = 1;
-    info.bmiHeader.biBitCount = 32;
-    info.bmiHeader.biCompression = 0;
-    bitmap = CreateDIBSection(0, &info, DIB_RGB_COLORS, (void**)&pixels, 0, 0);
-    if (!bitmap) goto cleanup;
-    oldBitmap = (HBITMAP)SelectObject(font->hdc, bitmap);
-
-    if (!TabbedTextOutW(font->hdc, 0, 0, str, bufSize, 0, NULL, 0)) goto cleanup;
-
-    outlen = w * h * 4;
-    string = PyBytes_FromStringAndSize(NULL, outlen);
-    if (!string) goto cleanup;
-    PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
-    memset(outdata, 0, outlen);
-
-    for (i = 0; i < (LONG)(w * h * 4); i += 4)
+    if (bufSize == 0)
     {
-        outdata[i+0] = (unsigned char)r;
-        outdata[i+1] = (unsigned char)g;
-        outdata[i+2] = (unsigned char)b;
-        outdata[i+3] = pixels[i];
+        outlen = 4;
+        string = PyBytes_FromStringAndSize(NULL, outlen);
+        if (!string) goto cleanup;
+        PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
+        memset(outdata, 0, outlen);
+    }
+    else
+    {
+        _get_imagesize(font, str, bufSize, &w, &h);
+
+        info.bmiHeader.biSize = sizeof(info);
+        info.bmiHeader.biWidth = w;
+        info.bmiHeader.biHeight = -(LONG)h;
+        info.bmiHeader.biPlanes = 1;
+        info.bmiHeader.biBitCount = 32;
+        info.bmiHeader.biCompression = 0;
+        bitmap = CreateDIBSection(0, &info, DIB_RGB_COLORS, (void**)&pixels, 0, 0);
+        if (!bitmap) goto cleanup;
+        oldBitmap = (HBITMAP)SelectObject(font->hdc, bitmap);
+
+        if (!TabbedTextOutW(font->hdc, 0, 0, str, bufSize, 0, NULL, 0)) goto cleanup;
+
+        outlen = w * h * 4;
+        string = PyBytes_FromStringAndSize(NULL, outlen);
+        if (!string) goto cleanup;
+        PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
+        memset(outdata, 0, outlen);
+
+        for (i = 0; i < (LONG)(w * h * 4); i += 4)
+        {
+            outdata[i+0] = (unsigned char)r;
+            outdata[i+1] = (unsigned char)g;
+            outdata[i+2] = (unsigned char)b;
+            outdata[i+3] = pixels[i];
+        }
     }
 
 cleanup:
