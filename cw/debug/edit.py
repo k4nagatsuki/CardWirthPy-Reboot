@@ -393,6 +393,7 @@ class CouponEditDialog(wx.Dialog):
 
     def _item_selected(self):
         indexes = self.get_selectedindexes()
+        focus = wx.Window.FindFocus()
         if not indexes:
             self.rmvbtn.Enable(False)
             self.valbtn.Enable(False)
@@ -408,7 +409,6 @@ class CouponEditDialog(wx.Dialog):
             # 全員を選択中
             self.upbtn.Enable(False)
             self.downbtn.Enable(False)
-            pass
 
         self.copybtn.Enable(1 < len(self.pcards))
 
@@ -435,6 +435,9 @@ class CouponEditDialog(wx.Dialog):
             self.total.SetLabel(u"選択中の合計: %s" % (s))
         else:
             self.total.SetLabel(u"合計: %s" % (s))
+
+        if focus and focus.GetParent() == self and not focus.IsEnabled():
+            self.values.SetFocus()
 
     def _set_name(self, index, oldname, newname):
         self.values.SetStringItem(index, 0, newname)
@@ -631,6 +634,7 @@ class ListEditDialog(wx.Dialog):
         return indexes
 
     def _item_selected(self):
+        focus = wx.Window.FindFocus()
         indexes = self.get_selectedindexes()
         if not indexes:
             self.rmvbtn.Enable(False)
@@ -640,6 +644,9 @@ class ListEditDialog(wx.Dialog):
             self.rmvbtn.Enable(True)
             self.upbtn.Enable(0 < indexes[0])
             self.downbtn.Enable(indexes[-1] + 1 < self.values.GetItemCount())
+
+        if focus and focus.GetParent() == self and not focus.IsEnabled():
+            self.values.SetFocus()
 
 class GossipEditDialog(ListEditDialog):
     def __init__(self, parent):
