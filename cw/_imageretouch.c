@@ -849,6 +849,9 @@ static void _init_font(FontInfo *font)
     if (!SelectObject(font->hdc, font->hfont)) goto cleanup;
     if (!GetOutlineTextMetrics(font->hdc, sizeof(font->otm), &font->otm)) goto cleanup;
 
+    if (CLR_INVALID == SetTextColor(font->hdc, RGB(255, 255, 255))) goto cleanup;
+    if (!SetBkMode(font->hdc, TRANSPARENT)) goto cleanup;
+
     return;
 
 cleanup:
@@ -945,19 +948,77 @@ font_height(PyObject *self, PyObject *args)
     return Py_BuildValue("i", font->otm.otmTextMetrics.tmHeight);
 }
 
+static void _get_imagesize(FontInfo *font, LPWSTR str, size_t bufSize, size_t *rw, size_t *rh)
+{
+    UINT format = GGO_BITMAP;
+    GLYPHMETRICS gm = { 0 };
+    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
+    SIZE size = { 0 };
+    size_t w = 0, h = 0, i = 0, w2 = 0, yy = 0;
+
+    *rw = 1;
+    *rh = 1;
+
+    if (0 == GetTextExtentPoint32W(font->hdc, str, bufSize, &size)) goto cleanup;
+
+    *rw = size.cx + gm.gmCellIncX;
+    *rh = size.cy;
+
+    if (font->italic)
+    {
+        h = font->otm.otmTextMetrics.tmHeight;
+        for (i = 0; str[i]; i++)
+        {
+            if (str[i] == '\n')
+            {
+                w = w2 < w ? w : w2;
+                w2 = 0;
+                h += font->otm.otmTextMetrics.tmHeight;
+                continue;
+            }
+            bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
+            if (str[i+1])
+            {
+                w2 += max(0, gm.gmCellIncX);
+            }
+            else
+            {
+                w2 += max(max(0U, gm.gmCellIncX), max(0U, gm.gmptGlyphOrigin.x) + gm.gmBlackBoxX);
+            }
+            if (font->underline)
+            {
+                yy = font->otm.otmTextMetrics.tmHeight
+                    + font->otm.otmsUnderscorePosition + font->otm.otmsUnderscoreSize;
+                /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
+            }
+            else
+            {
+                /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
+            }
+        }
+        w = w2 < w ? w : w2;
+        if ((int)w <= 0) w = 1;
+        if ((int)h <= 0) h = 1;
+
+        *rw = max(w, *rw);
+        *rh = max(h, *rh);
+    }
+
+cleanup:
+    return;
+}
+
 static PyObject *
 font_size(PyObject *self, PyObject *args)
 {
     FontInfo *font = NULL;
     size_t utf8strlen = 0, bufSize = 0;
     char *utf8str = NULL;
+    SIZE size = { 0 };
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
-    GLYPHMETRICS gm = { 0 };
-    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
-    size_t i = 0, w = 0, w2 = 0, h = 0;
-    UINT format = GGO_BITMAP;
+
     if (!PyArg_ParseTuple(args, "ns#", &font, &utf8str, &utf8strlen))
         return NULL;
 
@@ -974,69 +1035,12 @@ font_size(PyObject *self, PyObject *args)
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
     }
 
-    h = font->otm.otmTextMetrics.tmHeight;
-    for (i = 0; str[i]; i++)
-    {
-        if (str[i] == '\n')
-        {
-            w = w2 < w ? w : w2;
-            w2 = 0;
-            h += font->otm.otmTextMetrics.tmHeight;
-            continue;
-        }
-        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
-        w2 += gm.gmCellIncX;
-    }
-    w = w2 < w ? w : w2;
+    if (0 == GetTextExtentPoint32W(font->hdc, str, bufSize, &size)) goto cleanup;
 
 cleanup:
     if (str) HeapFree(heap, 0, str);
 
-    return Py_BuildValue("(ii)", w, h);
-}
-
-static void _get_imagesize(FontInfo *font, LPWSTR str, UINT format, size_t *rw, size_t *rh)
-{
-    GLYPHMETRICS gm = { 0 };
-    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
-    size_t w = 0, h = 0, i = 0, w2 = 0, bufSize = 0, yy = 0;
-
-    h = font->otm.otmTextMetrics.tmHeight;
-    for (i = 0; str[i]; i++)
-    {
-        if (str[i] == '\n')
-        {
-            w = w2 < w ? w : w2;
-            w2 = 0;
-            h += font->otm.otmTextMetrics.tmHeight;
-            continue;
-        }
-        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
-        if (str[i+1])
-        {
-            w2 += max(0, gm.gmCellIncX);
-        }
-        else
-        {
-            w2 += max(max(0U, gm.gmCellIncX), max(0U, gm.gmptGlyphOrigin.x) + gm.gmBlackBoxX);
-        }
-        if (font->underline)
-        {
-            yy = font->otm.otmTextMetrics.tmHeight
-                + font->otm.otmsUnderscorePosition + font->otm.otmsUnderscoreSize;
-            /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
-        }
-        else
-        {
-            /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
-        }
-    }
-    w = w2 < w ? w : w2;
-    if ((int)w <= 0) w = 1;
-    if ((int)h <= 0) h = 1;
-
-    *rw = w;
-    *rh = h;
+    return Py_BuildValue("(ii)", size.cx, size.cy);
 }
 
 static PyObject *
@@ -1045,19 +1049,17 @@ font_render(PyObject *self, PyObject *args)
     PyObject *string = NULL;
     FontInfo *font = NULL;
     Py_ssize_t utf8strlen = 0, bufSize = 0, outlen = 0;
-    int r = 0, g = 0, b = 0, antialias = 0, draw = 0;
-    int val = 0;
+    int r = 0, g = 0, b = 0, antialias = 0;
+    size_t w = 0, h = 0;
+    unsigned char *outdata = NULL;
     char *utf8str = NULL;
-    unsigned char *outdata = NULL, *buf = NULL;
 
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
-    GLYPHMETRICS gm = { 0 };
-    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
-    size_t i = 0, w = 0, h = 0, x = 0, y = 0;
-    size_t bpl = 0, xx = 0, yy = 0, p1 = 0, p2 = 0, x0 = 0, y0 = 0;
-    unsigned char a = 0;
-    UINT format = 0;
+    BITMAPINFO info = { 0 };
+    HBITMAP bitmap = NULL, oldBitmap = NULL;
+    unsigned char *pixels = NULL;
+    Py_ssize_t i = 0;
 
     if (!PyArg_ParseTuple(args, "ns#i(iii)", &font, &utf8str, &utf8strlen, &antialias, &r, &g, &b))
         return NULL;
@@ -1068,16 +1070,25 @@ font_render(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    format = antialias ? GGO_GRAY8_BITMAP : GGO_BITMAP;
-
     bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
-    str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (bufSize)
     {
+        str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
     }
+    _get_imagesize(font, str, bufSize, &w, &h);
 
-    _get_imagesize(font, str, format, &w, &h);
+    info.bmiHeader.biSize = sizeof(info);
+    info.bmiHeader.biWidth = w;
+    info.bmiHeader.biHeight = -(LONG)h;
+    info.bmiHeader.biPlanes = 1;
+    info.bmiHeader.biBitCount = 32;
+    info.bmiHeader.biCompression = 0;
+    bitmap = CreateDIBSection(0, &info, DIB_RGB_COLORS, (void**)&pixels, 0, 0);
+    if (!bitmap) goto cleanup;
+    oldBitmap = (HBITMAP)SelectObject(font->hdc, bitmap);
+
+    if (!TabbedTextOutW(font->hdc, 0, 0, str, bufSize, 0, NULL, 0)) goto cleanup;
 
     outlen = w * h * 4;
     string = PyBytes_FromStringAndSize(NULL, outlen);
@@ -1085,110 +1096,18 @@ font_render(PyObject *self, PyObject *args)
     PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
     memset(outdata, 0, outlen);
 
-    for (i = 0; str[i]; i++)
+    for (i = 0; i < (LONG)(w * h * 4); i += 4)
     {
-        if (str[i] == '\n')
-        {
-            x0 = 0;
-            y0 += h;
-            continue;
-        }
-        draw = !iswspace(str[i]);
-        bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
-        if (draw || font->underline)
-        {
-            buf = (unsigned char*)HeapAlloc(heap, HEAP_ZERO_MEMORY, bufSize);
-        }
-        if (draw)
-        {
-            GetGlyphOutlineW(font->hdc, str[i], format, &gm, bufSize, buf, &mat2);
-            x = x0 + gm.gmptGlyphOrigin.x;
-            y = y0 + (font->otm.otmTextMetrics.tmAscent - gm.gmptGlyphOrigin.y);
-            if (format == GGO_BITMAP)
-            {
-                bpl = (gm.gmBlackBoxX + 31) / 32 * 4;
-                for (xx = 0; xx < gm.gmBlackBoxX; xx++)
-                {
-                    if (w <= xx+x) continue;
-                    for (yy = 0; yy < gm.gmBlackBoxY; yy++)
-                    {
-                        if (h <= yy+y) continue;
-                        a = buf[bpl*yy+(xx/8)] & (1 << (7-(xx%8)));
-                        if (a)
-                        {
-                            p2 = (((y + yy) * w) + (x + xx)) * 4;
-                            outdata[p2+0] = (unsigned char)r;
-                            outdata[p2+1] = (unsigned char)g;
-                            outdata[p2+2] = (unsigned char)b;
-                            outdata[p2+3] = a ? 255 : 0;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                bpl = (gm.gmBlackBoxX + 3) / 4 * 4;
-                for (xx = 0; xx < gm.gmBlackBoxX; xx++)
-                {
-                    if (w <= xx+x) continue;
-                    for (yy = 0; yy < gm.gmBlackBoxY; yy++)
-                    {
-                        if (h <= yy+y) continue;
-                        p1 = (yy * bpl) + xx;
-                        a = buf[p1];
-                        if (a)
-                        {
-                            p2 = (((y + yy) * w) + (x + xx)) * 4;
-                            outdata[p2+0] = (unsigned char)r;
-                            outdata[p2+1] = (unsigned char)g;
-                            outdata[p2+2] = (unsigned char)b;
-                            switch (format)
-                            {
-                            case GGO_GRAY8_BITMAP:
-                                val = a * 4;
-                                break;
-                            case GGO_GRAY4_BITMAP:
-                                val = a * 16;
-                                break;
-                            case GGO_GRAY2_BITMAP:
-                                val = a * 64;
-                                break;
-                            }
-                            outdata[p2+3] = (unsigned char)min(255, val);
-                        }
-                    }
-                }
-            }
-        }
-        if (font->underline)
-        {
-            for (y = 0; (int)y < font->otm.otmsUnderscoreSize; y++)
-            {
-                yy = y0 + font->otm.otmTextMetrics.tmHeight
-                    + font->otm.otmsUnderscorePosition + y;
-                if (h <= yy) continue;
-                for (x = 0; x < x0 + gm.gmCellIncX; x++)
-                {
-                    xx = x + gm.gmptGlyphOrigin.x;
-                    if (w <= xx) continue;
-                    p2 = ((yy * w) + xx) * 4;
-                    outdata[p2+0] = (unsigned char)r;
-                    outdata[p2+1] = (unsigned char)g;
-                    outdata[p2+2] = (unsigned char)b;
-                    outdata[p2+3] = 255;
-                }
-            }
-        }
-        if (buf)
-        {
-            HeapFree(heap, 0, buf);
-            buf = NULL;
-        }
-        x0 += gm.gmCellIncX;
+        outdata[i+0] = (unsigned char)r;
+        outdata[i+1] = (unsigned char)g;
+        outdata[i+2] = (unsigned char)b;
+        outdata[i+3] = pixels[i];
     }
 
 cleanup:
     if (str) HeapFree(heap, 0, str);
+    if (oldBitmap) SelectObject(font->hdc, oldBitmap);
+    if (bitmap) DeleteObject(bitmap);
 
     /* BUG: If returned a tuple here, GC doesn't correct this string.
             Therefore, Returns only string here.
@@ -1208,7 +1127,6 @@ font_imagesize(PyObject *self, PyObject *args)
     HANDLE heap = GetProcessHeap();
     LPWSTR str = NULL;
     size_t w = 0, h = 0;
-    UINT format = 0;
 
     if (!PyArg_ParseTuple(args, "ns#i", &font, &utf8str, &utf8strlen, &antialias))
         return NULL;
@@ -1219,8 +1137,6 @@ font_imagesize(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    format = antialias ? GGO_GRAY8_BITMAP : GGO_BITMAP;
-
     bufSize = MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, NULL, 0);
     str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (bufSize)
@@ -1228,7 +1144,7 @@ font_imagesize(PyObject *self, PyObject *args)
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
     }
 
-    _get_imagesize(font, str, format, &w, &h);
+    _get_imagesize(font, str, bufSize, &w, &h);
 
 cleanup:
     if (str) HeapFree(heap, 0, str);
