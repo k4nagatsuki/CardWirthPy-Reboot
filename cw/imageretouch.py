@@ -856,6 +856,7 @@ def _create_mfont(name, pixels, bold, italic, sys):
                 font = pygame.sysfont.SysFont(name, pixels, bold, italic)
         else:
             font = pygame.sysfont.SysFont(name, pixels, bold, italic)
+        font2x = pygame.sysfont.SysFont(name, pixels*2, bold, italic)
     else:
         if pixels < 0:
             # FIXME: CreateFont()で高さにマイナス値を指定した場合には
@@ -868,9 +869,12 @@ def _create_mfont(name, pixels, bold, italic, sys):
                 font = pygame.font.Font(name, pixels)
         else:
             font = pygame.font.Font(name, pixels)
+        font2x = pygame.font.Font(name, pixels*2)
         font.set_bold(bold)
         font.set_italic(italic)
-    return font
+        font2x.set_bold(bold)
+        font2x.set_italic(italic)
+    return font, font2x
 
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
@@ -883,7 +887,7 @@ class Font(object):
             if face in names:
                 path = cw.util.join_paths(u"Data/Font", ttf)
                 if os.path.isfile(path):
-                    self.font = _create_mfont(path, pixels, bold, italic, sys=False)
+                    self.font, self.font2x = _create_mfont(path, pixels, bold, italic, sys=False)
                     return
 
         face = get_fontface(face)
@@ -891,6 +895,7 @@ class Font(object):
             try:
                 func = _imageretouch.font_new
                 self.font = None
+                self.font2x = None
                 self.face = face
                 self.pixels = pixels
                 self.bold = bold
@@ -901,11 +906,11 @@ class Font(object):
             except:
                 encoding = sys.getfilesystemencoding()
                 face = face.encode(encoding)
-                self.font = _create_mfont(face, pixels, bold, italic, sys=True)
+                self.font, self.font2x = _create_mfont(face, pixels, bold, italic, sys=True)
         else:
             encoding = sys.getfilesystemencoding()
             face = face.encode(encoding)
-            self.font = _create_mfont(face, pixels, bold, italic, sys=True)
+            self.font, self.font2x = _create_mfont(face, pixels, bold, italic, sys=True)
 
     def __del__(self):
         if not self.font:
@@ -920,6 +925,7 @@ class Font(object):
     def set_bold(self, v):
         if self.font:
             self.font.set_bold(v)
+            self.font2x.set_bold(v)
         else:
             self.bold = v
             _imageretouch.font_bold(self.fontinfo, v)
@@ -933,6 +939,7 @@ class Font(object):
     def set_italic(self, v):
         if self.font:
             self.font.set_italic(v)
+            self.font2x.set_italic(v)
         else:
             self.italic = v
             _imageretouch.font_italic(self.fontinfo, v)
@@ -946,6 +953,7 @@ class Font(object):
     def set_underline(self, v):
         if self.font:
             self.font.set_underline(v)
+            self.font2x.set_underline(v)
         else:
             self.underline = v
             _imageretouch.font_underline(self.fontinfo, v)
@@ -973,7 +981,12 @@ class Font(object):
 
     def render(self, text, antialias, colour):
         if self.font:
-            return self.font.render(text, antialias, colour)
+            if antialias:
+                image = self.font2x.render(text, antialias, colour)
+                size = self.size(text)
+                return pygame.transform.smoothscale(image, size)
+            else:
+                return self.font.render(text, antialias, colour)
         elif antialias:
             text = text.encode("utf-8")
             size = _imageretouch.font_imagesize(self.fontinfo2x, text, antialias)
