@@ -113,7 +113,11 @@ class BackGround(base.CWPySprite):
         # 指定したサイズに拡大縮小する
         isize = image.get_size()
         if not isize in (size, cw.s((0, 0))):
-            if cw.cwpy.setting.smoothscale_bg and not (float(size[0]) % isize[0] == 0 and float(size[1]) % isize[1] == 0):
+            # FIXME: 環境によって、高さが1の画像に
+            #        pygame.transform.smoothscale()を行うと
+            #        稀にアクセス違反になる事がある
+            smoothscale_bg = (cw.cwpy.setting.smoothscale_bg and 1 < image.get_height())
+            if smoothscale_bg and not (float(size[0]) % isize[0] == 0 and float(size[1]) % isize[1] == 0):
                 if not (image.get_flags() & pygame.locals.SRCALPHA) and image.get_colorkey():
                     image = image.convert_alpha()
                 image = cw.image.smoothscale(image, size)

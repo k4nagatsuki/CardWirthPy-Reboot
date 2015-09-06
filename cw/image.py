@@ -919,6 +919,12 @@ def smoothscale(surface, size, smoothing=True):
     """surfaceをリサイズする。
     可能であればスムージングする。
     """
+    if surface.get_height() <= 1:
+        # FIXME: 環境によって、高さが1の画像に
+        #        pygame.transform.smoothscale()を行うと
+        #        稀にアクセス違反になる事がある
+        return pygame.transform.scale(surface, size)
+
     if smoothing:
         if surface.get_bitsize() < 24:
             surface = surface.convert(24)
