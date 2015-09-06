@@ -2133,7 +2133,7 @@ class FontSettingPanel(wx.Panel):
 
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, u"表示例")
-        self.st_example = wx.StaticText(self, -1, size=(100, 30), style=wx.ALIGN_CENTER)
+        self.st_example = wx.StaticText(self, -1, size=(100, 35), style=wx.ALIGN_CENTER)
         self.st_example.SetDoubleBuffered(True)
 
         # 描画オプション
@@ -2306,30 +2306,37 @@ class FontSettingPanel(wx.Panel):
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer_v1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_v1 = wx.BoxSizer(wx.VERTICAL)
+
+        bsizer_top = wx.BoxSizer(wx.HORIZONTAL)
 
         bsizer_left = wx.BoxSizer(wx.VERTICAL)
 
+        bsizer_example2 = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_example2.Add(self.st_example, 1, wx.ALIGN_CENTER, 0)
+
         bsizer_example = wx.StaticBoxSizer(self.box_example, wx.VERTICAL)
-        bsizer_example.Add(self.st_example, 1, wx.ALL|wx.EXPAND, 3)
+        bsizer_example.Add(bsizer_example2, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.ALIGN_CENTER, 3)
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
         bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
+        bsizer_left.Add(bsizer_example, 1, wx.EXPAND|wx.BOTTOM, 3)
+        bsizer_left.Add(bsizer_gene, 0, wx.EXPAND, 3)
+
         bsizer_base = wx.StaticBoxSizer(self.box_base, wx.VERTICAL)
         bsizer_base.Add(self.base, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
-        bsizer_left.Add(bsizer_example, 0, wx.EXPAND|wx.BOTTOM, 3)
-        bsizer_left.Add(bsizer_gene, 0, wx.EXPAND|wx.BOTTOM, 3)
-        bsizer_left.Add(bsizer_base, 1, wx.EXPAND, 3)
+        bsizer_top.Add(bsizer_left, 1, wx.EXPAND|wx.RIGHT, 5)
+        bsizer_top.Add(bsizer_base, 1, wx.EXPAND, 3)
 
         bsizer_type = wx.StaticBoxSizer(self.box_type, wx.VERTICAL)
         bsizer_type.Add(self.type, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
-        sizer_v1.Add(bsizer_left, 1, wx.RIGHT|wx.EXPAND, 5)
-        sizer_v1.Add(bsizer_type, 1, wx.EXPAND, 5)
+        sizer_v1.Add(bsizer_top, 1, wx.EXPAND|wx.BOTTOM, 3)
+        sizer_v1.Add(bsizer_type, 1, wx.EXPAND, 0)
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
         sizer.Fit(self)
