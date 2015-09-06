@@ -849,12 +849,14 @@ def _create_mfont(name, pixels, bold, italic, sys):
             # FIXME: CreateFont()で高さにマイナス値を指定した場合には
             #         行ではなく文字の高さでフォントが選択される
             pixels = -pixels
+            pixels += 1
             font = pygame.sysfont.SysFont(name, pixels, bold, italic)
             h = font.get_height()
             if pixels < h:
                 pixels = int(float(pixels) / h * pixels)
                 font = pygame.sysfont.SysFont(name, pixels, bold, italic)
         else:
+            pixels += 1
             font = pygame.sysfont.SysFont(name, pixels, bold, italic)
         font2x = pygame.sysfont.SysFont(name, pixels*2, bold, italic)
     else:
@@ -862,12 +864,14 @@ def _create_mfont(name, pixels, bold, italic, sys):
             # FIXME: CreateFont()で高さにマイナス値を指定した場合には
             #         行ではなく文字の高さでフォントが選択される
             pixels = -pixels
+            pixels += 1
             font = pygame.font.Font(name, pixels)
             h = font.get_height()
             if pixels < h:
                 pixels = int(float(pixels) / h * pixels)
                 font = pygame.font.Font(name, pixels)
         else:
+            pixels += 1
             font = pygame.font.Font(name, pixels)
         font2x = pygame.font.Font(name, pixels*2)
         font.set_bold(bold)

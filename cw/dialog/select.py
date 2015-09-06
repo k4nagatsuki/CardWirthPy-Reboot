@@ -718,7 +718,7 @@ class YadoSelect(Select):
         dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
         # 宿名前
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(22)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(21)))
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
 
