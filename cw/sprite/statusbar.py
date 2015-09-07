@@ -359,6 +359,7 @@ class YadoMoneyPanel(StatusBarPanel):
 
     def reset(self, parent, pos, size):
         self.text = self.get_money()
+        self.update_color()
         StatusBarPanel.reset(self, parent, pos, size)
 
     def get_icon(self):
