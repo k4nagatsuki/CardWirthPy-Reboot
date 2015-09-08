@@ -1063,10 +1063,16 @@ font_render(PyObject *self, PyObject *args)
     Py_ssize_t i = 0;
 
     if (!PyArg_ParseTuple(args, "ns#i(iii)", &font, &utf8str, &utf8strlen, &antialias, &r, &g, &b))
+    {
+        PySys_WriteStderr("%s(%d): %s\n", __FILE__, __LINE__, "PyArg_ParseTuple");
         return NULL;
+    }
 
     if (!utf8str || !font)
+    {
+        PySys_WriteStderr("%s(%d): %s\n", __FILE__, __LINE__, "NoText or NoFont");
         return NULL;
+    }
 
     if (!font->hdc)
         _init_font(font);
@@ -1075,14 +1081,22 @@ font_render(PyObject *self, PyObject *args)
     if (bufSize)
     {
         str = HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
-        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize))
+        {
+            PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "MultiByteToWideChar", GetLastError());
+            goto cleanup;
+        }
     }
 
     if (bufSize == 0)
     {
         outlen = 4;
         string = PyBytes_FromStringAndSize(NULL, outlen);
-        if (!string) goto cleanup;
+        if (!string)
+        {
+            PySys_WriteStderr("%s(%d): %s\n", __FILE__, __LINE__, "PyBytes_FromStringAndSize");
+            goto cleanup;
+        }
         PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
         memset(outdata, 0, outlen);
     }
@@ -1097,14 +1111,26 @@ font_render(PyObject *self, PyObject *args)
         info.bmiHeader.biBitCount = 32;
         info.bmiHeader.biCompression = 0;
         bitmap = CreateDIBSection(0, &info, DIB_RGB_COLORS, (void**)&pixels, 0, 0);
-        if (!bitmap) goto cleanup;
+        if (!bitmap)
+        {
+            PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "CreateDIBSection", GetLastError());
+            goto cleanup;
+        }
         oldBitmap = (HBITMAP)SelectObject(font->hdc, bitmap);
 
-        if (!TabbedTextOutW(font->hdc, 0, 0, str, bufSize, 0, NULL, 0)) goto cleanup;
+        if (!TabbedTextOutW(font->hdc, 0, 0, str, bufSize, 0, NULL, 0))
+        {
+            PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "TabbedTextOutW", GetLastError());
+            goto cleanup;
+        }
 
         outlen = w * h * 4;
         string = PyBytes_FromStringAndSize(NULL, outlen);
-        if (!string) goto cleanup;
+        if (!string)
+        {
+            PySys_WriteStderr("%s(%d): %s\n", __FILE__, __LINE__, "PyBytes_FromStringAndSize");
+            goto cleanup;
+        }
         PyBytes_AsStringAndSize(string, (char**)&outdata, &outlen);
         memset(outdata, 0, outlen);
 
