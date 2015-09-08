@@ -709,7 +709,7 @@ class HistoryPanel(wx.ScrolledWindow):
         maxheight = (h + cw.wins(5)) * len(self.coupons) + cw.wins(10)
         maxwidth = 0
         for coupon in self.coupons:
-            maxwidth = max(dc.GetTextExtent(coupon[0])[0], maxwidth)
+            maxwidth = max(dc.GetTextExtent(coupon[0])[0] + cw.wins(32)+cw.wins(12), maxwidth)
 
         if maxwidth <= csize[0]:
             maxwidth = -1

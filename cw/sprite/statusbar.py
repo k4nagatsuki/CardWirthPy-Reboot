@@ -83,13 +83,11 @@ class StatusBar(base.CWPySprite):
             if cw.cwpy.status == "Yado":
                 if not cw.cwpy.expanding:
                     self._create_yadomoney(cw.s((10, 6)))
-                    if showbuttons or cw.cwpy.is_showingdlg():
-                        CancelButton(self, cw.s((133, 6)))
+                    CancelButton(self, cw.s((133, 6)))
                     if cw.cwpy.ydata.party:
                         self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             else:
-                if showbuttons or cw.cwpy.is_showingdlg():
-                    CancelButton(self, cw.s((10, 6)))
+                CancelButton(self, cw.s((10, 6)))
                 if cw.cwpy.status == "Scenario":
                     self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                 elif cw.cwpy.is_battlestatus():

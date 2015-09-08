@@ -51,6 +51,7 @@ class CardImage(Image):
 
     def _upwinmemo(self):
         return (cw.UP_WIN, cw.cwpy.setting.fontsmoothing_cardname,
+                 cw.cwpy.setting.basefont.copy(),
                  cw.cwpy.setting.fonttypes["cardname"],
                  cw.cwpy.setting.fonttypes["uselimit"])
 

@@ -1155,9 +1155,13 @@ font_imagesize(PyObject *self, PyObject *args)
     if (bufSize)
     {
         if (0 == MultiByteToWideChar(CP_UTF8, 0, utf8str, utf8strlen, str, bufSize)) goto cleanup;
+        _get_imagesize(font, str, bufSize, &w, &h);
     }
-
-    _get_imagesize(font, str, bufSize, &w, &h);
+    else
+    {
+        w = 1;
+        h = 1;
+    }
 
 cleanup:
     if (str) HeapFree(heap, 0, str);

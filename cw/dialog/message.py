@@ -18,9 +18,18 @@ class Message(wx.Dialog):
     def __init__(self, parent, name, text, mode=2):
         wx.Dialog.__init__(self, parent, -1, name, size=cw.wins((355, 120)),
                             style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.SetClientSize(cw.wins((349, 96)))
         self.text = cw.util.txtwrap(text, mode=6)
         self.mode = mode
+
+        dc = wx.ClientDC(self)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
+        w, h, _lineheight = dc.GetMultiLineTextExtent(self.text)
+        dw = cw.wins(349)
+        dh = cw.wins(96)
+        dw = max(dw, w + cw.wins(10)*2)
+        dh = max(dh, h + cw.wins(68))
+
+        self.SetClientSize((dw, dh))
 
         if self.mode == 1:
             # yes and no
