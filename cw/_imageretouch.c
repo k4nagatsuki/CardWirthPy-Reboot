@@ -812,13 +812,21 @@ font_new(PyObject *self, PyObject *args)
         return NULL;
 
     font = (FontInfo*)HeapAlloc(heap, HEAP_ZERO_MEMORY, sizeof(FontInfo));
-    if (!font) goto cleanup;
+    if (!font)
+    {
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "HeapAlloc", GetLastError());
+        goto cleanup;
+    }
 
     bufSize = MultiByteToWideChar(CP_UTF8, 0, face, facelen, NULL, 0);
     font->face = (LPWSTR)HeapAlloc(heap, HEAP_ZERO_MEMORY, (bufSize+1) * sizeof(WCHAR));
     if (bufSize)
     {
-        if (0 == MultiByteToWideChar(CP_UTF8, 0, face, facelen, font->face, bufSize)) goto cleanup;
+        if (0 == MultiByteToWideChar(CP_UTF8, 0, face, facelen, font->face, bufSize))
+        {
+            PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "MultiByteToWideChar", GetLastError());
+            goto cleanup;
+        }
     }
 
     font->pixels = pixels;
@@ -843,14 +851,38 @@ static void _init_font(FontInfo *font)
 
     font->hfont = CreateFontW(font->pixels, 0, 0, 0, font->bold ? FW_BOLD : FW_NORMAL, font->italic,
         font->underline, 0, DEFAULT_CHARSET, 0, 0, ANTIALIASED_QUALITY, 0, font->face);
-    if (!font->hfont) goto cleanup;
+    if (!font->hfont)
+    {
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "CreateFontW", GetLastError());
+        goto cleanup;
+    }
     font->hdc = CreateCompatibleDC(NULL);
-    if (!font->hdc) goto cleanup;
-    if (!SelectObject(font->hdc, font->hfont)) goto cleanup;
-    if (!GetOutlineTextMetrics(font->hdc, sizeof(font->otm), &font->otm)) goto cleanup;
+    if (!font->hdc)
+    {
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "CreateCompatibleDC", GetLastError());
+        goto cleanup;
+    }
+    if (!SelectObject(font->hdc, font->hfont))
+    {
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "SelectObject", GetLastError());
+        goto cleanup;
+    }
+    if (!GetOutlineTextMetrics(font->hdc, sizeof(font->otm), &font->otm))
+    {
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "GetOutlineTextMetrics", GetLastError());
+        goto cleanup;
+    }
 
-    if (CLR_INVALID == SetTextColor(font->hdc, RGB(255, 255, 255))) goto cleanup;
-    if (!SetBkMode(font->hdc, TRANSPARENT)) goto cleanup;
+    if (CLR_INVALID == SetTextColor(font->hdc, RGB(255, 255, 255)))
+    {
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "SetTextColor", GetLastError());
+        goto cleanup;
+    }
+    if (!SetBkMode(font->hdc, TRANSPARENT))
+    {
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "SetBkMode", GetLastError());
+        goto cleanup;
+    }
 
     return;
 

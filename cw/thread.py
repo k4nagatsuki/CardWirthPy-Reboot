@@ -246,6 +246,8 @@ class CWPy(_Singleton, threading.Thread):
             self.init_fullscreenparams()
 
             # リソース(辞書)
+            if self.rsrc:
+                self.rsrc.dispose()
             rsrc = self.rsrc
             self.rsrc = None
             self.rsrc = cw.setting.Resource(self.setting)
@@ -340,6 +342,8 @@ class CWPy(_Singleton, threading.Thread):
             self.deal_cards()
 
         self.clear_selection()
+        if self.rsrc:
+            self.rsrc.dispose()
         self.rsrc = None
         self.update_scale(cw.UP_WIN, changearea, rsrconly=True)
 

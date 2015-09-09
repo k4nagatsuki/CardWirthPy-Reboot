@@ -877,6 +877,13 @@ class Resource(object):
 
         return fpath
 
+    def dispose(self):
+        for key in self.fonts.iterkeys():
+            if self.fonts.is_loaded(key):
+                font = self.fonts[key]
+                if isinstance(font, cw.imageretouch.Font):
+                    font.dispose()
+
     @property
     def cardnamecolorborder(self):
         if cw.cwpy.setting.bordering_cardname:
@@ -1921,6 +1928,9 @@ class ResourceTable(object):
     def iterkeys(self):
         for key in self.dic.iterkeys():
             yield key
+
+    def is_loaded(self, key):
+        return self.dic[key].load
 
 class RecentHistory(object):
     def __init__(self, tempdir):

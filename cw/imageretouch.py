@@ -916,10 +916,19 @@ class Font(object):
             face = face.encode(encoding)
             self.font, self.font2x = _create_mfont(face, pixels, bold, italic, sys=True)
 
-    def __del__(self):
-        if not self.font:
+    def dispose(self):
+        if not self.font and self.fontinfo:
             _imageretouch.font_del(self.fontinfo)
             _imageretouch.font_del(self.fontinfo2x)
+            self.fontinfo = None
+            self.fontinfo2x = None
+
+    def __del__(self):
+        if not self.font and self.fontinfo:
+            _imageretouch.font_del(self.fontinfo)
+            _imageretouch.font_del(self.fontinfo2x)
+            self.fontinfo = None
+            self.fontinfo2x = None
 
     def get_bold(self):
         if self.font:
