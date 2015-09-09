@@ -766,7 +766,7 @@ typedef struct FontInfo_ {
     HFONT hfont;
     HDC hdc;
     LPWSTR face;
-    OUTLINETEXTMETRIC otm;
+    TEXTMETRIC tm;
     int pixels;
     BOOL bold;
     BOOL italic;
@@ -867,9 +867,9 @@ static void _init_font(FontInfo *font)
         PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "SelectObject", GetLastError());
         goto cleanup;
     }
-    if (!GetOutlineTextMetrics(font->hdc, sizeof(font->otm), &font->otm))
+    if (!GetTextMetrics(font->hdc, &font->tm))
     {
-        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "GetOutlineTextMetrics", GetLastError());
+        PySys_WriteStderr("%s(%d): %s, ErrCode: %d\n", __FILE__, __LINE__, "GetTextMetrics", GetLastError());
         goto cleanup;
     }
 
@@ -977,68 +977,29 @@ font_height(PyObject *self, PyObject *args)
     if (!font->hdc)
         _init_font(font);
 
-    return Py_BuildValue("i", font->otm.otmTextMetrics.tmHeight);
+    return Py_BuildValue("i", font->tm.tmHeight);
 }
 
 static void _get_imagesize(FontInfo *font, LPWSTR str, size_t bufSize, size_t *rw, size_t *rh)
 {
-    UINT format = GGO_BITMAP;
-    GLYPHMETRICS gm = { 0 };
-    MAT2 mat2 = { {0, 1}, {0, 0}, {0, 0}, {0, 1} };
     SIZE size = { 0 };
-    size_t w = 0, h = 0, i = 0, w2 = 0, yy = 0;
+    ABC width = { 0 };
 
     *rw = 1;
     *rh = 1;
 
     if (0 == GetTextExtentPoint32W(font->hdc, str, bufSize, &size)) goto cleanup;
 
-    *rw = size.cx + gm.gmCellIncX;
-    *rh = size.cy;
-
-    if (font->italic)
+    if (font->italic && 1 <= bufSize)
     {
-        h = font->otm.otmTextMetrics.tmHeight;
-        for (i = 0; str[i]; i++)
-        {
-            if (str[i] == '\n')
-            {
-                w = w2 < w ? w : w2;
-                w2 = 0;
-                h += font->otm.otmTextMetrics.tmHeight;
-                continue;
-            }
-            bufSize = GetGlyphOutlineW(font->hdc, str[i], format, &gm, 0, NULL, &mat2);
-            if (str[i+1])
-            {
-                w2 += max(0, gm.gmCellIncX);
-            }
-            else
-            {
-                w2 += max(max(0U, gm.gmCellIncX), max(0U, gm.gmptGlyphOrigin.x) + gm.gmBlackBoxX);
-            }
-            if (font->underline)
-            {
-                yy = font->otm.otmTextMetrics.tmHeight
-                    + font->otm.otmsUnderscorePosition + font->otm.otmsUnderscoreSize;
-                /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
-            }
-            else
-            {
-                /* h = max((int)h, (int)gm.gmptGlyphOrigin.y + (int)gm.gmBlackBoxY); */
-            }
-        }
-        w = w2 < w ? w : w2;
-        if ((int)w <= 0) w = 1;
-        if ((int)h <= 0) h = 1;
-
-        *rw = max(w, *rw);
-        *rh = max(h, *rh);
+        if (!GetCharABCWidths(font->hdc, str[bufSize - 1], str[bufSize - 1], &width)) goto cleanup;
+        size.cx += width.abcA;
+        size.cx -= width.abcC;
     }
 
 cleanup:
-    *rw = max(1, *rw);
-    *rh = max(1, *rh);
+    *rw = max(1, size.cx);
+    *rh = max(1, size.cy);
 }
 
 static PyObject *
