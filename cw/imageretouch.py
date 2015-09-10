@@ -992,6 +992,12 @@ class Font(object):
         else:
             return _imageretouch.font_imagesize(self.fontinfo, text.encode("utf-8"), False)
 
+    def size_withoutoverhang(self, text):
+        if self.font:
+            return self.font.size(text)
+        else:
+            return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
+
     def render(self, text, antialias, colour):
         if self.font:
             if antialias:

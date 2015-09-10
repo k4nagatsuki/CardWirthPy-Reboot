@@ -993,8 +993,8 @@ static void _get_imagesize(FontInfo *font, LPWSTR str, size_t bufSize, size_t *r
     if (font->italic && 1 <= bufSize)
     {
         if (!GetCharABCWidths(font->hdc, str[bufSize - 1], str[bufSize - 1], &width)) goto cleanup;
-        size.cx += width.abcA;
-        size.cx -= width.abcC;
+        size.cx += abs(width.abcA);
+        size.cx += abs(width.abcC);
     }
 
 cleanup:

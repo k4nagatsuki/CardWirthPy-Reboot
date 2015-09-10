@@ -1068,9 +1068,9 @@ class JptxImage(cw.image.Image):
                 if antialias:
                     subimg = info.font2.render(chars, True, info.fontcolor)
                     if cw.UP_SCR == 1:
-                        size = info.font2.size(chars)
+                        size = info.font2.size_withoutoverhang(chars)
                     else:
-                        size = cw.s(info.font2_noscale.size(chars))
+                        size = cw.s(info.font2_noscale.size_withoutoverhang(chars))
                     width = size[0] / 2
                     height = size[1] / 2
                     yp = 0
@@ -1099,10 +1099,10 @@ class JptxImage(cw.image.Image):
 
                     subimg = info.font.render(chars, antialias2, info.fontcolor)
                     if cw.UP_SCR == 1:
-                        width = info.font.size(chars)[0]
+                        width = info.font.size_withoutoverhang(chars)[0]
                     else:
                         # 1倍で描画した時のサイズに合せる
-                        size = cw.s(info.font_noscale.size(chars))
+                        size = cw.s(info.font_noscale.size_withoutoverhang(chars))
                         subimg = cw.image.smoothscale(subimg, size)
                         width = size[0]
                     yp = cw.s(1)
