@@ -456,7 +456,7 @@ class TopPanel(wx.Panel):
         x = (dc.GetSize()[0] - cw.wins(74)) / 2
         dc.DrawBitmap(bmp, x, cw.wins(5), True)
         # レベル
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("sbarpanel" , pixelsize=cw.wins(16), style=wx.ITALIC))
         coupons = self.ccard.get_specialcoupons()
         maxlevel = False
         baselevel = self.ccard.level
@@ -537,9 +537,11 @@ class TopPanel(wx.Panel):
         if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or\
                 isinstance(self.ccard, cw.sprite.card.FriendCard)):
             # EP
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("sbarpanel", pixelsize=cw.wins(16), style=wx.ITALIC))
             s = "EP: " + self.ep
             dc.DrawText(s, cw.wins(8), cw.wins(82))
             # 年代
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
             s = self.age + self.sex
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, width2 - w, cw.wins(80))
