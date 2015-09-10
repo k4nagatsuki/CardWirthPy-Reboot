@@ -130,7 +130,7 @@ class CardImage(Image):
                 subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
             if cw.cwpy.setting.bordering_cardname:
-                subimg2 = subimg.copy()
+                subimg2 = subimg.convert_alpha()
                 if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
                     subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_SUB)
                 else:
@@ -472,7 +472,7 @@ class LargeCardImage(CardImage):
                 subimg = cw.image.smoothscale(subimg.convert_alpha(), size, smoothing=cw.cwpy.setting.fontsmoothing_cardname)
 
             if cw.cwpy.setting.bordering_cardname:
-                subimg2 = subimg.copy()
+                subimg2 = subimg.convert_alpha()
                 subimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
                 subimg2 = cw.imageretouch.mul_alpha(subimg2, 92)
                 for x in xrange(cw.s(5)-1, cw.s(5)+2):
@@ -615,11 +615,11 @@ class CharacterCardImage(CardImage):
         if self.nameimg:
             if cw.cwpy.setting.bordering_cardname:
                 nameimg1 = self.nameimg
-                nameimg2 = self.nameimg.copy()
+                nameimg2 = self.nameimg.convert_alpha()
                 nameimg2.fill((255, 255, 255, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
                 if cw.cwpy.rsrc.cardnamecolorhints[bgname] < cw.cwpy.rsrc.cardnamecolorborder:
                     nameimg1, nameimg2 = nameimg2, nameimg1
-                    nameimg2 = nameimg2.copy()
+                    nameimg2 = nameimg2.convert_alpha()
                 nameimg2 = cw.imageretouch.mul_alpha(nameimg2, 92)
                 for x in xrange(cw.s(5)-1, cw.s(5)+2):
                     for y in xrange(cw.s(5)-1, cw.s(5)+2):
