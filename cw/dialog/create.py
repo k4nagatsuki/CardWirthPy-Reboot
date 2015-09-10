@@ -567,7 +567,7 @@ class AdventurerCreater(wx.Dialog):
 
     def create_adventurer(self):
         data = AdventurerData()
-        #親、遺伝情報、＠レベル上限、性別、年代、（種族）の順
+        #親、＠レベル上限、遺伝情報、性別、年代、（種族）の順
         father = self.page3.father
         mother = self.page3.mother
         data.set_parents(father, mother)
