@@ -149,7 +149,7 @@ class CardInfo(wx.Dialog):
         s = scenario + author
 
         if s:
-            font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
+            font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
             y = (cw.wins(9)+rectsize[1]) - size[1]/2
