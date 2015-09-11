@@ -200,32 +200,27 @@ class Setting(object):
                           "ccardname"    : ("uigothic", "", 15, True, True, False),
                           "level"        : ("mincho",   "", 37, False, False, True),
                           "numcards"     : ("uigothic", "", 18, False, False, False),
-                          "message"      : ("mincho",   "", 20, True, True, False),
+                          "message"      : ("", u"IPA明朝", 22, True, True, False),
                           "selectionbar" : ("uigothic", "", 15, True, True, False),
                           "logpage"      : ("mincho",   "", 24, False, False, False),
-                          "sbarpanel"    : ("pmincho",  "", 14, True, True, False),
+                          "sbarpanel"    : ("pmincho",  "", 16, True, True, False),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
                           "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
                           "sbardesc"     : ("pgothic",  "", 14, False, False, False),
                           "screenshot"   : ("uigothic", "", 18, False, False, False),
                           }
 
-        # "MS UI GOTHIC"が使えるかどうか
-        msuigothic = bool("MS UI Gothic" in wx.FontEnumerator.GetFacenames())
-        if msuigothic:
-            self.fonttypes["button"] = ("", "MS UI Gothic", -1, True, True, False)
-            self.fonttypes["tab"] = ("", "MS UI Gothic", -1, True, True, False)
-
-        ##if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
-        ##    self.basefont["uigothic"] = u"MS UI Gothic"
-        ##if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
-        ##    self.basefont["mincho"] = u"ＭＳ 明朝"
-        ##if u"ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
-        ##    self.basefont["pmincho"] = u"ＭＳ Ｐ明朝"
-        ##if u"ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
-        ##    self.basefont["gothic"] = u"ＭＳ ゴシック"
-        ##if u"ＭＳ Ｐゴシック"## in wx.FontEnumerator.GetFacenames():
-        ##    self.basefont["pgothic"] = u"ＭＳ Ｐゴシック"
+        # Windowsのフォントが使用可能であれば標準フォントを差し替える
+        if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
+            self.basefont["uigothic"] = u"MS UI Gothic"
+        if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+            self.basefont["mincho"] = u"ＭＳ 明朝"
+        if u"ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
+            self.basefont["pmincho"] = u"ＭＳ Ｐ明朝"
+        if u"ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
+            self.basefont["gothic"] = u"ＭＳ ゴシック"
+        if u"ＭＳ Ｐゴシック" in wx.FontEnumerator.GetFacenames():
+            self.basefont["pgothic"] = u"ＭＳ Ｐゴシック"
 
         self.fontsmoothing_cardname = True
         self.fontsmoothing_statusbar = True

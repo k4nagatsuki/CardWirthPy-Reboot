@@ -320,8 +320,8 @@ class MessageWindow(base.CWPySprite):
                     size = (rect.w + cw.s(20), rect.h)
                     image = pygame.transform.scale(image, size)
                     image3 = pygame.transform.scale(image3, size)
-                    image = image.subsurface((10, 0, rect.w, rect.h))
-                    image3 = image3.subsurface((10, 0, rect.w, rect.h))
+                    image = image.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
+                    image3 = image3.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
 
             px = pos[0]
             py = pos[1]

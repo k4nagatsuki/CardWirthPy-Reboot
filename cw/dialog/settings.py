@@ -2185,7 +2185,7 @@ class FontSettingPanel(wx.Panel):
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())
         facenames.sort()
-        self._str_default = u"[デフォルト]" # デフォルトフォント名
+        self._str_default = u"[付属フォント]" # デフォルトフォント名
         self._fontface_array = [self._str_default]
         self._types = []
         for base in self.bases:
