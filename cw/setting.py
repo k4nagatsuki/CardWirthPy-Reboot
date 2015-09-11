@@ -203,7 +203,7 @@ class Setting(object):
                           "message"      : ("mincho",   "", 20, True, True, False),
                           "selectionbar" : ("uigothic", "", 16, True, False, False),
                           "logpage"      : ("mincho",   "", 24, False, False, False),
-                          "sbarpanel"    : ("pmincho",  "", 16, True, True, False),
+                          "sbarpanel"    : ("pmincho",  "", 14, True, True, False),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
                           "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
                           "sbardesc"     : ("pgothic",  "", 14, False, False, False),
@@ -1090,36 +1090,38 @@ class Resource(object):
         # 使用フォント(辞書)
         fonts = ResourceTable("Font", {}.copy(), lambda: None)
         # 所持カードの使用回数描画用
-        fonts.set("card_uselimit", self.create_font, "uselimit", 18, False, False, False)
+        fonts.set("card_uselimit", self.create_font, "uselimit", *self.setting().fonttypes["uselimit"])
         # メニューカードの名前描画用
-        fonts.set("mcard_name", self.create_font, "cardname", 13, True, True, False)
+        fonts.set("mcard_name", self.create_font, "cardname", *self.setting().fonttypes["cardname"])
         # プレイヤカードの名前描画用
-        fonts.set("pcard_name", self.create_font, "ccardname", 15, True, True, False)
+        fonts.set("pcard_name", self.create_font, "ccardname", *self.setting().fonttypes["ccardname"])
         # プレイヤカードのレベル描画用
-        fonts.set("pcard_level", self.create_font, "level", 37, False, False, True)
+        fonts.set("pcard_level", self.create_font, "level", *self.setting().fonttypes["level"])
         # メッセージウィンドウのテキスト描画用
-        fonts.set("message", self.create_font, "message", 22, True, False, False, nobold=True)
+        t = self.setting().fonttypes["message"]
+        fonts.set("message", self.create_font, "message", t[0], t[1], t[2], t[3], nobold=True)
         if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
             fonts.set("message_classic", cw.imageretouch.Font, u"ＭＳ 明朝", cw.s(22), bold=True)
         # メッセージウィンドウの選択肢描画用
-        fonts.set("selectionbar", self.create_font, "selectionbar", 16, True, False, False)
+        fonts.set("selectionbar", self.create_font, "selectionbar", *self.setting().fonttypes["selectionbar"])
         if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
             fonts.set("selectionbar_classic", cw.imageretouch.Font, u"MS UI Gothic", cw.s(15), bold=True)
         # メッセージログのページ表示描画用
-        fonts.set("backlog_page", self.create_font, "logpage", 24, False, False, False)
+        fonts.set("backlog_page", self.create_font, "logpage", *self.setting().fonttypes["logpage"])
         # カード枚数描画用
-        fonts.set("numcards", self.create_font, "numcards", 18, False, False, False)
+        fonts.set("numcards", self.create_font, "numcards", *self.setting().fonttypes["numcards"])
         # ステータスバーパネル描画用
-        fonts.set("sbarpanel", self.create_font, "sbarpanel", 16, True, True, False)
+        fonts.set("sbarpanel", self.create_font, "sbarpanel", *self.setting().fonttypes["sbarpanel"])
         # ステータスバーボタン描画用
-        fonts.set("sbarbtn", self.create_font, "sbarbtn", 14, True, True, False)
+        fonts.set("sbarbtn", self.create_font, "sbarbtn", *self.setting().fonttypes["sbarbtn"])
         # ステータスバーボタン解説描画用
-        fonts.set("sbardesc", self.create_font, "sbardesc", 14, True, False, False)
+        fonts.set("sbardesc", self.create_font, "sbardesc", *self.setting().fonttypes["sbardesc"])
         # ステータス画像の召喚回数描画用
-        fonts.set("statusimg1", self.create_font, "statusnum", 12, True, True, False)
-        fonts.set("statusimg2", self.create_font, "statusnum", 12, True, True, False, pixelsadd=-2)
-        fonts.set("statusimg3", self.create_font, "statusnum", 12, True, True, False, pixelsadd=-4)
-        fonts.set("screenshot", self.create_font, "screenshot", 18, False, False, False)
+        fonts.set("statusimg1", self.create_font, "statusnum", *self.setting().fonttypes["statusnum"])
+        t = self.setting().fonttypes["statusnum"]
+        fonts.set("statusimg2", self.create_font, "statusnum", t[0], t[1], t[2], t[3], pixelsadd=-2)
+        fonts.set("statusimg3", self.create_font, "statusnum", t[0], t[1], t[2], t[3], pixelsadd=-4)
+        fonts.set("screenshot", self.create_font, "screenshot", *self.setting().fonttypes["screenshot"])
         return fonts
 
     def create_wxbutton(self, parent, cid, size, name=None, bmp=None):

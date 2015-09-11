@@ -3431,7 +3431,7 @@ class ScenarioSelect(Select):
                 dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70), True)
 
             # シナリオ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(22)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(21)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
             maxwidth = bmpw - cw.wins(5)*2
