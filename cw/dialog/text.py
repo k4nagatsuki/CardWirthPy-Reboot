@@ -32,7 +32,7 @@ class Text(wx.Dialog):
         self._set_text(value)
         self.textctrl.SetBackgroundColour(wx.Colour(0, 0, 128))
         self.textctrl.SetForegroundColour(wx.WHITE)
-        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.textctrl.SetFont(cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14)))
         self.textctrl.SetEditable(False)
         self.textctrl.ShowPosition(0)
         # close
@@ -45,7 +45,7 @@ class Text(wx.Dialog):
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_DOWN, cw.wins((30, 30)), bmp=bmp)
         # choice
         self.combo = wx.ComboBox(self.toppanel, size=cw.wins((140, 20)), choices=self.list, style=wx.CB_READONLY)
-        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         cw.util.adjust_dropdownwidth(self.combo)
 
         if self.list:

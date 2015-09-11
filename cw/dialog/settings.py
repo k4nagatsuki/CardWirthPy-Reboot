@@ -317,7 +317,6 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
             self.pane_gene.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
         elif selpane == 1:
-            self.pane_draw.cb_bordering_cardname.SetValue(cw.cwpy.setting.bordering_cardname_init)
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
             self.pane_draw.speed.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
@@ -378,6 +377,7 @@ class SettingsPanel(wx.Panel):
                 self.pane_font.type.SetCellValue(i, 2, (u"1" if bold else u"") if not bold is None else u"-")
                 self.pane_font.type.SetCellValue(i, 3, (u"1" if bold_upscr else u"") if not bold_upscr is None else u"-")
                 self.pane_font.type.SetCellValue(i, 4, (u"1" if italic else u"") if not italic is None else u"-")
+            self.pane_font.cb_bordering_cardname.SetValue(cw.cwpy.setting.bordering_cardname_init)
             self.pane_font.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont_init)
             self.pane_font.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname_init)
             self.pane_font.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar_init)
@@ -492,6 +492,11 @@ class SettingsPanel(wx.Panel):
             else:
                 fonttypes[typename] = (u"", value, pixels, bold, bold_upscr, italic)
 
+        value = self.pane_font.cb_bordering_cardname.GetValue()
+        if setting.bordering_cardname <> value:
+            setting.bordering_cardname = value
+            updatecardimg = True
+            updatemcardimg = True
         value = self.pane_font.cb_decorationfont.GetValue()
         if value <> setting.decorationfont:
             setting.decorationfont = value
@@ -555,11 +560,6 @@ class SettingsPanel(wx.Panel):
 
         # 描画
         updatebg = False
-        value = self.pane_draw.cb_bordering_cardname.GetValue()
-        if setting.bordering_cardname <> value:
-            setting.bordering_cardname = value
-            updatecardimg = True
-            updatemcardimg = True
         value = self.pane_draw.cb_smooth_bg.GetValue()
         if setting.smoothscale_bg <> value:
             updatebg = True
@@ -1421,9 +1421,6 @@ class DrawingSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        # カード名を縁取りする
-        self.cb_bordering_cardname = wx.CheckBox(
-            self, -1, u"カード名を縁取りする")
         # 背景拡大縮小補正
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
@@ -1483,7 +1480,6 @@ class DrawingSettingPanel(wx.Panel):
         self._bind()
 
     def load(self, setting):
-        self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
         self.cb_smooth_bg.SetValue(setting.smoothscale_bg)
         self.cb_whitecursor.SetValue(setting.cursor_type == cw.setting.CURSOR_WHITE)
         self.cs_mwin.SetColour(setting.mwincolour)
@@ -1531,7 +1527,6 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
 
-        bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
@@ -2151,11 +2146,16 @@ class FontSettingPanel(wx.Panel):
                           "list"         : u"リスト",
                           "tab"          : u"タブ",
                           "menu"         : u"メニュー",
-                          "paneltitle"   : u"パネル見出し",
-                          "dlgmsg"       : u"ダイアログメッセージ",
-                          "dlgtitle"     : u"ダイアログ見出し",
+                          "paneltitle"   : u"パネル見出し1",
+                          "paneltitle2"  : u"パネル見出し2",
+                          "dlgmsg"       : u"ダイアログテキスト1",
+                          "dlgmsg2"      : u"ダイアログテキスト2",
+                          "dlgtitle"     : u"ダイアログ見出し1",
+                          "dlgtitle2"    : u"ダイアログ見出し2",
                           "inputname"    : u"名前入力欄",
                           "datadesc"     : u"データ解説文",
+                          "charaparam"   : u"キャラクター見出し1",
+                          "charaparam2"  : u"キャラクター見出し2",
                           "charadesc"    : u"キャラクター解説文",
                           "dlglist"      : u"ダイアログリスト",
                           "uselimit"     : u"カード使用回数",
@@ -2178,8 +2178,8 @@ class FontSettingPanel(wx.Panel):
                       "message", "selectionbar", "logpage",
                       "uselimit", "numcards", "statusnum",
                       "sbarpanel", "sbarbtn", "sbardesc", "screenshot",
-                      "paneltitle", "dlgmsg", "dlgtitle", "inputname",
-                      "datadesc", "charadesc","dlglist",
+                      "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2", "inputname",
+                      "datadesc", "charaparam", "charaparam2", "charadesc", "dlglist",
                       "button", "combo", "slider", "spin", "tree", "list", "tab", "menu")
 
         # フォント配列のロード
@@ -2202,6 +2202,7 @@ class FontSettingPanel(wx.Panel):
 
         # 描画オプション
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
+        self.cb_bordering_cardname = wx.CheckBox(self, -1, u"カード名を縁取りする")
         self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
         self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
         self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
@@ -2226,31 +2227,32 @@ class FontSettingPanel(wx.Panel):
         self._bind()
 
     def load(self, setting):
+        self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
         self.cb_decorationfont.SetValue(setting.decorationfont)
         self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
         self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
 
-        def create_grid(grid, seq, faces, editor, cols):
+        def create_grid(grid, seq, faces, editor, cols, rowlblsize):
             grid.ClearGrid()
             grid.CreateGrid(len(seq), cols)
             grid.DisableDragRowSize()
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
             grid.SetRowLabelAlignment(wx.LEFT, wx.CENTER)
-            grid.SetRowLabelSize(100)
+            grid.SetRowLabelSize(rowlblsize)
             grid.SetColLabelValue(0, u"フォント名")
             grid.SetColSize(0, 150)
             for i, name in enumerate(seq):
                 grid.SetRowLabelValue(i, self.typenames[name])
                 grid.SetCellEditor(i, 0, editor)
 
-        create_grid(self.base, self.bases, self._fontface_array, self.choicebase, 1)
+        create_grid(self.base, self.bases, self._fontface_array, self.choicebase, 1, 100)
         for i, name, in enumerate(self.bases):
             str_font = setting.basefont[name]
             if not str_font:
                 str_font = self._str_default
             self.base.SetCellValue(i, 0, str_font)
 
-        create_grid(self.type, self.types, self._types, self.choicetype, 5)
+        create_grid(self.type, self.types, self._types, self.choicetype, 5, 120)
         self.type.SetColLabelValue(1, u"サイズ")
         self.type.SetColSize(1, 80)
         self.type.SetColLabelValue(2, u"太字\n(通常)")
@@ -2390,6 +2392,7 @@ class FontSettingPanel(wx.Panel):
         bsizer_example.Add(bsizer_example2, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.ALIGN_CENTER, 3)
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        bsizer_gene.Add(self.cb_bordering_cardname, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_decorationfont, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_fontsmoothingcardname, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.Add(self.cb_fontsmoothingstatusbar, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)

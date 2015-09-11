@@ -175,41 +175,57 @@ class Setting(object):
                           "pmincho" : "",
                           "pgothic" : "",
                           }
-        self.fonttypes = {"button"       : ("uigothic", "", -1, None, None, None),
-                          "combo"        : ("uigothic", "", -1, None, None, None),
-                          "slider"       : ("gothic",   "", -1, None, None, None),
-                          "spin"         : ("gothic",   "", -1, None, None, None),
-                          "tree"         : ("gothic",   "", -1, None, None, None),
-                          "list"         : ("uigothic", "", -1, None, None, None),
-                          "tab"          : ("uigothic", "", -1, None, None, None),
-                          "menu"         : ("uigothic", "", -1, None, None, None),
-                          "paneltitle"   : ("uigothic", "", -1, None, None, None),
-                          "dlgmsg"       : ("uigothic", "", -1, None, None, None),
-                          "dlgtitle"     : ("mincho",   "", -1, None, None, None),
-                          "inputname"    : ("mincho",   "", -1, None, None, None),
-                          "datadesc"     : ("gothic",   "", -1, None, None, None),
-                          "charadesc"    : ("mincho",   "", -1, None, None, None),
-                          "dlglist"      : ("mincho",   "", -1, None, None, None),
+        self.fonttypes = {"button"       : ("uigothic", "", -1, True, True, False),
+                          "combo"        : ("uigothic", "", -1, False, False, False),
+                          "slider"       : ("gothic",   "", -1, False, False, False),
+                          "spin"         : ("gothic",   "", -1, False, False, False),
+                          "tree"         : ("gothic",   "", -1, False, False, False),
+                          "list"         : ("uigothic", "", -1, False, False, False),
+                          "tab"          : ("uigothic", "", -1, True, True, False),
+                          "menu"         : ("uigothic", "", -1, False, False, False),
+                          "paneltitle"   : ("uigothic", "", -1, True, True, False),
+                          "paneltitle2"  : ("uigothic", "", -1, False, False, False),
+                          "dlgmsg"       : ("uigothic", "", -1, True, True, False),
+                          "dlgmsg2"      : ("uigothic", "", -1, False, False, False),
+                          "dlgtitle"     : ("mincho",   "", -1, True, True, False),
+                          "dlgtitle2"    : ("mincho",   "", -1, True, True, True),
+                          "inputname"    : ("mincho",   "", -1, True, True, False),
+                          "datadesc"     : ("gothic",   "", -1, False, False, False),
+                          "charadesc"    : ("mincho",   "", -1, True, True, False),
+                          "charaparam"   : ("pmincho",  "", -1, True, True, True),
+                          "charaparam2"  : ("uigothic", "", -1, True, True, False),
+                          "dlglist"      : ("mincho",   "", -1, True, True, False),
                           "uselimit"     : ("mincho",   "", 18, False, False, False),
                           "cardname"     : ("uigothic", "", 13, True, True, False),
                           "ccardname"    : ("uigothic", "", 15, True, True, False),
                           "level"        : ("mincho",   "", 37, False, False, True),
                           "numcards"     : ("uigothic", "", 18, False, False, False),
-                          "message"      : ("mincho",   "", 22, True, False, False),
+                          "message"      : ("mincho",   "", 20, True, True, False),
                           "selectionbar" : ("uigothic", "", 16, True, False, False),
                           "logpage"      : ("mincho",   "", 24, False, False, False),
                           "sbarpanel"    : ("pmincho",  "", 16, True, True, False),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
                           "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
-                          "sbardesc"     : ("pgothic",  "", 14, True, False, False),
+                          "sbardesc"     : ("pgothic",  "", 14, False, False, False),
                           "screenshot"   : ("uigothic", "", 18, False, False, False),
                           }
 
         # "MS UI GOTHIC"が使えるかどうか
         msuigothic = bool("MS UI Gothic" in wx.FontEnumerator.GetFacenames())
         if msuigothic:
-            self.fonttypes["button"] = ("", "MS UI Gothic", -1, None, None, None)
-            self.fonttypes["tab"] = ("", "MS UI Gothic", -1, None, None, None)
+            self.fonttypes["button"] = ("", "MS UI Gothic", -1, True, True, False)
+            self.fonttypes["tab"] = ("", "MS UI Gothic", -1, True, True, False)
+
+        ##if u"MS UI Gothic" in wx.FontEnumerator.GetFacenames():
+        ##    self.basefont["uigothic"] = u"MS UI Gothic"
+        ##if u"ＭＳ 明朝" in wx.FontEnumerator.GetFacenames():
+        ##    self.basefont["mincho"] = u"ＭＳ 明朝"
+        ##if u"ＭＳ Ｐ明朝" in wx.FontEnumerator.GetFacenames():
+        ##    self.basefont["pmincho"] = u"ＭＳ Ｐ明朝"
+        ##if u"ＭＳ ゴシック" in wx.FontEnumerator.GetFacenames():
+        ##    self.basefont["gothic"] = u"ＭＳ ゴシック"
+        ##if u"ＭＳ Ｐゴシック"## in wx.FontEnumerator.GetFacenames():
+        ##    self.basefont["pgothic"] = u"ＭＳ Ｐゴシック"
 
         self.fontsmoothing_cardname = True
         self.fontsmoothing_statusbar = True
@@ -1022,7 +1038,16 @@ class Resource(object):
         if size is None and pixelsize is None:
             pixelsize = cw.wins(14)
 
-        fontname, _pixels, _bold, _bold_upscr, _italic = self.get_fontfromtype(name)
+        fontname, _pixels, bold, bold_upscr, italic = self.get_fontfromtype(name)
+
+        if cw.UP_SCR <= 1:
+            if not bold is None:
+                weight = wx.FONTWEIGHT_BOLD if bold else wx.FONTWEIGHT_NORMAL
+        else:
+            if not bold_upscr is None:
+                weight = wx.FONTWEIGHT_BOLD if bold_upscr else wx.FONTWEIGHT_NORMAL
+        if not italic is None:
+            style = wx.ITALIC if italic else wx.FONTSTYLE_NORMAL
 
         # FIXME: ピクセルサイズで指定しないと96DPIでない時にゲーム画面が
         #        おかしくなるので暫定的に96DPI相当のサイズに強制変換

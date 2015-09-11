@@ -44,7 +44,7 @@ class AdventurerDataComp(wx.Dialog):
         self.text_name.SetFont(font)
         self.text_caution = wx.StaticText(self, -1, cw.cwpy.msgs["coution"])
         self.text_caution.SetForegroundColour(wx.RED)
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
         self.text_caution.SetFont(font)
         # ラジオボックス
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
@@ -766,7 +766,7 @@ class NamePage(AdventurerCreaterPage):
         self.textctrl.SetFont(font)
 
         self.ch_imgdpath = wx.Choice(self, size=(cw.wins(140), -1))
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.ch_imgdpath.SetFont(font)
 
         self.name = ""
@@ -867,7 +867,7 @@ class NamePage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # welcome to the adventurers inn
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20)))
         s = cw.cwpy.msgs["entry_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
@@ -1090,13 +1090,13 @@ class RacePage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 種族
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の種族を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1108,7 +1108,7 @@ class RacePage(AdventurerCreaterPage):
         if s.count("\n") > 7:
             s = "\n".join(s.split("\n")[0:8])
 
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
         dc.SetFont(font)
         dc.DrawLabel(s, cw.wins((125, 130, 200, 110)))
 
@@ -1146,19 +1146,19 @@ class RelationPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 血縁
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 親となる条件を満たしている冒険者が宿にいます。
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_message"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(60))
         # Father
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(16))
         font.SetUnderlined(True)
         dc.SetFont(font)
         s = cw.cwpy.msgs["father"]
@@ -1226,7 +1226,7 @@ class RelationPage(AdventurerCreaterPage):
 
         cw.util.draw_center(dc, s, cw.wins((315, 220)))
         # 父親消費EP
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.FONTWEIGHT_NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
         dc.SetFont(font)
 
         if self.father:
@@ -1364,13 +1364,13 @@ class TalentPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 素質
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["nature_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の傾向を選択して下さい。
-        font1 = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font1 = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
         font2 = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
         dc.SetFont(font1)
         s = cw.cwpy.msgs["nature_message"]
@@ -1430,13 +1430,13 @@ class AttrPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 特性
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20), style=wx.ITALIC)
+        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(20))
         # 新規冒険者の生まれや性格などの個性を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1646,7 +1646,7 @@ class YadoCreater(wx.Dialog):
         s = self._msg1
         y = cw.wins(10)
         dc.DrawText(s, bmpw+cw.wins(20), y)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(16))
         dc.SetFont(font)
         _w, h, _lineheight = dc.GetMultiLineTextExtent(s)
         y += h + cw.wins(5)
@@ -1692,7 +1692,7 @@ class YadoCreater(wx.Dialog):
         dc.SetFont(font)
         s = self._msg1
         w1, h1, _lineheight = dc.GetMultiLineTextExtent(s)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = self._msg2
         w2, h2, _lineheight = dc.GetMultiLineTextExtent(s)
@@ -1832,10 +1832,10 @@ class DesignPanel(AdventurerCreaterPage):
         self.namectrl.SetFont(font)
 
         self.ch_imgdpath = wx.Choice(self, size=(cw.wins(140), -1))
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.ch_imgdpath.SetFont(font)
 
-        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14))
         self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER|wx.TE_MULTILINE)
         self.descctrl.SetFont(font)
 

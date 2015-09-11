@@ -24,7 +24,7 @@ class CardInfo(wx.Dialog):
 
         # フォントによってダイアログサイズを決定する
         dc = wx.ClientDC(self)
-        font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13))
         dc.SetFont(font)
         size = dc.GetTextExtent(u"―"*19)
         self.textwidth = size[0]
@@ -138,7 +138,7 @@ class CardInfo(wx.Dialog):
         if s.count("\n") > 8:
             s = "\n".join(s.split("\n")[0:9])
 
-        font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(13))
         dc.SetFont(font)
         dc.DrawLabel(s, cw.wins((127, 19, 200, 110)))
 
@@ -149,8 +149,7 @@ class CardInfo(wx.Dialog):
         s = scenario + author
 
         if s:
-            font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14),
-                                                            weight=wx.NORMAL)
+            font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
             dc.SetFont(font)
             size = dc.GetTextExtent(s)
             y = (cw.wins(9)+rectsize[1]) - size[1]/2

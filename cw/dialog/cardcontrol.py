@@ -71,7 +71,7 @@ class CardControl(wx.Dialog):
                    cw.cwpy.msgs["scenario_name"],
                    cw.cwpy.msgs["author"]]
         self.sort = wx.ComboBox(self.toppanel, -1, size=cw.wins((75, 24)), choices=choices, style=wx.CB_READONLY)
-        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         self.sortwithstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
         self.sortwithstar.SetToolTipString(cw.cwpy.msgs["sort_with_star"])
         self._update_sortwithstar()
@@ -107,7 +107,7 @@ class CardControl(wx.Dialog):
         self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
         # sendto
         self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((115, 24)), style=wx.CB_READONLY)
-        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
         self.rightbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
@@ -117,7 +117,7 @@ class CardControl(wx.Dialog):
             self.combo.Hide()
 
         # 絞込条件
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15))
         self.narrow = wx.TextCtrl(self.toppanel, -1, size=cw.wins((100, 20)))
         self.narrow.SetValue(cw.cwpy.setting.card_narrow)
         self.narrow.SetFont(font)
@@ -135,7 +135,7 @@ class CardControl(wx.Dialog):
                        cw.cwpy.msgs["description"],
                        cw.cwpy.msgs["scenario_name"],
                        cw.cwpy.msgs["author"])
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.narrow_type = wx.ComboBox(self.toppanel, -1, size=cw.wins((90, 20)), choices=choices, style=wx.CB_READONLY)
         self.narrow_type.SetFont(font)
         if self.callname == "INFOVIEW":
@@ -278,7 +278,7 @@ class CardControl(wx.Dialog):
             # ページ番号入力欄
             psize = (cw.wins(34), self.page.GetSize()[1])
             dc = wx.ClientDC(self)
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14)))
             rect = self.upbtn.GetRect()
             top = rect[1] + rect[3]
             btm = self.downbtn.GetPosition()[1]
@@ -1207,7 +1207,7 @@ class CardHolder(CardControl):
         self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp)
         # ページ指定
         self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 16)))
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
         self.page.SetFont(font)
         self.page.SetValue(1)
         self.page.SetMin(1)

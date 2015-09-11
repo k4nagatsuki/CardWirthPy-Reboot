@@ -314,7 +314,7 @@ class Select(wx.Dialog):
         return True
 
     def _init_narrowpanel(self, choices, narrowtext, narrowtype, tworows=False):
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         if tworows:
             self.keyword_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_keyword"])
             self.keyword_label.SetFont(font)
@@ -327,7 +327,7 @@ class Select(wx.Dialog):
         if tworows:
             self.narrow_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["narrow_condition2"])
             self.narrow_label.SetFont(font)
-        cfont = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        cfont = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.narrow_type = wx.Choice(self, -1, size=(-1, -1), choices=choices)
         self.narrow_type.SetFont(cfont)
         self.narrow_type.SetSelection(narrowtype)
@@ -1542,11 +1542,11 @@ class PlayerSelect(MultiViewSelect):
         self._init_narrowpanel(choices, u"", cw.cwpy.setting.standbys_narrowtype)
 
         # sort
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title"])
         self.sort_label.SetFont(font)
         self.sort = wx.Choice(self, size=cw.wins((75, 20)))
-        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.sort.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         self.sort.Append(cw.cwpy.msgs["sort_no"])
         self.sort.Append(cw.cwpy.msgs["sort_name"])
         self.sort.Append(cw.cwpy.msgs["sort_level"])
@@ -2216,7 +2216,7 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(25)))
                 s = str(header.level)
                 y = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(68) + w + cw.wins(5), cw.wins(36))
+                dc.DrawText(s, cw.wins(68) + w + cw.wins(5), cw.wins(35))
                 w = w + y
                 # Name
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -2477,7 +2477,7 @@ class ScenarioSelect(Select):
         self.tree = wx.TreeCtrl(self, -1, size=cw.wins((400, 370)),
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
         self.tree.SetDoubleBuffered(True)
-        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1, weight=wx.NORMAL))
+        self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1))
         self.tree.Hide()
         self.tree.imglist = wx.ImageList(cw.wins(16), cw.wins(16))
         self.tree.imgidx_summary = self.tree.imglist.Add(cw.cwpy.rsrc.dialogs["SUMMARY"])
@@ -2501,10 +2501,10 @@ class ScenarioSelect(Select):
                                cw.cwpy.setting.scenario_narrowtype, tworows=True)
 
         # 整列条件
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         self.sort_label = wx.StaticText(self, -1, label=cw.cwpy.msgs["sort_title2"])
         self.sort_label.SetFont(font)
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         choices = (cw.cwpy.msgs["target_level"],
                    cw.cwpy.msgs["title"],
                    cw.cwpy.msgs["author"],
@@ -2808,7 +2808,7 @@ class ScenarioSelect(Select):
         icon_invisible = cw.cwpy.rsrc.dialogs["SUMMARY_INVISIBLE"]
         icon_dir = cw.cwpy.rsrc.dialogs["DIRECTORY"]
 
-        font = cw.cwpy.rsrc.get_wxfont("menu", pixelsize=cw.wins(13), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("menu", pixelsize=cw.wins(13))
 
         self._add_bookmark = wx.MenuItem(menu, -1, cw.cwpy.msgs["add_bookmark"])
         self._add_bookmark.SetBitmap(icon_add)

@@ -926,9 +926,7 @@ class Frame(wx.Frame):
                     # 全体スクリーンショットへ描画
                     mem3 = wx.MemoryDC()
                     pixelsize = int(cw.cwpy.setting.fonttypes["screenshot"][2] * 0.8)
-                    bold = wx.BOLD if cw.cwpy.setting.fonttypes["screenshot"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
-                    italic = wx.ITALIC if cw.cwpy.setting.fonttypes["screenshot"][5] else wx.NORMAL
-                    font = cw.cwpy.rsrc.get_wxfont("screenshot", pixelsize=cw.s(pixelsize)*2, style=italic, weight=bold, adjustsizewx3=False)
+                    font = cw.cwpy.rsrc.get_wxfont("screenshot", pixelsize=cw.s(pixelsize)*2, adjustsizewx3=False)
                     mem3.SetFont(font)
                     title = child.GetTitle()
                     white = fore[:3] == (255, 255, 255)

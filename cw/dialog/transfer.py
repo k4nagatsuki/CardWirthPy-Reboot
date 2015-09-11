@@ -29,7 +29,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.index = 1 if index2 == 0 else 0
 
         # 転送元
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.fromyado = wx.Choice(self, -1, choices=yadonames)
         self.fromyado.SetSelection(self.index)
         self.fromyado.SetFont(font)
@@ -39,7 +39,7 @@ class TransferYadoDataDialog(wx.Dialog):
         self.toyado.SetFont(font)
 
         # 転送可能なデータリスト
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.datalist = cw.util.CheckableListCtrl(self, -1, size=cw.wins((300, 300)), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL, colpos=1)
         self.datalist.SetFont(font)
         self.imglist = self.datalist.GetImageList(wx.IMAGE_LIST_SMALL)
@@ -776,7 +776,7 @@ class TransferYadoDataDialog(wx.Dialog):
         sizer_h2 = wx.BoxSizer(wx.HORIZONTAL)
 
         dc = wx.ClientDC(self)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(16))
         dc.SetFont(font)
         w = dc.GetMultiLineTextExtent(cw.cwpy.msgs["transfer_from_base"])[0]
         w = max(w, dc.GetMultiLineTextExtent(cw.cwpy.msgs["transfer_to_base"])[0])

@@ -127,12 +127,12 @@ class MoneyEditPanel(wx.Panel):
         self.slider = SliderWithButton(self, self.value, minvalue, maxvalue, cw.wins(150))
         # パーティ所持金変更スピン
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.wins(88), -1))
-        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14)))
         self.spinctrl.SetRange(minvalue, maxvalue)
         self.spinctrl.SetValue(self.value)
         # 宿金庫変更スピン
         self.spinctrl2 = wx.SpinCtrl(self, -1, "", size=(cw.wins(88), -1))
-        self.spinctrl2.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.spinctrl2.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14)))
         self.spinctrl2.SetRange(minvalue, maxvalue)
         self.spinctrl2.SetValue(cw.cwpy.ydata.money)
         # bmp
@@ -142,7 +142,7 @@ class MoneyEditPanel(wx.Panel):
         self.bmp_ymoney = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # text
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
-        font = cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(12), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(12))
         self.text_party.SetFont(font)
         self.text_yado = wx.StaticText(self, -1, cw.cwpy.msgs["base_money"])
         self.text_yado.SetFont(font)
@@ -218,10 +218,10 @@ class MoneyViewPanel(wx.Panel):
         # text
         self.text_pmoney = wx.StaticText(self, -1, str(self.value),
                                         size=(cw.wins(88), -1), style=wx.SUNKEN_BORDER)
-        self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14)))
         self.text_pmoney.SetBackgroundColour(wx.WHITE)
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
-        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(12), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(12))
         self.text_party.SetFont(font)
         self._do_layout()
 
@@ -480,7 +480,7 @@ class SliderWithButton(wx.Panel):
         # スライダ
         self.slider = wx.Slider(self, -1, 0, 0, 1,
             size=(sliderwidth, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
-        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("slider", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.slider.SetFont(cw.cwpy.rsrc.get_wxfont("slider", pixelsize=cw.wins(14)))
         self.slider.SetBackgroundStyle(wx.BG_STYLE_COLOUR)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
@@ -623,9 +623,9 @@ class NumberEditor(wx.Panel):
 
         # スピン
         self.spinlabel = wx.StaticText(self, -1, u"直接入力:")
-        self.spinlabel.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.spinlabel.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14)))
         self.spinctrl = wx.SpinCtrl(self, -1, "", size=(cw.wins(80), -1))
-        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.spinctrl.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14)))
         self.spinctrl.SetRange(minvalue, maxvalue)
         self.spinctrl.SetValue(value)
 
@@ -799,7 +799,7 @@ class ComboEditDialog2(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = self.message
         w, _h, _lineheight = dc.GetMultiLineTextExtent(s)
@@ -851,7 +851,7 @@ class LevelEditDialog(wx.Dialog):
         for ccard in self.list:
             self.targets.append(ccard.get_name())
         self.target = wx.ComboBox(self.panel, -1, choices=self.targets, style=wx.CB_READONLY)
-        self.target.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14), weight=wx.NORMAL))
+        self.target.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         self.target.Select(max(selected, -1) + 1)
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]

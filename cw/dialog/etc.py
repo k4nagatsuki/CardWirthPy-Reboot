@@ -415,7 +415,7 @@ class BookmarkDialog(wx.Dialog):
         self.values.InsertColumn(0, u"")
         self.values.SetColumnWidth(0, cw.wins(250))
         self.values.setResizeColumn(0)
-        font = cw.cwpy.rsrc.get_wxfont("list", pixelsize=cw.wins(15), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("list", pixelsize=cw.wins(15))
         self.values.SetFont(font)
 
         self.bookmark = cw.cwpy.ydata.bookmarks[:]
@@ -626,7 +626,7 @@ class ConvertYadoDialog(wx.Dialog):
                            style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.message = u"%s を逆変換し、\n新規作成したフォルダへ格納します。" % (yadoname)
         dc = wx.ClientDC(self)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         w, _h, _lh = dc.GetMultiLineTextExtent(self.message)
         self.SetClientSize((w + cw.wins(50), cw.wins(156)))
@@ -635,14 +635,14 @@ class ConvertYadoDialog(wx.Dialog):
         self.dstpath = cw.cwpy.setting.unconvert_targetfolder
 
         self.folder = wx.TextCtrl(self, size=(-1, -1))
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         self.folder.SetFont(font)
         self.folder.SetValue(self.dstpath)
 
         s = ((u"%s のデータをCardWirth用に逆変換します。" +
               u"\n変換先のフォルダを選択してください。") % (yadoname))
         self.reffolder = cw.util.create_fileselection(self, self.folder, s, seldir=True, getbasedir=os.getcwdu, winsize=True)
-        font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("button", pixelsize=cw.wins(14))
         self.reffolder.SetFont(font)
 
         choices = [u"CardWirth 1.50",
@@ -650,7 +650,7 @@ class ConvertYadoDialog(wx.Dialog):
                    u"CardWirth 1.29",
                    u"CardWirth 1.28"]
         self.target = wx.Choice(self, size=(-1, -1), choices=choices)
-        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.target.SetFont(font)
         self.target.Select(0)
 
@@ -692,7 +692,7 @@ class ConvertYadoDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16), weight=wx.NORMAL)
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16))
         dc.SetFont(font)
         s = self.message
         w, h, _lh = dc.GetMultiLineTextExtent(s)
