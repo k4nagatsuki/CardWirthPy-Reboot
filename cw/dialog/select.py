@@ -2213,14 +2213,15 @@ class PlayerSelect(MultiViewSelect):
                 s = cw.cwpy.msgs["character_level"]
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(65), cw.wins(45))
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(31)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(25)))
                 s = str(header.level)
-                w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(110), cw.wins(31))
+                y = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, cw.wins(70) + w + cw.wins(5), cw.wins(38))
+                w = w + y
                 # Name
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_class"]
-                dc.DrawText(s, cw.wins(110) + w + cw.wins(5), cw.wins(45))
+                dc.DrawText(s, cw.wins(85) + w, cw.wins(45))
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
                 s = header.name
                 w = dc.GetTextExtent(s)[0]
