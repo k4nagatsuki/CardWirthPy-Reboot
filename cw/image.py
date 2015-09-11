@@ -596,7 +596,7 @@ class CharacterCardImage(CardImage):
 
         # レベル
         if ccard.is_analyzable():
-            self.image.blit(self.levelimg, (cw.s(95) - self.levelimg.get_width(), cw.s(0)))
+            self.image.blit(self.levelimg, (cw.s(90) - self.levelimg.get_width(), cw.s(2)))
 
         # カード画像
         insets_n = cw.s(18)
