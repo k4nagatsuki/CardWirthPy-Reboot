@@ -2212,19 +2212,20 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_level"]
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(65), cw.wins(45))
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(31)))
+                dc.DrawText(s, cw.wins(65), cw.wins(43))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(25)))
                 s = str(header.level)
-                w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(110), cw.wins(31))
+                y = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, cw.wins(68) + w + cw.wins(5), cw.wins(36))
+                w = w + y
                 # Name
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_class"]
-                dc.DrawText(s, cw.wins(110) + w + cw.wins(5), cw.wins(45))
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(24)))
+                dc.DrawText(s, cw.wins(80) + w, cw.wins(43))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(22)))
                 s = header.name
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, cw.wins(125) - w / 2, cw.wins(62))
+                dc.DrawText(s, cw.wins(125) - w / 2, cw.wins(67))
                 # Image
                 path = cw.util.join_yadodir(header.imgpath)
                 bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))

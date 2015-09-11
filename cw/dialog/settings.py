@@ -2174,17 +2174,19 @@ class FontSettingPanel(wx.Panel):
                           }
 
         self.bases = ("gothic", "pgothic", "mincho", "pmincho", "uigothic")
-        self.types = ("button", "combo", "slider", "spin", "tree", "list", "tab", "menu",
-                      "paneltitle", "dlgmsg", "dlgtitle", "inputname", "datadesc", "charadesc",
-                      "dlglist", "uselimit", "cardname", "ccardname", "level", "numcards",
+        self.types = ("cardname", "ccardname", "level",
                       "message", "selectionbar", "logpage",
-                      "sbarpanel", "sbarbtn", "sbardesc", "statusnum", "screenshot")
+                      "uselimit", "numcards", "statusnum",
+                      "sbarpanel", "sbarbtn", "sbardesc", "screenshot",
+                      "paneltitle", "dlgmsg", "dlgtitle", "inputname",
+                      "datadesc", "charadesc","dlglist",
+                      "button", "combo", "slider", "spin", "tree", "list", "tab", "menu")
 
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())
         facenames.sort()
-        str_default = u"[デフォルト]" # デフォルトフォント名
-        self._fontface_array = [str_default]
+        self._str_default = u"[デフォルト]" # デフォルトフォント名
+        self._fontface_array = [self._str_default]
         self._types = []
         for base in self.bases:
             self._types.append(u"[%s]" % (self.typenames[base]))
@@ -2245,7 +2247,7 @@ class FontSettingPanel(wx.Panel):
         for i, name, in enumerate(self.bases):
             str_font = setting.basefont[name]
             if not str_font:
-                str_font = str_default
+                str_font = self._str_default
             self.base.SetCellValue(i, 0, str_font)
 
         create_grid(self.type, self.types, self._types, self.choicetype, 5)
