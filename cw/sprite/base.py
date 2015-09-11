@@ -65,7 +65,7 @@ class SelectableSprite(CWPySprite):
         elif cw.cwpy.is_runningevent() and not self.selectable_on_event:
             return False
         # 通常の衝突判定
-        elif not cw.cwpy.mousemotion and cw.cwpy.index >= 0:
+        elif not cw.cwpy.mousemotion and cw.cwpy.index >= 0 and cw.cwpy.index < len(cw.cwpy.list):
             if self is cw.cwpy.list[cw.cwpy.index]:
                 return True
 

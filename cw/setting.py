@@ -201,7 +201,7 @@ class Setting(object):
                           "level"        : ("mincho",   "", 37, False, False, True),
                           "numcards"     : ("uigothic", "", 18, False, False, False),
                           "message"      : ("mincho",   "", 20, True, True, False),
-                          "selectionbar" : ("uigothic", "", 16, True, False, False),
+                          "selectionbar" : ("uigothic", "", 15, True, True, False),
                           "logpage"      : ("mincho",   "", 24, False, False, False),
                           "sbarpanel"    : ("pmincho",  "", 14, True, True, False),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
