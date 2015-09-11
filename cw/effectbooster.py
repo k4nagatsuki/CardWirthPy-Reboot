@@ -1068,9 +1068,9 @@ class JptxImage(cw.image.Image):
                 if antialias:
                     subimg = info.font2.render(chars, True, info.fontcolor)
                     if cw.UP_SCR == 1:
-                        size = info.font2.size_withoutoverhang(chars)
+                        size = info.font2.size(chars)
                     else:
-                        size = cw.s(info.font2_noscale.size_withoutoverhang(chars))
+                        size = cw.s(info.font2_noscale.size(chars))
                     width = size[0] / 2
                     height = size[1] / 2
                     yp = 0
@@ -1089,6 +1089,11 @@ class JptxImage(cw.image.Image):
                         subimg2.blit(subimg, (0, 0))
                         # 縮小
                         subimg = pygame.transform.smoothscale(subimg2, (w, h))
+
+                    if cw.UP_SCR == 1:
+                        width = info.font2.size_withoutoverhang(chars)[0] / 2
+                    else:
+                        width = cw.s(info.font2_noscale.size_withoutoverhang(chars))[0] / 2
                 else:
                     if not antialias and 22 < info.fontpixels_noscale and\
                             fontface in (u"ＭＳ Ｐ明朝", u"ＭＳ 明朝", u"ＭＳ Ｐゴシック", u"ＭＳ ゴシック", u"MS UI Gothic"):
@@ -1102,9 +1107,9 @@ class JptxImage(cw.image.Image):
                         width = info.font.size_withoutoverhang(chars)[0]
                     else:
                         # 1倍で描画した時のサイズに合せる
-                        size = cw.s(info.font_noscale.size_withoutoverhang(chars))
+                        size = cw.s(info.font_noscale.size(chars))
                         subimg = cw.image.smoothscale(subimg, size)
-                        width = size[0]
+                        width = cw.s(info.font_noscale.size_withoutoverhang(chars))[0]
                     yp = cw.s(1)
 
                 # 取消線

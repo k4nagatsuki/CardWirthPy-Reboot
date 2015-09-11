@@ -108,10 +108,12 @@ def create_environment(name, dpath, skindirname):
     _create_xml("Environment", path, d)
     return path
 
-def create_settings(setting):
+def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     """Settings.xmlを新しく作る。
     _create_xmlは不使用。
     setting: Settingインスタンス。
+    writeplayingdata: デバッグ状態やスキンの選択状態などを保存するか。
+    fpath: 保存先のファイルパス。
     """
     element = cw.data.make_element("Settings")
     # 最初から詳細モードで設定を行う
@@ -122,40 +124,55 @@ def create_settings(setting):
     if setting.editor <> setting.editor_init:
         e = cw.data.make_element("ScenarioEditor", setting.editor)
         element.append(e)
-    # 最後に選択した宿
-    if setting.lastyado <> setting.lastyado_init:
-        e = cw.data.make_element("LastYado", setting.lastyado)
-        element.append(e)
-    # ウィンドウ位置
-    if setting.window_position <> setting.window_position_init:
-        e = cw.data.make_element("WindowPosition", attrs={"left":str(setting.window_position[0]),
-                                                            "top":str(setting.window_position[1])})
-        element.append(e)
+    if writeplayingdata:
+        # 最後に選択した宿
+        if setting.lastyado <> setting.lastyado_init:
+            e = cw.data.make_element("LastYado", setting.lastyado)
+            element.append(e)
+        # ウィンドウ位置
+        if setting.window_position <> setting.window_position_init:
+            e = cw.data.make_element("WindowPosition", attrs={"left":str(setting.window_position[0]),
+                                                                "top":str(setting.window_position[1])})
+            element.append(e)
     # 拡大モード
-    if setting.expanddrawing <> setting.expanddrawing_init or\
-            setting.expandmode <> setting.expandmode_init or\
-            setting.is_expanded <> setting.is_expanded_init or\
-            setting.smoothexpand <> setting.smoothexpand_init:
-        # 描画倍率
-        e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
-        element.append(e)
-        # 表示倍率
-        e = cw.data.make_element("ExpandMode", str(setting.expandmode),
-                                 attrs={"expanded": str(setting.is_expanded),
-                                        "smooth":str(setting.smoothexpand)})
-        element.append(e)
-    # デバッグモードかどうか
-    if setting.debug <> setting.debug_init:
-        e = cw.data.make_element("DebugMode", str(setting.debug))
-        element.append(e)
+    if writeplayingdata:
+        if setting.expanddrawing <> setting.expanddrawing_init or\
+                setting.expandmode <> setting.expandmode_init or\
+                setting.is_expanded <> setting.is_expanded_init or\
+                setting.smoothexpand <> setting.smoothexpand_init:
+            # 描画倍率
+            e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
+            element.append(e)
+            # 表示倍率
+            e = cw.data.make_element("ExpandMode", str(setting.expandmode),
+                                     attrs={"expanded": str(setting.is_expanded),
+                                            "smooth":str(setting.smoothexpand)})
+            element.append(e)
+    else:
+        if setting.expanddrawing <> setting.expanddrawing_init or\
+                setting.expandmode <> setting.expandmode_init or\
+                setting.smoothexpand <> setting.smoothexpand_init:
+            # 描画倍率
+            e = cw.data.make_element("ExpandDrawing", str(setting.expanddrawing))
+            element.append(e)
+            # 表示倍率
+            e = cw.data.make_element("ExpandMode", str(setting.expandmode),
+                                     attrs={"smooth":str(setting.smoothexpand)})
+            element.append(e)
+    if writeplayingdata:
+        # デバッグモードかどうか
+        if setting.debug <> setting.debug_init:
+            e = cw.data.make_element("DebugMode", str(setting.debug))
+            element.append(e)
     # デバッグ時はレベル上昇しない
     if setting.no_levelup_in_debugmode <> setting.no_levelup_in_debugmode_init:
         e = cw.data.make_element("NoLevelUpInDebugMode", str(setting.no_levelup_in_debugmode))
         element.append(e)
-    # スキン
-    if setting.skindirname <> setting.skindirname_init:
-        e = cw.data.make_element("Skin", setting.skindirname)
-        element.append(e)
+    if writeplayingdata:
+        # スキン
+        if setting.skindirname <> setting.skindirname_init:
+            e = cw.data.make_element("Skin", setting.skindirname)
+            element.append(e)
     # 音楽を再生する
     if setting.play_bgm <> setting.play_bgm_init:
         e = cw.data.make_element("PlayBgm", str(setting.play_bgm))
@@ -286,28 +303,29 @@ def create_settings(setting):
     if setting.all_quickdeal <> setting.all_quickdeal_init:
         e = cw.data.make_element("AllQuickDeal", str(setting.all_quickdeal))
         element.append(e)
-    # ソート基準
-    e = cw.data.make_element("SortKey")
-    if setting.sort_standbys <> setting.sort_standbys_init:
-        e.set("standbys", setting.sort_standbys)
-    if setting.sort_cards <> setting.sort_cards_init:
-        e.set("cards", setting.sort_cards)
-    if setting.sort_cardswithstar <> setting.sort_cardswithstar_init:
-        e.set("cardswithstar", str(setting.sort_cardswithstar))
-    if e.attrib:
-        element.append(e)
-    # 宿帳絞込条件
-    if setting.standbys_narrowtype <> setting.standbys_narrowtype_init:
-        e = cw.data.make_element("StandbysNarrowType", str(setting.standbys_narrowtype))
-        element.append(e)
-    # カード絞込条件
-    if setting.card_narrowtype <> setting.card_narrowtype_init:
-        e = cw.data.make_element("CardNarrowType", str(setting.card_narrowtype))
-        element.append(e)
-    # 情報カード絞込条件
-    if setting.infoview_narrowtype <> setting.infoview_narrowtype_init:
-        e = cw.data.make_element("InfoViewNarrowType", str(setting.infoview_narrowtype))
-        element.append(e)
+    if writeplayingdata:
+        # ソート基準
+        e = cw.data.make_element("SortKey")
+        if setting.sort_standbys <> setting.sort_standbys_init:
+            e.set("standbys", setting.sort_standbys)
+        if setting.sort_cards <> setting.sort_cards_init:
+            e.set("cards", setting.sort_cards)
+        if setting.sort_cardswithstar <> setting.sort_cardswithstar_init:
+            e.set("cardswithstar", str(setting.sort_cardswithstar))
+        if e.attrib:
+            element.append(e)
+        # 宿帳絞込条件
+        if setting.standbys_narrowtype <> setting.standbys_narrowtype_init:
+            e = cw.data.make_element("StandbysNarrowType", str(setting.standbys_narrowtype))
+            element.append(e)
+        # カード絞込条件
+        if setting.card_narrowtype <> setting.card_narrowtype_init:
+            e = cw.data.make_element("CardNarrowType", str(setting.card_narrowtype))
+            element.append(e)
+        # 情報カード絞込条件
+        if setting.infoview_narrowtype <> setting.infoview_narrowtype_init:
+            e = cw.data.make_element("InfoViewNarrowType", str(setting.infoview_narrowtype))
+            element.append(e)
     # バックログ最大数
     if setting.backlogmax <> setting.backlogmax_init:
         e = cw.data.make_element("MessageLogMax", str(setting.backlogmax))
@@ -447,13 +465,14 @@ def create_settings(setting):
         e = cw.data.make_element("FontSmoothingStatusBar", str(setting.fontsmoothing_statusbar))
         element.append(e)
 
-    # シナリオ絞込・整列条件
-    if setting.scenario_narrowtype <> setting.scenario_narrowtype_init:
-        e = cw.data.make_element("ScenarioNarrowType", str(setting.scenario_narrowtype))
-        element.append(e)
-    if setting.scenario_sorttype <> setting.scenario_sorttype_init:
-        e = cw.data.make_element("ScenarioSortType", str(setting.scenario_sorttype))
-        element.append(e)
+    if writeplayingdata:
+        # シナリオ絞込・整列条件
+        if setting.scenario_narrowtype <> setting.scenario_narrowtype_init:
+            e = cw.data.make_element("ScenarioNarrowType", str(setting.scenario_narrowtype))
+            element.append(e)
+        if setting.scenario_sorttype <> setting.scenario_sorttype_init:
+            e = cw.data.make_element("ScenarioSortType", str(setting.scenario_sorttype))
+            element.append(e)
 
     # スクリーンショット情報
     if setting.ssinfoformat <> setting.ssinfoformat_init:
@@ -500,10 +519,11 @@ def create_settings(setting):
         e = cw.data.make_element("TitleFormat", setting.titleformat)
         element.append(e)
 
-    # 逆変換先ディレクトリ
-    if setting.unconvert_targetfolder <> setting.unconvert_targetfolder_init:
-        e = cw.data.make_element("UnconvertTargetFolder", setting.unconvert_targetfolder)
-        element.append(e)
+    if writeplayingdata:
+        # 逆変換先ディレクトリ
+        if setting.unconvert_targetfolder <> setting.unconvert_targetfolder_init:
+            e = cw.data.make_element("UnconvertTargetFolder", setting.unconvert_targetfolder)
+            element.append(e)
 
     # 空白時間をスキップ可能にする
     if setting.can_skipwait <> setting.can_skipwait_init:
@@ -563,7 +583,7 @@ def create_settings(setting):
         element.append(e)
 
     # ファイル書き込み
-    path = "Settings.xml"
+    path = fpath
     etree = cw.data.xml2etree(element=element)
     etree.write(path)
     return path

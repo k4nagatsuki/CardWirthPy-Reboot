@@ -115,9 +115,11 @@ class SimpleSettingsPanel(wx.Panel):
         # 拡大表示モード
         self.box_expandmode = wx.StaticBox(self.panel, -1, u"拡大表示方式(F4キーで拡大)")
         self.expand = ExpandPanel(self.panel, False)
+        self.expand.load(cw.cwpy.setting)
 
         # 背景切替方式と各種速度
         self.speed = SpeedPanel(self.panel, False)
+        self.speed.load(cw.cwpy.setting)
 
         self.box_audio = wx.StaticBox(self.panel, -1, u"音声")
         # 音楽を再生する
@@ -169,10 +171,10 @@ class SimpleSettingsPanel(wx.Panel):
             cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
         # 拡大倍率
-        self.expand.apply_expand()
+        self.expand.apply_expand(cw.cwpy.setting)
 
         # 描画
-        self.speed.apply_speed()
+        self.speed.apply_speed(cw.cwpy.setting)
 
         # オーディオ
         value = self.cb_playbgm.GetValue()
@@ -272,6 +274,8 @@ class SettingsPanel(wx.Panel):
         self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
         self.note.SetSelection(cw.cwpy.settingtab)
 
+        self.load(cw.cwpy.setting)
+
         self._do_layout()
         self._bind()
         self.Show()
@@ -282,6 +286,14 @@ class SettingsPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnApply, id=wx.ID_APPLY)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.OnDefault, id=wx.ID_DEFAULT)
+
+    def load(self, setting):
+        self.pane_gene.load(setting)
+        self.pane_draw.load(setting)
+        self.pane_sound.load(setting)
+        self.pane_font.load(setting)
+        self.pane_scenario.load(setting)
+        self.pane_ui.load(setting)
 
     def OnDefault(self, event):
         selpane = self.note.GetSelection()
@@ -413,7 +425,7 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_noticeimpossibleaction.SetValue(cw.cwpy.setting.noticeimpossibleaction_init)
 
     def OnOk(self, event):
-        self.apply()
+        self.apply(cw.cwpy.setting)
 
         # FIXME: クローズしながらスキンを切り替えると時々エラーになる
         #        原因不明の不具合があるので、ダイアログのクローズを遅延する
@@ -426,9 +438,11 @@ class SettingsPanel(wx.Panel):
         self.Parent.Disable()
 
     def OnApply(self, event):
-        self.apply()
+        self.apply(cw.cwpy.setting)
 
-    def apply(self):
+    def apply(self, setting):
+        update = (setting == cw.cwpy.setting)
+
         # 設定変更前はレベル上昇が可能な状態だったか
         can_levelup = not (cw.cwpy.is_debugmode() and cw.cwpy.setting.no_levelup_in_debugmode)
         updatecardimg = False # キャラクターカードイメージの更新が必要か
@@ -479,128 +493,135 @@ class SettingsPanel(wx.Panel):
                 fonttypes[typename] = (u"", value, pixels, bold, bold_upscr, italic)
 
         value = self.pane_font.cb_decorationfont.GetValue()
-        if value <> cw.cwpy.setting.decorationfont:
-            cw.cwpy.setting.decorationfont = value
+        if value <> setting.decorationfont:
+            setting.decorationfont = value
             updatemessage = True
         value = self.pane_font.cb_fontsmoothingcardname.GetValue()
-        if value <> cw.cwpy.setting.fontsmoothing_cardname:
-            cw.cwpy.setting.fontsmoothing_cardname = value
+        if value <> setting.fontsmoothing_cardname:
+            setting.fontsmoothing_cardname = value
             flag_fontupdate = True
         value = self.pane_font.cb_fontsmoothingstatusbar.GetValue()
-        if value <> cw.cwpy.setting.fontsmoothing_statusbar:
-            cw.cwpy.setting.fontsmoothing_statusbar = value
+        if value <> setting.fontsmoothing_statusbar:
+            setting.fontsmoothing_statusbar = value
             flag_fontupdate = True
 
         # フォント変更チェック
-        if basefont <> cw.cwpy.setting.basefont:
-            cw.cwpy.setting.basefont = basefont
+        if basefont <> setting.basefont:
+            setting.basefont = basefont
             flag_fontupdate = True
-        if fonttypes <> cw.cwpy.setting.fonttypes:
-            cw.cwpy.setting.fonttypes = fonttypes
+        if fonttypes <> setting.fonttypes:
+            setting.fonttypes = fonttypes
             flag_fontupdate = True
 
         # 一般
-        value = self.pane_gene.cb_debug.GetValue()
-        if not value == cw.cwpy.setting.debug:
-            cw.cwpy.exec_func(cw.cwpy.set_debug, value)
+        if update:
+            value = self.pane_gene.cb_debug.GetValue()
+            if not value == cw.cwpy.setting.debug:
+                cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
         value = self.pane_gene.cb_nolevelup.GetValue()
-        cw.cwpy.setting.no_levelup_in_debugmode = value
+        setting.no_levelup_in_debugmode = value
         value = self.pane_gene.cb_showexperiencebar.GetValue()
-        cw.cwpy.setting.show_experiencebar = value
+        setting.show_experiencebar = value
         value = self.pane_gene.cb_storeskinoneachbase.GetValue()
-        cw.cwpy.setting.store_skinoneachbase = value
+        setting.store_skinoneachbase = value
         value = self.pane_gene.sc_initmoneyamount.GetValue()
-        cw.cwpy.setting.initmoneyamount = value
+        setting.initmoneyamount = value
         value = self.pane_gene.cb_autosavepartyrecord.GetValue()
-        cw.cwpy.setting.autosave_partyrecord = value
+        setting.autosave_partyrecord = value
         value = self.pane_gene.cb_overwritepartyrecord.GetValue()
-        cw.cwpy.setting.overwrite_partyrecord = value
+        setting.overwrite_partyrecord = value
         value = self.pane_gene.tx_ssinfoformat.GetValue()
-        cw.cwpy.setting.ssinfoformat = value
+        setting.ssinfoformat = value
         value = self.pane_gene.ch_ssinfocolor.GetSelection()
         if value == 1:
-            cw.cwpy.setting.ssinfofontcolor = (255, 255, 255)
-            cw.cwpy.setting.ssinfobackcolor = (0, 0, 0)
+            setting.ssinfofontcolor = (255, 255, 255)
+            setting.ssinfobackcolor = (0, 0, 0)
         else:
-            cw.cwpy.setting.ssinfofontcolor = (0, 0, 0)
-            cw.cwpy.setting.ssinfobackcolor = (255, 255, 255)
+            setting.ssinfofontcolor = (0, 0, 0)
+            setting.ssinfobackcolor = (255, 255, 255)
         value = self.pane_gene.sc_backlogmax.GetValue()
-        if value <> cw.cwpy.setting.backlogmax:
-            def func(backlogmax):
-                cw.cwpy.set_backlogmax(backlogmax)
-            cw.cwpy.exec_func(func, value)
-            updatestatusbar = True
+        if value <> setting.backlogmax:
+            if update:
+                def func(backlogmax):
+                    cw.cwpy.set_backlogmax(backlogmax)
+                cw.cwpy.exec_func(func, value)
+                updatestatusbar = True
+            else:
+                setting.backlogmax = value
 
         # 拡大倍率
-        self.pane_gene.expand.apply_expand()
+        self.pane_gene.expand.apply_expand(setting)
 
         # 描画
         updatebg = False
         value = self.pane_draw.cb_bordering_cardname.GetValue()
-        if cw.cwpy.setting.bordering_cardname <> value:
-            cw.cwpy.setting.bordering_cardname = value
+        if setting.bordering_cardname <> value:
+            setting.bordering_cardname = value
             updatecardimg = True
             updatemcardimg = True
         value = self.pane_draw.cb_smooth_bg.GetValue()
-        if cw.cwpy.setting.smoothscale_bg <> value:
+        if setting.smoothscale_bg <> value:
             updatebg = True
-            cw.cwpy.setting.smoothscale_bg = value
+            setting.smoothscale_bg = value
 
-        self.pane_draw.speed.apply_speed()
+        self.pane_draw.speed.apply_speed(setting)
 
         value = self.pane_draw.ch_fscrbacktype.GetSelection()
         if value == 0:
-            cw.cwpy.setting.fullscreenbackgroundfile = u""
-            cw.cwpy.setting.fullscreenbackgroundtype = 0
+            setting.fullscreenbackgroundfile = u""
+            setting.fullscreenbackgroundtype = 0
         elif value == 1:
-            cw.cwpy.setting.fullscreenbackgroundfile = self.pane_draw.tx_fscrbackfile.GetValue()
-            cw.cwpy.setting.fullscreenbackgroundtype = 1
+            setting.fullscreenbackgroundfile = self.pane_draw.tx_fscrbackfile.GetValue()
+            setting.fullscreenbackgroundtype = 1
         elif value == 2:
-            cw.cwpy.setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
-            cw.cwpy.setting.fullscreenbackgroundtype = 2
+            setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/CAUTION"
+            setting.fullscreenbackgroundtype = 2
         elif value == 3:
-            cw.cwpy.setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
-            cw.cwpy.setting.fullscreenbackgroundtype = 2
-        def func1():
-            cw.cwpy.update_fullscreenbackground()
-        cw.cwpy.exec_func(func1)
+            setting.fullscreenbackgroundfile = u"Resource/Image/Dialog/PAD"
+            setting.fullscreenbackgroundtype = 2
+        if update:
+            def func1():
+                cw.cwpy.update_fullscreenbackground()
+            cw.cwpy.exec_func(func1)
 
         value = self.pane_draw.cb_whitecursor.GetValue()
-        if value <> (cw.cwpy.setting.cursor_type == cw.setting.CURSOR_WHITE):
+        if value <> (setting.cursor_type == cw.setting.CURSOR_WHITE):
             if value:
-                cw.cwpy.setting.cursor_type = cw.setting.CURSOR_WHITE
+                setting.cursor_type = cw.setting.CURSOR_WHITE
             else:
-                cw.cwpy.setting.cursor_type = cw.setting.CURSOR_BLACK
-            def func():
-                cw.cwpy.change_cursor(cw.cwpy.cursor, force=True)
-            cw.cwpy.exec_func(func)
+                setting.cursor_type = cw.setting.CURSOR_BLACK
+            if update:
+                def func():
+                    cw.cwpy.change_cursor(cw.cwpy.cursor, force=True)
+                cw.cwpy.exec_func(func)
 
         # オーディオ
         value = self.pane_sound.cb_playbgm.GetValue()
-        cw.cwpy.setting.play_bgm = value
+        setting.play_bgm = value
         value = self.pane_sound.cb_playsound.GetValue()
-        cw.cwpy.setting.play_sound = value
+        setting.play_sound = value
         value = self.pane_sound.sl_sound.GetValue()
-        value = cw.cwpy.setting.wrap_volumevalue(value)
-        cw.cwpy.setting.vol_sound = value
+        value = setting.wrap_volumevalue(value)
+        setting.vol_sound = value
         value = self.pane_sound.sl_midi.GetValue()
-        value = cw.cwpy.setting.wrap_volumevalue(value)
-        cw.cwpy.setting.vol_midi = value
+        value = setting.wrap_volumevalue(value)
+        setting.vol_midi = value
         value = self.pane_sound.sl_music.GetValue()
-        value = cw.cwpy.setting.wrap_volumevalue(value)
-        cw.cwpy.setting.vol_bgm = value
-        cw.cwpy.music.set_volume()
+        value = setting.wrap_volumevalue(value)
+        setting.vol_bgm = value
+        if update:
+            cw.cwpy.music.set_volume()
         soundfonts = []
         for index in xrange(self.pane_sound.list_soundfont.GetItemCount()):
             soundfont = self.pane_sound.list_soundfont.GetItemText(index)
             use = self.pane_sound.list_soundfont.IsChecked(index)
             soundfonts.append((soundfont, use))
-        if cw.cwpy.setting.soundfonts <> soundfonts:
+        if setting.soundfonts <> soundfonts:
             sfonts1 = [sfont[0] for sfont in soundfonts if sfont[1]]
-            sfonts2 = [sfont[0] for sfont in cw.cwpy.setting.soundfonts if sfont[1]]
-            cw.cwpy.setting.soundfonts = soundfonts
-            if sfonts1 <> sfonts2:
+            sfonts2 = [sfont[0] for sfont in setting.soundfonts if sfont[1]]
+            setting.soundfonts = soundfonts
+            if update and sfonts1 <> sfonts2:
                 def func():
                     if cw.bassplayer.is_alivable():
                         cw.bassplayer.dispose_bass()
@@ -622,25 +643,25 @@ class SettingsPanel(wx.Panel):
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_mwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        cw.cwpy.setting.mwincolour = colour
-        updatemessage |= cw.cwpy.setting.mwincolour <> colour
+        setting.mwincolour = colour
+        updatemessage |= setting.mwincolour <> colour
         alpha = self.pane_draw.sc_mframe.GetValue()
         colour = self.pane_draw.cs_mframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= cw.cwpy.setting.mwinframecolour <> colour
-        cw.cwpy.setting.mwinframecolour = colour
+        updatemessage |= setting.mwinframecolour <> colour
+        setting.mwinframecolour = colour
         # 配色(バックログ)
         alpha = self.pane_draw.sc_mwin.GetValue()
         colour = self.pane_draw.cs_blwin.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= cw.cwpy.setting.blwincolour <> colour
-        cw.cwpy.setting.blwincolour = colour
+        updatemessage |= setting.blwincolour <> colour
+        setting.blwincolour = colour
         alpha = self.pane_draw.sc_mframe.GetValue()
         colour = self.pane_draw.cs_blframe.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatemessage |= cw.cwpy.setting.blwinframecolour <> colour
-        cw.cwpy.setting.blwinframecolour = colour
-        if updatemessage:
+        updatemessage |= setting.blwinframecolour <> colour
+        setting.blwinframecolour = colour
+        if update and updatemessage:
             cw.cwpy.exec_func(cw.cwpy.update_messagestyle)
 
         updatecurtain = False
@@ -648,132 +669,134 @@ class SettingsPanel(wx.Panel):
         alpha = self.pane_draw.sc_blcurtain.GetValue()
         colour = self.pane_draw.cs_blcurtain.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= cw.cwpy.setting.blcurtaincolour <> colour
-        cw.cwpy.setting.blcurtaincolour = colour
+        updatecurtain |= setting.blcurtaincolour <> colour
+        setting.blcurtaincolour = colour
         # 配色(選択モードカーテン)
         alpha = self.pane_draw.sc_curtain.GetValue()
         colour = self.pane_draw.cs_curtain.GetColour()
         colour = (colour[0], colour[1], colour[2], alpha)
-        updatecurtain |= cw.cwpy.setting.curtaincolour <> colour
-        cw.cwpy.setting.curtaincolour = colour
-        if updatecurtain:
+        updatecurtain |= setting.curtaincolour <> colour
+        setting.curtaincolour = colour
+        if update and updatecurtain:
             cw.cwpy.exec_func(cw.cwpy.update_curtainstyle)
 
         # スキン
-        if self.pane_gene.skin.apply_skin(flag_fontupdate):
-            updatecardimg = False
-            updatemcardimg = False
-            updatebg = False
+        if update:
+            if self.pane_gene.skin.apply_skin(flag_fontupdate):
+                updatecardimg = False
+                updatemcardimg = False
+                updatebg = False
 
         # レベル調節
-        apply_levelupparams(can_levelup)
+        if update:
+            apply_levelupparams(can_levelup)
 
         # シナリオ
         value = self.pane_scenario.tx_editor.GetValue()
-        cw.cwpy.setting.editor = value
+        setting.editor = value
         value = self.pane_scenario.cb_selectscenariofromtype.GetValue()
-        cw.cwpy.setting.selectscenariofromtype = value
+        setting.selectscenariofromtype = value
         value = self.pane_scenario.cb_showunfitnessscenario.GetValue()
-        cw.cwpy.setting.show_unfitnessscenario = value
+        setting.show_unfitnessscenario = value
         value = self.pane_scenario.cb_showcompletedscenario.GetValue()
-        cw.cwpy.setting.show_completedscenario = value
+        setting.show_completedscenario = value
         value = self.pane_scenario.cb_showinvisiblescenario.GetValue()
-        cw.cwpy.setting.show_invisiblescenario = value
+        setting.show_invisiblescenario = value
 
-        cw.cwpy.setting.folderoftype = []
+        setting.folderoftype = []
         for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
             skintype = self.pane_scenario.grid_folderoftype.GetCellValue(row, 0)
             folder = self.pane_scenario.grid_folderoftype.GetCellValue(row, 1)
-            cw.cwpy.setting.folderoftype.append((skintype, folder))
+            setting.folderoftype.append((skintype, folder))
 
         # 詳細
         value = self.pane_ui.cb_can_skipwait.GetValue()
-        cw.cwpy.setting.can_skipwait = value
+        setting.can_skipwait = value
         value = self.pane_ui.cb_can_skipanimation.GetValue()
-        cw.cwpy.setting.can_skipanimation = value
+        setting.can_skipanimation = value
         value = self.pane_ui.cb_wait_usecard.GetValue()
-        cw.cwpy.setting.wait_usecard = value
+        setting.wait_usecard = value
         value = self.pane_ui.cb_can_repeatlclick.GetValue()
-        cw.cwpy.setting.can_repeatlclick = value
+        setting.can_repeatlclick = value
         value = self.pane_ui.cb_autoenter_on_sprite.GetValue()
-        cw.cwpy.setting.autoenter_on_sprite = value
+        setting.autoenter_on_sprite = value
 
         value = self.pane_ui.cb_quickdeal.GetValue()
-        cw.cwpy.setting.quickdeal = value
+        setting.quickdeal = value
         value = self.pane_ui.cb_allquickdeal.GetValue()
-        cw.cwpy.setting.all_quickdeal = value
+        setting.all_quickdeal = value
         value = self.pane_ui.cb_showallselectedcards.GetValue()
-        cw.cwpy.setting.show_allselectedcards = value
+        setting.show_allselectedcards = value
         value = self.pane_ui.cb_showstatustime.GetValue()
-        if cw.cwpy.setting.show_statustime <> value:
-            cw.cwpy.setting.show_statustime = value
+        if setting.show_statustime <> value:
+            setting.show_statustime = value
             updatecardimg = True
         value = self.pane_ui.cb_show_cardkind.GetValue()
-        if cw.cwpy.setting.show_cardkind <> value:
-            cw.cwpy.setting.show_cardkind = value
+        if setting.show_cardkind <> value:
+            setting.show_cardkind = value
             updatemcardimg = True
         value = self.pane_ui.cb_show_premiumicon.GetValue()
-        if cw.cwpy.setting.show_premiumicon <> value:
-            cw.cwpy.setting.show_premiumicon = value
+        if setting.show_premiumicon <> value:
+            setting.show_premiumicon = value
             updatemcardimg = True
 
         value = self.pane_ui.cb_showlogwithwheelup.GetValue()
         if value:
-            cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SHOWLOG
+            setting.wheelup_operation = cw.setting.WHEEL_SHOWLOG
         else:
-            cw.cwpy.setting.wheelup_operation = cw.setting.WHEEL_SELECTION
+            setting.wheelup_operation = cw.setting.WHEEL_SELECTION
 
         value = self.pane_ui.cb_show_btndesc.GetValue()
-        cw.cwpy.setting.show_btndesc = value
+        setting.show_btndesc = value
         value = self.pane_ui.cb_statusbarmask.GetValue()
-        if value <> cw.cwpy.setting.statusbarmask:
-            cw.cwpy.setting.statusbarmask = value
+        if value <> setting.statusbarmask:
+            setting.statusbarmask = value
             updatestatusbar = True
         value = self.pane_ui.cb_blink_statusbutton.GetValue()
-        cw.cwpy.setting.blink_statusbutton = value
+        setting.blink_statusbutton = value
         value = self.pane_ui.cb_blink_partymoney.GetValue()
-        cw.cwpy.setting.blink_partymoney = value
+        setting.blink_partymoney = value
 
         value = self.pane_ui.cb_show_advancedsettings.GetValue()
-        cw.cwpy.setting.show_advancedsettings = value
+        setting.show_advancedsettings = value
         value = self.pane_ui.cb_cautionbeforesaving.GetValue()
-        cw.cwpy.setting.caution_beforesaving = value
+        setting.caution_beforesaving = value
         value = self.pane_ui.cb_showbackpackcard.GetValue()
-        cw.cwpy.setting.show_backpackcard = value
+        setting.show_backpackcard = value
         value = self.pane_ui.cb_showbackpackcardatend.GetValue()
-        cw.cwpy.setting.show_backpackcardatend = value
+        setting.show_backpackcardatend = value
         value = self.pane_ui.cb_can_clicksidesofcardcontrol.GetValue()
-        cw.cwpy.setting.can_clicksidesofcardcontrol = value
+        setting.can_clicksidesofcardcontrol = value
         value = self.pane_ui.cb_revertcardpocket.GetValue()
-        cw.cwpy.setting.revert_cardpocket = value
+        setting.revert_cardpocket = value
         value = self.pane_ui.cb_openhandviewalways.GetValue()
-        cw.cwpy.setting.openhandviewalways = value
+        setting.openhandviewalways = value
         value = self.pane_ui.cb_confirmbeforesaving.GetValue()
-        cw.cwpy.setting.confirm_beforesaving = value
+        setting.confirm_beforesaving = value
         value = self.pane_ui.cb_showsavedmessage.GetValue()
-        cw.cwpy.setting.show_savedmessage = value
+        setting.show_savedmessage = value
         value = self.pane_ui.cb_confirmbeforeusingcard.GetValue()
-        cw.cwpy.setting.confirm_beforeusingcard = value
+        setting.confirm_beforeusingcard = value
         value = self.pane_ui.cb_noticeimpossibleaction.GetValue()
-        cw.cwpy.setting.noticeimpossibleaction = value
+        setting.noticeimpossibleaction = value
         value = self.pane_ui.cb_showroundautostartbutton.GetValue()
-        if cw.cwpy.setting.show_roundautostartbutton <> value:
-            cw.cwpy.setting.show_roundautostartbutton = value
+        if setting.show_roundautostartbutton <> value:
+            setting.show_roundautostartbutton = value
             updatestatusbar = True
-            if not cw.cwpy.setting.show_roundautostartbutton:
+            if update and not setting.show_roundautostartbutton:
                 def func():
                     if cw.cwpy.is_playingscenario():
                         cw.cwpy.sdata.autostart_round = False
                 cw.cwpy.exec_func(func)
         value = self.pane_ui.cb_showautobuttoninentrydialog.GetValue()
-        cw.cwpy.setting.show_autobuttoninentrydialog = value
+        setting.show_autobuttoninentrydialog = value
         value = self.pane_ui.cb_protect_staredcard.GetValue()
-        cw.cwpy.setting.protect_staredcard = value
+        setting.protect_staredcard = value
         value = self.pane_ui.cb_protect_premiercard.GetValue()
-        cw.cwpy.setting.protect_premiercard = value
+        setting.protect_premiercard = value
 
         # 背景の更新
-        if updatebg:
+        if update and updatebg:
             def func():
                 if cw.cwpy.is_playingscenario():
                     cw.cwpy.sdata.resource_cache = {}
@@ -781,7 +804,7 @@ class SettingsPanel(wx.Panel):
             cw.cwpy.exec_func(func)
 
         # イメージの更新
-        if updatecardimg or updatemcardimg:
+        if update and (updatecardimg or updatemcardimg):
             def func():
                 for ccard in cw.cwpy.get_pcards("unreversed"):
                     ccard.update_image()
@@ -797,12 +820,12 @@ class SettingsPanel(wx.Panel):
             cw.cwpy.exec_func(func)
 
         # ステータスバーの更新
-        if updatestatusbar:
+        if update and updatestatusbar:
             def func():
                 cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
             cw.cwpy.exec_func(func)
 
-        if cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
+        if update and cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
             cw.cwpy.frame.debugger.refresh_tools()
 
     def OnClose(self, event):
@@ -1002,52 +1025,23 @@ class ExpandPanel(wx.Panel):
         self.st_expandscr = wx.StaticText(self, -1, u"描画倍率:")
         self.st_expandwin = wx.StaticText(self, -1, u"表示倍率:")
 
-        # 最大倍率を概算
-        x, y = wx.DisplaySize()
-        x = 10 * x / cw.SIZE_SCR[0]
-        y = 10 * y / cw.SIZE_SCR[1]
-        if cw.cwpy.setting.expandmode == "FullScreen" or cw.cwpy.setting.expandmode == "None":
-            n = 10 # FullScreen中はスライドを1.0倍に仮設定
-        else:
-            n = int(10 * float(cw.cwpy.setting.expandmode))
-        nmax = x if x < y else y
-        if nmax < 10:
-            nmax = 10
-        if nmax < n:
-            n = nmax
-
         self.ch_expanddrawing = wx.ComboBox(self, -1, style=wx.CB_DROPDOWN|wx.CB_READONLY)
-        i = 0
-        val = 1
-        while True:
-            self.ch_expanddrawing.Append(u"%s倍" % (val))
-            if cw.cwpy.setting.expanddrawing == val:
-                self.ch_expanddrawing.Select(i)
-            i += 1
-            val *= 2
-            if nmax < val*10:
-                break
-        if self.ch_expanddrawing.GetSelection() == -1:
-            self.ch_expanddrawing.Select(0)
 
         self.sl_expand = wx.Slider(
-            self, -1, n, 10, nmax, size=(120, -1),
+            self, -1, 10, 10, 11, size=(120, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
+        self.sl_expand.SetMax(10)
         self.st_expand = wx.StaticText(self, -1)
         dc = wx.ClientDC(self.st_expand)
         s = u"9倍 (9999x9999)_"
         self.st_expand.SetMinSize((dc.GetTextExtent(s)[0], -1))
 
         self.cb_fullscreen = wx.CheckBox(self, -1, u"フルスクリーン")
-        self.cb_fullscreen.SetValue(cw.cwpy.setting.expandmode == "FullScreen")
-
-        self.make_expandinfo()
 
         if self.options:
             self.ln_expand = wx.StaticLine(self, -1, style=wx.HORIZONTAL)
             self.cb_smoothexpand = wx.CheckBox(self, -1,
                                                u"拡大後の画面を滑らかにする")
-            self.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand)
 
         self._do_layout()
         self._bind()
@@ -1055,6 +1049,44 @@ class ExpandPanel(wx.Panel):
     def _bind(self):
         self.sl_expand.Bind(wx.EVT_SLIDER, self.OnExpandChange)
         self.cb_fullscreen.Bind(wx.EVT_CHECKBOX, self.OnExpandChange)
+
+    def load(self, setting):
+        self.cb_fullscreen.SetValue(setting.expandmode == "FullScreen")
+        if self.options:
+            self.cb_smoothexpand.SetValue(setting.smoothexpand)
+
+        # 最大倍率を概算
+        x, y = wx.DisplaySize()
+        x = 10 * x / cw.SIZE_SCR[0]
+        y = 10 * y / cw.SIZE_SCR[1]
+        if setting.expandmode == "FullScreen" or setting.expandmode == "None":
+            n = 10 # FullScreen中はスライドを1.0倍に仮設定
+        else:
+            n = int(10 * float(setting.expandmode))
+        nmax = x if x < y else y
+        if nmax < 10:
+            nmax = 10
+        if nmax < n:
+            n = nmax
+
+        i = 0
+        val = 1
+        self.ch_expanddrawing.Clear()
+        while True:
+            self.ch_expanddrawing.Append(u"%s倍" % (val))
+            if setting.expanddrawing == val:
+                self.ch_expanddrawing.Select(i)
+            i += 1
+            val *= 2
+            if nmax < val*10:
+                break
+        self.sl_expand.SetMax(nmax)
+        self.sl_expand.SetValue(n)
+
+        if self.ch_expanddrawing.GetSelection() == -1:
+            self.ch_expanddrawing.Select(0)
+
+        self.make_expandinfo()
 
     def make_expandinfo(self):
         if self.cb_fullscreen.IsChecked():
@@ -1091,11 +1123,12 @@ class ExpandPanel(wx.Panel):
         sizer.Fit(self)
         self.Layout()
 
-    def apply_expand(self):
+    def apply_expand(self, setting):
         """拡大設定を反映する。"""
+        update = (setting == cw.cwpy.setting)
         if self.options:
             value = self.cb_smoothexpand.GetValue()
-            cw.cwpy.setting.smoothexpand = value
+            setting.smoothexpand = value
         if self.cb_fullscreen.IsChecked():
             value = "FullScreen"
         elif self.sl_expand.GetValue() == 10: # 1倍 == 拡大なし
@@ -1105,8 +1138,8 @@ class ExpandPanel(wx.Panel):
         else:
             value = float(self.sl_expand.GetValue()) / 10
         expanddrawing = int(2 ** self.ch_expanddrawing.GetSelection())
-        if str(value) <> str(cw.cwpy.setting.expandmode) or expanddrawing <> cw.cwpy.setting.expanddrawing:
-            if cw.cwpy.is_expanded():
+        if str(value) <> str(setting.expandmode) or expanddrawing <> setting.expanddrawing:
+            if update and cw.cwpy.is_expanded():
                 # 設定が変更されたので拡大状態を切り替え
                 def func(value):
                     cw.cwpy.setting.expandmode = value
@@ -1120,8 +1153,8 @@ class ExpandPanel(wx.Panel):
                         cw.cwpy.set_expanded(True, value, force=True)
                 cw.cwpy.exec_func(func, value)
             else:
-                cw.cwpy.setting.expandmode = value
-                cw.cwpy.setting.expanddrawing = expanddrawing
+                setting.expandmode = value
+                setting.expanddrawing = expanddrawing
 
     def copy_values(self, expand):
         self.ch_expanddrawing.SetSelection(min(self.ch_expanddrawing.GetCount()-1, expand.ch_expanddrawing.GetSelection()))
@@ -1142,18 +1175,14 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_debug.SetValue(cw.cwpy.debug)
         self.cb_nolevelup = wx.CheckBox(
             self, -1, u"デバッグ中はレベル上昇を停止する")
-        self.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode)
         self.cb_showexperiencebar = wx.CheckBox(
             self, -1, u"次のレベルアップまでの割合を表示する")
-        self.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar)
 
         # 基本的なオプション
         self.cb_storeskinoneachbase = wx.CheckBox(
             self, -1, u"拠点ごとにスキンを記憶する")
-        self.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase)
         self.st_backlogmax = wx.StaticText(self, -1, u"メッセージログの最大数:")
         self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(80, -1), max=9999, min=0)
-        self.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax)
 
         # スキン
         self.box_skin = wx.StaticBox(self, -1, u"スキン",)
@@ -1167,27 +1196,18 @@ class GeneralSettingPanel(wx.Panel):
         self.box_party = wx.StaticBox(self, -1, u"パーティ")
         self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
         self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(80, -1), min=0, max=999999)
-        self.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount)
 
         self.cb_autosavepartyrecord = wx.CheckBox(
             self, -1, u"解散時、自動的にパーティ情報を記録する")
-        self.cb_autosavepartyrecord.SetValue(cw.cwpy.setting.autosave_partyrecord)
         self.cb_overwritepartyrecord = wx.CheckBox(
             self, -1, u"自動記録時、同名のパーティ記録へ上書きする")
-        self.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord)
-        self.cb_overwritepartyrecord.Enable(cw.cwpy.setting.autosave_partyrecord)
 
         # スクリーンショット情報
         self.box_ss = wx.StaticBox(self, -1, u"スクリーンショット情報(画像上部に表示)")
         self.tx_ssinfoformat = wx.TextCtrl(self, -1, size=(150, -1))
-        self.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat)
         # スクリーンショット情報の色
         choices = [u"黒文字", u"白文字"]
         self.ch_ssinfocolor = wx.Choice(self, -1, size=(-1, -1), choices=choices)
-        if cw.cwpy.setting.ssinfofontcolor[:3] == (255, 255, 255):
-            self.ch_ssinfocolor.Select(1)
-        else:
-            self.ch_ssinfocolor.Select(0)
 
         self.st_ssinfodesc = wx.StaticText(self, -1,
                                            u"次の各情報を表示できます:\n" +
@@ -1201,6 +1221,22 @@ class GeneralSettingPanel(wx.Panel):
 
     def _bind(self):
         self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
+
+    def load(self, setting):
+        self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode)
+        self.cb_showexperiencebar.SetValue(setting.show_experiencebar)
+        self.cb_storeskinoneachbase.SetValue(setting.store_skinoneachbase)
+        self.sc_backlogmax.SetValue(setting.backlogmax)
+        self.sc_initmoneyamount.SetValue(setting.initmoneyamount)
+        self.cb_autosavepartyrecord.SetValue(setting.autosave_partyrecord)
+        self.cb_overwritepartyrecord.SetValue(setting.overwrite_partyrecord)
+        self.cb_overwritepartyrecord.Enable(setting.autosave_partyrecord)
+        self.tx_ssinfoformat.SetValue(setting.ssinfoformat)
+        if setting.ssinfofontcolor[:3] == (255, 255, 255):
+            self.ch_ssinfocolor.Select(1)
+        else:
+            self.ch_ssinfocolor.Select(0)
+        self.expand.load(setting)
 
     def OnAutoSavePartyRecord(self, event):
         self.cb_overwritepartyrecord.Enable(self.cb_autosavepartyrecord.GetValue())
@@ -1278,17 +1314,15 @@ class SpeedPanel(wx.Panel):
             u"色置換(フェード)式"]
         self.ch_tran = wx.Choice(
             self, -1, size=(-1, -1), choices=self.choices_tran)
-        n = self.transitions.index(cw.cwpy.setting.transition)
-        self.ch_tran.SetSelection(n)
         self.sl_tran = wx.Slider(
-            self, -1, cw.cwpy.setting.transitionspeed, 0, 10,
+            self, -1, 0, 0, 10,
             size=(SETTINGS_WIDTH-10, -1), style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_tran.SetTickFreq(1, 1)
         # カード描画速度
         self.box_deal = wx.StaticBox(
             self, -1, u"カード描画速度(速い⇔遅い)")
         self.sl_deal = wx.Slider(
-            self, -1, cw.cwpy.setting.dealspeed, 0, 10, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 10, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_deal.SetTickFreq(1, 1)
         if self.battlespeed:
@@ -1296,23 +1330,32 @@ class SpeedPanel(wx.Panel):
             self.box_deal_battle = wx.StaticBox(
                 self, -1, u"戦闘行動描画速度(速い⇔遅い)")
             self.sl_deal_battle = wx.Slider(
-                self, -1, cw.cwpy.setting.dealspeed_battle, 0, 10, size=(SETTINGS_WIDTH-10, -1),
+                self, -1, 0, 0, 10, size=(SETTINGS_WIDTH-10, -1),
                 style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
             self.sl_deal_battle.SetTickFreq(1, 1)
             self.cb_use_battlespeed = wx.CheckBox(
                 self, -1, u"カード描画速度に合わせる")
-            self.cb_use_battlespeed.SetValue(not cw.cwpy.setting.use_battlespeed)
-            self.sl_deal_battle.Enable(cw.cwpy.setting.use_battlespeed)
         # メッセージ表示速度
         self.box_msgs = wx.StaticBox(
             self, -1, u"メッセージ表示速度(速い⇔遅い)")
         self.sl_msgs = wx.Slider(
-            self, -1, cw.cwpy.setting.messagespeed, 0, 10, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 10, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
         self.sl_msgs.SetTickFreq(1, 1)
 
         self._do_layout()
         self._bind()
+
+    def load(self, setting):
+        n = self.transitions.index(setting.transition)
+        self.ch_tran.SetSelection(n)
+        self.sl_tran.SetValue(setting.transitionspeed)
+        self.sl_deal.SetValue(setting.dealspeed)
+        if self.battlespeed:
+            self.sl_deal_battle.SetValue(setting.dealspeed_battle)
+            self.cb_use_battlespeed.SetValue(not setting.use_battlespeed)
+            self.sl_deal_battle.Enable(setting.use_battlespeed)
+        self.sl_msgs.SetValue(setting.messagespeed)
 
     def _bind(self):
         if self.battlespeed:
@@ -1348,21 +1391,21 @@ class SpeedPanel(wx.Panel):
     def OnUseBattleSpeed(self, event):
         self.sl_deal_battle.Enable(not self.cb_use_battlespeed.GetValue())
 
-    def apply_speed(self):
+    def apply_speed(self, setting):
         dealspeed = self.sl_deal.GetValue()
         if self.battlespeed:
             dealspeed_battle = self.sl_deal_battle.GetValue()
             use_battlespeed = not self.cb_use_battlespeed.GetValue()
-            cw.cwpy.setting.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
+            setting.set_dealspeed(dealspeed, dealspeed_battle, use_battlespeed)
         else:
-            cw.cwpy.setting.set_dealspeed(dealspeed, cw.cwpy.setting.dealspeed_battle, cw.cwpy.setting.use_battlespeed)
+            setting.set_dealspeed(dealspeed, setting.dealspeed_battle, setting.use_battlespeed)
         value = self.sl_msgs.GetValue()
-        cw.cwpy.setting.messagespeed = value
+        setting.messagespeed = value
         value = self.ch_tran.GetSelection()
         value = self.transitions[value]
-        cw.cwpy.setting.transition = value
+        setting.transition = value
         value = self.sl_tran.GetValue()
-        cw.cwpy.setting.transitionspeed = value
+        setting.transitionspeed = value
 
     def copy_values(self, speed):
         self.ch_tran.SetSelection(speed.ch_tran.GetSelection())
@@ -1381,15 +1424,12 @@ class DrawingSettingPanel(wx.Panel):
         # カード名を縁取りする
         self.cb_bordering_cardname = wx.CheckBox(
             self, -1, u"カード名を縁取りする")
-        self.cb_bordering_cardname.SetValue(cw.cwpy.setting.bordering_cardname)
         # 背景拡大縮小補正
         self.cb_smooth_bg = wx.CheckBox(
             self, -1, u"拡大縮小した背景画像を滑らかにする")
-        self.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg)
         # メイン画面で白いカーソルを使用する
         self.cb_whitecursor = wx.CheckBox(
             self, -1, u"メイン画面で白いカーソルを使用する")
-        self.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type == cw.setting.CURSOR_WHITE)
 
         # 背景切替方式と各種速度
         self.speed = SpeedPanel(self, True)
@@ -1397,47 +1437,37 @@ class DrawingSettingPanel(wx.Panel):
         # メッセージウィンドウ背景色
         self.box_mwin = wx.StaticBox(self, -1, u"メッセージウィンドウ背景")
         self.st_mwin = wx.StaticText(self, -1, u"カラー")
-        self.cs_mwin = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.mwincolour)
+        self.cs_mwin = wx.ColourPickerCtrl(self, -1)
         self.st_blwin = wx.StaticText(self, -1, u"ログ")
-        self.cs_blwin = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.blwincolour)
+        self.cs_blwin = wx.ColourPickerCtrl(self, -1)
         self.st_mwin2 = wx.StaticText(self, -1, u"アルファ値")
         self.sc_mwin = wx.SpinCtrl(self, -1, "", size=(50, -1))
         self.sc_mwin.SetRange(0, 255)
-        self.sc_mwin.SetValue(cw.cwpy.setting.mwincolour[3])
         # メッセージウィンドウ枠色
         self.box_mframe = wx.StaticBox(self, -1, u"メッセージウィンドウ枠")
         self.st_mframe = wx.StaticText(self, -1, u"カラー")
-        self.cs_mframe = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.mwinframecolour)
+        self.cs_mframe = wx.ColourPickerCtrl(self, -1)
         self.st_blframe = wx.StaticText(self, -1, u"ログ")
-        self.cs_blframe = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.blwinframecolour)
+        self.cs_blframe = wx.ColourPickerCtrl(self, -1)
         self.st_mframe2 = wx.StaticText(self, -1, u"アルファ値")
         self.sc_mframe = wx.SpinCtrl(self, -1, "", size=(50, -1))
         self.sc_mframe.SetRange(0, 255)
-        self.sc_mframe.SetValue(cw.cwpy.setting.mwinframecolour[3])
 
         # メッセージログカーテン色
         self.box_blcurtain = wx.StaticBox(self, -1, u"メッセージログの背景")
         self.st_blcurtain = wx.StaticText(self, -1, u"カラー")
-        self.cs_blcurtain = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.blcurtaincolour)
+        self.cs_blcurtain = wx.ColourPickerCtrl(self, -1)
         self.st_blcurtain2 = wx.StaticText(self, -1, u"アルファ値")
         self.sc_blcurtain = wx.SpinCtrl(self, -1, "", size=(50, -1))
         self.sc_blcurtain.SetRange(0, 255)
-        self.sc_blcurtain.SetValue(cw.cwpy.setting.blcurtaincolour[3])
 
         # カーテン色
         self.box_curtain = wx.StaticBox(self, -1, u"カーテン(選択モードの背景効果)")
         self.st_curtain = wx.StaticText(self, -1, u"カラー")
-        self.cs_curtain = wx.ColourPickerCtrl(
-            self, -1, col=cw.cwpy.setting.curtaincolour)
+        self.cs_curtain = wx.ColourPickerCtrl(self, -1)
         self.st_curtain2 = wx.StaticText(self, -1, u"アルファ値")
         self.sc_curtain = wx.SpinCtrl(self, -1, "", size=(50, -1))
         self.sc_curtain.SetRange(0, 255)
-        self.sc_curtain.SetValue(cw.cwpy.setting.curtaincolour[3])
 
         # フルスクリーンの背景
         self.box_fscrback = wx.StaticBox(self, -1, u"フルスクリーンの背景")
@@ -1449,17 +1479,35 @@ class DrawingSettingPanel(wx.Panel):
             message=u"フルスクリーンの背景にするファイルを選択",
             wildcard=u"画像ファイル (*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm)|*.jpg;*.png;*.gif;*.bmp;*.tiff;*.xpm|全てのファイル (*.*)|*.*")
 
-        if cw.cwpy.setting.fullscreenbackgroundtype == 0:
+        self._do_layout()
+        self._bind()
+
+    def load(self, setting):
+        self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
+        self.cb_smooth_bg.SetValue(setting.smoothscale_bg)
+        self.cb_whitecursor.SetValue(setting.cursor_type == cw.setting.CURSOR_WHITE)
+        self.cs_mwin.SetColour(setting.mwincolour)
+        self.cs_blwin.SetColour(setting.blwincolour)
+        self.sc_mwin.SetValue(setting.mwincolour[3])
+        self.cs_mframe.SetColour(setting.mwinframecolour)
+        self.cs_blframe.SetColour(setting.blwinframecolour)
+        self.sc_mframe.SetValue(setting.mwinframecolour[3])
+        self.cs_blcurtain.SetColour(setting.blcurtaincolour)
+        self.sc_blcurtain.SetValue(setting.blcurtaincolour[3])
+        self.cs_curtain.SetColour(setting.curtaincolour)
+        self.sc_curtain.SetValue(setting.curtaincolour[3])
+
+        if setting.fullscreenbackgroundtype == 0:
             self.ch_fscrbacktype.SetSelection(0)
             self.tx_fscrbackfile.SetValue(u"")
-        elif cw.cwpy.setting.fullscreenbackgroundtype == 1:
+        elif setting.fullscreenbackgroundtype == 1:
             self.ch_fscrbacktype.SetSelection(1)
-            self.tx_fscrbackfile.SetValue(cw.cwpy.setting.fullscreenbackgroundfile)
-        elif cw.cwpy.setting.fullscreenbackgroundtype == 2:
-            if cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
+            self.tx_fscrbackfile.SetValue(setting.fullscreenbackgroundfile)
+        elif setting.fullscreenbackgroundtype == 2:
+            if setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/CAUTION":
                 self.ch_fscrbacktype.SetSelection(2)
                 self.tx_fscrbackfile.SetValue(u"")
-            elif cw.cwpy.setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
+            elif setting.fullscreenbackgroundfile == u"Resource/Image/Dialog/PAD":
                 self.ch_fscrbacktype.SetSelection(3)
                 self.tx_fscrbackfile.SetValue(u"")
             else:
@@ -1469,8 +1517,7 @@ class DrawingSettingPanel(wx.Panel):
         self.tx_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
         self.ref_fscrbackfile.Enable(self.ch_fscrbacktype.GetSelection() == 1)
 
-        self._do_layout()
-        self._bind()
+        self.speed.load(setting)
 
     def _bind(self):
         self.ch_fscrbacktype.Bind(wx.EVT_CHOICE, self.OnFullScreenBackgroundType, id=self.ch_fscrbacktype.GetId())
@@ -1557,33 +1604,28 @@ class AudioSettingPanel(wx.Panel):
         # 音楽を再生する
         self.cb_playbgm = wx.CheckBox(
             self, -1, u"音楽を再生する")
-        self.cb_playbgm.SetValue(cw.cwpy.setting.play_bgm)
         # 効果音を再生する
         self.cb_playsound = wx.CheckBox(
             self, -1, u"効果音を再生する")
-        self.cb_playsound.SetValue(cw.cwpy.setting.play_sound)
 
         # 音量
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
-        n = int(cw.cwpy.setting.vol_bgm * 100)
         self.sl_music = wx.Slider(
-            self, -1, n, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_music.SetTickFreq(10, 1)
 
         # midi音量
         self.box_midi = wx.StaticBox(self, -1, u"MIDIミュージック音量")
-        n = int(cw.cwpy.setting.vol_midi * 100)
         self.sl_midi = wx.Slider(
-            self, -1, n, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_midi.SetTickFreq(10, 1)
 
         # 効果音音量
         self.box_sound = wx.StaticBox(self, -1, u"効果音音量")
-        n = int(cw.cwpy.setting.vol_sound * 100)
         self.sl_sound = wx.Slider(
-            self, -1, n, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
         self.sl_sound.SetTickFreq(10, 1)
 
@@ -1594,13 +1636,24 @@ class AudioSettingPanel(wx.Panel):
         self.btn_upsoundfont = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downsoundfont = wx.Button(self, -1, u"↓", size=(25, -1))
         self.list_soundfont = cw.util.CheckableListCtrl(self, -1, size=(SETTINGS_WIDTH, -1), style=wx.MULTIPLE|wx.VSCROLL|wx.HSCROLL)
-        for index, soundfont in enumerate(cw.cwpy.setting.soundfonts):
-            sfont, use = soundfont
-            self.list_soundfont.InsertStringItem(index, sfont)
-            self.list_soundfont.CheckItem(index, use)
 
         self._do_layout()
         self._bind()
+
+    def load(self, setting):
+        self.cb_playbgm.SetValue(setting.play_bgm)
+        self.cb_playsound.SetValue(setting.play_sound)
+        n = int(setting.vol_bgm * 100)
+        self.sl_music.SetValue(n)
+        n = int(setting.vol_midi * 100)
+        self.sl_midi.SetValue(n)
+        n = int(setting.vol_sound * 100)
+        self.sl_sound.SetValue(n)
+        self.list_soundfont.DeleteAllItems()
+        for index, soundfont in enumerate(setting.soundfonts):
+            sfont, use = soundfont
+            self.list_soundfont.InsertStringItem(index, sfont)
+            self.list_soundfont.CheckItem(index, use)
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnAddSoundFontBtn, self.btn_addsoundfont)
@@ -1724,13 +1777,9 @@ class ScenarioSettingPanel(wx.Panel):
         # シナリオのオプション
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
-        self.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype)
         self.cb_showunfitnessscenario = wx.CheckBox(self, -1, u"適正レベル以外のシナリオを表示する")
-        self.cb_showunfitnessscenario.SetValue(cw.cwpy.setting.show_unfitnessscenario)
         self.cb_showcompletedscenario = wx.CheckBox(self, -1, u"終了済シナリオを表示する")
-        self.cb_showcompletedscenario.SetValue(cw.cwpy.setting.show_completedscenario)
         self.cb_showinvisiblescenario = wx.CheckBox(self, -1, u"隠蔽シナリオを表示する")
-        self.cb_showinvisiblescenario.SetValue(cw.cwpy.setting.show_invisiblescenario)
 
         # スキンタイプ毎の初期フォルダ
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
@@ -1739,24 +1788,14 @@ class ScenarioSettingPanel(wx.Panel):
         self.btn_upfolder = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downfolder = wx.Button(self, -1, u"↓", size=(25, -1))
         self.grid_folderoftype = wx.grid.Grid(self, -1, style=wx.BORDER)
-        self.grid_folderoftype.CreateGrid(len(cw.cwpy.setting.folderoftype) + 1, 2)
         #self.grid_folderoftype.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
-        self.grid_folderoftype.SetColLabelSize(0)
-        self.grid_folderoftype.SetRowLabelSize(0)
-        self.grid_folderoftype.SetColSize(0, 100)
-        self.grid_folderoftype.SetColSize(1, 370)
 
         self.celleditor = None
-        for row in xrange(self.grid_folderoftype.GetNumberRows() - 1):
-            skintype, folder = cw.cwpy.setting.folderoftype[row]
-            self.grid_folderoftype.SetCellValue(row, 0, skintype)
-            self.grid_folderoftype.SetCellValue(row, 1, folder)
 
         # シナリオエディタ
         self.box_debug = wx.StaticBox(self, -1, u"デバッグ")
         self.st_editor = wx.StaticText(self, -1, u"エディタ")
         self.tx_editor = wx.TextCtrl(self, -1, size=(150, -1))
-        self.tx_editor.SetValue(cw.cwpy.setting.editor)
         if sys.platform == "win32":
             wildcard = u"実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
         else:
@@ -1768,6 +1807,23 @@ class ScenarioSettingPanel(wx.Panel):
 
         self._do_layout()
         self._bind()
+
+    def load(self, setting):
+        self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype)
+        self.cb_showunfitnessscenario.SetValue(setting.show_unfitnessscenario)
+        self.cb_showcompletedscenario.SetValue(setting.show_completedscenario)
+        self.cb_showinvisiblescenario.SetValue(setting.show_invisiblescenario)
+        self.grid_folderoftype.ClearGrid()
+        self.grid_folderoftype.CreateGrid(len(setting.folderoftype) + 1, 2)
+        self.grid_folderoftype.SetColLabelSize(0)
+        self.grid_folderoftype.SetRowLabelSize(0)
+        self.grid_folderoftype.SetColSize(0, 100)
+        self.grid_folderoftype.SetColSize(1, 370)
+        for row in xrange(self.grid_folderoftype.GetNumberRows() - 1):
+            skintype, folder = setting.folderoftype[row]
+            self.grid_folderoftype.SetCellValue(row, 0, skintype)
+            self.grid_folderoftype.SetCellValue(row, 1, folder)
+        self.tx_editor.SetValue(setting.editor)
 
     def OnGirdSelectCell(self, event):
         if self.celleditor:
@@ -1890,117 +1946,123 @@ class UISettingPanel(wx.ScrolledWindow):
         self.box_wait = wx.StaticBox(self, -1, u"スキップと空白時間")
         self.cb_can_skipwait = wx.CheckBox(
             self, -1, u"空白時間をスキップ可能にする")
-        self.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait)
         self.cb_can_skipanimation = wx.CheckBox(
             self, -1, u"アニメーションをスキップ可能にする")
-        self.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation)
         # カードの使用前に空白時間を入れる
         self.cb_wait_usecard = wx.CheckBox(
             self, -1, u"カードの使用前に空白時間を入れる")
-        self.cb_wait_usecard.SetValue(cw.cwpy.setting.wait_usecard)
         self.cb_can_repeatlclick = wx.CheckBox(
             self, -1, u"マウスの左ボタンを押し続けた時は連打状態にする")
-        self.cb_can_repeatlclick.SetValue(cw.cwpy.setting.can_repeatlclick)
         self.cb_autoenter_on_sprite = wx.CheckBox(
             self, -1, u"連打状態の時、カードなどの選択を自動的に決定する")
-        self.cb_autoenter_on_sprite.SetValue(cw.cwpy.setting.autoenter_on_sprite)
 
         # 描画オプション
         self.box_draw = wx.StaticBox(self, -1, u"カード")
         self.cb_quickdeal = wx.CheckBox(
             self, -1, u"キャンプモードへ高速で切り替える")
-        self.cb_quickdeal.SetValue(cw.cwpy.setting.quickdeal)
         self.cb_allquickdeal = wx.CheckBox(
             self, -1, u"全てのシステムカードを高速表示する")
-        self.cb_allquickdeal.SetValue(cw.cwpy.setting.all_quickdeal)
         self.cb_showallselectedcards = wx.CheckBox(
             self, -1, u"戦闘行動を全員分表示する")
-        self.cb_showallselectedcards.SetValue(cw.cwpy.setting.show_allselectedcards)
         self.cb_showstatustime = wx.CheckBox(
             self, -1, u"状態の残り時間をカード上に表示する")
-        self.cb_showstatustime.SetValue(cw.cwpy.setting.show_statustime)
         self.cb_show_cardkind = wx.CheckBox(
             self, -1, u"カード置場と荷物袋でカードの種類を表示する")
-        self.cb_show_cardkind.SetValue(cw.cwpy.setting.show_cardkind)
         self.cb_show_premiumicon = wx.CheckBox(
             self, -1, u"カードの希少度をアイコンで表示する")
-        self.cb_show_premiumicon.SetValue(cw.cwpy.setting.show_premiumicon)
 
         # インタフェースオプション
         self.box_gene = wx.StaticBox(self, -1, u"操作")
         self.cb_showbackpackcard = wx.CheckBox(
             self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
-        self.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard)
         self.cb_showbackpackcardatend = wx.CheckBox(
             self, -1, u"荷物袋カードを最後に配置する")
-        self.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend)
         self.cb_can_clicksidesofcardcontrol = wx.CheckBox(
             self, -1, u"カード選択ダイアログの背景クリックで左右移動を行う")
-        self.cb_can_clicksidesofcardcontrol.SetValue(cw.cwpy.setting.can_clicksidesofcardcontrol)
         self.cb_revertcardpocket = wx.CheckBox(
             self, -1, u"レベル調節で手放したカードを自動的に戻す")
-        self.cb_revertcardpocket.SetValue(cw.cwpy.setting.revert_cardpocket)
         self.cb_openhandviewalways = wx.CheckBox(
             self, -1, u"行動不能でも行動選択ダイアログを開く")
-        self.cb_openhandviewalways.SetValue(cw.cwpy.setting.openhandviewalways)
         self.cb_showlogwithwheelup = wx.CheckBox(
             self, -1, u"マウスホイールを上に回すとログを表示")
-        self.cb_showlogwithwheelup.SetValue(cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
         self.cb_showroundautostartbutton = wx.CheckBox(
             self, -1, u"バトルで自動的に行動を開始できるようにする")
-        self.cb_showroundautostartbutton.SetValue(cw.cwpy.setting.show_roundautostartbutton)
         self.cb_showautobuttoninentrydialog = wx.CheckBox(
             self, -1, u"新規登録ダイアログに自動ボタンを表示する")
-        self.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog)
         self.cb_protect_staredcard = wx.CheckBox(
             self, -1, u"スターつきのカードの売却や破棄を禁止する")
-        self.cb_protect_staredcard.SetValue(cw.cwpy.setting.protect_staredcard)
         self.cb_protect_premiercard = wx.CheckBox(
             self, -1, u"プレミアカードの売却や破棄を禁止する")
-        self.cb_protect_premiercard.SetValue(cw.cwpy.setting.protect_premiercard)
 
         # 通知オプション
         self.box_notice = wx.StaticBox(self, -1, u"通知と解説")
         # ステータスバーのボタンの解説を表示する
         self.cb_show_btndesc = wx.CheckBox(
             self, -1, u"ステータスバーのボタンの解説を表示する")
-        self.cb_show_btndesc.SetValue(cw.cwpy.setting.show_btndesc)
         # イベント中にステータスバーの色を変える
         self.cb_statusbarmask = wx.CheckBox(
             self, -1, u"イベント中にステータスバーの色を変える")
-        self.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask)
         # 通知のあるステータスボタンを点滅させる
         self.cb_blink_statusbutton = wx.CheckBox(
             self, -1, u"通知のあるステータスボタンを点滅させる")
-        self.cb_blink_statusbutton.SetValue(cw.cwpy.setting.blink_statusbutton)
         # 所持金が増減した時に所持金欄を点滅させる
         self.cb_blink_partymoney = wx.CheckBox(
             self, -1, u"所持金が増減した時に所持金欄を点滅させる")
-        self.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney)
 
         # ダイアログオプション
         self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
         self.cb_show_advancedsettings = wx.CheckBox(
             self, -1, u"最初から詳細モードで設定を行う")
-        self.cb_show_advancedsettings.SetValue(cw.cwpy.setting.show_advancedsettings)
         self.cb_cautionbeforesaving = wx.CheckBox(
             self, -1, u"保存せずに終了しようとしたら警告する")
-        self.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving)
         self.cb_confirmbeforesaving = wx.CheckBox(
             self, -1, u"セーブ前に確認ダイアログを表示")
-        self.cb_confirmbeforesaving.SetValue(cw.cwpy.setting.confirm_beforesaving)
         self.cb_showsavedmessage = wx.CheckBox(
             self, -1, u"セーブ完了時に確認ダイアログを表示")
-        self.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage)
         self.cb_confirmbeforeusingcard = wx.CheckBox(
             self, -1, u"カード使用時に確認ダイアログを表示")
-        self.cb_confirmbeforeusingcard.SetValue(cw.cwpy.setting.confirm_beforeusingcard)
         self.cb_noticeimpossibleaction = wx.CheckBox(
             self, -1, u"不可能な行動を選択した時に警告を表示")
-        self.cb_noticeimpossibleaction.SetValue(cw.cwpy.setting.noticeimpossibleaction)
 
         self._do_layout()
         self._bind()
+
+    def load(self, setting):
+        self.cb_can_skipwait.SetValue(setting.can_skipwait)
+        self.cb_can_skipanimation.SetValue(setting.can_skipanimation)
+        self.cb_wait_usecard.SetValue(setting.wait_usecard)
+        self.cb_can_repeatlclick.SetValue(setting.can_repeatlclick)
+        self.cb_autoenter_on_sprite.SetValue(setting.autoenter_on_sprite)
+
+        self.cb_quickdeal.SetValue(setting.quickdeal)
+        self.cb_allquickdeal.SetValue(setting.all_quickdeal)
+        self.cb_showallselectedcards.SetValue(setting.show_allselectedcards)
+        self.cb_showstatustime.SetValue(setting.show_statustime)
+        self.cb_show_cardkind.SetValue(setting.show_cardkind)
+        self.cb_show_premiumicon.SetValue(setting.show_premiumicon)
+
+        self.cb_showbackpackcard.SetValue(setting.show_backpackcard)
+        self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend)
+        self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol)
+        self.cb_revertcardpocket.SetValue(setting.revert_cardpocket)
+        self.cb_openhandviewalways.SetValue(setting.openhandviewalways)
+        self.cb_showlogwithwheelup.SetValue(setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG)
+        self.cb_showroundautostartbutton.SetValue(setting.show_roundautostartbutton)
+        self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog)
+        self.cb_protect_staredcard.SetValue(setting.protect_staredcard)
+        self.cb_protect_premiercard.SetValue(setting.protect_premiercard)
+
+        self.cb_show_btndesc.SetValue(setting.show_btndesc)
+        self.cb_statusbarmask.SetValue(setting.statusbarmask)
+        self.cb_blink_statusbutton.SetValue(setting.blink_statusbutton)
+        self.cb_blink_partymoney.SetValue(setting.blink_partymoney)
+
+        self.cb_show_advancedsettings.SetValue(setting.show_advancedsettings)
+        self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving)
+        self.cb_confirmbeforesaving.SetValue(setting.confirm_beforesaving)
+        self.cb_showsavedmessage.SetValue(setting.show_savedmessage)
+        self.cb_confirmbeforeusingcard.SetValue(setting.confirm_beforeusingcard)
+        self.cb_noticeimpossibleaction.SetValue(setting.noticeimpossibleaction)
 
     def OnQuickDeal(self, event):
         if not self.cb_quickdeal.GetValue():
@@ -2122,14 +2184,14 @@ class FontSettingPanel(wx.Panel):
         facenames = list(wx.FontEnumerator().GetFacenames())
         facenames.sort()
         str_default = u"[デフォルト]" # デフォルトフォント名
-        fontface_array = [str_default]
-        types = []
+        self._fontface_array = [str_default]
+        self._types = []
         for base in self.bases:
-            types.append(u"[%s]" % (self.typenames[base]))
+            self._types.append(u"[%s]" % (self.typenames[base]))
         for name in facenames:
             if not name.startswith(u"@"):
-                fontface_array.append(name)
-                types.append(name)
+                self._fontface_array.append(name)
+                self._types.append(name)
 
         # フォント表示サンプル
         self.box_example = wx.StaticBox(self, -1, u"表示例")
@@ -2139,15 +2201,35 @@ class FontSettingPanel(wx.Panel):
         # 描画オプション
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_decorationfont = wx.CheckBox(self, -1, u"メッセージで装飾フォントを使用する")
-        self.cb_decorationfont.SetValue(cw.cwpy.setting.decorationfont)
         self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
-        self.cb_fontsmoothingcardname.SetValue(cw.cwpy.setting.fontsmoothing_cardname)
         self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
-        self.cb_fontsmoothingstatusbar.SetValue(cw.cwpy.setting.fontsmoothing_statusbar)
 
-        def create_grid(seq, faces, editor, cols):
-            grid = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
-            grid.SetDoubleBuffered(True)
+        # 基本フォント
+        self.box_base = wx.StaticBox(self, -1, u"基本フォント")
+        self.choicebase = wx.grid.GridCellChoiceEditor(self._fontface_array)
+        self.base = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
+        self.base.SetDoubleBuffered(True)
+
+        # 役割別フォント
+        self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
+        self.choicetype = wx.grid.GridCellChoiceEditor(self._types)
+        self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
+        self.type.SetDoubleBuffered(True)
+
+        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
+                       face=self.st_example.GetLabel())
+        self.st_example.SetFont(font)
+
+        self._do_layout()
+        self._bind()
+
+    def load(self, setting):
+        self.cb_decorationfont.SetValue(setting.decorationfont)
+        self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
+        self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
+
+        def create_grid(grid, seq, faces, editor, cols):
+            grid.ClearGrid()
             grid.CreateGrid(len(seq), cols)
             grid.DisableDragRowSize()
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
@@ -2158,22 +2240,15 @@ class FontSettingPanel(wx.Panel):
             for i, name in enumerate(seq):
                 grid.SetRowLabelValue(i, self.typenames[name])
                 grid.SetCellEditor(i, 0, editor)
-            return grid
 
-        # 基本フォント
-        self.box_base = wx.StaticBox(self, -1, u"基本フォント")
-        self.choicebase = wx.grid.GridCellChoiceEditor(fontface_array)
-        self.base = create_grid(self.bases, fontface_array, self.choicebase, 1)
+        create_grid(self.base, self.bases, self._fontface_array, self.choicebase, 1)
         for i, name, in enumerate(self.bases):
-            str_font = cw.cwpy.setting.basefont[name]
+            str_font = setting.basefont[name]
             if not str_font:
                 str_font = str_default
             self.base.SetCellValue(i, 0, str_font)
 
-        # 役割別フォント
-        self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
-        self.choicetype = wx.grid.GridCellChoiceEditor(types)
-        self.type = create_grid(self.types, types, self.choicetype, 5)
+        create_grid(self.type, self.types, self._types, self.choicetype, 5)
         self.type.SetColLabelValue(1, u"サイズ")
         self.type.SetColSize(1, 80)
         self.type.SetColLabelValue(2, u"太字\n(通常)")
@@ -2185,8 +2260,8 @@ class FontSettingPanel(wx.Panel):
         boolrenderer = wx.grid.GridCellBoolRenderer()
         numberrenderer = wx.grid.GridCellNumberRenderer()
         for i, name in enumerate(self.types):
-            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.fonttypes_init[name]
-            fonttype, face, pixels, bold, bold_upscr, italic = cw.cwpy.setting.fonttypes[name]
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = setting.fonttypes_init[name]
+            fonttype, face, pixels, bold, bold_upscr, italic = setting.fonttypes[name]
             if fonttype:
                 self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[fonttype]))
             else:
@@ -2229,12 +2304,6 @@ class FontSettingPanel(wx.Panel):
             self.type.SetCellAlignment(i, 4, wx.ALIGN_CENTER, 0)
 
         self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
-        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                       face=self.st_example.GetLabel())
-        self.st_example.SetFont(font)
-
-        self._do_layout()
-        self._bind()
 
     def _bind(self):
         self.base.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontBase)
