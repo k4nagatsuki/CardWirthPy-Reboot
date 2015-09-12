@@ -50,15 +50,15 @@ SB_NOTICE    = 0b00001000 # 通知
 SB_EMPHASIZE = 0b00010000 # 強調
 
 class Setting(object):
-    def __init__(self):
+    def __init__(self, loadfile=None, init=True):
         # Settings
-        self.init_settings()
+        self.init_settings(loadfile, init=init)
         # フレームレート
         self.fps = 60
         # 1frame分のmillseconds
         self.frametime = 1000 / self.fps
 
-    def init_settings(self):
+    def init_settings(self, loadfile=None, init=True):
         # "Settings.xml"がなかったら新しく作る
         self.show_advancedsettings = False
         self.editor = "cwxeditor"
@@ -235,14 +235,23 @@ class Setting(object):
                     v = t[1]
                 setattr(self, "%s_init" % (t[0]), v)
 
-        if not os.path.isfile("Settings.xml"):
-            self.write()
-            self.init_skin()
-            self.set_dealspeed(self.dealspeed, self.dealspeed_battle, self.use_battlespeed)
-            self.data = cw.data.xml2etree("Settings.xml")
+        if not init:
             return
 
-        self.data = cw.data.xml2etree("Settings.xml")
+        if not loadfile:
+            if not os.path.isfile("Settings.xml"):
+                self.write()
+                self.init_skin()
+                self.set_dealspeed(self.dealspeed, self.dealspeed_battle, self.use_battlespeed)
+                self.data = cw.data.xml2etree("Settings.xml")
+                return
+
+            self.data = cw.data.xml2etree("Settings.xml")
+        elif os.path.isfile(loadfile):
+            self.data = cw.data.xml2etree(loadfile)
+        else:
+            return
+
         data = self.data
 
         # 最初から詳細モードで設定を行う
@@ -284,10 +293,11 @@ class Setting(object):
             self.expanddrawing = int(self.expanddrawing)
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", self.debug)
-        if cw.OPTIONS.debug:
-            # 強制デバッグモード起動
-            self.debug = True
-        cw.OPTIONS.debug = False
+        if not loadfile:
+            if cw.OPTIONS.debug:
+                # 強制デバッグモード起動
+                self.debug = True
+            cw.OPTIONS.debug = False
         # デバッグ時はレベル上昇しない
         self.no_levelup_in_debugmode = data.getbool("NoLevelUpInDebugMode", self.no_levelup_in_debugmode)
         # 音楽を再生する
@@ -543,7 +553,8 @@ class Setting(object):
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)
-        self.init_skin()
+        if not loadfile:
+            self.init_skin()
 
     def init_skin(self):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)

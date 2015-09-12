@@ -249,6 +249,7 @@ class SimpleSettingsPanel(wx.Panel):
 class SettingsPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, pos=(-100, -100))
+        self.SetDoubleBuffered(True)
         self.Hide()
 
         self.note = wx.Notebook(self)
@@ -268,10 +269,18 @@ class SettingsPanel(wx.Panel):
 
         create_versioninfo(self)
 
+        self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
+        h = self.btn_dflt.GetBestSize()[1]
+
+        self.btn_load = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_LOAD"])
+        self.btn_load.SetMinSize((32, h))
+        self.btn_save = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_SAVE"])
+        self.btn_save.SetMinSize((32, h))
+
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_apply = wx.Button(self, wx.ID_APPLY, u"適用")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
-        self.btn_dflt = wx.Button(self, wx.ID_DEFAULT, u"デフォルト")
+
         self.note.SetSelection(cw.cwpy.settingtab)
 
         self.load(cw.cwpy.setting)
@@ -286,6 +295,8 @@ class SettingsPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnApply, id=wx.ID_APPLY)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.OnDefault, id=wx.ID_DEFAULT)
+        self.Bind(wx.EVT_BUTTON, self.OnSave, id=self.btn_save.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnLoad, id=self.btn_load.GetId())
 
     def load(self, setting):
         self.pane_gene.load(setting)
@@ -294,6 +305,35 @@ class SettingsPanel(wx.Panel):
         self.pane_font.load(setting)
         self.pane_scenario.load(setting)
         self.pane_ui.load(setting)
+
+    def OnSave(self, event):
+        dlg = wx.FileDialog(self.GetTopLevelParent(), u"設定ファイルの保存",
+                            "", u"新規設定.wssx", u"CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*",
+                            wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            fpath = dlg.GetPath()
+            try:
+                setting = cw.setting.Setting(init=False)
+                self.apply(setting)
+                cw.xmlcreater.create_settings(setting, writeplayingdata=False, fpath=fpath)
+            except:
+                cw.util.print_ex()
+                s = u"%sの保存に失敗しました。" % (os.path.basename(fpath))
+                wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
+
+    def OnLoad(self, event):
+        dlg = wx.FileDialog(self.GetTopLevelParent(), u"設定ファイルの読み込み",
+                            "", "", u"CardWirthPy設定ファイル (*.wssx)|*.wssx|XMLドキュメント (*.xml)|*.xml|すべてのファイル (*.*)|*.*",
+                            wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            fpath = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+            try:
+                setting = cw.setting.Setting(loadfile=fpath)
+                self.load(setting)
+            except:
+                cw.util.print_ex()
+                s = u"%sの読み込みに失敗しました。" % (os.path.basename(fpath))
+                wx.MessageBox(s, u"メッセージ", wx.OK|wx.ICON_WARNING, self.GetTopLevelParent())
 
     def OnDefault(self, event):
         selpane = self.note.GetSelection()
@@ -840,12 +880,16 @@ class SettingsPanel(wx.Panel):
 
         sizer_btn.Add(self.versioninfo, 0, wx.ALIGN_CENTER, 0)
         sizer_btn.AddStretchSpacer(1)
+        sizer_btn.Add(self.btn_dflt, 0, wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER, 5)
+        sizer_btn.Add((10, 0), 0, 0, 0)
+        sizer_btn.Add(self.btn_save, 0, wx.ALIGN_CENTER, 0)
+        sizer_btn.Add(self.btn_load, 0, wx.LEFT|wx.ALIGN_CENTER, 2)
+        sizer_btn.Add((10, 0), 0, 0, 0)
         sizer_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER, 0)
         sizer_btn.Add(self.btn_apply, 0, wx.LEFT|wx.ALIGN_CENTER, 5)
         sizer_btn.Add(self.btn_cncl, 0, wx.LEFT|wx.ALIGN_CENTER, 5)
-        sizer_btn.Add(self.btn_dflt, 0, wx.LEFT|wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER, 5)
 
-        sizer.Add(self.note, 0, 0, 0)
+        sizer.Add(self.note, 0, wx.EXPAND, 0)
         sizer.Add(sizer_btn, 0, wx.LEFT|wx.RIGHT|wx.EXPAND, 5)
         self.SetSizer(sizer)
         sizer.Fit(self)
@@ -1783,6 +1827,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.btn_upfolder = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downfolder = wx.Button(self, -1, u"↓", size=(25, -1))
         self.grid_folderoftype = wx.grid.Grid(self, -1, style=wx.BORDER)
+        self.grid_folderoftype.CreateGrid(0, 2)
         #self.grid_folderoftype.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
 
         self.celleditor = None
@@ -1808,8 +1853,9 @@ class ScenarioSettingPanel(wx.Panel):
         self.cb_showunfitnessscenario.SetValue(setting.show_unfitnessscenario)
         self.cb_showcompletedscenario.SetValue(setting.show_completedscenario)
         self.cb_showinvisiblescenario.SetValue(setting.show_invisiblescenario)
-        self.grid_folderoftype.ClearGrid()
-        self.grid_folderoftype.CreateGrid(len(setting.folderoftype) + 1, 2)
+        if 0 < self.grid_folderoftype.GetNumberRows():
+            self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
+        self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
         self.grid_folderoftype.SetColLabelSize(0)
         self.grid_folderoftype.SetRowLabelSize(0)
         self.grid_folderoftype.SetColSize(0, 100)
@@ -2207,33 +2253,7 @@ class FontSettingPanel(wx.Panel):
         self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
         self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
 
-        # 基本フォント
-        self.box_base = wx.StaticBox(self, -1, u"基本フォント")
-        self.choicebase = wx.grid.GridCellChoiceEditor(self._fontface_array)
-        self.base = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
-        self.base.SetDoubleBuffered(True)
-
-        # 役割別フォント
-        self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
-        self.choicetype = wx.grid.GridCellChoiceEditor(self._types)
-        self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
-        self.type.SetDoubleBuffered(True)
-
-        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
-                       face=self.st_example.GetLabel())
-        self.st_example.SetFont(font)
-
-        self._do_layout()
-        self._bind()
-
-    def load(self, setting):
-        self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
-        self.cb_decorationfont.SetValue(setting.decorationfont)
-        self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
-        self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
-
         def create_grid(grid, seq, faces, editor, cols, rowlblsize):
-            grid.ClearGrid()
             grid.CreateGrid(len(seq), cols)
             grid.DisableDragRowSize()
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
@@ -2242,17 +2262,22 @@ class FontSettingPanel(wx.Panel):
             grid.SetColLabelValue(0, u"フォント名")
             grid.SetColSize(0, 150)
             for i, name in enumerate(seq):
-                grid.SetRowLabelValue(i, self.typenames[name])
                 grid.SetCellEditor(i, 0, editor)
 
+        # 基本フォント
+        self.box_base = wx.StaticBox(self, -1, u"基本フォント")
+        self.choicebase = wx.grid.GridCellChoiceEditor(self._fontface_array)
+        self.base = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
+        self.base.SetDoubleBuffered(True)
         create_grid(self.base, self.bases, self._fontface_array, self.choicebase, 1, 100)
-        for i, name, in enumerate(self.bases):
-            str_font = setting.basefont[name]
-            if not str_font:
-                str_font = self._str_default
-            self.base.SetCellValue(i, 0, str_font)
 
+        # 役割別フォント
+        self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
+        self.choicetype = wx.grid.GridCellChoiceEditor(self._types)
+        self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
+        self.type.SetDoubleBuffered(True)
         create_grid(self.type, self.types, self._types, self.choicetype, 5, 120)
+
         self.type.SetColLabelValue(1, u"サイズ")
         self.type.SetColSize(1, 80)
         self.type.SetColLabelValue(2, u"太字\n(通常)")
@@ -2264,50 +2289,100 @@ class FontSettingPanel(wx.Panel):
         boolrenderer = wx.grid.GridCellBoolRenderer()
         numberrenderer = wx.grid.GridCellNumberRenderer()
         for i, name in enumerate(self.types):
+            _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.fonttypes_init[name]
+            if 0 < defpixels:
+                epixels = wx.grid.GridCellNumberEditor(1, 99)
+                self.type.SetCellEditor(i, 1, epixels)
+                self.type.SetCellRenderer(i, 1, numberrenderer)
+            else:
+                self.type.GetOrCreateCellAttr(i, 1).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 1, wx.ALIGN_CENTER, 0)
+            if not defbold is None:
+                ebold = wx.grid.GridCellBoolEditor()
+                self.type.SetCellEditor(i, 2, ebold)
+                self.type.SetCellRenderer(i, 2, boolrenderer)
+            else:
+                self.type.GetOrCreateCellAttr(i, 2).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 2, wx.ALIGN_CENTER, 0)
+            if not defbold_upscr is None:
+                ebold_upscr = wx.grid.GridCellBoolEditor()
+                self.type.SetCellEditor(i, 3, ebold_upscr)
+                self.type.SetCellRenderer(i, 3, boolrenderer)
+            else:
+                self.type.GetOrCreateCellAttr(i, 3).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 3, wx.ALIGN_CENTER, 0)
+            if not defitalic is None:
+                eitalic = wx.grid.GridCellBoolEditor()
+                self.type.SetCellEditor(i, 4, eitalic)
+                self.type.SetCellRenderer(i, 4, boolrenderer)
+            else:
+                self.type.GetOrCreateCellAttr(i, 4).SetReadOnly(True)
+            self.type.SetCellAlignment(i, 4, wx.ALIGN_CENTER, 0)
+
+        font = wx.Font(18, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL,
+                       face=self.st_example.GetLabel())
+        self.st_example.SetFont(font)
+        self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
+
+        self._do_layout()
+        self._bind()
+
+    def load(self, setting):
+        self.cb_bordering_cardname.SetValue(setting.bordering_cardname)
+        self.cb_decorationfont.SetValue(setting.decorationfont)
+        self.cb_fontsmoothingcardname.SetValue(setting.fontsmoothing_cardname)
+        self.cb_fontsmoothingstatusbar.SetValue(setting.fontsmoothing_statusbar)
+
+        def create_grid(grid, seq):
+            for i, name in enumerate(seq):
+                grid.SetRowLabelValue(i, self.typenames[name])
+
+        create_grid(self.base, self.bases)
+        for i, name, in enumerate(self.bases):
+            str_font = setting.basefont[name]
+            if not str_font:
+                str_font = self._str_default
+            self.base.SetCellValue(i, 0, str_font)
+
+        create_grid(self.type, self.types)
+
+        self.type.SetColLabelValue(1, u"サイズ")
+        self.type.SetColSize(1, 80)
+        self.type.SetColLabelValue(2, u"太字\n(通常)")
+        self.type.SetColSize(2, 70)
+        self.type.SetColLabelValue(3, u"太字\n(拡大)")
+        self.type.SetColSize(3, 70)
+        self.type.SetColLabelValue(4, u"斜体")
+        self.type.SetColSize(4, 70)
+
+        for i, name in enumerate(self.types):
             _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = setting.fonttypes_init[name]
             fonttype, face, pixels, bold, bold_upscr, italic = setting.fonttypes[name]
             if fonttype:
                 self.type.SetCellValue(i, 0, u"[%s]" % (self.typenames[fonttype]))
             else:
                 self.type.SetCellValue(i, 0, face)
+
             if 0 < defpixels:
-                epixels = wx.grid.GridCellNumberEditor(1, 99)
-                self.type.SetCellEditor(i, 1, epixels)
                 self.type.SetCellValue(i, 1, str(pixels))
-                self.type.SetCellRenderer(i, 1, numberrenderer)
             else:
                 self.type.SetCellValue(i, 1, u"-")
-                self.type.GetOrCreateCellAttr(i, 1).SetReadOnly(True)
-            self.type.SetCellAlignment(i, 1, wx.ALIGN_CENTER, 0)
             if not defbold is None:
-                ebold = wx.grid.GridCellBoolEditor()
-                self.type.SetCellEditor(i, 2, ebold)
                 self.type.SetCellValue(i, 2, u"1" if bold else u"")
-                self.type.SetCellRenderer(i, 2, boolrenderer)
             else:
                 self.type.SetCellValue(i, 2, u"-")
-                self.type.GetOrCreateCellAttr(i, 2).SetReadOnly(True)
-            self.type.SetCellAlignment(i, 2, wx.ALIGN_CENTER, 0)
+
             if not defbold_upscr is None:
-                ebold_upscr = wx.grid.GridCellBoolEditor()
-                self.type.SetCellEditor(i, 3, ebold_upscr)
                 self.type.SetCellValue(i, 3, u"1" if bold_upscr else u"")
-                self.type.SetCellRenderer(i, 3, boolrenderer)
             else:
                 self.type.SetCellValue(i, 3, u"-")
-                self.type.GetOrCreateCellAttr(i, 3).SetReadOnly(True)
-            self.type.SetCellAlignment(i, 3, wx.ALIGN_CENTER, 0)
             if not defitalic is None:
-                eitalic = wx.grid.GridCellBoolEditor()
-                self.type.SetCellEditor(i, 4, eitalic)
                 self.type.SetCellValue(i, 4, u"1" if italic else u"")
-                self.type.SetCellRenderer(i, 4, boolrenderer)
             else:
                 self.type.SetCellValue(i, 4, u"-")
-                self.type.GetOrCreateCellAttr(i, 4).SetReadOnly(True)
-            self.type.SetCellAlignment(i, 4, wx.ALIGN_CENTER, 0)
 
-        self.st_example.SetLabel(self.get_basefontface(self.bases[0]))
+        self._select_base(self.base.GetGridCursorRow())
+        self.Layout()
 
     def _bind(self):
         self.base.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnSelectFontBase)
