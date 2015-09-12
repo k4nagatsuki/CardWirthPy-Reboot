@@ -735,7 +735,8 @@ class CardControl(wx.Dialog):
             btm = self.downbtn.GetPosition()[1]
             h = dc.GetTextExtent("#")[1] + cw.wins(1) + self._leftmark.GetHeight()
             y = top + (btm-top-h)/2
-            dc.DrawBitmap(self._leftmark, cw.wins(3), y, True)
+            x = rect.X + rect.Width / 2 - self._leftmark.GetWidth() / 2
+            dc.DrawBitmap(self._leftmark, x, y, True)
 
         if self.callname == "CARDPOCKET":
             # 所持カード数
@@ -1206,8 +1207,8 @@ class CardHolder(CardControl):
         bmp = cw.cwpy.rsrc.buttons["UP"]
         self.upbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_UP, cw.wins((70, 40)), bmp=bmp)
         # ページ指定
-        self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 16)))
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
+        self.page = wx.lib.intctrl.IntCtrl(self.toppanel, -1, style=wx.TE_RIGHT, size=cw.wins((-1, 22)))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17))
         self.page.SetFont(font)
         self.page.SetValue(1)
         self.page.SetMin(1)
