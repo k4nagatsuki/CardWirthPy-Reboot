@@ -726,7 +726,7 @@ class CardControl(wx.Dialog):
                         dc.DrawBitmap(bmp, x, y, True)
 
         # カード枚数のフォント設定
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17)))
 
         # カード置場・荷物袋・情報カードマーク
         if self._leftmark:
@@ -744,7 +744,7 @@ class CardControl(wx.Dialog):
             s = "Cap " + str(num) + "/" + str(maxnum)
             w = dc.GetTextExtent(s)[0]
             rect = self.beastbtn.GetRect()
-            y = rect[1] + rect[3] + cw.wins(3)
+            y = rect[1] + rect[3] + cw.wins(5)
             dc.DrawText(s, cw.wins(40)-w/2, y)
         elif self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
             # カード置き場、荷物袋、情報カード
