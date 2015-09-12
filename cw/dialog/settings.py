@@ -2179,6 +2179,7 @@ class UISettingPanel(wx.ScrolledWindow):
 class FontSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+        self.SetDoubleBuffered(True)
         self.typenames = {"gothic"       : u"等幅ゴシック",
                           "uigothic"     : u"UI用",
                           "mincho"       : u"等幅明朝",
@@ -2277,6 +2278,12 @@ class FontSettingPanel(wx.Panel):
         self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.type.SetDoubleBuffered(True)
         create_grid(self.type, self.types, self._types, self.choicetype, 5, 120)
+
+        for i, name, in enumerate(self.bases):
+            str_font = cw.cwpy.setting.basefont[name]
+            if not str_font:
+                str_font = self._str_default
+            self.base.SetCellValue(i, 0, str_font)
 
         self.type.SetColLabelValue(1, u"サイズ")
         self.type.SetColSize(1, 80)
@@ -2416,7 +2423,7 @@ class FontSettingPanel(wx.Panel):
             face = ctrl.GetValue()
         else:
             face = self.base.GetCellValue(self.bases.index(fonttype), 0)
-        if face == u"[デフォルト]":
+        if face == self._str_default:
             face = cw.cwpy.rsrc.fontnames_init[fonttype]
         return face
 
