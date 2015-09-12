@@ -161,8 +161,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             element.append(e)
     if writeplayingdata:
         # デバッグモードかどうか
-        if setting.debug <> setting.debug_init:
-            e = cw.data.make_element("DebugMode", str(setting.debug))
+        if setting.debug_saved <> setting.debug_init:
+            e = cw.data.make_element("DebugMode", str(setting.debug_saved))
             element.append(e)
     # デバッグ時はレベル上昇しない
     if setting.no_levelup_in_debugmode <> setting.no_levelup_in_debugmode_init:

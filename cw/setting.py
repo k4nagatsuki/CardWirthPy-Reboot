@@ -293,6 +293,7 @@ class Setting(object):
             self.expanddrawing = int(self.expanddrawing)
         # デバッグモードかどうか
         self.debug = data.getbool("DebugMode", self.debug)
+        self.debug_saved = self.debug
         if not loadfile:
             if cw.OPTIONS.debug:
                 # 強制デバッグモード起動

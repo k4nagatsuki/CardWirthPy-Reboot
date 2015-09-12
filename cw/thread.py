@@ -529,6 +529,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_debug(self, debug):
         self.setting.debug = debug
+        self.setting.debug_saved = debug
         self.debug = debug
         self.statusbar.change(not self.is_runningevent())
 
