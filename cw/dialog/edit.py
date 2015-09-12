@@ -104,7 +104,7 @@ class PartyEditor(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
         s = cw.cwpy.msgs["party_name"]
         left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) // 2
         dc.DrawText(s, left, cw.wins(15))
@@ -142,7 +142,7 @@ class MoneyEditPanel(wx.Panel):
         self.bmp_ymoney = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # text
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
-        font = cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(12))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
         self.text_party.SetFont(font)
         self.text_yado = wx.StaticText(self, -1, cw.cwpy.msgs["base_money"])
         self.text_yado.SetFont(font)
@@ -1053,7 +1053,7 @@ class InputTextDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = self.msg
         w = dc.GetTextExtent(s)[0]
@@ -1092,7 +1092,7 @@ class YadoEditDialog(wx.Dialog):
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.yadodir = yadodir
         self.path = cw.util.join_paths(yadodir, "Environment.xml")
-        self.SetClientSize(cw.wins((312, 136)))
+        self.SetClientSize(cw.wins((312, 112)))
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(18)
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
@@ -1158,7 +1158,7 @@ class YadoEditDialog(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = cw.cwpy.msgs["rename_base_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1177,7 +1177,7 @@ class YadoEditDialog(wx.Dialog):
         sizer_1.Add(cw.wins((0, 35)), 0, 0, 0)
         margin = (csize[0] - self.textctrl.GetSize()[0]) / 2
         sizer_1.Add(self.textctrl, 0, wx.LEFT|wx.RIGHT, margin)
-        sizer_1.Add(cw.wins((0, 25)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, 12)), 0, 0, 0)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
 
         margin = (csize[0] - self.okbtn.GetSize()[0] * 2) / 3
