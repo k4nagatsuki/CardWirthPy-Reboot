@@ -258,7 +258,7 @@ class SystemData(object):
         dpath = cw.util.join_paths(cw.cwpy.skindir, "Bgm")
         for dpath2, _dnames, fnames in os.walk(dpath):
             for fname in fnames:
-                if cw.util.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
+                if cw.util.splitext(fname)[1].lower() in (".ogg", ".mp3", ".mid", ".wav"):
                     if dpath2 == dpath:
                         dname = ""
                     else:
@@ -865,7 +865,7 @@ class ScenarioData(SystemData):
         dpath = self.tempdir
         for dpath2, _dnames, fnames in os.walk(dpath):
             for fname in fnames:
-                if cw.util.splitext(fname)[1].lower() in (".mid", ".mp3", "ogg"):
+                if cw.util.splitext(fname)[1].lower() in (".ogg", ".mp3", ".mid", ".wav"):
                     if dpath2 == dpath:
                         dname = ""
                     else:
