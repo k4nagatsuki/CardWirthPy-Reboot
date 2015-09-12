@@ -20,10 +20,17 @@ MIDI_EVENT_CONTROL = 64
 BASS_SYNC_POS = 0
 BASS_SYNC_END = 2
 BASS_SYNC_MUSICPOS = 10
+BASS_SYNC_MIXTIME = 0x40000000
 BASS_POS_BYTE = 0
-CC111 = 111
 MIDI_EVENT_END = 0
 MIDI_EVENT_END_TRACK = 0x10003
+BASS_TAG_OGG = 2
+BASS_TAG_RIFF_INFO = 0x100
+BASS_TAG_RIFF_BEXT = 0x101
+BASS_TAG_RIFF_CART = 0x102
+BASS_TAG_RIFF_DISP = 0x103
+
+CC111 = 111
 
 _bass = None
 _bassmidi = None
@@ -156,17 +163,82 @@ def _play(fpath, volume, loop):
                 _tick = bassMidiEvent[3] # 使用しない
                 pos = c_long(bassMidiEvent[4])
                 if param == CC111: # CC#111があったのでここでループする
-                    _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END, c_longlong(0), CC111LOOP, pos)
+                    _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, pos)
                     break
     else:
         stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag)
         if not stream:
             raise ValueError("_play() failure: %s" % (fpath))
 
+        loopinfo = _get_loopinfo(fpath, stream)
+        if loopinfo:
+            loopstart, loopend = loopinfo
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, loopstart)
+
     _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
     _bass.BASS_ChannelPlay(stream, loop)
 
     return stream
+
+def _get_loopinfo(fpath, stream):
+    """吉里吉里もしくはRPGツクール形式の
+    ループ情報が存在すれば取得して返す。
+    """
+    # Ogg Vorbisコメント埋め込み
+    s = _bass.BASS_ChannelGetTags(stream, BASS_TAG_OGG)
+    if s:
+        comment = ctypes.string_at(s)
+        loopstart = -1
+        looplength = -1
+        while comment:
+            if comment.startswith("LOOPSTART="):
+                loopstart = int(comment[len("LOOPSTART="):])
+            if comment.startswith("LOOPLENGTH="):
+                looplength = int(comment[len("LOOPLENGTH="):])
+            s += len(comment)+1
+            comment = ctypes.string_at(s)
+        if 0 <= loopstart and 0 <= looplength:
+            loopend = loopstart + looplength
+            loopstart *= 32/8
+            loopend *= 32/8
+            return (loopstart, loopend)
+
+    # *.sliファイル
+    sli = fpath + ".sli"
+    if os.path.isfile(sli):
+        try:
+            with open(sli, "r") as f:
+                s = f.read()
+                f.close()
+            for line in s.splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if not line.startswith("Link"):
+                    continue
+                line = line[len("Link"):]
+                start = line.find("{")
+                end = line.rfind("}")
+                if start == -1 or end == -1 or end < start:
+                    continue
+                line = line[start+1:end]
+                secs = line.split(";")
+                loopstart = -1
+                loopend = -1
+                for sec in secs:
+                    if sec.startswith("From="):
+                        loopend = int(sec[len("From="):])
+                    if sec.startswith("To="):
+                        loopstart = int(sec[len("To="):])
+                if 0 <= loopstart and 0 <= loopend:
+                    loopstart *= 32/8
+                    loopend *= 32/8
+                    return (loopstart, loopend)
+
+        except:
+            cw.util.print_ex()
+
+    return None
 
 def dispose_bass():
     """全ての演奏を停止し、BASS AudioのDLLを解放する。"""

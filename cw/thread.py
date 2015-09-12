@@ -3844,6 +3844,11 @@ class CWPy(_Singleton, threading.Thread):
             if not yadodir:
                 imgpath = cw.util.get_materialpathfromskin(imgpath, cw.M_IMG)
 
+            # 吉里吉里形式音声ループ情報
+            sli = imgpath + u".sli"
+            if not os.path.isfile(sli):
+                sli = None
+
         if not (pisc or os.path.isfile(imgpath)):
             return
 
@@ -3902,6 +3907,8 @@ class CWPy(_Singleton, threading.Thread):
                     f.close()
             else:
                 shutil.copy2(imgpath, imgdst)
+                if sli:
+                    shutil.copy2(sli, imgdst + u".sli")
             # ElementTree編集
             if yadodir:
                 materialpath = imgdst.replace(toyado + "/", "", 1)
