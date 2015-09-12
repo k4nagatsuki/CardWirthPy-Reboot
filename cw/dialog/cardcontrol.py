@@ -745,7 +745,7 @@ class CardControl(wx.Dialog):
             w = dc.GetTextExtent(s)[0]
             rect = self.beastbtn.GetRect()
             y = rect[1] + rect[3] + cw.wins(5)
-            dc.DrawText(s, cw.wins(40)-w/2, y)
+            dc.DrawText(s, cw.wins(45)-w/2, y)
         elif self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
             # カード置き場、荷物袋、情報カード
             if self._leftmark:
