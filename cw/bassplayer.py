@@ -173,7 +173,10 @@ def _play(fpath, volume, loop):
         loopinfo = _get_loopinfo(fpath, stream)
         if loopinfo:
             loopstart, loopend = loopinfo
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, loopstart)
+            if 0 <= loopend:
+                _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, loopstart)
+            else:
+                _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, loopstart)
 
     _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
     _bass.BASS_ChannelPlay(stream, loop)
@@ -197,10 +200,13 @@ def _get_loopinfo(fpath, stream):
                 looplength = int(comment[len("LOOPLENGTH="):])
             s += len(comment)+1
             comment = ctypes.string_at(s)
-        if 0 <= loopstart and 0 <= looplength:
-            loopend = loopstart + looplength
+        if 0 <= loopstart:
+            if 0 <= looplength:
+                loopend = loopstart + looplength
+                loopend *= 32/8
+            else:
+                loopend = -1
             loopstart *= 32/8
-            loopend *= 32/8
             return (loopstart, loopend)
 
     # *.sliファイル
@@ -230,9 +236,10 @@ def _get_loopinfo(fpath, stream):
                         loopend = int(sec[len("From="):])
                     if sec.startswith("To="):
                         loopstart = int(sec[len("To="):])
-                if 0 <= loopstart and 0 <= loopend:
+                if 0 <= loopstart:
                     loopstart *= 32/8
-                    loopend *= 32/8
+                    if 0 <= loopend:
+                        loopend *= 32/8
                     return (loopstart, loopend)
 
         except:
