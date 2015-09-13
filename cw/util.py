@@ -2075,13 +2075,21 @@ def convert_to_image(bmp):
     bmp.CopyToBuffer(buf)
     return wx.ImageFromBuffer(w, h, buf)
 
-def fill_bitmap(dc, bmp, csize):
+def fill_bitmap(dc, bmp, csize, ctrlpos=(0, 0)):
     """引数のbmpを敷き詰める。"""
     imgsize = bmp.GetSize()
+    w, h = imgsize
 
-    for cntx in xrange(csize[0] / imgsize[0] + 1):
-        for cnty in xrange(csize[1] / imgsize[1] + 1):
-            dc.DrawBitmap(bmp, cntx*imgsize[0], cnty*imgsize[1], 0)
+    startx = -(ctrlpos[0] % w)
+    starty = -(ctrlpos[1] % h)
+
+    x = startx
+    while x < csize[0]:
+        y = starty
+        while y < csize[1]:
+            dc.DrawBitmap(bmp, x, y, False)
+            y += h
+        x += w
 
 def get_centerposition(size, targetpos, targetsize=(1, 1)):
     """中央取りのpositionを計算して返す。"""
@@ -2340,6 +2348,54 @@ class CheckableListCtrl(wx.ListCtrl,
         self.DeleteAllItems()
 
         self.resizeLastColumn(0)
+
+class CWBackCheckBox(wx.CheckBox):
+    def __init__(self, parent, id, text):
+        """CAUTIONリソースを背景とするチェックボックス。"""
+        wx.CheckBox.__init__(self, parent, id, text)
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+
+        dc = wx.ClientDC(self)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))
+        w, h = dc.GetTextExtent(text)
+        bmp = cw.wins(cw.cwpy.rsrc.debugs["NOCHECK"])
+        w += cw.wins(4) + bmp.GetWidth()
+        h = max(h, bmp.GetHeight())
+        self.SetMinSize((w, h))
+        self.SetSize((w, h))
+
+        self._nocheck = bmp
+        self._check = cw.wins(cw.cwpy.rsrc.debugs["CHECK"])
+
+        self._bind()
+
+    def _bind(self):
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def OnPaint(self, event):
+        size = self.GetSize()
+        basebmp = wx.EmptyBitmap(size[0], size[1])
+        dc = wx.MemoryDC(basebmp)
+        # background
+        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        csize = self.GetClientSize()
+        fill_bitmap(dc, bmp, csize, ctrlpos=self.GetPosition())
+        # checkbox
+        if self.GetValue():
+            bmp = self._check
+        else:
+            bmp = self._nocheck
+        dc.DrawBitmap(bmp, cw.wins(2), (csize[1]-bmp.GetHeight()) / 2, True)
+        # text
+        dc.SetTextForeground(wx.BLACK)
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))
+        s = self.GetLabel()
+        tsize = dc.GetTextExtent(s)
+        dc.DrawText(s, bmp.GetWidth()+cw.wins(4), (csize[1]-tsize[1]) / 2)
+        dc.SelectObject(wx.NullBitmap)
+
+        dc = wx.PaintDC(self)
+        dc.DrawBitmap(basebmp, 0, 0)
 
 def add_sideclickhandlers(toppanel, leftbtn, rightbtn):
     """toppanelの左右の領域をクリックすると

@@ -2152,7 +2152,7 @@ class Party(object):
         # パーティデータ(CWPyElementTree)
         self.data = yadoxml2etree(path)
         # パーティ名
-        self.name = self.data.gettext("Property/Name")
+        self.name = self.data.gettext("Property/Name", "")
         # パーティ所持金
         self.money = self.data.getint("Property/Money", 0)
 
@@ -2161,6 +2161,9 @@ class Party(object):
         self.lastscenariopath = self.data.getattr("Property/LastScenario", "path", "")
         for e in self.data.getfind("Property/LastScenario", raiseerror=False):
             self.lastscenario.append(e.text)
+
+        # レベルアップ停止中か
+        self.is_suspendlevelup = self.data.getbool("Property/SuspendLevelUp", False)
 
         self.partyinfoonly = partyinfoonly
         if partyinfoonly:
@@ -2339,6 +2342,22 @@ class Party(object):
                 showbuttons = not cw.cwpy.is_playingscenario() or not cw.cwpy.is_runningevent()
                 cw.cwpy.statusbar.change(showbuttons)
                 cw.cwpy.has_inputevent = True
+
+    def suspend_levelup(self, suspend):
+        """
+        レベルアップの可否を設定する。
+        """
+        if suspend <> self.is_suspendlevelup:
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
+            self.is_suspendlevelup = suspend
+            e = self.data.find("Property/SuspendLevelUp")
+            if e is None:
+                pe = self.data.find("Property")
+                pe.append(make_element("SuspendLevelUp", str(suspend)))
+                self.data.is_edited = True
+            else:
+                self.data.edit("Property/SuspendLevelUp", str(suspend))
 
     def set_numbercoupon(self):
         """

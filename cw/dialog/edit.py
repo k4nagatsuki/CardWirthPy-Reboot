@@ -34,6 +34,11 @@ class PartyEditor(wx.Dialog):
         else:
             self.panel = MoneyEditPanel(self, self.party)
 
+        # オプションパネル
+        self.suspend_levelup = cw.util.CWBackCheckBox(self, -1, cw.cwpy.msgs["suspend_levelup"])
+        self.suspend_levelup.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15)))
+        self.suspend_levelup.SetValue(self.party.is_suspendlevelup)
+
         # btn
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
                                                         cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
@@ -47,7 +52,13 @@ class PartyEditor(wx.Dialog):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
         self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
-        self.panel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self.Bind(wx.EVT_CHECKBOX, self.OnSuspendLevelUp)
+        def recurse(ctrl):
+            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
+                ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+            for child in ctrl.GetChildren():
+                recurse(child)
+        recurse(self)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -61,23 +72,30 @@ class PartyEditor(wx.Dialog):
         sizer_v1.Add(self.textctrl, 0, wx.CENTER|wx.TOP, cw.wins(5))
         sizer_v1.Add(cw.wins((0, 18)), 0, wx.CENTER|wx.TOP, cw.wins(10))
         sizer_v1.Add(self.panel, 0, wx.CENTER|wx.TOP, cw.wins(5))
-        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(10))
+        sizer_v1.Add(self.suspend_levelup, 0, wx.ALIGN_RIGHT|wx.TOP, cw.wins(10))
+        sizer_v1.Add(sizer_btn, 0, wx.CENTER|wx.TOP, cw.wins(13))
 
         sizer.Add(sizer_v1, 0, wx.ALL, cw.wins(15))
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
 
+    def OnSuspendLevelUp(self, event):
+        cw.cwpy.play_sound("page")
+
     def OnOk(self, event):
         cw.cwpy.play_sound("harvest")
         name = self.textctrl.GetValue()
         money = self.panel.value
 
-        def func(self, party):
-            if not name == party.name:
+        def func(self, party, suspend_levelup):
+            if name <> party.name:
                 party.set_name(name)
 
-            if not money == party.money:
+            if suspend_levelup <> party.suspend_levelup:
+                party.suspend_levelup(suspend_levelup)
+
+            if money <> party.money:
                 pmoney = money - party.money
                 ymoney = party.money - money
                 cw.cwpy.ydata.set_money(ymoney, blink=True)
@@ -89,7 +107,7 @@ class PartyEditor(wx.Dialog):
                     btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
                     self.ProcessEvent(btnevent)
             cw.cwpy.frame.exec_func(func, self)
-        cw.cwpy.exec_func(func, self, self.party)
+        cw.cwpy.exec_func(func, self, self.party, self.suspend_levelup.GetValue())
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
@@ -216,12 +234,12 @@ class MoneyViewPanel(wx.Panel):
         bmp = cw.cwpy.rsrc.dialogs["MONEYP"]
         self.bmp_pmoney = cw.util.CWPyStaticBitmap(self, -1, bmp)
         # text
-        self.text_pmoney = wx.StaticText(self, -1, str(self.value),
-                                        size=(cw.wins(88), -1), style=wx.SUNKEN_BORDER)
-        self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(14)))
+        self.text_pmoney = wx.StaticText(self, -1, cw.cwpy.msgs["currency"] % (self.value),
+                                        size=(cw.wins(88), -1), style=wx.BORDER|wx.ALIGN_CENTRE_HORIZONTAL)
+        self.text_pmoney.SetFont(cw.cwpy.rsrc.get_wxfont("spin", pixelsize=cw.wins(16)))
         self.text_pmoney.SetBackgroundColour(wx.WHITE)
         self.text_party = wx.StaticText(self, -1, cw.cwpy.msgs["party_money"])
-        font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(12))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
         self.text_party.SetFont(font)
         self._do_layout()
 
@@ -231,7 +249,7 @@ class MoneyViewPanel(wx.Panel):
         sizer_v1 = wx.BoxSizer(wx.VERTICAL)
 
         sizer_v1.Add(self.text_party, 0, wx.CENTER, 0)
-        sizer_v1.Add(self.text_pmoney, 0, wx.CENTER, 0)
+        sizer_v1.Add(self.text_pmoney, 2, wx.CENTER|wx.TOP, cw.wins(2))
 
         sizer_h1.Add(self.bmp_pmoney, 0, wx.CENTER, 0)
         sizer_h1.Add(sizer_v1, 0, wx.CENTER|wx.LEFT, cw.wins(5))

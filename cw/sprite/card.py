@@ -820,8 +820,9 @@ class PlayerCard(CWPyCard, character.Player):
             names = [(0, cw.cwpy.msgs["ok"])]
             mwin = cw.sprite.message.MessageWindow(text, names, self.imgpath, self)
             cw.cwpy.show_message(mwin)
-            if base <> level:
+            if base <> level or cw.cwpy.ydata.party.is_suspendlevelup:
                 # レベル調節中だった場合は再調節
+                # レベルアップ停止中であれば元のレベルへ調節
                 cw.animation.animate_sprite(self, "hide")
                 self.set_level(level, regulate=True)
                 self.update_image()
