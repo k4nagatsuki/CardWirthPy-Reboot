@@ -281,8 +281,15 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
                                     {"speed": str(setting.transitionspeed)})
         element.append(e)
     # 背景のスムーススケーリング
+    attrs = {}
     if setting.smoothscale_bg <> setting.smoothscale_bg_init:
-        e = cw.data.make_element("SmoothScaling", u"", attrs={"bg":str(setting.smoothscale_bg)})
+        attrs["bg"] = str(setting.smoothscale_bg)
+    if setting.smoothing_card_up <> setting.smoothing_card_up_init:
+        attrs["upcard"] = str(setting.smoothing_card_up)
+    if setting.smoothing_card_down <> setting.smoothing_card_down_init:
+        attrs["downcard"] = str(setting.smoothing_card_down)
+    if attrs:
+        e = cw.data.make_element("SmoothScaling", u"", attrs=attrs)
         element.append(e)
     # 保存せずに終了しようとしたら警告
     if setting.caution_beforesaving <> setting.caution_beforesaving_init:

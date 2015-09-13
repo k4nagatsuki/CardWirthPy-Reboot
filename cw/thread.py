@@ -3041,7 +3041,7 @@ class CWPy(_Singleton, threading.Thread):
                             if not card.scale == 100:
                                 scale = card.scale / 100.0
                                 dummyimage = pygame.Surface(size_noscale_castcard)
-                                dummyimage = pygame.transform.rotozoom(dummyimage, 0, scale)
+                                dummyimage = cw.image.zoomcard(dummyimage, scale)
                                 size = dummyimage.get_size()
 
                             (area2_y, ), (card_y, ), (card_h, ) = \

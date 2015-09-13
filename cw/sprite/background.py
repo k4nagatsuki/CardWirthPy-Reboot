@@ -621,8 +621,8 @@ class InuseCardImage(card.CWPyCard):
 
         if not self.user.scale == 100 and not self.center:
             scale = self.user.scale / 100.0
-            self.rect.size = (int(self.rect.width*scale), int(self.rect.height*scale))
-            self.image = cw.image.smoothscale(self.image, self.rect.size)
+            self.image = cw.image.zoomcard(self.image, scale)
+            self.rect.size = self.image.get_size()
 
         if self.center:
             self.set_pos_noscale(center_noscale=(316, 142))

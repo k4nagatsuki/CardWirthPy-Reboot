@@ -173,7 +173,7 @@ class CWPyCard(base.SelectableSprite):
 
             if not self.scale == 100:
                 scale = self.scale / 100.0
-                image = pygame.transform.rotozoom(image, 0, scale)
+                image = cw.image.zoomcard(image, scale)
             else:
                 image = image.copy()
 
@@ -184,7 +184,7 @@ class CWPyCard(base.SelectableSprite):
                 img, rect = t
                 # 最大の一枚のみは長時間表示される
                 # 可能性があるためスムージングする
-                if i + 1 == len(self.zoomimgs):
+                if i + 1 == len(self.zoomimgs) and cw.cwpy.setting.smoothing_card_up:
                     scale = cw.image.smoothscale
                 else:
                     scale = pygame.transform.scale
@@ -394,7 +394,7 @@ class CWPyCard(base.SelectableSprite):
 
             h = cw.util.numwrap(self.rect.h + value, 0, maxh)
 
-        if (w, h) == (maxw, maxh):
+        if (w, h) == (maxw, maxh) and cw.cwpy.setting.smoothing_card_up:
             # 最大の一枚のみは長時間表示される
             # 可能性があるためスムージングする
             scale = cw.image.smoothscale
@@ -540,7 +540,7 @@ class CWPyCard(base.SelectableSprite):
 
         if not self.scale == 100:
             scale = self.scale / 100.0
-            image = pygame.transform.rotozoom(image, 0, scale)
+            image = cw.image.zoomcard(image, scale)
             rect.size = image.get_size()
 
         if self.cardtarget:
@@ -566,7 +566,7 @@ class CWPyCard(base.SelectableSprite):
                 h = rect[3]
                 # 最大の一枚のみは長時間表示される
                 # 可能性があるためスムージングする
-                if i + 1 == len(self.zoomimgs)-1:
+                if i + 1 == len(self.zoomimgs)-1 and cw.cwpy.setting.smoothing_card_up:
                     scale = cw.image.smoothscale
                 else:
                     scale = pygame.transform.scale

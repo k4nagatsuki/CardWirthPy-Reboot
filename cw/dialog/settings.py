@@ -359,6 +359,8 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
             self.pane_gene.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
         elif selpane == 1:
+            self.pane_draw.cb_smoothing_card_up.SetValue(cw.cwpy.setting.smoothing_card_up_init)
+            self.pane_draw.cb_smoothing_card_down.SetValue(cw.cwpy.setting.smoothing_card_down_init)
             self.pane_draw.cb_smooth_bg.SetValue(cw.cwpy.setting.smoothscale_bg_init)
             self.pane_draw.cb_whitecursor.SetValue(cw.cwpy.setting.cursor_type_init == cw.setting.CURSOR_WHITE)
             self.pane_draw.speed.sl_deal.SetValue(cw.cwpy.setting.dealspeed_init)
@@ -606,6 +608,17 @@ class SettingsPanel(wx.Panel):
         if setting.smoothscale_bg <> value:
             updatebg = True
             setting.smoothscale_bg = value
+
+        value = self.pane_draw.cb_smoothing_card_up.GetValue()
+        if setting.smoothing_card_up <> value:
+            updatemcardimg = True
+            updatecardimg = True
+            setting.smoothing_card_up = value
+        value = self.pane_draw.cb_smoothing_card_down.GetValue()
+        if setting.smoothing_card_down <> value:
+            updatemcardimg = True
+            updatecardimg = True
+            setting.smoothing_card_down = value
 
         self.pane_draw.speed.apply_speed(setting)
 
@@ -1466,13 +1479,12 @@ class SpeedPanel(wx.Panel):
 class DrawingSettingPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
-        # 背景拡大縮小補正
-        self.cb_smooth_bg = wx.CheckBox(
-            self, -1, u"拡大縮小した背景画像を滑らかにする")
-        # メイン画面で白いカーソルを使用する
-        self.cb_whitecursor = wx.CheckBox(
-            self, -1, u"メイン画面で白いカーソルを使用する")
+        self.cb_smoothing_card_up = wx.CheckBox(self, -1, u"拡大したカード画像を滑らかにする")
+        self.cb_smoothing_card_down = wx.CheckBox(self, -1, u"縮小したカード画像を滑らかにする")
+        self.cb_smooth_bg = wx.CheckBox(self, -1, u"拡大・縮小した背景画像を滑らかにする")
+        self.cb_whitecursor = wx.CheckBox(self, -1, u"メイン画面で白いカーソルを使用する")
 
         # 背景切替方式と各種速度
         self.speed = SpeedPanel(self, True)
@@ -1527,6 +1539,8 @@ class DrawingSettingPanel(wx.Panel):
 
     def load(self, setting):
         self.cb_smooth_bg.SetValue(setting.smoothscale_bg)
+        self.cb_smoothing_card_up.SetValue(setting.smoothing_card_up)
+        self.cb_smoothing_card_down.SetValue(setting.smoothing_card_down)
         self.cb_whitecursor.SetValue(setting.cursor_type == cw.setting.CURSOR_WHITE)
         self.cs_mwin.SetColour(setting.mwincolour)
         self.cs_blwin.SetColour(setting.blwincolour)
@@ -1573,6 +1587,8 @@ class DrawingSettingPanel(wx.Panel):
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
 
+        bsizer_gene.Add(self.cb_smoothing_card_up, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_smoothing_card_down, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_smooth_bg, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_whitecursor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))

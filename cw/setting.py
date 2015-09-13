@@ -93,6 +93,8 @@ class Setting(object):
         self.transition = "Fade"
         self.transitionspeed = 5
         self.smoothscale_bg = False
+        self.smoothing_card_up = True
+        self.smoothing_card_down = True
         self.caution_beforesaving = True
         self.store_skinoneachbase = True
         self.revert_cardpocket = True
@@ -380,6 +382,8 @@ class Setting(object):
         self.transitionspeed = cw.util.numwrap(self.transitionspeed, 0, 10)
         # 背景のスムーススケーリング
         self.smoothscale_bg = data.getbool("SmoothScaling", "bg", self.smoothscale_bg)
+        self.smoothing_card_up = data.getbool("SmoothScaling", "upcard", self.smoothing_card_up)
+        self.smoothing_card_down = data.getbool("SmoothScaling", "downcard", self.smoothing_card_down)
         # 保存せずに終了しようとしたら警告
         self.caution_beforesaving = data.getbool("CautionBeforeSaving", self.caution_beforesaving)
         # 拠点ごとにスキンを記憶

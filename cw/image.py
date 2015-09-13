@@ -912,6 +912,20 @@ def create_colorcell(size, color1, gradient, color2):
 # ユーティリティ
 #-------------------------------------------------------------------------------
 
+def zoomcard(image, scale):
+    """カードをリサイズする。"""
+    if scale == 1.0:
+        return image
+    elif 1.0 < scale:
+        smoothing = cw.cwpy.setting.smoothing_card_up
+    else:
+        smoothing = cw.cwpy.setting.smoothing_card_down
+
+    w, h = image.get_size()
+    w = int(w * scale)
+    h = int(h * scale)
+    return smoothscale(image, (w, h), smoothing=smoothing)
+
 def smoothscale(surface, size, smoothing=True):
     """surfaceをリサイズする。
     可能であればスムージングする。
