@@ -273,8 +273,10 @@ class SettingsPanel(wx.Panel):
         h = self.btn_dflt.GetBestSize()[1]
 
         self.btn_load = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_LOAD"])
+        self.btn_load.SetToolTipString(u"設定の読み込み")
         self.btn_load.SetMinSize((32, h))
         self.btn_save = wx.BitmapButton(self, -1, cw.cwpy.rsrc.debugs["SETTINGS_SAVE"])
+        self.btn_save.SetToolTipString(u"設定の保存")
         self.btn_save.SetMinSize((32, h))
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
