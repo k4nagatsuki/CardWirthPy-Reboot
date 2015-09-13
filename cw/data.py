@@ -1143,8 +1143,9 @@ class YadoData(object):
         # 現在選択中のパーティをセット
         optparty = cw.OPTIONS.party
         cw.OPTIONS.party = ""
+        loadparty &= self.environment.getbool("Property/NowSelectingParty", "autoload", True)
+        self.party = None
         if loadparty or optparty:
-            self.party = None
             pname = self.environment.gettext("Property/NowSelectingParty", "")
             if optparty:
                 # 起動オプションでパーティが選択されている

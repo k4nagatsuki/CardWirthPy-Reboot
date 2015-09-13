@@ -82,7 +82,7 @@ def create_partyrecord(party):
     _create_xml("PartyRecord", path, d)
     return path
 
-def create_environment(name, dpath, skindirname):
+def create_environment(name, dpath, skindirname, is_autoloadparty):
     """
     dpath: "Environment.xml"を作成する宿のディレクトリパス。
     宿のデータを納める"Environment.xml"を作る。
@@ -102,7 +102,8 @@ def create_environment(name, dpath, skindirname):
          "nowadventuring" : "False",
          "completestamps" : "",
          "gossips" : "",
-         "indent": ""}
+         "indent": "",
+         "is_autoloadparty": str(is_autoloadparty)}
 
     path = cw.util.join_paths(dpath, "Environment.xml")
     _create_xml("Environment", path, d)

@@ -169,7 +169,7 @@ $indent  <Name>$name</Name>
 $indent  <Skin>$skinname</Skin>
 $indent  <Type>$skintype</Type>
 $indent  <Cashbox>$cashbox</Cashbox>
-$indent  <NowSelectingParty>$selectingparty</NowSelectingParty>
+$indent  <NowSelectingParty autoload="$is_autoloadparty">$selectingparty</NowSelectingParty>
 $indent </Property>
 $indent <CompleteStamps>$completestamps
 $indent </CompleteStamps>

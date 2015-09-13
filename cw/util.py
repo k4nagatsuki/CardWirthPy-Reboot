@@ -2367,17 +2367,23 @@ class CWBackCheckBox(wx.CheckBox):
         self._nocheck = bmp
         self._check = cw.wins(cw.cwpy.rsrc.debugs["CHECK"])
 
+        self.background = cw.cwpy.rsrc.dialogs["CAUTION"]
+
         self._bind()
 
     def _bind(self):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+    def set_background(self, bmp):
+        self.background = bmp
+        self.Refresh()
 
     def OnPaint(self, event):
         size = self.GetSize()
         basebmp = wx.EmptyBitmap(size[0], size[1])
         dc = wx.MemoryDC(basebmp)
         # background
-        bmp = cw.cwpy.rsrc.dialogs["CAUTION"]
+        bmp = self.background
         csize = self.GetClientSize()
         fill_bitmap(dc, bmp, csize, ctrlpos=self.GetPosition())
         # checkbox

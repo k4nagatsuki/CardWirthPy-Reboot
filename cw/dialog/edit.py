@@ -28,14 +28,15 @@ class PartyEditor(wx.Dialog):
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
 
-        # 所持金パネル。
+        # 所持金パネル
         if self.party.is_adventuring():
             self.panel = MoneyViewPanel(self, self.party)
         else:
             self.panel = MoneyEditPanel(self, self.party)
 
-        # オプションパネル
+        # レベルアップの停止
         self.suspend_levelup = cw.util.CWBackCheckBox(self, -1, cw.cwpy.msgs["suspend_levelup"])
+        self.suspend_levelup.SetToolTipString(cw.cwpy.msgs["suspend_levelup_description"])
         self.suspend_levelup.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15)))
         self.suspend_levelup.SetValue(self.party.is_suspendlevelup)
 

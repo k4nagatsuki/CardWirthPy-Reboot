@@ -1553,6 +1553,7 @@ class YadoCreater(wx.Dialog):
             self._msg1 = cw.cwpy.msgs["create_base_message_1"]
             self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["create_base_message_2"], 0, 32)
             skin = cw.cwpy.setting.skindirname
+            is_autoloadparty = True
         else:
             fpath = cw.util.join_paths(self.yadodir, "Environment.xml")
             self.data = cw.data.xml2etree(fpath)
@@ -1562,6 +1563,8 @@ class YadoCreater(wx.Dialog):
             self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["edit_base_message_2"], 0, 32)
             self.skindirname = self.data.gettext("Property/Skin", cw.cwpy.setting.skindirname)
             skin = self.skindirname
+            self.is_autoloadparty = self.data.getbool("Property/NowSelectingParty", "autoload", True)
+            is_autoloadparty = self.is_autoloadparty
 
         choices = []
         self.command0s = []
@@ -1594,6 +1597,13 @@ class YadoCreater(wx.Dialog):
         else:
             self.skin.Select(0)
 
+        # パーティのオートロード
+        self.autoload_party = cw.util.CWBackCheckBox(self, -1, cw.cwpy.msgs["autoload_party"])
+        self.autoload_party.SetToolTipString(cw.cwpy.msgs["autoload_party_description"])
+        self.autoload_party.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15)))
+        self.autoload_party.SetValue(is_autoloadparty)
+        self.autoload_party.set_background(self._load_caution())
+
         self.okbtn = cw.cwpy.rsrc.create_wxbutton(self, -1,
                                                         cw.wins((100, 30)), cw.cwpy.msgs["entry_decide"])
         self.cnclbtn = cw.cwpy.rsrc.create_wxbutton(self, wx.ID_CANCEL,
@@ -1604,6 +1614,7 @@ class YadoCreater(wx.Dialog):
     def create_yado(self):
         name = self.textctrl.GetValue().strip()
         skindirname = self.skindirnames[self.skin.GetSelection()]
+        is_autoloadparty = self.autoload_party.GetValue()
         self.yadodir = cw.util.join_paths("Yado", cw.binary.util.check_filename(name))
         self.yadodir = cw.binary.util.check_duplicate(self.yadodir)
         os.makedirs(self.yadodir)
@@ -1614,21 +1625,27 @@ class YadoCreater(wx.Dialog):
             path = cw.util.join_paths(self.yadodir, dname)
             os.makedirs(path)
 
-        cw.xmlcreater.create_environment(name, self.yadodir, skindirname)
+        cw.xmlcreater.create_environment(name, self.yadodir, skindirname, is_autoloadparty)
 
     def edit_yado(self):
         cw.cwpy.play_sound("harvest")
         name = self.textctrl.GetValue().strip()
         skindirname = self.skindirnames[self.skin.GetSelection()]
+        is_autoloadparty = self.autoload_party.GetValue()
 
-        if name <> self.name or skindirname <> self.skindirname:
+        if name <> self.name or\
+                skindirname <> self.skindirname or\
+                is_autoloadparty <> self.is_autoloadparty:
             # データ上の編集
             if not self.data.find("Property/Name") is None:
                 self.data.edit("Property/Name", name)
             else:
                 e = cw.data.make_element("Name", name)
                 self.data.insert("Property", e, 0)
+
             self.data.edit("Property/Skin", skindirname)
+            self.data.edit("Property/NowSelectingParty", str(is_autoloadparty), "autoload")
+
             self.data.write()
 
         if name <> self.name:
@@ -1657,6 +1674,7 @@ class YadoCreater(wx.Dialog):
 
     def OnChoice(self, event):
         cw.cwpy.play_sound("page")
+        self.autoload_party.set_background(self._load_caution())
         self.Refresh()
 
     def OnOk(self, event):
@@ -1672,17 +1690,21 @@ class YadoCreater(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, event):
-        dc = wx.PaintDC(self)
-        # background
+    def _load_caution(self):
         index = self.skin.GetSelection()
         imgdata = self.cautions[index]
         bmp = imgdata[1]
         if not bmp:
             bmp = cw.wins((cw.util.load_wxbmp(imgdata[0], False), cw.setting.SIZE_RESOURCES[u"Dialog/CAUTION"]))
             imgdata[1] = bmp
+        return bmp
+
+    def OnPaint(self, event):
+        dc = wx.PaintDC(self)
+        # background
+        index = self.skin.GetSelection()
         csize = self.GetClientSize()
-        cw.util.fill_bitmap(dc, bmp, csize)
+        cw.util.fill_bitmap(dc, self._load_caution(), csize)
 
         # card image
         imgdata = self.command0s[index]
@@ -1731,9 +1753,14 @@ class YadoCreater(wx.Dialog):
     def _bind(self):
         self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_CHOICE, self.OnChoice, self.skin)
+        def recurse(ctrl):
+            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
+                ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+            for child in ctrl.GetChildren():
+                recurse(child)
+        recurse(self)
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -1777,6 +1804,10 @@ class YadoCreater(wx.Dialog):
         sizer_1.Add(sizer_3, 0, 0, 0)
 
         sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
+
+        sizer_1.Add(self.autoload_party, 0, wx.LEFT|wx.RIGHT|wx.ALIGN_RIGHT, cw.wins(10))
+
+        sizer_1.Add(cw.wins((0, 12)), 0, 0, 0)
 
         csize = sizer_1.CalcMin()
         self._inputareaheight = csize[1]

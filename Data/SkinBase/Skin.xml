@@ -699,11 +699,14 @@
     <Message key="show_itemcards">アイテムカードを表示</Message>
     <Message key="show_beastcards">召喚獣カードを表示</Message>
     <Message key="suspend_levelup">レベルアップを停止する</Message>
+    <Message key="suspend_levelup_description">レベルが上昇した時、現在のレベルが維持されるように自動的にレベル調節を行います。</Message>
     <Message key="settings">設定の変更</Message>
-    <Message key="edit_base_description">この拠点の名称などの設定を編集します。</Message>
+    <Message key="edit_base_description">この拠点の名称などの設定を編集します</Message>
     <Message key="edit_base_title">拠点の編集</Message>
     <Message key="edit_base_message_1">拠点の設定を変更します。</Message>
     <Message key="edit_base_message_2">新しい設定を入力してください。</Message>
+    <Message key="autoload_party">パーティのオートロード</Message>
+    <Message key="autoload_party_description">拠点を開いた時、最後に保存した時のパーティを自動的に選択します</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>
