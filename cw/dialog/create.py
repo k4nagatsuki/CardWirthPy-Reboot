@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 import wx
 import pygame
 
@@ -1529,20 +1530,38 @@ def get_randommakings():
 #-------------------------------------------------------------------------------
 
 class YadoCreater(wx.Dialog):
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["create_base_title"], size=(318, 180),
+    def __init__(self, parent, yadodir=None):
+        """宿の登録または編集を行う。
+        parent: 親ウィンドウ。
+        yadodir: 編集対象の宿のディレクトリ。登録の場合はNone。
+        """
+        self.create = yadodir is None
+        self.yadodir = yadodir
+
+        s = cw.cwpy.msgs["create_base_title"] if self.create else cw.cwpy.msgs["edit_base_title"]
+        wx.Dialog.__init__(self, parent, -1, s, size=(318, 180),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.yadodir = ""
         self.SetDoubleBuffered(True)
 
         self.textctrl = wx.TextCtrl(self, size=cw.wins((175, 24)))
         self.textctrl.SetMaxLength(18)
         font = cw.cwpy.rsrc.get_wxfont("inputname", pixelsize=cw.wins(16))
         self.textctrl.SetFont(font)
-        self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
 
-        self._msg1 = cw.cwpy.msgs["create_base_message_1"]
-        self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["create_base_message_2"], 0, 32)
+        if self.create:
+            self.textctrl.SetValue(cw.cwpy.msgs["new_base"])
+            self._msg1 = cw.cwpy.msgs["create_base_message_1"]
+            self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["create_base_message_2"], 0, 32)
+            skin = cw.cwpy.setting.skindirname
+        else:
+            fpath = cw.util.join_paths(self.yadodir, "Environment.xml")
+            self.data = cw.data.xml2etree(fpath)
+            self.name = self.data.gettext("Property/Name", "")
+            self.textctrl.SetValue(self.name)
+            self._msg1 = cw.cwpy.msgs["edit_base_message_1"]
+            self._msg2 = cw.util.txtwrap(cw.cwpy.msgs["edit_base_message_2"], 0, 32)
+            self.skindirname = self.data.gettext("Property/Skin", cw.cwpy.setting.skindirname)
+            skin = self.skindirname
 
         choices = []
         self.command0s = []
@@ -1566,7 +1585,10 @@ class YadoCreater(wx.Dialog):
         self.skin = wx.Choice(self, size=(cw.wins(150), -1), choices=choices)
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(16))
         self.skin.SetFont(font)
-        if cw.cwpy.setting.skindirname in self.skindirnames:
+        if skin in self.skindirnames:
+            index = self.skindirnames.index(skin)
+            self.skin.Select(index)
+        elif cw.cwpy.setting.skindirname in self.skindirnames:
             index = self.skindirnames.index(cw.cwpy.setting.skindirname)
             self.skin.Select(index)
         else:
@@ -1594,6 +1616,37 @@ class YadoCreater(wx.Dialog):
 
         cw.xmlcreater.create_environment(name, self.yadodir, skindirname)
 
+    def edit_yado(self):
+        cw.cwpy.play_sound("harvest")
+        name = self.textctrl.GetValue().strip()
+        skindirname = self.skindirnames[self.skin.GetSelection()]
+
+        if name <> self.name or skindirname <> self.skindirname:
+            # データ上の編集
+            if not self.data.find("Property/Name") is None:
+                self.data.edit("Property/Name", name)
+            else:
+                e = cw.data.make_element("Name", name)
+                self.data.insert("Property", e, 0)
+            self.data.edit("Property/Skin", skindirname)
+            self.data.write()
+
+        if name <> self.name:
+            # ディレクトリの移動
+            yadodir = os.path.dirname(self.yadodir)
+            dname = cw.binary.util.check_filename(name)
+            if os.path.normcase(os.path.basename(self.yadodir)) <> os.path.normcase(dname):
+                yadodir = cw.util.join_paths(yadodir, dname)
+                yadodir = cw.binary.util.check_duplicate(yadodir)
+                try:
+                    shutil.move(self.yadodir, yadodir)
+                    self.yadodir = yadodir
+                except Exception:
+                    cw.util.print_ex()
+
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
     def OnInput(self, event):
         name = self.textctrl.GetValue().strip()
 
@@ -1607,7 +1660,10 @@ class YadoCreater(wx.Dialog):
         self.Refresh()
 
     def OnOk(self, event):
-        self.create_yado()
+        if self.create:
+            self.create_yado()
+        else:
+            self.edit_yado()
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
         self.ProcessEvent(btnevent)
 

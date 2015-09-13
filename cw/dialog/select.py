@@ -464,7 +464,7 @@ class YadoSelect(Select):
                     break
 
         items = [
-            (cw.cwpy.msgs["rename"], cw.cwpy.msgs["rename_base_description"], self.rename_yado, not classic and hasmutexlocal),
+            (cw.cwpy.msgs["settings"], cw.cwpy.msgs["edit_base_description"], self.rename_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"], self.trasnfer_yadodata, cantransfer),
             (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic and hasmutexlocal),
@@ -485,7 +485,7 @@ class YadoSelect(Select):
             try:
                 cw.cwpy.play_sound("click")
                 path = self.list[self.index]
-                dlg = cw.dialog.edit.YadoEditDialog(self, path)
+                dlg = cw.dialog.create.YadoCreater(self, path)
                 cw.cwpy.frame.move_dlg(dlg)
 
                 if dlg.ShowModal() == wx.ID_OK:

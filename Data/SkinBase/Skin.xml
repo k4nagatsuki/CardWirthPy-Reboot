@@ -463,15 +463,11 @@
     <Message key="new_base">新規宿</Message>
     <Message key="create_base_message_1">新しい冒険者の宿を登録します。</Message>
     <Message key="create_base_message_2">登録する冒険者の宿の名称を入力して下さい。</Message>
-    <Message key="rename">改名</Message>
     <Message key="copy">複製</Message>
     <Message key="transfer">転送</Message>
-    <Message key="rename_base_description">この拠点の名称を変更します。</Message>
     <Message key="copy_base_description">この拠点の複製を生成します。</Message>
     <Message key="delete_base_description">この拠点を破棄し、全ての情報を削除します。</Message>
     <Message key="transfer_base_description">他の拠点のカードやブックマークをこの拠点へコピーします。</Message>
-    <Message key="rename_base_title">名称の変更</Message>
-    <Message key="rename_base_message">新しい名称を入力して下さい。</Message>
     <Message key="copy_base">%sを複製します。
 よろしいですか？</Message>
     <Message key="transfer_title">カードとブックマークの転送</Message>
@@ -703,6 +699,11 @@
     <Message key="show_itemcards">アイテムカードを表示</Message>
     <Message key="show_beastcards">召喚獣カードを表示</Message>
     <Message key="suspend_levelup">レベルアップを停止する</Message>
+    <Message key="settings">設定の変更</Message>
+    <Message key="edit_base_description">この拠点の名称などの設定を編集します。</Message>
+    <Message key="edit_base_title">拠点の編集</Message>
+    <Message key="edit_base_message_1">拠点の設定を変更します。</Message>
+    <Message key="edit_base_message_2">新しい設定を入力してください。</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>
