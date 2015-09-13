@@ -29,6 +29,8 @@ BASS_TAG_RIFF_INFO = 0x100
 BASS_TAG_RIFF_BEXT = 0x101
 BASS_TAG_RIFF_CART = 0x102
 BASS_TAG_RIFF_DISP = 0x103
+BASS_SAMPLE_8BITS = 1
+BASS_SAMPLE_FLOAT = 256
 
 CC111 = 111
 
@@ -151,6 +153,7 @@ def _play(fpath, volume, loop):
 
         # RPGツクールで使用されるループ位置情報(CC#111)を探し、
         # 存在する場合はその位置からループ再生を行う
+        setloop = False
         count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
         if count:
             events = "\0" * (count*4*5)
@@ -164,12 +167,16 @@ def _play(fpath, volume, loop):
                 pos = c_long(bassMidiEvent[4])
                 if param == CC111: # CC#111があったのでここでループする
                     _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, pos)
+                    setloop = True
                     break
+
     else:
+        setloop = False
         stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag)
         if not stream:
             raise ValueError("_play() failure: %s" % (fpath))
 
+    if not setloop:
         loopinfo = _get_loopinfo(fpath, stream)
         if loopinfo:
             loopstart, loopend = loopinfo
@@ -183,10 +190,36 @@ def _play(fpath, volume, loop):
 
     return stream
 
+class BASS_CHANNELINFO(ctypes.Structure):
+    _fields_ = [("freq", ctypes.c_int),
+                ("chans", ctypes.c_int),
+                ("flags", ctypes.c_int),
+                ("ctype", ctypes.c_int),
+                ("origres", ctypes.c_int),
+                ("plugin", ctypes.c_void_p),
+                ("sample", ctypes.c_void_p),
+                ("filename", ctypes.c_char_p)]
+
 def _get_loopinfo(fpath, stream):
     """吉里吉里もしくはRPGツクール形式の
     ループ情報が存在すれば取得して返す。
     """
+    global _bass
+
+    info = BASS_CHANNELINFO()
+    pinfo = ctypes.byref(info)
+    if not _bass.BASS_ChannelGetInfo(stream, pinfo):
+        return None
+
+    sampperbytes = 44100.0 / info.freq
+    samptobytes = info.chans
+    if info.flags & BASS_SAMPLE_FLOAT:
+        samptobytes *= 4
+    elif info.flags & BASS_SAMPLE_8BITS:
+        samptobytes *= 1
+    else:
+        samptobytes *= 2
+
     # Ogg Vorbisコメント埋め込み
     s = _bass.BASS_ChannelGetTags(stream, BASS_TAG_OGG)
     if s:
@@ -203,11 +236,13 @@ def _get_loopinfo(fpath, stream):
         if 0 <= loopstart:
             if 0 <= looplength:
                 loopend = loopstart + looplength
-                loopend *= 32/8
+                loopend = loopend / sampperbytes
+                loopend *= samptobytes
             else:
                 loopend = -1
-            loopstart *= 32/8
-            return (loopstart, loopend)
+            loopstart = loopstart / sampperbytes
+            loopstart *= samptobytes
+            return (int(loopstart), int(loopend))
 
     # *.sliファイル
     sli = fpath + ".sli"
@@ -237,10 +272,12 @@ def _get_loopinfo(fpath, stream):
                     if sec.startswith("To="):
                         loopstart = int(sec[len("To="):])
                 if 0 <= loopstart:
-                    loopstart *= 32/8
+                    loopstart = loopstart / sampperbytes
+                    loopstart *= samptobytes
                     if 0 <= loopend:
-                        loopend *= 32/8
-                    return (loopstart, loopend)
+                        loopend = loopend / sampperbytes
+                        loopend *= samptobytes
+                    return (int(loopstart), int(loopend))
 
         except:
             cw.util.print_ex()
