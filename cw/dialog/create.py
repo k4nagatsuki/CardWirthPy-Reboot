@@ -873,7 +873,7 @@ class NamePage(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # Name
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("characre", pixelsize=cw.wins(16))
         font.SetUnderlined(True)
         dc.SetFont(font)
         s = cw.cwpy.msgs["entry_name"]
@@ -885,7 +885,7 @@ class NamePage(AdventurerCreaterPage):
         s = cw.cwpy.msgs["entry_age"]
         dc.DrawText(s, cw.wins(85), cw.wins(175))
 
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("characre", pixelsize=cw.wins(14))
         dc.SetFont(font)
         xx = [cw.wins(90), cw.wins(155)]
 
@@ -1922,7 +1922,7 @@ class DesignPanel(AdventurerCreaterPage):
         font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
         self.ch_imgdpath.SetFont(font)
 
-        font = cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("datadesc", pixelsize=cw.wins(14))
         self.descctrl = wx.TextCtrl(self, style=wx.NO_BORDER|wx.TE_MULTILINE)
         self.descctrl.SetFont(font)
 
@@ -2050,7 +2050,7 @@ class DesignPanel(AdventurerCreaterPage):
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # Resident Registration
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(18))
+        font = cw.cwpy.rsrc.get_wxfont("characre", pixelsize=cw.wins(13))
         dc.SetFont(font)
         dc.SetTextForeground(wx.BLACK)
         s = cw.cwpy.msgs["edit_character_message"]
@@ -2065,7 +2065,7 @@ class DesignPanel(AdventurerCreaterPage):
             y2 = 116
 
         # Name
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16))
+        font = cw.cwpy.rsrc.get_wxfont("characre", pixelsize=cw.wins(14))
         dc.SetFont(font)
         s = cw.cwpy.msgs["entry_name"]
         w = dc.GetTextExtent(s)[0]

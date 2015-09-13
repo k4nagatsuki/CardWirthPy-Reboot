@@ -920,7 +920,7 @@ class ScenarioSelect(select.Select):
 
             else:
                 # ディレクトリ名
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(21)))
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))
                 if isinstance(dpath, FindResult):
                     s = cw.cwpy.msgs["find_result"]
                 else:
@@ -940,7 +940,7 @@ class ScenarioSelect(select.Select):
                         dc.DrawBitmap(bmp, cw.wins(63), cw.wins(65), False)
 
             # contents
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
             s = cw.cwpy.msgs["contents"]
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(110))

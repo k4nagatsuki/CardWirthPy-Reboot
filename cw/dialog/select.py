@@ -711,7 +711,7 @@ class YadoSelect(Select):
         dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(70), True)
         # 宿名前
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(21)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))
         s = self.names[self.index]
         w = dc.GetTextExtent(s)[0]
 
@@ -734,7 +734,7 @@ class YadoSelect(Select):
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(56))
         # ページ番号
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(13)))
         s = str(self.index+1) if self.index > 0 else str(-self.index + 1)
         s = s + "/" + str(len(self.list))
         w = dc.GetTextExtent(s)[0]
@@ -1422,7 +1422,7 @@ class PartySelect(MultiViewSelect):
                     dc.DrawLabel(s, wx.Rect((bmpw-w*n[1])/2+w*(index-3), cw.wins(105), w, cw.wins(15)), wx.ALIGN_CENTER)
 
             # パーティ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(20)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(20)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
             dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
@@ -1440,7 +1440,7 @@ class PartySelect(MultiViewSelect):
                 dc.DestroyClippingRegion()
 
             # シナリオ・宿名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
 
             if sceheader:
                 s = sceheader.name
@@ -2260,9 +2260,12 @@ class PlayerSelect(MultiViewSelect):
 
                 # クーポン(新しい順から9つ)
                 hiddens = set([u"＿", u"＠"])
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charadesc", pixelsize=cw.wins(14)))
                 s = cw.cwpy.msgs["character_history"]
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(320) - w / 2, cw.wins(65))
+
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
                 history = []
                 for s in header.history:
                     if s and not s[0] in hiddens:

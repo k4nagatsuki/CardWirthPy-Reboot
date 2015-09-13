@@ -726,7 +726,7 @@ class CardControl(wx.Dialog):
                         dc.DrawBitmap(bmp, x, y, True)
 
         # カード枚数のフォント設定
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(17)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(17)))
 
         # カード置場・荷物袋・情報カードマーク
         if self._leftmark:
