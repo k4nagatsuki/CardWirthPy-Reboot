@@ -5,6 +5,7 @@ import message
 import cardinfo
 import cardcontrol
 import select
+import scenarioselect
 import charainfo
 import text
 import create

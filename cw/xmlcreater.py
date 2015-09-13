@@ -582,6 +582,19 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("CanClickSidesOfCardControl", str(setting.can_clicksidesofcardcontrol))
         element.append(e)
 
+    if writeplayingdata:
+        # 一覧表示
+        attrs = {}
+        if setting.show_multipleparties or setting.show_multipleparties_init:
+            attrs["party"] = str(setting.show_multipleparties)
+        if setting.show_multipleplayers or setting.show_multipleplayers_init:
+            attrs["player"] = str(setting.show_multipleplayers)
+        if setting.show_scenariotree or setting.show_scenariotree_init:
+            attrs["scenario"] = str(setting.show_scenariotree)
+        if attrs:
+            e = cw.data.make_element("ShowMultipleItems", "", attrs=attrs)
+            element.append(e)
+
     # ファイル書き込み
     path = fpath
     etree = cw.data.xml2etree(element=element)

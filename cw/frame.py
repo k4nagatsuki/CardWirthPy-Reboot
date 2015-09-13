@@ -497,7 +497,7 @@ class Frame(wx.Frame):
 
         if not os.path.exists(u"Scenario"):
             os.makedirs(u"Scenario")
-        dlg = cw.dialog.select.ScenarioSelect(self, db)
+        dlg = cw.dialog.scenarioselect.ScenarioSelect(self, db)
         if cw.cwpy.setting.lastscenario or cw.cwpy.setting.lastscenariopath:
             dlg.set_selected(cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath)
         self.move_dlg(dlg)

@@ -169,6 +169,11 @@ class Setting(object):
         self.last_backpackpage = 0
         self.last_cardpocketbpage = [0] * 3 # 荷物袋からの使用
 
+        # 一覧表示
+        self.show_multipleparties = False
+        self.show_multipleplayers = False
+        self.show_scenariotree = False
+
         self.basefont  = {"gothic"  : "",
                           "uigothic": "",
                           "mincho"  : "",
@@ -548,6 +553,11 @@ class Setting(object):
         self.show_premiumicon = data.getbool("ShowPremiumIcon", self.show_premiumicon)
         # カード選択ダイアログの背景クリックで左右移動を行う
         self.can_clicksidesofcardcontrol = data.getbool("CanClickSidesOfCardControl", self.can_clicksidesofcardcontrol)
+
+        # 一覧表示
+        self.show_multipleparties = data.getbool("ShowMultipleItems", "party", self.show_multipleparties)
+        self.show_multipleplayers = data.getbool("ShowMultipleItems", "player", self.show_multipleplayers)
+        self.show_scenariotree = data.getbool("ShowMultipleItems", "scenario", self.show_scenariotree)
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
