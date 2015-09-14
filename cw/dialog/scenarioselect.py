@@ -1024,7 +1024,7 @@ class ScenarioSelect(select.Select):
                 dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70), True)
 
             # シナリオ名
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(21)))
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))
             s = header.name
             w = dc.GetTextExtent(s)[0]
             maxwidth = bmpw - cw.wins(5)*2
@@ -1042,7 +1042,7 @@ class ScenarioSelect(select.Select):
                 y += cw.wins(15)
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle",
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("targetlevel",
                                             style=wx.FONTSTYLE_ITALIC, pixelsize=cw.wins(16)))
             levelmax = str(header.levelmax) if header.levelmax else ""
             levelmin = str(header.levelmin) if header.levelmin else ""

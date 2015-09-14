@@ -2212,6 +2212,7 @@ class FontSettingPanel(wx.Panel):
                           "tab"          : u"タブ",
                           "menu"         : u"メニュー",
                           "scenario"     : u"張り紙見出し",
+                          "targetlevel"  : u"対象レベル",
                           "paneltitle"   : u"パネル見出し1",
                           "paneltitle2"  : u"パネル見出し2",
                           "dlgmsg"       : u"ダイアログテキスト1",
@@ -2225,7 +2226,7 @@ class FontSettingPanel(wx.Panel):
                           "charadesc"    : u"キャラクター解説文",
                           "characre"     : u"キャラクター登録",
                           "dlglist"      : u"ダイアログリスト",
-                          "uselimit"     : u"カード使用回数",
+                          "uselimit"     : u"カード残り回数",
                           "cardname"     : u"カード名",
                           "ccardname"    : u"キャストカード名",
                           "level"        : u"カードレベル",
@@ -2245,7 +2246,7 @@ class FontSettingPanel(wx.Panel):
                       "message", "selectionbar", "logpage",
                       "uselimit", "numcards", "statusnum",
                       "sbarpanel", "sbarbtn", "sbardesc", "screenshot",
-                      "scenario", "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2", "inputname",
+                      "scenario", "targetlevel", "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2", "inputname",
                       "datadesc", "charaparam", "charaparam2", "charadesc", "characre", "dlglist",
                       "button", "combo", "slider", "spin", "tree", "list", "tab", "menu")
 
