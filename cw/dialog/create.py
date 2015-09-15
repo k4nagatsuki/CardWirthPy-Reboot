@@ -1147,7 +1147,7 @@ class RelationPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 血縁
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
+        font = cw.cwpy.rsrc.get_wxfont("targetlevel", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_title"]
         w = dc.GetTextExtent(s)[0]
@@ -1365,7 +1365,7 @@ class TalentPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 素質
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
+        font = cw.cwpy.rsrc.get_wxfont("targetlevel", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["nature_title"]
         w = dc.GetTextExtent(s)[0]
@@ -1431,7 +1431,7 @@ class AttrPage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 特性
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
+        font = cw.cwpy.rsrc.get_wxfont("targetlevel", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_title"]
         w = dc.GetTextExtent(s)[0]
