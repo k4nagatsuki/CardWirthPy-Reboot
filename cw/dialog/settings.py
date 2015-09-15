@@ -2219,6 +2219,7 @@ class FontSettingPanel(wx.Panel):
                           "dlgmsg2"      : u"ダイアログテキスト2",
                           "dlgtitle"     : u"英文見出し1",
                           "dlgtitle2"    : u"英文見出し2",
+                          "createtitle"  : u"登録見出し",
                           "inputname"    : u"名前入力欄",
                           "datadesc"     : u"データ解説文",
                           "charaparam"   : u"キャラクター見出し1",
@@ -2246,8 +2247,8 @@ class FontSettingPanel(wx.Panel):
                       "message", "selectionbar", "logpage",
                       "uselimit", "numcards", "statusnum",
                       "sbarpanel", "sbarbtn", "sbardesc", "screenshot",
-                      "scenario", "targetlevel", "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2", "inputname",
-                      "datadesc", "charaparam", "charaparam2", "charadesc", "characre", "dlglist",
+                      "scenario", "targetlevel", "paneltitle", "paneltitle2", "dlgmsg", "dlgmsg2", "dlgtitle", "dlgtitle2",
+                      "createtitle", "dlglist", "inputname", "datadesc", "charadesc", "charaparam", "charaparam2",  "characre", 
                       "button", "combo", "slider", "spin", "tree", "list", "tab", "menu")
 
         # フォント配列のロード

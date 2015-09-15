@@ -198,6 +198,7 @@ class Setting(object):
                           "dlgmsg2"      : ("uigothic", "", -1, False, False, False),
                           "dlgtitle"     : ("mincho",   "", -1, True, True, False),
                           "dlgtitle2"    : ("mincho",   "", -1, True, True, True),
+                          "createtitle"  : ("mincho",   "", -1, True, True, True),
                           "inputname"    : ("mincho",   "", -1, True, True, False),
                           "datadesc"     : ("gothic",   "", -1, False, False, False),
                           "charadesc"    : ("mincho",   "", -1, True, True, False),
