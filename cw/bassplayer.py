@@ -151,24 +151,25 @@ def _play(fpath, volume, loop):
         else:
             raise ValueError("_play() failure: %s" % (fpath))
 
-        # RPGツクールで使用されるループ位置情報(CC#111)を探し、
-        # 存在する場合はその位置からループ再生を行う
         setloop = False
-        count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
-        if count:
-            events = "\0" * (count*4*5)
-            count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
-            for i in xrange(0, count, 4*5):
-                bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
-                _event = bassMidiEvent[0] # 使用しない
-                param = bassMidiEvent[1]
-                _chan = bassMidiEvent[2] # 使用しない
-                _tick = bassMidiEvent[3] # 使用しない
-                pos = c_long(bassMidiEvent[4])
-                if param == CC111: # CC#111があったのでここでループする
-                    _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, pos)
-                    setloop = True
-                    break
+        if loop:
+            # RPGツクールで使用されるループ位置情報(CC#111)を探し、
+            # 存在する場合はその位置からループ再生を行う
+            count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
+            if count:
+                events = "\0" * (count*4*5)
+                count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
+                for i in xrange(0, count, 4*5):
+                    bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
+                    _event = bassMidiEvent[0] # 使用しない
+                    param = bassMidiEvent[1]
+                    _chan = bassMidiEvent[2] # 使用しない
+                    _tick = bassMidiEvent[3] # 使用しない
+                    pos = c_long(bassMidiEvent[4])
+                    if param == CC111: # CC#111があったのでここでループする
+                        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, pos)
+                        setloop = True
+                        break
 
     else:
         setloop = False
@@ -176,7 +177,7 @@ def _play(fpath, volume, loop):
         if not stream:
             raise ValueError("_play() failure: %s" % (fpath))
 
-    if not setloop:
+    if loop and not setloop:
         loopinfo = _get_loopinfo(fpath, stream)
         if loopinfo:
             loopstart, loopend = loopinfo
