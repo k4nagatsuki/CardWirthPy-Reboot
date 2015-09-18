@@ -87,7 +87,8 @@ class StatusBar(base.CWPySprite):
                     if cw.cwpy.ydata.party:
                         self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             else:
-                CancelButton(self, cw.s((10, 6)))
+                if showbuttons:
+                    CancelButton(self, cw.s((10, 6)))
                 if cw.cwpy.status == "Scenario":
                     self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
                 elif cw.cwpy.is_battlestatus():
