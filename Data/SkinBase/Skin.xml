@@ -707,6 +707,11 @@
     <Message key="edit_base_message_2">新しい設定を入力してください。</Message>
     <Message key="autoload_party">パーティのオートロード</Message>
     <Message key="autoload_party_description">拠点を開いた時、最後に保存した時のパーティを自動的に選択します</Message>
+    <Message key="show_unfitness_scenario">適正レベル以外のシナリオを表示</Message>
+    <Message key="show_completed_scenario">終了済シナリオを表示</Message>
+    <Message key="show_invisible_scenario">隠蔽シナリオを表示</Message>
+    <Message key="open_directory">シナリオの場所を開く</Message>
+    <Message key="open_with_editor">シナリオをエディタで開く</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>

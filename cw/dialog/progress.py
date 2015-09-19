@@ -16,7 +16,7 @@ class ProgressDialog(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE)
         self.SetClientSize(cw.wins((300, 60)))
         self.EnableCloseButton(False)
-        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.text = message
         self.minimum = minimum
         self.maximum = maximum

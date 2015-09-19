@@ -2353,7 +2353,7 @@ class CWBackCheckBox(wx.CheckBox):
     def __init__(self, parent, id, text):
         """CAUTIONリソースを背景とするチェックボックス。"""
         wx.CheckBox.__init__(self, parent, id, text)
-        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15)))

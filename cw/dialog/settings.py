@@ -429,9 +429,6 @@ class SettingsPanel(wx.Panel):
             # スキン毎のシナリオ開始位置の設定は変更しない
             self.pane_scenario.tx_editor.SetValue(cw.cwpy.setting.editor_init)
             self.pane_scenario.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype_init)
-            self.pane_scenario.cb_showunfitnessscenario.SetValue(cw.cwpy.setting.show_unfitnessscenario_init)
-            self.pane_scenario.cb_showcompletedscenario.SetValue(cw.cwpy.setting.show_completedscenario_init)
-            self.pane_scenario.cb_showinvisiblescenario.SetValue(cw.cwpy.setting.show_invisiblescenario_init)
         elif selpane == 5:
             self.pane_ui.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait_init)
             self.pane_ui.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation_init)
@@ -751,12 +748,6 @@ class SettingsPanel(wx.Panel):
         setting.editor = value
         value = self.pane_scenario.cb_selectscenariofromtype.GetValue()
         setting.selectscenariofromtype = value
-        value = self.pane_scenario.cb_showunfitnessscenario.GetValue()
-        setting.show_unfitnessscenario = value
-        value = self.pane_scenario.cb_showcompletedscenario.GetValue()
-        setting.show_completedscenario = value
-        value = self.pane_scenario.cb_showinvisiblescenario.GetValue()
-        setting.show_invisiblescenario = value
 
         setting.folderoftype = []
         for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
@@ -1834,9 +1825,6 @@ class ScenarioSettingPanel(wx.Panel):
         # シナリオのオプション
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
-        self.cb_showunfitnessscenario = wx.CheckBox(self, -1, u"適正レベル以外のシナリオを表示する")
-        self.cb_showcompletedscenario = wx.CheckBox(self, -1, u"終了済シナリオを表示する")
-        self.cb_showinvisiblescenario = wx.CheckBox(self, -1, u"隠蔽シナリオを表示する")
 
         # スキンタイプ毎の初期フォルダ
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
@@ -1868,9 +1856,6 @@ class ScenarioSettingPanel(wx.Panel):
 
     def load(self, setting):
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype)
-        self.cb_showunfitnessscenario.SetValue(setting.show_unfitnessscenario)
-        self.cb_showcompletedscenario.SetValue(setting.show_completedscenario)
-        self.cb_showinvisiblescenario.SetValue(setting.show_invisiblescenario)
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
         self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
@@ -1917,9 +1902,6 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype = wx.StaticBoxSizer(self.box_folderoftype, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_showunfitnessscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-        bsizer_gene.Add(self.cb_showcompletedscenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
-        bsizer_gene.Add(self.cb_showinvisiblescenario, 0, wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)

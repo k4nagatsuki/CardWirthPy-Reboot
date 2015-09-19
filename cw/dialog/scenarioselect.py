@@ -30,6 +30,7 @@ class ScenarioSelect(select.Select):
     def __init__(self, parent, db):
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
+        self.SetDoubleBuffered(True)
         # ディレクトリとシナリオリストの対応
         self.scetable = {}
         # シナリオディレクトリ
@@ -58,8 +59,49 @@ class ScenarioSelect(select.Select):
         # 検索結果
         self.find_result = None
 
+        # 表示設定
+        def create_btn(msg, bmp, value):
+            btn = wx.lib.buttons.ThemedGenBitmapToggleButton(self, -1, None, size=cw.wins((46, 24)))
+            dbmp = cw.imageretouch.to_disabledimage(bmp)
+            btn.SetToggle(value)
+            if not value:
+                bmp = dbmp
+            btn.SetBitmapFocus(bmp)
+            btn.SetBitmapLabel(bmp, False)
+            btn.SetBitmapSelected(bmp)
+            btn.SetToolTipString(msg)
+            return btn, bmp, dbmp
+        self.unfitness, self.bmp_unfitness, self.dbmp_unfitness = create_btn(cw.cwpy.msgs["show_unfitness_scenario"],
+                                                                             cw.cwpy.rsrc.dialogs["SUMMARY_UNFITNESS"],
+                                                                             cw.cwpy.setting.show_unfitnessscenario)
+        self.completed, self.bmp_completed, self.dbmp_completed = create_btn(cw.cwpy.msgs["show_completed_scenario"],
+                                                                             cw.cwpy.rsrc.dialogs["SUMMARY_COMPLETE"],
+                                                                             cw.cwpy.setting.show_completedscenario)
+        self.invisible, self.bmp_invisible, self.dbmp_invisible = create_btn(cw.cwpy.msgs["show_invisible_scenario"],
+                                                                             cw.cwpy.rsrc.dialogs["SUMMARY_INVISIBLE"],
+                                                                             cw.cwpy.setting.show_invisiblescenario)
+
+        self.pagelabel = wx.StaticText(self, -1, u"1/1")
+        self.pagelabel.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
+
+        # エクスプローラーで開く
+        bmp = cw.cwpy.rsrc.dialogs["DIRECTORY"]
+        self.opendirbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (cw.wins(32), cw.wins(24)), bmp=bmp)
+        self.opendirbtn.SetToolTip(wx.ToolTip(cw.cwpy.msgs["open_directory"]))
+
+        # エディタで開く
+        if cw.cwpy.is_debugmode():
+            bmp = cw.cwpy.rsrc.dialogs["EDITOR"]
+            self.editorbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, (cw.wins(32), cw.wins(24)), bmp=bmp)
+            self.editorbtn.SetToolTip(wx.ToolTip(cw.cwpy.msgs["open_with_editor"]))
+        else:
+            self.editorbtn = None
+
+        # toppanel
+        self.toppanel = wx.Panel(self, -1, size=(cw.wins(400), cw.wins(370)+2))
+
         # ツリー表示用のビュー
-        self.tree = wx.TreeCtrl(self, -1, size=cw.wins((400, 370)),
+        self.tree = wx.TreeCtrl(self, -1, size=(cw.wins(400), cw.wins(370)+2),
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
         self.tree.SetDoubleBuffered(True)
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1))
@@ -114,9 +156,6 @@ class ScenarioSelect(select.Select):
         self.bookmark = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(32)), bmp=bmp)
         self.bookmark.SetToolTip(wx.ToolTip(cw.cwpy.msgs["bookmark"]))
 
-        # toppanel
-        self.toppanel = wx.Panel(self, -1, size=cw.wins((400, 370)))
-
         # ok
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, cw.wins((55, 24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.yesbtn)
@@ -156,6 +195,12 @@ class ScenarioSelect(select.Select):
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
         ##self.Bind(wx.EVT_BUTTON, self.OnClickConvBtn, self.convbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
+        self.Bind(wx.EVT_BUTTON, self.OnUnfitnessBtn, self.unfitness)
+        self.Bind(wx.EVT_BUTTON, self.OnCompletedBtn, self.completed)
+        self.Bind(wx.EVT_BUTTON, self.OnInvisibleBtn, self.invisible)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.open_directory(), self.opendirbtn)
+        if self.editorbtn:
+            self.Bind(wx.EVT_BUTTON, lambda event: self.open_with_editor(), self.editorbtn)
         self.tree.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnTreeItemExpanded)
         self.tree.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnTreeItemCollapsed)
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnTreeSelChanged)
@@ -203,6 +248,45 @@ class ScenarioSelect(select.Select):
     def OnEscape(self, event):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
+
+    def OnUnfitnessBtn(self, event):
+        cw.cwpy.play_sound("page")
+        cw.cwpy.setting.show_unfitnessscenario = self.unfitness.GetToggle()
+        if self.unfitness.GetToggle():
+            bmp = self.bmp_unfitness
+        else:
+            bmp = self.dbmp_unfitness
+        self.unfitness.SetBitmapFocus(bmp)
+        self.unfitness.SetBitmapLabel(bmp, False)
+        self.unfitness.SetBitmapSelected(bmp)
+
+        self.update_narrowcondition()
+
+    def OnCompletedBtn(self, event):
+        cw.cwpy.play_sound("page")
+        cw.cwpy.setting.show_completedscenario = self.completed.GetToggle()
+        if self.completed.GetToggle():
+            bmp = self.bmp_completed
+        else:
+            bmp = self.dbmp_completed
+        self.completed.SetBitmapFocus(bmp)
+        self.completed.SetBitmapLabel(bmp, False)
+        self.completed.SetBitmapSelected(bmp)
+
+        self.update_narrowcondition()
+
+    def OnInvisibleBtn(self, event):
+        cw.cwpy.play_sound("page")
+        cw.cwpy.setting.show_invisiblescenario = self.invisible.GetToggle()
+        if self.invisible.GetToggle():
+            bmp = self.bmp_invisible
+        else:
+            bmp = self.dbmp_invisible
+        self.invisible.SetBitmapFocus(bmp)
+        self.invisible.SetBitmapLabel(bmp, False)
+        self.invisible.SetBitmapSelected(bmp)
+
+        self.update_narrowcondition()
 
     def OnPrevButton(self, event):
         if wx.Window.FindFocus() is self.tree:
@@ -260,6 +344,17 @@ class ScenarioSelect(select.Select):
                 self.OnNarrowCondition(event)
 
     def _add_topsizer(self):
+        hsizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        hsizer1.Add(self.unfitness, 0, 0, 0)
+        hsizer1.Add(self.completed, 0, 0, 0)
+        hsizer1.Add(self.invisible, 0, 0, 0)
+        hsizer1.AddStretchSpacer(1)
+        hsizer1.Add(self.pagelabel, 0, wx.CENTER|wx.RIGHT, cw.wins(5))
+        hsizer1.Add(self.opendirbtn, 0, 0, 0)
+        if self.editorbtn:
+            hsizer1.Add(self.editorbtn, 0, 0, 0)
+        self.topsizer.Insert(0, hsizer1, 0, wx.EXPAND|wx.TOP|wx.CENTER|wx.ALIGN_RIGHT, cw.wins(1))
+
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
 
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -833,6 +928,109 @@ class ScenarioSelect(select.Select):
             cw.cwpy.setting.show_scenariotree = True
 
         self.enable_btn()
+        self.Layout()
+
+    def _can_opendir(self):
+        return self.list and not isinstance(self.list[self.index], FindResult)
+
+    def _can_editor(self):
+        return cw.cwpy.setting.editor and self.list and isinstance(self.list[self.index], cw.header.ScenarioHeader)
+
+    def open_directory(self):
+        if not self.list:
+            return
+        header = self.list[self.index]
+        if isinstance(header, FindResult):
+            return
+
+        cw.cwpy.play_sound("click")
+
+        def open_file(fpath):
+            fpath = os.path.normpath(fpath)
+            if sys.platform == "win32":
+                s = "explorer /select,\"%s\"" % (fpath)
+            elif sys.platform.startswith("darwin"):
+                s = "open \"%s\"" % (os.path.dirname(fpath))
+            elif sys.platform.startswith("linux"):
+                s = "nautilus \"%s\"" % (os.path.dirname(fpath))
+            else:
+                cw.cwpy.play_sound("error")
+            encoding =  sys.getfilesystemencoding()
+            os.popen(s.encode(encoding))
+
+        def open_dir(dpath):
+            dpath = os.path.normpath(dpath)
+            if sys.platform == "win32":
+                s = "explorer \"%s\"" % (dpath)
+            elif sys.platform.startswith("darwin"):
+                s = "open \"%s\"" % (dpath)
+            elif sys.platform.startswith("linux"):
+                s = "nautilus \"%s\"" % (dpath)
+            else:
+                cw.cwpy.play_sound("error")
+            encoding =  sys.getfilesystemencoding()
+            os.popen(s.encode(encoding))
+
+        if isinstance(header, cw.header.ScenarioHeader):
+            s = header.get_fpath()
+            s = os.path.abspath(s)
+            s = cw.util.get_linktarget(s)
+            if os.path.isfile(s):
+                open_file(s)
+            else:
+                if os.path.isfile(os.path.join(s, u"Summary.wsm")):
+                    open_file(os.path.join(s, u"Summary.wsm"))
+                elif os.path.isfile(os.path.join(s, u"Summary.xml")):
+                    open_file(os.path.join(s, u"Summary.xml"))
+                else:
+                    open_dir(s)
+        else:
+            s = os.path.abspath(header)
+            s = cw.util.get_linktarget(s)
+            open_dir(s)
+
+    def open_with_editor(self):
+        if not self.list:
+            return
+        editor = cw.cwpy.setting.editor
+        if not editor:
+            return
+
+        header = self.list[self.index]
+        if not isinstance(header, cw.header.ScenarioHeader):
+            return
+
+        cw.cwpy.play_sound("click")
+
+        # エディタ起動
+        fpath = header.get_fpath()
+        fpath = os.path.abspath(fpath)
+        fpath = cw.util.get_linktarget(fpath)
+        fpath = os.path.normpath(fpath)
+        encoding = sys.getfilesystemencoding()
+        editor = editor.encode(encoding)
+        fpath = fpath.encode(encoding)
+        seq = [editor, fpath]
+
+        try:
+            subprocess.Popen(seq)
+        except:
+            s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [デバッガ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
+            dlg = cw.dialog.message.ErrorMessage(self, s)
+            cw.cwpy.frame.move_dlg(dlg)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+    def convert_scenario(self):
+        if not self.list:
+            return
+        header = self.list[self.index]
+        if not isinstance(header, cw.header.ScenarioHeader) or header.type <> 1:
+            return
+
+        fpath = header.get_fpath()
+        fpath = cw.util.get_linktarget(fpath)
+        self.conv_scenario(fpath)
 
     def OnSelect(self, event):
         if not self.list or not self.yesbtn.Enabled:
@@ -862,8 +1060,20 @@ class ScenarioSelect(select.Select):
     def draw(self, update=False):
         self._draw_impl(update)
 
+    def _update_pagelabel(self):
+        if self.list:
+            self.pagelabel.SetLabel("%s/%s" % (self.index+1, len(self.list)))
+        else:
+            self.pagelabel.SetLabel("1/1")
+        dc = wx.ClientDC(self.pagelabel)
+        w, h, _lh = dc.GetMultiLineTextExtent(self.pagelabel.GetLabel())
+        self.pagelabel.SetSize((w, h))
+        self.pagelabel.SetMinSize((w, h))
+        self.Layout()
+
     def _draw_impl(self, update=False, dc=None):
         if update:
+            self._update_pagelabel()
             self.enable_btn()
 
         if self.tree.IsShown():
@@ -874,23 +1084,21 @@ class ScenarioSelect(select.Select):
             dc = select.Select.draw(self, update)
 
         # 背景
+        yp = 1
+        csize = self.GetClientSize()
+        colour = wx.Colour(32, 32, 32)
+        dc.SetPen(wx.Pen(colour))
+        dc.SetBrush(wx.Brush(colour))
+        dc.DrawRectangle(0, 0, csize[0], csize[1])
         path = "Table/Bill"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
-        dc.DrawBitmap(bmp, 0, 0, False)
+        dc.DrawBitmap(bmp, 0, yp, False)
 
         # リストが空だったら描画終了
         if not self.list:
             return
-
-        # ページ番号
-        dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
-        s = str(self.index+1) if self.list else str(0)
-        s = s + "/" + str(len(self.list))
-        w = dc.GetTextExtent(s)[0]
-        cw.util.draw_witharound(dc, s, bmpw-w-cw.wins(10), cw.wins(10))
 
         if not isinstance(self.list[self.index], cw.header.ScenarioHeader):
             dpath = self.list[self.index]
@@ -916,7 +1124,7 @@ class ScenarioSelect(select.Select):
             if scan_folder_bmp and os.path.isfile(scan_folder_bmp):
                 # Folder.bmp表示
                 folder_bmp = cw.util.load_wxbmp(scan_folder_bmp, True)
-                cw.util.draw_center(dc, cw.wins(folder_bmp), cw.wins((200, 60)), True)
+                cw.util.draw_center(dc, cw.wins(folder_bmp), (cw.wins(200), cw.wins(60)+yp), True)
 
             else:
                 # ディレクトリ名
@@ -928,22 +1136,25 @@ class ScenarioSelect(select.Select):
                     if s.lower().endswith(".lnk"):
                         s = s[0:-len(".lnk")]
                 maxwidth = bmpw-cw.wins(135)-cw.wins(5)
-                cw.util.draw_witharound(dc, s, cw.wins(135), cw.wins(65), maxwidth=maxwidth)
+                cw.util.draw_witharound(dc, s, cw.wins(135), cw.wins(65)+yp, maxwidth=maxwidth)
                 # フォルダ画像
                 bmp = cw.cwpy.rsrc.dialogs["FOLDER"]
-                dc.DrawBitmap(bmp, cw.wins(65), cw.wins(30), True)
-
-                if not isinstance(dpath, FindResult):
+                dc.DrawBitmap(bmp, cw.wins(65), cw.wins(30)+yp, True)
+                if isinstance(dpath, FindResult):
+                    # 検索アイコン
+                    bmp = cw.cwpy.rsrc.dialogs["FIND_SCENARIO3"]
+                    dc.DrawBitmap(bmp, cw.wins(108), cw.wins(65)+yp, True)
+                else:
                     if sys.platform == "win32" and dpath.lower().endswith(".lnk"):
                         # リンクシンボル
                         bmp = cw.cwpy.rsrc.dialogs["LINK"]
-                        dc.DrawBitmap(bmp, cw.wins(63), cw.wins(65), False)
+                        dc.DrawBitmap(bmp, cw.wins(63), cw.wins(65)+yp, False)
 
             # contents
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
             s = cw.cwpy.msgs["contents"]
             w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, (bmpw-w)/2, cw.wins(110))
+            dc.DrawText(s, (bmpw-w)/2, cw.wins(110)+yp)
             # 中身
             font = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14), adjustsize=True)
             font2 = cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(12))
@@ -1001,14 +1212,14 @@ class ScenarioSelect(select.Select):
                     x = (bmpw - size[0]) / 2
 
                 dc.SetFont(font)
-                dc.DrawText(name, x, y)
+                dc.DrawText(name, x, y+yp)
 
                 if addition:
                     dc.SetFont(font2)
                     dc.SetTextForeground((128, 128, 128))
                     x2 = x + space + size[0]
                     y2 = y + ((size[1] - size2[1]) / 2) + 1
-                    dc.DrawText(addition, x2, y2)
+                    dc.DrawText(addition, x2, y2+yp)
 
                 y += cw.wins(15)
 
@@ -1021,7 +1232,7 @@ class ScenarioSelect(select.Select):
                 bmp = header.get_wxbmp()
                 w = bmp.GetSize()[0]
                 # 左上位置固定(互換性維持)
-                dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70), True)
+                dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70)+yp, True)
 
             # シナリオ名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("scenario", pixelsize=cw.wins(21)))
@@ -1029,16 +1240,16 @@ class ScenarioSelect(select.Select):
             w = dc.GetTextExtent(s)[0]
             maxwidth = bmpw - cw.wins(5)*2
             if maxwidth < w:
-                cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(35), maxwidth=maxwidth)
+                cw.util.draw_witharound(dc, s, cw.wins(5), cw.wins(35)+yp, maxwidth=maxwidth)
             else:
-                cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(35))
+                cw.util.draw_witharound(dc, s, (bmpw-w)/2, cw.wins(35)+yp)
 
             # 解説文
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
             s = header.desc
             y = cw.wins(180)
             for l in s.splitlines():
-                dc.DrawText(l, cw.wins(65), y)
+                dc.DrawText(l, cw.wins(65), y+yp)
                 y += cw.wins(15)
             # 対象レベル
             dc.SetTextForeground(wx.Colour(0, 128, 128, 255))
@@ -1054,7 +1265,7 @@ class ScenarioSelect(select.Select):
                     s = cw.cwpy.msgs["target_level_2"] % (levelmin, levelmax)
 
                 w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, (bmpw-w)/2, cw.wins(15))
+                dc.DrawText(s, (bmpw-w)/2, cw.wins(15)+yp)
 
             self._enable_btn2(header, dc=dc)
 
@@ -1159,6 +1370,7 @@ class ScenarioSelect(select.Select):
                 self.draw(True)
 
         self._update_saveddirstack()
+        self._update_pagelabel()
 
     def create_treeitems(self, treeitem):
         self.tree.DeleteChildren(treeitem)
@@ -1380,6 +1592,7 @@ class ScenarioSelect(select.Select):
 
         self.dirstack = self.get_dirstack(paritem)
         self._update_saveddirstack()
+        self._update_pagelabel()
 
         self.enable_btn()
 
@@ -1579,6 +1792,11 @@ class ScenarioSelect(select.Select):
     def enable_btn(self):
         if self._processing:
             return
+
+        self.opendirbtn.Enable(self._can_opendir())
+        if self.editorbtn:
+            self.editorbtn.Enable(self._can_editor())
+
         # リストが空だったらボタンを無効化
         if not self.list:
             self.yesbtn.Enable(False)
@@ -1802,7 +2020,7 @@ class ScenarioSelect(select.Select):
 
         # 変換確認ダイアログ
         cw.cwpy.play_sound("click")
-        s = os.path.basename(path) + u"　を変換します。\nよろしいですか？"
+        s = u"「" + os.path.basename(path) + u"」を変換します。\nよろしいですか？"
         dlg = message.YesNoMessage(self, cw.cwpy.msgs["message"], s)
         self.Parent.move_dlg(dlg)
 
