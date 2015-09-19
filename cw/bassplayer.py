@@ -151,8 +151,15 @@ def _play(fpath, volume, loop):
         else:
             raise ValueError("_play() failure: %s" % (fpath))
 
-        setloop = False
-        if loop:
+    else:
+        stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag)
+        if not stream:
+            raise ValueError("_play() failure: %s" % (fpath))
+
+    if loop:
+        loopinfo = _get_loopinfo(fpath, stream)
+
+        if not loopinfo and ismidi:
             # RPGツクールで使用されるループ位置情報(CC#111)を探し、
             # 存在する場合はその位置からループ再生を行う
             count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
@@ -167,18 +174,9 @@ def _play(fpath, volume, loop):
                     _tick = bassMidiEvent[3] # 使用しない
                     pos = c_long(bassMidiEvent[4])
                     if param == CC111: # CC#111があったのでここでループする
-                        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, pos)
-                        setloop = True
+                        loopinfo = (pos, -1)
                         break
 
-    else:
-        setloop = False
-        stream = _bass.BASS_StreamCreateFile(False, fpath.encode(encoding), c_longlong(0), c_longlong(0), flag)
-        if not stream:
-            raise ValueError("_play() failure: %s" % (fpath))
-
-    if loop and not setloop:
-        loopinfo = _get_loopinfo(fpath, stream)
         if loopinfo:
             loopstart, loopend = loopinfo
             if 0 <= loopend:
@@ -221,30 +219,6 @@ def _get_loopinfo(fpath, stream):
     else:
         samptobytes *= 2
 
-    # Ogg Vorbisコメント埋め込み
-    s = _bass.BASS_ChannelGetTags(stream, BASS_TAG_OGG)
-    if s:
-        comment = ctypes.string_at(s)
-        loopstart = -1
-        looplength = -1
-        while comment:
-            if comment.startswith("LOOPSTART="):
-                loopstart = int(comment[len("LOOPSTART="):])
-            if comment.startswith("LOOPLENGTH="):
-                looplength = int(comment[len("LOOPLENGTH="):])
-            s += len(comment)+1
-            comment = ctypes.string_at(s)
-        if 0 <= loopstart:
-            if 0 <= looplength:
-                loopend = loopstart + looplength
-                loopend = loopend / sampperbytes
-                loopend *= samptobytes
-            else:
-                loopend = -1
-            loopstart = loopstart / sampperbytes
-            loopstart *= samptobytes
-            return (int(loopstart), int(loopend))
-
     # *.sliファイル
     sli = fpath + ".sli"
     if os.path.isfile(sli):
@@ -282,6 +256,30 @@ def _get_loopinfo(fpath, stream):
 
         except:
             cw.util.print_ex()
+
+    # Ogg Vorbisコメント埋め込み
+    s = _bass.BASS_ChannelGetTags(stream, BASS_TAG_OGG)
+    if s:
+        comment = ctypes.string_at(s)
+        loopstart = -1
+        looplength = -1
+        while comment:
+            if comment.startswith("LOOPSTART="):
+                loopstart = int(comment[len("LOOPSTART="):])
+            if comment.startswith("LOOPLENGTH="):
+                looplength = int(comment[len("LOOPLENGTH="):])
+            s += len(comment)+1
+            comment = ctypes.string_at(s)
+        if 0 <= loopstart:
+            if 0 <= looplength:
+                loopend = loopstart + looplength
+                loopend = loopend / sampperbytes
+                loopend *= samptobytes
+            else:
+                loopend = -1
+            loopstart = loopstart / sampperbytes
+            loopstart *= samptobytes
+            return (int(loopstart), int(loopend))
 
     return None
 

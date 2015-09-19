@@ -38,6 +38,8 @@ BMP, JPG, PNG, GIF(non animated)
 
 MIDI, WAV, MP3, OGG
 
+吉里吉里形式及びRPGツクール形式の音声ループ情報に対応しています。
+
 ### サポートしているシナリオ圧縮形式
 
 WSN, ZIP, CAB, LHA(lh1を除く)
