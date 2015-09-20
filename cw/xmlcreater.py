@@ -593,6 +593,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.show_paperandtree <> setting.show_paperandtree_init:
         e = cw.data.make_element("ShowPaperAndTree", str(setting.show_paperandtree))
         element.append(e)
+    # シナリオ選択ダイアログでのファイラー
+    if setting.filer <> setting.filer_init:
+        e = cw.data.make_element("Filer", setting.filer)
+        element.append(e)
 
     if writeplayingdata:
         # 一覧表示

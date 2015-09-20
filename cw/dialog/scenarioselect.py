@@ -1011,29 +1011,60 @@ class ScenarioSelect(select.Select):
 
         def open_file(fpath):
             fpath = os.path.normpath(fpath)
-            if sys.platform == "win32":
-                s = "explorer /select,\"%s\"" % (fpath)
-            elif sys.platform.startswith("darwin"):
-                s = "open \"%s\"" % (os.path.dirname(fpath))
-            elif sys.platform.startswith("linux"):
-                s = "nautilus \"%s\"" % (os.path.dirname(fpath))
+            filer = cw.cwpy.setting.filer
+            encoding = sys.getfilesystemencoding()
+            if filer:
+                filer = filer.encode(encoding)
+                dpath = os.path.dirname(fpath)
+                dpath = dpath.encode(encoding)
+                seq = [filer, dpath]
+                try:
+                    subprocess.Popen(seq)
+                except:
+                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [シナリオ選択ダイアログでのファイラー] > [ファイラー] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer))
+                    dlg = cw.dialog.message.ErrorMessage(self, s)
+                    cw.cwpy.frame.move_dlg(dlg)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+
             else:
-                cw.cwpy.play_sound("error")
-            encoding =  sys.getfilesystemencoding()
-            os.popen(s.encode(encoding))
+                if sys.platform == "win32":
+                    s = "explorer /select,\"%s\"" % (fpath)
+                elif sys.platform.startswith("darwin"):
+                    s = "open \"%s\"" % (os.path.dirname(fpath))
+                elif sys.platform.startswith("linux"):
+                    s = "nautilus \"%s\"" % (os.path.dirname(fpath))
+                else:
+                    cw.cwpy.play_sound("error")
+                os.popen(s.encode(encoding))
 
         def open_dir(dpath):
             dpath = os.path.normpath(dpath)
-            if sys.platform == "win32":
-                s = "explorer \"%s\"" % (dpath)
-            elif sys.platform.startswith("darwin"):
-                s = "open \"%s\"" % (dpath)
-            elif sys.platform.startswith("linux"):
-                s = "nautilus \"%s\"" % (dpath)
+            filer = cw.cwpy.setting.filer
+            encoding = sys.getfilesystemencoding()
+            if filer:
+                filer = filer.encode(encoding)
+                dpath = dpath.encode(encoding)
+                seq = [filer, dpath]
+                try:
+                    subprocess.Popen(seq)
+                except:
+                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [シナリオ選択ダイアログでのファイラー] > [ファイラー] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer))
+                    dlg = cw.dialog.message.ErrorMessage(self, s)
+                    cw.cwpy.frame.move_dlg(dlg)
+                    dlg.ShowModal()
+                    dlg.Destroy()
+
             else:
-                cw.cwpy.play_sound("error")
-            encoding =  sys.getfilesystemencoding()
-            os.popen(s.encode(encoding))
+                if sys.platform == "win32":
+                    s = "explorer \"%s\"" % (dpath)
+                elif sys.platform.startswith("darwin"):
+                    s = "open \"%s\"" % (dpath)
+                elif sys.platform.startswith("linux"):
+                    s = "nautilus \"%s\"" % (dpath)
+                else:
+                    cw.cwpy.play_sound("error")
+                os.popen(s.encode(encoding))
 
         if isinstance(header, cw.header.ScenarioHeader):
             s = header.get_fpath()
