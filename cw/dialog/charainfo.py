@@ -330,18 +330,16 @@ class CharaInfo(wx.Dialog):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
 
-        margin = (self.csize[0] - cw.wins(145)) / 2 + (self.csize[0] - cw.wins(145)) % 2
-        margin2 = (self.csize[0] - cw.wins(145)) / 2
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
-        sizer_panel.Add((margin, 0), 0, 0, 0)
+        sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.TOP, cw.wins(3))
-        sizer_panel.Add((margin2, 0), 0, 0, 0)
+        sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
 
         sizer_1.Add(self.toppanel, 0, 0, 0)
         sizer_1.Add(self.notebook, 0, 0, 0)
-        sizer_1.Add(self.panel, 0, 0, 0)
+        sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()

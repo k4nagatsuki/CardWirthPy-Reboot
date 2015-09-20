@@ -589,6 +589,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.can_clicksidesofcardcontrol <> setting.can_clicksidesofcardcontrol_init:
         e = cw.data.make_element("CanClickSidesOfCardControl", str(setting.can_clicksidesofcardcontrol))
         element.append(e)
+    # シナリオ選択ダイアログで貼紙と一覧を同時に表示する
+    if setting.show_paperandtree <> setting.show_paperandtree_init:
+        e = cw.data.make_element("ShowPaperAndTree", str(setting.show_paperandtree))
+        element.append(e)
 
     if writeplayingdata:
         # 一覧表示

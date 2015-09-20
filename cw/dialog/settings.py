@@ -429,6 +429,7 @@ class SettingsPanel(wx.Panel):
             # スキン毎のシナリオ開始位置の設定は変更しない
             self.pane_scenario.tx_editor.SetValue(cw.cwpy.setting.editor_init)
             self.pane_scenario.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype_init)
+            self.pane_scenario.cb_show_paperandtree.SetValue(cw.cwpy.setting.show_paperandtree)
         elif selpane == 5:
             self.pane_ui.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait_init)
             self.pane_ui.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation_init)
@@ -748,6 +749,10 @@ class SettingsPanel(wx.Panel):
         setting.editor = value
         value = self.pane_scenario.cb_selectscenariofromtype.GetValue()
         setting.selectscenariofromtype = value
+        value = self.pane_scenario.cb_show_paperandtree.GetValue()
+        setting.show_paperandtree = value
+        if setting.show_paperandtree:
+            setting.show_scenariotree = False
 
         setting.folderoftype = []
         for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
@@ -1825,6 +1830,7 @@ class ScenarioSettingPanel(wx.Panel):
         # シナリオのオプション
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_selectscenariofromtype = wx.CheckBox(self, -1, u"シナリオの選択開始位置をスキン毎に変更する")
+        self.cb_show_paperandtree = wx.CheckBox(self, -1, u"シナリオ選択ダイアログで貼紙と一覧を同時に表示する")
 
         # スキンタイプ毎の初期フォルダ
         self.box_folderoftype = wx.StaticBox(self, -1, u"シナリオフォルダ(スキンタイプ別)")
@@ -1856,6 +1862,7 @@ class ScenarioSettingPanel(wx.Panel):
 
     def load(self, setting):
         self.cb_selectscenariofromtype.SetValue(setting.selectscenariofromtype)
+        self.cb_show_paperandtree.SetValue(setting.show_paperandtree)
         if 0 < self.grid_folderoftype.GetNumberRows():
             self.grid_folderoftype.DeleteRows(0, self.grid_folderoftype.GetNumberRows())
         self.grid_folderoftype.InsertRows(0, len(setting.folderoftype) + 1)
@@ -1902,6 +1909,7 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype = wx.StaticBoxSizer(self.box_folderoftype, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_selectscenariofromtype, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_show_paperandtree, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         sizer_folderbtns = wx.BoxSizer(wx.HORIZONTAL)

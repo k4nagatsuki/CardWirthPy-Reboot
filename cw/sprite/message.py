@@ -718,20 +718,22 @@ class BacklogPage(base.CWPySprite):
     def update_scale(self):
         font = cw.cwpy.rsrc.fonts["backlog_page"]
         s = "%s/%s" % (self.page, self.max)
-        h = font.get_height()
-        w = h/2+cw.s(4)
-        self.image = pygame.Surface((w*len(s), h)).convert_alpha()
+        w, h = font.size(s)
+        w += 2
+        h += 2
+
+        self.image = pygame.Surface((w, h)).convert_alpha()
         self.image.fill((0, 0, 0, 0))
-        for i, c in enumerate(s):
-            x = i * w
-            y = cw.s(0)
-            subimg = font.render(c, True, (0, 0, 0))
-            for xi in xrange(x-1, x+2):
-                for yi in xrange(y-1, y+2):
-                    if xi <> x or yi <> y:
-                        self.image.blit(subimg, (xi, yi))
-            subimg = font.render(c, True, (255, 255, 255))
-            self.image.blit(subimg, (x, y))
+        x = 1
+        y = 1
+        subimg = font.render(s, True, (0, 0, 0))
+        for xi in xrange(x-1, x+2):
+            for yi in xrange(y-1, y+2):
+                if xi <> x or yi <> y:
+                    self.image.blit(subimg, (xi, yi))
+        subimg = font.render(s, True, (255, 255, 255))
+        self.image.blit(subimg, (x, y))
+
         self.rect = self.image.get_rect()
         pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - cw.s(10), cw.s(10))
         self.rect.topleft = pos

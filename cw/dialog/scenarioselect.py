@@ -97,11 +97,14 @@ class ScenarioSelect(select.Select):
         else:
             self.editorbtn = None
 
-        # toppanel
-        self.toppanel = wx.Panel(self, -1, size=(cw.wins(400), cw.wins(370)+2))
-
-        # ツリー表示用のビュー
-        self.tree = wx.TreeCtrl(self, -1, size=(cw.wins(400), cw.wins(370)+2),
+        # toppanelとツリー表示用のビュー
+        if cw.cwpy.setting.show_paperandtree:
+            self.toppanel = wx.Panel(self, -1, size=(cw.wins(400)+1, cw.wins(370)))
+            size = (cw.wins(270), 0)
+        else:
+            self.toppanel = wx.Panel(self, -1, size=(cw.wins(400), cw.wins(370)+2))
+            size = (cw.wins(400), cw.wins(370)+2)
+        self.tree = wx.TreeCtrl(self, -1, size=size,
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
         self.tree.SetDoubleBuffered(True)
         self.tree.SetFont(cw.cwpy.rsrc.get_wxfont("tree", pixelsize=cw.wins(15)-1))
@@ -116,6 +119,7 @@ class ScenarioSelect(select.Select):
         self.tree.SetItemPyData(self.tree.root, (0, self.scedir))
         self.tree.SetImageList(self.tree.imglist)
         self.tree.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        self._no_treechangedsound = False
 
         # 絞込条件
         choices = (cw.cwpy.msgs["title"],
@@ -156,29 +160,45 @@ class ScenarioSelect(select.Select):
         self.bookmark = cw.cwpy.rsrc.create_wxbutton(self, -1, (-1, cw.wins(32)), bmp=bmp)
         self.bookmark.SetToolTip(wx.ToolTip(cw.cwpy.msgs["bookmark"]))
 
+        if cw.cwpy.setting.show_paperandtree:
+            buttonwidth = cw.wins(100)
+        else:
+            buttonwidth = cw.wins(55)
+
         # ok
-        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, cw.wins((55, 24)), cw.cwpy.msgs["decide"])
+        self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, (buttonwidth, cw.wins(24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.yesbtn)
         # info
-        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((55, 24)), cw.cwpy.msgs["description"])
+        self.infobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (buttonwidth, cw.wins(24)), cw.cwpy.msgs["description"])
         self.buttonlist.append(self.infobtn)
-        # view
-        self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((55, 24)), cw.cwpy.msgs["scenario_tree"])
-        self.buttonlist.append(self.viewbtn)
+        if not cw.cwpy.setting.show_paperandtree:
+            # view
+            self.viewbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (buttonwidth, cw.wins(24)), cw.cwpy.msgs["scenario_tree"])
+            self.buttonlist.append(self.viewbtn)
+        else:
+            self.viewbtn = None
         # convert
-        ##self.convbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((55, 24)), u"変換")
+        ##self.convbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, (buttonwidth, cw.wins(24)), u"変換")
         ##self.buttonlist.append(self.convbtn)
         # close
-        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_NO, cw.wins((55, 24)), cw.cwpy.msgs["entry_cancel"])
+        self.nobtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_NO, (buttonwidth, cw.wins(24)), cw.cwpy.msgs["entry_cancel"])
         self.buttonlist.append(self.nobtn)
         # ドロップファイル機能ON
         self.DragAcceptFiles(True)
 
-        if cw.cwpy.setting.show_scenariotree:
-            self.toppanel.Hide()
+        if cw.cwpy.setting.show_paperandtree:
             self.show_tree()
         else:
-            self.tree.Hide()
+            if cw.cwpy.setting.show_scenariotree:
+                self.toppanel.Hide()
+                self.show_tree()
+            else:
+                self.tree.Hide()
+
+        if self.tree.IsShown():
+            item = self.tree.GetSelection()
+            if item and not self.tree.IsVisible(item):
+                self.tree.ScrollTo(item)
 
         # リストが空だったらボタンを無効化
         self.enable_btn()
@@ -192,7 +212,8 @@ class ScenarioSelect(select.Select):
         self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
         self.Bind(wx.EVT_BUTTON, self.OnClickYesBtn, self.yesbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickNoBtn, self.nobtn)
-        self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
+        if self.viewbtn:
+            self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
         ##self.Bind(wx.EVT_BUTTON, self.OnClickConvBtn, self.convbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickInfoBtn, self.infobtn)
         self.Bind(wx.EVT_BUTTON, self.OnUnfitnessBtn, self.unfitness)
@@ -302,7 +323,7 @@ class ScenarioSelect(select.Select):
             if selitem:
                 self._expand_tree(selitem)
                 return
-        select.Select.OnPrevButton(self, event)
+        select.Select.OnNextButton(self, event)
 
     def OnMouseWheel(self, event):
         if self._processing:
@@ -343,7 +364,36 @@ class ScenarioSelect(select.Select):
                 self.sort.SetSelection(index)
                 self.OnNarrowCondition(event)
 
+    def _do_layout(self):
+        if cw.cwpy.setting.show_paperandtree:
+            sizer_1 = wx.BoxSizer(wx.VERTICAL)
+            self.set_panelsizer()
+
+            sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+
+            self.topsizer = wx.BoxSizer(wx.VERTICAL)
+            self.topsizer.Add(self._sizer_top(), 0, wx.EXPAND, 0)
+            self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
+
+            sizer_2.Add(self.toppanel, 0, 0, 0)
+            sizer_2.Add(self.topsizer, 0, wx.EXPAND, 0)
+
+            sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
+            sizer_1.Add(self._sizer_find(), 0, wx.EXPAND, 0)
+            sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
+
+            self.SetSizer(sizer_1)
+            sizer_1.Fit(self)
+            self.Layout()
+        else:
+            select.Select._do_layout(self)
+
     def _add_topsizer(self):
+        self.topsizer.Insert(0, self._sizer_top(), 0, wx.EXPAND|wx.TOP|wx.CENTER|wx.ALIGN_RIGHT, cw.wins(1))
+        self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
+        self.topsizer.Add(self._sizer_find(), 0, wx.EXPAND, 0)
+
+    def _sizer_top(self):
         hsizer1 = wx.BoxSizer(wx.HORIZONTAL)
         hsizer1.Add(self.unfitness, 0, 0, 0)
         hsizer1.Add(self.completed, 0, 0, 0)
@@ -353,10 +403,9 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.opendirbtn, 0, 0, 0)
         if self.editorbtn:
             hsizer1.Add(self.editorbtn, 0, 0, 0)
-        self.topsizer.Insert(0, hsizer1, 0, wx.EXPAND|wx.TOP|wx.CENTER|wx.ALIGN_RIGHT, cw.wins(1))
+        return hsizer1
 
-        self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
-
+    def _sizer_find(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         vsizer1 = wx.BoxSizer(wx.VERTICAL)
@@ -376,8 +425,7 @@ class ScenarioSelect(select.Select):
 
         nsizer.Add(self.find, 0, wx.CENTER|wx.EXPAND, 0)
         nsizer.Add(self.bookmark, 0, wx.CENTER|wx.EXPAND, 0)
-
-        self.topsizer.Add(nsizer, 0, wx.EXPAND, 0)
+        return nsizer
 
     def OnFind(self, event):
         value = self.narrow.GetValue()
@@ -406,7 +454,7 @@ class ScenarioSelect(select.Select):
         cw.cwpy.play_sound("harvest")
         self._set_findresult(headers, False)
 
-        if not (self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen()):
+        if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
             self.draw(True)
 
     def _set_findresult(self, headers, selfirstheader):
@@ -427,7 +475,7 @@ class ScenarioSelect(select.Select):
             findresult.headers = headers[:]
 
         # 検索結果ディレクトリを表示する
-        if self.tree and self.tree.IsShown() and self.tree.IsShownOnScreen():
+        if self.tree and self.tree.IsShown():
             item, cookie = self.tree.GetFirstChild(self.tree.root)
             if item and item.IsOk():
                 data = self.tree.GetItemPyData(item)
@@ -642,8 +690,12 @@ class ScenarioSelect(select.Select):
             return
         _index, pathorheader = data
         if isinstance(pathorheader, cw.header.ScenarioHeader):
-            if self.viewbtn.Enabled:
-                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.viewbtn.GetId())
+            if self.viewbtn:
+                if self.viewbtn.Enabled():
+                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.viewbtn.GetId())
+                    self.ProcessEvent(btnevent)
+            else:
+                btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.yesbtn.GetId())
                 self.ProcessEvent(btnevent)
         else:
             if self.tree.IsExpanded(selitem):
@@ -868,21 +920,30 @@ class ScenarioSelect(select.Select):
 
     def OnClickYesBtn(self, event):
         if self.yesbtn.GetLabel() == cw.cwpy.msgs["see"]:
-            assert not self.tree.IsShown()
-            cw.cwpy.play_sound("equipment")
-            if isinstance(self.list[self.index], FindResult):
-                self.dirstack.append((self.nowdir, "/find_result"))
-                self.nowdir = self.list[self.index]
+            if self.tree.IsShown():
+                cw.cwpy.play_sound("equipment")
+                self._no_treechangedsound = True
+                selitem = self.tree.GetSelection()
+                self.tree.Expand(selitem)
+                item = self.tree.GetFirstChild(selitem)[0]
+                if item.IsOk():
+                    self.tree.SelectItem(item)
+                self._no_treechangedsound = False
             else:
-                self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
-                self.nowdir = cw.util.get_linktarget(self.list[self.index])
-            self.list = self._get_nowlist()
-            self.scetable[self.nowdir] = self.list
-            self.list = self._narrow_scenario(self.list)
-            self.index = 0
-            self.enable_btn()
-            self.draw(True)
-            self._update_saveddirstack()
+                cw.cwpy.play_sound("equipment")
+                if isinstance(self.list[self.index], FindResult):
+                    self.dirstack.append((self.nowdir, "/find_result"))
+                    self.nowdir = self.list[self.index]
+                else:
+                    self.dirstack.append((self.nowdir, os.path.basename(self.list[self.index])))
+                    self.nowdir = cw.util.get_linktarget(self.list[self.index])
+                self.list = self._get_nowlist()
+                self.scetable[self.nowdir] = self.list
+                self.list = self._narrow_scenario(self.list)
+                self.index = 0
+                self.enable_btn()
+                self.draw(True)
+                self._update_saveddirstack()
         elif self.yesbtn.GetLabel() == cw.cwpy.msgs["decide"]:
             self._update_saveddirstack()
             cw.cwpy.play_sound("signal")
@@ -914,6 +975,9 @@ class ScenarioSelect(select.Select):
             self.ProcessEvent(btnevent)
 
     def OnClickViewBtn(self, event):
+        if cw.cwpy.setting.show_paperandtree:
+            return
+
         cw.cwpy.play_sound("equipment")
         if self.tree.IsShown():
             self.tree.Hide()
@@ -1076,15 +1140,21 @@ class ScenarioSelect(select.Select):
             self._update_pagelabel()
             self.enable_btn()
 
-        if self.tree.IsShown():
+        if cw.cwpy.setting.show_paperandtree:
             self.select_treeitem(self.index)
-            return
+        else:
+            if self.tree.IsShown():
+                self.select_treeitem(self.index)
+                return
 
         if not dc:
             dc = select.Select.draw(self, update)
 
         # 背景
-        yp = 1
+        if cw.cwpy.setting.show_paperandtree:
+            yp = 0
+        else:
+            yp = 1
         csize = self.GetClientSize()
         colour = wx.Colour(32, 32, 32)
         dc.SetPen(wx.Pen(colour))
@@ -1320,6 +1390,8 @@ class ScenarioSelect(select.Select):
         self._processing = True
         selected = self.list[self.index] if self.list else None
         if self.tree.IsShown():
+            selitem = self.tree.GetSelection()
+            paritem = self.tree.GetItemParent(selitem)
             def recurse(parent):
                 index, nowdir = self.tree.GetItemPyData(parent)
                 if not nowdir in self.scetable:
@@ -1347,11 +1419,12 @@ class ScenarioSelect(select.Select):
                             self.tree.SelectItem(item)
 
             recurse(self.tree.root)
-            # スクロースしないほうが操作性がよい
+            # スクロールしないほうが操作性がよい
             #item = self.tree.GetSelection()
             #if item and not self.tree.IsVisible(item):
             #    self.tree.ScrollTo(item)
-        else:
+
+        if self.toppanel.IsShown():
             self.list = self.scetable[self.nowdir]
             self.list = self._narrow_scenario(self.list)
 
@@ -1360,13 +1433,16 @@ class ScenarioSelect(select.Select):
         # 選択のやり直し
         if selected and selected in self.list:
             self.index = self.list.index(selected)
-            if not self.tree.IsShown():
+            if self.toppanel.IsShown():
                 dc = wx.ClientDC(self.toppanel)
                 dc = wx.BufferedDC(dc)
                 self._draw_impl(False, dc)
+        elif cw.cwpy.setting.show_paperandtree:
+            self._tree_selchanged()
+            self.draw(True)
         else:
             self.index = max(0, min(self.index, len(self.list)-1))
-            if not self.tree.IsShown():
+            if self.toppanel.IsShown():
                 self.draw(True)
 
         self._update_saveddirstack()
@@ -1403,7 +1479,7 @@ class ScenarioSelect(select.Select):
                 itemlist.append(item)
                 dpaths.append(dpath)
 
-        if not treeitem is self.tree.root:
+        if not cw.cwpy.setting.show_paperandtree and not treeitem is self.tree.root:
             self.tree.Expand(treeitem)
 
         return itemlist, dpaths
@@ -1514,7 +1590,7 @@ class ScenarioSelect(select.Select):
         self._expandeditem(selitem, startdir=dpath, expandedset=set())
 
     def _expandeditem(self, selitem, startdir, expandedset):
-        if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
+        if not self.tree.IsShown():
             return
         if self._processing:
             return
@@ -1551,7 +1627,7 @@ class ScenarioSelect(select.Select):
         self.updatenames_thr.start()
 
     def OnTreeItemCollapsed(self, event):
-        if not (self.tree.IsShown() and self.tree.IsShownOnScreen()):
+        if not self.tree.IsShown():
             return
         item = event.GetItem()
         self._collapse_tree(item)
@@ -1574,8 +1650,15 @@ class ScenarioSelect(select.Select):
             return
         self._tree_selchanged()
 
+        if self.toppanel.IsShown():
+            if not self._no_treechangedsound:
+                cw.cwpy.play_sound("page")
+            self.draw(True)
+
     def _tree_selchanged(self):
         selitem = self.tree.GetSelection()
+        if not selitem:
+            return
         paritem = self.tree.GetItemParent(selitem)
 
         if self.tree.GetItemPyData(selitem) is None:
@@ -1628,8 +1711,10 @@ class ScenarioSelect(select.Select):
             i += 1
 
     def updated_names(self, dpath, dirstack, startdir, expandedset):
-        if not self.tree.IsShown():
+        if self.toppanel.IsShown():
             self.Refresh()
+
+        if not self.tree.IsShown():
             return
 
         if not self.tree.IsShownOnScreen():
@@ -1801,19 +1886,21 @@ class ScenarioSelect(select.Select):
         if not self.list:
             self.yesbtn.Enable(False)
             self.infobtn.Enable(False)
-            self.viewbtn.Enable(bool(self.dirstack))
+            if self.viewbtn:
+                self.viewbtn.Enable(bool(self.dirstack))
             self.nobtn.Enable()
             self.rightbtn.Disable()
             self.right2btn.Disable()
             self.leftbtn.Disable()
             self.left2btn.Disable()
-            self.SetTitle(u"貼紙を見る")
+            self.SetTitle(cw.cwpy.msgs["select_scenario_title"])
             return
 
         self.texts = self.get_texts()
         if len(self.list) == 1:
             self.infobtn.Enable(bool(self.texts))
-            self.viewbtn.Enable()
+            if self.viewbtn:
+                self.viewbtn.Enable()
             self.nobtn.Enable()
             self.rightbtn.Disable()
             self.right2btn.Disable()
@@ -1821,7 +1908,8 @@ class ScenarioSelect(select.Select):
             self.left2btn.Disable()
         else:
             self.infobtn.Enable(bool(self.texts))
-            self.viewbtn.Enable()
+            if self.viewbtn:
+                self.viewbtn.Enable()
             self.nobtn.Enable()
             self.rightbtn.Enable()
             self.right2btn.Enable()
@@ -1831,12 +1919,13 @@ class ScenarioSelect(select.Select):
         selected = self.list[self.index]
 
         # 状況によってボタンのテキストを更新
-        if self.tree.IsShown():
-            self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_one"])
-        else:
-            self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_tree"])
+        if self.viewbtn:
+            if self.tree.IsShown():
+                self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_one"])
+            else:
+                self.viewbtn.SetLabel(cw.cwpy.msgs["scenario_tree"])
 
-        if not self.list or isinstance(selected, cw.header.ScenarioHeader) or self.tree.IsShown():
+        if not self.list or isinstance(selected, cw.header.ScenarioHeader) or not self.toppanel.IsShown():
             self.yesbtn.SetLabel(cw.cwpy.msgs["decide"])
         else:
             self.yesbtn.SetLabel(cw.cwpy.msgs["see"])
@@ -1867,7 +1956,7 @@ class ScenarioSelect(select.Select):
                 enable = False
         else:
             dpath = selected
-            if self.tree.IsShown() or not os.path.isdir(cw.util.get_linktarget(dpath)):
+            if not self.toppanel.IsShown() or not os.path.isdir(cw.util.get_linktarget(dpath)):
                 enable = False
         self.yesbtn.Enable(enable)
 

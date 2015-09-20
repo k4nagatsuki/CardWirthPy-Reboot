@@ -81,7 +81,12 @@ class Select(wx.Dialog):
         self.toppanel.Bind(wx.EVT_LEFT_DOWN, self.OnMouseDown)
         self.toppanel.Bind(wx.EVT_MIDDLE_UP, self.OnSelectBase)
         self.toppanel.Bind(wx.EVT_LEFT_UP, self.OnSelectBase)
-        self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+        def recurse(ctrl):
+            if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
+                ctrl.Bind(wx.EVT_RIGHT_UP, self.OnCancel)
+            for child in ctrl.GetChildren():
+                recurse(child)
+        recurse(self)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMotion)
 
@@ -140,6 +145,7 @@ class Select(wx.Dialog):
             self.clickmode = 0
 
     def OnClickLeftBtn(self, evt):
+        self._processing = True
         if self.index == 0:
             self.index = len(self.list) -1
         else:
@@ -148,8 +154,11 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
+        self._processing = False
 
     def OnClickLeft2Btn(self, evt):
+        self._processing = True
+        self._processing = True
         if self.index == 0:
             self.index = len(self.list) -1
         elif self.index - 10 < 0:
@@ -160,8 +169,10 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
+        self._processing = False
 
     def OnClickRightBtn(self, evt):
+        self._processing = True
         if self.index == len(self.list) -1:
             self.index = 0
         else:
@@ -170,8 +181,10 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
+        self._processing = False
 
     def OnClickRight2Btn(self, evt):
+        self._processing = True
         if self.index == len(self.list) -1:
             self.index = 0
         elif self.index + 10 > len(self.list) -1:
@@ -182,6 +195,7 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
+        self._processing = False
 
     def index_changed(self):
         pass
@@ -247,25 +261,7 @@ class Select(wx.Dialog):
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
-        sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
-
-        sizer_panel.Add(self.left2btn, 0, 0, 0)
-        sizer_panel.Add(self.leftbtn, 0, 0, 0)
-
-        # button間のマージン値を求める
-        width = self.toppanel.GetClientSize()[0] - cw.wins(6)
-        btnwidth = cw.wins(120) + self.buttonlist[0].GetSize()[0] * len(self.buttonlist)
-        margin = (width - btnwidth) / (len(self.buttonlist)+1)
-
-        # sizer_panelにbuttonを設定
-        for button in self.buttonlist:
-            sizer_panel.Add((margin, 0), 0, 0, 0)
-            sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
-
-        sizer_panel.Add((margin, 0), 0, 0, 0)
-        sizer_panel.Add(self.rightbtn, 0, 0, 0)
-        sizer_panel.Add(self.right2btn, 0, 0, 0)
-        self.panel.SetSizer(sizer_panel)
+        self.set_panelsizer()
 
         self.topsizer = wx.BoxSizer(wx.VERTICAL)
         self.topsizer.Add(self.toppanel, 1, wx.EXPAND, 0)
@@ -279,6 +275,22 @@ class Select(wx.Dialog):
 
     def _add_topsizer(self):
         pass
+
+    def set_panelsizer(self):
+        sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
+
+        sizer_panel.Add(self.left2btn, 0, 0, 0)
+        sizer_panel.Add(self.leftbtn, 0, 0, 0)
+
+        # sizer_panelにbuttonを設定
+        for button in self.buttonlist:
+            sizer_panel.AddStretchSpacer(1)
+            sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+
+        sizer_panel.AddStretchSpacer(1)
+        sizer_panel.Add(self.rightbtn, 0, 0, 0)
+        sizer_panel.Add(self.right2btn, 0, 0, 0)
+        self.panel.SetSizer(sizer_panel)
 
     def _disable_btn(self):
         self.left2btn.Disable()
