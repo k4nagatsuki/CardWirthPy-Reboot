@@ -597,6 +597,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if writeplayingdata:
         # 一覧表示
         attrs = {}
+        if setting.show_multiplebases or setting.show_multiplebases_init:
+            attrs["base"] = str(setting.show_multiplebases)
         if setting.show_multipleparties or setting.show_multipleparties_init:
             attrs["party"] = str(setting.show_multipleparties)
         if setting.show_multipleplayers or setting.show_multipleplayers_init:
