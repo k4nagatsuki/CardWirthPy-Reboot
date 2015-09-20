@@ -160,7 +160,8 @@ class Setting(object):
         self.show_premiumicon = False
         self.can_clicksidesofcardcontrol = True
         self.show_paperandtree = False
-        self.filer = ""
+        self.filer_dir = ""
+        self.filer_file = ""
 
         # カード種の表示・非表示
         self.show_cardtype = [True] * 3
@@ -566,7 +567,8 @@ class Setting(object):
         # シナリオ選択ダイアログで貼紙と一覧を同時に表示する
         self.show_paperandtree = data.getbool("ShowPaperAndTree", self.show_paperandtree)
         # シナリオ選択ダイアログでのファイラー
-        self.filer = data.gettext("Filer", self.filer)
+        self.filer_dir = data.gettext("FilerDirectory", self.filer_dir)
+        self.filer_file = data.gettext("FilerFile", self.filer_file)
 
         # 一覧表示
         self.show_multipleparties = data.getbool("ShowMultipleItems", "party", self.show_multipleparties)

@@ -729,7 +729,7 @@ class Debugger(wx.Frame):
                 try:
                     subprocess.Popen(seq)
                 except:
-                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [デバッガ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
+                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
                     dlg = cw.dialog.message.ErrorMessage(self, s)
                     cw.cwpy.frame.move_dlg(dlg)
                     dlg.ShowModal()

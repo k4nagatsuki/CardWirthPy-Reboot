@@ -1011,7 +1011,7 @@ class ScenarioSelect(select.Select):
 
         def open_file(fpath):
             fpath = os.path.normpath(fpath)
-            filer = cw.cwpy.setting.filer
+            filer = cw.cwpy.setting.filer_file
             encoding = sys.getfilesystemencoding()
             if filer:
                 filer = filer.encode(encoding)
@@ -1021,7 +1021,7 @@ class ScenarioSelect(select.Select):
                 try:
                     subprocess.Popen(seq)
                 except:
-                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [シナリオ選択ダイアログでのファイラー] > [ファイラー] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer))
+                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [ファイラー(ファイル用)] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer_file))
                     dlg = cw.dialog.message.ErrorMessage(self, s)
                     cw.cwpy.frame.move_dlg(dlg)
                     dlg.ShowModal()
@@ -1040,7 +1040,7 @@ class ScenarioSelect(select.Select):
 
         def open_dir(dpath):
             dpath = os.path.normpath(dpath)
-            filer = cw.cwpy.setting.filer
+            filer = cw.cwpy.setting.filer_dir
             encoding = sys.getfilesystemencoding()
             if filer:
                 filer = filer.encode(encoding)
@@ -1049,7 +1049,7 @@ class ScenarioSelect(select.Select):
                 try:
                     subprocess.Popen(seq)
                 except:
-                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [シナリオ選択ダイアログでのファイラー] > [ファイラー] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer))
+                    s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [ファイラー(フォルダ用)] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.filer_dir))
                     dlg = cw.dialog.message.ErrorMessage(self, s)
                     cw.cwpy.frame.move_dlg(dlg)
                     dlg.ShowModal()
@@ -1110,7 +1110,7 @@ class ScenarioSelect(select.Select):
         try:
             subprocess.Popen(seq)
         except:
-            s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [デバッガ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
+            s = u"「%s」の実行に失敗しました。設定の [シナリオ] > [外部アプリ] > [エディタ] に適切なエディタを指定してください。" % (os.path.basename(cw.cwpy.setting.editor))
             dlg = cw.dialog.message.ErrorMessage(self, s)
             cw.cwpy.frame.move_dlg(dlg)
             dlg.ShowModal()

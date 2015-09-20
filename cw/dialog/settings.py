@@ -430,7 +430,8 @@ class SettingsPanel(wx.Panel):
             self.pane_scenario.tx_editor.SetValue(cw.cwpy.setting.editor_init)
             self.pane_scenario.cb_selectscenariofromtype.SetValue(cw.cwpy.setting.selectscenariofromtype_init)
             self.pane_scenario.cb_show_paperandtree.SetValue(cw.cwpy.setting.show_paperandtree)
-            self.pane_scenario.tx_filer.SetValue(cw.cwpy.setting.filer_init)
+            self.pane_scenario.tx_filer_dir.SetValue(cw.cwpy.setting.filer_dir_init)
+            self.pane_scenario.tx_filer_file.SetValue(cw.cwpy.setting.filer_file_init)
         elif selpane == 5:
             self.pane_ui.cb_can_skipwait.SetValue(cw.cwpy.setting.can_skipwait_init)
             self.pane_ui.cb_can_skipanimation.SetValue(cw.cwpy.setting.can_skipanimation_init)
@@ -754,8 +755,10 @@ class SettingsPanel(wx.Panel):
         setting.show_paperandtree = value
         if setting.show_paperandtree:
             setting.show_scenariotree = False
-        value = self.pane_scenario.tx_filer.GetValue()
-        setting.filer = value
+        value = self.pane_scenario.tx_filer_dir.GetValue()
+        setting.filer_dir = value
+        value = self.pane_scenario.tx_filer_file.GetValue()
+        setting.filer_file = value
 
         setting.folderoftype = []
         for row in xrange(self.pane_scenario.grid_folderoftype.GetNumberRows() - 1):
@@ -1848,9 +1851,9 @@ class ScenarioSettingPanel(wx.Panel):
         self.celleditor = None
 
         # シナリオエディタ
-        self.box_debug = wx.StaticBox(self, -1, u"デバッグ")
+        self.box_application = wx.StaticBox(self, -1, u"外部アプリ")
         self.st_editor = wx.StaticText(self, -1, u"エディタ")
-        self.tx_editor = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_editor = wx.TextCtrl(self, -1, size=(400, -1))
         if sys.platform == "win32":
             wildcard = u"実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
         else:
@@ -1860,17 +1863,19 @@ class ScenarioSettingPanel(wx.Panel):
             message=u"CardWirthのシナリオエディタを選択",
             wildcard=wildcard)
 
-        # シナリオ選択ダイアログでのファイラー
-        self.box_filer = wx.StaticBox(self, -1, u"シナリオ選択ダイアログでのファイラー")
-        self.st_filer = wx.StaticText(self, -1, u"ファイラー")
-        self.tx_filer = wx.TextCtrl(self, -1, size=(150, -1))
-        if sys.platform == "win32":
-            wildcard = u"実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
-        else:
-            wildcard = u"全てのファイル (*.*)|*.*"
-        self.ref_filer = cw.util.create_fileselection(self,
-            target=self.tx_filer,
-            message=u"シナリオ選択ダイアログでのファイラー",
+        # シナリオ選択ダイアログでのファイラー(フォルダ用)
+        self.st_filer_dir = wx.StaticText(self, -1, u"ファイラー(フォルダ用)")
+        self.tx_filer_dir = wx.TextCtrl(self, -1, size=(400, -1))
+        self.ref_filer_dir = cw.util.create_fileselection(self,
+            target=self.tx_filer_dir,
+            message=u"シナリオ選択ダイアログでのファイラー(フォルダ用)",
+            wildcard=wildcard)
+        # シナリオ選択ダイアログでのファイラー(ファイル用)
+        self.st_filer_file = wx.StaticText(self, -1, u"ファイラー(ファイル用)")
+        self.tx_filer_file = wx.TextCtrl(self, -1, size=(400, -1))
+        self.ref_filer_file = cw.util.create_fileselection(self,
+            target=self.tx_filer_file,
+            message=u"シナリオ選択ダイアログでのファイラー(フォルダ用)",
             wildcard=wildcard)
 
         self._do_layout()
@@ -1891,7 +1896,8 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row, 0, skintype)
             self.grid_folderoftype.SetCellValue(row, 1, folder)
         self.tx_editor.SetValue(setting.editor)
-        self.tx_filer.SetValue(setting.filer)
+        self.tx_filer_dir.SetValue(setting.filer_dir)
+        self.tx_filer_file.SetValue(setting.filer_file)
 
     def OnGirdSelectCell(self, event):
         if self.celleditor:
@@ -1938,20 +1944,24 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
-        bsizer_editor = wx.StaticBoxSizer(self.box_debug, wx.HORIZONTAL)
-        bsizer_editor.Add(self.st_editor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_editor.Add(self.tx_editor, 1, wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_editor.Add(self.ref_editor, 0, wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application = wx.StaticBoxSizer(self.box_application, wx.VERTICAL)
+        bsizer_application_grid = wx.FlexGridSizer(3, 3, 3, 3)
+        bsizer_application_grid.Add(self.st_editor)
+        bsizer_application_grid.Add(self.tx_editor, flag=wx.GROW)
+        bsizer_application_grid.Add(self.ref_editor)
 
-        bsizer_filer = wx.StaticBoxSizer(self.box_filer, wx.HORIZONTAL)
-        bsizer_filer.Add(self.st_filer, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_filer.Add(self.tx_filer, 1, wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_filer.Add(self.ref_filer, 0, wx.BOTTOM|wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application_grid.Add(self.st_filer_dir)
+        bsizer_application_grid.Add(self.tx_filer_dir, flag=wx.GROW)
+        bsizer_application_grid.Add(self.ref_filer_dir)
+
+        bsizer_application_grid.Add(self.st_filer_file)
+        bsizer_application_grid.Add(self.tx_filer_file, flag=wx.GROW)
+        bsizer_application_grid.Add(self.ref_filer_file)
+        bsizer_application.Add(bsizer_application_grid, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_v1.Add(bsizer_folderoftype, 1, wx.BOTTOM|wx.EXPAND, 3)
-        sizer_v1.Add(bsizer_editor, 0, wx.EXPAND, 0)
-        sizer_v1.Add(bsizer_filer, 0, wx.EXPAND, 0)
+        sizer_v1.Add(bsizer_application, 0, wx.EXPAND, 0)
 
         sizer.Add(sizer_v1, 1, wx.ALL|wx.EXPAND, 10)
         self.SetSizer(sizer)
