@@ -1853,7 +1853,7 @@ class ScenarioSettingPanel(wx.Panel):
         # シナリオエディタ
         self.box_application = wx.StaticBox(self, -1, u"外部アプリ")
         self.st_editor = wx.StaticText(self, -1, u"エディタ")
-        self.tx_editor = wx.TextCtrl(self, -1, size=(400, -1))
+        self.tx_editor = wx.TextCtrl(self, -1, size=(150, -1))
         if sys.platform == "win32":
             wildcard = u"実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
         else:
@@ -1865,18 +1865,27 @@ class ScenarioSettingPanel(wx.Panel):
 
         # シナリオ選択ダイアログでのファイラー(フォルダ用)
         self.st_filer_dir = wx.StaticText(self, -1, u"ファイラー(フォルダ用)")
-        self.tx_filer_dir = wx.TextCtrl(self, -1, size=(400, -1))
+        self.tx_filer_dir = wx.TextCtrl(self, -1, size=(150, -1))
         self.ref_filer_dir = cw.util.create_fileselection(self,
             target=self.tx_filer_dir,
             message=u"シナリオ選択ダイアログでのファイラー(フォルダ用)",
             wildcard=wildcard)
         # シナリオ選択ダイアログでのファイラー(ファイル用)
         self.st_filer_file = wx.StaticText(self, -1, u"ファイラー(ファイル用)")
-        self.tx_filer_file = wx.TextCtrl(self, -1, size=(400, -1))
+        self.tx_filer_file = wx.TextCtrl(self, -1, size=(150, -1))
         self.ref_filer_file = cw.util.create_fileselection(self,
             target=self.tx_filer_file,
             message=u"シナリオ選択ダイアログでのファイラー(フォルダ用)",
             wildcard=wildcard)
+
+        w, h, _lh = 0, 0, 0
+        for obj in (self.st_editor, self.st_filer_dir, self.st_filer_file):
+            dc = wx.ClientDC(obj)
+            w2, h2, _lh = dc.GetMultiLineTextExtent(obj.GetLabel())
+            w = max(w, w2)
+            h = max(h, h2)
+        for obj in (self.st_editor, self.st_filer_dir, self.st_filer_file):
+            obj.SetMinSize((w + 15, h))
 
         self._do_layout()
         self._bind()
@@ -1945,19 +1954,27 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
         bsizer_application = wx.StaticBoxSizer(self.box_application, wx.VERTICAL)
-        bsizer_application_grid = wx.FlexGridSizer(3, 3, 3, 3)
-        bsizer_application_grid.Add(self.st_editor)
-        bsizer_application_grid.Add(self.tx_editor, flag=wx.GROW)
-        bsizer_application_grid.Add(self.ref_editor)
+        bsizer_application_bs = wx.BoxSizer(wx.VERTICAL)
 
-        bsizer_application_grid.Add(self.st_filer_dir)
-        bsizer_application_grid.Add(self.tx_filer_dir, flag=wx.GROW)
-        bsizer_application_grid.Add(self.ref_filer_dir)
+        bsizer_application_editor = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_application_editor.Add(self.st_editor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application_editor.Add(self.tx_editor, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application_editor.Add(self.ref_editor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
 
-        bsizer_application_grid.Add(self.st_filer_file)
-        bsizer_application_grid.Add(self.tx_filer_file, flag=wx.GROW)
-        bsizer_application_grid.Add(self.ref_filer_file)
-        bsizer_application.Add(bsizer_application_grid, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_application_filer_dir = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_application_filer_dir.Add(self.st_filer_dir, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application_filer_dir.Add(self.tx_filer_dir, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application_filer_dir.Add(self.ref_filer_dir, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+
+        bsizer_application_filer_file = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_application_filer_file.Add(self.st_filer_file, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application_filer_file.Add(self.tx_filer_file, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+        bsizer_application_filer_file.Add(self.ref_filer_file, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+
+        bsizer_application_bs.Add(bsizer_application_editor, 0, wx.EXPAND)
+        bsizer_application_bs.Add(bsizer_application_filer_dir, 0, wx.EXPAND)
+        bsizer_application_bs.Add(bsizer_application_filer_file, 0, wx.EXPAND)
+        bsizer_application.Add(bsizer_application_bs, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_v1.Add(bsizer_folderoftype, 1, wx.BOTTOM|wx.EXPAND, 3)
