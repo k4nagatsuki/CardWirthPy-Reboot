@@ -175,6 +175,7 @@ class Setting(object):
         self.last_cardpocketbpage = [0] * 3 # 荷物袋からの使用
 
         # 一覧表示
+        self.show_multiplebases = False
         self.show_multipleparties = False
         self.show_multipleplayers = False
         self.show_scenariotree = False
@@ -571,6 +572,7 @@ class Setting(object):
         self.filer_file = data.gettext("FilerFile", self.filer_file)
 
         # 一覧表示
+        self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases)
         self.show_multipleparties = data.getbool("ShowMultipleItems", "party", self.show_multipleparties)
         self.show_multipleplayers = data.getbool("ShowMultipleItems", "player", self.show_multipleplayers)
         self.show_scenariotree = data.getbool("ShowMultipleItems", "scenario", self.show_scenariotree)
