@@ -609,8 +609,13 @@ class YadoSelect(MultiViewSelect):
         else:
             self._enable_btn()
 
+        if self.list and (cw.util.exists_mutex(self.list[self.index]) or not os.path.isdir(self.list[self.index])):
+            self.okbtn.Disable()
+
     def OnOk(self, event):
         if not self.list:
+            return
+        if not self.okbtn.IsEnabled():
             return
 
         if self.classic[self.index]:
@@ -652,7 +657,7 @@ class YadoSelect(MultiViewSelect):
             (cw.cwpy.msgs["settings"], cw.cwpy.msgs["edit_base_description"], self.rename_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["copy"], cw.cwpy.msgs["copy_base_description"], self.copy_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["transfer"], cw.cwpy.msgs["transfer_base_description"], self.trasnfer_yadodata, cantransfer),
-            (u"変換", u"CardWirth用の宿データをCardWirthPy用の拠点データに変換します。", self._conv_yado, True),
+            (u"変換", u"CardWirth用の宿データをCardWirthPy用の拠点データに変換します。", self._conv_yado, not cw.util.exists_mutex(cw.tempdir_init)),
             (u"逆変換", u"選択中の拠点データをCardWirth用のデータに逆変換します。", self.unconv_yado, not classic and hasmutexlocal),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_base_description"], self.delete_yado, hasmutexlocal),
         ]
@@ -1287,33 +1292,33 @@ class YadoSelect(MultiViewSelect):
                     # 1.20のアルバムデータは時間がかかる可能性があるため
                     # リストに表示しない
                     for fname in os.listdir(yadodir):
-                            ext = os.path.splitext(fname)[1].lower()
-                            if ext == ".wch":
-                                fpath = cw.util.join_paths(yadodir, fname)
-                                if wyd.dataversion_int <= 8:
-                                    # 1.20
-                                    with cw.binary.cwfile.CWFile(fpath, "rb") as f:
-                                        f.string()
-                                        name = f.string()
-                                        f.close()
-                                    seq.append(name)
-                                else:
-                                    # 1.28以降
-                                    with cw.binary.cwfile.CWFile(fpath, "rb") as f:
-                                        adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
-                                        f.close()
-                                    seq.append(adv.name)
-                            elif ext == ".wpl":
-                                fpath = cw.util.join_paths(yadodir, fname)
+                        ext = os.path.splitext(fname)[1].lower()
+                        if ext == ".wch":
+                            fpath = cw.util.join_paths(yadodir, fname)
+                            if wyd.dataversion_int <= 8:
+                                # 1.20
                                 with cw.binary.cwfile.CWFile(fpath, "rb") as f:
-                                    party = cw.binary.party.Party(None, f, dataversion=wyd.dataversion_int)
+                                    f.string()
+                                    name = f.string()
                                     f.close()
-                                for member in party.memberslist:
-                                    seq.append(member)
-                            if 25 <= len(seq):
-                                seq = seq[:23]
-                                seq.append(cw.cwpy.msgs["scenario_etc"])
-                                break
+                                seq.append(name)
+                            else:
+                                # 1.28以降
+                                with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                                    adv = cw.binary.adventurer.Adventurer(None, f, nameonly=True)
+                                    f.close()
+                                seq.append(adv.name)
+                        elif ext == ".wpl":
+                            fpath = cw.util.join_paths(yadodir, fname)
+                            with cw.binary.cwfile.CWFile(fpath, "rb") as f:
+                                party = cw.binary.party.Party(None, f, dataversion=wyd.dataversion_int)
+                                f.close()
+                            for member in party.memberslist:
+                                seq.append(member)
+                        if 25 <= len(seq):
+                            seq = seq[:23]
+                            seq.append(cw.cwpy.msgs["scenario_etc"])
+                            break
                 except:
                     cw.util.print_ex()
 
