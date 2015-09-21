@@ -693,7 +693,7 @@ class ScenarioSelect(select.Select):
         _index, pathorheader = data
         if isinstance(pathorheader, cw.header.ScenarioHeader):
             if self.viewbtn:
-                if self.viewbtn.Enabled():
+                if self.viewbtn.IsEnabled():
                     btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.viewbtn.GetId())
                     self.ProcessEvent(btnevent)
             else:
