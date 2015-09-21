@@ -1853,7 +1853,7 @@ class ScenarioSettingPanel(wx.Panel):
         # シナリオエディタ
         self.box_application = wx.StaticBox(self, -1, u"外部アプリ")
         self.st_editor = wx.StaticText(self, -1, u"エディタ")
-        self.tx_editor = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_editor = wx.TextCtrl(self, -1, size=(-1, -1))
         if sys.platform == "win32":
             wildcard = u"実行可能ファイル (*.exe)|*.exe|全てのファイル (*.*)|*.*"
         else:
@@ -1865,17 +1865,17 @@ class ScenarioSettingPanel(wx.Panel):
 
         # シナリオ選択ダイアログでのファイラー(フォルダ用)
         self.st_filer_dir = wx.StaticText(self, -1, u"ファイラー(フォルダ用)")
-        self.tx_filer_dir = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_filer_dir = wx.TextCtrl(self, -1, size=(-1, -1))
         self.ref_filer_dir = cw.util.create_fileselection(self,
             target=self.tx_filer_dir,
-            message=u"シナリオ選択ダイアログでのファイラー(フォルダ用)",
+            message=u"シナリオの場所を開くためのファイラー(フォルダ用)を選択",
             wildcard=wildcard)
         # シナリオ選択ダイアログでのファイラー(ファイル用)
         self.st_filer_file = wx.StaticText(self, -1, u"ファイラー(ファイル用)")
-        self.tx_filer_file = wx.TextCtrl(self, -1, size=(150, -1))
+        self.tx_filer_file = wx.TextCtrl(self, -1, size=(-1, -1))
         self.ref_filer_file = cw.util.create_fileselection(self,
             target=self.tx_filer_file,
-            message=u"シナリオ選択ダイアログでのファイラー(フォルダ用)",
+            message=u"シナリオの場所を開くためのファイラー(ファイル用)を選択",
             wildcard=wildcard)
 
         w, h, _lh = 0, 0, 0
@@ -1954,27 +1954,24 @@ class ScenarioSettingPanel(wx.Panel):
         bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
         bsizer_application = wx.StaticBoxSizer(self.box_application, wx.VERTICAL)
-        bsizer_application_bs = wx.BoxSizer(wx.VERTICAL)
+        gbsizer_application = wx.GridBagSizer()
 
-        bsizer_application_editor = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_application_editor.Add(self.st_editor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_application_editor.Add(self.tx_editor, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_application_editor.Add(self.ref_editor, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
+        def add_application(ctrl, pos, flag):
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
+            gbsizer_application.Add(sizer, pos=pos, flag=flag|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, border=2)
 
-        bsizer_application_filer_dir = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_application_filer_dir.Add(self.st_filer_dir, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_application_filer_dir.Add(self.tx_filer_dir, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_application_filer_dir.Add(self.ref_filer_dir, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-
-        bsizer_application_filer_file = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_application_filer_file.Add(self.st_filer_file, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_application_filer_file.Add(self.tx_filer_file, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-        bsizer_application_filer_file.Add(self.ref_filer_file, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL, 3)
-
-        bsizer_application_bs.Add(bsizer_application_editor, 0, wx.EXPAND)
-        bsizer_application_bs.Add(bsizer_application_filer_dir, 0, wx.EXPAND)
-        bsizer_application_bs.Add(bsizer_application_filer_file, 0, wx.EXPAND)
-        bsizer_application.Add(bsizer_application_bs, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
+        add_application(self.st_editor, pos=(0, 0), flag=wx.RIGHT|wx.BOTTOM)
+        add_application(self.tx_editor, pos=(0, 1), flag=wx.RIGHT|wx.BOTTOM)
+        add_application(self.ref_editor, pos=(0, 2), flag=wx.BOTTOM)
+        add_application(self.st_filer_dir, pos=(1, 0), flag=wx.RIGHT|wx.BOTTOM)
+        add_application(self.tx_filer_dir, pos=(1, 1), flag=wx.RIGHT|wx.BOTTOM)
+        add_application(self.ref_filer_dir, pos=(1, 2), flag=wx.BOTTOM)
+        add_application(self.st_filer_file, pos=(2, 0), flag=wx.RIGHT)
+        add_application(self.tx_filer_file, pos=(2, 1), flag=wx.RIGHT)
+        add_application(self.ref_filer_file, pos=(2, 2), flag=0)
+        gbsizer_application.AddGrowableCol(1)
+        bsizer_application.Add(gbsizer_application, 1, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
 
         sizer_v1.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_v1.Add(bsizer_folderoftype, 1, wx.BOTTOM|wx.EXPAND, 3)
