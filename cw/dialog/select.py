@@ -145,7 +145,6 @@ class Select(wx.Dialog):
             self.clickmode = 0
 
     def OnClickLeftBtn(self, evt):
-        self._processing = True
         if self.index == 0:
             self.index = len(self.list) -1
         else:
@@ -154,11 +153,8 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
-        self._processing = False
 
     def OnClickLeft2Btn(self, evt):
-        self._processing = True
-        self._processing = True
         if self.index == 0:
             self.index = len(self.list) -1
         elif self.index - 10 < 0:
@@ -169,10 +165,8 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
-        self._processing = False
 
     def OnClickRightBtn(self, evt):
-        self._processing = True
         if self.index == len(self.list) -1:
             self.index = 0
         else:
@@ -181,10 +175,8 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
-        self._processing = False
 
     def OnClickRight2Btn(self, evt):
-        self._processing = True
         if self.index == len(self.list) -1:
             self.index = 0
         elif self.index + 10 > len(self.list) -1:
@@ -195,7 +187,6 @@ class Select(wx.Dialog):
         cw.cwpy.play_sound("page")
         self.draw(True)
         self.index_changed()
-        self._processing = False
 
     def index_changed(self):
         pass

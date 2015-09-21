@@ -64,11 +64,13 @@ class ScenarioSelect(select.Select):
             btn = wx.lib.buttons.ThemedGenBitmapToggleButton(self, -1, None, size=cw.wins((46, 24)))
             dbmp = cw.imageretouch.to_disabledimage(bmp)
             btn.SetToggle(value)
-            if not value:
-                bmp = dbmp
-            btn.SetBitmapFocus(bmp)
-            btn.SetBitmapLabel(bmp, False)
-            btn.SetBitmapSelected(bmp)
+            if value:
+                bmp2 = bmp
+            else:
+                bmp2 = dbmp
+            btn.SetBitmapFocus(bmp2)
+            btn.SetBitmapLabel(bmp2, False)
+            btn.SetBitmapSelected(bmp2)
             btn.SetToolTipString(msg)
             return btn, bmp, dbmp
         self.unfitness, self.bmp_unfitness, self.dbmp_unfitness = create_btn(cw.cwpy.msgs["show_unfitness_scenario"],
@@ -1171,12 +1173,15 @@ class ScenarioSelect(select.Select):
             self._update_pagelabel()
             self.enable_btn()
 
-        if cw.cwpy.setting.show_paperandtree:
-            self.select_treeitem(self.index)
-        else:
-            if self.tree.IsShown():
+            if cw.cwpy.setting.show_paperandtree:
+                processing = self._processing
+                self._processing = True
                 self.select_treeitem(self.index)
-                return
+                self._processing = processing
+            else:
+                if self.tree.IsShown():
+                    self.select_treeitem(self.index)
+                    return
 
         if not dc:
             dc = select.Select.draw(self, update)
