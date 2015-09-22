@@ -955,26 +955,29 @@ class ScenarioSelect(select.Select):
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
             self.ProcessEvent(btnevent)
 
+    def BackPaper(self):
+        cw.cwpy.play_sound("equipment")
+        self.nowdir, selname = self.dirstack.pop()
+        self.list = self._get_nowlist()
+        self.scetable[self.nowdir] = self.list
+        self.list = self._narrow_scenario(self.list)
+        self.index = 0
+        if not selname.startswith("/"):
+            selname = os.path.normcase(selname)
+            for index, name in enumerate(self.list):
+                if not isinstance(name, (cw.header.ScenarioHeader, FindResult)):
+                    name = os.path.normcase(os.path.basename(name))
+                    if selname == name:
+                        self.index = index
+
+        self.enable_btn()
+
+        self.draw(True)
+
     def OnClickNoBtn(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["return"]:
-            assert not self.tree.IsShown() or cw.cwpy.setting.show_paperandtree
-            cw.cwpy.play_sound("equipment")
-            self.nowdir, selname = self.dirstack.pop()
-            self.list = self._get_nowlist()
-            self.scetable[self.nowdir] = self.list
-            self.list = self._narrow_scenario(self.list)
-            self.index = 0
-            if not selname.startswith("/"):
-                selname = os.path.normcase(selname)
-                for index, name in enumerate(self.list):
-                    if not isinstance(name, (cw.header.ScenarioHeader, FindResult)):
-                        name = os.path.normcase(os.path.basename(name))
-                        if selname == name:
-                            self.index = index
-
-            self.enable_btn()
-
-            self.draw(True)
+            assert not self.tree.IsShown()
+            self.BackPaper()
         elif self.nobtn.GetLabel() == cw.cwpy.msgs["entry_cancel"]:
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
             self.ProcessEvent(btnevent)
@@ -1139,12 +1142,16 @@ class ScenarioSelect(select.Select):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
         self.ProcessEvent(btnevent)
 
+
     def OnCancel(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["entry_cancel"]:
             cw.cwpy.play_sound("click")
 
-        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_NO)
-        self.ProcessEvent(btnevent)
+        if self.dirstack and cw.cwpy.setting.show_paperandtree:
+            self.BackPaper()
+        else:
+            btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.nobtn.GetId())
+            self.ProcessEvent(btnevent)
 
     def OnDestroy(self, event):
         self.db.close()
@@ -1971,7 +1978,7 @@ class ScenarioSelect(select.Select):
         else:
             self.yesbtn.SetLabel(cw.cwpy.msgs["see"])
 
-        if self.dirstack and (not self.tree.IsShown() or cw.cwpy.setting.show_paperandtree):
+        if self.dirstack and not self.tree.IsShown():
             self.nobtn.SetLabel(cw.cwpy.msgs["return"])
         else:
             self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
