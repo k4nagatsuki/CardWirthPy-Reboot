@@ -226,8 +226,7 @@ class StatusEditDialog(wx.Dialog):
 
         cw.cwpy.exec_func(func, self.pcards, oldactive, updates)
 
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnLife(self, event):
         value = 100

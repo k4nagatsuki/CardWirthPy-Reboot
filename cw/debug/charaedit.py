@@ -166,8 +166,7 @@ class CharacterEditDialog(wx.Dialog):
                     updates.append(i)
             cw.cwpy.exec_func(func, updates, self.pcards)
 
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def select_target(self):
         cindex = self.target.GetSelection()

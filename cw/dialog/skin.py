@@ -300,8 +300,7 @@ class SkinEditDialog(wx.Dialog):
                 cw.cwpy.update_vocation120(vocation120)
             cw.cwpy.exec_func(func, skinname, classictext, vocation120)
 
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)

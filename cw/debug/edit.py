@@ -331,8 +331,7 @@ class CouponEditDialog(wx.Dialog):
                 cw.cwpy.play_sound("harvest")
 
         cw.cwpy.exec_func(func, self.pcards, self.coupons, self.syscoupons)
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def get_selectedindexes(self):
         index = -1
@@ -660,8 +659,7 @@ class GossipEditDialog(ListEditDialog):
             for name in seq:
                 cw.cwpy.ydata.set_gossip(name)
         cw.cwpy.exec_func(func, self.list)
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
 class CompStampEditDialog(ListEditDialog):
     def __init__(self, parent):
@@ -675,8 +673,7 @@ class CompStampEditDialog(ListEditDialog):
             for name in seq:
                 cw.cwpy.ydata.set_compstamp(name)
         cw.cwpy.exec_func(func, self.list)
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, cid, size, style):
@@ -780,8 +777,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
             if cw.cwpy.event:
                 cw.cwpy.event.refresh_tools()
         cw.cwpy.exec_func(func, self._removed)
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnItemSelected(self, event):
         self._item_selected()
@@ -885,8 +881,7 @@ class BreakpointEditDialog(wx.Dialog):
             if cw.cwpy.event:
                 cw.cwpy.event.refresh_tools()
         cw.cwpy.exec_func(func, self._removed)
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnItemSelected(self, event):
         self._item_selected()

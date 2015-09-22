@@ -612,8 +612,7 @@ class YadoSelect(MultiViewSelect):
         if self.classic[self.index]:
             self._convert_current()
         else:
-            self.SetReturnCode(wx.ID_OK)
-            self.Destroy()
+            self.EndModal(wx.ID_OK)
 
     def OnDropFiles(self, event):
         if cw.util.create_mutex(cw.tempdir_init):

@@ -449,8 +449,7 @@ class TransferYadoDataDialog(wx.Dialog):
         result = dlg.ShowModal()
         dlg.Destroy()
 
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def transfer_bookmark(self, fromscedir, toscedir, fromyado, toyado, be, counter):
         # ブックマークを転送する

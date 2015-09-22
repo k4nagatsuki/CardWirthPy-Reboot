@@ -997,10 +997,10 @@ class ScenarioSelect(select.Select):
         self.Layout()
 
     def _can_opendir(self):
-        return self.list and not isinstance(self.list[self.index], FindResult)
+        return bool(self.list and not isinstance(self.list[self.index], FindResult))
 
     def _can_editor(self):
-        return cw.cwpy.setting.editor and self.list and isinstance(self.list[self.index], cw.header.ScenarioHeader)
+        return bool(cw.cwpy.setting.editor and self.list and isinstance(self.list[self.index], cw.header.ScenarioHeader))
 
     def open_directory(self):
         if not self.list:
@@ -1701,6 +1701,8 @@ class ScenarioSelect(select.Select):
             # "読込中..."なので一つ上の階層を選択
             selitem = paritem
             paritem = self.tree.GetItemParent(selitem)
+        if not paritem:
+            return
 
         _index, self.nowdir = self.tree.GetItemPyData(paritem)
         self.index, _pathorheader = self.tree.GetItemPyData(selitem)

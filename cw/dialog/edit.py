@@ -317,8 +317,7 @@ class NumberEditDialog(wx.Dialog):
     def OnOk(self, event):
         cw.cwpy.play_sound("harvest")
         self.value = self.slider.get_value()
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
@@ -394,8 +393,7 @@ class Number2EditDialog(wx.Dialog):
         cw.cwpy.play_sound("harvest")
         self.value1 = self.slider1.get_value()
         self.value2 = self.slider2.get_value()
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
@@ -479,8 +477,7 @@ class NumberComboEditDialog(wx.Dialog):
         cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
         self.value = self.slider.get_value()
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
@@ -768,8 +765,7 @@ class ComboEditDialog(wx.Dialog):
     def OnOk(self, event):
         cw.cwpy.play_sound("harvest")
         self.selected = self.combo.GetSelection()
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
@@ -1014,8 +1010,7 @@ class LevelEditDialog(wx.Dialog):
         level = self.slider.get_value()
         cw.cwpy.exec_func(func, selected, level, self.party)
 
-        self.SetReturnCode(wx.ID_OK)
-        self.Destroy()
+        self.EndModal(wx.ID_OK)
 
     def OnCancel(self, event):
         cw.cwpy.play_sound("click")
