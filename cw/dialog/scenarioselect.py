@@ -27,7 +27,7 @@ class ScenarioSelect(select.Select):
     """
     貼り紙選択ダイアログ。
     """
-    def __init__(self, parent, db):
+    def __init__(self, parent, db, lastscenario, lastscenariopath):
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
         self.SetDoubleBuffered(True)
@@ -234,7 +234,10 @@ class ScenarioSelect(select.Select):
         self.find.Bind(wx.EVT_BUTTON, self.OnFind)
         self.bookmark.Bind(wx.EVT_BUTTON, self.OnBookmark)
 
-        self.draw(True)
+        if lastscenario or lastscenariopath:
+            self.set_selected(lastscenario, lastscenariopath)
+        else:
+            self.draw(True)
 
         self.bookmarkmenu = None
 
