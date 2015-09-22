@@ -71,6 +71,7 @@ class Setting(object):
         self.is_expanded = False
         self.smoothexpand = True
         self.debug = False
+        self.debug_saved = False
         self.no_levelup_in_debugmode = False
         self.play_bgm = True
         self.play_sound = True
@@ -1001,21 +1002,27 @@ class Resource(object):
         if sys.platform == "win32":
             gdi32 = ctypes.windll.gdi32
             winplatform = sys.getwindowsversion()[3]
+            self.facenames = set(wx.FontEnumerator().GetFacenames())
 
             for name, path in self.fontpaths.iteritems():
-                def func():
-                    if winplatform == 2:
-                        gdi32.AddFontResourceExA(path, 0x10, 0)
-                    else:
-                        gdi32.AddFontResourceA(path)
-                        user32 = ctypes.windll.user32
-                        HWND_BROADCAST = 0xFFFF
-                        WM_FONTCHANGE = 0x001D
-                        user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
-                thr = threading.Thread(target=func)
-                thr.start()
-
                 fontname = cw.util.get_truetypefontname(path)
+                if fontname in self.facenames or\
+                        fontname == u"IPAUIGothic" and (u"IPA UIゴシック" in self.facenames) or\
+                        fontname == u"IPAGothic" and (u"IPAゴシック" in self.facenames) or\
+                        fontname == u"IPAPGothic" and (u"IPA Pゴシック" in self.facenames) or\
+                        fontname == u"IPAMincho" and (u"IPA明朝" in self.facenames) or\
+                        fontname == u"IPAPMincho" and (u"IPA P明朝" in self.facenames):
+                    d[name] = fontname
+                    continue
+
+                if winplatform == 2:
+                    gdi32.AddFontResourceExA(path, 0x10, 0)
+                else:
+                    gdi32.AddFontResourceA(path)
+                    user32 = ctypes.windll.user32
+                    HWND_BROADCAST = 0xFFFF
+                    WM_FONTCHANGE = 0x001D
+                    user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
 
                 if fontname:
                     d[name] = fontname
