@@ -957,7 +957,7 @@ class ScenarioSelect(select.Select):
 
     def OnClickNoBtn(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["return"]:
-            assert not self.tree.IsShown()
+            assert not self.tree.IsShown() or cw.cwpy.setting.show_paperandtree
             cw.cwpy.play_sound("equipment")
             self.nowdir, selname = self.dirstack.pop()
             self.list = self._get_nowlist()
@@ -1971,7 +1971,7 @@ class ScenarioSelect(select.Select):
         else:
             self.yesbtn.SetLabel(cw.cwpy.msgs["see"])
 
-        if self.dirstack and not self.tree.IsShown():
+        if self.dirstack and (not self.tree.IsShown() or cw.cwpy.setting.show_paperandtree):
             self.nobtn.SetLabel(cw.cwpy.msgs["return"])
         else:
             self.nobtn.SetLabel(cw.cwpy.msgs["entry_cancel"])
