@@ -80,7 +80,7 @@ class MessageWindow(base.CWPySprite):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            cw.cwpy.topgrp.add(self, layer=cw.LAYER_MESSAGE)
+            cw.cwpy.cardgrp.add(self, layer=cw.LAYER_MESSAGE)
 
     def _init_style(self):
         # クラシックスタイルか
@@ -134,8 +134,8 @@ class MessageWindow(base.CWPySprite):
         if self.backlog:
             cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         else:
-            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
@@ -452,7 +452,7 @@ class SelectWindow(MessageWindow):
         if self.backlog:
             cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            cw.cwpy.topgrp.add(self, layer=cw.LAYER_MESSAGE)
+            cw.cwpy.cardgrp.add(self, layer=cw.LAYER_MESSAGE)
 
     def _init_image(self, size_noscale, pos_noscale):
         # image
@@ -479,8 +479,8 @@ class SelectWindow(MessageWindow):
         if self.backlog:
             cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         else:
-            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+            cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
         self.selections = []
         self.selection_pos = cw.s((81, 90))
 
@@ -528,11 +528,11 @@ class SelectionBar(base.SelectableSprite):
         self.frame = 0
         # spritegroupに追加
         if self.backlog:
-            self.grp = cw.cwpy.backloggrp
-            self.grp.add(self, layer=cw.LAYER_LOG_BAR)
+            self.group = cw.cwpy.backloggrp
+            self.group.add(self, layer=cw.LAYER_LOG_BAR)
         else:
-            self.grp = cw.cwpy.topgrp
-            self.grp.add(self, layer=cw.LAYER_SELECTIONBAR_1)
+            self.group = cw.cwpy.cardgrp
+            self.group.add(self, layer=cw.LAYER_SELECTIONBAR_1)
 
     def get_unselectedimage(self):
         return self._image
@@ -564,12 +564,12 @@ class SelectionBar(base.SelectableSprite):
         if self.frame == 0:
             self.rect.move_ip(cw.s(0), cw.s(+1))
             self.status = "click"
-            self.grp.change_layer(self, cw.LAYER_SELECTIONBAR_2)
+            self.group.change_layer(self, cw.LAYER_SELECTIONBAR_2)
         elif self.frame == 6:
             self.status = "normal"
             self.rect.move_ip(cw.s(0), cw.s(-1))
             self.frame = 0
-            self.grp.change_layer(self, cw.LAYER_SELECTIONBAR_1)
+            self.group.change_layer(self, cw.LAYER_SELECTIONBAR_1)
             return
 
         self.frame += 1

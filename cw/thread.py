@@ -333,7 +333,7 @@ class CWPy(_Singleton, threading.Thread):
             self.sdata.update_skin()
 
         if not self.is_battlestatus() and changearea and not (self.status == "Title" and self.topgrp.sprites()):
-            for sprite in self.mcards:
+            for sprite in self.mcards[:]:
                 if not isinstance(sprite, cw.sprite.card.FriendCard):
                     self.cardgrp.remove(sprite)
                     self.mcards.remove(sprite)
@@ -496,7 +496,9 @@ class CWPy(_Singleton, threading.Thread):
 
     def update_messagestyle(self):
         """メッセージの描画形式の変更を反映する。"""
-        for sprite in self.topgrp.sprites():
+        for sprite in itertools.chain(self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE),
+                                      self.cardgrp.get_sprites_from_layer(cw.LAYER_SELECTIONBAR_1),
+                                      self.cardgrp.get_sprites_from_layer(cw.LAYER_SELECTIONBAR_2)):
             sprite.update_scale()
         for sprite in self.backloggrp.sprites():
             sprite.update_scale()
@@ -1298,9 +1300,9 @@ class CWPy(_Singleton, threading.Thread):
         self.list = self.get_mcards("visible")
         self.index = -1
         # スプライト削除
-        self.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
-        self.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-        self.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+        self.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
+        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+        self.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
 
         # 互換性マーク削除
         if self.is_playingscenario():
@@ -3034,8 +3036,9 @@ class CWPy(_Singleton, threading.Thread):
         if isinstance(sprite, cw.sprite.statusbar.StatusBarButton) and sprite.selectable_on_event:
             return False
         return self.lock_menucards or\
-               cw.cwpy.is_showingdlg() or\
-               pygame.event.peek(pygame.locals.USEREVENT)
+               self.is_showingdlg() or\
+               pygame.event.peek(pygame.locals.USEREVENT) or\
+               self.is_showingbacklog()
 
 #-------------------------------------------------------------------------------
 # プレイ用メソッド
@@ -3946,7 +3949,7 @@ class CWPy(_Singleton, threading.Thread):
     def get_messagewindow(self):
         """MessageWindow or SelectWindowインスタンスを返す。"""
         try:
-            return self.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)[0]
+            return self.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)[0]
         except:
             return None
 

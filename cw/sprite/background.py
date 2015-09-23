@@ -32,7 +32,7 @@ class BackGround(base.CWPySprite):
         self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         # spritegroupに追加
-        self.layer = (cw.LAYER_BACKGROUND, 0, 0)
+        self.layer = (cw.LAYER_BACKGROUND, -2, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
 
     def update_scale(self):

@@ -644,7 +644,7 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.selection.lclick_event()
 
         elif cw.cwpy.list and (len(cw.cwpy.list) == 1 or cw.cwpy.index >= 0) and\
-                cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
+                cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
             if cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 sbar = cw.cwpy.list[cw.cwpy.index]
@@ -671,7 +671,7 @@ class EventHandlerForMessageWindow(EventHandler):
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.rclick_event()
-        elif not cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
+        elif not cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
             self.shiftkey_event(False)
 
     def f4key_event(self):
@@ -680,7 +680,7 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         if not self.can_input():
             return
-        hidden = not cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)
+        hidden = not cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)
 
         if hidden:
             self.shiftkey_event(False, False)
@@ -761,16 +761,16 @@ class EventHandlerForMessageWindow(EventHandler):
                 self.mwin.draw_all()
             else:
                 cw.cwpy.clear_selection()
-                cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
-                cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
-                cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+                cw.cwpy.cardgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
                 if redraw:
                     cw.cwpy.draw()
         else:
-            if not cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
-                cw.cwpy.topgrp.add(self.mwin, layer=cw.LAYER_MESSAGE)
+            if not cw.cwpy.cardgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
+                cw.cwpy.cardgrp.add(self.mwin, layer=cw.LAYER_MESSAGE)
                 for sbar in self.mwin.selections:
-                    cw.cwpy.topgrp.add(sbar, layer=cw.LAYER_SELECTIONBAR_1)
+                    cw.cwpy.cardgrp.add(sbar, layer=cw.LAYER_SELECTIONBAR_1)
                 if redraw:
                     cw.cwpy.draw()
 
