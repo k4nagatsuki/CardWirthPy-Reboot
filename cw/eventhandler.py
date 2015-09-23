@@ -990,6 +990,7 @@ class EventHandlerForBacklog(EventHandler):
         if playsound:
             cw.cwpy.play_sound("click")
         # バックログ終了
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_CURTAIN)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_PAGE)
@@ -999,8 +1000,6 @@ class EventHandlerForBacklog(EventHandler):
             cw.cwpy.lock_menucards = self._lock_menucards
 
         # 背景スプライト削除
-        cw.cwpy.backloggrp.remove(self._curtain) # TODO: layer
-        cw.cwpy.backloggrp.remove(self._page) # TODO: layer
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
         cw.cwpy.draw()
 
