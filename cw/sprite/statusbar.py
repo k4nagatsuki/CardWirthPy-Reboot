@@ -135,8 +135,8 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.event.refresh_tools()
 
     def clear(self):
-        cw.cwpy.sbargrp.empty() # TODO: layer
-        cw.cwpy.sbargrp.add(self, layer=0)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(1)
+        cw.cwpy.sbargrp.remove_sprites_of_layer(2)
 
     def _create_autostart(self, pos):
         if self.autostart:

@@ -132,9 +132,10 @@ class MessageWindow(base.CWPySprite):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
         if self.backlog:
-            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
+            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         else:
-            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
@@ -476,9 +477,10 @@ class SelectWindow(MessageWindow):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs(cw.s((14, 9)))
         if self.backlog:
-            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
+            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         else:
-            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
         self.selections = []
         self.selection_pos = cw.s((81, 90))
 
@@ -689,7 +691,7 @@ class BacklogCurtain(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 0))
         # spritegroupに追加
-        spritegrp.add(self, layer=0) # TODO: layer
+        spritegrp.add(self, layer=cw.LAYER_LOG_CURTAIN)
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s((632, 420))).convert()
