@@ -171,15 +171,7 @@ class _JpySubImage(cw.image.Image):
             else:
                 background = cw.cwpy.background.image.copy()
                 self.cache.restore()
-                # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-                if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                    cards = cw.cwpy.pcardgrp.sprites() + cw.cwpy.mcardgrp.sprites()
-                else:
-                    cards = cw.cwpy.mcardgrp.sprites() + cw.cwpy.pcardgrp.sprites()
-
-                for card in cards:
-                    if card.status <> "hidden":
-                        background.blit(card.image, card.rect.topleft)
+                cw.cwpy.cardgrp.draw(background)
                 cw.sprite.background.Jpy1TemporalSprite(background)
 
             if not animespeed:
@@ -885,13 +877,7 @@ class JpdcImage(cw.image.Image):
             self.image.fill((255, 255, 255))
         else:
             cw.cwpy.bggrp.draw(self.image)
-            # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                cw.cwpy.pcardgrp.draw(self.image)
-                cw.cwpy.mcardgrp.draw(self.image)
-            else:
-                cw.cwpy.mcardgrp.draw(self.image)
-                cw.cwpy.pcardgrp.draw(self.image)
+            cw.cwpy.cardgrp.draw(self.image)
             if copymode == 2:
                 for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"): # TODO: layer
                     self.image.blit(sprite.image, sprite.rect.topleft)

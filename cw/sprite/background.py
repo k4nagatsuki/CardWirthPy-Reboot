@@ -479,7 +479,7 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.draw()
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, spritegrp, size_noscale, pos_noscale, color=None, cutarealist=None):
+    def __init__(self, spritegrp, size_noscale, pos_noscale, color=None, cutarealist=None, layer=None):
         """半透明のブルーバックスプライト。右クリックで解除。
         spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
         size: スプライトのサイズ。
@@ -501,7 +501,11 @@ class Curtain(base.SelectableSprite):
         self.cutarealist = cutarealist
         self.cut_curtain()
         # spritegroupに追加
-        spritegrp.add(self, layer="curtain") # TODO: layer
+        if layer is None:
+            layer = cw.LAYER_CURTAIN
+        else:
+            cw.cwpy.curtains.append(self)
+        spritegrp.add(self, layer=layer)
 
     def cut_curtain(self):
         if self.cutarealist:
@@ -567,7 +571,7 @@ class BattleCardImage(card.CWPyCard):
         pass
 
 class InuseCardImage(card.CWPyCard):
-    def __init__(self, user, header, status="normal", center=False, spritegrp=None, alpha=255, fore=False):
+    def __init__(self, user, header, status="normal", center=False, alpha=255, fore=False):
         """使用中のカード画像スプライト。
         user: Character。
         header: 使用するカードのCardHeader。
@@ -588,27 +592,19 @@ class InuseCardImage(card.CWPyCard):
         self.update_scale()
 
         # spritegroupに追加
-        if spritegrp:
-            self.group = spritegrp
-        elif center or fore:
+        self.group = cw.cwpy.cardgrp
+        if isinstance(user, cw.sprite.card.PlayerCard):
+            layer = cw.LAYER_PCARDS
+        else:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                self.group = cw.cwpy.mcardgrp
+                layer = cw.LAYER_MCARDS_120
             else:
-                self.group = cw.cwpy.pcardgrp
-        elif isinstance(user, cw.sprite.card.PlayerCard):
-            self.group = cw.cwpy.pcardgrp
-        else:
-            self.group = cw.cwpy.mcardgrp
+                layer = cw.LAYER_MCARDS
         if user and not center and not fore:
-            sprites = self.group.sprites()[:]
-            self.group.empty() # TODO: layer
-            index = sprites.index(user)
-            self.group.add(sprites[:index+1]) # TODO: layer
-            self.group.add(self) # TODO: layer
-            self.group.add(sprites[index+1:]) # TODO: layer
+            self.group.add(self, layer=(layer, user.index, 1))
         else:
-            self.group.add(self) # TODO: layer
+            self.group.add(self, layer=cw.LAYER_FRONT_INUSECARD)
 
     def update_scale(self):
         self.header.negaflag = False
@@ -647,11 +643,7 @@ class TargetArrow(base.CWPySprite):
         self.target = target
         self.update_scale()
         # spritegroupに追加
-        # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-        if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-            cw.cwpy.mcardgrp.add(self, layer="targetarrow") # TODO: layer
-        else:
-            cw.cwpy.pcardgrp.add(self, layer="targetarrow") # TODO: layer
+        cw.cwpy.cardgrp.add(self, layer=cw.LAYER_TARGET_ARROW)
 
     def update_scale(self):
         self.image = cw.cwpy.rsrc.statuses["TARGET"]
@@ -758,7 +750,7 @@ class TitleCell(base.CWPySprite):
         """
         カード表示時のアニメーションを呼び出すメソッド。
         """
-        if self.frame == self.animespeed:
+        if self.frame >= self.animespeed:
             self.status = "normal"
             self.image = self._image
             self.rect = self._rect
@@ -775,7 +767,7 @@ class TitleCell(base.CWPySprite):
         """
         カード非表示時のアニメーションを呼び出すメソッド。
         """
-        if self.frame == self.animespeed:
+        if self.frame >= self.animespeed:
             self.status = "hidden"
             self.clear_image()
             self.frame = 0
@@ -791,7 +783,7 @@ class TitleCell(base.CWPySprite):
         """
         フェードインのアニメーションを呼び出すメソッド。
         """
-        if self.frame == self.animespeed:
+        if self.frame >= self.animespeed:
             self.status = "normal"
             self.set_imagealpha(255)
             self.frame = 0
@@ -819,7 +811,7 @@ class TitleCell(base.CWPySprite):
         """
         フェードアウトのアニメーションを呼び出すメソッド。
         """
-        if self.frame == self.animespeed:
+        if self.frame >= self.animespeed:
             self.status = "hidden"
             self.set_imagealpha(0)
             self.frame = 0

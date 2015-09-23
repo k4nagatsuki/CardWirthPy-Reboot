@@ -452,7 +452,7 @@ class CWPyCard(base.SelectableSprite):
             if not rect is self.rect:
                 rect.center = self.rect.center
 
-        if self.frame == speed:
+        if self.frame >= speed:
             if self.reversed:
                 self.status = "reversed"
             else:
@@ -483,7 +483,7 @@ class CWPyCard(base.SelectableSprite):
             topleft = (self.rect[0], y)
             self.rect.topleft = topleft
 
-        if self.frame == speed:
+        if self.frame >= speed:
             self.image = pygame.Surface((0, 0)).convert()
             self.status = "hidden"
             self.frame = 0
@@ -630,7 +630,7 @@ class CWPyCard(base.SelectableSprite):
 #-------------------------------------------------------------------------------
 
 class PlayerCard(CWPyCard, character.Player):
-    def __init__(self, data, pos_noscale=(0, 0), status="hidden"):
+    def __init__(self, data, pos_noscale=(0, 0), status="hidden", index=0):
         CWPyCard.__init__(self, status)
         # CWPyElementTreeインスタンス
         self.data = data
@@ -658,7 +658,10 @@ class PlayerCard(CWPyCard, character.Player):
             self._reverse()
 
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self) # TODO: layer
+        self.index = index
+        self.layer = (cw.LAYER_PCARDS, self.index, 0)
+        cw.cwpy.cardgrp.add(self, layer=self.layer)
+        cw.cwpy.pcards.append(self)
 
     def set_pos(self, pos=None, center=None):
         CWPyCard.set_pos(self, pos, center)
@@ -841,8 +844,9 @@ class PlayerCard(CWPyCard, character.Player):
 #-------------------------------------------------------------------------------
 
 class EnemyCard(CWPyCard, character.Enemy):
-    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True):
+    def __init__(self, mcarddata, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0):
         CWPyCard.__init__(self, status)
+        self.index = index
         self.mcarddata = mcarddata
         self._init_pos_noscale = pos_noscale
         # フラグ
@@ -866,9 +870,15 @@ class EnemyCard(CWPyCard, character.Enemy):
         else:
             self.initialize()
 
+        # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+        if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            self.layer = (cw.LAYER_MCARDS_120, self.index, 0)
+        else:
+            self.layer = (cw.LAYER_MCARDS, self.index, 0)
         if addgroup:
             # spritegroupに追加
-            cw.cwpy.mcardgrp.add(self) # TODO: layer
+            cw.cwpy.cardgrp.add(self, layer=self.layer)
+            cw.cwpy.mcards.append(self)
 
     def initialize(self):
         if self._init:
@@ -912,7 +922,8 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.update_hide()
 
         if self.frame == 0:
-            cw.cwpy.mcardgrp.remove(self) # TODO: layer
+            cw.cwpy.cardgrp.remove(self)
+            cw.cwpy.mcards.remove(self)
 
     def lclick_event(self):
         """左クリックイベント。"""
@@ -948,9 +959,11 @@ class EnemyCard(CWPyCard, character.Enemy):
 #-------------------------------------------------------------------------------
 
 class FriendCard(CWPyCard, character.Friend):
-    def __init__(self, castid=None, data=None):
+    def __init__(self, castid=None, data=None, index=0):
         CWPyCard.__init__(self, "hidden")
         self.zoomsize_noscale = (32, 42)
+        self.index = index
+        self.layer = (cw.LAYER_FCARDS, self.index, 0)
 
         if castid:
             # Id
@@ -1016,13 +1029,14 @@ class FriendCard(CWPyCard, character.Friend):
 #-------------------------------------------------------------------------------
 
 class MenuCard(CWPyCard):
-    def __init__(self, data, pos_noscale=(0, 0), status="hidden", addgroup=True):
+    def __init__(self, data, pos_noscale=(0, 0), status="hidden", addgroup=True, index=0):
         """
         メニューカード用のスプライトを作成。
         """
         CWPyCard.__init__(self, status)
         assert hasattr(self, "alpha")
         # カード情報
+        self.index = index
         self._data = data
         self._pos_noscale2 = pos_noscale
         self.name = data.gettext("Property/Name", "")
@@ -1054,9 +1068,15 @@ class MenuCard(CWPyCard):
         else:
             self.initialize()
 
+        # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
+        if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            self.layer = (cw.LAYER_MCARDS_120, self.index, 0)
+        else:
+            self.layer = (cw.LAYER_MCARDS, self.index, 0)
         if addgroup:
             # spritegroupに追加
-            cw.cwpy.mcardgrp.add(self) # TODO: layer
+            cw.cwpy.cardgrp.add(self, layer=self.layer)
+            cw.cwpy.mcards.append(self)
 
     def initialize(self):
         if self._init:

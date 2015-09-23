@@ -163,7 +163,7 @@ class ScenarioSelect(select.Select):
         self.bookmark.SetToolTip(wx.ToolTip(cw.cwpy.msgs["bookmark"]))
 
         if cw.cwpy.setting.show_paperandtree:
-            buttonwidth = cw.wins(100)
+            buttonwidth = cw.wins(90)
         else:
             buttonwidth = cw.wins(55)
 

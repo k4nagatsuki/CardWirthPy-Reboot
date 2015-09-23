@@ -670,19 +670,13 @@ class Character(object):
         elif isinstance(self, cw.character.Friend):
             self.set_pos_noscale(center_noscale=(316, 142))
             # NPC表示
-            # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画されるため、
-            #           NPCもメニューカードのグループで描画する必要がある
-            if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                grp = cw.cwpy.mcardgrp
-            else:
-                grp = cw.cwpy.pcardgrp
-            grp.add(self) # TODO: layer
+            cw.cwpy.cardgrp.add(self, layer=self.layer)
             cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
             # 表示中に効果音を鳴らす
             cw.cwpy.play_sound_with(soundpath, header)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
-            inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True, spritegrp=grp)
+            inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True)
             cw.cwpy.draw()
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
@@ -691,7 +685,7 @@ class Character(object):
             # 自分が対象の時でなければNPC消去
             if not self in targets:
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
-                grp.remove(self) # TODO: layer
+                cw.cwpy.cardgrp.remove(self)
             else:
                 removeafter = True
         else:
@@ -722,7 +716,7 @@ class Character(object):
             if removeafter:
                 # NPC消去
                 cw.animation.animate_sprite(self, "hide", battlespeed=cw.cwpy.is_battlestatus())
-                grp.remove(self) # TODO: layer
+                cw.cwpy.cardgrp.remove(self)
             # 特殊文字を元に戻す
             cw.cwpy.rsrc.specialchars = specialchars
             cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
@@ -2414,7 +2408,8 @@ class Player(Character):
                 fpath = cw.util.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
             fpath = cw.util.join_paths(fpath)
             cw.cwpy.sdata.lostadventurers.add(fpath)
-        cw.cwpy.pcardgrp.remove(self) # TODO: layer
+        cw.cwpy.cardgrp.remove(self)
+        cw.cwpy.pcards.remove(self)
 
     def set_name(self, name):
         Character.set_name(self, name)
