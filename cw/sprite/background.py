@@ -32,7 +32,8 @@ class BackGround(base.CWPySprite):
         self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         # spritegroupに追加
-        cw.cwpy.bggrp.add(self) # TODO: layer
+        self.layer = (cw.LAYER_BACKGROUND, 0, 0)
+        cw.cwpy.cardgrp.add(self, layer=self.layer)
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
@@ -472,57 +473,38 @@ class BackGround(base.CWPySprite):
         # トランジション効果で画面入り
         if redraw:
             if not animated and transitspr and not oldbgs == self.bgs:
-                transitspr.add(cw.cwpy.bggrp) # TODO: layer
+                cw.cwpy.cardgrp.add(transitspr, layer=(cw.LAYER_BACKGROUND, 0, 1))
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
-                transitspr.remove(cw.cwpy.bggrp) # TODO: layer
+                cw.cwpy.cardgrp.remove(transitspr)
             else:
                 cw.cwpy.draw()
 
 class Curtain(base.SelectableSprite):
-    def __init__(self, spritegrp, size_noscale, pos_noscale, color=None, cutarealist=None, layer=None):
+    def __init__(self, target, spritegrp, color=None):
         """半透明のブルーバックスプライト。右クリックで解除。
-        spritegrp: 登録するSpriteGroup。"curtain"レイヤに追加される。
-        size: スプライトのサイズ。
-        pos: 表示位置。
+        target: 覆い隠す対象。
+        spritegrp: 登録するSpriteGroup。
         color: カーテン色(不透明度含む)。
         """
+        base.SelectableSprite.__init__(self)
+
         if color:
             self.color = color
         else:
             self.color = cw.cwpy.setting.curtaincolour
-        base.SelectableSprite.__init__(self)
-        self._pos_noscale = pos_noscale
-        self._size_noscale = size_noscale
-        self.image = pygame.Surface(cw.s(size_noscale)).convert()
-        self.image.fill(self.color[:3])
-        self.image.set_alpha(self.color[3])
-        self.rect = self.image.get_rect()
-        self.rect.topleft = cw.s(pos_noscale)
-        self.cutarealist = cutarealist
-        self.cut_curtain()
-        # spritegroupに追加
-        if layer is None:
-            layer = cw.LAYER_CURTAIN
-        else:
-            cw.cwpy.curtains.append(self)
-        spritegrp.add(self, layer=layer)
+        self.target = target
+        self.update_scale()
 
-    def cut_curtain(self):
-        if self.cutarealist:
-            self.image.set_colorkey((0, 0, 0))
-            left_whole, top_whole = self.rect.topleft
-            for cutarea in self.cutarealist:
-                left, top, w, h = cw.s((cutarea))
-                left, top = left - left_whole, top - top_whole
-                self.image.fill((0, 0, 0), (left, top, w, h))
+        # spritegroupに追加
+        self.layer = (target.layer[0], target.layer[1], 100)
+        spritegrp.add(self, layer=self.layer)
+        cw.cwpy.curtains.append(self)
 
     def update_scale(self):
-        self.image = pygame.Surface(cw.s(self._size_noscale)).convert()
+        self.image = pygame.Surface(self.target.rect.size).convert()
         self.image.fill(self.color[:3])
         self.image.set_alpha(self.color[3])
-        self.rect = self.image.get_rect()
-        self.rect.topleft = cw.s(self._pos_noscale)
-        self.cut_curtain()
+        self.rect = pygame.Rect(self.target.rect)
 
     def rclick_event(self):
         cw.cwpy.cancel_cardcontrol()

@@ -49,9 +49,6 @@ class CWPyCard(base.SelectableSprite):
         # フラグ
         self.flag = ""
 
-    def is_initialized(self):
-        return True
-
     def is_flagtrue(self):
         mcardflag = bool(cw.cwpy.sdata.flags.get(self.flag, True))
         mcardflag &= bool(not self.debug_only or cw.cwpy.is_debugmode())

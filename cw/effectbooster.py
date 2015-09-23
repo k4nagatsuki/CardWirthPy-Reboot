@@ -876,7 +876,6 @@ class JpdcImage(cw.image.Image):
         if copymode == 3:
             self.image.fill((255, 255, 255))
         else:
-            cw.cwpy.bggrp.draw(self.image)
             cw.cwpy.cardgrp.draw(self.image)
             if copymode == 2:
                 for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"): # TODO: layer

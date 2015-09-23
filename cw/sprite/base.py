@@ -17,6 +17,9 @@ class CWPySprite(pygame.sprite.DirtySprite):
         self.start_animation = 0
         self.frame = 0
 
+    def is_initialized(self):
+        return True
+
     def update_scale(self):
         pass
 

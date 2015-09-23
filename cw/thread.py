@@ -130,7 +130,6 @@ class CWPy(_Singleton, threading.Thread):
         # EventInterfaceインスタンス
         self.event = cw.event.EventInterface()
         # Spriteグループ
-        self.bggrp = pygame.sprite.LayeredDirty()
         self.cardgrp = pygame.sprite.LayeredDirty()
         self.pcards = []
         self.mcards = []
@@ -302,7 +301,6 @@ class CWPy(_Singleton, threading.Thread):
 
     def _update_clip(self):
         clip = pygame.Rect(cw.s((0, 0)), cw.s(cw.SIZE_AREA))
-        self.bggrp.set_clip(clip)
         self.cardgrp.set_clip(clip)
         self.topgrp.set_clip(clip)
         self.backloggrp.set_clip(clip)
@@ -453,8 +451,6 @@ class CWPy(_Singleton, threading.Thread):
                     sprite.update_scale()
             for sprite in self.topgrp.sprites():
                 sprite.update_scale()
-            for sprite in self.bggrp.sprites():
-                sprite.update_scale()
             for sprite in self.backloggrp.sprites():
                 sprite.update_scale()
             for sprite in self.get_fcards():
@@ -517,7 +513,6 @@ class CWPy(_Singleton, threading.Thread):
     def update_curtainstyle(self):
         """カーテンの描画形式の変更を反映する。"""
         for sprite in itertools.chain(self.cardgrp.sprites(),
-                                      self.bggrp.sprites(),
                                       self.backloggrp.sprites()):
             if isinstance(sprite, cw.sprite.message.BacklogCurtain):
                 sprite.color = self.setting.blcurtaincolour
@@ -805,7 +800,6 @@ class CWPy(_Singleton, threading.Thread):
                 self.disposition_pcards()
                 self.draw()
 
-        self.bggrp.update(self.scr_draw)
         self.cardgrp.update(self.scr_draw)
         self.topgrp.update(self.scr_draw)
         self.sbargrp.update(self.scr_draw)
@@ -854,9 +848,6 @@ class CWPy(_Singleton, threading.Thread):
             sprite.frame = 0
             self.animations.remove(sprite)
 
-    def draw_cards(self, scr):
-        return self.cardgrp.draw(self.scr_draw)
-
     def draw(self, mainloop=False, clip=None):
         if self.has_inputevent or not mainloop:
             # SpriteGroup描画
@@ -864,15 +855,12 @@ class CWPy(_Singleton, threading.Thread):
             #        次に表示される背景が映り込んでしまう
             if clip:
                 self.scr_draw.set_clip(clip)
-                self.bggrp.set_clip(clip)
                 self.cardgrp.set_clip(clip)
                 self.topgrp.set_clip(clip)
                 self.backloggrp.set_clip(clip)
                 self.sbargrp.set_clip(clip)
 
-            dirty_rects = self.bggrp.draw(self.scr_draw)
-
-            dirty_rects.extend(self.draw_cards(self.scr_draw))
+            dirty_rects = self.cardgrp.draw(self.scr_draw)
 
             dirty_rects.extend(self.topgrp.draw(self.scr_draw))
             dirty_rects.extend(self.backloggrp.draw(self.scr_draw))
@@ -2999,88 +2987,29 @@ class CWPy(_Singleton, threading.Thread):
     def set_curtain(self, target="Both"):
         """Curtainスプライトをセットする。"""
         if not self.is_curtained():
-            size_noscale, pos_noscale = (632, 284), (0, 0)
-            size_noscale2, pos_noscale2 = (632, 136), (0, 284)
-            size_noscale_castcard = (95, 130)
             self.is_pcardsselectable = target in ("Both", "Party")
             self.is_mcardsselectable = not self.is_battlestatus() or\
                                        target in ("Both", "Enemy")
             self.update_selectablelist()
 
-            if self.areaid < 0 or target == "Both":
-                cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
-                                             pos_noscale=pos_noscale)
-                cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
-                                             pos_noscale=pos_noscale2)
-            elif self.is_playingscenario():
-                if target == "Party":
-                    if self.battle:
-                        cw.sprite.background.Curtain(self.cardgrp, size_noscale=size_noscale,
-                                                     pos_noscale=pos_noscale)
-                    else:
-                        cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
-                                                     pos_noscale=pos_noscale)
+            # 背景上のカーテン
+            cw.sprite.background.Curtain(self.background, self.cardgrp)
 
-                    if self.battle:
-                        cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
-                                                     pos_noscale=pos_noscale2)
-                        cards = self.get_ecards()
-                        rect_area = pygame.Rect(pos_noscale2, size_noscale2)
-
-                        # noscale2と、enemycardとの重なった領域にcurtain描画
-                        # curtain どうしが重なるのを防ぐため、この領域をリストに記録
-                        rectcliplist = []
-
-                        for card in cards:
-                            size = size_noscale_castcard
-                            if not card.scale == 100:
-                                scale = card.scale / 100.0
-                                dummyimage = pygame.Surface(size_noscale_castcard)
-                                dummyimage = cw.image.zoomcard(dummyimage, scale)
-                                size = dummyimage.get_size()
-
-                            (area2_y, ), (card_y, ), (card_h, ) = \
-                                    pos_noscale2[1:], card.get_pos_noscale()[1:], size[1:]
-                            # pos_noscale2 の領域に enemycard が重なっているか
-                            if area2_y < card_y + card_h:
-                                rect_card = pygame.Rect(card.get_pos_noscale(), size)
-                                clip = rect_area.clip(rect_card)
-                                # curtain が重なって濃くならないよう、透過色で塗るrectのリスト
-                                cutarealist = []
-                                for rectclip in rectcliplist:
-                                    if rectclip.colliderect(clip):
-                                        cutarealist.append(rectclip.clip(clip))
-                                layer = (card.layer[0], card.layer[1], 100)
-                                cw.sprite.background.Curtain(self.cardgrp,
-                                                             size_noscale=clip.size,
-                                                             pos_noscale=clip.topleft,
-                                                             cutarealist=cutarealist,
-                                                             layer=layer)
-                                rectcliplist.append(clip)
-
-                    else:
-                        cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
-                                                     pos_noscale=pos_noscale2)
-                elif target == "Enemy":
-                    cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale,
-                                                 pos_noscale=pos_noscale)
-                    cw.sprite.background.Curtain(self.bggrp, size_noscale=size_noscale2,
-                                                 pos_noscale=pos_noscale2)
-                    cards = self.get_pcards()
-                    for card in cards:
-                        layer = (card.layer[0], card.layer[1], 100)
-                        cw.sprite.background.Curtain(self.cardgrp,
-                                                     size_noscale=size_noscale_castcard,
-                                                     pos_noscale=card.get_pos_noscale(),
-                                                     layer=layer)
+            # カード上のカーテン
+            if not self.is_pcardsselectable:
+                cards = self.get_pcards()
+                for card in cards:
+                    cw.sprite.background.Curtain(card, self.cardgrp)
+            if not self.is_mcardsselectable:
+                cards = self.get_mcards("visible")
+                for card in cards:
+                    cw.sprite.background.Curtain(card, self.cardgrp)
 
             self._curtained = True
 
     def clear_curtain(self):
         """Curtainスプライトを解除する。"""
         if self.is_curtained():
-            self.bggrp.remove_sprites_of_layer(cw.LAYER_CURTAIN)
-            self.cardgrp.remove_sprites_of_layer(cw.LAYER_CURTAIN)
             self.cardgrp.remove(self.curtains)
             self.curtains = []
             self._curtained = False
