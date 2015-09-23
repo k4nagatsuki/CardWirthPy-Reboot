@@ -2279,7 +2279,7 @@ class Party(object):
             cw.cwpy.ydata.changed()
         pcard.remove_numbercoupon()
         self.members.remove(pcard.data)
-        cw.cwpy.pcardgrp.remove(pcard)
+        cw.cwpy.pcardgrp.remove(pcard) # TODO: layer
         self.data.getfind("Property/Members").clear()
 
         for pcard in cw.cwpy.get_pcards():
@@ -2298,8 +2298,8 @@ class Party(object):
         assert len(seq) == len(self.members)
         seq[index1], seq[index2] = seq[index2], seq[index1]
         self.members[index1], self.members[index2] = self.members[index2], self.members[index1]
-        cw.cwpy.pcardgrp.empty()
-        cw.cwpy.pcardgrp.add(seq)
+        cw.cwpy.pcardgrp.empty() # TODO: layer
+        cw.cwpy.pcardgrp.add(seq) # TODO: layer
 
         self.data.getfind("Property/Members").clear()
         for pcard in cw.cwpy.get_pcards():

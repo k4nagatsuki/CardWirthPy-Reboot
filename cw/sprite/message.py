@@ -78,9 +78,9 @@ class MessageWindow(base.CWPySprite):
 
         # spritegroupに追加
         if self.backlog:
-            cw.cwpy.backloggrp.add(self, layer="backlog")
+            cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            cw.cwpy.topgrp.add(self, layer="message")
+            cw.cwpy.topgrp.add(self, layer=cw.LAYER_MESSAGE)
 
     def _init_style(self):
         # クラシックスタイルか
@@ -132,9 +132,9 @@ class MessageWindow(base.CWPySprite):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs()
         if self.backlog:
-            cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
         else:
-            cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
         self.selections = []
         self.selection_pos = cw.s((81, 230))
 
@@ -449,9 +449,9 @@ class SelectWindow(MessageWindow):
         self.draw_all()
         # spritegroupに追加
         if self.backlog:
-            cw.cwpy.backloggrp.add(self, layer="backlog")
+            cw.cwpy.backloggrp.add(self, layer=cw.LAYER_LOG)
         else:
-            cw.cwpy.topgrp.add(self, layer="message")
+            cw.cwpy.topgrp.add(self, layer=cw.LAYER_MESSAGE)
 
     def _init_image(self, size_noscale, pos_noscale):
         # image
@@ -476,9 +476,9 @@ class SelectWindow(MessageWindow):
         self._init_image(self.rect_noscale.size, self.rect_noscale.topleft)
         self.charimgs = self.create_charimgs(cw.s((14, 9)))
         if self.backlog:
-            cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
+            cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
         else:
-            cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
+            cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
         self.selections = []
         self.selection_pos = cw.s((81, 90))
 
@@ -526,9 +526,11 @@ class SelectionBar(base.SelectableSprite):
         self.frame = 0
         # spritegroupに追加
         if self.backlog:
-            cw.cwpy.backloggrp.add(self, layer="backlogbar")
+            self.grp = cw.cwpy.backloggrp
+            self.grp.add(self, layer=cw.LAYER_LOG_BAR)
         else:
-            cw.cwpy.topgrp.add(self, layer="selectionbar")
+            self.grp = cw.cwpy.topgrp
+            self.grp.add(self, layer=cw.LAYER_SELECTIONBAR_1)
 
     def get_unselectedimage(self):
         return self._image
@@ -560,10 +562,12 @@ class SelectionBar(base.SelectableSprite):
         if self.frame == 0:
             self.rect.move_ip(cw.s(0), cw.s(+1))
             self.status = "click"
+            self.grp.change_layer(self, cw.LAYER_SELECTIONBAR_2)
         elif self.frame == 6:
             self.status = "normal"
             self.rect.move_ip(cw.s(0), cw.s(-1))
             self.frame = 0
+            self.grp.change_layer(self, cw.LAYER_SELECTIONBAR_1)
             return
 
         self.frame += 1
@@ -685,7 +689,7 @@ class BacklogCurtain(base.CWPySprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 0))
         # spritegroupに追加
-        spritegrp.add(self, layer=0)
+        spritegrp.add(self, layer=0) # TODO: layer
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s((632, 420))).convert()
@@ -704,7 +708,7 @@ class BacklogPage(base.CWPySprite):
         base.CWPySprite.__init__(self)
         self.update_page(page, pagemax)
         # spritegroupに追加
-        spritegrp.add(self, layer="backlogpage")
+        spritegrp.add(self, layer=cw.LAYER_LOG_PAGE)
 
     def update_page(self, page, pagemax):
         """バックログの何ページ目を見ているかの情報を更新する。

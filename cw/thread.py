@@ -309,7 +309,7 @@ class CWPy(_Singleton, threading.Thread):
     def update_skin(self, skindirname, changearea=True, restartop=True):
         if self.status == "Title" and restartop:
             changearea=False
-            self.mcardgrp.empty()
+            self.mcardgrp.empty() # TODO: layer
             self.background.bgs = []
 
         changed = self.ydata and self.ydata.is_changed()
@@ -336,7 +336,7 @@ class CWPy(_Singleton, threading.Thread):
         if not self.is_battlestatus() and changearea and not (self.status == "Title" and self.topgrp.sprites()):
             for sprite in self.mcardgrp.sprites()[:]:
                 if not isinstance(sprite, cw.sprite.card.FriendCard):
-                    self.mcardgrp.remove(sprite)
+                    self.mcardgrp.remove(sprite) # TODO: layer
             self.sdata.change_data(self.areaid)
             self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
             self.deal_cards()
@@ -1326,8 +1326,9 @@ class CWPy(_Singleton, threading.Thread):
         self.list = self.get_mcards("visible")
         self.index = -1
         # スプライト削除
-        self.topgrp.remove_sprites_of_layer("selectionbar")
-        self.topgrp.remove_sprites_of_layer("message")
+        self.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
+        self.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+        self.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
 
         # 互換性マーク削除
         if self.is_playingscenario():
@@ -1473,12 +1474,12 @@ class CWPy(_Singleton, threading.Thread):
         path = cw.util.find_resource(cw.util.join_paths(resdir, "TITLE_CELL3"), self.rsrc.ext_img)
         cell3 = cw.sprite.background.TitleCell(path, 2, 160, False, white, center=True)
 
-        cw.cwpy.topgrp.add(card1, layer="title")
-        cw.cwpy.topgrp.add(card2, layer="title")
-        cw.cwpy.topgrp.add(cell1, layer="title")
-        cw.cwpy.topgrp.add(cell2, layer="title")
-        cw.cwpy.topgrp.add(cell3, layer="title")
-        cw.cwpy.topgrp.add(white, layer="title")
+        cw.cwpy.topgrp.add(card1, layer="title") # TODO: layer
+        cw.cwpy.topgrp.add(card2, layer="title") # TODO: layer
+        cw.cwpy.topgrp.add(cell1, layer="title") # TODO: layer
+        cw.cwpy.topgrp.add(cell2, layer="title") # TODO: layer
+        cw.cwpy.topgrp.add(cell3, layer="title") # TODO: layer
+        cw.cwpy.topgrp.add(white, layer="title") # TODO: layer
 
         self.lock_menucards = False
         try:
@@ -1823,7 +1824,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # スプライトを作り直す
         pcards = self.get_pcards()
-        showparty = bool(self.pcardgrp.get_sprites_from_layer(0))
+        showparty = bool(self.pcardgrp.get_sprites_from_layer(0)) # TODO: layer
         if showparty:
             self.music.stop()
 
@@ -1836,7 +1837,7 @@ class CWPy(_Singleton, threading.Thread):
         for idx, data in enumerate(self.ydata.party.members):
             if idx < len(pcards):
                 pcard = pcards[idx]
-                self.pcardgrp.remove(pcard)
+                self.pcardgrp.remove(pcard) # TODO: layer
 
             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
             pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal")
@@ -2193,12 +2194,12 @@ class CWPy(_Singleton, threading.Thread):
         bginhrt: Trueの時は背景継承。
         """
         # メニューカードスプライトグループの中身を削除
-        self.mcardgrp.empty()
+        self.mcardgrp.empty() # TODO: layer
 
         # プレイヤカードスプライトグループの中身を削除
         if self.ydata:
             if not self.ydata.party or self.ydata.party.is_loading():
-                self.pcardgrp.empty()
+                self.pcardgrp.empty() # TODO: layer
 
         # 背景スプライト作成
         if not bginhrt:
@@ -2235,9 +2236,9 @@ class CWPy(_Singleton, threading.Thread):
             fcard.set_alpha(alpha)
             if fcard.status == "hidden":
                 fcard.clear_image()
-                self.mcardgrp.add(fcard)
+                self.mcardgrp.add(fcard) # TODO: layer
             else:
-                self.mcardgrp.add(fcard)
+                self.mcardgrp.add(fcard) # TODO: layer
                 if not alpha is None:
                     fcard.update_image()
                 fcard.deal()
@@ -2252,7 +2253,7 @@ class CWPy(_Singleton, threading.Thread):
                 fcard.set_alpha(None)
                 fcard.hide()
                 fcards.append(fcard)
-        self.mcardgrp.remove(fcards)
+        self.mcardgrp.remove(fcards) # TODO: layer
         self.list = self.get_mcards("visible")
         self.index = -1
 
@@ -2480,7 +2481,7 @@ class CWPy(_Singleton, threading.Thread):
         self.set_battle()
         self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
         cw.animation.animate_sprite(sprite, "hide")
-        sprite.remove(cw.cwpy.topgrp)
+        sprite.remove(cw.cwpy.topgrp) # TODO: layer
 
         self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
         self.battle = cw.battle.BattleEngine()
@@ -2580,8 +2581,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
                 self.pre_mcards.append(self.get_mcards())
-                self.mcardgrp.empty()
-                self.mcardgrp.add(self.sdata.sparea_mcards[areaid])
+                self.mcardgrp.empty() # TODO: layer
+                self.mcardgrp.add(self.sdata.sparea_mcards[areaid]) # TODO: layer
                 # 特殊エリアのカードはデバッグモードによって
                 # 表示が切り替わる場合がある
                 for mcard in self.sdata.sparea_mcards[areaid]:
@@ -2669,14 +2670,14 @@ class CWPy(_Singleton, threading.Thread):
 
             # パーティ解散エリア解除の場合
             if self.areaid == cw.AREA_BREAKUP:
-                self.topgrp.empty()
+                self.topgrp.empty() # TODO: layer
 
             # カード移動操作エリアを解除の場合
             if oldareaid in cw.AREAS_TRADE:
                 self.areaid = areaid
                 self.sdata.change_data(areaid)
-                self.mcardgrp.remove_sprites_of_layer(0)
-                self.mcardgrp.add(self.pre_mcards.pop())
+                self.mcardgrp.remove_sprites_of_layer(0) # TODO: layer
+                self.mcardgrp.add(self.pre_mcards.pop()) # TODO: layer
                 self.deal_cards()
                 self.list = self.get_mcards("visible")
                 self.index = -1
@@ -2749,7 +2750,7 @@ class CWPy(_Singleton, threading.Thread):
         else:
             index = -1
 
-        self.topgrp.empty()
+        self.topgrp.empty() # TODO: layer
 
         def get_image():
             return self.rsrc.pygamedialogs["REPLACE_POSITION"]
@@ -2930,7 +2931,7 @@ class CWPy(_Singleton, threading.Thread):
         self._show_allselectedcards = False
         if user:
             if user.inusecardimg:
-                user.inusecardimg.group.remove(user.inusecardimg)
+                user.inusecardimg.group.remove(user.inusecardimg) # TODO: layer
                 self.inusecards.remove(user.inusecardimg)
                 user.inusecardimg = None
         else:
@@ -2940,7 +2941,7 @@ class CWPy(_Singleton, threading.Thread):
                 card.inusecardimg = None
 
             for card in self.inusecards:
-                card.group.remove(card)
+                card.group.remove(card) # TODO: layer
             self.inusecards = []
 
     def clear_inusecardimgfromheader(self, header):
@@ -2955,7 +2956,7 @@ class CWPy(_Singleton, threading.Thread):
                         cw.animation.animate_sprite(card.user, "hide")
                         cw.animation.animate_sprite(card.user, "deal")
                 else:
-                    card.group.remove(card)
+                    card.group.remove(card) # TODO: layer
                     self.inusecards.remove(card)
 
     def set_guardcardimg(self, owner, header):
@@ -2967,7 +2968,7 @@ class CWPy(_Singleton, threading.Thread):
     def clear_guardcardimg(self):
         """PlayerCardの前の回避・抵抗ボーナスカードの画像を削除。"""
         for card in self.guardcards:
-            card.group.remove(card)
+            card.group.remove(card) # TODO: layer
         self.guardcards = []
 
     def set_targetarrow(self, targets):
@@ -2975,7 +2976,7 @@ class CWPy(_Singleton, threading.Thread):
         対象選択の指矢印の画像を表示。
         """
         if not self.pcardgrp.get_sprites_from_layer("targetarrow") and\
-            not self.mcardgrp.get_sprites_from_layer("targetarrow"):
+            not self.mcardgrp.get_sprites_from_layer("targetarrow"): # TODO: layer
             if not isinstance(targets, (list, tuple)):
                 cw.sprite.background.TargetArrow(targets)
             else:
@@ -3183,7 +3184,7 @@ class CWPy(_Singleton, threading.Thread):
             elif 0 < index and index == len(arrows):
                 sprites.append(arrows[-1])
             cw.animation.animate_sprites(sprites, "delete")
-            self.pcardgrp.remove(pcard)
+            self.pcardgrp.remove(pcard) # TODO: layer
             if breakuparea and pcards:
                 self._create_poschangearrow()
             pcard.data.write_xml()
@@ -3199,11 +3200,11 @@ class CWPy(_Singleton, threading.Thread):
                 seq.extend(self.topgrp.sprites())
             cw.animation.animate_sprites(seq, "hide")
             if breakuparea:
-                self.topgrp.empty()
+                self.topgrp.empty() # TODO: layer
 
             for pcard in pcards:
                 pcard.remove_numbercoupon()
-                self.pcardgrp.remove(pcard)
+                self.pcardgrp.remove(pcard) # TODO: layer
                 pcard.data.write_xml()
 
             p_money = int(self.ydata.party.data.find("Property/Money").text)
@@ -4014,7 +4015,7 @@ class CWPy(_Singleton, threading.Thread):
     def get_messagewindow(self):
         """MessageWindow or SelectWindowインスタンスを返す。"""
         try:
-            return self.topgrp.get_sprites_from_layer("message")[0]
+            return self.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)[0]
         except:
             return None
 
@@ -4036,7 +4037,7 @@ class CWPy(_Singleton, threading.Thread):
         elif flag:
             mcards = self._mcardtable.get(flag, [])
         else:
-            mcards = self.mcardgrp.get_sprites_from_layer(0)
+            mcards = self.mcardgrp.get_sprites_from_layer(0) # TODO: layer
             if self.is_battlestatus() and self.battle and self.battle.is_running():
                 # 戦闘行動中はNPCを除外(一時的に表示されている可能性があるため)
                 mcards = [m for m in mcards
@@ -4074,7 +4075,7 @@ class CWPy(_Singleton, threading.Thread):
         elif mode == "active":
             pcards = [pcard for pcard in self.get_pcards() if pcard.is_active()]
         else:
-            pcards = self.pcardgrp.get_sprites_from_layer(0)
+            pcards = self.pcardgrp.get_sprites_from_layer(0) # TODO: layer
             pcards = [m for m in pcards
                       if not isinstance(m, (cw.character.Friend, cw.sprite.background.InuseCardImage))]
 

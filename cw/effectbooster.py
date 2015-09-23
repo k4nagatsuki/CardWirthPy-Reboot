@@ -164,7 +164,7 @@ class _JpySubImage(cw.image.Image):
             animespeed = cw.util.numwrap(self.animespeed, 0, 255)
 
             # 単一描画
-            sprs = cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal")
+            sprs = cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal") # TODO: layer
             if sprs:
                 background = sprs[0].image
                 self.cache.restore()
@@ -893,7 +893,7 @@ class JpdcImage(cw.image.Image):
                 cw.cwpy.mcardgrp.draw(self.image)
                 cw.cwpy.pcardgrp.draw(self.image)
             if copymode == 2:
-                for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"):
+                for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"): # TODO: layer
                     self.image.blit(sprite.image, sprite.rect.topleft)
 
         self.image = self.image.subsurface(rect)

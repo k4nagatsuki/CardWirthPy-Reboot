@@ -104,6 +104,14 @@ HINT_SCENARIO = 3   # シナリオ本体
 # 標準のサウンドフォント
 DEFAULT_SOUNDFONT = "Data/SoundFont/TimGM6mb.sf2"
 
+# 表示レイヤ
+LAYER_MESSAGE = (1000, 0)
+LAYER_SELECTIONBAR_1 = (1001, 0)
+LAYER_SELECTIONBAR_2 = (1002, 0)
+LAYER_LOG = (2000, 0)
+LAYER_LOG_BAR = (2001, 0)
+LAYER_LOG_PAGE = (2002, 0)
+
 # ゲーム画面構築の拡大率
 UP_SCR = 1
 # ゲーム画面・ダイアログ描画時の拡大率(UP_SCRが1の時の値)

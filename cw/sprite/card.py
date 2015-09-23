@@ -658,7 +658,7 @@ class PlayerCard(CWPyCard, character.Player):
             self._reverse()
 
         # spritegroupに追加
-        cw.cwpy.pcardgrp.add(self)
+        cw.cwpy.pcardgrp.add(self) # TODO: layer
 
     def set_pos(self, pos=None, center=None):
         CWPyCard.set_pos(self, pos, center)
@@ -868,7 +868,7 @@ class EnemyCard(CWPyCard, character.Enemy):
 
         if addgroup:
             # spritegroupに追加
-            cw.cwpy.mcardgrp.add(self)
+            cw.cwpy.mcardgrp.add(self) # TODO: layer
 
     def initialize(self):
         if self._init:
@@ -912,7 +912,7 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.update_hide()
 
         if self.frame == 0:
-            cw.cwpy.mcardgrp.remove(self)
+            cw.cwpy.mcardgrp.remove(self) # TODO: layer
 
     def lclick_event(self):
         """左クリックイベント。"""
@@ -1056,7 +1056,7 @@ class MenuCard(CWPyCard):
 
         if addgroup:
             # spritegroupに追加
-            cw.cwpy.mcardgrp.add(self)
+            cw.cwpy.mcardgrp.add(self) # TODO: layer
 
     def initialize(self):
         if self._init:

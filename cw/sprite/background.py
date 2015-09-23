@@ -32,7 +32,7 @@ class BackGround(base.CWPySprite):
         self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
         # spritegroupに追加
-        cw.cwpy.bggrp.add(self)
+        cw.cwpy.bggrp.add(self) # TODO: layer
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
@@ -472,9 +472,9 @@ class BackGround(base.CWPySprite):
         # トランジション効果で画面入り
         if redraw:
             if not animated and transitspr and not oldbgs == self.bgs:
-                transitspr.add(cw.cwpy.bggrp)
+                transitspr.add(cw.cwpy.bggrp) # TODO: layer
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
-                transitspr.remove(cw.cwpy.bggrp)
+                transitspr.remove(cw.cwpy.bggrp) # TODO: layer
             else:
                 cw.cwpy.draw()
 
@@ -501,7 +501,7 @@ class Curtain(base.SelectableSprite):
         self.cutarealist = cutarealist
         self.cut_curtain()
         # spritegroupに追加
-        spritegrp.add(self, layer="curtain")
+        spritegrp.add(self, layer="curtain") # TODO: layer
 
     def cut_curtain(self):
         if self.cutarealist:
@@ -539,7 +539,7 @@ class BattleCardImage(card.CWPyCard):
         self.set_pos_noscale(center_noscale=(316, 142))
         self.clear_image()
         # spritegroupに追加
-        cw.cwpy.topgrp.add(self, layer="battlecard")
+        cw.cwpy.topgrp.add(self, layer="battlecard") # TODO: layer
 
     def update_battlestart(self):
         self.highspeed = True
@@ -602,13 +602,13 @@ class InuseCardImage(card.CWPyCard):
             self.group = cw.cwpy.mcardgrp
         if user and not center and not fore:
             sprites = self.group.sprites()[:]
-            self.group.empty()
+            self.group.empty() # TODO: layer
             index = sprites.index(user)
-            self.group.add(sprites[:index+1])
-            self.group.add(self)
-            self.group.add(sprites[index+1:])
+            self.group.add(sprites[:index+1]) # TODO: layer
+            self.group.add(self) # TODO: layer
+            self.group.add(sprites[index+1:]) # TODO: layer
         else:
-            self.group.add(self)
+            self.group.add(self) # TODO: layer
 
     def update_scale(self):
         self.header.negaflag = False
@@ -649,9 +649,9 @@ class TargetArrow(base.CWPySprite):
         # spritegroupに追加
         # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
         if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-            cw.cwpy.mcardgrp.add(self, layer="targetarrow")
+            cw.cwpy.mcardgrp.add(self, layer="targetarrow") # TODO: layer
         else:
-            cw.cwpy.pcardgrp.add(self, layer="targetarrow")
+            cw.cwpy.pcardgrp.add(self, layer="targetarrow") # TODO: layer
 
     def update_scale(self):
         self.image = cw.cwpy.rsrc.statuses["TARGET"]
@@ -669,7 +669,7 @@ class Jpy1TemporalSprite(base.CWPySprite):
         self.rect = cw.s(pygame.Rect((0, 0), cw.SIZE_AREA))
 
         # spritegroupに追加
-        cw.cwpy.topgrp.add(self, layer="jpytemporal")
+        cw.cwpy.topgrp.add(self, layer="jpytemporal") # TODO: layer
 
 class TitleCell(base.CWPySprite):
     def __init__(self, path, layer, y_noscale, iscard, selsprite, center=False):
@@ -869,7 +869,7 @@ class ClickableSprite(base.SelectableSprite):
         self.old_status = "normal"
         self.frame = 0
 
-        spritegrp.add(self)
+        spritegrp.add(self) # TODO: layer
         self.spritegrp = spritegrp
 
     def update_scale(self):
@@ -973,7 +973,7 @@ class ClickableSprite(base.SelectableSprite):
         """
         self.update_hide()
         if self.status == "hidden":
-            self.spritegrp.remove(self)
+            self.spritegrp.remove(self) # TODO: layer
 
 class NumberOfCards(base.CWPySprite):
     def __init__(self, pcard, cardtype, spritegrp):
@@ -987,7 +987,7 @@ class NumberOfCards(base.CWPySprite):
         self.cardtype = cardtype
         self.update_scale()
         # spritegroupに追加
-        spritegrp.add(self, layer="numberofcards")
+        spritegrp.add(self, layer="numberofcards") # TODO: layer
 
     def update_scale(self):
         num = len(self.pcard.get_pocketcards(self.cardtype))

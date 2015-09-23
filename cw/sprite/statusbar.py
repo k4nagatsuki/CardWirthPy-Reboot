@@ -25,7 +25,7 @@ class StatusBar(base.CWPySprite):
         self.loading = False
         self._init_image()
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self)
+        cw.cwpy.sbargrp.add(self, layer=0)
 
     def _init_image(self):
         self.image = pygame.Surface(cw.s((632, 33))).convert()
@@ -135,8 +135,8 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.event.refresh_tools()
 
     def clear(self):
-        cw.cwpy.sbargrp.empty()
-        cw.cwpy.sbargrp.add(self)
+        cw.cwpy.sbargrp.empty() # TODO: layer
+        cw.cwpy.sbargrp.add(self, layer=0)
 
     def _create_autostart(self, pos):
         if self.autostart:
@@ -202,7 +202,7 @@ class ProgressView(base.CWPySprite):
         self.update(None)
 
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer="panel")
+        cw.cwpy.sbargrp.add(self, layer=1)
 
     def update(self, scr):
         params = (self.text, self.max, self.min, self.current)
@@ -288,7 +288,7 @@ class StatusBarPanel(base.CWPySprite):
         self.rect.top = self.parent.rect.top + pos[1]
         self.rect.left = self.parent.rect.left + pos[0]
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer="panel")
+        cw.cwpy.sbargrp.add(self, layer=1)
 
     def update_image(self):
         pass
@@ -552,7 +552,7 @@ class StatusBarButton(base.SelectableSprite):
         self.rect.left = self.parent.rect.left + pos[0]
 
         # spritegroupに追加
-        cw.cwpy.sbargrp.add(self, layer="button")
+        cw.cwpy.sbargrp.add(self, layer=1)
 
     def get_icon(self):
         return None
@@ -703,7 +703,7 @@ class StatusBarButton(base.SelectableSprite):
             rect = self._desc.rect
             self._desc = None
             self._desc = Desc(self, self.desc)
-            cw.cwpy.sbargrp.add(self._desc, layer="desc")
+            cw.cwpy.sbargrp.add(self._desc, layer=2)
 
     def update_image(self):
         if not self.enabled:
@@ -716,7 +716,7 @@ class StatusBarButton(base.SelectableSprite):
         if cw.cwpy.setting.show_btndesc and self.is_selection() and self.desc and not cw.cwpy.is_showingdlg():
             if not self._desc:
                 self._desc = Desc(self, self.desc)
-                cw.cwpy.sbargrp.add(self._desc, layer="desc")
+                cw.cwpy.sbargrp.add(self._desc, layer=2)
         else:
             if self._desc:
                 cw.cwpy.sbargrp.remove(self._desc)

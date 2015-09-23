@@ -676,7 +676,7 @@ class Character(object):
                 grp = cw.cwpy.mcardgrp
             else:
                 grp = cw.cwpy.pcardgrp
-            grp.add(self)
+            grp.add(self) # TODO: layer
             cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
             # 表示中に効果音を鳴らす
             cw.cwpy.play_sound_with(soundpath, header)
@@ -691,7 +691,7 @@ class Character(object):
             # 自分が対象の時でなければNPC消去
             if not self in targets:
                 cw.animation.animate_sprite(self, "hide", battlespeed=battlespeed)
-                grp.remove(self)
+                grp.remove(self) # TODO: layer
             else:
                 removeafter = True
         else:
@@ -722,7 +722,7 @@ class Character(object):
             if removeafter:
                 # NPC消去
                 cw.animation.animate_sprite(self, "hide", battlespeed=cw.cwpy.is_battlestatus())
-                grp.remove(self)
+                grp.remove(self) # TODO: layer
             # 特殊文字を元に戻す
             cw.cwpy.rsrc.specialchars = specialchars
             cw.cwpy.rsrc.specialchars_is_changed = specialchars_is_changed
@@ -2414,7 +2414,7 @@ class Player(Character):
                 fpath = cw.util.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
             fpath = cw.util.join_paths(fpath)
             cw.cwpy.sdata.lostadventurers.add(fpath)
-        cw.cwpy.pcardgrp.remove(self)
+        cw.cwpy.pcardgrp.remove(self) # TODO: layer
 
     def set_name(self, name):
         Character.set_name(self, name)

@@ -644,7 +644,7 @@ class EventHandlerForMessageWindow(EventHandler):
                 cw.cwpy.selection.lclick_event()
 
         elif cw.cwpy.list and (len(cw.cwpy.list) == 1 or cw.cwpy.index >= 0) and\
-                cw.cwpy.topgrp.get_sprites_from_layer("message"):
+                cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
             if cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 sbar = cw.cwpy.list[cw.cwpy.index]
@@ -671,7 +671,7 @@ class EventHandlerForMessageWindow(EventHandler):
             if cw.cwpy.selection.rect.collidepoint(cw.cwpy.mousepos):
                 cw.cwpy.has_inputevent = True
                 cw.cwpy.selection.rclick_event()
-        elif not cw.cwpy.topgrp.get_sprites_from_layer("message"):
+        elif not cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
             self.shiftkey_event(False)
 
     def f4key_event(self):
@@ -680,7 +680,7 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         if not self.can_input():
             return
-        hidden = not cw.cwpy.topgrp.get_sprites_from_layer("message")
+        hidden = not cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE)
 
         if hidden:
             self.shiftkey_event(False, False)
@@ -761,15 +761,16 @@ class EventHandlerForMessageWindow(EventHandler):
                 self.mwin.draw_all()
             else:
                 cw.cwpy.clear_selection()
-                cw.cwpy.topgrp.remove_sprites_of_layer("message")
-                cw.cwpy.topgrp.remove_sprites_of_layer("selectionbar")
+                cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_MESSAGE)
+                cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_1)
+                cw.cwpy.topgrp.remove_sprites_of_layer(cw.LAYER_SELECTIONBAR_2)
                 if redraw:
                     cw.cwpy.draw()
         else:
-            if not cw.cwpy.topgrp.get_sprites_from_layer("message"):
-                cw.cwpy.topgrp.add(self.mwin, layer="message")
+            if not cw.cwpy.topgrp.get_sprites_from_layer(cw.LAYER_MESSAGE):
+                cw.cwpy.topgrp.add(self.mwin, layer=cw.LAYER_MESSAGE)
                 for sbar in self.mwin.selections:
-                    cw.cwpy.topgrp.add(sbar, layer="selectionbar")
+                    cw.cwpy.topgrp.add(sbar, layer=cw.LAYER_SELECTIONBAR_1)
                 if redraw:
                     cw.cwpy.draw()
 
@@ -989,23 +990,24 @@ class EventHandlerForBacklog(EventHandler):
         if playsound:
             cw.cwpy.play_sound("click")
         # バックログ終了
-        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
-        cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_PAGE)
         self.mwin = None
         cw.cwpy._is_showingbacklog = False
         if cw.cwpy.lock_menucards:
             cw.cwpy.lock_menucards = self._lock_menucards
 
         # 背景スプライト削除
-        cw.cwpy.backloggrp.remove(self._curtain)
-        cw.cwpy.backloggrp.remove(self._page)
+        cw.cwpy.backloggrp.remove(self._curtain) # TODO: layer
+        cw.cwpy.backloggrp.remove(self._page) # TODO: layer
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
         cw.cwpy.draw()
 
     def update_sprites(self):
         # スプライト削除
-        cw.cwpy.backloggrp.remove_sprites_of_layer("backlogbar")
-        cw.cwpy.backloggrp.remove_sprites_of_layer("backlog")
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
+        cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         # 次のバックログ
         self.mwin = self.backlog[self.index].create_message()
         self._page.update_page(self.index+1, len(self.backlog))

@@ -306,7 +306,7 @@ class BattleEngine(object):
             member.clear_action()
 
         cw.cwpy.hide_cards(True)
-        cw.cwpy.mcardgrp.empty()
+        cw.cwpy.mcardgrp.empty() # TODO: layer
 
         if runevent:
             eventkeynum = 1
@@ -332,7 +332,7 @@ class BattleEngine(object):
 
         if event:
             cw.cwpy.hide_cards(True)
-            cw.cwpy.mcardgrp.empty()
+            cw.cwpy.mcardgrp.empty() # TODO: layer
             cw.cwpy._gameover = False
 
             # 戦闘前のエリアに戻り、敗北イベント開始
