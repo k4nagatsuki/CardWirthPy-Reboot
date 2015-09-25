@@ -1015,14 +1015,17 @@ class Resource(object):
                     d[name] = fontname
                     continue
 
-                if winplatform == 2:
-                    gdi32.AddFontResourceExA(path, 0x10, 0)
-                else:
-                    gdi32.AddFontResourceA(path)
-                    user32 = ctypes.windll.user32
-                    HWND_BROADCAST = 0xFFFF
-                    WM_FONTCHANGE = 0x001D
-                    user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
+                def func():
+                    if winplatform == 2:
+                        gdi32.AddFontResourceExA(path, 0x10, 0)
+                    else:
+                        gdi32.AddFontResourceA(path)
+                        user32 = ctypes.windll.user32
+                        HWND_BROADCAST = 0xFFFF
+                        WM_FONTCHANGE = 0x001D
+                        user32.SendMessageA(HWND_BROADCAST, WM_FONTCHANGE, 0, 0)
+                thr = threading.Thread(target=func)
+                thr.start()
 
                 if fontname:
                     d[name] = fontname
@@ -1430,62 +1433,41 @@ class Resource(object):
 
         return btn.copy() if btn else None
 
-    def get_resources(self, func, dpath, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None, d=None):
+    def get_resources(self, func, dpath1, dpath2, ext, mask=False, ss=None, noresize=(), nodbg=False, emptyfunc=None):
         """
         各種リソースデータを辞書で返す。
         ファイル名から拡張子を除いたのがkey。
         """
-        if not d:
-            d = ResourceTable(dpath, {}.copy(), emptyfunc)
-        dpath = unicode(dpath)
-        if not os.path.isdir(dpath):
-            return d
+        def nokeyfunc(key):
+            dbg = not nodbg and key.endswith("_dbg")
+            fpath = ""
 
-        names = set()
+            if dbg:
+                key = key[:-len("_dbg")]
+                dbg = True
 
-        for fname in os.listdir(dpath):
-            names.add(os.path.splitext(fname)[0])
+            if dpath2:
+                fpath = cw.util.find_resource(cw.util.join_paths(dpath2, key), ext)
+            if not fpath:
+                fpath = cw.util.find_resource(cw.util.join_paths(dpath1, key), ext)
+            if not fpath:
+                return emptyfunc()
 
-        for fname in names:
-            fpath = cw.util.find_resource(cw.util.join_paths(dpath, fname), ext)
-            if fpath:
-                def ssize(bmp, fpath):
-                    ressize = get_resourcesize(fpath)
-                    if ressize is None:
-                        return ss(bmp)
-                    else:
-                        return ss((bmp, ressize))
+            if mask:
+                res = func(fpath, mask=mask)
+            else:
+                res = func(fpath)
 
-                key = os.path.splitext(fname)[0]
-                if ss and nodbg:
-                    if mask:
-                        if key in noresize:
-                            f = lambda key, fpath: d.set(key, func, fpath, mask=mask)
-                        else:
-                            f = lambda key, fpath: d.set(key, lambda: ssize(func(fpath, mask=mask), fpath))
-                    else:
-                        if key in noresize:
-                            f = lambda key, fpath: d.set(key, func, fpath)
-                        else:
-                            f = lambda key, fpath: d.set(key, lambda: ssize(func(fpath), fpath))
-                    f(key, fpath)
-                elif ss:
-                    if mask:
-                        d.set(key + "_dbg", func, fpath, mask=mask)
-                    else:
-                        d.set(key + "_dbg", func, fpath)
-                    if key in noresize:
-                        f = lambda key: d.set(key, lambda: d[key + "_dbg"])
-                        f(key)
-                    else:
-                        f = lambda key, fpath: d.set(key, lambda: ssize(d[key + "_dbg"], fpath))
-                        f(key, fpath)
+            if not dbg and ss and not key in noresize:
+                ressize = get_resourcesize(fpath)
+                if ressize is None:
+                    res = ss(res)
                 else:
-                    if mask:
-                        d.set(key, func, fpath, mask=mask)
-                    else:
-                        d.set(key, func, fpath)
+                    res = ss((res, ressize))
 
+            return res
+
+        d = ResourceTable(dpath1, {}.copy(), emptyfunc, nokeyfunc=nokeyfunc)
         return d
 
     def get_sounds(self, setting, skinsounds):
@@ -1507,9 +1489,8 @@ class Resource(object):
         スキン付属の効果音を読み込んで、
         pygameのsoundインスタンスの辞書で返す。
         """
-        d = self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", self.ext_snd, emptyfunc=empty_sound)
         dpath = cw.util.join_paths(self.skindir, "Sound")
-        return self.get_resources(cw.util.load_sound, dpath, self.ext_snd, emptyfunc=empty_sound, d=d)
+        return self.get_resources(cw.util.load_sound, "Data/SkinBase/Sound", dpath, self.ext_snd, emptyfunc=empty_sound)
 
     def get_msgs(self, setting):
         """
@@ -1522,29 +1503,34 @@ class Resource(object):
         ダイアログのボタン画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        d = self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Button", self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Button")
-        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp, d=d)
+        return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Button", dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
 
     def get_cursors(self):
         """
         ダイアログで使用されるカーソルを読み込んで、
         wxCursorのインスタンスの辞書で返す。
         """
-        d = ResourceTable("Resource/Image/Cursor", {}.copy(), lambda: wx.StockCursor(wx.CURSOR_ARROW))
-        d.set("CURSOR_BACK", wx.StockCursor, wx.CURSOR_POINT_LEFT)
-        d.set("CURSOR_FORE", wx.StockCursor, wx.CURSOR_POINT_RIGHT)
-        d.set("CURSOR_FINGER", wx.StockCursor, wx.CURSOR_HAND)
-        d.set("CURSOR_ARROW", lambda: wx.NullCursor)
+        def get_cursor(name):
+            fname = name + ".cur"
+            dpaths = ("Data/SkinBase/Resource/Image/Cursor",
+                      cw.util.join_paths(self.skindir, "Resource/Image/Cursor"))
+            for dpath in dpaths:
+                fpath = cw.util.join_paths(dpath, fname)
+                if os.path.isfile(fpath):
+                    return wx.Cursor(fpath, wx.BITMAP_TYPE_CUR)
+            if name == "CURSOR_BACK":
+                return wx.StockCursor(wx.CURSOR_POINT_LEFT)
+            elif name == "CURSOR_FORE":
+                return wx.StockCursor(wx.CURSOR_POINT_RIGHT)
+            elif name == "CURSOR_FINGER":
+                return wx.StockCursor(wx.CURSOR_HAND)
+            elif name == "CURSOR_ARROW":
+                return wx.NullCursor
+            else:
+                return wx.NullCursor
 
-        dpaths = ("Data/SkinBase/Resource/Image/Cursor",
-                  cw.util.join_paths(self.skindir, "Resource/Image/Cursor"))
-        for dpath in dpaths:
-            if os.path.isdir(dpath):
-                for fname in os.listdir(dpath):
-                    if fname.endswith(".cur"):
-                        fpath = cw.util.join_paths(dpath, fname)
-                        d.set(os.path.splitext(fname)[0], wx.Cursor, fpath, wx.BITMAP_TYPE_CUR)
+        d = ResourceTable("Resource/Image/Cursor", {}.copy(), lambda: wx.StockCursor(wx.CURSOR_ARROW), nokeyfunc=get_cursor)
         return d
 
     def get_stones(self):
@@ -1552,18 +1538,16 @@ class Resource(object):
         適性・カード残り回数の画像を読み込んで、
         pygameのサーフェスの辞書で返す。
         """
-        d = self.get_resources(cw.util.load_image, "Data/SkinBase/Resource/Image/Stone", self.ext_img, True, cw.s, emptyfunc=empty_image)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_image, dpath, self.ext_img, True, cw.s, emptyfunc=empty_image, d=d)
+        return self.get_resources(cw.util.load_image, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img, True, cw.s, emptyfunc=empty_image)
 
     def get_wxstones(self):
         """
         適性・カード残り回数の画像を読み込んで、
         wxBitmapのインスタンスの辞書で返す。
         """
-        d = self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Stone", self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Stone")
-        return self.get_resources(cw.util.load_wxbmp, dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp, d=d)
+        return self.get_resources(cw.util.load_wxbmp, "Data/SkinBase/Resource/Image/Stone", dpath, self.ext_img, True, cw.wins, emptyfunc=empty_wxbmp)
 
     def get_statuses(self, load_image):
         """
@@ -1592,9 +1576,8 @@ class Resource(object):
             else:
                 return load_image(fpath, mask=False)
 
-        d = self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Status")
-        return self.get_resources(load_image2, dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc, d=d)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Status", dpath, self.ext_img, False, ss, ("LIFEGUAGE", "LIFEBAR"), emptyfunc=emptyfunc)
 
     def get_dialogs(self, load_image):
         """
@@ -1620,9 +1603,8 @@ class Resource(object):
             else:
                 return load_image(fpath, mask=mask)
 
-        d = self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", self.ext_img, True, ss, emptyfunc=emptyfunc)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/Dialog")
-        return self.get_resources(load_image2, dpath, self.ext_img, True, ss, emptyfunc=emptyfunc, d=d)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/Dialog", dpath, self.ext_img, True, ss, emptyfunc=emptyfunc)
 
     def get_debugs(self, load_image):
         """
@@ -1635,7 +1617,7 @@ class Resource(object):
             emptyfunc=empty_image
 
         dpath = u"Data/Debugger"
-        return self.get_resources(load_image, dpath, cw.M_IMG, True, lambda bmp: bmp, emptyfunc=emptyfunc)
+        return self.get_resources(load_image, dpath, "", cw.M_IMG, True, lambda bmp: bmp, emptyfunc=emptyfunc)
 
     def get_cardbgs(self, load_image):
         """
@@ -1660,9 +1642,8 @@ class Resource(object):
             else:
                 return load_image(fpath, mask=mask)
 
-        d = self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)
         dpath = cw.util.join_paths(self.skindir, "Resource/Image/CardBg")
-        return self.get_resources(load_image2, dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc, d=d)
+        return self.get_resources(load_image2, "Data/SkinBase/Resource/Image/CardBg", dpath, self.ext_img, False, ss, nodbg=True, emptyfunc=emptyfunc)
 
     def get_cardnamecolorhints(self, cardbgs):
         """
@@ -1942,18 +1923,21 @@ class LazyResource(object):
         return self._res
 
 class ResourceTable(object):
-    def __init__(self, name, init={}.copy(), deffunc=None):
+    def __init__(self, name, init={}.copy(), deffunc=None, nokeyfunc=None):
         """文字列をキーとしたリソーステーブル。
         各リソースは必要になった時に遅延読み込みされる。
         """
         self.name = name
         self.dic = init
 
+        self.nokeyfunc = nokeyfunc
+
         self.deffunc = deffunc
         self.defvalue = None
         self.defload = False
 
     def __getitem__(self, key):
+        self._put_nokeyvalue(key)
         lazy = self.dic.get(key, None)
         if lazy:
             first = not lazy.load
@@ -1977,7 +1961,12 @@ class ResourceTable(object):
             self.defload = True
         return self.defvalue
 
+    def _put_nokeyvalue(self, key):
+        if self.nokeyfunc and not key in self.dic:
+            self.dic[key] = LazyResource(lambda: self.nokeyfunc(key), (), {})
+
     def get(self, key, defvalue=None):
+        self._put_nokeyvalue(key)
         if key in self.dic:
             return self[key]
         return defvalue
@@ -1986,10 +1975,11 @@ class ResourceTable(object):
         self.dic[key] = LazyResource(func, args, kwargs)
 
     def __contains__(self, key):
+        self._put_nokeyvalue(key)
         return key in self.dic
 
     def copy(self):
-        tbl = ResourceTable(self.name, self.dic.copy(), self.deffunc)
+        tbl = ResourceTable(self.name, self.dic.copy(), self.deffunc, self.nokeyfunc)
         tbl.defvalue = self.defvalue
         tbl.defload = self.defload
         return tbl
@@ -1999,6 +1989,7 @@ class ResourceTable(object):
             yield key
 
     def is_loaded(self, key):
+        self._put_nokeyvalue(key)
         return self.dic[key].load
 
 class RecentHistory(object):
