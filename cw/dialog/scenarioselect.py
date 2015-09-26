@@ -481,7 +481,7 @@ class ScenarioSelect(select.Select):
 
         # 検索結果ディレクトリを表示する
         if self.tree and self.tree.IsShown():
-            item, cookie = self.tree.GetFirstChild(self.tree.root)
+            item, _cookie = self.tree.GetFirstChild(self.tree.root)
             if item and item.IsOk():
                 data = self.tree.GetItemPyData(item)
                 if data and isinstance(data[1], FindResult):
@@ -497,7 +497,7 @@ class ScenarioSelect(select.Select):
                     self.tree.SetItemPyData(item, (index+1, header))
                 item = self.tree.GetNextSibling(item)
             if headers and selfirstheader:
-                item, cookie = self.tree.GetFirstChild(parent)
+                item, _cookie = self.tree.GetFirstChild(parent)
                 self.tree.SelectItem(item)
                 list = self.scetable[self.find_result]
             else:
@@ -831,7 +831,8 @@ class ScenarioSelect(select.Select):
                     self.dirstack.append((parent, fname))
                     parent = cw.util.get_linktarget(parent2)
                     if self.tree.IsShown():
-                        item, cookie = self.tree.GetFirstChild(treeitem)
+                        paritem = treeitem
+                        item, cookie = self.tree.GetFirstChild(paritem)
                         while item.IsOk():
                             data = self.tree.GetItemPyData(item)
                             assert not data is None
@@ -846,7 +847,7 @@ class ScenarioSelect(select.Select):
                                     self.tree.Expand(item)
                                     self.create_treeitems(item)
                                 break
-                            item, cookie = self.tree.GetNextChild(treeitem, cookie)
+                            item, cookie = self.tree.GetNextChild(paritem, cookie)
                 else:
                     exists = False
                     break
@@ -1453,7 +1454,7 @@ class ScenarioSelect(select.Select):
                             delitems.append(item)
                         elif isinstance(header, FindResult) or self.tree.IsExpanded(item):
                             recurse(item)
-                    item, cookie = self.tree.GetNextChild(item, cookie)
+                    item, cookie = self.tree.GetNextChild(parent, cookie)
                 for item in delitems:
                     self.tree.Delete(item)
 
@@ -1747,15 +1748,15 @@ class ScenarioSelect(select.Select):
 
     def select_treeitem(self, index):
         item = self.tree.GetSelection()
-        item = self.tree.GetItemParent(item)
-        item, cookie = self.tree.GetFirstChild(item)
+        paritem = self.tree.GetItemParent(item)
+        item, cookie = self.tree.GetFirstChild(paritem)
         i = 0
         while item.IsOk():
             if i == index:
                 self.tree.SelectItem(item)
                 self.index = index
                 break
-            item, cookie = self.tree.GetNextChild(item, cookie)
+            item, cookie = self.tree.GetNextChild(paritem, cookie)
             i += 1
 
     def updated_names(self, dpath, dirstack, startdir, expandedset):
@@ -1773,7 +1774,8 @@ class ScenarioSelect(select.Select):
         item = None
         dirstack.append(("", dpath))
         while dirstack:
-            item, cookie = self.tree.GetFirstChild(parent)
+            paritem = parent
+            item, cookie = self.tree.GetFirstChild(paritem)
             if not item.IsOk():
                 break
 
@@ -1793,7 +1795,7 @@ class ScenarioSelect(select.Select):
                         parent = item
                         dirstack.pop(0)
                         break
-                item, cookie = self.tree.GetNextChild(item, cookie)
+                item, cookie = self.tree.GetNextChild(paritem, cookie)
 
             if not parent:
                 break
