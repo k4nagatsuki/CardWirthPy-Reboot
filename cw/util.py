@@ -360,7 +360,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     """pygame初期化。"""
     pygame.display.init()
     pygame.font.init()
-    pygame.joystick.init()
+    #pygame.joystick.init()
     flags = 0
     size = cw.s(size_noscale)
     if fullscreen:
