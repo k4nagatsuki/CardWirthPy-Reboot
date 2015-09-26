@@ -214,10 +214,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.frame.SetMaxSize(self.frame.GetBestSize())
                     self.frame.SetMinSize(self.frame.GetBestSize())
 
-        if threading.currentThread() == self.frame.thread:
-            func()
-        else:
-            self.frame.exec_func(func)
+        self.frame.exec_func(func)
 
     def set_clientsize(self, size):
         """wx側ウィンドウの表示域サイズを設定する。"""
@@ -235,10 +232,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.frame.SetMaxSize(self.frame.GetBestSize())
                     self.frame.SetMinSize(self.frame.GetBestSize())
 
-        if threading.currentThread() == self.frame.thread:
-            func()
-        else:
-            self.frame.exec_func(func)
+        self.frame.exec_func(func)
 
     def _load_breakpoints(self):
         """シナリオごとのブレークポイント情報をロードする。
