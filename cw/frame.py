@@ -31,10 +31,20 @@ class Frame(wx.Frame):
             cw.UP_SCR = 1
 
         # トップフレーム
-        self.style = wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU
-        wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
+        self.style = wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX & ~wx.RESIZE_BORDER
+        if sys.platform == "win32":
+            wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
+            self.SetClientSize(cw.wins(cw.SIZE_GAME))
+        else:
+            wx.Frame.__init__(self, None, -1, cw.APP_NAME)
+            if self._setting.is_expanded and self._setting.expandmode == "FullScreen":
+                self.SetClientSize(wx.DisplaySize())
+            else:
+                self.SetClientSize(cw.wins(cw.SIZE_GAME))
+                self.SetMinSize(self.GetBestSize())
+                self.SetMaxSize(self.GetBestSize())
+
         self.thread = threading.currentThread()
-        self.SetClientSize(cw.wins(cw.SIZE_GAME))
         self._skindirname = skindirname
 
         # SDLを描画するパネル
@@ -62,6 +72,9 @@ class Frame(wx.Frame):
             cw.UP_WIN = 1
             cw.UP_SCR = 1
             self.SetClientSize(cw.wins(cw.SIZE_GAME))
+            if sys.platform <> "win32":
+                self.SetMinSize(self.GetBestSize())
+                self.SetMaxSize(self.GetBestSize())
             self.panel.SetSize(cw.wins(cw.SIZE_GAME))
             adjust_position()
 
@@ -301,7 +314,7 @@ class Frame(wx.Frame):
         if not (self.IsActive() or (self.debugger and self.debugger.IsActive())):
             pos = (-1, -1)
         else:
-            pos = cw.win2scr_s((event.GetX(), event.GetY()))
+            pos = cw.win2scr_s((event.GetX()-cw.cwpy.scr_pos[0], event.GetY()-cw.cwpy.scr_pos[1]))
         cw.cwpy.wxmousepos = pos
 
     def OnLeftUp(self, event):

@@ -63,8 +63,7 @@ class CWPy(_Singleton, threading.Thread):
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
         self.scr, self.scr_draw, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts)
         if fullscreen:
-            func = self.frame.ShowFullScreen
-            self.frame.exec_func(func, True)
+            self.set_fullscreen(True)
         # 背景
         self.background = None
         # ステータスバー
@@ -192,6 +191,54 @@ class CWPy(_Singleton, threading.Thread):
 
         # ゲーム状態を"Title"にセット
         self.exec_func(self.startup)
+
+    def set_fullscreen(self, fullscreen):
+        """wx側ウィンドウのフルスクリーンモードを切り替える。"""
+        def func():
+            if self.frame.IsFullScreen() == fullscreen:
+                return
+            if sys.platform == "win32":
+                self.frame.ShowFullScreen(fullscreen)
+            else:
+                self.frame.SetMaxSize((-1, -1))
+                self.frame.SetMinSize((-1, -1))
+                self.frame.ShowFullScreen(fullscreen)
+                if fullscreen:
+                    self.frame.SetClientSize(wx.DisplaySize())
+                    self.frame.panel.SetSize(wx.DisplaySize())
+                    self.frame.SetMaxSize(self.frame.GetBestSize())
+                    self.frame.SetMinSize(self.frame.GetBestSize())
+                else:
+                    self.frame.SetClientSize(cw.wins(cw.SIZE_GAME))
+                    self.frame.panel.SetSize(cw.wins(cw.SIZE_GAME))
+                    self.frame.SetMaxSize(self.frame.GetBestSize())
+                    self.frame.SetMinSize(self.frame.GetBestSize())
+
+        if threading.currentThread() == self.frame.thread:
+            func()
+        else:
+            self.frame.exec_func(func)
+
+    def set_clientsize(self, size):
+        """wx側ウィンドウの表示域サイズを設定する。"""
+        def func():
+            if sys.platform <> "win32":
+                self.frame.SetMaxSize((-1, -1))
+                self.frame.SetMinSize((-1, -1))
+            self.frame.SetClientSize(size)
+            self.frame.panel.SetSize(size)
+            if sys.platform <> "win32":
+                if self.frame.IsFullScreen():
+                    self.frame.SetMaxSize(wx.DisplaySize())
+                    self.frame.SetMinSize(wx.DisplaySize())
+                else:
+                    self.frame.SetMaxSize(self.frame.GetBestSize())
+                    self.frame.SetMinSize(self.frame.GetBestSize())
+
+        if threading.currentThread() == self.frame.thread:
+            func()
+        else:
+            self.frame.exec_func(func)
 
     def _load_breakpoints(self):
         """シナリオごとのブレークポイント情報をロードする。
@@ -483,7 +530,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if not rsrconly and not (self.setting.expandmode == "FullScreen" and self.is_expanded()):
             def func():
-                self.frame.exec_func(self.frame.SetClientSize, cw.wins(cw.SIZE_GAME))
+                self.set_clientsize(cw.wins(cw.SIZE_GAME))
             self.exec_func(func)
 
     def update_messagefontstyle(self, classicstyletext):
@@ -1187,10 +1234,7 @@ class CWPy(_Singleton, threading.Thread):
 
         if expandmode == "None":
             if force:
-                def func():
-                    if self.frame.IsFullScreen():
-                        func = self.frame.ShowFullScreen(False)
-                self.frame.exec_func(func)
+                self.set_fullscreen(False)
                 self.expand_mode = "None"
                 self.setting.is_expanded = False
                 cw.UP_WIN = 1
@@ -1216,8 +1260,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_fullscreen = pygame.display.set_mode((rect[0], rect[1]), 0)
                     self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                     self.scr_draw = self.scr
-                    func = self.frame.ShowFullScreen
-                    self.frame.exec_func(func, True)
+                    self.set_fullscreen(True)
                     self.update_scale(self.setting.expanddrawing, True, False, updatedrawsize)
                 else:
                     cw.UP_WIN = 1
@@ -1225,8 +1268,7 @@ class CWPy(_Singleton, threading.Thread):
                     self.scr_fullscreen = None
                     self.scr = pygame.display.set_mode(cw.wins(cw.SIZE_GAME), 0)
                     self.scr_draw = self.scr
-                    func = self.frame.ShowFullScreen
-                    self.frame.exec_func(func, False)
+                    self.set_fullscreen(False)
                     self.update_scale(1, True, False, updatedrawsize)
 
                 while not self.frame.IsFullScreen() == flag:
@@ -1241,8 +1283,7 @@ class CWPy(_Singleton, threading.Thread):
             # 拡大
             try:
                 def func():
-                    if self.frame.IsFullScreen():
-                        func = self.frame.ShowFullScreen(False)
+                    self.set_fullscreen(False)
                 self.frame.exec_func(func)
                 scale = float(expandmode)
                 scale = max(scale, 0.5)
