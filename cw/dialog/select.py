@@ -581,7 +581,7 @@ class YadoSelect(MultiViewSelect):
         if not self.list:
             self.okbtn.SetLabel(cw.cwpy.msgs["decide"])
             self._disable_btn()
-            self.extbtn.Enable()
+            self.exbtn.Enable()
             self.newbtn.Enable()
             self.closebtn.Enable()
             return
@@ -632,11 +632,17 @@ class YadoSelect(MultiViewSelect):
         拡張。
         """
         cw.cwpy.play_sound("click")
-        yname = self.names[self.index]
-        title = cw.cwpy.msgs["extension_title"] % (yname)
-        classic = self.classic[self.index]
-        hasmutexlocal = not cw.util.exists_mutex(self.list[self.index]) and os.path.isdir(self.list[self.index])
-        cantransfer = bool(1 < self.classic.count(False) and os.path.isdir(self.list[self.index]))
+        if self.list:
+            yname = self.names[self.index]
+            title = cw.cwpy.msgs["extension_title"] % (yname)
+            classic = self.classic[self.index]
+            hasmutexlocal = not cw.util.exists_mutex(self.list[self.index]) and os.path.isdir(self.list[self.index])
+            cantransfer = bool(1 < self.classic.count(False) and os.path.isdir(self.list[self.index]))
+        else:
+            title = cw.cwpy.msgs["extension_title_2"]
+            classic = False
+            hasmutexlocal = False
+            cantransfer = False
         if cantransfer:
             for i, path in enumerate(self.list):
                 if not self.classic[i] and cw.util.exists_mutex(path):
@@ -2042,7 +2048,7 @@ class PlayerSelect(MultiViewSelect):
             name = self.list[self.index].name
             title = cw.cwpy.msgs["extension_title"] % (name)
         else:
-            title = cw.cwpy.msgs["extension"]
+            title = cw.cwpy.msgs["extension_title_2"]
         items = [
             (cw.cwpy.msgs["grow"], cw.cwpy.msgs["grow_adventurer_description"], self.grow_adventurer, bool(self.list)),
             (cw.cwpy.msgs["delete"], cw.cwpy.msgs["delete_adventurer_description"], self.delete_adventurer, bool(self.list)),

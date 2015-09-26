@@ -24,7 +24,13 @@ class NoFontError(ValueError):
 
 if sys.platform <> "win32":
     # wx.Appのロード前にフォントをインストールしなければならない
-    fontconfig = ctypes.CDLL("libfontconfig.so")
+    try:
+        fontconfig = ctypes.CDLL("libfontconfig.so")
+    except:
+        try:
+            fontconfig = ctypes.CDLL("libfontconfig.so.1")
+        except:
+            fontconfig = None
     if fontconfig:
         fcconfig = fontconfig.FcConfigGetCurrent()
         for dpath, dnames, fnames in os.walk(u"Data"):
