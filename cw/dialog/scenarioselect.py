@@ -699,7 +699,7 @@ class ScenarioSelect(select.Select):
                 if self.viewbtn.IsEnabled():
                     btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.viewbtn.GetId())
                     self.ProcessEvent(btnevent)
-            else:
+            elif self.yesbtn.IsEnabled():
                 btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.yesbtn.GetId())
                 self.ProcessEvent(btnevent)
         else:

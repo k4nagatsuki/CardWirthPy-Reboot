@@ -514,9 +514,12 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
+            dlg.Destroy()
             header = dlg.list[dlg.index]
             sel, selpath = dlg.get_selected()
             cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath)
+        else:
+            dlg.Destroy()
 
         # キャンセルしても最後の選択は記憶する
         cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
