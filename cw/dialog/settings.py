@@ -410,7 +410,7 @@ class SettingsPanel(wx.Panel):
             for i, basename in enumerate(self.pane_font.bases):
                 name = cw.cwpy.setting.basefont_init[basename]
                 if not name:
-                    name = u"[デフォルト]"
+                    name = self.pane_font.str_default
                 self.pane_font.base.SetCellValue(i, 0, name)
             for i, typename in enumerate(self.pane_font.types):
                 fonttype, name, pixels, bold, bold_upscr, italic = cw.cwpy.setting.fonttypes_init[typename]
@@ -500,7 +500,7 @@ class SettingsPanel(wx.Panel):
         basefont = {}
         for i, basename in enumerate(self.pane_font.bases):
             value = self.pane_font.base.GetCellValue(i, 0)
-            if value == u"[デフォルト]":
+            if value == self.pane_font.str_default:
                 value = u""
             basefont[basename] = value
             basetable[u"[%s]" % (self.pane_font.typenames[basename])] = basename
@@ -2291,8 +2291,8 @@ class FontSettingPanel(wx.Panel):
         # フォント配列のロード
         facenames = list(wx.FontEnumerator().GetFacenames())
         facenames.sort()
-        self._str_default = u"[付属フォント]" # デフォルトフォント名
-        self._fontface_array = [self._str_default]
+        self.str_default = u"[付属フォント]" # デフォルトフォント名
+        self._fontface_array = [self.str_default]
         self._types = []
         for base in self.bases:
             self._types.append(u"[%s]" % (self.typenames[base]))
@@ -2341,7 +2341,7 @@ class FontSettingPanel(wx.Panel):
         for i, name, in enumerate(self.bases):
             str_font = cw.cwpy.setting.basefont[name]
             if not str_font:
-                str_font = self._str_default
+                str_font = self.str_default
             self.base.SetCellValue(i, 0, str_font)
 
         self.type.SetColLabelValue(1, u"サイズ")
@@ -2407,7 +2407,7 @@ class FontSettingPanel(wx.Panel):
         for i, name, in enumerate(self.bases):
             str_font = setting.basefont[name]
             if not str_font:
-                str_font = self._str_default
+                str_font = self.str_default
             self.base.SetCellValue(i, 0, str_font)
 
         create_grid(self.type, self.types)
@@ -2482,7 +2482,7 @@ class FontSettingPanel(wx.Panel):
             face = ctrl.GetValue()
         else:
             face = self.base.GetCellValue(self.bases.index(fonttype), 0)
-        if face == self._str_default:
+        if face == self.str_default:
             face = cw.cwpy.rsrc.fontnames_init[fonttype]
         return face
 
