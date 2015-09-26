@@ -2203,7 +2203,7 @@ class CWPy(_Singleton, threading.Thread):
             self.add_fcardsprites(status="hidden")
 
     def add_fcardsprites(self, status, alpha=None):
-        """mcardgrpに同行NPCのスプライトを追加する。"""
+        """cardgrpに同行NPCのスプライトを追加する。"""
         seq = list(enumerate(self.get_fcards()))
         for index, fcard in reversed(seq):
             index = 5 - index
@@ -2225,7 +2225,7 @@ class CWPy(_Singleton, threading.Thread):
         self.index = -1
 
     def clear_fcardsprites(self):
-        """mcardgrpから同行NPCのスプライトを取り除く。"""
+        """cardgrpから同行NPCのスプライトを取り除く。"""
         fcards = []
         for fcard in self.mcards[:]:
             if isinstance(fcard, cw.character.Friend):

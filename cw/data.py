@@ -2302,7 +2302,7 @@ class Party(object):
         for index, pcard in enumerate(seq):
             pcard.index = index
             pcard.layer = (cw.LAYER_PCARDS, index, 0)
-            cw.cwpy.pcardgrp.change_layer(pcard, pcard.layer)
+            cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
         cw.cwpy.pcards = seq
 
         self.data.getfind("Property/Members").clear()
