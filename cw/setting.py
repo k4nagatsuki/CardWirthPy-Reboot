@@ -225,7 +225,7 @@ class Setting(object):
                           "message"      : ("", u"IPA明朝", 22, True, True, False),
                           "selectionbar" : ("uigothic", "", 15, True, True, False),
                           "logpage"      : ("mincho",   "", 24, False, False, False),
-                          "sbarpanel"    : ("pmincho",  "", 16, True, True, True),
+                          "sbarpanel"    : ("mincho",   "", 16, True, True, True),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
                           "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
                           "sbardesc"     : ("pgothic",  "", 14, False, False, False),

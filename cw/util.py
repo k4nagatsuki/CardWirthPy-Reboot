@@ -2691,6 +2691,7 @@ def exists_mutex(dpath):
         return False
     else:
         name = "/CardWirthPy_%s" % (name)
+        _librt.sem_unlink(name)
         handle = _librt.sem_open(name, os.O_CREAT|os.O_EXCL, S_IRWXU, 1)
         if name in map(lambda m: m[1], _mutex):
             return False

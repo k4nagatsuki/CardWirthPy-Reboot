@@ -296,6 +296,8 @@ class CardImage(Image):
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
         dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
+        if wx.VERSION[0] <= 3:
+            pixelsize += 1
         if cw.cwpy.setting.fontsmoothing_cardname:
             font = cw.cwpy.rsrc.get_wxfont("cardname", pixelsize=cw.wins(pixelsize)*2, adjustsizewx3=False)
         else:
@@ -303,7 +305,7 @@ class CardImage(Image):
         dc.SetFont(font)
         if self.name:
             white = cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder
-            quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
+            quality = None if cw.cwpy.setting.fontsmoothing_cardname else (wx.IMAGE_QUALITY_NEAREST if 3 <= wx.VERSION[0] else wx.IMAGE_QUALITY_NORMAL)
             cw.util.draw_antialiasedtext(dc, self.name, cw.wins(5), cw.wins(5), white, self.wxrect.width, cw.wins(5),
                                          quality=quality, scaledown=cw.cwpy.setting.fontsmoothing_cardname,
                                          alpha=128, bordering=cw.cwpy.setting.bordering_cardname)
@@ -334,6 +336,8 @@ class CardImage(Image):
                 pixelsize = cw.cwpy.setting.fonttypes["uselimit"][2]
                 bold = wx.BOLD if cw.cwpy.setting.fonttypes["uselimit"][3 if cw.UP_SCR <= 1 else 4] else wx.NORMAL
                 italic = wx.ITALIC if cw.cwpy.setting.fonttypes["uselimit"][5] else wx.NORMAL
+                if wx.VERSION[0] <= 3:
+                    pixelsize += 1
                 font = cw.cwpy.rsrc.get_wxfont("uselimit", pixelsize=cw.wins(pixelsize), style=italic, weight=bold, adjustsizewx3=False)
                 dc.SetFont(font)
                 s = str(uselimit)
@@ -507,6 +511,8 @@ class LargeCardImage(CardImage):
         subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
         dc.DrawBitmap(subimg, cw.wins(10), cw.wins(18), True)
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
+        if wx.VERSION[0] <= 3:
+            pixelsize += 1
         if cw.cwpy.setting.fontsmoothing_cardname:
             font = cw.cwpy.rsrc.get_wxfont("ccardname", pixelsize=cw.wins(pixelsize)*2, adjustsizewx3=False)
         else:
@@ -514,7 +520,7 @@ class LargeCardImage(CardImage):
         dc.SetFont(font)
         if self.name:
             white = False
-            quality = None if cw.cwpy.setting.fontsmoothing_cardname else wx.IMAGE_QUALITY_NEAREST
+            quality = None if cw.cwpy.setting.fontsmoothing_cardname else (wx.IMAGE_QUALITY_NEAREST if 3 <= wx.VERSION[0] else wx.IMAGE_QUALITY_NORMAL)
             cw.util.draw_antialiasedtext(dc, self.name, cw.wins(5), cw.wins(5), white, w, cw.wins(6),
                                          quality=quality, scaledown=cw.cwpy.setting.fontsmoothing_cardname,
                                          alpha=128, bordering=cw.cwpy.setting.bordering_cardname)
