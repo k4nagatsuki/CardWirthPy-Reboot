@@ -605,6 +605,7 @@ class AdventurerCreaterPage(wx.Panel):
         if size is None:
             size = cw.wins((460, 280))
         wx.Panel.__init__(self, parent, size=size)
+        self.SetMinSize(size)
         self.next = None
         self.prev = None
         # key: name, value: (pygame.Rect, 実行するメソッド)の辞書
@@ -759,7 +760,7 @@ class AdventurerCreaterPage(wx.Panel):
 class NamePage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
-        self.SetDoubleBuffered(True)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
         self.textctrl.SetFocus()
@@ -1909,6 +1910,8 @@ class DesignPanel(AdventurerCreaterPage):
     def __init__(self, parent, ccard):
         AdventurerCreaterPage.__init__(self, parent, size=cw.wins((400, 370)), freeze=False)
         self.SetMinSize(cw.wins((400, 370)))
+        self.SetDoubleBuffered(True)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         self.ccard = ccard
 
@@ -2128,7 +2131,7 @@ def _set_nextimg(panel, name):
             except:
                 panel.imgpath = imgpaths[0]
 
-        panel.draw(True)
+        panel.Refresh()
 
 def _set_previmg(panel, name):
     if panel.imgpaths:
@@ -2150,7 +2153,7 @@ def _set_previmg(panel, name):
             except:
                 panel.imgpath = imgpaths[0]
 
-        panel.draw(True)
+        panel.Refresh()
 
 def main():
     pass

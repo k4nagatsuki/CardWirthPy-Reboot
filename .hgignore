@@ -10,6 +10,7 @@ syntax: regexp
 ^build/.*
 ^CardWirthPy/.*
 ^src\.zip$
+^Data/Face/.*
 ^Data/Skin/.*
 ^Data/Temp/.*
 ^Scenario/.*
