@@ -2043,6 +2043,7 @@ class ScenarioSelect(select.Select):
         except Exception:
             cw.util.print_ex()
 
+        seq.sort()
         return seq
 
     def is_listitem(self, path):
