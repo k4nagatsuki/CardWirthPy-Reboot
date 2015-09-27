@@ -713,6 +713,7 @@
     <Message key="open_directory">シナリオの場所を開く</Message>
     <Message key="open_with_editor">シナリオをエディタで開く</Message>
     <Message key="extension_title_2">拡張機能</Message>
+    <Message key="mode_replace">交換モード - 「%s」との交換</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>

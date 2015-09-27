@@ -13,10 +13,11 @@ import cardinfo
 import message
 
 # カード操作ダイアログのモード
-CCMODE_SHOW   = 0 # 閲覧モード
-CCMODE_MOVE   = 1 # 移動モード
-CCMODE_BATTLE = 2 # 戦闘行動選択モード
-CCMODE_USE    = 3 # 使用モード
+CCMODE_SHOW    = 0 # 閲覧モード
+CCMODE_MOVE    = 1 # 移動モード
+CCMODE_BATTLE  = 2 # 戦闘行動選択モード
+CCMODE_USE     = 3 # 使用モード
+CCMODE_REPLACE = 4 # 交換モード
 
 #-------------------------------------------------------------------------------
 # カード操作ダイアログ　スーパークラス
@@ -37,7 +38,7 @@ class CardControl(wx.Dialog):
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # close
-        if self.callname == "HANDVIEW":
+        if self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
             s = cw.cwpy.msgs["entry_cancel"]
         else:
             s = cw.cwpy.msgs["close"]
@@ -264,7 +265,7 @@ class CardControl(wx.Dialog):
             self.itembtn.SetPosition((x, y))
             y += self.itembtn.GetSize()[1]
             self.beastbtn.SetPosition((x, y))
-        elif self.callname <> "HANDVIEW":
+        elif not self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
             # カード置き場、荷物袋、情報カード
             x = cw.wins(10)
             y = cw.wins(50)
@@ -664,6 +665,8 @@ class CardControl(wx.Dialog):
             s = cw.cwpy.msgs["mode_move"]
         elif mode == CCMODE_BATTLE:
             s = cw.cwpy.msgs["mode_battle"]
+        elif mode == CCMODE_REPLACE:
+            s = cw.cwpy.msgs["mode_replace"] % (self.target.name)
         else:
             s = cw.cwpy.msgs["mode_use"]
         fh = dc.GetTextExtent("#")[1]
@@ -813,6 +816,8 @@ class CardControl(wx.Dialog):
             (self.callname == "CARDPOCKET" and isinstance(self.selection, cw.character.Friend)) or\
             (self.callname == "HANDVIEW" and not cw.cwpy.debug and isinstance(self.selection, (cw.character.Enemy, cw.character.Friend))):
             return CCMODE_SHOW
+        elif self.callname == "CARDPOCKET_REPLACE":
+            return CCMODE_REPLACE
         elif self.areaid in cw.AREAS_TRADE:
             return CCMODE_MOVE
         elif self.callname == "HANDVIEW":
@@ -827,7 +832,7 @@ class CardControl(wx.Dialog):
                 mode = 1
             elif self.callname == "CARDPOCKET":
                 mode = 2
-            elif self.callname == "HANDVIEW":
+            elif self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
                 mode = 3
             else:
                 assert False, self.callname
@@ -859,7 +864,7 @@ class CardControl(wx.Dialog):
                 mode = 1
             elif self.callname == "CARDPOCKET":
                 mode = 2
-            elif self.callname == "HANDVIEW":
+            elif self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
                 mode = 3
             else:
                 assert False, self.callname
@@ -2082,6 +2087,117 @@ class HandView(CardControl):
         return self.list
 
 #-------------------------------------------------------------------------------
+#　カード交換ダイアログ
+#-------------------------------------------------------------------------------
+
+class ReplCardHolder(CardControl):
+    def __init__(self, parent, selection, target):
+        self.callname = "CARDPOCKET_REPLACE"
+        self.owner = selection
+        self.target = target
+
+        # カードリスト
+        status = "unreversed"
+        self.list2 = cw.cwpy.get_pcards(status)
+
+        # 前に開いていたときのindex値があったら取得する
+        self.index = 0
+        self.selection = selection
+        self.index2 = self.selection
+
+        # 手札リスト
+        if target.type == "SkillCard":
+            self.cardtype = cw.POCKET_SKILL
+        elif target.type == "ItemCard":
+            self.cardtype = cw.POCKET_ITEM
+        elif target.type == "BeastCard":
+            self.cardtype = cw.POCKET_BEAST
+        self.list = self.selection.cardpocket[self.cardtype]
+        # ダイアログ作成
+        name = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
+        self.bgcolour = wx.Colour(0, 0, 128)
+        CardControl.__init__(self, parent, name, False, False)
+        # 選択中カード色反転
+        self.Parent.change_selection(self.selection)
+
+        # 使用モードでパーティが一人だけの場合は左右ボタンを無効化
+        if len(self.list2) == 1:
+            self.rightbtn.Disable()
+            self.leftbtn.Disable()
+
+        # layout
+        self._do_layout()
+        # bind
+        self._bind()
+
+    def _bind(self):
+        CardControl._bind(self)
+
+    def OnClickLeftBtn(self, event):
+        cw.cwpy.play_sound("page")
+
+        if self.index2 == self.list2[0]:
+            self.index2 = self.list2[-1]
+        else:
+            self.index2 = self.list2[self.list2.index(self.index2) - 1]
+
+        self.selection = self.index2
+        self.Parent.change_selection(self.selection)
+        self.draw_cards()
+
+    def OnClickRightBtn(self, event):
+        cw.cwpy.play_sound("page")
+
+        if self.index2 == self.list2[-1]:
+            self.index2 = self.list2[0]
+        else:
+            self.index2 = self.list2[self.list2.index(self.index2) + 1]
+
+        self.selection = self.index2
+        self.Parent.change_selection(self.selection)
+        self.draw_cards()
+
+    def draw_cards(self, update=True, mode=-1):
+        if self.selection:
+            self.list = self.selection.cardpocket[self.cardtype]
+            s = cw.cwpy.msgs["cards_hand"] % (self.selection.name)
+            self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
+        CardControl.draw_cards(self, update, mode)
+
+    def get_headers(self):
+        return self.list
+
+    def lclick_event(self, header):
+        if self._proc:
+            return
+        header.negaflag = False
+        self.toppanel.SetFocusIgnoringChildren()
+
+        def func(target, header, selection):
+            owner = target.get_owner()
+            if isinstance(owner, cw.character.Player):
+                fromtype = "PLAYERCARD"
+            elif target.is_backpackheader():
+                fromtype = "BACKPACK"
+            elif target.is_storehouseheader():
+                fromtype = "STOREHOUSE"
+            else:
+                assert False, owner
+            # カードの交換
+            if fromtype == "PLAYERCARD":
+                # 両方の手札が一杯の可能性があるので一旦荷物袋へ入れる
+                cw.cwpy.trade(targettype="BACKPACK", header=target, from_event=False, sound=False, sort=False, call_predlg=False)
+            cw.cwpy.trade(targettype=fromtype, target=owner, header=header, from_event=False, sound=False, sort=True, call_predlg=False)
+            cw.cwpy.trade(targettype="PLAYERCARD", target=selection, header=target, from_event=False, sound=False, sort=True, call_predlg=False)
+            cw.cwpy.exec_func(cw.cwpy.call_predlg)
+
+        cw.cwpy.exec_func(func, self.target, header, self.selection)
+
+        # OKボタンイベント
+        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
+        self.ProcessEvent(btnevent)
+
+#-------------------------------------------------------------------------------
 #　情報カードダイアログ
 #-------------------------------------------------------------------------------
 
@@ -2129,7 +2245,7 @@ def get_poslist(num, mode=1):
             # 左,上の余白
             leftm = cw.wins(88)
         elif mode == 3:
-            w, _h = cw.wins((505, 230))
+            w, _h = cw.wins((525, 230))
             numb = 6
             leftm = cw.wins(0)
 

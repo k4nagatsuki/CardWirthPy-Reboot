@@ -191,6 +191,7 @@ class Frame(wx.Frame):
             "STOREHOUSE",  # カード置場ダイアログ
             "CARDPOCKET",  # プレイヤ所持カードダイアログ
             "CARDPOCKETB",  # プレイヤ所持カードダイアログ(荷物袋から使用)
+            "CARDPOCKET_REPLACE",  # プレイヤ所持カードダイアログ(カード交換用)
             "HANDVIEW",  # 戦闘手札カードダイアログ
             "INFOVIEW",  # 情報カードダイアログ
             "CHARAINFO",  # キャラクタ情報ダイアログ
@@ -587,6 +588,14 @@ class Frame(wx.Frame):
         else:
             cw.cwpy.exec_func(cw.cwpy.clear_specialarea)
 
+        self.kill_dlg(dlg)
+
+    def OnCARDPOCKET_REPLACE(self, event):
+        selection = cw.cwpy.selection
+        target = cw.cwpy.selectedheader
+        dlg = cw.dialog.cardcontrol.ReplCardHolder(self, selection, cw.cwpy.selectedheader)
+        self.move_dlg(dlg, (0, -63))
+        dlg.ShowModal()
         self.kill_dlg(dlg)
 
     def _get_cardcontrolparams(self):

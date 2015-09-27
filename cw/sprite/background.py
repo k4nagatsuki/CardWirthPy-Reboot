@@ -995,7 +995,10 @@ class NumberOfCards(base.CWPySprite):
         self.image.blit(image, (1, 1))
 
         self.rect = self.image.get_rect()
-        self.rect.center = self.pcard.rect.center
+        bmpw = self.pcard.rect.width
+        if num:
+            bmpw -= cw.cwpy.rsrc.pygamedialogs["REPLACE_CARDS"].get_width()/2
+        self.rect.left = self.pcard.rect.left + bmpw/2 - self.rect.width/2
         self.rect.top = self.pcard.rect.top - (h+1) - cw.s(5)
 
 def main():

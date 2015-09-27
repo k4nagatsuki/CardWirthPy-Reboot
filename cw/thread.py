@@ -2818,7 +2818,7 @@ class CWPy(_Singleton, threading.Thread):
         self._create_poschangearrow()
 
     def show_numberofcards(self, type):
-        """カードの所持枚数を表示する。"""
+        """カードの所持枚数とカード交換スプライトを表示する。"""
         if type == "SkillCard":
             cardtype = cw.POCKET_SKILL
         elif type == "ItemCard":
@@ -2828,9 +2828,40 @@ class CWPy(_Singleton, threading.Thread):
         for pcard in self.get_pcards("unreversed"):
             cw.sprite.background.NumberOfCards(pcard, cardtype, self.topgrp)
 
+        # カード交換用スプライト
+        def get_image():
+            return self.rsrc.pygamedialogs["REPLACE_CARDS"]
+        def get_selimage():
+            bmp = self.rsrc.pygamedialogs["REPLACE_CARDS"].convert_alpha()
+            return cw.imageretouch.add_lightness(bmp, 64)
+        size_noscale = self.rsrc.pygamedialogs["REPLACE_CARDS_dbg"].get_size()
+        pcards = self.get_pcards()
+
+        class ReplaceCards(object):
+            def __init__(self, outer, pcard):
+                self.outer = outer
+                self.pcard = pcard
+
+            def replace_cards(self):
+                self.outer.change_selection(self.pcard)
+                self.outer.call_modaldlg("CARDPOCKET_REPLACE")
+
+        seq = []
+        for pcard in pcards:
+            if not pcard.get_pocketcards(cardtype):
+                continue
+            replace = ReplaceCards(self, pcard)
+            pos_noscale = pcard.get_pos_noscale()
+            x_noscale = pos_noscale[0] + cw.setting.get_resourcesize("CardBg/LARGE")[0] - size_noscale[0] - 2
+            y_noscale = pos_noscale[1] - size_noscale[1] - 2
+            sprite = cw.sprite.background.ClickableSprite(get_image, get_selimage,
+                                                          (x_noscale, y_noscale),
+                                                          self.topgrp, replace.replace_cards)
+            seq.append(sprite)
+
     def clear_numberofcards(self):
         """所持枚数表示を消去する。"""
-        self.topgrp.remove_sprites_of_layer("numberofcards")
+        self.topgrp.empty() # TODO: layer
 
 #-------------------------------------------------------------------------------
 # 選択操作用メソッド
