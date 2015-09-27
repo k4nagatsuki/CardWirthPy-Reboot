@@ -760,6 +760,7 @@ class AdventurerCreaterPage(wx.Panel):
 class NamePage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
+        self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
@@ -2053,7 +2054,7 @@ class DesignPanel(AdventurerCreaterPage):
         dc.DrawBitmap(bmp, 0, 0, False)
 
         # Resident Registration
-        font = cw.cwpy.rsrc.get_wxfont("characre", pixelsize=cw.wins(13))
+        font = cw.cwpy.rsrc.get_wxfont("characre", pixelsize=cw.wins(16))
         dc.SetFont(font)
         dc.SetTextForeground(wx.BLACK)
         s = cw.cwpy.msgs["edit_character_message"]
