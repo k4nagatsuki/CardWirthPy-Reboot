@@ -2408,8 +2408,9 @@ class Player(Character):
                 fpath = cw.util.relpath(self.data.fpath, cw.cwpy.ydata.tempdir)
             fpath = cw.util.join_paths(fpath)
             cw.cwpy.sdata.lostadventurers.add(fpath)
-        cw.cwpy.cardgrp.remove(self)
-        cw.cwpy.pcards.remove(self)
+        if cw.cwpy.cardgrp.has(self):
+            cw.cwpy.cardgrp.remove(self)
+            cw.cwpy.pcards.remove(self)
 
     def set_name(self, name):
         Character.set_name(self, name)
