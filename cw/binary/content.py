@@ -280,8 +280,8 @@ class Content(base.CWBinaryBase):
             self.castranges = self.conv_castranges(f.byte())
             style = f.byte()
             if (style & 0b01) <> 0:
-                self.properties["levelmin"] = f.dword()
-                self.properties["levelmax"] = f.dword()
+                self.properties["minLevel"] = f.dword()
+                self.properties["maxLevel"] = f.dword()
             if (style & 0b10) <> 0:
                 self.properties["status"] = self.conv_statustype(f.byte())
         elif self.tag == "Branch" and self.type == "KeyCode": # 1.50
