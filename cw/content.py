@@ -752,10 +752,8 @@ class BranchStatusContent(BranchContent):
 
         # 選択設定
         if not targetm == "Selected":
-            if not selectedmember:
-                selectedmember = cw.cwpy.event.get_targetmember("Random")
-
-            cw.cwpy.event.set_selectedmember(selectedmember)
+            if selectedmember:
+                cw.cwpy.event.set_selectedmember(selectedmember)
 
         return self.get_boolean_index(flag)
 
@@ -1257,10 +1255,10 @@ class BranchAbilityContent(BranchContent):
 
         # 選択設定
         if not targetm == "Selected":
-            if not selectedmember:
-                selectedmember = cw.cwpy.event.get_targetmember("Random")
-
-            cw.cwpy.event.set_selectedmember(selectedmember)
+            if selectedmember:
+                cw.cwpy.event.set_selectedmember(selectedmember)
+            else:
+                cw.cwpy.event.clear_selectedmember()
 
         return self.get_boolean_index(flag)
 
