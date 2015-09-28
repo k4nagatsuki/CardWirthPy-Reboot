@@ -557,6 +557,8 @@ class EffectMotion(object):
         """
         回復。抵抗成功で無効化。
         """
+        if success_res:
+            return False
         value = self.calc_effectvalue(target)
         value = target.set_life(value)
         return 0 < value
@@ -624,6 +626,8 @@ class EffectMotion(object):
         """
         麻痺状態。抵抗成功で無効化。
         """
+        if success_res:
+            return False
         value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
@@ -636,6 +640,8 @@ class EffectMotion(object):
         """
         麻痺解除。抵抗成功で無効化。
         """
+        if success_res:
+            return False
         value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
@@ -648,6 +654,8 @@ class EffectMotion(object):
         """
         中毒状態。抵抗成功で無効化。
         """
+        if success_res:
+            return False
         value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
@@ -660,6 +668,8 @@ class EffectMotion(object):
         """
         中毒解除。抵抗成功で無効化。
         """
+        if success_res:
+            return False
         value = self.calc_effectvalue(target, physical=True)
 
         if self.damagetype == "Max":
@@ -675,6 +685,8 @@ class EffectMotion(object):
         """
         精神力回復。抵抗成功で無効化。
         """
+        if success_res:
+            return False
         target.set_skillpower(True)
         return True
 
@@ -682,6 +694,8 @@ class EffectMotion(object):
         """
         精神力不能。抵抗成功で無効化。
         """
+        if success_res:
+            return False
         target.set_skillpower(False)
         return True
 
@@ -692,6 +706,8 @@ class EffectMotion(object):
         """
         精神状態変更(睡眠・混乱・激昂・勇敢・恐慌・正常)。
         """
+        if success_res:
+            return False
         if self.type.title() == "Normal":
             duration = 0
             eff = True
@@ -731,6 +747,8 @@ class EffectMotion(object):
         """
         束縛状態。
         """
+        if success_res:
+            return False
         duration = self.calc_durationvalue(False)
         eff = target.bind < duration
         target.set_bind(duration, overwrite=False)
@@ -740,6 +758,8 @@ class EffectMotion(object):
         """
         束縛解除。
         """
+        if success_res:
+            return False
         duration = target.bind
         target.set_bind(0)
         return 0 < duration
@@ -748,6 +768,8 @@ class EffectMotion(object):
         """
         沈黙状態。
         """
+        if success_res:
+            return False
         duration = self.calc_durationvalue(False)
         eff = target.silence < duration
         target.set_silence(duration, overwrite=False)
@@ -757,6 +779,8 @@ class EffectMotion(object):
         """
         沈黙解除。
         """
+        if success_res:
+            return False
         duration = target.silence
         target.set_silence(0)
         return 0 < duration
@@ -765,6 +789,8 @@ class EffectMotion(object):
         """
         暴露状態。
         """
+        if success_res:
+            return False
         duration = self.calc_durationvalue(False)
         eff = target.faceup < duration
         target.set_faceup(duration, overwrite=False)
@@ -774,6 +800,8 @@ class EffectMotion(object):
         """
         暴露解除。
         """
+        if success_res:
+            return False
         duration = target.faceup
         target.set_faceup(0)
         return 0 < duration
@@ -782,6 +810,8 @@ class EffectMotion(object):
         """
         魔法無効化状態。
         """
+        if success_res:
+            return False
         duration = self.calc_durationvalue(False)
         eff = target.antimagic < duration
         target.set_antimagic(duration, overwrite=False)
@@ -791,6 +821,8 @@ class EffectMotion(object):
         """
         魔法無効化解除。
         """
+        if success_res:
+            return False
         duration = target.antimagic
         target.set_antimagic(0)
         return 0 < duration
@@ -802,6 +834,8 @@ class EffectMotion(object):
         """
         行動力変化。
         """
+        if success_res:
+            return False
         if self.value <> 0:
             duration = self.calc_durationvalue(True)
         else:
@@ -815,6 +849,8 @@ class EffectMotion(object):
         """
         回避力変化。
         """
+        if success_res:
+            return False
         if self.value <> 0:
             duration = self.calc_durationvalue(True)
         else:
@@ -828,6 +864,8 @@ class EffectMotion(object):
         """
         抵抗力変化。
         """
+        if success_res:
+            return False
         if self.value <> 0:
             duration = self.calc_durationvalue(True)
         else:
@@ -841,6 +879,8 @@ class EffectMotion(object):
         """
         防御力変化。
         """
+        if success_res:
+            return False
         if self.value <> 0:
             duration = self.calc_durationvalue(True)
         else:
@@ -857,6 +897,8 @@ class EffectMotion(object):
         """
         対象消去。
         """
+        if success_res:
+            return False
         target.set_vanish(battlespeed=self.cardheader and cw.cwpy.is_battlestatus())
         return True
 
@@ -864,6 +906,8 @@ class EffectMotion(object):
         """
         カード消去。
         """
+        if success_res:
+            return False
         if cw.cwpy.battle:
             target.deck.throwaway()
             return True
@@ -873,6 +917,8 @@ class EffectMotion(object):
         """
         召喚獣消去。
         """
+        if success_res:
+            return False
         return target.set_beast(vanish=True)
 
     #-----------------------------------------------------------------------
@@ -882,6 +928,8 @@ class EffectMotion(object):
         """
         通常攻撃配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -893,6 +941,8 @@ class EffectMotion(object):
         """
         渾身の一撃配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -904,6 +954,8 @@ class EffectMotion(object):
         """
         会心の一撃配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -915,6 +967,8 @@ class EffectMotion(object):
         """
         フェイント配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -926,6 +980,8 @@ class EffectMotion(object):
         """
         防御配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -937,6 +993,8 @@ class EffectMotion(object):
         """
         見切り配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -948,6 +1006,8 @@ class EffectMotion(object):
         """
         混乱配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -959,6 +1019,8 @@ class EffectMotion(object):
         """
         特殊技能配布。
         """
+        if success_res:
+            return False
         if target.is_inactive():
             return False
         if cw.cwpy.battle:
@@ -970,6 +1032,8 @@ class EffectMotion(object):
         """
         行動キャンセル(1.50)。
         """
+        if success_res:
+            return False
         if target.actiondata:
             target.clear_action()
             return True
@@ -982,6 +1046,8 @@ class EffectMotion(object):
         """
         召喚獣召喚。
         """
+        if success_res:
+            return False
         eff = False
         for e in self.beasts:
             cwxpath = e.get_cwxpath()
