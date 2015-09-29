@@ -798,7 +798,12 @@ class YadoSelect(MultiViewSelect):
                     if not self.classic[self.index]:
                         cw.util.remove(cw.util.join_paths(u"Data/Temp/Local", path))
                     cw.cwpy.play_sound("dump")
-                    self.update_list()
+                    if self.index+1 < len(self.list):
+                        self.update_list(self.list[self.index+1])
+                    elif 0 < self.index:
+                        self.update_list(self.list[self.index-1])
+                    else:
+                        self.update_list()
 
                 dlg.Destroy()
             finally:
