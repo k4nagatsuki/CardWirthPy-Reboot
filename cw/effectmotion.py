@@ -120,10 +120,10 @@ class Effect(object):
             userlife = 0
 
         if allmissed:
-            # 完全失敗
+            # 完全失敗(回避抵抗不可時だけは絶対成功)
             noeffect = self.check_noeffect(target)
-            success_res = self.resisttype == "Resist"
-            success_avo = self.resisttype == "Avoid"
+            success_res = self.resisttype == "Resist" and target.is_resistable()
+            success_avo = self.resisttype == "Avoid" and target.is_avoidable()
         elif allsuccess:
             # 完全成功(無効だけは判定)
             noeffect = self.check_noeffect(target)

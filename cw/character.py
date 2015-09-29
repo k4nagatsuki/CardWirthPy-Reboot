@@ -436,7 +436,7 @@ class Character(object):
         """
         回避判定可能かどうかbool値で返す。
         """
-        return self.is_active()
+        return self.is_active() and self.get_enhance_avo() > -10
 
     def is_resistable(self):
         """
@@ -446,7 +446,7 @@ class Character(object):
         b = self.is_sleep()
         b |= self.is_paralyze()
         b |= self.is_unconscious()
-        return not b
+        return not b and self.get_enhance_res() > -10
 
     def is_reversed(self):
         """
