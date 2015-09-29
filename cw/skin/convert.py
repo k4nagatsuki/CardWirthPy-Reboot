@@ -69,6 +69,8 @@ class Converter(threading.Thread):
         self._get_sounds()
         self._get_messages()
         self._get_cards()
+        self.adventurersinn = None
+        self._get_bgs()
         self.partyinfo_res = None
         self._get_partyinfo()
 
@@ -473,6 +475,20 @@ class Converter(threading.Thread):
                                       (self.yado["-2_TradeArea2"], 3)], index)
                 # 解散
                 index = get_menucard([(self.yado["-3_PartyBreakup"], 1)], index)
+        except Exception:
+            cw.util.print_ex()
+
+    def _get_bgs(self):
+        if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
+            return
+        try:
+            key = "\0\0\0MapOfWirth.bmp\0\0.bmp\0.BMP\0MapOfWirth.bmp\0"
+            index = self.exebinary.find(key)
+            if 0 <= index:
+                # AdventurersInn.bmp
+                # 妖魔バリアントで変更されている
+                index += len(key)
+                self.adventurersinn, index = self._get_text(index, True)
         except Exception:
             cw.util.print_ex()
 
@@ -1298,6 +1314,20 @@ class Converter(threading.Thread):
                 if os.path.isfile(fpath):
                     data = cw.data.xml2etree(fpath)
                     data.edit("MenuCards/MenuCard[3]/Property/ImagePath", cw.util.join_paths(u"Resource/Image", partyinfo))
+                    data.write()
+
+            # 妖魔バリアントでAdventurersInn.bmpが
+            # ForestofImages.bmpに差し替えられているのに対応
+            if self.adventurersinn:
+                fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/01_Yado.xml")
+                if os.path.isfile(fpath):
+                    data = cw.data.xml2etree(fpath)
+                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))
+                    data.write()
+                fpath = cw.util.join_paths(dpath, "Resource/Xml/Yado/02_Yado2.xml")
+                if os.path.isfile(fpath):
+                    data = cw.data.xml2etree(fpath)
+                    data.edit("BgImages/BgImage[2]/ImagePath", cw.util.join_paths(u"Table", self.adventurersinn))
                     data.write()
 
             self.curnum = 100
