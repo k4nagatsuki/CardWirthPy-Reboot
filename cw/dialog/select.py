@@ -2278,13 +2278,15 @@ class PlayerSelect(MultiViewSelect):
     def update_character(self):
         def func():
             header = self.list[self.index]
-            header = cw.cwpy.ydata.create_advheader(header.fpath)
             if self.isalbum:
+                self.index = cw.cwpy.ydata.album.index(header)
+                header = cw.cwpy.ydata.create_advheader(header.fpath)
                 cw.cwpy.ydata.album[self.index] = header
             else:
+                self.index = cw.cwpy.ydata.standbys.index(header)
+                header = cw.cwpy.ydata.create_advheader(header.fpath)
                 cw.cwpy.ydata.standbys[self.index] = header
             self.update_narrowcondition()
-            self.list[self.index] = header
             cw.cwpy.frame.exec_func(self.draw, True)
         cw.cwpy.exec_func(func)
 
