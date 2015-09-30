@@ -254,8 +254,8 @@ class CardHeader(object):
             self.set_cardimg(self.imgpath)
         return self._cardimg
 
-    def get_cardwxbmp(self):
-        return self.cardimg.get_cardwxbmp(self)
+    def get_cardwxbmp(self, test_aptitude=None):
+        return self.cardimg.get_cardwxbmp(self, test_aptitude=test_aptitude)
 
     def get_cardimg(self):
         return self.cardimg.get_cardimg(self)

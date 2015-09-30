@@ -315,7 +315,7 @@ class CardImage(Image):
         self._wxbmp = bmp
         return cw.util.copy_wxbmp(self._wxbmp)
 
-    def get_cardwxbmp(self, header):
+    def get_cardwxbmp(self, header, test_aptitude=None):
         if header.negaflag:
             image = self.get_wxnegabmp()
         else:
@@ -366,7 +366,11 @@ class CardImage(Image):
         icony = cw.wins(90)
         if isinstance(owner, cw.character.Character):
             # 適性値
-            key = "HAND" + str(header.get_showed_vocation_level(owner))
+            if test_aptitude:
+                tester = test_aptitude
+            else:
+                tester = owner
+            key = "HAND" + str(header.get_showed_vocation_level(tester))
             subimg = cw.cwpy.rsrc.wxstones[key]
             dc.DrawBitmap(subimg, cw.wins(60), cw.wins(90), True)
             icony -= cw.wins(15)
@@ -406,6 +410,13 @@ class CardImage(Image):
                 icon = None
             if icon:
                 dc.DrawBitmap(icon, cw.wins(60), icony, True)
+                icony -= cw.wins(16)
+
+        if not isinstance(owner, cw.character.Character) and test_aptitude:
+            # 適性値
+            key = "HAND" + str(header.get_showed_vocation_level(test_aptitude))
+            subimg = cw.cwpy.rsrc.wxstones[key]
+            dc.DrawBitmap(subimg, cw.wins(60), icony, True)
 
         if cw.cwpy.setting.show_premiumicon:
             if header.premium == "Premium":
@@ -425,12 +436,12 @@ class CardImage(Image):
         image = self.get_wxbmp()
         return cw.imageretouch.to_negative_for_wxcard(image)
 
-    def get_wxclickedbmp(self, header, wxbmp):
+    def get_wxclickedbmp(self, header, wxbmp, test_aptitude=None):
         size = (self.wxrect.width * 9 / 10, self.wxrect.height * 9 / 10)
         if wxbmp:
             negaimg = wxbmp
         else:
-            negaimg = self.get_cardwxbmp(header)
+            negaimg = self.get_cardwxbmp(header, test_aptitude=test_aptitude)
 
         image = cw.util.convert_to_image(negaimg)
         image = image.Rescale(size[0], size[1], quality=cw.RESCALE_QUALITY)

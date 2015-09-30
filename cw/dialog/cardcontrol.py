@@ -379,6 +379,7 @@ class CardControl(wx.Dialog):
         cw.cwpy.play_sound("page")
         cw.cwpy.setting.last_sendto = self.combo.GetSelection()
         self.toppanel.SetFocusIgnoringChildren()
+        self.draw_cards()
 
     def update_narrowcondition(self):
         self.draw_cards()
@@ -804,6 +805,11 @@ class CardControl(wx.Dialog):
         if cw.cwpy.setting.show_cardkind and self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
             y -= cw.wins(16)
 
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
+            sendto = self.combo.GetSelection()
+            if sendto in self._combo_cast:
+                y -= cw.wins(16)
+
         return wx.Rect(x-cw.wins(4), y-cw.wins(4), sw+cw.wins(8), sh+cw.wins(8)), x, y
 
     def draw(self, update=True):
@@ -852,9 +858,15 @@ class CardControl(wx.Dialog):
             elif header.negaflag:
                 header.negaflag = False
 
-        bmp = header.get_cardwxbmp()
+        test_aptitude = None
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
+            sendto = self.combo.GetSelection()
+            if sendto in self._combo_cast:
+                test_aptitude = self.list2[self._combo_cast[sendto]]
+
+        bmp = header.get_cardwxbmp(test_aptitude=test_aptitude)
         if header.clickedflag:
-            bmp = header.cardimg.get_wxclickedbmp(header, bmp)
+            bmp = header.cardimg.get_wxclickedbmp(header, bmp, test_aptitude=test_aptitude)
         self._drawlist[header] = (bmp, False)
         self.toppanel.Refresh(rect=header.wxrect)
 
@@ -1059,6 +1071,13 @@ class CardHolder(CardControl):
         self.callname = callname
         self.selection = None
 
+        # 移動先関係
+        self._combo_storehouse = -1
+        self._combo_backpack = -1
+        self._combo_cast = {}
+        self._combo_shelf = -1
+        self._combo_trush = -1
+
         if areaid is None:
             self.areaid = cw.cwpy.areaid
         else:
@@ -1225,11 +1244,6 @@ class CardHolder(CardControl):
         self._enable_updown()
 
         # 移動先選択コンボボックス(情報カードの場合は無し)
-        self._combo_storehouse = -1
-        self._combo_backpack = -1
-        self._combo_cast = {}
-        self._combo_shelf = -1
-        self._combo_trush = -1
         if sendto:
             bmp = cw.cwpy.rsrc.buttons["ARROW"]
             self._combo_manual = len(self.combo.GetItems())
