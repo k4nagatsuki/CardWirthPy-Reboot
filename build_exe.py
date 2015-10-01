@@ -46,7 +46,7 @@ class BuildExe(object):
         self.project_url = "http://sites.google.com/site/cardwirthpy/"
 
         #Version of program
-        self.project_version = "0.12.3"
+        self.project_version = "0.12.4"
 
         #License of the program
         self.license = "LGPL"
