@@ -1093,7 +1093,7 @@ class MenuCard(CWPyCard):
             # メニューカードにPCの画像を表示(1.30)
             pcards = cw.cwpy.ydata.party.members
             pi = int(pcn) - 1
-            if pi < len(pcards):
+            if 0 <= pi and pi < len(pcards):
                 path = pcards[pi].gettext("Property/ImagePath", "")
                 if path:
                     path = cw.util.join_yadodir(path)
