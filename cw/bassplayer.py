@@ -173,7 +173,7 @@ def _play(fpath, volume, loop):
                     _chan = bassMidiEvent[2] # 使用しない
                     _tick = bassMidiEvent[3] # 使用しない
                     pos = c_long(bassMidiEvent[4])
-                    if param == CC111: # CC#111があったのでここでループする
+                    if (param & 0x00ff) == CC111: # CC#111があったのでここでループする
                         loopinfo = (pos, -1)
                         break
 
