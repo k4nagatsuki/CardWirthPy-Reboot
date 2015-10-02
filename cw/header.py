@@ -810,7 +810,7 @@ class InfoCardHeader(object):
             self.set_cardimg()
         return self._cardimg
 
-    def get_cardwxbmp(self):
+    def get_cardwxbmp(self, test_aptitude=None):
         if self.negaflag:
             return self.cardimg.get_wxnegabmp()
         else:
