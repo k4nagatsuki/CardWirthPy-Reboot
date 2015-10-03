@@ -79,6 +79,8 @@ class Effect(object):
         self.effecttype = d.get("effecttype", "Physic")
         self.resisttype = d.get("resisttype", "Avoid")
         self.soundpath = d.get("soundpath", "")
+        self.volume = d.get("volume", 100)
+        self.loopcount = d.get("loopcount", 1)
         self.visualeffect = d.get("visualeffect", "None")
         self.battlespeed = battlespeed
 
@@ -189,7 +191,7 @@ class Effect(object):
 
         # 音鳴らす
         if not success_avo:
-            cw.cwpy.play_sound_with(self.soundpath)
+            cw.cwpy.play_sound_with(self.soundpath, subvolume=self.volume, loopcount=self.loopcount)
 
         if success_avo:
             cw.cwpy.play_sound("avoid", True)

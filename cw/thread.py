@@ -2482,7 +2482,7 @@ class CWPy(_Singleton, threading.Thread):
         sprite = cw.sprite.background.BattleCardImage()
         cw.animation.animate_sprite(sprite, "battlestart")
         oldareaid = self.areaid
-        oldbgmpath = self.music.path
+        oldbgmpath = (self.music.path, self.music.subvolume, self.music.loopcount)
         if self.sdata.pre_battleareadata:
             oldareaid = self.sdata.pre_battleareadata[0]
             oldbgmpath = self.sdata.pre_battleareadata[1]
@@ -2491,14 +2491,16 @@ class CWPy(_Singleton, threading.Thread):
         data = self.sdata.get_resdata(True, areaid)
         if not data is None:
             path = data.gettext("Property/MusicPath", "")
-            self.music.play(path)
+            volume = data.getint("Property/MusicPath", "volume", 100)
+            loopcount = data.getint("Property/MusicPath", "loopcount", 0)
+            self.music.play(path, subvolume=volume, loopcount=loopcount)
 
         self.set_battle()
         self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
         cw.animation.animate_sprite(sprite, "hide")
         sprite.remove(cw.cwpy.topgrp) # TODO: layer
 
-        self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, self.music.path)
+        self.sdata.pre_battleareadata = (oldareaid, oldbgmpath, (self.music.path, self.music.subvolume, self.music.loopcount))
         self.battle = cw.battle.BattleEngine()
         self.lock_menucards = False
 
@@ -2540,7 +2542,7 @@ class CWPy(_Singleton, threading.Thread):
             self.set_scenario()
 
             # BGMを最後に指定されたものに戻す
-            self.music.play(bgmpath)
+            self.music.play(bgmpath[0], subvolume=bgmpath[1], loopcount=bgmpath[2])
 
             # 一部ステータスは回復
             for pcard in self.get_pcards():
@@ -3274,13 +3276,13 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.ydata.add_partyrecord(partyrecord)
 
-    def play_sound(self, name, from_scenario=False):
+    def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1):
         if self <> threading.currentThread():
             self.exec_func(self.play_sound, name, from_scenario)
             return
-        self.sounds[name].play(from_scenario)
+        self.sounds[name].play(from_scenario, subvolume=subvolume, loopcount=loopcount)
 
-    def play_sound_with(self, path, inusecard=None):
+    def play_sound_with(self, path, inusecard=None, subvolume=100, loopcount=1):
         """効果音を再生する。
         シナリオ効果音・スキン効果音を適宜使い分ける。
         """
@@ -3291,12 +3293,12 @@ class CWPy(_Singleton, threading.Thread):
             path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
 
         if os.path.isfile(path):
-            cw.util.load_sound(path).play(True)
+            cw.util.load_sound(path).play(True, subvolume=subvolume, loopcount=loopcount)
         else:
             name = cw.util.splitext(os.path.basename(path))[0]
 
             if name in self.skinsounds:
-                self.skinsounds[name].play(True)
+                self.skinsounds[name].play(True, subvolume=subvolume, loopcount=loopcount)
 
     def has_sound(self, path):
         path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)

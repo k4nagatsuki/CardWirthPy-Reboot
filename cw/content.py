@@ -1722,6 +1722,8 @@ class EffectContent(EventContentBase):
         d["resisttype"] = self.data.get("resisttype", "Avoid")
         d["soundpath"] = self.data.get("sound", "")
         d["visualeffect"] = self.data.get("visual", "None")
+        d["volume"] = self.data.getint(".", "volume", 100)
+        d["loopcount"] = self.data.getint(".", "loopcount", 1)
 
         # Effectインスタンス作成
         motions = self.data.getfind("Motions").getchildren()
@@ -2633,7 +2635,9 @@ class PlayBgmContent(EventContentBase):
     def action(self):
         """BGMコンテント。"""
         path = self.data.get("path", "")
-        cw.cwpy.music.play(path)
+        subvolume = self.data.getint(".", "volume", 100)
+        loopcount = self.data.getint(".", "loopcount", 0)
+        cw.cwpy.music.play(path, subvolume=subvolume, loopcount=loopcount)
         return 0
 
     def get_status(self):
@@ -2651,7 +2655,9 @@ class PlaySoundContent(EventContentBase):
     def action(self):
         """効果音コンテント。"""
         path = self.data.get("path", "")
-        cw.cwpy.play_sound_with(path)
+        subvolume = self.data.getint(".", "volume", 100)
+        loopcount = self.data.getint(".", "loopcount", 1)
+        cw.cwpy.play_sound_with(path, subvolume=subvolume, loopcount=loopcount)
         return 0
 
     def get_status(self):

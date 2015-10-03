@@ -45,6 +45,8 @@ class MusicInterface(object):
     def __init__(self):
         self.path = ""
         self.fpath = ""
+        self.subvolume = 100
+        self.loopcount = 0
         self.movie_scr = None
         self.mastervolume = 100
         self._winmm = False
@@ -58,12 +60,12 @@ class MusicInterface(object):
             rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
             self._movie.set_display(self.movie_scr, rect)
 
-    def play(self, path, updatepredata=True, restart=False, inusecard=False):
-        self._play(path, updatepredata, restart, inusecard)
+    def play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0):
+        self._play(path, updatepredata, restart, inusecard, subvolume, loopcount)
 
-    def _play(self, path, updatepredata=True, restart=False, inusecard=False):
+    def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0):
         if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard)
+            cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard, subvolume, loopcount)
             return
 
         assert threading.currentThread() == cw.cwpy
@@ -83,7 +85,7 @@ class MusicInterface(object):
             assert threading.currentThread() == cw.cwpy
 
             self.set_volume()
-            if restart or self.fpath <> fpath:
+            if restart or self.fpath <> fpath or self.subvolume <> subvolume or self.loopcount <> loopcount:
                 self.stop()
                 self._winmm = False
                 self._bass = False
@@ -97,9 +99,9 @@ class MusicInterface(object):
                             cw.util.print_ex()
 
                     if bgmtype == 2:
-                        volume = self._get_volumevalue(fpath)
+                        volume = self._get_volumevalue(fpath) * subvolume / 100.0
                         try:
-                            cw.bassplayer.play_bgm(fpath, volume)
+                            cw.bassplayer.play_bgm(fpath, volume, loopcount=loopcount)
                             self._bass = True
                         except Exception:
                             cw.util.print_ex()
@@ -109,6 +111,7 @@ class MusicInterface(object):
                             mciSendStringW = ctypes.windll.winmm.mciSendStringW
                             mciSendStringW(u'open "%s" alias %s' % (fpath, name), 0, 0, 0)
                             volume = int(cw.cwpy.setting.vol_bgm * 1000)
+                            volume = volume * subvolume / 100
                             mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                             mciSendStringW(u"play %s" % (name), 0, 0, 0)
                             self._winmm = True
@@ -118,7 +121,8 @@ class MusicInterface(object):
                                     pygame.mixer.quit()
                                 encoding = sys.getfilesystemencoding()
                                 self._movie = pygame.movie.Movie(fpath.encode(encoding))
-                                self._movie.set_volume(self._get_volumevalue(fpath))
+                                volume = self._get_volumevalue(fpath) * subvolume / 100.0
+                                self._movie.set_volume(volume)
                                 self.movie_scr = pygame.Surface(cw.s(self._movie.get_size())).convert()
                                 rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
                                 self._movie.set_display(self.movie_scr, rect)
@@ -138,18 +142,22 @@ class MusicInterface(object):
                     elif cw.util.splitext(fpath)[1].lower() == ".mp3":
                         # 互換動作: 1.28以前はMP3がループ再生されない
                         if pygame.mixer.get_init():
+                            volume = self._get_volumevalue(fpath) * subvolume / 100.0
+                            pygame.mixer.music.set_volume(volume)
                             if cw.cwpy.sct.lessthan("1.28", cw.cwpy.sdata.get_versionhint()):
                                 pygame.mixer.music.play(0)
                             else:
-                                pygame.mixer.music.play(-1)
+                                pygame.mixer.music.play(loopcount-1)
                     elif pygame.mixer.get_init():
                         pygame.mixer.music.play(-1)
             self.fpath = fpath
+            self.subvolume = subvolume
+            self.loopcount = loopcount
             self.path = path
 
         if updatepredata and cw.cwpy.sdata and cw.cwpy.sdata.pre_battleareadata:
             areaid, bgmpath, battlebgmpath = cw.cwpy.sdata.pre_battleareadata
-            bgmpath = path
+            bgmpath = (path, subvolume, loopcount)
             cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
     def stop(self):
@@ -206,6 +214,7 @@ class MusicInterface(object):
 
         if volume is None:
             volume = self._get_volumevalue(self.fpath)
+        volume = volume * self.subvolume / 100.0
 
         assert threading.currentThread() == cw.cwpy
         if self._bass:
@@ -257,28 +266,28 @@ class SoundInterface(object):
             cw.cwpy.lastsound_system = self
             return "SystemSound"
 
-    def play(self, from_scenario=False):
+    def play(self, from_scenario=False, subvolume=100, loopcount=1):
         if self._sound:
 
             if cw.cwpy.setting.play_sound:
-                volume = (cw.cwpy.setting.vol_sound * cw.cwpy.music.mastervolume) / 100.0
+                volume = (cw.cwpy.setting.vol_sound * cw.cwpy.music.mastervolume) / 100.0 * subvolume / 100.0
             else:
                 volume = 0
 
             if cw.bassplayer.is_alivablewithpath(self._path):
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.play, from_scenario)
+                    cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount)
                     return
                 assert threading.currentThread() == cw.cwpy
                 tempbasedir = self._play_before(from_scenario)
                 try:
                     path = get_soundfilepath(tempbasedir, self._sound)
-                    cw.bassplayer.play_sound(path, volume, from_scenario)
+                    cw.bassplayer.play_sound(path, volume, from_scenario, loopcount=loopcount)
                 except Exception:
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.frame.exec_func(self.play, from_scenario)
+                    cw.cwpy.frame.exec_func(self.play, from_scenario, subvolume, loopcount)
                     return
                 assert threading.currentThread() <> cw.cwpy
                 tempbasedir = self._play_before(from_scenario)
@@ -295,7 +304,7 @@ class SoundInterface(object):
                 mciSendStringW(u"play %s" % (name), 0, 0, 0)
             else:
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.play, from_scenario)
+                    cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount)
                     return
                 assert threading.currentThread() == cw.cwpy
                 tempbasedir = self._play_before(from_scenario)
@@ -306,7 +315,7 @@ class SoundInterface(object):
                         chan = pygame.mixer.Channel(1)
 
                     self._sound.set_volume(volume)
-                    chan.play(self._sound)
+                    chan.play(self._sound, loopcount-1)
 
     def stop(self, from_scenario):
         if self._sound:

@@ -32,11 +32,20 @@ BASS_TAG_RIFF_DISP = 0x103
 BASS_SAMPLE_8BITS = 1
 BASS_SAMPLE_FLOAT = 256
 
+STREAM_BGM = 0
+STREAM_SOUND1 = 1
+STREAM_SOUND2 = 2
+
 CC111 = 111
 
 _bass = None
 _bassmidi = None
 _sfonts = []
+
+_streams = [0, 0, 0]
+_loopstarts = [0, 0, 0]
+_loopcounts = [0, 1, 1]
+
 _bgmstream = 0
 _soundstream1 = 0
 _soundstream2 = 0
@@ -46,26 +55,31 @@ if sys.platform == "win32":
 else:
     SYNCPROC = ctypes.CFUNCTYPE(None, c_size_t, c_long, c_long, c_void_p)
 
-def _cc111loop(handle, channel, data, pos):
+def _cc111loop(handle, channel, data, streamindex):
     """CC#111の位置へシークし、再び演奏を始める。"""
-    global _bass
-    if pos is None:
-        pos = 0
-    _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
+    global _bass, _loopcounts, _loopstarts
+    if streamindex is None:
+        streamindex = 0
+    loops = _loopcounts[streamindex]
+    if loops <> 1:
+        if 0 < loops:
+            _loopcounts[streamindex] = loops - 1
+        pos = _loopstarts[streamindex]
+        _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
 CC111LOOP = SYNCPROC(_cc111loop)
 
 def is_alivable():
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     """BASS Audioによる演奏が可能な状態であればTrueを返す。
     init_bass()の実行前は必ずFalseを返す。"""
     return not _bass is None
 
 def is_alivablemidi():
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     return _bassmidi and _sfonts
 
 def is_alivablewithpath(path):
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if os.path.splitext(path)[1].lower() in (".mid", ".midi"):
         return is_alivablemidi()
     else:
@@ -77,7 +91,7 @@ def init_bass(soundfonts):
     初期化が成功したらTrueを、失敗した場合はFalseを返す。
     soundfonts: サウンドフォントのファイルパス。listで指定。
     """
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
 
     if _bass:
         # 初期化済み
@@ -121,16 +135,17 @@ def init_bass(soundfonts):
 
     return True
 
-def _play(fpath, volume, loop):
+def _play(fpath, volume, loopcount, streamindex):
     """
     BASS Audioによってfileを演奏する。
     file: 再生するファイル。
     volume: 音量。0.0～1.0で指定。
-    loop: Trueならループ再生する。
+    loopcount: ループ回数。0で無限ループ。
+    streamindex: 再生チャンネル番号。
     """
     global _bass, _bassmidi, _sfonts
     encoding = sys.getfilesystemencoding()
-    flag = (BASS_MUSIC_STOPBACK|BASS_SAMPLE_LOOP) if loop else BASS_DEFAULT
+    flag = BASS_DEFAULT
 
     _BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ismidi = False
@@ -156,36 +171,43 @@ def _play(fpath, volume, loop):
         if not stream:
             raise ValueError("_play() failure: %s" % (fpath))
 
-    if loop:
+    if loopcount <> 1:
         loopinfo = _get_loopinfo(fpath, stream)
+    else:
+        loopinfo = None
 
-        if not loopinfo and ismidi:
-            # RPGツクールで使用されるループ位置情報(CC#111)を探し、
-            # 存在する場合はその位置からループ再生を行う
-            count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
-            if count:
-                events = "\0" * (count*4*5)
-                count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
-                for i in xrange(0, count, 4*5):
-                    bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
-                    _event = bassMidiEvent[0] # 使用しない
-                    param = bassMidiEvent[1]
-                    _chan = bassMidiEvent[2] # 使用しない
-                    _tick = bassMidiEvent[3] # 使用しない
-                    pos = c_long(bassMidiEvent[4])
-                    if (param & 0x00ff) == CC111: # CC#111があったのでここでループする
-                        loopinfo = (pos, -1)
-                        break
+    if not loopinfo and ismidi:
+        # RPGツクールで使用されるループ位置情報(CC#111)を探し、
+        # 存在する場合はその位置からループ再生を行う
+        count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, None)
+        if count:
+            events = "\0" * (count*4*5)
+            count = _bassmidi.BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events)
+            for i in xrange(0, count, 4*5):
+                bassMidiEvent = struct.unpack("@iiiii", events[i:i+4*5])
+                _event = bassMidiEvent[0] # 使用しない
+                param = bassMidiEvent[1]
+                _chan = bassMidiEvent[2] # 使用しない
+                _tick = bassMidiEvent[3] # 使用しない
+                pos = bassMidiEvent[4]
+                if (param & 0x00ff) == CC111: # CC#111があったのでここでループする
+                    loopinfo = (pos, -1)
+                    break
 
-        if loopinfo:
-            loopstart, loopend = loopinfo
-            if 0 <= loopend:
-                _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, loopstart)
-            else:
-                _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, loopstart)
+    _loopcounts[streamindex] = loopcount
+    if loopinfo:
+        loopstart, loopend = loopinfo
+        _loopstarts[streamindex] = loopstart
+        if 0 <= loopend:
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, streamindex)
+        else:
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, streamindex)
+    else:
+        _loopstarts[streamindex] = 0
+        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, streamindex)
 
     _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
-    _bass.BASS_ChannelPlay(stream, loop)
+    _bass.BASS_ChannelPlay(stream, False)
 
     return stream
 
@@ -285,7 +307,7 @@ def _get_loopinfo(fpath, stream):
 
 def dispose_bass():
     """全ての演奏を停止し、BASS AudioのDLLを解放する。"""
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
 
@@ -300,79 +322,79 @@ def dispose_bass():
     del _bassmidi
     _bassmidi = None
 
-def play_bgm(fpath, volume=1.0):
+def play_bgm(fpath, volume=1.0, loopcount=0):
     """
     BASS AudioによってfileをBGMとして演奏する。
     file: 再生するファイル。
     volume: 音量。0.0～1.0で指定。
     """
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return False
     stop_bgm()
-    _bgmstream = _play(fpath, volume, True)
-    return _bgmstream <> 0
+    _streams[STREAM_BGM] = _play(fpath, volume, loopcount, STREAM_BGM)
+    return _streams[STREAM_BGM] <> 0
 
-def play_sound(fpath, volume=1.0, fromscenario=False):
+def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1):
     """
     BASS Audioによってfileを効果音として演奏する。
     file: 再生するファイル。
     volume: 音量。0.0～1.0で指定。
     """
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return False
     stop_sound(fromscenario)
     if fromscenario:
-        _soundstream1 = _play(fpath, volume, False)
-        return _soundstream1 <> 0
+        _streams[STREAM_SOUND1] = _play(fpath, volume, loopcount, STREAM_SOUND1)
+        return _streams[STREAM_SOUND1] <> 0
     else:
-        _soundstream2 = _play(fpath, volume, False)
-        return _soundstream2 <> 0
+        _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2)
+        return _streams[STREAM_SOUND2] <> 0
 
 def stop_bgm():
     """BGMの再生を停止する。"""
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
-    if _bgmstream:
-        _bass.BASS_ChannelStop(_bgmstream)
-        _bass.BASS_StreamFree(_bgmstream)
-        _bgmstream = 0
+    if _streams[STREAM_BGM]:
+        _bass.BASS_ChannelStop(_streams[STREAM_BGM])
+        _bass.BASS_StreamFree(_streams[STREAM_BGM])
+        _streams[STREAM_BGM] = 0
 
 def stop_sound(fromscenario=False):
     """効果音の再生を停止する。"""
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     if fromscenario:
-        if _soundstream1:
-            _bass.BASS_ChannelStop(_soundstream1)
-            _bass.BASS_StreamFree(_soundstream1)
-            _soundstream1 = 0
+        if _streams[STREAM_SOUND1]:
+            _bass.BASS_ChannelStop(_streams[STREAM_SOUND1])
+            _bass.BASS_StreamFree(_streams[STREAM_SOUND1])
+            _streams[STREAM_SOUND1] = 0
     else:
-        if _soundstream2:
-            _bass.BASS_ChannelStop(_soundstream2)
-            _bass.BASS_StreamFree(_soundstream2)
-            _soundstream2 = 0
+        if _streams[STREAM_SOUND2]:
+            _bass.BASS_ChannelStop(_streams[STREAM_SOUND2])
+            _bass.BASS_StreamFree(_streams[STREAM_SOUND2])
+            _streams[STREAM_SOUND2] = 0
 
 def set_bgmvolume(volume):
     """BGMの音量を変更する。"""
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
-    if _bgmstream:
-        _bass.BASS_ChannelSetAttribute(_bgmstream, BASS_ATTRIB_VOL, c_float(volume))
+    if _streams[STREAM_BGM]:
+        _bass.BASS_ChannelSetAttribute(_streams[STREAM_BGM], BASS_ATTRIB_VOL, c_float(volume))
 
 def set_soundvolume(volume):
     """効果音の音量を変更する。"""
-    global _bass, _bassmidi, _sfonts, _bgmstream, _soundstream1, _soundstream2
+    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
-    if _soundstream1:
-        _bass.BASS_ChannelSetAttribute(_soundstream1, BASS_ATTRIB_VOL, c_float(volume))
-    if _soundstream2:
-        _bass.BASS_ChannelSetAttribute(_soundstream2, BASS_ATTRIB_VOL, c_float(volume))
+    if _streams[STREAM_SOUND1]:
+        _bass.BASS_ChannelSetAttribute(_streams[STREAM_SOUND1], BASS_ATTRIB_VOL, c_float(volume))
+    if _streams[STREAM_SOUND2]:
+        _bass.BASS_ChannelSetAttribute(_streams[STREAM_SOUND2], BASS_ATTRIB_VOL, c_float(volume))
 
 def main():
     import time
