@@ -1579,7 +1579,8 @@ class CWPy(_Singleton, threading.Thread):
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
 
-    def set_scenario(self, header=None, lastscenario=[][:], lastscenariopath="", resume=False):
+    def set_scenario(self, header=None, lastscenario=[][:], lastscenariopath="",
+                     resume=False, manualstart=False):
         """シナリオ画面へ遷移。
         header: ScenarioHeader
         """
@@ -1631,7 +1632,19 @@ class CWPy(_Singleton, threading.Thread):
                             self.check_level(True)
                             self.sdata.end()
                             self.set_yado()
-                        elif musicpath is None or\
+                            return
+
+                        if manualstart:
+                            dataversion = self.sdata.summary.getattr(".", "dataVersion", "")
+                            if not dataversion in cw.SUPPORTED_WSN:
+                                s = u"対応していないWSNバージョン(%s)のシナリオです。\n正常に動作しない可能性がありますが、開始しますか？" % (dataversion)
+                                self.call_modaldlg("YESNO", text=s)
+                                if self.get_yesnoresult() <> wx.ID_OK:
+                                    self.sdata.end()
+                                    self.set_yado()
+                                    return
+
+                        if musicpath is None or\
                                         self.music.path == self.music.get_path(musicpath, inusecard):
                             self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal)
                         else:

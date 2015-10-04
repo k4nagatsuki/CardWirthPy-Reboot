@@ -518,7 +518,7 @@ class Frame(wx.Frame):
             dlg.Destroy()
             header = dlg.list[dlg.index]
             sel, selpath = dlg.get_selected()
-            cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath)
+            cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
         else:
             dlg.Destroy()
 
