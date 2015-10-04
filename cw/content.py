@@ -2025,25 +2025,12 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
                                     owner=None, from_scenario=from_scenario)
 
     if copymaterialfrom:
-        if from_scenario:
-            # F9時に破棄しなければならないので
-            # ImagePathの取り込みに留める
-            for e2 in etree.getiterator():
-                if e2.tag == "ImagePath" and e2.text and not cw.binary.image.path_is_code(e2.text):
-                    path = cw.util.join_paths(copymaterialfrom, e2.text)
-                    if os.path.isfile(path):
-                        with open(path, "rb") as f:
-                            imagedata = f.read()
-                            f.close()
-                        e2.text = cw.binary.image.data_to_code(imagedata)
-                        header.imgpath = e2.text
-        else:
-            # 素材ファイルコピー
-            dstdir = cw.util.join_paths(cw.cwpy.ydata.yadodir,
-                                        "Material", header.type, name)
-            dstdir = cw.util.dupcheck_plus(dstdir)
-            cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom)
-            header.imgpath = etree.gettext("Property/ImagePath", header.imgpath)
+        # 素材ファイルコピー
+        dstdir = cw.util.join_paths(cw.cwpy.ydata.yadodir,
+                                    "Material", header.type, name)
+        dstdir = cw.util.dupcheck_plus(dstdir)
+        cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=from_scenario)
+        header.imgpath = etree.gettext("Property/ImagePath", header.imgpath)
 
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party, from_getcontent=from_getcontent)
 

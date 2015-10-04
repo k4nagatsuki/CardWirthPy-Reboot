@@ -772,7 +772,7 @@ class CharacterCardImage(CardImage):
     def get_image(self):
         return self.image
 
-    def get_cardwxbmp(self, header):
+    def get_cardwxbmp(self, header, test_aptitude=None):
         return self.get_wxbmp()
 
     def get_cardimg(self, header):

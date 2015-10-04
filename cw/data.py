@@ -185,6 +185,50 @@ class SystemData(object):
 
         return xml2etree(path)
 
+    def get_carddata(self, linkdata):
+        return linkdata
+
+    def _get_carddatapath(self, type, resid, dpath):
+        dpath = cw.util.join_paths(dpath, type)
+        for fpath in os.listdir(dpath):
+            if not fpath.lower().endswith(".xml"):
+                continue
+            fpath = cw.util.join_paths(dpath, fpath)
+            idstr = cw.header.GetName(fpath, tagname="Id").name
+            if not idstr or int(idstr) <> resid:
+                continue
+            return fpath
+
+        return ""
+
+    def copy_carddata(self, linkdata, dstdir, from_scenario, scedir, imgpaths):
+        """参照で指定された召喚獣カードを宿へコピーする。"""
+        assert linkdata.tag == "BeastCard"
+        resid = linkdata.getint("Property/LinkId", 0)
+        if resid == 0:
+            return
+
+        if scedir == self.scedir:
+            path = self.beasts.get(resid, None)
+            if not path or not os.path.isfile(path[1]):
+                return
+            path = path[1]
+            dstpath = cw.util.relpath(path, self.tempdir)
+        else:
+            path = self._get_carddatapath(linkdata.tag, resid, scedir)
+            dstpath = cw.util.relpath(path, scedir)
+
+        if path in imgpaths:
+            return
+
+        dstpath = cw.util.join_paths(dstdir, dstpath)
+        imgpaths[path] = dstpath
+
+        data = xml2etree(path)
+        cw.cwpy.copy_materials(data, dstdir, from_scenario=from_scenario, scedir=scedir, imgpaths=imgpaths)
+        data.fpath = dstpath
+        data.write_xml(True)
+
     def change_data(self, resid):
         self.data = self.get_resdata(cw.cwpy.is_battlestatus(), resid)
 
@@ -469,6 +513,57 @@ class ScenarioData(SystemData):
         self.versionhint[pos] = hint
         if cw.HINT_AREA <= pos and cw.cwpy.sct.to_basehint(last) <> cw.cwpy.sct.to_basehint(self.get_versionhint()):
             cw.cwpy.update_titlebar()
+
+    def get_carddata(self, linkdata):
+        """参照で設定されているデータの実体を取得する。"""
+        resid = linkdata.getint("Property/LinkId", 0)
+        if resid == 0:
+            return linkdata
+
+        inusecard = cw.cwpy.event.get_inusecard()
+        if inusecard and (not inusecard.scenariocard or inusecard.carddata.gettext("Property/Materials", "")):
+            # プレイ中のシナリオ外のカードを使用
+            mates = inusecard.carddata.gettext("Property/Materials", "")
+            if not mates:
+                return None
+
+            dpath = cw.util.join_yadodir(mates)
+            fpath = self._get_carddatapath(linkdata.tag, resid, dpath)
+            if not fpath:
+                return
+            data = xml2element(fpath, nocache=True)
+
+        else:
+            # プレイ中のシナリオ内のカードを使用
+            if linkdata.tag == "SkillCard":
+                path = self.skills.get(resid, None)
+            elif linkdata.tag == "ItemCard":
+                path = self.items.get(resid, None)
+            elif linkdata.tag == "BeastCard":
+                path = self.beasts.get(resid, None)
+            else:
+                assert False
+            if not path or not os.path.isfile(path[1]):
+                return None
+
+            path = path[1]
+            data = xml2element(path, nocache=True)
+
+        prop1 = linkdata.find("Property")
+        ule1 = linkdata.find("Property/UseLimit")
+        he1 = linkdata.find("Property/Hold")
+
+        prop2 = data.find("Property")
+        ule2 = data.find("Property/UseLimit")
+        he2 = data.find("Property/Hold")
+
+        if not ule1 is None and not ule2 is None:
+            prop2.remove(ule2)
+            prop2.append(ule1)
+        if not he1 is None and not he2 is None:
+            prop2.remove(he2)
+            prop2.append(he1)
+        return data
 
     def save_breakpoints(self):
         key = (self.name, self.author)
@@ -2663,6 +2758,11 @@ class CWPyElement(_ElementInterface, _CWPyElementInterface):
         if subelement.cwxparent is self:
             subelement.cwxparent = None
         return _ElementInterface.remove(self, subelement)
+
+    def clear(self):
+        for subelement in self:
+            subelement.cwxparent = None
+        return _ElementInterface.clear(self)
 
     def index(self, subelement):
         for i, e in enumerate(self):

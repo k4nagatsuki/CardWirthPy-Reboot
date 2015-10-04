@@ -1199,7 +1199,8 @@ def get_inusecardmaterialpath(path, mtype, inusecard=None, findskin=True):
         if inusecard or (cw.cwpy.is_runningevent() and cw.cwpy.event.get_inusecard()):
             if not inusecard:
                 inusecard = cw.cwpy.event.get_inusecard()
-            if not inusecard.carddata.getbool(".", "scenariocard", False):
+            if not inusecard.carddata.getbool(".", "scenariocard", False) or\
+               inusecard.carddata.gettext("Property/Materials", ""):
                 imgpath = cw.util.join_yadodir(path)
                 imgpath = get_materialpathfromskin(imgpath, mtype, findskin=findskin)
     return imgpath
@@ -1212,7 +1213,7 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
     """
     if mtype == cw.M_IMG and cw.binary.image.path_is_code(path):
         return path
-    if not system and cw.cwpy.is_playingscenario():
+    if not system and (cw.cwpy.is_playingscenario() or scedir):
         tpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", path)
         if os.path.isfile(tpath):
             path = tpath

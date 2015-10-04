@@ -217,7 +217,8 @@ class CardEditDialog(wx.Dialog):
         for i, header in enumerate(self.list):
             header.negaflag = (i == index)
         self.draw(True)
-        dlg = cw.dialog.cardinfo.YadoCardInfo(self, self.list, self.list[index])
+        dlg = cw.dialog.cardinfo.YadoCardInfo(self, self.list, self.list[index],
+                                              scedir=self.scdata.tempdir)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
 

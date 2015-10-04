@@ -223,14 +223,22 @@ class Character(object):
         for maxn, path in zip(maxnums, paths):
             headers = []
 
-            for e in self.data.getfind(path):
-                header = cw.header.CardHeader(owner=self, carddata=e,
-                                                            from_scenario=flag)
-                headers.append(header)
+            pe = self.data.find(path)
+            if not pe is None:
+                for e in pe:
+                    if maxn <= len(headers):
+                        # 最大所持数を越えたカードは消去
+                        break
+                    e = cw.cwpy.sdata.get_carddata(e)
+                    header = cw.header.CardHeader(owner=self, carddata=e,
+                                                                from_scenario=flag)
+                    headers.append(header)
 
-            # 最大所持数を越えたカードは消去
-            for header in headers[maxn:]:
-                self.data.remove(path, header.carddata)
+                # 参照先に差し替えられている可能性があるので
+                # ここでpeの子要素を入れ替える
+                pe.clear()
+                for header in headers:
+                    pe.append(header.carddata)
 
             cardpocket.append(headers[:maxn])
 

@@ -1052,8 +1052,14 @@ class EffectMotion(object):
             return False
         eff = False
         for e in self.beasts:
-            cwxpath = e.get_cwxpath()
-            e = cw.data.copydata(e)
+            e2 = cw.cwpy.sdata.get_carddata(e)
+            if e2 is None:
+                continue
+            cwxpath = e2.get_cwxpath()
+            if e2 is e:
+                e = cw.data.copydata(e)
+            else:
+                e = e2
             if cwxpath:
                 e.attrib["cwxpath"] = cwxpath
             self.duration = e.getint("Property/UseLimit")

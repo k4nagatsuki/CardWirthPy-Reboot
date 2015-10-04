@@ -157,7 +157,7 @@ class CardHeader(object):
                 self.scedir = cw.cwpy.sdata.scedir
         else:
             self.scenariocard = False
-            self.scedir = ""
+            self.scedir = scedir
         # 画像設定
         self._cardimg = None
         self.rect = cw.s(pygame.Rect(0, 0, 80, 110))
@@ -203,9 +203,9 @@ class CardHeader(object):
             if self.type in ("ActionCard", "UseCardInBackpack"):
                 path = cw.util.join_paths(cw.cwpy.skindir, path)
                 path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
-            elif self.scenariocard:
+            elif self.scenariocard or self.scedir:
                 path = cw.util.get_materialpath(path, cw.M_IMG, scedir=self.scedir)
-            else:
+            elif not self.scenariocard:
                 path = cw.util.join_yadodir(path)
 
         imgpath = path
@@ -552,6 +552,17 @@ class CardHeader(object):
                 # self.fpathを削除予定のfpathリストに追加
                 cw.cwpy.ydata.deletedpaths.add(self.fpath, self.scenariocard)
 
+    def remove_importedmaterials(self):
+        # 取り込み素材をフォルダごと削除
+        if self.carddata is None:
+            self.do_write()
+            self.carddata = cw.data.yadoxml2element(self.fpath)
+
+        emp = self.carddata.find("Property/Materials")
+        if not emp is None:
+            mates = cw.util.join_yadodir(emp.text)
+            cw.cwpy.ydata.deletedpaths.add(mates, True)
+
     def set_scenariostart(self):
         """
         シナリオ開始時に呼ばれる。
@@ -580,6 +591,7 @@ class CardHeader(object):
 
             # シナリオ取得フラグクリア
             self.scenariocard = False
+            self.scedir = ""
             self.carddata.attrib.pop("scenariocard")
             # 画像コピー
             dstdir = cw.util.join_paths(cw.cwpy.yadodir,

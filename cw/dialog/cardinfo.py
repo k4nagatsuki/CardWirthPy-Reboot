@@ -16,11 +16,12 @@ class CardInfo(wx.Dialog):
     """
     カード情報ダイアログ　スーパークラス
     """
-    def __init__(self, parent):
+    def __init__(self, parent, scedir=""):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["card_information"], size=cw.wins((380, 200)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.csize = self.GetClientSize()
+        self.scedir = scedir
 
         # フォントによってダイアログサイズを決定する
         dc = wx.ClientDC(self)
@@ -215,13 +216,13 @@ class MenuCardInfo(CardInfo):
 #-------------------------------------------------------------------------------
 
 class YadoCardInfo(CardInfo):
-    def __init__(self, parent, clist, selection):
+    def __init__(self, parent, clist, selection, scedir=""):
         # カード情報
         self.selection = selection
         self.list = clist
         self.index = self.list.index(selection)
         # ダイアログ作成
-        CardInfo.__init__(self, parent)
+        CardInfo.__init__(self, parent, scedir=scedir)
 
     def OnClickLeftBtn(self, event):
         if self.index == 0:

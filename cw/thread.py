@@ -1780,6 +1780,7 @@ class CWPy(_Singleton, threading.Thread):
         for header in self.ydata.party.backpack + self.ydata.party.backpack_moved:
             if header.scenariocard:
                 header.contain_xml()
+                header.remove_importedmaterials()
                 continue
 
             if header.fpath.lower().startswith("yado"):
@@ -3749,13 +3750,16 @@ class CWPy(_Singleton, threading.Thread):
                     if os.path.isfile(temppath):
                         self.ydata.deletedpaths.add(temppath)
 
-    def copy_materials(self, data, dstdir, from_scenario=True, scedir="", yadodir=None, toyado=None, adventurer=False, imgpaths=None):
+    def copy_materials(self, data, dstdir, from_scenario=True, scedir="",
+                       yadodir=None, toyado=None, adventurer=False,
+                       imgpaths=None, importimage=False):
         """
         from_scenario: Trueの場合は開いているシナリオから、
                        Falseの場合は開いている宿からコピーする
         XMLElementに記されている
         素材ファイルをdstdirにコピーする。
         """
+        orig_scedir = scedir
         if isinstance(data, cw.data.CWPyElementTree):
             data = data.getroot()
 
@@ -3785,6 +3789,8 @@ class CWPy(_Singleton, threading.Thread):
                 e = cw.data.make_element("Materials", dstdir2)
                 prop.append(e)
             else:
+                if not scedir:
+                    scedir = cw.util.join_yadodir(emp.text)
                 mdir = emp.text
                 if mdir in imgpaths:
                     emp.text = imgpaths[mdir]
@@ -3797,7 +3803,16 @@ class CWPy(_Singleton, threading.Thread):
             scedir = cw.util.join_paths(yadodir, mdir)
 
         for e in data.getiterator():
-            if e.tag in ("ImagePath", "SoundPath", "SoundPath2"):
+            if e.tag == "ImagePath" and importimage:
+                # ImagePathはcarddata無しでの表示に必要となるので取り込んでおく
+                if e.text and not cw.binary.image.path_is_code(e.text):
+                    path = cw.util.join_paths(orig_scedir, e.text)
+                    if os.path.isfile(path):
+                        with open(path, "rb") as f:
+                            imagedata = f.read()
+                            f.close()
+                        e.text = cw.binary.image.data_to_code(imagedata)
+            elif e.tag in ("ImagePath", "SoundPath", "SoundPath2"):
                 path = e.text
                 if path:
                     if yadodir and mdir:
@@ -3829,6 +3844,9 @@ class CWPy(_Singleton, threading.Thread):
                     def set_material(text):
                         e.attrib["sound"] = text
                     self._copy_material(data, dstdir, from_scenario, scedir, imgpaths, e, path, set_material, yadodir, toyado)
+
+            elif e.tag == "BeastCard" and from_scenario:
+                self.sdata.copy_carddata(e, dstdir, from_scenario, scedir, imgpaths)
 
     def _copy_material(self, data, dstdir, from_scenario, scedir, imgpaths, e, materialpath, set_material, yadodir, toyado):
         pisc = not e is None and e.tag == "ImagePath" and cw.binary.image.path_is_code(materialpath)
