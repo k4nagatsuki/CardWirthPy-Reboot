@@ -1948,7 +1948,8 @@ class Character(object):
         old = self.paralyze
         self.paralyze += value
         self.paralyze = cw.util.numwrap(self.paralyze, 0, 40)
-        self.set_mentality("Normal", 0)
+        if 0 < self.paralyze:
+            self.set_mentality("Normal", 0)
         self.data.edit("Property/Status/Paralyze", str(self.paralyze))
         self.adjust_action()
         return self.paralyze - old
