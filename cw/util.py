@@ -1743,6 +1743,8 @@ def encodewrap(s):
 
 def decodewrap(s, code="\n"):
     """\nを改行コードに戻す。"""
+    if not s:
+        return u""
     r = []
     bs = False
     for c in s:
@@ -1766,6 +1768,8 @@ def encodetextlist(arr):
 
 def decodetextlist(s):
     """\n区切りの文字列を文字配列にする。"""
+    if not s:
+        return []
     return decodewrap(s).split("\n")
 
 def is_hw(unichr):

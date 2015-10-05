@@ -244,8 +244,16 @@ class ItemCard(base.CWBinaryBase):
                         enhance_defense = int(prop.get("defense"))
                     elif prop.tag == "SoundPath":
                         sound_effect = base.CWBinaryBase.materialpath(prop.text)
+                        if prop.getint(".", "volume", 100) <> 100:
+                            f.check_wsnversion("1")
+                        if prop.getint(".", "loopcount", 1) <> 1:
+                            f.check_wsnversion("1")
                     elif prop.tag == "SoundPath2":
                         sound_effect2 = base.CWBinaryBase.materialpath(prop.text)
+                        if prop.getint(".", "volume", 100) <> 100:
+                            f.check_wsnversion("1")
+                        if prop.getint(".", "loopcount", 1) <> 1:
+                            f.check_wsnversion("1")
                     elif prop.tag == "KeyCodes":
                         keycodes = cw.util.decodetextlist(prop.text)
                         # 5件まで絞り込む
@@ -254,13 +262,13 @@ class ItemCard(base.CWBinaryBase):
                             for keycode in keycodes:
                                 if keycode:
                                     if 5 <= len(keycodes2):
-                                        f.check_version("CardWirthPy 0.12")
+                                        f.check_wsnversion("")
                                         break
                                     else:
                                         keycodes2.append(keycode)
                             keycodes = keycodes2
                         if len(keycodes) < 5:
-                            keycodes.append([""] * (5 - len(keycodes)))
+                            keycodes.extend([""] * (5 - len(keycodes)))
                     elif prop.tag == "Premium":
                         premium = base.CWBinaryBase.unconv_card_premium(prop.text)
                         if ownerisadventurer and scenariocard:
@@ -276,6 +284,9 @@ class ItemCard(base.CWBinaryBase):
                         enhance_avoid2 = int(prop.get("avoid"))
                         enhance_resist2 = int(prop.get("resist"))
                         enhance_defense2 = int(prop.get("defense"))
+                    elif prop.tag == "LinkId":
+                        if prop.text and prop.text <> "0":
+                            f.check_wsnversion("1")
             elif e.tag == "Motions":
                 motions = e
             elif e.tag == "Events":

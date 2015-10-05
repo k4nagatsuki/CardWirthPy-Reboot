@@ -124,6 +124,12 @@ class CWFileWriter(io.BufferedWriter):
             if self.targetengine < engineversion:
                 raise UnsupportedError()
 
+    def check_wsnversion(self, wsnversion):
+        """指定されたWSNデータバージョンにかかわらず
+        UnsupportedErrorを投げる。
+        """
+        raise UnsupportedError()
+
     def write_bool(self, b):
         self.write_byte(1 if b else 0)
 
