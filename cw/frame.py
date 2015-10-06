@@ -515,17 +515,25 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            dlg.Destroy()
             header = dlg.list[dlg.index]
             sel, selpath = dlg.get_selected()
-            cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
+            cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
+            if sys.platform == "win32":
+                cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
+                self.kill_dlg(dlg)
+            else:
+                # linuxでたまに操作不能になる
+                cw.cwpy.exec_func(cw.cwpy.set_scenario, header, sel, selpath, manualstart=True)
+                def func(self, dlg):
+                    def func(self, dlg):
+                        if self:
+                            self.kill_dlg(dlg)
+                    cw.cwpy.frame.exec_func(func, self, dlg)
+                cw.cwpy.exec_func(func, self, dlg)
         else:
-            dlg.Destroy()
-
-        # キャンセルしても最後の選択は記憶する
-        cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
-
-        self.kill_dlg(dlg)
+            # キャンセルしても最後の選択は記憶する
+            cw.cwpy.setting.lastscenario, cw.cwpy.setting.lastscenariopath = dlg.get_selected()
+            self.kill_dlg(dlg)
 
     def OnALBUM(self, event):
         dlg = cw.dialog.select.Album(self)
