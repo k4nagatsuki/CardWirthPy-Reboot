@@ -20,14 +20,14 @@ class Character(object):
         self.name = self.data.gettext("Property/Name", "")
         # レベル
         self.level = self.data.getint("Property/Level")
+        # 各種所持カードのリスト
+        self.cardpocket = self.get_cardpocket()
         # 全てホールド
         self.hold_all = [
             self.data.getbool("SkillCards", "hold_all", False),
             self.data.getbool("ItemCards", "hold_all", False),
             self.data.getbool("BeastCards", "hold_all", False),
         ]
-        # 各種所持カードのリスト
-        self.cardpocket = self.get_cardpocket()
         # 現在ライフ・最大ライフ
         self.life = self.data.getint("Property/Life")
         self.maxlife = self.data.getint("Property/Life", "max")
@@ -236,7 +236,8 @@ class Character(object):
 
                 # 参照先に差し替えられている可能性があるので
                 # ここでpeの子要素を入れ替える
-                pe.clear()
+                for e in list(pe):
+                    pe.remove(e)
                 for header in headers:
                     pe.append(header.carddata)
 
