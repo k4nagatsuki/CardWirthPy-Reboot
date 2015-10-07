@@ -914,7 +914,7 @@ class Resource(object):
             #        取得に失敗する事があるので、すべて小文字のパスをキーにして
             #        真のファイル名へのマッピングをしておく。
             #        主にこの問題は手書きされる'*.jpy1'内で発生する。
-            for res in ("Table", "Bgm", "Sound"):
+            for res in ("Table", "Bgm", "Sound", "Resource/Image"):
                 resdir = cw.util.join_paths(self.skindir, res)
                 for dpath, dnames, fnames in os.walk(resdir):
                     for fname in fnames:
