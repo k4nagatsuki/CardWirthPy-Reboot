@@ -1250,7 +1250,7 @@ def get_materialpathfromskin(path, mtype, findskin=True):
 
 def remove_temp():
     """
-    "Data/Temp/Yado"を空にする。
+    一時ディレクトリを空にする。
     """
     dpath = cw.tempdir
 
@@ -1275,6 +1275,11 @@ def remove_temp():
         except:
             print_ex()
             remove_treefiles(cw.tempdir)
+
+    try:
+        remove(u"Data/Temp/Global/Deleted")
+    except:
+        pass
 
 def remove(path):
     if os.path.isfile(path):
@@ -1382,7 +1387,7 @@ def rename_file(path, dstpath):
     except OSError:
         # ファイルシステムが異なっていると失敗する
         # 可能性があるのでコピー&削除を試みる
-        cw.util.print_ex()
+        print_ex()
         with open(path, "rb") as f1:
             with open(dstpath, "wb") as f2:
                 f2.write(f1.read())
@@ -1482,7 +1487,7 @@ def compress_zip(path, zpath, unicodefilename=False):
     z.close()
     return zpath
 
-def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progress=None):
+def decompress_zip(path, dstdir, dname="", startup=None, progress=None, overwrite=False):
     """zipファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
@@ -1492,15 +1497,19 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progres
         return None
 
     if not dname:
-        dname = cw.util.splitext(os.path.basename(path))[0]
+        dname = splitext(os.path.basename(path))[0]
 
     dstdir = join_paths(dstdir, dname)
-    dstdir = dupcheck_plus(dstdir, False)
+    if overwrite:
+        paths = set()
+    else:
+        dstdir = dupcheck_plus(dstdir, False)
 
-    seq = z.namelist()
+    seq = z.infolist()
     if startup:
         startup(len(seq))
-    for i, zname in enumerate(seq):
+    for i, (zname, info) in enumerate(zip(z.namelist(), z.infolist())):
+
         if progress and i % 10 == 0:
             progress(i)
         name = decode_zipname(zname).replace('\\', '/')
@@ -1518,34 +1527,64 @@ def decompress_zip(path, dstdir, dname="", avoiddup=False, startup=None, progres
                 os.makedirs(dpath)
 
         else:
-            data = z.read(zname)
             fpath = join_paths(dstdir, name)
             dpath = os.path.dirname(fpath)
 
             if dpath and not os.path.isdir(dpath):
                 os.makedirs(dpath)
 
-            with open(fpath, "wb") as f:
-                f.write(data)
-                f.flush()
-                f.close()
+            if isinstance(info.date_time, datetime.datetime):
+                mtime = time.mktime(time.strptime(info.date_time.strftime("%Y/%m/%d %H:%M:%S"), "%Y/%m/%d %H:%M:%S"))
+            else:
+                mtime = time.mktime(time.strptime("%d/%02d/%02d %02d:%02d:%02d" % (info.date_time), "%Y/%m/%d %H:%M:%S"))
+
+            if overwrite:
+                # 上書き展開時は一部ファイルでエラーが出た場合に
+                # 上書き先を改名して対処する
+                # (再生中のBGMが上書きできない場合など)
+                paths.add(os.path.normcase(os.path.normpath(os.path.abspath(fpath))))
+                if not os.path.isfile(fpath) or os.path.getmtime(fpath) <> mtime:
+                    data = z.read(zname)
+                    try:
+                        with open(fpath, "wb") as f:
+                            f.write(data)
+                            f.flush()
+                            f.close()
+                    except:
+                        # 改名してリトライ
+                        if os.path.isfile(fpath):
+                            dst = join_paths(u"Data/Temp/Global/Deleted", os.path.basename(fpath))
+                            dst = dupcheck_plus(dst, False)
+                            if not os.path.isdir(u"Data/Temp/Global/Deleted"):
+                                os.makedirs(u"Data/Temp/Global/Deleted")
+                            rename_file(fpath, dst)
+                        with open(fpath, "wb") as f:
+                            f.write(data)
+                            f.flush()
+                            f.close()
+                else:
+                    continue
+            else:
+                data = z.read(zname)
+                with open(fpath, "wb") as f:
+                    f.write(data)
+                    f.flush()
+                    f.close()
+
+            os.utime(fpath, (os.path.getatime(fpath), mtime))
 
     z.close()
 
+    if overwrite:
+        for dpath, _dnames, fnames in os.walk(dstdir):
+            for fname in fnames:
+                path = join_paths(dpath, fname)
+                path = os.path.normcase(os.path.normpath(os.path.abspath(path)))
+                if not path in paths:
+                    remove(path)
+
     if progress:
         progress(len(seq))
-
-    if avoiddup:
-        # 内部にディレクトリが一つしかない場合は
-        # 最上位のディレクトリに格上げする
-        seq = os.listdir(dstdir)
-        if 1 == len(seq):
-            dpath = os.path.join(dstdir, seq[0])
-            if os.path.isdir(dpath):
-                dstdir2 = dupcheck_plus(dstdir, False)
-                os.rename(dstdir, dstdir2)
-                os.rename(os.path.join(dstdir2, seq[0]), dstdir)
-                cw.util.remove(dstdir2)
 
     return dstdir
 
@@ -1595,16 +1634,29 @@ def get_elementfromzip(zpath, name, tag=""):
         f.close()
     return element
 
-def decompress_cab(path, dstdir, dname="", avoiddup=False, startup=None, progress=None):
+def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrite=False):
     """cabファイルをdstdirに解凍する。
     解凍したディレクトリのpathを返す。
     """
-
     if not dname:
-        dname = cw.util.splitext(os.path.basename(path))[0]
+        dname = splitext(os.path.basename(path))[0]
 
     dstdir = join_paths(dstdir, dname)
-    dstdir = dupcheck_plus(dstdir, False)
+    if not overwrite:
+        dstdir = dupcheck_plus(dstdir, False)
+
+    if overwrite and os.path.isdir(dstdir):
+        # 強制的に全てのファイルを展開するため、
+        # 元々あったファイルを削除するか、削除予定地へ転送する
+        for dpath, _dnames, fnames in os.walk(dstdir):
+            for fname in fnames:
+                fpath = join_paths(dpath, fname)
+                dst = join_paths(u"Data/Temp/Global/Deleted", fname)
+                if not os.path.isdir(u"Data/Temp/Global/Deleted"):
+                    os.makedirs(u"Data/Temp/Global/Deleted")
+                dst = dupcheck_plus(dst)
+                rename_file(fpath, dst)
+                remove(dst)
 
     if startup or progress:
         filenum = cab_filenum(path)
@@ -1649,18 +1701,6 @@ def decompress_cab(path, dstdir, dname="", avoiddup=False, startup=None, progres
 
     if progress:
         progress(filenum)
-
-    if avoiddup:
-        # 内部にディレクトリが一つしかない場合は
-        # 最上位のディレクトリに格上げする
-        seq = os.listdir(dstdir)
-        if 1 == len(seq):
-            dpath = os.path.join(dstdir, seq[0])
-            if os.path.isdir(dpath):
-                dstdir2 = dupcheck_plus(dstdir, False)
-                shutil.move(dstdir, dstdir2)
-                shutil.move(os.path.join(dstdir2, seq[0]), dstdir)
-                cw.util.remove(dstdir2)
 
     return dstdir
 

@@ -36,6 +36,7 @@ class SystemData(object):
         self.sdata = ""
         self.author = ""
         self.fpath = ""
+        self.mtime = 0
         self.tempdir = ""
         self.scedir = ""
         self._init_xmlpaths()
@@ -324,6 +325,7 @@ class ScenarioData(SystemData):
         self.is_playing = True
         self.in_f9 = False
         self.fpath = cw.util.get_linktarget(header.get_fpath())
+        self.mtime = os.path.getmtime(self.fpath)
         self.name = header.name
         self.author = header.author
         self.startid = header.startid
@@ -333,91 +335,13 @@ class ScenarioData(SystemData):
             # zip解凍・解凍したディレクトリを登録
             self.tempdir = cw.cwpy.ydata.recenthistory.check(self.fpath)
 
-            # 展開先のフォルダのサブフォルダ内にシナリオ本体がある場合、
-            # self.tempdirをサブフォルダに設定する
-            def findsummary_intemp():
-                fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
-                fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
-                if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):
-                    for dpath, _dnames, fnames in os.walk(self.tempdir):
-                        if "Summary.wsm" in fnames or "Summary.xml" in fnames:
-                            # アーカイヴのサブフォルダにシナリオがある
-                            self.tempdir = dpath
-                            break
-                    else:
-                        # "Summary.wsm"がキャメルケースでない場合、見つからない可能性がある
-                        for dpath, _dnames, fnames in os.walk(self.tempdir):
-                            fnames = map(lambda f: f.lower(), fnames)
-                            if "summary.wsm" in fnames or "summary.xml" in fnames:
-                                # アーカイヴのサブフォルダにシナリオがある
-                                self.tempdir = dpath
-                                break
-                    self.tempdir = cw.util.join_paths(self.tempdir)
-
             if self.tempdir:
                 cw.cwpy.ydata.recenthistory.moveend(self.fpath)
-                findsummary_intemp()
+                self._find_summaryintemp()
             else:
                 self.tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
-                if self.fpath.lower().endswith(".cab"):
-                    decompress = cw.util.decompress_cab
-                else:
-                    decompress = cw.util.decompress_zip
-
-                # 展開を別スレッドで実行し、進捗をステータスバーに表示
-                self._progress = False
-                self._arcname = os.path.basename(self.fpath)
-                self._format = u""
-                def startup(filenum):
-                    def func():
-                        self._filenum = filenum
-                        self._format = u"%%sを展開中... (%%%ds/%%s)" % len(str(self._filenum))
-                        cw.cwpy.expanding = self._format % (self._arcname, 0, self._filenum)
-                        cw.cwpy.expanding_max = self._filenum
-                        cw.cwpy.expanding_min = 0
-                        cw.cwpy.expanding_cur = 0
-                        cw.cwpy.statusbar.change()
-                    cw.cwpy.exec_func(func)
-                def progress(cur):
-                    def func():
-                        if not cw.cwpy.expanding:
-                            return
-                        cw.cwpy.expanding_cur = cur
-                        cw.cwpy.expanding = self._format % (self._arcname, cur, self._filenum)
-                        cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
-                        cw.cwpy.draw()
-                        self._progress = False
-                    if not self._progress or cur == cw.cwpy.expanding_max:
-                        self._progress = True
-                        cw.cwpy.exec_func(func)
-
-                self._error = None
-                def run_decompress():
-                    try:
-                        self.tempdir = decompress(self.fpath, self.tempdir, avoiddup=False, startup=startup, progress=progress)
-                    except Exception, e:
-                        cw.util.print_ex(file=sys.stderr)
-                        self._error = e
-
-                thr = threading.Thread(target=run_decompress)
-                thr.start()
-                while thr.is_alive():
-                    cw.cwpy.eventhandler.run()
-                    cw.cwpy.tick_clock()
-                    cw.cwpy.input(noinput=True)
-                cw.cwpy.eventhandler.run()
-                cw.cwpy.expanding = u""
-                cw.cwpy.expanding_max = 100
-                cw.cwpy.expanding_min = 0
-                cw.cwpy.expanding_cur = 0
-                cw.cwpy.statusbar.change(False)
-                if self._error:
-                    # 展開エラー
-                    raise self._error
-
-                # 展開完了
+                self._decompress(False)
                 cw.cwpy.ydata.recenthistory.append(self.fpath, self.tempdir)
-                findsummary_intemp()
         else:
             # 展開済みシナリオ
             self.tempdir = self.fpath
@@ -500,6 +424,104 @@ class ScenarioData(SystemData):
                 if os.path.isfile(path):
                     self.ignorecase_table[path.lower()] = path
 
+    def check_archiveupdated(self, reload):
+        """シナリオが圧縮されており、
+        前回の展開より後に更新されていた場合は
+        更新分をアーカイブから再取得する。
+        """
+        if not os.path.isfile(self.fpath):
+            return
+
+        mtime = os.path.getmtime(self.fpath)
+        if self.mtime <> mtime:
+            self._decompress(True)
+            self.mtime = mtime
+            if reload:
+                self._reload()
+
+    def _decompress(self, overwrite):
+        if self.fpath.lower().endswith(".cab"):
+            decompress = cw.util.decompress_cab
+        else:
+            decompress = cw.util.decompress_zip
+
+        # 展開を別スレッドで実行し、進捗をステータスバーに表示
+        self._progress = False
+        self._arcname = os.path.basename(self.fpath)
+        self._format = u""
+        def startup(filenum):
+            def func():
+                self._filenum = filenum
+                self._format = u"%%sを展開中... (%%%ds/%%s)" % len(str(self._filenum))
+                cw.cwpy.expanding = self._format % (self._arcname, 0, self._filenum)
+                cw.cwpy.expanding_max = self._filenum
+                cw.cwpy.expanding_min = 0
+                cw.cwpy.expanding_cur = 0
+                cw.cwpy.statusbar.change()
+            cw.cwpy.exec_func(func)
+        def progress(cur):
+            def func():
+                if not cw.cwpy.expanding:
+                    return
+                cw.cwpy.expanding_cur = cur
+                cw.cwpy.expanding = self._format % (self._arcname, cur, self._filenum)
+                cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
+                cw.cwpy.draw()
+                self._progress = False
+            if not self._progress or cur == cw.cwpy.expanding_max:
+                self._progress = True
+                cw.cwpy.exec_func(func)
+
+        self._error = None
+        def run_decompress():
+            try:
+                self.tempdir = decompress(self.fpath, self.tempdir,
+                                          startup=startup, progress=progress,
+                                          overwrite=overwrite)
+            except Exception, e:
+                cw.util.print_ex(file=sys.stderr)
+                self._error = e
+
+        thr = threading.Thread(target=run_decompress)
+        thr.start()
+        while thr.is_alive():
+            cw.cwpy.eventhandler.run()
+            cw.cwpy.tick_clock()
+            cw.cwpy.input(noinput=True)
+        cw.cwpy.eventhandler.run()
+        cw.cwpy.expanding = u""
+        cw.cwpy.expanding_max = 100
+        cw.cwpy.expanding_min = 0
+        cw.cwpy.expanding_cur = 0
+        cw.cwpy.statusbar.change(False)
+        if self._error:
+            # 展開エラー
+            raise self._error
+
+        # 展開完了
+        self._find_summaryintemp()
+
+    def _find_summaryintemp(self):
+        # 展開先のフォルダのサブフォルダ内にシナリオ本体がある場合、
+        # self.tempdirをサブフォルダに設定する
+        fpath1 = cw.util.join_paths(self.tempdir, "Summary.wsm")
+        fpath2 = cw.util.join_paths(self.tempdir, "Summary.xml")
+        if not (os.path.isfile(fpath1) or os.path.isfile(fpath2)):
+            for dpath, _dnames, fnames in os.walk(self.tempdir):
+                if "Summary.wsm" in fnames or "Summary.xml" in fnames:
+                    # アーカイヴのサブフォルダにシナリオがある
+                    self.tempdir = dpath
+                    break
+            else:
+                # "Summary.wsm"がキャメルケースでない場合、見つからない可能性がある
+                for dpath, _dnames, fnames in os.walk(self.tempdir):
+                    fnames = map(lambda f: f.lower(), fnames)
+                    if "summary.wsm" in fnames or "summary.xml" in fnames:
+                        # アーカイヴのサブフォルダにシナリオがある
+                        self.tempdir = dpath
+                        break
+            self.tempdir = cw.util.join_paths(self.tempdir)
+
     def get_versionhint(self, frompos=0):
         """現在有効になっている互換性マークを返す。"""
         for hint in self.versionhint[frompos:]:
@@ -572,7 +594,15 @@ class ScenarioData(SystemData):
         elif key in cw.cwpy.breakpoint_table:
             del cw.cwpy.breakpoint_table[key]
 
+    def change_data(self, resid):
+        self.check_archiveupdated(True)
+        SystemData.change_data(self, resid)
+
     def reload(self):
+        self.check_archiveupdated(False)
+        self._reload()
+
+    def _reload(self):
         flagvals = {}
         stepvals = {}
         for name, flag in self.flags.items():
