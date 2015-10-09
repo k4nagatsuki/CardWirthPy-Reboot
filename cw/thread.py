@@ -231,6 +231,7 @@ class CWPy(_Singleton, threading.Thread):
                 else:
                     self.frame.SetMaxSize(self.frame.GetBestSize())
                     self.frame.SetMinSize(self.frame.GetBestSize())
+                self.exec_func(self.draw)
 
         self.frame.exec_func(func)
 
