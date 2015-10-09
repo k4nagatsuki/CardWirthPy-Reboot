@@ -305,6 +305,8 @@ class Frame(wx.Frame):
 
     def OnKeyUp(self, event):
         keycode = event.GetKeyCode()
+        if keycode == ord('P') and event.ControlDown():
+            keycode = wx.WXK_SNAPSHOT
         cw.cwpy.keyevent.keyup(keycode)
 
     def OnKeyDown(self, event):
@@ -867,6 +869,20 @@ class Frame(wx.Frame):
             cw.cwpy.keyevent.nokeyupevent = True
         cw.cwpy.exec_func(func, lockmenucard)
 
+    def can_screenshot(self):
+        """スクリーンショットの撮影が可能か。
+        """
+        if not cw.cwpy.is_showingdlg():
+            return True
+
+        fc = wx.Window.FindFocus()
+        while fc and fc.GetTopLevelParent():
+            top = fc.GetTopLevelParent()
+            if hasattr(top, "cwpy_debug") and top.cwpy_debug:
+                return False
+            fc = fc.GetParent()
+        return True
+
     def save_screenshot(self):
         """スクリーンショットを撮影する。
         """
@@ -883,17 +899,19 @@ class Frame(wx.Frame):
                 date = datetime.datetime.today()
                 image, y = cw.util.create_screenshot(date)
                 w, h = image.get_size()
-                if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey():
+                if (image.get_flags() & pygame.locals.SRCALPHA) or image.get_colorkey() or sys.platform <> "win32":
+                    # linuxでは画像が壊れるので常にこちら
                     buf = pygame.image.tostring(image, "RGBA")
                     alpha = True
+                    colorkey = None
                 else:
                     buf = pygame.image.tostring(image, "RGB")
                     alpha = False
 
-                if image.get_colorkey():
-                    colorkey = image.get_at(maskpos)
-                else:
-                    colorkey = None
+                    if image.get_colorkey():
+                        colorkey = image.get_at(maskpos)
+                    else:
+                        colorkey = None
 
                 def func(w, h, alpha, buf, colorkey, date, y, fore, back):
                     if alpha:
@@ -961,7 +979,7 @@ class Frame(wx.Frame):
                     mem3.SetFont(font)
                     title = child.GetTitle()
                     white = fore[:3] == (255, 255, 255)
-                    if 20 <= cw.s(pixelsize):
+                    if 20 <= cw.s(pixelsize) or wx.VERSION[0] < 3:
                         quality = wx.IMAGE_QUALITY_HIGH
                     else:
                         quality = wx.IMAGE_QUALITY_BILINEAR
@@ -1057,7 +1075,9 @@ class MyApp(wx.App):
 
         # スクリーンショットの撮影
         if event.GetEventType() == wx.EVT_KEY_UP.typeId and\
-                wx.WXK_SNAPSHOT == event.GetKeyCode():
+                (wx.WXK_SNAPSHOT == event.GetKeyCode() or\
+                 (ord('P') == event.GetKeyCode() and event.ControlDown)) and\
+                cw.cwpy.frame.can_screenshot():
             if cw.cwpy.frame.save_screenshot():
                 event.Skip()
                 return True
