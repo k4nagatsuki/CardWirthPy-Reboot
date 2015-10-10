@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import math
 import wx
 import pygame
@@ -27,7 +28,8 @@ class CharaInfo(wx.Dialog):
         # ダイアログボックス
         wx.Dialog.__init__(self, parent, -1, cw.cwpy.msgs["character_information"], size=(self.width, cw.wins(355)),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
-        self.SetDoubleBuffered(True)
+        if sys.platform <> "win32":
+            self.SetDoubleBuffered(True)
         self.party = party
         self.csize = self.GetClientSize()
         # panel
