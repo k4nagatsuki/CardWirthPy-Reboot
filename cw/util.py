@@ -155,9 +155,9 @@ class MusicInterface(object):
                 if self.subvolume <> subvolume:
                     self.subvolume = subvolume
                     self.set_volume()
-                if self.loopcount <> loopcount:
-                    if self._bass:
-                        cw.bassplayer.set_bgmloopcount(loopcount, channel=self.channel)
+                if self._bass:
+                    # ループ回数は常に設定する
+                    cw.bassplayer.set_bgmloopcount(loopcount, channel=self.channel)
 
             self.fpath = fpath
             self.subvolume = subvolume

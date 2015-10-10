@@ -33,13 +33,14 @@ BASS_TAG_RIFF_CART = 0x102
 BASS_TAG_RIFF_DISP = 0x103
 BASS_SAMPLE_8BITS = 1
 BASS_SAMPLE_FLOAT = 256
+BASS_ACTIVE_STOPPED = 0
 
 MAX_BGM_CHANNELS = 2
 MAX_SOUND_CHANNELS = 2
 
 STREAM_BGM = 0 # 0～1
-STREAM_SOUND1 = 2 # 2
-STREAM_SOUND2 = 3 # 3～4
+STREAM_SOUND1 = 2 # 2～3
+STREAM_SOUND2 = 4 # 4
 
 CC111 = 111
 
@@ -315,7 +316,17 @@ def _get_loopinfo(fpath, stream):
 @synclock(_lock)
 def set_loopcount(loopcount, streamindex):
     global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
-    _loopcounts[streamindex] = loopcount
+    if not _streams[streamindex]:
+        return
+    if _bass.BASS_ChannelIsActive(_streams[streamindex]) == BASS_ACTIVE_STOPPED:
+        # 終了していた場合は再開
+        _loopcounts[streamindex] = loopcount
+        _bass.BASS_ChannelPlay(_streams[streamindex], False)
+    else:
+        if 1 <= loopcount:
+            # 現在のループが終わってから次の設定開始
+            loopcount += 1
+        _loopcounts[streamindex] = loopcount
 
 def dispose_bass():
     """全ての演奏を停止し、BASS AudioのDLLを解放する。"""
@@ -353,7 +364,7 @@ def play_bgm(fpath, volume=1.0, loopcount=0, channel=0):
     return _streams[channel] <> 0
 
 def set_bgmloopcount(loopcount, channel=0):
-    self.set_loopcount(loopcount, STREAM_BGM+channel)
+    set_loopcount(loopcount, STREAM_BGM+channel)
 
 def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0):
     """
