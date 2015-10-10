@@ -1724,6 +1724,7 @@ class EffectContent(EventContentBase):
         d["visualeffect"] = self.data.get("visual", "None")
         d["volume"] = self.data.getint(".", "volume", 100)
         d["loopcount"] = self.data.getint(".", "loopcount", 1)
+        d["channel"] = self.data.getint(".", "channel", 0)
 
         # Effectインスタンス作成
         motions = self.data.getfind("Motions").getchildren()
@@ -1906,7 +1907,8 @@ class EndContent(EventContentBase):
         cw.cwpy.ydata.party.write()
 
         # BGMストップ
-        cw.cwpy.music.stop()
+        for music in cw.cwpy.music:
+            music.stop()
 
         # 宿画面に遷移
         cw.cwpy.exec_func(cw.cwpy.set_yado)
@@ -2624,7 +2626,9 @@ class PlayBgmContent(EventContentBase):
         path = self.data.get("path", "")
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 0)
-        cw.cwpy.music.play(path, subvolume=subvolume, loopcount=loopcount)
+        channel = self.data.getint(".", "channel", 0)
+        if 0 <= channel and channel < len(cw.cwpy.music):
+            cw.cwpy.music[channel].play(path, subvolume=subvolume, loopcount=loopcount)
         return 0
 
     def get_status(self):
@@ -2644,7 +2648,8 @@ class PlaySoundContent(EventContentBase):
         path = self.data.get("path", "")
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 1)
-        cw.cwpy.play_sound_with(path, subvolume=subvolume, loopcount=loopcount)
+        channel = self.data.getint(".", "channel", 0)
+        cw.cwpy.play_sound_with(path, subvolume=subvolume, loopcount=loopcount, channel=channel)
         return 0
 
     def get_status(self):

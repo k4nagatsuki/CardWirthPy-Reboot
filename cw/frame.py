@@ -381,11 +381,13 @@ class Frame(wx.Frame):
         """最小化イベント。最小化したときBGMの音も消す。"""
         if event.Iconized():
             def func():
-                cw.cwpy.music.set_mastervolume(0)
+                for music in cw.cwpy.music:
+                    music.set_mastervolume(0)
             cw.cwpy.exec_func(func)
         else:
             def func():
-                cw.cwpy.music.set_mastervolume(100)
+                for music in cw.cwpy.music:
+                    music.set_mastervolume(100)
             cw.cwpy.exec_func(func)
 
     def OnCloseFromFrame(self, event):

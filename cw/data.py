@@ -146,11 +146,11 @@ class SystemData(object):
 
         if path:
             cw.util.decompress_zip(path, cw.tempdir, "ScenarioLog")
-            musicpath, inusecard = self.load_log(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
-            return True, musicpath, inusecard
+            musicpaths = self.load_log(cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)
+            return True, musicpaths
         else:
             self.create_log()
-            return False, None, False
+            return False, None
 
     def remove_log(self):
         cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
@@ -973,7 +973,22 @@ class ScenarioData(SystemData):
         ttype = ("Default", "Default")
         cw.cwpy.background.load(elements, False, ttype, bginhrt=False, nocheckvisible=True)
         self.startid = cw.cwpy.areaid = etree.getint("Property/AreaId")
-        return etree.gettext("Property/MusicPath", ""), etree.getbool("Property/MusicPath", "inusecard", False)
+
+        musicpaths = []
+        for music in cw.cwpy.music:
+            musicpaths.append((music.path, music.inusecard))
+
+        e_mpaths = etree.find("Property/MusicPaths")
+        if not e_mpaths is None:
+            for i, e in enumerate(e_mpaths):
+                if i < len(musicpaths):
+                    musicpaths[i] = (e.text if e.text else "", e.getbool(".", "inusecard", False))
+        else:
+            # BGMが1CHのみだった頃の互換性維持
+            e = etree.find("Property/MusicPath")
+            if not e is None:
+                musicpaths[0] = (e.text if e.text else "", e.getbool(".", "inusecard", False))
+        return musicpaths
 
     def update_log(self):
         cw.xmlcreater.create_scenariolog(self, cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml"), False)

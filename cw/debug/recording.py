@@ -20,10 +20,12 @@ def load(path):
         return
 
     areaid = cw.cwpy.areaid
-    musicpath, inusecard = cw.cwpy.sdata.load_log(path, True)
+    musicpaths = cw.cwpy.sdata.load_log(path, True)
 
     # BGM
-    cw.cwpy.music.play(musicpath, inusecard)
+    for i, (musicpath, inusecard) in enumerate(musicpaths):
+        if i < len(cw.cwpy.music):
+            cw.cwpy.music[i].play(musicpath, inusecard)
 
     # キャンプ画面を開いている場合はエリア再表示
     func = cw.cwpy.change_area

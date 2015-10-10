@@ -1045,7 +1045,7 @@ class Debugger(wx.Frame):
             def func(path):
                 if not cw.cwpy.is_playingscenario():
                     path = cw.util.join_paths(u"Bgm", path)
-                cw.cwpy.music.play(path)
+                cw.cwpy.music[0].play(path)
             cw.cwpy.exec_func(func, path)
 
         dlg.Destroy()

@@ -740,13 +740,15 @@ def create_scenariolog(sdata, path, recording):
     e = cw.data.make_element("AreaId", str(areaid))
     e_prop.append(e)
 
-    if cw.cwpy.music.path.startswith(cw.cwpy.skindir):
-        fpath = cw.cwpy.music.path.replace(cw.cwpy.skindir + "/", "", 1)
-    else:
-        fpath = cw.cwpy.music.path.replace(sdata.scedir + "/", "", 1)
-
-    e = cw.data.make_element("MusicPath", fpath, attrs={"inusecard": str(cw.cwpy.music.inusecard)})
-    e_prop.append(e)
+    e_music = cw.data.make_element("MusicPaths")
+    for i, music in enumerate(cw.cwpy.music):
+        if music.path.startswith(cw.cwpy.skindir):
+            fpath = music.path.replace(cw.cwpy.skindir + "/", "", 1)
+        else:
+            fpath = music.path.replace(sdata.scedir + "/", "", 1)
+        e = cw.data.make_element("MusicPath", fpath, attrs={"inusecard": str(music.inusecard)})
+        e_music.append(e)
+    e_prop.append(e_music)
     e = cw.data.make_element("Yado", cw.cwpy.ydata.name)
     e_prop.append(e)
     e = cw.data.make_element("Party", cw.cwpy.ydata.party.name)

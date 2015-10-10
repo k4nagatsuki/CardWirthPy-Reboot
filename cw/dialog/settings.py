@@ -181,7 +181,8 @@ class SimpleSettingsPanel(wx.Panel):
         cw.cwpy.setting.play_bgm = value
         value = self.cb_playsound.GetValue()
         cw.cwpy.setting.play_sound = value
-        cw.cwpy.music.set_volume()
+        for music in cw.cwpy.music:
+            music.set_volume()
 
         # スキン
         self.skin.apply_skin(False)
@@ -666,7 +667,8 @@ class SettingsPanel(wx.Panel):
         value = setting.wrap_volumevalue(value)
         setting.vol_bgm = value
         if update:
-            cw.cwpy.music.set_volume()
+            for music in cw.cwpy.music:
+                music.set_volume()
         soundfonts = []
         for index in xrange(self.pane_sound.list_soundfont.GetItemCount()):
             soundfont = self.pane_sound.list_soundfont.GetItemText(index)
@@ -690,7 +692,8 @@ class SettingsPanel(wx.Panel):
 
                     if bool(sfonts1) <> bool(sfonts2):
                         cw.cwpy.init_sounds()
-                    cw.cwpy.music.play(cw.cwpy.music.path, updatepredata=False, restart=True)
+                    for music in cw.cwpy.music:
+                        music.play(music.path, updatepredata=False, restart=True)
 
                 cw.cwpy.exec_func(func)
 

@@ -395,6 +395,8 @@ class Content(base.CWBinaryBase):
                 f.check_wsnversion("1")
             if data.getint(".", "loopcount", 0) <> 0:
                 f.check_wsnversion("1")
+            if data.getint(".", "channel", 0) <> 0:
+                f.check_wsnversion("1")
         elif tag == "Change" and ctype == "BgImage":
             if data.get("transition", "Default") <> "Default" or\
                     data.get("transitionspeed", "Default") <> "Default":
@@ -413,6 +415,8 @@ class Content(base.CWBinaryBase):
                 f.check_wsnversion("1")
             if data.getint(".", "loopcount", 1) <> 1:
                 f.check_wsnversion("1")
+            if data.getint(".", "channel", 0) <> 0:
+                f.check_wsnversion("1")
         elif tag == "Wait" and ctype == "":
             f.write_dword(int(data.get("value")))
         elif tag == "Effect" and ctype == "":
@@ -426,6 +430,8 @@ class Content(base.CWBinaryBase):
             if data.getint(".", "volume", 100) <> 100:
                 f.check_wsnversion("1")
             if data.getint(".", "loopcount", 1) <> 1:
+                f.check_wsnversion("1")
+            if data.getint(".", "channel", 0) <> 0:
                 f.check_wsnversion("1")
             motions = []
             for e in data:

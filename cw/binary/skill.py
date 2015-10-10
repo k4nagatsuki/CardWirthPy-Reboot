@@ -232,11 +232,15 @@ class SkillCard(base.CWBinaryBase):
                             f.check_wsnversion("1")
                         if prop.getint(".", "loopcount", 1) <> 1:
                             f.check_wsnversion("1")
+                        if prop.getint(".", "channel", 0) <> 0:
+                            f.check_wsnversion("1")
                     elif prop.tag == "SoundPath2":
                         sound_effect2 = base.CWBinaryBase.materialpath(prop.text)
                         if prop.getint(".", "volume", 100) <> 100:
                             f.check_wsnversion("1")
                         if prop.getint(".", "loopcount", 1) <> 1:
+                            f.check_wsnversion("1")
+                        if prop.getint(".", "channel", 0) <> 0:
                             f.check_wsnversion("1")
                     elif prop.tag == "KeyCodes":
                         keycodes = cw.util.decodetextlist(prop.text)

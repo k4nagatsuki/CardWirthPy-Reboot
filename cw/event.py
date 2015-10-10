@@ -1008,6 +1008,7 @@ class CardEvent(Event):
         d["soundpath"] = data.gettext("Property/SoundPath2", "")
         d["volume"] = data.getint("Property/SoundPath2", "volume", 100)
         d["loopcount"] = data.getint("Property/SoundPath2", "loopcount", 1)
+        d["channel"] = data.getint("Property/SoundPath2", "channel", 0)
         d["visualeffect"] = data.gettext("Property/VisualEffect", "None")
         d["target"] = data.gettext("Property/Target", "None")
 
@@ -1030,13 +1031,14 @@ class CardEvent(Event):
             path = data.gettext("Property/SoundPath", "")
             volume = data.getint("Property/SoundPath", "volume", 100)
             loopcount = data.getint("Property/SoundPath", "loopcount", 1)
+            channel = data.getint("Property/SoundPath", "channel", 0)
             targets = []
 
             for target in self.targets:
                 if eff.check_enabledtarget(target, False):
                     target.set_cardtarget()
                     cw.cwpy.draw()
-                    cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount)
+                    cw.cwpy.play_sound_with(path, subvolume=volume, loopcount=loopcount, channel=channel)
                     waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
                     skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
                     targets.append(target)
