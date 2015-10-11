@@ -976,18 +976,29 @@ class ScenarioData(SystemData):
 
         musicpaths = []
         for music in cw.cwpy.music:
-            musicpaths.append((music.path, music.inusecard))
+            musicpaths.append((music.path, music.subvolume, music.loopcount, music.inusecard))
 
         e_mpaths = etree.find("Property/MusicPaths")
         if not e_mpaths is None:
             for i, e in enumerate(e_mpaths):
-                if i < len(musicpaths):
-                    musicpaths[i] = (e.text if e.text else "", e.getbool(".", "inusecard", False))
+                channel = e.getint(".", "channel", i)
+                path = e.text if e.text else ""
+                subvolume = e.getint(".", "volume", 100)
+                loopcount = e.getint(".", "loopcount", 0)
+                inusecard = e.getbool(".", "inusecard", False)
+                if 0 <= channel and channel < len(musicpaths):
+                    musicpaths[channel] = (path, subvolume, loopcount, inusecard)
         else:
             # BGMが1CHのみだった頃の互換性維持
             e = etree.find("Property/MusicPath")
             if not e is None:
-                musicpaths[0] = (e.text if e.text else "", e.getbool(".", "inusecard", False))
+                channel = e.getint(".", "channel", 0)
+                path = e.text if e.text else ""
+                subvolume = e.getint(".", "volume", 100)
+                loopcount = e.getint(".", "loopcount", 0)
+                inusecard = e.getbool(".", "inusecard", False)
+                if 0 <= channel and channel < len(musicpaths):
+                    musicpaths[channel] = (path, subvolume, loopcount, inusecard)
         return musicpaths
 
     def update_log(self):

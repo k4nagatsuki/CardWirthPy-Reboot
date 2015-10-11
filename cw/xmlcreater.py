@@ -746,7 +746,10 @@ def create_scenariolog(sdata, path, recording):
             fpath = music.path.replace(cw.cwpy.skindir + "/", "", 1)
         else:
             fpath = music.path.replace(sdata.scedir + "/", "", 1)
-        e = cw.data.make_element("MusicPath", fpath, attrs={"inusecard": str(music.inusecard)})
+        e = cw.data.make_element("MusicPath", fpath, attrs={"channel": str(music.channel),
+                                                            "volume": str(music.subvolume),
+                                                            "loopcount": str(music.loopcount),
+                                                            "inusecard": str(music.inusecard)})
         e_music.append(e)
     e_prop.append(e_music)
     e = cw.data.make_element("Yado", cw.cwpy.ydata.name)

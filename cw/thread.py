@@ -1653,20 +1653,18 @@ class CWPy(_Singleton, threading.Thread):
                                     self.set_yado()
                                     return
 
-                        playmusic = [None] * len(self.music)
                         if musicpaths:
-                            for i, (musicpath, inusecard) in enumerate(musicpaths):
+                            for i, (musicpath, _subvolume, _loopcount, inusecard) in enumerate(musicpaths):
                                 music = self.music[i]
                                 if music.path <> music.get_path(musicpath, inusecard):
-                                    playmusic[i] = (music, musicpath, inusecard)
+                                    music.stop()
 
-                        for pm in playmusic:
-                            if pm:
-                                pm[0].stop()
                         self.change_area(areaid, not loaded, loaded, quickdeal=quickdeal)
-                        for pm in playmusic:
-                            if pm:
-                                pm[0].play(pm[1], inusecard=pm[2])
+
+                        if musicpaths:
+                            for i, (musicpath, subvolume, loopcount, inusecard) in enumerate(musicpaths):
+                                music = self.music[i]
+                                music.play(musicpath, subvolume=subvolume, loopcount=loopcount, inusecard=inusecard)
 
                         if self.is_showingdebugger() and self.event:
                             self.event.refresh_variablelist()
