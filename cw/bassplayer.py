@@ -48,6 +48,8 @@ BASS_ATTRIB_MUSIC_SPEED = 0x104
 BASS_ATTRIB_MUSIC_VOL_GLOBAL = 0x105
 BASS_ATTRIB_MUSIC_VOL_CHAN = 0x200 # + channel No.
 BASS_ATTRIB_MUSIC_VOL_INST = 0x300 # + instrument No.
+BASS_STREAM_DECODE = 0x200000
+BASS_FX_FREESOURCE = 0x10000
 
 MAX_BGM_CHANNELS = 2
 MAX_SOUND_CHANNELS = 2
@@ -60,6 +62,7 @@ CC111 = 111
 
 _bass = None
 _bassmidi = None
+_bassfx = None
 _sfonts = []
 
 _streams = [0, 0, 0, 0, 0]
@@ -91,17 +94,17 @@ def _loop(handle, channel, data, streamindex):
         _bass.BASS_ChannelSetPosition(c_long(channel), c_longlong(pos), c_long(BASS_POS_BYTE))
 
 def is_alivable():
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     """BASS Audioによる演奏が可能な状態であればTrueを返す。
     init_bass()の実行前は必ずFalseを返す。"""
     return not _bass is None
 
 def is_alivablemidi():
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     return _bassmidi and _sfonts
 
 def is_alivablewithpath(path):
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if os.path.splitext(path)[1].lower() in (".mid", ".midi"):
         return is_alivablemidi()
     else:
@@ -113,7 +116,7 @@ def init_bass(soundfonts):
     初期化が成功したらTrueを、失敗した場合はFalseを返す。
     soundfonts: サウンドフォントのファイルパス。listで指定。
     """
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
 
     if _bass:
         # 初期化済み
@@ -123,13 +126,16 @@ def init_bass(soundfonts):
         if sys.platform == "win32":
             _bass = ctypes.windll.LoadLibrary("bass.dll")
             _bassmidi = ctypes.windll.LoadLibrary("bassmidi.dll")
+            _bassfx = ctypes.windll.LoadLibrary("bass_fx.dll")
         else:
             if sys.maxsize == 0x7fffffff:
                 _bass = ctypes.CDLL("./lib/libbass32.so", mode=ctypes.RTLD_GLOBAL)
                 _bassmidi = ctypes.CDLL("./lib/libbassmidi32.so")
+                _bassfx = ctypes.CDLL("./lib/libbass_fx32.so")
             elif sys.maxsize == 0x7fffffffffffffff:
                 _bass = ctypes.CDLL("./lib/libbass64.so", mode=ctypes.RTLD_GLOBAL)
                 _bassmidi = ctypes.CDLL("./lib/libbassmidi64.so")
+                _bassfx = ctypes.CDLL("./lib/libbass_fx64.so")
     except Exception:
         cw.util.print_ex()
 
@@ -165,9 +171,9 @@ def _play(fpath, volume, loopcount, streamindex):
     loopcount: ループ回数。0で無限ループ。
     streamindex: 再生チャンネル番号。
     """
-    global _bass, _bassmidi, _sfonts
+    global _bass, _bassmidi, _bassfx, _sfonts
     encoding = sys.getfilesystemencoding()
-    flag = BASS_DEFAULT
+    flag = BASS_STREAM_DECODE
 
     _BASS_CONFIG_MIDI_DEFFONT = 0x10403
     ismidi = False
@@ -228,10 +234,22 @@ def _play(fpath, volume, loopcount, streamindex):
         _loopstarts[streamindex] = 0
         _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, streamindex)
 
+    stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
+    _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, c_float(0.0)) # -95%...0...+5000%
+    _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, c_float(0.0)) # -60...0...+60
+
     _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
     _bass.BASS_ChannelPlay(stream, False)
 
     return stream
+
+def _get_attribute(stream, flag):
+    global _bass
+    class ATTR(ctypes.Structure):
+        _fields_ = [("value", ctypes.c_float)]
+    attr = ATTR()
+    _bass.BASS_ChannelGetAttribute(stream, BASS_ATTRIB_TEMPO, ctypes.byref(attr))
+    return attr.value
 
 class BASS_CHANNELINFO(ctypes.Structure):
     _fields_ = [("freq", ctypes.c_int),
@@ -329,7 +347,7 @@ def _get_loopinfo(fpath, stream):
 
 @synclock(_lock)
 def set_loopcount(loopcount, streamindex):
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not _streams[streamindex]:
         return
     if _bass.BASS_ChannelIsActive(_streams[streamindex]) == BASS_ACTIVE_STOPPED:
@@ -344,7 +362,7 @@ def set_loopcount(loopcount, streamindex):
 
 def dispose_bass():
     """全ての演奏を停止し、BASS AudioのDLLを解放する。"""
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
 
@@ -367,7 +385,7 @@ def play_bgm(fpath, volume=1.0, loopcount=0, channel=0):
     loopcount: ループ回数。
     channel: 再生チャンネル。現在は0～1。
     """
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return False
     if 1 < channel:
@@ -387,7 +405,7 @@ def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0):
     volume: 音量。0.0～1.0で指定。
     channel: 再生チャンネル。現在は0～1。
     """
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return False
     if 1 < channel:
@@ -403,7 +421,7 @@ def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0):
 
 def stop_bgm(channel=0):
     """BGMの再生を停止する。"""
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     channel += STREAM_BGM
@@ -414,7 +432,7 @@ def stop_bgm(channel=0):
 
 def stop_sound(fromscenario=False, channel=0):
     """効果音の再生を停止する。"""
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     if fromscenario:
@@ -431,7 +449,7 @@ def stop_sound(fromscenario=False, channel=0):
 
 def set_bgmvolume(volume, channel=0):
     """BGMの音量を変更する。"""
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     channel += STREAM_BGM
@@ -440,7 +458,7 @@ def set_bgmvolume(volume, channel=0):
 
 def set_soundvolume(volume, fromscenario=False, channel=0):
     """効果音の音量を変更する。"""
-    global _bass, _bassmidi, _sfonts, _streams, _loopstarts, _loopcounts
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     if fromscenario:
