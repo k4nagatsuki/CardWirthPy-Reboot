@@ -780,7 +780,7 @@ class Character(object):
                     self.use_card(targets_b, header_b)
 
                     # 戦闘勝利チェック
-                    if cw.cwpy.battle.check_win():
+                    if cw.cwpy.is_battlestatus() and cw.cwpy.battle.check_win():
                         raise cw.battle.BattleWinError()
 
                     if isinstance(self, cw.sprite.card.FriendCard):
