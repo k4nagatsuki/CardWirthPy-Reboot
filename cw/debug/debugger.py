@@ -1045,6 +1045,8 @@ class Debugger(wx.Frame):
             def func(path):
                 if not cw.cwpy.is_playingscenario():
                     path = cw.util.join_paths(u"Bgm", path)
+                for music in cw.cwpy.music:
+                    music.stop()
                 cw.cwpy.music[0].play(path)
             cw.cwpy.exec_func(func, path)
 
