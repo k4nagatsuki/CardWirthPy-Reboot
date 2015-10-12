@@ -67,6 +67,7 @@ _bassfx = None
 _sfonts = []
 
 _streams = [0, 0, 0, 0, 0]
+_fadeoutstreams = [0, 0, 0, 0, 0]
 _loopstarts = [0, 0, 0, 0, 0]
 _loopcounts = [0, 1, 1, 1, 1]
 
@@ -84,10 +85,13 @@ def _cc111loop(handle, channel, data, streamindex):
     _loop(handle, channel, data, streamindex)
 CC111LOOP = SYNCPROC(_cc111loop)
 
-def _free_channel(handle, channel, data, user):
-    global _bass
+def _free_channel(handle, channel, data, streamindex):
+    global _bass, _fadeoutstreams
     _bass.BASS_ChannelStop(channel)
     _bass.BASS_StreamFree(channel)
+    if streamindex is None:
+        streamindex = 0
+    _fadeoutstreams[streamindex] = 0
 FREE_CHANNEL = SYNCPROC(_free_channel)
 
 @synclock(_lock)
@@ -170,7 +174,7 @@ def init_bass(soundfonts):
 
     return True
 
-def _play(fpath, volume, loopcount, streamindex, fade):
+def _play(fpath, volume, loopcount, streamindex, fade, tempo=0, pitch=0):
     """
     BASS Audioによってfileを演奏する。
     file: 再生するファイル。
@@ -178,6 +182,8 @@ def _play(fpath, volume, loopcount, streamindex, fade):
     loopcount: ループ回数。0で無限ループ。
     streamindex: 再生チャンネル番号。
     fade: フェードインにかける時間(ミリ秒)。
+    tempo: テンポを変更する場合は-95%～5000%の値を指定。
+    pitch: ピッチを変更する場合は-60～60の値を指定。
     """
     global _bass, _bassmidi, _bassfx, _sfonts
     encoding = sys.getfilesystemencoding()
@@ -243,8 +249,10 @@ def _play(fpath, volume, loopcount, streamindex, fade):
         _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
 
     stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
-    _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, c_float(0.0)) # -95%...0...+5000%
-    _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, c_float(0.0)) # -60...0...+60
+    if tempo <> 0:
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, c_float(tempo)) # -95%...0...+5000%
+    if pitch <> 0:
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, c_float(pitch)) # -60...0...+60
 
     if 0 < fade:
         _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(0))
@@ -444,10 +452,11 @@ def stop_bgm(channel=0, fade=0):
     if _streams[channel]:
         stream = _streams[channel]
         if 0 < fade:
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, c_longlong(0), FREE_CHANNEL, c_void_p(0))
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, c_longlong(0), FREE_CHANNEL, c_void_p(channel))
             _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
+            _fadeoutstreams[channel] = stream
         else:
-            _free_channel(None, stream, 0, None)
+            _free_channel(None, stream, 0, channel)
         _streams[channel] = 0
 
 def stop_sound(fromscenario=False, channel=0):
@@ -467,14 +476,23 @@ def stop_sound(fromscenario=False, channel=0):
             _bass.BASS_StreamFree(_streams[STREAM_SOUND2])
             _streams[STREAM_SOUND2] = 0
 
-def set_bgmvolume(volume, channel=0):
+def set_bgmvolume(volume, channel=0, fade=0):
     """BGMの音量を変更する。"""
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     channel += STREAM_BGM
+
+    if _fadeoutstreams[channel] and volume == 0 and fade == 0:
+        _bass.BASS_ChannelStop(_fadeoutstreams[channel])
+        _bass.BASS_StreamFree(_fadeoutstreams[channel])
+        _fadeoutstreams[channel] = 0
+
     if _streams[channel]:
-        _bass.BASS_ChannelSetAttribute(_streams[channel], BASS_ATTRIB_VOL, c_float(volume))
+        if 0 < fade:
+            _bass.BASS_ChannelSlideAttribute(_streams[channel], BASS_ATTRIB_VOL, c_float(volume), c_long(fade))
+        else:
+            _bass.BASS_ChannelSetAttribute(_streams[channel], BASS_ATTRIB_VOL, c_float(volume))
 
 def set_soundvolume(volume, fromscenario=False, channel=0):
     """効果音の音量を変更する。"""

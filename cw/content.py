@@ -2633,9 +2633,18 @@ class PlayBgmContent(EventContentBase):
 
     def get_status(self):
         path = self.data.get("path", "")
+        subvolume = self.data.getint(".", "volume", 100)
+        loopcount = self.data.getint(".", "loopcount", 0)
+        if loopcount == 0:
+            loopcount = u"∞"
+        channel = self.data.getint(".", "channel", 0)
+        if channel == 0:
+            channel = u"主音声"
+        else:
+            channel = u"副音声%s" % (channel)
 
         if path:
-            return u"BGMを【%s】へ変更" % (path)
+            return u"BGMを【%s】へ変更(音量:%s ループ回数:%s Ch.:%s)" % (path, subvolume, loopcount, channel)
         else:
             return u"BGM停止"
 
@@ -2654,9 +2663,18 @@ class PlaySoundContent(EventContentBase):
 
     def get_status(self):
         path = self.data.get("path", "")
+        subvolume = self.data.getint(".", "volume", 100)
+        loopcount = self.data.getint(".", "loopcount", 1)
+        if loopcount == 0:
+            loopcount = u"∞"
+        channel = self.data.getint(".", "channel", 0)
+        if channel == 0:
+            channel = u"主音声"
+        else:
+            channel = u"副音声%s" % (channel)
 
         if path:
-            return u"効果音【%s】を鳴らす" % (path)
+            return u"効果音【%s】を鳴らす(音量:%s ループ回数:%s Ch.:%s)" % (path, subvolume, loopcount, channel)
         else:
             return u"効果音が指定されていません"
 
