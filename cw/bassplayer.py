@@ -20,6 +20,7 @@ BASS_FILEPOS_END = 2
 MIDI_EVENT_CONTROL = 64
 BASS_SYNC_POS = 0
 BASS_SYNC_END = 2
+BASS_SYNC_SLIDE	= 5
 BASS_SYNC_MUSICPOS = 10
 BASS_SYNC_MIXTIME = 0x40000000
 BASS_POS_BYTE = 0
@@ -82,6 +83,12 @@ def _cc111loop(handle, channel, data, streamindex):
         streamindex = 0
     _loop(handle, channel, data, streamindex)
 CC111LOOP = SYNCPROC(_cc111loop)
+
+def _free_channel(handle, channel, data, user):
+    global _bass
+    _bass.BASS_ChannelStop(channel)
+    _bass.BASS_StreamFree(channel)
+FREE_CHANNEL = SYNCPROC(_free_channel)
 
 @synclock(_lock)
 def _loop(handle, channel, data, streamindex):
@@ -163,13 +170,14 @@ def init_bass(soundfonts):
 
     return True
 
-def _play(fpath, volume, loopcount, streamindex):
+def _play(fpath, volume, loopcount, streamindex, fade):
     """
     BASS Audioによってfileを演奏する。
     file: 再生するファイル。
     volume: 音量。0.0～1.0で指定。
     loopcount: ループ回数。0で無限ループ。
     streamindex: 再生チャンネル番号。
+    fade: フェードインにかける時間(ミリ秒)。
     """
     global _bass, _bassmidi, _bassfx, _sfonts
     encoding = sys.getfilesystemencoding()
@@ -227,18 +235,22 @@ def _play(fpath, volume, loopcount, streamindex):
         loopstart, loopend = loopinfo
         _loopstarts[streamindex] = loopstart
         if 0 <= loopend:
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, streamindex)
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_POS|BASS_SYNC_MIXTIME, c_longlong(loopend), CC111LOOP, c_void_p(streamindex))
         else:
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, streamindex)
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
     else:
         _loopstarts[streamindex] = 0
-        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, streamindex)
+        _bass.BASS_ChannelSetSync(stream, BASS_SYNC_END|BASS_SYNC_MIXTIME, c_longlong(0), CC111LOOP, c_void_p(streamindex))
 
     stream = _bassfx.BASS_FX_TempoCreate(stream, BASS_FX_FREESOURCE)
     _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO, c_float(0.0)) # -95%...0...+5000%
     _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_TEMPO_PITCH, c_float(0.0)) # -60...0...+60
 
-    _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
+    if 0 < fade:
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(0))
+        _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(volume), c_long(fade))
+    else:
+        _bass.BASS_ChannelSetAttribute(stream, BASS_ATTRIB_VOL, c_float(volume))
     _bass.BASS_ChannelPlay(stream, False)
 
     return stream
@@ -377,13 +389,14 @@ def dispose_bass():
     del _bassmidi
     _bassmidi = None
 
-def play_bgm(fpath, volume=1.0, loopcount=0, channel=0):
+def play_bgm(fpath, volume=1.0, loopcount=0, channel=0, fade=0):
     """
     BASS AudioによってfileをBGMとして演奏する。
     file: 再生するファイル。
     volume: 音量。0.0～1.0で指定。
     loopcount: ループ回数。
     channel: 再生チャンネル。現在は0～1。
+    fade: フェードインにかける時間(ミリ秒)。
     """
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
@@ -392,7 +405,7 @@ def play_bgm(fpath, volume=1.0, loopcount=0, channel=0):
         return False
     stop_bgm(channel)
     channel += STREAM_BGM
-    _streams[channel] = _play(fpath, volume, loopcount, channel)
+    _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
     return _streams[channel] <> 0
 
 def set_bgmloopcount(loopcount, channel=0):
@@ -413,21 +426,28 @@ def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0):
     stop_sound(fromscenario, channel)
     if fromscenario:
         channel += STREAM_SOUND1
-        _streams[channel] = _play(fpath, volume, loopcount, channel)
+        _streams[channel] = _play(fpath, volume, loopcount, channel, 0)
         return _streams[channel] <> 0
     else:
-        _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2)
+        _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, 0)
         return _streams[STREAM_SOUND2] <> 0
 
-def stop_bgm(channel=0):
-    """BGMの再生を停止する。"""
+def stop_bgm(channel=0, fade=0):
+    """BGMの再生を停止する。
+    channel: 再生を停止するチャンネル。
+    fade: フェードアウトにかける秒数(ミリ秒)。
+    """
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     channel += STREAM_BGM
     if _streams[channel]:
-        _bass.BASS_ChannelStop(_streams[channel])
-        _bass.BASS_StreamFree(_streams[channel])
+        stream = _streams[channel]
+        if 0 < fade:
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, c_longlong(0), FREE_CHANNEL, c_void_p(0))
+            _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
+        else:
+            _free_channel(None, stream, 0, None)
         _streams[channel] = 0
 
 def stop_sound(fromscenario=False, channel=0):
