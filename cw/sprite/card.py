@@ -1145,7 +1145,7 @@ class MenuCard(CWPyCard):
         """左クリックイベント。"""
         # 通常のクリックイベント
         if not cw.cwpy.is_curtained():
-            cw.cwpy.play_sound("click")
+            cw.cwpy.play_sound("click", from_scenario=True)
             cw.animation.animate_sprite(self, "click")
             if self.command:
                 cw.content.PostEventContent.do_action(self.command, self.arg)
