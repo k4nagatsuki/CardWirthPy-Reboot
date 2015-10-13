@@ -411,7 +411,7 @@ def play_bgm(fpath, volume=1.0, loopcount=0, channel=0, fade=0):
         return False
     if 1 < channel:
         return False
-    stop_bgm(channel)
+    stop_bgm(channel, fade=fade)
     channel += STREAM_BGM
     _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
     return _streams[channel] <> 0
@@ -419,62 +419,70 @@ def play_bgm(fpath, volume=1.0, loopcount=0, channel=0, fade=0):
 def set_bgmloopcount(loopcount, channel=0):
     set_loopcount(loopcount, STREAM_BGM+channel)
 
-def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0):
+def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0, fade=0):
     """
     BASS Audioによってfileを効果音として演奏する。
     file: 再生するファイル。
     volume: 音量。0.0～1.0で指定。
     channel: 再生チャンネル。現在は0～1。
+    fade: フェードインにかける時間(ミリ秒)。
     """
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return False
     if 1 < channel:
         return False
-    stop_sound(fromscenario, channel)
+    stop_sound(fromscenario, channel, fade=fade)
     if fromscenario:
         channel += STREAM_SOUND1
-        _streams[channel] = _play(fpath, volume, loopcount, channel, 0)
+        _streams[channel] = _play(fpath, volume, loopcount, channel, fade)
         return _streams[channel] <> 0
     else:
-        _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, 0)
+        _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, fade)
         return _streams[STREAM_SOUND2] <> 0
+
+def _stop(streamindex, fade):
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
+    if _streams[streamindex]:
+        stream = _streams[streamindex]
+        if 0 < fade:
+            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, c_longlong(0), FREE_CHANNEL, c_void_p(streamindex))
+            _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
+            _fadeoutstreams[streamindex] = stream
+        else:
+            _free_channel(None, stream, 0, streamindex)
+        _streams[streamindex] = 0
 
 def stop_bgm(channel=0, fade=0):
     """BGMの再生を停止する。
     channel: 再生を停止するチャンネル。
     fade: フェードアウトにかける秒数(ミリ秒)。
     """
-    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     channel += STREAM_BGM
-    if _streams[channel]:
-        stream = _streams[channel]
-        if 0 < fade:
-            _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, c_longlong(0), FREE_CHANNEL, c_void_p(channel))
-            _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
-            _fadeoutstreams[channel] = stream
-        else:
-            _free_channel(None, stream, 0, channel)
-        _streams[channel] = 0
+    _stop(channel, fade)
 
-def stop_sound(fromscenario=False, channel=0):
+def stop_sound(fromscenario=False, channel=0, fade=0):
     """効果音の再生を停止する。"""
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     if fromscenario:
         channel += STREAM_SOUND1
-        if _streams[channel]:
-            _bass.BASS_ChannelStop(_streams[channel])
-            _bass.BASS_StreamFree(_streams[channel])
-            _streams[channel] = 0
+        _stop(channel, fade=fade)
     else:
-        if _streams[STREAM_SOUND2]:
-            _bass.BASS_ChannelStop(_streams[STREAM_SOUND2])
-            _bass.BASS_StreamFree(_streams[STREAM_SOUND2])
-            _streams[STREAM_SOUND2] = 0
+        _stop(STREAM_SOUND2, fade=fade)
+
+def _set_volume(volume, streamindex, fade):
+    global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
+    if _fadeoutstreams[streamindex] and volume == 0 and fade == 0:
+        _bass.BASS_ChannelStop(_fadeoutstreams[streamindex])
+        _bass.BASS_StreamFree(_fadeoutstreams[streamindex])
+        _fadeoutstreams[streamindex] = 0
+
+    if _streams[streamindex]:
+        _bass.BASS_ChannelSlideAttribute(_streams[streamindex], BASS_ATTRIB_VOL, c_float(volume), c_long(fade))
 
 def set_bgmvolume(volume, channel=0, fade=0):
     """BGMの音量を変更する。"""
@@ -482,30 +490,18 @@ def set_bgmvolume(volume, channel=0, fade=0):
     if not is_alivable():
         return
     channel += STREAM_BGM
+    _set_volume(volume, channel, fade)
 
-    if _fadeoutstreams[channel] and volume == 0 and fade == 0:
-        _bass.BASS_ChannelStop(_fadeoutstreams[channel])
-        _bass.BASS_StreamFree(_fadeoutstreams[channel])
-        _fadeoutstreams[channel] = 0
-
-    if _streams[channel]:
-        if 0 < fade:
-            _bass.BASS_ChannelSlideAttribute(_streams[channel], BASS_ATTRIB_VOL, c_float(volume), c_long(fade))
-        else:
-            _bass.BASS_ChannelSetAttribute(_streams[channel], BASS_ATTRIB_VOL, c_float(volume))
-
-def set_soundvolume(volume, fromscenario=False, channel=0):
+def set_soundvolume(volume, fromscenario=False, channel=0, fade=0):
     """効果音の音量を変更する。"""
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     if fromscenario:
         channel += STREAM_SOUND1
-        if _streams[channel]:
-            _bass.BASS_ChannelSetAttribute(_streams[channel], BASS_ATTRIB_VOL, c_float(volume))
+        _set_volume(volume, channel, fade)
     else:
-        if _streams[STREAM_SOUND2]:
-            _bass.BASS_ChannelSetAttribute(_streams[STREAM_SOUND2], BASS_ATTRIB_VOL, c_float(volume))
+        _set_volume(volume, STREAM_SOUND2, fade)
 
 def main():
     import time
