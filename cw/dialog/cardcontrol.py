@@ -805,7 +805,7 @@ class CardControl(wx.Dialog):
         if cw.cwpy.setting.show_cardkind and self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
             y -= cw.wins(16)
 
-        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET"):
+        if self.callname in ("STOREHOUSE", "BACKPACK"):
             sendto = self.combo.GetSelection()
             if sendto in self._combo_cast:
                 y -= cw.wins(16)
