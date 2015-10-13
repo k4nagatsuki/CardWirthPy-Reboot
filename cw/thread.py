@@ -1191,7 +1191,8 @@ class CWPy(_Singleton, threading.Thread):
         self._showingdlg -= 1
         if self._showingdlg <= 0:
             self.frame.app.SetCallFilterEvent(False)
-            self.exec_func(self.clear_selection)
+            if not self.is_runningevent():
+                self.exec_func(self.clear_selection)
 
     def exec_func(self, func, *args, **kwargs):
         """CWPyスレッドで指定したファンクションを実行する。
