@@ -1227,14 +1227,18 @@ def get_materialpath(path, mtype, scedir="", system=False, findskin=True):
         return path
     if not system and (cw.cwpy.is_playingscenario() or scedir):
         tpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/TempFile", path)
+        tpath = cw.cwpy.rsrc.get_filepath(tpath)
         if os.path.isfile(tpath):
             path = tpath
         else:
             if not scedir:
                 scedir = cw.cwpy.sdata.scedir
             path = cw.util.join_paths(scedir, path)
-    elif not os.path.isfile(path):
-        path = cw.util.join_paths(cw.cwpy.skindir, path)
+            path = cw.cwpy.rsrc.get_filepath(path)
+    else:
+        path = cw.cwpy.rsrc.get_filepath(path)
+        if not os.path.isfile(path):
+            path = cw.util.join_paths(cw.cwpy.skindir, path)
     return get_materialpathfromskin(path, mtype, findskin=findskin)
 
 def get_materialpathfromskin(path, mtype, findskin=True):
