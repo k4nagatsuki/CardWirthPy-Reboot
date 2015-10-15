@@ -765,26 +765,27 @@ class CWPy(_Singleton, threading.Thread):
 
         self.proc_animation()
 
-        self.mousein = pygame.mouse.get_pressed()
-        mousepos = self.mousepos
-        if self.update_mousepos():
-            self.mousemotion = False if self.mousepos == mousepos else True
+        if not self.is_showingdlg():
+            self.mousein = pygame.mouse.get_pressed()
+            mousepos = self.mousepos
+            if self.update_mousepos():
+                self.mousemotion = False if self.mousepos == mousepos else True
 
-        if self.mousemotion:
-            for i in xrange(len(self.keyevent.mousein)):
-                if not self.keyevent.mousein[i] in (0, -1):
-                    # マウスポインタが動いた場合は連打開始までの待ち時間を延期する
-                    # (-1はすでに連打状態)
-                    self.keyevent.mousein[i] = pygame.time.get_ticks()
+            if self.mousemotion:
+                for i in xrange(len(self.keyevent.mousein)):
+                    if not self.keyevent.mousein[i] in (0, -1):
+                        # マウスポインタが動いた場合は連打開始までの待ち時間を延期する
+                        # (-1はすでに連打状態)
+                        self.keyevent.mousein[i] = pygame.time.get_ticks()
 
-        if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and self.battle.is_ready():
-            # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
-            if self.mousemotion and self._in_partyarea(mousepos) <> self._in_partyarea(self.mousepos):
-                self._show_allselectedcards = True
-                self.change_selection(self.selection)
-                self.draw()
+            if self.setting.show_allselectedcards and not self.is_runningevent() and self.is_battlestatus() and self.battle.is_ready():
+                # パーティ領域より上へマウスカーソルが行ったら戦闘行動表示をクリア
+                if self.mousemotion and self._in_partyarea(mousepos) <> self._in_partyarea(self.mousepos):
+                    self._show_allselectedcards = True
+                    self.change_selection(self.selection)
+                    self.draw()
 
-        self.keyin = self.keyevent.get_pressed()
+            self.keyin = self.keyevent.get_pressed()
 
         if inputonly:
             seq = []
