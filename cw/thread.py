@@ -382,8 +382,11 @@ class CWPy(_Singleton, threading.Thread):
                     self.cardgrp.remove(sprite)
                     self.mcards.remove(sprite)
             self.sdata.change_data(self.areaid)
+            self.background.load(self.sdata.get_bgdata(), False, ("None", "None"))
             self.set_mcards(self.sdata.get_mcarddata(), False, True, False)
             self.deal_cards()
+            if not self.is_playingscenario():
+                self.sdata.start_event(keynum=1)
 
         self.clear_selection()
         if self.rsrc:
