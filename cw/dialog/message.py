@@ -24,6 +24,7 @@ class Message(wx.Dialog):
         dc = wx.ClientDC(self)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
         w, h, _lineheight = dc.GetMultiLineTextExtent(self.text)
+        self._textheight = h
         dw = cw.wins(349)
         dh = cw.wins(96)
         dw = max(dw, w + cw.wins(10)*2)
@@ -59,12 +60,12 @@ class Message(wx.Dialog):
         # massage
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(15)))
-        dc.DrawLabel(self.text, (0, 0, csize[0], cw.wins(50)), wx.ALIGN_CENTER)
+        dc.DrawLabel(self.text, (0, cw.wins(12), csize[0], self._textheight), wx.ALIGN_CENTER)
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(cw.wins((0, 55)), 0, 0, 0)
+        sizer_1.Add(cw.wins((0, self._textheight + cw.wins(24))), 0, 0, 0)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
         csize = self.GetClientSize()
 
