@@ -82,6 +82,7 @@ class Effect(object):
         self.volume = d.get("volume", 100)
         self.loopcount = d.get("loopcount", 1)
         self.channel = d.get("channel", 0)
+        self.fade = d.get("fadein", 0)
         self.visualeffect = d.get("visualeffect", "None")
         self.battlespeed = battlespeed
 
@@ -192,7 +193,8 @@ class Effect(object):
 
         # 音鳴らす
         if not success_avo:
-            cw.cwpy.play_sound_with(self.soundpath, subvolume=self.volume, loopcount=self.loopcount, channel=self.channel)
+            cw.cwpy.play_sound_with(self.soundpath, subvolume=self.volume, loopcount=self.loopcount,
+                                    channel=self.channel, fade=self.fade)
 
         if success_avo:
             cw.cwpy.play_sound("avoid", True)

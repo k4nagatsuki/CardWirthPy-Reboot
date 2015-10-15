@@ -130,6 +130,26 @@ class CWFileWriter(io.BufferedWriter):
         """
         raise UnsupportedError()
 
+    def check_bgmoptions(self, data):
+        if data.getint(".", "volume", 100) <> 100:
+            self.check_wsnversion("1")
+        if data.getint(".", "loopcount", 0) <> 0:
+            self.check_wsnversion("1")
+        if data.getint(".", "channel", 0) <> 0:
+            self.check_wsnversion("1")
+        if data.getint(".", "fadein", 0) <> 0:
+            self.check_wsnversion("1")
+
+    def check_soundoptions(self, data):
+        if data.getint(".", "volume", 100) <> 100:
+            self.check_wsnversion("1")
+        if data.getint(".", "loopcount", 1) <> 1:
+            self.check_wsnversion("1")
+        if data.getint(".", "channel", 0) <> 0:
+            self.check_wsnversion("1")
+        if data.getint(".", "fadein", 0) <> 0:
+            self.check_wsnversion("1")
+
     def write_bool(self, b):
         self.write_byte(1 if b else 0)
 

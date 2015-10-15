@@ -89,12 +89,7 @@ class Battle(base.CWBinaryBase):
                         name = prop.text
                     elif prop.tag == "MusicPath":
                         bgm = base.CWBinaryBase.materialpath(prop.text)
-                        if prop.getint(".", "volume", 100) <> 100:
-                            f.check_wsnversion("1")
-                        if prop.getint(".", "loopcount", 0) <> 0:
-                            f.check_wsnversion("1")
-                        if prop.getint(".", "channel", 0) <> 0:
-                            f.check_wsnversion("1")
+                        f.check_bgmoptions(prop)
             elif e.tag == "EnemyCards":
                 ecards = e
                 spreadtype = base.CWBinaryBase.unconv_spreadtype(e.get("spreadtype"))

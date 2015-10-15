@@ -1724,6 +1724,7 @@ class EffectContent(EventContentBase):
         d["visualeffect"] = self.data.get("visual", "None")
         d["volume"] = self.data.getint(".", "volume", 100)
         d["loopcount"] = self.data.getint(".", "loopcount", 1)
+        d["fadein"] = self.data.getint(".", "fadein", 0)
         d["channel"] = self.data.getint(".", "channel", 0)
 
         # Effectインスタンス作成
@@ -2627,14 +2628,16 @@ class PlayBgmContent(EventContentBase):
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 0)
         channel = self.data.getint(".", "channel", 0)
+        fade = self.data.getint(".", "fadein", 0)
         if 0 <= channel and channel < len(cw.cwpy.music):
-            cw.cwpy.music[channel].play(path, subvolume=subvolume, loopcount=loopcount)
+            cw.cwpy.music[channel].play(path, subvolume=subvolume, loopcount=loopcount, fade=fade)
         return 0
 
     def get_status(self):
         path = self.data.get("path", "")
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 0)
+        fade = self.data.getint(".", "fadein", 0)
         if loopcount == 0:
             loopcount = u"∞"
         channel = self.data.getint(".", "channel", 0)
@@ -2643,8 +2646,11 @@ class PlayBgmContent(EventContentBase):
         else:
             channel = u"副音声%s" % (channel)
 
+        if 0 < fade:
+            fade = u" %s秒かけてフェードイン" % (fade / 1000.0)
+
         if path:
-            return u"BGMを【%s】へ変更(音量:%s ループ回数:%s Ch.:%s)" % (path, subvolume, loopcount, channel)
+            return u"BGMを【%s】へ変更(音量:%s ループ回数:%s Ch.:%s%s)" % (path, subvolume, loopcount, channel, fade)
         else:
             return u"BGM停止"
 
@@ -2658,13 +2664,15 @@ class PlaySoundContent(EventContentBase):
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 1)
         channel = self.data.getint(".", "channel", 0)
-        cw.cwpy.play_sound_with(path, subvolume=subvolume, loopcount=loopcount, channel=channel)
+        fade = self.data.getint(".", "fadein", 0)
+        cw.cwpy.play_sound_with(path, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
         return 0
 
     def get_status(self):
         path = self.data.get("path", "")
         subvolume = self.data.getint(".", "volume", 100)
         loopcount = self.data.getint(".", "loopcount", 1)
+        fade = self.data.getint(".", "fadein", 0)
         if loopcount == 0:
             loopcount = u"∞"
         channel = self.data.getint(".", "channel", 0)
@@ -2673,8 +2681,11 @@ class PlaySoundContent(EventContentBase):
         else:
             channel = u"副音声%s" % (channel)
 
+        if 0 < fade:
+            fade = u" %s秒かけてフェードイン" % (fade / 1000.0)
+
         if path:
-            return u"効果音【%s】を鳴らす(音量:%s ループ回数:%s Ch.:%s)" % (path, subvolume, loopcount, channel)
+            return u"効果音【%s】を鳴らす(音量:%s ループ回数:%s Ch.:%s%s)" % (path, subvolume, loopcount, channel, fade)
         else:
             return u"効果音が指定されていません"
 

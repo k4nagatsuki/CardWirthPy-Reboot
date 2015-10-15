@@ -2518,8 +2518,10 @@ class CWPy(_Singleton, threading.Thread):
             volume = data.getint("Property/MusicPath", "volume", 100)
             loopcount = data.getint("Property/MusicPath", "loopcount", 0)
             channel = data.getint("Property/MusicPath", "channel", 0)
+            fade = data.getint("Property/MusicPath", "fadein", 0)
         else:
             channel = 0
+            fade = 0
         music = self.music[channel]
 
         # 戦闘開始アニメーション
@@ -2533,7 +2535,7 @@ class CWPy(_Singleton, threading.Thread):
 
         # 戦闘音楽を流す
         if not data is None:
-            music.play(path, subvolume=volume, loopcount=loopcount)
+            music.play(path, subvolume=volume, loopcount=loopcount, fade=fade)
 
         self.set_battle()
         self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
@@ -3317,15 +3319,15 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.ydata.add_partyrecord(partyrecord)
 
-    def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1, channel=0):
+    def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0):
         if channel < 0 or cw.bassplayer.MAX_SOUND_CHANNELS <= channel:
             return
         if self <> threading.currentThread():
-            self.exec_func(self.play_sound, name, from_scenario, subvolume, loopcount, channel)
+            self.exec_func(self.play_sound, name, from_scenario, subvolume, loopcount, channel, fade)
             return
-        self.sounds[name].play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel)
+        self.sounds[name].play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
 
-    def play_sound_with(self, path, inusecard=None, subvolume=100, loopcount=1, channel=0):
+    def play_sound_with(self, path, inusecard=None, subvolume=100, loopcount=1, channel=0, fade=0):
         """効果音を再生する。
         シナリオ効果音・スキン効果音を適宜使い分ける。
         """
@@ -3338,12 +3340,12 @@ class CWPy(_Singleton, threading.Thread):
             path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
 
         if os.path.isfile(path):
-            cw.util.load_sound(path).play(True, subvolume=subvolume, loopcount=loopcount, channel=channel)
+            cw.util.load_sound(path).play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
         else:
             name = cw.util.splitext(os.path.basename(path))[0]
 
             if name in self.skinsounds:
-                self.skinsounds[name].play(True, subvolume=subvolume, loopcount=loopcount, channel=channel)
+                self.skinsounds[name].play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
 
     def has_sound(self, path):
         path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)

@@ -61,12 +61,12 @@ class MusicInterface(object):
             rect = cw.s(pygame.Rect((0, 0), self._movie.get_size()))
             self._movie.set_display(self.movie_scr, rect)
 
-    def play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0):
-        self._play(path, updatepredata, restart, inusecard, subvolume, loopcount)
+    def play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0):
+        self._play(path, updatepredata, restart, inusecard, subvolume, loopcount, fade)
 
-    def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0):
+    def _play(self, path, updatepredata=True, restart=False, inusecard=False, subvolume=100, loopcount=0, fade=0):
         if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard, subvolume, loopcount)
+            cw.cwpy.exec_func(self._play, path, updatepredata, restart, inusecard, subvolume, loopcount, fade)
             return
 
         assert threading.currentThread() == cw.cwpy
@@ -81,13 +81,13 @@ class MusicInterface(object):
             fpath = cw.cwpy.rsrc.get_filepath(fpath)
 
         if not os.path.isfile(fpath):
-            self.stop()
+            self.stop(fade)
         else:
             assert threading.currentThread() == cw.cwpy
 
             self.set_volume()
             if restart or self.fpath <> fpath:
-                self.stop()
+                self.stop(fade)
                 self._winmm = False
                 self._bass = False
                 bgmtype = load_bgm(fpath)
@@ -154,7 +154,7 @@ class MusicInterface(object):
             else:
                 if self.subvolume <> subvolume:
                     self.subvolume = subvolume
-                    self.set_volume()
+                    self.set_volume(fade=fade)
                 if self._bass:
                     # ループ回数は常に設定する
                     cw.bassplayer.set_bgmloopcount(loopcount, channel=self.channel)
@@ -169,16 +169,16 @@ class MusicInterface(object):
             bgmpath = (path, subvolume, loopcount, self.channel)
             cw.cwpy.sdata.pre_battleareadata = (areaid, bgmpath, battlebgmpath)
 
-    def stop(self):
+    def stop(self, fade=0):
         if threading.currentThread() <> cw.cwpy:
-            cw.cwpy.exec_func(self.stop)
+            cw.cwpy.exec_func(self.stop, fade)
             return
 
         assert threading.currentThread() == cw.cwpy
 
         if self._bass:
             if cw.bassplayer.is_alivablewithpath(self.path):
-                cw.bassplayer.stop_bgm(channel=self.channel)
+                cw.bassplayer.stop_bgm(channel=self.channel, fade=fade)
                 self._bass = False
         elif self._winmm:
             name = "cwbgm_" + self.channel
@@ -193,7 +193,10 @@ class MusicInterface(object):
             self.movie_scr = None
             cw.util.sdlmixer_init()
         elif pygame.mixer.get_init():
-            pygame.mixer.music.stop()
+            if 0 < fade:
+                pygame.mixer.music.fadeout(fade)
+            else:
+                pygame.mixer.music.stop()
         remove_soundtempfile("Bgm")
         self.fpath = ""
         self.path = ""
@@ -216,7 +219,7 @@ class MusicInterface(object):
 
         return volume * self.mastervolume / 100
 
-    def set_volume(self, volume=None):
+    def set_volume(self, volume=None, fade=0):
         if threading.currentThread() <> cw.cwpy:
             cw.cwpy.exec_func(self.set_volume, volume)
             return
@@ -227,7 +230,7 @@ class MusicInterface(object):
 
         assert threading.currentThread() == cw.cwpy
         if self._bass:
-            cw.bassplayer.set_bgmvolume(volume, channel=self.channel)
+            cw.bassplayer.set_bgmvolume(volume, channel=self.channel, fade=fade)
         elif self._movie:
             self._movie.set_volume(volume)
         elif pygame.mixer.get_init():
@@ -262,21 +265,21 @@ class SoundInterface(object):
         self._path = path
         self.channel = -1
 
-    def _play_before(self, from_scenario, channel):
+    def _play_before(self, from_scenario, channel, fade):
         if from_scenario:
             if cw.cwpy.lastsound_scenario[channel]:
-                cw.cwpy.lastsound_scenario[channel].stop(from_scenario)
+                cw.cwpy.lastsound_scenario[channel].stop(from_scenario, fade=fade)
                 cw.cwpy.lastsound_scenario[channel] = None
             cw.cwpy.lastsound_scenario[channel] = self
             return "Sound"
         else:
             if cw.cwpy.lastsound_system:
-                cw.cwpy.lastsound_system.stop(from_scenario)
+                cw.cwpy.lastsound_system.stop(from_scenario, fade=fade)
                 cw.cwpy.lastsound_system = None
             cw.cwpy.lastsound_system = self
             return "SystemSound"
 
-    def play(self, from_scenario=False, subvolume=100, loopcount=1, channel=0):
+    def play(self, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0):
         if self._sound and 0 <= channel and channel < cw.bassplayer.MAX_SOUND_CHANNELS:
             self.channel = channel
 
@@ -287,21 +290,21 @@ class SoundInterface(object):
 
             if cw.bassplayer.is_alivablewithpath(self._path):
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount, channel)
+                    cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount, channel, fade)
                     return
                 assert threading.currentThread() == cw.cwpy
-                tempbasedir = self._play_before(from_scenario, channel)
+                tempbasedir = self._play_before(from_scenario, channel, fade)
                 try:
                     path = get_soundfilepath(tempbasedir, self._sound)
-                    cw.bassplayer.play_sound(path, volume, from_scenario, loopcount=loopcount, channel=channel)
+                    cw.bassplayer.play_sound(path, volume, from_scenario, loopcount=loopcount, channel=channel, fade=fade)
                 except Exception:
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.frame.exec_func(self.play, from_scenario, subvolume, loopcount, channel)
+                    cw.cwpy.frame.exec_func(self.play, from_scenario, subvolume, loopcount, channel, fade)
                     return
                 assert threading.currentThread() <> cw.cwpy
-                tempbasedir = self._play_before(from_scenario, channel)
+                tempbasedir = self._play_before(from_scenario, channel, fade)
                 if from_scenario:
                     name = "cwsnd1_" + channel
                 else:
@@ -315,10 +318,10 @@ class SoundInterface(object):
                 mciSendStringW(u"play %s" % (name), 0, 0, 0)
             else:
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount, channel)
+                    cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount, channel, fade)
                     return
                 assert threading.currentThread() == cw.cwpy
-                tempbasedir = self._play_before(from_scenario, channel)
+                tempbasedir = self._play_before(from_scenario, channel, fade)
                 if pygame.mixer.get_init():
                     if from_scenario:
                         chan = pygame.mixer.Channel(channel+1)
@@ -326,9 +329,9 @@ class SoundInterface(object):
                         chan = pygame.mixer.Channel(0)
 
                     self._sound.set_volume(volume)
-                    chan.play(self._sound, loopcount-1)
+                    chan.play(self._sound, loopcount-1, fade_ms=fade)
 
-    def stop(self, from_scenario):
+    def stop(self, from_scenario, fade=0):
         if self._sound and 0 <= self.channel and self.channel < cw.bassplayer.MAX_SOUND_CHANNELS:
             if from_scenario:
                 tempbasedir = "Sound"
@@ -337,7 +340,7 @@ class SoundInterface(object):
 
             if cw.bassplayer.is_alivablewithpath(self._path):
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.stop, from_scenario)
+                    cw.cwpy.exec_func(self.stop, from_scenario, fade)
                     return
                 assert threading.currentThread() == cw.cwpy
                 try:
@@ -347,7 +350,7 @@ class SoundInterface(object):
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
                 if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.frame.exec_func(self.stop, from_scenario)
+                    cw.cwpy.frame.exec_func(self.stop, from_scenario, fade)
                     return
                 assert threading.currentThread() <> cw.cwpy
                 if from_scenario:
@@ -361,7 +364,7 @@ class SoundInterface(object):
                 remove_soundtempfile(tempbasedir)
             else:
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.stop, from_scenario)
+                    cw.cwpy.exec_func(self.stop, from_scenario, fade)
                     return
                 assert threading.currentThread() == cw.cwpy
                 if pygame.mixer.get_init():
@@ -370,7 +373,10 @@ class SoundInterface(object):
                     else:
                         chan = pygame.mixer.Channel(0)
 
-                    chan.stop()
+                    if 0 < fade:
+                        chan.fadeout(fade)
+                    else:
+                        chan.stop()
 
 #-------------------------------------------------------------------------------
 #　汎用関数

@@ -391,12 +391,7 @@ class Content(base.CWBinaryBase):
             f.write_string(text, True)
         elif tag == "Play" and ctype == "Bgm":
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
-            if data.getint(".", "volume", 100) <> 100:
-                f.check_wsnversion("1")
-            if data.getint(".", "loopcount", 0) <> 0:
-                f.check_wsnversion("1")
-            if data.getint(".", "channel", 0) <> 0:
-                f.check_wsnversion("1")
+            f.check_bgmoptions(data)
         elif tag == "Change" and ctype == "BgImage":
             if data.get("transition", "Default") <> "Default" or\
                     data.get("transitionspeed", "Default") <> "Default":
@@ -411,12 +406,7 @@ class Content(base.CWBinaryBase):
                 bgimage.BgImage.unconv(f, bgimg)
         elif tag == "Play" and ctype == "Sound":
             f.write_string(base.CWBinaryBase.materialpath(data.get("path")))
-            if data.getint(".", "volume", 100) <> 100:
-                f.check_wsnversion("1")
-            if data.getint(".", "loopcount", 1) <> 1:
-                f.check_wsnversion("1")
-            if data.getint(".", "channel", 0) <> 0:
-                f.check_wsnversion("1")
+            f.check_soundoptions(data)
         elif tag == "Wait" and ctype == "":
             f.write_dword(int(data.get("value")))
         elif tag == "Effect" and ctype == "":
@@ -427,12 +417,7 @@ class Content(base.CWBinaryBase):
             f.write_dword(int(data.get("successrate")))
             f.write_string(base.CWBinaryBase.materialpath(data.get("sound")))
             f.write_byte(base.CWBinaryBase.unconv_card_visualeffect(data.get("visual")))
-            if data.getint(".", "volume", 100) <> 100:
-                f.check_wsnversion("1")
-            if data.getint(".", "loopcount", 1) <> 1:
-                f.check_wsnversion("1")
-            if data.getint(".", "channel", 0) <> 0:
-                f.check_wsnversion("1")
+            f.check_soundoptions(data)
             motions = []
             for e in data:
                 if e.tag == "Motions":

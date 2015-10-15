@@ -661,6 +661,7 @@ class Character(object):
         volume = data.getint("Property/SoundPath", "volume", 100)
         loopcount = data.getint("Property/SoundPath", "loopcount", 1)
         channel = data.getint("Property/SoundPath", "channel", 0)
+        fade = data.getint("Property/SoundPath", "fadein", 0)
 
         # 使用アニメーション
         removeafter = False
@@ -670,7 +671,7 @@ class Character(object):
             inusecardimg = cw.cwpy.get_inusecardimg()
             cw.animation.animate_sprite(inusecardimg, "deal", battlespeed=battlespeed)
             # 効果音を鳴らす
-            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel)
+            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
             cw.animation.animate_sprite(inusecardimg, "zoomin", battlespeed=battlespeed)
             waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())+1
             skipped = cw.cwpy.wait_frame(waitrate, cw.cwpy.setting.can_skipanimation)
@@ -685,7 +686,7 @@ class Character(object):
             cw.cwpy.cardgrp.add(self, layer=self.layer)
             cw.animation.animate_sprite(self, "deal", battlespeed=battlespeed)
             # 表示中に効果音を鳴らす
-            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel)
+            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             # カード表示
             inusecardimg = cw.cwpy.set_inusecardimg(self, header, center=True)
@@ -703,7 +704,7 @@ class Character(object):
         else:
             cw.cwpy.set_inusecardimg(self, header)
             # 効果音を鳴らす
-            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel)
+            cw.cwpy.play_sound_with(soundpath, header, subvolume=volume, loopcount=loopcount, channel=channel, fade=fade)
             cw.animation.animate_sprite(self, "zoomin", battlespeed=battlespeed)
             if cw.cwpy.setting.wait_usecard:
                 waitrate = cw.cwpy.setting.get_dealspeed(cw.cwpy.is_battlestatus())
