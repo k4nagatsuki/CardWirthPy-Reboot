@@ -26,7 +26,7 @@ class Message(wx.Dialog):
         w, h, _lineheight = dc.GetMultiLineTextExtent(self.text)
         self._textheight = h
         dw = cw.wins(349)
-        dh = cw.wins(96)
+        dh = cw.wins(68)
         dw = max(dw, w + cw.wins(10)*2)
         dh = max(dh, h + cw.wins(68))
 
