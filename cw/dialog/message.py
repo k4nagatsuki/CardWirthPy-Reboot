@@ -65,7 +65,7 @@ class Message(wx.Dialog):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(cw.wins((0, self._textheight + cw.wins(24))), 0, 0, 0)
+        sizer_1.Add((cw.wins(0), self._textheight + cw.wins(24)), 0, 0, 0)
         sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
         csize = self.GetClientSize()
 
