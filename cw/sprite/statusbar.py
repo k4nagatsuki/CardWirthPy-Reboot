@@ -190,7 +190,6 @@ class ProgressView(base.CWPySprite):
         base.CWPySprite.__init__(self)
         if size is None:
             size = cw.s((300, 22))
-        self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
         self.text = text
         self.max = nmax
         self.min = nmin
@@ -220,7 +219,8 @@ class ProgressView(base.CWPySprite):
         image.fill((255, 255, 255), rect)
         w = self.rect.width - cw.s(2)
 
-        subimg = self.font.render(self.text, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
+        font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        subimg = font.render(self.text, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
         if w-cw.s(4) < subimg.get_width():
             subimg = cw.image.smoothscale(subimg.convert_alpha(), (w-cw.s(4), subimg.get_height()),
                                           smoothing=cw.cwpy.setting.fontsmoothing_statusbar)
@@ -268,7 +268,6 @@ class StatusBarPanel(base.CWPySprite):
 
     def _create_paneimg(self, pos, size, icon):
         self.icon = icon
-        self.font = cw.cwpy.rsrc.fonts["sbarpanel"]
         self.panelimg = pygame.Surface(size).convert_alpha()
         self.panelimg.fill((0, 0, 0))
         rect = self.panelimg.get_rect()
@@ -385,7 +384,8 @@ class YadoMoneyPanel(StatusBarPanel):
 
     def update_image(self):
         s = self.currency % (self.text)
-        image = self.font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
+        font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        image = font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
 
         rect = image.get_rect()
@@ -467,7 +467,8 @@ class EncounterPanel(StatusBarPanel):
     def update_image(self):
         s = cw.cwpy.msgs["encounter"]
 
-        image = self.font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
+        font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        image = font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
         rect = image.get_rect()
         rect.left = (self.rect.w - rect.w) / 2
@@ -493,7 +494,8 @@ class RoundCounterPanel(YadoMoneyPanel):
 
     def update_image(self):
         s = cw.cwpy.msgs["round"] % (self.text)
-        image = self.font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
+        font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        image = font.render(s, cw.cwpy.setting.fontsmoothing_statusbar, (255, 255, 255))
         image = self.get_scaledimage(image)
         rect = image.get_rect()
         rect.left = (self.rect.w - rect.w) / 2
