@@ -72,7 +72,7 @@ class BuildExe(object):
         self.extra_datas = ["Data/Font", "Data/SoundFont", "Data/SkinBase", "Data/Debugger",
             "Data/Compatibility.xml", "Data/SystemCoupons.xml",
             "License.txt", "msvcr90.dll", "msvcp90.dll", "gdiplus.dll",
-            "bass.dll", "bass_fx.dll", "bassmidi.dll",
+            "bass.dll", "bass_fx.dll", "bassmidi.dll", "x64",
             "ChangeLog.txt", "Microsoft.VC90.CRT.manifest",
             "ReadMe.txt", self.srcfile_name]
 
