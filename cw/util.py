@@ -102,7 +102,7 @@ class MusicInterface(object):
                     if bgmtype == 2:
                         volume = self._get_volumevalue(fpath) * subvolume / 100.0
                         try:
-                            cw.bassplayer.play_bgm(fpath, volume, loopcount=loopcount, channel=self.channel)
+                            cw.bassplayer.play_bgm(fpath, volume, loopcount=loopcount, channel=self.channel, fade=fade)
                             self._bass = True
                         except Exception:
                             cw.util.print_ex()
