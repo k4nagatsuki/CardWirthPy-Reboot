@@ -894,6 +894,8 @@ class Font(object):
                     self.font, self.font2x = _create_mfont(path, pixels, bold, italic, sys=False)
                     return
 
+        self._cache = {}
+
         face = get_fontface(face)
         if sys.platform == "win32":
             try:
@@ -916,12 +918,17 @@ class Font(object):
             face = face.encode(encoding)
             self.font, self.font2x = _create_mfont(face, pixels, bold, italic, sys=True)
 
+    def _is_cachable(self, s):
+        s = unicode(s)
+        return len(s) == 1 and ((u'ぁ' <= s <= u'ヶ') or (0 <= ord(s) <= 255) or (u'！' <= s <= u'ﾟ'))
+
     def dispose(self):
         if not self.font and self.fontinfo:
             _imageretouch.font_del(self.fontinfo)
             _imageretouch.font_del(self.fontinfo2x)
             self.fontinfo = None
             self.fontinfo2x = None
+            self._cache = None
 
     def __del__(self):
         if not self.font and self.fontinfo:
@@ -929,6 +936,7 @@ class Font(object):
             _imageretouch.font_del(self.fontinfo2x)
             self.fontinfo = None
             self.fontinfo2x = None
+            self._cache = None
 
     def get_bold(self):
         if self.font:
@@ -936,6 +944,7 @@ class Font(object):
         else:
             return self.bold
     def set_bold(self, v):
+        self._cache = {}
         if self.font:
             self.font.set_bold(v)
             self.font2x.set_bold(v)
@@ -950,6 +959,7 @@ class Font(object):
         else:
             return self.italic
     def set_italic(self, v):
+        self._cache = {}
         if self.font:
             self.font.set_italic(v)
             self.font2x.set_italic(v)
@@ -964,6 +974,7 @@ class Font(object):
         else:
             return self.underline
     def set_underline(self, v):
+        self._cache = {}
         if self.font:
             self.font.set_underline(v)
             self.font2x.set_underline(v)
@@ -999,13 +1010,19 @@ class Font(object):
             return _imageretouch.font_size(self.fontinfo, text.encode("utf-8"))
 
     def render(self, text, antialias, colour):
+        cachable = self._is_cachable(text)
+        if cachable:
+            key = (text, antialias, colour)
+            if key in self._cache:
+                return self._cache[key].copy()
+
         if self.font:
             if antialias:
                 image = self.font2x.render(text, antialias, colour)
                 size = self.size(text)
-                return pygame.transform.smoothscale(image, size)
+                bmp = pygame.transform.smoothscale(image, size)
             else:
-                return self.font.render(text, antialias, colour)
+                bmp = self.font.render(text, antialias, colour)
         elif antialias:
             text = text.encode("utf-8")
             size = _imageretouch.font_imagesize(self.fontinfo2x, text, antialias)
@@ -1013,7 +1030,7 @@ class Font(object):
             assert len(buf) == size[0]*size[1]*4
             image = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
             size2 = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
-            return pygame.transform.smoothscale(image, size2)
+            bmp = pygame.transform.smoothscale(image, size2)
         else:
             text = text.encode("utf-8")
             # BUG: font_render()からタプルを返そうとするとbufがGCで
@@ -1023,7 +1040,11 @@ class Font(object):
             size = _imageretouch.font_imagesize(self.fontinfo, text, antialias)
             buf = _imageretouch.font_render(self.fontinfo, text, antialias, colour[:3])
             assert len(buf) == size[0]*size[1]*4
-            return pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
+            bmp = pygame.image.frombuffer(buf, size, "RGBA").convert_alpha()
+
+        if cachable:
+            self._cache[key] = bmp.copy()
+        return bmp
 
 def get_fontface(fontface):
     """fontfaceが環境に無いフォントであれば
