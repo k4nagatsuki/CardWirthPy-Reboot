@@ -171,7 +171,7 @@ class _JpySubImage(cw.image.Image):
             else:
                 background = cw.cwpy.background.image.copy()
                 self.cache.restore()
-                cw.cwpy.cardgrp.draw(background)
+                cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, background)
                 cw.sprite.background.Jpy1TemporalSprite(background)
 
             if not animespeed:
@@ -876,7 +876,7 @@ class JpdcImage(cw.image.Image):
         if copymode == 3:
             self.image.fill((255, 255, 255))
         else:
-            cw.cwpy.cardgrp.draw(self.image)
+            cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, self.image)
             if copymode == 2:
                 for sprite in cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"): # TODO: layer
                     self.image.blit(sprite.image, sprite.rect.topleft)

@@ -131,7 +131,7 @@ def get_transition((name, speed)):
 
         if cls:
             image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
-            cw.cwpy.cardgrp.draw(image)
+            cw.sprite.background.layered_draw_ex(cw.cwpy.cardgrp, image)
             return cls(image, speed)
 
     return None

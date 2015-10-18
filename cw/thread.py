@@ -698,7 +698,7 @@ class CWPy(_Singleton, threading.Thread):
         for _i in xrange(count):
             if canskip:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-                if self.keyevent.is_keyin(pygame.locals.K_RETURN) or self.keyevent.is_mousein(1):
+                if self.keyevent.is_keyin(pygame.locals.K_RETURN) or self.keyevent.is_mousein():
                     skip = True
                     break
 
@@ -914,7 +914,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.backloggrp.set_clip(clip)
                 self.sbargrp.set_clip(clip)
 
-            dirty_rects = self.cardgrp.draw(self.scr_draw)
+            dirty_rects = cw.sprite.background.layered_draw_ex(self.cardgrp, self.scr_draw)
 
             dirty_rects.extend(self.topgrp.draw(self.scr_draw))
             dirty_rects.extend(self.backloggrp.draw(self.scr_draw))

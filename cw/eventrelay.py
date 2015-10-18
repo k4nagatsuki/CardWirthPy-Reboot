@@ -88,7 +88,10 @@ class KeyEventRelay(object):
         else:
             return False
 
-    def is_mousein(self, button):
+    def is_mousein(self, button=None):
+        if button is None:
+            button = 1
+
         if cw.cwpy.setting.can_repeatlclick:
             button -= 1
             pressed = pygame.mouse.get_pressed()

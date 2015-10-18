@@ -3235,7 +3235,7 @@ class WaitContent(EventContentBase):
         while cw.cwpy.is_running() and pygame.time.get_ticks() < tick:
             if cw.cwpy.setting.can_skipwait:
                 # リターンキー長押し, マウスボタンアップ, キーダウンで処理中断
-                if cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein(1) or cw.cwpy.event.breakwait:
+                if cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein() or cw.cwpy.event.breakwait:
                     break
 
             cw.cwpy.event.refresh_activeitem()

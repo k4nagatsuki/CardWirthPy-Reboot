@@ -193,7 +193,7 @@ def start_animation(sprite, anitype):
     cw.cwpy.animations.add(sprite)
 
 def _get_skipstatus(clearevent):
-    if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein(1)):
+    if not clearevent and (cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein()):
         cw.cwpy.cut_animation = True
         return True
 
@@ -205,7 +205,7 @@ def _get_skipstatus(clearevent):
                                    pygame.locals.KEYDOWN,
                                    pygame.locals.KEYUP))
 
-    if breakflag or cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein(1):
+    if breakflag or cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein():
         return True
 
     return False

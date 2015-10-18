@@ -479,6 +479,18 @@ class BackGround(base.CWPySprite):
             else:
                 cw.cwpy.draw()
 
+def layered_draw_ex(layered_updates, surface):
+    rects = []
+    srect = surface.get_rect()
+    clip = surface.get_clip()
+    for sprite in layered_updates.sprites():
+        if srect.colliderect(sprite.rect):
+            surface.set_clip(srect.clip(sprite.rect))
+            rect = surface.blit(sprite.image, sprite.rect)
+            rects.append(rect)
+    surface.set_clip(clip)
+    return rects
+
 class Curtain(base.SelectableSprite):
     def __init__(self, target, spritegrp, color=None):
         """半透明のブルーバックスプライト。右クリックで解除。

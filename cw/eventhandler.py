@@ -25,7 +25,7 @@ class EventHandler(object):
         elif cw.cwpy.keyevent.is_keyin(K_RIGHT):
             self.dirkey_event(x=1)
         # 左クリック押しっぱなし
-        elif cw.cwpy.keyevent.is_mousein(1) and cw.cwpy.setting.autoenter_on_sprite:
+        elif cw.cwpy.keyevent.is_mousein() and cw.cwpy.setting.autoenter_on_sprite:
             self.returnkey_event()
 
         exception = None
@@ -527,7 +527,7 @@ class EventHandlerForMessageWindow(EventHandler):
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
         # 左クリック押しっぱなし
-        elif cw.cwpy.keyevent.is_mousein(1) and autoenter_on_sprite:
+        elif cw.cwpy.keyevent.is_mousein() and autoenter_on_sprite:
             self.returnkey_event(True)
 
         exception = None
@@ -733,6 +733,7 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         if not self.can_input():
             return
+
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
             self.f5key_event()
             return
@@ -803,7 +804,7 @@ class EventHandlerForBacklog(EventHandler):
         elif cw.cwpy.keyevent.is_keyin(K_DOWN):
             self.dirkey_event(y=1)
         # 左クリック押しっぱなし
-        elif cw.cwpy.keyevent.is_mousein(1):
+        elif cw.cwpy.keyevent.is_mousein():
             self.returnkey_event(True)
 
         exception = None
@@ -1025,7 +1026,7 @@ class EventHandlerForEffectBooster(EventHandler):
         if cw.cwpy.keyevent.is_keyin(K_RETURN):
             self.returnkey_event(True)
         # 左クリック押しっぱなし
-        elif cw.cwpy.keyevent.is_mousein(1):
+        elif cw.cwpy.keyevent.is_mousein():
             self.returnkey_event(True)
 
         exception = None
