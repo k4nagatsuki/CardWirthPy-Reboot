@@ -446,26 +446,8 @@ class BackGround(base.CWPySprite):
         if not bginhrt:
             self.image.fill((0, 0, 0))
 
-        for bgtype, d in blitlist:
-            if bgtype == BG_IMAGE:
-                # 背景画像、カラーセル、縁取り形式2のテキストセル
-                image, pos, flag = d
-                if flag in (0, BLEND_MULT):
-                    self.image.blit(image, cw.s(pos), None, flag)
-                elif flag in (BLEND_ADD, BLEND_SUB):
-                    cw.imageretouch.blend_1_50(self.image, cw.s(pos), image, flag)
-                else:
-                    assert False
-
-            elif bgtype == BG_TEXT:
-                # 縁取り形式2以外のテキストセル
-                text, face, tsize, color, bold, italic, underline, strike, vertical,\
-                    bcolor, size, pos = d
-                cw.image.draw_textcell(self.image, cw.s(pygame.Rect(pos, size)), text, face,
-                    cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
-
-            else:
-                assert bgtype == BG_SEPARATOR
+        for bgdata in blitlist:
+            _draw_bgcell(self.image, bgdata)
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -473,21 +455,72 @@ class BackGround(base.CWPySprite):
         # トランジション効果で画面入り
         if redraw:
             if not animated and transitspr and not oldbgs == self.bgs:
-                cw.cwpy.cardgrp.add(transitspr, layer=(cw.LAYER_BACKGROUND, 0, 1))
+                cw.cwpy.cardgrp.add(transitspr, layer=(cw.LAYER_TRANSITION, 0, 1))
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
                 cw.cwpy.cardgrp.remove(transitspr)
             else:
                 cw.cwpy.draw()
 
+def _draw_bgcell(surface, bgdata, allclip=None):
+    bgtype, d = bgdata
+    srect = surface.get_rect()
+    clip = surface.get_clip()
+    if allclip:
+        srect = allclip
+
+    if bgtype == BG_IMAGE:
+        # 背景画像、カラーセル、縁取り形式2のテキストセル
+        image, pos, flag = d
+        rect = image.get_rect()
+        rect.topleft = pos
+        if srect.colliderect(rect):
+            surface.set_clip(srect.clip(rect))
+            if flag in (0, BLEND_MULT):
+                surface.blit(image, cw.s(pos), None, flag)
+            elif flag in (BLEND_ADD, BLEND_SUB):
+                cw.imageretouch.blend_1_50(surface, cw.s(pos), image, flag)
+            else:
+                assert False
+
+    elif bgtype == BG_TEXT:
+        # 縁取り形式2以外のテキストセル
+        text, face, tsize, color, bold, italic, underline, strike, vertical,\
+            bcolor, size, pos = d
+        rect = cw.s(pygame.Rect(pos, size))
+        if srect.colliderect(rect):
+            surface.set_clip(srect.clip(rect))
+            cw.image.draw_textcell(surface, rect, text, face,
+                cw.s(tsize), color, bold, italic, underline, strike, vertical, bcolor)
+
+    else:
+        assert False
+
+    surface.set_clip(clip)
+    return rect
+
+class BgCell(base.CWPySprite):
+    def __init__(self, bgtype, d):
+        cw.sprite.base.CWPySprite.__init__(self)
+        self.bgtype = bgtype
+        self.d = d
+
 def layered_draw_ex(layered_updates, surface):
     rects = []
     srect = surface.get_rect()
     clip = surface.get_clip()
-    for sprite in layered_updates.sprites():
-        if srect.colliderect(sprite.rect):
-            surface.set_clip(srect.clip(sprite.rect))
-            rect = surface.blit(sprite.image, sprite.rect)
+    if clip:
+        srect = clip
+
+    sprites = layered_updates.sprites()
+    for sprite in sprites:
+        if isinstance(sprite, BgCell):
+            rect = _draw_bgcell(surface, (sprite.bgtype, sprite.d), clip)
             rects.append(rect)
+        else:
+            if srect.colliderect(sprite.rect):
+                surface.set_clip(srect.clip(sprite.rect))
+                rect = surface.blit(sprite.image, sprite.rect)
+                rects.append(rect)
     surface.set_clip(clip)
     return rects
 
