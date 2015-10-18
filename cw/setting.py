@@ -169,6 +169,7 @@ class Setting(object):
         self.show_paperandtree = False
         self.filer_dir = ""
         self.filer_file = ""
+        self.recenthistory_limit = 5
 
         # カード種の表示・非表示
         self.show_cardtype = [True] * 3
@@ -577,6 +578,9 @@ class Setting(object):
         # シナリオ選択ダイアログでのファイラー
         self.filer_dir = data.gettext("FilerDirectory", self.filer_dir)
         self.filer_file = data.gettext("FilerFile", self.filer_file)
+
+        # 圧縮されたシナリオの展開データ保存数
+        self.recenthistory_limit = data.getint("RecentHistoryLimit", self.recenthistory_limit)
 
         # 一覧表示
         self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases)
@@ -2008,8 +2012,7 @@ class RecentHistory(object):
         """
         self.scelist = []
         temppaths = set()
-        limit = 5
-        limit = cw.util.numwrap(limit, 1, 100)
+        limit = cw.cwpy.setting.recenthistory_limit
 
         fpath = cw.util.join_paths(tempdir, "RecentHistory.xml")
         if os.path.isfile(fpath):
@@ -2067,7 +2070,7 @@ class RecentHistory(object):
         """
         self.limit = value
 
-        if len(self.scelist) > self.limit:
+        if self.limit and len(self.scelist) > self.limit:
             while len(self.scelist) > self.limit:
                 self.remove(save=False)
             self.write()

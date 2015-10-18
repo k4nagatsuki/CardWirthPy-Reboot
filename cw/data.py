@@ -340,8 +340,8 @@ class ScenarioData(SystemData):
                 self._find_summaryintemp()
             else:
                 self.tempdir = cw.util.join_paths(cw.tempdir, u"Scenario")
-                self._decompress(False)
-                cw.cwpy.ydata.recenthistory.append(self.fpath, self.tempdir)
+                orig_tempdir = self._decompress(False)
+                cw.cwpy.ydata.recenthistory.append(self.fpath, orig_tempdir)
         else:
             # 展開済みシナリオ
             self.tempdir = self.fpath
@@ -499,7 +499,9 @@ class ScenarioData(SystemData):
             raise self._error
 
         # 展開完了
+        orig_tempdir = self.tempdir
         self._find_summaryintemp()
+        return orig_tempdir
 
     def _find_summaryintemp(self):
         # 展開先のフォルダのサブフォルダ内にシナリオ本体がある場合、

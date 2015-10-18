@@ -601,6 +601,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         e = cw.data.make_element("FilerFile", setting.filer_file)
         element.append(e)
 
+    # 圧縮されたシナリオの展開データ保存数
+    if setting.recenthistory_limit <> setting.recenthistory_limit_init:
+        e = cw.data.make_element("RecentHistoryLimit", setting.recenthistory_limit)
+        element.append(e)
+
     if writeplayingdata:
         # 一覧表示
         attrs = {}
