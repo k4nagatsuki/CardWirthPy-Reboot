@@ -1243,7 +1243,10 @@ class Debugger(wx.Frame):
 
     def _refresh_areaname(self, force=False):
         assert threading.currentThread() <> cw.cwpy
-        self.st_area.SetLabel(cw.cwpy.sdata.get_areaname())
+        s = cw.cwpy.sdata.get_areaname()
+        dc = wx.ClientDC(self.st_area)
+        s = cw.util.abbr_longstr(dc, s, self.st_area.GetClientSize()[0])
+        self.st_area.SetLabel(s)
 
         # ツールボタンの表示を切り替えるかどうか
         if force or cw.cwpy.is_battlestatus() <> self.tl_area._battletool:
