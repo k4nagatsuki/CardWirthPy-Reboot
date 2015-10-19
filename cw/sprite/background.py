@@ -130,7 +130,7 @@ class BackGround(base.CWPySprite):
 
         return image, anime, True
 
-    def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True, nocheckvisible=False):
+    def load(self, elements, doanime=True, ttype=("Default", "Default"), bginhrt=True, nocheckvisible=False, redraw=True):
         """背景画面を構成する。
         elements: BgImageElementのリスト。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
@@ -259,7 +259,7 @@ class BackGround(base.CWPySprite):
             update = False
 
         if update:
-            self._load_after(bginhrt or afterseps, blitlist, animated, transitspr, oldbgs, True)
+            self._load_after(bginhrt or afterseps, blitlist, animated, transitspr, oldbgs, True and redraw)
         elif forcedraw:
             self._load_after(bginhrt or afterseps, blitlist, animated, transitspr, oldbgs, False)
         else:
