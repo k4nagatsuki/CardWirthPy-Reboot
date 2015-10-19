@@ -1245,8 +1245,12 @@ class Debugger(wx.Frame):
         assert threading.currentThread() <> cw.cwpy
         s = cw.cwpy.sdata.get_areaname()
         dc = wx.ClientDC(self.st_area)
-        s = cw.util.abbr_longstr(dc, s, self.st_area.GetClientSize()[0])
-        self.st_area.SetLabel(s)
+        s2 = cw.util.abbr_longstr(dc, s, self.st_area.GetClientSize()[0])
+        self.st_area.SetLabel(s2)
+        if s == s2:
+            self.st_area.SetToolTipString("")
+        else:
+            self.st_area.SetToolTipString(s)
 
         # ツールボタンの表示を切り替えるかどうか
         if force or cw.cwpy.is_battlestatus() <> self.tl_area._battletool:
