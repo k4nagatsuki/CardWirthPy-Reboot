@@ -882,6 +882,8 @@ def _create_mfont(name, pixels, bold, italic, sys):
 
 class Font(object):
     def __init__(self, face, pixels, bold=False, italic=False):
+        self._cache = {}
+
         d = {(u"IPAゴシック", u"IPAGothic"):"gothic.ttf",
              (u"IPA UIゴシック", u"IPAUIGothic"):"uigothic.ttf",
              (u"IPA明朝", u"IPAMincho"):"mincho.ttf",
@@ -893,8 +895,6 @@ class Font(object):
                 if os.path.isfile(path):
                     self.font, self.font2x = _create_mfont(path, pixels, bold, italic, sys=False)
                     return
-
-        self._cache = {}
 
         face = get_fontface(face)
         if sys.platform == "win32":
