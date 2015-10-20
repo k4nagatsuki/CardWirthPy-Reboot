@@ -123,7 +123,7 @@ class PartyEditor(wx.Dialog):
         cw.util.fill_bitmap(dc, bmp, csize)
         # text
         dc.SetTextForeground(wx.BLACK)
-        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16)))
+        dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(16)))
         s = cw.cwpy.msgs["party_name"]
         left = (dc.GetSize()[0] - dc.GetTextExtent(s)[0]) // 2
         dc.DrawText(s, left, cw.wins(15))
