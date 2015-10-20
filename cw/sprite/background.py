@@ -472,7 +472,7 @@ def _draw_bgcell(surface, bgdata, allclip=None):
         # 背景画像、カラーセル、縁取り形式2のテキストセル
         image, pos, flag = d
         rect = image.get_rect()
-        rect.topleft = pos
+        rect.topleft = cw.s(pos)
         if srect.colliderect(rect):
             surface.set_clip(srect.clip(rect))
             if flag in (0, BLEND_MULT):
