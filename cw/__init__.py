@@ -122,7 +122,7 @@ LAYER_MESSAGE = (1000, -1, 0) # メッセージ
 LAYER_SELECTIONBAR_1 = (1001, -1, 0) # メッセージ選択肢
 LAYER_SELECTIONBAR_2 = (1002, -1, 0) # メッセージ選択肢(クリック中)
 
-LAYER_TRANSITION = (10000, 0, 0) # 背景遷移用
+LAYER_TRANSITION = (0x7fffffff, 0x7fffffff, 0x7fffffff) # 背景遷移用
 
 LAYER_LOG_CURTAIN = (2000, 0, 0) # ログ背景
 LAYER_LOG = (2001, 0, 0) # メッセージログ
