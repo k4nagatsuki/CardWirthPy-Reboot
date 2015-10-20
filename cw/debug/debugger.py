@@ -1245,7 +1245,19 @@ class Debugger(wx.Frame):
         assert threading.currentThread() <> cw.cwpy
         s = cw.cwpy.sdata.get_areaname()
         dc = wx.ClientDC(self.st_area)
-        s2 = cw.util.abbr_longstr(dc, s, self.st_area.GetClientSize()[0])
+        sep = s.rfind("\\")
+        w = self.st_area.GetClientSize()[0]
+        if sep == -1:
+            s2 = cw.util.abbr_longstr(dc, s, w)
+        else:
+            # 「フォルダ名\エリア名」のような名前は
+            # 「フォ...\エリア名」のように略す
+            left = s[:sep]
+            right = s[sep:]
+            lw = w - dc.GetTextExtent(right)[0]
+            left = cw.util.abbr_longstr(dc, left, lw)
+            s2 = left + right
+            s2 = cw.util.abbr_longstr(dc, s2, w)
         self.st_area.SetLabel(s2)
         if s == s2:
             self.st_area.SetToolTipString("")
@@ -1274,7 +1286,14 @@ class Debugger(wx.Frame):
         assert threading.currentThread() <> cw.cwpy
         if cw.cwpy.frame.debugger is None:
             return
-        self.st_select.SetLabel(cw.cwpy.event.get_selectedmembername())
+        s = cw.cwpy.event.get_selectedmembername()
+        dc = wx.ClientDC(self.st_select)
+        s2 = cw.util.abbr_longstr(dc, s, self.st_select.GetClientSize()[0])
+        self.st_select.SetLabel(s2)
+        if s == s2:
+            self.st_select.SetToolTipString("")
+        else:
+            self.st_select.SetToolTipString(s)
 
     def refresh_tools(self):
         assert threading.currentThread() <> cw.cwpy

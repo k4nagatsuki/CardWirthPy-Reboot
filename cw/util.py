@@ -2399,6 +2399,11 @@ def abbr_longstr(dc, text, w):
     text: 編集対象の文字列
     w: 目標文字列長(pixel)
     """
+    if w <= 0 and text:
+        if dc.GetTextExtent(text)[0] <= dc.GetTextExtent(u"...")[0]:
+            return text
+        else:
+            return u"..."
     width = dc.GetTextExtent(text)[0]
     if width > w:
         while dc.GetTextExtent(text + u"...")[0] > w:
