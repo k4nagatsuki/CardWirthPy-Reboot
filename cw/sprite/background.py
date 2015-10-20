@@ -376,10 +376,11 @@ class BackGround(base.CWPySprite):
         image, anime, update = self.load_surface(path, mask, cw.s(size), flag, doanime=doanime, visible=visible, nocheckvisible=nocheckvisible)
 
         ext = os.path.splitext(path)[1].lower()
-        if not anime and ext <> ".jpdc" and pos == (0, 0) and size == cw.SIZE_AREA and visible and not mask and not flag:
-            # 背景を覆ったので背景継承を取り消す
-            del bgs[:]
-            bginhrt = False
+        if not anime and ext <> ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and visible and not mask and not flag:
+            if image and not image.get_colorkey() and not (image.get_flags() & pygame.locals.SRCALPHA):
+                # 背景を覆ったので背景継承を取り消す
+                del bgs[:]
+                bginhrt = False
 
         if image and image.get_size() <> (0, 0):
             blitlist.append((BG_IMAGE, (image, pos, 0)))
