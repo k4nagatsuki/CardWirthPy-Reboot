@@ -31,6 +31,7 @@ class BackGround(base.CWPySprite):
         self._elements = []
         self._doanime = cw.effectbooster.AnimationCounter()
         self._ttype = ("None", "None")
+        self._inhrt_index = 0
         # spritegroupに追加
         self.layer = (cw.LAYER_BACKGROUND, -2, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
@@ -140,11 +141,15 @@ class BackGround(base.CWPySprite):
 
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        # 背景処理する前に、トランジション用スプライト作成
-        transitspr = cw.sprite.transition.get_transition(ttype)
         oldbgs = list(self.bgs)
         self._bgs = list(oldbgs)
         self._elements = elements
+
+        animated = False
+        blitlist = []
+        update = False
+        forcedraw = False
+
         if doanime:
             if isinstance(doanime, bool):
                 self._doanime = cw.effectbooster.AnimationCounter()
@@ -154,11 +159,53 @@ class BackGround(base.CWPySprite):
             self._doanime = cw.effectbooster.CutAnimation()
         self._ttype = ttype
 
-        # 背景構築
-        animated = False
-        blitlist = []
-        update = False
-        forcedraw = False
+        if not doanime:
+            ttype = cw.sprite.transition.get_transition(ttype)
+
+        # 背景継承位置。背景が完全に覆われた時、
+        # このindexより以前の背景が削除対象となる
+        self._inhrt_index = 0
+
+        bginhrt2 = bginhrt
+        if bginhrt:
+            if len(elements) and elements[0].tag == "BgImage":
+                e = elements[0]
+                left = e.getint("Location", "left")
+                top = e.getint("Location", "top")
+                pos = (left, top)
+                width = e.getint("Size", "width")
+                height = e.getint("Size", "height")
+                size = (width, height)
+                mask = e.getbool(".", "mask", False)
+                path = e.gettext("ImagePath", "")
+                flag = e.gettext("Flag", "")
+                if pos == (0, 0) and size == cw.SIZE_AREA and not mask and path and not flag:
+                    # 最初の1件がイメージセル・0,0,632,420のサイズ・マスクなし・パス名あり
+                    # (ファイルが実在する必要はない)の時、内部的に背景は継承しない状態になる。
+                    # CWはこの状態で冒険を中断して再開すると事前に描画されていた背景が消えるが、
+                    # CWPyでは実際に覆われて描画できなくなったもの以外は残すようにする
+                    bginhrt2 = False
+                    self._inhrt_index = len(self.bgs)
+
+            if bginhrt2:
+                # フラグの状態が変更されており、再描画を要するか
+                bginhrt2 = False
+                for bgtype, d in self.bgs:
+                    if self._is_flagchanged(bgtype, d):
+                        bginhrt2 = True
+                        break
+
+            if bginhrt2:
+                # 背景継承
+                # フラグ等で状態が変化している可能性があるので再描画
+                # JPY1のアニメーションも行う
+                ret = self._reload(doanime=doanime, ttype=("None", "None"),
+                                   redraw=False, force=False, nocheckvisible=False,
+                                   redisplay=False, beforeload=True)
+                if ret is None:
+                    return False # 中断
+                animated, blitlist, update, forcedraw = ret
+
         afterseps = False
         if self.bgs and bginhrt:
             self.bgs.append((BG_SEPARATOR, None))
@@ -245,7 +292,7 @@ class BackGround(base.CWPySprite):
             elif e.tag == "Redisplay":
                 self.bgs.append((BG_SEPARATOR, None))
                 if blitlist:
-                    self._load_after(bginhrt or afterseps, blitlist, animated, ("None", "None"), oldbgs, False)
+                    self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ("None", "None"), oldbgs, False)
                     del blitlist[:]
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
@@ -255,13 +302,13 @@ class BackGround(base.CWPySprite):
 
         update |= self.bgs <> oldbgs
 
-        if bginhrt and not blitlist:
+        if bginhrt and not blitlist and not cw.cwpy.topgrp.get_sprites_from_layer("jpytemporal"):
             update = False
 
         if update:
-            self._load_after(bginhrt or afterseps, blitlist, animated, transitspr, oldbgs, True and redraw)
+            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, True and redraw)
         elif forcedraw:
-            self._load_after(bginhrt or afterseps, blitlist, animated, transitspr, oldbgs, False)
+            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -276,12 +323,11 @@ class BackGround(base.CWPySprite):
     def reload(self, doanime=True, ttype=("Default", "Default"), redraw=True):
         return self._reload(doanime, ttype, redraw, False, redisplay=False)
 
-    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False, redisplay=True):
+    def _reload(self, doanime=True, ttype=("Default", "Default"), redraw=True, force=False, nocheckvisible=False, redisplay=True,
+                beforeload=False):
         """背景画面を再構成する。
         ttype: (トランジションの名前, トランジションの速度)のタプル。
         """
-        # 背景処理する前に、トランジション用スプライト作成
-        transitspr = cw.sprite.transition.get_transition(ttype)
         oldbgs = list(self.bgs)
         # 背景再構築
         bgs = []
@@ -291,16 +337,22 @@ class BackGround(base.CWPySprite):
         bginhrt = True
         update = force
         forcedraw = False
-        self._bgs = list(oldbgs)
-        if doanime:
-            if isinstance(doanime, bool):
-                self._doanime = cw.effectbooster.AnimationCounter()
+        if not beforeload:
+            self._inhrt_index = 0
+
+            self._bgs = list(oldbgs)
+            if doanime:
+                if isinstance(doanime, bool):
+                    self._doanime = cw.effectbooster.AnimationCounter()
+                else:
+                    self._doanime = doanime
+                self._ttype = ("None","None")
             else:
-                self._doanime = doanime
-            self._ttype = ("None","None")
-        else:
-            self._doanime = cw.effectbooster.CutAnimation()
-            self._ttype = ttype
+                self._doanime = cw.effectbooster.CutAnimation()
+                self._ttype = ttype
+
+        if not beforeload and not doanime:
+            ttype = cw.sprite.transition.get_transition(ttype)
 
         for bgtype, d in self.bgs:
             if bgtype == BG_IMAGE:
@@ -311,7 +363,11 @@ class BackGround(base.CWPySprite):
                     update |= update2
                     bginhrt &= bginhrt2
                 except cw.effectbooster.ScreenRescale:
-                    return False # 中断
+                    # 中断
+                    if beforeload:
+                        return None
+                    else:
+                        return False
 
             elif bgtype == BG_TEXT:
                 # テキストセル
@@ -329,7 +385,7 @@ class BackGround(base.CWPySprite):
                     continue
                 bgs.append((bgtype, d))
                 if blitlist:
-                    self._load_after(True, blitlist, animated, ("None", "None"), oldbgs, False)
+                    self._load_after(True, blitlist, doanime, animated, ("None", "None"), oldbgs, False)
                     del blitlist[:]
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
@@ -343,18 +399,32 @@ class BackGround(base.CWPySprite):
 
         if update:
             self.bgs = bgs
-            self._load_after(True, blitlist, animated, transitspr, oldbgs, redraw)
+            if not beforeload:
+                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, redraw)
         elif forcedraw:
-            self._load_after(True, blitlist, animated, transitspr, oldbgs, False)
+            if not beforeload:
+                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, False)
         else:
-            # エフェクトブースターの一時描画で使ったスプライトはすべて削除
-            cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
+            if not beforeload:
+                # エフェクトブースターの一時描画で使ったスプライトはすべて削除
+                cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
 
-        self._bgs = []
-        self._doanime = cw.effectbooster.AnimationCounter()
-        self._ttype = ("None", "None")
-        self._in_playing = False
-        return update
+        if beforeload:
+            return animated, blitlist, update, forcedraw
+        else:
+            self._bgs = []
+            self._doanime = cw.effectbooster.AnimationCounter()
+            self._ttype = ("None", "None")
+            self._in_playing = False
+            return update
+
+    def _is_flagchanged(self, bgtype, d):
+        if bgtype in (BG_IMAGE, BG_TEXT, BG_COLOR):
+            visible = d[-1]
+            flag = d[-2]
+            return bool(visible) <> bool(cw.cwpy.sdata.flags.get(flag, True))
+        else:
+            return False
 
     def _add_imagecell(self, blitlist, bgs, oldbgs, d, doanime, nocheckvisible=False):
         path, inusecard, mask, size, pos, flag, visible = d
@@ -378,16 +448,19 @@ class BackGround(base.CWPySprite):
         ext = os.path.splitext(path)[1].lower()
         if not anime and ext <> ".jpdc" and pygame.Rect(pos, size).contains(pygame.Rect((0, 0), cw.SIZE_AREA)) and visible and not mask and not flag:
             if image and not image.get_colorkey() and not (image.get_flags() & pygame.locals.SRCALPHA):
-                # 背景を覆ったので背景継承を取り消す
-                del bgs[:]
+                # 背景を覆ったので非継承の背景を実際に削除する
+                del bgs[:self._inhrt_index]
+                del blitlist[:-1]
                 bginhrt = False
+                self._inhrt_index = 0
 
         if image and image.get_size() <> (0, 0):
-            blitlist.append((BG_IMAGE, (image, pos, 0)))
+            blitlist.append((BG_IMAGE, (image, pos, 0), flag))
             bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, True)))
         else:
-            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
-            oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, False)))
+            flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
+            bgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue)))
+            oldbgs.append((BG_IMAGE, (basepath, inusecard, mask, size, pos, flag, flagvalue)))
 
         return anime, update, bginhrt
 
@@ -397,22 +470,23 @@ class BackGround(base.CWPySprite):
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
+        flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
-             btype, bcolor, bwidth, size, pos, flag, visible)
+             btype, bcolor, bwidth, size, pos, flag, flagvalue)
         if visible:
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
                 image = cw.image.create_type2textcell(text, face, cw.s(tsize), color,
                     bold, italic, underline, strike, vertical,
                     cw.s(size), bcolor, bwidth)
-                blitlist.append((BG_IMAGE, (image, pos, 0)))
+                blitlist.append((BG_IMAGE, (image, pos, 0), flag))
             else:
                 # アンチエイリアスの関係で後から描画
                 if btype <> "Outline":
                     bcolor = None
                 d2 = (text, face, tsize, color, bold, italic, underline, strike, vertical,
                       bcolor, size, pos)
-                blitlist.append((BG_TEXT, d2))
+                blitlist.append((BG_TEXT, d2, flag))
             bgs.append((BG_TEXT, d))
         else:
             bgs.append((BG_TEXT, d))
@@ -424,7 +498,8 @@ class BackGround(base.CWPySprite):
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
-        d = blend, color1, gradient, color2, size, pos, flag, visible
+        flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
+        d = blend, color1, gradient, color2, size, pos, flag, flagvalue
         if visible:
             image = cw.image.create_colorcell(cw.s(size), color1, gradient, color2)
             if blend == "Add":
@@ -435,15 +510,24 @@ class BackGround(base.CWPySprite):
                 blendflag = BLEND_MULT
             else:
                 blendflag = 0
-            blitlist.append((BG_IMAGE, (image, pos, blendflag)))
+            blitlist.append((BG_IMAGE, (image, pos, blendflag), flag))
             bgs.append((BG_COLOR, d))
         else:
             bgs.append((BG_COLOR, d))
             oldbgs.append((BG_COLOR, d))
         return visible
 
-    def _load_after(self, bginhrt, blitlist, animated, transitspr, oldbgs, redraw):
+    def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
+
+        if doanime:
+            # 背景処理する前に、トランジション用スプライト作成
+            transitspr = cw.sprite.transition.get_transition(ttype)
+        else:
+            # アニメーションしない場合は描画前の
+            # トランジション用スプライトが生成されている
+            transitspr = ttype
+
         if not bginhrt:
             self.image.fill((0, 0, 0))
 
@@ -455,7 +539,7 @@ class BackGround(base.CWPySprite):
 
         # トランジション効果で画面入り
         if redraw:
-            if not animated and transitspr and not oldbgs == self.bgs:
+            if (not animated or not doanime) and transitspr and not oldbgs == self.bgs:
                 cw.cwpy.cardgrp.add(transitspr, layer=(cw.LAYER_TRANSITION, 0, 1))
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
                 cw.cwpy.cardgrp.remove(transitspr)
@@ -463,7 +547,9 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.draw()
 
 def _draw_bgcell(surface, bgdata, allclip=None):
-    bgtype, d = bgdata
+    bgtype, d, flag = bgdata
+    if not cw.cwpy.sdata.flags.get(flag, True):
+        return
     srect = surface.get_rect()
     clip = surface.get_clip()
     if allclip:
@@ -471,15 +557,15 @@ def _draw_bgcell(surface, bgdata, allclip=None):
 
     if bgtype == BG_IMAGE:
         # 背景画像、カラーセル、縁取り形式2のテキストセル
-        image, pos, flag = d
+        image, pos, sflag = d
         rect = image.get_rect()
         rect.topleft = cw.s(pos)
         if srect.colliderect(rect):
             surface.set_clip(srect.clip(rect))
-            if flag in (0, BLEND_MULT):
-                surface.blit(image, cw.s(pos), None, flag)
-            elif flag in (BLEND_ADD, BLEND_SUB):
-                cw.imageretouch.blend_1_50(surface, cw.s(pos), image, flag)
+            if sflag in (0, BLEND_MULT):
+                surface.blit(image, cw.s(pos), None, sflag)
+            elif sflag in (BLEND_ADD, BLEND_SUB):
+                cw.imageretouch.blend_1_50(surface, cw.s(pos), image, sflag)
             else:
                 assert False
 
@@ -504,6 +590,7 @@ class BgCell(base.CWPySprite):
         cw.sprite.base.CWPySprite.__init__(self)
         self.bgtype = bgtype
         self.d = d
+        self.flag = flag
 
 def layered_draw_ex(layered_updates, surface):
     rects = []
@@ -515,7 +602,7 @@ def layered_draw_ex(layered_updates, surface):
     sprites = layered_updates.sprites()
     for sprite in sprites:
         if isinstance(sprite, BgCell):
-            rect = _draw_bgcell(surface, (sprite.bgtype, sprite.d), clip)
+            rect = _draw_bgcell(surface, (sprite.bgtype, sprite.d, sprite.flag), clip)
             rects.append(rect)
         else:
             if srect.colliderect(sprite.rect):
