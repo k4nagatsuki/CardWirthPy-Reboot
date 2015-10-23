@@ -112,15 +112,18 @@ LAYER_BACKGROUND = 0 # 背景
 LAYER_MCARDS = 100 # メニューカード・エネミーカード
 LAYER_PCARDS = 200 # プレイヤーカード
 LAYER_MCARDS_120 = 300 # CardWirth 1.20でのメニューカード(PCより手前に表示)
-LAYER_FCARDS_T = 400 # デバッグモードで表示される戦闘中の同行キャスト
-LAYER_FCARDS = 1100 # 同行キャスト
+LAYER_FCARDS_T = 0x7fffffff-2 # デバッグモードで表示される戦闘中の同行キャスト
+LAYER_FCARDS = 0x7fffffff-2 # 同行キャスト
+LAYER_SPMCARDS = 0x7fffffff-1 # 特殊エリアのメニューカード
 
-LAYER_FRONT_INUSECARD = (1200, 0, 0) # カーソル下のカードの使用カード
-LAYER_TARGET_ARROW = (1300, 0, 0) # 対象選択の指マーク
+# (layer, index, kind)
+LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff, 0x7fffffff-2) # カーソル下のカードの使用カード
+LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff, 0x7fffffff-1) # 対象選択の指マーク
 
-LAYER_MESSAGE = (1000, -1, 0) # メッセージ
-LAYER_SELECTIONBAR_1 = (1001, -1, 0) # メッセージ選択肢
-LAYER_SELECTIONBAR_2 = (1002, -1, 0) # メッセージ選択肢(クリック中)
+# index=-1は背景セル
+LAYER_MESSAGE = (1000, -4, 0) # メッセージ
+LAYER_SELECTIONBAR_1 = (1000, -3, 0) # メッセージ選択肢
+LAYER_SELECTIONBAR_2 = (1000, -2, 0) # メッセージ選択肢(クリック中)
 
 LAYER_TRANSITION = (0x7fffffff, 0x7fffffff, 0x7fffffff) # 背景遷移用
 

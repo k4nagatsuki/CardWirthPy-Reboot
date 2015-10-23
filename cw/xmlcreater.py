@@ -777,9 +777,9 @@ def create_scenariolog(sdata, path, recording):
 
     for bgtype, d in cw.cwpy.background.bgs:
         if bgtype == cw.sprite.background.BG_IMAGE:
-            fpath, inusecard, mask, size, pos, flag, visible = d
-            e_bgimg = cw.data.make_element("BgImage", attrs={"mask": str(mask),
-                                                              "visible": str(visible)})
+            fpath, inusecard, mask, size, pos, flag, visible, layer = d
+            attrs = {"mask": str(mask), "visible": str(visible)}
+            e_bgimg = cw.data.make_element("BgImage", attrs=attrs)
 
             if inusecard:
                 e = cw.data.make_element("ImagePath", fpath, attrs={"inusecard":str(inusecard)})
@@ -789,8 +789,9 @@ def create_scenariolog(sdata, path, recording):
 
         elif bgtype == cw.sprite.background.BG_TEXT:
             text, face, tsize, color, bold, italic, underline, strike, vertical,\
-                btype, bcolor, bwidth, size, pos, flag, visible = d
-            e_bgimg = cw.data.make_element("TextCell", attrs={"visible": str(visible)})
+                btype, bcolor, bwidth, size, pos, flag, visible, layer = d
+            attrs = {"visible": str(visible)}
+            e_bgimg = cw.data.make_element("TextCell", attrs=attrs)
 
             e = cw.data.make_element("Text", text)
             e_bgimg.append(e)
@@ -812,8 +813,9 @@ def create_scenariolog(sdata, path, recording):
                 e_bgimg.append(e)
 
         elif bgtype == cw.sprite.background.BG_COLOR:
-            blend, color1, gradient, color2, size, pos, flag, visible = d
-            e_bgimg = cw.data.make_element("ColorCell", attrs={"visible": str(visible)})
+            blend, color1, gradient, color2, size, pos, flag, visible, layer = d
+            attrs = {"visible": str(visible)}
+            e_bgimg = cw.data.make_element("ColorCell", attrs=attrs)
 
             e = cw.data.make_element("BlendMode", blend)
             e_bgimg.append(e)
@@ -838,6 +840,10 @@ def create_scenariolog(sdata, path, recording):
         e_bgimg.append(e)
         e = cw.data.make_element("Size",
                         attrs={"width": str(size[0]), "height": str(size[1])})
+        if layer <> cw.LAYER_BACKGROUND:
+            e = cw.data.make_element("Layer", str(layer))
+            e_bgimg.append(e)
+
         e_bgimg.append(e)
         e_bgimgs.append(e_bgimg)
 
