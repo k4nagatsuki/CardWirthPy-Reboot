@@ -363,7 +363,7 @@ class CardHeader(object):
             return 0
         limitper = 100 * limit / maxlimit
 
-        if limitper == 100:
+        if maxlimit <= limit:
             value = 4
         elif limit == 1: # MAX状態以外で残り1回なら
             value = 1

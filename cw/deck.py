@@ -3,6 +3,8 @@
 
 import cw
 
+import itertools
+
 
 class Deck(object):
     def __init__(self, ccard):
@@ -141,11 +143,15 @@ class Deck(object):
 
     def get_skillpower(self, ccard):
         # 一旦山札から全てのスキルを取り除く
-        self.lose_skillpower(ccard)
+        talon = []
+        for header in self.talon:
+            if header.type <> "SkillCard":
+                talon.append(header)
+        self.talon = talon
 
-        # 現在手札にある分をカウントする
+        # 現在手札にある分と配付予約にある分をカウントする
         handcounts = {}
-        for header in self.hand:
+        for header in itertools.chain(self.hand, self.nextcards):
             header = header.ref_original()
             count = handcounts.get(header, 0)
             count += 1
@@ -155,6 +161,8 @@ class Deck(object):
         self.talon.extend(self.get_skillcards(ccard, handcounts))
         self.shuffle()
 
+        self._update_skillpower(ccard)
+
     def lose_skillpower(self, ccard):
         # 現在handにある分は除去しなくてよい
         talon = []
@@ -162,12 +170,34 @@ class Deck(object):
             if header.type <> "SkillCard":
                 talon.append(header)
         self.talon = talon
+        self.shuffle()
+
         nextcards = []
         for header in self.nextcards:
             if header.type <> "SkillCard":
                 nextcards.append(header)
         self.nextcards = nextcards
-        self.shuffle()
+
+        self._update_skillpower(ccard)
+
+    def _update_skillpower(self, ccard):
+        # 手札と山札にある数によってスキルカードの使用回数を更新する
+        handcounts = {}
+        for header in itertools.chain(self.hand, self.nextcards, self.talon):
+            if header.type == "SkillCard":
+                header = header.ref_original()
+                count = handcounts.get(header, 0)
+                count += 1
+                handcounts[header] = count
+
+        for header in ccard.get_pocketcards(cw.POCKET_SKILL):
+            count = handcounts.get(header, 0)
+            header.set_uselimit(count - header.uselimit)
+
+        for header in itertools.chain(self.hand, self.nextcards, self.talon):
+            if header.type == "SkillCard":
+                count = handcounts.get(header.ref_original(), 0)
+                header.uselimit = count
 
     def clear(self, ccard):
         self.talon = []
