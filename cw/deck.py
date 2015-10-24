@@ -171,6 +171,13 @@ class Deck(object):
                 talon.append(header)
         self.talon = talon
         self.shuffle()
+        if self._throwaway:
+            # 手札喪失が予約されている場合に限りhandからも除去
+            hand = []
+            for header in self.hand:
+                if header.type <> "SkillCard":
+                    hand.append(header)
+            self.hand = hand
 
         nextcards = []
         for header in self.nextcards:
