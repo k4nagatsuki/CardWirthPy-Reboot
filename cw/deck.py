@@ -162,6 +162,11 @@ class Deck(object):
             if header.type <> "SkillCard":
                 talon.append(header)
         self.talon = talon
+        nextcards = []
+        for header in self.nextcards:
+            if header.type <> "SkillCard":
+                nextcards.append(header)
+        self.nextcards = nextcards
         self.shuffle()
 
     def clear(self, ccard):

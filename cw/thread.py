@@ -1661,6 +1661,10 @@ class CWPy(_Singleton, threading.Thread):
                                     self.set_yado()
                                     return
 
+                        for pcard in self.get_pcards():
+                            pcard.set_fullrecovery()
+                            pcard.update_image()
+
                         if musicpaths:
                             for i, (musicpath, _subvolume, _loopcount, inusecard) in enumerate(musicpaths):
                                 music = self.music[i]
