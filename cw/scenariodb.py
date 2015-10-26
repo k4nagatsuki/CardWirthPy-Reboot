@@ -632,7 +632,7 @@ def read_summary(basepath):
     if name.lower().endswith(".wsm"):
         fdata = z.read(name)
         f = cw.binary.cwfile.CWFile("", "rb", decodewrap=True, f=io.BytesIO(fdata))
-        return read_summary_classic(path, path, f)
+        return read_summary_classic(basepath, path, f)
 
     scedir = os.path.dirname(name)
     scedir = cw.util.decode_zipname(scedir)
