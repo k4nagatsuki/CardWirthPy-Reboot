@@ -1953,6 +1953,9 @@ class EventView(wx.ScrolledWindow):
 
         def func(self):
             nowrunning = cw.cwpy.event.get_nowrunningevent()
+            if not cw.cwpy.is_playingscenario() or cw.cwpy.areaid < 0:
+                nowrunning = None
+
             trees = nowrunning.trees if not nowrunning is None else None
 
             def func(self, nowrunning, trees):
