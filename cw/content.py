@@ -2965,7 +2965,7 @@ class TalkMessageContent(TalkContent):
 
         talkers = []
         firsttalker = None
-        talk = True
+        talk = bool(not len(imgpaths))
 
         for i, info in enumerate(imgpaths):
             imgpath = info.path
