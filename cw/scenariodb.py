@@ -75,7 +75,7 @@ class Scenariodb(object):
     tags(タグ。"\n"が区切り),
     ctime(DB登録時間。エポック秒),
     mtime(ファイル最終更新時間。エポック秒),
-    image(見出し画像。バイナリ)
+    imgpath(見出し画像)
     """
     @synclock(_lock)
     def __init__(self):
@@ -119,6 +119,19 @@ class Scenariodb(object):
                 self.cur.execute(s)
                 needcommit = True
 
+            # imgpathが存在しない場合は作成する(Wsn.1で複合イメージ化したため)
+            cur = self.con.execute("PRAGMA table_info('scenariodb')")
+            res = cur.fetchall()
+            hastype = False
+            for rec in res:
+                if rec[1] == "imgpath":
+                    hastype = True
+                    break
+            if not hastype:
+                self.cur.execute("ALTER TABLE scenariodb ADD COLUMN imgpath TEXT")
+                self.cur.execute("UPDATE scenariodb SET imgpath=?", ("",))
+                needcommit = True
+
             if needcommit:
                 self.con.commit()
         else:
@@ -129,7 +142,7 @@ class Scenariodb(object):
                    dpath TEXT, type INTEGER, fname TEXT, name TEXT, author TEXT,
                    desc TEXT, skintype TEXT, levelmin INTEGER, levelmax INTEGER,
                    coupons TEXT, couponsnum INTEGER, startid INTEGER,
-                   tags TEXT, ctime INTEGER, mtime INTEGER, image BLOB,
+                   tags TEXT, ctime INTEGER, mtime INTEGER, image BLOB, imgpath TEXT,
                    PRIMARY KEY (dpath, fname))"""
 
             self.cur.execute(s)
@@ -237,8 +250,13 @@ class Scenariodb(object):
             self.con.commit()
 
     def insert(self, t, commit=True, skintype=u""):
-        s = """INSERT OR REPLACE INTO scenariodb
-               VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        s = """INSERT OR REPLACE INTO scenariodb(
+                    dpath, type, fname, name, author, desc, skintype,
+                    levelmin, levelmax, coupons, couponsnum,
+                    startid, tags, ctime, mtime, image, imgpath
+               ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+               )"""
         self.cur.execute(s, t)
         if skintype:
             s = """INSERT OR REPLACE INTO scenariotype
@@ -355,12 +373,48 @@ class Scenariodb(object):
 
     def _fetch(self, dpath, fname, skintype):
         if skintype:
-            s = "SELECT A.* FROM scenariodb A LEFT JOIN scenariotype B" +\
+            s = "SELECT" +\
+                "     A.dpath," +\
+                "     A.type," +\
+                "     A.fname," +\
+                "     A.name," +\
+                "     A.author," +\
+                "     A.desc," +\
+                "     A.skintype," +\
+                "     A.levelmin," +\
+                "     A.levelmax," +\
+                "     A.coupons," +\
+                "     A.couponsnum," +\
+                "     A.startid," +\
+                "     A.tags," +\
+                "     A.ctime," +\
+                "     A.mtime," +\
+                "     A.image," +\
+                "     A.imgpath" +\
+                " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND A.fname=? AND (B.skintype=? OR B.skintype IS NULL)"
             self.cur.execute(s, (dpath, fname, skintype,))
         else:
-            s = "SELECT * FROM scenariodb WHERE dpath=? AND fname=?"
+            s = "SELECT" +\
+                "     A.dpath," +\
+                "     A.type," +\
+                "     A.fname," +\
+                "     A.name," +\
+                "     A.author," +\
+                "     A.desc," +\
+                "     A.skintype," +\
+                "     A.levelmin," +\
+                "     A.levelmax," +\
+                "     A.coupons," +\
+                "     A.couponsnum," +\
+                "     A.startid," +\
+                "     A.tags," +\
+                "     A.ctime," +\
+                "     A.mtime," +\
+                "     A.image," +\
+                "     A.imgpath" +\
+                " FROM scenariodb A WHERE dpath=? AND fname=?"
             self.cur.execute(s, (dpath, fname,))
 
     @synclock(_lock)
@@ -368,12 +422,48 @@ class Scenariodb(object):
         dpath = cw.util.get_linktarget(dpath).replace("\\", "/")
 
         if skintype:
-            s = "SELECT A.* FROM scenariodb A LEFT JOIN scenariotype B" +\
+            s = "SELECT" +\
+                "     A.dpath," +\
+                "     A.type," +\
+                "     A.fname," +\
+                "     A.name," +\
+                "     A.author," +\
+                "     A.desc," +\
+                "     A.skintype," +\
+                "     A.levelmin," +\
+                "     A.levelmax," +\
+                "     A.coupons," +\
+                "     A.couponsnum," +\
+                "     A.startid," +\
+                "     A.tags," +\
+                "     A.ctime," +\
+                "     A.mtime," +\
+                "     A.image," +\
+                "     A.imgpath" +\
+                " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
             self.cur.execute(s, (dpath, skintype,))
         else:
-            s = "SELECT * FROM scenariodb WHERE dpath=?"
+            s = "SELECT" +\
+                "     A.dpath," +\
+                "     A.type," +\
+                "     A.fname," +\
+                "     A.name," +\
+                "     A.author," +\
+                "     A.desc," +\
+                "     A.skintype," +\
+                "     A.levelmin," +\
+                "     A.levelmax," +\
+                "     A.coupons," +\
+                "     A.couponsnum," +\
+                "     A.startid," +\
+                "     A.tags," +\
+                "     A.ctime," +\
+                "     A.mtime," +\
+                "     A.image," +\
+                "     A.imgpath" +\
+                " FROM scenariodb A WHERE dpath=?"
             self.cur.execute(s, (dpath,))
 
         data = self.cur.fetchall()
@@ -440,7 +530,25 @@ class Scenariodb(object):
             return value2
 
         if skintype:
-            s = "SELECT A.* FROM scenariodb A LEFT JOIN scenariotype B" +\
+            s = "SELECT" +\
+                "     A.dpath," +\
+                "     A.type," +\
+                "     A.fname," +\
+                "     A.name," +\
+                "     A.author," +\
+                "     A.desc," +\
+                "     A.skintype," +\
+                "     A.levelmin," +\
+                "     A.levelmax," +\
+                "     A.coupons," +\
+                "     A.couponsnum," +\
+                "     A.startid," +\
+                "     A.tags," +\
+                "     A.ctime," +\
+                "     A.mtime," +\
+                "     A.image," +\
+                "     A.imgpath" +\
+                " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE " + where +\
                 "     AND (B.skintype=? OR B.skintype IS NULL)"
@@ -449,7 +557,25 @@ class Scenariodb(object):
             else:
                 values = (encode_like(value), skintype,)
         else:
-            s = "SELECT * FROM scenariodb WHERE " + where
+            s = "SELECT" +\
+                "     A.dpath," +\
+                "     A.type," +\
+                "     A.fname," +\
+                "     A.name," +\
+                "     A.author," +\
+                "     A.desc," +\
+                "     A.skintype," +\
+                "     A.levelmin," +\
+                "     A.levelmax," +\
+                "     A.coupons," +\
+                "     A.couponsnum," +\
+                "     A.startid," +\
+                "     A.tags," +\
+                "     A.ctime," +\
+                "     A.mtime," +\
+                "     A.image," +\
+                "     A.imgpath" +\
+                " FROM scenariodb A WHERE " + where
             if ftype == DATA_LEVEL:
                 values = (value, value,)
             else:
@@ -535,7 +661,7 @@ def read_summary(basepath):
             spath = cw.util.join_paths(path, "Summary.xml")
             if os.path.isfile(spath):
                 e = cw.data.xml2element(spath, "Property")
-                imgpath, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath))
+                imgpath, imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath))
                 imgbuf = ""
                 if imgpath:
                     imgpath = cw.util.join_paths(path, imgpath)
@@ -545,6 +671,7 @@ def read_summary(basepath):
                             f2.close()
                 imgbuf = buffer(imgbuf)
                 summaryinfos.append(imgbuf)
+                summaryinfos.append(imgpaths)
                 return tuple(summaryinfos)
         except:
             cw.util.print_ex()
@@ -587,7 +714,7 @@ def read_summary(basepath):
                             e = cw.data.xml2element(summpath2, "Property")
 
                             try:
-                                imgpath, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+                                imgpath, imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
                             except:
                                 return None
 
@@ -605,6 +732,7 @@ def read_summary(basepath):
 
                             imgbuf = buffer(imgbuf)
                             summaryinfos.append(imgbuf)
+                            summaryinfos.append(imgpaths)
                             return tuple(summaryinfos)
 
                         finally:
@@ -644,7 +772,7 @@ def read_summary(basepath):
         f.close()
 
     try:
-        imgpath, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+        imgpath, imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
     except:
         z.close()
         return None
@@ -658,11 +786,18 @@ def read_summary(basepath):
     imgbuf = buffer(imgbuf)
     z.close()
     summaryinfos.append(imgbuf)
+    summaryinfos.append(imgpaths)
     return tuple(summaryinfos)
 
 def parse_summarydata(basepath, data, scetype, archive, mtime):
     e = data.find("ImagePath")
-    imgpath = e.text or ""
+    imgpath = e.text if not e is None and e.text else ""
+    imgpaths = []
+    e = data.find("ImagePaths")
+    if not e is None:
+        for e2 in e:
+            if e2.tag == "ImagePath" and e2.text:
+                imgpaths.append(e2.text)
     e = data.find("Name")
     name = e.text or ""
     e = data.find("Author")
@@ -694,8 +829,9 @@ def parse_summarydata(basepath, data, scetype, archive, mtime):
         dpath, fname = os.path.split(basepath)
     else:
         dpath, fname = os.path.split(os.path.dirname(basepath))
-    return (imgpath, [dpath, scetype, fname, name, author, desc, skintype, levelmin,
-                levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
+    return (imgpath, "\n".join(imgpaths),
+             [dpath, scetype, fname, name, author, desc, skintype, levelmin,
+              levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
 
 def read_summary_classic(basepath, spath, f=None):
     try:
@@ -719,6 +855,7 @@ def read_summary_classic(basepath, spath, f=None):
     if imgbuf:
         imgbuf = buffer(imgbuf)
     summaryinfos.append(imgbuf)
+    summaryinfos.append("")
     return tuple(summaryinfos)
 
 def get_scenariopaths(path):

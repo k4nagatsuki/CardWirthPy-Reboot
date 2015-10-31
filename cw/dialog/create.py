@@ -31,8 +31,11 @@ class AdventurerDataComp(wx.Dialog):
             self.age = cw.cwpy.setting.periodcoupons[0]
             self.ccard.set_age(self.age)
         # 画像
-        bmp = cw.wins((cw.util.load_wxbmp(ccard.imgpath, True), cw.SIZE_CARDIMAGE))
-        self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmp)
+        bmps = []
+        for info in ccard.imgpaths:
+            bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
+            bmps.append(bmp)
+        self.bmp = cw.util.CWPyStaticBitmap(self, -1, bmps, size=cw.wins(cw.SIZE_CARDIMAGE))
         # 各種テキスト
         s = cw.cwpy.msgs["insufficiency_message"]
         s = cw.util.txtwrap(s, 0, width=42, wrapschars=cw.util.WRAPS_CHARS)
@@ -143,7 +146,7 @@ class AdventurerData(object):
     def __init__(self):
         self.id = "0"
         self.name = ""
-        self.imgpath = ""
+        self.imgpaths = []
         self.description = ""
         self.level = 1
         self.maxlife = 0
@@ -229,8 +232,8 @@ class AdventurerData(object):
     def set_name(self, name):
         self.name = name
 
-    def set_image(self, path):
-        self.imgpath = path
+    def set_images(self, paths):
+        self.imgpaths = paths
 
     def set_sex(self, sex):
         for f in cw.cwpy.setting.sexes:
@@ -582,8 +585,8 @@ class AdventurerCreater(wx.Dialog):
         data.set_age(s)
         race = self.page2.get_race()
         data.set_race(race)
-        s = self.page1.imgpath
-        data.set_image(s)
+        s = self.page1.imgpaths
+        data.set_images(s)
         #型と特徴で解説を作る
         data.set_talent(talent)
         coupons = self.page5.get_coupons()
@@ -663,15 +666,18 @@ class AdventurerCreaterPage(wx.Panel):
             pos = pos[0] - cw.wins(2), pos[1] - cw.wins(2)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
 
-    def draw_clickablebmp(self, dc, bmp, pos, name, method, wheelmethod, mask=True):
-        size = bmp.GetSize()
-        dc.DrawBitmap(bmp, pos[0], pos[1], True)
-
+    def set_clickablearea(self, pos, size, name, method, wheelmethod):
         if not name in self.clickables:
             # クリックしにくいのでサイズ拡大
             size = size[0] + cw.wins(20), size[1] + cw.wins(20)
             pos = pos[0] - cw.wins(10), pos[1] - cw.wins(10)
             self.clickables[name] = pygame.Rect(pos, size), method, wheelmethod
+
+    def draw_clickablebmp(self, dc, bmp, pos, name, method, wheelmethod, mask=True):
+        size = bmp.GetSize()
+        dc.DrawBitmap(bmp, pos[0], pos[1], True)
+
+        self.set_clickablearea(pos, size, name, method, wheelmethod)
 
     def set_next(self, page):
         self.next = page
@@ -694,38 +700,38 @@ class AdventurerCreaterPage(wx.Panel):
     def is_skip(self):
         return False
 
-    def set_imgpaths(self, reset=True):
-        if reset or self.imgpath == "":
-            self.imgpaths = {}
+    def set_imgpathlist(self, reset=True):
+        if reset or not self.imgpaths:
+            self.imgpathlist = {}
             self.imgdpath = -1
         else:
-            self.imgpaths = {None:[self.imgpath]}
+            self.imgpathlist = {None:[self.imgpaths]}
             self.imgdpath = 0
 
-        adddefaults = reset or self.imgpath == ""
-        imgpaths = cw.util.get_facepaths(self.sex, self.age, adddefaults=adddefaults)
-        if 1 == len(imgpaths):
-            if self.imgpaths:
-                self.imgpaths[None].extend(imgpaths.values()[0])
+        adddefaults = reset or not self.imgpaths
+        imgpathlist = cw.util.get_facepaths(self.sex, self.age, adddefaults=adddefaults)
+        if 1 == len(imgpathlist):
+            if self.imgpathlist:
+                self.imgpathlist[None].extend(imgpathlist.values()[0])
             else:
-                self.imgpaths.update(imgpaths)
+                self.imgpathlist.update(imgpathlist)
         else:
-            self.imgpaths.update(imgpaths)
+            self.imgpathlist.update(imgpathlist)
 
-        self.imgdpaths = self.imgpaths.keys()
+        self.imgdpaths = self.imgpathlist.keys()
         self.imgdpaths.sort()
 
-        if self.imgpaths and (reset or self.imgpath == ""):
-            if None in self.imgpaths:
-                self.imgpath = self.imgpaths[None][0]
+        if self.imgpathlist and (reset or not self.imgpaths):
+            if None in self.imgpathlist:
+                self.imgpaths = _path_to_imageinfo(self.imgpathlist[None][0])
                 self.imgdpath = 0
             else:
                 key = self.imgdpaths[0]
-                self.imgpath = self.imgpaths[key][0]
+                self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
                 self.imgdpath = 0
 
         self.ch_imgdpath.Clear()
-        if 1 < len(self.imgpaths):
+        if 1 < len(self.imgpathlist):
             for key in self.imgdpaths:
                 if key is None:
                     self.ch_imgdpath.Append(cw.cwpy.msgs["no_change"])
@@ -757,6 +763,11 @@ class AdventurerCreaterPage(wx.Panel):
     def select_autofeatures(self):
         pass
 
+def _path_to_imageinfo(path):
+    if isinstance(path, (str, unicode)):
+        return [cw.image.ImageInfo(path)]
+    return path
+
 class NamePage(AdventurerCreaterPage):
     def __init__(self, parent):
         AdventurerCreaterPage.__init__(self, parent)
@@ -780,9 +791,9 @@ class NamePage(AdventurerCreaterPage):
             if period.firstselect:
                 self.age = u"＿" + period.name
                 break
-        self.imgpath = ""
+        self.imgpaths = []
         self.imgdpath = None
-        self.set_imgpaths(True)
+        self.set_imgpathlist(True)
         self._bind()
         self._do_layout()
 
@@ -851,7 +862,7 @@ class NamePage(AdventurerCreaterPage):
             cw.cwpy.play_sound("page")
             self.imgdpath = index
             key = self.imgdpaths[index]
-            self.imgpath = self.imgpaths[key][0]
+            self.imgpaths = self.imgpathlist[key][0]
             self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
             self.draw(True)
             self.textctrl.SetFocus()
@@ -926,21 +937,23 @@ class NamePage(AdventurerCreaterPage):
         pos = cw.wins((365, 170))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        bmp = cw.wins((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
-        self.draw_clickablebmp(dc, bmp, cw.wins((275, 130)), "Face", None, self.on_mousewheel, True)
+        for info in self.imgpaths:
+            bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
+            dc.DrawBitmap(bmp, cw.wins(275), cw.wins(130), True)
+        self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
     def set_sex(self, name):
         if not self.sex == name:
             cw.cwpy.play_sound("click")
             self.sex = name
-            self.set_imgpaths(True)
+            self.set_imgpathlist(True)
             self.draw(True)
 
     def set_age(self, name):
         if not self.age == name:
             cw.cwpy.play_sound("click")
             self.age = name
-            self.set_imgpaths(True)
+            self.set_imgpathlist(True)
             self.draw(True)
 
     def on_mousewheel(self, name, rotate):
@@ -966,15 +979,15 @@ class NamePage(AdventurerCreaterPage):
                 self.textctrl.SetValue(randomname)
                 self.input_name = ""
 
-        self.set_imgpaths(True)
+        self.set_imgpathlist(True)
         if self.imgdpaths:
             self.imgdpath = cw.cwpy.dice.roll(1, len(self.imgdpaths)) - 1
             self.ch_imgdpath.SetSelection(self.imgdpath)
             key = self.imgdpaths[self.imgdpath]
-            self.imgpath = cw.cwpy.dice.choice(self.imgpaths[key])
+            self.imgpaths = _path_to_imageinfo(cw.cwpy.dice.choice(self.imgpathlist[key]))
         else:
             self.imgdpath = ""
-            self.imgpath = ""
+            self.imgpaths = []
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
 
         self.draw(True)
@@ -1887,7 +1900,7 @@ class AdventurerDesignDialog(wx.Dialog):
         self.ccard.set_name(name)
         self.ccard.set_description(desc)
         if self.toppanel.is_changedimgpath():
-            self.ccard.set_image(self.toppanel.imgpath)
+            self.ccard.set_images(self.toppanel.imgpaths)
         self.ccard.data.is_edited = True
         self.ccard.data.write_xml()
 
@@ -1937,10 +1950,10 @@ class DesignPanel(AdventurerCreaterPage):
         self.descctrl.SetClientSize((w, cw.wins(107)))
         self.descctrl.SetInitialSize(self.descctrl.GetSize())
 
-        self.imgpath = self.ccard.get_imagepath()
-        if self.imgpath <> "":
-            self.imgpath = cw.util.join_yadodir(self.imgpath)
-        self._oldimgpath = self.imgpath
+        self.imgpaths = []
+        for info in self.ccard.get_imagepaths():
+            self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info))
+        self._oldimgpath = self.imgpaths[:]
 
         self.name = self.ccard.get_name()
         self.desc = self.ccard.get_description()
@@ -1951,7 +1964,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.namectrl.SetSelection(0, len(self.name))
         self.descctrl.SetValue(cw.util.decodewrap(self.desc))
 
-        self.set_imgpaths(False)
+        self.set_imgpathlist(False)
         self._bind()
         self._do_layout()
 
@@ -1966,7 +1979,7 @@ class DesignPanel(AdventurerCreaterPage):
         cw.util.set_acceleratortable(self, seq)
 
     def is_changedimgpath(self):
-        return self._oldimgpath <> self.imgpath
+        return self._oldimgpath <> self.imgpaths
 
     def _bind(self):
         AdventurerCreaterPage._bind(self)
@@ -2022,7 +2035,7 @@ class DesignPanel(AdventurerCreaterPage):
             cw.cwpy.play_sound("page")
             self.imgdpath = index
             key = self.imgdpaths[index]
-            self.imgpath = self.imgpaths[key][0]
+            self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
             self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
             self.draw(True)
             self.namectrl.SetFocus()
@@ -2097,8 +2110,11 @@ class DesignPanel(AdventurerCreaterPage):
         pos = cw.wins((260, y2+34))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
-        bmp = cw.wins((cw.util.load_wxbmp(self.imgpath, True), cw.SIZE_CARDIMAGE))
-        self.draw_clickablebmp(dc, bmp, ((cwidth - cw.wins(74)) / 2, cw.wins(y2)), "Face", None, self.on_mousewheel, True)
+        x, y = (cwidth - cw.wins(74)) / 2, cw.wins(y2)
+        for info in self.imgpaths:
+            bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
+            dc.DrawBitmap(bmp, x, y, True)
+        self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
     def on_mousewheel(self, name, rotate):
         if rotate < 0:
@@ -2113,46 +2129,38 @@ class DesignPanel(AdventurerCreaterPage):
         _set_previmg(self, name)
 
 def _set_nextimg(panel, name):
-    if panel.imgpaths:
+    if panel.imgpathlist:
         cw.cwpy.play_sound("page")
         key = panel.imgdpaths[panel.imgdpath]
         if key is None and 1 < len(panel.imgdpaths):
             panel.imgdpath = 1
             panel.ch_imgdpath.SetSelection(1)
             key = panel.imgdpaths[1]
-            imgpaths = panel.imgpaths[key]
-            panel.imgpath = imgpaths[0]
+            imgpathlist = panel.imgpathlist[key]
+            panel.imgpaths = _path_to_imageinfo(imgpathlist[0])
         else:
-            imgpaths = panel.imgpaths[key]
+            imgpathlist = panel.imgpathlist[key]
 
-            index = imgpaths.index(panel.imgpath) + 1
-
-            try:
-                panel.imgpath = imgpaths[index]
-            except:
-                panel.imgpath = imgpaths[0]
+            index = (imgpathlist.index(panel.imgpaths[0].path) + 1) % len(imgpathlist)
+            panel.imgpaths = _path_to_imageinfo(imgpathlist[index])
 
         panel.Refresh()
 
 def _set_previmg(panel, name):
-    if panel.imgpaths:
+    if panel.imgpathlist:
         cw.cwpy.play_sound("page")
         key = panel.imgdpaths[panel.imgdpath]
         if key is None and 1 < len(panel.imgdpaths):
             panel.imgdpath = 1
             panel.ch_imgdpath.SetSelection(1)
             key = panel.imgdpaths[1]
-            imgpaths = panel.imgpaths[key]
-            panel.imgpath = imgpaths[0]
+            imgpathlist = panel.imgpathlist[key]
+            panel.imgpaths = _path_to_imageinfo(imgpathlist[0])
         else:
-            imgpaths = panel.imgpaths[key]
+            imgpathlist = panel.imgpathlist[key]
 
-            index = imgpaths.index(panel.imgpath) - 1
-
-            try:
-                panel.imgpath = imgpaths[index]
-            except:
-                panel.imgpath = imgpaths[0]
+            index = imgpathlist.index(panel.imgpaths[0].path) - 1
+            panel.imgpaths = _path_to_imageinfo(imgpathlist[index])
 
         panel.Refresh()
 

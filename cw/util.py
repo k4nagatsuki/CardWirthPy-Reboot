@@ -586,16 +586,16 @@ def get_imageext(b):
     """dataが画像であれば対応する拡張子を返す。"""
     if 22 < len(b) and 'B' == b[0] and 'M' == b[1]:
         return ".bmp"
-    if 25 <= len(b) and 0x89 == b[0] and 'P' == b[1] and 'N' == b[2] and 'G' == b[3]:
+    if 25 <= len(b) and 0x89 == ord(b[0]) and 'P' == b[1] and 'N' == b[2] and 'G' == b[3]:
         return ".png"
     if 10 <= len(b) and 'G' == b[0] and 'I' == b[1] and 'F' == b[2]:
         return ".gif"
-    if 6 <= len(b) and 0xFF == b[0] and 0xD8 == b[1]:
+    if 6 <= len(b) and 0xFF == ord(b[0]) and 0xD8 == ord(b[1]):
         return ".jpg"
     if 10 <= len(b):
-        if 'M' == b[0] and 'M' == b[1] and 42 == b[3]:
+        if 'M' == b[0] and 'M' == b[1] and 42 == ord(b[3]):
             return ".tiff"
-        elif 'I' == b[0] and 'I' == b[1] and 42 == b[2]:
+        elif 'I' == b[0] and 'I' == b[1] and 42 == ord(b[2]):
             return ".tiff"
     return ""
 
@@ -1750,7 +1750,14 @@ def cab_hasfile(cab, fname):
 
     dword = struct.Struct("<l")
     word = struct.Struct("<h")
-    fname = os.path.normcase(fname)
+    if isinstance(fname, (str, unicode)):
+        fname = os.path.normcase(fname)
+    else:
+        s = set()
+        for name in fname:
+            s.add(os.path.normcase(name))
+        fname = s
+
     encoding = "cp932"
     try:
         with io.BufferedReader(io.FileIO(cab, "rb")) as f:
@@ -1777,13 +1784,25 @@ def cab_hasfile(cab, fname):
                 _A_NAME_IS_UTF = 0x80
                 if not (attribs & _A_NAME_IS_UTF):
                     name = unicode(name, encoding)
-                if fname == os.path.normcase(os.path.basename(name)):
-                    f.close()
-                    return name
+                if isinstance(fname, (str, unicode)):
+                    if fname == os.path.normcase(os.path.basename(name)):
+                        f.close()
+                        return name
+                else:
+                    if os.path.normcase(os.path.basename(name)) in fname:
+                        f.close()
+                        return name
             f.close()
     except Exception:
         cw.util.print_ex()
     return ""
+
+def cab_scdir(cab):
+    """CABアーカイブ内でSummary.wsmまたは
+    Summary.xmlが含まれるフォルダを返す。
+    """
+    fpath = cab_hasfile(cab, ("Summary.xml", "Summary.wid"))
+    return os.path.dirname(fpath)
 
 #-------------------------------------------------------------------------------
 #　テキスト操作関連
@@ -2370,13 +2389,19 @@ def adjust_position(frame):
 class CWPyStaticBitmap(wx.Panel):
     """wx.StaticBitmapはアルファチャンネル付きの画像を
     正しく表示できない場合があるので代替する。
+    複数重ねての表示にも対応。
     """
-    def __init__(self, parent, cid, bmp, size=None):
-        if not size and bmp:
-            s = bmp.GetSize()
-            size = (s[0], s[1])
+    def __init__(self, parent, cid, bmps, size=None):
+        if not size and bmps:
+            w = 0
+            h = 0
+            for bmp in bmps:
+                s = bmp.GetSize()
+                w = max(w, s[0])
+                h = max(h, s[1])
+            size = (w, h)
         wx.Panel.__init__(self, parent, cid, size=size)
-        self.bmp = bmp
+        self.bmps = bmps
         self._bind()
 
     def _bind(self):
@@ -2384,14 +2409,15 @@ class CWPyStaticBitmap(wx.Panel):
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, 0, 0, True)
+        for bmp in self.bmps:
+            dc.DrawBitmap(bmp, 0, 0, True)
 
-    def SetBitmap(self, bmp):
-        self.bmp = bmp
+    def SetBitmap(self, bmps):
+        self.bmps = bmps
         self.Refresh()
 
-    def GetBitmap(self, bmp):
-        return self.bmp
+    def GetBitmap(self, bmps):
+        return self.bmps
 
 def abbr_longstr(dc, text, w):
     """ClientDCを使って長い文字列を省略して末尾に三点リーダを付ける。

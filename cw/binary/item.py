@@ -215,8 +215,8 @@ class ItemCard(base.CWBinaryBase):
                         resid = int(prop.text)
                     elif prop.tag == "Name":
                         name = prop.text
-                    elif prop.tag == "ImagePath":
-                        image = base.CWBinaryBase.import_image(prop.text)
+                    elif prop.tag in ("ImagePath", "ImagePaths"):
+                        image = base.CWBinaryBase.import_image(f, prop)
                     elif prop.tag == "Description":
                         description = prop.text
                     elif prop.tag == "Scenario":

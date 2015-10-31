@@ -446,16 +446,17 @@ class TopPanel(wx.Panel):
         # カード画像の後ろにある羽みたいなの
         cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(50)))
         # カード画像
-        path = self.ccard.data.gettext("Property/ImagePath", "")
-        if isinstance(cw.cwpy.selection, (cw.character.Enemy,
-                                            cw.character.Friend)):
-            path = cw.util.get_materialpath(path, cw.M_IMG)
-        elif not cw.binary.image.path_is_code(path):
-            path = cw.util.join_yadodir(path)
-
-        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         x = (dc.GetSize()[0] - cw.wins(74)) / 2
-        dc.DrawBitmap(bmp, x, cw.wins(5), True)
+        for info in cw.image.get_imageinfos(self.ccard.data.find("Property")):
+            path = info.path
+            if isinstance(cw.cwpy.selection, (cw.character.Enemy,
+                                                cw.character.Friend)):
+                path = cw.util.get_materialpath(path, cw.M_IMG)
+            elif not cw.binary.image.path_is_code(path):
+                path = cw.util.join_yadodir(path)
+
+            bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+            dc.DrawBitmap(bmp, x, cw.wins(5), True)
         # レベル
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam" , pixelsize=cw.wins(16)))
         coupons = self.ccard.get_specialcoupons()

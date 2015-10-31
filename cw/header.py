@@ -3,9 +3,11 @@
 
 import os
 import io
+import sys
 import re
 import copy
 import weakref
+import subprocess
 import wx
 import pygame
 import xml.parsers.expat
@@ -25,7 +27,7 @@ class CardHeader(object):
             self.type = dbrec["type"]
             self.id = dbrec["id"]
             self.name = dbrec["name"]
-            self.imgpath = dbrec["imgpath"]
+            self.imgpaths = map(lambda p: cw.image.ImageInfo(p), dbrec["imgpath"].split("\n"))
             self.desc = dbrec["desc"]
             self.scenario = dbrec["scenario"]
             self.author = dbrec["author"]
@@ -127,7 +129,7 @@ class CardHeader(object):
                 self.price = 1000
 
             # Image
-            self.imgpath = data.gettext("ImagePath", "")
+            self.imgpaths = cw.image.get_imageinfos(data)
             # 互換性マーク
             self.versionhint = cw.cwpy.sct.from_basehint(data.getattr(".", "versionHint", ""))
 
@@ -198,20 +200,22 @@ class CardHeader(object):
             return 0
         return -self.star
 
-    def set_cardimg(self, path):
-        if not cw.binary.image.path_is_code(path):
-            if self.type in ("ActionCard", "UseCardInBackpack"):
-                path = cw.util.join_paths(cw.cwpy.skindir, path)
-                path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
-            elif self.scenariocard or self.scedir:
-                path = cw.util.get_materialpath(path, cw.M_IMG, scedir=self.scedir)
-            elif not self.scenariocard:
-                path = cw.util.join_yadodir(path)
+    def set_cardimg(self, imgpaths):
+        paths = []
+        for info in imgpaths:
+            path = info.path
+            if not cw.binary.image.path_is_code(path):
+                if self.type in ("ActionCard", "UseCardInBackpack"):
+                    path = cw.util.join_paths(cw.cwpy.skindir, path)
+                    path = cw.util.get_materialpathfromskin(path, cw.M_IMG)
+                elif self.scenariocard or self.scedir:
+                    path = cw.util.get_materialpath(path, cw.M_IMG, scedir=self.scedir)
+                elif not self.scenariocard:
+                    path = cw.util.join_yadodir(path)
+            paths.append(cw.image.ImageInfo(path, base=info))
 
-        imgpath = path
         # TODO scaleinfo
-        self._cardimg = cw.image.CardImage(imgpath, self.get_bgtype(),
-                                                    self.name, self.premium)
+        self._cardimg = cw.image.CardImage(paths, self.get_bgtype(), self.name, self.premium)
         self.rect = pygame.Rect(self.rect)
         self.rect.size = self._cardimg.rect.size
         self.wxrect = pygame.Rect(self._cardimg.wxrect)
@@ -251,7 +255,7 @@ class CardHeader(object):
                 self._skindirname <> cw.cwpy.setting.skindirname or\
                 self._bordering_cardname <> cw.cwpy.setting.bordering_cardname or\
                 self._show_premiumicon <> cw.cwpy.setting.show_premiumicon:
-            self.set_cardimg(self.imgpath)
+            self.set_cardimg(self.imgpaths)
         return self._cardimg
 
     def get_cardwxbmp(self, test_aptitude=None):
@@ -573,8 +577,8 @@ class CardHeader(object):
             owner = self.get_owner()
             owner.data.is_edited = True
         elif self.is_backpackheader() and self.scenariocard and self.carddata:
-            path = self.carddata.gettext("Property/ImagePath", "")
-            self.set_cardimg(path)
+            imgpaths = cw.image.get_imageinfos(self.carddata.find("Property"))
+            self.set_cardimg(imgpaths)
 
     def set_scenarioend(self):
         """
@@ -599,9 +603,8 @@ class CardHeader(object):
             dstdir = cw.util.dupcheck_plus(dstdir)
             cw.cwpy.copy_materials(self.carddata, dstdir)
             # 画像更新
-            path = self.carddata.gettext("Property/ImagePath", "")
-            self.imgpath = path
-            self.set_cardimg(path)
+            self.imgpaths = cw.image.get_imageinfos(self.carddata.find("Property"))
+            self.set_cardimg(self.imgpaths)
             if self.is_backpackheader():
                 self.write()
                 self.carddata = None
@@ -624,7 +627,7 @@ class CardHeader(object):
         CardImageインスタンスを新しく生成して返す。
         """
         header = copy.copy(self)
-        header.set_cardimg(self.imgpath)
+        header.set_cardimg(self.imgpaths)
         return header
 
     def is_ccardheader(self):
@@ -795,9 +798,10 @@ class InfoCardHeader(object):
         self.scenario = cw.cwpy.sdata.name
         self.author = cw.cwpy.sdata.author
         # 画像
-        path = data.gettext("ImagePath", "")
-        path = cw.util.get_materialpath(path, cw.M_IMG)
-        self.imgpath = path
+        imgpaths = cw.image.get_imageinfos(data)
+        for info in imgpaths:
+            info.path = cw.util.get_materialpath(info.path, cw.M_IMG)
+        self.imgpaths = imgpaths
         self.set_cardimg()
         # cardcontrolダイアログで使うフラグ
         self.negaflag = False
@@ -805,7 +809,7 @@ class InfoCardHeader(object):
 
     def set_cardimg(self):
         # TODO scaleinfo
-        self._cardimg = cw.image.CardImage(self.imgpath, "INFO", self.name)
+        self._cardimg = cw.image.CardImage(self.imgpaths, "INFO", self.name)
         self.rect = self._cardimg.rect
         self.wxrect = self._cardimg.wxrect
         self._cardscale = cw.UP_SCR
@@ -847,7 +851,7 @@ class AdventurerHeader(object):
             self.level = dbrec["level"]
             self.name = dbrec["name"]
             self.desc = dbrec["desc"]
-            self.imgpath = dbrec["imgpath"]
+            self.imgpaths = map(lambda p: cw.image.ImageInfo(p), dbrec["imgpath"].split("\n"))
             self.album = bool(dbrec["album"])
             self.lost = bool(dbrec["lost"])
             self.sex = dbrec["sex"]
@@ -866,7 +870,7 @@ class AdventurerHeader(object):
             self.level = int(prop.properties.get("Level", "0"))
             self.name = prop.properties.get("Name", "")
             self.desc = cw.util.decodewrap(prop.properties.get("Description", ""))
-            self.imgpath = prop.properties.get("ImagePath", "")
+            self.imgpaths = cw.image.get_imageinfos_p(prop)
             self.album = album
             self.lost = cw.util.str2bool(prop.attrs.get(".", {}).get("lost", "False"))
 
@@ -908,7 +912,7 @@ class AdventurerHeader(object):
             self.level = data.getint("Level", 0)
             self.name = data.gettext("Name", "")
             self.desc = cw.util.decodewrap(data.gettext("Description", ""))
-            self.imgpath = data.gettext("ImagePath", "")
+            self.imgpaths = cw.image.get_imageinfos(data)
             self.album = album
 
             # シナリオプレイ中にロストしたかどうかのフラグ
@@ -1048,8 +1052,11 @@ class AdventurerHeader(object):
 
         data.write_xml(True)
 
-    def get_imgpath(self):
-        return cw.util.join_yadodir(self.imgpath)
+    def get_imgpaths(self):
+        seq = []
+        for info in self.imgpaths:
+            seq.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path)))
+        return seq
 
     def get_age(self):
         for period in cw.cwpy.setting.periods:
@@ -1158,18 +1165,15 @@ class ScenarioHeader(object):
         self.ctime = t[13]
         self.mtime = t[14]
         self.image = t[15]
+        self.imgpaths = map(lambda p: cw.image.ImageInfo(p), t[16].split("\n"))
         self._wxbmp = None
+
+        self._images = None
 
     @property
     def mtime_reversed(self):
         """整列用の逆転した変更日時。"""
         return -self.mtime
-
-    def header2tuple(self):
-        return (self.dpath, self.type, self.fname, self.name, self.author, self.desc,
-                self.skintype, self.levelmin, self.levelmax, self.coupons,
-                self.couponsnum, self.startid, self.tags, self.ctime,
-                self.mtime, self.image)
 
     def get_fpath(self):
         return "/".join([self.dpath, self.fname])
@@ -1182,8 +1186,87 @@ class ScenarioHeader(object):
                     self._wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE))
                     f.close()
             else:
-                self._wxbmp = wx.EmptyBitmap(cw.wins(0), cw.wins(0))
+                self._wxbmp = None
         return self._wxbmp
+
+    def get_images(self):
+        """
+        シナリオの表題画像を返す。
+        """
+        if not self._images is None:
+            return self._images
+
+        path = self.get_fpath()
+        path = cw.util.get_linktarget(path)
+
+        bmps = []
+
+        # クラシックなシナリオまたは旧バージョンのバイナリデータ
+        self.get_wxbmp()
+        if self._wxbmp:
+            bmps.append(self._wxbmp)
+
+        if os.path.isfile(path):
+            # 圧縮ファイル内から取得
+            if path.lower().endswith(".cab"):
+                dpath = cw.util.join_paths(cw.tempdir, u"Cab", os.path.splitext(os.path.basename(path))[0])
+                dpath = cw.util.dupcheck_plus(dpath, yado=False)
+                if not os.path.isdir(dpath):
+                    os.makedirs(dpath)
+
+                try:
+                    sdir = cw.util.cab_scdir(path)
+                    for imgpath in self.imgpaths:
+                        if not imgpath.path:
+                            continue
+                        s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath.path), dpath)
+                        encoding = sys.getfilesystemencoding()
+                        if subprocess.call(s.encode(encoding), shell=True) == 0:
+                            fpath = cw.util.join_paths(dpath, sdir, imgpath.path)
+                            bmps.append(cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE)))
+
+                except:
+                    cw.util.print_ex()
+
+                finally:
+                    cw.util.remove(dpath)
+
+            else:
+                # ZIP・LHA
+                with cw.util.zip_file(path, "r") as z:
+                    names = z.namelist()
+                    # シナリオの場所を探す
+                    sdir = ""
+                    for name in names:
+                        name = cw.util.decode_zipname(name)
+                        if os.path.basename(name).lower() in ("summary.xml", "summary.wsm"):
+                            sdir = os.path.dirname(name)
+                            break
+
+                    for imgpath in self.imgpaths:
+                        ipath = cw.util.join_paths(sdir, imgpath.path).lower()
+                        ipath = os.path.normpath(ipath)
+                        for name in names:
+                            if os.path.normpath(cw.util.decode_zipname(name).lower()) == ipath:
+                                data = z.read(name)
+                                with io.BytesIO(data) as f:
+                                    # TODO scaleinfo
+                                    wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=True), cw.SIZE_CARDIMAGE))
+                                    f.close()
+                                bmps.append(wxbmp)
+                                break
+                    z.close()
+
+        elif os.path.isdir(path):
+            # 展開済みシナリオ
+            for imgpath in self.imgpaths:
+                if not imgpath.path:
+                    continue
+                fpath = cw.util.join_paths(path, imgpath.path)
+                bmps.append(cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE)))
+
+        self._images = bmps
+        return bmps
 
 class PartyHeader(object):
     def __init__(self, data=None, dbrec=None):

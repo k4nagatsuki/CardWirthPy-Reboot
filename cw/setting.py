@@ -1714,15 +1714,7 @@ class Resource(object):
         if not os.path.isfile(fpath):
             # 旧バージョンのスキンには存在しないのでSkinBaseを使用
             fpath = u"Data/SkinBase/Resource/Xml/SpecialCard/UseCardInBackpack.xml"
-            carddata = cw.data.xml2element(fpath)
-            # 拡張子をスキンに合わせて差し替える
-            imgpath = carddata.gettext("Property/ImagePath", "")
-            if imgpath:
-                imgpath = cw.util.find_resource(cw.util.join_paths(self.skindir, os.path.splitext(imgpath)[0]), self.ext_img)
-                imgpath = cw.util.relpath(imgpath, self.skindir)
-                carddata.find("Property/ImagePath").text = imgpath
-        else:
-            carddata = cw.data.xml2element(fpath)
+        carddata = cw.data.xml2element(fpath)
 
         d = {}
         for cardtype in ("ItemCard", "BeastCard"):

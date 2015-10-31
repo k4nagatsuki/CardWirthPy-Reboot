@@ -572,9 +572,15 @@ class TransferYadoDataDialog(wx.Dialog):
 
             fname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/ScenarioLog.xml")
             etree = cw.data.xml2etree(fname)
-            e = etree.getfind("Property/MusicPath")
-            if e.getbool(".", "inusecard", False):
-                e.text = counter.imgpaths.get(e.text, e.text)
+            e = etree.find("Property/MusicPath")
+            if not e is None:
+                if e.getbool(".", "inusecard", False):
+                    e.text = counter.imgpaths.get(e.text, e.text)
+            e = etree.find("Property/MusicPaths")
+            if not e is None:
+                for e2 in e:
+                    if e2.getbool(".", "inusecard", False):
+                        e2.text = counter.imgpaths.get(e2.text, e2.text)
             for e in etree.getfind("BgImages"):
                 if e.getbool("ImagePath", "inusecard", False):
                     e = e.find("ImagePath")
@@ -587,7 +593,13 @@ class TransferYadoDataDialog(wx.Dialog):
                 for e in etree.getfind("."):
                     member = e.get("member", "")
                     e.set("member", counter.membertable.get(member, member))
-                    e.text = counter.imgpaths.get(e.text, e.text)
+                    if e.tag == "ImagePath":
+                        # 旧バージョン(～0.12.3)
+                        e.text = counter.imgpaths.get(e.text, e.text)
+                    elif e.tag == "ImagePaths":
+                        # 新バージョン(複数イメージ対応後)
+                        for e2 in e:
+                            e2.text = counter.imgpaths.get(e2.text, e2.text)
                 etree.write()
 
             dname = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party")

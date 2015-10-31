@@ -1427,7 +1427,7 @@ class YadoData(object):
                                     imagedata = f.read()
                                     f.close()
                                 e2.text = cw.binary.image.data_to_code(imagedata)
-                                header.imgpath = e2.text
+                    header.imgpaths = cw.image.get_imageinfos(carddata.find("Property"))
 
                 carddata.write(path=carddata.fpath)
 

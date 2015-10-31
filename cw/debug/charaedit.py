@@ -179,10 +179,11 @@ class CharaInfo(object):
         if pcard:
             self.name = pcard.name
             self.race = pcard.get_race()
-            self.imgpath = pcard.get_imagepath()
-            if self.imgpath:
-                self.imgpath = cw.util.join_yadodir(self.imgpath)
-            self.imgpath_base = self.imgpath
+            self.imgpaths = []
+            imgpaths = pcard.get_imagepaths()
+            for info in imgpaths:
+                self.imgpaths.append(cw.image.ImageInfo(cw.util.join_yadodir(info.path), base=info))
+            self.imgpaths_base = self.imgpaths
             self.level = pcard.level
             self.sex = pcard.get_sex()
             self.age = pcard.get_age()
@@ -194,8 +195,8 @@ class CharaInfo(object):
         else:
             self.name = ""
             self.race = cw.cwpy.setting.unknown_race
-            self.imgpath = ""
-            self.imgpath_base = ""
+            self.imgpaths = ""
+            self.imgpaths_base = ""
             self.level = 1
             self.sex = cw.cwpy.setting.sexcoupons[0]
             self.age = cw.cwpy.setting.periodcoupons[0]
@@ -229,7 +230,7 @@ class CharaInfo(object):
         faces = []
         for values in cw.util.get_facepaths(self.sex, self.age).itervalues():
             faces.extend(values)
-        self.imgpath = cw.cwpy.dice.choice(faces) if faces else u""
+        self.imgpaths = [cw.image.ImageInfo(cw.cwpy.dice.choice(faces))] if faces else []
 
         natures = []
         for nature in cw.cwpy.setting.natures:
@@ -265,7 +266,7 @@ class CharaInfo(object):
                      self.makings <> pcard.get_makings() or\
                      self.type <> self.get_paramtype(pcard)
         updateetc  = self.name <> pcard.name or\
-                     self.imgpath <> self.imgpath_base or\
+                     self.imgpaths <> self.imgpaths_base or\
                      self.level <> pcard.level
 
         if updatebase:
@@ -356,8 +357,8 @@ class CharaInfo(object):
         if self.name <> pcard.name:
             pcard.set_name(self.name)
 
-        if self.imgpath <> self.imgpath_base:
-            pcard.set_image(self.imgpath)
+        if self.imgpaths <> self.imgpaths_base:
+            pcard.set_images(self.imgpaths)
 
         if updatebase or self.level <> pcard.level:
             pcard.set_level(self.level, debugedit=True)
@@ -375,7 +376,7 @@ class CharaInfo(object):
         data.set_sex(self.sex)
         data.set_age(self.age)
         data.set_race(self.race)
-        data.set_image(self.imgpath)
+        data.set_images(self.imgpaths)
         data.set_talent(self.talent)
         data.set_attributes(makings)
         data.set_aging(self.age)
@@ -438,9 +439,9 @@ class CharaRequirementPanel(wx.Panel):
         path = u"Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         self.defaultface = cw.util.load_wxbmp(path, mask=True)
-        self.img = cw.util.CWPyStaticBitmap(self, -1, self.defaultface, size=(74, 94))
+        self.img = cw.util.CWPyStaticBitmap(self, -1, [self.defaultface], size=cw.SIZE_CARDIMAGE)
         self.imgcombo = wx.ComboBox(self, -1, size=(125, -1), style=wx.CB_READONLY)
-        self.imgpaths = []
+        self.imgpathlist = []
 
         self.lvlbox = wx.StaticBox(self, -1, u"レベル")
         self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"Lv ―")
@@ -556,11 +557,11 @@ class CharaRequirementPanel(wx.Panel):
 
         if self.imgcombo.GetSelection() == 0:
             for info in infos:
-                info.imgpath = info.imgpath_base
+                info.imgpaths = info.imgpaths_base
         else:
-            fpath = self.imgpaths[self.imgcombo.GetSelection()-1]
+            fpath = self.imgpathlist[self.imgcombo.GetSelection()-1]
             for info in infos:
-                info.imgpath = fpath
+                info.imgpaths = [cw.image.ImageInfo(fpath)]
 
         self._select_image()
 
@@ -582,13 +583,13 @@ class CharaRequirementPanel(wx.Panel):
     def OnAutoBtn(self, event):
         self.set_random()
 
-    def _update_images(self, img=None):
+    def _update_images(self, img=[]):
         fpaths = set()
-        if img is None:
+        if not img:
             if 0 >= self.imgcombo.GetSelection():
-                img = ""
+                img = []
             else:
-                img = self.imgpaths[self.imgcombo.GetSelection()-1]
+                img = [cw.image.ImageInfo(self.imgpathlist[self.imgcombo.GetSelection()-1])]
 
         infos = self._get_infos()
 
@@ -598,15 +599,15 @@ class CharaRequirementPanel(wx.Panel):
                 fpaths.update(map(lambda a: (dpaths[0], cw.util.join_paths(dpaths[1], os.path.basename(a)), a), paths))
         flist = list(fpaths)
         flist.sort()
-        self.imgpaths = map(lambda a: a[2], flist)
+        self.imgpathlist = map(lambda a: a[2], flist)
         flist = map(lambda a: a[1], flist)
         flist.insert(0, cw.cwpy.msgs["no_change"])
         self.imgcombo.SetItems(flist)
         cw.util.adjust_dropdownwidth(self.imgcombo)
 
-        if img in self.imgpaths:
+        if len(img) == 1 and img[0].path in self.imgpathlist:
             # 一覧に選択済みのイメージが含まれていれば復元
-            self.imgcombo.SetSelection(self.imgpaths.index(img)+1)
+            self.imgcombo.SetSelection(self.imgpathlist.index(img[0].path)+1)
         else:
             # 一覧に選択済みのイメージが無ければ[変更しない]を選択
             self.imgcombo.SetSelection(0)
@@ -617,24 +618,27 @@ class CharaRequirementPanel(wx.Panel):
 
         if self.imgcombo.GetSelection() == 0:
             # [変更しない]
-            img = ""
+            img = []
             for i, info in enumerate(infos):
                 force = (i == 0)
                 if force:
-                    img = info.imgpath
-                elif img <> info.imgpath:
-                    img = ""
+                    img = info.imgpaths
+                elif img <> info.imgpaths:
+                    img = []
                     break
             if img:
                 # 全員のイメージが一致
-                self.img.SetBitmap(cw.util.load_wxbmp(img, mask=True))
+                bmps = []
+                for info in img:
+                    bmps.append(cw.util.load_wxbmp(info.path, mask=True))
+                self.img.SetBitmap(bmps)
             else:
                 # イメージが一致しないか未設定
-                self.img.SetBitmap(self.defaultface)
+                self.img.SetBitmap([self.defaultface])
         else:
             # パスを選択
-            img = self.imgpaths[self.imgcombo.GetSelection()-1]
-            self.img.SetBitmap(cw.util.load_wxbmp(img, mask=True))
+            img = self.imgpathlist[self.imgcombo.GetSelection()-1]
+            self.img.SetBitmap([cw.util.load_wxbmp(img, mask=True)])
 
     def _get_infos(self):
         if self.cindex == 0:
@@ -649,7 +653,7 @@ class CharaRequirementPanel(wx.Panel):
         self.cindex = cindex
         name = ""
         level = u"―"
-        imgpath = ""
+        imgpaths = []
         ctype = None
         sex = ""
         age = ""
@@ -662,7 +666,7 @@ class CharaRequirementPanel(wx.Panel):
             if force:
                 name = info.name
                 level = str(info.level)
-                imgpath = info.imgpath
+                imgpaths = info.imgpaths
                 ctype = info.type
                 sex = info.sex
                 age = info.age
@@ -672,8 +676,8 @@ class CharaRequirementPanel(wx.Panel):
                     name = ""
                 if level <> str(info.level):
                     level = u"―"
-                if imgpath <> info.imgpath:
-                    imgpath = ""
+                if imgpaths <> info.imgpaths:
+                    imgpaths = []
                 if ctype <> info.type:
                     ctype = u"―――"
                 if sex <> info.sex:
@@ -716,7 +720,7 @@ class CharaRequirementPanel(wx.Panel):
             index = 0
         self.natures.SetSelection(index)
 
-        self._update_images(imgpath)
+        self._update_images(imgpaths)
         self.Layout()
         self._proc = False
 
@@ -739,7 +743,7 @@ class CharaRequirementPanel(wx.Panel):
                 seq.extend(paths)
 
             fpath = cw.cwpy.dice.choice(seq)
-            info.imgpath = fpath
+            info.imgpaths = [cw.image.ImageInfo(fpath)]
 
             if not info.input_name:
                 for sex in cw.cwpy.setting.sexes:

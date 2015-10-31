@@ -21,6 +21,7 @@ class BattleCommand(wx.Dialog):
         path = "Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         # TODO scaleinfo
+        path = [cw.image.ImageInfo(path)]
         header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["start_action"])
         w = cw.scr2win_s(header.rect.width)
         h = cw.scr2win_s(header.rect.height)
@@ -36,6 +37,7 @@ class BattleCommand(wx.Dialog):
         path = "Resource/Image/Card/ACTION9"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         # TODO scaleinfo
+        path = [cw.image.ImageInfo(path)]
         header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["runaway"])
         header.rect = pygame.Rect((w+cw.wins(5))*1+cw.wins(5), cw.wins(5), w, h)
         header.clickedflag = False
@@ -46,6 +48,7 @@ class BattleCommand(wx.Dialog):
         path = "Resource/Image/Card/COMMAND1"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         # TODO scaleinfo
+        path = [cw.image.ImageInfo(path)]
         header = cw.image.CardImage(path, "NORMAL", cw.cwpy.msgs["cancel"])
         header.rect = pygame.Rect((w+cw.wins(5))*2+cw.wins(5), cw.wins(5), w, h)
         header.clickedflag = False

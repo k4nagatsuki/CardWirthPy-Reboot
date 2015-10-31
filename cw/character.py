@@ -127,15 +127,23 @@ class Character(object):
         # キャッシュ
         self._voc_tbl = {}
 
-    def get_imagepath(self):
-        return self.data.gettext("Property/ImagePath", "")
+    def get_imagepaths(self):
+        """現在表示中のカード画像の情報を
+        cw.image.ImageInfoのlistで返す。
+        """
+        data = self.data.find("Property")
+        return cw.image.get_imageinfos(data)
 
-    def set_image(self, path):
+    def set_images(self, paths):
+        """このキャラクターのカード画像を
+        cw.image.ImageInfoのlistで指定した内容に差し替える。
+        """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         etree = None
         eimg = None
-        if self.get_imagepath():
+        infos = self.get_imagepaths()
+        if infos:
             if cw.cwpy.is_playingscenario():
                 # F9のためにシナリオ突入時の画像の記録を取る
                 name = os.path.splitext(os.path.basename(self.data.fpath))[0]
@@ -143,43 +151,76 @@ class Character(object):
                 if os.path.isfile(log):
                     etree = cw.data.xml2etree(log)
                 else:
-                    e = cw.data.make_element("ImagePaths", "")
+                    e = cw.data.make_element("FaceLog", "")
                     etree = cw.data.xml2etree(element=e)
                     etree.fpath = log
                 for e in etree.getfind(".", raiseerror=False):
                     member = e.getattr(".", "member")
                     if member == name:
+                        # すでに記録済み
                         eimg = e
                         break
                 else:
-                    fpath = self.get_imagepath()
-                    fname = os.path.basename(fpath)
+                    e = cw.data.make_element("ImagePaths", u"", {"member":name})
+                    eimg = e
                     dpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face")
-                    fpath2 = cw.util.join_yadodir(fpath)
-                    if os.path.isfile(fpath2):
-                        fpath = cw.util.join_paths(dpath, fname)
-                        fpath = cw.util.dupcheck_plus(fpath, yado=False)
-                        if not os.path.isdir(dpath):
-                            os.makedirs(dpath)
-                        shutil.copy2(fpath2, fpath)
-                        e = cw.data.make_element("ImagePath", u"", {"member":name,
-                                                                    "path":os.path.basename(fpath)})
-                    else:
-                        e = cw.data.make_element("ImagePath", u"", {"member":name,
-                                                                    "path":u""})
+                    for info in infos:
+                        if not info.path:
+                            continue
+                        fpath = info.path
+                        fname = os.path.basename(fpath)
+                        fpath2 = cw.util.join_yadodir(fpath)
+                        if os.path.isfile(fpath2):
+                            fpath = cw.util.join_paths(dpath, fname)
+                            fpath = cw.util.dupcheck_plus(fpath, yado=False)
+                            if not os.path.isdir(dpath):
+                                os.makedirs(dpath)
+                            shutil.copy2(fpath2, fpath)
+                            e2 = cw.data.make_element("ImagePath", os.path.basename(fpath))
+                            info.set_attr(e2)
+                            e.append(e2)
 
                     etree.getroot().append(e)
-                    eimg = e
 
-            fpath = cw.util.join_yadodir(self.get_imagepath())
-            cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
-
-        newpath = cw.xmlcreater.write_castimagepath(self.get_name(), path)
-        self.data.edit("Property/ImagePath", newpath)
+            for info in infos:
+                if not info.path:
+                    continue
+                fpath = cw.util.join_yadodir(info.path)
+                cw.cwpy.ydata.deletedpaths.add(fpath, forceyado=True)
 
         if not eimg is None:
-            eimg.text = newpath
+            # 複数回変更された時は変更後ファイル情報を
+            # 都度最新に更新しておく
+            for e in list(eimg):
+                if e.tag == "NewImagePath":
+                    eimg.remove(e)
+
+        # 新しいファイル群をコピー
+        newpaths = cw.xmlcreater.write_castimagepath(self.get_name(), paths)
+        prop = self.data.find("Property")
+        for ename in ("ImagePath", "ImagePaths"):
+            e = prop.find(ename)
+            if not e is None:
+                prop.remove(e)
+        # コピー後のファイルパスを設定
+        e = cw.data.make_element("ImagePaths", "")
+        prop.append(e)
+        for info in newpaths:
+            if info.path:
+                e2 = cw.data.make_element("ImagePath", info.path)
+                info.set_attr(e2)
+                e.append(e2)
+
+                if not eimg is None:
+                    # F9時に変更後のイメージを削除するため、記録しておく
+                    eimg.append(cw.data.make_element("NewImagePath", info.path))
+
+        self.data.is_edited = True
+
+        if not etree is None:
             etree.write()
+
+        return newpaths
 
     def get_name(self):
         return self.data.gettext("Property/Name", "")

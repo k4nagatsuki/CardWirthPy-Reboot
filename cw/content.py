@@ -2033,7 +2033,7 @@ def get_card(etree, target, notscenariocard=False, toindex=-1, insertorder=-1, p
                                     "Material", header.type, name)
         dstdir = cw.util.dupcheck_plus(dstdir)
         cw.cwpy.copy_materials(etree, dstdir, True, copymaterialfrom, importimage=from_scenario)
-        header.imgpath = etree.gettext("Property/ImagePath", header.imgpath)
+        header.imgpaths = cw.image.get_imageinfos(etree.find("Property"))
 
     cw.cwpy.trade(targettype, target, header=header, from_event=True, toindex=toindex, insertorder=insertorder, sort=False, party=party, from_getcontent=from_getcontent)
 
@@ -2961,56 +2961,74 @@ class TalkMessageContent(TalkContent):
         # 選択肢取得
         names = self.get_selections_and_indexes()
         # 画像パス取得
-        imgpath = self.data.get("path", "")
-        talkeriscard = False
+        imgpaths = cw.image.get_imageinfos(self.data)
 
-        # ランダム
-        if imgpath.endswith("??Random"):
-            talker = cw.cwpy.event.get_targetmember("Random")
-        # 選択中メンバ
-        elif imgpath.endswith("??Selected"):
-            talker = cw.cwpy.event.get_targetmember("Selected")
-        # 選択外メンバ
-        elif imgpath.endswith("??Unselected"):
-            talker = cw.cwpy.event.get_targetmember("Unselected")
+        talkers = []
+        firsttalker = None
 
-            # 選択外メンバがいなかったらスキップ
-            if not talker:
-                return 0
+        for i, info in enumerate(imgpaths):
+            imgpath = info.path
+            talkeriscard = False
 
-        # 使用中カード
-        elif imgpath.endswith("??Card"):
-            talker = cw.cwpy.event.get_targetmember("Inusecard")
-            talkeriscard = True
+            # ランダム
+            if imgpath.endswith("??Random"):
+                talker = cw.cwpy.event.get_targetmember("Random")
+            # 選択中メンバ
+            elif imgpath.endswith("??Selected"):
+                talker = cw.cwpy.event.get_targetmember("Selected")
+            # 選択外メンバ
+            elif imgpath.endswith("??Unselected"):
+                talker = cw.cwpy.event.get_targetmember("Unselected")
 
-            # 使用中カードがなかったらスキップ
-            if not talker:
-                return 0
+                # 選択外メンバがいなかったらスキップ
+                if not talker:
+                    continue
 
-        # その他
-        else:
-            talker = None
+            # 使用中カード
+            elif imgpath.endswith("??Card"):
+                talker = cw.cwpy.event.get_targetmember("Inusecard")
+                talkeriscard = True
 
-        if talker:
-            imgpath = talker.imgpath
-            if talkeriscard:
-                if not cw.binary.image.path_is_code(imgpath) and\
-                        (not hasattr(talker, "scenariocard") or not talker.scenariocard):
-                    if talker.type == "ActionCard":
-                        imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG, system=True)
-                    else:
-                        imgpath = cw.util.join_yadodir(imgpath)
-        elif imgpath:
-            inusepath = cw.util.get_inusecardmaterialpath(imgpath, cw.M_IMG)
-            if os.path.isfile(inusepath):
-                imgpath = inusepath
+                # 使用中カードがなかったらスキップ
+                if not talker:
+                    continue
+
+            # その他
             else:
-                imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,\
-                                                   system=cw.cwpy.areaid < 0)
+                talker = None
+
+            if talker:
+                for imgpath in talker.imgpaths:
+                    imgpath = imgpath.path
+                    if talkeriscard:
+                        if not cw.binary.image.path_is_code(imgpath):
+                            if not hasattr(talker, "scenariocard") or not talker.scenariocard:
+                                if talker.type == "ActionCard":
+                                    imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG, system=True)
+                                else:
+                                    imgpath = cw.util.join_yadodir(imgpath)
+                            else:
+                                imgpath = cw.util.join_paths(cw.cwpy.sdata.scedir, imgpath)
+                    talkers.append(cw.image.ImageInfo(imgpath, base=imgpath))
+            elif imgpath:
+                inusepath = cw.util.get_inusecardmaterialpath(imgpath, cw.M_IMG)
+                if os.path.isfile(inusepath):
+                    imgpath = inusepath
+                else:
+                    imgpath = cw.util.get_materialpath(imgpath, cw.M_IMG,\
+                                                       system=cw.cwpy.areaid < 0)
+                talkers.append(cw.image.ImageInfo(imgpath, base=info))
+
+            if not firsttalker:
+                firsttalker = talker
+
+        # 話者無し
+        if not talkers:
+            return 0
 
         # MessageWindow表示
         if text:
-            mwin = cw.sprite.message.MessageWindow(text, names, imgpath, talker)
+            mwin = cw.sprite.message.MessageWindow(text, names, talkers, firsttalker)
             index = cw.cwpy.show_message(mwin)
         # テキストが存在せず、選択肢が複数存在する場合はSelectWindowを表示する
         elif len(names) > 1:
@@ -3091,7 +3109,7 @@ class TalkDialogContent(TalkContent):
             return 0
 
         # 画像パス
-        imgpath = talker.imgpath
+        imgpaths = talker.imgpaths
         # 対象メンバの所持クーポンの集合
         coupons = talker.get_coupons()
         # ダイアログリスト
@@ -3103,7 +3121,7 @@ class TalkDialogContent(TalkContent):
 
         # MessageWindow表示
         if dialogtext:
-            mwin = cw.sprite.message.MessageWindow(dialogtext, names, imgpath, talker)
+            mwin = cw.sprite.message.MessageWindow(dialogtext, names, imgpaths, talker)
             index = cw.cwpy.show_message(mwin)
         elif not dialogtext is None and len(names) > 1:
             # 選択されたDialogに空文字列が設定されており、

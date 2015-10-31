@@ -108,7 +108,7 @@ class Party(base.CWBinaryBase):
             nowadventuring = False
         imgpath = "Resource/Image/Card/COMMAND0"
         imgpath = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, imgpath), cw.cwpy.rsrc.ext_img)
-        image = base.CWBinaryBase.import_image(imgpath, fullpath=True)
+        image = base.CWBinaryBase.import_image(f, imgpath, fullpath=True)
         memberslist = ""
         name = ""
         money = 0
@@ -362,6 +362,8 @@ class PartyMembers(base.CWBinaryBase):
             friendcards = PartyMembers.join_ids(e_log.getfind("CastCards"))
             infocards = PartyMembers.join_ids(e_log.getfind("InfoCards"))
             music = e_log.gettext("Property/MusicPath", "")
+            if not music:
+                music = e_log.gettext("Property/MusicPaths/MusicPath", "")
             bgimgs = e_log.find("BgImages")
 
             for e in e_log.getfind("LostAdventurers"):
@@ -369,6 +371,8 @@ class PartyMembers(base.CWBinaryBase):
                 vanisheds.append(cw.data.xml2element(path))
             vanisheds.reverse()
 
+        advnumpos = f.tell()
+        advnum = 0
         f.write_byte(len(adventurers) + 30)
         f.write_byte(0) # 不明
         f.write_byte(0) # 不明
@@ -380,11 +384,26 @@ class PartyMembers(base.CWBinaryBase):
                 logdata = cw.data.xml2element(fpath)
             else:
                 logdata = None
-            adventurer.AdventurerWithImage.unconv(f, member, logdata)
-            if i + 1 < len(adventurers):
-                f.write_byte(0) # 不明
-            else:
-                f.write_byte(len(vanisheds)) # 消滅メンバの数？
+            try:
+                pos = f.tell()
+                adventurer.AdventurerWithImage.unconv(f, member, logdata)
+                if i + 1 < len(adventurers):
+                    f.write_byte(0) # 不明
+                advnum += 1
+            except cw.binary.cwfile.UnsupportedError:
+                f.seek(pos)
+                if f.write_errorlog:
+                    cardname = member.gettext("Property/Name", "")
+                    s = u"%s の %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                    f.write_errorlog(s)
+        tell = f.tell()
+        f.seek(advnumpos)
+        f.write_byte(advnum + 30)
+        f.seek(tell)
+
+        vannumpos = f.tell()
+        vannum = 0
+        f.write_byte(len(vanisheds)) # 消滅メンバの数？
         if vanisheds:
             f.write_dword(0) # 不明
             for i, member in enumerate(vanisheds):
@@ -393,9 +412,23 @@ class PartyMembers(base.CWBinaryBase):
                     logdata = cw.data.xml2element(fpath)
                 else:
                     logdata = None
-                adventurer.AdventurerWithImage.unconv(f, member, logdata)
-                if i + 1 < len(vanisheds):
-                    f.write_byte(0) # 不明
+                try:
+                    pos = f.tell()
+                    adventurer.AdventurerWithImage.unconv(f, member, logdata)
+                    if i + 1 < len(vanisheds):
+                        f.write_byte(0) # 不明
+                    vannum += 1
+                except cw.binary.cwfile.UnsupportedError:
+                    f.seek(pos)
+                    if f.write_errorlog:
+                        cardname = member.gettext("Property/Name", "")
+                        s = u"%s の %s(消去前データ) は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
+                        f.write_errorlog(s)
+            tell = f.tell()
+            f.seek(vannumpos)
+            f.write_byte(vannum)
+            f.seek(tell)
+
         else:
             f.write_byte(0) # 不明
             f.write_byte(0) # 不明

@@ -12,6 +12,94 @@ import pygame
 import cw
 
 
+class ImageInfo(object):
+    def __init__(self, path="", pcnumber=0, base=None):
+        """
+        カードなどの画像の定義。
+        """
+        self.path = path
+        self.pcnumber = pcnumber
+
+    def set_attr(self, e):
+        """拡張情報をeへ登録する(現在は処理なし)。
+        """
+        assert e.tag == "ImagePath"
+
+    def __eq__(self, other):
+        return isinstance(other, ImageInfo) and self.path == other.path and self.pcnumber == other.pcnumber
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __str__(self):
+        if self.pcnumber:
+            return "PC: %s" % (self.pcnumber)
+        else:
+            return "File: %s" % (self.path)
+
+def get_imageinfos(data, pcnumber=False):
+    """PropertyなどのデータからImageInfoのlistを生成する。
+    data: Propertyなど子に画像情報を持つ要素。
+    pcnumber: プレイヤー番号イメージを使用するか。
+    """
+    seq = []
+    if not data is None:
+        if data.tag == "ImagePaths":
+            for e in data: # 複数イメージの指定
+                if e.tag == "ImagePath":
+                    path = e.gettext(".", "")
+                    if path:
+                        seq.append(ImageInfo(path=path))
+                elif pcnumber and e.tag == "PCNumber":
+                    pcn = e.getint(".", 0)
+                    if pcn:
+                        seq.append(ImageInfo(pcnumber=pcn))
+        else:
+            path = data.getattr(".", "path", "") # イベントコンテントでの画像指定
+            if path:
+                seq.append(ImageInfo(path=path))
+            if pcnumber:
+                pcn = data.getint(".", "pcNumber", 0) # イベントコンテントでのPC指定
+                if pcn:
+                    seq.append(ImageInfo(pcnumber=pcn))
+            path = data.gettext("ImagePath", "") # 単一のパス指定
+            if path:
+                seq.append(ImageInfo(path=path))
+            if pcnumber:
+                if path:
+                    seq.append(ImageInfo(path=path))
+                pcn = data.getint("PCNumber", 0) # 単一のPC指定
+                if pcn:
+                    seq.append(ImageInfo(pcnumber=pcn))
+            epaths = data.find("ImagePaths") # 複数イメージの指定
+            if not epaths is None:
+                seq.extend(get_imageinfos(epaths, pcnumber=pcnumber))
+
+    return seq
+
+def get_imageinfos_p(prop, pcnumber=False):
+    """cw.header.GetPropertyのインスタンスから
+    ImageInfoのlistを生成する。
+    """
+    imgpaths = []
+    imgpath = prop.properties.get("ImagePath", "")
+    if imgpath:
+        imgpaths.append(cw.image.ImageInfo(imgpath))
+    if pcnumber:
+        pcn = prop.properties.get("PCNumber", "0")
+        if pcn and 0 < int(pcn):
+            imgpaths.append(cw.image.ImageInfo(pcnumber=int(pcn)))
+    for eimg, _attrs, imgpath in prop.third.get("ImagePaths", []):
+        if eimg == "ImagePath":
+            if imgpath:
+                imgpaths.append(cw.image.ImageInfo(imgpath))
+        elif eimg == "PCNumber":
+            pcn = imgpath
+            if pcn and 0 < int(pcn):
+                imgpaths.append(cw.image.ImageInfo(pcnumber=int(pcn)))
+
+    return imgpaths
+
 class Image(object):
     def __init__(self, image):
         self.image = image
@@ -28,15 +116,15 @@ class Image(object):
 #-------------------------------------------------------------------------------
 
 class CardImage(Image):
-    def __init__(self, path, bgtype, name="", premium="", scaleinfo=None):
+    def __init__(self, paths, bgtype, name="", premium="", scaleinfo=None):
         """
         カード画像と背景画像とカード名を合成・加工し、
         wxPythonとPygame両方で使える画像オブジェクトを生成する。
         """
         self.name = name
-        self.path = path
+        self.paths = paths
         self.bgtype = bgtype
-        self.image_mtime = 0
+        self.image_mtime = {}
         self.premium = premium
         self.scaleinfo = scaleinfo
 
@@ -65,17 +153,21 @@ class CardImage(Image):
         return pygame.Rect(0, 0, wxsize[0], wxsize[1])
 
     def is_modifiedfile(self):
-        if cw.binary.image.path_is_code(self.path):
-            return False
-        else:
-            path = cw.util.get_yadofilepath(self.path)
+        for info in self.paths:
+            path = info.path
+            if cw.binary.image.path_is_code(path):
+                continue
+            else:
+                path = cw.util.get_yadofilepath(path)
 
-        if not path:
-            path = self.path
-        if not os.path.isfile(path):
-            return False
+            if not path:
+                path = info.path
+            if not os.path.isfile(path):
+                continue
 
-        return self.image_mtime <> os.path.getmtime(path)
+            if self.image_mtime.get(info.path, 0) <> os.path.getmtime(path):
+                return True
+        return False
 
     def get_image(self):
         if self._bmp:
@@ -100,22 +192,22 @@ class CardImage(Image):
                 image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
                 image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
-        pisc = cw.binary.image.path_is_code(self.path)
-        if pisc:
-            path = self.path
-        else:
-            path = cw.util.get_yadofilepath(self.path)
+        for info in self.paths:
+            path = info.path
+            pisc = cw.binary.image.path_is_code(path)
+            if not pisc:
+                path = cw.util.get_yadofilepath(path)
 
-        if not path:
-            path = self.path
+            if not path:
+                path = info.path
 
-        if not pisc and os.path.isfile(path):
-            self.image_mtime = os.path.getmtime(path)
-        else:
-            self.image_mtime = 0
+            if not pisc and os.path.isfile(path):
+                self.image_mtime[info.path] = os.path.getmtime(path)
 
-        subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
-        image.blit(subimg, cw.s((3, 13)))
+            if pisc or os.path.isfile(path):
+                subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
+                image.blit(subimg, cw.s((3, 13)))
+
         font = cw.cwpy.rsrc.fonts["mcard_name"]
         colour = (0, 0, 0)
         if cw.cwpy.rsrc.cardnamecolorhints[self.bgtype] < cw.cwpy.rsrc.cardnamecolorborder:
@@ -283,18 +375,20 @@ class CardImage(Image):
                 dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
                 dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
-        pisc = cw.binary.image.path_is_code(self.path)
-        if pisc:
-            path = self.path
-        else:
-            path = cw.util.get_yadofilepath(self.path)
+        for info in self.paths:
+            path = info.path
+            pisc = cw.binary.image.path_is_code(path)
+            if not pisc:
+                path = cw.util.get_yadofilepath(path)
 
-        if not path:
-            path = self.path
+            if not path:
+                path = info.path
 
-        subimg = cw.util.load_wxbmp(path, True)
-        subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
-        dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
+            if pisc or os.path.isfile(path):
+                subimg = cw.util.load_wxbmp(path, True)
+                subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+                dc.DrawBitmap(subimg, cw.wins(3), cw.wins(13), True)
+
         pixelsize = cw.cwpy.setting.fonttypes["cardname"][2]
         if wx.VERSION[0] <= 3:
             pixelsize += 1
@@ -451,8 +545,8 @@ class CardImage(Image):
         pass
 
 class LargeCardImage(CardImage):
-    def __init__(self, path, bgtype, name="", premium="", scaleinfo=None):
-        CardImage.__init__(self, path, "LARGE", name, premium, scaleinfo)
+    def __init__(self, paths, bgtype, name="", premium="", scaleinfo=None):
+        CardImage.__init__(self, paths, "LARGE", name, premium, scaleinfo)
 
     def get_image(self):
         image = self.cardbg.copy()
@@ -473,8 +567,11 @@ class LargeCardImage(CardImage):
             image.blit(subimg, (w-sw-cw.s(5), cw.s(5)))
             image.blit(subimg, (cw.s(5), h-sh-cw.s(5)))
 
-        subimg = cw.s((cw.util.load_image(self.path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
-        image.blit(subimg, cw.s((10, 18)))
+        for info in self.paths:
+            path = info.path
+            subimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
+            image.blit(subimg, cw.s((10, 18)))
+
         font = cw.cwpy.rsrc.fonts["pcard_name"]
         if self.name:
             subimg = font.render(self.name, cw.cwpy.setting.fontsmoothing_cardname, (0, 0, 0))
@@ -518,8 +615,11 @@ class LargeCardImage(CardImage):
             dc.DrawBitmap(subimg, w-sw-cw.wins(5), cw.wins(5), True)
             dc.DrawBitmap(subimg, cw.wins(5), h-sh-cw.wins(5), True)
 
-        subimg = cw.util.load_wxbmp(self.path, True)
-        subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+        for info in self.paths:
+            path = info.path
+            subimg = cw.util.load_wxbmp(path, True)
+            subimg = cw.wins((subimg, cw.SIZE_CARDIMAGE, self.scaleinfo))
+
         dc.DrawBitmap(subimg, cw.wins(10), cw.wins(18), True)
         pixelsize = cw.cwpy.setting.fonttypes["ccardname"][2]
         if wx.VERSION[0] <= 3:
@@ -545,12 +645,12 @@ class CharacterCardImage(CardImage):
         self.ccard = ccard
         self._pos_noscale = pos_noscale
         self.scaleinfo = scaleinfo
-        self.image_mtime = 0
+        self.image_mtime = {}
         self.update_scale()
 
     def update_scale(self):
         # カード画像
-        self.set_faceimg(self.ccard.imgpath)
+        self.set_faceimgs(self.ccard.imgpaths)
         # フォント画像(カード名)
         self.set_nameimg(self.ccard.name)
         # フォント画像(レベル)
@@ -565,11 +665,14 @@ class CharacterCardImage(CardImage):
         # rect
         self.rect = pygame.Rect(cw.s(self._pos_noscale), cw.s((95, 130)))
 
-    def set_faceimg(self, path):
-        self.path = path
-        if not cw.binary.image.path_is_code(self.path) and isinstance(self.ccard, cw.sprite.card.PlayerCard):
-            path = cw.util.get_yadofilepath(path)
-        self.cardimg = cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo))
+    def set_faceimgs(self, paths):
+        self.paths = paths
+        self.cardimgs = []
+        for info in self.paths:
+            path = info.path
+            if not cw.binary.image.path_is_code(path) and isinstance(self.ccard, cw.sprite.card.PlayerCard):
+                path = cw.util.get_yadofilepath(path)
+            self.cardimgs.append(cw.s((cw.util.load_image(path, True), cw.SIZE_CARDIMAGE, self.scaleinfo)))
 
     def set_nameimg(self, name):
         if name:
@@ -618,11 +721,12 @@ class CharacterCardImage(CardImage):
         insets_w = cw.s(10)
         bw = cw.s(95) - insets_w - insets_e
         bh = cw.s(130) - insets_n - insets_s
-        dw = self.cardimg.get_width()
-        dh = self.cardimg.get_height()
-        x = insets_w + (bw - dw) / 2
-        y = insets_n + (bh - dh) / 2
-        self.image.blit(self.cardimg, (x, y))
+        for cardimg in self.cardimgs:
+            dw = cardimg.get_width()
+            dh = cardimg.get_height()
+            x = insets_w + (bw - dw) / 2
+            y = insets_n + (bh - dh) / 2
+            self.image.blit(cardimg, (x, y))
 
         # 名前
         if self.nameimg:

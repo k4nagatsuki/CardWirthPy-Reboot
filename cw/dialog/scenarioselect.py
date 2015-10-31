@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import io
 import sys
 import time
 import datetime
@@ -1345,10 +1346,8 @@ class ScenarioSelect(select.Select):
             header = self.list[self.index]
 
             # 見出し画像
-            if header.image:
-                bmp = header.get_wxbmp()
-                w = bmp.GetSize()[0]
-                # 左上位置固定(互換性維持)
+            for bmp in header.get_images():
+                # 左上位置固定(CardWirthとの互換性維持)
                 dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70)+yp, True)
 
             # シナリオ名

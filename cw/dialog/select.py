@@ -1494,30 +1494,33 @@ class PartySelect(MultiViewSelect):
             sceheader = header.get_sceheader()
 
             if sceheader:
-                bmp = sceheader.get_wxbmp()
+                bmp = sceheader.get_images()
             else:
                 path = "Resource/Image/Card/COMMAND0"
                 path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-                bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+                bmp = [cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))]
 
             paths = header.get_memberpaths()
-            bmp2 = None
+            bmp2 = []
             if paths:
                 fpath = paths[0]
                 fpath = cw.util.get_yadofilepath(fpath)
                 if os.path.isfile(fpath):
-                    fpath = cw.header.GetProperty(fpath).properties.get("ImagePath", "")
-                    fpath = cw.util.join_yadodir(fpath)
-                    if os.path.isfile(fpath):
-                        bmp2 = cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE))
-                        w = bmp2.GetWidth() // 2
-                        h = bmp2.GetHeight() // 2
-                        if w and h:
-                            img = bmp2.ConvertToImage()
-                            img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
-                            bmp2 = img.ConvertToBitmap()
-                        else:
-                            bmp2 = None
+                    prop = cw.header.GetProperty(fpath)
+                    paths = cw.image.get_imageinfos_p(prop)
+                    for info in paths:
+                        info.path = cw.util.join_yadodir(info.path)
+                    for info in paths:
+                        fpath = info.path
+                        if os.path.isfile(fpath):
+                            bmp3 = cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE))
+                            w = bmp3.GetWidth() // 2
+                            h = bmp3.GetHeight() // 2
+                            if w and h:
+                                img = bmp3.ConvertToImage()
+                                img = img.Rescale(w, h, wx.IMAGE_QUALITY_NORMAL)
+                                bmp3 = img.ConvertToBitmap()
+                                bmp2.append(bmp3)
             return bmp, bmp2, sceheader
 
         if self.views == 1:
@@ -1559,16 +1562,17 @@ class PartySelect(MultiViewSelect):
             dc.DrawText(s, (bmpw-w)/2, cw.wins(40))
             # シナリオ・宿画像
             bmp, bmp2, sceheader = get_image(header)
-            dc.DrawBitmap(bmp, (bmpw-cw.wins(74))/2, cw.wins(125), True)
-            if bmp2:
-                # パーティの先頭メンバを小さく表示する
-                px = bmpw/2
-                py = cw.wins(125+47)
-                pw = cw.wins(cw.SIZE_CARDIMAGE[0])
-                ph = cw.wins(cw.SIZE_CARDIMAGE[1])
-                dc.SetClippingRect(wx.Rect(px, py, pw, ph))
-                dc.DrawBitmap(bmp2, px, py, True)
-                dc.DestroyClippingRegion()
+            for b in bmp:
+                dc.DrawBitmap(b, (bmpw-cw.wins(74))/2, cw.wins(125), True)
+            # パーティの先頭メンバを小さく表示する
+            px = bmpw/2
+            py = cw.wins(125+47)
+            pw = cw.wins(cw.SIZE_CARDIMAGE[0])
+            ph = cw.wins(cw.SIZE_CARDIMAGE[1])
+            dc.SetClippingRect(wx.Rect(px, py, pw, ph))
+            for bmp in bmp2:
+                dc.DrawBitmap(bmp, px, py, True)
+            dc.DestroyClippingRegion()
 
             # シナリオ・宿名
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlglist", pixelsize=cw.wins(14)))
@@ -1605,16 +1609,17 @@ class PartySelect(MultiViewSelect):
                 ix = x + (rw - cw.wins(72)) / 2
                 iy = y + 5
                 dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
-                dc.DrawBitmap(bmp, ix, iy, True)
-                if bmp2:
-                    # パーティの先頭メンバを小さく表示する
-                    px = ix + cw.wins(37)
-                    py = iy + cw.wins(47)
-                    pw = cw.wins(cw.SIZE_CARDIMAGE[0])
-                    ph = cw.wins(cw.SIZE_CARDIMAGE[1])
-                    dc.SetClippingRect(wx.Rect(px, py, pw, ph))
-                    dc.DrawBitmap(bmp2, px, py, True)
-                    dc.DestroyClippingRegion()
+                for b in bmp:
+                    dc.DrawBitmap(b, ix, iy, True)
+                dc.DestroyClippingRegion()
+                # パーティの先頭メンバを小さく表示する
+                px = ix + cw.wins(37)
+                py = iy + cw.wins(47)
+                pw = cw.wins(cw.SIZE_CARDIMAGE[0])
+                ph = cw.wins(cw.SIZE_CARDIMAGE[1])
+                dc.SetClippingRect(wx.Rect(px, py, pw, ph))
+                for bmp in bmp2:
+                    dc.DrawBitmap(bmp, px, py, True)
                 dc.DestroyClippingRegion()
 
                 # パーティ名
@@ -2372,10 +2377,11 @@ class PlayerSelect(MultiViewSelect):
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, cw.wins(125) - w / 2, cw.wins(67))
                 # Image
-                path = cw.util.join_yadodir(header.imgpath)
-                bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
                 dc.SetClippingRect(cw.wins((88, 90, 74, 94)))
-                dc.DrawBitmap(bmp, cw.wins(88), cw.wins(90), True)
+                for info in header.imgpaths:
+                    path = cw.util.join_yadodir(info.path)
+                    bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+                    dc.DrawBitmap(bmp, cw.wins(88), cw.wins(90), True)
                 dc.DestroyClippingRegion()
                 # Age
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(14)))
@@ -2429,12 +2435,13 @@ class PlayerSelect(MultiViewSelect):
                 dc.SetTextForeground(wx.BLACK)
                 for i, header in enumerate(seq):
                     # Image
-                    path = cw.util.join_yadodir(header.imgpath)
-                    bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
                     ix = x + (rw - cw.wins(72)) / 2
                     iy = y + 5
                     dc.SetClippingRect((ix, iy, cw.wins(74), cw.wins(94)))
-                    dc.DrawBitmap(bmp, ix, iy, True)
+                    for info in header.imgpaths:
+                        path = cw.util.join_yadodir(info.path)
+                        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+                        dc.DrawBitmap(bmp, ix, iy, True)
                     dc.DestroyClippingRegion()
 
                     # Name

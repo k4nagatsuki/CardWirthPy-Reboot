@@ -9,8 +9,8 @@ import base
 
 
 class MessageWindow(base.CWPySprite):
-    def __init__(self, text, names, path="", talker=None,
-                 pos_noscale=None, size_noscale=None, talkerimage=None,
+    def __init__(self, text, names, imgpaths=[], talker=None,
+                 pos_noscale=None, size_noscale=None, talkerimage=[],
                  nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
                  backlog=False, result=None, versionhint="", specialchars=None):
         base.CWPySprite.__init__(self)
@@ -32,7 +32,7 @@ class MessageWindow(base.CWPySprite):
         self.result = result
         # data
         self.names = names
-        self.path = path
+        self.imgpaths = imgpaths
         self.text = text
 
         # 話者(CardHeader or Character)
@@ -100,28 +100,30 @@ class MessageWindow(base.CWPySprite):
         draw_frame(self.image, cw.s(size_noscale), cw.s((0, 0)), self.backlog)
         # 話者画像
         if self.talker_image_noscale:
-            self.talker_image = cw.s(self.talker_image_noscale)
-        elif self.path:
-            path = self.path
-            if not cw.binary.image.path_is_code(self.path):
-                lpath = path.lower()
-                if lpath.startswith(cw.cwpy.yadodir.lower()) or\
-                        lpath.startswith(cw.cwpy.tempdir.lower()):
-                    path = cw.util.get_yadofilepath(path)
-            self.talker_image_noscale = cw.util.load_image(path, True)
-            if self.talker_image_noscale and self.talker_image_noscale.get_width():
-                # TODO scaleinfo
-                self.talker_image = cw.s((self.talker_image_noscale, cw.SIZE_CARDIMAGE))
-            else:
-                self.talker_image_noscale = None
-                self.talker_image = None
+            self.talker_image = []
+            for talker_image_noscale in self.talker_image_noscale:
+                self.talker_image.append(cw.s(talker_image_noscale))
+        elif self.imgpaths:
+            self.talker_image_noscale = []
+            self.talker_image = []
+            for info in self.imgpaths:
+                path = info.path
+                if not cw.binary.image.path_is_code(path):
+                    lpath = path.lower()
+                    if lpath.startswith(cw.cwpy.yadodir.lower()) or\
+                            lpath.startswith(cw.cwpy.tempdir.lower()):
+                        path = cw.util.get_yadofilepath(path)
+                talker_image_noscale = cw.util.load_image(path, True)
+                if talker_image_noscale and talker_image_noscale.get_width():
+                    self.talker_image_noscale.append(talker_image_noscale)
+                    self.talker_image.append(cw.s(talker_image_noscale))
         else:
-            self.talker_image_noscale = None
-            self.talker_image = None
+            self.talker_image_noscale = []
+            self.talker_image = []
 
-        if self.talker_image:
-            y = (self.rect.height - self.talker_image.get_height()) / 2
-            self.image.blit(self.talker_image, (cw.s(15), y))
+        for talker_image in self.talker_image:
+            y = (self.rect.height - talker_image.get_height()) / 2
+            self.image.blit(talker_image, (cw.s(15), y))
 
         self._fore = pygame.Surface(cw.s(size_noscale)).convert_alpha()
         self._fore.fill((0, 0, 0, 0))
@@ -221,7 +223,7 @@ class MessageWindow(base.CWPySprite):
             else:
                 versionhint = cw.cwpy.sdata.get_versionhint(cw.HINT_MESSAGE)
             if cw.cwpy.sct.lessthan("1.28", versionhint):
-                w = self.talker_image.get_width()
+                w = max(map(lambda bmp: bmp.get_width(), self.talker_image))
             else:
                 w = cw.s(74)
             posp = pos = pos[0] + cw.s(26) + w, pos[1]
@@ -421,7 +423,7 @@ class SelectWindow(MessageWindow):
         self.name_subtable = {}
         self.flag_table = {}
         self.step_table = {}
-        self.talker_image = None
+        self.talker_image = []
         self.versionhint = None
         self.backlog_versionhint = None
 
@@ -431,7 +433,7 @@ class SelectWindow(MessageWindow):
         self.result = result
         # data
         self.names = names
-        self.path = ""
+        self.imgpaths = []
         self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.talker = None
         self._init_image(size_noscale, pos_noscale)
@@ -648,12 +650,17 @@ class BacklogData:
             self.type = 0
         self.text = base.text
         self.names = base.names
-        self.path = base.path
-        lpath = self.path.lower()
-        if lpath.startswith("yado") or lpath.startswith("data/temp"):
-            self.talker_image = base.talker_image_noscale
-        else:
-            self.talker_image = None
+        self.imgpaths = base.imgpaths
+        self.talker_image = []
+        for info in self.imgpaths:
+            # シナリオ内のイメージは静的だが、
+            # 宿に所属するイメージは変化する可能性が
+            # あるため、画像自体を取っておく
+            path = info.path
+            lpath = path.lower()
+            if lpath.startswith("yado") or lpath.startswith("data/temp"):
+                self.talker_image = base.talker_image_noscale[:]
+                break
         self.rect_noscale = base.rect_noscale
         self.name_table = base.name_table
         self.name_subtable = base.name_subtable
@@ -665,7 +672,7 @@ class BacklogData:
 
     def create_message(self):
         if self.type == 0:
-            return MessageWindow(self.text, self.names, self.path, None,
+            return MessageWindow(self.text, self.names, self.imgpaths, None,
                                  self.rect_noscale.topleft, self.rect_noscale.size,
                                  self.talker_image,
                                  self.name_table, self.name_subtable, self.flag_table, self.step_table,

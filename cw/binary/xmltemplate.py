@@ -8,7 +8,8 @@ Adventurer = """$indent<Adventurer>
 $indent <Property>
 $indent  <Id>$id</Id>
 $indent  <Name>$name</Name>
-$indent  <ImagePath>$imgpath</ImagePath>
+$indent  <ImagePaths>$imgpaths
+$indent  </ImagePaths>
 $indent  <Description>$description</Description>
 $indent  <Level>$level</Level>
 $indent  <Life max="$maxlife">$life</Life>
@@ -48,6 +49,8 @@ $indent </SkillCards>
 $indent <BeastCards>$beasts
 $indent </BeastCards>
 $indent</Adventurer>"""
+
+ImagePath = """$indent<ImagePath>$path</ImagePath>"""
 
 Album = """$indent<Album>
 $indent <Property>

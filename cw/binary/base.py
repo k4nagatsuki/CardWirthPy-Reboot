@@ -215,10 +215,21 @@ class CWBinaryBase(object):
         return util.repl_escapechar(path)
 
     @staticmethod
-    def import_image(imagepath, convertbitmap=True, fullpath=False):
+    def import_image(f, imagepath, convertbitmap=True, fullpath=False):
         """imagepathの画像を読み込み、バイナリデータとして返す。
         ビットマップ以外であればビットマップに変換する。
         """
+        if isinstance(imagepath, cw.data.CWPyElement):
+            e = imagepath
+            if e.tag == "ImagePath":
+                imagepath = e.text
+            elif e.tag == "ImagePaths":
+                if 1 < len(e):
+                    f.check_wsnversion("1")
+                imagepath = e.gettext("ImagePath", "")
+            else:
+                imagepath = ""
+
         if not imagepath:
             return None
 

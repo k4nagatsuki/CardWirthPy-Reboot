@@ -638,7 +638,7 @@ def create_albumpage(path, lost=False, nocoupon=False):
     element = etree.make_element("Album")
     pelement = etree.make_element("Property")
 
-    sets = set(["Name", "ImagePath", "Description", "Level",
+    sets = set(["Name", "ImagePath", "ImagePaths", "Description", "Level",
                 "Ability", "Coupons"])
 
     for e in etree.getfind("Property"):
@@ -675,13 +675,17 @@ def create_adventurer(data):
     _create_xmlは不使用。
     """
     d = data.get_d()
-    # 画像パス
-    path = d["imgpath"]
-    advname = cw.util.repl_dischar(d["name"])
-    d["imgpath"] = write_castimagepath(advname, path)
 
     for key, value in d.items():
         d[key] = cw.binary.util.repl_escapechar(value)
+
+    # 画像パス
+    paths = data.imgpaths
+    advname = cw.util.repl_dischar(d["name"])
+    infos = write_castimagepath(advname, paths)
+    imgpaths = map(lambda info: cw.binary.xmltemplate.get_xmltext("ImagePath",
+                    {"path":cw.binary.util.repl_escapechar(info.path), "indent": "   "}), infos)
+    d["imgpaths"] = "\n" + "\n".join(imgpaths)
 
     # クーポン
     def get_coupon(name, value):
@@ -697,23 +701,25 @@ def create_adventurer(data):
     _create_xml("Adventurer", path, d)
     return path
 
-def write_castimagepath(name, path):
+def write_castimagepath(name, paths):
     """
     キャストの新しい画像を記憶し、記憶後のパスを返す。
     """
-    if os.path.isfile(path):
-        dpath = cw.util.join_paths(cw.cwpy.tempdir, "Material/Adventurer", name)
-        dpath = cw.util.dupcheck_plus(dpath)
-        ext = cw.util.splitext(os.path.basename(path))[1]
-        dstpath = cw.util.join_paths(dpath, name + ext)
+    seq = []
+    for info in paths:
+        path = info.path
+        if os.path.isfile(path):
+            dpath = cw.util.join_paths(cw.cwpy.tempdir, "Material/Adventurer", name)
+            dpath = cw.util.dupcheck_plus(dpath)
+            ext = cw.util.splitext(os.path.basename(path))[1]
+            dstpath = cw.util.join_paths(dpath, name + ext)
 
-        if not os.path.isdir(dpath):
-            os.makedirs(dpath)
+            if not os.path.isdir(dpath):
+                os.makedirs(dpath)
 
-        shutil.copy2(path, dstpath)
-        return dstpath.replace(cw.cwpy.tempdir + "/", "")
-    else:
-        return ""
+            shutil.copy2(path, dstpath)
+            seq.append(cw.image.ImageInfo(dstpath.replace(cw.cwpy.tempdir + "/", ""), base=info))
+    return seq
 
 def create_scenariolog(sdata, path, recording):
     """

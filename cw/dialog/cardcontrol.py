@@ -153,7 +153,7 @@ class CardControl(wx.Dialog):
             self.narrow_type.Hide()
 
         self._drawlist = {}
-        self._leftmark = None
+        self._leftmarks = []
         self._after_event = None
         self._starclickedflag = False
 
@@ -730,14 +730,15 @@ class CardControl(wx.Dialog):
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(17)))
 
         # カード置場・荷物袋・情報カードマーク
-        if self._leftmark:
+        if self._leftmarks:
             rect = self.upbtn.GetRect()
             top = rect[1] + rect[3]
             btm = self.downbtn.GetPosition()[1]
-            h = dc.GetTextExtent("#")[1] + cw.wins(1) + self._leftmark.GetHeight()
-            y = top + (btm-top-h)/2
-            x = rect.X + rect.Width / 2 - self._leftmark.GetWidth() / 2
-            dc.DrawBitmap(self._leftmark, x, y, True)
+            for leftmark in self._leftmarks:
+                h = dc.GetTextExtent("#")[1] + cw.wins(1) + leftmark.GetHeight()
+                y = top + (btm-top-h)/2
+                x = rect.X + rect.Width / 2 - leftmark.GetWidth() / 2
+                dc.DrawBitmap(leftmark, x, y, True)
 
         if self.callname == "CARDPOCKET":
             # 所持カード数
@@ -750,14 +751,14 @@ class CardControl(wx.Dialog):
             dc.DrawText(s, cw.wins(45)-w/2, y)
         elif self.callname in ("INFOVIEW", "BACKPACK", "STOREHOUSE", "CARDPOCKETB"):
             # カード置き場、荷物袋、情報カード
-            if self._leftmark:
+            if self._leftmarks:
                 # ページ番号
                 maxpage = (len(self.list)+9)/10 if len(self.list) > 0 else 1
                 s = "/"
                 sw = dc.GetTextExtent(s)[0]
                 w = sw
                 sx = cw.wins(40)-w/2+cw.wins(7)
-                sy = y+self._leftmark.GetHeight()+cw.wins(1)
+                sy = y+max(map(lambda wxbmp: wxbmp.GetHeight(), self._leftmarks))+cw.wins(1)
                 dc.DrawText(s, sx, sy)
                 s = str(maxpage)
                 w = dc.GetTextExtent(s)[0]
@@ -1877,20 +1878,23 @@ class CardHolder(CardControl):
             self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], s))
 
         if self.callname == "CARDPOCKET":
-            self._leftmark = None
+            self._leftmarks = []
         else:
             # カード置場・荷物袋・情報カードマーク
             if self.callname == "BACKPACK":
-                path = "Resource/Image/Card/COMMAND7"
+                paths = ["Resource/Image/Card/COMMAND7"]
             elif self.callname == "STOREHOUSE":
-                path = "Resource/Image/Card/COMMAND5"
+                paths = ["Resource/Image/Card/COMMAND5"]
             elif self.callname == "INFOVIEW":
-                path = "Resource/Image/Card/COMMAND8"
+                paths = ["Resource/Image/Card/COMMAND8"]
             elif self.callname == "CARDPOCKETB":
-                path = cw.cwpy.rsrc.backpackcards["ItemCard"].imgpath
-                path = os.path.splitext(path)[0]
-            path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-            self._leftmark = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
+                paths = []
+                for info in cw.cwpy.rsrc.backpackcards["ItemCard"].imgpaths:
+                    paths.append(os.path.splitext(info.path)[0])
+            self._leftmarks = []
+            for path in paths:
+                path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+                self._leftmarks.append(cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE)))
 
         CardControl.draw_cards(self, update, mode)
 

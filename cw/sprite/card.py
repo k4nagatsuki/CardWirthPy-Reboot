@@ -634,8 +634,10 @@ class PlayerCard(CWPyCard, character.Player):
         # CharacterCard初期化
         character.Player.__init__(self)
         # カード画像
-        path = self.data.gettext("Property/ImagePath", "")
-        self.imgpath = cw.util.join_paths(cw.cwpy.yadodir, path)
+        self.imgpaths = []
+        for info in cw.image.get_imageinfos(self.data.find("Property")):
+            path = info.path
+            self.imgpaths.append(cw.image.ImageInfo(cw.util.join_paths(cw.cwpy.yadodir, path), base=info))
 
         # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=pos_noscale)
@@ -670,10 +672,12 @@ class PlayerCard(CWPyCard, character.Player):
         character.Player.set_name(self, name)
         self.cardimg.set_nameimg(self.get_name())
 
-    def set_image(self, path):
-        character.Player.set_image(self, path)
-        self.imgpath = cw.util.join_paths(cw.cwpy.yadodir, self.get_imagepath())
-        self.cardimg.set_faceimg(self.imgpath)
+    def set_images(self, paths):
+        paths = character.Player.set_images(self, paths)
+        self.imgpaths = []
+        for info in paths:
+            self.imgpaths.append(cw.image.ImageInfo(cw.util.join_paths(cw.cwpy.yadodir, info.path), base=info))
+        self.cardimg.set_faceimgs(self.imgpaths)
 
     def update_levelup(self):
         """レベルアップ処理。"""
@@ -818,7 +822,7 @@ class PlayerCard(CWPyCard, character.Player):
         if fromscenario and 0 < levelup:
             text = cw.util.encodewrap(cw.cwpy.msgs["level_up"])
             names = [(0, cw.cwpy.msgs["ok"])]
-            mwin = cw.sprite.message.MessageWindow(text, names, self.imgpath, self)
+            mwin = cw.sprite.message.MessageWindow(text, names, self.imgpaths, self)
             cw.cwpy.show_message(mwin)
             if base <> level or cw.cwpy.ydata.party.is_suspendlevelup:
                 # レベル調節中だった場合は再調節
@@ -897,8 +901,10 @@ class EnemyCard(CWPyCard, character.Enemy):
         character.Enemy.__init__(self)
         self.deck.set(self, draw=False)
         # カード画像
-        path = self.data.gettext("Property/ImagePath", "")
-        self.imgpath = cw.util.get_materialpath(path, cw.M_IMG)
+        self.imgpaths = []
+        for info in cw.image.get_imageinfos(self.data.find("Property")):
+            path = info.path
+            self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
         # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self, pos_noscale=self._init_pos_noscale)
         self.set_pos_noscale(pos_noscale=self._init_pos_noscale)
@@ -981,8 +987,10 @@ class FriendCard(CWPyCard, character.Friend):
         character.Friend.__init__(self)
         self.deck.set(self, draw=False)
         # カード画像
-        path = self.data.gettext("Property/ImagePath", "")
-        self.imgpath = cw.util.get_materialpath(path, cw.M_IMG)
+        self.imgpaths = []
+        for info in cw.image.get_imageinfos(self.data.find("Property")):
+            path = info.path
+            self.imgpaths.append(cw.image.ImageInfo(cw.util.get_materialpath(path, cw.M_IMG), base=info))
         # TODO scaleinfo
         self.cardimg = cw.image.CharacterCardImage(self)
         self.update_image()
@@ -1094,28 +1102,29 @@ class MenuCard(CWPyCard):
         # イベント
         self.events = cw.event.EventEngine(self._data.getfind("Events"))
 
-        # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成。
-        path = self._data.gettext("Property/ImagePath", "")
-        pcn = ""
-        if not path:
-            pcn = self._data.gettext("Property/PCNumber", "")
-        if pcn:
-            # メニューカードにPCの画像を表示(1.30)
-            pcards = cw.cwpy.ydata.party.members
-            pi = int(pcn) - 1
-            if 0 <= pi and pi < len(pcards):
-                path = pcards[pi].gettext("Property/ImagePath", "")
-                if path:
-                    path = cw.util.join_yadodir(path)
-        elif path:
-            path = cw.util.get_materialpath(path, cw.M_IMG, system=cw.cwpy.areaid < 0)
+        # 通常イメージ。LargeMenuCardはサイズ大のメニューカード作成
+        paths = []
+        for info in cw.image.get_imageinfos(self._data.find("Property"), pcnumber=True):
+            if info.path:
+                path = cw.util.get_materialpath(info.path, cw.M_IMG, system=cw.cwpy.areaid < 0)
+                paths.append(cw.image.ImageInfo(path, base=info))
+            elif info.pcnumber:
+                # メニューカードにPCの画像を表示(1.30)
+                pcards = cw.cwpy.ydata.party.members
+                pi = info.pcnumber - 1
+                if 0 <= pi and pi < len(pcards):
+                    for info2 in cw.image.get_imageinfos(pcards[pi].find("Property")):
+                        path = info2.path
+                        if path:
+                            path = cw.util.join_yadodir(path)
+                        paths.append(cw.image.ImageInfo(path, base=info))
 
         if self._data.tag == "LargeMenuCard":
             # TODO scaleinfo
-            self._cardimg = cw.image.LargeCardImage(path, "NORMAL", self.name)
+            self._cardimg = cw.image.LargeCardImage(paths, "NORMAL", self.name)
         else:
             # TODO scaleinfo
-            self._cardimg = cw.image.CardImage(path, "NORMAL", self.name)
+            self._cardimg = cw.image.CardImage(paths, "NORMAL", self.name)
 
         self.update_image()
         # pos

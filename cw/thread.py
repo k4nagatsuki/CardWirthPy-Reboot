@@ -1900,16 +1900,39 @@ class CWPy(_Singleton, threading.Thread):
 
                 for eimg in elog.getfind(".", raiseerror=False):
                     if eimg.get("member", "") == name:
-                        fname = eimg.get("path", "")
-                        if fname:
-                            face = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face", fname)
-                        else:
-                            face = ""
-                        pcard.data.edit("Property/ImagePath", eimg.text)
-                        if os.path.isfile(face):
-                            pcard.set_image(face)
-                        else:
-                            pcard.set_image("")
+                        prop = data.find("Property")
+                        for ename in ("ImagePath", "ImagePaths"):
+                            e = prop.find(ename)
+                            if not e is None:
+                                prop.remove(e)
+
+                        if eimg.tag == "ImagePath":
+                            # 旧バージョン(～0.12.3)
+                            fname = eimg.get("path", "")
+                            if fname:
+                                face = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face", fname)
+                            else:
+                                face = ""
+                            # 変更後のイメージを削除するためにここで再設定する
+                            # (set_images()内で削除される)
+                            prop.append(cw.data.make_element("ImagePath", eimg.text))
+                            if os.path.isfile(face):
+                                pcard.set_images([cw.image.ImageInfo(face)])
+                            else:
+                                pcard.set_images([])
+                        elif eimg.tag == "ImagePaths":
+                            # 新バージョン(複数イメージ対応後)
+                            seq = cw.image.get_imageinfos(eimg)
+                            for info in seq:
+                                info.path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Face", info.path)
+                            # 変更後のイメージを削除するためにここで再設定する
+                            # (set_images()内で削除される)
+                            e = cw.data.make_element("ImagePaths")
+                            prop.append(e)
+                            for e2 in eimg:
+                                if e2.tag == "NewImagePath":
+                                    e.append(cw.data.make_element("ImagePath", e2.text))
+                            pcard.set_images(seq)
                         break
 
             pcard.set_pos_noscale(pos_noscale)
