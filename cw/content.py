@@ -2986,7 +2986,6 @@ class TalkMessageContent(TalkContent):
                 # 選択外メンバがいなかったらスキップ
                 if not talker:
                     continue
-                talk = True
 
             # 使用中カード
             elif imgpath.endswith("??Card"):
@@ -2996,12 +2995,10 @@ class TalkMessageContent(TalkContent):
                 # 使用中カードがなかったらスキップ
                 if not talker:
                     continue
-                talk = True
 
             # その他
             else:
                 talker = None
-                talk = True
 
             if talker:
                 for imgpath in talker.imgpaths:
@@ -3027,6 +3024,8 @@ class TalkMessageContent(TalkContent):
 
             if not firsttalker:
                 firsttalker = talker
+
+            talk = True
 
         # 話者無し
         if not talk:
