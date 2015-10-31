@@ -2965,6 +2965,7 @@ class TalkMessageContent(TalkContent):
 
         talkers = []
         firsttalker = None
+        talk = True
 
         for i, info in enumerate(imgpaths):
             imgpath = info.path
@@ -2973,9 +2974,11 @@ class TalkMessageContent(TalkContent):
             # ランダム
             if imgpath.endswith("??Random"):
                 talker = cw.cwpy.event.get_targetmember("Random")
+                talk = True
             # 選択中メンバ
             elif imgpath.endswith("??Selected"):
                 talker = cw.cwpy.event.get_targetmember("Selected")
+                talk = True
             # 選択外メンバ
             elif imgpath.endswith("??Unselected"):
                 talker = cw.cwpy.event.get_targetmember("Unselected")
@@ -2983,6 +2986,7 @@ class TalkMessageContent(TalkContent):
                 # 選択外メンバがいなかったらスキップ
                 if not talker:
                     continue
+                talk = True
 
             # 使用中カード
             elif imgpath.endswith("??Card"):
@@ -2992,10 +2996,12 @@ class TalkMessageContent(TalkContent):
                 # 使用中カードがなかったらスキップ
                 if not talker:
                     continue
+                talk = True
 
             # その他
             else:
                 talker = None
+                talk = True
 
             if talker:
                 for imgpath in talker.imgpaths:
@@ -3023,7 +3029,7 @@ class TalkMessageContent(TalkContent):
                 firsttalker = talker
 
         # 話者無し
-        if not talkers:
+        if not talk:
             return 0
 
         # MessageWindow表示
