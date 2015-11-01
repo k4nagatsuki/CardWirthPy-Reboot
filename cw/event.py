@@ -856,7 +856,6 @@ class CardEvent(Event):
             cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, self.inusecard.versionhint)
 
         cw.cwpy.event.set_inusecard(self.inusecard)
-        cw.cwpy.event.in_inusecardevent = True
 
         data = self.inusecard.carddata
         if self.inusecard.type == "SkillCard":
@@ -893,7 +892,6 @@ class CardEvent(Event):
         try:
             Event.run_exit(self)
 
-            cw.cwpy.event.in_inusecardevent = False
             if cw.cwpy.is_playingscenario():
                 cw.cwpy.sdata.set_versionhint(cw.HINT_CARD, None)
 
@@ -902,6 +900,7 @@ class CardEvent(Event):
                 self.run_areaevent()
 
             # カード効果
+            cw.cwpy.event.in_inusecardevent = True
             self.effect_cardmotion()
 
         finally:
@@ -944,13 +943,19 @@ class CardEvent(Event):
     def run_areaevent(self):
         keycodes = self.inusecard.get_keycodes()
         cw.cwpy.event.set_selectedmember(self.user)
+        in_inusecardevent = cw.cwpy.event.in_inusecardevent
+        cw.cwpy.event.in_inusecardevent = False
         cw.cwpy.sdata.events.start(keycodes=keycodes, isinsideevent=True)
+        cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
     def run_enemyevent(self, target, can_unconscious):
         if isinstance(target, Enemy) and (can_unconscious or not (target.is_unconscious() or target.is_vanished())):
             keycodes = self.inusecard.get_keycodes()
             cw.cwpy.event.set_selectedmember(self.user)
+            in_inusecardevent = cw.cwpy.event.in_inusecardevent
+            cw.cwpy.event.in_inusecardevent = False
             target.events.start(keycodes=keycodes, isinsideevent=True)
+            cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
     def run_deadevent(self, target):
         if self.inusecard.id == 7 and self.inusecard.type == "ActionCard":
@@ -958,7 +963,11 @@ class CardEvent(Event):
             return False
         if isinstance(target, Enemy) and ((target.is_dead() and not target.status == "hidden") or target.is_vanished()):
             cw.cwpy.event.set_selectedmember(self.user)
-            return target.events.start(1, isinsideevent=True)
+            in_inusecardevent = cw.cwpy.event.in_inusecardevent
+            cw.cwpy.event.in_inusecardevent = False
+            r = target.events.start(1, isinsideevent=True)
+            cw.cwpy.event.in_inusecardevent = in_inusecardevent
+            return r
         else:
             return False
 
@@ -972,7 +981,10 @@ class CardEvent(Event):
         if event:
             lock = cw.cwpy.lock_menucards
             cw.cwpy.lock_menucards = False
+            in_inusecardevent = cw.cwpy.event.in_inusecardevent
+            cw.cwpy.event.in_inusecardevent = False
             target.events.start(keycodes=keycodes)
+            cw.cwpy.event.in_inusecardevent = in_inusecardevent
             cw.cwpy.lock_menucards = lock
             self.error = event.error
         else:
@@ -989,7 +1001,10 @@ class CardEvent(Event):
                         keycodes.append(keycode + u"×")
 
             cw.cwpy.event.set_selectedmember(self.user)
+            in_inusecardevent = cw.cwpy.event.in_inusecardevent
+            cw.cwpy.event.in_inusecardevent = False
             target.events.start(keycodes=keycodes, isinsideevent=True, successevent=True)
+            cw.cwpy.event.in_inusecardevent = in_inusecardevent
 
     def effect_cardmotion(self):
         """カード効果発動。イベント実行の最後に行う。"""

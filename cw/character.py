@@ -705,6 +705,7 @@ class Character(object):
         fade = data.getint("Property/SoundPath", "fadein", 0)
 
         # 使用アニメーション
+        cw.cwpy.event.in_inusecardevent = True
         removeafter = False
         battlespeed = cw.cwpy.is_battlestatus()
         if header.type == "BeastCard":
