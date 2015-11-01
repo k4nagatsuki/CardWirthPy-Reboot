@@ -1209,7 +1209,7 @@ class ScenarioHeader(object):
         imgpaths = []
         for imgpath in self.imgpaths:
             if imgpath.path:
-                imgpaths.append(self.imgpaths)
+                imgpaths.append(imgpath)
 
         if not imgpaths:
             return bmps
