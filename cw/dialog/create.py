@@ -862,7 +862,7 @@ class NamePage(AdventurerCreaterPage):
             cw.cwpy.play_sound("page")
             self.imgdpath = index
             key = self.imgdpaths[index]
-            self.imgpaths = self.imgpathlist[key][0]
+            self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
             self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
             self.draw(True)
             self.textctrl.SetFocus()
