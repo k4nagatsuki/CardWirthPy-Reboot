@@ -1203,25 +1203,33 @@ class RelationPage(AdventurerCreaterPage):
 
         # 父親画像
         if self.father:
-            path = self.father.get_imgpath()
+            paths = self.father.get_imgpaths()
         else:
             path = "Resource/Image/Card/FATHER"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+            paths = [cw.image.ImageInfo(path)]
 
-        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         pos = cw.wins((100, 110))
-        self.draw_clickablebmp(dc, bmp, pos, "FatherFace", None, self.on_mousewheel, True)
+        for path in paths:
+            if path.path:
+                bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
+                dc.DrawBitmap(bmp, pos[0], pos[1], True)
+        self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "FatherFace", None, self.on_mousewheel)
 
         # 母親画像
         if self.mother:
-            path = self.mother.get_imgpath()
+            paths = self.mother.get_imgpaths()
         else:
             path = "Resource/Image/Card/MOTHER"
             path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+            paths = [cw.image.ImageInfo(path)]
 
-        bmp = cw.wins((cw.util.load_wxbmp(path, True), cw.SIZE_CARDIMAGE))
         pos = cw.wins((275, 110))
-        self.draw_clickablebmp(dc, bmp, pos, "MotherFace", None, self.on_mousewheel, True)
+        for path in paths:
+            if path.path:
+                bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
+                dc.DrawBitmap(bmp, pos[0], pos[1], True)
+        self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "MotherFace", None, self.on_mousewheel)
 
         # 父親名前
         font = cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(16))
