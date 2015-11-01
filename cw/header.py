@@ -1206,6 +1206,14 @@ class ScenarioHeader(object):
         if self._wxbmp:
             bmps.append(self._wxbmp)
 
+        imgpaths = []
+        for imgpath in self.imgpaths:
+            if imgpath.path:
+                imgpaths.append(self.imgpaths)
+
+        if not imgpaths:
+            return bmps
+
         if os.path.isfile(path):
             # 圧縮ファイル内から取得
             if path.lower().endswith(".cab"):
@@ -1216,7 +1224,7 @@ class ScenarioHeader(object):
 
                 try:
                     sdir = cw.util.cab_scdir(path)
-                    for imgpath in self.imgpaths:
+                    for imgpath in imgpaths:
                         if not imgpath.path:
                             continue
                         s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath.path), dpath)
@@ -1243,23 +1251,24 @@ class ScenarioHeader(object):
                             sdir = os.path.dirname(name)
                             break
 
-                    for imgpath in self.imgpaths:
+                    for imgpath in imgpaths:
                         ipath = cw.util.join_paths(sdir, imgpath.path).lower()
                         ipath = os.path.normpath(ipath)
                         for name in names:
                             if os.path.normpath(cw.util.decode_zipname(name).lower()) == ipath:
                                 data = z.read(name)
-                                with io.BytesIO(data) as f:
-                                    # TODO scaleinfo
-                                    wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=True), cw.SIZE_CARDIMAGE))
-                                    f.close()
-                                bmps.append(wxbmp)
+                                if data:
+                                    with io.BytesIO(data) as f:
+                                        # TODO scaleinfo
+                                        wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=True), cw.SIZE_CARDIMAGE))
+                                        f.close()
+                                    bmps.append(wxbmp)
                                 break
                     z.close()
 
         elif os.path.isdir(path):
             # 展開済みシナリオ
-            for imgpath in self.imgpaths:
+            for imgpath in imgpaths:
                 if not imgpath.path:
                     continue
                 fpath = cw.util.join_paths(path, imgpath.path)
