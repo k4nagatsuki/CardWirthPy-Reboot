@@ -1203,7 +1203,8 @@ def find_resource(path, mtype):
 
     for ext in t:
         path2 = path + ext
-        path2 = cw.cwpy.rsrc.get_filepath(path2)
+        if cw.cwpy:
+            path2 = cw.cwpy.rsrc.get_filepath(path2)
         if os.path.isfile(path2):
             return path2
     return u""

@@ -136,6 +136,8 @@ class SkinConversionDialog(wx.Dialog):
                         scpath = path1
 
                     for skindir in os.listdir(u"Data/Skin"):
+                        if skindir == self.conv.skindirname:
+                            continue
                         dpath = cw.util.join_paths(u"Data/Skin", skindir)
                         if not os.path.isdir(dpath):
                             continue
