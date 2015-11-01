@@ -900,7 +900,6 @@ class CardEvent(Event):
                 self.run_areaevent()
 
             # カード効果
-            cw.cwpy.event.in_inusecardevent = True
             self.effect_cardmotion()
 
         finally:
