@@ -2252,6 +2252,7 @@ class YadoData(object):
             e2 = make_element("Path", p)
             e.append(e2)
         e.set("path", path)
+        self.environment.is_edited = True
         be.append(e)
 
     def set_bookmarks(self, bookmarks):
@@ -2273,6 +2274,7 @@ class YadoData(object):
                 e.append(e2)
             e.set("path", path)
             be.append(e)
+        self.environment.is_edited = True
 
 def find_scefullpath(scepath, spaths):
     """開始ディレクトリscepathから経路spathsを
