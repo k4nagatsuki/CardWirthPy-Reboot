@@ -2136,6 +2136,13 @@ class DesignPanel(AdventurerCreaterPage):
     def set_previmg(self, name):
         _set_previmg(self, name)
 
+def _index_of(imgpaths, imgpathlist):
+    assert isinstance(imgpaths, list)
+    if imgpaths in imgpathlist:
+        return imgpathlist.index(imgpaths)
+    else:
+        return imgpathlist.index(imgpaths[0].path)
+
 def _set_nextimg(panel, name):
     if panel.imgpathlist:
         cw.cwpy.play_sound("page")
@@ -2149,7 +2156,7 @@ def _set_nextimg(panel, name):
         else:
             imgpathlist = panel.imgpathlist[key]
 
-            index = (imgpathlist.index(panel.imgpaths[0].path) + 1) % len(imgpathlist)
+            index = (_index_of(panel.imgpaths, imgpathlist) + 1) % len(imgpathlist)
             panel.imgpaths = _path_to_imageinfo(imgpathlist[index])
 
         panel.Refresh()
@@ -2167,7 +2174,7 @@ def _set_previmg(panel, name):
         else:
             imgpathlist = panel.imgpathlist[key]
 
-            index = imgpathlist.index(panel.imgpaths[0].path) - 1
+            index = _index_of(panel.imgpaths, imgpathlist) - 1
             panel.imgpaths = _path_to_imageinfo(imgpathlist[index])
 
         panel.Refresh()

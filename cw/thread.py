@@ -351,7 +351,7 @@ class CWPy(_Singleton, threading.Thread):
 
     def update_skin(self, skindirname, changearea=True, restartop=True):
         if self.status == "Title" and restartop:
-            changearea=False
+            changearea = False
             self.cardgrp.remove(self.mcards)
             self.background.bgs = []
 
