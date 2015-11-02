@@ -368,8 +368,9 @@ class CWPy(_Singleton, threading.Thread):
         self.background.update_skin(oldskindir, newskindir)
         def repl_cardimg(sprite):
             if hasattr(sprite, "cardimg"):
-                if sprite.cardimg.path.startswith(oldskindir):
-                    sprite.cardimg.path = sprite.cardimg.path.replace(oldskindir, newskindir)
+                for path in sprite.cardimg.paths:
+                    if path.path.startswith(oldskindir):
+                        path.path = path.path.replace(oldskindir, newskindir)
         for sprite in self.get_pcards():
             repl_cardimg(sprite)
 
