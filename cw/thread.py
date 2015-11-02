@@ -1747,6 +1747,7 @@ class CWPy(_Singleton, threading.Thread):
 
         self.clear_inusecardimg()
         self.clear_guardcardimg()
+        self.return_takenoutcard(checkevent=False)
 
         # 対象選択画面でF9しても、中止ボタンを宿まで持ち越さないように
         self.selectedheader = None
