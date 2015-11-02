@@ -1412,8 +1412,10 @@ class PartySelect(MultiViewSelect):
         cw.cwpy.frame.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
+            order = header.order
             header = cw.cwpy.ydata.create_partyheader(element=party.data.find("Property"))
             header.data = party
+            header.order = order
             self.list[self.index] = header
             cw.cwpy.ydata.partys[self.index] = header
             self.draw(True)
@@ -1423,8 +1425,10 @@ class PartySelect(MultiViewSelect):
         def redrawfunc():
             def func():
                 header = self.list[self.index]
+                order = header.order
                 header = cw.cwpy.ydata.create_partyheader(header.fpath)
                 header.data = partyheader.data
+                header.order = order
                 self.list[self.index] = header
                 cw.cwpy.ydata.partys[self.index] = header
                 cw.cwpy.frame.exec_func(self.draw, True)
@@ -2288,13 +2292,16 @@ class PlayerSelect(MultiViewSelect):
     def update_character(self):
         def func():
             header = self.list[self.index]
+            order = header.order
             if self.isalbum:
                 self.index = cw.cwpy.ydata.album.index(header)
                 header = cw.cwpy.ydata.create_advheader(header.fpath)
+                header.order = order
                 cw.cwpy.ydata.album[self.index] = header
             else:
                 self.index = cw.cwpy.ydata.standbys.index(header)
                 header = cw.cwpy.ydata.create_advheader(header.fpath)
+                header.order = order
                 cw.cwpy.ydata.standbys[self.index] = header
             self.update_narrowcondition()
             cw.cwpy.frame.exec_func(self.draw, True)
