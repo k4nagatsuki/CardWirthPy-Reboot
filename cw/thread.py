@@ -2574,7 +2574,7 @@ class CWPy(_Singleton, threading.Thread):
             music.play(path, subvolume=volume, loopcount=loopcount, fade=fade)
 
         self.set_battle()
-        self.change_area(areaid, False, ttype=("None", "Default"), startbattle=True)
+        self.change_area(areaid, False, bginhrt=True, ttype=("None", "Default"), startbattle=True)
         cw.animation.animate_sprite(sprite, "hide")
         sprite.remove(cw.cwpy.topgrp) # TODO: layer
 

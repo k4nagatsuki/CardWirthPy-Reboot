@@ -36,6 +36,7 @@ class BackGround(base.CWPySprite):
         self.layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         self.foregrounds = set()
+        self.foregroundlist = []
 
     def update_scale(self):
         self.image = pygame.Surface(cw.s(cw.SIZE_AREA)).convert()
@@ -194,11 +195,13 @@ class BackGround(base.CWPySprite):
                         if layer <> cw.LAYER_BACKGROUND:
                             bgs2.append((bgtype, d))
                 self.bgs = bgs2
+                del self.foregroundlist[:]
 
                 self._inhrt_index = len(self.bgs)
 
         if bginhrt2:
-            # フラグの状態が変更されており、再描画を要するか
+            # 背景継承
+            # フラグの状態が変更されており、再描画を要するか判定する
             bginhrt2 = False
             for bgtype, d in self.bgs:
                 if self._is_flagchanged(bgtype, d):
@@ -303,8 +306,7 @@ class BackGround(base.CWPySprite):
             elif e.tag == "Redisplay":
                 self.bgs.append((BG_SEPARATOR, None))
                 if blitlist:
-                    self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ("None", "None"), oldbgs, False)
-                    del blitlist[:]
+                    blitlist = self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ("None", "None"), oldbgs, False, True)
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
                     cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -314,9 +316,9 @@ class BackGround(base.CWPySprite):
         update |= self.bgs <> oldbgs
 
         if update:
-            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, True and redraw)
+            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, True and redraw, False)
         elif forcedraw:
-            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, False)
+            self._load_after(bginhrt or afterseps, blitlist, doanime, animated, ttype, oldbgs, False, False)
         else:
             # エフェクトブースターの一時描画で使ったスプライトはすべて削除
             cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -396,8 +398,7 @@ class BackGround(base.CWPySprite):
                     continue
                 bgs.append((bgtype, d))
                 if blitlist:
-                    self._load_after(True, blitlist, doanime, animated, ("None", "None"), oldbgs, False)
-                    del blitlist[:]
+                    blitlist = self._load_after(True, blitlist, doanime, animated, ("None", "None"), oldbgs, False, True)
                 else:
                     # エフェクトブースターの一時描画で使ったスプライトはすべて削除
                     cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -411,10 +412,10 @@ class BackGround(base.CWPySprite):
         if update:
             self.bgs = bgs
             if not beforeload:
-                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, redraw)
+                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, redraw, False)
         elif forcedraw:
             if not beforeload:
-                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, False)
+                self._load_after(True, blitlist, doanime, animated, ttype, oldbgs, False, False)
         else:
             if not beforeload:
                 # エフェクトブースターの一時描画で使ったスプライトはすべて削除
@@ -534,7 +535,7 @@ class BackGround(base.CWPySprite):
             oldbgs.append((BG_COLOR, d))
         return visible
 
-    def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw):
+    def _load_after(self, bginhrt, blitlist, doanime, animated, ttype, oldbgs, redraw, redisplay):
         # 背景を更新する(呼び出し時点でエフェクトブースターは実行済み)
 
         if doanime:
@@ -545,22 +546,36 @@ class BackGround(base.CWPySprite):
             # トランジション用スプライトが生成されている
             transitspr = ttype
 
-        for sprite in self.foregrounds:
-            cw.cwpy.cardgrp.remove(sprite)
-        self.foregrounds.clear()
+        if not redisplay:
+            for sprite in self.foregrounds:
+                cw.cwpy.cardgrp.remove(sprite)
+            self.foregrounds.clear()
+            blitlist2 = []
+            for t in self.foregroundlist:
+                blitlist2.append(t)
+            blitlist2.extend(blitlist)
+            blitlist = blitlist2
+            del self.foregroundlist[:]
 
         if not bginhrt:
             self.image.fill((0, 0, 0))
 
-        for i, (bgtype, d2, flag, layer) in enumerate(blitlist):
+        blitlist2 = []
+
+        for i, t in enumerate(blitlist):
+            bgtype, d2, flag, layer = t
             if layer == cw.LAYER_BACKGROUND:
                 # 特別なレイヤ指定が無いので本当の背景に描画
                 _draw_bgcell(self.image, (bgtype, d2, flag))
             else:
                 # それよりも手前に描画する場合はスプライトを生成する
-                sprite = BgCell(bgtype, d2, flag)
-                self.foregrounds.add(sprite)
-                cw.cwpy.cardgrp.add(sprite, layer=(layer, cw.LTYPE_BACKGROUND, -1, i))
+                if redisplay:
+                    blitlist2.append(t)
+                else:
+                    sprite = BgCell(bgtype, d2, flag)
+                    self.foregrounds.add(sprite)
+                    self.foregroundlist.append(t)
+                    cw.cwpy.cardgrp.add(sprite, layer=(layer, cw.LTYPE_BACKGROUND, -1, i))
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -573,6 +588,8 @@ class BackGround(base.CWPySprite):
                 cw.cwpy.cardgrp.remove(transitspr)
             else:
                 cw.cwpy.draw()
+
+        return blitlist2
 
 def _draw_bgcell(surface, bgdata, allclip=None):
     bgtype, d, flag = bgdata

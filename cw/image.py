@@ -969,12 +969,11 @@ def draw_textcell(image, rect, text, face, size, color,
         if vertical:
             subimg = pygame.transform.rotate(subimg, -90)
 
-        if vertical:
-            x -= lineheight
-
         img.blit(subimg, (x, y))
 
-        if not vertical:
+        if vertical:
+            x -= lineheight
+        else:
             y += lineheight
 
     image.blit(img, rect.topleft)
