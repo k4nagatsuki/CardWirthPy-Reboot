@@ -33,7 +33,7 @@ class BackGround(base.CWPySprite):
         self._ttype = ("None", "None")
         self._inhrt_index = 0
         # spritegroupに追加
-        self.layer = (cw.LAYER_BACKGROUND, -2, 0)
+        self.layer = (cw.LAYER_BACKGROUND, cw.LTYPE_BACKGROUND, 0, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         self.foregrounds = set()
 
@@ -560,7 +560,7 @@ class BackGround(base.CWPySprite):
                 # それよりも手前に描画する場合はスプライトを生成する
                 sprite = BgCell(bgtype, d2, flag)
                 self.foregrounds.add(sprite)
-                cw.cwpy.cardgrp.add(sprite, layer=(layer, -1, i))
+                cw.cwpy.cardgrp.add(sprite, layer=(layer, cw.LTYPE_BACKGROUND, -1, i))
 
         # エフェクトブースターの一時描画で使ったスプライトはすべて削除
         cw.cwpy.topgrp.remove_sprites_of_layer("jpytemporal")
@@ -568,7 +568,7 @@ class BackGround(base.CWPySprite):
         # トランジション効果で画面入り
         if redraw:
             if (not animated or not doanime) and transitspr and not oldbgs == self.bgs:
-                cw.cwpy.cardgrp.add(transitspr, layer=(cw.LAYER_TRANSITION, 0, 1))
+                cw.cwpy.cardgrp.add(transitspr, layer=cw.LAYER_TRANSITION)
                 cw.animation.animate_sprite(transitspr, "transition", background=True)
                 cw.cwpy.cardgrp.remove(transitspr)
             else:
@@ -657,7 +657,7 @@ class Curtain(base.SelectableSprite):
         self.update_scale()
 
         # spritegroupに追加
-        self.layer = (target.layer[0], target.layer[1], 100)
+        self.layer = (target.layer[0], target.layer[1], target.layer[2], 100)
         spritegrp.add(self, layer=self.layer)
         cw.cwpy.curtains.append(self)
 
@@ -738,7 +738,8 @@ class InuseCardImage(card.CWPyCard):
         self.group = cw.cwpy.cardgrp
         if user and not center and not fore:
             layer = user.layer[0]
-            self.group.add(self, layer=(layer, user.index, 1))
+            ltype = user.layer[1]
+            self.group.add(self, layer=(layer, ltype, user.index, 1))
         else:
             self.group.add(self, layer=cw.LAYER_FRONT_INUSECARD)
 

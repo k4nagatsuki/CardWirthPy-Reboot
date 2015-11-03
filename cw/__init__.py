@@ -108,29 +108,36 @@ HINT_SCENARIO = 3   # シナリオ本体
 DEFAULT_SOUNDFONT = "Data/SoundFont/TimGM6mb.sf2"
 
 # 表示レイヤ
+LTYPE_MESSAGE = 0
+LTYPE_BACKGROUND = 1
+LTYPE_MCARDS = 2
+LTYPE_PCARDS = 3
+LTYPE_FCARDS = 5
+LTYPE_SPMCARDS = 0x7fffffff
+
 LAYER_BACKGROUND = 0 # 背景
 LAYER_MCARDS = 100 # メニューカード・エネミーカード
 LAYER_PCARDS = 200 # プレイヤーカード
 LAYER_MCARDS_120 = 300 # CardWirth 1.20でのメニューカード(PCより手前に表示)
-LAYER_FCARDS_T = 0x7fffffff-2 # デバッグモードで表示される戦闘中の同行キャスト
-LAYER_FCARDS = 0x7fffffff-2 # 同行キャスト
-LAYER_SPMCARDS = 0x7fffffff-1 # 特殊エリアのメニューカード
+LAYER_FCARDS_T = 0x7fffffff # デバッグモードで表示される戦闘中の同行キャスト
+LAYER_FCARDS = 0x7fffffff # 同行キャスト
+LAYER_SPMCARDS = 0x7fffffff # 特殊エリアのメニューカード
 
 # (layer, index, kind)
-LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff, 0x7fffffff-2) # カーソル下のカードの使用カード
-LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff, 0x7fffffff-1) # 対象選択の指マーク
+LAYER_FRONT_INUSECARD = (0x7fffffff, 0x7fffffff-2, 0x7fffffff, 0x7fffffff) # カーソル下のカードの使用カード
+LAYER_TARGET_ARROW = (0x7fffffff, 0x7fffffff-1, 0x7fffffff, 0x7fffffff) # 対象選択の指マーク
 
 # index=-1は背景セル
-LAYER_MESSAGE = (1000, -4, 0) # メッセージ
-LAYER_SELECTIONBAR_1 = (1000, -3, 0) # メッセージ選択肢
-LAYER_SELECTIONBAR_2 = (1000, -2, 0) # メッセージ選択肢(クリック中)
+LAYER_MESSAGE = (1000, LTYPE_MESSAGE, 0, 0) # メッセージ
+LAYER_SELECTIONBAR_1 = (1000, LTYPE_MESSAGE, 1, 0) # メッセージ選択肢
+LAYER_SELECTIONBAR_2 = (1000, LTYPE_MESSAGE, 2, 0) # メッセージ選択肢(クリック中)
 
-LAYER_TRANSITION = (0x7fffffff, 0x7fffffff, 0x7fffffff) # 背景遷移用
+LAYER_TRANSITION = (0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff) # 背景遷移用
 
-LAYER_LOG_CURTAIN = (2000, 0, 0) # ログ背景
-LAYER_LOG = (2001, 0, 0) # メッセージログ
-LAYER_LOG_BAR = (2002, 0, 0) # ログ選択肢
-LAYER_LOG_PAGE = (2003, 0, 0) # ログのページ
+LAYER_LOG_CURTAIN = (2000, 0, 0, 0) # ログ背景
+LAYER_LOG = (2001, 0, 0, 0) # メッセージログ
+LAYER_LOG_BAR = (2002, 0, 0, 0) # ログ選択肢
+LAYER_LOG_PAGE = (2003, 0, 0, 0) # ログのページ
 
 # ゲーム画面構築の拡大率
 UP_SCR = 1

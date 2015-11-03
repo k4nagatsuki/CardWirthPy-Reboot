@@ -846,11 +846,11 @@ def create_scenariolog(sdata, path, recording):
         e_bgimg.append(e)
         e = cw.data.make_element("Size",
                         attrs={"width": str(size[0]), "height": str(size[1])})
+        e_bgimg.append(e)
         if layer <> cw.LAYER_BACKGROUND:
             e = cw.data.make_element("Layer", str(layer))
             e_bgimg.append(e)
 
-        e_bgimg.append(e)
         e_bgimgs.append(e_bgimg)
 
     # flag

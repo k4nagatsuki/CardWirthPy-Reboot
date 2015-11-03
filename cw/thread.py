@@ -2317,10 +2317,10 @@ class CWPy(_Singleton, threading.Thread):
             fcard.set_alpha(alpha)
             if fcard.status == "hidden":
                 fcard.clear_image()
-                self.cardgrp.add(fcard, layer=(cw.LAYER_FCARDS_T, fcard.index, 0))
+                self.cardgrp.add(fcard, layer=(cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, 2, fcard.index, 0))
                 self.mcards.append(fcard)
             else:
-                self.cardgrp.add(fcard, layer=(cw.LAYER_FCARDS_T, fcard.index, 0))
+                self.cardgrp.add(fcard, layer=(cw.LAYER_FCARDS_T, cw.LTYPE_FCARDS, 2, fcard.index, 0))
                 self.mcards.append(fcard)
                 if not alpha is None:
                     fcard.update_image()

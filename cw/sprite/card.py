@@ -658,7 +658,7 @@ class PlayerCard(CWPyCard, character.Player):
 
         # spritegroupに追加
         self.index = index
-        self.layer = (cw.LAYER_PCARDS, self.index, 0)
+        self.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, self.index, 0)
         cw.cwpy.cardgrp.add(self, layer=self.layer)
         cw.cwpy.pcards.append(self)
 
@@ -873,13 +873,13 @@ class EnemyCard(CWPyCard, character.Enemy):
 
         layer = mcarddata.getint("Property/Layer", -1)
         if 0 <= layer:
-            self.layer = (layer, self.index, 0)
+            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
         else:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                self.layer = (cw.LAYER_MCARDS_120, self.index, 0)
+                self.layer = (cw.LAYER_MCARDS_120, cw.LTYPE_MCARDS, self.index, 0)
             else:
-                self.layer = (cw.LAYER_MCARDS, self.index, 0)
+                self.layer = (cw.LAYER_MCARDS, cw.LTYPE_MCARDS, self.index, 0)
         if addgroup:
             # spritegroupに追加
             cw.cwpy.cardgrp.add(self, layer=self.layer)
@@ -970,7 +970,7 @@ class FriendCard(CWPyCard, character.Friend):
         CWPyCard.__init__(self, "hidden")
         self.zoomsize_noscale = (32, 42)
         self.index = index
-        self.layer = (cw.LAYER_FCARDS, self.index, 0)
+        self.layer = (cw.LAYER_FCARDS, cw.LTYPE_FCARDS, self.index, 0)
 
         if castid:
             # Id
@@ -1079,15 +1079,15 @@ class MenuCard(CWPyCard):
 
         layer = data.getint("Property/Layer", -1)
         if 0 <= layer:
-            self.layer = (layer, self.index, 0)
+            self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
         elif cw.cwpy.areaid in cw.AREAS_SP:
-            self.layer = (cw.LAYER_SPMCARDS, self.index, 0)
+            self.layer = (cw.LAYER_SPMCARDS, cw.LTYPE_SPMCARDS, self.index, 0)
         else:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
             if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
-                self.layer = (cw.LAYER_MCARDS_120, self.index, 0)
+                self.layer = (cw.LAYER_MCARDS_120, cw.LTYPE_MCARDS, self.index, 0)
             else:
-                self.layer = (cw.LAYER_MCARDS, self.index, 0)
+                self.layer = (cw.LAYER_MCARDS, cw.LTYPE_MCARDS, self.index, 0)
         if addgroup:
             # spritegroupに追加
             cw.cwpy.cardgrp.add(self, layer=self.layer)
