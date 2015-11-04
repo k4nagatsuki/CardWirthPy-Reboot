@@ -343,6 +343,9 @@ class EventInterface(object):
                     cw.cwpy.frame.debugger.pause(True)
                 cw.cwpy.frame.exec_func(func)
 
+        if self._stoped:
+            raise EffectBreakError()
+
         if cur_content.tag == "Talk":
             # メッセージの場合は表示後に待機するので
             # ここでは待ち合わせない
@@ -357,6 +360,9 @@ class EventInterface(object):
         else:
             self.eventtimer += 1
 
+        if self._stoped:
+            raise EffectBreakError()
+
         if cw.cwpy.is_showingdebugger() and\
                  cw.cwpy.is_playingscenario() and 0 <= cw.cwpy.areaid:
             cnt = 0
@@ -368,7 +374,7 @@ class EventInterface(object):
             tick = pygame.time.get_ticks()
             tick += cw.cwpy.frame.debugger.sc_waittime.GetValue() * 100
             while cw.cwpy.is_running and cw.cwpy.is_showingdebugger() and\
-                        pygame.time.get_ticks() < tick:
+                        pygame.time.get_ticks() < tick and not self._stoped:
                 if not self.get_event().force_nextcontent is None:
                     break
                 if cnt == 0:
@@ -396,8 +402,8 @@ class EventInterface(object):
                 cw.cwpy.wait_frame(1, False)
                 cnt += 1
 
-            if self._stoped:
-                raise EffectBreakError()
+        if self._stoped:
+            raise EffectBreakError()
 
     def set_curcontent(self, content, event=None):
         """次に実行するイベントコンテントを強制的に差し替える。
@@ -726,7 +732,7 @@ class Event(object):
         if not (isinstance(self.error, AreaChangeError) or\
                 isinstance(self.error, ScenarioBadEndError)) and\
                 cw.cwpy.status <> "Title":
-            if not cw.cwpy.is_gameover():
+            if not cw.cwpy.is_gameover() and not cw.cwpy.event.is_stoped():
                 cw.cwpy.show_party()
                 cw.cwpy.disposition_pcards()
 

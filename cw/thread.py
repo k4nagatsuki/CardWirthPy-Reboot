@@ -1983,8 +1983,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.end()
 
         def func4():
-            self.event._stoped = False
-            self.event.breakwait = False
+            self.event.clear()
             self._init_resources()
 
         def func5():
