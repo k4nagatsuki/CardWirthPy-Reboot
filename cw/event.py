@@ -22,6 +22,7 @@ class EventInterface(object):
         self._stoped = False
         self._step = False
         self._targetstack = -2
+        self.breakwait = False
 
         # イベント実行中に操作を受け付けるためのタイマ
         self.eventtimer = 1
@@ -108,6 +109,7 @@ class EventInterface(object):
         self.clear_events()
         self.nowrunningpacks = {}
         self._stoped = False
+        self.breakwait = False
         self._targetstack = -2
         self.refresh_tools()
         self.refresh_activeitem()
