@@ -3222,7 +3222,7 @@ class CWPy(_Singleton, threading.Thread):
 
             self.set_yado()
 
-    def load_party(self, header=None, chgarea=True, newparty=False):
+    def load_party(self, header=None, chgarea=True, newparty=False, loadsprites=True):
         """パーティデータをロードする。
         header: PartyHeader。指定しない場合はパーティデータを空にする。
         """
@@ -3237,19 +3237,21 @@ class CWPy(_Singleton, threading.Thread):
         elif newparty:
             self.cardgrp.remove(self.pcards)
             self.pcards = []
-            for i, e in enumerate(self.ydata.party.members):
-                pos_noscale = (9 + 95 * i + 9 * i, 285)
-                pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
-            self.show_party()
+            if loadsprites:
+                for i, e in enumerate(self.ydata.party.members):
+                    pos_noscale = (9 + 95 * i + 9 * i, 285)
+                    pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
+                self.show_party()
         else:
             self.cardgrp.remove(self.pcards)
             self.pcards = []
-            e = self.ydata.party.members[0]
-            pcardsnum = len(self.ydata.party.members) - 1
-            pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
-            pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
-            pcard.set_pos_noscale(pos_noscale)
-            cw.animation.animate_sprite(pcard, "deal")
+            if loadsprites:
+                e = self.ydata.party.members[0]
+                pcardsnum = len(self.ydata.party.members) - 1
+                pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
+                pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
+                pcard.set_pos_noscale(pos_noscale)
+                cw.animation.animate_sprite(pcard, "deal")
 
         self.is_pcardsselectable = self.ydata and self.ydata.party
 

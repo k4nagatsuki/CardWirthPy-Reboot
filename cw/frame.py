@@ -470,7 +470,7 @@ class Frame(wx.Frame):
 
                 if mdlg.ShowModal() == wx.ID_OK:
                     def func():
-                        cw.cwpy.load_party(header, chgarea=False, newparty=False)
+                        cw.cwpy.load_party(header, chgarea=False, newparty=False, loadsprites=False)
                         cw.cwpy.sdata.set_log()
                         cw.cwpy.f9(True)
                     cw.cwpy.exec_func(func)
