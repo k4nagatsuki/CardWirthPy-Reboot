@@ -795,8 +795,9 @@ def create_scenariolog(sdata, path, recording):
 
         elif bgtype == cw.sprite.background.BG_TEXT:
             text, face, tsize, color, bold, italic, underline, strike, vertical,\
-                btype, bcolor, bwidth, size, pos, flag, visible, layer = d
-            attrs = {"visible": str(visible)}
+                btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer = d
+            attrs = {"visible": str(visible),
+                     "loaded": str(loaded)}
             e_bgimg = cw.data.make_element("TextCell", attrs=attrs)
 
             e = cw.data.make_element("Text", text)

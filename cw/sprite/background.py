@@ -233,6 +233,7 @@ class BackGround(base.CWPySprite):
                 flag = e.gettext("Flag", "")
                 layer = e.getint("Layer", cw.LAYER_BACKGROUND)
                 visible = e.getattr(".", "visible", "")
+                hasvisible = visible <> ""
                 if visible in (u"True", u"False"):
                     visible = visible == u"True"
                 else:
@@ -282,11 +283,21 @@ class BackGround(base.CWPySprite):
                 btype = e.getattr("Bordering", "type", "None")
                 bcolor = getcolor(e, "Bordering/Color", 255, 255, 255, 255)
                 bwidth = e.getint("Bordering", "width", 1)
+                if hasvisible:
+                    # visible属性を持つ場合はシナリオではなくScenarioLogの情報。
+                    # 0.12.3以前はテキストセルの内容が表示の有無にかかわりなく
+                    # 最初の出現時点で固定されていたが、0.12.4以降はCardWirthに
+                    # 合わせて最初の表示時点で固定するように変更した。
+                    # visibleがあってloadedが無い場合は0.12.3以前の情報で、
+                    # 内容はすでに固定済みとなっている。
+                    loaded = e.getbool(".", "loaded", True)
+                else:
+                    loaded = e.getbool(".", "loaded", False)
 
-                text = cw.sprite.message.rpl_specialstr(cw.util.decodewrap(text))
+                text = cw.util.decodewrap(text)
 
                 d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
-                     btype, bcolor, bwidth, size, pos, flag, visible, layer)
+                     btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer)
                 if self._add_textcell(blitlist, self.bgs, oldbgs, d,
                                       nocheckvisible=nocheckvisible):
                     forcedraw = True
@@ -479,13 +490,17 @@ class BackGround(base.CWPySprite):
 
     def _add_textcell(self, blitlist, bgs, oldbgs, d, nocheckvisible=False):
         text, face, tsize, color, bold, italic, underline, strike, vertical,\
-            btype, bcolor, bwidth, size, pos, flag, visible, layer = d
+            btype, bcolor, bwidth, loaded, size, pos, flag, visible, layer = d
         if not nocheckvisible:
             visible = cw.cwpy.sdata.flags.get(flag, True) and size <> (0, 0) and\
                 self.rect.colliderect(cw.s(pygame.Rect(pos, size)))
         flagvalue = bool(cw.cwpy.sdata.flags.get(flag, True))
+        if flagvalue and not loaded:
+            # テキストセルは最初の表示で内容が固定される
+            text = cw.sprite.message.rpl_specialstr(text)
+            loaded = True
         d = (text, face, tsize, color, bold, italic, underline, strike, vertical,
-             btype, bcolor, bwidth, size, pos, flag, flagvalue, layer)
+             btype, bcolor, bwidth, loaded, size, pos, flag, flagvalue, layer)
         if visible:
             if btype == "Inline":
                 # 縁取り形式2のみは事前にセル生成が可能
