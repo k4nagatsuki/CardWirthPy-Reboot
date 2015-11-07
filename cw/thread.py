@@ -3233,11 +3233,15 @@ class CWPy(_Singleton, threading.Thread):
                 areaid = 1
             self.change_area(areaid, bginhrt=False)
         elif newparty:
+            self.cardgrp.remove(self.pcards)
+            self.pcards = []
             for i, e in enumerate(self.ydata.party.members):
                 pos_noscale = (9 + 95 * i + 9 * i, 285)
                 pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
             self.show_party()
         else:
+            self.cardgrp.remove(self.pcards)
+            self.pcards = []
             e = self.ydata.party.members[0]
             pcardsnum = len(self.ydata.party.members) - 1
             pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)

@@ -469,9 +469,11 @@ class Frame(wx.Frame):
                 self.move_dlg(mdlg)
 
                 if mdlg.ShowModal() == wx.ID_OK:
-                    cw.cwpy.exec_func(cw.cwpy.ydata.load_party, header)
-                    cw.cwpy.exec_func(cw.cwpy.sdata.set_log)
-                    cw.cwpy.exec_func(cw.cwpy.f9, True)
+                    def func():
+                        cw.cwpy.load_party(header, chgarea=False, newparty=False)
+                        cw.cwpy.sdata.set_log()
+                        cw.cwpy.f9(True)
+                    cw.cwpy.exec_func(func)
 
                 mdlg.Destroy()
             else:
