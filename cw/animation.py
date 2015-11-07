@@ -205,6 +205,9 @@ def _get_skipstatus(clearevent):
                                    pygame.locals.KEYDOWN,
                                    pygame.locals.KEYUP))
 
+    if not breakflag:
+        breakflag = cw.cwpy.event.get_event() and cw.cwpy.event.is_stoped()
+
     if breakflag or cw.cwpy.keyevent.is_keyin(pygame.locals.K_RETURN) or cw.cwpy.keyevent.is_mousein():
         return True
 

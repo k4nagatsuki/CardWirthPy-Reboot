@@ -782,8 +782,10 @@ class Debugger(wx.Frame):
             cw.cwpy.exec_func(func, path)
 
     def OnLoadYadoTool(self, event):
-        cw.cwpy.exec_func(cw.cwpy.clean_specials)
-        cw.cwpy.exec_func(cw.cwpy.reload_yado)
+        def func():
+            cw.cwpy.clean_specials()
+            cw.cwpy.exec_func(cw.cwpy.reload_yado)
+        cw.cwpy.exec_func(func)
 
     def OnCompStampTool(self, event):
         dlg = cw.debug.edit.CompStampEditDialog(self)

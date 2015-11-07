@@ -1964,27 +1964,6 @@ class CWPy(_Singleton, threading.Thread):
         # イベントを中止
         self.event._stoped = True
         self.event.breakwait = True
-        def func1():
-            if self.is_showingmessage():
-                mwin = self.get_messagewindow()
-                mwin.result = cw.event.EffectBreakError()
-            elif self.is_runningevent():
-                self.event._stoped = True
-            self.sdata.is_playing = False
-
-        def func2():
-            # バトルを強制終了
-            if self.battle and self.battle.is_running:
-                self.battle.end(True, True)
-
-        def func3():
-            # シナリオを強制終了
-            if self.is_playingscenario():
-                self.sdata.end()
-
-        def func4():
-            self.event.clear()
-            self._init_resources()
 
         def func5():
             def func():
@@ -1994,11 +1973,37 @@ class CWPy(_Singleton, threading.Thread):
                 self.load_yado(self.yadodir, createmutex=False)
             self.exec_func(func)
 
+        def func4():
+            self.event.clear()
+            self._init_resources()
+
+            self.frame.exec_func(func5)
+
+        def func3():
+            # シナリオを強制終了
+            if self.is_playingscenario():
+                self.sdata.end()
+
+            self.exec_func(func4)
+
+        def func2():
+            # バトルを強制終了
+            if self.battle and self.battle.is_running:
+                self.battle.end(True, True)
+
+            self.exec_func(func3)
+
+        def func1():
+            if self.is_showingmessage():
+                mwin = self.get_messagewindow()
+                mwin.result = cw.event.EffectBreakError()
+            elif self.is_runningevent():
+                self.event._stoped = True
+            self.sdata.is_playing = False
+
+            self.exec_func(func2)
+
         self.exec_func(func1)
-        self.exec_func(func2)
-        self.exec_func(func3)
-        self.exec_func(func4)
-        self.frame.exec_func(func5)
 
     def load_yado(self, yadodir, createmutex=True):
         """指定されたディレクトリの宿をロード。"""
