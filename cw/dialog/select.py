@@ -1425,10 +1425,8 @@ class PartySelect(MultiViewSelect):
         def redrawfunc():
             def func():
                 header = self.list[self.index]
-                order = header.order
                 header = cw.cwpy.ydata.create_partyheader(header.fpath)
                 header.data = partyheader.data
-                header.order = order
                 self.list[self.index] = header
                 cw.cwpy.ydata.partys[self.index] = header
                 cw.cwpy.frame.exec_func(self.draw, True)
