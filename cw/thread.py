@@ -2932,6 +2932,8 @@ class CWPy(_Singleton, threading.Thread):
 
         seq = []
         for pcard in pcards:
+            if pcard.is_reversed():
+                continue
             if not pcard.get_pocketcards(cardtype):
                 continue
             replace = ReplaceCards(self, pcard)
