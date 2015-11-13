@@ -2433,7 +2433,7 @@ def abbr_longstr(dc, text, w):
             return u"..."
     width = dc.GetTextExtent(text)[0]
     if width > w:
-        while dc.GetTextExtent(text + u"...")[0] > w:
+        while text and dc.GetTextExtent(text + u"...")[0] > w:
             text = text[:-1]
         text += u"..."
     return text
