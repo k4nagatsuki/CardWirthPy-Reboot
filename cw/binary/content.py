@@ -76,7 +76,10 @@ class Content(base.CWBinaryBase):
                                             for _cnt in xrange(motions_num)]
         elif self.tag == "Branch" and self.type == "Select":
             self.properties["targetall"] = f.bool()
-            self.properties["random"] = f.bool()
+            if f.bool():
+                self.properties["method"] = "Random"
+            else:
+                self.properties["method"] = "Manual"
         elif self.tag == "Branch" and self.type == "Ability":
             self.properties["value"] = f.dword()
             targetm = f.byte()
@@ -428,7 +431,13 @@ class Content(base.CWBinaryBase):
                 effectmotion.EffectMotion.unconv(f, motion)
         elif tag == "Branch" and ctype == "Select":
             f.write_bool(cw.util.str2bool(data.get("targetall")))
-            f.write_bool(cw.util.str2bool(data.get("random")))
+            if "method" in data.attrib:
+                smethod = data.get("method")
+                if not smethod in ("Manual", "Random"):
+                    f.check_wsnversion("1")
+                f.write_bool(smethod == "Random")
+            else:
+                f.write_bool(cw.util.str2bool(data.get("random")))
         elif tag == "Branch" and ctype == "Ability":
             f.write_dword(int(data.get("value")))
             f.write_byte(base.CWBinaryBase.unconv_target_member(data.get("targetm")))

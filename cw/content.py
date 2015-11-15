@@ -40,6 +40,39 @@ class EventContentBase(object):
 
         return (tname, tspeed)
 
+    def get_valuedmember(self, mode="unreversed"):
+        """評価値が最大になるメンバを返す(1.50)。
+        これを使用するイベントコンテントは
+        self._init_valuesをFalseで初期化しておくこと。
+        """
+        if not self._init_values:
+            self._init_values = True
+            self.initvalue = self.data.getint(".", "initialValue", 0)
+            self.coupons = {}
+            for e in self.data.getfind("Coupons", raiseerror=False):
+                self.coupons[e.text] = self.coupons.get(e.text, 0) + e.getint(".", "value", 0)
+
+        values = {}
+        maxvalue = 0
+        for pcard in cw.cwpy.get_pcards():
+            if not pcard.is_active():
+                continue
+            value = self.initvalue
+            for name, cvalue in self.coupons.iteritems():
+                if pcard.has_coupon(name):
+                    value += cvalue
+            values[pcard] = value
+            maxvalue = max(value, maxvalue)
+
+        if maxvalue <= 0:
+            return None
+
+        seq = []
+        for pcard, value in values.iteritems():
+            if value == maxvalue:
+                seq.append(pcard)
+        return cw.cwpy.dice.choice(seq)
+
     def is_differentscenario(self):
         """実行中のイベントがカードの使用時イベントであり、
         使用中のカードが現在プレイ中のシナリオと異なる
@@ -965,24 +998,37 @@ class BranchCouponContent(BranchContent):
 class BranchSelectContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self._init_values = False
+        self.targetall = self.data.getbool(".", "targetall", True)
+        self.method = self.data.getattr(".", "method", "")
+        if not self.method:
+            if self.data.getbool(".", "random", False):
+                self.method = "Random"
+            else:
+                self.method = "Manual"
 
     def action(self):
         """メンバ選択分岐コンテント。"""
-        targetall = self.data.getbool(".", "targetall", True)
-        random = self.data.getbool(".", "random", True)
-
-        if targetall:
-            pcards = cw.cwpy.get_pcards("unreversed")
+        if self.targetall:
+            mode = "unreversed"
         else:
-            pcards = cw.cwpy.get_pcards("active")
+            mode = "active"
 
         index = -1
-        if random:
+        if self.method == "Random":
+            pcards = cw.cwpy.get_pcards(mode)
             if pcards:
                 pcard = cw.cwpy.dice.choice(pcards)
                 cw.cwpy.event.set_selectedmember(pcard)
                 index = 0
+        elif self.method == "Valued":
+            # 評価条件による選択(Wsn.1)
+            pcard = self.get_valuedmember(mode)
+            if pcard:
+                cw.cwpy.event.set_selectedmember(pcard)
+                index = 0
         else:
+            pcards = cw.cwpy.get_pcards(mode)
             mwin = cw.sprite.message.MemberSelectWindow(pcards)
             index = cw.cwpy.show_message(mwin)
 
@@ -993,20 +1039,28 @@ class BranchSelectContent(BranchContent):
         return u"選択分岐コンテント"
 
     def get_childname(self, child):
-        if self.data.getbool(".", "targetall", True):
-            s = u"パーティ全員から "
+        if self.targetall:
+            s = u"パーティ全員から"
         else:
-            s = u"動けるメンバから "
+            s = u"動けるメンバから"
 
-        if self.data.getbool(".", "random", True):
+        if self.method == "Random":
             s += u"ランダムで "
+        elif self.method == "Valued":
+            values = [u"初期値 = %s" % (self.initvalue)]
+            for key in sorted(self.coupons.iterkeys()):
+                values.append(u"%s = %s" % (key, self.coupons[key]))
+            s += u"評価条件(%s)で" % (", ".join(values))
         else:
             s += u"手動で "
 
         if child.get("name", "") == u"○":
             s += u"キャラクターを選択"
         else:
-            s += u"の選択をキャンセル"
+            if self.method == "Manual":
+                s += u"の選択をキャンセル"
+            else:
+                s += u"の選択に失敗"
 
         return s
 
@@ -3099,6 +3153,7 @@ class TalkMessageContent(TalkContent):
 class TalkDialogContent(TalkContent):
     def __init__(self, data):
         TalkContent.__init__(self, data)
+        self._init_values = False
 
     def action(self):
         """台詞コンテント。"""
@@ -3140,30 +3195,6 @@ class TalkDialogContent(TalkContent):
             index = 0
 
         return index
-
-    def get_valuedmember(self):
-        """評価値が最大になるメンバを返す(1.50)。"""
-        values = {}
-        initvalue = self.data.getint(".", "initialValue", 0)
-        maxvalue = 0
-        for pcard in cw.cwpy.get_pcards("unreversed"):
-            if not pcard.is_active():
-                continue
-            value = initvalue
-            for e in self.data.getfind("Coupons"):
-                if pcard.has_coupon(e.text):
-                    value += e.getint(".", "value", 0)
-            values[pcard] = value
-            maxvalue = max(value, maxvalue)
-
-        if maxvalue <= 0:
-            return []
-
-        seq = []
-        for pcard, value in values.iteritems():
-            if value == maxvalue:
-                seq.append(pcard)
-        return cw.cwpy.dice.choice(seq)
 
     def can_action(self):
         """台詞を表示可能であればTrueを返す。
