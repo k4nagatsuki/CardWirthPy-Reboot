@@ -562,7 +562,7 @@ class CWPy(_Singleton, threading.Thread):
             self.setting.vocation120 = vocation120
             for sprite in self.cardgrp.sprites():
                 if isinstance(sprite, cw.sprite.background.InuseCardImage) or\
-                        isinstance(sprite, cw.character.Character) and sprite.test_aptitude:
+                        (isinstance(sprite, cw.character.Character) and sprite.is_initialized() and sprite.test_aptitude):
                     sprite.update_scale()
 
     def update_curtainstyle(self):
