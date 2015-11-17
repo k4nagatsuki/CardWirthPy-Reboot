@@ -78,8 +78,6 @@ class Deck(object):
     def get_handmaxnum(self, ccard):
         n = (ccard.level + 1) // 2 + 4
         n = cw.util.numwrap(n, 5, 12)
-        if ccard.is_overheat():
-            n += 1
         return n
 
     def set(self, ccard, draw=True):
