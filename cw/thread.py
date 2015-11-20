@@ -594,6 +594,7 @@ class CWPy(_Singleton, threading.Thread):
             self.frame.exec_func(self.frame.debugger.Close)
 
         cw.data.redraw_cards(debug)
+        self.draw()
 
     def update_infocard(self):
         """デバッガ等から所有情報カードの変更を

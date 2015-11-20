@@ -46,6 +46,7 @@ ID_STARTEVENT = wx.NewId()
 ID_EDITOR = wx.NewId()
 ID_BREAKPOINT = wx.NewId()
 ID_CLEAR_BREAKPOINT = wx.NewId()
+ID_QUIT_DEBUG_MODE = wx.NewId()
 
 
 class Debugger(wx.Frame):
@@ -113,6 +114,11 @@ class Debugger(wx.Frame):
                          u"シナリオを中断して、冒険者の宿に戻ります。")
         self.mi_break.SetBitmap(rsrc["BREAK"])
         file_menu.AppendItem(self.mi_break)
+        file_menu.AppendSeparator()
+        self.mi_quit_debugmode = wx.MenuItem(file_menu, ID_QUIT_DEBUG_MODE, u"デバッグモードの終了(&Q)",
+                         u"シナリオを中断して、冒険者の宿に戻ります。")
+        self.mi_quit_debugmode.SetBitmap(rsrc["QUIT_DEBUG_MODE"])
+        file_menu.AppendItem(self.mi_quit_debugmode)
 
         self.mi_comp = wx.MenuItem(edit_menu, ID_COMPSTAMP, u"終了印(&O)",
                          u"終了印リストを編集します。")
@@ -515,6 +521,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnStatusTool, id=ID_STATUS)
         self.Bind(wx.EVT_MENU, self.OnStartEventTool, id=ID_STARTEVENT)
         self.Bind(wx.EVT_MENU, self.OnEditorTool, id=ID_EDITOR)
+        self.Bind(wx.EVT_MENU, self.OnQuitDebugMode, id=ID_QUIT_DEBUG_MODE)
 
         # F1～F9キーをメイン画面へ転送
         self.f1keyid = wx.NewId()
@@ -578,6 +585,7 @@ class Debugger(wx.Frame):
 
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
+        cw.cwpy.exec_func(cw.cwpy.statusbar.change)
         self.Destroy()
 
     def OnDestroy(self, event):
@@ -745,6 +753,9 @@ class Debugger(wx.Frame):
             content = None
 
         cw.cwpy.exec_func(func, self, content)
+
+    def OnQuitDebugMode(self, event):
+        cw.cwpy.exec_func(cw.cwpy.set_debug, False)
 
     def OnSaveTool(self, event):
         if not cw.cwpy.is_playingscenario():

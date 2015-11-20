@@ -1028,16 +1028,27 @@ class DebuggerButton(StatusBarButton):
         image = cw.cwpy.rsrc.pygamedialogs["STATUS12"]
         name = u"デバッガ"
         desc = u"デバッガを表示します"
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc)
+        pushed = cw.cwpy.is_showingdebugger()
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc,
+                                 toggle=True, is_pushed=pushed)
         self.selectable_on_event = True
-        if self.is_selection():
-            self.update_image()
+        self.is_showing = cw.cwpy.is_debugmode
+
+    def update(self, scr):
+        self.update_selection()
+
+        self.is_pushed = cw.cwpy.is_showingdebugger()
+        if self.is_pushed:
+            self.set_desc(u"デバッガを閉じます")
+        else:
+            self.set_desc(u"デバッガを表示します")
+
+        self.update_image()
 
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["STATUS12"]
 
     def lclick_event(self):
-        StatusBarButton.lclick_event(self)
         cw.cwpy.eventhandler.f3key_event()
 
 class BacklogButton(StatusBarButton):
