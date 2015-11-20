@@ -2498,7 +2498,7 @@ class CWPy(_Singleton, threading.Thread):
             self.clean_specials()
 
         # 背景継承を行うかどうかのbool値
-        bginhrt |= bool(self.areaid < 0)
+        bginhrt |= bool(self.areaid < 0 and self.areaid <> cw.AREA_BREAKUP)
         oldareaid = self.areaid
         self.areaid = areaid
         self.sdata.change_data(areaid)
