@@ -18,7 +18,6 @@ import StringIO
 import io
 import traceback
 import datetime
-import md5
 import ctypes
 import array
 import unicodedata
@@ -2744,7 +2743,7 @@ def create_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = md5.new(buffer(dpath)).hexdigest()
+    name = hashlib.md5(buffer(dpath)).hexdigest()
 
     # 二重起動防止 for Windows
     if sys.platform == "win32":
@@ -2780,7 +2779,7 @@ def exists_mutex(dpath):
         dpath = os.path.abspath(dpath)
     dpath = os.path.normpath(dpath)
     dpath = os.path.normcase(dpath)
-    name = md5.new(buffer(dpath)).hexdigest()
+    name = hashlib.md5(buffer(dpath)).hexdigest()
 
     if sys.platform == "win32":
         name = u"CardWirthPy/%s" % (name)

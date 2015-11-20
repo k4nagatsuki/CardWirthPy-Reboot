@@ -3833,7 +3833,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.ydata.deletedpaths.add(temppath)
         else:
             # Property/Materialsが無かった頃の互換動作
-            for e in data.getiterator():
+            for e in data.iter():
                 if e.tag == "ImagePath" and e.text:
                     path = cw.util.join_paths(self.yadodir, e.text)
                     temppath = cw.util.join_paths(self.tempdir, e.text)
@@ -3896,7 +3896,7 @@ class CWPy(_Singleton, threading.Thread):
             from_scenario = True
             scedir = cw.util.join_paths(yadodir, mdir)
 
-        for e in data.getiterator():
+        for e in data.iter():
             if e.tag == "ImagePath" and importimage:
                 # ImagePathはcarddata無しでの表示に必要となるので取り込んでおく
                 if e.text and not cw.binary.image.path_is_code(e.text):

@@ -4,9 +4,9 @@
 import os
 import sys
 import ctypes
+import hashlib
 import inspect
 import math
-import md5
 import struct
 import shutil
 import weakref
@@ -2193,8 +2193,8 @@ class ScenarioCompatibilityTable(object):
     $ [string]::concat(([Security.Cryptography.MD5]::Create().ComputeHash((gi Summary.wsm).OpenRead())|%{$_.ToString('x2')}))
 
     Pythonでは次のようにして取得できる。
-    >>> import md5
-    >>> md5.new(open("Summary.wsm", "rb").read()).hexdigest()
+    >>> import hashlib
+    >>> hashlib.md5(open("Summary.wsm", "rb").read()).hexdigest()
     """
     def __init__(self):
         self.table = {}
@@ -2212,7 +2212,7 @@ class ScenarioCompatibilityTable(object):
         バージョンを取得する。
         """
         if filedata:
-            key = md5.new(filedata).hexdigest()
+            key = hashlib.md5(filedata).hexdigest()
         else:
             key = cw.util.get_md5(fpath)
 

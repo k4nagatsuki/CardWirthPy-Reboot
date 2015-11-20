@@ -1493,7 +1493,7 @@ class YadoData(object):
 
                     # 元々scenariocardでない場合は
                     # ImagePathの指す先をバイナリ化しておく
-                    for e2 in carddata.getiterator():
+                    for e2 in carddata.iter():
                         if e2.tag == "ImagePath" and e2.text and not cw.binary.image.path_is_code(e2.text):
                             path = cw.util.join_paths(self.yadodir, e2.text)
                             if os.path.isfile(path):
