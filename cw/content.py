@@ -603,15 +603,14 @@ class BranchCastContent(BranchContent):
 class BranchInfoContent(BranchContent):
     def __init__(self, data):
         BranchContent.__init__(self, data)
+        self.resid = self.data.getint(".", "id", 0)
 
     def action(self):
         """情報所持分岐コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        resid = self.data.getint(".", "id", 0)
-        flag = bool([h for h in cw.cwpy.sdata.infocards if h.id == resid])
-        return self.get_boolean_index(flag)
+        return self.get_boolean_index(cw.cwpy.sdata.has_infocard(self.resid))
 
     def get_status(self):
         resid = self.data.getint(".", "id", 0)
@@ -2192,29 +2191,22 @@ class GetCastContent(GetContent):
 class GetInfoContent(GetContent):
     def __init__(self, data):
         GetContent.__init__(self, data)
+        self.resid = self.data.getint(".", "id", 0)
 
     def action(self):
         """情報入手コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        resid = self.data.getint(".", "id", 0)
-
-        if resid and resid in cw.cwpy.sdata.infos:
+        if self.resid in cw.cwpy.sdata.infos:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
-            headers = [h for h in cw.cwpy.sdata.infocards if h.id == resid]
-
-            if headers:
-                header = headers[0]
-                cw.cwpy.sdata.infocards.remove(header)
+            if cw.cwpy.sdata.has_infocard(self.resid):
+                cw.cwpy.sdata.remove_infocard(self.resid)
             else:
-                path = cw.cwpy.sdata.infos[resid][1]
-                e = cw.data.xml2element(path, "Property")
-                header = cw.header.InfoCardHeader(e)
                 cw.cwpy.sdata.notice_infoview = True
 
-            cw.cwpy.sdata.infocards.insert(0, header)
+            cw.cwpy.sdata.append_infocard(self.resid)
 
         return 0
 
@@ -2557,21 +2549,17 @@ class LoseCastContent(LoseContent):
 class LoseInfoContent(LoseContent):
     def __init__(self, data):
         LoseContent.__init__(self, data)
+        self.resid = self.data.getint(".", "id", 0)
 
     def action(self):
         """情報喪失コンテント。"""
         if self.is_differentscenario():
             return 0
 
-        resid = self.data.getint(".", "id", 0)
-
-        if resid in cw.cwpy.sdata.infos:
+        if self.resid in cw.cwpy.sdata.infos:
             if cw.cwpy.ydata:
                 cw.cwpy.ydata.changed()
-            headers = [h for h in cw.cwpy.sdata.infocards if h.id == resid]
-
-            if headers:
-                cw.cwpy.sdata.infocards.remove(headers[0])
+            cw.cwpy.sdata.remove_infocard(self.resid)
 
         return 0
 

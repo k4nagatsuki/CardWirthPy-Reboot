@@ -107,7 +107,7 @@ class StatusBar(base.CWPySprite):
                 lmargin += 123
             self._create_partymoney((cw.s(474) - rmargin, cw.s(6)))
             rmargin += cw.s(34)
-            if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards:
+            if showbuttons and cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards():
                 self._create_infocards((cw.s(474) - rmargin, cw.s(3)))
         elif cw.cwpy.is_battlestatus():
             if cw.cwpy.setting.show_roundautostartbutton:
@@ -986,7 +986,7 @@ class InfoCardsButton(StatusBarButton):
         name = cw.cwpy.msgs["info_card"]
         desc = cw.cwpy.msgs["desc_info_cards"]
         notice = cw.cwpy.sdata.notice_infoview
-        number = len(cw.cwpy.sdata.infocards)
+        number = cw.cwpy.sdata.count_infocards()
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  notice=notice, number=number, desc=desc)
         self.is_showing = cw.cwpy.is_playingscenario
@@ -997,7 +997,7 @@ class InfoCardsButton(StatusBarButton):
 
     def reset(self, pos):
         self.notice = cw.cwpy.sdata.notice_infoview
-        self.number = len(cw.cwpy.sdata.infocards)
+        self.number = cw.cwpy.sdata.count_infocards()
         StatusBarButton.reset(self, pos)
 
     def lclick_event(self):

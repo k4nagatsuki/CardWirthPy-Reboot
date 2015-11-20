@@ -53,7 +53,7 @@ class CWPyCard(base.SelectableSprite):
         mcardflag = bool(cw.cwpy.sdata.flags.get(self.flag, True))
         mcardflag &= bool(not self.debug_only or cw.cwpy.is_debugmode())
         if mcardflag and self.command == "ShowDialog" and self.arg == "INFOVIEW":
-            mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards)
+            mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards())
         return mcardflag
 
     @staticmethod
@@ -66,7 +66,7 @@ class CWPyCard(base.SelectableSprite):
         if mcardflag:
             command = data.getattr(".", "command", "")
             if command == "ShowDialog" and data.getattr(".", "arg", "") == "INFOVIEW":
-                mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.infocards)
+                mcardflag &= bool(cw.cwpy.is_playingscenario() and cw.cwpy.sdata.has_infocards())
         return mcardflag
 
     def get_unselectedimage(self):

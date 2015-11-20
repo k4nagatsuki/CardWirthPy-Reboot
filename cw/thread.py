@@ -607,7 +607,7 @@ class CWPy(_Singleton, threading.Thread):
         self.statusbar.change(showbuttons)
 
         if self.areaid == cw.AREA_CAMP and self.is_playingscenario():
-            cw.data.redraw_cards(bool(cw.cwpy.sdata.infocards))
+            cw.data.redraw_cards(cw.cwpy.sdata.has_infocards())
 
     def run(self):
         try:

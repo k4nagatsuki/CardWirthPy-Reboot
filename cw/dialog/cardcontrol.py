@@ -937,7 +937,7 @@ class CardControl(wx.Dialog):
         header.negaflag = False
         self.toppanel.SetFocusIgnoringChildren()
 
-        if header in cw.cwpy.sdata.infocards:
+        if self.callname == "INFOVIEW":
             dlg = cardinfo.YadoCardInfo(self, self.get_headers(), header)
             self.Parent.move_dlg(dlg)
             dlg.ShowModal()
@@ -1115,7 +1115,7 @@ class CardHolder(CardControl):
         elif self.callname == "INFOVIEW":
             name = cw.cwpy.msgs["info_card"]
             self.bgcolour = wx.Colour(0, 0, 128)
-            self.list = cw.cwpy.sdata.infocards
+            self.list = cw.cwpy.sdata.get_infocardheaders()
             sendto = False
 
         # 前に開いていたときのindex値と位置があったら取得する

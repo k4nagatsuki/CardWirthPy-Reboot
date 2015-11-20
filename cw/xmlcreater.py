@@ -891,8 +891,8 @@ def create_scenariolog(sdata, path, recording):
     e_info = cw.data.make_element("InfoCards")
     element.append(e_info)
 
-    for header in sdata.infocards:
-        e = cw.data.make_element("InfoCard", str(header.id))
+    for resid in sdata.get_infocards(order=True):
+        e = cw.data.make_element("InfoCard", str(resid))
         e_info.append(e)
 
     # FriendCard

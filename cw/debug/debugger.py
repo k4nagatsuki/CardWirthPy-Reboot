@@ -836,7 +836,7 @@ class Debugger(wx.Frame):
             seq = [(key, str(key) + ": " + value[0]) for key, value in
                                 cw.cwpy.sdata.infos.iteritems() if key >= 0]
             seq.sort()
-            infoids = set([i.id for i in cw.cwpy.sdata.infocards])
+            infoids = set(cw.cwpy.sdata.get_infocards(order=False))
             oldids = infoids.copy()
             choices = []
             selections = []
@@ -854,24 +854,19 @@ class Debugger(wx.Frame):
             dlg.SetSelections(selections)
 
             if dlg.ShowModal() == wx.ID_OK:
+                hasids = set()
                 for index in dlg.GetSelections():
-                    key = seq[index][0]
+                    resid = seq[index][0]
+                    hasids.add(resid)
 
-                    if key in infoids:
-                        infoids.remove(key)
-                    else:
-                        path = cw.cwpy.sdata.infos[key][1]
-                        e = cw.data.xml2element(path, "Property")
-                        header = cw.header.InfoCardHeader(e)
-                        cw.cwpy.sdata.infocards.insert(0, header)
+                    if not resid in infoids:
+                        cw.cwpy.sdata.append_infocard(resid)
 
-                headers = [i for i in cw.cwpy.sdata.infocards
-                                                            if i.id in infoids]
+                for resid in infoids:
+                    if not resid in hasids:
+                        cw.cwpy.sdata.remove_infocard(resid)
 
-                for header in headers:
-                    cw.cwpy.sdata.infocards.remove(header)
-
-                infoids = set([i.id for i in cw.cwpy.sdata.infocards])
+                infoids = set(cw.cwpy.sdata.get_infocards(order=False))
                 if infoids <> oldids:
                     cw.cwpy.exec_func(cw.cwpy.update_infocard)
 

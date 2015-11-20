@@ -49,6 +49,8 @@ class SystemData(object):
         self.compstamps = {}
         self.friendcards = []
         self.infocards = []
+        self.infocard_maxindex = 0
+        self._infocard_cache = {}
         self.flags = {}
         self.steps = {}
         self.labels = {}
@@ -315,6 +317,74 @@ class SystemData(object):
         """同行中のNPCの状態を初期化する。"""
         pass # stub
 
+    def has_infocards(self):
+        """情報カードを1枚でも所持しているか。"""
+        return any(self.infocards)
+
+    def _tidying_infocards(self):
+        """情報カードの情報を整理する。"""
+        nums = filter(lambda a: 0 < a, self.infocards)
+        indexes = {}
+        for i, num in enumerate(sorted(nums)):
+            indexes[num] = i + 1
+        self.infocard_maxindex = len(nums)
+        for i, num in enumerate(self.infocards):
+            self.infocards[i] = indexes[num]
+
+    def get_infocards(self, order):
+        """情報カードのID一覧を返す。
+        orderがTrueの場合は入手の逆順に返す。
+        """
+        infotable = []
+        for resid, num in enumerate(self.infocards):
+            if 0 < num:
+                if order:
+                    infotable.append((num, resid))
+                else:
+                    infotable.append(resid)
+        if not order:
+            return infotable
+
+        return map(lambda a: a[1], reversed(sorted(infotable)))
+
+    def append_infocard(self, resid):
+        """情報カードを追加する。"""
+        if 0x7fffffff <= self.infocard_maxindex:
+            self._tidying_infocards()
+        if len(self.infocards) <= resid:
+            self.infocards.extend([0] * (resid-len(self.infocards)+1))
+        self.infocard_maxindex += 1
+        self.infocards[resid] = self.infocard_maxindex
+
+    def remove_infocard(self, resid):
+        """情報カードを除去する。"""
+        if resid < len(self.infocards):
+            self.infocards[resid] = 0
+
+    def has_infocard(self, resid):
+        """情報カードを所持しているか。"""
+        return resid < len(self.infocards) and self.infocards[resid]
+
+    def count_infocards(self):
+        """情報カードの所持枚数を返す。"""
+        return len(self.infocards) - self.infocards.count(0)
+
+    def get_infocardheaders(self):
+        """所持する情報カードのInfoCardHeaderを入手の逆順で返す。"""
+        headers = []
+        for resid in self.get_infocards(order=True):
+            if resid in self._infocard_cache:
+                header = self._infocard_cache[resid]
+                headers.append(header)
+            elif resid in self.infos:
+                path = self.infos[resid][1]
+                e = cw.data.xml2element(path, "Property")
+                header = cw.header.InfoCardHeader(e)
+                self._infocard_cache[resid] = header
+                headers.append(header)
+        return headers
+
+
 #-------------------------------------------------------------------------------
 #　シナリオデータ
 #-------------------------------------------------------------------------------
@@ -376,8 +446,13 @@ class ScenarioData(SystemData):
         self.compstamps = {}
         # FriendCardのリスト
         self.friendcards = []
-        # 情報カードのリスト(InfoCardHeader)
+        # 情報カードのリスト
+        # 情報カードの枚数分の配列を確保し、各位置に入手順序を格納する
         self.infocards = []
+        # 最後に設定した情報カードの入手順
+        self.infocard_maxindex = 0
+        # InfoCardHeaderのキャッシュ
+        self._infocard_cache = {}
         # 情報カードを手に入れてから
         # 情報カードビューを開くまでの間True
         self.notice_infoview = False
@@ -945,12 +1020,11 @@ class ScenarioData(SystemData):
                     self.compstamps[e.text] = False
 
         self.infocards = []
-        for e in etree.getfind("InfoCards"):
-            if int(e.text) in self.infos:
-                path = self.infos[int(e.text)][1]
-                e = xml2element(path, "Property")
-                header = cw.header.InfoCardHeader(e)
-                self.infocards.append(header)
+        self.infocard_maxindex = 0
+        for e in reversed(etree.getfind("InfoCards")):
+            resid = int(e.text)
+            if resid in self.infos:
+                self.append_infocard(resid)
 
         self.friendcards = []
         for e in etree.getfind("CastCards"):

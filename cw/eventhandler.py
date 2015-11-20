@@ -425,7 +425,7 @@ class EventHandler(object):
             return
         if cw.cwpy.is_playingscenario() and\
                 not (cw.cwpy.is_runningevent() or cw.cwpy.is_processing or cw.cwpy.is_battlestatus()) and\
-                cw.cwpy.sdata.infocards:
+                cw.cwpy.sdata.has_infocards():
             cw.cwpy.play_sound("click")
             cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
 
