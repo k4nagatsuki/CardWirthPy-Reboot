@@ -342,6 +342,15 @@ class CharaInfo(object):
                     if u"＿" + f.name in self.makings:
                         f.modulate(self)
             cw.features.wrap_ability(self)
+            coeff = pcard.data.getfloat("Property/Life", "coefficient", 0.0)
+            if coeff == 0.0:
+                vit = max(1, int(self.physical.get("vit")))
+                minval = max(1, int(self.physical.get("min")))
+                maxlife = cw.character.calc_maxlife(vit, minval, pcard.level)
+                if maxlife == pcard.maxlife:
+                    coeff = 1.0
+                else:
+                    coeff = float(pcard.maxlife) / int(maxlife)
             pcard.set_physical("agl", self.agl)
             pcard.set_physical("dex", self.dex)
             pcard.set_physical("int", self.int)
@@ -353,6 +362,12 @@ class CharaInfo(object):
             pcard.set_mental("cautious",   self.cautious)
             pcard.set_mental("cheerful",   self.cheerful)
             pcard.set_mental("trickish",   self.trickish)
+            if coeff == 1.0:
+                # 連れ込みNPCなど特殊な生命点の持ち主でなければ最大生命点の再計算
+                v = float(pcard.life) / pcard.maxlife
+                pcard.maxlife = cw.character.calc_maxlife(self.vit, self.min, pcard.level)
+                if pcard.life <> 0:
+                    pcard.life = max(1, int(pcard.maxlife * v))
 
         if self.name <> pcard.name:
             pcard.set_name(self.name)
@@ -583,7 +598,7 @@ class CharaRequirementPanel(wx.Panel):
     def OnAutoBtn(self, event):
         self.set_random()
 
-    def _update_images(self, img=[]):
+    def _update_images(self, img=[][:]):
         fpaths = set()
         if not img:
             if 0 >= self.imgcombo.GetSelection():

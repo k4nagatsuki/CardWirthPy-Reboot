@@ -1779,7 +1779,7 @@ class Character(object):
 
         coeff = self.data.getfloat("Property/Life", "coefficient", 0.0)
         if coeff <= 0.0:
-            maxlife = (vit / 2 + 4) * (self.level + 1) + minval / 2
+            maxlife = calc_maxlife(vit, minval, self.level)
             if int(maxlife) == self.maxlife:
                 coeff = 1
             else:
@@ -1793,7 +1793,7 @@ class Character(object):
         self.level = value
         self.data.edit("Property/Level", str(self.level))
         # 最大HPとHP
-        maxlife = int((vit // 2 + 4) * (self.level + 1) + minval // 2)
+        maxlife = calc_maxlife(vit, minval, self.level)
         if coeff <> 1:
             maxlife = round(maxlife * coeff)
         maxlife = int(max(1, maxlife))
@@ -2473,6 +2473,12 @@ class Player(Character):
         if cw.cwpy.ydata:
             for header in cw.cwpy.ydata.partyrecord:
                 header.rename_member(self.data.fpath, name)
+
+def calc_maxlife(vit, minval, level):
+    """能力値から体力の最大値を計算する。"""
+    vit = max(1, vit)
+    minval = max(1, minval)
+    return int((int(vit) // 2 + 4) * (level + 1) + int(minval) // 2)
 
 class Enemy(Character):
     def is_dead(self):
