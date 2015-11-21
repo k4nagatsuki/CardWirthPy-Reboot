@@ -606,7 +606,7 @@
     <Message key="camp">キャンプ</Message>
     <Message key="select_battle_action">戦闘行動選択</Message>
     <Message key="start_action">行動開始</Message>
-    <Message key="autostart_round">自動的に行動を開始する</Message>
+    <Message key="autostart_round">自動戦闘</Message>
     <Message key="runaway">逃げる</Message>
     <Message key="confirm_runaway">逃走します。よろしいですか？</Message>
     <Message key="round">Round %s</Message>
@@ -657,7 +657,7 @@
 よろしいですか？</Message>
     <Message key="no_change">[変更しない]</Message>
     <Message key="select_skin">スキン:</Message>
-    <Message key="show_fcards">同行キャストを表示する</Message>
+    <Message key="show_fcards">同行キャスト</Message>
     <Message key="random_team">自動編成</Message>
     <Message key="random_team_description">現在待機中のメンバから、近いレベルで異なる特性を持ったメンバを探して自動的にパーティを編成します。</Message>
      <!-- 0.12.3 ここから -->

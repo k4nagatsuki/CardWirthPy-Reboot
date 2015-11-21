@@ -11,7 +11,7 @@ import base
 class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
-        self.image = pygame.Surface.convert(pygame.Surface(cw.s((632, 33))))
+        self.image = pygame.Surface(cw.s((632, 33))).convert()
         self.yadomoney = None
         self.partymoney = None
         self.autostart = None
@@ -29,7 +29,7 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.sbargrp.add(self, layer=0)
 
     def _init_image(self):
-        self.image = pygame.Surface.convert(pygame.Surface(cw.s((632, 33))))
+        self.image = pygame.Surface(cw.s((632, 33))).convert()
         subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
         if not self.showbuttons and self._statusbarmask:
             subimg.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
@@ -213,14 +213,14 @@ class ProgressView(base.CWPySprite):
     def update_image(self):
         self._last_params = (self.text, self.max, self.min, self.current)
 
-        image = pygame.Surface.convert_alpha(pygame.Surface(self.rect.size))
+        image = pygame.Surface(self.rect.size).convert_alpha()
         image.fill((0, 0, 0))
         w, h = self.rect.size
         rect = pygame.Rect(cw.s(1), cw.s(1), w-cw.s(2), h-cw.s(2))
         image.fill((255, 255, 255), rect)
         w = self.rect.width - cw.s(2)
 
-        font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        font = cw.cwpy.rsrc.fonts["sbarprogress"]
         subimg = font.render(self.text, cw.cwpy.setting.fontsmoothing_statusbar, (0, 0, 0))
         if w-cw.s(4) < subimg.get_width():
             subimg = cw.image.smoothscale(subimg.convert_alpha(), (w-cw.s(4), subimg.get_height()),
@@ -268,7 +268,7 @@ class StatusBarPanel(base.CWPySprite):
 
     def _create_paneimg(self, pos, size, icon):
         self.icon = icon
-        self.panelimg = pygame.Surface.convert_alpha(pygame.Surface(size))
+        self.panelimg = pygame.Surface(size).convert_alpha()
         self.panelimg.fill((0, 0, 0))
         rect = self.panelimg.get_rect()
         rect.topleft = cw.s((1, 1))
@@ -281,7 +281,7 @@ class StatusBarPanel(base.CWPySprite):
 
         # image
         self.image = self.panelimg.copy()
-        self.noimg = pygame.Surface.convert(pygame.Surface(cw.s((0, 0))))
+        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
         # rect
         self.rect = self.image.get_rect()
         self.rect.top = self.parent.rect.top + pos[1]
@@ -507,7 +507,7 @@ class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, sizetype=0,
                  toggle=False, icon=None, enabled=True, is_pushed=False,
                  notice=False, number=None, is_emphasize=False,
-                 desc=""):
+                 desc=u"", hotkey=u""):
         base.SelectableSprite.__init__(self)
         self.parent = parent
         # 各種データ
@@ -518,6 +518,7 @@ class StatusBarButton(base.SelectableSprite):
         self.is_showing = lambda: True
 
         self.desc = desc
+        self.hotkey = hotkey
         self._desc = None
 
         self._upscr = 0
@@ -547,7 +548,7 @@ class StatusBarButton(base.SelectableSprite):
 
         # image
         self.image = self.get_unselectedimage()
-        self.noimg = pygame.Surface.convert(pygame.Surface(cw.s((0, 0))))
+        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
         # rect
         self.rect = self.image.get_rect()
         self.rect.top = self.parent.rect.top + pos[1]
@@ -704,7 +705,7 @@ class StatusBarButton(base.SelectableSprite):
             cw.cwpy.sbargrp.remove(self._desc)
             rect = self._desc.rect
             self._desc = None
-            self._desc = Desc(self, self.desc)
+            self._desc = Desc(self, self.name, self.desc, self.hotkey)
             cw.cwpy.sbargrp.add(self._desc, layer=2)
 
     def update_image(self):
@@ -717,7 +718,7 @@ class StatusBarButton(base.SelectableSprite):
 
         if cw.cwpy.setting.show_btndesc and self.is_selection() and self.desc and not cw.cwpy.is_showingdlg():
             if not self._desc:
-                self._desc = Desc(self, self.desc)
+                self._desc = Desc(self, self.name, self.desc, self.hotkey)
                 cw.cwpy.sbargrp.add(self._desc, layer=2)
         else:
             if self._desc:
@@ -749,12 +750,16 @@ class StatusBarButton(base.SelectableSprite):
         pass
 
 class Desc(base.CWPySprite):
-    def __init__(self, parent, desc):
+    def __init__(self, parent, name, desc, hotkey):
         base.CWPySprite.__init__(self)
         self.parent = parent
+        self.name = name
         self.desc = desc
+        self.hotkey = hotkey
+        title = u"%s(%s)" % (self.name, self.hotkey)
 
         font = cw.cwpy.rsrc.fonts["sbardesc"]
+        tfont = cw.cwpy.rsrc.fonts["sbardesctitle"]
         h = font.get_height()
 
         # 必要サイズを計算
@@ -762,6 +767,12 @@ class Desc(base.CWPySprite):
         spx = cw.s(8)
         spy = cw.s(4)
         tw, th = cw.s(1), spy*2
+        th += cw.s(3) # 表題と本文の間
+        # 表題
+        fw, fh = tfont.size(title)
+        tw = max(tw, fw + spx*2)
+        th += h
+        # 本文
         for line in lines:
             fw, fh = font.size(line)
             tw = max(tw, fw + spx*2)
@@ -770,7 +781,7 @@ class Desc(base.CWPySprite):
         # 解説画像を作成
         arroww = cw.s(8)
         arrowh = cw.s(12)
-        self.image = pygame.Surface.convert_alpha(pygame.Surface((tw, th+arrowh)))
+        self.image = pygame.Surface((tw, th+arrowh)).convert_alpha()
         color = (255, 255, 200)
         self.image.fill(color)
         self.image.fill((0, 0, 0, 255), (cw.s(0), th, tw, arrowh), special_flags=pygame.locals.BLEND_RGBA_SUB)
@@ -778,6 +789,13 @@ class Desc(base.CWPySprite):
         cw.setting.Resource.draw_frame(self.image, pygame.Rect(cw.s(0), cw.s(0), tw, th), linecolor)
         self.rect = self.image.get_rect()
         x, y = spx, spy
+        # 表題
+        subimg = tfont.render(title, True, linecolor)
+        self.image.blit(subimg, (x, y))
+        y += tfont.get_height() + cw.s(1)
+        pygame.draw.line(self.image, linecolor, (x, y), (x+tw-spx*2, y), cw.s(1))
+        y += cw.s(2)
+        # 本文
         for line in lines:
             subimg = font.render(line, True, linecolor)
             self.image.blit(subimg, (x, y))
@@ -914,7 +932,7 @@ class ShowFriendCardsButton(StatusBarButton):
         desc = cw.cwpy.msgs["desc_show_friend_card"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
                                  is_pushed=cw.cwpy.setting.show_fcardsinbattle, desc=desc,
-                                 )
+                                 hotkey=u"F6")
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
@@ -947,7 +965,7 @@ class AutoStartButton(StatusBarButton):
         else:
             desc = cw.cwpy.msgs["desc_manual_start_round"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
-                                 is_pushed=pushed, desc=desc)
+                                 is_pushed=pushed, desc=desc, hotkey=u"F7")
         self.selectable_on_event = True
         self.actionbtn = None
         self.is_showing = cw.cwpy.is_battlestatus
@@ -989,7 +1007,7 @@ class InfoCardsButton(StatusBarButton):
         notice = cw.cwpy.sdata.notice_infoview
         number = cw.cwpy.sdata.count_infocards()
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
-                                 notice=notice, number=number, desc=desc)
+                                 notice=notice, number=number, desc=desc, hotkey=u"F6")
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
@@ -1012,7 +1030,7 @@ class SettingsButton(StatusBarButton):
         image = cw.cwpy.rsrc.pygamedialogs["SETTINGS"]
         name = u"設定"
         desc = u"%sの設定を行います" % (cw.APP_NAME)
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc)
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc, hotkey=u"F2")
         self.selectable_on_event = True
         if self.is_selection():
             self.update_image()
@@ -1031,7 +1049,7 @@ class DebuggerButton(StatusBarButton):
         desc = u"デバッガを表示します"
         pushed = cw.cwpy.is_showingdebugger()
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc,
-                                 toggle=True, is_pushed=pushed)
+                                 toggle=True, is_pushed=pushed, hotkey=u"F3")
         self.selectable_on_event = True
         self.is_showing = cw.cwpy.is_debugmode
 
@@ -1059,7 +1077,7 @@ class BacklogButton(StatusBarButton):
         name = cw.cwpy.msgs["message_log"]
         desc = cw.cwpy.msgs["desc_message_log"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled,
-                                 desc=desc)
+                                 desc=desc, hotkey=u"F5")
         self.selectable_on_event = enabled
         if enabled and self.is_selection():
             self.update_image()

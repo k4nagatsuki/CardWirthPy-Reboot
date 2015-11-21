@@ -227,8 +227,10 @@ class Setting(object):
                           "selectionbar" : ("uigothic", "", 15, True, True, False),
                           "logpage"      : ("mincho",   "", 24, False, False, False),
                           "sbarpanel"    : ("mincho",   "", 16, True, True, False),
+                          "sbarprogress" : ("mincho",   "", 16, True, True, False),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
                           "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
+                          "sbardesctitle": ("gothic",   "", 14, True, True, False),
                           "sbardesc"     : ("pgothic",  "", 14, False, False, False),
                           "screenshot"   : ("uigothic", "", 18, False, False, False),
                           }
@@ -1167,10 +1169,14 @@ class Resource(object):
         fonts.set("numcards", self.create_font, "numcards", *self.setting().fonttypes["numcards"])
         # ステータスバーパネル描画用
         fonts.set("sbarpanel", self.create_font, "sbarpanel", *self.setting().fonttypes["sbarpanel"])
+        # ステータスバーのプログレスバー描画用
+        fonts.set("sbarprogress", self.create_font, "sbarprogress", *self.setting().fonttypes["sbarprogress"])
         # ステータスバーボタン描画用
         fonts.set("sbarbtn", self.create_font, "sbarbtn", *self.setting().fonttypes["sbarbtn"])
         # ステータスバーボタン解説描画用
         fonts.set("sbardesc", self.create_font, "sbardesc", *self.setting().fonttypes["sbardesc"])
+        # ステータスバーボタン解説の表題描画用
+        fonts.set("sbardesctitle", self.create_font, "sbardesctitle", *self.setting().fonttypes["sbardesctitle"])
         # ステータス画像の召喚回数描画用
         fonts.set("statusimg1", self.create_font, "statusnum", *self.setting().fonttypes["statusnum"])
         t = self.setting().fonttypes["statusnum"]
