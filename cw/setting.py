@@ -230,7 +230,7 @@ class Setting(object):
                           "sbarprogress" : ("mincho",   "", 16, True, True, False),
                           "sbarbtn"      : ("uigothic", "", 14, True, True, False),
                           "statusnum"    : ("mincho",   "", 12, True, True, False), # 桁が増える毎に-2
-                          "sbardesctitle": ("gothic",   "", 14, True, True, False),
+                          "sbardesctitle": ("pgothic",  "", 14, True, True, False),
                           "sbardesc"     : ("pgothic",  "", 14, False, False, False),
                           "screenshot"   : ("uigothic", "", 18, False, False, False),
                           }
