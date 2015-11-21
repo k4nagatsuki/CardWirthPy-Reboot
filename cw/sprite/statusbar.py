@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pygame.locals
 
 import cw
 import base
@@ -10,7 +11,7 @@ import base
 class StatusBar(base.CWPySprite):
     def __init__(self):
         base.CWPySprite.__init__(self)
-        self.image = pygame.Surface(cw.s((632, 33))).convert()
+        self.image = pygame.Surface.convert(pygame.Surface(cw.s((632, 33))))
         self.yadomoney = None
         self.partymoney = None
         self.autostart = None
@@ -28,7 +29,7 @@ class StatusBar(base.CWPySprite):
         cw.cwpy.sbargrp.add(self, layer=0)
 
     def _init_image(self):
-        self.image = pygame.Surface(cw.s((632, 33))).convert()
+        self.image = pygame.Surface.convert(pygame.Surface(cw.s((632, 33))))
         subimg = cw.cwpy.rsrc.get_statusbtnbmp(2, 0)
         if not self.showbuttons and self._statusbarmask:
             subimg.fill((64, 64, 64), special_flags=pygame.locals.BLEND_RGB_SUB)
@@ -212,7 +213,7 @@ class ProgressView(base.CWPySprite):
     def update_image(self):
         self._last_params = (self.text, self.max, self.min, self.current)
 
-        image = pygame.Surface(self.rect.size).convert_alpha()
+        image = pygame.Surface.convert_alpha(pygame.Surface(self.rect.size))
         image.fill((0, 0, 0))
         w, h = self.rect.size
         rect = pygame.Rect(cw.s(1), cw.s(1), w-cw.s(2), h-cw.s(2))
@@ -226,7 +227,6 @@ class ProgressView(base.CWPySprite):
                                           smoothing=cw.cwpy.setting.fontsmoothing_statusbar)
         x = (image.get_width() - subimg.get_width()) / 2
         y = (image.get_height() - subimg.get_height()) / 2
-
 
         g = w / float(self.max - self.min)
         curw = int(self.current * g) + cw.s(1)
@@ -268,7 +268,7 @@ class StatusBarPanel(base.CWPySprite):
 
     def _create_paneimg(self, pos, size, icon):
         self.icon = icon
-        self.panelimg = pygame.Surface(size).convert_alpha()
+        self.panelimg = pygame.Surface.convert_alpha(pygame.Surface(size))
         self.panelimg.fill((0, 0, 0))
         rect = self.panelimg.get_rect()
         rect.topleft = cw.s((1, 1))
@@ -281,7 +281,7 @@ class StatusBarPanel(base.CWPySprite):
 
         # image
         self.image = self.panelimg.copy()
-        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
+        self.noimg = pygame.Surface.convert(pygame.Surface(cw.s((0, 0))))
         # rect
         self.rect = self.image.get_rect()
         self.rect.top = self.parent.rect.top + pos[1]
@@ -547,7 +547,7 @@ class StatusBarButton(base.SelectableSprite):
 
         # image
         self.image = self.get_unselectedimage()
-        self.noimg = pygame.Surface(cw.s((0, 0))).convert()
+        self.noimg = pygame.Surface.convert(pygame.Surface(cw.s((0, 0))))
         # rect
         self.rect = self.image.get_rect()
         self.rect.top = self.parent.rect.top + pos[1]
@@ -770,7 +770,7 @@ class Desc(base.CWPySprite):
         # 解説画像を作成
         arroww = cw.s(8)
         arrowh = cw.s(12)
-        self.image = pygame.Surface((tw, th+arrowh)).convert_alpha()
+        self.image = pygame.Surface.convert_alpha(pygame.Surface((tw, th+arrowh)))
         color = (255, 255, 200)
         self.image.fill(color)
         self.image.fill((0, 0, 0, 255), (cw.s(0), th, tw, arrowh), special_flags=pygame.locals.BLEND_RGBA_SUB)
@@ -913,7 +913,8 @@ class ShowFriendCardsButton(StatusBarButton):
         name = cw.cwpy.msgs["show_fcards"]
         desc = cw.cwpy.msgs["desc_show_friend_card"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
-                                 is_pushed=cw.cwpy.setting.show_fcardsinbattle, desc=desc)
+                                 is_pushed=cw.cwpy.setting.show_fcardsinbattle, desc=desc,
+                                 )
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 

@@ -420,14 +420,23 @@ class EventHandler(object):
         """
         F6キーイベント。
         情報カードビューを表示する。
+        デバッグ戦闘中は同行キャストの表示有無を切り替える。
         """
         if not self.can_input():
             return
-        if cw.cwpy.is_playingscenario() and\
-                not (cw.cwpy.is_runningevent() or cw.cwpy.is_processing or cw.cwpy.is_battlestatus()) and\
-                cw.cwpy.sdata.has_infocards():
+        if not cw.cwpy.is_playingscenario() or cw.cwpy.is_runningevent() or cw.cwpy.is_processing:
+            return
+
+        if not cw.cwpy.is_battlestatus() and cw.cwpy.sdata.has_infocards():
             cw.cwpy.play_sound("click")
             cw.content.PostEventContent.do_action("ShowDialog", "INFOVIEW")
+        elif cw.cwpy.is_battlestatus() and cw.cwpy.is_debugmode() and\
+                cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
+            cw.cwpy.play_sound("page")
+            cw.cwpy.setting.show_fcardsinbattle = not cw.cwpy.setting.show_fcardsinbattle
+            cw.cwpy.battle.update_showfcards()
+            cw.cwpy.statusbar.change()
+            cw.cwpy.draw()
 
     def f7key_event(self):
         """
@@ -1100,6 +1109,12 @@ class EventHandlerForEffectBooster(EventHandler):
 
         if exception:
             raise exception
+
+    def mclick_event(self):
+        """
+        ミドルクリックイベント。
+        """
+        self.rclick_event()
 
     def rclick_event(self):
         """
