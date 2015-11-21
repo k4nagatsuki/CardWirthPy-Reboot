@@ -236,6 +236,10 @@ class Frame(wx.Frame):
             w -= (w - self.GetSize()[0]) / 2
             self.move_dlg(dlg, (w, 0))
             self.debugger = dlg
+            def func():
+                cw.cwpy.statusbar.change()
+                cw.cwpy.draw()
+            cw.cwpy.exec_func(func)
             if refreshtree:
                 def func():
                     def func():
@@ -249,6 +253,11 @@ class Frame(wx.Frame):
         """デバッガ閉じる。"""
         if self.debugger:
             self.debugger.Close()
+            self.debugger = None
+            def func():
+                cw.cwpy.statusbar.change()
+                cw.cwpy.draw()
+            cw.cwpy.exec_func(func)
 
     def exec_func(self, func, *args, **kwargs):
         """wxPythonスレッドで指定したファンクションを実行する。
