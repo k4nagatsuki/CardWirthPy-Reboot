@@ -4,6 +4,7 @@
 import os
 import sys
 import itertools
+import wx
 import wx.grid
 import pygame
 
@@ -2318,7 +2319,7 @@ class FontSettingPanel(wx.Panel):
         self.cb_fontsmoothingcardname = wx.CheckBox(self, -1, u"カード名の文字を滑らかにする")
         self.cb_fontsmoothingstatusbar = wx.CheckBox(self, -1, u"ステータスバーの文字を滑らかにする")
 
-        def create_grid(grid, seq, faces, editor, cols, rowlblsize):
+        def create_grid(grid, seq, faces, cols, rowlblsize):
             grid.CreateGrid(len(seq), cols)
             grid.DisableDragRowSize()
             grid.SetSelectionMode(wx.grid.Grid.SelectRows)
@@ -2326,22 +2327,24 @@ class FontSettingPanel(wx.Panel):
             grid.SetRowLabelSize(rowlblsize)
             grid.SetColLabelValue(0, u"フォント名")
             grid.SetColSize(0, 150)
+            editors = []
             for i, name in enumerate(seq):
+                editor = wx.grid.GridCellChoiceEditor(faces)
                 grid.SetCellEditor(i, 0, editor)
+                editors.append(editor)
+            return editors
 
         # 基本フォント
         self.box_base = wx.StaticBox(self, -1, u"基本フォント")
-        self.choicebase = wx.grid.GridCellChoiceEditor(self._fontface_array)
         self.base = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.base.SetDoubleBuffered(True)
-        create_grid(self.base, self.bases, self._fontface_array, self.choicebase, 1, 100)
+        self.choicebases = create_grid(self.base, self.bases, self._fontface_array, 1, 100)
 
         # 役割別フォント
         self.box_type = wx.StaticBox(self, -1, u"役割別フォント")
-        self.choicetype = wx.grid.GridCellChoiceEditor(self._types)
         self.type = wx.grid.Grid(self, -1, size=(1, 0), style=wx.BORDER)
         self.type.SetDoubleBuffered(True)
-        create_grid(self.type, self.types, self._types, self.choicetype, 5, 120)
+        self.choicetypes = create_grid(self.type, self.types, self._types, 5, 120)
 
         for i, name, in enumerate(self.bases):
             str_font = cw.cwpy.setting.basefont[name]
@@ -2357,35 +2360,29 @@ class FontSettingPanel(wx.Panel):
         self.type.SetColSize(3, 70)
         self.type.SetColLabelValue(4, u"斜体")
         self.type.SetColSize(4, 70)
-        boolrenderer = wx.grid.GridCellBoolRenderer()
-        numberrenderer = wx.grid.GridCellNumberRenderer()
         for i, name in enumerate(self.types):
             _deffonttype, _defface, defpixels, defbold, defbold_upscr, defitalic = cw.cwpy.setting.fonttypes_init[name]
             if 0 < defpixels:
-                epixels = wx.grid.GridCellNumberEditor(1, 99)
-                self.type.SetCellEditor(i, 1, epixels)
-                self.type.SetCellRenderer(i, 1, numberrenderer)
+                self.type.SetCellEditor(i, 1, wx.grid.GridCellNumberEditor(1, 99))
+                self.type.SetCellRenderer(i, 1, wx.grid.GridCellNumberRenderer())
             else:
                 self.type.GetOrCreateCellAttr(i, 1).SetReadOnly(True)
             self.type.SetCellAlignment(i, 1, wx.ALIGN_CENTER, 0)
             if not defbold is None:
-                ebold = wx.grid.GridCellBoolEditor()
-                self.type.SetCellEditor(i, 2, ebold)
-                self.type.SetCellRenderer(i, 2, boolrenderer)
+                self.type.SetCellEditor(i, 2, wx.grid.GridCellBoolEditor())
+                self.type.SetCellRenderer(i, 2, wx.grid.GridCellBoolRenderer())
             else:
                 self.type.GetOrCreateCellAttr(i, 2).SetReadOnly(True)
             self.type.SetCellAlignment(i, 2, wx.ALIGN_CENTER, 0)
             if not defbold_upscr is None:
-                ebold_upscr = wx.grid.GridCellBoolEditor()
-                self.type.SetCellEditor(i, 3, ebold_upscr)
-                self.type.SetCellRenderer(i, 3, boolrenderer)
+                self.type.SetCellEditor(i, 3, wx.grid.GridCellBoolEditor())
+                self.type.SetCellRenderer(i, 3, wx.grid.GridCellBoolRenderer())
             else:
                 self.type.GetOrCreateCellAttr(i, 3).SetReadOnly(True)
             self.type.SetCellAlignment(i, 3, wx.ALIGN_CENTER, 0)
             if not defitalic is None:
-                eitalic = wx.grid.GridCellBoolEditor()
-                self.type.SetCellEditor(i, 4, eitalic)
-                self.type.SetCellRenderer(i, 4, boolrenderer)
+                self.type.SetCellEditor(i, 4, wx.grid.GridCellBoolEditor())
+                self.type.SetCellRenderer(i, 4, wx.grid.GridCellBoolRenderer())
             else:
                 self.type.GetOrCreateCellAttr(i, 4).SetReadOnly(True)
             self.type.SetCellAlignment(i, 4, wx.ALIGN_CENTER, 0)
@@ -2479,12 +2476,15 @@ class FontSettingPanel(wx.Panel):
         event.Skip()
 
     def OnEditorCreatedBase(self, event):
-        self.choicebase.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeBase)
+        for editor in self.choicebases:
+            if editor.GetControl():
+                editor.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeBase)
 
     def get_basefontface(self, fonttype):
-        ctrl = self.choicebase.GetControl()
-        if ctrl and ctrl.IsShown():
-            face = ctrl.GetValue()
+        editors = filter(lambda choice: choice.GetControl() and choice.GetControl().IsShown(),
+                         self.choicebases)
+        if editors:
+            face = editors[0].GetControl().GetValue()
         else:
             face = self.base.GetCellValue(self.bases.index(fonttype), 0)
         if face == self.str_default:
@@ -2507,14 +2507,16 @@ class FontSettingPanel(wx.Panel):
         event.Skip()
 
     def OnEditorCreatedType(self, event):
-        ctrl = self.choicetype.GetControl()
-        if ctrl:
-           self.choicetype.GetControl().Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
+        for editor in self.choicetypes:
+            ctrl = editor.GetControl()
+            if ctrl:
+               ctrl.Bind(wx.EVT_COMBOBOX, self.OnCellChangeType)
 
     def get_typefontface(self, fonttype):
-        ctrl = self.choicetype.GetControl()
-        if ctrl and ctrl.IsShown():
-            face = ctrl.GetValue()
+        editors = filter(lambda choice: choice.GetControl() and choice.GetControl().IsShown(),
+                         self.choicetypes)
+        if editors:
+            face = editors[0].GetControl().GetValue()
         else:
             face = self.type.GetCellValue(self.types.index(fonttype), 0)
         for basename in self.bases:
