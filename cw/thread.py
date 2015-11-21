@@ -1049,6 +1049,10 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         self.cursor = name
+
+        if isinstance(self.selection, cw.sprite.statusbar.StatusBarButton):
+            name = "arrow"
+
         if name == "arrow":
             # 24x24
             s = (
@@ -2963,6 +2967,8 @@ class CWPy(_Singleton, threading.Thread):
         sprite: SelectableSprite
         """
         self.has_inputevent = True
+        sbarbtn1 = isinstance(self.selection, cw.sprite.statusbar.StatusBarButton)
+        sbarbtn2 = isinstance(sprite, cw.sprite.statusbar.StatusBarButton)
 
         # 現在全員の戦闘行動を表示中か
         show_allselectedcards = self._show_allselectedcards
@@ -3056,6 +3062,10 @@ class CWPy(_Singleton, threading.Thread):
                     show_allselectedcards = True
 
         self._show_allselectedcards = show_allselectedcards
+
+        # ステータスボタン上であれば必ず矢印カーソルとする
+        if bool(sbarbtn1) <> bool(sbarbtn2):
+            self.change_cursor(self.cursor, force=True)
 
     def set_inusecardimg(self, owner, header, status="normal", center=False, alpha=255, fore=False):
         """PlayerCardの前に使用中カードの画像を表示。"""

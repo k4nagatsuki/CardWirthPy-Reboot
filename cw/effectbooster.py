@@ -30,7 +30,10 @@ def wait_effectbooster(waittime, doanime):
                 (waittime <= 0 or pygame.time.get_ticks() < tick) and\
                 eventhandler.running and\
                 cw.cwpy.is_playingscenario():
+            selection = cw.cwpy.selection
             cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
+            if selection <> cw.cwpy.selection:
+                cw.cwpy.draw()
             cw.cwpy.tick_clock(1000)
             cw.cwpy.input()
             eventhandler.run()

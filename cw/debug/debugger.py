@@ -585,7 +585,7 @@ class Debugger(wx.Frame):
 
     def OnClose(self, event):
         cw.cwpy.frame.debugger = None
-        cw.cwpy.exec_func(cw.cwpy.statusbar.change)
+        cw.cwpy.exec_func(cw.cwpy.statusbar.change, cw.cwpy.statusbar.showbuttons)
         self.Destroy()
 
     def OnDestroy(self, event):

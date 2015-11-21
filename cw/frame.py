@@ -237,7 +237,7 @@ class Frame(wx.Frame):
             self.move_dlg(dlg, (w, 0))
             self.debugger = dlg
             def func():
-                cw.cwpy.statusbar.change()
+                cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func)
             if refreshtree:
@@ -255,7 +255,7 @@ class Frame(wx.Frame):
             self.debugger.Close()
             self.debugger = None
             def func():
-                cw.cwpy.statusbar.change()
+                cw.cwpy.statusbar.change(cw.cwpy.statusbar.showbuttons)
                 cw.cwpy.draw()
             cw.cwpy.exec_func(func)
 
