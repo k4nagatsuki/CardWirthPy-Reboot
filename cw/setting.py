@@ -81,6 +81,7 @@ class Setting(object):
         self.no_levelup_in_debugmode = False
         self.play_bgm = True
         self.play_sound = True
+        self.vol_master = 1.0
         self.vol_bgm = 1.0
         self.vol_midi = 0.8
         self.vol_sound = 1.0
@@ -330,6 +331,9 @@ class Setting(object):
         self.play_bgm = data.getbool("PlayBgm", self.play_bgm)
         # 効果音を再生する
         self.play_sound = data.getbool("PlaySound", self.play_sound)
+        # 音声全体のボリューム(0～1.0)
+        self.vol_master = data.getint("MasterVolume", int(self.vol_master*100))
+        self.vol_master = self.wrap_volumevalue(self.vol_master)
         # 音楽のボリューム(0～1.0)
         self.vol_bgm = data.getint("BgmVolume", int(self.vol_bgm*100))
         self.vol_bgm = self.wrap_volumevalue(self.vol_bgm)

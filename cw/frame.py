@@ -396,7 +396,7 @@ class Frame(wx.Frame):
         else:
             def func():
                 for music in cw.cwpy.music:
-                    music.set_mastervolume(100)
+                    music.set_mastervolume(int(cw.cwpy.setting.vol_master*100))
             cw.cwpy.exec_func(func)
 
     def OnCloseFromFrame(self, event):

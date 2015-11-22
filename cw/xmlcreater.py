@@ -182,6 +182,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.play_sound <> setting.play_sound_init:
         e = cw.data.make_element("PlaySound", str(setting.play_sound))
         element.append(e)
+    # 音声全体のボリューム(0～1.0)
+    if setting.vol_master <> setting.vol_master_init:
+        n = int(setting.vol_master * 100)
+        e = cw.data.make_element("MasterVolume", str(n))
+        element.append(e)
     # 音楽のボリューム(0～1.0)
     if setting.vol_bgm <> setting.vol_bgm_init or\
             setting.vol_midi <> setting.vol_midi_init:

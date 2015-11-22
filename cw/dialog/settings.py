@@ -400,9 +400,10 @@ class SettingsPanel(wx.Panel):
         elif selpane == 2:
             self.pane_sound.cb_playbgm.SetValue(cw.cwpy.setting.play_bgm_init)
             self.pane_sound.cb_playsound.SetValue(cw.cwpy.setting.play_sound_init)
-            self.pane_sound.sl_sound.SetValue(int(cw.cwpy.setting.vol_sound_init*100))
-            self.pane_sound.sl_midi.SetValue(int(cw.cwpy.setting.vol_midi_init*100))
+            self.pane_sound.sl_master.SetValue(int(cw.cwpy.setting.vol_master_init*100))
             self.pane_sound.sl_music.SetValue(int(cw.cwpy.setting.vol_bgm_init*100))
+            self.pane_sound.sl_midi.SetValue(int(cw.cwpy.setting.vol_midi_init*100))
+            self.pane_sound.sl_sound.SetValue(int(cw.cwpy.setting.vol_sound_init*100))
             self.pane_sound.list_soundfont.DeleteAllItems()
             for index, soundfont in enumerate(cw.cwpy.setting.soundfonts_init):
                 sfont, use = soundfont
@@ -658,6 +659,9 @@ class SettingsPanel(wx.Panel):
         setting.play_bgm = value
         value = self.pane_sound.cb_playsound.GetValue()
         setting.play_sound = value
+        value = self.pane_sound.sl_master.GetValue()
+        value = setting.wrap_volumevalue(value)
+        setting.vol_master = value
         value = self.pane_sound.sl_sound.GetValue()
         value = setting.wrap_volumevalue(value)
         setting.vol_sound = value
@@ -667,8 +671,13 @@ class SettingsPanel(wx.Panel):
         value = self.pane_sound.sl_music.GetValue()
         value = setting.wrap_volumevalue(value)
         setting.vol_bgm = value
+        value = self.pane_sound.sl_master.GetValue()
+        value = setting.wrap_volumevalue(value)
+        setting.vol_master = value
         if update:
             for music in cw.cwpy.music:
+                if not cw.cwpy.frame.IsIconized():
+                    music.set_mastervolume(int(setting.vol_master*100))
                 music.set_volume()
         soundfonts = []
         for index in xrange(self.pane_sound.list_soundfont.GetItemCount()):
@@ -1671,6 +1680,13 @@ class AudioSettingPanel(wx.Panel):
         self.cb_playsound = wx.CheckBox(
             self, -1, u"効果音を再生する")
 
+        # 全体音量
+        self.box_master = wx.StaticBox(self, -1, u"全体音量")
+        self.sl_master = wx.Slider(
+            self, -1, 0, 0, 100, size=(SETTINGS_WIDTH-10, -1),
+            style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS)
+        self.sl_master.SetTickFreq(10, 1)
+
         # 音量
         self.box_music = wx.StaticBox(self, -1, u"ミュージック音量")
         self.sl_music = wx.Slider(
@@ -1706,6 +1722,8 @@ class AudioSettingPanel(wx.Panel):
     def load(self, setting):
         self.cb_playbgm.SetValue(setting.play_bgm)
         self.cb_playsound.SetValue(setting.play_sound)
+        n = int(setting.vol_master * 100)
+        self.sl_master.SetValue(n)
         n = int(setting.vol_bgm * 100)
         self.sl_music.SetValue(n)
         n = int(setting.vol_midi * 100)
@@ -1732,6 +1750,7 @@ class AudioSettingPanel(wx.Panel):
         sizer_right = wx.BoxSizer(wx.VERTICAL)
 
         bsizer_gene = wx.StaticBoxSizer(self.box_gene, wx.VERTICAL)
+        bsizer_master = wx.StaticBoxSizer(self.box_master, wx.VERTICAL)
         bsizer_music = wx.StaticBoxSizer(self.box_music, wx.VERTICAL)
         bsizer_midi = wx.StaticBoxSizer(self.box_midi, wx.VERTICAL)
         bsizer_sound = wx.StaticBoxSizer(self.box_sound, wx.VERTICAL)
@@ -1747,6 +1766,7 @@ class AudioSettingPanel(wx.Panel):
         sizer_soundfontbtns.Add(self.btn_upsoundfont, 0, wx.RIGHT, 3)
         sizer_soundfontbtns.Add(self.btn_downsoundfont, 0, 0, 0)
 
+        bsizer_master.Add(self.sl_master, 0, wx.EXPAND, 0)
         bsizer_music.Add(self.sl_music, 0, wx.EXPAND, 0)
         bsizer_midi.Add(self.sl_midi, 0, wx.EXPAND, 0)
         bsizer_sound.Add(self.sl_sound, 0, wx.EXPAND, 0)
@@ -1754,6 +1774,7 @@ class AudioSettingPanel(wx.Panel):
         bsizer_soundfont.Add(self.list_soundfont, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_master, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_music, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_midi, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_sound, 0, wx.EXPAND, 3)

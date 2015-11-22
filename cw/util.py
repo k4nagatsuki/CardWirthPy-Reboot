@@ -29,6 +29,7 @@ if sys.platform == "win32":
     pythoncom = importlib.import_module("pythoncom")
     win32shell = importlib.import_module("win32com.shell.shell")
 
+import wx
 import wx.lib.mixins.listctrl
 import pygame
 from pygame.locals import KEYDOWN, KEYUP, MOUSEBUTTONDOWN, MOUSEBUTTONUP, USEREVENT
@@ -41,14 +42,14 @@ import cw
 #-------------------------------------------------------------------------------
 
 class MusicInterface(object):
-    def __init__(self, channel):
+    def __init__(self, channel, mastervolume):
         self.channel = channel
         self.path = ""
         self.fpath = ""
         self.subvolume = 100
         self.loopcount = 0
         self.movie_scr = None
-        self.mastervolume = 100
+        self.mastervolume = mastervolume
         self._winmm = False
         self._bass = False
         self._movie = None

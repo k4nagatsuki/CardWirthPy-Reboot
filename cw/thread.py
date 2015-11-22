@@ -124,7 +124,7 @@ class CWPy(_Singleton, threading.Thread):
         # MusicInterfaceインスタンス
         self.music = [None] * cw.bassplayer.MAX_BGM_CHANNELS
         for i in xrange(cw.bassplayer.MAX_BGM_CHANNELS):
-            self.music[i] = cw.util.MusicInterface(i)
+            self.music[i] = cw.util.MusicInterface(i, int(self.setting.vol_master*100))
         # 最後に再生した効果音(システム・シナリオの2種)
         self.lastsound_scenario = [None] * cw.bassplayer.MAX_SOUND_CHANNELS
         self.lastsound_system = None
