@@ -76,6 +76,8 @@ class EventHandler(object):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+                else:
+                    self.keydown_event(event.key)
 
             elif event.type == KEYUP:
                 # リターンキー
@@ -84,6 +86,8 @@ class EventHandler(object):
                 # PrintScreenキー
                 elif event.key == K_PRINT:
                     self.printkey_event()
+                else:
+                    self.keyup_event(event.key)
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリックイベント
@@ -494,6 +498,26 @@ class EventHandler(object):
             return
         cw.util.screenshot()
 
+    def keydown_event(self, key):
+        """その他のKEYDOWNイベント。"""
+        if not self.can_input():
+            return
+
+    def keyup_event(self, key):
+        """その他のKEYUPイベント。"""
+        if not self.can_input():
+            return
+
+        pressed = pygame.key.get_pressed()
+        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+
+        if ctrldown and key == ord('D'):
+            if not cw.cwpy.is_showingdlg():
+                cw.cwpy.play_sound("page")
+                cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
+        elif ctrldown and key == ord('P'):
+            cw.util.screenshot()
+
     def wheel_event(self, y=0):
         """
         ホイールイベント。
@@ -581,6 +605,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+                else:
+                    self.keydown_event(event.key)
 
             elif event.type == KEYUP:
                 # リターンキー
@@ -592,6 +618,8 @@ class EventHandlerForMessageWindow(EventHandler):
                 # Shiftキー
                 elif event.key == K_RSHIFT or event.key == K_LSHIFT:
                     self.shiftkey_event(False)
+                else:
+                    self.keyup_event(event.key)
 
             elif event.type == MOUSEBUTTONDOWN:
                 # 右クリックイベント
@@ -856,6 +884,8 @@ class EventHandlerForBacklog(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+                else:
+                    self.keydown_event(event.key)
 
             elif event.type == KEYUP:
                 # リターンキー
@@ -864,6 +894,8 @@ class EventHandlerForBacklog(EventHandler):
                 # PrintScreenキー
                 elif event.key == K_PRINT:
                     self.printkey_event()
+                else:
+                    self.keyup_event(event.key)
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリック
@@ -1072,6 +1104,8 @@ class EventHandlerForEffectBooster(EventHandler):
                 # F9キー
                 elif event.key == K_F9:
                     self.f9key_event()
+                else:
+                    self.keydown_event(event.key)
 
             elif event.type == KEYUP:
                 # リターンキー
@@ -1080,6 +1114,8 @@ class EventHandlerForEffectBooster(EventHandler):
                 # PrintScreenキー
                 elif event.key == K_PRINT:
                     self.printkey_event()
+                else:
+                    self.keyup_event(event.key)
 
             elif event.type == MOUSEBUTTONUP:
                 # 左クリック

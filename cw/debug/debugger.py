@@ -115,8 +115,8 @@ class Debugger(wx.Frame):
         self.mi_break.SetBitmap(rsrc["BREAK"])
         file_menu.AppendItem(self.mi_break)
         file_menu.AppendSeparator()
-        self.mi_quit_debugmode = wx.MenuItem(file_menu, ID_QUIT_DEBUG_MODE, u"デバッグモードの終了(&Q)",
-                         u"シナリオを中断して、冒険者の宿に戻ります。")
+        self.mi_quit_debugmode = wx.MenuItem(file_menu, ID_QUIT_DEBUG_MODE, u"デバッグモードの終了(&Q)\tCtrl+D",
+                         u"デバッガを閉じてデバッグモードを終了します。")
         self.mi_quit_debugmode.SetBitmap(rsrc["QUIT_DEBUG_MODE"])
         file_menu.AppendItem(self.mi_quit_debugmode)
 
@@ -533,6 +533,7 @@ class Debugger(wx.Frame):
         self.f7keyid = wx.NewId()
         self.f8keyid = wx.NewId()
         self.f9keyid = wx.NewId()
+        self.ctrl_d_keyid = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnF1KeyDown, id=self.f1keyid)
         self.Bind(wx.EVT_MENU, self.OnF2KeyDown, id=self.f2keyid)
         self.Bind(wx.EVT_MENU, self.OnF3KeyDown, id=self.f3keyid)
@@ -542,6 +543,7 @@ class Debugger(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnF7KeyDown, id=self.f7keyid)
         self.Bind(wx.EVT_MENU, self.OnF8KeyDown, id=self.f8keyid)
         self.Bind(wx.EVT_MENU, self.OnF9KeyDown, id=self.f9keyid)
+        self.Bind(wx.EVT_MENU, self.OnQuitDebugMode, id=self.ctrl_d_keyid)
         seq = [
             (wx.ACCEL_NORMAL, wx.WXK_F1, self.f1keyid),
             (wx.ACCEL_NORMAL, wx.WXK_F2, self.f2keyid),
@@ -552,6 +554,7 @@ class Debugger(wx.Frame):
             (wx.ACCEL_NORMAL, wx.WXK_F7, self.f7keyid),
             (wx.ACCEL_NORMAL, wx.WXK_F8, self.f8keyid),
             (wx.ACCEL_NORMAL, wx.WXK_F9, self.f9keyid),
+            (wx.ACCEL_CTRL, ord('D'), self.ctrl_d_keyid),
         ]
         cw.util.set_acceleratortable(self, seq)
 
