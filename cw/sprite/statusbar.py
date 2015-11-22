@@ -24,6 +24,8 @@ class StatusBar(base.CWPySprite):
         self.showbuttons = False
         self._statusbarmask = cw.cwpy.setting.statusbarmask
         self.loading = False
+        self.volumebar = VolumeBar()
+        cw.cwpy.sbargrp.add(self.volumebar, layer=3)
         self._init_image()
         # spritegroupに追加
         cw.cwpy.sbargrp.add(self, layer=0)
@@ -40,6 +42,7 @@ class StatusBar(base.CWPySprite):
 
     def update_scale(self):
         self._init_image()
+        self.volumebar.update_scale()
         self.change(self.showbuttons)
 
     def change(self, showbuttons=True, encounter=False):
@@ -185,6 +188,67 @@ class StatusBar(base.CWPySprite):
             self.infocards = InfoCardsButton(self, pos)
             if not self.loading and self.infocards.notice:
                 cw.animation.start_animation(self.infocards, "blink")
+
+    def update_volumebar(self):
+        """全体音量バーの表示を更新する。
+        全体音量バーが表示中でない場合は、表示する。
+        """
+        self.volumebar.update_scale()
+
+    def clear_volumebar(self):
+        """全体音量バーの表示をクリアする。"""
+        return self.volumebar.clear_image()
+
+    def is_showingvolumebar(self):
+        """全体音量バーが表示中か。"""
+        return 0 < self.volumebar.rect.width
+
+class VolumeBar(base.CWPySprite):
+
+    def __init__(self):
+        base.CWPySprite.__init__(self)
+        self.image = pygame.Surface(cw.s((0, 0))).convert()
+        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.volume = cw.cwpy.setting.vol_master
+        self.upscr = cw.UP_SCR
+
+    def update_scale(self):
+        if self.volume == cw.cwpy.setting.vol_master and self.upscr == cw.UP_SCR and self.rect.width:
+            return
+        self.volume = cw.cwpy.setting.vol_master
+        self.upscr = cw.UP_SCR
+
+        padw = 8
+        padw2 = 2
+        padh = 5
+        barh = 200
+
+        font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        tsize = font.size(u"100%")
+        tsize2 = font.size(u"音量")
+        tw = max(tsize[0], tsize2[0])
+        self.rect = pygame.Rect(cw.s(560), cw.s(60), tw+cw.s(padw2)*2, cw.s(barh)+cw.s(1)*2+cw.s(padh)*4+tsize[1]*2)
+        self.image = pygame.Surface(self.rect.size).convert_alpha()
+        self.image.fill((0, 0, 0, 128))
+        self.image.fill((0, 0, 0, 192), pygame.Rect(cw.s(padw), cw.s(padh)*2+tsize[1], self.rect.width-cw.s(padw)*2, cw.s(barh)+cw.s(2)))
+        n = cw.s(barh - int(cw.cwpy.setting.vol_master * barh))
+        self.image.fill((0, 128, 128, 192), pygame.Rect(cw.s(padw)+cw.s(1), cw.s(padh)*2+tsize[1]+cw.s(1)+n, self.rect.width-cw.s(padw)*2-cw.s(2), cw.s(barh)-n))
+
+        subimg = font.render("%s%%" % (int(cw.cwpy.setting.vol_master * 100)), True, (255, 255, 255))
+        self.image.blit(subimg, ((self.rect.width-tsize[0])/2+tsize[0]-subimg.get_width(), cw.s(padh)*2+tsize[1]+cw.s(barh)+cw.s(padh)))
+        subimg = font.render(u"音量", True, (255, 255, 255))
+        self.image.blit(subimg, ((self.rect.width-tsize2[0])/2, cw.s(padh)))
+
+        cw.cwpy.draw(clip=self.rect)
+
+    def clear_image(self):
+        if not self.rect.width:
+            return False
+        rect = self.rect
+        self.image = pygame.Surface(cw.s((0, 0))).convert()
+        self.rect = pygame.Rect(0, 0, 0, 0)
+        cw.cwpy.draw(clip=rect)
+        return True
 
 class ProgressView(base.CWPySprite):
     def __init__(self, parent, pos, size=None, text="", nmax=0, nmin=100, current=0):

@@ -262,6 +262,9 @@ class EventHandler(object):
         """
         右クリックイベント。
         """
+        if cw.cwpy.statusbar.clear_volumebar():
+            return
+
         if cw.cwpy.is_showingdlg():
             return
         if (cw.cwpy.is_runningevent() and\
@@ -523,12 +526,24 @@ class EventHandler(object):
         ホイールイベント。
         """
         if not self.can_input():
-            return
+            return False
+
+        if y <> 0 and pygame.mouse.get_pressed()[2]:
+            # 右クリック+ホイール。音量の変更
+            for music in cw.cwpy.music:
+                volume = music.mastervolume - y
+                volume = cw.util.numwrap(volume, 0, 100)
+                music.set_mastervolume(volume)
+                cw.cwpy.setting.vol_master = volume / 100.0
+            cw.cwpy.statusbar.update_volumebar()
+            return True
+
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
             self.f5key_event()
-            return
+            return False
 
         self.dirkey_event(x=y, sidechange=True)
+        return False
 
     def executing_event(self, event):
         """
@@ -703,6 +718,9 @@ class EventHandlerForMessageWindow(EventHandler):
         """
         右クリックイベント。
         """
+        if cw.cwpy.statusbar.clear_volumebar():
+            return
+
         if not self.can_input():
             return
         if cw.cwpy.selection:
@@ -770,6 +788,9 @@ class EventHandlerForMessageWindow(EventHandler):
         ホイールイベント。
         """
         if not self.can_input():
+            return
+
+        if EventHandler.wheel_event(self, y):
             return
 
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
@@ -947,6 +968,9 @@ class EventHandlerForBacklog(EventHandler):
         右クリックイベント。
         バックログ終了。
         """
+        if cw.cwpy.statusbar.clear_volumebar():
+            return
+
         if not self.can_input():
             return
         if cw.cwpy.selection:
@@ -1006,6 +1030,9 @@ class EventHandlerForBacklog(EventHandler):
         if not self.can_input():
             return
         if cw.cwpy.has_inputevent:
+            return
+
+        if EventHandler.wheel_event(self, y):
             return
 
         if 0 < y:
@@ -1156,6 +1183,9 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         右クリックイベント。
         """
+        if cw.cwpy.statusbar.clear_volumebar():
+            return
+
         if not self.can_input():
             return
         if cw.cwpy.selection:
@@ -1171,6 +1201,10 @@ class EventHandlerForEffectBooster(EventHandler):
         """
         if not self.can_input():
             return
+
+        if EventHandler.wheel_event(self, y):
+            return
+
         if y < 0 and cw.cwpy.setting.wheelup_operation == cw.setting.WHEEL_SHOWLOG:
             self.f5key_event()
             return
