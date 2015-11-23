@@ -42,7 +42,7 @@ class StatusBar(base.CWPySprite):
 
     def update_scale(self):
         self._init_image()
-        self.volumebar.update_scale()
+        self.clear_volumebar()
         self.change(self.showbuttons)
 
     def change(self, showbuttons=True, encounter=False):
