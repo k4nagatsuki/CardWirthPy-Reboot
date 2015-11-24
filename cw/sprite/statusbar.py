@@ -230,7 +230,7 @@ class VolumeBar(base.CWPySprite):
         padh = 5
         barh = 200
 
-        font = cw.cwpy.rsrc.fonts["sbarpanel"]
+        font = cw.cwpy.rsrc.fonts["sbarprogress"]
         tsize = font.size(u"100%")
         tsize2 = font.size(u"音量")
         tw = max(tsize[0], tsize2[0])

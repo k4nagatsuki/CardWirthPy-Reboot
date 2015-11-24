@@ -525,7 +525,7 @@ class EventHandler(object):
         if val <> 0 and pygame.mouse.get_pressed()[2]:
             # 右クリック+ホイール。音量の変更
             for music in cw.cwpy.music:
-                volume = music.mastervolume + val
+                volume = music.mastervolume + val * cw.cwpy.setting.volume_increment
                 volume = cw.util.numwrap(volume, 0, 100)
                 music.set_mastervolume(volume)
                 cw.cwpy.setting.vol_master = volume / 100.0

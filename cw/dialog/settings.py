@@ -2298,7 +2298,7 @@ class FontSettingPanel(wx.Panel):
                           "selectionbar" : u"選択肢",
                           "logpage"      : u"メッセージログ頁",
                           "sbarpanel"    : u"ステータスパネル",
-                          "sbarprogress" : u"プログレスバー",
+                          "sbarprogress" : u"進行状況・音量バー",
                           "sbarbtn"      : u"ステータスボタン",
                           "sbardesctitle": u"ボタン解説の表題",
                           "sbardesc"     : u"ボタン解説",

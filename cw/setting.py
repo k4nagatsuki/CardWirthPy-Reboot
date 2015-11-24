@@ -170,7 +170,8 @@ class Setting(object):
         self.show_paperandtree = False
         self.filer_dir = ""
         self.filer_file = ""
-        self.recenthistory_limit = 5
+        self.recenthistory_limit = 5 # 展開したシナリオを取っておく数
+        self.volume_increment = 5 # ホイールによる全体音量調節での増減量
 
         # カード種の表示・非表示
         self.show_cardtype = [True] * 3
@@ -587,6 +588,9 @@ class Setting(object):
 
         # 圧縮されたシナリオの展開データ保存数
         self.recenthistory_limit = data.getint("RecentHistoryLimit", self.recenthistory_limit)
+
+        # マウスホイールによる全体音量の増減量
+        self.volume_increment = data.getint("VolumeIncrement", self.volume_increment)
 
         # 一覧表示
         self.show_multiplebases = data.getbool("ShowMultipleItems", "base", self.show_multiplebases)
@@ -1173,7 +1177,7 @@ class Resource(object):
         fonts.set("numcards", self.create_font, "numcards", *self.setting().fonttypes["numcards"])
         # ステータスバーパネル描画用
         fonts.set("sbarpanel", self.create_font, "sbarpanel", *self.setting().fonttypes["sbarpanel"])
-        # ステータスバーのプログレスバー描画用
+        # 進行状況・音量バー描画用
         fonts.set("sbarprogress", self.create_font, "sbarprogress", *self.setting().fonttypes["sbarprogress"])
         # ステータスバーボタン描画用
         fonts.set("sbarbtn", self.create_font, "sbarbtn", *self.setting().fonttypes["sbarbtn"])
