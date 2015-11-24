@@ -19,6 +19,7 @@ class StatusBar(base.CWPySprite):
         self.backlog = None
         self.settings = None
         self.infocards = None
+        self.friendcards = None
         self.rect = self.image.get_rect()
         self.rect.topleft = cw.s((0, 420))
         self.showbuttons = False
@@ -128,7 +129,7 @@ class StatusBar(base.CWPySprite):
             rmargin += cw.s(34)
             if showbuttons and cw.cwpy.is_debugmode() and\
                     cw.cwpy.battle.is_ready() and cw.cwpy.get_fcards():
-                ShowFriendCardsButton(self, (cw.s(474) - rmargin, cw.s(3)))
+                self._create_friendcards((cw.s(474) - rmargin, cw.s(3)))
 
         if self.infocards and not cw.cwpy.is_playingscenario():
             self.infocards.notice = False
@@ -188,6 +189,12 @@ class StatusBar(base.CWPySprite):
             self.infocards = InfoCardsButton(self, pos)
             if not self.loading and self.infocards.notice:
                 cw.animation.start_animation(self.infocards, "blink")
+
+    def _create_friendcards(self, pos):
+        if self.friendcards:
+            self.friendcards.reset(pos)
+        else:
+            self.friendcards = ShowFriendCardsButton(self, pos)
 
     def update_volumebar(self):
         """全体音量バーの表示を更新する。
@@ -1033,6 +1040,13 @@ class AutoStartButton(StatusBarButton):
         self.selectable_on_event = True
         self.actionbtn = None
         self.is_showing = cw.cwpy.is_battlestatus
+
+    def reset(self, pos):
+        if cw.cwpy.is_playingscenario() and cw.cwpy.sdata.autostart_round:
+            self.desc = cw.cwpy.msgs["desc_auto_start_round"]
+        else:
+            self.desc = cw.cwpy.msgs["desc_manual_start_round"]
+        StatusBarButton.reset(self, pos)
 
     def get_icon(self):
         return cw.cwpy.rsrc.pygamedialogs["AUTO_START"]
