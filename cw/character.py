@@ -2455,6 +2455,7 @@ class Player(Character):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         self.remove_numbercoupon()
+        self.remove_timedcoupons()
         self.data.edit("Property", "True", "lost")
         self.data.write_xml()
         if cw.cwpy.is_playingscenario():
