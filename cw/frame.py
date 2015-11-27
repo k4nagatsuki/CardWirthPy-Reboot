@@ -1089,12 +1089,13 @@ class MyApp(wx.App):
         # スクリーンショットの撮影
         if event.GetEventType() == wx.EVT_KEY_UP.typeId:
             if (wx.WXK_SNAPSHOT == event.GetKeyCode() or\
-                 (ord('P') == event.GetKeyCode() and event.ControlDown)) and\
+                 (ord('P') == event.GetKeyCode() and event.ControlDown())) and\
                  cw.cwpy.frame.can_screenshot():
+                print event.ControlDown()
                 if cw.cwpy.frame.save_screenshot():
                     event.Skip()
                     return True
-            if ord('D') == event.GetKeyCode() and event.ControlDown and not cw.cwpy.is_showingdlg():
+            if ord('D') == event.GetKeyCode() and event.ControlDown() and not cw.cwpy.is_showingdlg():
                 cw.cwpy.frame.exec_func(cw.cwpy.set_debug, not cw.cwpy.is_debugmode())
                 event.Skip()
                 return True
