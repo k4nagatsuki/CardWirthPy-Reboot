@@ -1091,7 +1091,6 @@ class MyApp(wx.App):
             if (wx.WXK_SNAPSHOT == event.GetKeyCode() or\
                  (ord('P') == event.GetKeyCode() and event.ControlDown())) and\
                  cw.cwpy.frame.can_screenshot():
-                print event.ControlDown()
                 if cw.cwpy.frame.save_screenshot():
                     event.Skip()
                     return True
