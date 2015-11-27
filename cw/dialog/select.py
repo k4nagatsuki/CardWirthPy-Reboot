@@ -386,11 +386,15 @@ class MultiViewSelect(Select):
         count = self.views
         if len(self.list) <= self.views:
             count = 1
-
-        if event.GetWheelRotation() > 0:
-            self.index = cw.util.number_normalization(self.index - count, 0, self.get_pagecount() * self.views)
+            if event.GetWheelRotation() > 0:
+                self.index = cw.util.number_normalization(self.index - count, 0, len(self.list))
+            else:
+                self.index = cw.util.number_normalization(self.index + count, 0, len(self.list))
         else:
-            self.index = cw.util.number_normalization(self.index + count, 0, self.get_pagecount() * self.views)
+            if event.GetWheelRotation() > 0:
+                self.index = cw.util.number_normalization(self.index - count, 0, self.get_pagecount() * self.views)
+            else:
+                self.index = cw.util.number_normalization(self.index + count, 0, self.get_pagecount() * self.views)
         if len(self.list) <= self.index:
             self.index = len(self.list) - 1
         self.index_changed()

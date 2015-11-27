@@ -997,7 +997,7 @@ def number_normalization(value, fromvalue, tovalue):
     if 0 == tovalue:
         return value
     if tovalue <= value or value < fromvalue:
-        value -= (value / tovalue) * tovalue
+        value -= (value // tovalue) * tovalue
     if value < fromvalue:
         value += tovalue
     return value
