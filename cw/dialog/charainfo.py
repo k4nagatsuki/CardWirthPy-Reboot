@@ -699,8 +699,12 @@ class HistoryPanel(wx.ScrolledWindow):
         # クーポンリスト
         self.coupons = []
 
+        isalbum = self.ccard.data.getroot().tag == "Album"
+
         for coupon in self.ccard.data.getfind("Property/Coupons"):
             if coupon.text and not coupon.text.startswith(u"＠"):
+                if isalbum and (coupon.text.startswith(u"：") or coupon.text.startswith(u"；")):
+                    continue
                 if cw.cwpy.debug or not self.is_hidden(coupon.text):
                     self.coupons.append((coupon.text, int(coupon.get("value"))))
         self.coupons.reverse()
