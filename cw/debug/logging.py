@@ -17,18 +17,23 @@ class DebugLogDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, u"「%s」のプレイ結果" % (sname),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX|wx.RESIZE_BORDER)
         self.cwpy_debug = True
+        self.plain_text = [u"「%s」のプレイ結果" % (sname), u"========================================", ""]
 
-        self.text = wx.richtext.RichTextCtrl(self, -1, size=(400, 400))
+        self.text = wx.richtext.RichTextCtrl(self, -1, size=(400, 380))
         self.text.SetEditable(False)
 
         # 連れ込み
         for name in debuglog.friend:
+            s = u"「%s」を宿帳に登録します。" % (name)
             self.text.WriteBitmap(cw.cwpy.rsrc.debugs["FRIEND"])
-            self.text.WriteText(u"「%s」を宿帳に登録します。\n" % (name))
+            self.text.WriteText(s)
+            self.text.Newline()
+            self.plain_text.append(s)
 
         # 所持金
         if self.text.GetValue():
             self.text.Newline()
+            self.plain_text.append(u"")
 
         if debuglog.money[0] < debuglog.money[1]:
             v = debuglog.money[1] - debuglog.money[0]
@@ -36,43 +41,61 @@ class DebugLogDialog(wx.Dialog):
             v2 = cw.cwpy.msgs["currency"] % (debuglog.money[0])
             v3 = cw.cwpy.msgs["currency"] % (debuglog.money[1])
             self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_MONEY"])
-            self.text.WriteText(u"所持金が %s 増加しています: %s → %s\n" % (v1, v2, v3))
+            s = u"所持金が %s 増加しています: %s → %s" % (v1, v2, v3)
         elif debuglog.money[1] < debuglog.money[0]:
             v = debuglog.money[0] - debuglog.money[1]
             v1 = cw.cwpy.msgs["currency"] % (v)
             v2 = cw.cwpy.msgs["currency"] % (debuglog.money[0])
             v3 = cw.cwpy.msgs["currency"] % (debuglog.money[1])
             self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_MONEY"])
-            self.text.WriteText(u"所持金が %s 減少しています: %s → %s\n" % (v1, v2, v3))
+            s = u"所持金が %s 減少しています: %s → %s" % (v1, v2, v3)
         else:
-            self.text.WriteText(u"所持金に変更はありません。\n")
+            s = u"所持金に変更はありません。"
+        self.text.WriteText(s)
+        self.text.Newline()
+        self.plain_text.append(s)
 
         # ゴシップ
         if debuglog.gossip:
             if self.text.GetValue():
                 self.text.Newline()
+                self.plain_text.append(u"")
             for gossip in sorted(filter(lambda a: a[1], debuglog.gossip)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_GOSSIP"])
-                self.text.WriteText(u"ゴシップ「%s」を追加しました。\n" % gossip[0])
+                s = u"ゴシップ「%s」を追加しました。" % (gossip[0])
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
             for gossip in sorted(filter(lambda a: not a[1], debuglog.gossip)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_GOSSIP"])
-                self.text.WriteText(u"ゴシップ「%s」を削除しました。\n" % gossip[0])
+                s = u"ゴシップ「%s」を削除しました。" % (gossip[0])
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
 
         # 終了印
         if debuglog.compstamp:
             if self.text.GetValue():
                 self.text.Newline()
+                self.plain_text.append(u"")
             for compstamp in sorted(filter(lambda a: a[1], debuglog.compstamp)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_GET_COMPLETESTAMP"])
-                self.text.WriteText(u"終了印「%s」を追加しました。\n" % compstamp[0])
+                s = u"終了印「%s」を追加しました。" % (compstamp[0])
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
             for compstamp in sorted(filter(lambda a: not a[1], debuglog.compstamp)):
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_COMPLETESTAMP"])
-                self.text.WriteText(u"終了印「%s」を削除しました。\n" % compstamp[0])
+                s = u"終了印「%s」を削除しました。" % (compstamp[0])
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
 
         # 獲得カード
         if debuglog.got_card:
             if self.text.GetValue():
                 self.text.Newline()
+                self.plain_text.append(u"")
             for type in ("SkillCard", "ItemCard", "BeastCard"):
                 for key in sorted(filter(lambda a: a[0] == type, debuglog.got_card.iterkeys())):
                     _type, name, _desc, premium = key
@@ -90,22 +113,32 @@ class DebugLogDialog(wx.Dialog):
                         assert False
                     self.text.WriteBitmap(bmp)
                     if premium == "Normal":
-                        self.text.WriteText(u"%s「%s」を%s枚獲得しました。\n" % (typename, name, num))
+                        s = u"%s「%s」を%s枚獲得しました。" % (typename, name, num)
+                        self.text.WriteText(s)
+                        self.text.Newline()
+                        self.plain_text.append(s)
                     else:
                         if premium == "Premium":
                             picon = cw.cwpy.rsrc.dialogs["PREMIER_ICON_dbg"]
+                            ptext = u"プレミア"
                         elif premium == "Rare":
                             picon = cw.cwpy.rsrc.dialogs["RARE_ICON_dbg"]
+                            ptext = u"レア"
                         else:
                             assert False
                         self.text.WriteText(u"%s「%s" % (typename, name))
                         self.text.WriteBitmap(picon)
-                        self.text.WriteText(u"」を%s枚獲得しました。\n" % (num))
+                        self.text.WriteText(u"」を%s枚獲得しました。" % (num))
+                        self.text.Newline()
+
+                        s = u"%s「%s(%s)」を%s枚獲得しました。" % (typename, name, ptext, num)
+                        self.plain_text.append(s)
 
         # 喪失カード
         if debuglog.lost_card:
             if self.text.GetValue():
                 self.text.Newline()
+                self.plain_text.append(u"")
             for type in ("SkillCard", "ItemCard", "BeastCard"):
                 for key in sorted(filter(lambda a: a[0] == type, debuglog.lost_card.iterkeys())):
                     _type, name, _desc, _premium = key
@@ -122,21 +155,31 @@ class DebugLogDialog(wx.Dialog):
                     else:
                         assert False
                     self.text.WriteBitmap(bmp)
-                    self.text.WriteText(u"%s「%s」を%s枚喪失しました。\n" % (typename, name, num))
+                    s = u"%s「%s」を%s枚喪失しました。" % (typename, name, num)
+                    self.text.WriteText(s)
+                    self.text.Newline()
+                    self.plain_text.append(s)
 
         # PCの消去・称号の変更
         if debuglog.lost_player or debuglog.player:
             if self.text.GetValue():
                 self.text.Newline()
+                self.plain_text.append(u"")
             for name, album in debuglog.lost_player:
                 if album:
-                    self.text.WriteText(u"%s は消去され、アルバムに掲載されました。\n" % (name))
+                    s = u"%s は消去され、アルバムに掲載されました。" % (name)
                 else:
-                    self.text.WriteText(u"%s は消去されました(アルバム不掲載)。\n" % (name))
+                    s = u"%s は消去されました(アルバム不掲載)。" % (name)
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
 
             for name, got_coupons, lost_coupons in debuglog.player:
                 if got_coupons or lost_coupons:
-                    self.text.WriteText(u"%s の称号が以下のように変更されています。\n" % (name))
+                    s = u"%s の称号が以下のように変更されています。" % (name)
+                    self.text.WriteText(s)
+                    self.text.Newline()
+                    self.plain_text.append(s)
                     self.text.BeginLeftIndent(50)
                     for coupon, value in got_coupons:
                         if value < 0:
@@ -152,21 +195,40 @@ class DebugLogDialog(wx.Dialog):
                             bmp = cw.cwpy.rsrc.debugs["COUPON"]
                             value = "+%s" % (value)
                         self.text.WriteBitmap(bmp)
-                        self.text.WriteText(u"「%s(%s)」を獲得\n" % (coupon, value))
+                        s = u"「%s(%s)」を獲得" % (coupon, value)
+                        self.text.WriteText(s)
+                        self.text.Newline()
+                        self.plain_text.append("    * " + s)
                     for coupon, _value in lost_coupons:
                         self.text.WriteBitmap(cw.cwpy.rsrc.debugs["EVT_LOSE_COUPON"])
-                        self.text.WriteText(u"「%s」を喪失\n" % (coupon))
+                        s = u"「%s」を喪失" % (coupon)
+                        self.text.WriteText(s)
+                        self.text.Newline()
+                        self.plain_text.append("    * " + s)
                     self.text.EndLeftIndent()
                 else:
-                    self.text.WriteText(u"%s の称号に変更はありません。\n" % (name))
+                    s = u"%s の称号に変更はありません。" % (name)
+                    self.text.WriteText(s)
+                    self.text.Newline()
+                    self.plain_text.append(s)
 
         # JPDCイメージ
         if debuglog.jpdc_image:
             if self.text.GetValue():
                 self.text.Newline()
+                self.plain_text.append(u"")
             for fname in debuglog.jpdc_image:
                 self.text.WriteBitmap(cw.cwpy.rsrc.debugs["JPDCIMAGE"])
-                self.text.WriteText(u"JPDCイメージ「%s」を保存しました。\n" % (fname))
+                s = u"JPDCイメージ「%s」を保存しました。" % (fname)
+                self.text.WriteText(s)
+                self.text.Newline()
+                self.plain_text.append(s)
+
+        self.writetext = wx.CheckBox(self, -1, u"「DebugInfo.txt」に保存する")
+        self.writetext.SetValue(True)
+
+        self.plain_text.append(u"")
+        self.plain_text = u"\n".join(self.plain_text)
 
         # 決定
         self.okbtn = wx.Button(self, wx.ID_OK, u"&OK")
@@ -175,12 +237,31 @@ class DebugLogDialog(wx.Dialog):
         self._do_layout()
 
     def _bind(self):
-        pass
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_BUTTON, self.OnClose, self.okbtn)
+
+    def OnClose(self, event):
+        if self.writetext.GetValue():
+            try:
+                with open(u"DebugInfo.txt", "w") as f:
+                    f.write(self.plain_text.encode("utf-8"))
+                    f.close()
+            except:
+                cw.util.print_ex()
+        self.Destroy()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
+
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        hsizer.Add(self.writetext, 0, wx.ALIGN_CENTER|wx.RIGHT, border=5)
+        hsizer.AddStretchSpacer(1)
+        hsizer.Add(self.okbtn, 0, wx.ALIGN_CENTER)
+
         sizer.Add(self.text, 1, wx.EXPAND|wx.ALL, border=5)
-        sizer.Add(self.okbtn, 0, wx.RIGHT|wx.LEFT|wx.BOTTOM|wx.ALIGN_RIGHT, border=5)
+        sizer.Add((0, 5), 0, 0, 0)
+        sizer.Add(hsizer, 0, wx.EXPAND|wx.RIGHT|wx.LEFT|wx.BOTTOM, border=5)
+        sizer.Add((0, 10), 0, 0, 0)
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
