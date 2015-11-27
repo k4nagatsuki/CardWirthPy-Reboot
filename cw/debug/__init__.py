@@ -8,6 +8,7 @@ import charaedit
 import statusedit
 import recording
 import event
+import logging
 
 
 def main():

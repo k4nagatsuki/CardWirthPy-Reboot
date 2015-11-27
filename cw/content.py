@@ -1910,6 +1910,9 @@ class EndContent(EventContentBase):
         宿画面に遷移する。completeがTrueだったら済み印をつける。
         """
         complete = self.data.getbool(".", "complete", False)
+        if complete and cw.cwpy.ydata and cw.cwpy.sdata:
+            # 終了印追加
+            cw.cwpy.ydata.set_compstamp(cw.cwpy.sdata.name)
 
         if cw.cwpy.battle and cw.cwpy.battle.is_running:
             # バトルを強制終了
@@ -1936,21 +1939,6 @@ class EndContent(EventContentBase):
         # パーティ表示
         cw.cwpy.show_party()
 
-        # 終了印の処理
-        if complete:
-            elements = [e for e in
-                        cw.cwpy.ydata.environment.getfind("CompleteStamps")
-                                            if e.text == cw.cwpy.sdata.name]
-            # 同名の終了印がなかったら終了印追加
-            if not elements:
-                name = "CompleteStamp"
-                text = cw.cwpy.sdata.name
-                e = cw.cwpy.ydata.environment.make_element(name, text)
-                cw.cwpy.ydata.environment.append("CompleteStamps", e)
-
-        # NPCの連れ込み
-        cw.cwpy.ydata.join_npcs()
-
         # レベルアップと回復処理
         cw.cwpy.check_level(fromscenario=True)
 
@@ -1958,7 +1946,7 @@ class EndContent(EventContentBase):
         if cw.cwpy.rsrc.specialchars_is_changed:
             cw.cwpy.rsrc.specialchars = cw.cwpy.rsrc.get_specialchars()
 
-        cw.cwpy.sdata.end()
+        cw.cwpy.sdata.end(showdebuglog=True)
         cw.cwpy.ydata.party.write()
 
         # BGMストップ

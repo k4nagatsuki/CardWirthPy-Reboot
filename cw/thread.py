@@ -1947,7 +1947,7 @@ class CWPy(_Singleton, threading.Thread):
             pcard.set_fullrecovery()
             pcard.update_image()
 
-        self.sdata.remove_log()
+        self.sdata.remove_log(None)
 
         self.ydata.party._loading = False
 
@@ -3577,6 +3577,7 @@ class CWPy(_Singleton, threading.Thread):
         #-----------------------------------------------------------------------
 
         hold = header.hold
+        fromplayer = isinstance(owner, cw.character.Player)
 
         # 移動元がCharacterだった場合
         if isinstance(owner, cw.character.Character):
@@ -3693,6 +3694,17 @@ class CWPy(_Singleton, threading.Thread):
             # シナリオで取得したカードじゃない場合、XMLの削除
             elif not header.scenariocard and header.moved == 0:
                 self.remove_xml(header)
+                if fromplayer and self.is_playingscenario():
+                    # PCによってシナリオへ持ち込まれたカードを破棄する際は
+                    # デバッグログに出すために記録しておく
+                    # (荷物袋からの破棄・移動はbackpack_movedに入るため不要)
+                    dcpath = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party/Deleted" + header.type)
+                    if not os.path.isdir(dcpath):
+                        os.makedirs(dcpath)
+                    dfpath = cw.util.join_paths(dcpath, cw.util.repl_dischar(header.name) + ".xml")
+                    dfpath = cw.util.dupcheck_plus(dfpath, yado=False)
+                    etree = cw.data.xml2etree(element=header.carddata)
+                    etree.write(dfpath)
             elif not header.scenariocard and header.moved == 1:
                 # 荷物袋からPCへ移動してそこから除去した場合
                 assert not header.carddata is None
@@ -4211,7 +4223,7 @@ class CWPy(_Singleton, threading.Thread):
         mode: "unreversed" or "active"
         """
         if not self.is_playingscenario():
-            return[]
+            return []
 
         fcards = self.sdata.friendcards
         if mode == "unreversed":

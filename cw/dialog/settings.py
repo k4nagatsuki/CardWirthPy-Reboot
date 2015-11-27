@@ -342,6 +342,7 @@ class SettingsPanel(wx.Panel):
     def OnDefault(self, event):
         selpane = self.note.GetSelection()
         if selpane == 0:
+            self.pane_gene.cb_show_debuglogdialog.SetValue(cw.cwpy.setting.show_debuglogdialog_init)
             self.pane_gene.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode_init)
             self.pane_gene.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
             self.pane_gene.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax_init)
@@ -571,6 +572,8 @@ class SettingsPanel(wx.Panel):
             if not value == cw.cwpy.setting.debug:
                 cw.cwpy.exec_func(cw.cwpy.set_debug, value)
 
+        value = self.pane_gene.cb_show_debuglogdialog.GetValue()
+        setting.show_debuglogdialog = value
         value = self.pane_gene.cb_nolevelup.GetValue()
         setting.no_levelup_in_debugmode = value
         value = self.pane_gene.cb_showexperiencebar.GetValue()
@@ -1247,8 +1250,10 @@ class GeneralSettingPanel(wx.Panel):
         self.box_gene = wx.StaticBox(self, -1, u"詳細")
         self.cb_debug = wx.CheckBox(self, -1, u"デバッグモードでプレイする")
         self.cb_debug.SetValue(cw.cwpy.debug)
+        self.cb_show_debuglogdialog = wx.CheckBox(
+            self, -1, u"シナリオの終了時にデバッグ情報を表示する")
         self.cb_nolevelup = wx.CheckBox(
-            self, -1, u"デバッグ中はレベル上昇を停止する")
+            self, -1, u"デバッグ中はレベル上昇を抑止する")
         self.cb_showexperiencebar = wx.CheckBox(
             self, -1, u"次のレベルアップまでの割合を表示する")
 
@@ -1297,6 +1302,7 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
 
     def load(self, setting):
+        self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode)
         self.cb_showexperiencebar.SetValue(setting.show_experiencebar)
         self.cb_storeskinoneachbase.SetValue(setting.store_skinoneachbase)
@@ -1327,6 +1333,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_expandmode = wx.StaticBoxSizer(self.box_expandmode, wx.VERTICAL)
 
         bsizer_gene.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showexperiencebar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)

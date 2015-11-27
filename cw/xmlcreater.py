@@ -165,6 +165,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         if setting.debug_saved <> setting.debug_init:
             e = cw.data.make_element("DebugMode", str(setting.debug_saved))
             element.append(e)
+    # シナリオの終了時にデバッグ情報を表示する
+    if setting.show_debuglogdialog <> setting.show_debuglogdialog_init:
+        e = cw.data.make_element("ShowDebugLogDialog", str(setting.show_debuglogdialog))
+        element.append(e)
     # デバッグ時はレベル上昇しない
     if setting.no_levelup_in_debugmode <> setting.no_levelup_in_debugmode_init:
         e = cw.data.make_element("NoLevelUpInDebugMode", str(setting.no_levelup_in_debugmode))

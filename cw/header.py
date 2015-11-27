@@ -1479,7 +1479,7 @@ class SavedJPDCImageHeader(object):
                         self.fpaths.append(e.text)
 
     @staticmethod
-    def create_header():
+    def create_header(debuglog):
         """シナリオ終了時にTempFileにある保存済みJPDCイメージを
         <Yado>/SavedJPDCImageに保存する。
         """
@@ -1534,6 +1534,8 @@ class SavedJPDCImageHeader(object):
             for mfpath in header.fpaths:
                 e = cw.data.make_element("Material", mfpath)
                 mates.append(e)
+                if debuglog:
+                    debuglog.add_jpdcimage(mfpath)
             element.append(mates)
             # ファイル書き込み
             etree = cw.data.xml2etree(element=element)
