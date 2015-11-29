@@ -263,7 +263,10 @@ class SoundInterface(object):
     def __init__(self, sound=None, path=""):
         self._sound = sound
         self._path = path
+        self.subvolume = 100
         self.channel = -1
+        self._type = -1
+        self.mastervolume = 0
 
     def _play_before(self, from_scenario, channel, fade):
         if from_scenario:
@@ -280,8 +283,11 @@ class SoundInterface(object):
             return "SystemSound"
 
     def play(self, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0):
+        self._type = -1
+        self.mastervolume = cw.cwpy.music[0].mastervolume
         if self._sound and 0 <= channel and channel < cw.bassplayer.MAX_SOUND_CHANNELS:
             self.channel = channel
+            self.subvolume = subvolume
 
             if cw.cwpy.setting.play_sound:
                 volume = (cw.cwpy.setting.vol_sound * cw.cwpy.music[0].mastervolume) / 100.0 * subvolume / 100.0
@@ -297,6 +303,7 @@ class SoundInterface(object):
                 try:
                     path = get_soundfilepath(tempbasedir, self._sound)
                     cw.bassplayer.play_sound(path, volume, from_scenario, loopcount=loopcount, channel=channel, fade=fade)
+                    self._type = 0
                 except Exception:
                     cw.util.print_ex()
             elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
@@ -316,6 +323,7 @@ class SoundInterface(object):
                 volume = int(volume * 1000)
                 mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
                 mciSendStringW(u"play %s" % (name), 0, 0, 0)
+                self._type = 1
             else:
                 if threading.currentThread() <> cw.cwpy:
                     cw.cwpy.exec_func(self.play, from_scenario, subvolume, loopcount, channel, fade)
@@ -330,15 +338,17 @@ class SoundInterface(object):
 
                     self._sound.set_volume(volume)
                     chan.play(self._sound, loopcount-1, fade_ms=fade)
+                    self._type = 2
 
     def stop(self, from_scenario, fade=0):
-        if self._sound and 0 <= self.channel and self.channel < cw.bassplayer.MAX_SOUND_CHANNELS:
+        self.mastervolume = 0
+        if self._type <> -1 and self._sound and 0 <= self.channel and self.channel < cw.bassplayer.MAX_SOUND_CHANNELS:
             if from_scenario:
                 tempbasedir = "Sound"
             else:
                 tempbasedir = "SystemSound"
 
-            if cw.bassplayer.is_alivablewithpath(self._path):
+            if self._type == 0:
                 if threading.currentThread() <> cw.cwpy:
                     cw.cwpy.exec_func(self.stop, from_scenario, fade)
                     return
@@ -348,7 +358,7 @@ class SoundInterface(object):
                     remove_soundtempfile(tempbasedir)
                 except Exception:
                     cw.util.print_ex()
-            elif sys.platform == "win32" and isinstance(self._sound, (str, unicode)):
+            elif self._type == 1:
                 if threading.currentThread() == cw.cwpy:
                     cw.cwpy.frame.exec_func(self.stop, from_scenario, fade)
                     return
@@ -377,6 +387,52 @@ class SoundInterface(object):
                         chan.fadeout(fade)
                     else:
                         chan.stop()
+
+    def _get_volumevalue(self, fpath):
+        if not cw.cwpy.setting.play_sound:
+            return 0
+
+        ext = cw.util.splitext(fpath)[1].lower()
+
+        if ext == ".mid" or ext == ".midi":
+            volume = cw.cwpy.setting.vol_midi * cw.cwpy.setting.vol_sound
+        else:
+            volume = cw.cwpy.setting.vol_sound
+
+        return volume * self.mastervolume / 100.0
+
+    def set_mastervolume(self, from_scenario, volume):
+        if threading.currentThread() <> cw.cwpy:
+            cw.cwpy.exec_func(self.set_mastervolume, from_scenario, volume)
+            return
+
+        self.mastervolume = volume
+        self.set_volume(from_scenario)
+
+    def set_volume(self, from_scenario, volume=None):
+        if threading.currentThread() <> cw.cwpy:
+            cw.cwpy.exec_func(self.set_volume, from_scenario, volume)
+            return
+        if self._type == -1:
+            return
+
+        if volume is None:
+            volume = self._get_volumevalue(self._path)
+        volume = volume * self.subvolume / 100.0
+
+        assert threading.currentThread() == cw.cwpy
+        if self._type == 0:
+            cw.bassplayer.set_soundvolume(volume, from_scenario, channel=self.channel, fade=0)
+        elif self._type == 1:
+            volume = int(volume * 1000)
+            mciSendStringW = ctypes.windll.winmm.mciSendStringW
+            if from_scenario:
+                name = "cwsnd1_" + self.channel
+            else:
+                name = "cwsnd2"
+            mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
+        elif self._type == 2:
+            self._sound.set_volume(volume)
 
 #-------------------------------------------------------------------------------
 #　汎用関数

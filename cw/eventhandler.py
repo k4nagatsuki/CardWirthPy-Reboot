@@ -529,6 +529,13 @@ class EventHandler(object):
                 volume = cw.util.numwrap(volume, 0, 100)
                 music.set_mastervolume(volume)
                 cw.cwpy.setting.vol_master = volume / 100.0
+            for sound in cw.cwpy.lastsound_scenario:
+                if sound:
+                    volume = sound.mastervolume + val * cw.cwpy.setting.volume_increment
+                    sound.set_mastervolume(True, volume)
+            if cw.cwpy.lastsound_system:
+                volume = cw.cwpy.lastsound_system.mastervolume + val * cw.cwpy.setting.volume_increment
+                cw.cwpy.lastsound_system.set_mastervolume(False, volume)
             cw.cwpy.statusbar.update_volumebar()
             return True
         return False

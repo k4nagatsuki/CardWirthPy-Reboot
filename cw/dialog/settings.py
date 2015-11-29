@@ -678,10 +678,18 @@ class SettingsPanel(wx.Panel):
         value = setting.wrap_volumevalue(value)
         setting.vol_master = value
         if update:
+            volume = int(setting.vol_master*100)
             for music in cw.cwpy.music:
                 if not cw.cwpy.frame.IsIconized():
-                    music.set_mastervolume(int(setting.vol_master*100))
+                    music.set_mastervolume(volume)
                 music.set_volume()
+            for sound in cw.cwpy.lastsound_scenario:
+                if sound:
+                    sound.set_mastervolume(True, volume)
+                    sound.set_volume(True)
+            if cw.cwpy.lastsound_system:
+                cw.cwpy.lastsound_system.set_mastervolume(False, volume)
+                cw.cwpy.lastsound_system.set_volume(False)
         soundfonts = []
         for index in xrange(self.pane_sound.list_soundfont.GetItemCount()):
             soundfont = self.pane_sound.list_soundfont.GetItemText(index)

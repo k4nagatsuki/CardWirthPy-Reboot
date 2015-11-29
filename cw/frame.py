@@ -392,11 +392,22 @@ class Frame(wx.Frame):
             def func():
                 for music in cw.cwpy.music:
                     music.set_mastervolume(0)
+                for sound in cw.cwpy.lastsound_scenario:
+                    if sound:
+                        sound.set_mastervolume(True, 0)
+                if cw.cwpy.lastsound_system:
+                    cw.cwpy.lastsound_system.set_mastervolume(False, 0)
             cw.cwpy.exec_func(func)
         else:
             def func():
+                volume = int(cw.cwpy.setting.vol_master*100)
                 for music in cw.cwpy.music:
-                    music.set_mastervolume(int(cw.cwpy.setting.vol_master*100))
+                    music.set_mastervolume(volume)
+                for sound in cw.cwpy.lastsound_scenario:
+                    if sound:
+                        sound.set_mastervolume(True, volume)
+                if cw.cwpy.lastsound_system:
+                    cw.cwpy.lastsound_system.set_mastervolume(False, volume)
             cw.cwpy.exec_func(func)
 
     def OnCloseFromFrame(self, event):
