@@ -45,6 +45,21 @@ class YadoDB(object):
                     )
                 """
                 self.cur.execute(s)
+
+            # cardimageテーブルが存在しない場合は作成する(0.12.3以前との互換性維持)
+            cur = self.con.execute("PRAGMA table_info('cardimage')")
+            res = cur.fetchall()
+            if not res:
+                s = """
+                    CREATE TABLE cardimage (
+                        fpath TEXT,
+                        numorder INTEGER,
+                        imgpath TEXT,
+                        PRIMARY KEY (fpath, numorder)
+                    )
+                """
+                self.cur.execute(s)
+
             if self.mode == YADO:
                 # adventurerorderテーブルが存在しない場合は作成する(旧バージョンとの互換性維持)
                 cur = self.con.execute("PRAGMA table_info('adventurerorder')")
@@ -55,6 +70,20 @@ class YadoDB(object):
                             fpath TEXT,
                             numorder INTEGER,
                             PRIMARY KEY (fpath)
+                        )
+                    """
+                    self.cur.execute(s)
+
+                # adventurerorderテーブルが存在しない場合は作成する(0.12.3以前との互換性維持)
+                cur = self.con.execute("PRAGMA table_info('adventurerimage')")
+                res = cur.fetchall()
+                if not res:
+                    s = """
+                        CREATE TABLE adventurerimage (
+                            fpath TEXT,
+                            numorder INTEGER,
+                            imgpath TEXT,
+                            PRIMARY KEY (fpath, numorder)
                         )
                     """
                     self.cur.execute(s)
@@ -228,6 +257,17 @@ class YadoDB(object):
             """
             self.cur.execute(s)
 
+            # カードイメージ(複数あるもの)
+            s = """
+                CREATE TABLE cardimage (
+                    fpath TEXT,
+                    numorder INTEGER,
+                    imgpath TEXT,
+                    PRIMARY KEY (fpath, numorder)
+                )
+            """
+            self.cur.execute(s)
+
             # カードの並び順
             s = """
                 CREATE TABLE cardorder (
@@ -260,6 +300,17 @@ class YadoDB(object):
                         ctime INTEGER,
                         mtime INTEGER,
                         PRIMARY KEY (fpath)
+                    )
+                """
+                self.cur.execute(s)
+
+                # 冒険者のイメージ(複数あるもの)
+                s = """
+                    CREATE TABLE adventurerimage (
+                        fpath TEXT,
+                        numorder INTEGER,
+                        imgpath TEXT,
+                        PRIMARY KEY (fpath, numorder)
                     )
                 """
                 self.cur.execute(s)
@@ -493,11 +544,19 @@ class YadoDB(object):
     def _delete_card(self, path, commit=True):
         s = "DELETE FROM card WHERE fpath=?"
         self.cur.execute(s, (path,))
+        s = "DELETE FROM cardimage WHERE fpath=?"
+        self.cur.execute(s, (path,))
+        s = "DELETE FROM cardorder WHERE fpath=?"
+        self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
 
     def _delete_adventurer(self, path, commit=True):
         s = "DELETE FROM adventurer WHERE fpath=?"
+        self.cur.execute(s, (path,))
+        s = "DELETE FROM adventurerimage WHERE fpath=?"
+        self.cur.execute(s, (path,))
+        s = "DELETE FROM adventurerorder WHERE fpath=?"
         self.cur.execute(s, (path,))
         if commit:
             self.con.commit()
@@ -603,12 +662,18 @@ class YadoDB(object):
         fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
+        if len(header.imgpaths) == 1:
+            imgpath = header.imgpaths[0].path
+        elif not header.imgpaths:
+            imgpath = ""
+        else:
+            imgpath = None
         self.cur.execute(s, (
             fpath,
             header.type,
             header.id,
             header.name,
-            "\n".join(map(lambda info: info.path, header.imgpaths)),
+            imgpath,
             header.desc,
             header.scenario,
             header.author,
@@ -648,6 +713,24 @@ class YadoDB(object):
                 fpath,
                 cardorder,
             ))
+        if 1 < len(header.imgpaths):
+            s = """
+            DELETE FROM cardimage WHERE fpath=?
+            """
+            self.cur.execute(s, (fpath,))
+            for i, imgpath in enumerate(header.imgpaths):
+                s = """
+                INSERT OR REPLACE INTO cardimage (
+                    fpath,
+                    numorder,
+                    imgpath
+                ) VALUES (
+                    ?,
+                    ?,
+                    ?
+                )
+                """
+                self.cur.execute(s, (fpath, i, imgpath.path,))
 
         if commit:
             self.con.commit()
@@ -718,8 +801,25 @@ class YadoDB(object):
             owner = "STOREHOUSE"
         else:
             owner = "BACKPACK"
-        for order, rec in enumerate(self.cur):
-            header = cw.header.CardHeader(dbrec=rec, dbowner=owner)
+
+        s = """
+            SELECT
+                imgpath
+            FROM
+                cardimage
+            WHERE
+                fpath = ?
+            ORDER BY
+                numorder
+        """
+
+        recs = self.cur.fetchall()
+        for order, rec in enumerate(recs):
+            if rec["imgpath"] is None:
+                imgdbrec = self.cur.execute(s, (rec["fpath"],))
+            else:
+                imgdbrec = None
+            header = cw.header.CardHeader(dbrec=rec, imgdbrec=imgdbrec, dbowner=owner)
             header.order = order
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)
@@ -798,6 +898,12 @@ class YadoDB(object):
         fpath = cw.util.join_paths(fpath)
         ctime = time.time()
         mtime = os.path.getmtime(header.fpath)
+        if len(header.imgpaths) == 1:
+            imgpath = header.imgpaths[0].path
+        elif not header.imgpaths:
+            imgpath = ""
+        else:
+            imgpath = None
         if header.album:
             album = 1
         else:
@@ -807,7 +913,7 @@ class YadoDB(object):
             header.level,
             header.name,
             header.desc,
-            "\n".join(map(lambda info: info.path, header.imgpaths)),
+            imgpath,
             album,
             header.lost,
             header.sex,
@@ -833,6 +939,24 @@ class YadoDB(object):
                 fpath,
                 adventurerorder,
             ))
+        if 1 < len(header.imgpaths):
+            s = """
+            DELETE FROM adventurerimage WHERE fpath=?
+            """
+            self.cur.execute(s, (fpath,))
+            for i, imgpath in enumerate(header.imgpaths):
+                s = """
+                INSERT OR REPLACE INTO adventurerimage (
+                    fpath,
+                    numorder,
+                    imgpath
+                ) VALUES (
+                    ?,
+                    ?,
+                    ?
+                )
+                """
+                self.cur.execute(s, (fpath, i, imgpath.path,))
 
         if commit:
             self.con.commit()
@@ -872,8 +996,25 @@ class YadoDB(object):
             album = 0
         self.cur.execute(s, (album,))
         headers = []
-        for order, rec in enumerate(self.cur):
-            header = cw.header.AdventurerHeader(dbrec=rec)
+
+        s = """
+            SELECT
+                imgpath
+            FROM
+                adventurerimage
+            WHERE
+                fpath = ?
+            ORDER BY
+                numorder
+        """
+
+        recs = self.cur.fetchall()
+        for order, rec in enumerate(recs):
+            if rec["imgpath"] is None:
+                imgdbrec = self.cur.execute(s, (rec["fpath"],))
+            else:
+                imgdbrec = None
+            header = cw.header.AdventurerHeader(dbrec=rec, imgdbrec=imgdbrec)
             header.order = order
             header.fpath = cw.util.join_paths(self.ypath, header.fpath)
             headers.append(header)

@@ -1346,7 +1346,7 @@ class ScenarioSelect(select.Select):
             header = self.list[self.index]
 
             # 見出し画像
-            for bmp in header.get_images():
+            for bmp in header.get_wxbmps():
                 # 左上位置固定(CardWirthとの互換性維持)
                 dc.DrawBitmap(bmp, cw.wins(163), cw.wins(70)+yp, True)
 

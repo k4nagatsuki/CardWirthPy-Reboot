@@ -16,8 +16,22 @@ import shutil
 import cw
 
 
+def to_imgpaths(dbrec, imgdbrec):
+    """1枚イメージの情報を持つDBレコードと
+    複数イメージの情報を持つDBレコードを元に
+    cw.image.ImageInfoのlistを生成する。
+    """
+    imgpaths = []
+    path = dbrec["imgpath"]
+    if path:
+        imgpaths.append(cw.image.ImageInfo(path))
+    if imgdbrec:
+        for imgrec in imgdbrec:
+            imgpaths.append(cw.image.ImageInfo(imgrec["imgpath"]))
+    return imgpaths
+
 class CardHeader(object):
-    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None, dbowner="STOREHOUSE", bgtype=""):
+    def __init__(self, data=None, owner=None, carddata=None, from_scenario=False, scedir="", put_db=False, dbrec=None, imgdbrec=None, dbowner="STOREHOUSE", bgtype=""):
         self.ref_original = weakref.ref(self)
         self.order = -1
         if dbrec:
@@ -27,7 +41,7 @@ class CardHeader(object):
             self.type = dbrec["type"]
             self.id = dbrec["id"]
             self.name = dbrec["name"]
-            self.imgpaths = map(lambda p: cw.image.ImageInfo(p), dbrec["imgpath"].split("\n"))
+            self.imgpaths = to_imgpaths(dbrec, imgdbrec)
             self.desc = dbrec["desc"]
             self.scenario = dbrec["scenario"]
             self.author = dbrec["author"]
@@ -839,7 +853,7 @@ class InfoCardHeader(object):
             return self.cardimg.get_image()
 
 class AdventurerHeader(object):
-    def __init__(self, data=None, album=False, dbrec=None, fpath=""):
+    def __init__(self, data=None, album=False, dbrec=None, imgdbrec=None, fpath=""):
         """
         album: アルバム用の場合はTrueにする。
         dbrec: データベースから生成する場合は対象レコード。
@@ -851,7 +865,7 @@ class AdventurerHeader(object):
             self.level = dbrec["level"]
             self.name = dbrec["name"]
             self.desc = dbrec["desc"]
-            self.imgpaths = map(lambda p: cw.image.ImageInfo(p), dbrec["imgpath"].split("\n"))
+            self.imgpaths = to_imgpaths(dbrec, imgdbrec)
             self.album = bool(dbrec["album"])
             self.lost = bool(dbrec["lost"])
             self.sex = dbrec["sex"]
@@ -1148,27 +1162,32 @@ class Gene(object):
         return Gene(bits)
 
 class ScenarioHeader(object):
-    def __init__(self, t):
-        self.dpath = t[0]
-        self.type = t[1]
-        self.fname = t[2]
-        self.name = t[3]
-        self.author = t[4]
-        self.desc = t[5]
-        self.skintype = t[6]
-        self.levelmin = t[7]
-        self.levelmax = t[8]
-        self.coupons = t[9]
-        self.couponsnum = t[10]
-        self.startid = t[11]
-        self.tags = t[12]
-        self.ctime = t[13]
-        self.mtime = t[14]
-        self.image = t[15]
-        self.imgpaths = map(lambda p: cw.image.ImageInfo(p), t[16].split("\n"))
-        self._wxbmp = None
+    def __init__(self, dbrec, imgdbrec):
+        self.dpath = dbrec["dpath"]
+        self.type = dbrec["type"]
+        self.fname = dbrec["fname"]
+        self.name = dbrec["name"]
+        self.author = dbrec["author"]
+        self.desc = dbrec["desc"]
+        self.skintype = dbrec["skintype"]
+        self.levelmin = dbrec["levelmin"]
+        self.levelmax = dbrec["levelmax"]
+        self.coupons = dbrec["coupons"]
+        self.couponsnum = dbrec["couponsnum"]
+        self.startid = dbrec["startid"]
+        self.tags = dbrec["tags"]
+        self.ctime = dbrec["ctime"]
+        self.mtime = dbrec["mtime"]
+        self.images = []
 
-        self._images = None
+        image = dbrec["image"]
+        if image:
+            self.images.append(image)
+        if imgdbrec:
+            for imgrec in imgdbrec:
+                self.images.append(imgrec["image"])
+
+        self._wxbmps = None
 
     @property
     def mtime_reversed(self):
@@ -1178,104 +1197,15 @@ class ScenarioHeader(object):
     def get_fpath(self):
         return "/".join([self.dpath, self.fname])
 
-    def get_wxbmp(self, mask=True):
-        if not self._wxbmp:
-            if self.image:
-                with io.BytesIO(str(self.image)) as f:
+    def get_wxbmps(self, mask=True):
+        if self._wxbmps is None:
+            self._wxbmps = []
+            for image in self.images:
+                with io.BytesIO(str(image)) as f:
                     # TODO scaleinfo
-                    self._wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE))
+                    self._wxbmps.append(cw.wins((cw.util.load_wxbmp(f=f, mask=mask), cw.SIZE_CARDIMAGE)))
                     f.close()
-            else:
-                self._wxbmp = None
-        return self._wxbmp
-
-    def get_images(self):
-        """
-        シナリオの表題画像を返す。
-        """
-        if not self._images is None:
-            return self._images
-
-        path = self.get_fpath()
-        path = cw.util.get_linktarget(path)
-
-        bmps = []
-
-        # クラシックなシナリオまたは旧バージョンのバイナリデータ
-        self.get_wxbmp()
-        if self._wxbmp:
-            bmps.append(self._wxbmp)
-
-        imgpaths = []
-        for imgpath in self.imgpaths:
-            if imgpath.path:
-                imgpaths.append(imgpath)
-
-        if not imgpaths:
-            return bmps
-
-        if os.path.isfile(path):
-            # 圧縮ファイル内から取得
-            if path.lower().endswith(".cab"):
-                dpath = cw.util.join_paths(cw.tempdir, u"Cab", os.path.splitext(os.path.basename(path))[0])
-                dpath = cw.util.dupcheck_plus(dpath, yado=False)
-                if not os.path.isdir(dpath):
-                    os.makedirs(dpath)
-
-                try:
-                    sdir = cw.util.cab_scdir(path)
-                    for imgpath in imgpaths:
-                        if not imgpath.path:
-                            continue
-                        s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath.path), dpath)
-                        encoding = sys.getfilesystemencoding()
-                        if subprocess.call(s.encode(encoding), shell=True) == 0:
-                            fpath = cw.util.join_paths(dpath, sdir, imgpath.path)
-                            bmps.append(cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE)))
-
-                except:
-                    cw.util.print_ex()
-
-                finally:
-                    cw.util.remove(dpath)
-
-            else:
-                # ZIP・LHA
-                with cw.util.zip_file(path, "r") as z:
-                    names = z.namelist()
-                    # シナリオの場所を探す
-                    sdir = ""
-                    for name in names:
-                        name = cw.util.decode_zipname(name)
-                        if os.path.basename(name).lower() in ("summary.xml", "summary.wsm"):
-                            sdir = os.path.dirname(name)
-                            break
-
-                    for imgpath in imgpaths:
-                        ipath = cw.util.join_paths(sdir, imgpath.path).lower()
-                        ipath = os.path.normpath(ipath)
-                        for name in names:
-                            if os.path.normpath(cw.util.decode_zipname(name).lower()) == ipath:
-                                data = z.read(name)
-                                if data:
-                                    with io.BytesIO(data) as f:
-                                        # TODO scaleinfo
-                                        wxbmp = cw.wins((cw.util.load_wxbmp(f=f, mask=True), cw.SIZE_CARDIMAGE))
-                                        f.close()
-                                    bmps.append(wxbmp)
-                                break
-                    z.close()
-
-        elif os.path.isdir(path):
-            # 展開済みシナリオ
-            for imgpath in imgpaths:
-                if not imgpath.path:
-                    continue
-                fpath = cw.util.join_paths(path, imgpath.path)
-                bmps.append(cw.wins((cw.util.load_wxbmp(fpath, True), cw.SIZE_CARDIMAGE)))
-
-        self._images = bmps
-        return bmps
+        return self._wxbmps
 
 class PartyHeader(object):
     def __init__(self, data=None, dbrec=None):

@@ -739,13 +739,34 @@ def get_scenario(fpath):
     """fpathのシナリオのデータを生成して返す。"""
     lfpath = fpath.lower()
     if lfpath.endswith(".wsm") or lfpath.endswith(".xml"):
-        t = cw.scenariodb.read_summary(os.path.dirname(fpath))
+        t, images = cw.scenariodb.read_summary(os.path.dirname(fpath))
     else:
-        t = cw.scenariodb.read_summary(fpath)
+        t, images = cw.scenariodb.read_summary(fpath)
     if not t:
         return None
 
-    header = cw.header.ScenarioHeader(t)
+    dbrec = {}.copy()
+    dbrec["dpath"] = t[0]
+    dbrec["type"] = t[1]
+    dbrec["fname"] = t[2]
+    dbrec["name"] = t[3]
+    dbrec["author"] = t[4]
+    dbrec["desc"] = t[5]
+    dbrec["skintype"] = t[6]
+    dbrec["levelmin"] = t[7]
+    dbrec["levelmax"] = t[8]
+    dbrec["coupons"] = t[9]
+    dbrec["couponsnum"] = t[10]
+    dbrec["startid"] = t[11]
+    dbrec["tags"] = t[12]
+    dbrec["ctime"] = t[13]
+    dbrec["mtime"] = t[14]
+    dbrec["image"] = t[15]
+    imgdbrec = []
+    for image in images:
+        imgdbrec.append({ "image":image })
+
+    header = cw.header.ScenarioHeader(dbrec=dbrec, imgdbrec=imgdbrec)
     return cw.data.ScenarioData(header, cardonly=True)
 
 def main():

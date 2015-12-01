@@ -83,6 +83,7 @@ class Scenariodb(object):
 
         if os.path.isfile(self.name):
             self.con = sqlite3.connect(self.name, timeout=30000)
+            self.con.row_factory = sqlite3.Row
             self.cur = self.con.cursor()
             needcommit = False
 
@@ -119,18 +120,33 @@ class Scenariodb(object):
                 self.cur.execute(s)
                 needcommit = True
 
-            # imgpathが存在しない場合は作成する(Wsn.1で複合イメージ化したため)
-            cur = self.con.execute("PRAGMA table_info('scenariodb')")
+            ## FIXME: SQLite3ではDROP COLUMNは使用できないので放置しておく
+            ### imgpathが存在する場合は削除する(0.12.4αで一旦必要になったものの不要化)
+            ##cur = self.con.execute("PRAGMA table_info('scenariodb')")
+            ##res = cur.fetchall()
+            ##hastype = False
+            ##for rec in res:
+            ##    if rec[1] == "imgpath":
+            ##        hastype = True
+            ##        break
+            ##  if hastype:
+            ##    self.cur.execute("ALTER TABLE scenariodb DROP COLUMN imgpath")
+            ##    needcommit = True
+
+            # scenarioimageテーブルが存在しない場合は作成する(0.12.3以前との互換性維持)
+            cur = self.con.execute("PRAGMA table_info('scenarioimage')")
             res = cur.fetchall()
-            hastype = False
-            for rec in res:
-                if rec[1] == "imgpath":
-                    hastype = True
-                    break
-            if not hastype:
-                self.cur.execute("ALTER TABLE scenariodb ADD COLUMN imgpath TEXT")
-                self.cur.execute("UPDATE scenariodb SET imgpath=?", ("",))
-                needcommit = True
+            if not res:
+                s = """
+                    CREATE TABLE scenarioimage (
+                        dpath TEXT,
+                        fname TEXT,
+                        numorder INTEGER,
+                        image BLOB,
+                        PRIMARY KEY (dpath, fname, numorder)
+                    )
+                """
+                self.cur.execute(s)
 
             if needcommit:
                 self.con.commit()
@@ -142,11 +158,22 @@ class Scenariodb(object):
                    dpath TEXT, type INTEGER, fname TEXT, name TEXT, author TEXT,
                    desc TEXT, skintype TEXT, levelmin INTEGER, levelmax INTEGER,
                    coupons TEXT, couponsnum INTEGER, startid INTEGER,
-                   tags TEXT, ctime INTEGER, mtime INTEGER, image BLOB, imgpath TEXT,
+                   tags TEXT, ctime INTEGER, mtime INTEGER, image BLOB,
                    PRIMARY KEY (dpath, fname))"""
 
             self.cur.execute(s)
             self.cur.execute("CREATE INDEX scenariodb_index1 ON scenariodb(dpath)")
+
+            s = """
+                CREATE TABLE scenarioimage (
+                    dpath TEXT,
+                    fname TEXT,
+                    numorder INTEGER,
+                    image BLOB,
+                    PRIMARY KEY (dpath, fname, numorder)
+                )
+            """
+            self.cur.execute(s)
 
             s = """
                 CREATE TABLE scenariotype (
@@ -225,6 +252,8 @@ class Scenariodb(object):
             if not dpath or not os.path.isdir(dpath):
                 s = "DELETE FROM scenariodb WHERE dpath=?"
                 self.cur.execute(s, (dpath,))
+                s = "DELETE FROM scenarioimage WHERE dpath=?"
+                self.cur.execute(s, (dpath,))
                 s = "DELETE FROM scenariotype WHERE dpath=?"
                 self.cur.execute(s, (dpath,))
 
@@ -243,25 +272,48 @@ class Scenariodb(object):
         dpath, fname = os.path.split(path)
         s = "DELETE FROM scenariodb WHERE dpath=? AND fname=?"
         self.cur.execute(s, (dpath, fname,))
+        s = "DELETE FROM scenarioimage WHERE dpath=? AND fname=?"
+        self.cur.execute(s, (dpath, fname,))
         s = "DELETE FROM scenariotype WHERE dpath=? AND fname=?"
         self.cur.execute(s, (dpath, fname,))
 
         if commit:
             self.con.commit()
 
-    def insert(self, t, commit=True, skintype=u""):
+    def insert(self, t, images, commit=True, skintype=u""):
         s = """INSERT OR REPLACE INTO scenariodb(
                     dpath, type, fname, name, author, desc, skintype,
                     levelmin, levelmax, coupons, couponsnum,
-                    startid, tags, ctime, mtime, image, imgpath
+                    startid, tags, ctime, mtime, image
                ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                )"""
         self.cur.execute(s, t)
         if skintype:
             s = """INSERT OR REPLACE INTO scenariotype
                    VALUES(?, ?, ?)"""
             self.cur.execute(s, (t[0], t[2], skintype,))
+
+        if images:
+            s = """
+            DELETE FROM scenarioimage WHERE dpath=? AND fname=?
+            """
+            self.cur.execute(s, (t[0], t[2],))
+            for i, image in enumerate(images):
+                s = """
+                INSERT OR REPLACE INTO scenarioimage (
+                    dpath,
+                    fname,
+                    numorder,
+                    image
+                ) VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
+                """
+                self.cur.execute(s, (t[0], t[2], i, image,))
 
         if commit:
             self.con.commit()
@@ -272,10 +324,10 @@ class Scenariodb(object):
         self._insert_scenario(path, commit, skintype=skintype)
 
     def _insert_scenario(self, path, commit=True, skintype=u""):
-        t = read_summary(path)
+        t, images = read_summary(path)
 
         if t:
-            self.insert(t, commit, skintype=skintype)
+            self.insert(t, images, commit, skintype=skintype)
             return True
         elif path.startswith(u"Scenario"):
             # 登録できなかったファイルを移動
@@ -298,7 +350,22 @@ class Scenariodb(object):
         if not data:
             return None
 
-        header = cw.header.ScenarioHeader(data)
+        if data["image"] is None:
+            s = """
+                SELECT
+                    image
+                FROM
+                    scenarioimage
+                WHERE
+                    dpath=? AND fname=?
+                ORDER BY
+                    numorder
+            """
+            imgdbrec = self.cur.execute(s, (data["dpath"], data["fname"],))
+        else:
+            imgdbrec = None
+
+        header = cw.header.ScenarioHeader(data, imgdbrec=imgdbrec)
         path = header.get_fpath()
         ltarg = cw.util.get_linktarget(path)
 
@@ -306,9 +373,9 @@ class Scenariodb(object):
             def func(spath, header):
                 # クラシックなシナリオ
                 if os.path.getmtime(spath) > header.mtime:
-                    cs = read_summary(path)
+                    cs, images = read_summary(path)
                     if cs:
-                        self.insert(cs, True, skintype=skintype)
+                        self.insert(cs, images, True, skintype=skintype)
                         # 更新後の情報を取得
                         header = self._search_path(path, skintype=skintype)
                         return header
@@ -389,8 +456,7 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath" +\
+                "     A.image" +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND A.fname=? AND (B.skintype=? OR B.skintype IS NULL)"
@@ -412,8 +478,7 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath" +\
+                "     A.image" +\
                 " FROM scenariodb A WHERE dpath=? AND fname=?"
             self.cur.execute(s, (dpath, fname,))
 
@@ -438,8 +503,7 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath" +\
+                "     A.image" +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE A.dpath=? AND (B.skintype=? OR B.skintype IS NULL)"
@@ -461,8 +525,7 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath" +\
+                "     A.image" +\
                 " FROM scenariodb A WHERE dpath=?"
             self.cur.execute(s, (dpath,))
 
@@ -546,8 +609,7 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath" +\
+                "     A.image" +\
                 " FROM scenariodb A LEFT JOIN scenariotype B" +\
                 " ON A.dpath=B.dpath AND A.fname=B.fname" +\
                 " WHERE " + where +\
@@ -573,8 +635,7 @@ class Scenariodb(object):
                 "     A.tags," +\
                 "     A.ctime," +\
                 "     A.mtime," +\
-                "     A.image," +\
-                "     A.imgpath" +\
+                "     A.image" +\
                 " FROM scenariodb A WHERE " + where
             if ftype == DATA_LEVEL:
                 values = (value, value,)
@@ -654,28 +715,35 @@ def read_summary(basepath):
             spath = cw.util.join_paths(path, "Summary.wsm")
             if os.path.isfile(spath):
                 with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                    r = read_summary_classic(basepath, spath, f)
+                    r, images = read_summary_classic(basepath, spath, f)
                     f.close()
-                return r
+                return r, images
 
             spath = cw.util.join_paths(path, "Summary.xml")
             if os.path.isfile(spath):
                 e = cw.data.xml2element(spath, "Property")
-                imgpath, imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath))
-                imgbuf = ""
-                if imgpath:
+                imgpaths, summaryinfos = parse_summarydata(spath, e, TYPE_WSN, False, os.path.getmtime(spath))
+                imgbufs = []
+                for imgpath in imgpaths:
                     imgpath = cw.util.join_paths(path, imgpath)
                     if os.path.isfile(imgpath):
                         with open(imgpath, "rb") as f2:
                             imgbuf = f2.read()
                             f2.close()
-                imgbuf = buffer(imgbuf)
+                        imgbuf = buffer(imgbuf)
+                        imgbufs.append(imgbuf)
+                if len(imgbufs) == 0:
+                    imgbuf = ""
+                elif len(imgbufs) == 1:
+                    imgbuf = imgbufs[0]
+                    imgbufs = []
+                else:
+                    imgbuf = None
                 summaryinfos.append(imgbuf)
-                summaryinfos.append(imgpaths)
-                return tuple(summaryinfos)
+                return tuple(summaryinfos), imgbufs
         except:
             cw.util.print_ex()
-            return None
+            return None, []
 
     if path.lower().endswith(".cab"):
         try:
@@ -691,13 +759,13 @@ def read_summary(basepath):
                     f = None
                     try:
                         with cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True) as f:
-                            r = read_summary_classic(basepath, path, f)
+                            r, images = read_summary_classic(basepath, path, f)
                             f.close()
-                            return r
+                            return r, images
                     finally:
                         os.remove(spath)
                 else:
-                    return None
+                    return None, []
             else:
                 summpath = cw.util.cab_hasfile(path, "Summary.xml")
                 if summpath:
@@ -714,12 +782,12 @@ def read_summary(basepath):
                             e = cw.data.xml2element(summpath2, "Property")
 
                             try:
-                                imgpath, imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+                                imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
                             except:
-                                return None
+                                return None, []
 
-                            imgbuf = ""
-                            if imgpath:
+                            imgbufs = []
+                            for imgpath in imgpaths:
                                 imgpath = cw.util.join_paths(scedir, imgpath)
                                 s = "expand \"%s\" -f:\"%s\" \"%s\"" % (path, os.path.basename(imgpath), dpath)
                                 encoding = sys.getfilesystemencoding()
@@ -729,32 +797,44 @@ def read_summary(basepath):
                                     with open(imgpath2, "rb") as f:
                                         imgbuf = f.read()
                                         f.close()
+                                    imgbuf = buffer(imgbuf)
+                                    imgbufs.append(imgbuf)
 
-                            imgbuf = buffer(imgbuf)
+                            if len(imgbufs) == 0:
+                                imgbuf = ""
+                            elif len(imgbufs) == 1:
+                                imgbuf = imgbufs[0]
+                                imgbufs = []
+                            else:
+                                imgbuf = None
                             summaryinfos.append(imgbuf)
-                            summaryinfos.append(imgpaths)
-                            return tuple(summaryinfos)
+                            return tuple(summaryinfos), imgbufs
 
                         finally:
                             for p in os.listdir(dpath):
                                 cw.util.remove(cw.util.join_paths(dpath, p))
-                return None
+                return None, []
         except Exception:
             cw.util.print_ex()
-            return None
+            return None, []
 
     try:
         z = cw.util.zip_file(path, "r")
     except:
         cw.util.print_ex()
-        return None
+        return None, []
 
     names = z.namelist()
-    seq = [name for name in names if name.lower().endswith("summary.xml") or name.lower().endswith("summary.wsm")]
+    nametable = {}
+    seq = []
+    for name in names:
+        nametable[cw.util.join_paths(cw.util.decode_zipname(name))] = name
+        if name.lower().endswith("summary.xml") or name.lower().endswith("summary.wsm"):
+            seq.append(name)
 
     if not seq:
         z.close()
-        return None
+        return None, []
 
     name = seq[0]
     if name.lower().endswith(".wsm"):
@@ -772,27 +852,37 @@ def read_summary(basepath):
         f.close()
 
     try:
-        imgpath, imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+        imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
     except:
         z.close()
-        return None
+        return None, []
 
-    if imgpath:
+    imgbufs = []
+    for imgpath in imgpaths:
         imgpath = cw.util.join_paths(scedir, imgpath)
-        imgbuf = cw.util.read_zipdata(z, imgpath)
-    else:
-        imgbuf = ""
-
-    imgbuf = buffer(imgbuf)
+        imgpath = nametable.get(imgpath, "")
+        if imgpath:
+            imgbuf = cw.util.read_zipdata(z, imgpath)
+            if imgbuf:
+                imgbuf = buffer(imgbuf)
+                imgbufs.append(imgbuf)
     z.close()
+
+    if len(imgbufs) == 0:
+        imgbuf = ""
+    elif len(imgbufs) == 1:
+        imgbuf = imgbufs[0]
+        imgbufs = []
+    else:
+        imgbuf = None
     summaryinfos.append(imgbuf)
-    summaryinfos.append(imgpaths)
-    return tuple(summaryinfos)
+    return tuple(summaryinfos), imgbufs
 
 def parse_summarydata(basepath, data, scetype, archive, mtime):
     e = data.find("ImagePath")
-    imgpath = e.text if not e is None and e.text else ""
     imgpaths = []
+    if not e is None and e.text:
+        imgpaths.append(e.text)
     e = data.find("ImagePaths")
     if not e is None:
         for e2 in e:
@@ -829,7 +919,7 @@ def parse_summarydata(basepath, data, scetype, archive, mtime):
         dpath, fname = os.path.split(basepath)
     else:
         dpath, fname = os.path.split(os.path.dirname(basepath))
-    return (imgpath, "\n".join(imgpaths),
+    return (imgpaths,
              [dpath, scetype, fname, name, author, desc, skintype, levelmin,
               levelmax, coupons, couponsnum, startid, tags, ctime, mtime])
 
@@ -839,13 +929,13 @@ def read_summary_classic(basepath, spath, f=None):
             f = cw.binary.cwfile.CWFile(spath, "rb", decodewrap=True)
         s = cw.binary.summary.Summary(None, f, nameonly=False, materialdir="", image_export=False)
         if 4 < s.version:
-            return None
+            return None, []
         s.skintype = ""
         imgbuf = s.image
         ctime = time.time()
         mtime = os.path.getmtime(spath)
     except Exception:
-        return None
+        return None, []
 
     summaryinfos = [os.path.dirname(basepath), TYPE_CLASSIC,
             os.path.basename(basepath), s.name, s.author,
@@ -855,8 +945,7 @@ def read_summary_classic(basepath, spath, f=None):
     if imgbuf:
         imgbuf = buffer(imgbuf)
     summaryinfos.append(imgbuf)
-    summaryinfos.append("")
-    return tuple(summaryinfos)
+    return tuple(summaryinfos), []
 
 def get_scenariopaths(path):
     path = cw.util.get_linktarget(path)
