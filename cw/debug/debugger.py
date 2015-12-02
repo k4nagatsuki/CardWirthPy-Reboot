@@ -1641,10 +1641,11 @@ class EventView(wx.ScrolledWindow):
             return
 
         dc = wx.PaintDC(self)
-        try:
-            dc = wx.GCDC(dc)
-        except:
-            pass
+        if sys.platform <> "win32" or 6 <= sys.getwindowsversion().major:
+            try:
+                dc = wx.GCDC(dc)
+            except:
+                pass
 
         csize = self.GetClientSize()
         csize = (csize[0]+self.leftbarwidth, csize[1])
