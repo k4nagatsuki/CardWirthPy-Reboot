@@ -913,6 +913,7 @@ class ScenarioSelect(select.Select):
             return
 
         cw.cwpy.play_sound("equipment")
+        self.narrow.SetValue("")
         selfirstheader = (1 == len(headers))
         self._set_findresult(headers, selfirstheader=selfirstheader)
 
