@@ -900,9 +900,28 @@ class ScenarioSelect(select.Select):
     def OnDropFiles(self, event):
         paths = event.GetFiles()
 
+        headers = []
         for path in paths:
-            self.conv_scenario(path)
-            time.sleep(0.3)
+            header = self.db.search_path(path)
+            if header:
+                headers.append(header)
+            elif os.path.isdir(path):
+                headers.extend(self.db.search_dpath(path))
+
+        if not headers:
+            cw.cwpy.play_sound("error")
+            return
+
+        cw.cwpy.play_sound("equipment")
+        selfirstheader = (1 == len(headers))
+        self._set_findresult(headers, selfirstheader=selfirstheader)
+
+        if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
+            self.draw(True)
+
+        ##for path in paths:
+        ##    self.conv_scenario(path)
+        ##    time.sleep(0.3)
 
     def OnClickInfoBtn(self, event):
         cw.cwpy.play_sound("click")

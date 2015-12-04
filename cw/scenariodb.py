@@ -818,6 +818,9 @@ def read_summary(basepath):
             cw.util.print_ex()
             return None, []
 
+    if os.path.isdir(path):
+        return None, []
+
     try:
         z = cw.util.zip_file(path, "r")
     except:
