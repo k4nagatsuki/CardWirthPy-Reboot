@@ -1916,11 +1916,11 @@ class ScenarioSelect(select.Select):
             # 作者名
             cw.util.sort_by_attr(seq, "author", "levelmin", "levelmax", "name", "fname", "mtime_reversed")
         elif sort == 3:
-            # 更新日時
-            cw.util.sort_by_attr(seq, "mtime_reversed", "levelmin", "levelmax", "name", "author", "fname")
-        elif sort == 4:
             # ファイル名
             cw.util.sort_by_attr(seq, "fname", "levelmin", "levelmax", "name", "author", "mtime_reversed")
+        elif sort == 4:
+            # 更新日時
+            cw.util.sort_by_attr(seq, "mtime_reversed", "levelmin", "levelmax", "name", "author", "fname")
         return seq
 
     def enable_btn(self):

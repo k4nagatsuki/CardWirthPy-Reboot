@@ -5,6 +5,7 @@ import os
 import sys
 import threading
 import subprocess
+import wx
 import wx.aui
 
 import cw
