@@ -2610,7 +2610,7 @@ class Party(object):
         self.members[index1], self.members[index2] = self.members[index2], self.members[index1]
         for index, pcard in enumerate(seq):
             pcard.index = index
-            pcard.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, 1, index, 0)
+            pcard.layer = (cw.LAYER_PCARDS, cw.LTYPE_PCARDS, index, 0)
             cw.cwpy.cardgrp.change_layer(pcard, pcard.layer)
         cw.cwpy.pcards = seq
 
