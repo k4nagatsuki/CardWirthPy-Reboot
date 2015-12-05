@@ -187,7 +187,7 @@ class Scenariodb(object):
             self.cur.execute("CREATE INDEX scenariotype_index1 ON scenariodb(dpath, fname)")
 
     @synclock(_lock)
-    def update(self, dpath=u"Scenario", skintype=u""):
+    def update(self, dpath=u"Scenario", skintype=u"", commit=True):
         """データベースを更新する。"""
         if skintype:
             s = "SELECT A.dpath, A.fname, mtime, B.skintype FROM scenariodb A LEFT JOIN scenariotype B" +\
@@ -232,14 +232,16 @@ class Scenariodb(object):
                 dbpaths.append(path)
                 update_path(t, ltarg, path)
 
-        self.con.commit()
+        if commit:
+            self.con.commit()
         dbpaths = set(dbpaths)
 
         for path in get_scenariopaths(dpath):
             if not path in dbpaths:
                 self._insert_scenario(path, False, skintype=skintype)
 
-        self.con.commit()
+        if commit:
+            self.con.commit()
 
     def vacuum(self, commit=True):
         """肥大化したDBファイルのサイズを最適化する。"""
@@ -276,6 +278,17 @@ class Scenariodb(object):
         self.cur.execute(s, (dpath, fname,))
         s = "DELETE FROM scenariotype WHERE dpath=? AND fname=?"
         self.cur.execute(s, (dpath, fname,))
+
+        if commit:
+            self.con.commit()
+
+    def delete_all(self, commit=True):
+        s = "DELETE FROM scenariodb"
+        self.cur.execute(s)
+        s = "DELETE FROM scenarioimage"
+        self.cur.execute(s)
+        s = "DELETE FROM scenariotype"
+        self.cur.execute(s)
 
         if commit:
             self.con.commit()
@@ -684,8 +697,9 @@ class Scenariodb(object):
 
         return self.sort_headers(seq)
 
-    def arrange_all(self):
-        pass # TODO
+    @synclock(_lock)
+    def commit(self):
+        self.con.commit()
 
     def close(self):
         self.con.close()
@@ -702,9 +716,9 @@ def find_alldirectories(dpath):
 
 def _find_alldirectories(dpath, result, exclude):
     dpath = cw.util.get_linktarget(dpath)
-    abs = os.path.normpath(dpath)
+    abs = os.path.abspath(dpath)
+    abs = os.path.normpath(abs)
     abs = os.path.normcase(abs)
-    abs = os.path.abspath(abs)
     if abs in exclude:
         return
     exclude.add(abs)
@@ -854,6 +868,7 @@ def read_summary(basepath):
         z = cw.util.zip_file(path, "r")
     except:
         cw.util.print_ex()
+        print path
         return None, []
 
     names = z.namelist()

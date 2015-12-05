@@ -9,6 +9,8 @@ import wx.grid
 import pygame
 
 import cw
+import editscenariodb
+
 
 # build_exe.pyによって作られる一時モジュール
 # cw.versioninfoからビルド時間の情報を得る
@@ -1884,6 +1886,9 @@ class ScenarioSettingPanel(wx.Panel):
         self.btn_removefolder = wx.Button(self, -1, u"削除")
         self.btn_upfolder = wx.Button(self, -1, u"↑", size=(25, -1))
         self.btn_downfolder = wx.Button(self, -1, u"↓", size=(25, -1))
+
+        self.btn_constructdb = wx.Button(self, -1, u"データベース構築...", size=(-1, -1))
+
         self.grid_folderoftype = wx.grid.Grid(self, -1, style=wx.BORDER)
         self.grid_folderoftype.CreateGrid(0, 2)
         #self.grid_folderoftype.SetSelectionMode(wx.grid.Grid.wxGridSelectRows)
@@ -1970,6 +1975,7 @@ class ScenarioSettingPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnRemoveFolderBtn, self.btn_removefolder)
         self.Bind(wx.EVT_BUTTON, self.OnUpFolderBtn, self.btn_upfolder)
         self.Bind(wx.EVT_BUTTON, self.OnDownFolderBtn, self.btn_downfolder)
+        self.Bind(wx.EVT_BUTTON, self.OnConstructDBBtn, self.btn_constructdb)
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.OnGridCellChange, self.grid_folderoftype)
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnGirdSelectCell, self.grid_folderoftype)
 
@@ -1988,9 +1994,11 @@ class ScenarioSettingPanel(wx.Panel):
         sizer_folderbtns.Add(self.btn_reffolder, 0, wx.RIGHT, 3)
         sizer_folderbtns.Add(self.btn_removefolder, 0, wx.RIGHT, 3)
         sizer_folderbtns.Add(self.btn_upfolder, 0, wx.RIGHT, 3)
-        sizer_folderbtns.Add(self.btn_downfolder, 0, 0, 0)
+        sizer_folderbtns.Add(self.btn_downfolder, 0, wx.RIGHT, 3)
+        sizer_folderbtns.Add((0, 0), 1, 0, 0)
+        sizer_folderbtns.Add(self.btn_constructdb, 0, 0, 0)
 
-        bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_folderoftype.Add(sizer_folderbtns, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 3)
         bsizer_folderoftype.Add(self.grid_folderoftype, 1, wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, 3)
 
         bsizer_application = wx.StaticBoxSizer(self.box_application, wx.VERTICAL)
@@ -2072,6 +2080,33 @@ class ScenarioSettingPanel(wx.Panel):
             self.grid_folderoftype.SetCellValue(row, col, value2)
             self.grid_folderoftype.SetCellValue(row + 1, col, value1)
         self.grid_folderoftype.SetGridCursor(row + 1, self.grid_folderoftype.GetGridCursorCol())
+
+    def OnConstructDBBtn(self, event):
+        d = {}
+        for row in xrange(self.grid_folderoftype.GetNumberRows()):
+            skintype = self.grid_folderoftype.GetCellValue(row, 0)
+            dpath = self.grid_folderoftype.GetCellValue(row, 1)
+            if not dpath:
+                continue
+            if skintype in d:
+                s = d[skintype]
+            else:
+                s = set()
+                d[skintype] = s
+            dpath = cw.util.get_linktarget(dpath)
+            if os.path.isdir(dpath):
+                s.add(dpath)
+
+        if os.path.isdir(u"Scenario"):
+            if not cw.cwpy.setting.skintype in d:
+                d[cw.cwpy.setting.skintype] = set([u"Scenario"])
+            elif not d:
+                d[u""] = set([u"Scenario"])
+
+        dlg = editscenariodb.ConstructScenarioDB(self.TopLevelParent, dpaths=d)
+        cw.cwpy.frame.move_dlg(dlg)
+        dlg.ShowModal()
+        dlg.Destroy()
 
 class UISettingPanel(wx.ScrolledWindow):
     def __init__(self, parent):

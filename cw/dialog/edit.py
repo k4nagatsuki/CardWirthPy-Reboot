@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import wx
 import wx.combo
 
 import cw
