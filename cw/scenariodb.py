@@ -684,8 +684,37 @@ class Scenariodb(object):
 
         return self.sort_headers(seq)
 
+    def arrange_all(self):
+        pass # TODO
+
     def close(self):
         self.con.close()
+
+def find_alldirectories(dpath):
+    """dpath以下のシナリオが存在しうる
+    ディレクトリの一覧を取得する。
+    シナリオのディレクトリ自体は除外される。
+    """
+    result = set()
+    exclude = set()
+    _find_alldirectories(dpath, result, exclude)
+    return result
+
+def _find_alldirectories(dpath, result, exclude):
+    dpath = cw.util.get_linktarget(dpath)
+    abs = os.path.normpath(dpath)
+    abs = os.path.normcase(abs)
+    abs = os.path.abspath(abs)
+    if abs in exclude:
+        return
+    exclude.add(abs)
+    result.add(dpath)
+    for fname in os.listdir(dpath):
+        dpath2 = cw.util.join_paths(dpath, fname)
+        dpath2 = cw.util.get_linktarget(dpath2)
+        if not os.path.isdir(dpath2) or is_scenario(dpath2):
+            continue
+        _find_alldirectories(dpath2, result, exclude)
 
 def is_scenario(path):
     """
