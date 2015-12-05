@@ -912,6 +912,7 @@ class ScenarioSelect(select.Select):
             cw.cwpy.play_sound("error")
             return
 
+        self._processing = True
         cw.cwpy.play_sound("equipment")
         self.narrow.SetValue("")
         selfirstheader = (1 == len(headers))
@@ -919,6 +920,7 @@ class ScenarioSelect(select.Select):
 
         if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
             self.draw(True)
+        self._processing = False
 
         ##for path in paths:
         ##    self.conv_scenario(path)
