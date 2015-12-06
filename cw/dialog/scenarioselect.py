@@ -918,9 +918,10 @@ class ScenarioSelect(select.Select):
         selfirstheader = (1 == len(headers))
         self._set_findresult(headers, selfirstheader=selfirstheader)
 
+        self._processing = False
         if cw.cwpy.setting.show_paperandtree or not (self.tree and self.tree.IsShown()):
             self.draw(True)
-        self._processing = False
+        self.enable_btn()
 
         ##for path in paths:
         ##    self.conv_scenario(path)
