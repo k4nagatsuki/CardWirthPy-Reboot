@@ -7,6 +7,7 @@ import cwscenario
 import cwyado
 import xmltemplate
 import image
+import util
 
 
 class ConvertingThread(threading.Thread):

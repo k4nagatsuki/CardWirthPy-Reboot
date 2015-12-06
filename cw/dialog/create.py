@@ -613,12 +613,21 @@ class AdventurerCreaterPage(wx.Panel):
         self.prev = None
         # key: name, value: (pygame.Rect, 実行するメソッド)の辞書
         self.clickables = {}
+
+        self.imgpathlist = {}
+        self.imgdpath = -1
+        self.imgdpaths = []
+        self.ch_imgdpath = None
+        self.sex = ""
+        self.age = ""
+        self._dropkey = (-1, u"<ドロップされたイメージ>", "/drop_files")
+
         if freeze:
             self.Freeze()
             self.Hide()
 
     def _bind(self):
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
@@ -630,7 +639,41 @@ class AdventurerCreaterPage(wx.Panel):
         """
         pass
 
-    def OnPaint(self, event):
+    def OnDropFiles(self, event):
+        """
+        カードイメージのドロップ。
+        """
+        files = event.GetFiles()
+
+        seq = []
+        for fpath in files:
+            ext = os.path.splitext(fpath)[1].lower()
+            if ext in cw.EXTS_IMG:
+                seq.append(fpath)
+
+        if not seq:
+            cw.cwpy.play_sound("error")
+            return
+
+        cw.cwpy.play_sound("equipment")
+        key = self._dropkey
+        if None in self.imgpathlist:
+            index = 1
+        else:
+            index = 0
+        if key in self.imgpathlist:
+            self.imgdpaths[index] = key
+        else:
+            self.imgdpaths.insert(index, key)
+        self.imgpathlist[key] = seq
+
+        self._update_imgdpaths()
+        self.ch_imgdpath.Select(index)
+        self.imgdpath = -1
+        event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
+        self.ch_imgdpath.ProcessEvent(event)
+
+    def OnPaint2(self, event):
         self.draw()
 
     def OnLeftUp(self, event):
@@ -701,12 +744,16 @@ class AdventurerCreaterPage(wx.Panel):
         return False
 
     def set_imgpathlist(self, reset=True):
+        drop = self.imgpathlist.get(self._dropkey, None)
         if reset or not self.imgpaths:
             self.imgpathlist = {}
             self.imgdpath = -1
         else:
             self.imgpathlist = {None:[self.imgpaths]}
             self.imgdpath = 0
+
+        if drop:
+            self.imgpathlist[self._dropkey] = drop
 
         adddefaults = reset or not self.imgpaths
         imgpathlist = cw.util.get_facepaths(self.sex, self.age, adddefaults=adddefaults)
@@ -730,13 +777,18 @@ class AdventurerCreaterPage(wx.Panel):
                 self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
                 self.imgdpath = 0
 
+        self._update_imgdpaths()
+
+    def _update_imgdpaths(self):
         self.ch_imgdpath.Clear()
         if 1 < len(self.imgpathlist):
+            choices = []
             for key in self.imgdpaths:
                 if key is None:
-                    self.ch_imgdpath.Append(cw.cwpy.msgs["no_change"])
+                    choices.append(cw.cwpy.msgs["no_change"])
                 else:
-                    self.ch_imgdpath.Append(key[1])
+                    choices.append(key[1])
+            self.ch_imgdpath.SetItems(choices)
             self.ch_imgdpath.Select(self.imgdpath)
             self.ch_imgdpath.Show()
         else:
@@ -744,7 +796,7 @@ class AdventurerCreaterPage(wx.Panel):
 
         self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
         cw.util.adjust_dropdownwidth(self.ch_imgdpath)
-        self.Layout()
+        self._do_layout()
 
     def draw(self, update=False):
         if update:
@@ -773,6 +825,7 @@ class NamePage(AdventurerCreaterPage):
         AdventurerCreaterPage.__init__(self, parent)
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
+        self.DragAcceptFiles(True)
         self.textctrl = wx.TextCtrl(self, size=cw.wins((125, 18)), style=wx.NO_BORDER)
         self.textctrl.SetMaxLength(14)
         self.textctrl.SetFocus()
@@ -810,6 +863,7 @@ class NamePage(AdventurerCreaterPage):
     def _bind(self):
         AdventurerCreaterPage._bind(self)
         self.Bind(wx.EVT_TEXT, self.OnInputText)
+        self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
         self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
 
     def OnMouseWheel(self, event):
@@ -937,9 +991,11 @@ class NamePage(AdventurerCreaterPage):
         pos = cw.wins((365, 170))
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
+        dc.SetClippingRect(wx.Rect(cw.wins(275), cw.wins(130), cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
             bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
             dc.DrawBitmap(bmp, cw.wins(275), cw.wins(130), True)
+        dc.DestroyClippingRegion()
         self.set_clickablearea(cw.wins((275, 130)), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
     def set_sex(self, name):
@@ -1210,10 +1266,12 @@ class RelationPage(AdventurerCreaterPage):
             paths = [cw.image.ImageInfo(path)]
 
         pos = cw.wins((100, 110))
+        dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for path in paths:
             if path.path:
                 bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
                 dc.DrawBitmap(bmp, pos[0], pos[1], True)
+        dc.DestroyClippingRegion()
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "FatherFace", None, self.on_mousewheel)
 
         # 母親画像
@@ -1225,10 +1283,12 @@ class RelationPage(AdventurerCreaterPage):
             paths = [cw.image.ImageInfo(path)]
 
         pos = cw.wins((275, 110))
+        dc.SetClippingRect(wx.Rect(pos[0], pos[1], cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for path in paths:
             if path.path:
                 bmp = cw.wins((cw.util.load_wxbmp(path.path, True), cw.SIZE_CARDIMAGE))
                 dc.DrawBitmap(bmp, pos[0], pos[1], True)
+        dc.DestroyClippingRegion()
         self.set_clickablearea(pos, cw.wins(cw.SIZE_CARDIMAGE), "MotherFace", None, self.on_mousewheel)
 
         # 父親名前
@@ -1722,7 +1782,7 @@ class YadoCreater(wx.Dialog):
             imgdata[1] = bmp
         return bmp
 
-    def OnPaint(self, event):
+    def OnPaint2(self, event):
         dc = wx.PaintDC(self)
         # background
         index = self.skin.GetSelection()
@@ -1776,7 +1836,7 @@ class YadoCreater(wx.Dialog):
     def _bind(self):
         self.Bind(wx.EVT_TEXT, self.OnInput, self.textctrl)
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okbtn)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.Bind(wx.EVT_CHOICE, self.OnChoice, self.skin)
         def recurse(ctrl):
             if not isinstance(ctrl, (wx.TextCtrl, wx.SpinCtrl)):
@@ -1934,6 +1994,7 @@ class DesignPanel(AdventurerCreaterPage):
         self.SetMinSize(cw.wins((400, 370)))
         self.SetDoubleBuffered(True)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
+        self.DragAcceptFiles(True)
 
         self.ccard = ccard
 
@@ -1991,6 +2052,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def _bind(self):
         AdventurerCreaterPage._bind(self)
+        self.Bind(wx.EVT_DROP_FILES, self.OnDropFiles)
         self.namectrl.Bind(wx.EVT_TEXT, self.OnInputName)
         self.ch_imgdpath.Bind(wx.EVT_CHOICE, self.OnChoiceImgDPath)
 
@@ -2050,6 +2112,7 @@ class DesignPanel(AdventurerCreaterPage):
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_1.SetMinSize(cw.wins((400, 370)))
 
         if self.ch_imgdpath.IsShown():
             sizer_1.Add(self.namectrl, 0, wx.TOP|wx.CENTER, cw.wins(55))
@@ -2119,9 +2182,11 @@ class DesignPanel(AdventurerCreaterPage):
         self.draw_clickablebmp(dc, bmp, pos, "NextImage", self.set_nextimg, None)
         # image
         x, y = (cwidth - cw.wins(74)) / 2, cw.wins(y2)
+        dc.SetClippingRect(wx.Rect(x, y, cw.wins(cw.SIZE_CARDIMAGE[0]), cw.wins(cw.SIZE_CARDIMAGE[1])))
         for info in self.imgpaths:
             bmp = cw.wins((cw.util.load_wxbmp(info.path, True), cw.SIZE_CARDIMAGE))
             dc.DrawBitmap(bmp, x, y, True)
+        dc.DestroyClippingRegion()
         self.set_clickablearea((x, y), cw.wins(cw.SIZE_CARDIMAGE), "Face", None, self.on_mousewheel)
 
     def on_mousewheel(self, name, rotate):
