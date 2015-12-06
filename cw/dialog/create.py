@@ -633,6 +633,9 @@ class AdventurerCreaterPage(wx.Panel):
         self.Bind(wx.EVT_RIGHT_UP, self.Parent.OnCancel)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
+    def _do_layout(self):
+        pass
+
     def OnEraseBackground(self, evt):
         """
         画面のちらつき防止。
@@ -669,9 +672,10 @@ class AdventurerCreaterPage(wx.Panel):
 
         self._update_imgdpaths()
         self.ch_imgdpath.Select(index)
-        self.imgdpath = -1
-        event = wx.PyCommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED, self.ch_imgdpath.GetId())
-        self.ch_imgdpath.ProcessEvent(event)
+        self._choice_imgdpath()
+
+    def _choice_imgdpath(self):
+        pass
 
     def OnPaint2(self, event):
         self.draw()
@@ -914,12 +918,16 @@ class NamePage(AdventurerCreaterPage):
         index = self.ch_imgdpath.GetSelection()
         if index <> self.imgdpath:
             cw.cwpy.play_sound("page")
-            self.imgdpath = index
-            key = self.imgdpaths[index]
-            self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
-            self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
-            self.draw(True)
-            self.textctrl.SetFocus()
+            self._choice_imgdpath()
+
+    def _choice_imgdpath(self):
+        index = self.ch_imgdpath.GetSelection()
+        self.imgdpath = index
+        key = self.imgdpaths[index]
+        self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
+        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        self.draw(True)
+        self.textctrl.SetFocus()
 
     def _do_layout(self):
         csize = self.GetClientSize()
@@ -2103,12 +2111,16 @@ class DesignPanel(AdventurerCreaterPage):
         index = self.ch_imgdpath.GetSelection()
         if index <> self.imgdpath:
             cw.cwpy.play_sound("page")
-            self.imgdpath = index
-            key = self.imgdpaths[index]
-            self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
-            self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
-            self.draw(True)
-            self.namectrl.SetFocus()
+            self._choice_imgdpath()
+
+    def _choice_imgdpath(self):
+        index = self.ch_imgdpath.GetSelection()
+        self.imgdpath = index
+        key = self.imgdpaths[index]
+        self.imgpaths = _path_to_imageinfo(self.imgpathlist[key][0])
+        self.ch_imgdpath.SetToolTipString(self.ch_imgdpath.GetLabelText())
+        self.draw(True)
+        self.namectrl.SetFocus()
 
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)

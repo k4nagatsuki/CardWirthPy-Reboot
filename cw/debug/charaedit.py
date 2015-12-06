@@ -195,7 +195,7 @@ class CharaInfo(object):
         else:
             self.name = ""
             self.race = cw.cwpy.setting.unknown_race
-            self.imgpaths = ""
+            self.imgpaths = []
             self.imgpaths_base = ""
             self.level = 1
             self.sex = cw.cwpy.setting.sexcoupons[0]
@@ -435,6 +435,8 @@ class CharaRequirementPanel(wx.Panel):
         self.cindex = 0
         self._proc = False
 
+        self._dropfiles = []
+
         # すでに特殊型のキャラクタがいる場合のみ特殊型を表示する
         self.show_specialtalent = False
         specialtalents = set()
@@ -451,6 +453,7 @@ class CharaRequirementPanel(wx.Panel):
         self.name.SetMaxLength(14)
 
         self.imgbox = wx.StaticBox(self, -1, u"イメージ")
+        self.imgbox.DragAcceptFiles(True)
         path = u"Resource/Image/Card/BATTLE"
         path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
         self.defaultface = cw.util.load_wxbmp(path, mask=True)
@@ -492,9 +495,9 @@ class CharaRequirementPanel(wx.Panel):
         self.Bind(wx.EVT_RADIOBOX, self.OnSelectAge, self.periods)
         self.Bind(wx.EVT_RADIOBOX, self.OnSelectTalent, self.natures)
         self.Bind(wx.EVT_BUTTON, self.OnAutoBtn, self.autobtn)
+        self.imgbox.Bind(wx.EVT_DROP_FILES, self.OnImgBoxDropFiles)
 
     def _do_layout(self):
-
         sizer_name = wx.StaticBoxSizer(self.namebox, wx.VERTICAL)
         sizer_name.Add(self.name, 0, wx.ALL, 5)
 
@@ -580,6 +583,19 @@ class CharaRequirementPanel(wx.Panel):
 
         self._select_image()
 
+    def OnImgBoxDropFiles(self, event):
+        files = event.GetFiles()
+        seq = []
+        for fpath in files:
+            ext = os.path.splitext(fpath)[1].lower()
+            if ext in cw.EXTS_IMG:
+                seq.append(fpath)
+
+        if seq:
+            self._dropfiles = seq
+            img = [cw.image.ImageInfo(seq[0])]
+            self._update_images(img)
+
     def OnSelectSex(self, event):
         for info in self._get_infos():
             info.sex = u"＿" + self.sexes.GetStringSelection()
@@ -609,11 +625,16 @@ class CharaRequirementPanel(wx.Panel):
         infos = self._get_infos()
 
         # 使用可能なイメージの一覧を取得
+        drops = []
+        for drop in self._dropfiles:
+            key = (u"/drop_files", u"<ドロップされたイメージ> %s" % (os.path.basename(drop)), drop)
+            drops.append(key)
         for info in infos:
             for dpaths, paths in cw.util.get_facepaths(info.sex, info.age).iteritems():
                 fpaths.update(map(lambda a: (dpaths[0], cw.util.join_paths(dpaths[1], os.path.basename(a)), a), paths))
         flist = list(fpaths)
         flist.sort()
+        flist = drops + flist
         self.imgpathlist = map(lambda a: a[2], flist)
         flist = map(lambda a: a[1], flist)
         flist.insert(0, cw.cwpy.msgs["no_change"])
