@@ -170,7 +170,7 @@ class SystemData(object):
                     value = int(attrs.get("value", "0"))
                     if not pcard.has_coupon(name):
                         lose_coupons.append((name, value))
-                for name in pcard.coupons.iterkeys():
+                for name in pcard.get_coupons():
                     if not name in old_coupons:
                         value = pcard.get_couponvalue(name)
                         get_coupons.append((name, value))

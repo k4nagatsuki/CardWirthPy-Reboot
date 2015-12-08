@@ -6,15 +6,22 @@ import copy
 import math
 import shutil
 import itertools
+import threading
 
 import cw
+from cw.util import synclock
 
+
+_couponlock = threading.Lock()
 
 class Character(object):
     def __init__(self, data=None):
         if not data is None:
             self.data = data
         self.reversed = False
+        self.status = "hidden"
+        self.layer = None
+        self.events = None
 
         # 名前
         self.name = self.data.gettext("Property/Name", "")
@@ -126,6 +133,15 @@ class Character(object):
 
         # キャッシュ
         self._voc_tbl = {}
+
+    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
+        pass
+
+    def update_image(self):
+        pass
+
+    def reverse(self):
+        pass
 
     def get_imagepaths(self):
         """現在表示中のカード画像の情報を
@@ -1410,12 +1426,17 @@ class Character(object):
     #　クーポン関連
     #---------------------------------------------------------------------------
 
+    @synclock(_couponlock)
     def get_coupons(self):
         """
         所有クーポンをセット型で返す。
         """
-        return set(self.coupons.keys())
+        return self._get_coupons()
 
+    def _get_coupons(self):
+        return set(self.coupons.iterkeys())
+
+    @synclock(_couponlock)
     def get_couponvalue(self, name, raiseerror=True):
         """
         クーポンの値を返す。
@@ -1429,13 +1450,21 @@ class Character(object):
             else:
                 return None
 
+    @synclock(_couponlock)
     def has_coupon(self, coupon):
         """
         引数のクーポンを所持しているかbool値で返す。
         """
+        return self._has_coupon(coupon)
+
+    def _has_coupon(self, coupon):
         return coupon in self.coupons
 
+    @synclock(_couponlock)
     def get_couponsvalue(self):
+        return self._get_couponsvalue()
+
+    def _get_couponsvalue(self):
         """
         全ての所持クーポンの点数を合計した値を返す。
         """
@@ -1448,11 +1477,15 @@ class Character(object):
 
         return cnt
 
+    @synclock(_couponlock)
     def get_specialcoupons(self):
         """
         "＠"で始まる特殊クーポンの
         辞書(key=クーポン名, value=クーポン得点)を返す。
         """
+        return self._get_specialcoupons()
+
+    def _get_specialcoupons(self):
         d = {}
 
         for coupon, data in self.coupons.iteritems():
@@ -1462,6 +1495,7 @@ class Character(object):
 
         return d
 
+    @synclock(_couponlock)
     def replace_allcoupons(self, seq, syscoupons={}.copy()):
         """システムクーポン以外の全てのクーポンを
         listの内容に入れ替える。
@@ -1472,7 +1506,7 @@ class Character(object):
         revcoupon_old = False
         revcoupon_new = False
         # システムクーポン以外を一旦除去
-        for name in self.get_coupons():
+        for name in self._get_coupons():
             if not (name.startswith(u"＠") or name in syscoupons):
                 self._remove_coupon(name, False)
             revcoupon_old |= (name == u"：Ｒ")
@@ -1485,17 +1519,17 @@ class Character(object):
         for coupon in reversed(seq):
             name = coupon[0]
             if name in sexcoupons:
-                old = self.get_sex()
+                old = self._get_sex()
                 if old:
-                    self.remove_coupon(old)
+                    self._remove_coupon(old)
             if name in periodcoupons:
-                old = self.get_age()
+                old = self._get_age()
                 if old:
-                    self.remove_coupon(old)
+                    self._remove_coupon(old)
             if name in naturecoupons:
-                old = self.get_talent()
+                old = self._get_talent()
                 if old:
-                    self.remove_coupon(old)
+                    self._remove_coupon(old)
 
             self._set_coupon(name, coupon[1], False)
             revcoupon_new |= (name == u"：Ｒ")
@@ -1508,73 +1542,113 @@ class Character(object):
             else:
                 cw.animation.animate_sprite(self, "reverse")
 
+    @synclock(_couponlock)
     def get_sex(self):
+        return self._get_sex()
+
+    def _get_sex(self):
         for coupon in cw.cwpy.setting.sexcoupons:
             if coupon in self.coupons:
                 return coupon
 
         return cw.cwpy.setting.sexcoupons[0]
 
+    @synclock(_couponlock)
     def set_sex(self, sex):
+        self._set_sex(sex)
+
+    def _set_sex(self, sex):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         old = self.get_sex()
         if old:
-            self.remove_coupon(old)
-        self.set_coupon(sex, 0)
+            self._remove_coupon(old)
+        self._set_coupon(sex, 0)
 
+    @synclock(_couponlock)
     def has_sex(self):
+        return self._has_sex()
+
+    def _has_sex(self):
         for coupon in cw.cwpy.setting.sexcoupons:
             if coupon in self.coupons:
                 return True
 
         return False
 
+    @synclock(_couponlock)
     def get_age(self):
+        return self._get_age()
+
+    def _get_age(self):
         for coupon in cw.cwpy.setting.periodcoupons:
             if coupon in self.coupons:
                 return coupon
 
         return cw.cwpy.setting.periodcoupons[0]
 
+    @synclock(_couponlock)
     def set_age(self, age):
+        self._set_age(age)
+
+    def _set_age(self, age):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         old = self.get_age()
         if old:
-            self.remove_coupon(old)
-        self.set_coupon(age, 0)
+            self._remove_coupon(old)
+        self._set_coupon(age, 0)
 
+    @synclock(_couponlock)
     def has_age(self):
+        return self._has_age()
+
+    def _has_age(self):
         for coupon in cw.cwpy.setting.periodcoupons:
             if coupon in self.coupons:
                 return True
 
         return False
 
+    @synclock(_couponlock)
     def get_talent(self):
+        return self._get_talent()
+
+    def _get_talent(self):
         for coupon in cw.cwpy.setting.naturecoupons:
             if coupon in self.coupons:
                 return coupon
 
         return cw.cwpy.setting.naturecoupons[0]
 
+    @synclock(_couponlock)
     def set_talent(self, talent):
+        self._set_talent(talent)
+
+    def _set_talent(self, talent):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        old = self.get_talent()
+        old = self._get_talent()
         if old:
-            self.remove_coupon(old)
-        self.set_coupon(talent, 0)
+            self._remove_coupon(old)
+        self._set_coupon(talent, 0)
 
+    @synclock(_couponlock)
     def has_talent(self):
+        return self._has_talent()
+
+    def _has_talent(self):
         for coupon in cw.cwpy.setting.naturecoupons:
             if coupon in self.coupons:
                 return True
 
         return False
 
+    @synclock(_couponlock)
     def get_makings(self):
+        return self._get_makings()
+
+    def _get_makings(self):
         """
         所持する特徴クーポンをセット型で返す。
         """
@@ -1584,21 +1658,30 @@ class Character(object):
                 makings.add(making)
         return makings
 
+    @synclock(_couponlock)
     def set_makings(self, makings):
+        return self._set_makings(makings)
+
+    def _set_makings(self, makings):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         for coupon in cw.cwpy.setting.makingcoupons:
             if coupon in self.coupons:
-                self.remove_coupon(coupon)
+                self._remove_coupon(coupon)
         for coupon in makings:
-            self.set_coupon(coupon, 0)
+            self._set_coupon(coupon, 0)
 
+    @synclock(_couponlock)
     def get_race(self):
+        return self._get_race()
+
+    def _get_race(self):
         for race in cw.cwpy.setting.races:
-            if self.has_coupon(u"＠Ｒ" + race.name):
+            if self._has_coupon(u"＠Ｒ" + race.name):
                 return race
         return cw.cwpy.setting.unknown_race
 
+    @synclock(_couponlock)
     def count_timedcoupon(self, value=-1):
         """
         時限クーポンの点数を減らす。
@@ -1621,8 +1704,9 @@ class Character(object):
                     e.set("value", str(n))
                     self.coupons[coupon] = n, e
                 else:
-                    self.remove_coupon(coupon)
+                    self._remove_coupon(coupon)
 
+    @synclock(_couponlock)
     def set_coupon(self, name, value):
         """
         クーポンを付与する。同名のクーポンがあったら上書き。
@@ -1632,7 +1716,7 @@ class Character(object):
         """
         self._set_coupon(name, value, True)
 
-    def _set_coupon(self, name, value, update):
+    def _set_coupon(self, name, value, update=True):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         value = int(value)
@@ -1658,6 +1742,7 @@ class Character(object):
         # 隠蔽クーポンがあるため
         self.adjust_action()
 
+    @synclock(_couponlock)
     def get_timedcoupons(self):
         """
         時限クーポンのデータをまとめたsetを返す。
@@ -1670,6 +1755,7 @@ class Character(object):
 
         return s
 
+    @synclock(_couponlock)
     def remove_coupon(self, name):
         """
         同じ名前のクーポンを全て剥奪する。
@@ -1677,7 +1763,7 @@ class Character(object):
         """
         return self._remove_coupon(name, True)
 
-    def _remove_coupon(self, name, update):
+    def _remove_coupon(self, name, update=True):
         if not name in self.coupons:
             return False
         if cw.cwpy.ydata:
@@ -1702,6 +1788,7 @@ class Character(object):
 
         return True
 
+    @synclock(_couponlock)
     def remove_timedcoupons(self, battleonly=False):
         """
         時限クーポンを削除する。イメージは更新しない。
@@ -1711,6 +1798,7 @@ class Character(object):
             if not battleonly or name.startswith(u"；"):
                 self._remove_coupon(name, False)
 
+    @synclock(_couponlock)
     def remove_numbercoupon(self):
         """
         "＿１"等の番号クーポンを削除。
@@ -1719,7 +1807,7 @@ class Character(object):
         names = [cw.cwpy.msgs["number_1_coupon"], u"＿１", u"＿２", u"＿３", u"＿４", u"＿５", u"＿６", u"＠ＭＰ３"]
 
         for name in names:
-            self.remove_coupon(name)
+            self._remove_coupon(name)
 
     #---------------------------------------------------------------------------
     #　レベル変更用
@@ -1733,26 +1821,28 @@ class Character(object):
         else:
             return self.level
 
+    @synclock(_couponlock)
     def check_level(self):
-        coupons = self.get_specialcoupons()
+        coupons = self._get_specialcoupons()
         level = coupons[u"＠レベル原点"]
 
         if u"＠レベル上限" in coupons:
             limit = coupons[u"＠レベル上限"]
         elif u"＠本来の上限" in coupons:
             limit = coupons[u"＠本来の上限"]
-            self.set_coupon(u"＠レベル上限", limit)
+            self._set_coupon(u"＠レベル上限", limit)
         else:
             limit = 10
-            self.set_coupon(u"＠レベル上限", 10)
+            self._set_coupon(u"＠レベル上限", 10)
 
         # 解の公式で現在の経験点で到達できるレベルを算出
-        cnt = max(1, self.get_couponsvalue())
+        cnt = max(1, self._get_couponsvalue())
         olevel = int((-1 + math.sqrt(1 + 4 * cnt)) / 2.0) + 1
         olevel = min(limit, olevel)
 
         return olevel - level
 
+    @synclock(_couponlock)
     def set_level(self, value, regulate=False, debugedit=False, backpack_party=None, revert_cardpocket=True):
         """レベルを設定する。
         regulate: レベルを調節する場合はTrue。
@@ -2507,7 +2597,7 @@ class AlbumPage(object):
         self.name = self.data.gettext("Property/Name", "")
         self.level = self.data.getint("Property/Level")
 
-    def get_specialcoupons(self):
+    def _get_specialcoupons(self):
         """
         "＠"で始まる特殊クーポンの
         辞書(key=クーポン名, value=クーポン得点)を返す。
