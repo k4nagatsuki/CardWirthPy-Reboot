@@ -19,9 +19,6 @@ class Character(object):
         if not data is None:
             self.data = data
         self.reversed = False
-        self.status = "hidden"
-        self.layer = None
-        self.events = None
 
         # 名前
         self.name = self.data.gettext("Property/Name", "")
@@ -133,15 +130,6 @@ class Character(object):
 
         # キャッシュ
         self._voc_tbl = {}
-
-    def set_pos_noscale(self, pos_noscale=None, center_noscale=None):
-        pass
-
-    def update_image(self):
-        pass
-
-    def reverse(self):
-        pass
 
     def get_imagepaths(self):
         """現在表示中のカード画像の情報を
