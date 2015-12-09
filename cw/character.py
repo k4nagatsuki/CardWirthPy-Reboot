@@ -1429,6 +1429,9 @@ class Character(object):
         """
         クーポンの値を返す。
         """
+        return self._get_couponvalue(name, raiseerror)
+
+    def _get_couponvalue(self, name, raiseerror=True):
         if raiseerror:
             return self.coupons[name][0]
         else:
@@ -1801,9 +1804,13 @@ class Character(object):
     #　レベル変更用
     #---------------------------------------------------------------------------
 
+    @synclock(_couponlock)
     def get_limitlevel(self):
         """レベルの調節範囲の最大値を返す。"""
-        l = self.get_couponvalue(u"＠レベル原点", raiseerror=False)
+        return self._get_limitlevel()
+
+    def _get_limitlevel(self):
+        l = self._get_couponvalue(u"＠レベル原点", raiseerror=False)
         if not l is None:
             return max(self.level, l)
         else:
@@ -1840,7 +1847,7 @@ class Character(object):
                         カード置場へ入る。
         """
         # 調節前のレベル
-        limit = self.get_limitlevel()
+        limit = self._get_limitlevel()
         if regulate:
             value = min(value, limit)
 
