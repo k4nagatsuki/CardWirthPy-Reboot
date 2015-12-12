@@ -670,6 +670,11 @@ class BacklogData:
         self.versionhint = base.versionhint
         self.specialchars = cw.cwpy.rsrc.specialchars.copy()
 
+    def get_height(self):
+        """メッセージと選択肢の表示高さを計算して返す。
+        """
+        return cw.s(self.rect_noscale[1] + len(self.names)*25)
+
     def create_message(self):
         if self.type == 0:
             return MessageWindow(self.text, self.names, self.imgpaths, None,

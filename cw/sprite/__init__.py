@@ -5,6 +5,7 @@ import base
 import card
 import background
 import message
+import scrollbar
 import statusbar
 import transition
 

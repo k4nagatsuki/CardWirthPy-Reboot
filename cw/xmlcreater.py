@@ -343,9 +343,13 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         if setting.infoview_narrowtype <> setting.infoview_narrowtype_init:
             e = cw.data.make_element("InfoViewNarrowType", str(setting.infoview_narrowtype))
             element.append(e)
-    # バックログ最大数
+    # メッセージログ最大数
     if setting.backlogmax <> setting.backlogmax_init:
         e = cw.data.make_element("MessageLogMax", str(setting.backlogmax))
+        element.append(e)
+    # メッセージログを並べて表示する
+    if setting.scrollable_log <> setting.scrollable_log_init:
+        e = cw.data.make_element("ScrollableMessageLog", str(setting.scrollable_log))
         element.append(e)
 
     # スキンによってシナリオの選択開始位置を変更する

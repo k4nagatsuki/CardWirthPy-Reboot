@@ -15,6 +15,7 @@ import re
 import threading
 import wx
 import pygame
+import pygame.locals
 
 import cw
 
@@ -116,9 +117,11 @@ class Setting(object):
         self.sort_cardswithstar = True
         self.card_narrow = ""
         self.card_narrowtype = 0
+        self.edit_star = False
         self.standbys_narrowtype = 0
         self.infoview_narrowtype = 0
         self.backlogmax = 100
+        self.scrollable_log = True
         self.showfps = False
         self.selectscenariofromtype = True
         self.show_unfitnessscenario = True
@@ -430,8 +433,10 @@ class Setting(object):
         self.card_narrowtype = data.getint("CardNarrowType", self.card_narrowtype)
         # 情報カード絞込条件
         self.infoview_narrowtype = data.getint("InfoViewNarrowType", self.infoview_narrowtype)
-        # バックログ最大数
+        # メッセージログ最大数
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
+        # メッセージログを並べて表示する
+        self.scrollable_log = data.getint("ScrollableMessageLog", self.scrollable_log)
 
         # フォント名(空白時デフォルト)
         self.basefont["gothic"] = data.gettext("FontGothic", self.basefont["gothic"])

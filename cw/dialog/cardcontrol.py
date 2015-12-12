@@ -4,6 +4,7 @@
 import itertools
 
 import os
+import wx
 import wx.combo
 import wx.lib.buttons
 import wx.lib.intctrl
@@ -76,9 +77,14 @@ class CardControl(wx.Dialog):
         self.sortwithstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
         self.sortwithstar.SetToolTipString(cw.cwpy.msgs["sort_with_star"])
         self._update_sortwithstar()
+        self.editstar = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
+        self.editstar.SetToolTipString(cw.cwpy.msgs["edit_star"])
+        self.editstar.SetToggle(cw.cwpy.setting.edit_star)
+        self._update_editstar()
         if not sort:
             self.sort.Hide()
             self.sortwithstar.Hide()
+            self.editstar.Hide()
 
         self.show = [None] * 3
         self._typeicon_e = [None] * 3
@@ -107,7 +113,7 @@ class CardControl(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
         self.leftbtn2 = cw.cwpy.rsrc.create_wxbutton(self.toppanel, -1, cw.wins((20, 24)), bmp=bmp)
         # sendto
-        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((115, 24)), style=wx.CB_READONLY)
+        self.combo = wx.combo.BitmapComboBox(self.toppanel, size=cw.wins((100, 24)), style=wx.CB_READONLY)
         self.combo.SetFont(cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14)))
         # smallright
         bmp = cw.cwpy.rsrc.buttons["RSMALL"]
@@ -173,6 +179,7 @@ class CardControl(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickLeftBtn2, self.leftbtn2)
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn2, self.rightbtn2)
         self.Bind(wx.EVT_BUTTON, self.OnSortWithStar, self.sortwithstar)
+        self.Bind(wx.EVT_BUTTON, self.OnEditStar, self.editstar)
         self.Bind(wx.EVT_BUTTON, self.OnShowSkill, self.show[cw.POCKET_SKILL])
         self.Bind(wx.EVT_BUTTON, self.OnShowItem, self.show[cw.POCKET_ITEM])
         self.Bind(wx.EVT_BUTTON, self.OnShowBeast, self.show[cw.POCKET_BEAST])
@@ -317,8 +324,8 @@ class CardControl(wx.Dialog):
             x -= cw.wins(20)
             self.rightbtn2.SetPosition((x, y))
             self.rightbtn2.SetSize(cw.wins((20, 24)))
-            x -= cw.wins(115)
-            self.combo.SetSize(cw.wins((115, 24)))
+            x -= cw.wins(100)
+            self.combo.SetSize(cw.wins((100, 24)))
             yc = y + (cw.wins(24)-self.combo.GetSize()[1]) / 2
             self.combo.SetPosition((x, yc))
             x -= cw.wins(20)
@@ -334,6 +341,10 @@ class CardControl(wx.Dialog):
                 btn.SetSize(cw.wins((24, 24)))
             x -= cw.wins(5)
 
+        if self.editstar.IsShown():
+            x -= cw.wins(24)
+            self.editstar.SetPosition((x, y))
+            self.editstar.SetSize(cw.wins((24, 24)))
         if self.sort.IsShown():
             x -= cw.wins(24)
             self.sortwithstar.SetPosition((x, y))
@@ -390,6 +401,12 @@ class CardControl(wx.Dialog):
     def OnSortWithStar(self, event):
         pass
 
+    def OnEditStar(self, event):
+        cw.cwpy.play_sound("page")
+        self._update_editstar()
+        self._on_move(mousepos=wx.GetMousePosition())
+        self.Refresh()
+
     def OnShowSkill(self, event):
         pass
 
@@ -400,6 +417,9 @@ class CardControl(wx.Dialog):
         pass
 
     def _update_sortwithstar(self):
+        pass
+
+    def _update_editstar(self):
         pass
 
     def OnUp(self, event):
@@ -508,7 +528,7 @@ class CardControl(wx.Dialog):
         for header in self.get_headers():
             if header.wxrect.collidepoint(mousepos):
                 rect, _x, _y = self._get_starrect(header)
-                if rect.Contains(mousepos):
+                if self.editstar.GetToggle() and rect.Contains(mousepos):
                     cw.cwpy.play_sound("page")
                     def func():
                         if header.star:
@@ -569,7 +589,9 @@ class CardControl(wx.Dialog):
 
     def OnMove(self, event):
         mousepos = event.GetPosition()
+        self._on_move(mousepos=mousepos)
 
+    def _on_move(self, mousepos):
         self.set_cardpos()
 
         if not self.IsShown():
@@ -588,7 +610,7 @@ class CardControl(wx.Dialog):
                 draw = True
 
             rect, _x, _y = self._get_starrect(header)
-            if rect.Contains(mousepos):
+            if self.editstar.GetToggle() and rect.Contains(mousepos):
                 laststar = header
             draw |= laststar <> self._laststar
 
@@ -643,7 +665,7 @@ class CardControl(wx.Dialog):
         bcolor = self.toppanel.GetBackgroundColour()
         dc.SetBrush(wx.Brush(bcolor))
         dc.SetPen(wx.Pen(bcolor))
-        dc.DrawRectangle(0, 0, tsize[0], tsize[1])
+        dc.DrawRectangle(cw.wins(0), cw.wins(0), tsize[0], tsize[1])
 
         # 背景の透かし
         bmp = cw.cwpy.rsrc.dialogs["PAD"]
@@ -652,10 +674,10 @@ class CardControl(wx.Dialog):
         # ライン
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
         dc.SetPen(wx.Pen(colour, cw.wins(1), wx.SOLID))
-        dc.DrawLine(cw.wins(1), cw.wins(24), cw.wins(520), cw.wins(24))
+        dc.DrawLine(cw.wins(0), cw.wins(24), cw.wins(520), cw.wins(24))
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW)
         dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
-        dc.DrawLine(cw.wins(1), cw.wins(25), cw.wins(520), cw.wins(25))
+        dc.DrawLine(cw.wins(0), cw.wins(25), cw.wins(520), cw.wins(25))
         # モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
@@ -687,6 +709,7 @@ class CardControl(wx.Dialog):
             dc.DrawText(s, x, fy)
 
         # 絞込条件
+        dc.SetTextForeground(wx.LIGHT_GREY)
         if self.narrow.IsShown():
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(14)))
             s = cw.cwpy.msgs["narrow_condition"]
@@ -708,11 +731,11 @@ class CardControl(wx.Dialog):
             dc.DrawBitmap(bmp, x, y, usemask)
             if self._show_star(header):
                 rect, x, y = self._get_starrect(header)
-                if rect.Contains(mousepos):
+                if self.editstar.GetToggle() and rect.Contains(mousepos):
                     bmp = self.starlight
                 elif header.star:
                     bmp = self.star
-                elif header.negaflag:
+                elif self.editstar.GetToggle():
                     bmp = self.nostar
                 else:
                     bmp = None
@@ -1143,6 +1166,7 @@ class CardHolder(CardControl):
             cw.cwpy.setting.last_sendto = 0
 
             cw.cwpy.setting.card_narrow = ""
+            cw.cwpy.setting.edit_star = False
 
             self._load_index()
             if self.callname == "CARDPOCKET":
@@ -1406,6 +1430,16 @@ class CardHolder(CardControl):
         self.sortwithstar.SetBitmapSelected(bmp)
         self.sortwithstar.SetToggle(toggle)
 
+    def _update_editstar(self):
+        bmp = cw.cwpy.rsrc.dialogs["ARRANGE_BOOKMARK"]
+        cw.cwpy.setting.edit_star = self.editstar.GetToggle()
+        if not cw.cwpy.setting.edit_star:
+            bmp = cw.imageretouch.to_disabledimage(bmp)
+
+        self.editstar.SetBitmapFocus(bmp)
+        self.editstar.SetBitmapLabel(bmp)
+        self.editstar.SetBitmapSelected(bmp)
+
     def _update_sortattr(self):
         if cw.cwpy.ydata.party:
             cw.cwpy.ydata.party.sort_backpack()
@@ -1626,6 +1660,12 @@ class CardHolder(CardControl):
                 self.sortwithstar.Hide()
                 self.narrow.Hide()
                 self.narrow_type.Hide()
+
+        # スターの編集
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB"):
+            self.editstar.Show()
+        else:
+            self.editstar.Hide()
 
         # 種別ごと表示有無
         for btn in self.show:
