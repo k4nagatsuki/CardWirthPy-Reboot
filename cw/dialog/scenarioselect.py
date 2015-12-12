@@ -2058,10 +2058,11 @@ class ScenarioSelect(select.Select):
 
         try:
             dpath2 = cw.util.get_linktarget(dpath)
-            for dname in os.listdir(dpath2):
-                path = cw.util.join_paths(dpath2, dname)
-                if self.is_listitem(path) and not self.is_scenario(path):
-                    seq.append(path)
+            if os.path.isdir(dpath2):
+                for dname in os.listdir(dpath2):
+                    path = cw.util.join_paths(dpath2, dname)
+                    if self.is_listitem(path) and not self.is_scenario(path):
+                        seq.append(path)
         except Exception:
             cw.util.print_ex()
 
