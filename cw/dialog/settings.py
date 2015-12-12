@@ -1146,7 +1146,7 @@ class ExpandPanel(wx.Panel):
             self.cb_smoothexpand.SetValue(setting.smoothexpand)
 
         # 最大倍率を概算
-        x, y = wx.DisplaySize()
+        x, y = cw.cwpy.frame.get_displaysize()
         x = 10 * x / cw.SIZE_SCR[0]
         y = 10 * y / cw.SIZE_SCR[1]
         if setting.expandmode == "FullScreen" or setting.expandmode == "None":

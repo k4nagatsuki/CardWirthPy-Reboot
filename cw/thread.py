@@ -206,8 +206,9 @@ class CWPy(_Singleton, threading.Thread):
                 self.frame.SetMinSize((-1, -1))
                 self.frame.ShowFullScreen(fullscreen)
                 if fullscreen:
-                    self.frame.SetClientSize(wx.DisplaySize())
-                    self.frame.panel.SetSize(wx.DisplaySize())
+                    dsize = self.frame.get_displaysize()
+                    self.frame.SetClientSize(dsize)
+                    self.frame.panel.SetSize(dsize)
                     self.frame.SetMaxSize(self.frame.GetBestSize())
                     self.frame.SetMinSize(self.frame.GetBestSize())
                 else:
@@ -228,8 +229,8 @@ class CWPy(_Singleton, threading.Thread):
             self.frame.panel.SetSize(size)
             if sys.platform <> "win32":
                 if self.frame.IsFullScreen():
-                    self.frame.SetMaxSize(wx.DisplaySize())
-                    self.frame.SetMinSize(wx.DisplaySize())
+                    self.frame.SetMaxSize(dsize)
+                    self.frame.SetMinSize(dsize)
                 else:
                     self.frame.SetMaxSize(self.frame.GetBestSize())
                     self.frame.SetMinSize(self.frame.GetBestSize())
@@ -1273,8 +1274,8 @@ class CWPy(_Singleton, threading.Thread):
                 self.setting.is_expanded = flag
                 if flag:
                     self.expand_mode = expandmode
-                    rect = wx.DisplaySize()
-                    self.scr_fullscreen = pygame.display.set_mode((rect[0], rect[1]), 0)
+                    dsize = self.frame.get_displaysize()
+                    self.scr_fullscreen = pygame.display.set_mode((dsize[0], dsize[1]), 0)
                     self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                     self.scr_draw = self.scr
                     self.set_fullscreen(True)

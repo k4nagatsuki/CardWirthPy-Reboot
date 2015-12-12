@@ -38,7 +38,7 @@ class Frame(wx.Frame):
         else:
             wx.Frame.__init__(self, None, -1, cw.APP_NAME)
             if self._setting.is_expanded and self._setting.expandmode == "FullScreen":
-                self.SetClientSize(wx.DisplaySize())
+                self.SetClientSize(self.get_displaysize())
             else:
                 self.SetClientSize(cw.wins(cw.SIZE_GAME))
                 self.SetMinSize(self.GetBestSize())
@@ -115,6 +115,10 @@ class Frame(wx.Frame):
             icon = wx.Icon(sys.executable, wx.BITMAP_TYPE_ICO)
             icon.SetSize(wx.ArtProvider.GetSizeHint(wx.ART_FRAME_ICON))
             win.SetIcon(icon)
+
+    def get_displaysize(self):
+        i = wx.Display.GetFromWindow(self)
+        return wx.Display(i).GetGeometry().GetSize()
 
     def _bind(self):
         self.Bind(wx.EVT_CLOSE, self.OnCloseFromFrame)
