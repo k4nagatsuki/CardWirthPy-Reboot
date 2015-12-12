@@ -438,7 +438,7 @@ class SoundInterface(object):
 #　汎用関数
 #-------------------------------------------------------------------------------
 
-def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
+def init(size_noscale=None, title="", fullscreen=False, soundfonts=None, fullscreensize=(0, 0)):
     """pygame初期化。"""
     pygame.display.init()
     pygame.font.init()
@@ -446,7 +446,7 @@ def init(size_noscale=None, title="", fullscreen=False, soundfonts=None):
     flags = 0
     size = cw.s(size_noscale)
     if fullscreen:
-        scr_fullscreen = pygame.display.set_mode((0, 0), flags)
+        scr_fullscreen = pygame.display.set_mode(fullscreensize, flags)
         scr = pygame.Surface(size).convert()
         scr_draw = scr
     else:

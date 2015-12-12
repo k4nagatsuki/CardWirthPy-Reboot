@@ -61,7 +61,8 @@ class CWPy(_Singleton, threading.Thread):
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
-        self.scr, self.scr_draw, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts)
+        self.scr, self.scr_draw, self.scr_fullscreen, self.clock = cw.util.init(cw.SIZE_GAME, "", fullscreen, self.setting.soundfonts,
+                                                                                fullscreensize=self.frame.get_displaysize())
         if fullscreen:
             self.set_fullscreen(True)
         # 背景
@@ -475,8 +476,8 @@ class CWPy(_Singleton, threading.Thread):
             flags = 0
             fullscreen = self.is_expanded() and self.setting.expandmode == "FullScreen"
             if fullscreen:
-                rect = wx.DisplaySize()
-                self.scr_fullscreen = pygame.display.set_mode((rect[0], rect[1]), flags)
+                dsize = self.frame.get_displaysize()
+                self.scr_fullscreen = pygame.display.set_mode((dsize[0], dsize[1]), flags)
                 self.scr = pygame.Surface(cw.s(cw.SIZE_GAME)).convert()
                 self.scr_draw = self.scr
             else:

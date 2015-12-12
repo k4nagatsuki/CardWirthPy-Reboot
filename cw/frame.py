@@ -8,6 +8,7 @@ import datetime
 import threading
 import wx
 import pygame
+import pygame.locals
 
 import cw
 
@@ -31,6 +32,7 @@ class Frame(wx.Frame):
             cw.UP_SCR = 1
 
         # トップフレーム
+        setfullscreensize = False
         self.style = wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX & ~wx.RESIZE_BORDER
         if sys.platform == "win32":
             wx.Frame.__init__(self, None, -1, cw.APP_NAME, style=self.style)
@@ -38,7 +40,7 @@ class Frame(wx.Frame):
         else:
             wx.Frame.__init__(self, None, -1, cw.APP_NAME)
             if self._setting.is_expanded and self._setting.expandmode == "FullScreen":
-                self.SetClientSize(self.get_displaysize())
+                setfullscreensize = True
             else:
                 self.SetClientSize(cw.wins(cw.SIZE_GAME))
                 self.SetMinSize(self.GetBestSize())
@@ -61,6 +63,8 @@ class Frame(wx.Frame):
                 cw.util.adjust_position(self)
 
         adjust_position()
+        if setfullscreensize:
+            self.SetClientSize(self.get_displaysize())
 
         # 拡大後のウィンドウがモニタに収まらない場合は縮小状態に戻す
         d = wx.Display.GetFromWindow(self)
@@ -117,8 +121,9 @@ class Frame(wx.Frame):
             win.SetIcon(icon)
 
     def get_displaysize(self):
-        i = wx.Display.GetFromWindow(self)
-        return wx.Display(i).GetGeometry().GetSize()
+        d = wx.Display.GetFromWindow(self)
+        if d == wx.NOT_FOUND: d = 0
+        return wx.Display(d).GetGeometry().GetSize()
 
     def _bind(self):
         self.Bind(wx.EVT_CLOSE, self.OnCloseFromFrame)
@@ -862,9 +867,11 @@ class Frame(wx.Frame):
             return
 
         if self.IsFullScreen() and dlg.Parent == self:
-            carea = self.GetSize()
-            x = (carea[0] - dlg.GetSize()[0]) / 2
-            y = (carea[1] - dlg.GetSize()[1]) / 2
+            d = wx.Display.GetFromWindow(self)
+            if d == wx.NOT_FOUND: d = 0
+            carea = wx.Display(d).GetGeometry()
+            x = carea[0] + (carea[2] - dlg.GetSize()[0]) / 2
+            y = carea[1] + (carea[3] - dlg.GetSize()[1]) / 2
         else:
             x = (dlg.Parent.GetSize()[0] - dlg.GetSize()[0]) / 2
             y = (dlg.Parent.GetSize()[1] - dlg.GetSize()[1]) / 2
@@ -937,7 +944,7 @@ class Frame(wx.Frame):
                     alpha = False
 
                     if image.get_colorkey():
-                        colorkey = image.get_at(maskpos)
+                        colorkey = image.get_colorkey()
                     else:
                         colorkey = None
 
