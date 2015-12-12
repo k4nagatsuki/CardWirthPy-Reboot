@@ -896,7 +896,6 @@ class EventHandlerForBacklog(EventHandler):
 
         self._mwins = [None] * len(self.backlog)
         self.mwin = None
-        self.update_sprites()
 
         self._lock_menucards = cw.cwpy.lock_menucards
         cw.cwpy._is_showingbacklog = True
@@ -905,6 +904,8 @@ class EventHandlerForBacklog(EventHandler):
         cw.cwpy.lock_menucards = False
 
         self._in_scroll = False
+
+        self.update_sprites()
 
     def run(self):
         cw.cwpy.has_inputevent = False
@@ -1208,6 +1209,8 @@ class EventHandlerForBacklog(EventHandler):
             self._scrollbar.set_pos(self._scrollbar.scrsize_noscale-cw.SIZE_AREA[1], lazy=True)
 
     def update_sprites(self):
+        if not cw.cwpy._is_showingbacklog:
+            return
         # スプライト削除
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
