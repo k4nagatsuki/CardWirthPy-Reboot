@@ -715,6 +715,7 @@
     <Message key="extension_title_2">拡張機能</Message>
     <Message key="mode_replace">交換モード - 「%s」との交換</Message>
     <Message key="edit_star">カードにスターをつける</Message>
+    <Message key="desc_close_message_log">メッセージログを閉じます</Message>
     <!-- 0.12.4 ここまで -->
   </Messages>
 </Skin>

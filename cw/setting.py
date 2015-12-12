@@ -436,7 +436,7 @@ class Setting(object):
         # メッセージログ最大数
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
         # メッセージログを並べて表示する
-        self.scrollable_log = data.getint("ScrollableMessageLog", self.scrollable_log)
+        self.scrollable_log = data.getbool("ScrollableMessageLog", self.scrollable_log)
 
         # フォント名(空白時デフォルト)
         self.basefont["gothic"] = data.gettext("FontGothic", self.basefont["gothic"])

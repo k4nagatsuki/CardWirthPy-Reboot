@@ -670,10 +670,10 @@ class BacklogData:
         self.versionhint = base.versionhint
         self.specialchars = cw.cwpy.rsrc.specialchars.copy()
 
-    def get_height(self):
+    def get_height_noscale(self):
         """メッセージと選択肢の表示高さを計算して返す。
         """
-        return cw.s(self.rect_noscale[1] + len(self.names)*25)
+        return self.rect_noscale[3] + len(self.names)*25
 
     def create_message(self):
         if self.type == 0:
@@ -753,7 +753,11 @@ class BacklogPage(base.CWPySprite):
         self.image.blit(subimg, (x, y))
 
         self.rect = self.image.get_rect()
-        pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - cw.s(10), cw.s(10))
+        if cw.cwpy.setting.scrollable_log:
+            left = cw.s(18)
+        else:
+            left = cw.s(10)
+        pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - left, cw.s(10))
         self.rect.topleft = pos
 
 def decorate(image, angle=8, basecolour=(255, 255, 255)):

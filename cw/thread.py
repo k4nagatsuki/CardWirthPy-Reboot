@@ -1352,7 +1352,8 @@ class CWPy(_Singleton, threading.Thread):
             if self.setting.backlogmax <= len(self.sdata.backlog):
                 self.sdata.backlog.pop(0)
             self.sdata.backlog.append(cw.sprite.message.BacklogData(mwin))
-            self.statusbar.change(False)
+
+        self.statusbar.change(False)
 
         # cwpylist, index 初期化
         self.list = self.get_mcards("visible")
@@ -1396,7 +1397,7 @@ class CWPy(_Singleton, threading.Thread):
         cursor = self.cursor
         self.change_cursor()
         try:
-            while self.is_running() and eventhandler.mwin and\
+            while self.is_running() and eventhandler.is_showing() and\
                     cw.cwpy.sdata.is_playing and self._is_showingbacklog:
                 self.sbargrp.update(self.scr_draw)
                 self.draw()

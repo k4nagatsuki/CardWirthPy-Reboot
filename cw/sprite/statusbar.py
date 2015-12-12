@@ -576,7 +576,7 @@ class RoundCounterPanel(YadoMoneyPanel):
 
 class StatusBarButton(base.SelectableSprite):
     def __init__(self, parent, name, pos, sizetype=0,
-                 toggle=False, icon=None, enabled=True, is_pushed=False,
+                 icon=None, enabled=True, is_pushed=False,
                  notice=False, number=None, is_emphasize=False,
                  desc=u"", hotkey=u""):
         base.SelectableSprite.__init__(self)
@@ -896,7 +896,7 @@ class Desc(base.CWPySprite):
 class CampButton(StatusBarButton):
     def __init__(self, parent, pos):
         is_pushed = cw.cwpy.areaid in (-4, -5)
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, toggle=True, is_pushed=is_pushed)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["camp"], pos, is_pushed=is_pushed)
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
@@ -923,7 +923,7 @@ class CampButton(StatusBarButton):
 class TableButton(StatusBarButton):
     def __init__(self, parent, pos):
         is_pushed = not cw.cwpy.areaid in (-4, -5)
-        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, toggle=True, is_pushed=is_pushed)
+        StatusBarButton.__init__(self, parent, cw.cwpy.msgs["table"], pos, is_pushed=is_pushed)
         self.is_showing = cw.cwpy.is_playingscenario
         self.selectable_on_event = False
 
@@ -1001,7 +1001,7 @@ class ShowFriendCardsButton(StatusBarButton):
         image = cw.s(cw.cwpy.rsrc.pygamedebugs["EVT_GET_CAST"])
         name = cw.cwpy.msgs["show_fcards"]
         desc = cw.cwpy.msgs["desc_show_friend_card"]
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  is_pushed=cw.cwpy.setting.show_fcardsinbattle, desc=desc,
                                  hotkey=u"F6")
         self.is_showing = cw.cwpy.is_playingscenario
@@ -1035,7 +1035,7 @@ class AutoStartButton(StatusBarButton):
             desc = cw.cwpy.msgs["desc_auto_start_round"]
         else:
             desc = cw.cwpy.msgs["desc_manual_start_round"]
-        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, toggle=True,
+        StatusBarButton.__init__(self, parent, name, pos, 1, icon=image,
                                  is_pushed=pushed, desc=desc, hotkey=u"F7")
         self.selectable_on_event = True
         self.actionbtn = None
@@ -1127,7 +1127,7 @@ class DebuggerButton(StatusBarButton):
         desc = u"デバッガを表示します"
         pushed = cw.cwpy.is_showingdebugger()
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, desc=desc,
-                                 toggle=True, is_pushed=pushed, hotkey=u"F3")
+                                 is_pushed=pushed, hotkey=u"F3")
         self.selectable_on_event = True
         self.is_showing = cw.cwpy.is_debugmode
 
@@ -1151,18 +1151,43 @@ class DebuggerButton(StatusBarButton):
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos):
         enabled = cw.cwpy.has_backlog()
+        pushed = cw.cwpy.setting.scrollable_log and cw.cwpy.is_showingbacklog()
         image = cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
         name = cw.cwpy.msgs["message_log"]
-        desc = cw.cwpy.msgs["desc_message_log"]
+        if pushed:
+            desc = cw.cwpy.msgs["desc_close_message_log"]
+        else:
+            desc = cw.cwpy.msgs["desc_message_log"]
         StatusBarButton.__init__(self, parent, name, pos, 1, icon=image, enabled=enabled,
-                                 desc=desc, hotkey=u"F5")
+                                 desc=desc, hotkey=u"F5", is_pushed=pushed)
         self.selectable_on_event = enabled
         if enabled and self.is_selection():
             self.update_image()
 
+    def update(self, scr):
+        if self.status <> "normal":
+            StatusBarButton.update(self, scr)
+            return
+        self.update_selection()
+
+        self.is_pushed = cw.cwpy.setting.scrollable_log and cw.cwpy.is_showingbacklog()
+        if self.is_pushed:
+            desc = cw.cwpy.msgs["desc_close_message_log"]
+        else:
+            desc = cw.cwpy.msgs["desc_message_log"]
+        self.set_desc(desc)
+
+        self.update_image()
+
     def reset(self, pos):
         self.enabled = cw.cwpy.has_backlog()
         self.selectable_on_event = self.enabled
+
+        self.is_pushed = cw.cwpy.setting.scrollable_log and cw.cwpy.is_showingbacklog()
+        if self.is_pushed:
+            desc = cw.cwpy.msgs["desc_close_message_log"]
+        else:
+            desc = cw.cwpy.msgs["desc_message_log"]
         StatusBarButton.reset(self, pos)
 
     def get_icon(self):
@@ -1171,7 +1196,8 @@ class BacklogButton(StatusBarButton):
     def lclick_event(self):
         if not self.enabled:
             return
-        StatusBarButton.lclick_event(self)
+        if not cw.cwpy.setting.scrollable_log:
+            StatusBarButton.lclick_event(self)
         cw.cwpy.eventhandler.f5key_event()
 
 def main():

@@ -138,6 +138,7 @@ LAYER_LOG_CURTAIN = (2000, 0, 0, 0) # ログ背景
 LAYER_LOG = (2001, 0, 0, 0) # メッセージログ
 LAYER_LOG_BAR = (2002, 0, 0, 0) # ログ選択肢
 LAYER_LOG_PAGE = (2003, 0, 0, 0) # ログのページ
+LAYER_LOG_SCROLLBAR = (2004, 0, 0, 0) # ログのスクロールバー
 
 # ゲーム画面構築の拡大率
 UP_SCR = 1

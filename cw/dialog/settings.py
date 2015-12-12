@@ -455,6 +455,7 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
             self.pane_ui.cb_protect_staredcard.SetValue(cw.cwpy.setting.protect_staredcard_init)
             self.pane_ui.cb_protect_premiercard.SetValue(cw.cwpy.setting.protect_premiercard_init)
+            self.pane_ui.cb_scrollable_log.SetValue(cw.cwpy.setting.scrollable_log_init)
 
             self.pane_ui.cb_show_btndesc.SetValue(cw.cwpy.setting.show_btndesc_init)
             self.pane_ui.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
@@ -877,6 +878,8 @@ class SettingsPanel(wx.Panel):
         setting.protect_staredcard = value
         value = self.pane_ui.cb_protect_premiercard.GetValue()
         setting.protect_premiercard = value
+        value = self.pane_ui.cb_scrollable_log.GetValue()
+        setting.scrollable_log = value
 
         # 背景の更新
         if update and updatebg:
@@ -2164,6 +2167,8 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, u"スターつきのカードの売却や破棄を禁止する")
         self.cb_protect_premiercard = wx.CheckBox(
             self, -1, u"プレミアカードの売却や破棄を禁止する")
+        self.cb_scrollable_log = wx.CheckBox(
+            self, -1, u"メッセージログを並べて表示する")
 
         # 通知オプション
         self.box_notice = wx.StaticBox(self, -1, u"通知と解説")
@@ -2222,6 +2227,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard)
+        self.cb_scrollable_log.SetValue(setting.scrollable_log)
 
         self.cb_show_btndesc.SetValue(setting.show_btndesc)
         self.cb_statusbarmask.SetValue(setting.statusbarmask)
@@ -2281,6 +2287,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_gene.Add(self.cb_showautobuttoninentrydialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_protect_staredcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_protect_premiercard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_gene.Add(self.cb_scrollable_log, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_notice.Add(self.cb_show_btndesc, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)

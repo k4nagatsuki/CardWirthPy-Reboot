@@ -7,7 +7,8 @@ import wx
 import pygame
 from pygame.locals import K_RETURN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_DOWN,\
                           K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F8, K_F9, K_F10, K_F11, K_F12,\
-                          K_LSHIFT, K_LCTRL, K_PRINT, K_SPACE, KEYUP, KEYDOWN, MOUSEBUTTONUP
+                          K_LSHIFT, K_LCTRL, K_PRINT, K_SPACE, KEYUP, KEYDOWN, MOUSEBUTTONUP,\
+                          K_PAGEUP, K_PAGEDOWN, K_HOME, K_END
 
 
 class KeyEventRelay(object):
@@ -37,6 +38,10 @@ class KeyEventRelay(object):
             wx.WXK_SNAPSHOT : K_PRINT,
             wx.WXK_SHIFT : K_LSHIFT,
             wx.WXK_CONTROL : K_LCTRL,
+            wx.WXK_PAGEUP : K_PAGEUP,
+            wx.WXK_PAGEDOWN : K_PAGEDOWN,
+            wx.WXK_HOME : K_HOME,
+            wx.WXK_END : K_END,
             ord('D') : ord('D'), # デバッグモード切り替え
             ord('P') : ord('P')} # スクリーンショット
         # キー入力(pygame用)
