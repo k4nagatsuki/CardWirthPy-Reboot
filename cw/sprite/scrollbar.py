@@ -99,8 +99,8 @@ class ScrollBar(base.CWPySprite):
         l = float(cw.SIZE_AREA[1]) / self.scrsize_noscale
         scrpos = int(cw.s(self.scrpos_noscale) * l)
         scrsize = int(min(cw.s(self.scrsize_noscale), self.rect.height) * l)
-        if scrsize < 4:
-            scrsize = 4
+        if scrsize < cw.s(4):
+            scrsize = cw.s(4)
             l = float(cw.SIZE_AREA[1]-scrsize) / self.scrsize_noscale
             scrpos = int(cw.s(self.scrpos_noscale) * l)
 

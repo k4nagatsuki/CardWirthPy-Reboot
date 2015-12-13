@@ -347,6 +347,12 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.cb_show_debuglogdialog.SetValue(cw.cwpy.setting.show_debuglogdialog_init)
             self.pane_gene.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode_init)
             self.pane_gene.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
+            if cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_SINGLE:
+                self.pane_gene.ch_messagelog_type.SetValue(0)
+            elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_LIST:
+                self.pane_gene.ch_messagelog_type.SetValue(1)
+            elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_COMPRESS:
+                self.pane_gene.ch_messagelog_type.SetValue(2)
             self.pane_gene.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax_init)
             self.pane_gene.expand.ch_expanddrawing.SetSelection(0)
             if cw.cwpy.setting.expandmode_init == "FullScreen":
@@ -455,7 +461,6 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_showautobuttoninentrydialog.SetValue(cw.cwpy.setting.show_autobuttoninentrydialog_init)
             self.pane_ui.cb_protect_staredcard.SetValue(cw.cwpy.setting.protect_staredcard_init)
             self.pane_ui.cb_protect_premiercard.SetValue(cw.cwpy.setting.protect_premiercard_init)
-            self.pane_ui.cb_scrollable_log.SetValue(cw.cwpy.setting.scrollable_log_init)
 
             self.pane_ui.cb_show_btndesc.SetValue(cw.cwpy.setting.show_btndesc_init)
             self.pane_ui.cb_statusbarmask.SetValue(cw.cwpy.setting.statusbarmask_init)
@@ -598,6 +603,14 @@ class SettingsPanel(wx.Panel):
         else:
             setting.ssinfofontcolor = (0, 0, 0)
             setting.ssinfobackcolor = (255, 255, 255)
+        value = self.pane_gene.ch_messagelog_type.GetSelection()
+        if value == 0:
+            value = cw.setting.LOG_SINGLE
+        elif value == 1:
+            value = cw.setting.LOG_LIST
+        elif value == 2:
+            value = cw.setting.LOG_COMPRESS
+        setting.messagelog_type = value
         value = self.pane_gene.sc_backlogmax.GetValue()
         if value <> setting.backlogmax:
             if update:
@@ -878,8 +891,6 @@ class SettingsPanel(wx.Panel):
         setting.protect_staredcard = value
         value = self.pane_ui.cb_protect_premiercard.GetValue()
         setting.protect_premiercard = value
-        value = self.pane_ui.cb_scrollable_log.GetValue()
-        setting.scrollable_log = value
 
         # 背景の更新
         if update and updatebg:
@@ -1273,7 +1284,11 @@ class GeneralSettingPanel(wx.Panel):
         # 基本的なオプション
         self.cb_storeskinoneachbase = wx.CheckBox(
             self, -1, u"拠点ごとにスキンを記憶する")
-        self.st_backlogmax = wx.StaticText(self, -1, u"メッセージログの最大数:")
+
+        self.box_messagelog = wx.StaticBox(self, -1, u"メッセージログ(F5キーで表示)")
+        self.st_messagelog_type = wx.StaticText(self, -1, u"表示形式:")
+        self.ch_messagelog_type = wx.Choice(self, -1, choices=[u"1件ずつ表示", u"並べて表示", u"高さを圧縮"])
+        self.st_backlogmax = wx.StaticText(self, -1, u"最大数:")
         self.sc_backlogmax = wx.SpinCtrl(self, -1, size=(80, -1), max=9999, min=0)
 
         # スキン
@@ -1319,6 +1334,12 @@ class GeneralSettingPanel(wx.Panel):
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode)
         self.cb_showexperiencebar.SetValue(setting.show_experiencebar)
         self.cb_storeskinoneachbase.SetValue(setting.store_skinoneachbase)
+        if setting.messagelog_type == cw.setting.LOG_SINGLE:
+            self.ch_messagelog_type.SetSelection(0) # 単一表示
+        elif setting.messagelog_type == cw.setting.LOG_COMPRESS:
+            self.ch_messagelog_type.SetSelection(2) # 圧縮表示
+        else:
+            self.ch_messagelog_type.SetSelection(1) # 並べて表示(デフォルト)
         self.sc_backlogmax.SetValue(setting.backlogmax)
         self.sc_initmoneyamount.SetValue(setting.initmoneyamount)
         self.cb_autosavepartyrecord.SetValue(setting.autosave_partyrecord)
@@ -1350,11 +1371,14 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showexperiencebar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_backlogmax = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer_backlogmax.Add(self.st_backlogmax, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_backlogmax.Add(self.sc_backlogmax, 0, wx.CENTER, 3)
-        bsizer_gene.Add(bsizer_backlogmax)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
+
+        bsizer_log = wx.StaticBoxSizer(self.box_messagelog, wx.HORIZONTAL)
+        bsizer_log.Add(self.st_messagelog_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 3)
+        bsizer_log.Add(self.ch_messagelog_type, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
+        bsizer_log.Add(self.st_backlogmax, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 3)
+        bsizer_log.Add(self.sc_backlogmax, 0, wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
+        bsizer_log.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_skin.Add(self.skin, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_skin.SetMinSize((SETTINGS_WIDTH, 180))
@@ -1378,6 +1402,7 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_ss.Add(self.st_ssinfodesc, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
         sizer_left.Add(bsizer_gene, 0, wx.BOTTOM|wx.EXPAND, 3)
+        sizer_left.Add(bsizer_log, 0, wx.BOTTOM|wx.EXPAND, 3)
         sizer_left.Add(bsizer_skin, 1, wx.EXPAND, 3)
 
         sizer_right.Add(bsizer_expandmode, 0, wx.BOTTOM|wx.EXPAND, 3)
@@ -2167,8 +2192,6 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, u"スターつきのカードの売却や破棄を禁止する")
         self.cb_protect_premiercard = wx.CheckBox(
             self, -1, u"プレミアカードの売却や破棄を禁止する")
-        self.cb_scrollable_log = wx.CheckBox(
-            self, -1, u"メッセージログを並べて表示する")
 
         # 通知オプション
         self.box_notice = wx.StaticBox(self, -1, u"通知と解説")
@@ -2227,7 +2250,6 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_showautobuttoninentrydialog.SetValue(setting.show_autobuttoninentrydialog)
         self.cb_protect_staredcard.SetValue(setting.protect_staredcard)
         self.cb_protect_premiercard.SetValue(setting.protect_premiercard)
-        self.cb_scrollable_log.SetValue(setting.scrollable_log)
 
         self.cb_show_btndesc.SetValue(setting.show_btndesc)
         self.cb_statusbarmask.SetValue(setting.statusbarmask)
@@ -2287,7 +2309,6 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_gene.Add(self.cb_showautobuttoninentrydialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_protect_staredcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_protect_premiercard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_scrollable_log, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_notice.Add(self.cb_show_btndesc, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)

@@ -49,6 +49,11 @@ WHEEL_SHOWLOG   = "ShowLog"   # バックログを表示
 CURSOR_BLACK = "Black" # 黒いカーソル(デフォルト)
 CURSOR_WHITE = "White" # 白いカーソル
 
+# メッセージログの表示形式
+LOG_SINGLE   = "Single"
+LOG_LIST     = "List"
+LOG_COMPRESS = "Compress"
+
 # ステータスバーのボタン状態
 SB_PRESSED   = 0b00000001 # 押下
 SB_CURRENT   = 0b00000010 # カーソル下
@@ -121,7 +126,7 @@ class Setting(object):
         self.standbys_narrowtype = 0
         self.infoview_narrowtype = 0
         self.backlogmax = 100
-        self.scrollable_log = True
+        self.messagelog_type = LOG_LIST
         self.showfps = False
         self.selectscenariofromtype = True
         self.show_unfitnessscenario = True
@@ -435,8 +440,8 @@ class Setting(object):
         self.infoview_narrowtype = data.getint("InfoViewNarrowType", self.infoview_narrowtype)
         # メッセージログ最大数
         self.backlogmax = data.getint("MessageLogMax", self.backlogmax)
-        # メッセージログを並べて表示する
-        self.scrollable_log = data.getbool("ScrollableMessageLog", self.scrollable_log)
+        # メッセージログ表示形式
+        self.messagelog_type = data.gettext("MessageLogType", self.messagelog_type)
 
         # フォント名(空白時デフォルト)
         self.basefont["gothic"] = data.gettext("FontGothic", self.basefont["gothic"])
@@ -852,6 +857,9 @@ class Setting(object):
             return self.dealspeed_battle
         else:
             return self.dealspeed
+
+    def is_logscrollable(self):
+        return self.messagelog_type <> LOG_SINGLE
 
     def write(self):
         cw.xmlcreater.create_settings(self)

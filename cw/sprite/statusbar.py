@@ -1151,7 +1151,7 @@ class DebuggerButton(StatusBarButton):
 class BacklogButton(StatusBarButton):
     def __init__(self, parent, pos):
         enabled = cw.cwpy.has_backlog()
-        pushed = cw.cwpy.setting.scrollable_log and cw.cwpy.is_showingbacklog()
+        pushed = cw.cwpy.setting.is_logscrollable() and cw.cwpy.is_showingbacklog()
         image = cw.cwpy.rsrc.pygamedialogs["BACKLOG"]
         name = cw.cwpy.msgs["message_log"]
         if pushed:
@@ -1170,7 +1170,7 @@ class BacklogButton(StatusBarButton):
             return
         self.update_selection()
 
-        self.is_pushed = cw.cwpy.setting.scrollable_log and cw.cwpy.is_showingbacklog()
+        self.is_pushed = cw.cwpy.setting.is_logscrollable() and cw.cwpy.is_showingbacklog()
         if self.is_pushed:
             desc = cw.cwpy.msgs["desc_close_message_log"]
         else:
@@ -1183,7 +1183,7 @@ class BacklogButton(StatusBarButton):
         self.enabled = cw.cwpy.has_backlog()
         self.selectable_on_event = self.enabled
 
-        self.is_pushed = cw.cwpy.setting.scrollable_log and cw.cwpy.is_showingbacklog()
+        self.is_pushed = cw.cwpy.setting.is_logscrollable() and cw.cwpy.is_showingbacklog()
         if self.is_pushed:
             desc = cw.cwpy.msgs["desc_close_message_log"]
         else:
@@ -1196,7 +1196,7 @@ class BacklogButton(StatusBarButton):
     def lclick_event(self):
         if not self.enabled:
             return
-        if not cw.cwpy.setting.scrollable_log:
+        if not cw.cwpy.setting.is_logscrollable():
             StatusBarButton.lclick_event(self)
         cw.cwpy.eventhandler.f5key_event()
 

@@ -394,7 +394,7 @@ class EventHandler(object):
         if cw.cwpy.is_showingdlg():
             return
         if cw.cwpy.is_showingbacklog():
-            if cw.cwpy.setting.scrollable_log:
+            if cw.cwpy.setting.is_logscrollable():
                 event = pygame.event.Event(KEYDOWN, key=K_ESCAPE)
                 pygame.event.post(event)
             else:
@@ -861,15 +861,30 @@ class EventHandlerForBacklog(EventHandler):
     def __init__(self, backlog, index):
         """バックログ表示中のイベントハンドラ。
         """
-        self.backlog = backlog
+        self.backlog_all = backlog
         self.index = index
-        self._scrollnum_noscale = cw.SIZE_AREA[1] // 5
+        self._scrollnum_noscale = cw.SIZE_AREA[1] // 4
         self._space_noscale = 5
         self._upscr = cw.UP_SCR
-        self._scrollable = cw.cwpy.setting.scrollable_log
+
+        self._messagelog_type = cw.cwpy.setting.messagelog_type
+
+        self._lock_menucards = cw.cwpy.lock_menucards
+        cw.cwpy._is_showingbacklog = True
+        cw.cwpy.clear_selection()
+        cw.cwpy.lock_menucards = False
+
+        self._in_scroll = False
+
+        self._update_posdata()
+
+    def _update_posdata(self):
+        self._clear_sprites()
+
+        self.backlog = self.backlog_all
 
         # 各ログの位置
-        if self.backlog:
+        if self.backlog and cw.cwpy.setting.is_logscrollable():
             self._height_noscale = [self.backlog[0].get_height_noscale()]
             self._pos_noscale = [self.backlog[0].rect_noscale[1]]
             self._bottom_noscale = [self._pos_noscale[0]+self._height_noscale[0]]
@@ -878,32 +893,31 @@ class EventHandlerForBacklog(EventHandler):
                     self._height_noscale.append(log.get_height_noscale())
                     self._pos_noscale.append(self._pos_noscale[i]+self._height_noscale[i]+self._space_noscale)
                     self._bottom_noscale.append(self._pos_noscale[i+1]+self._height_noscale[i+1])
-            h = self._height_noscale[-1]
             # 最後の1件の下のスペースを加えてスクロールサイズとする
+            h = self._height_noscale[-1]
             scrsize_noscale = self._pos_noscale[-1]+h
-            scrsize_noscale += cw.SIZE_AREA[1]-(h+self.backlog[-1].rect_noscale[1])
+            if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
+                scrsize_noscale += self._pos_noscale[0]
+            else:
+                scrsize_noscale += cw.SIZE_AREA[1]-(h+self.backlog[-1].rect_noscale[1])
         else:
             self._height_noscale = []
             self._pos_noscale = []
             self._bottom_noscale = []
             scrsize_noscale = 0
 
+        self.index = min(self.index, len(self.backlog)-1)
+
         self._page = cw.sprite.message.BacklogPage(self.index+1, len(self.backlog), cw.cwpy.backloggrp)
         self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp)
-        self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.scrollable_log)
+        self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
         self._scrollbar.lazyscroll_func = self.update_sprites
         cw.cwpy.backloggrp.add(self._scrollbar, layer=cw.LAYER_LOG_SCROLLBAR)
 
         self._mwins = [None] * len(self.backlog)
         self.mwin = None
 
-        self._lock_menucards = cw.cwpy.lock_menucards
-        cw.cwpy._is_showingbacklog = True
-        cw.cwpy.clear_selection()
         cw.cwpy.statusbar.change(not cw.cwpy.is_runningevent())
-        cw.cwpy.lock_menucards = False
-
-        self._in_scroll = False
 
         self.update_sprites()
 
@@ -1023,7 +1037,7 @@ class EventHandlerForBacklog(EventHandler):
             raise exception
 
     def ldown_event(self):
-        if cw.cwpy.setting.scrollable_log:
+        if cw.cwpy.setting.is_logscrollable():
             if self._in_scroll or cw.cwpy.background.rect.collidepoint(cw.cwpy.mousepos):
                 lazy = not self._in_scroll
                 self._scrollbar.scroll_to_mousepos(lazy)
@@ -1036,7 +1050,7 @@ class EventHandlerForBacklog(EventHandler):
         左クリックイベント。
         バックログを進める。
         """
-        if cw.cwpy.setting.scrollable_log:
+        if cw.cwpy.setting.is_logscrollable():
             self._in_scroll = False
         self.returnkey_event()
 
@@ -1085,7 +1099,7 @@ class EventHandlerForBacklog(EventHandler):
             cw.cwpy.selection.lclick_event()
             return
 
-        if not cw.cwpy.setting.scrollable_log:
+        if not cw.cwpy.setting.is_logscrollable():
             self._wheel_event(y=1, key=True)
 
     def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
@@ -1125,7 +1139,7 @@ class EventHandlerForBacklog(EventHandler):
         if self.change_volume(-y):
             return
 
-        if cw.cwpy.setting.scrollable_log:
+        if cw.cwpy.setting.is_logscrollable():
             if not key and 0 < y and self._scrollbar.scrpos_noscale == self._scrollbar.scrsize_noscale-cw.SIZE_AREA[1]:
                 self.exit_backlog()
                 return
@@ -1153,35 +1167,30 @@ class EventHandlerForBacklog(EventHandler):
                 self.update_sprites()
 
     def _check_updatesettings(self):
-        if self._upscr <> cw.UP_SCR or self._scrollable <> cw.cwpy.setting.scrollable_log:
+        if self._upscr <> cw.UP_SCR or self._messagelog_type <> cw.cwpy.setting.messagelog_type:
             self._upscr = cw.UP_SCR
-            if self._scrollable <> cw.cwpy.setting.scrollable_log:
-                self._scrollable = cw.cwpy.setting.scrollable_log
-                self._scrollbar.visible = cw.cwpy.setting.scrollable_log
-                if cw.cwpy.setting.scrollable_log:
-                    self._scrollbar.set_pos(self._pos_noscale[self.index]-self.backlog[self.index].rect_noscale[1], lazy=False)
-                self._scrollbar.update_scale()
-                self._page.update_scale()
-            for i in xrange(len(self._mwins)):
-                self._mwins[i] = None
-            self.update_sprites()
+            self._messagelog_type = cw.cwpy.setting.messagelog_type
+            self._update_posdata()
 
     def is_showing(self):
         self._check_updatesettings()
-        if cw.cwpy.setting.scrollable_log:
+        if cw.cwpy.setting.is_logscrollable():
             return bool(self.backlog)
         else:
             return not self.mwin is None
 
-    def exit_backlog(self, playsound=True):
-        if playsound:
-            cw.cwpy.play_sound("click")
-        # バックログ終了
+    def _clear_sprites(self):
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_CURTAIN)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_PAGE)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_SCROLLBAR)
+
+    def exit_backlog(self, playsound=True):
+        if playsound:
+            cw.cwpy.play_sound("click")
+        # バックログ終了
+        self._clear_sprites()
         self.mwin = None
         cw.cwpy._is_showingbacklog = False
         if cw.cwpy.lock_menucards:
@@ -1196,7 +1205,7 @@ class EventHandlerForBacklog(EventHandler):
         if not EventHandler.keydown_event(self, key):
             return
 
-        if not cw.cwpy.setting.scrollable_log:
+        if not cw.cwpy.setting.is_logscrollable():
             return
 
         if key == pygame.locals.K_PAGEUP:
@@ -1214,7 +1223,7 @@ class EventHandlerForBacklog(EventHandler):
         # スプライト削除
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG_BAR)
-        if cw.cwpy.setting.scrollable_log:
+        if cw.cwpy.setting.is_logscrollable():
             self.mwin = None
             # 表示範囲
             top = self._scrollbar.scrpos_noscale
