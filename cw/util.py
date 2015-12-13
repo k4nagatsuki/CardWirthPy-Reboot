@@ -906,6 +906,12 @@ def join_paths(*paths):
     """
     return "/".join(filter(lambda a: a, paths)).replace("\\", "/").rstrip("/")
 
+# FIXME: パスによって以下のような警告が標準エラー出力に出るようだが、詳細が分からない。
+#        ***\ntpath.py:533: UnicodeWarning: Unicode unequal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+#        おそらく実際的な問題は発生しないので、とりあえず警告を無効化する。
+import warnings
+warnings.filterwarnings("ignore", category=UnicodeWarning)
+
 def relpath(path, start):
     if len(start) < len(path) and path.startswith(start):
         path2 = path[len(start):]
