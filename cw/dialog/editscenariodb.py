@@ -82,13 +82,13 @@ class ConstructScenarioDB(wx.Dialog):
             for dpath in dpaths:
                 if self._cancel:
                     break
-                s2 = cw.scenariodb.find_alldirectories(dpath)
+                s2 = cw.scenariodb.find_alldirectories(dpath, lambda: self._cancel)
                 count += len(s2)
                 s.update(s2)
             self._curnum += 1
 
         db = cw.scenariodb.Scenariodb()
-        if self._clear:
+        if self._clear and not self._cancel:
             db.delete_all(commit=False)
 
         completed = 0
@@ -103,9 +103,9 @@ class ConstructScenarioDB(wx.Dialog):
                 completed += 1
                 self._curnum = len(self.dpaths) + int((float(completed)/count)*100)
 
-        db.commit()
-
         if not self._cancel:
+            db.commit()
+
             self._message = u"データベース内の空領域を再編成しています..."
             db.vacuum()
 
@@ -132,6 +132,7 @@ class ConstructScenarioDB(wx.Dialog):
 
         def progress():
             while not self._complete and not dlg.cancel:
+                self._cancel = dlg.cancel
                 wx.CallAfter(dlg.Update, self._curnum, self._message)
                 time.sleep(0.001)
             self._cancel = dlg.cancel

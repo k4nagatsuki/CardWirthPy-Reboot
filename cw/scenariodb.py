@@ -704,17 +704,17 @@ class Scenariodb(object):
     def close(self):
         self.con.close()
 
-def find_alldirectories(dpath):
+def find_alldirectories(dpath, is_cancel=None):
     """dpath以下のシナリオが存在しうる
     ディレクトリの一覧を取得する。
     シナリオのディレクトリ自体は除外される。
     """
     result = set()
     exclude = set()
-    _find_alldirectories(dpath, result, exclude)
+    _find_alldirectories(dpath, result, exclude, is_cancel)
     return result
 
-def _find_alldirectories(dpath, result, exclude):
+def _find_alldirectories(dpath, result, exclude, is_cancel):
     dpath = cw.util.get_linktarget(dpath)
     abs = os.path.abspath(dpath)
     abs = os.path.normpath(abs)
@@ -724,11 +724,13 @@ def _find_alldirectories(dpath, result, exclude):
     exclude.add(abs)
     result.add(dpath)
     for fname in os.listdir(dpath):
+        if is_cancel and is_cancel():
+            return
         dpath2 = cw.util.join_paths(dpath, fname)
         dpath2 = cw.util.get_linktarget(dpath2)
         if not os.path.isdir(dpath2) or is_scenario(dpath2):
             continue
-        _find_alldirectories(dpath2, result, exclude)
+        _find_alldirectories(dpath2, result, exclude, is_cancel)
 
 def is_scenario(path):
     """
