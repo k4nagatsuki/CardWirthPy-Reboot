@@ -35,33 +35,37 @@ class Feature(object):
         # 狡猾-正直
         self.trickish   = self.data.getfloat("Mental", "trickish", 0.0)
 
-    def modulate(self, data):
+    def modulate(self, data, physical=True, mental=True):
         """dataの能力値を特性によって調整する。"""
-        data.dex += self.dexbonus
-        data.agl += self.aglbonus
-        data.int += self.intbonus
-        data.str += self.strbonus
-        data.vit += self.vitbonus
-        data.min += self.minbonus
-        data.aggressive += self.aggressive
-        data.cheerful   += self.cheerful
-        data.brave      += self.brave
-        data.cautious   += self.cautious
-        data.trickish   += self.trickish
+        if physical:
+            data.dex += self.dexbonus
+            data.agl += self.aglbonus
+            data.int += self.intbonus
+            data.str += self.strbonus
+            data.vit += self.vitbonus
+            data.min += self.minbonus
+        if mental:
+            data.aggressive += self.aggressive
+            data.cheerful   += self.cheerful
+            data.brave      += self.brave
+            data.cautious   += self.cautious
+            data.trickish   += self.trickish
 
-    def demodulate(self, data):
+    def demodulate(self, data, physical=True, mental=True):
         """modulate()と逆の調整を行う。"""
-        data.dex -= self.dexbonus
-        data.agl -= self.aglbonus
-        data.int -= self.intbonus
-        data.str -= self.strbonus
-        data.vit -= self.vitbonus
-        data.min -= self.minbonus
-        data.aggressive -= self.aggressive
-        data.cheerful   -= self.cheerful
-        data.brave      -= self.brave
-        data.cautious   -= self.cautious
-        data.trickish   -= self.trickish
+        if physical:
+            data.dex -= self.dexbonus
+            data.agl -= self.aglbonus
+            data.int -= self.intbonus
+            data.str -= self.strbonus
+            data.vit -= self.vitbonus
+            data.min -= self.minbonus
+        if mental:
+            data.aggressive -= self.aggressive
+            data.cheerful   -= self.cheerful
+            data.brave      -= self.brave
+            data.cautious   -= self.cautious
+            data.trickish   -= self.trickish
 
 """性別の定義。"""
 class Sex(Feature):

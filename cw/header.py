@@ -1019,7 +1019,7 @@ class AdventurerHeader(object):
         nextage= cw.cwpy.setting.periodcoupons[index + 1]
         data = cw.data.yadoxml2etree(self.fpath)
 
-        # 能力値を再調整
+        # 能力値を再調整。ただし精神傾向は変化しない
         p = data.find("Property/Ability/Physical")
         m = data.find("Property/Ability/Mental")
         data.dex = p.getint(".", "dex", 0)
@@ -1041,8 +1041,8 @@ class AdventurerHeader(object):
         data.maxvit = race.vit + 6
         data.maxmin = race.min + 6
 
-        cw.cwpy.setting.periods[index].demodulate(data)
-        cw.cwpy.setting.periods[index + 1].modulate(data)
+        cw.cwpy.setting.periods[index].demodulate(data, mental=False)
+        cw.cwpy.setting.periods[index + 1].modulate(data, mental=False)
         cw.features.wrap_ability(data)
 
         p.set("dex", str(int(data.dex)))
@@ -1051,11 +1051,6 @@ class AdventurerHeader(object):
         p.set("str", str(int(data.str)))
         p.set("vit", str(int(data.vit)))
         p.set("min", str(int(data.min)))
-        m.set("aggressive", str(data.aggressive))
-        m.set("cheerful",   str(data.cheerful))
-        m.set("brave",      str(data.brave))
-        m.set("cautious",   str(data.cautious))
-        m.set("trickish",   str(data.trickish))
 
         for e in data.getfind("Property/Coupons"):
             if e.text <> self.age:
