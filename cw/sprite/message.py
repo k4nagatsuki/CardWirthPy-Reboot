@@ -294,14 +294,10 @@ class MessageWindow(base.CWPySprite):
         # 左右接続のために伸ばす文字
         r_join = re.compile(u"[―─＿￣]")
 
-        def put_topbottom(y, height, space=True):
-            if space:
-                self.top_noscale = min(y-yp_noscale, self.top_noscale)
-                bottom = self.rect_noscale[3]-yp_noscale-lineheight_noscale*7
-                self.bottom_noscale = max(y+height+bottom, self.bottom_noscale)
-            else:
-                self.top_noscale = min(y, self.top_noscale)
-                self.bottom_noscale = max(y+height, self.bottom_noscale)
+        bottom = self.rect_noscale[3]-yp_noscale-lineheight_noscale*7
+        def put_topbottom(y, height):
+            self.top_noscale = min(y-yp_noscale, self.top_noscale)
+            self.bottom_noscale = max(y+height+bottom, self.bottom_noscale)
             self.top_noscale = max(0, self.top_noscale)
             self.bottom_noscale = min(self.rect_noscale[3], self.bottom_noscale)
 
@@ -336,7 +332,7 @@ class MessageWindow(base.CWPySprite):
                     if userfont:
                         # TODO scaleinfo
                         cpos = (pos[0]+cw.s(1), pos[1]+cw.s(1))
-                        put_topbottom(y_noscale+1, charimg.get_height(), space=False)
+                        put_topbottom(y_noscale+1, charimg.get_height())
                         images.append((cpos, None, cw.s(charimg), None))
                         pos = pos[0] + cw.s(20), pos[1]
                         skip = True
@@ -401,6 +397,10 @@ class MessageWindow(base.CWPySprite):
                     px += (cwidth-image.get_width() + cw.s(2)) / 2
                 py += (lineheight-cheight) / 2
             images.append(((px, py), image, image2, image3))
+
+        if self.bottom_noscale <= self.top_noscale:
+            self.top_noscale = cw.s(0)
+            self.bottom_noscale = yp_noscale + bottom
 
         return images
 
