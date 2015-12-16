@@ -1554,7 +1554,7 @@ class Character(object):
     def _set_sex(self, sex):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        old = self.get_sex()
+        old = self._get_sex()
         if old:
             self._remove_coupon(old)
         self._set_coupon(sex, 0)
@@ -1588,7 +1588,7 @@ class Character(object):
     def _set_age(self, age):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        old = self.get_age()
+        old = self._get_age()
         if old:
             self._remove_coupon(old)
         self._set_coupon(age, 0)
