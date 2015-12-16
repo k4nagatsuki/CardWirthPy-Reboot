@@ -123,7 +123,10 @@ class Character(object):
         # 状態の正規化
         self.cardimg = None
         if self.is_unconscious():
-            self.set_unconsciousstatus()
+            # 最初から意識不明の場合、基本的に全てのステータスが
+            # クリアされるが、唯一、回数制限つきの付帯能力だけは、
+            # 後から意識不明になった時と違ってクリアされない(CardWirth 1.50)
+            self.set_unconsciousstatus(clearbeast=False)
 
         # 適性検査用のCardHeader。
         self.test_aptitude = None
@@ -2011,7 +2014,7 @@ class Character(object):
     #　状態変更用
     #---------------------------------------------------------------------------
 
-    def set_unconsciousstatus(self):
+    def set_unconsciousstatus(self, clearbeast=True):
         """
         意識不明に伴う状態回復。
         強化値もすべて0、付帯召喚以外の召喚獣カードも消去。
@@ -2026,7 +2029,8 @@ class Character(object):
         self.set_enhance_avo(0, 0)
         self.set_enhance_res(0, 0)
         self.set_enhance_def(0, 0)
-        self.set_beast(vanish=True)
+        if clearbeast:
+            self.set_beast(vanish=True)
 
     def set_fullrecovery(self):
         """

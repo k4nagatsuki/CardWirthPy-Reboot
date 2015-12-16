@@ -144,6 +144,11 @@ class Effect(object):
                 success_res = self.check_resist(target)
                 success_avo = self.check_avoid(target)
 
+        if not success_res and self.resisttype == "Resist" and not target.is_resistable():
+            allsuccess = True
+        if not success_avo and self.resisttype == "Avoid" and not target.is_avoidable():
+            allsuccess = True
+
         # ダメージ効果の有無
         countdamage = self.count_motion("damage") + self.count_motion("absorb")
         hasdamage = 0 < countdamage
