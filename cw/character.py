@@ -254,6 +254,7 @@ class Character(object):
         e = self.data.find("Property/Ability/Physical")
         e.set(name, str(int(value)))
         self.physical[name] = float(value)
+        self._clear_vocationcache()
 
     def set_mental(self, name, value):
         if cw.cwpy.ydata:
@@ -261,6 +262,7 @@ class Character(object):
         e = self.data.find("Property/Ability/Mental")
         e.set(name, str(value))
         self.mental[name] = float(value)
+        self._clear_vocationcache()
 
     def get_cardpocket(self):
         flag = bool(self.data.getroot().tag == "CastCard")
@@ -1234,6 +1236,10 @@ class Character(object):
         voc = int(physical + mental)
         self._voc_tbl[vo] = voc
         return voc
+
+    def _clear_vocationcache(self):
+        """能力値のキャッシュをクリアする。"""
+        self._voc_tbl = {}
 
     def get_enhance_act(self):
         """
