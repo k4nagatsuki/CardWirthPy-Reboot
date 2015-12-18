@@ -1603,7 +1603,7 @@ class RaceHeader(object):
 
         for e in data.getfind("Coupons"):
             name = e.gettext(".", "")
-            value = 0
+            value = e.getint(".", "value", 0)
             self.coupons.append((name, value))
 
 class UnknownRaceHeader(RaceHeader):

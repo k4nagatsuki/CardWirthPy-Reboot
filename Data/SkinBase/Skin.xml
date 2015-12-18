@@ -9,7 +9,24 @@
     <ClassicStyleText>True</ClassicStyleText>
     <CW120VocationLevel>False</CW120VocationLevel>
   </Property>
-  <Races />
+  <Races>
+    <!-- Race>
+      <Name>人間</Name>
+      <Description>この世界の最も標準的な種族。\n何でもそつなくこなす反面、突出したところはない。\n環境への適応能力が高く、多彩な文化を持つ。</Description>
+      <Feature>
+        <Type automaton="False" constructure="False" undead="False" unholy="False" />
+        <NoEffect magic="False" weapon="False" />
+        <Resist fire="False" ice="False" />
+        <Weakness fire="False" ice="False" />
+      </Feature>
+      <Ability>
+        <Physical dex="6" agl="6" int="6" str="6" vit="6" min="6" />
+        <Mental aggressive="0" cheerful="0" brave="0" cautious="0" trickish="0" />
+        <Enhance avoid="0" resist="0" defense="0" />
+      </Ability>
+      <Coupons />
+    </Race -->
+  </Races>
   <Sexes>
     <Sex father="True" mother="False" subName="Male">
       <Physical agl="0" dex="0" int="0" min="0" str="1" vit="0" />

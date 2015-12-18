@@ -290,8 +290,8 @@ class AdventurerData(object):
         if not isinstance(race, cw.header.UnknownRaceHeader):
             self.set_coupon(u"＠Ｒ" + race.name, 0)
 
-        for name, _velue in race.coupons:
-            self.set_coupon(name, 0)
+        for name, value in race.coupons:
+            self.set_coupon(name, value)
 
     def set_parents(self, father=None, mother=None):
         if father:
@@ -1136,7 +1136,7 @@ class RacePage(AdventurerCreaterPage):
         AdventurerCreaterPage.__init__(self, parent)
         choices = [h.name for h in cw.cwpy.setting.races]
         self.race = choices[0]
-        self.choice = wx.Choice(self, choices=choices, size=cw.wins((125, 18)))
+        self.choice = wx.Choice(self, choices=choices, size=cw.wins((125, -1)))
         self.choice.SetStringSelection(self.race)
         self._bind()
         self._do_layout()
@@ -1170,13 +1170,13 @@ class RacePage(AdventurerCreaterPage):
         cwidth = self.GetClientSize()[0]
         # 種族
         dc.SetTextForeground(wx.BLACK)
-        font = cw.cwpy.rsrc.get_wxfont("dlgtitle2", pixelsize=cw.wins(20))
+        font = cw.cwpy.rsrc.get_wxfont("createtitle", pixelsize=cw.wins(20))
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_title"]
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の種族を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = cw.cwpy.msgs["race_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1188,7 +1188,7 @@ class RacePage(AdventurerCreaterPage):
         if s.count("\n") > 7:
             s = "\n".join(s.split("\n")[0:8])
 
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
         dc.SetFont(font)
         dc.DrawLabel(s, cw.wins((125, 130, 200, 110)))
 
@@ -1232,7 +1232,7 @@ class RelationPage(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 親となる条件を満たしている冒険者が宿にいます。
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = cw.cwpy.msgs["relation_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1318,7 +1318,7 @@ class RelationPage(AdventurerCreaterPage):
 
         cw.util.draw_center(dc, s, cw.wins((315, 220)))
         # 父親消費EP
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
         dc.SetFont(font)
 
         if self.father:
@@ -1462,8 +1462,8 @@ class TalentPage(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(35))
         # 新規冒険者の傾向を選択して下さい。
-        font1 = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
-        font2 = cw.cwpy.rsrc.get_wxfont("dlgmsg", pixelsize=cw.wins(14))
+        font1 = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
+        font2 = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15))
         dc.SetFont(font1)
         s = cw.cwpy.msgs["nature_message"]
         w = dc.GetTextExtent(s)[0]
@@ -1472,12 +1472,12 @@ class TalentPage(AdventurerCreaterPage):
         natures = filter(lambda n: not n.special, cw.cwpy.setting.natures)
         xx = [cw.wins(65), cw.wins(255)]
         x = xx[0]
-        y = cw.wins(92)
+        y = cw.wins(87)
         yd = cw.wins(18)
         yp = cw.wins(55)
         w = cw.wins(145)
         if 6 < len(natures):
-            y = cw.wins(85)
+            y = cw.wins(80)
             yd = cw.wins(15)
             yp = cw.wins(45)
         for nature in natures:
@@ -1528,11 +1528,11 @@ class AttrPage(AdventurerCreaterPage):
         w = dc.GetTextExtent(s)[0]
         dc.DrawText(s, (cwidth - w) / 2, cw.wins(20))
         # 新規冒険者の生まれや性格などの個性を決定します。
-        font = cw.cwpy.rsrc.get_wxfont("dlgmsg2", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         dc.SetFont(font)
         s = cw.cwpy.msgs["making_message"]
         w = dc.GetTextExtent(s)[0]
-        dc.DrawText(s, (cwidth - w) / 2, cw.wins(45))
+        dc.DrawText(s, (cwidth - w) / 2, cw.wins(43))
         # 特性
         colour = wx.Colour(128, 128, 128)
         dc.SetTextForeground(colour)
