@@ -1706,6 +1706,7 @@ class ScenarioSelect(select.Select):
         if data and isinstance(data[1], FindResult):
             # 検索結果はクリアしない
             return
+        del self.scetable[data[1]]
         self.tree.DeleteChildren(item)
         child = self.tree.AppendItem(item, u"読込中...")
         self.tree.SetItemPyData(child, None)
