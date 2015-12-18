@@ -1048,9 +1048,8 @@ class ScenarioSelect(select.Select):
             encoding = sys.getfilesystemencoding()
             if filer:
                 filer = filer.encode(encoding)
-                dpath = os.path.dirname(fpath)
-                dpath = dpath.encode(encoding)
-                seq = [filer, dpath]
+                fpath = fpath.encode(encoding)
+                seq = [filer, fpath]
                 try:
                     subprocess.Popen(seq)
                 except:
