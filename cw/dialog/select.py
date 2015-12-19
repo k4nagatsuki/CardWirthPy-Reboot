@@ -2,16 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import time
 import threading
 import shutil
+import itertools
 import wx
 
 import cw
+import cw.binary.cwfile
+import cw.binary.environment
+import cw.binary.party
+import cw.binary.adventurer
 import message
 import charainfo
-import text
 
 #-------------------------------------------------------------------------------
 #　選択ダイアログ スーパークラス
@@ -22,6 +25,8 @@ class Select(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, name,
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self._processing = False
+        self.list = []
+        self.toppanel = None
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # buttonlist
@@ -87,7 +92,7 @@ class Select(wx.Dialog):
             for child in ctrl.GetChildren():
                 recurse(child)
         recurse(self)
-        self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.toppanel.Bind(wx.EVT_MOTION, self.OnMotion)
 
         buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
@@ -235,7 +240,7 @@ class Select(wx.Dialog):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
         self.ProcessEvent(btnevent)
 
-    def OnPaint(self, event):
+    def OnPaint2(self, event):
         self.draw()
 
     def draw(self, update=False):
@@ -283,23 +288,21 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.right2btn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
 
-    def _disable_btn(self):
-        self.left2btn.Disable()
-        self.leftbtn.Disable()
-        self.rightbtn.Disable()
-        self.right2btn.Disable()
+    def _disable_btn(self, enables=[]):
+        lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
+        for btn in itertools.chain(self.buttonlist, lrbtns):
+            if btn in enables:
+                btn.Enable()
+            else:
+                btn.Disable()
 
-        for btn in self.buttonlist:
-            btn.Disable()
-
-    def _enable_btn(self):
-        self.left2btn.Enable()
-        self.leftbtn.Enable()
-        self.rightbtn.Enable()
-        self.right2btn.Enable()
-
-        for btn in self.buttonlist:
-            btn.Enable()
+    def _enable_btn(self, disables=[]):
+        lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
+        for btn in itertools.chain(self.buttonlist, lrbtns):
+            if btn in disables:
+                btn.Disable()
+            else:
+                btn.Enable()
 
     def can_clickcenter(self):
         """パネルの中央部分をクリックで決定可能ならTrue。"""
@@ -359,6 +362,7 @@ class MultiViewSelect(Select):
     def __init__(self, parent, title, enterid, views=10, show_multi=False, lines=2):
         # ダイアログボックス作成
         Select.__init__(self, parent, title)
+        self.viewbtn = None
         self._processing = False
         self._views = views
         self._lines = lines
@@ -478,9 +482,10 @@ class MultiViewSelect(Select):
             sindex = (mousepos[0] // rw) + ((mousepos[1] // rh) * (self.views // self._lines))
             page = self.get_page()
             index = page * self.views + sindex
+            index = min(index, len(self.list)-1)
             if self.index <> index:
+                self.index = index
                 cw.cwpy.play_sound("click")
-                self.index = min(index, len(self.list)-1)
                 self.index_changed()
                 self.enable_btn()
                 self.draw(True)
@@ -491,6 +496,7 @@ class MultiViewSelect(Select):
         cw.cwpy.play_sound("equipment")
         self.change_view()
         self.draw(True)
+        self.enable_btn()
 
     def change_view(self):
         if self.views == 1:
@@ -501,6 +507,9 @@ class MultiViewSelect(Select):
             self.views = 1
             self.viewbtn.SetLabel(cw.cwpy.msgs["member_list"])
             self.save_views(False)
+
+    def enable_btn(self):
+        pass
 
     def get_page(self):
         return self.index / self.views
@@ -584,10 +593,7 @@ class YadoSelect(MultiViewSelect):
         # リストが空だったらボタンを無効化
         if not self.list:
             self.okbtn.SetLabel(cw.cwpy.msgs["decide"])
-            self._disable_btn()
-            self.exbtn.Enable()
-            self.newbtn.Enable()
-            self.closebtn.Enable()
+            self._disable_btn((self.exbtn, self.newbtn, self.closebtn))
             return
 
         if self.classic[self.index]:
@@ -595,12 +601,8 @@ class YadoSelect(MultiViewSelect):
         else:
             self.okbtn.SetLabel(cw.cwpy.msgs["decide"])
 
-        if len(self.list) == 1:
-            self._enable_btn()
-            self.rightbtn.Disable()
-            self.right2btn.Disable()
-            self.leftbtn.Disable()
-            self.left2btn.Disable()
+        if len(self.list) <= 1:
+            self._enable_btn((self.rightbtn, self.right2btn, self.leftbtn, self.left2btn))
         else:
             self._enable_btn()
 
@@ -1467,16 +1469,12 @@ class PartySelect(MultiViewSelect):
     def enable_btn(self):
         # リストが空だったらボタンを無効化
         if not self.list:
-            self._disable_btn()
+            enables = set()
             if cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord:
-                self.partyrecordbtn.Enable()
-            self.closebtn.Enable()
+                enables.add(self.partyrecordbtn, self.closebtn)
+            self._disable_btn(enables)
         elif len(self.list) == 1:
-            self._enable_btn()
-            self.rightbtn.Disable()
-            self.right2btn.Disable()
-            self.leftbtn.Disable()
-            self.left2btn.Disable()
+            self._enable_btn((self.rightbtn, self.right2btn, self.leftbtn, self.left2btn))
         else:
             self._enable_btn()
 
@@ -1874,26 +1872,21 @@ class PlayerSelect(MultiViewSelect):
 
     def enable_btn(self):
         # リストが空だったらボタンを無効化
+        disables = set()
+        # 冒険者が6人だったら追加ボタン無効化
+        if len(cw.cwpy.get_pcards()) == 6:
+            disables.add(self.addbtn)
+
         if not self.list:
-            self._disable_btn()
-            self.newbtn.Enable()
-            self.closebtn.Enable()
-            self.exbtn.Enable()
-            self.viewbtn.Enable()
+            self._disable_btn((self.newbtn, self.closebtn, self.exbtn, self.viewbtn))
         elif len(self.list) <= self.views:
-            self._enable_btn()
-            self.rightbtn.Disable()
-            self.right2btn.Disable()
-            self.leftbtn.Disable()
-            self.left2btn.Disable()
+            disables.update((self.rightbtn, self.right2btn, self.leftbtn, self.left2btn))
+            self._enable_btn(disables)
             if not self.list:
                 self.index = 0
         else:
-            self._enable_btn()
+            self._enable_btn(disables)
 
-        # 冒険者が6人だったら追加ボタン無効化
-        if len(cw.cwpy.get_pcards()) == 6:
-            self.addbtn.Disable()
 
     def OnSort(self, event):
         if self._processing:
@@ -2563,14 +2556,9 @@ class Album(PlayerSelect):
     def enable_btn(self):
         # リストが空だったらボタンを無効化
         if not self.list:
-            self._disable_btn()
-            self.closebtn.Enable()
+            self._disable_btn((self.closebtn,))
         elif len(self.list) == 1:
-            self._enable_btn()
-            self.rightbtn.Disable()
-            self.right2btn.Disable()
-            self.leftbtn.Disable()
-            self.left2btn.Disable()
+            self._enable_btn((self.rightbtn, self.right2btn, self.leftbtn, self.left2btn))
         else:
             self._enable_btn()
 
