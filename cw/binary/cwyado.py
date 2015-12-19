@@ -618,8 +618,11 @@ class UnconvCWYado(object):
                 data, fpath = write_card(header)
                 unusedcards.append((os.path.basename(fpath), data))
                 yadocards[header.fpath] = os.path.basename(fpath), data
-            except cw.binary.cwfile.UnsupportedError:
-                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
+            except cw.binary.cwfile.UnsupportedError, ex:
+                if ex.msg:
+                    s = ex.msg
+                else:
+                    s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
                 self.write_errorlog(s)
             except Exception:
                 cw.util.print_ex()
@@ -652,8 +655,11 @@ class UnconvCWYado(object):
                     f.flush()
                     f.close()
 
-            except cw.binary.cwfile.UnsupportedError:
-                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
+            except cw.binary.cwfile.UnsupportedError, ex:
+                if ex.msg:
+                    s = ex.msg
+                else:
+                    s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
                 self.write_errorlog(s)
                 cw.util.remove(ppath)
                 cw.util.remove(hpath)
@@ -679,8 +685,11 @@ class UnconvCWYado(object):
 
                     yadocards[header.fpath] = os.path.basename(fpath), data
 
-                except cw.binary.cwfile.UnsupportedError:
-                    s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name, header.name)
+                except cw.binary.cwfile.UnsupportedError, ex:
+                    if ex.msg:
+                        s = ex.msg
+                    else:
+                        s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name, header.name)
                     self.write_errorlog(s)
                 except Exception:
                     cw.util.print_ex()
@@ -747,8 +756,11 @@ class UnconvCWYado(object):
 
                 if logdir:
                     cw.util.remove(cw.util.join_paths(cw.tempdir, u"ScenarioLog"))
-            except cw.binary.cwfile.UnsupportedError:
-                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name)
+            except cw.binary.cwfile.UnsupportedError, ex:
+                if ex.msg:
+                    s = ex.msg
+                else:
+                    s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name)
                 self.write_errorlog(s)
                 cw.util.remove(fpath1)
                 cw.util.remove(fpath2)
@@ -777,8 +789,11 @@ class UnconvCWYado(object):
                     f.flush()
                     f.close()
 
-            except cw.binary.cwfile.UnsupportedError:
-                s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
+            except cw.binary.cwfile.UnsupportedError, ex:
+                if ex.msg:
+                    s = ex.msg
+                else:
+                    s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
                 self.write_errorlog(s)
                 cw.util.remove(fpath)
             except Exception:

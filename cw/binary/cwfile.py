@@ -4,6 +4,7 @@
 import struct
 
 import io
+from email import message
 
 import cw.util
 
@@ -12,7 +13,10 @@ class UnsupportedError(Exception):
     """指定されたエンジンバージョンで使用できない機能を
     逆変換しようとした際に投げられる。
     """
-    pass
+    def __init__(self, msg=None):
+        Exception.__init__(self)
+        self.msg = msg
+
 
 class CWFile(io.BufferedReader):
     """CardWirthの生成したバイナリファイルを

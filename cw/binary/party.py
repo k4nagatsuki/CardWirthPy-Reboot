@@ -9,6 +9,12 @@ import adventurer
 import util
 
 import cw
+import cw.binary.cwfile
+import cw.binary.summary
+import cw.binary.album
+import cw.binary.skill
+import cw.binary.item
+import cw.binary.beast
 import bgimage
 
 
@@ -378,6 +384,7 @@ class PartyMembers(base.CWBinaryBase):
         f.write_byte(0) # 不明
         f.write_byte(0) # 不明
         f.write_byte(5) # 不明
+        errorlog = []
         for i, member in enumerate(adventurers):
             if logdir:
                 fpath = cw.util.join_paths(logdir, "Members", os.path.basename(member.fpath))
@@ -395,7 +402,15 @@ class PartyMembers(base.CWBinaryBase):
                 if f.write_errorlog:
                     cardname = member.gettext("Property/Name", "")
                     s = u"%s の %s は対象エンジンで使用できないため、変換しません。\n" % (name, cardname)
-                    f.write_errorlog(s)
+                    errorlog.append(s)
+        if advnum == 0:
+            s = u"%s は全メンバが対象エンジンで使用できないため、変換しません。\n" % (name)
+            raise cw.binary.cwfile.UnsupportedError(s)
+
+        if f.write_errorlog:
+            for s in errorlog:
+                f.write_errorlog(s)
+
         tell = f.tell()
         f.seek(advnumpos)
         f.write_byte(advnum + 30)
