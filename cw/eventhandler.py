@@ -908,10 +908,10 @@ class EventHandlerForBacklog(EventHandler):
 
         self.index = min(self.index, len(self.backlog)-1)
 
-        self._page = cw.sprite.message.BacklogPage(self.index+1, len(self.backlog), cw.cwpy.backloggrp)
         self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp)
         self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
         self._scrollbar.lazyscroll_func = self.update_sprites
+        self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
         cw.cwpy.backloggrp.add(self._scrollbar, layer=cw.LAYER_LOG_SCROLLBAR)
 
         self._mwins = [None] * len(self.backlog)
@@ -1217,6 +1217,20 @@ class EventHandlerForBacklog(EventHandler):
         elif key == pygame.locals.K_END:
             self._scrollbar.set_pos(self._scrollbar.scrsize_noscale-cw.SIZE_AREA[1], lazy=True)
 
+    def _get_maxpage(self):
+        if not self.backlog:
+            return 1
+
+        if cw.cwpy.setting.is_logscrollable():
+            bottom = self._scrollbar.scrsize_noscale
+            btop = bottom - cw.SIZE_AREA[1]
+            page = len(self.backlog)
+            while 0 < page and btop <= self._pos_noscale[page-1]:
+                page -= 1
+            return page+1
+        else:
+            return len(self.backlog)
+
     def update_sprites(self):
         if not cw.cwpy._is_showingbacklog:
             return
@@ -1246,11 +1260,11 @@ class EventHandlerForBacklog(EventHandler):
             f2 = bisect.bisect_left(self._pos_noscale, top)
             if f2 <> self.index:
                 self.index = f2
-                self._page.update_page(self.index+1, len(self.backlog))
+                self._page.update_page(self.index+1, self._get_maxpage())
         else:
             # 次のログ
             self.mwin = self.backlog[self.index].create_message()
-            self._page.update_page(self.index+1, len(self.backlog))
+            self._page.update_page(self.index+1, self._get_maxpage())
 
 class EventHandlerForEffectBooster(EventHandler):
     def __init__(self):
