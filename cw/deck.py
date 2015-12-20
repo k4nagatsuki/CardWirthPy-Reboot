@@ -38,10 +38,13 @@ class Deck(object):
 
         return seq
 
-    def set_nextcard(self, resid=0, brave=False):
+    def set_nextcard(self, resid=0):
         """山札の一番上に指定したIDのアクションカードを置く。
         IDを指定しなかった場合(0の場合)は、スキルカードを置く。
         """
+        self.nextcards.append(resid)
+
+    def _set_nextcard(self, resid, brave=False):
         # アクションカード
         if resid and resid in cw.cwpy.rsrc.actioncards:
             header = cw.cwpy.rsrc.actioncards[resid]
@@ -58,11 +61,9 @@ class Deck(object):
                 else:
                     return
 
-        # ペナルティカードじゃなかったら、山札からカードを消す
-        if not resid < 0 and header in self.talon:
-            self.talon.remove(header)
-
-        self.nextcards.append(header)
+        # 山札の一番上へカードを置く
+        self.talon.remove(header)
+        self.talon.append(header)
 
     def shuffle(self):
         self.talon = cw.cwpy.dice.shuffle(self.talon)
@@ -136,8 +137,6 @@ class Deck(object):
                                 if not h.ref_original == header.ref_original]
             self.talon = [h for h in self.talon
                                 if not h.ref_original == header.ref_original]
-            self.nextcards = [h for h in self.nextcards
-                                if not h.ref_original == header.ref_original]
 
     def get_skillpower(self, ccard):
         # 一旦山札から全てのスキルを取り除く
@@ -149,7 +148,7 @@ class Deck(object):
 
         # 現在手札にある分と配付予約にある分をカウントする
         handcounts = {}
-        for header in itertools.chain(self.hand, self.nextcards):
+        for header in self.hand:
             header = header.ref_original()
             count = handcounts.get(header, 0)
             count += 1
@@ -177,18 +176,12 @@ class Deck(object):
                     hand.append(header)
             self.hand = hand
 
-        nextcards = []
-        for header in self.nextcards:
-            if header.type <> "SkillCard":
-                nextcards.append(header)
-        self.nextcards = nextcards
-
         self._update_skillpower(ccard)
 
     def _update_skillpower(self, ccard):
         # 手札と山札にある数によってスキルカードの使用回数を更新する
         handcounts = {}
-        for header in itertools.chain(self.hand, self.nextcards, self.talon):
+        for header in itertools.chain(self.hand, self.talon):
             if header.type == "SkillCard":
                 header = header.ref_original()
                 count = handcounts.get(header, 0)
@@ -199,7 +192,7 @@ class Deck(object):
             count = handcounts.get(header, 0)
             header.set_uselimit(count - header.uselimit)
 
-        for header in itertools.chain(self.hand, self.nextcards, self.talon):
+        for header in itertools.chain(self.hand, self.talon):
             if header.type == "SkillCard":
                 count = handcounts.get(header.ref_original(), 0)
                 header.uselimit = count
@@ -241,14 +234,12 @@ class Deck(object):
             self._throwaway = False
 
         while len(self.hand) < maxn:
-            if not self.nextcards:
+            if self.nextcards:
+                self._set_nextcard(self.nextcards.pop(), ccard.is_brave())
+            else:
                 self.check_mind(ccard)
 
-            if self.nextcards:
-                header = self.nextcards.pop()
-            else:
-                header = self.talon.pop()
-
+            header = self.talon.pop()
             header_copy = header.copy()
 
             if header.type == "ActionCard":
@@ -268,16 +259,16 @@ class Deck(object):
                 n = cw.cwpy.dice.roll(1, 3) + 4
             else:
                 n = cw.cwpy.dice.roll(1, 2) + 4
-            self.set_nextcard(n)
+            self._set_nextcard(n)
         elif ccard.is_brave():
             n = cw.cwpy.dice.roll(1, 4) - 1
-            self.set_nextcard(n, brave=True)
+            self._set_nextcard(n, brave=True)
         elif ccard.is_overheat():
-            self.set_nextcard(2)
+            self._set_nextcard(2)
         elif ccard.is_confuse():
             # 混乱時、混乱カードは2/3の確率で配布とする。
             if cw.cwpy.dice.roll(1, 3)>1:
-                self.set_nextcard(-1)
+                self._set_nextcard(-1)
 
     def use(self, header):
         """headerを使用する。
