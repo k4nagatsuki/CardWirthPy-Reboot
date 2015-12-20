@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="46b80c563c44ce487fbfb91ff4be0ab0">1.28</Scenario><!-- 大海魔/Area6.wid -->
   <Scenario md5="978ff5a3863fdd25e94acc01f7adeb9c">1.28</Scenario><!-- 追放者の幸福/Mate1.wid -->
   <Scenario md5="7081a76051c01568442dad507f02be71">1.28</Scenario><!-- 家鴨の仔/Mate1.wid -->
   <Scenario md5="64010b90dce08817b6206793a4235a55">1.28</Scenario><!-- 永き眠りの果てに/Mate1.wid -->
