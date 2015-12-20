@@ -876,9 +876,9 @@ class EventHandlerForBacklog(EventHandler):
 
         self._in_scroll = False
 
-        self._update_posdata()
+        self._update_posdata(init=True)
 
-    def _update_posdata(self):
+    def _update_posdata(self, init):
         self._clear_sprites()
 
         self.backlog = self.backlog_all
@@ -906,12 +906,16 @@ class EventHandlerForBacklog(EventHandler):
             self._bottom_noscale = []
             scrsize_noscale = 0
 
-        self.index = min(self.index, len(self.backlog)-1)
-
         self._curtain = cw.sprite.message.BacklogCurtain(cw.cwpy.backloggrp)
-        self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
-        self._scrollbar.lazyscroll_func = self.update_sprites
-        self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
+        if init:
+            self._scrollbar = cw.sprite.scrollbar.ScrollBar(scrsize_noscale-cw.SIZE_AREA[1], scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
+            self._scrollbar.lazyscroll_func = self.update_sprites
+            self.index = min(self.index, self._get_maxpage()-1)
+            self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
+        else:
+            self._scrollbar = cw.sprite.scrollbar.ScrollBar(self._scrollbar.scrpos_noscale, scrsize_noscale, visible=cw.cwpy.setting.is_logscrollable())
+            self._scrollbar.lazyscroll_func = self.update_sprites
+            self._page = cw.sprite.message.BacklogPage(self.index+1, self._get_maxpage(), cw.cwpy.backloggrp)
         cw.cwpy.backloggrp.add(self._scrollbar, layer=cw.LAYER_LOG_SCROLLBAR)
 
         self._mwins = [None] * len(self.backlog)
@@ -1170,7 +1174,7 @@ class EventHandlerForBacklog(EventHandler):
         if self._upscr <> cw.UP_SCR or self._messagelog_type <> cw.cwpy.setting.messagelog_type:
             self._upscr = cw.UP_SCR
             self._messagelog_type = cw.cwpy.setting.messagelog_type
-            self._update_posdata()
+            self._update_posdata(init=False)
 
     def is_showing(self):
         self._check_updatesettings()
