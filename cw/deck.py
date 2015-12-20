@@ -42,7 +42,7 @@ class Deck(object):
         """山札の一番上に指定したIDのアクションカードを置く。
         IDを指定しなかった場合(0の場合)は、スキルカードを置く。
         """
-        self.nextcards.append(resid)
+        self.nextcards.insert(0, resid)
 
     def _set_nextcard(self, resid, brave=False):
         # アクションカード
