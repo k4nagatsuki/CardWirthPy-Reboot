@@ -62,7 +62,8 @@ class Deck(object):
                     return
 
         # 山札の一番上へカードを置く
-        self.talon.remove(header)
+        if not resid < 0 and header in self.talon:
+            self.talon.remove(header)
         self.talon.append(header)
 
     def shuffle(self):
