@@ -1188,9 +1188,9 @@ class RacePage(AdventurerCreaterPage):
         if s.count("\n") > 7:
             s = "\n".join(s.split("\n")[0:8])
 
-        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(14))
+        font = cw.cwpy.rsrc.get_wxfont("paneltitle2", pixelsize=cw.wins(15))
         dc.SetFont(font)
-        dc.DrawLabel(s, cw.wins((125, 130, 200, 110)))
+        dc.DrawLabel(s, cw.wins((107, 130, 200, 110)))
 
     def get_race(self):
         """
