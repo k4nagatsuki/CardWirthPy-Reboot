@@ -1706,6 +1706,9 @@ class ScenarioSelect(select.Select):
         if data and isinstance(data[1], FindResult):
             # 検索結果はクリアしない
             return
+        if not data[1] in self.scetable:
+            self.tree.Collapse(item)
+            return
         del self.scetable[data[1]]
         self.tree.DeleteChildren(item)
         child = self.tree.AppendItem(item, u"読込中...")
@@ -1822,7 +1825,7 @@ class ScenarioSelect(select.Select):
             if not parent:
                 break
 
-        if item and item.IsOk():
+        if item and item.IsOk() and self.tree.IsExpanded(item):
             # ディレクトリの内容を表示
             self.create_treeitems(item)
 
