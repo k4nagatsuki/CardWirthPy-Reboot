@@ -357,46 +357,47 @@ class MessageWindow(base.CWPySprite):
                     skip = True
                 continue
 
-            if char and not char.isspace():
-                put_topbottom(y_noscale-1, lineheight_noscale+2)
-
-            # 通常文字
-            if self.classicstyletext:
-                # クラシック形式
-                image = font.render(char, False, colour)
-                image = decorate(image, basecolour=colour)
-                image3 = font.render(char, False, (0, 0, 0))
-
-            else:
-                # CardWirthPy形式
-                image = font.render(char, True, colour)
-                image = decorate(image, basecolour=colour)
-                image3 = font.render(char, True, (0, 0, 0))
-
-                # u"―"の場合、左右の線が繋がるように補完する
-                if r_join.match(char):
-                    rect = image.get_rect()
-                    size = (rect.w + cw.s(20), rect.h)
-                    image = pygame.transform.scale(image, size)
-                    image3 = pygame.transform.scale(image3, size)
-                    image = image.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
-                    image3 = image3.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
-
-            px = pos[0]
-            py = pos[1]
-
             # 半角文字だったら文字幅は半分にする
             if cw.util.is_hw(char):
                 cwidth = cw.s(10)
             else:
                 cwidth = cw.s(20)
-            pos = pos[0] + cwidth, pos[1]
 
-            if not self.classicstyletext:
-                if image:
-                    px += (cwidth-image.get_width() + cw.s(2)) / 2
-                py += (lineheight-cheight) / 2
-            images.append(((px, py), image, image2, image3))
+            if char and not char.isspace():
+                put_topbottom(y_noscale-1, lineheight_noscale+2)
+
+                # 通常文字
+                if self.classicstyletext:
+                    # クラシック形式
+                    image = font.render(char, False, colour)
+                    image = decorate(image, basecolour=colour)
+                    image3 = font.render(char, False, (0, 0, 0))
+
+                else:
+                    # CardWirthPy形式
+                    image = font.render(char, True, colour)
+                    image = decorate(image, basecolour=colour)
+                    image3 = font.render(char, True, (0, 0, 0))
+
+                    # u"―"の場合、左右の線が繋がるように補完する
+                    if r_join.match(char):
+                        rect = image.get_rect()
+                        size = (rect.w + cw.s(20), rect.h)
+                        image = pygame.transform.scale(image, size)
+                        image3 = pygame.transform.scale(image3, size)
+                        image = image.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
+                        image3 = image3.subsurface((10, 0, min(rect.w, cw.s(20)), rect.h))
+
+                px = pos[0]
+                py = pos[1]
+
+                if not self.classicstyletext:
+                    if image:
+                        px += (cwidth-image.get_width() + cw.s(2)) / 2
+                    py += (lineheight-cheight) / 2
+                images.append(((px, py), image, image2, image3))
+
+            pos = pos[0] + cwidth, pos[1]
 
         if self.bottom_noscale <= self.top_noscale:
             self.top_noscale = cw.s(0)
