@@ -536,7 +536,7 @@ class SelectWindow(MessageWindow):
 
         self._fore = pygame.Surface(cw.s(size_noscale)).convert_alpha()
         self._fore.fill((0, 0, 0, 0))
-        self._back = self.image.copy()
+        self._back = self._fore.copy()
 
     def update_scale(self):
         self._init_style()
