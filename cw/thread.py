@@ -1002,7 +1002,9 @@ class CWPy(_Singleton, threading.Thread):
             a = float(fsize[0]) / ssize[0]
             b = float(fsize[1]) / ssize[1]
             scale = min(a, b)
-            cw.UP_WIN = scale
+            # FIXME: シナリオ選択ダイアログの縦幅が画面解像度を
+            #        超えてしまうので若干小さめにする
+            cw.UP_WIN = scale * 0.9
 
         else:
             self.scr_size = self.scr.get_size()
