@@ -53,6 +53,8 @@ class SettingsDialog(wx.Dialog):
     def __init__(self, parent):
         """設定ダイアログ。
         """
+        cw.cwpy.frame.filter_event = self.OnFilterEvent
+        self.panel = None
         if cw.cwpy.setting.show_advancedsettings:
             wx.Dialog.__init__(self, parent, -1, cw.APP_NAME + u"の設定(詳細モード)")
             self.panel = SettingsPanel(self)
@@ -75,7 +77,32 @@ class SettingsDialog(wx.Dialog):
         sizer.Fit(self)
         self.Layout()
 
+    def OnFilterEvent(self, event):
+        if not self:
+            return False
+        if event.GetEventType() in (wx.EVT_TEXT.typeId,
+                                    wx.EVT_SPINCTRL.typeId,
+                                    wx.EVT_COMBOBOX.typeId,
+                                    wx.EVT_CHECKBOX.typeId,
+                                    wx.EVT_SLIDER.typeId,
+                                    wx.EVT_CHOICE.typeId,
+                                    wx.EVT_COLOURPICKER_CHANGED.typeId,
+                                    wx.grid.EVT_GRID_CELL_CHANGED.typeId):
+            obj = event.GetEventObject()
+            if isinstance(obj, wx.Window) and obj.GetTopLevelParent() is self:
+                self.applied()
+        return False
+
+    def applied(self):
+        if self.panel:
+            self.panel.btn_apply.Enable()
+
+    def clear_applied(self):
+        if self.panel:
+            self.panel.btn_apply.Disable()
+
     def OnClose(self, event):
+        cw.cwpy.frame.filter_event = None
         self.panel.close()
         self.Destroy()
 
@@ -139,6 +166,8 @@ class SimpleSettingsPanel(wx.Panel):
         self.btn_apply = wx.Button(self, wx.ID_APPLY, u"適用")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
 
+        self.btn_apply.Disable()
+
         self._do_layout()
         self._bind()
 
@@ -195,6 +224,8 @@ class SimpleSettingsPanel(wx.Panel):
 
         if cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
             cw.cwpy.frame.debugger.refresh_tools()
+
+        self.GetTopLevelParent().clear_applied()
 
     def OnClose(self, event):
         self.Parent.Close()
@@ -291,6 +322,8 @@ class SettingsPanel(wx.Panel):
 
         self.load(cw.cwpy.setting)
 
+        self.btn_apply.Disable()
+
         self._do_layout()
         self._bind()
         self.Show()
@@ -336,6 +369,7 @@ class SettingsPanel(wx.Panel):
             try:
                 setting = cw.setting.Setting(loadfile=fpath)
                 self.load(setting)
+                self.GetTopLevelParent().applied()
             except:
                 cw.util.print_ex()
                 s = u"%sの読み込みに失敗しました。" % (os.path.basename(fpath))
@@ -348,11 +382,11 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode_init)
             self.pane_gene.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
             if cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_SINGLE:
-                self.pane_gene.ch_messagelog_type.SetValue(0)
+                self.pane_gene.ch_messagelog_type.SetSelection(0)
             elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_LIST:
-                self.pane_gene.ch_messagelog_type.SetValue(1)
+                self.pane_gene.ch_messagelog_type.SetSelection(1)
             elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_COMPRESS:
-                self.pane_gene.ch_messagelog_type.SetValue(2)
+                self.pane_gene.ch_messagelog_type.SetSelection(2)
             self.pane_gene.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax_init)
             self.pane_gene.expand.ch_expanddrawing.SetSelection(0)
             if cw.cwpy.setting.expandmode_init == "FullScreen":
@@ -479,6 +513,7 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_showsavedmessage.SetValue(cw.cwpy.setting.show_savedmessage_init)
             self.pane_ui.cb_confirmbeforesaving.SetValue(cw.cwpy.setting.confirm_beforesaving_init)
             self.pane_ui.cb_noticeimpossibleaction.SetValue(cw.cwpy.setting.noticeimpossibleaction_init)
+        self.GetTopLevelParent().applied()
 
     def OnOk(self, event):
         self.apply(cw.cwpy.setting)
@@ -925,6 +960,8 @@ class SettingsPanel(wx.Panel):
         if update and cw.cwpy.is_showingdebugger() and cw.cwpy.frame.debugger:
             cw.cwpy.frame.debugger.refresh_tools()
 
+        self.GetTopLevelParent().clear_applied()
+
     def OnClose(self, event):
         self.Parent.Close()
 
@@ -1033,7 +1070,7 @@ class SkinPanel(wx.Panel):
     def OnSkinChoice(self, event):
         self._choice_skin()
 
-    def _choice_skin(self):
+    def _choice_skin(self, init=False):
         skin = self.skindirs[self.ch_skin.GetSelection()]
         s = u"種別: %s\n場所: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
         if not skin in self.skin_summarys:
@@ -1043,6 +1080,8 @@ class SkinPanel(wx.Panel):
         self.st_skin.SetLabel(s % (skintype, cw.util.join_paths(u"Data/Skin", skin), author, desc))
         if self.editbuttons:
             self.btn_deleteskin.Enable(cw.cwpy.setting.skindirname <> skin)
+        if not init:
+            self.GetTopLevelParent().applied()
 
     def OnConvertSkin(self, event):
         dlg = cw.dialog.skin.SkinConversionDialog(self.TopLevelParent, exe=u"", from_settings=True)
@@ -1114,7 +1153,7 @@ class SkinPanel(wx.Panel):
     def copy_values(self, skin):
         if skin.ch_skin.GetStringSelection() in self.skins:
             self.ch_skin.SetStringSelection(skin.ch_skin.GetStringSelection())
-            self._choice_skin()
+            self._choice_skin(init=True)
 
 class ExpandPanel(wx.Panel):
     def __init__(self, parent, options):
@@ -1786,6 +1825,10 @@ class AudioSettingPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnRemoveSoundFontBtn, self.btn_rmvsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnUpSoundFontBtn, self.btn_upsoundfont)
         self.Bind(wx.EVT_BUTTON, self.OnDownSoundFontBtn, self.btn_downsoundfont)
+        self.list_soundfont.OnCheckItem = self.OnGridCellChanged
+
+    def OnGridCellChanged(self, index, flag):
+        self.GetTopLevelParent().applied()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1857,6 +1900,7 @@ class AudioSettingPanel(wx.Panel):
                 index = self.list_soundfont.GetItemCount()
                 self.list_soundfont.InsertStringItem(index, fpath)
                 self.list_soundfont.CheckItem(index, True)
+                self.GetTopLevelParent().applied()
 
     def OnRemoveSoundFontBtn(self, event):
         while True:
@@ -1864,6 +1908,7 @@ class AudioSettingPanel(wx.Panel):
             if index < 0:
                 break
             self.list_soundfont.DeleteItem(index)
+            self.GetTopLevelParent().applied()
 
     def OnUpSoundFontBtn(self, event):
         index = -1
@@ -1877,6 +1922,7 @@ class AudioSettingPanel(wx.Panel):
             self.list_soundfont.InsertStringItem(index - 1, item)
             self.list_soundfont.CheckItem(index - 1, use)
             self.list_soundfont.Select(index - 1)
+            self.GetTopLevelParent().applied()
 
     def OnDownSoundFontBtn(self, event):
         indexes = []
@@ -1898,6 +1944,7 @@ class AudioSettingPanel(wx.Panel):
             self.list_soundfont.InsertStringItem(index + 1, item)
             self.list_soundfont.CheckItem(index + 1, use)
             self.list_soundfont.Select(index + 1)
+            self.GetTopLevelParent().applied()
 
 class ScenarioSettingPanel(wx.Panel):
     def __init__(self, parent):
@@ -2080,12 +2127,14 @@ class ScenarioSettingPanel(wx.Panel):
             if not relpath.startswith(".."):
                 dpath = relpath
             self.grid_folderoftype.SetCellValue(row, 1, cw.util.join_paths(dpath))
+            self.GetTopLevelParent().applied()
 
     def OnRemoveFolderBtn(self, event):
         row = self.grid_folderoftype.GetGridCursorRow()
         if row == -1 or row + 1 == self.grid_folderoftype.GetNumberRows():
             return
         self.grid_folderoftype.DeleteRows(row)
+        self.GetTopLevelParent().applied()
 
     def OnUpFolderBtn(self, event):
         row = self.grid_folderoftype.GetGridCursorRow()
@@ -2096,6 +2145,7 @@ class ScenarioSettingPanel(wx.Panel):
             value2 = self.grid_folderoftype.GetCellValue(row - 1, col)
             self.grid_folderoftype.SetCellValue(row, col, value2)
             self.grid_folderoftype.SetCellValue(row - 1, col, value1)
+            self.GetTopLevelParent().applied()
         self.grid_folderoftype.SetGridCursor(row - 1, self.grid_folderoftype.GetGridCursorCol())
 
     def OnDownFolderBtn(self, event):
@@ -2107,6 +2157,7 @@ class ScenarioSettingPanel(wx.Panel):
             value2 = self.grid_folderoftype.GetCellValue(row + 1, col)
             self.grid_folderoftype.SetCellValue(row, col, value2)
             self.grid_folderoftype.SetCellValue(row + 1, col, value1)
+            self.GetTopLevelParent().applied()
         self.grid_folderoftype.SetGridCursor(row + 1, self.grid_folderoftype.GetGridCursorCol())
 
     def OnConstructDBBtn(self, event):

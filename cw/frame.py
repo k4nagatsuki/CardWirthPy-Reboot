@@ -16,6 +16,7 @@ import cw
 class Frame(wx.Frame):
     def __init__(self, app, skindirname=""):
         self.app = app
+        self.filter_event = None
         # 設定
         self._setting = cw.setting.Setting()
         if self._setting.is_expanded:
@@ -1107,6 +1108,10 @@ class MyApp(wx.App):
     def FilterEvent(self, event):
         if not (cw.cwpy and cw.cwpy.frame):
             return -1
+
+        if cw.cwpy.frame.filter_event:
+            if cw.cwpy.frame.filter_event(event):
+                return True
 
         # スクリーンショットの撮影
         if event.GetEventType() == wx.EVT_KEY_UP.typeId:
