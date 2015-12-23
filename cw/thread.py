@@ -1151,6 +1151,11 @@ class CWPy(_Singleton, threading.Thread):
         self.input(eventclear=True)
         self._showingdlg += 1
         self.statusbar.clear_volumebar()
+        if isinstance(self.selection, cw.sprite.statusbar.StatusBarButton):
+            # 表示が乱れる場合があるので
+            # ステータスバーのボタンからフォーカスを外しておく
+            self.clear_selection()
+            self.mousepos = (-1, -1)
         self.keyevent.clear() # キー入力初期化
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
         event.args = kwargs

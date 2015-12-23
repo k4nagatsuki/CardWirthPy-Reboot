@@ -3501,12 +3501,7 @@ class PostEventContent(EventContentBase):
             else:
                 cw.cwpy.exec_func(method)
 
-            if methodname == "call_dlg":
-                if isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton):
-                    # 表示が乱れる場合があるので
-                    # ステータスバーのボタンからフォーカスを外しておく
-                    cw.cwpy.clear_selection()
-            else:
+            if methodname <> "call_dlg":
                 # ダイアログのコールの場合はcall_dlgでロックが解除されるので
                 # ここで解除する必要はない
                 def func():
