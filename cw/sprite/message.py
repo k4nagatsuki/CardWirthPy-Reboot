@@ -872,29 +872,52 @@ class BacklogPage(base.CWPySprite):
         pos = (cw.s(cw.SIZE_AREA[0]) - self.rect.width - left, cw.s(10))
         self.rect.topleft = pos
 
+_decorate_cache = {}
+_decorate_cache_upscr = 0
+
 def decorate(image, angle=8, basecolour=(255, 255, 255)):
     """
     imageに装飾フォント処理を適用する。
     """
+    global _decorate_cache, _decorate_cache_upscr
+
+    if _decorate_cache_upscr <> cw.UP_SCR:
+        _decorate_cache_upscr = cw.UP_SCR
+        _decorate_cache = {}
+
     if cw.cwpy.setting.decorationfont:
-        image = image.convert_alpha()
-        w = image.get_width()
-        mid = image.get_height()/2
+        key = (image.get_height(), angle, basecolour)
+        decoimg = _decorate_cache.get(key, None)
+        if not decoimg:
+            # グラデーションのかかった台紙を作成
+            h = image.get_height()
+            decoimg = pygame.Surface((h, h)).convert_alpha()
+            decoimg.fill(basecolour)
 
-        if sum(basecolour) < 128*3:
-            # 暗くなりすぎると見えなくなるので明るくしておく
-            image.fill((16, 16, 16, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+            w = decoimg.get_width()
+            mid = decoimg.get_height()/2
 
-        for y in xrange(1, mid, 1):
-            # グラデーション
-            rect = (0, mid-y, w, 1)
-            c = max(0, y-cw.s(1))*angle
-            if cw.UP_SCR <> 1:
-                c = int(float(c) / cw.UP_SCR)
-            color = (c, c, c, 0)
-            image.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
-            rect = (0, mid+y, w, 1)
-            image.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+            if sum(basecolour) < 128*3:
+                # 暗くなりすぎると見えなくなるので明るくしておく
+                decoimg.fill((16, 16, 16, 0), special_flags=pygame.locals.BLEND_RGBA_ADD)
+
+            for y in xrange(1, mid, 1):
+                # グラデーション
+                rect = (0, mid-y, w, 1)
+                c = max(0, y-cw.s(1))*angle
+                if cw.UP_SCR <> 1:
+                    c = int(float(c) / cw.UP_SCR)
+                color = (c, c, c, 0)
+                decoimg.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+                rect = (0, mid+y, w, 1)
+                decoimg.fill(color, rect, special_flags=pygame.locals.BLEND_RGBA_SUB)
+
+            _decorate_cache[key] = decoimg
+
+        if not (image.get_flags() & pygame.locals.SRCALPHA):
+            image = image.convert_alpha()
+
+        image.blit(decoimg, image.get_rect(), decoimg.get_rect(), special_flags=pygame.locals.BLEND_RGBA_MIN)
 
     return image
 
