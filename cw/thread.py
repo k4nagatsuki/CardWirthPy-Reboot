@@ -169,6 +169,7 @@ class CWPy(_Singleton, threading.Thread):
         self.classicdata = None
         # イベントハンドラ
         self.eventhandler = cw.eventhandler.EventHandler()
+        self._log_handler = None # メッセージログ表示中のハンドラ
         # 設定ダイアログのタブ位置
         self.settingtab = 0
         # 保存用のパーティ記録
@@ -555,8 +556,8 @@ class CWPy(_Singleton, threading.Thread):
                                       self.cardgrp.get_sprites_from_layer(cw.LAYER_SELECTIONBAR_1),
                                       self.cardgrp.get_sprites_from_layer(cw.LAYER_SELECTIONBAR_2)):
             sprite.update_scale()
-        for sprite in self.backloggrp.sprites():
-            sprite.update_scale()
+        if self._log_handler:
+            self._log_handler.update_sprites(clearcache=True)
 
     def update_vocation120(self, vocation120):
         """適性表示を1.20に合わせる設定を変更する。"""
@@ -1400,6 +1401,7 @@ class CWPy(_Singleton, threading.Thread):
         eventhandler = cw.eventhandler.EventHandlerForBacklog(self.sdata.backlog, index)
         cursor = self.cursor
         self.change_cursor()
+        self._log_handler = eventhandler
         try:
             while self.is_running() and eventhandler.is_showing() and\
                     cw.cwpy.sdata.is_playing and self._is_showingbacklog:
@@ -1418,6 +1420,7 @@ class CWPy(_Singleton, threading.Thread):
                         eventhandler.index = 0
                     eventhandler.update_sprites()
         finally:
+            self._log_handler = None
             self.change_cursor(cursor)
             # 表示終了
             eventhandler.exit_backlog(playsound=False)

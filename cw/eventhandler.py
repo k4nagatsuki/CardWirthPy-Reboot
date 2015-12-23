@@ -1235,8 +1235,11 @@ class EventHandlerForBacklog(EventHandler):
         else:
             return len(self.backlog)
 
-    def update_sprites(self):
+    def update_sprites(self, clearcache=False):
         if not cw.cwpy._is_showingbacklog:
+            return
+        if clearcache:
+            self._update_posdata(init=False)
             return
         # スプライト削除
         cw.cwpy.backloggrp.remove_sprites_of_layer(cw.LAYER_LOG)
