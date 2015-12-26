@@ -759,7 +759,10 @@ class Debugger(wx.Frame):
         cw.cwpy.exec_func(func, self, content)
 
     def OnQuitDebugMode(self, event):
-        cw.cwpy.exec_func(cw.cwpy.set_debug, False)
+        def func():
+            cw.cwpy.set_debug(False)
+            cw.cwpy.draw()
+        cw.cwpy.exec_func(func)
 
     def OnSaveTool(self, event):
         if not cw.cwpy.is_playingscenario():

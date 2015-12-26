@@ -511,14 +511,7 @@ class EventHandler(object):
         """その他のKEYDOWNイベント。"""
         if not self.can_input():
             return False
-        return True
 
-    def keyup_event(self, key):
-        """その他のKEYUPイベント。"""
-        if not self.can_input():
-            return False
-
-        pressed = pygame.key.get_pressed()
         ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
 
         if ctrldown and key == ord('D'):
@@ -526,7 +519,16 @@ class EventHandler(object):
                 cw.cwpy.play_sound("page")
                 cw.cwpy.set_debug(not cw.cwpy.is_debugmode())
                 return False
-        elif ctrldown and key == ord('P'):
+        return True
+
+    def keyup_event(self, key):
+        """その他のKEYUPイベント。"""
+        if not self.can_input():
+            return False
+
+        ctrldown = cw.cwpy.keyevent.keyin[pygame.K_LCTRL] or cw.cwpy.keyevent.keyin[pygame.K_RCTRL]
+
+        if ctrldown and key == ord('P'):
             cw.util.screenshot()
             return False
         return True

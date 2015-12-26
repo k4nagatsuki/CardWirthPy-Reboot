@@ -318,18 +318,31 @@ class Frame(wx.Frame):
         ゲーム中は常にトップフレームがフォーカスされていなければならない。
         """
         self.SetFocus()
+        self.update_keystate()
+
+    def update_keystate(self):
+        if wx.GetKeyState(wx.WXK_CONTROL):
+            if not cw.cwpy.keyevent.is_keyin(pygame.locals.K_LCTRL):
+                cw.cwpy.keyevent.keydown(wx.WXK_CONTROL)
+        else:
+            if cw.cwpy.keyevent.is_keyin(pygame.locals.K_LCTRL):
+                cw.cwpy.keyevent.keyup(wx.WXK_CONTROL)
 
     def OnKillFocus(self, event):
         cw.cwpy.keyevent.clear()
 
     def OnKeyUp(self, event):
         keycode = event.GetKeyCode()
+        if keycode <> wx.WXK_CONTROL:
+            self.update_keystate()
         if keycode == ord('P') and event.ControlDown():
             keycode = wx.WXK_SNAPSHOT
         cw.cwpy.keyevent.keyup(keycode)
 
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
+        if keycode <> wx.WXK_CONTROL:
+            self.update_keystate()
         cw.cwpy.keyevent.keydown(keycode)
 
     def OnMotion(self, event):
