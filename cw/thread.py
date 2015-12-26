@@ -1154,7 +1154,6 @@ class CWPy(_Singleton, threading.Thread):
         if isinstance(self.selection, cw.sprite.statusbar.StatusBarButton):
             # 表示が乱れる場合があるので
             # ステータスバーのボタンからフォーカスを外しておく
-            self.clear_selection()
             self.mousepos = (-1, -1)
         self.keyevent.clear() # キー入力初期化
         event = wx.PyCommandEvent(self.frame.dlgeventtypes[name])
@@ -2975,6 +2974,9 @@ class CWPy(_Singleton, threading.Thread):
     def clear_selection(self):
         """全ての選択状態を解除する。"""
         self.change_selection(None)
+
+        cw.cwpy.update_mousepos()
+        cw.cwpy.sbargrp.update(cw.cwpy.scr_draw)
 
     def change_selection(self, sprite):
         """引数のスプライトを選択状態にする。

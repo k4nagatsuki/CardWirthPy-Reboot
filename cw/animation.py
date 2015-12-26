@@ -68,7 +68,7 @@ def animate_sprite(sprite, anitype, clearevent=True, background=False, statusbut
 
     if clearevent and cw.cwpy.lock_menucards:
         cw.cwpy.lock_menucards = lock_menucards
-    if clearevent and not cw.cwpy.selection is selection:
+    if clearevent and selection and cw.cwpy.selection <> selection:
         cw.cwpy.change_selection(selection)
 
 def animate_sprites(sprites, anitype, clearevent=True, battlespeed=False):
