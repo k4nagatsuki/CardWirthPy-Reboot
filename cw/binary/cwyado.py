@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import stat
 import shutil
 import copy
@@ -602,6 +603,7 @@ class UnconvCWYado(object):
                     f.close()
                 return data, fpath
             except Exception, ex:
+                cw.util.print_ex(file=sys.stderr)
                 cw.util.remove(fpath)
                 raise ex
 
@@ -625,7 +627,7 @@ class UnconvCWYado(object):
                     s = u"%s は対象エンジンで使用できないため、変換しません。\n" % (header.name)
                 self.write_errorlog(s)
             except Exception:
-                cw.util.print_ex()
+                cw.util.print_ex(file=sys.stderr)
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
         table["unusedcards"] = unusedcards
@@ -664,7 +666,7 @@ class UnconvCWYado(object):
                 cw.util.remove(ppath)
                 cw.util.remove(hpath)
             except Exception:
-                cw.util.print_ex()
+                cw.util.print_ex(file=sys.stderr)
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
                 cw.util.remove(ppath)
@@ -692,7 +694,7 @@ class UnconvCWYado(object):
                         s = u"%s の所持する %s は対象エンジンで使用できないため、変換しません。\n" % (partyheader.name, header.name)
                     self.write_errorlog(s)
                 except Exception:
-                    cw.util.print_ex()
+                    cw.util.print_ex(file=sys.stderr)
                     s = u"%s の %s は変換できませんでした。\n" % (partyheader.name, header.name)
                     self.write_errorlog(s)
 
@@ -765,7 +767,7 @@ class UnconvCWYado(object):
                 cw.util.remove(fpath1)
                 cw.util.remove(fpath2)
             except Exception:
-                cw.util.print_ex()
+                cw.util.print_ex(file=sys.stderr)
                 s = u"%s は変換できませんでした。\n" % (partyheader.name)
                 self.write_errorlog(s)
                 cw.util.remove(fpath1)
@@ -797,7 +799,7 @@ class UnconvCWYado(object):
                 self.write_errorlog(s)
                 cw.util.remove(fpath)
             except Exception:
-                cw.util.print_ex()
+                cw.util.print_ex(file=sys.stderr)
                 s = u"%s は変換できませんでした。\n" % (header.name)
                 self.write_errorlog(s)
                 cw.util.remove(fpath)
@@ -816,7 +818,7 @@ class UnconvCWYado(object):
                 f.close()
 
         except Exception:
-            cw.util.print_ex()
+            cw.util.print_ex(file=sys.stderr)
             s = u"宿情報は変換できませんでした。\n"
             self.write_errorlog(s)
 
