@@ -341,6 +341,8 @@ class Frame(wx.Frame):
 
     def OnKeyDown(self, event):
         keycode = event.GetKeyCode()
+        if sys.platform == "win32" and keycode == wx.WXK_F4 and event.AltDown():
+            return # WindowsではAlt+F4はウィンドウを閉じる操作
         if keycode <> wx.WXK_CONTROL:
             self.update_keystate()
         cw.cwpy.keyevent.keydown(keycode)
