@@ -1069,7 +1069,7 @@ class FindPanel(wx.Panel):
             self.finddown.Enable()
 
     def OnEnter(self, event):
-        if event.ShiftDown():
+        if wx.GetKeyState(wx.WXK_SHIFT):
             self.find_up()
         else:
             self.find_down()
