@@ -464,7 +464,7 @@ class PartyMembers(base.CWBinaryBase):
                 backpacknum += 1
         tell = f.tell()
         f.seek(backpacknumpos)
-        f.write_byte(backpacknum)
+        f.write_dword(backpacknum)
         f.seek(tell)
 
         f.write_dword(cw.util.numwrap(party.money, 0, 999999)) # パーティの所持金(現在値)
