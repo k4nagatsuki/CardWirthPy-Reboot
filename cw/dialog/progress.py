@@ -113,16 +113,16 @@ class SysProgressDialog(wx.Dialog):
     def _do_layout(self):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
 
-        sizer_1.Add(cw.wins((0, 10)), 0, 0, 0)
-        sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.wins(10))
-        sizer_1.Add(cw.wins((0, 4)), 0, 0, 0)
-        sizer_1.Add(self.message, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, cw.wins(10))
+        sizer_1.Add((0, 10), 0, 0, 0)
+        sizer_1.Add(self.gauge, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
+        sizer_1.Add((0, 4), 0, 0, 0)
+        sizer_1.Add(self.message, 0, wx.EXPAND|wx.LEFT|wx.RIGHT, 10)
 
         if self.btn_cncl:
-            sizer_1.Add(cw.wins((0, 5)), 0, 0, 0)
-            sizer_1.Add(self.btn_cncl, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT, cw.wins(10))
+            sizer_1.Add((0, 5), 0, 0, 0)
+            sizer_1.Add(self.btn_cncl, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT, 10)
         else:
-            sizer_1.Add(cw.wins((0, 30)), 0, 0, 0)
+            sizer_1.Add((0, 30), 0, 0, 0)
 
         self.SetSizer(sizer_1)
         self.Layout()

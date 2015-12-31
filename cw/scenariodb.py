@@ -866,56 +866,58 @@ def read_summary(basepath):
     if os.path.isdir(path):
         return None, []
 
+    z = None
     try:
         z = cw.util.zip_file(path, "r")
+
+        names = z.namelist()
+        nametable = {}
+        seq = []
+        for name in names:
+            nametable[cw.util.join_paths(cw.util.decode_zipname(name))] = name
+            if name.lower().endswith("summary.xml") or name.lower().endswith("summary.wsm"):
+                seq.append(name)
+
+        if not seq:
+            z.close()
+            return None, []
+
+        name = seq[0]
+        if name.lower().endswith(".wsm"):
+            fdata = z.read(name)
+            f = cw.binary.cwfile.CWFile("", "rb", decodewrap=True, f=io.BytesIO(fdata))
+            return read_summary_classic(basepath, path, f)
+
+        scedir = os.path.dirname(name)
+        scedir = cw.util.decode_zipname(scedir)
+        fdata = z.read(name)
+        f = StringIO.StringIO(fdata)
+
+        try:
+            e = cw.data.xml2element(path, "Property", stream=f)
+        finally:
+            f.close()
+
+        imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
+
+        imgbufs = []
+        for imgpath in imgpaths:
+            imgpath = cw.util.join_paths(scedir, imgpath)
+            imgpath = nametable.get(imgpath, "")
+            if imgpath:
+                imgbuf = cw.util.read_zipdata(z, imgpath)
+                if imgbuf:
+                    imgbuf = buffer(imgbuf)
+                    imgbufs.append(imgbuf)
+
+        z.close()
+
     except:
         cw.util.print_ex()
         print path
+        if z:
+            z.close()
         return None, []
-
-    names = z.namelist()
-    nametable = {}
-    seq = []
-    for name in names:
-        nametable[cw.util.join_paths(cw.util.decode_zipname(name))] = name
-        if name.lower().endswith("summary.xml") or name.lower().endswith("summary.wsm"):
-            seq.append(name)
-
-    if not seq:
-        z.close()
-        return None, []
-
-    name = seq[0]
-    if name.lower().endswith(".wsm"):
-        fdata = z.read(name)
-        f = cw.binary.cwfile.CWFile("", "rb", decodewrap=True, f=io.BytesIO(fdata))
-        return read_summary_classic(basepath, path, f)
-
-    scedir = os.path.dirname(name)
-    scedir = cw.util.decode_zipname(scedir)
-    fdata = z.read(name)
-    f = StringIO.StringIO(fdata)
-    try:
-        e = cw.data.xml2element(path, "Property", stream=f)
-    finally:
-        f.close()
-
-    try:
-        imgpaths, summaryinfos = parse_summarydata(basepath, e, TYPE_WSN, True, os.path.getmtime(path))
-    except:
-        z.close()
-        return None, []
-
-    imgbufs = []
-    for imgpath in imgpaths:
-        imgpath = cw.util.join_paths(scedir, imgpath)
-        imgpath = nametable.get(imgpath, "")
-        if imgpath:
-            imgbuf = cw.util.read_zipdata(z, imgpath)
-            if imgbuf:
-                imgbuf = buffer(imgbuf)
-                imgbufs.append(imgbuf)
-    z.close()
 
     if len(imgbufs) == 0:
         imgbuf = ""
