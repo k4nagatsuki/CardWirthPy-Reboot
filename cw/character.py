@@ -1672,6 +1672,18 @@ class Character(object):
             self._set_coupon(coupon, 0)
 
     @synclock(_couponlock)
+    def set_race(self, race):
+        self._set_race(race)
+    def _set_race(self, race):
+        old = self._get_race()
+        if race == old:
+            return
+        if not isinstance(old, cw.header.UnknownRaceHeader):
+            self._remove_coupon(u"＠Ｒ" + old.name)
+        if not isinstance(race, cw.header.UnknownRaceHeader):
+            self._set_coupon(u"＠Ｒ" + race.name, 0)
+
+    @synclock(_couponlock)
     def get_race(self):
         return self._get_race()
 

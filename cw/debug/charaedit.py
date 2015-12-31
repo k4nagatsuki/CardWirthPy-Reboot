@@ -279,6 +279,7 @@ class CharaInfo(object):
             desc_aft_d = cw.dialog.create.create_description(self.talent, makings)
             # desc_aft_d: 変更後のデフォルト解説
 
+            pcard.set_race(self.race)
             pcard.set_age(self.age)
             pcard.set_sex(self.sex)
             pcard.set_talent(self.talent)
@@ -295,6 +296,7 @@ class CharaInfo(object):
                 pcard.set_description(desc_aft)
 
             # 能力値の再計算
+            # TODO: 強制的に再計算するオプションをつけ、それ以外は計算しない
             race = pcard.get_race()
             self.maxdex = race.dex + 6
             self.maxagl = race.agl + 6
@@ -465,7 +467,16 @@ class CharaRequirementPanel(wx.Panel):
         self.levelbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"Lv ―")
 
         self.typbox = wx.StaticBox(self, -1, u"能力型")
-        self.type = wx.StaticText(self, -1, u"―――", size=(125, -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
+        self.type = wx.StaticText(self, -1, u"―――", size=(80, -1), style=wx.ALIGN_CENTRE|wx.ST_NO_AUTORESIZE)
+
+        assert 1 <= len(cw.cwpy.setting.races)
+        if 1 == len(cw.cwpy.setting.races) and isinstance(cw.cwpy.setting.races[0], cw.header.UnknownRaceHeader):
+            self.racebox = None
+            self.race = None
+        else:
+            self.racebox = wx.StaticBox(self, -1, u"種族")
+            array = map(lambda race: race.name, cw.cwpy.setting.races)
+            self.race = wx.Choice(self, -1, choices=array)
 
         array = [f.name for f in cw.cwpy.setting.sexes]
         self.sexes = wx.RadioBox(self, -1, u"性別", choices=array,
@@ -491,6 +502,8 @@ class CharaRequirementPanel(wx.Panel):
         self.Bind(wx.EVT_TEXT, self.OnName, self.name)
         self.Bind(wx.EVT_BUTTON, self.OnLevelBtn, self.levelbtn)
         self.Bind(wx.EVT_COMBOBOX, self.OnSelectImage, self.imgcombo)
+        if self.race:
+            self.Bind(wx.EVT_CHOICE, self.OnRace, self.race)
         self.Bind(wx.EVT_RADIOBOX, self.OnSelectSex, self.sexes)
         self.Bind(wx.EVT_RADIOBOX, self.OnSelectAge, self.periods)
         self.Bind(wx.EVT_RADIOBOX, self.OnSelectTalent, self.natures)
@@ -499,24 +512,37 @@ class CharaRequirementPanel(wx.Panel):
 
     def _do_layout(self):
         sizer_name = wx.StaticBoxSizer(self.namebox, wx.VERTICAL)
-        sizer_name.Add(self.name, 0, wx.ALL, 5)
+        sizer_name.Add(self.name, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, 5)
 
         sizer_image = wx.StaticBoxSizer(self.imgbox, wx.VERTICAL)
         sizer_image.AddStretchSpacer(1)
-        sizer_image.Add(self.img, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+        sizer_image.Add(self.img, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
         sizer_image.AddStretchSpacer(1)
         sizer_image.Add(self.imgcombo, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND|wx.ALIGN_CENTER, 5)
 
         sizer_level = wx.StaticBoxSizer(self.lvlbox, wx.VERTICAL)
-        sizer_level.Add(self.levelbtn, 1, wx.EXPAND|wx.ALL, 5)
+        sizer_level.Add(self.levelbtn, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
 
         sizer_type = wx.StaticBoxSizer(self.typbox, wx.VERTICAL)
-        sizer_type.Add(self.type, 1, wx.EXPAND|wx.ALL|wx.ALIGN_CENTER, 5)
+        sizer_type2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_type2.Add(self.type, 0, wx.ALIGN_CENTER, 0)
+        sizer_type.Add(sizer_type2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
 
         sizer_lefttop = wx.BoxSizer(wx.VERTICAL)
         sizer_lefttop.Add(sizer_name, 0, wx.EXPAND)
-        sizer_lefttop.Add(sizer_level, 0, wx.EXPAND|wx.TOP, border=5)
-        sizer_lefttop.Add(sizer_type, 0, wx.EXPAND|wx.TOP, border=5)
+        if self.race:
+            sizer_leveltype = wx.BoxSizer(wx.HORIZONTAL)
+            sizer_leveltype.Add(sizer_level, 0, wx.EXPAND, border=5)
+            sizer_leveltype.Add(sizer_type, 0, wx.EXPAND|wx.LEFT, border=5)
+
+            sizer_lefttop.Add(sizer_leveltype, 0, wx.EXPAND|wx.TOP, border=5)
+
+            sizer_race = wx.StaticBoxSizer(self.racebox, wx.VERTICAL)
+            sizer_race.Add(self.race, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
+            sizer_lefttop.Add(sizer_race, 0, wx.EXPAND|wx.TOP, border=5)
+        else:
+            sizer_lefttop.Add(sizer_level, 0, wx.EXPAND|wx.TOP, border=5)
+            sizer_lefttop.Add(sizer_type, 0, wx.EXPAND|wx.TOP, border=5)
 
         sizer_bottom = wx.BoxSizer()
         sizer_bottom.Add(self.sexes, 0)
@@ -524,7 +550,7 @@ class CharaRequirementPanel(wx.Panel):
         sizer_bottom.Add(self.natures, 0, wx.LEFT, 5)
 
         sizer_main = wx.GridBagSizer()
-        sizer_main.Add(sizer_lefttop, pos=(0, 0), flag=wx.ALL|wx.EXPAND, border=5)
+        sizer_main.Add(sizer_lefttop, pos=(0, 0), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
         sizer_main.Add(sizer_image, pos=(0, 1), flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=5)
         sizer_main.Add(sizer_bottom, pos=(1, 0), span=(1, 2), flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND, border=5)
 
@@ -595,6 +621,10 @@ class CharaRequirementPanel(wx.Panel):
             self._dropfiles = seq
             img = [cw.image.ImageInfo(seq[0])]
             self._update_images(img)
+
+    def OnRace(self, event):
+        for info in self._get_infos():
+            info.race = cw.cwpy.setting.races[self.race.GetSelection()]
 
     def OnSelectSex(self, event):
         for info in self._get_infos():
@@ -694,6 +724,7 @@ class CharaRequirementPanel(wx.Panel):
         sex = ""
         age = ""
         talent = ""
+        race = cw.cwpy.setting.unknown_race
 
         infos = self._get_infos()
 
@@ -707,6 +738,7 @@ class CharaRequirementPanel(wx.Panel):
                 sex = info.sex
                 age = info.age
                 talent = info.talent
+                race = info.race
             else:
                 if name <> info.name:
                     name = ""
@@ -722,6 +754,8 @@ class CharaRequirementPanel(wx.Panel):
                     age = ""
                 if talent <> info.talent:
                     talent = ""
+                if race <> info.race:
+                    race = cw.cwpy.setting.unknown_race
 
         self.name.SetValue(name)
         self.levelbtn.SetLabel("Lv %s" % (level))
@@ -731,6 +765,10 @@ class CharaRequirementPanel(wx.Panel):
             self.type.SetLabel(ctype)
         else:
             self.type.SetLabel(u"カスタム")
+
+        if self.race:
+            index = cw.cwpy.setting.races.index(race)
+            self.race.SetSelection(index)
 
         if sex:
             index = self.sexes.FindString(sex[1:])
@@ -764,6 +802,8 @@ class CharaRequirementPanel(wx.Panel):
         infos = self._get_infos()
 
         for info in infos:
+            arr = cw.cwpy.setting.races
+            info.race = arr[cw.cwpy.dice.roll(1, len(arr))-1]
             arr = cw.cwpy.setting.sexcoupons
             info.sex = arr[cw.cwpy.dice.roll(1, len(arr))-1]
             arr = cw.cwpy.setting.periodcoupons
@@ -833,7 +873,7 @@ class CharaSelectablePanel(wx.Panel):
             sizer_checks.Add(check, pos=(row, col), flag=flag, border=5)
 
         sizer_box = wx.StaticBoxSizer(self.mkgbox, wx.HORIZONTAL)
-        sizer_box.Add(sizer_checks, 1, wx.EXPAND|wx.ALL, 5)
+        sizer_box.Add(sizer_checks, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, 5)
 
         sizer_buttons = wx.GridSizer(1, 2, 5, 5)
         sizer_buttons.Add(self.autobtn)
