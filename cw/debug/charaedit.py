@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import itertools
 import wx
 
 import cw
@@ -50,6 +51,15 @@ class CharacterEditDialog(wx.Dialog):
         self.note.AddPage(self.pane_req, u"必須情報")
         self.note.AddPage(self.pane_sel, u"選択情報")
 
+        if self.create:
+            self.recalc_parameter = None
+            self.recalc_coupons = None
+        else:
+            self.recalc_parameter = wx.CheckBox(self, -1, u"能力値(カスタムの場合のみ)と属性を新しい情報に合わせて再設定する",
+                                                style=wx.CHK_3STATE)
+            self.recalc_coupons = wx.CheckBox(self, -1, u"初期クーポンを新しい情報に合わせて再設定する",
+                                              style=wx.CHK_3STATE)
+
         # 標準
         self.stdbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (-1, -1), name=u"標準")
         # 自動
@@ -74,6 +84,8 @@ class CharacterEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnStandardType, self.stdbtn)
         self.Bind(wx.EVT_BUTTON, self.OnAutoBtn, self.autobtn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+        self.Bind(wx.EVT_CHECKBOX, self.OnReCalcParameter, self.recalc_parameter)
+        self.Bind(wx.EVT_CHECKBOX, self.OnReCalcCoupons, self.recalc_coupons)
 
     def _do_layout(self):
         sizer_left = wx.BoxSizer(wx.VERTICAL)
@@ -84,6 +96,12 @@ class CharacterEditDialog(wx.Dialog):
             sizer_combo.Add(self.rightbtn, 0, wx.EXPAND)
             sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=5)
         sizer_left.Add(self.note, 1, flag=wx.EXPAND)
+
+        if not self.create:
+            sizer_recalc = wx.BoxSizer(wx.VERTICAL)
+            sizer_recalc.Add(self.recalc_parameter, 0, 0, 0)
+            sizer_recalc.Add(self.recalc_coupons, 0, wx.TOP, 1)
+            sizer_left.Add(sizer_recalc, 0, wx.TOP, 5)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.stdbtn, 0, wx.EXPAND)
@@ -98,6 +116,31 @@ class CharacterEditDialog(wx.Dialog):
         self.SetSizer(sizer)
         sizer.Fit(self)
         self.Layout()
+
+    def _get_infos(self):
+        cindex = self.target.GetSelection()
+        if cindex == 0:
+            # 全員
+            return self.infos
+        else:
+            # 誰か一人
+            return [self.infos[cindex-1]]
+
+    def OnReCalcParameter(self, event):
+        s3 = self.recalc_parameter.Get3StateValue()
+        if s3 == wx.CHK_UNDETERMINED:
+            return
+        checked = (s3 == wx.CHK_CHECKED)
+        for info in self._get_infos():
+            info.recalc_parameter = checked
+
+    def OnReCalcCoupons(self, event):
+        s3 = self.recalc_coupons.Get3StateValue()
+        if s3 == wx.CHK_UNDETERMINED:
+            return
+        checked = (s3 == wx.CHK_CHECKED)
+        for info in self._get_infos():
+            info.recalc_coupons = checked
 
     def OnLeftBtn(self, event):
         index = self.target.GetSelection()
@@ -173,6 +216,24 @@ class CharacterEditDialog(wx.Dialog):
         self.pane_req.select_target(cindex)
         self.pane_sel.select_target(cindex)
 
+        recalc_parameter = None
+        recalc_coupons = None
+        for info in self._get_infos():
+            if recalc_parameter is None:
+                recalc_parameter = info.recalc_parameter
+            elif recalc_parameter <> info.recalc_parameter:
+                recalc_parameter = wx.CHK_UNDETERMINED
+
+            if recalc_coupons is None:
+                recalc_coupons = info.recalc_coupons
+            elif recalc_coupons <> info.recalc_coupons:
+                recalc_coupons = wx.CHK_UNDETERMINED
+
+        if self.recalc_parameter:
+            self.recalc_parameter.Set3StateValue(recalc_parameter)
+        if self.recalc_coupons:
+            self.recalc_coupons.Set3StateValue(recalc_coupons)
+
 class CharaInfo(object):
 
     def __init__(self, pcard):
@@ -192,6 +253,48 @@ class CharaInfo(object):
             self.type = self.get_paramtype(pcard)
             self.physical = pcard.physical
             self.mental = pcard.mental
+            self._calc_params()
+            levelmax = pcard.get_couponvalue(u"＠レベル上限")
+            self.recalc_parameter = pcard.maxlife == self.maxlife and\
+                pcard.physical["agl"] == self.agl and\
+                pcard.physical["dex"] == self.dex and\
+                pcard.physical["int"] == self.int and\
+                pcard.physical["min"] == self.min and\
+                pcard.physical["str"] == self.str and\
+                pcard.physical["vit"] == self.vit and\
+                pcard.mental["aggressive"] == self.aggressive and\
+                pcard.mental["brave"] == self.brave and\
+                pcard.mental["cautious"] == self.cautious and\
+                pcard.mental["cheerful"] == self.cheerful and\
+                pcard.mental["trickish"] == self.trickish and\
+                pcard.feature["automaton"] == self.race.automaton and\
+                pcard.feature["constructure"] == self.race.constructure and\
+                pcard.feature["undead"] == self.race.undead and\
+                pcard.feature["unholy"] == self.race.unholy and\
+                pcard.noeffect["magic"] == self.race.noeffect_magic and\
+                pcard.noeffect["weapon"] == self.race.noeffect_weapon and\
+                pcard.resist["fire"] == self.race.resist_fire and\
+                pcard.resist["ice"] == self.race.resist_ice and\
+                pcard.weakness["fire"] == self.race.weakness_fire and\
+                pcard.weakness["ice"] == self.race.weakness_ice and\
+                pcard.enhance["avoid"] == self.race.avoid and\
+                pcard.enhance["resist"] == self.race.resist and\
+                pcard.enhance["defense"] == self.race.defense and\
+                levelmax == self.levelmax
+
+            init_coupons = {}
+            for coupon in self.race.coupons:
+                init_coupons[coupon[0]] = coupon[1]
+            for f in cw.cwpy.setting.periods:
+                if self.age == u"＿" + f.name:
+                    for coupon in f.coupons:
+                        init_coupons[coupon[0]] = coupon[1]
+                    break
+            self.recalc_coupons = True
+            for coupon, value in init_coupons.iteritems():
+                if not pcard.has_coupon(coupon) or pcard.get_couponvalue(coupon) <> value:
+                    self.recalc_coupons = False
+                    break
         else:
             self.name = ""
             self.race = cw.cwpy.setting.unknown_race
@@ -203,21 +306,12 @@ class CharaInfo(object):
             self.talent = cw.cwpy.setting.naturecoupons[0]
             self.makings = set()
             self.type = None
-            self.physical = {
-                "agl":self.race.agl,
-                "dex":self.race.dex,
-                "int":self.race.int,
-                "min":self.race.min,
-                "str":self.race.str,
-                "vit":self.race.vit
-            }
-            self.mental = {
-                "aggressive":self.race.aggressive,
-                "brave":self.race.brave,
-                "cautious":self.race.cautious,
-                "cheerful":self.race.cheerful,
-                "trickish":self.race.trickish
-            }
+            self._calc_params()
+            self.recalc_parameter = True
+            self.recalc_coupons = True
+
+        self.recalc_parameter_init = self.recalc_parameter
+        self.recalc_coupons_init = self.recalc_coupons
         self.input_name = self.name
 
     def set_randomfeatures(self):
@@ -259,17 +353,144 @@ class CharaInfo(object):
                 return ctype
         return None
 
+    def _calc_params(self):
+        # 能力値の再計算
+        race = self.race
+        self.maxdex = race.dex + 6
+        self.maxagl = race.agl + 6
+        self.maxint = race.int + 6
+        self.maxstr = race.str + 6
+        self.maxvit = race.vit + 6
+        self.maxmin = race.min + 6
+        if self.type:
+            self.agl = race.agl + self.type.aglbonus
+            self.dex = race.dex + self.type.dexbonus
+            self.int = race.int + self.type.intbonus
+            self.min = race.min + self.type.minbonus
+            self.str = race.str + self.type.strbonus
+            self.vit = race.vit + self.type.vitbonus
+            self.aggressive = self.race.aggressive + self.type.aggressive
+            self.brave      = self.race.brave      + self.type.brave
+            self.cautious   = self.race.cautious   + self.type.cautious
+            self.cheerful   = self.race.cheerful   + self.type.cheerful
+            self.trickish   = self.race.trickish   + self.type.trickish
+        else:
+            self.agl = race.agl
+            self.dex = race.dex
+            self.int = race.int
+            self.min = race.min
+            self.str = race.str
+            self.vit = race.vit
+            self.aggressive = race.aggressive
+            self.brave      = race.brave
+            self.cautious   = race.cautious
+            self.cheerful   = race.cheerful
+            self.trickish   = race.trickish
+            for f in cw.cwpy.setting.sexes:
+                if self.sex == u"＿" + f.name:
+                    f.modulate(self)
+                    break
+            for f in cw.cwpy.setting.periods:
+                if self.age == u"＿" + f.name:
+                    f.modulate(self)
+                    break
+            for f in cw.cwpy.setting.natures:
+                if self.talent == u"＿" + f.name:
+                    f.modulate(self)
+                    break
+            for f in cw.cwpy.setting.makings:
+                if u"＿" + f.name in self.makings:
+                    f.modulate(self)
+        cw.features.wrap_ability(self)
+
+        self.physical = {
+            "agl":self.agl,
+            "dex":self.dex,
+            "int":self.int,
+            "min":self.min,
+            "str":self.str,
+            "vit":self.vit
+        }
+        self.mental = {
+            "aggressive":self.aggressive,
+            "brave":self.brave,
+            "cautious":self.cautious,
+            "cheerful":self.cheerful,
+            "trickish":self.trickish
+        }
+
+        self.maxlife = cw.character.calc_maxlife(self.vit, self.min, self.level)
+
+        self.levelmax = 10
+        for f in cw.cwpy.setting.natures:
+            if self.talent == u"＿" + f.name:
+                self.levelmax = f.levelmax
+                break
+
     def put_params(self, pcard):
-        updatebase = self.sex <> pcard.get_sex() or\
+        self._calc_params()
+
+        updatebase = (self.recalc_parameter and not self.recalc_parameter_init) or\
+                     (self.recalc_coupons and not self.recalc_coupons_init) or\
+                     self.race <> pcard.get_race() or\
+                     self.sex <> pcard.get_sex() or\
                      self.age <> pcard.get_age() or\
                      self.talent <> pcard.get_talent() or\
                      self.makings <> pcard.get_makings() or\
-                     self.type <> self.get_paramtype(pcard)
+                     self.type <> self.get_paramtype(pcard) or\
+                     self.levelmax <> pcard.get_couponvalue(u"＠レベル上限")
         updateetc  = self.name <> pcard.name or\
                      self.imgpaths <> self.imgpaths_base or\
                      self.level <> pcard.level
 
         if updatebase:
+            racecoupons = set()
+            for period in itertools.chain(cw.cwpy.setting.periods, cw.cwpy.setting.races):
+                for coupon in period.coupons:
+                    racecoupons.add(coupon[0])
+            syscoupons = set()
+            for coupon in cw.cwpy.setting.sexcoupons:
+                syscoupons.add(coupon)
+            for coupon in cw.cwpy.setting.periodcoupons:
+                syscoupons.add(coupon)
+            for coupon in cw.cwpy.setting.naturecoupons:
+                syscoupons.add(coupon)
+            for coupon in cw.cwpy.setting.makingcoupons:
+                syscoupons.add(coupon)
+
+            def create_parentmatcher(s):
+                index = s.find("%s")
+                left = s[:index]
+                right = s[index+len("%s"):]
+                return left, right
+
+            father_m = create_parentmatcher(cw.cwpy.msgs["father_coupon"])
+            mother_m = create_parentmatcher(cw.cwpy.msgs["mother_coupon"])
+            etccoupons = [] # システム称号の後にある称号
+            parentcoupons = []
+            throughted_parents = False
+            for e in pcard.data.getfind("Property/Coupons"):
+                name = e.text
+                if name in syscoupons or name.startswith(u"＠Ｒ"):
+                    continue
+
+                value = e.getint(".", "value", 0)
+
+                if self.recalc_parameter and name == u"＠レベル上限":
+                    value = self.levelmax
+
+                if not throughted_parents:
+                    if name.startswith(father_m[0]) and name.endswith(father_m[1]):
+                        parentcoupons.append((name, value))
+                        continue
+                    elif name.startswith(mother_m[0]) and name.endswith(mother_m[1]):
+                        parentcoupons.append((name, value))
+                        continue
+                    elif not name.startswith(u"＠"):
+                        throughted_parents = True
+
+                etccoupons.append((name, value))
+
             desc_bef = pcard.get_description()
             desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings())
             # desc_bef: 変更前の解説
@@ -295,81 +516,77 @@ class CharaInfo(object):
                 desc_aft = desc_bef.replace(desc_bef_d.split("\n")[0] , desc_aft_d.split("\n")[0])
                 pcard.set_description(desc_aft)
 
-            # 能力値の再計算
-            # TODO: 強制的に再計算するオプションをつけ、それ以外は計算しない
-            race = pcard.get_race()
-            self.maxdex = race.dex + 6
-            self.maxagl = race.agl + 6
-            self.maxint = race.int + 6
-            self.maxstr = race.str + 6
-            self.maxvit = race.vit + 6
-            self.maxmin = race.min + 6
-            if self.type:
-                self.agl = race.agl + self.type.aglbonus
-                self.dex = race.dex + self.type.dexbonus
-                self.int = race.int + self.type.intbonus
-                self.min = race.min + self.type.minbonus
-                self.str = race.str + self.type.strbonus
-                self.vit = race.vit + self.type.vitbonus
-                self.aggressive = self.race.aggressive + self.type.aggressive
-                self.brave      = self.race.brave      + self.type.brave
-                self.cautious   = self.race.cautious   + self.type.cautious
-                self.cheerful   = self.race.cheerful   + self.type.cheerful
-                self.trickish   = self.race.trickish   + self.type.trickish
-            else:
-                self.agl = race.agl
-                self.dex = race.dex
-                self.int = race.int
-                self.min = race.min
-                self.str = race.str
-                self.vit = race.vit
-                self.aggressive = race.aggressive
-                self.brave      = race.brave
-                self.cautious   = race.cautious
-                self.cheerful   = race.cheerful
-                self.trickish   = race.trickish
-                for f in cw.cwpy.setting.sexes:
-                    if self.sex == u"＿" + f.name:
-                        f.modulate(self)
-                        break
-                for f in cw.cwpy.setting.periods:
-                    if self.age == u"＿" + f.name:
-                        f.modulate(self)
-                        break
-                for f in cw.cwpy.setting.natures:
-                    if self.talent == u"＿" + f.name:
-                        f.modulate(self)
-                        break
-                for f in cw.cwpy.setting.makings:
-                    if u"＿" + f.name in self.makings:
-                        f.modulate(self)
-            cw.features.wrap_ability(self)
-            coeff = pcard.data.getfloat("Property/Life", "coefficient", 0.0)
-            if coeff == 0.0:
-                vit = max(1, int(self.physical.get("vit")))
-                minval = max(1, int(self.physical.get("min")))
-                maxlife = cw.character.calc_maxlife(vit, minval, pcard.level)
-                if maxlife == pcard.maxlife:
-                    coeff = 1.0
-                else:
-                    coeff = float(pcard.maxlife) / int(maxlife)
-            pcard.set_physical("agl", self.agl)
-            pcard.set_physical("dex", self.dex)
-            pcard.set_physical("int", self.int)
-            pcard.set_physical("min", self.min)
-            pcard.set_physical("str", self.str)
-            pcard.set_physical("vit", self.vit)
-            pcard.set_mental("aggressive", self.aggressive)
-            pcard.set_mental("brave",      self.brave)
-            pcard.set_mental("cautious",   self.cautious)
-            pcard.set_mental("cheerful",   self.cheerful)
-            pcard.set_mental("trickish",   self.trickish)
-            if coeff == 1.0:
-                # 連れ込みNPCなど特殊な生命点の持ち主でなければ最大生命点の再計算
+            if self.recalc_parameter:
+                if pcard.data.getattr("Property/Life", "coefficient", 0):
+                    pcard.data.remove("Property/Life", attrname="coefficient")
+                pcard.set_physical("agl", self.agl)
+                pcard.set_physical("dex", self.dex)
+                pcard.set_physical("int", self.int)
+                pcard.set_physical("min", self.min)
+                pcard.set_physical("str", self.str)
+                pcard.set_physical("vit", self.vit)
+                pcard.set_mental("aggressive", self.aggressive)
+                pcard.set_mental("brave",      self.brave)
+                pcard.set_mental("cautious",   self.cautious)
+                pcard.set_mental("cheerful",   self.cheerful)
+                pcard.set_mental("trickish",   self.trickish)
                 v = float(pcard.life) / pcard.maxlife
                 pcard.maxlife = cw.character.calc_maxlife(self.vit, self.min, pcard.level)
                 if pcard.life <> 0:
                     pcard.life = max(1, int(pcard.maxlife * v))
+
+                # 属性
+                pcard.set_feature("automaton", self.race.automaton)
+                pcard.set_feature("constructure", self.race.constructure)
+                pcard.set_feature("undead", self.race.undead)
+                pcard.set_feature("unholy", self.race.unholy)
+                pcard.set_noeffect("magic", self.race.noeffect_magic)
+                pcard.set_noeffect("weapon", self.race.noeffect_weapon)
+                pcard.set_resist("fire", self.race.resist_fire)
+                pcard.set_resist("ice", self.race.resist_ice)
+                pcard.set_weakness("fire", self.race.weakness_fire)
+                pcard.set_weakness("ice", self.race.weakness_ice)
+                pcard.set_enhance("avoid", self.race.avoid)
+                pcard.set_enhance("resist", self.race.resist)
+                pcard.set_enhance("defense", self.race.defense)
+
+            # 父母などの称号→年代などの称号→その他の称号
+            # の順で登録する
+            seq = []
+            seq.extend(parentcoupons)
+
+            seq.append((self.sex, 0))
+            seq.append((self.age, 0))
+            if not isinstance(self.race, cw.header.UnknownRaceHeader):
+                seq.append((u"＠Ｒ" + self.race.name, 0))
+            if self.recalc_coupons:
+                for coupon in self.race.coupons:
+                    seq.append(coupon)
+
+            seq.append((self.talent, 0))
+            for making in makings:
+                seq.append((making, 0))
+
+            if self.recalc_coupons:
+                for f in cw.cwpy.setting.periods:
+                    if self.age == u"＿" + f.name:
+                        for coupon in f.coupons:
+                            seq.append(coupon)
+                        break
+
+                for coupon in etccoupons:
+                    if not coupon[0] in racecoupons:
+                        seq.append(coupon)
+
+            else:
+                seq.extend(etccoupons)
+
+            coupons = seq
+
+            pcard.replace_allcoupons(coupons, syscoupons=None)
+
+            self.recalc_parameter_init = self.recalc_parameter
+            self.recalc_coupons_init = self.recalc_coupons
 
         if self.name <> pcard.name:
             pcard.set_name(self.name)
@@ -525,7 +742,7 @@ class CharaRequirementPanel(wx.Panel):
 
         sizer_type = wx.StaticBoxSizer(self.typbox, wx.VERTICAL)
         sizer_type2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_type2.Add(self.type, 0, wx.ALIGN_CENTER, 0)
+        sizer_type2.Add(self.type, 1, wx.ALIGN_CENTER, 0)
         sizer_type.Add(sizer_type2, 1, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER, 5)
 
         sizer_lefttop = wx.BoxSizer(wx.VERTICAL)

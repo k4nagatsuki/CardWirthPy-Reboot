@@ -322,7 +322,7 @@ class CouponEditDialog(wx.Dialog):
         def func(pcards, coupons, syscoupons):
             update = False
             for i, pcard in enumerate(pcards):
-                pcard.replace_allcoupons(coupons[i], syscoupons)
+                pcard.replace_allcoupons(reversed(coupons[i]), syscoupons)
                 # レベル調節
                 if isinstance(pcard, cw.sprite.card.PlayerCard):
                     update |= pcard.adjust_level(False)

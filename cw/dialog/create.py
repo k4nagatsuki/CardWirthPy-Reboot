@@ -384,7 +384,7 @@ class AdventurerData(object):
         self.set_coupon(u"＠レベル原点", self.level)
 
     def set_life(self):
-        self.life = (self.vit / 2 + 4) * (self.level + 1) + self.min / 2
+        self.life = cw.character.calc_maxlife(self.vit, self.min, self.level)
         self.maxlife = self.life
 
 def create_description(talent, attrs):

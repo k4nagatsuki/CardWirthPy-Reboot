@@ -235,8 +235,7 @@ class Character(object):
     def set_name(self, name):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        e = self.data.find("Property/Name")
-        e.text = name
+        self.data.edit("Property/Name", name)
         self.name = name
 
     def get_description(self):
@@ -245,24 +244,51 @@ class Character(object):
     def set_description(self, desc):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        e = self.data.find("Property/Description")
-        e.text = cw.util.encodewrap(desc)
+        self.data.edit("Property/Description", cw.util.encodewrap(desc))
 
     def set_physical(self, name, value):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        e = self.data.find("Property/Ability/Physical")
-        e.set(name, str(int(value)))
+        self.data.edit("Property/Ability/Physical", str(int(value)), name)
         self.physical[name] = float(value)
         self._clear_vocationcache()
 
     def set_mental(self, name, value):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        e = self.data.find("Property/Ability/Mental")
-        e.set(name, str(value))
+        self.data.edit("Property/Ability/Mental", str(value), name)
         self.mental[name] = float(value)
         self._clear_vocationcache()
+
+    def set_feature(self, name, value):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self.data.edit("Property/Feature/Type", str(value), name)
+        self.feature[name] = value
+
+    def set_noeffect(self, name, value):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self.data.edit("Property/Feature/NoEffect", str(value), name)
+        self.noeffect[name] = value
+
+    def set_resist(self, name, value):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self.data.edit("Property/Feature/Resist", str(value), name)
+        self.resist[name] = value
+
+    def set_weakness(self, name, value):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self.data.edit("Property/Feature/Weakness", str(value), name)
+        self.weakness[name] = value
+
+    def set_enhance(self, name, value):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        self.data.edit("Property/Ability/Enhance", str(value), name)
+        self.enhance[name] = value
 
     def get_cardpocket(self):
         flag = bool(self.data.getroot().tag == "CastCard")
@@ -1429,7 +1455,6 @@ class Character(object):
         所有クーポンをセット型で返す。
         """
         return self._get_coupons()
-
     def _get_coupons(self):
         return set(self.coupons.iterkeys())
 
@@ -1507,7 +1532,7 @@ class Character(object):
         revcoupon_new = False
         # システムクーポン以外を一旦除去
         for name in self._get_coupons():
-            if not (name.startswith(u"＠") or name in syscoupons):
+            if syscoupons is None or not (name.startswith(u"＠") or name in syscoupons):
                 self._remove_coupon(name, False)
             revcoupon_old |= (name == u"：Ｒ")
 
@@ -1516,7 +1541,7 @@ class Character(object):
         naturecoupons = set(cw.cwpy.setting.naturecoupons)
 
         # クーポン追加
-        for coupon in reversed(seq):
+        for coupon in seq:
             name = coupon[0]
             if name in sexcoupons:
                 old = self._get_sex()
