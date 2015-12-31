@@ -435,6 +435,7 @@ class TopPanel(wx.Panel):
                     self.sex = coupon.text.replace(u"＿", "", 1)
                 elif coupon.text == u"＠ＥＰ":
                     self.ep = coupon.get("value")
+            self.race = self.ccard.get_race()
 
         if update:
             dc = wx.ClientDC(self)
@@ -542,11 +543,23 @@ class TopPanel(wx.Panel):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
             s = "EP: " + self.ep
             dc.DrawText(s, cw.wins(8), cw.wins(82))
-            # 年代
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
-            s = self.age + self.sex
-            w = dc.GetTextExtent(s)[0]
-            dc.DrawText(s, width2 - w, cw.wins(80))
+            if isinstance(self.race, cw.header.UnknownRaceHeader):
+                # 年代
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
+                s = self.age + self.sex
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, width2 - w, cw.wins(80))
+            else:
+                # 年代
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
+                s = self.age + self.sex
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, width2 - w, cw.wins(64))
+                # 種族
+                s = self.race.name
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
+                w = dc.GetTextExtent(s)[0]
+                dc.DrawText(s, width2 - w, cw.wins(80))
             dc.EndDrawing()
 
         # 親ウィンドウの再描画を行える場合は呼び出し
