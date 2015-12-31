@@ -69,6 +69,9 @@ class CouponEditDialog(wx.Dialog):
         bmp = cw.cwpy.rsrc.buttons["RSMALL_dbg"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
 
+        # 検索
+        self.find = FindPanel(self, self.values, self._item_selected)
+
         # 追加
         self.addbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_ADD, (-1, -1), name=u"追加")
         # 削除
@@ -121,6 +124,7 @@ class CouponEditDialog(wx.Dialog):
         sizer_left.Add(sizer_combo, 0, flag=wx.BOTTOM|wx.EXPAND, border=3)
         sizer_left.Add(self.values, 1, flag=wx.EXPAND)
         sizer_left.Add(self.total, 0, flag=wx.EXPAND|wx.TOP, border=3)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
@@ -492,6 +496,9 @@ class ListEditDialog(wx.Dialog):
         self.values.SetColumnWidth(0, 170)
         self.values.setResizeColumn(0)
 
+        # 検索
+        self.find = FindPanel(self, self.values, self._item_selected)
+
         # 追加
         self.addbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_ADD, (-1, -1), name=u"追加")
         # 削除
@@ -529,6 +536,10 @@ class ListEditDialog(wx.Dialog):
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, self.values)
 
     def _do_layout(self):
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_left.Add(self.values, 1, flag=wx.EXPAND)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
+
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.addbtn, 0, wx.EXPAND)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND|wx.TOP, border=5)
@@ -539,7 +550,7 @@ class ListEditDialog(wx.Dialog):
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.values, 1, wx.EXPAND|wx.ALL, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
 
         self.SetSizer(sizer)
@@ -714,6 +725,9 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         self.values.SetColumnWidth(0, 170)
         self.values.setResizeColumn(0)
 
+        # 検索
+        self.find = FindPanel(self, self.values, self._item_selected)
+
         # 削除
         self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
 
@@ -743,6 +757,10 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
 
     def _do_layout(self):
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_left.Add(self.values, 1, flag=wx.EXPAND)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
+
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.AddStretchSpacer(1)
@@ -750,7 +768,7 @@ class SavedJPDCImageEditDialog(wx.Dialog):
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.values, 1, wx.EXPAND|wx.ALL, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
 
         self.SetSizer(sizer)
@@ -820,6 +838,9 @@ class BreakpointEditDialog(wx.Dialog):
         self.values.SetColumnWidth(0, 170)
         self.values.setResizeColumn(0)
 
+        # 検索
+        self.find = FindPanel(self, self.values, self._item_selected)
+
         # 削除
         self.rmvbtn = cw.cwpy.rsrc.create_wxbutton_dbg(self, wx.ID_REMOVE, (-1, -1), name=u"削除")
 
@@ -849,6 +870,10 @@ class BreakpointEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
 
     def _do_layout(self):
+        sizer_left = wx.BoxSizer(wx.VERTICAL)
+        sizer_left.Add(self.values, 1, flag=wx.EXPAND)
+        sizer_left.Add(self.find, 0, flag=wx.EXPAND|wx.TOP, border=3)
+
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(self.rmvbtn, 0, wx.EXPAND)
         sizer_right.AddStretchSpacer(1)
@@ -856,7 +881,7 @@ class BreakpointEditDialog(wx.Dialog):
         sizer_right.Add(self.cnclbtn, 0, wx.EXPAND|wx.TOP, border=5)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.values, 1, wx.EXPAND|wx.ALL, border=5)
+        sizer.Add(sizer_left, 1, wx.EXPAND|wx.ALL, border=5)
         sizer.Add(sizer_right, 0, flag=wx.EXPAND|wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
 
         self.SetSizer(sizer)
@@ -903,10 +928,152 @@ class BreakpointEditDialog(wx.Dialog):
         indexes = self.get_selectedindexes()
         self.rmvbtn.Enable(bool(indexes))
 
+#-------------------------------------------------------------------------------
+#  ダイアログの部品
+#-------------------------------------------------------------------------------
+
 class AutoWidthListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, parent, cid, size, style):
         wx.ListCtrl.__init__(self, parent, cid, size=size, style=style)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
+
+class FindPanel(wx.Panel):
+    def __init__(self, parent, values, item_selected, style=0):
+        """検索パネル。
+        """
+        wx.Panel.__init__(self, parent, -1, style=style)
+        self.values = values
+        self.item_selected = item_selected
+
+        self.title = wx.StaticText(self, -1, u"検索:")
+        self.text = wx.TextCtrl(self, -1, style=wx.TE_PROCESS_ENTER)
+        self._color_not_found = wx.Colour(255, 128, 128)
+        self._color_found = self.text.GetBackgroundColour()
+
+        # up
+        bmp = cw.cwpy.rsrc.buttons["UP_dbg"]
+        self.findup = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+        # down
+        bmp = cw.cwpy.rsrc.buttons["DOWN_dbg"]
+        self.finddown = cw.cwpy.rsrc.create_wxbutton_dbg(self, -1, (20, 20), bmp=bmp)
+
+        self.findup.Disable()
+        self.finddown.Disable()
+
+        self._bind()
+        self._do_layout()
+
+    def _bind(self):
+        self.text.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
+        self.text.Bind(wx.EVT_TEXT, self.OnTextChanged)
+        self.findup.Bind(wx.EVT_BUTTON, self.OnFindUp)
+        self.finddown.Bind(wx.EVT_BUTTON, self.OnFindDown)
+
+    def _do_layout(self):
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.title, 0, wx.ALIGN_CENTER, 0)
+        sizer.Add(self.text, 1, wx.EXPAND, 0)
+        sizer.Add(self.findup, 0, wx.EXPAND, 0)
+        sizer.Add(self.finddown, 0, wx.EXPAND, 0)
+
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
+
+    def find_up(self):
+        if not self.text.GetValue():
+            return
+        if not self.values.GetItemCount():
+            self.text.SetBackgroundColour(self._color_not_found)
+            self.text.Refresh()
+            return
+        startindex = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+        if startindex == -1:
+            startindex = 0
+
+        for index in xrange(self.values.GetItemCount()):
+            self.values.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
+
+        index = startindex
+        text = self.text.GetValue().lower()
+        while True:
+            index -= 1
+            if index < 0:
+                index = self.values.GetItemCount()-1
+
+            if self.values.GetItemText(index).lower().find(text) <> -1:
+                self.values.SetItemState(index, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED)
+                self.values.EnsureVisible(index)
+                self.text.SetBackgroundColour(self._color_found)
+                self.text.Refresh()
+                break
+
+            if startindex == index:
+                # 見つからなかった
+                self.text.SetBackgroundColour(self._color_not_found)
+                self.text.Refresh()
+                break
+
+        self.item_selected()
+
+    def find_down(self):
+        if not self.text.GetValue():
+            return
+        if not self.values.GetItemCount():
+            self.text.SetBackgroundColour(self._color_not_found)
+            self.text.Refresh()
+            return
+        startindex = self.values.GetNextItem(-1, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+        if startindex == -1:
+            startindex = self.values.GetItemCount()-1
+
+        for index in xrange(self.values.GetItemCount()):
+            self.values.SetItemState(index, 0, wx.LIST_STATE_SELECTED)
+
+        index = startindex
+        text = self.text.GetValue().lower()
+        while True:
+            index += 1
+            if self.values.GetItemCount() <= index:
+                index = 0
+
+            if self.values.GetItemText(index).lower().find(text) <> -1:
+                self.values.SetItemState(index, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED, wx.LIST_STATE_SELECTED|wx.LIST_STATE_FOCUSED)
+                self.values.EnsureVisible(index)
+                self.text.SetBackgroundColour(self._color_found)
+                self.text.Refresh()
+                break
+
+            if startindex == index:
+                # 見つからなかった
+                self.text.SetBackgroundColour(self._color_not_found)
+                self.text.Refresh()
+                break
+
+        self.item_selected()
+
+    def OnFindUp(self, event):
+        self.find_up()
+
+    def OnFindDown(self, event):
+        self.find_down()
+
+    def OnTextChanged(self, event):
+        if self.text.GetValue() == "":
+            self.text.SetBackgroundColour(self._color_found)
+            self.text.Refresh()
+            self.findup.Disable()
+            self.finddown.Disable()
+        else:
+            self.findup.Enable()
+            self.finddown.Enable()
+
+    def OnEnter(self, event):
+        if event.ShiftDown():
+            self.find_up()
+        else:
+            self.find_down()
+
 
 def main():
     pass
