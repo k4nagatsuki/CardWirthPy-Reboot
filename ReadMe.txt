@@ -155,7 +155,7 @@ CardWirthPyには現在のところ未完成の機能はありませんが、完
 
 #### ダイアログの不具合
 
-ダイアログのボタンにフォーカスがある時に`Ctrl+D`などのキー操作を行うとWindowsの警告音が鳴る事が分かっていますが、解決できていません。警告音が鳴る以外の実害はありません。
+ダイアログのボタンにフォーカスがある時に`Ctrl+D`などのキー操作を行うとWindowsの警告音が鳴ることが分かっていますが、解決できていません。警告音が鳴る以外の実害はありません。
 
 
 互換モード
@@ -215,7 +215,7 @@ CardWirthPy 0.12.2固有で将来修正される見込みのバグに対処し�
 
 CardWirthPyはプログラミング言語Pythonで書かれました。実行ファイルの作成にはpy2exeを使用しています。
 
-[Python ver2.7.10](http://www.python.org/)
+[Python ver2.7.11](http://www.python.org/)
  : License: Python Software Foundation License
 
 [py2exe ver0.6.9](http://www.py2exe.org/)
