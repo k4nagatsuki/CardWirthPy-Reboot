@@ -1136,7 +1136,9 @@ class RacePage(AdventurerCreaterPage):
         AdventurerCreaterPage.__init__(self, parent)
         choices = [h.name for h in cw.cwpy.setting.races]
         self.race = choices[0]
-        self.choice = wx.Choice(self, choices=choices, size=cw.wins((125, -1)))
+        self.choice = wx.Choice(self, choices=choices, size=(cw.wins(125), -1))
+        font = cw.cwpy.rsrc.get_wxfont("combo", pixelsize=cw.wins(14))
+        self.choice.SetFont(font)
         self.choice.SetStringSelection(self.race)
         self._bind()
         self._do_layout()
