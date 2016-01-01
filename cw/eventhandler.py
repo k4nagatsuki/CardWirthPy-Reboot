@@ -470,7 +470,7 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
-        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_showingdlg() and not pygame.event.peek():
+        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
             path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", fname)
             if os.path.isfile(path):
