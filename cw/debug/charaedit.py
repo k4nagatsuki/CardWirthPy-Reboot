@@ -433,6 +433,7 @@ class CharaInfo(object):
         updatebase = (self.recalc_parameter and not self.recalc_parameter_init) or\
                      (self.recalc_coupons and not self.recalc_coupons_init) or\
                      self.race <> pcard.get_race() or\
+                     self.maxlife <> pcard.maxlife or\
                      self.sex <> pcard.get_sex() or\
                      self.age <> pcard.get_age() or\
                      self.talent <> pcard.get_talent() or\
@@ -517,8 +518,6 @@ class CharaInfo(object):
                 pcard.set_description(desc_aft)
 
             if self.recalc_parameter:
-                if pcard.data.getattr("Property/Life", "coefficient", 0):
-                    pcard.data.remove("Property/Life", attrname="coefficient")
                 pcard.set_physical("agl", self.agl)
                 pcard.set_physical("dex", self.dex)
                 pcard.set_physical("int", self.int)
@@ -530,10 +529,7 @@ class CharaInfo(object):
                 pcard.set_mental("cautious",   self.cautious)
                 pcard.set_mental("cheerful",   self.cheerful)
                 pcard.set_mental("trickish",   self.trickish)
-                v = float(pcard.life) / pcard.maxlife
-                pcard.maxlife = cw.character.calc_maxlife(self.vit, self.min, pcard.level)
-                if pcard.life <> 0:
-                    pcard.life = max(1, int(pcard.maxlife * v))
+                pcard.set_maxlife(self.maxlife)
 
                 # 属性
                 pcard.set_feature("automaton", self.race.automaton)

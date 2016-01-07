@@ -246,6 +246,19 @@ class Character(object):
             cw.cwpy.ydata.changed()
         self.data.edit("Property/Description", cw.util.encodewrap(desc))
 
+    def set_maxlife(self, value):
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+        v = float(self.life) / self.maxlife
+        self.maxlife = value
+        self.data.edit("Property/Life", str(int(value)), "max")
+        if self.life <> 0:
+            self.life = max(1, int(self.maxlife * v))
+            self.data.edit("Property/Life", str(int(self.maxlife)))
+
+        if self.data.getattr("Property/Life", "coefficient", 0):
+            self.data.remove("Property/Life", attrname="coefficient")
+
     def set_physical(self, name, value):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
