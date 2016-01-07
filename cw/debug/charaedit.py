@@ -52,9 +52,12 @@ class CharacterEditDialog(wx.Dialog):
         self.note.AddPage(self.pane_sel, u"選択情報")
 
         if self.create:
+            self.recalc_maxlife = None
             self.recalc_parameter = None
             self.recalc_coupons = None
         else:
+            self.recalc_maxlife = wx.CheckBox(self, -1, u"生命点を新しい情報に合わせて再設定する",
+                                                style=wx.CHK_3STATE)
             self.recalc_parameter = wx.CheckBox(self, -1, u"能力値(カスタムの場合のみ)と属性を新しい情報に合わせて再設定する",
                                                 style=wx.CHK_3STATE)
             self.recalc_coupons = wx.CheckBox(self, -1, u"初期クーポンを新しい情報に合わせて再設定する",
@@ -84,6 +87,7 @@ class CharacterEditDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnStandardType, self.stdbtn)
         self.Bind(wx.EVT_BUTTON, self.OnAutoBtn, self.autobtn)
         self.Bind(wx.EVT_BUTTON, self.OnOkBtn, self.okbtn)
+        self.Bind(wx.EVT_CHECKBOX, self.OnReCalcMaxLife, self.recalc_maxlife)
         self.Bind(wx.EVT_CHECKBOX, self.OnReCalcParameter, self.recalc_parameter)
         self.Bind(wx.EVT_CHECKBOX, self.OnReCalcCoupons, self.recalc_coupons)
 
@@ -99,7 +103,8 @@ class CharacterEditDialog(wx.Dialog):
 
         if not self.create:
             sizer_recalc = wx.BoxSizer(wx.VERTICAL)
-            sizer_recalc.Add(self.recalc_parameter, 0, 0, 0)
+            sizer_recalc.Add(self.recalc_maxlife, 0, 0, 0)
+            sizer_recalc.Add(self.recalc_parameter, 0, wx.TOP, 1)
             sizer_recalc.Add(self.recalc_coupons, 0, wx.TOP, 1)
             sizer_left.Add(sizer_recalc, 0, wx.TOP, 5)
 
@@ -125,6 +130,14 @@ class CharacterEditDialog(wx.Dialog):
         else:
             # 誰か一人
             return [self.infos[cindex-1]]
+
+    def OnReCalcMaxLife(self, event):
+        s3 = self.recalc_maxlife.Get3StateValue()
+        if s3 == wx.CHK_UNDETERMINED:
+            return
+        checked = (s3 == wx.CHK_CHECKED)
+        for info in self._get_infos():
+            info.recalc_maxlife = checked
 
     def OnReCalcParameter(self, event):
         s3 = self.recalc_parameter.Get3StateValue()
@@ -216,9 +229,15 @@ class CharacterEditDialog(wx.Dialog):
         self.pane_req.select_target(cindex)
         self.pane_sel.select_target(cindex)
 
+        recalc_maxlife = None
         recalc_parameter = None
         recalc_coupons = None
         for info in self._get_infos():
+            if recalc_maxlife is None:
+                recalc_maxlife = info.recalc_maxlife
+            elif recalc_maxlife <> info.recalc_maxlife:
+                recalc_maxlife = wx.CHK_UNDETERMINED
+
             if recalc_parameter is None:
                 recalc_parameter = info.recalc_parameter
             elif recalc_parameter <> info.recalc_parameter:
@@ -229,6 +248,8 @@ class CharacterEditDialog(wx.Dialog):
             elif recalc_coupons <> info.recalc_coupons:
                 recalc_coupons = wx.CHK_UNDETERMINED
 
+        if self.recalc_maxlife:
+            self.recalc_maxlife.Set3StateValue(recalc_maxlife)
         if self.recalc_parameter:
             self.recalc_parameter.Set3StateValue(recalc_parameter)
         if self.recalc_coupons:
@@ -255,7 +276,8 @@ class CharaInfo(object):
             self.mental = pcard.mental
             self._calc_params()
             levelmax = pcard.get_couponvalue(u"＠レベル上限")
-            self.recalc_parameter = pcard.maxlife == self.maxlife and\
+            self.recalc_maxlife = pcard.maxlife == cw.character.calc_maxlife(pcard.physical["vit"], pcard.physical["min"], pcard.level)
+            self.recalc_parameter = \
                 pcard.physical["agl"] == self.agl and\
                 pcard.physical["dex"] == self.dex and\
                 pcard.physical["int"] == self.int and\
@@ -307,9 +329,11 @@ class CharaInfo(object):
             self.makings = set()
             self.type = None
             self._calc_params()
+            self.recalc_maxlife = True
             self.recalc_parameter = True
             self.recalc_coupons = True
 
+        self.recalc_maxlife_init = self.recalc_maxlife
         self.recalc_parameter_init = self.recalc_parameter
         self.recalc_coupons_init = self.recalc_coupons
         self.input_name = self.name
@@ -419,8 +443,6 @@ class CharaInfo(object):
             "trickish":self.trickish
         }
 
-        self.maxlife = cw.character.calc_maxlife(self.vit, self.min, self.level)
-
         self.levelmax = 10
         for f in cw.cwpy.setting.natures:
             if self.talent == u"＿" + f.name:
@@ -433,7 +455,6 @@ class CharaInfo(object):
         updatebase = (self.recalc_parameter and not self.recalc_parameter_init) or\
                      (self.recalc_coupons and not self.recalc_coupons_init) or\
                      self.race <> pcard.get_race() or\
-                     self.maxlife <> pcard.maxlife or\
                      self.sex <> pcard.get_sex() or\
                      self.age <> pcard.get_age() or\
                      self.talent <> pcard.get_talent() or\
@@ -529,7 +550,6 @@ class CharaInfo(object):
                 pcard.set_mental("cautious",   self.cautious)
                 pcard.set_mental("cheerful",   self.cheerful)
                 pcard.set_mental("trickish",   self.trickish)
-                pcard.set_maxlife(self.maxlife)
 
                 # 属性
                 pcard.set_feature("automaton", self.race.automaton)
@@ -593,7 +613,18 @@ class CharaInfo(object):
         if updatebase or self.level <> pcard.level:
             pcard.set_level(self.level, debugedit=True)
 
-        return updatebase or updateetc
+        if self.recalc_maxlife:
+            maxlife = cw.character.calc_maxlife(pcard.physical["vit"], pcard.physical["min"], pcard.level)
+            updatelife = pcard.maxlife <> maxlife
+            if updatelife:
+                pcard.set_maxlife(maxlife)
+        else:
+            if self.recalc_parameter:
+                # この呼び出しにより係数を初期化する
+                pcard.set_maxlife(pcard.maxlife)
+            updatelife = False
+
+        return updatebase or updateetc or updatelife
 
     def create_adventurer(self, setlevel=True):
         makings = self.get_makingslist()
