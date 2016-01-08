@@ -2652,16 +2652,6 @@ class AlbumPage(object):
         self.name = self.data.gettext("Property/Name", "")
         self.level = self.data.getint("Property/Level")
 
-    @synclock(_couponlock)
-    def get_race(self):
-        return self._get_race()
-
-    def _get_race(self):
-        for race in cw.cwpy.setting.races:
-            if self._has_coupon(u"＠Ｒ" + race.name):
-                return race
-        return cw.cwpy.setting.unknown_race
-
     def get_specialcoupons(self):
         """
         "＠"で始まる特殊クーポンの
