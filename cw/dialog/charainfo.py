@@ -427,6 +427,7 @@ class TopPanel(wx.Panel):
             self.sex = cw.cwpy.setting.sexes[0].name
             self.age = cw.cwpy.setting.periods[0].name
             self.ep = "0"
+            self.race = cw.cwpy.setting.unknown_race
 
             for coupon in self.ccard.data.getfind("Property/Coupons"):
                 if coupon.text in ages:
@@ -435,7 +436,11 @@ class TopPanel(wx.Panel):
                     self.sex = coupon.text.replace(u"＿", "", 1)
                 elif coupon.text == u"＠ＥＰ":
                     self.ep = coupon.get("value")
-            self.race = self.ccard.get_race()
+                elif coupon.text.startswith(u"＠Ｒ"):
+                    for race in cw.cwpy.setting.races:
+                        if coupon.text == u"＠Ｒ" + race.name:
+                            self.race = race
+                            break
 
         if update:
             dc = wx.ClientDC(self)
