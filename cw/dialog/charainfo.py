@@ -549,7 +549,12 @@ class TopPanel(wx.Panel):
 
         if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or\
                 isinstance(self.ccard, cw.sprite.card.FriendCard)):
-            if 1 < len(cw.cwpy.setting.races):
+            if 1 == len(cw.cwpy.setting.races) and isinstance(cw.cwpy.setting.races[0], cw.header.UnknownRaceHeader):
+                # EP
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
+                s = "EP: " + self.ep
+                cw.util.draw_witharound_simple(dc, s, cw.wins(8), cw.wins(82), backcolor)
+            else:
                 # EP
                 dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
                 s = "EP: " + self.ep
@@ -564,11 +569,6 @@ class TopPanel(wx.Panel):
                     dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
                     w = dc.GetTextExtent(s)[0]
                     cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(80), backcolor)
-            else:
-                # EP
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
-                s = "EP: " + self.ep
-                cw.util.draw_witharound_simple(dc, s, cw.wins(8), cw.wins(82), backcolor)
             # 年代
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
             s = self.age + self.sex
