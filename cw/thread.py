@@ -2567,7 +2567,7 @@ class CWPy(_Singleton, threading.Thread):
         self.lock_menucards = True
         self.clean_specials()
 
-        self.play_sound("battle", from_scenario=True)
+        self.play_sound("battle", from_scenario=True, material_override=True)
         self.statusbar.change(False, encounter=True)
 
         data = self.sdata.get_resdata(True, areaid)
@@ -3394,13 +3394,32 @@ class CWPy(_Singleton, threading.Thread):
         else:
             self.ydata.add_partyrecord(partyrecord)
 
-    def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0):
+    def play_sound(self, name, from_scenario=False, subvolume=100, loopcount=1, channel=0, fade=0, material_override=False):
         if channel < 0 or cw.bassplayer.MAX_SOUND_CHANNELS <= channel:
             return
         if self <> threading.currentThread():
             self.exec_func(self.play_sound, name, from_scenario, subvolume, loopcount, channel, fade)
             return
+
+        if material_override:
+            sound = self.sounds[name]
+            path = os.path.basename(sound.get_path())
+            inusecard = self.event.get_inusecard()
+            if self._play_sound_with(path, from_scenario, inusecard=inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade):
+                return
+
         self.sounds[name].play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+
+    def _play_sound_with(self, path, from_scenario, inusecard=None, subvolume=100, loopcount=1, channel=0, fade=0):
+        inusesoundpath = cw.util.get_inusecardmaterialpath(path, cw.M_SND, inusecard)
+        if os.path.isfile(inusesoundpath):
+            path = inusesoundpath
+        else:
+            path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
+        if os.path.isfile(path):
+            cw.util.load_sound(path).play(from_scenario, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+            return True
+        return False
 
     def play_sound_with(self, path, inusecard=None, subvolume=100, loopcount=1, channel=0, fade=0):
         """効果音を再生する。
@@ -3408,19 +3427,13 @@ class CWPy(_Singleton, threading.Thread):
         """
         if channel < 0 or cw.bassplayer.MAX_SOUND_CHANNELS <= channel:
             return
-        inusesoundpath = cw.util.get_inusecardmaterialpath(path, cw.M_SND, inusecard)
-        if os.path.isfile(inusesoundpath):
-            path = inusesoundpath
-        else:
-            path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)
+        if self._play_sound_with(path, True, inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade):
+            return
 
-        if os.path.isfile(path):
-            cw.util.load_sound(path).play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
-        else:
-            name = cw.util.splitext(os.path.basename(path))[0]
+        name = cw.util.splitext(os.path.basename(path))[0]
 
-            if name in self.skinsounds:
-                self.skinsounds[name].play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
+        if name in self.skinsounds:
+            self.skinsounds[name].play(True, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade)
 
     def has_sound(self, path):
         path = cw.util.get_materialpath(path, cw.M_SND, system=self.areaid < 0)

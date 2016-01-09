@@ -268,6 +268,9 @@ class SoundInterface(object):
         self._type = -1
         self.mastervolume = 0
 
+    def get_path(self):
+        return self._path
+
     def _play_before(self, from_scenario, channel, fade):
         if from_scenario:
             if cw.cwpy.lastsound_scenario[channel]:
