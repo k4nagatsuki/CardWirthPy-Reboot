@@ -2556,11 +2556,19 @@ class CWPy(_Singleton, threading.Thread):
             if self.areaid >= 0 and self.status == "Scenario":
                 self.elapse_time()
 
+            if self._need_disposition:
+                self.disposition_pcards()
+                self.draw()
+
             self.sdata.start_event(keynum=1)
         else:
             self.deal_cards(quickdeal=quickdeal, startbattle=startbattle)
             if not startbattle and not pygame.event.peek(pygame.locals.USEREVENT):
                 self.show_party()
+
+            if self._need_disposition:
+                self.disposition_pcards()
+                self.draw()
 
         if self.ydata and not self.is_playingscenario():
             self.ydata._changed = oldchanged

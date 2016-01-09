@@ -1934,10 +1934,10 @@ class EndContent(EventContentBase):
             cw.util.sort_by_attr(cw.cwpy.ydata.party.vanished_pcards, "index")
             for pcard in cw.cwpy.ydata.party.vanished_pcards:
                 pcard.cancel_vanish()
-                if not cw.cwpy.setting.all_quickdeal:
+                if cw.cwpy.is_showparty and not cw.cwpy.setting.all_quickdeal:
                     cw.animation.animate_sprite(pcard, "deal", battlespeed=False)
 
-            if cw.cwpy.setting.all_quickdeal:
+            if cw.cwpy.is_showparty and cw.cwpy.setting.all_quickdeal:
                 cw.animation.animate_sprites(cw.cwpy.ydata.party.vanished_pcards, "deal", battlespeed=False)
             cw.cwpy.ydata.party.vanished_pcards = []
 

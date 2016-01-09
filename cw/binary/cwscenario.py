@@ -94,9 +94,14 @@ class CWScenario(object):
                 zindexmode = conf.get("Compatibility", "zIndexMode")
             except:
                 zindexmode = ""
+            try:
+                vanishmembercancellation = conf.get("Compatibility", "enableVanishMemberCancellation")
+                vanishmembercancellation = cw.util.str2bool(vanishmembercancellation)
+            except:
+                vanishmembercancellation = False
 
-            if engine or zindexmode:
-                self.versionhint = (engine, zindexmode)
+            if engine or zindexmode or vanishmembercancellation:
+                self.versionhint = (engine, zindexmode, vanishmembercancellation)
                 self.hasmodeini = True
         except Exception:
             cw.util.print_ex()

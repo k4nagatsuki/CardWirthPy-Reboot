@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="72af4359ce73ca864b11b52566a46b12" enableVanishMemberCancellation="True" /><!-- 金を得る簡単な方法 -->
+  <Scenario md5="1e6cc5e76b837f1160fad0634b2d63db" enableVanishMemberCancellation="True" /><!-- 絶対に動いてはいけない#Y -->
   <Scenario md5="46b80c563c44ce487fbfb91ff4be0ab0">1.28</Scenario><!-- 大海魔/Area6.wid -->
   <Scenario md5="978ff5a3863fdd25e94acc01f7adeb9c">1.28</Scenario><!-- 追放者の幸福/Mate1.wid -->
   <Scenario md5="7081a76051c01568442dad507f02be71">1.28</Scenario><!-- 家鴨の仔/Mate1.wid -->
@@ -20,7 +22,7 @@
   <Scenario md5="087bc9b64a17c5b2b569a12e1d9decda">1.20</Scenario><!-- 正義の籠城 -->
   <Scenario md5="5ea0aa8b5409210e0000bb422189a262">1.28</Scenario><!-- 彷徨いの迷宮の鬼獣帝 -->
   <Scenario md5="125f565922d63da3b7a12f75cd84085e">1.20</Scenario><!-- 盗賊物語 -->
-  <Scenario md5="1247abf821057337ba2239cadfc2c95c" zIndexMode="1.20"></Scenario><!-- 真鍮の器 -->
+  <Scenario md5="1247abf821057337ba2239cadfc2c95c" zIndexMode="1.20" /><!-- 真鍮の器 -->
   <Scenario md5="41b521497465b62ebc1bc2bb6e41cc5d">1.20</Scenario><!-- はちみつ日和/Area3.wid -->
   <Scenario md5="fb1144ed2f3319350013572b01516dcd">1.28</Scenario><!-- カタパルト/Area1.wid -->
   <Scenario md5="b1c4de688855d56d5593361a3f985e98">1.28</Scenario><!-- ｶﾞﾙｩｯ！(ルゥガルゥ) -->

@@ -2232,9 +2232,10 @@ class ScenarioCompatibilityTable(object):
             data = cw.data.xml2element(path="Data/Compatibility.xml")
             for e in data:
                 key = e.get("md5", "")
-                zindexmode = bool(e.get("zIndexMode", "False"))
-                if key and (e.text or zindexmode):
-                    self.table[key] = (e.text, zindexmode)
+                zindexmode = e.getattr(".", "zIndexMode", "")
+                vanishmembercancellation = e.getbool(".", "enableVanishMemberCancellation", False)
+                if key and (e.text or zindexmode or vanishmembercancellation):
+                    self.table[key] = (e.text, zindexmode, vanishmembercancellation)
 
     def get_versionhint(self, fpath=None, filedata=None):
         """fpathのファイル内容またはfiledataから、
@@ -2264,7 +2265,8 @@ class ScenarioCompatibilityTable(object):
 
     def zindexmode(self, currentversion):
         """メニューカードをプレイヤーカードより前に配置するモードで
-        あればTrueを返す。"""
+        あればTrueを返す。
+        """
         if not currentversion:
             return False
 
@@ -2276,12 +2278,14 @@ class ScenarioCompatibilityTable(object):
         else:
             return self.lessthan("1.20", currentversion)
 
-    def is_cancelable_vanishmember(self):
+    def enable_vanishmembercancellation(self, currentversion):
         """パーティメンバが再配置される前であれば
         対象消去がキャンセルされるモードであればTrueを返す。
-        現状では常にFalseを返す。
         """
-        return False
+        if not currentversion:
+            return False
+
+        return currentversion[2]
 
     def merge_versionhints(self, hint1, hint2):
         """hint1を高優先度としてhint2とマージする。"""
@@ -2296,14 +2300,17 @@ class ScenarioCompatibilityTable(object):
         zindexmode = hint1[1]
         if not zindexmode:
             zindexmode = hint2[1]
+        vanishmembercancellation = hint1[2]
+        if not vanishmembercancellation:
+            vanishmembercancellation = hint2[2]
 
-        return (engine, zindexmode)
+        return (engine, zindexmode, vanishmembercancellation)
 
     def from_basehint(self, basehint):
         """basehintから複合情報を生成する。"""
         if not basehint:
             return None
-        return (basehint, "")
+        return (basehint, "", False)
 
     def to_basehint(self, versionhint):
         """複合情報versionhintから最も基本的な情報を取り出す。"""
