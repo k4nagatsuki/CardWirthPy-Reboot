@@ -3402,8 +3402,12 @@ class CWPy(_Singleton, threading.Thread):
             return
 
         if material_override:
+            # シナリオ側でスキン付属効果音を上書きする
             sound = self.sounds[name]
             path = os.path.basename(sound.get_path())
+            path = os.path.splitext(path)[0]
+            path = cw.util.join_paths(self.sdata.scedir, path)
+            path = os.path.basename(cw.util.find_resource(path, cw.M_SND))
             inusecard = self.event.get_inusecard()
             if self._play_sound_with(path, from_scenario, inusecard=inusecard, subvolume=subvolume, loopcount=loopcount, channel=channel, fade=fade):
                 return
