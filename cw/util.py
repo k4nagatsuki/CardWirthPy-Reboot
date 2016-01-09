@@ -2293,8 +2293,21 @@ def draw_box(dc, pos, size):
     box = get_boxpointlist(pos, size)
     dc.DrawLineList(box)
 
-def draw_witharound(dc, s, x, y, maxwidth=0):
+def draw_witharound_simple(dc, s, x, y, aroundcolor):
     """テキストsを縁取りしながら描画する。"""
+    oldcolor = dc.GetTextForeground()
+    dc.SetTextForeground(aroundcolor)
+    for xx in xrange(x-1, x+2):
+        for yy in xrange(y-1, y+2):
+            if xx <> x or yy <> y:
+                dc.DrawText(s, xx, yy)
+    dc.SetTextForeground(oldcolor)
+    dc.DrawText(s, x, y)
+
+def draw_witharound(dc, s, x, y, maxwidth=0):
+    """テキストsを縁取りしながら描画する。
+    フォントのスムージングを行う。
+    """
     draw_antialiasedtext(dc, s, x, y, False, maxwidth, 0, scaledown=False, bordering=True)
 
 def draw_antialiasedtext(dc, text, x, y, white, maxwidth, padding,

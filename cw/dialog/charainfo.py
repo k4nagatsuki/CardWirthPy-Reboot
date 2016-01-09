@@ -448,6 +448,8 @@ class TopPanel(wx.Panel):
         else:
             dc = wx.PaintDC(self)
 
+        backcolor = self.GetBackgroundColour()
+
         dc.BeginDrawing()
         # カード画像の後ろにある羽みたいなの
         cw.util.draw_center(dc, self.wing, (self.Parent.width/2, cw.wins(50)))
@@ -476,10 +478,13 @@ class TopPanel(wx.Panel):
         if u"＠レベル上限" in coupons and coupons[u"＠レベル上限"] <= baselevel:
             # max
             dc.SetTextForeground(wx.RED)
-            dc.DrawText("max", cw.wins(25), cw.wins(20))
+            if 1 < len(cw.cwpy.setting.races):
+                cw.util.draw_witharound_simple(dc, "max", cw.wins(25), cw.wins(17), backcolor)
+            else:
+                cw.util.draw_witharound_simple(dc, "max", cw.wins(25), cw.wins(20), backcolor)
             maxlevel = True
         dc.SetTextForeground(wx.BLACK)
-        dc.DrawText(s, cw.wins(5), cw.wins(5))
+        cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(5), backcolor)
 
         # 次のレベルまで割合バー
         if cw.cwpy.setting.show_experiencebar and isinstance(self.ccard, cw.character.Player) and not maxlevel:
@@ -490,7 +495,7 @@ class TopPanel(wx.Panel):
 
             prange = nextexp - curexp
             x = cw.wins(5)+1
-            y = cw.wins(22)+1
+            y = cw.wins(23)+1
             w = cw.wins(42)-2
             h = cw.wins(5)-2
             hr = max(2, h/3)
@@ -540,31 +545,35 @@ class TopPanel(wx.Panel):
         s = self.ccard.name
         w = dc.GetTextExtent(s)[0]
         width2 = self.Parent.width - cw.wins(5)
-        dc.DrawText(s, width2 - w, cw.wins(3))
+        cw.util.draw_witharound_simple(dc, s, width2 - w, cw.wins(3), backcolor)
 
         if not (isinstance(self.ccard, cw.sprite.card.EnemyCard) or\
                 isinstance(self.ccard, cw.sprite.card.FriendCard)):
-            # EP
-            dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
-            s = "EP: " + self.ep
-            dc.DrawText(s, cw.wins(8), cw.wins(82))
-            if isinstance(self.race, cw.header.UnknownRaceHeader):
-                # 年代
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
-                s = self.age + self.sex
-                w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, width2 - w, cw.wins(80))
-            else:
-                # 年代
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
-                s = self.age + self.sex
-                w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, width2 - w, cw.wins(64))
+            if 1 < len(cw.cwpy.setting.races):
+                # EP
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
+                s = "EP: " + self.ep
+                isalbum = self.ccard.data.getroot().tag == "Album"
+                if isalbum:
+                    cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(22), backcolor)
+                else:
+                    cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(32), backcolor)
                 # 種族
-                s = self.race.name
-                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
-                w = dc.GetTextExtent(s)[0]
-                dc.DrawText(s, width2 - w, cw.wins(80))
+                if not isinstance(self.race, cw.header.UnknownRaceHeader):
+                    s = self.race.name
+                    dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
+                    w = dc.GetTextExtent(s)[0]
+                    cw.util.draw_witharound_simple(dc, s, cw.wins(5), cw.wins(80), backcolor)
+            else:
+                # EP
+                dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam", pixelsize=cw.wins(14)))
+                s = "EP: " + self.ep
+                cw.util.draw_witharound_simple(dc, s, cw.wins(8), cw.wins(82), backcolor)
+            # 年代
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("charaparam2", pixelsize=cw.wins(16)))
+            s = self.age + self.sex
+            w = dc.GetTextExtent(s)[0]
+            cw.util.draw_witharound_simple(dc, s, width2 - w, cw.wins(80), backcolor)
             dc.EndDrawing()
 
         # 親ウィンドウの再描画を行える場合は呼び出し
