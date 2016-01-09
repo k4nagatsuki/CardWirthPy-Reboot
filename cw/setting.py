@@ -2276,6 +2276,13 @@ class ScenarioCompatibilityTable(object):
         else:
             return self.lessthan("1.20", currentversion)
 
+    def is_cancelable_vanishmember(self):
+        """パーティメンバが再配置される前であれば
+        対象消去がキャンセルされるモードであればTrueを返す。
+        現状では常にFalseを返す。
+        """
+        return False
+
     def merge_versionhints(self, hint1, hint2):
         """hint1を高優先度としてhint2とマージする。"""
         if not hint1:

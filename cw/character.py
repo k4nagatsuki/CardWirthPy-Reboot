@@ -2254,22 +2254,54 @@ class Character(object):
         """
         対象消去を行う。
         """
-        if cw.cwpy.ydata:
-            cw.cwpy.ydata.changed()
         if isinstance(self, cw.character.Friend):
             # 1.50までは同行NPCに対象消去は効かない
             return
-        elif isinstance(self, cw.character.Player):
-                        # PCの場合、プレミアカードを荷物袋へ移動する
+        if not self.is_vanished():
+            if cw.cwpy.ydata:
+                cw.cwpy.ydata.changed()
+            self._vanished = True
+            if isinstance(self, cw.character.Player):
+                cw.animation.animate_sprite(self, "vanish", battlespeed=battlespeed)
+                if cw.cwpy.sct.is_cancelable_vanishmember():
+                    cw.cwpy.ydata.party.vanished_pcards.append(self)
+                else:
+                    self.commit_vanish()
+            else:
+                cw.animation.animate_sprite(self, "delete", battlespeed=battlespeed)
+                self.commit_vanish()
+            cw.cwpy.vanished_card(self)
+
+    def cancel_vanish(self):
+        """対象消去をキャンセルする。
+        表示処理は行わないため、呼び出し後に行う必要がある。
+        """
+        if not self.is_vanished():
+            return
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+
+        assert not cw.cwpy.cardgrp.has(self)
+        assert self.data in cw.cwpy.ydata.party.members
+
+        self._vanished = False
+        cw.cwpy.cardgrp.add(self, layer=self.layer)
+        cw.cwpy.pcards.insert(cw.cwpy.ydata.party.members.index(self.data), self)
+
+    def commit_vanish(self):
+        if not self.is_vanished():
+            return
+        if cw.cwpy.ydata:
+            cw.cwpy.ydata.changed()
+
+        if isinstance(self, cw.character.Player):
+            # PCの場合、プレミアカードを荷物袋へ移動する
             for pocket in self.cardpocket:
                 for card in pocket[:]:
                     if card.premium == "Premium":
                         cw.cwpy.trade("BACKPACK", header=card, from_event=True, sort=False)
-        if not self.is_vanished():
-            self._vanished = True
-            cw.animation.animate_sprite(self, "delete", battlespeed=battlespeed)
-            self.lost()
-            cw.cwpy.vanished_card(self)
+            cw.cwpy.ydata.party.remove(self)
+        self.lost()
 
     def set_enhance_act(self, value, duration):
         """

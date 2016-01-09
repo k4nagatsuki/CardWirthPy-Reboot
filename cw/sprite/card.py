@@ -704,6 +704,17 @@ class PlayerCard(CWPyCard, character.Player):
         if self.frame == 0:
             cw.cwpy.ydata.party.remove(self)
 
+    def update_vanish(self):
+        """仮の対象消去。clear_vanish()で復元する事ができる。"""
+        if self.old_status == "hidden":
+            self.hide()
+        else:
+            self.update_hide()
+
+        if self.frame == 0:
+            cw.cwpy.cardgrp.remove(self)
+            cw.cwpy.pcards.remove(self)
+
     def lclick_event(self):
         """左クリックイベント。"""
         if self.reversed:

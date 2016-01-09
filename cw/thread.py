@@ -1912,7 +1912,7 @@ class CWPy(_Singleton, threading.Thread):
                 self.pcards.remove(pcard)
 
             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
-            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal")
+            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal", index=idx)
 
             # カード画像が変更されているPCは戻す
             if not elog is None:
@@ -2085,7 +2085,7 @@ class CWPy(_Singleton, threading.Thread):
                     else:
                         for idx, data in enumerate(self.ydata.party.members):
                             pos_noscale = (95 * idx + 9 * (idx + 1), 285)
-                            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal")
+                            pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="normal", index=idx)
                             pcard.set_pos_noscale(pos_noscale)
                             pcard.update_image()
                         self.ydata.party._loading = False
@@ -2319,7 +2319,7 @@ class CWPy(_Singleton, threading.Thread):
         if self.ydata and self.ydata.party and not self.get_pcards():
             for idx, e in enumerate(self.ydata.party.members):
                 pos_noscale = 95 * idx + 9 * (idx + 1), 285
-                cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
+                cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=idx)
 
             # 番号クーポン設定
             self.ydata.party._loading = False
@@ -2474,6 +2474,12 @@ class CWPy(_Singleton, threading.Thread):
         """プレイヤーカードの位置を補正する。
         対象消去が発生した場合や解散直後に適用。
         """
+        if self.ydata and self.ydata.party:
+            # キャンセル可能な対象消去状態だったメンバを完全に消去する(互換動作)
+            for pcard in self.ydata.party.vanished_pcards:
+                pcard.commit_vanish()
+            self.ydata.party.vanished_pcards = []
+
         for index, pcard in enumerate(self.get_pcards()):
             x = 9 + 95 * index + 9 * index
             y = pcard._pos_noscale[1]
@@ -3267,7 +3273,7 @@ class CWPy(_Singleton, threading.Thread):
             if loadsprites:
                 for i, e in enumerate(self.ydata.party.members):
                     pos_noscale = (9 + 95 * i + 9 * i, 285)
-                    pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
+                    pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=i)
                 self.show_party()
         else:
             self.cardgrp.remove(self.pcards)
@@ -3276,7 +3282,7 @@ class CWPy(_Singleton, threading.Thread):
                 e = self.ydata.party.members[0]
                 pcardsnum = len(self.ydata.party.members) - 1
                 pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
-                pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale)
+                pcard = cw.sprite.card.PlayerCard(e, pos_noscale=pos_noscale, index=pcardsnum)
                 pcard.set_pos_noscale(pos_noscale)
                 cw.animation.animate_sprite(pcard, "deal")
 

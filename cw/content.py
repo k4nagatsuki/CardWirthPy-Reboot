@@ -1929,6 +1929,18 @@ class EndContent(EventContentBase):
         # メニューカード全て非表示
         cw.cwpy.hide_cards(True)
 
+        # キャンセル可能な対象消去状態だったメンバを復元する(互換動作)
+        if cw.cwpy.ydata.party.vanished_pcards:
+            cw.util.sort_by_attr(cw.cwpy.ydata.party.vanished_pcards, "index")
+            for pcard in cw.cwpy.ydata.party.vanished_pcards:
+                pcard.cancel_vanish()
+                if not cw.cwpy.setting.all_quickdeal:
+                    cw.animation.animate_sprite(pcard, "deal", battlespeed=False)
+
+            if cw.cwpy.setting.all_quickdeal:
+                cw.animation.animate_sprites(cw.cwpy.ydata.party.vanished_pcards, "deal", battlespeed=False)
+            cw.cwpy.ydata.party.vanished_pcards = []
+
         # 時限クーポン削除
         for pcard in cw.cwpy.get_pcards():
             pcard.remove_timedcoupons()

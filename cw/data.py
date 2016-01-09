@@ -2459,6 +2459,9 @@ class Party(object):
             self.backpack_moved = []
         self.path = path
 
+        # キャンセル可能な対象消去メンバ(互換機能)
+        self.vanished_pcards = []
+
         # パーティデータ(CWPyElementTree)
         self.data = yadoxml2etree(path)
         # パーティ名
@@ -2575,9 +2578,14 @@ class Party(object):
         self.data.append("Property/Members", e)
         if not data:
             data = yadoxml2etree(header.fpath)
+        pcards = cw.cwpy.get_pcards()
+        if pcards:
+            index = pcards[-1].index + 1
+        else:
+            index = 0
         self.members.append(data)
         pos_noscale = (9 + 95 * pcardsnum + 9 * pcardsnum, 285)
-        pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal")
+        pcard = cw.sprite.card.PlayerCard(data, pos_noscale=pos_noscale, status="deal", index=index)
         cw.animation.animate_sprite(pcard, "deal")
 
     def remove(self, pcard):
@@ -2588,8 +2596,9 @@ class Party(object):
             cw.cwpy.ydata.changed()
         pcard.remove_numbercoupon()
         self.members.remove(pcard.data)
-        cw.cwpy.cardgrp.remove(pcard)
-        cw.cwpy.pcards.remove(pcard)
+        if cw.cwpy.cardgrp.has(pcard):
+            cw.cwpy.cardgrp.remove(pcard)
+            cw.cwpy.pcards.remove(pcard)
         self.data.getfind("Property/Members").clear()
 
         for pcard in cw.cwpy.get_pcards():
