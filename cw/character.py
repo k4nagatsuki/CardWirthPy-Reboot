@@ -2263,7 +2263,8 @@ class Character(object):
             self._vanished = True
             if isinstance(self, cw.character.Player):
                 cw.animation.animate_sprite(self, "vanish", battlespeed=battlespeed)
-                if cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+                if cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
+                   cw.cwpy.sct.enable_vanishmembercancellation(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
                     cw.cwpy.ydata.party.vanished_pcards.append(self)
                 else:
                     self.commit_vanish()

@@ -887,7 +887,8 @@ class EnemyCard(CWPyCard, character.Enemy):
             self.layer = (layer, cw.LTYPE_MCARDS, self.index, 0)
         else:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
+                                  cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
                 self.layer = (cw.LAYER_MCARDS_120, cw.LTYPE_MCARDS, self.index, 0)
             else:
                 self.layer = (cw.LAYER_MCARDS, cw.LTYPE_MCARDS, self.index, 0)
@@ -1095,7 +1096,8 @@ class MenuCard(CWPyCard):
             self.layer = (cw.LAYER_SPMCARDS, cw.LTYPE_SPMCARDS, self.index, 0)
         else:
             # 互換動作: 1.20以前はメニューカードがプレイヤーカードの上に描画される
-            if cw.cwpy.sdata and cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA)):
+            if cw.cwpy.sdata and (cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_SCENARIO)) or\
+                                  cw.cwpy.sct.zindexmode(cw.cwpy.sdata.get_versionhint(frompos=cw.HINT_AREA))):
                 self.layer = (cw.LAYER_MCARDS_120, cw.LTYPE_MCARDS, self.index, 0)
             else:
                 self.layer = (cw.LAYER_MCARDS, cw.LTYPE_MCARDS, self.index, 0)
