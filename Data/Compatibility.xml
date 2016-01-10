@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="9ca3619f590cfd6a85f5a132fe52f06e" disableGossipRestoration="True" /><!-- 桃色のエロ鳥 -->
   <Scenario md5="72af4359ce73ca864b11b52566a46b12" enableVanishMemberCancellation="True" /><!-- 金を得る簡単な方法 -->
   <Scenario md5="1e6cc5e76b837f1160fad0634b2d63db" enableVanishMemberCancellation="True" /><!-- 絶対に動いてはいけない#Y -->
   <Scenario md5="46b80c563c44ce487fbfb91ff4be0ab0">1.28</Scenario><!-- 大海魔/Area6.wid -->

@@ -13,6 +13,7 @@ import weakref
 import array
 import re
 import threading
+import ConfigParser
 import wx
 import pygame
 import pygame.locals
@@ -2234,8 +2235,10 @@ class ScenarioCompatibilityTable(object):
                 key = e.get("md5", "")
                 zindexmode = e.getattr(".", "zIndexMode", "")
                 vanishmembercancellation = e.getbool(".", "enableVanishMemberCancellation", False)
-                if key and (e.text or zindexmode or vanishmembercancellation):
-                    self.table[key] = (e.text, zindexmode, vanishmembercancellation)
+                gossiprestoration = e.getbool(".", "disableGossipRestoration", False)
+                compstamprestoration = e.getbool(".", "disableCompleteStampRestoration", False)
+                if key and (e.text or zindexmode or vanishmembercancellation or gossiprestoration or compstamprestoration):
+                    self.table[key] = (e.text, zindexmode, vanishmembercancellation, gossiprestoration, compstamprestoration)
 
     def get_versionhint(self, fpath=None, filedata=None):
         """fpathのファイル内容またはfiledataから、
@@ -2287,6 +2290,24 @@ class ScenarioCompatibilityTable(object):
 
         return currentversion[2]
 
+    def disable_gossiprestration(self, currentversion):
+        """F9でのゴシップ復元を無効にする問題を
+        再現するモードであればTrueを返す。
+        """
+        if not currentversion:
+            return False
+
+        return currentversion[3]
+
+    def disable_compstamprestration(self, currentversion):
+        """F9での終了印復元を無効にする問題を
+        再現するモードであればTrueを返す。
+        """
+        if not currentversion:
+            return False
+
+        return currentversion[4]
+
     def merge_versionhints(self, hint1, hint2):
         """hint1を高優先度としてhint2とマージする。"""
         if not hint1:
@@ -2303,14 +2324,20 @@ class ScenarioCompatibilityTable(object):
         vanishmembercancellation = hint1[2]
         if not vanishmembercancellation:
             vanishmembercancellation = hint2[2]
+        gossiprestration = hint1[3]
+        if not gossiprestration:
+            gossiprestration = hint2[3]
+        compstamprestration = hint1[4]
+        if not compstamprestration:
+            compstamprestration = hint2[4]
 
-        return (engine, zindexmode, vanishmembercancellation)
+        return (engine, zindexmode, vanishmembercancellation, gossiprestration, compstamprestration)
 
     def from_basehint(self, basehint):
         """basehintから複合情報を生成する。"""
         if not basehint:
             return None
-        return (basehint, "", False)
+        return (basehint, "", False, False, False)
 
     def to_basehint(self, versionhint):
         """複合情報versionhintから最も基本的な情報を取り出す。"""
@@ -2318,3 +2345,45 @@ class ScenarioCompatibilityTable(object):
             return versionhint[0]
         else:
             return ""
+
+    def read_modeini(self, fpath):
+        """クラシックなシナリオのmode.iniから互換性情報を読み込む。
+        互換性情報が無いか、読込に失敗した場合はNoneを返す。
+        """
+        try:
+            conf = ConfigParser.SafeConfigParser()
+            conf.read(fpath)
+
+            try:
+                engine = conf.get("Compatibility", "engine")
+            except:
+                engine = ""
+
+            try:
+                zindexmode = conf.get("Compatibility", "zIndexMode")
+            except:
+                zindexmode = ""
+
+            try:
+                vanishmembercancellation = conf.get("Compatibility", "enableVanishMemberCancellation")
+                vanishmembercancellation = cw.util.str2bool(vanishmembercancellation)
+            except:
+                vanishmembercancellation = False
+
+            try:
+                gossiprestration = conf.get("Compatibility", "disableGossipRestoration")
+                gossiprestration = cw.util.str2bool(gossiprestration)
+            except:
+                gossiprestration = False
+
+            try:
+                compstamprestration = conf.get("Compatibility", "disableCompleteStampRestoration")
+                compstamprestration = cw.util.str2bool(compstamprestration)
+            except:
+                compstamprestration = False
+
+            if engine or zindexmode or vanishmembercancellation or gossiprestration or compstamprestration:
+                return (engine, zindexmode, vanishmembercancellation, gossiprestration, compstamprestration)
+        except Exception:
+            cw.util.print_ex()
+        return None

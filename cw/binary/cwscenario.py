@@ -3,7 +3,6 @@
 
 import os
 import shutil
-import ConfigParser
 
 import cw
 
@@ -83,28 +82,11 @@ class CWScenario(object):
             self.versionhint = cw.cwpy.sct.merge_versionhints(self.versionhint, cw.cwpy.sct.get_versionhint(fpath=self.summarypath))
 
     def read_modeini(self, fpath):
-        try:
-            conf = ConfigParser.SafeConfigParser()
-            conf.read(fpath)
-            try:
-                engine = conf.get("Compatibility", "engine")
-            except:
-                engine = ""
-            try:
-                zindexmode = conf.get("Compatibility", "zIndexMode")
-            except:
-                zindexmode = ""
-            try:
-                vanishmembercancellation = conf.get("Compatibility", "enableVanishMemberCancellation")
-                vanishmembercancellation = cw.util.str2bool(vanishmembercancellation)
-            except:
-                vanishmembercancellation = False
-
-            if engine or zindexmode or vanishmembercancellation:
-                self.versionhint = (engine, zindexmode, vanishmembercancellation)
+        if cw.cwpy and cw.cwpy.sct:
+            versionhint = cw.cwpy.sct.read_modeini(fpath)
+            if versionhint:
+                self.versionhint = versionhint
                 self.hasmodeini = True
-        except Exception:
-            cw.util.print_ex()
 
     def is_convertible(self):
         if not self.summarypath:
