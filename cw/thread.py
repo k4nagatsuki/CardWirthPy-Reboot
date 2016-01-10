@@ -1727,6 +1727,8 @@ class CWPy(_Singleton, threading.Thread):
         self.card_takenouttemporarily = None
         pygame.event.clear()
         self.hide_party()
+        if self._need_disposition:
+            self.disposition_pcards()
         self.ydata.party.lost()
         self.sdata.end()
         self.ydata.load_party(None)
