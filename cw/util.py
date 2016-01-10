@@ -108,7 +108,7 @@ class MusicInterface(object):
                             cw.util.print_ex()
                     elif bgmtype == 1:
                         if sys.platform == "win32":
-                            name = "cwbgm_" + self.channel
+                            name = "cwbgm_" + str(self.channel)
                             mciSendStringW = ctypes.windll.winmm.mciSendStringW
                             mciSendStringW(u'open "%s" alias %s' % (fpath, name), 0, 0, 0)
                             volume = int(cw.cwpy.setting.vol_bgm * 1000)
@@ -181,7 +181,7 @@ class MusicInterface(object):
                 cw.bassplayer.stop_bgm(channel=self.channel, fade=fade)
                 self._bass = False
         elif self._winmm:
-            name = "cwbgm_" + self.channel
+            name = "cwbgm_" + str(self.channel)
             mciSendStringW = ctypes.windll.winmm.mciSendStringW
             mciSendStringW(u"stop %s" % (name), 0, 0, 0)
             mciSendStringW(u"close %s" % (name), 0, 0, 0)
@@ -316,7 +316,7 @@ class SoundInterface(object):
                 assert threading.currentThread() <> cw.cwpy
                 tempbasedir = self._play_before(from_scenario, channel, fade)
                 if from_scenario:
-                    name = "cwsnd1_" + channel
+                    name = "cwsnd1_" + str(channel)
                 else:
                     name = "cwsnd2"
 
@@ -430,7 +430,7 @@ class SoundInterface(object):
             volume = int(volume * 1000)
             mciSendStringW = ctypes.windll.winmm.mciSendStringW
             if from_scenario:
-                name = "cwsnd1_" + self.channel
+                name = "cwsnd1_" + str(self.channel)
             else:
                 name = "cwsnd2"
             mciSendStringW(u"setaudio %s volume to %s" % (name, volume), 0, 0, 0)
