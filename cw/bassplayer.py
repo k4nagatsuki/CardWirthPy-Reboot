@@ -85,7 +85,11 @@ def _cc111loop(handle, channel, data, streamindex):
     _loop(handle, channel, data, streamindex)
 CC111LOOP = SYNCPROC(_cc111loop)
 
+@synclock(_lock)
 def _free_channel(handle, channel, data, streamindex):
+    _free_channel2(handle, channel, data, streamindex)
+
+def _free_channel2(handle, channel, data, streamindex):
     global _bass, _fadeoutstreams
     _bass.BASS_ChannelStop(channel)
     _bass.BASS_StreamFree(channel)
@@ -441,13 +445,14 @@ def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0, fa
         _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, fade)
         return _streams[STREAM_SOUND2] <> 0
 
+@synclock(_lock)
 def _stop(streamindex, fade, stopfadeout):
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
 
     if stopfadeout:
         channel = _fadeoutstreams[streamindex]
         if channel:
-            _free_channel(None, channel, 0, streamindex)
+            _free_channel2(None, channel, 0, streamindex)
 
     if _streams[streamindex]:
         stream = _streams[streamindex]
@@ -456,7 +461,7 @@ def _stop(streamindex, fade, stopfadeout):
             _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
             _fadeoutstreams[streamindex] = stream
         else:
-            _free_channel(None, stream, 0, streamindex)
+            _free_channel2(None, stream, 0, streamindex)
         _streams[streamindex] = 0
 
 def stop_bgm(channel=0, fade=0, stopfadeout=False):
@@ -480,6 +485,7 @@ def stop_sound(fromscenario=False, channel=0, fade=0, stopfadeout=False):
     else:
         _stop(STREAM_SOUND2, fade=fade, stopfadeout=stopfadeout)
 
+@synclock(_lock)
 def _set_volume(volume, streamindex, fade):
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
     if _fadeoutstreams[streamindex] and volume == 0 and fade == 0:
