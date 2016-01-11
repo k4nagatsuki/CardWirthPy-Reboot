@@ -81,13 +81,13 @@ class MusicInterface(object):
             fpath = cw.cwpy.rsrc.get_filepath(fpath)
 
         if not os.path.isfile(fpath):
-            self.stop(fade)
+            self._stop(fade, stopfadeout=False)
         else:
             assert threading.currentThread() == cw.cwpy
 
             self.set_volume()
             if restart or self.fpath <> fpath:
-                self.stop(fade)
+                self._stop(fade, stopfadeout=False)
                 self._winmm = False
                 self._bass = False
                 bgmtype = load_bgm(fpath)
@@ -173,12 +173,18 @@ class MusicInterface(object):
         if threading.currentThread() <> cw.cwpy:
             cw.cwpy.exec_func(self.stop, fade)
             return
+        self._stop(fade=fade, stopfadeout=True)
+
+    def _stop(self, fade, stopfadeout):
+        if threading.currentThread() <> cw.cwpy:
+            cw.cwpy.exec_func(self._stop, fade, stopfadeout)
+            return
 
         assert threading.currentThread() == cw.cwpy
 
         if self._bass:
             if cw.bassplayer.is_alivablewithpath(self.path):
-                cw.bassplayer.stop_bgm(channel=self.channel, fade=fade)
+                cw.bassplayer.stop_bgm(channel=self.channel, fade=fade, stopfadeout=stopfadeout)
                 self._bass = False
         elif self._winmm:
             name = "cwbgm_" + str(self.channel)
@@ -274,13 +280,13 @@ class SoundInterface(object):
     def _play_before(self, from_scenario, channel, fade):
         if from_scenario:
             if cw.cwpy.lastsound_scenario[channel]:
-                cw.cwpy.lastsound_scenario[channel].stop(from_scenario, fade=fade)
+                cw.cwpy.lastsound_scenario[channel]._stop(from_scenario, fade=fade, stopfadeout=False)
                 cw.cwpy.lastsound_scenario[channel] = None
             cw.cwpy.lastsound_scenario[channel] = self
             return "Sound"
         else:
             if cw.cwpy.lastsound_system:
-                cw.cwpy.lastsound_system.stop(from_scenario, fade=fade)
+                cw.cwpy.lastsound_system._stop(from_scenario, fade=fade, stopfadeout=False)
                 cw.cwpy.lastsound_system = None
             cw.cwpy.lastsound_system = self
             return "SystemSound"
@@ -344,6 +350,9 @@ class SoundInterface(object):
                     self._type = 2
 
     def stop(self, from_scenario, fade=0):
+        self._stop(from_scenario, fade=fade, stopfadeout=True)
+
+    def _stop(self, from_scenario, fade, stopfadeout):
         self.mastervolume = 0
         if self._type <> -1 and self._sound and 0 <= self.channel and self.channel < cw.bassplayer.MAX_SOUND_CHANNELS:
             if from_scenario:
@@ -353,17 +362,17 @@ class SoundInterface(object):
 
             if self._type == 0:
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.stop, from_scenario, fade)
+                    cw.cwpy.exec_func(self._stop, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() == cw.cwpy
                 try:
-                    cw.bassplayer.stop_sound(from_scenario, channel=self.channel)
+                    cw.bassplayer.stop_sound(from_scenario, channel=self.channel, stopfadeout=stopfadeout)
                     remove_soundtempfile(tempbasedir)
                 except Exception:
                     cw.util.print_ex()
             elif self._type == 1:
                 if threading.currentThread() == cw.cwpy:
-                    cw.cwpy.frame.exec_func(self.stop, from_scenario, fade)
+                    cw.cwpy.frame.exec_func(self._stop, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() <> cw.cwpy
                 if from_scenario:
@@ -377,7 +386,7 @@ class SoundInterface(object):
                 remove_soundtempfile(tempbasedir)
             else:
                 if threading.currentThread() <> cw.cwpy:
-                    cw.cwpy.exec_func(self.stop, from_scenario, fade)
+                    cw.cwpy.exec_func(self._stop, from_scenario, fade, stopfadeout)
                     return
                 assert threading.currentThread() == cw.cwpy
                 if pygame.mixer.get_init():

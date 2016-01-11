@@ -441,8 +441,14 @@ def play_sound(fpath, volume=1.0, fromscenario=False, loopcount=1, channel=0, fa
         _streams[STREAM_SOUND2] = _play(fpath, volume, loopcount, STREAM_SOUND2, fade)
         return _streams[STREAM_SOUND2] <> 0
 
-def _stop(streamindex, fade):
+def _stop(streamindex, fade, stopfadeout):
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
+
+    if stopfadeout:
+        channel = _fadeoutstreams[streamindex]
+        if channel:
+            _free_channel(None, channel, 0, streamindex)
+
     if _streams[streamindex]:
         stream = _streams[streamindex]
         if 0 < fade:
@@ -453,7 +459,7 @@ def _stop(streamindex, fade):
             _free_channel(None, stream, 0, streamindex)
         _streams[streamindex] = 0
 
-def stop_bgm(channel=0, fade=0):
+def stop_bgm(channel=0, fade=0, stopfadeout=False):
     """BGMの再生を停止する。
     channel: 再生を停止するチャンネル。
     fade: フェードアウトにかける秒数(ミリ秒)。
@@ -461,18 +467,18 @@ def stop_bgm(channel=0, fade=0):
     if not is_alivable():
         return
     channel += STREAM_BGM
-    _stop(channel, fade)
+    _stop(channel, fade, stopfadeout=stopfadeout)
 
-def stop_sound(fromscenario=False, channel=0, fade=0):
+def stop_sound(fromscenario=False, channel=0, fade=0, stopfadeout=False):
     """効果音の再生を停止する。"""
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _loopstarts, _loopcounts
     if not is_alivable():
         return
     if fromscenario:
         channel += STREAM_SOUND1
-        _stop(channel, fade=fade)
+        _stop(channel, fade=fade, stopfadeout=stopfadeout)
     else:
-        _stop(STREAM_SOUND2, fade=fade)
+        _stop(STREAM_SOUND2, fade=fade, stopfadeout=stopfadeout)
 
 def _set_volume(volume, streamindex, fade):
     global _bass, _bassmidi, _bassfx, _sfonts, _streams, _fadeoutstreams, _loopstarts, _loopcounts
