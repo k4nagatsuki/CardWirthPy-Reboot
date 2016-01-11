@@ -182,11 +182,13 @@ class MusicInterface(object):
 
         assert threading.currentThread() == cw.cwpy
 
-        if self._bass:
-            if cw.bassplayer.is_alivablewithpath(self.path):
-                cw.bassplayer.stop_bgm(channel=self.channel, fade=fade, stopfadeout=stopfadeout)
-                self._bass = False
-        elif self._winmm:
+        if cw.bassplayer.is_alivablewithpath(self.path):
+            # フェードアウト中のBGMも停止する必要があるため、
+            # self._bass == Falseの時も停止処理を行う
+            cw.bassplayer.stop_bgm(channel=self.channel, fade=fade, stopfadeout=stopfadeout)
+            self._bass = False
+
+        if self._winmm:
             name = "cwbgm_" + str(self.channel)
             mciSendStringW = ctypes.windll.winmm.mciSendStringW
             mciSendStringW(u"stop %s" % (name), 0, 0, 0)

@@ -2673,7 +2673,10 @@ class PlayBgmContent(EventContentBase):
         channel = self.data.getint(".", "channel", 0)
         fade = self.data.getint(".", "fadein", 0)
         if 0 <= channel and channel < len(cw.cwpy.music):
-            cw.cwpy.music[channel].play(path, subvolume=subvolume, loopcount=loopcount, fade=fade)
+            if path:
+                cw.cwpy.music[channel].play(path, subvolume=subvolume, loopcount=loopcount, fade=fade)
+            else:
+                cw.cwpy.music[channel].stop(fade=fade)
         return 0
 
     def get_status(self):
