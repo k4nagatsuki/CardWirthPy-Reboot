@@ -457,6 +457,10 @@ def _stop(streamindex, fade, stopfadeout):
     if _streams[streamindex]:
         stream = _streams[streamindex]
         if 0 < fade:
+            channel = _fadeoutstreams[streamindex]
+            if channel:
+                _free_channel2(None, channel, 0, streamindex)
+
             _bass.BASS_ChannelSetSync(stream, BASS_SYNC_SLIDE, c_longlong(0), FREE_CHANNEL, c_void_p(streamindex))
             _bass.BASS_ChannelSlideAttribute(stream, BASS_ATTRIB_VOL, c_float(0), c_long(fade))
             _fadeoutstreams[streamindex] = stream
