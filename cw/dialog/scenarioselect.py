@@ -1133,6 +1133,11 @@ class ScenarioSelect(select.Select):
         fpath = header.get_fpath()
         fpath = os.path.abspath(fpath)
         fpath = cw.util.get_linktarget(fpath)
+        if os.path.isdir(fpath):
+            # WirthBuilderはSummary.wsmのパスを渡さないとシナリオを開けない
+            wsm = cw.util.join_paths(fpath, "Summary.wsm")
+            if os.path.isfile(wsm):
+                fpath = wsm
         fpath = os.path.normpath(fpath)
         encoding = sys.getfilesystemencoding()
         editor = editor.encode(encoding)
