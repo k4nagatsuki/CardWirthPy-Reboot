@@ -164,7 +164,7 @@ class Debugger(wx.Frame):
         self.mi_update.SetBitmap(rsrc["UPDATE"])
         scenario_menu.AppendItem(self.mi_update)
         scenario_menu.AppendSeparator()
-        self.mi_redisplay = wx.MenuItem(scenario_menu, ID_REDISPLAY, u"背景更新(&D)\tCtrl+R",
+        self.mi_redisplay = wx.MenuItem(scenario_menu, ID_REDISPLAY, u"背景更新(&D)\tCtrl+I",
                          u"背景を更新します。")
         self.mi_redisplay.SetBitmap(rsrc["EVT_REDISPLAY"])
         scenario_menu.AppendItem(self.mi_redisplay)
