@@ -60,6 +60,16 @@ class Text(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClickRightBtn, self.rightbtn)
         self.Bind(wx.EVT_COMBOBOX, self.OnCombobox)
         self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+
+        # FIXME: ウィンドウのリサイズで正しく再描画されない。
+        #        挙動が意味不明なので根本的な対処は行えていないが、
+        #        以下のようにリサイズイベント中にレイアウトと
+        #        再描画を行う事で回避できている。
+        def resize(event):
+            self.Layout()
+            self.Refresh()
+        self.Bind(wx.EVT_SIZE, resize)
+
         self.textctrl.Enable(bool(self.list2))
         if self.list2:
             self.textctrl.Show()
