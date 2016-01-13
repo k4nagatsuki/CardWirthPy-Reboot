@@ -185,14 +185,6 @@ CardWirthPyには現在のところ未完成の機能はありませんが、完
     [Compatibility]
     enableVanishMemberCancellation=true
 
-CardWirth 1.50以前に存在する緊急避難(F9)コマンドでゴシップ及び終了印が復元されない問題を利用する場合は次のようにします。
-
-    [Compatibility]
-    ;ゴシップを元に戻さない
-    disableGossipRestoration=true
-    ;終了印を元に戻さない
-    disableCompleteStampRestoration=true
-
 ### 互換性データベース
 
 互換性データベースにシナリオの情報を追加する。作者に、互換性の問題でプレイできない過去のシナリオの情報を伝えてください。それについて確認できれば、シナリオの情報を互換性データベースに登録する事により、あらゆるプレイヤーがそのシナリオを妥当な互換モードでプレイできるようになります。

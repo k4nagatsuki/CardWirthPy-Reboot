@@ -2235,8 +2235,12 @@ class ScenarioCompatibilityTable(object):
                 key = e.get("md5", "")
                 zindexmode = e.getattr(".", "zIndexMode", "")
                 vanishmembercancellation = e.getbool(".", "enableVanishMemberCancellation", False)
-                gossiprestoration = e.getbool(".", "disableGossipRestoration", False)
-                compstamprestoration = e.getbool(".", "disableCompleteStampRestoration", False)
+                # F9でもゴシップや終了印が復元されない挙動の再現は
+                # セキュリティホールになるため無効にする
+                ##gossiprestoration = e.getbool(".", "disableGossipRestoration", False)
+                ##compstamprestoration = e.getbool(".", "disableCompleteStampRestoration", False)
+                gossiprestoration = False
+                compstamprestoration = False
                 if key and (e.text or zindexmode or vanishmembercancellation or gossiprestoration or compstamprestoration):
                     self.table[key] = (e.text, zindexmode, vanishmembercancellation, gossiprestoration, compstamprestoration)
 
@@ -2370,17 +2374,21 @@ class ScenarioCompatibilityTable(object):
             except:
                 vanishmembercancellation = False
 
-            try:
-                gossiprestration = conf.get("Compatibility", "disableGossipRestoration")
-                gossiprestration = cw.util.str2bool(gossiprestration)
-            except:
-                gossiprestration = False
+            # F9でもゴシップや終了印が復元されない挙動の再現は
+            # セキュリティホールになるため無効にする
+            gossiprestration = False
+            ##try:
+            ##    gossiprestration = conf.get("Compatibility", "disableGossipRestoration")
+            ##    gossiprestration = cw.util.str2bool(gossiprestration)
+            ##except:
+            ##    gossiprestration = False
 
-            try:
-                compstamprestration = conf.get("Compatibility", "disableCompleteStampRestoration")
-                compstamprestration = cw.util.str2bool(compstamprestration)
-            except:
-                compstamprestration = False
+            compstamprestration = False
+            ##try:
+            ##    compstamprestration = conf.get("Compatibility", "disableCompleteStampRestoration")
+            ##    compstamprestration = cw.util.str2bool(compstamprestration)
+            ##except:
+            ##    compstamprestration = False
 
             if engine or zindexmode or vanishmembercancellation or gossiprestration or compstamprestration:
                 return (engine, zindexmode, vanishmembercancellation, gossiprestration, compstamprestration)
