@@ -1730,6 +1730,7 @@ class CWPy(_Singleton, threading.Thread):
         if self._need_disposition:
             self.disposition_pcards()
         self.ydata.party.lost()
+        del self.sdata.friendcards[:]
         self.sdata.end()
         self.ydata.load_party(None)
         self.sdata = cw.data.SystemData()
