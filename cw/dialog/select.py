@@ -1472,7 +1472,7 @@ class PartySelect(MultiViewSelect):
             enables = set()
             if cw.cwpy.ydata.party or cw.cwpy.ydata.partyrecord:
                 enables.add(self.partyrecordbtn)
-                enables.add(self.closebtn)
+            enables.add(self.closebtn)
             self._disable_btn(enables)
         elif len(self.list) == 1:
             self._enable_btn((self.rightbtn, self.right2btn, self.leftbtn, self.left2btn))
