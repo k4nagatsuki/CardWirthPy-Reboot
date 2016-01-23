@@ -297,6 +297,7 @@ class SkinEditDialog(wx.Dialog):
         if cw.cwpy.setting.skindirname == self.skindirname:
             def func(skinname, classicstyletext, vocation120):
                 cw.cwpy.setting.skinname = skinname
+                cw.cwpy.setting.skintype = skintype
                 cw.cwpy.update_titlebar()
                 cw.cwpy.update_messagefontstyle(classicstyletext)
                 cw.cwpy.update_vocation120(vocation120)
