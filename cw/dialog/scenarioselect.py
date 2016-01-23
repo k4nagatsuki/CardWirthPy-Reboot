@@ -954,8 +954,10 @@ class ScenarioSelect(select.Select):
                 cw.cwpy.play_sound("equipment")
                 self._no_treechangedsound = True
                 selitem = self.tree.GetSelection()
-                self.tree.Expand(selitem)
                 item = self.tree.GetFirstChild(selitem)[0]
+                if not item.IsOk() or not self.tree.GetItemPyData(item):
+                    self.create_treeitems(selitem)
+                    item = self.tree.GetFirstChild(selitem)[0]
                 if item.IsOk():
                     self.tree.SelectItem(item)
                 self._no_treechangedsound = False
@@ -1170,7 +1172,6 @@ class ScenarioSelect(select.Select):
 
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_YES)
         self.ProcessEvent(btnevent)
-
 
     def OnCancel(self, event):
         if self.nobtn.GetLabel() == cw.cwpy.msgs["entry_cancel"]:
