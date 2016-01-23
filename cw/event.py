@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pygame
+import pygame.locals
 
 import cw
 from cw.character import Enemy

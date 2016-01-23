@@ -466,11 +466,12 @@ class MultiViewSelect(Select):
     def OnSelect(self, event):
         if self._processing:
             return
+
+        if not self.list:
+            return
+
         if self.views == 1:
             # 一件だけ表示している場合は決定
-            if not self.list:
-                return
-
             btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self._enterid)
             self.ProcessEvent(btnevent)
         else:
@@ -2006,6 +2007,9 @@ class PlayerSelect(MultiViewSelect):
         if self._processing:
             return
         self._processing = True
+
+        if not self.list:
+            return
 
         header = self.list[self.index]
 
