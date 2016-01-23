@@ -1756,7 +1756,7 @@ class CWPy(_Singleton, threading.Thread):
         self.clean_specials()
         def func():
             if cw.cwpy.is_runningevent():
-                self.exec_func(self._f9impl())
+                self.exec_func(self._f9impl)
                 raise cw.event.EffectBreakError()
             else:
                 self._f9impl()

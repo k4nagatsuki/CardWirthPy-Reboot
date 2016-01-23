@@ -30,6 +30,7 @@ class CardControl(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetDoubleBuffered(True)
+        self._redraw = True
 
         if areaid is None:
             self.areaid = cw.cwpy.areaid
@@ -190,7 +191,7 @@ class CardControl(wx.Dialog):
         self.toppanel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         self.toppanel.Bind(wx.EVT_ENTER_WINDOW, self.OnEnter)
         self.toppanel.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
-        self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.toppanel.Bind(wx.EVT_PAINT, self.OnPaint2)
         self.panel.Bind(wx.EVT_RIGHT_UP, self.OnRightUp2)
         for child in itertools.chain(self.toppanel.GetChildren(), self.panel.GetChildren()):
             child.Bind(wx.EVT_RIGHT_UP, self.OnRightUp2)
@@ -655,7 +656,9 @@ class CardControl(wx.Dialog):
         else:
             self.combo.SetSelection(index + 1)
 
-    def OnPaint(self, event):
+    def OnPaint2(self, event):
+        if not self._redraw:
+            return
         self.set_cardpos()
         tsize = self.toppanel.GetClientSize()
 
@@ -1488,6 +1491,7 @@ class CardHolder(CardControl):
 
     def OnClickLeftBtn(self, event):
         cw.cwpy.play_sound("page")
+        self._redraw = False
         old_callname = self.callname
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
@@ -1524,10 +1528,12 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
+        self._redraw = True
         self.draw_cards()
 
     def OnClickRightBtn(self, event):
         cw.cwpy.play_sound("page")
+        self._redraw = False
         old_callname = self.callname
 
         if self.callname in ("CARDPOCKET", "CARDPOCKETB"):
@@ -1568,6 +1574,7 @@ class CardHolder(CardControl):
                 self.selection = self.index2
                 self._change_callname(old_callname)
 
+        self._redraw = True
         self.draw_cards()
 
     def OnCancel(self, event):
