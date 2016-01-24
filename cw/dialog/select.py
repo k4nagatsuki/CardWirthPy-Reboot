@@ -1671,6 +1671,8 @@ class PlayerSelect(MultiViewSelect):
         # ダイアログボックス作成
         MultiViewSelect.__init__(self, parent, cw.cwpy.msgs["select_member_title"], wx.ID_ADD, 10,
                                  cw.cwpy.setting.show_multipleplayers)
+        self._bg = None
+
         # 冒険者情報
         self.list = []
         self.isalbum = False
@@ -1723,6 +1725,21 @@ class PlayerSelect(MultiViewSelect):
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((50, 24)), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
 
+        # additionals
+        self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
+        self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_player)
+        bg = self._get_bg()
+        img = cw.util.convert_to_image(bg)
+        x, y = img.GetWidth()-12, 0
+        r, g, b = img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y)
+        colour = wx.Colour(r, g, b)
+        self.addctrlbtn.SetBackgroundColour(colour)
+        self._update_additionals()
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.AddStretchSpacer(1)
+        sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
+        self.toppanel.SetSizer(sizer)
+
         self.update_narrowcondition()
 
         # layout
@@ -1734,6 +1751,7 @@ class PlayerSelect(MultiViewSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
+        self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
         self.Bind(wx.EVT_CHOICE, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
@@ -1754,6 +1772,29 @@ class PlayerSelect(MultiViewSelect):
 
     def save_views(self, multi):
         cw.cwpy.setting.show_multipleplayers = multi
+
+    def _update_additionals(self):
+        show = self.addctrlbtn.GetToggle()
+        self.narrow.Show(show)
+        self.narrow_label.Show(show)
+        self.narrow_type.Show(show)
+        self.sort.Show(show)
+        self.sort_label.Show(show)
+        cw.cwpy.setting.show_additional_player = show
+        if show:
+            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS"]
+        else:
+            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"]
+        self.addctrlbtn.SetBitmapFocus(bmp)
+        self.addctrlbtn.SetBitmapLabel(bmp)
+        self.addctrlbtn.SetBitmapSelected(bmp)
+
+    def OnAdditionalControls(self, event):
+        cw.cwpy.play_sound("equipment")
+        self._update_additionals()
+        self.update_narrowcondition()
+        self._do_layout()
+        self.draw(update=True)
 
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1784,7 +1825,7 @@ class PlayerSelect(MultiViewSelect):
             self.list = cw.cwpy.ydata.standbys[:]
 
         narrow = self.narrow.GetValue().lower()
-        donarrow = bool(narrow)
+        donarrow = self.narrow.IsShown() and bool(narrow)
         ntype = self.narrow_type.GetSelection()
 
         if donarrow and ntype == 4:
@@ -1795,7 +1836,6 @@ class PlayerSelect(MultiViewSelect):
                 donarrow = False
 
         if donarrow:
-
             hiddens = set([u"＿", u"＠"])
             attrs = set(cw.cwpy.setting.periodnames)
             attrs.update(cw.cwpy.setting.sexnames)
@@ -2348,12 +2388,18 @@ class PlayerSelect(MultiViewSelect):
         else:
             return [(10, header) for header in mlist]
 
+    def _get_bg(self):
+        if self._bg:
+            return self._bg
+        path = "Table/Book"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+        self._bg = cw.util.load_wxbmp(path)
+        return self._bg
+
     def draw(self, update=False):
         dc = MultiViewSelect.draw(self, update)
         # 背景
-        path = "Table/Book"
-        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BOOK))
+        bmp = cw.wins((self._get_bg(), cw.SIZE_BOOK))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, 0, False)
 

@@ -183,6 +183,11 @@ class Setting(object):
         self.volume_increment = 5 # ホイールによる全体音量調節での増減量
         self.show_debuglogdialog = False
 
+        # 絞り込み・整列などのコントロールの表示有無
+        self.show_additional_player = False
+        self.show_additional_scenario = False
+        self.show_additional_card = False
+
         # カード種の表示・非表示
         self.show_cardtype = [True] * 3
         # カード選択ダイアログで選択中のカード種別
@@ -614,6 +619,11 @@ class Setting(object):
 
         # タイトルバーの表示内容
         self.titleformat = data.gettext("TitleFormat", self.titleformat)
+
+        # 絞り込み・整列などのコントロールの表示有無
+        self.show_additional_player = data.getbool("ShowAdditionalControls", "player", self.show_additional_player)
+        self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario", self.show_additional_scenario)
+        self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card)
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)

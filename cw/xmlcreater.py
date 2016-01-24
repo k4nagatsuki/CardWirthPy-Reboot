@@ -639,6 +639,18 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             e = cw.data.make_element("ShowMultipleItems", "", attrs=attrs)
             element.append(e)
 
+        # 絞り込み・整列などのコントロールの表示有無
+        attrs = {}
+        if setting.show_additional_player or setting.show_additional_player_init:
+            attrs["player"] = str(setting.show_additional_player)
+        if setting.show_additional_scenario or setting.show_additional_scenario_init:
+            attrs["scenario"] = str(setting.show_additional_scenario)
+        if setting.show_additional_card or setting.show_additional_card_init:
+            attrs["card"] = str(setting.show_additional_card)
+        if attrs:
+            e = cw.data.make_element("ShowAdditionalControls", "", attrs=attrs)
+            element.append(e)
+
     # ファイル書き込み
     path = fpath
     etree = cw.data.xml2etree(element=element)
