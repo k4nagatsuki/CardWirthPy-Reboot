@@ -358,6 +358,11 @@ class Select(wx.Dialog):
         pass
 
     def create_addctrlbtn(self, parent, bg, show):
+        """追加的なコントロールの表示切替を行うボタンを生成する。
+        parent: ボタンの親コントロール。
+        bg: ボタンの背景色の基準となるwx.Bitmap。
+        show: 表示の初期状態。
+        """
         if self.addctrlbtn:
             self.addctrlbtn.Destroy()
         self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(parent, -1, None, size=cw.wins((24, 24)))
@@ -371,6 +376,7 @@ class Select(wx.Dialog):
         self.addctrlbtn.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
     def update_additionals(self):
+        """表示状態の切り替え時に呼び出される。"""
         show = self.addctrlbtn.GetToggle()
         for ctrl in self.additionals:
             ctrl.Show(show)
@@ -383,6 +389,9 @@ class Select(wx.Dialog):
         self.addctrlbtn.SetBitmapSelected(bmp)
 
     def append_addctrlaccelerator(self, seq):
+        """アクセラレータキーリストseqに追加的コントロール
+        表示切替のショートカットキー`Ctrl+F`を追加する。
+        """
         addctrl = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnToggleAdditionalControls, id=addctrl)
         seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
@@ -401,6 +410,7 @@ class Select(wx.Dialog):
         self._do_layout()
         self.toppanel.Refresh()
         self.panel.Refresh()
+        self.Refresh()
 
 #-------------------------------------------------------------------------------
 #　一覧表示可能な選択ダイアログ(抽象クラス)
