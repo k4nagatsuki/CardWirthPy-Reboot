@@ -32,6 +32,8 @@ class ScenarioSelect(select.Select):
         # ダイアログボックス作成
         select.Select.__init__(self, parent, cw.cwpy.msgs["select_scenario_title"])
         self.SetDoubleBuffered(True)
+        self._bg = None
+
         # ディレクトリとシナリオリストの対応
         self.scetable = {}
         # シナリオディレクトリ
@@ -100,6 +102,11 @@ class ScenarioSelect(select.Select):
         else:
             self.editorbtn = None
 
+        # 絞り込み欄等の表示設定
+        if not cw.cwpy.setting.show_paperandtree:
+            self.create_addctrlbtn(self, self._get_bg(), cw.cwpy.setting.show_additional_scenario)
+            self._addctrlbg = self.addctrlbtn.GetBackgroundColour()
+
         # toppanelとツリー表示用のビュー
         if cw.cwpy.setting.show_paperandtree:
             self.toppanel = wx.Panel(self, -1, size=(cw.wins(400)+1, cw.wins(370)))
@@ -107,6 +114,7 @@ class ScenarioSelect(select.Select):
         else:
             self.toppanel = wx.Panel(self, -1, size=(cw.wins(400), cw.wins(370)+2))
             size = (cw.wins(400), cw.wins(370)+2)
+            self.toppanel.SetDoubleBuffered(True)
         self.tree = wx.TreeCtrl(self, -1, size=size,
             style=wx.BORDER|wx.TR_SINGLE|wx.TR_HIDE_ROOT|wx.TR_DEFAULT_STYLE)
         self.tree.SetDoubleBuffered(True)
@@ -167,6 +175,26 @@ class ScenarioSelect(select.Select):
             buttonwidth = cw.wins(90)
         else:
             buttonwidth = cw.wins(55)
+
+        # 絞り込み欄等の更新
+        if not cw.cwpy.setting.show_paperandtree:
+            self.additionals.append(self.unfitness)
+            self.additionals.append(self.completed)
+            self.additionals.append(self.invisible)
+            self.additionals.append(self.pagelabel)
+            self.additionals.append(self.opendirbtn)
+            if self.editorbtn:
+                self.additionals.append(self.editorbtn)
+
+            self.additionals.append(self.keyword_label)
+            self.additionals.append(self.narrow)
+            self.additionals.append(self.narrow_label)
+            self.additionals.append(self.narrow_type)
+            self.additionals.append(self.sort_label)
+            self.additionals.append(self.sort)
+            self.additionals.append(self.find)
+            self.additionals.append(self.bookmark)
+            self.update_additionals()
 
         # ok
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, (buttonwidth, cw.wins(24)), cw.cwpy.msgs["decide"])
@@ -270,7 +298,34 @@ class ScenarioSelect(select.Select):
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_ALT, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
+        if self.addctrlbtn:
+            self.append_addctrlaccelerator(seq)
         cw.util.set_acceleratortable(self, seq)
+
+    def update_additionals(self):
+        self.addctrlbtn.SetDoubleBuffered(False)
+        if self.addctrlbtn.GetToggle():
+            self.addctrlbtn.Reparent(self)
+        else:
+            self.addctrlbtn.Reparent(self.toppanel)
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            sizer.AddStretchSpacer(1)
+            sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
+            self.toppanel.SetSizer(sizer)
+
+        if self.addctrlbtn.GetToggle():
+            self.addctrlbtn.SetBackgroundColour(self.GetBackgroundColour())
+            size = (cw.wins(400), cw.wins(370)+2)
+        else:
+            self.addctrlbtn.SetBackgroundColour(self._addctrlbg)
+            self.addctrlbtn.SetDoubleBuffered(True)
+            size = (cw.wins(400), cw.wins(370))
+
+        self.toppanel.SetSize(size)
+        self.tree.SetSize(size)
+
+        select.Select.update_additionals(self)
+        cw.cwpy.setting.show_additional_scenario = self.addctrlbtn.GetToggle()
 
     def OnEscape(self, event):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
@@ -343,7 +398,8 @@ class ScenarioSelect(select.Select):
             select.Select.OnMouseWheel(self, event)
 
     def OnUpKeyDown(self, event):
-        self.narrow.SetFocus()
+        if self.narrow.IsShown():
+            self.narrow.SetFocus()
 
     def OnDownKeyDown(self, event):
         buttonlist = filter(lambda button: button.IsEnabled(), self.buttonlist)
@@ -356,6 +412,8 @@ class ScenarioSelect(select.Select):
         絞込条件の変更またはソート条件の変更を行う。
         """
         if self._processing:
+            return
+        if not self.narrow.IsShown():
             return
 
         eid = event.GetId()
@@ -395,7 +453,7 @@ class ScenarioSelect(select.Select):
             select.Select._do_layout(self)
 
     def _add_topsizer(self):
-        self.topsizer.Insert(0, self._sizer_top(), 0, wx.EXPAND|wx.TOP|wx.CENTER|wx.ALIGN_RIGHT, cw.wins(1))
+        self.topsizer.Insert(0, self._sizer_top(), 0, wx.EXPAND|wx.TOP|wx.CENTER|wx.ALIGN_RIGHT, 0)
         self.topsizer.Add(self.tree, 1, wx.EXPAND, 0)
         self.topsizer.Add(self._sizer_find(), 0, wx.EXPAND, 0)
 
@@ -409,6 +467,9 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.opendirbtn, 0, 0, 0)
         if self.editorbtn:
             hsizer1.Add(self.editorbtn, 0, 0, 0)
+        if not self.addctrlbtn or self.addctrlbtn.GetToggle():
+            if self.addctrlbtn:
+                hsizer1.Add(self.addctrlbtn, 0, 0, 0)
         return hsizer1
 
     def _sizer_find(self):
@@ -1208,6 +1269,14 @@ class ScenarioSelect(select.Select):
         self.pagelabel.SetMinSize((w, h))
         self.Layout()
 
+    def _get_bg(self):
+        if self._bg:
+            return self._bg
+        path = "Table/Bill"
+        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
+        self._bg = cw.util.load_wxbmp(path)
+        return self._bg
+
     def _draw_impl(self, update=False, dc=None):
         if update:
             self._update_pagelabel()
@@ -1227,7 +1296,7 @@ class ScenarioSelect(select.Select):
             dc = select.Select.draw(self, update)
 
         # 背景
-        if cw.cwpy.setting.show_paperandtree:
+        if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrlbtn.GetToggle()):
             yp = 0
         else:
             yp = 1
@@ -1236,9 +1305,7 @@ class ScenarioSelect(select.Select):
         dc.SetPen(wx.Pen(colour))
         dc.SetBrush(wx.Brush(colour))
         dc.DrawRectangle(0, 0, csize[0], csize[1])
-        path = "Table/Bill"
-        path = cw.util.find_resource(cw.util.join_paths(cw.cwpy.skindir, path), cw.cwpy.rsrc.ext_img)
-        bmp = cw.wins((cw.util.load_wxbmp(path), cw.SIZE_BILL))
+        bmp = cw.wins((self._get_bg(), cw.SIZE_BILL))
         bmpw = bmp.GetSize()[0]
         dc.DrawBitmap(bmp, 0, yp, False)
 
@@ -1412,6 +1479,16 @@ class ScenarioSelect(select.Select):
                 dc.DrawText(s, (bmpw-w)/2, cw.wins(15)+yp)
 
             self._enable_btn2(header, dc=dc)
+
+        # 上部バーが非表示の時はページ数を表示
+        if self.addctrlbtn and not self.addctrlbtn.GetToggle():
+            dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
+            page = self.pagelabel.GetLabelText()
+            w, h = dc.GetTextExtent(page)
+            btnw, btnh = self.addctrlbtn.GetSize()
+            x = bmpw-btnw-cw.wins(5)-w
+            y = (btnh-h)//2
+            cw.util.draw_witharound(dc, page, x, y, 0)
 
         if update:
             fc = wx.Window.FindFocus()
@@ -1888,7 +1965,7 @@ class ScenarioSelect(select.Select):
         dseq = []
         seq = []
         narrow = self.narrow.GetValue().lower()
-        donarrow = bool(narrow)
+        donarrow = bool(narrow) and self.narrow.IsShown()
         ntype = self.narrow_type.GetSelection()
         if ntype == 3 and donarrow:
             # レベル

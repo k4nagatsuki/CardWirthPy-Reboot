@@ -27,6 +27,10 @@ class Select(wx.Dialog):
         self._processing = False
         self.list = []
         self.toppanel = None
+
+        self.additionals = []
+        self.addctrlbtn = None
+
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
         # buttonlist
@@ -353,6 +357,50 @@ class Select(wx.Dialog):
     def _on_narrowcondition(self):
         pass
 
+    def create_addctrlbtn(self, parent, bg, show):
+        if self.addctrlbtn:
+            self.addctrlbtn.Destroy()
+        self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(parent, -1, None, size=cw.wins((24, 24)))
+        self.addctrlbtn.SetToggle(show)
+        img = cw.util.convert_to_image(bg)
+        x, y = img.GetWidth()-12, 0
+        r, g, b = img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y)
+        colour = wx.Colour(r, g, b)
+        self.addctrlbtn.SetBackgroundColour(colour)
+        self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
+        self.addctrlbtn.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+
+    def update_additionals(self):
+        show = self.addctrlbtn.GetToggle()
+        for ctrl in self.additionals:
+            ctrl.Show(show)
+        if show:
+            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS"]
+        else:
+            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"]
+        self.addctrlbtn.SetBitmapFocus(bmp)
+        self.addctrlbtn.SetBitmapLabel(bmp)
+        self.addctrlbtn.SetBitmapSelected(bmp)
+
+    def append_addctrlaccelerator(self, seq):
+        addctrl = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnToggleAdditionalControls, id=addctrl)
+        seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
+
+    def OnToggleAdditionalControls(self, event):
+        self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
+        self._additional_controls()
+
+    def OnAdditionalControls(self, event):
+        self._additional_controls()
+
+    def _additional_controls(self):
+        cw.cwpy.play_sound("equipment")
+        self.update_additionals()
+        self.update_narrowcondition()
+        self._do_layout()
+        self.toppanel.Refresh()
+        self.panel.Refresh()
 
 #-------------------------------------------------------------------------------
 #　一覧表示可能な選択ダイアログ(抽象クラス)
@@ -1726,19 +1774,18 @@ class PlayerSelect(MultiViewSelect):
         self.buttonlist.append(self.closebtn)
 
         # additionals
-        self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
-        self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_player)
-        bg = self._get_bg()
-        img = cw.util.convert_to_image(bg)
-        x, y = img.GetWidth()-12, 0
-        r, g, b = img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y)
-        colour = wx.Colour(r, g, b)
-        self.addctrlbtn.SetBackgroundColour(colour)
-        self._update_additionals()
+        self.create_addctrlbtn(self.toppanel, self._get_bg(), cw.cwpy.setting.show_additional_player)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.AddStretchSpacer(1)
         sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
         self.toppanel.SetSizer(sizer)
+
+        self.additionals.append(self.narrow_label)
+        self.additionals.append(self.narrow)
+        self.additionals.append(self.narrow_type)
+        self.additionals.append(self.sort_label)
+        self.additionals.append(self.sort)
+        self.update_additionals()
 
         self.update_narrowcondition()
 
@@ -1751,7 +1798,6 @@ class PlayerSelect(MultiViewSelect):
         self.Bind(wx.EVT_BUTTON, self.OnClickNewBtn, self.newbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickExBtn, self.exbtn)
         self.Bind(wx.EVT_BUTTON, self.OnClickViewBtn, self.viewbtn)
-        self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
         self.Bind(wx.EVT_CHOICE, self.OnSort, self.sort)
         self.toppanel.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
 
@@ -1768,43 +1814,15 @@ class PlayerSelect(MultiViewSelect):
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
-        addctrl = wx.NewId()
-        self.Bind(wx.EVT_MENU, self.OnToggleAdditionalControls, id=addctrl)
-        seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
+            self.append_addctrlaccelerator(seq)
         cw.util.set_acceleratortable(self, seq)
 
     def save_views(self, multi):
         cw.cwpy.setting.show_multipleplayers = multi
 
-    def _update_additionals(self):
-        show = self.addctrlbtn.GetToggle()
-        self.narrow.Show(show)
-        self.narrow_label.Show(show)
-        self.narrow_type.Show(show)
-        self.sort.Show(show)
-        self.sort_label.Show(show)
-        cw.cwpy.setting.show_additional_player = show
-        if show:
-            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS"]
-        else:
-            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"]
-        self.addctrlbtn.SetBitmapFocus(bmp)
-        self.addctrlbtn.SetBitmapLabel(bmp)
-        self.addctrlbtn.SetBitmapSelected(bmp)
-
-    def OnToggleAdditionalControls(self, event):
-        self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
-        self._additional_controls()
-
-    def OnAdditionalControls(self, event):
-        self._additional_controls()
-
-    def _additional_controls(self):
-        cw.cwpy.play_sound("equipment")
-        self._update_additionals()
-        self.update_narrowcondition()
-        self._do_layout()
-        self.draw(update=True)
+    def update_additionals(self):
+        Select.update_additionals(self)
+        cw.cwpy.setting.show_additional_player = self.addctrlbtn.GetToggle()
 
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -2556,6 +2574,7 @@ class Album(PlayerSelect):
     def __init__(self, parent):
         # ダイアログボックス作成
         Select.__init__(self, parent, cw.cwpy.msgs["album"])
+        self._bg = None
         # 冒険者情報
         self.list = cw.cwpy.ydata.album
         self.isalbum = True
