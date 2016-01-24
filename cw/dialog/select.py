@@ -1768,6 +1768,9 @@ class PlayerSelect(MultiViewSelect):
             self.Bind(wx.EVT_MENU, self.OnNumberKeyDown, id=sortkeydown)
             seq.append((wx.ACCEL_CTRL, ord('1')+i, sortkeydown))
             self.sortkeydown.append(sortkeydown)
+        addctrl = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.OnToggleAdditionalControls, id=addctrl)
+        seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
         cw.util.set_acceleratortable(self, seq)
 
     def save_views(self, multi):
@@ -1789,7 +1792,14 @@ class PlayerSelect(MultiViewSelect):
         self.addctrlbtn.SetBitmapLabel(bmp)
         self.addctrlbtn.SetBitmapSelected(bmp)
 
+    def OnToggleAdditionalControls(self, event):
+        self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
+        self._additional_controls()
+
     def OnAdditionalControls(self, event):
+        self._additional_controls()
+
+    def _additional_controls(self):
         cw.cwpy.play_sound("equipment")
         self._update_additionals()
         self.update_narrowcondition()
