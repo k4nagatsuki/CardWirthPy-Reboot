@@ -87,7 +87,7 @@ class SettingsDialog(wx.Dialog):
                                     wx.EVT_SLIDER.typeId,
                                     wx.EVT_CHOICE.typeId,
                                     wx.EVT_COLOURPICKER_CHANGED.typeId,
-                                    wx.grid.EVT_GRID_CELL_CHANGED.typeId):
+                                    wx.grid.EVT_GRID_CELL_CHANGE.typeId):
             obj = event.GetEventObject()
             if isinstance(obj, wx.Window) and obj.GetTopLevelParent() is self:
                 self.applied()

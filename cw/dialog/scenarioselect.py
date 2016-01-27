@@ -322,7 +322,9 @@ class ScenarioSelect(select.Select):
             size = (cw.wins(400), cw.wins(370))
 
         self.toppanel.SetSize(size)
+        self.toppanel.SetMinSize(size)
         self.tree.SetSize(size)
+        self.tree.SetMinSize(size)
 
         select.Select.update_additionals(self)
         cw.cwpy.setting.show_additional_scenario = self.addctrlbtn.GetToggle()
@@ -773,6 +775,7 @@ class ScenarioSelect(select.Select):
                 self.tree.Expand(selitem)
 
     def OnKeyDown(self, event):
+
         if event.GetKeyCode() <> wx.WXK_RETURN:
             event.Skip()
             return
