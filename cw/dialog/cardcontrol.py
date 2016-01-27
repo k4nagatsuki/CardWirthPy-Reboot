@@ -30,6 +30,8 @@ class CardControl(wx.Dialog):
         wx.Dialog.__init__(self, parent, -1, "%s - %s" % (cw.cwpy.msgs["card_control"], name),
                 style=wx.CAPTION|wx.SYSTEM_MENU|wx.CLOSE_BOX)
         self.SetDoubleBuffered(True)
+        self.additionals = []
+        self.change_bgs = []
         self._redraw = True
 
         if areaid is None:
@@ -54,9 +56,9 @@ class CardControl(wx.Dialog):
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((520, 285)))
         self.toppanel.SetMinSize(cw.wins((520, 285)))
-        self.toppanel.SetBackgroundColour(self.bgcolour)
         self.toppanel.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.toppanel.SetDoubleBuffered(True)
+        self.change_bgs.append(self.toppanel)
 
         self._sizer_topbar = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -82,10 +84,17 @@ class CardControl(wx.Dialog):
         self.editstar.SetToolTipString(cw.cwpy.msgs["edit_star"])
         self.editstar.SetToggle(cw.cwpy.setting.edit_star)
         self._update_editstar()
-        if not sort:
+        if not sort or not cw.cwpy.setting.show_additional_card:
             self.sort.Hide()
             self.sortwithstar.Hide()
+        if not sort:
             self.editstar.Hide()
+        def can_sort():
+            return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB")
+        self.additionals.append((self.sort, can_sort))
+        self.additionals.append((self.sortwithstar, can_sort))
+        self.change_bgs.append(self.sortwithstar)
+        self.change_bgs.append(self.editstar)
 
         self.show = [None] * 3
         self._typeicon_e = [None] * 3
@@ -107,8 +116,11 @@ class CardControl(wx.Dialog):
             btn.SetBitmapSelected(bmp)
             btn.SetToolTipString(msg)
             self.show[cardtype] = btn
-            if not self.callname in ("BACKPACK", "STOREHOUSE"):
+            if not self.callname in ("BACKPACK", "STOREHOUSE") or\
+                    not cw.cwpy.setting.show_additional_card:
                 btn.Hide()
+            self.additionals.append((btn, lambda: self.callname in ("BACKPACK", "STOREHOUSE")))
+            self.change_bgs.append(btn)
 
         # smallleft
         bmp = cw.cwpy.rsrc.buttons["LSMALL"]
@@ -123,6 +135,14 @@ class CardControl(wx.Dialog):
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
             self.combo.Hide()
+
+        # 追加的コントロールの表示切替
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
+            self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
+            self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
+            self.change_bgs.append(self.addctrlbtn)
+        else:
+            self.addctrlbtn = None
 
         # 絞込条件
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15))
@@ -155,9 +175,15 @@ class CardControl(wx.Dialog):
         else:
             self.narrow_type.SetSelection(0)
 
-        if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
+        def can_narrow():
+            return self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")
+
+        if not can_narrow() or not cw.cwpy.setting.show_additional_card:
             self.narrow.Hide()
             self.narrow_type.Hide()
+
+        self.additionals.append((self.narrow, can_narrow))
+        self.additionals.append((self.narrow_type, can_narrow))
 
         self._drawlist = {}
         self._leftmarks = []
@@ -169,6 +195,12 @@ class CardControl(wx.Dialog):
         self._proc = False
 
         self.toppanel.SetFocusIgnoringChildren()
+
+        if self.addctrlbtn:
+            self.update_additionals()
+
+        for ctrl in self.change_bgs:
+            ctrl.SetBackgroundColour(self.bgcolour)
 
         if drawcards:
             self.draw_cards()
@@ -198,6 +230,8 @@ class CardControl(wx.Dialog):
         self.narrow.Bind(wx.EVT_TEXT, self.OnNarrowCondition)
         self.narrow_type.Bind(wx.EVT_COMBOBOX, self.OnNarrowCondition)
         self.combo.Bind(wx.EVT_COMBOBOX, self.OnSendTo)
+        if self.addctrlbtn:
+            self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
 
         self.leftkeyid = wx.NewId()
         self.rightkeyid = wx.NewId()
@@ -208,6 +242,7 @@ class CardControl(wx.Dialog):
         self.rightpagekeyid = wx.NewId()
         self.uptargkeyid = wx.NewId()
         self.downtargkeyid = wx.NewId()
+        addctrl = wx.NewId()
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.leftkeyid)
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.rightkeyid)
         self.Bind(wx.EVT_MENU, self.OnKeyDown, id=self.returnkeyid)
@@ -217,6 +252,8 @@ class CardControl(wx.Dialog):
         self.Bind(wx.EVT_MENU, self.OnClickRightBtn, id=self.rightpagekeyid)
         self.Bind(wx.EVT_MENU, self.OnClickLeftBtn2, id=self.uptargkeyid)
         self.Bind(wx.EVT_MENU, self.OnClickRightBtn2, id=self.downtargkeyid)
+        if self.addctrlbtn:
+            self.Bind(wx.EVT_MENU, self.OnToggleAdditionalControls, id=addctrl)
         seq = [
             (wx.ACCEL_NORMAL, wx.WXK_LEFT, self.leftkeyid),
             (wx.ACCEL_NORMAL, wx.WXK_RIGHT, self.rightkeyid),
@@ -228,6 +265,8 @@ class CardControl(wx.Dialog):
             (wx.ACCEL_CTRL, wx.WXK_UP, self.uptargkeyid),
             (wx.ACCEL_CTRL, wx.WXK_DOWN, self.downtargkeyid),
         ]
+        if self.addctrlbtn:
+            seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
         self.narrowkeydown = []
         self.sortkeydown = []
         for i in xrange(0, 9):
@@ -247,12 +286,12 @@ class CardControl(wx.Dialog):
         CardControlではソート条件の変更を行う。
         """
         eid = event.GetId()
-        if eid in self.narrowkeydown:
+        if eid in self.narrowkeydown and self.narrow_type.IsShown():
             index = self.narrowkeydown.index(eid)
             if index < self.narrow_type.GetCount():
                 self.narrow_type.SetSelection(index)
                 self.OnNarrowCondition(event)
-        if eid in self.sortkeydown:
+        if eid in self.sortkeydown and self.sort.Isshown():
             index = self.sortkeydown.index(eid)
             if index < self.sort.GetCount():
                 self.sort.SetSelection(index)
@@ -263,6 +302,15 @@ class CardControl(wx.Dialog):
         """
         引数に子クラスで設定したsizer_leftbarが必要
         """
+        cwidth = cw.wins(520)
+        cheight = cw.wins(285)
+
+        # 表示有無を切り替えた時に多少綺麗に再配置されるように、
+        # 非表示のコントロールは画面外へ出しておく
+        for ctrl in self.toppanel.GetChildren():
+            if not ctrl.IsShown():
+                ctrl.SetPosition((cwidth, cw.wins(0)))
+
         # toppanelはSizerを使わず自前で座標を計算
         if self.callname == "CARDPOCKET":
             # キャストの手札カード
@@ -276,7 +324,7 @@ class CardControl(wx.Dialog):
         elif not self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
             # カード置き場、荷物袋、情報カード
             x = cw.wins(10)
-            y = cw.wins(50)
+            y = cw.wins(40)
             self.upbtn.SetPosition((x, y))
             self.upbtn.SetSize(cw.wins((70, 40)))
             y += self.upbtn.GetSize()[1]
@@ -300,9 +348,6 @@ class CardControl(wx.Dialog):
             y -= psize[1]/2
             self.page.SetPosition((sx-psize[0], y))
             self.page.SetSize(psize)
-
-        cwidth = cw.wins(520)
-        cheight = cw.wins(285)
 
         # 絞込条件
         if self.narrow.IsShown():
@@ -336,11 +381,16 @@ class CardControl(wx.Dialog):
 
         if self.callname in ("BACKPACK", "STOREHOUSE"):
             for cardtype in (cw.POCKET_BEAST, cw.POCKET_ITEM, cw.POCKET_SKILL):
-                x -= cw.wins(24)
+                shown = False
                 btn = self.show[cardtype]
+                if not btn.IsShown():
+                    continue
+                shown = True
+                x -= cw.wins(24)
                 btn.SetPosition((x, y))
                 btn.SetSize(cw.wins((24, 24)))
-            x -= cw.wins(5)
+            if shown:
+                x -= cw.wins(5)
 
         if self.editstar.IsShown():
             x -= cw.wins(24)
@@ -350,10 +400,15 @@ class CardControl(wx.Dialog):
             x -= cw.wins(24)
             self.sortwithstar.SetPosition((x, y))
             self.sortwithstar.SetSize(cw.wins((24, 24)))
-            x -= cw.wins(75)
+            x -= cw.wins(77)
             self.sort.SetSize(cw.wins((75, 24)))
             yc = y + (cw.wins(24)-self.sort.GetSize()[1]) / 2
             self.sort.SetPosition((x, yc))
+
+        # 追加的コントロールの表示
+        if self.addctrlbtn:
+            w, h = self.addctrlbtn.GetSize()
+            self.addctrlbtn.SetPosition((cw.wins(2), cheight-h-cw.wins(2)))
 
         # ボタンバー
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
@@ -370,6 +425,42 @@ class CardControl(wx.Dialog):
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
+
+    def update_additionals(self):
+        """表示状態の切り替え時に呼び出される。"""
+        show = self.addctrlbtn.GetToggle()
+        for ctrl, is_shown in self.additionals:
+            ctrl.Show(show and is_shown())
+        if show:
+            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS"]
+        else:
+            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"]
+        self.addctrlbtn.SetBitmapFocus(bmp)
+        self.addctrlbtn.SetBitmapLabel(bmp)
+        self.addctrlbtn.SetBitmapSelected(bmp)
+        cw.cwpy.setting.show_additional_card = show
+        self.set_cardpos()
+
+    def OnToggleAdditionalControls(self, event):
+        if not self.addctrlbtn or not self.addctrlbtn.IsShown():
+            return
+        self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
+        self._additional_controls()
+
+    def OnAdditionalControls(self, event):
+        self._additional_controls()
+
+    def _additional_controls(self):
+        cw.cwpy.play_sound("equipment")
+        self._redraw = False
+        self.update_additionals()
+        # GTKで表示・非表示状態の反映が遅延する事があるので、
+        # 再レイアウト以降の処理を遅延実行する
+        def func():
+            self._do_layout()
+            self._redraw = True
+            self.update_narrowcondition()
+        cw.cwpy.frame.exec_func(func)
 
     def OnNarrowCondition(self, event):
         cw.cwpy.play_sound("page")
@@ -789,6 +880,10 @@ class CardControl(wx.Dialog):
                 s = str(maxpage)
                 w = dc.GetTextExtent(s)[0]
                 dc.DrawText(s, sx+sw, sy)
+                if not cw.cwpy.setting.show_additional_card:
+                    s = str(self.index+1)
+                    w = dc.GetTextExtent(s)[0]
+                    dc.DrawText(s, sx-sw, sy)
 
         dc.SelectObject(wx.NullBitmap)
         dc = wx.PaintDC(self.toppanel)
@@ -1248,8 +1343,8 @@ class CardHolder(CardControl):
             self.beastbtn.SetBitmapSelected(bmp)
             # cw.cwpy.setting.last_cardpocketの値からトグルをセットする
             for index, btn in enumerate((self.skillbtn, self.itembtn, self.beastbtn)):
-                btn.SetBackgroundColour(self.bgcolour)
                 btn.SetToggle(cw.cwpy.setting.last_cardpocket == index)
+                self.change_bgs.append(btn)
 
         # カード置き場、荷物袋、情報カード用のコントロール
         # up
@@ -1265,6 +1360,7 @@ class CardHolder(CardControl):
         self.page.SetLimited(True)
         self.page.SetNoneAllowed(False)
         self.smallctrls.append(self.page)
+        self.additionals.append((self.page, lambda: self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW")))
         # down
         bmp = cw.cwpy.rsrc.buttons["DOWN"]
         self.downbtn = cw.cwpy.rsrc.create_wxbutton(self.toppanel, wx.ID_DOWN, cw.wins((70, 40)), bmp=bmp)
@@ -1324,6 +1420,9 @@ class CardHolder(CardControl):
         cw.cwpy.exec_func(cw.cwpy.draw)
 
         self._show_controls()
+
+        for ctrl in self.change_bgs:
+            ctrl.SetBackgroundColour(self.bgcolour)
 
         # layout
         self._do_layout()
@@ -1591,26 +1690,22 @@ class CardHolder(CardControl):
         self._load_index()
         if self.callname == "CARDPOCKET":
             self.bgcolour = wx.Colour(0, 0, 128)
-            self.toppanel.SetBackgroundColour(self.bgcolour)
         elif self.callname == "CARDPOCKETB":
             self.bgcolour = wx.Colour(0, 0, 128)
-            self.toppanel.SetBackgroundColour(self.bgcolour)
             self._set_backpacklist()
         else:
             if self.callname == "BACKPACK":
                 self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_backpack"]))
                 self.bgcolour = wx.Colour(0, 0, 128)
-                self.toppanel.SetBackgroundColour(self.bgcolour)
                 self.list = self._narrow(cw.cwpy.ydata.party.backpack)
             elif self.callname == "STOREHOUSE":
                 self.SetTitle("%s - %s" % (cw.cwpy.msgs["card_control"], cw.cwpy.msgs["cards_storehouse"]))
                 self.bgcolour = wx.Colour(0, 69, 0)
-                self.toppanel.SetBackgroundColour(self.bgcolour)
                 self.list = self._narrow(cw.cwpy.ydata.storehouse)
             self.selection = None
 
-        for btn in (self.skillbtn, self.itembtn, self.beastbtn):
-            btn.SetBackgroundColour(self.bgcolour)
+        for ctrl in self.change_bgs:
+            ctrl.SetBackgroundColour(self.bgcolour)
 
         self.Parent.change_selection(self.selection)
         if self.callname <> old_callname:
@@ -1646,7 +1741,10 @@ class CardHolder(CardControl):
             # カード置き場、荷物袋、情報カード
             self.upbtn.Show()
             self.downbtn.Show()
-            self.page.Show()
+            if cw.cwpy.setting.show_additional_card:
+                self.page.Show()
+            else:
+                self.page.Hide()
             self._update_page()
             if self.callname <> "INFOVIEW":
                 self.skillbtn.Hide()
@@ -1655,7 +1753,7 @@ class CardHolder(CardControl):
 
         # ソート条件
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
-            if not self.sort.IsShown():
+            if not self.sort.IsShown() and cw.cwpy.setting.show_additional_card:
                 self.sort.Show()
                 self.sortwithstar.Show()
                 self.narrow.Show()
@@ -1676,28 +1774,31 @@ class CardHolder(CardControl):
 
         # 種別ごと表示有無
         for btn in self.show:
-            btn.Show(self.callname in ("BACKPACK", "STOREHOUSE"))
+            btn.Show(self.callname in ("BACKPACK", "STOREHOUSE") and cw.cwpy.setting.show_additional_card)
+
+        # 追加的コントロールの表示有無
+        if self.addctrlbtn:
+            self.addctrlbtn.Show(self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"))
 
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
             sorttype = cw.cwpy.setting.sort_cards
         else:
             sorttype = None
 
-        if self.sort.IsShown():
-            if sorttype == "Name":
-                self.sort.Select(1)
-            elif sorttype == "Level":
-                self.sort.Select(2)
-            elif sorttype == "Type":
-                self.sort.Select(3)
-            elif sorttype == "Price":
-                self.sort.Select(4)
-            elif sorttype == "Scenario":
-                self.sort.Select(5)
-            elif sorttype == "Author":
-                self.sort.Select(6)
-            else:
-                self.sort.Select(0)
+        if sorttype == "Name":
+            self.sort.Select(1)
+        elif sorttype == "Level":
+            self.sort.Select(2)
+        elif sorttype == "Type":
+            self.sort.Select(3)
+        elif sorttype == "Price":
+            self.sort.Select(4)
+        elif sorttype == "Scenario":
+            self.sort.Select(5)
+        elif sorttype == "Author":
+            self.sort.Select(6)
+        else:
+            self.sort.Select(0)
 
     def _update_page(self):
         index = self.index
@@ -1904,11 +2005,15 @@ class CardHolder(CardControl):
                 # カード置き場、荷物袋、情報カード
                 # ページを切り替え
                 if event.GetWheelRotation() > 0:
-                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+                    if self.upbtn.IsEnabled():
+                        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_UP)
+                        self.ProcessEvent(btnevent)
+                        return
                 else:
-                    btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
-                self.ProcessEvent(btnevent)
-                return
+                    if self.downbtn.IsEnabled():
+                        btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_DOWN)
+                        self.ProcessEvent(btnevent)
+                        return
 
         CardControl.OnMouseWheel(self, event)
 
@@ -1980,12 +2085,15 @@ class CardHolder(CardControl):
         self._fulllist = clist
         if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return self._fulllist
-        narrow = self.narrow.GetValue().lower()
+        if self.narrow.IsShown():
+            narrow = self.narrow.GetValue().lower()
+        else:
+            narrow = ""
         ntype = self.narrow_type.GetSelection()
 
         show = [True] * 3
         for cardtype, btn in enumerate(self.show):
-            show[cardtype] = btn.GetToggle()
+            show[cardtype] = not btn.IsShown() or btn.GetToggle()
 
         if not narrow and all(show):
             return self._fulllist
@@ -2295,11 +2403,18 @@ def get_poslist(num, mode=1):
 
         poslist = []
 
+        if cw.cwpy.setting.show_additional_card:
+            y1 = cw.wins(31)
+            y2 = cw.wins(145)
+        else:
+            y1 = cw.wins(39)
+            y2 = cw.wins(161)
+
         for cnt in xrange(num):
             if cnt < 5:
-                poslist.append((leftm+cw.wins(84)*cnt, cw.wins(31)))
+                poslist.append((leftm+cw.wins(84)*cnt, y1))
             else:
-                poslist.append((leftm+cw.wins(84)*(cnt-5), cw.wins(145)))
+                poslist.append((leftm+cw.wins(84)*(cnt-5), y2))
 
     else:
         if mode == 2:

@@ -775,7 +775,6 @@ class ScenarioSelect(select.Select):
                 self.tree.Expand(selitem)
 
     def OnKeyDown(self, event):
-
         if event.GetKeyCode() <> wx.WXK_RETURN:
             event.Skip()
             return
