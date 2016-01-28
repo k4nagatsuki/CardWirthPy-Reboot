@@ -2059,12 +2059,13 @@ class CWPy(_Singleton, threading.Thread):
         optscenario = cw.OPTIONS.scenario
         cw.OPTIONS.scenario = ""
 
+        yadodirname = os.path.basename(yadodir)
         self.yadodir = yadodir.replace("\\", "/")
         self.tempdir = self.yadodir.replace("Yado", cw.util.join_paths(cw.tempdir, u"Yado"), 1)
         for music in self.music:
             music.stop()
         self.ydata = cw.data.YadoData(self.yadodir, self.tempdir)
-        self.setting.lastyado = self.ydata.name
+        self.setting.lastyado = yadodirname
 
         if self.ydata.party:
             header = self.ydata.party.get_sceheader()

@@ -4,6 +4,7 @@
 import os
 import time
 import threading
+import wx
 import wx.grid
 
 import cw
@@ -79,6 +80,8 @@ class SkinConversionDialog(wx.Dialog):
         e.text = str(self.pane_base.info.classictext.GetValue())
         e = self.conv.data.find("Property/CW120VocationLevel")
         e.text = str(self.pane_base.info.vocation120.GetValue())
+        e = self.conv.data.find("Property/InitialCash")
+        e.text = str(self.pane_base.info.initialcash.GetValue())
 
         self.conv.start()
 
@@ -254,13 +257,14 @@ class SkinEditDialog(wx.Dialog):
 
         self.box_info = wx.StaticBox(self, -1, u"スキン情報")
         self.info = SkinInfoPanel(self)
-        skintype, skinname, author, desc, classictext, vocation120 = self.skinsummary
+        skintype, skinname, author, desc, classictext, vocation120, initialcash = self.skinsummary
         self.info.typectrl.SetValue(skintype)
         self.info.namectrl.SetValue(skinname)
         self.info.authorctrl.SetValue(author)
         self.info.descctrl.SetValue(desc)
         self.info.classictext.SetValue(classictext)
         self.info.vocation120.SetValue(vocation120)
+        self.info.initialcash.SetValue(initialcash)
 
         self.btn_ok = wx.Button(self, wx.ID_OK, u"OK")
         self.btn_cncl = wx.Button(self, wx.ID_CANCEL, u"キャンセル")
@@ -278,7 +282,8 @@ class SkinEditDialog(wx.Dialog):
         desc = self.info.descctrl.GetValue()
         classictext = self.info.classictext.GetValue()
         vocation120 = self.info.vocation120.GetValue()
-        self.skinsummary = (skintype, skinname, author, desc, classictext, vocation120)
+        initialcash = self.info.initialcash.GetValue()
+        self.skinsummary = (skintype, skinname, author, desc, classictext, vocation120, initialcash)
 
         skinpath = cw.util.join_paths(u"Data/Skin", self.skindirname, u"Skin.xml")
         e = cw.data.xml2etree(skinpath)
@@ -292,16 +297,22 @@ class SkinEditDialog(wx.Dialog):
             prop.append(cw.data.make_element("CW120VocationLevel", str(vocation120)))
         else:
             e.edit("Property/CW120VocationLevel", str(vocation120))
+        if e.find("Property/InitialCash") is None:
+            prop = e.find("Property")
+            prop.append(cw.data.make_element("InitialCash", str(initialcash)))
+        else:
+            e.edit("Property/InitialCash", str(initialcash))
         e.write(skinpath)
 
         if cw.cwpy.setting.skindirname == self.skindirname:
-            def func(skinname, classicstyletext, vocation120):
+            def func(skinname, classicstyletext, vocation120, initialcash):
                 cw.cwpy.setting.skinname = skinname
                 cw.cwpy.setting.skintype = skintype
                 cw.cwpy.update_titlebar()
                 cw.cwpy.update_messagefontstyle(classicstyletext)
                 cw.cwpy.update_vocation120(vocation120)
-            cw.cwpy.exec_func(func, skinname, classictext, vocation120)
+                cw.cwpy.setting.initialcash = initialcash
+            cw.cwpy.exec_func(func, skinname, classictext, vocation120, initialcash)
 
         self.EndModal(wx.ID_OK)
 
@@ -383,6 +394,7 @@ class SkinBasePanel(wx.Panel):
             self.info.vocation120.SetValue(True)
         else:
             self.info.vocation120.SetValue(conv.data.getbool("Property/CW120VocationLevel", False))
+        self.info.initialcash.SetValue(conv.initialcash)
 
         self._do_layout()
         self._bind()
@@ -459,6 +471,7 @@ class SkinBasePanel(wx.Panel):
         self.info.authorctrl.SetValue(self.conv.data.gettext("Property/Author", ""))
         self.info.descctrl.SetValue(self.conv.data.gettext("Property/Description", ""))
         self.info.vocation120.SetValue(self.conv.version <= (1, 2, 0, 99))
+        self.info.initialcash.SetValue(self.conv.initialcash)
 
         self.Parent.Parent.pane_feature.set_values(self.conv)
         self.Parent.Parent.pane_sound.set_values(self.conv)
@@ -516,6 +529,9 @@ class SkinInfoPanel(wx.Panel):
         # 解説
         self.desclabel = wx.StaticText(self, -1, u"解説")
         self.descctrl = wx.TextCtrl(self, size=(400, 100), style=wx.TE_MULTILINE)
+        # 初期資金
+        self.initialcashlabel = wx.StaticText(self, -1, u"初期資金")
+        self.initialcash = wx.SpinCtrl(self, -1, max=999999, min=0)
         # クラシックなフォントを使用するか
         self.classictext = wx.CheckBox(self, -1, u"メッセージでクラシックなフォントを使用する")
         # カードの適性計算をCardWirth 1.20に合わせるか
@@ -532,25 +548,32 @@ class SkinInfoPanel(wx.Panel):
 
         gbsizer_info = wx.GridBagSizer()
 
-        def add_info(ctrl, pos):
+        def add_info(ctrl, pos, colspan=1, rowspan=1, expand=True):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(ctrl, 1, wx.ALIGN_CENTER_VERTICAL, 0)
-            gbsizer_info.Add(sizer, pos=pos, flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, border=3)
+            span = wx.GBSpan(colspan=colspan, rowspan=rowspan)
+            expand = wx.EXPAND if expand else 0
+            gbsizer_info.Add(sizer, pos=pos, span=span, flag=wx.ALL|expand|wx.ALIGN_CENTER_VERTICAL, border=3)
 
         add_info(self.typelabel, pos=(0, 0))
-        add_info(self.typectrl, pos=(0, 1))
+        add_info(self.typectrl, pos=(0, 1), colspan=2)
         add_info(self.namelabel, pos=(1, 0))
-        add_info(self.namectrl, pos=(1, 1))
+        add_info(self.namectrl, pos=(1, 1), colspan=2)
         add_info(self.authorlabel, pos=(2, 0))
-        add_info(self.authorctrl, pos=(2, 1))
+        add_info(self.authorctrl, pos=(2, 1), colspan=2)
         add_info(self.desclabel, pos=(3, 0))
-        add_info(self.descctrl, pos=(3, 1))
+        add_info(self.descctrl, pos=(3, 1), colspan=2)
+        add_info(self.initialcashlabel, pos=(4, 0))
+        add_info(self.initialcash, pos=(4, 1), expand=False)
         gbsizer_info.AddGrowableCol(1)
         gbsizer_info.AddGrowableRow(3)
 
+        vsizer = wx.BoxSizer(wx.VERTICAL)
+        vsizer.Add(self.classictext, 0, wx.TOP, 3)
+        vsizer.Add(self.vocation120, 0, wx.TOP, 3)
+        add_info(vsizer, pos=(4, 2), colspan=1, rowspan=2, expand=False)
+
         sizer.Add(gbsizer_info, 1, wx.EXPAND, 0)
-        sizer.Add(self.classictext, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        sizer.Add(self.vocation120, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
         self.SetSizer(sizer)
         sizer.Fit(self)

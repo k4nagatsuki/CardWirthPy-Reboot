@@ -88,16 +88,20 @@ def create_environment(name, dpath, skindirname, is_autoloadparty):
     宿のデータを納める"Environment.xml"を作る。
     """
     skintype = u"MedievalFantasy"
+    prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
+    cashbox = int(prop.properties.get(u"InitialCash", "4000"))
     try:
         fpath = cw.util.join_paths(u"Data/Skin", skindirname, u"Skin.xml")
-        skintype = cw.header.GetProperty(fpath).properties.get(u"Type", skintype)
+        prop = cw.header.GetProperty(fpath)
+        skintype = prop.properties.get(u"Type", skintype)
+        cashbox = int(prop.properties.get(u"InitialCash", str(cashbox)))
     except:
         cw.util.print_ex()
 
     d = {"name" : cw.binary.util.repl_escapechar(name),
          "skinname" : cw.binary.util.repl_escapechar(skindirname),
          "skintype" : cw.binary.util.repl_escapechar(skintype),
-         "cashbox" : "4000",
+         "cashbox" : str(cashbox),
          "selectingparty" : "",
          "nowadventuring" : "False",
          "completestamps" : "",
@@ -410,8 +414,11 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
         element.append(e)
 
     # パーティ結成時の持出金額
-    if setting.initmoneyamount <> setting.initmoneyamount_init:
-        e = cw.data.make_element("InitialMoneyAmount", str(setting.initmoneyamount))
+    if setting.initmoneyamount <> setting.initmoneyamount_init or setting.initmoneyisinitialcash <> setting.initmoneyisinitialcash_init:
+        attrs = {}
+        if setting.initmoneyisinitialcash <> setting.initmoneyisinitialcash_init:
+            attrs["sameasbase"] = str(setting.initmoneyisinitialcash)
+        e = cw.data.make_element("InitialMoneyAmount", str(setting.initmoneyamount), attrs=attrs)
         element.append(e)
 
     # 解散時、自動的にパーティ情報を記録する

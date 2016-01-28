@@ -51,12 +51,14 @@ class Converter(threading.Thread):
         self.scenariodir = self.find_scenariodir()
         self.yadodir = self.find_yadodir()
         self.skintype = self.find_type()
+        self.initialcash = self.find_initialcash()
 
         self.data = cw.data.xml2etree(u"Data/SkinBase/Skin.xml")
         self.data.find("Property/Name").text = self.find_skinname()
         self.data.find("Property/Type").text = self.skintype
         self.data.find("Property/Author").text = self.find_author()
         self.data.find("Property/Description").text = cw.util.encodewrap(self.find_description())
+        self.data.find("Property/InitialCash").text = str(self.initialcash)
 
         self.actioncard = self._get_resources(u"ActionCard")
         self.gameover = self._get_resources(u"GameOver")
@@ -153,6 +155,15 @@ class Converter(threading.Thread):
 
     def find_author(self):
         return u""
+
+    def find_initialcash(self):
+        prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
+        cash = int(prop.properties.get(u"InitialCash", "4000"))
+        if not self.exe or not ((1, 2, 8, 0) <= self.version and self.version <= (1, 3, 99, 99)):
+            return cash
+        if len(self.exebinary) < 0x31d97+4:
+            return cash
+        return struct.unpack("<I", self.exebinary[0x31d97:0x31d97+4])[0]
 
     def _get_features(self):
         # バイナリ断片を手がかりにして特性値を探す。

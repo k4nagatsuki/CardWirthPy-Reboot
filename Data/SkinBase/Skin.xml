@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Skin dataVersion="7">
+<Skin dataVersion="8">
   <Property>
     <Name></Name>
     <Type></Type>
@@ -8,6 +8,7 @@
     <Extension image=".bmp" bgm=".mid" sound=".wav" />
     <ClassicStyleText>True</ClassicStyleText>
     <CW120VocationLevel>False</CW120VocationLevel>
+    <InitialCash>4000</InitialCash>
   </Property>
   <Races>
     <!-- Race>

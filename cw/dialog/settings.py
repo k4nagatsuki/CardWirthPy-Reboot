@@ -397,6 +397,8 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.expand.make_expandinfo()
             self.pane_gene.expand.cb_smoothexpand.SetValue(cw.cwpy.setting.smoothexpand_init)
             self.pane_gene.sc_initmoneyamount.SetValue(cw.cwpy.setting.initmoneyamount_init)
+            self.pane_gene.cb_initmoneyisinitialcash.SetValue(cw.cwpy.setting.initmoneyisinitialcash_init)
+            self.pane_gene.sc_initmoneyamount.Enable(not self.pane_gene.cb_initmoneyisinitialcash.GetValue())
             self.pane_gene.cb_autosavepartyrecord.SetValue(cw.cwpy.setting.autosave_partyrecord_init)
             self.pane_gene.cb_overwritepartyrecord.SetValue(cw.cwpy.setting.overwrite_partyrecord_init)
             self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
@@ -625,6 +627,8 @@ class SettingsPanel(wx.Panel):
         setting.store_skinoneachbase = value
         value = self.pane_gene.sc_initmoneyamount.GetValue()
         setting.initmoneyamount = value
+        value = self.pane_gene.cb_initmoneyisinitialcash.GetValue()
+        setting.initmoneyisinitialcash = value
         value = self.pane_gene.cb_autosavepartyrecord.GetValue()
         setting.autosave_partyrecord = value
         value = self.pane_gene.cb_overwritepartyrecord.GetValue()
@@ -1005,6 +1009,8 @@ class SkinPanel(wx.Panel):
             self.btn_editskin = wx.Button(self, -1, u"編集...")
             self.btn_deleteskin = wx.Button(self, -1, u"削除")
 
+        prop = cw.header.GetProperty(u"Data/SkinBase/Skin.xml")
+        self.basecash = int(prop.properties.get(u"InitialCash", "4000"))
         self.update_skins(cw.cwpy.setting.skindirname)
 
         self._do_layout()
@@ -1055,7 +1061,8 @@ class SkinPanel(wx.Panel):
             desc = prop.properties.get("Description", "")
             classictext = cw.util.str2bool(prop.properties.get("ClassicStyleText", "True"))
             vocation120 = cw.util.str2bool(prop.properties.get("CW120VocationLevel", "False"))
-            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120)
+            initialcash = int(prop.properties.get("InitialCash", str(self.basecash)))
+            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120, initialcash)
         except Exception:
             # エラーのあるスキン
             cw.util.print_ex()
@@ -1065,7 +1072,8 @@ class SkinPanel(wx.Panel):
             desc = u"Skin.xmlの読み込みでエラーが発生しました。"
             classictext = False
             vocation120 = False
-            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120)
+            initialcash = self.basecash
+            self.skin_summarys[name] = (skintype, skinname, author, desc, classictext, vocation120, initialcash)
 
     def OnSkinChoice(self, event):
         self._choice_skin()
@@ -1075,7 +1083,7 @@ class SkinPanel(wx.Panel):
         s = u"種別: %s\n場所: %s\n作者: %s\n" + u"-" * 45 + u"\n%s"
         if not skin in self.skin_summarys:
             self._load_skinproperties(skin)
-        skintype, _skinname, author, desc, _classictext, _vocation120 = self.skin_summarys[skin]
+        skintype, _skinname, author, desc, _classictext, _vocation120, _initialcash = self.skin_summarys[skin]
         desc = cw.util.txtwrap(desc, 1)
         self.st_skin.SetLabel(s % (skintype, cw.util.join_paths(u"Data/Skin", skin), author, desc))
         if self.editbuttons:
@@ -1342,6 +1350,7 @@ class GeneralSettingPanel(wx.Panel):
         self.box_party = wx.StaticBox(self, -1, u"パーティ")
         self.st_initmoneyamount = wx.StaticText(self, -1, u"結成時の持出金額:")
         self.sc_initmoneyamount = wx.SpinCtrl(self, -1, "", size=(80, -1), min=0, max=999999)
+        self.cb_initmoneyisinitialcash = wx.CheckBox(self, -1, u"初期資金と同額")
 
         self.cb_autosavepartyrecord = wx.CheckBox(
             self, -1, u"解散時、自動的にパーティ情報を記録する")
@@ -1367,6 +1376,7 @@ class GeneralSettingPanel(wx.Panel):
 
     def _bind(self):
         self.cb_autosavepartyrecord.Bind(wx.EVT_CHECKBOX, self.OnAutoSavePartyRecord)
+        self.cb_initmoneyisinitialcash.Bind(wx.EVT_CHECKBOX, self.OnInitMoneyIsInitialCash)
 
     def load(self, setting):
         self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
@@ -1381,6 +1391,8 @@ class GeneralSettingPanel(wx.Panel):
             self.ch_messagelog_type.SetSelection(1) # 並べて表示(デフォルト)
         self.sc_backlogmax.SetValue(setting.backlogmax)
         self.sc_initmoneyamount.SetValue(setting.initmoneyamount)
+        self.cb_initmoneyisinitialcash.SetValue(setting.initmoneyisinitialcash)
+        self.sc_initmoneyamount.Enable(not self.cb_initmoneyisinitialcash.GetValue())
         self.cb_autosavepartyrecord.SetValue(setting.autosave_partyrecord)
         self.cb_overwritepartyrecord.SetValue(setting.overwrite_partyrecord)
         self.cb_overwritepartyrecord.Enable(setting.autosave_partyrecord)
@@ -1393,6 +1405,9 @@ class GeneralSettingPanel(wx.Panel):
 
     def OnAutoSavePartyRecord(self, event):
         self.cb_overwritepartyrecord.Enable(self.cb_autosavepartyrecord.GetValue())
+
+    def OnInitMoneyIsInitialCash(self, event):
+        self.sc_initmoneyamount.Enable(not self.cb_initmoneyisinitialcash.GetValue())
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1428,7 +1443,8 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_party = wx.StaticBoxSizer(self.box_party, wx.VERTICAL)
         bsizer_partymoney = wx.BoxSizer(wx.HORIZONTAL)
         bsizer_partymoney.Add(self.st_initmoneyamount, 0, wx.RIGHT|wx.CENTER, 3)
-        bsizer_partymoney.Add(self.sc_initmoneyamount, 0, wx.CENTER, 3)
+        bsizer_partymoney.Add(self.sc_initmoneyamount, 0, wx.RIGHT|wx.CENTER, 3)
+        bsizer_partymoney.Add(self.cb_initmoneyisinitialcash, 0, wx.CENTER, 3)
         bsizer_party.Add(bsizer_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_party.Add(self.cb_autosavepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_party.Add(self.cb_overwritepartyrecord, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -2034,7 +2050,7 @@ class ScenarioSettingPanel(wx.Panel):
         types = set()
         self.Parent.Parent.pane_gene.skin.load_allskins()
         for t in self.Parent.Parent.pane_gene.skin.skin_summarys.itervalues():
-            skintype, _skinname, _author, _desc, _classictext, _vocation120 = t
+            skintype, _skinname, _author, _desc, _classictext, _vocation120, _initialcash = t
             types.add(skintype)
 
         types = list(types)

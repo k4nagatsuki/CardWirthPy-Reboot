@@ -1882,10 +1882,14 @@ class YadoData(object):
         """
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
-        if self.money < cw.cwpy.setting.initmoneyamount:
+        initmoneyamount = cw.cwpy.setting.initmoneyamount
+        if cw.cwpy.setting.initmoneyisinitialcash:
+            initmoneyamount = cw.cwpy.setting.initialcash
+
+        if self.money < initmoneyamount:
             money = self.money
         else:
-            money = cw.cwpy.setting.initmoneyamount
+            money = initmoneyamount
         self.set_money(-money)
         path = cw.xmlcreater.create_party([header], moneyamount=money)
         header = self.create_partyheader(cw.util.join_paths(path, "Party.xml"))

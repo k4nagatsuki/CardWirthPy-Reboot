@@ -602,8 +602,8 @@ class YadoSelect(MultiViewSelect):
         # 宿情報
         self.names, self.list, self.list2, self.skins, self.classic, self.isshortcuts = self.get_yadolist()
         self.index = 0
-        for index, name in enumerate(self.names):
-            if cw.cwpy.setting.lastyado == name:
+        for index, path in enumerate(self.list):
+            if cw.cwpy.setting.lastyado == os.path.basename(path):
                 self.index = index
                 break
         # toppanel

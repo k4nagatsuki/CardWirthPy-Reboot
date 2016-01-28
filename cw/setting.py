@@ -72,6 +72,9 @@ class Setting(object):
         self.frametime = 1000 / self.fps
 
     def init_settings(self, loadfile=None, init=True):
+        path = cw.util.join_paths("Data/SkinBase/Skin.xml")
+        basedata = cw.data.xml2etree(path)
+
         # "Settings.xml"がなかったら新しく作る
         self.show_advancedsettings = False
         self.editor = "cwxeditor"
@@ -143,7 +146,8 @@ class Setting(object):
         self.show_statustime = True
         self.openhandviewalways = False
         self.noticeimpossibleaction = True
-        self.initmoneyamount = 4000
+        self.initmoneyamount = basedata.getint("Property/InitialCash", 4000)
+        self.initmoneyisinitialcash = True
         self.autosave_partyrecord = True
         self.overwrite_partyrecord = True
         self.folderoftype = []
@@ -523,6 +527,7 @@ class Setting(object):
 
         # パーティ結成時の持出金額
         self.initmoneyamount = data.getint("InitialMoneyAmount", self.initmoneyamount)
+        self.initmoneyisinitialcash = data.getbool("InitialMoneyAmount", "sameasbase", self.initmoneyisinitialcash)
 
         # 解散時、自動的にパーティ情報を記録する
         self.autosave_partyrecord = data.getbool("AutoSavePartyRecord", self.autosave_partyrecord)
@@ -628,9 +633,9 @@ class Setting(object):
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)
         if not loadfile:
-            self.init_skin()
+            self.init_skin(basedata=basedata)
 
-    def init_skin(self):
+    def init_skin(self, basedata=None):
         self.skindir = cw.util.join_paths(u"Data/Skin", self.skindirname)
         if not os.path.isdir(self.skindir):
             self.skindirname = "Classic"
@@ -649,14 +654,16 @@ class Setting(object):
             if not os.path.isdir(self.skindir):
                 raise ValueError("Not found CardWirthPy skins!")
 
-        path = cw.util.join_paths("Data/SkinBase/Skin.xml")
-        basedata = cw.data.xml2etree(path)
+        if basedata is None:
+            path = cw.util.join_paths("Data/SkinBase/Skin.xml")
+            basedata = cw.data.xml2etree(path)
         path = cw.util.join_paths(self.skindir, "Skin.xml")
         data = self._update_skin(path)
         self.skinname = data.gettext("Property/Name", "")
         self.skintype = data.gettext("Property/Type", "")
         self.classicstyletext = data.getbool("Property/ClassicStyleText", True)
         self.vocation120 = data.getbool("Property/CW120VocationLevel", False)
+        self.initialcash = data.getint("Property/InitialCash", basedata.getint("Property/InitialCash", 4000))
         # スキン・種族
         self.races = [cw.header.RaceHeader(e) for e in data.getfind("Races")]
 
