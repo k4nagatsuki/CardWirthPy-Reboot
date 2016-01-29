@@ -41,18 +41,29 @@ class CardControl(wx.Dialog):
 
         # panel
         self.panel = wx.Panel(self, -1, style=wx.RAISED_BORDER)
+
+        # 追加的コントロールの表示切替
+        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
+            self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.panel, -1, None, size=cw.wins((24, 30)))
+            self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
+        else:
+            self.addctrlbtn = None
+
         # close
         if self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
             s = cw.cwpy.msgs["entry_cancel"]
         else:
             s = cw.cwpy.msgs["close"]
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((90, 24)), s)
+
         # left
         bmp = cw.cwpy.rsrc.buttons["LMOVE"]
         self.leftbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
+
         # right
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, -1, cw.wins((30, 30)), bmp=bmp)
+
         # toppanel
         self.toppanel = wx.Panel(self, -1, size=cw.wins((520, 285)))
         self.toppanel.SetMinSize(cw.wins((520, 285)))
@@ -135,14 +146,6 @@ class CardControl(wx.Dialog):
             self.leftbtn2.Hide()
             self.rightbtn2.Hide()
             self.combo.Hide()
-
-        # 追加的コントロールの表示切替
-        if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
-            self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
-            self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
-            self.change_bgs.append(self.addctrlbtn)
-        else:
-            self.addctrlbtn = None
 
         # 絞込条件
         font = cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(15))
@@ -291,7 +294,7 @@ class CardControl(wx.Dialog):
             if index < self.narrow_type.GetCount():
                 self.narrow_type.SetSelection(index)
                 self.OnNarrowCondition(event)
-        if eid in self.sortkeydown and self.sort.Isshown():
+        if eid in self.sortkeydown and self.sort.IsShown():
             index = self.sortkeydown.index(eid)
             if index < self.sort.GetCount():
                 self.sort.SetSelection(index)
@@ -324,7 +327,7 @@ class CardControl(wx.Dialog):
         elif not self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
             # カード置き場、荷物袋、情報カード
             x = cw.wins(10)
-            y = cw.wins(40)
+            y = cw.wins(50)
             self.upbtn.SetPosition((x, y))
             self.upbtn.SetSize(cw.wins((70, 40)))
             y += self.upbtn.GetSize()[1]
@@ -405,19 +408,20 @@ class CardControl(wx.Dialog):
             yc = y + (cw.wins(24)-self.sort.GetSize()[1]) / 2
             self.sort.SetPosition((x, yc))
 
-        # 追加的コントロールの表示
-        if self.addctrlbtn:
-            w, h = self.addctrlbtn.GetSize()
-            self.addctrlbtn.SetPosition((cw.wins(2), cheight-h-cw.wins(2)))
-
         # ボタンバー
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_panel = wx.BoxSizer(wx.HORIZONTAL)
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
+        # 追加的コントロール表示設定
+        if self.addctrlbtn:
+            sizer_panel.Add(self.addctrlbtn, 0, 0, 0)
         sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.closebtn, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
         sizer_panel.AddStretchSpacer(1)
+        if self.addctrlbtn and self.addctrlbtn.IsShown():
+            sizer_panel.AddSpacer(self.addctrlbtn.GetSize(), 0, 0, 0)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
+
         self.panel.SetSizer(sizer_panel)
         # トップパネルとボタンバーのサイザーを設定
         sizer_1.Add(self.toppanel, 1, wx.EXPAND, 0)

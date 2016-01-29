@@ -102,11 +102,6 @@ class ScenarioSelect(select.Select):
         else:
             self.editorbtn = None
 
-        # 絞り込み欄等の表示設定
-        if not cw.cwpy.setting.show_paperandtree:
-            self.create_addctrlbtn(self, self._get_bg(), cw.cwpy.setting.show_additional_scenario)
-            self._addctrlbg = self.addctrlbtn.GetBackgroundColour()
-
         # toppanelとツリー表示用のビュー
         if cw.cwpy.setting.show_paperandtree:
             self.toppanel = wx.Panel(self, -1, size=(cw.wins(400)+1, cw.wins(370)))
@@ -176,26 +171,6 @@ class ScenarioSelect(select.Select):
         else:
             buttonwidth = cw.wins(55)
 
-        # 絞り込み欄等の更新
-        if not cw.cwpy.setting.show_paperandtree:
-            self.additionals.append(self.unfitness)
-            self.additionals.append(self.completed)
-            self.additionals.append(self.invisible)
-            self.additionals.append(self.pagelabel)
-            self.additionals.append(self.opendirbtn)
-            if self.editorbtn:
-                self.additionals.append(self.editorbtn)
-
-            self.additionals.append(self.keyword_label)
-            self.additionals.append(self.narrow)
-            self.additionals.append(self.narrow_label)
-            self.additionals.append(self.narrow_type)
-            self.additionals.append(self.sort_label)
-            self.additionals.append(self.sort)
-            self.additionals.append(self.find)
-            self.additionals.append(self.bookmark)
-            self.update_additionals()
-
         # ok
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, (buttonwidth, cw.wins(24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.yesbtn)
@@ -216,6 +191,29 @@ class ScenarioSelect(select.Select):
         self.buttonlist.append(self.nobtn)
         # ドロップファイル機能ON
         self.DragAcceptFiles(True)
+
+        # 絞り込み欄等の表示設定
+        if not cw.cwpy.setting.show_paperandtree:
+            self.create_addctrlbtn(cw.cwpy.setting.show_additional_scenario)
+
+            # 絞り込み欄等の更新
+            self.additionals.append(self.unfitness)
+            self.additionals.append(self.completed)
+            self.additionals.append(self.invisible)
+            self.additionals.append(self.pagelabel)
+            self.additionals.append(self.opendirbtn)
+            if self.editorbtn:
+                self.additionals.append(self.editorbtn)
+
+            self.additionals.append(self.keyword_label)
+            self.additionals.append(self.narrow)
+            self.additionals.append(self.narrow_label)
+            self.additionals.append(self.narrow_type)
+            self.additionals.append(self.sort_label)
+            self.additionals.append(self.sort)
+            self.additionals.append(self.find)
+            self.additionals.append(self.bookmark)
+            self.update_additionals()
 
         if cw.cwpy.setting.show_paperandtree:
             self.show_tree()
@@ -303,22 +301,9 @@ class ScenarioSelect(select.Select):
         cw.util.set_acceleratortable(self, seq)
 
     def update_additionals(self):
-        self.addctrlbtn.SetDoubleBuffered(False)
         if self.addctrlbtn.GetToggle():
-            self.addctrlbtn.Reparent(self)
-        else:
-            self.addctrlbtn.Reparent(self.toppanel)
-            sizer = wx.BoxSizer(wx.HORIZONTAL)
-            sizer.AddStretchSpacer(1)
-            sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
-            self.toppanel.SetSizer(sizer)
-
-        if self.addctrlbtn.GetToggle():
-            self.addctrlbtn.SetBackgroundColour(self.GetBackgroundColour())
             size = (cw.wins(400), cw.wins(370)+2)
         else:
-            self.addctrlbtn.SetBackgroundColour(self._addctrlbg)
-            self.addctrlbtn.SetDoubleBuffered(True)
             size = (cw.wins(400), cw.wins(370))
 
         self.toppanel.SetSize(size)
@@ -469,9 +454,6 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.opendirbtn, 0, 0, 0)
         if self.editorbtn:
             hsizer1.Add(self.editorbtn, 0, 0, 0)
-        if not self.addctrlbtn or self.addctrlbtn.GetToggle():
-            if self.addctrlbtn:
-                hsizer1.Add(self.addctrlbtn, 0, 0, 0)
         return hsizer1
 
     def _sizer_find(self):

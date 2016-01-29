@@ -270,7 +270,14 @@ class Select(wx.Dialog):
         sizer_1.Add(self.topsizer, 1, wx.EXPAND, 0)
         sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
+        if self.IsShown():
+            x, y, w, h = self.GetRect()
+            nw, nh = sizer_1.ComputeFittingWindowSize(self)
+            y -= nh - h
+            self.SetRect(wx.Rect(x, y, nw, nh))
+            cw.util.adjust_position(self)
+        else:
+            sizer_1.Fit(self)
         self.Layout()
 
     def _add_topsizer(self):
@@ -282,15 +289,29 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.left2btn, 0, 0, 0)
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
 
+        seq = []
+        if self.addctrlbtn:
+            sizer_panel.Add(self.addctrlbtn)
+            seq.append(self.addctrlbtn)
+
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_panel.AddStretchSpacer(1)
             sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
+            seq.append(button)
 
         sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         sizer_panel.Add(self.right2btn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
+
+        seq.append(self.left2btn)
+        seq.append(self.leftbtn)
+        seq.append(self.rightbtn)
+        seq.append(self.right2btn)
+
+        for i in xrange(1, len(seq)):
+            seq[i].MoveAfterInTabOrder(seq[i-1])
 
     def _disable_btn(self, enables=[]):
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
@@ -357,23 +378,15 @@ class Select(wx.Dialog):
     def _on_narrowcondition(self):
         pass
 
-    def create_addctrlbtn(self, parent, bg, show):
+    def create_addctrlbtn(self, show):
         """追加的なコントロールの表示切替を行うボタンを生成する。
-        parent: ボタンの親コントロール。
-        bg: ボタンの背景色の基準となるwx.Bitmap。
         show: 表示の初期状態。
         """
         if self.addctrlbtn:
             self.addctrlbtn.Destroy()
-        self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(parent, -1, None, size=cw.wins((24, 24)))
+        self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.panel, -1, None, size=cw.wins((24, 30)))
         self.addctrlbtn.SetToggle(show)
-        img = cw.util.convert_to_image(bg)
-        x, y = img.GetWidth()-12, 0
-        r, g, b = img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y)
-        colour = wx.Colour(r, g, b)
-        self.addctrlbtn.SetBackgroundColour(colour)
         self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
-        self.addctrlbtn.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
     def update_additionals(self):
         """表示状態の切り替え時に呼び出される。"""
@@ -1788,11 +1801,7 @@ class PlayerSelect(MultiViewSelect):
         self.buttonlist.append(self.closebtn)
 
         # additionals
-        self.create_addctrlbtn(self.toppanel, self._get_bg(), cw.cwpy.setting.show_additional_player)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.AddStretchSpacer(1)
-        sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
-        self.toppanel.SetSizer(sizer)
+        self.create_addctrlbtn(cw.cwpy.setting.show_additional_player)
 
         self.additionals.append(self.narrow_label)
         self.additionals.append(self.narrow)
