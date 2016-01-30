@@ -191,6 +191,8 @@ class Setting(object):
         self.show_additional_player = False
         self.show_additional_scenario = False
         self.show_additional_card = False
+        # 表示有無切替ボタン自体の表示有無
+        self.show_addctrlbtn = True
 
         # カード種の表示・非表示
         self.show_cardtype = [True] * 3
@@ -629,6 +631,8 @@ class Setting(object):
         self.show_additional_player = data.getbool("ShowAdditionalControls", "player", self.show_additional_player)
         self.show_additional_scenario = data.getbool("ShowAdditionalControls", "scenario", self.show_additional_scenario)
         self.show_additional_card = data.getbool("ShowAdditionalControls", "card", self.show_additional_card)
+        # 絞り込み等の表示切替ボタンを表示する
+        self.show_addctrlbtn = data.gettext("ShowAdditionalControls", "" if self.show_addctrlbtn else "Hidden") <> "Hidden"
 
         # スキン
         self.skindirname = data.gettext("Skin", self.skindirname)
@@ -1227,21 +1231,20 @@ class Resource(object):
         fonts.set("screenshot", self.create_font, "screenshot", *self.setting().fonttypes["screenshot"])
         return fonts
 
-    def create_wxbutton(self, parent, cid, size, name=None, bmp=None, flat=False):
-        style = wx.BORDER_NONE if flat else 0
+    def create_wxbutton(self, parent, cid, size, name=None, bmp=None):
         if name:
-            button = wx.Button(parent, cid, name, size=size, style=style)
+            button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
             button.SetFont(self.get_wxfont("button"))
         elif bmp:
-            button = wx.BitmapButton(parent, cid, bmp, style=style)
+            button = wx.BitmapButton(parent, cid, bmp)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
 
         return button
 
-    def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None, flat=False):
+    def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None):
         if name:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)

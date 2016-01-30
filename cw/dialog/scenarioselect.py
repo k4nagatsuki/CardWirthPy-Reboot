@@ -62,10 +62,6 @@ class ScenarioSelect(select.Select):
         # 検索結果
         self.find_result = None
 
-        # 絞り込み欄等の表示設定
-        if not cw.cwpy.setting.show_paperandtree:
-            self.create_addctrlbtn(cw.cwpy.setting.show_additional_scenario)
-
         # 表示設定
         def create_btn(msg, bmp, value):
             btn = wx.lib.buttons.ThemedGenBitmapToggleButton(self, -1, None, size=cw.wins((46, 24)))
@@ -105,6 +101,11 @@ class ScenarioSelect(select.Select):
             self.editorbtn.SetToolTip(wx.ToolTip(cw.cwpy.msgs["open_with_editor"]))
         else:
             self.editorbtn = None
+
+        # 絞り込み欄等の表示設定
+        if not cw.cwpy.setting.show_paperandtree:
+            self.create_addctrlbtn(self, self._get_bg(), cw.cwpy.setting.show_additional_scenario)
+            self._addctrlbg = self.addctrlbtn.GetBackgroundColour()
 
         # toppanelとツリー表示用のビュー
         if cw.cwpy.setting.show_paperandtree:
@@ -175,6 +176,26 @@ class ScenarioSelect(select.Select):
         else:
             buttonwidth = cw.wins(55)
 
+        # 絞り込み欄等の更新
+        if not cw.cwpy.setting.show_paperandtree:
+            self.additionals.append((self.unfitness, lambda: cw.cwpy.setting.show_scenariotree))
+            self.additionals.append((self.completed, lambda: cw.cwpy.setting.show_scenariotree))
+            self.additionals.append((self.invisible, lambda: cw.cwpy.setting.show_scenariotree))
+            self.additionals.append((self.pagelabel, lambda: cw.cwpy.setting.show_scenariotree))
+            self.additionals.append((self.opendirbtn, lambda: cw.cwpy.setting.show_scenariotree))
+            if self.editorbtn:
+                self.additionals.append((self.editorbtn, lambda: cw.cwpy.setting.show_scenariotree))
+
+            self.additionals.append(self.keyword_label)
+            self.additionals.append(self.narrow)
+            self.additionals.append(self.narrow_label)
+            self.additionals.append(self.narrow_type)
+            self.additionals.append(self.sort_label)
+            self.additionals.append(self.sort)
+            self.additionals.append(self.find)
+            self.additionals.append(self.bookmark)
+            self.update_additionals()
+
         # ok
         self.yesbtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_YES, (buttonwidth, cw.wins(24)), cw.cwpy.msgs["decide"])
         self.buttonlist.append(self.yesbtn)
@@ -195,27 +216,6 @@ class ScenarioSelect(select.Select):
         self.buttonlist.append(self.nobtn)
         # ドロップファイル機能ON
         self.DragAcceptFiles(True)
-
-        # 絞り込み欄等の表示設定
-        if not cw.cwpy.setting.show_paperandtree:
-            # 絞り込み欄等の更新
-            self.additionals.append(self.unfitness)
-            self.additionals.append(self.completed)
-            self.additionals.append(self.invisible)
-            self.additionals.append(self.pagelabel)
-            self.additionals.append(self.opendirbtn)
-            if self.editorbtn:
-                self.additionals.append(self.editorbtn)
-
-            self.additionals.append(self.keyword_label)
-            self.additionals.append(self.narrow)
-            self.additionals.append(self.narrow_label)
-            self.additionals.append(self.narrow_type)
-            self.additionals.append(self.sort_label)
-            self.additionals.append(self.sort)
-            self.additionals.append(self.find)
-            self.additionals.append(self.bookmark)
-            self.update_additionals()
 
         if cw.cwpy.setting.show_paperandtree:
             self.show_tree()
@@ -303,18 +303,45 @@ class ScenarioSelect(select.Select):
         cw.util.set_acceleratortable(self, seq)
 
     def update_additionals(self):
-        if self.addctrltoggle:
+        self.addctrlbtn.SetDoubleBuffered(False)
+        if self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree:
+            self.addctrlbtn.Reparent(self)
+        else:
+            self.addctrlbtn.Reparent(self.toppanel)
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            sizer.AddStretchSpacer(1)
+            sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
+            self.toppanel.SetSizer(sizer)
+
+        cw.cwpy.frame.exec_func(self._do_layout)
+
+        if self.addctrlbtn.GetToggle():
             size = (cw.wins(400), cw.wins(370)+2)
         else:
             size = (cw.wins(400), cw.wins(370))
 
+        if self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree:
+            self.addctrlbtn.SetBackgroundColour(self.GetBackgroundColour())
+        else:
+            self.addctrlbtn.SetBackgroundColour(self._addctrlbg)
+            self.addctrlbtn.SetDoubleBuffered(True)
+
+        if cw.cwpy.setting.show_scenariotree and not self.addctrlbtn.GetToggle():
+            h = size[1]
+            h -= max(map(lambda ctrl: ctrl.GetSize()[1], (self.unfitness, self.completed, self.invisible,
+                                                          self.pagelabel, self.editorbtn, self.opendirbtn,
+                                                          self.addctrlbtn)))
+            treesize = (size[0], h)
+        else:
+            treesize = size
+
         self.toppanel.SetSize(size)
         self.toppanel.SetMinSize(size)
-        self.tree.SetSize(size)
-        self.tree.SetMinSize(size)
+        self.tree.SetSize(treesize)
+        self.tree.SetMinSize(treesize)
 
         select.Select.update_additionals(self)
-        cw.cwpy.setting.show_additional_scenario = self.addctrltoggle
+        cw.cwpy.setting.show_additional_scenario = self.addctrlbtn.GetToggle()
 
     def OnEscape(self, event):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
@@ -456,6 +483,8 @@ class ScenarioSelect(select.Select):
         hsizer1.Add(self.opendirbtn, 0, 0, 0)
         if self.editorbtn:
             hsizer1.Add(self.editorbtn, 0, 0, 0)
+        if self.addctrlbtn and (self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree):
+            hsizer1.Add(self.addctrlbtn, 0, 0, 0)
         return hsizer1
 
     def _sizer_find(self):
@@ -1073,6 +1102,8 @@ class ScenarioSelect(select.Select):
             self.tree.SetFocus()
             cw.cwpy.setting.show_scenariotree = True
 
+        self.update_additionals()
+
         self.enable_btn()
         self.Layout()
 
@@ -1282,7 +1313,7 @@ class ScenarioSelect(select.Select):
             dc = select.Select.draw(self, update)
 
         # 背景
-        if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrltoggle):
+        if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrlbtn.GetToggle()):
             yp = 0
         else:
             yp = 1
@@ -1467,12 +1498,18 @@ class ScenarioSelect(select.Select):
             self._enable_btn2(header, dc=dc)
 
         # 上部バーが非表示の時はページ数を表示
-        if self.addctrlbtn and not self.addctrltoggle:
+        if self.addctrlbtn and not (self.addctrlbtn.GetToggle() or cw.cwpy.setting.show_scenariotree):
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
             page = self.pagelabel.GetLabelText()
             w, h = dc.GetTextExtent(page)
-            x = bmpw-cw.wins(5)-w
-            y = bmph-cw.wins(5)
+            if self.addctrlbtn.IsShown():
+                btnw, btnh = self.addctrlbtn.GetSize()
+                x = bmpw-btnw-cw.wins(5)-w
+                y = (btnh-h)//2
+            else:
+                btnw, btnh = self.addctrlbtn.GetSize()
+                x = bmpw-cw.wins(5)
+                y = bmph-cw.wins(5)
             cw.util.draw_witharound(dc, page, x, y, 0)
 
         if update:

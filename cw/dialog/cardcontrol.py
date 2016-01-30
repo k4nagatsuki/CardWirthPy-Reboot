@@ -141,6 +141,8 @@ class CardControl(wx.Dialog):
             self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.toppanel, -1, None, size=cw.wins((24, 24)))
             self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
             self.change_bgs.append(self.addctrlbtn)
+            if not cw.cwpy.setting.show_addctrlbtn:
+                self.addctrlbtn.Hide()
         else:
             self.addctrlbtn = None
 
@@ -324,7 +326,10 @@ class CardControl(wx.Dialog):
         elif not self.callname in ("HANDVIEW", "CARDPOCKET_REPLACE"):
             # カード置き場、荷物袋、情報カード
             x = cw.wins(10)
-            y = cw.wins(40)
+            if cw.cwpy.setting.show_addctrlbtn:
+                y = cw.wins(40)
+            else:
+                y = cw.wins(50)
             self.upbtn.SetPosition((x, y))
             self.upbtn.SetSize(cw.wins((70, 40)))
             y += self.upbtn.GetSize()[1]
@@ -442,7 +447,7 @@ class CardControl(wx.Dialog):
         self.set_cardpos()
 
     def OnToggleAdditionalControls(self, event):
-        if not self.addctrlbtn or not self.addctrlbtn.IsShown():
+        if not self.addctrlbtn or not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return
         self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
         self._additional_controls()
@@ -1778,7 +1783,7 @@ class CardHolder(CardControl):
 
         # 追加的コントロールの表示有無
         if self.addctrlbtn:
-            self.addctrlbtn.Show(self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"))
+            self.addctrlbtn.Show(cw.cwpy.setting.show_addctrlbtn and self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"))
 
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB"):
             sorttype = cw.cwpy.setting.sort_cards

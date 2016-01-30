@@ -267,8 +267,6 @@ class Select(wx.Dialog):
         self.topsizer.Add(self.toppanel, 1, wx.EXPAND, 0)
         self._add_topsizer()
 
-        if self.addctrlbtn:
-            sizer_1.Add(self.addctrlbtn, 0, wx.EXPAND, 0)
         sizer_1.Add(self.topsizer, 1, wx.EXPAND, 0)
         sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
@@ -284,25 +282,15 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.left2btn, 0, 0, 0)
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
 
-        seq = []
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_panel.AddStretchSpacer(1)
             sizer_panel.Add(button, 0, wx.TOP|wx.BOTTOM, cw.wins(3))
-            seq.append(button)
 
         sizer_panel.AddStretchSpacer(1)
         sizer_panel.Add(self.rightbtn, 0, 0, 0)
         sizer_panel.Add(self.right2btn, 0, 0, 0)
         self.panel.SetSizer(sizer_panel)
-
-        seq.append(self.left2btn)
-        seq.append(self.leftbtn)
-        seq.append(self.rightbtn)
-        seq.append(self.right2btn)
-
-        for i in xrange(1, len(seq)):
-            seq[i].MoveAfterInTabOrder(seq[i-1])
 
     def _disable_btn(self, enables=[]):
         lrbtns = (self.rightbtn, self.right2btn, self.leftbtn, self.left2btn)
@@ -369,28 +357,39 @@ class Select(wx.Dialog):
     def _on_narrowcondition(self):
         pass
 
-    def create_addctrlbtn(self, show):
+    def create_addctrlbtn(self, parent, bg, show):
         """追加的なコントロールの表示切替を行うボタンを生成する。
+        parent: ボタンの親コントロール。
+        bg: ボタンの背景色の基準となるwx.Bitmap。
         show: 表示の初期状態。
         """
         if self.addctrlbtn:
             self.addctrlbtn.Destroy()
-        self.addctrlbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, size=cw.wins((24, 16)),
-                                                       bmp=cw.cwpy.rsrc.dialogs["SHOW_CONTROLS_BAR"],
-                                                       flat=False)
-        self.addctrlbtn.SetDoubleBuffered(True)
-        self.addctrltoggle = show
+        self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(parent, -1, None, size=cw.wins((24, 24)))
+        if not cw.cwpy.setting.show_addctrlbtn:
+            self.addctrlbtn.Hide()
+        self.addctrlbtn.SetToggle(show)
+        img = cw.util.convert_to_image(bg)
+        x, y = img.GetWidth()-12, 0
+        r, g, b = img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y)
+        colour = wx.Colour(r, g, b)
+        self.addctrlbtn.SetBackgroundColour(colour)
         self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
+        self.addctrlbtn.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
 
     def update_additionals(self):
         """表示状態の切り替え時に呼び出される。"""
-        show = self.addctrltoggle
+        show = self.addctrlbtn.GetToggle()
         for ctrl in self.additionals:
-            ctrl.Show(show)
+            if isinstance(ctrl, tuple):
+                ctrl, forceshow = ctrl
+                ctrl.Show(show or forceshow())
+            else:
+                ctrl.Show(show)
         if show:
-            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS_BAR"]
+            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS"]
         else:
-            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS_BAR"]
+            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"]
         self.addctrlbtn.SetBitmapFocus(bmp)
         self.addctrlbtn.SetBitmapLabel(bmp)
         self.addctrlbtn.SetBitmapSelected(bmp)
@@ -404,11 +403,10 @@ class Select(wx.Dialog):
         seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
 
     def OnToggleAdditionalControls(self, event):
-        self.addctrltoggle = not self.addctrltoggle
+        self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
         self._additional_controls()
 
     def OnAdditionalControls(self, event):
-        self.addctrltoggle = not self.addctrltoggle
         self._additional_controls()
 
     def _additional_controls(self):
@@ -1743,9 +1741,6 @@ class PlayerSelect(MultiViewSelect):
                                  cw.cwpy.setting.show_multipleplayers)
         self._bg = None
 
-        # additionals
-        self.create_addctrlbtn(cw.cwpy.setting.show_additional_player)
-
         # 冒険者情報
         self.list = []
         self.isalbum = False
@@ -1798,6 +1793,13 @@ class PlayerSelect(MultiViewSelect):
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((50, 24)), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
 
+        # additionals
+        self.create_addctrlbtn(self.toppanel, self._get_bg(), cw.cwpy.setting.show_additional_player)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.AddStretchSpacer(1)
+        sizer.Add(self.addctrlbtn, 0, wx.ALIGN_TOP, 0)
+        self.toppanel.SetSizer(sizer)
+
         self.additionals.append(self.narrow_label)
         self.additionals.append(self.narrow)
         self.additionals.append(self.narrow_type)
@@ -1840,7 +1842,7 @@ class PlayerSelect(MultiViewSelect):
 
     def update_additionals(self):
         Select.update_additionals(self)
-        cw.cwpy.setting.show_additional_player = self.addctrltoggle
+        cw.cwpy.setting.show_additional_player = self.addctrlbtn.GetToggle()
 
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)

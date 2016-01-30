@@ -654,8 +654,8 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
             attrs["scenario"] = str(setting.show_additional_scenario)
         if setting.show_additional_card or setting.show_additional_card_init:
             attrs["card"] = str(setting.show_additional_card)
-        if attrs:
-            e = cw.data.make_element("ShowAdditionalControls", "", attrs=attrs)
+        if attrs or setting.show_addctrlbtn <> setting.show_addctrlbtn_init:
+            e = cw.data.make_element("ShowAdditionalControls", "" if setting.show_addctrlbtn else "Hidden", attrs=attrs)
             element.append(e)
 
     # ファイル書き込み

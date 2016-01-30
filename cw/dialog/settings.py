@@ -504,6 +504,7 @@ class SettingsPanel(wx.Panel):
             self.pane_ui.cb_blink_partymoney.SetValue(cw.cwpy.setting.blink_partymoney_init)
 
             self.pane_ui.cb_show_advancedsettings.SetValue(cw.cwpy.setting.show_advancedsettings_init)
+            self.pane_ui.cb_show_addctrlbtn.SetValue(cw.cwpy.setting.show_addctrlbtn_init)
             self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
             self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
             self.pane_ui.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend_init)
@@ -895,6 +896,8 @@ class SettingsPanel(wx.Panel):
 
         value = self.pane_ui.cb_show_advancedsettings.GetValue()
         setting.show_advancedsettings = value
+        value = self.pane_ui.cb_show_addctrlbtn.GetValue()
+        setting.show_addctrlbtn = value
         value = self.pane_ui.cb_cautionbeforesaving.GetValue()
         setting.caution_beforesaving = value
         value = self.pane_ui.cb_showbackpackcard.GetValue()
@@ -2279,6 +2282,8 @@ class UISettingPanel(wx.ScrolledWindow):
         self.box_dlg = wx.StaticBox(self, -1, u"ダイアログ")
         self.cb_show_advancedsettings = wx.CheckBox(
             self, -1, u"最初から詳細モードで設定を行う")
+        self.cb_show_addctrlbtn = wx.CheckBox(
+            self, -1, u"絞り込み等の表示切替ボタンを表示する(非表示時はCtrl+Fで切替可能)")
         self.cb_cautionbeforesaving = wx.CheckBox(
             self, -1, u"保存せずに終了しようとしたら警告する")
         self.cb_confirmbeforesaving = wx.CheckBox(
@@ -2324,6 +2329,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_blink_partymoney.SetValue(setting.blink_partymoney)
 
         self.cb_show_advancedsettings.SetValue(setting.show_advancedsettings)
+        self.cb_show_addctrlbtn.SetValue(setting.show_addctrlbtn)
         self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving)
         self.cb_confirmbeforesaving.SetValue(setting.confirm_beforesaving)
         self.cb_showsavedmessage.SetValue(setting.show_savedmessage)
@@ -2384,6 +2390,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_notice.Add(self.cb_blink_partymoney, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
 
         bsizer_dlg.Add(self.cb_show_advancedsettings, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_dlg.Add(self.cb_show_addctrlbtn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
