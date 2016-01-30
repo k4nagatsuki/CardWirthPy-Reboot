@@ -328,9 +328,9 @@ class ScenarioSelect(select.Select):
 
         if cw.cwpy.setting.show_scenariotree and not self.addctrlbtn.GetToggle():
             h = size[1]
-            h -= max(map(lambda ctrl: ctrl.GetSize()[1], (self.unfitness, self.completed, self.invisible,
-                                                          self.pagelabel, self.editorbtn, self.opendirbtn,
-                                                          self.addctrlbtn)))
+            h -= max(map(lambda ctrl: ctrl.GetSize()[1] if ctrl else 0,
+                         (self.unfitness, self.completed, self.invisible, self.pagelabel,
+                          self.editorbtn, self.opendirbtn, self.addctrlbtn)))
             treesize = (size[0], h)
         else:
             treesize = size
