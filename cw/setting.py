@@ -55,6 +55,10 @@ LOG_SINGLE   = "Single"
 LOG_LIST     = "List"
 LOG_COMPRESS = "Compress"
 
+# 起動時の挙動
+OPEN_TITLE = "Title"
+OPEN_LAST_BASE = "LastBase"
+
 # ステータスバーのボタン状態
 SB_PRESSED   = 0b00000001 # 押下
 SB_CURRENT   = 0b00000010 # カーソル下
@@ -78,6 +82,7 @@ class Setting(object):
         # "Settings.xml"がなかったら新しく作る
         self.show_advancedsettings = False
         self.editor = "cwxeditor"
+        self.startupscene = OPEN_TITLE
         self.lastyado = ""
         self.lastscenario = []
         self.lastscenariopath = ""
@@ -308,6 +313,8 @@ class Setting(object):
         # シナリオエディタ
         self.editor = data.gettext("ScenarioEditor", self.editor)
 
+        # 起動時の動作
+        self.startupscene = data.gettext("StartupScene", self.startupscene)
         # 最後に選択した宿
         self.lastyado = data.gettext("LastYado", self.lastyado)
         # 最後に選択したシナリオ(ショートカットがあるため経路を記憶)

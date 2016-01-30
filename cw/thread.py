@@ -1483,6 +1483,11 @@ class CWPy(_Singleton, threading.Thread):
 
         optyado = cw.OPTIONS.yado
         cw.OPTIONS.yado = ""
+        if not optyado and self.setting.startupscene == cw.setting.OPEN_LAST_BASE:
+            optyado = self.setting.lastyado
+            cw.OPTIONS.party = ""
+            cw.OPTIONS.scenario = ""
+
         if optyado:
             if os.path.isabs(optyado):
                 optyado = cw.util.relpath(optyado, u"Yado")

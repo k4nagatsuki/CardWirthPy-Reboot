@@ -129,6 +129,10 @@ def create_settings(setting, writeplayingdata=True, fpath="Settings.xml"):
     if setting.editor <> setting.editor_init:
         e = cw.data.make_element("ScenarioEditor", setting.editor)
         element.append(e)
+    # 起動時の動作
+    if setting.startupscene <> setting.startupscene_init:
+        e = cw.data.make_element("StartupScene", setting.startupscene)
+        element.append(e)
     if writeplayingdata:
         # 最後に選択した宿
         if setting.lastyado <> setting.lastyado_init:
