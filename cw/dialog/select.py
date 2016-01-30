@@ -267,17 +267,12 @@ class Select(wx.Dialog):
         self.topsizer.Add(self.toppanel, 1, wx.EXPAND, 0)
         self._add_topsizer()
 
+        if self.addctrlbtn:
+            sizer_1.Add(self.addctrlbtn, 0, wx.EXPAND, 0)
         sizer_1.Add(self.topsizer, 1, wx.EXPAND, 0)
         sizer_1.Add(self.panel, 0, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
-        if self.IsShown():
-            x, y, w, h = self.GetRect()
-            nw, nh = sizer_1.ComputeFittingWindowSize(self)
-            y -= nh - h
-            self.SetRect(wx.Rect(x, y, nw, nh))
-            cw.util.adjust_position(self)
-        else:
-            sizer_1.Fit(self)
+        sizer_1.Fit(self)
         self.Layout()
 
     def _add_topsizer(self):
@@ -290,10 +285,6 @@ class Select(wx.Dialog):
         sizer_panel.Add(self.leftbtn, 0, 0, 0)
 
         seq = []
-        if self.addctrlbtn:
-            sizer_panel.Add(self.addctrlbtn)
-            seq.append(self.addctrlbtn)
-
         # sizer_panelにbuttonを設定
         for button in self.buttonlist:
             sizer_panel.AddStretchSpacer(1)
@@ -384,20 +375,22 @@ class Select(wx.Dialog):
         """
         if self.addctrlbtn:
             self.addctrlbtn.Destroy()
-        self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.panel, -1, cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"],
-                                                                     size=cw.wins((24, 30)))
-        self.addctrlbtn.SetToggle(show)
+        self.addctrlbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, size=cw.wins((24, 16)),
+                                                       bmp=cw.cwpy.rsrc.dialogs["SHOW_CONTROLS_BAR"],
+                                                       flat=False)
+        self.addctrlbtn.SetDoubleBuffered(True)
+        self.addctrltoggle = show
         self.Bind(wx.EVT_BUTTON, self.OnAdditionalControls, self.addctrlbtn)
 
     def update_additionals(self):
         """表示状態の切り替え時に呼び出される。"""
-        show = self.addctrlbtn.GetToggle()
+        show = self.addctrltoggle
         for ctrl in self.additionals:
             ctrl.Show(show)
         if show:
-            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS"]
+            bmp = cw.cwpy.rsrc.dialogs["HIDE_CONTROLS_BAR"]
         else:
-            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"]
+            bmp = cw.cwpy.rsrc.dialogs["SHOW_CONTROLS_BAR"]
         self.addctrlbtn.SetBitmapFocus(bmp)
         self.addctrlbtn.SetBitmapLabel(bmp)
         self.addctrlbtn.SetBitmapSelected(bmp)
@@ -411,10 +404,11 @@ class Select(wx.Dialog):
         seq.append((wx.ACCEL_CTRL, ord('F'), addctrl))
 
     def OnToggleAdditionalControls(self, event):
-        self.addctrlbtn.SetToggle(not self.addctrlbtn.GetToggle())
+        self.addctrltoggle = not self.addctrltoggle
         self._additional_controls()
 
     def OnAdditionalControls(self, event):
+        self.addctrltoggle = not self.addctrltoggle
         self._additional_controls()
 
     def _additional_controls(self):
@@ -1749,6 +1743,9 @@ class PlayerSelect(MultiViewSelect):
                                  cw.cwpy.setting.show_multipleplayers)
         self._bg = None
 
+        # additionals
+        self.create_addctrlbtn(cw.cwpy.setting.show_additional_player)
+
         # 冒険者情報
         self.list = []
         self.isalbum = False
@@ -1801,9 +1798,6 @@ class PlayerSelect(MultiViewSelect):
         self.closebtn = cw.cwpy.rsrc.create_wxbutton(self.panel, wx.ID_CANCEL, cw.wins((50, 24)), cw.cwpy.msgs["close"])
         self.buttonlist.append(self.closebtn)
 
-        # additionals
-        self.create_addctrlbtn(cw.cwpy.setting.show_additional_player)
-
         self.additionals.append(self.narrow_label)
         self.additionals.append(self.narrow)
         self.additionals.append(self.narrow_type)
@@ -1846,7 +1840,7 @@ class PlayerSelect(MultiViewSelect):
 
     def update_additionals(self):
         Select.update_additionals(self)
-        cw.cwpy.setting.show_additional_player = self.addctrlbtn.GetToggle()
+        cw.cwpy.setting.show_additional_player = self.addctrltoggle
 
     def _add_topsizer(self):
         nsizer = wx.BoxSizer(wx.HORIZONTAL)

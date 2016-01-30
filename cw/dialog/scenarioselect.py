@@ -62,6 +62,10 @@ class ScenarioSelect(select.Select):
         # 検索結果
         self.find_result = None
 
+        # 絞り込み欄等の表示設定
+        if not cw.cwpy.setting.show_paperandtree:
+            self.create_addctrlbtn(cw.cwpy.setting.show_additional_scenario)
+
         # 表示設定
         def create_btn(msg, bmp, value):
             btn = wx.lib.buttons.ThemedGenBitmapToggleButton(self, -1, None, size=cw.wins((46, 24)))
@@ -194,8 +198,6 @@ class ScenarioSelect(select.Select):
 
         # 絞り込み欄等の表示設定
         if not cw.cwpy.setting.show_paperandtree:
-            self.create_addctrlbtn(cw.cwpy.setting.show_additional_scenario)
-
             # 絞り込み欄等の更新
             self.additionals.append(self.unfitness)
             self.additionals.append(self.completed)
@@ -301,7 +303,7 @@ class ScenarioSelect(select.Select):
         cw.util.set_acceleratortable(self, seq)
 
     def update_additionals(self):
-        if self.addctrlbtn.GetToggle():
+        if self.addctrltoggle:
             size = (cw.wins(400), cw.wins(370)+2)
         else:
             size = (cw.wins(400), cw.wins(370))
@@ -312,7 +314,7 @@ class ScenarioSelect(select.Select):
         self.tree.SetMinSize(size)
 
         select.Select.update_additionals(self)
-        cw.cwpy.setting.show_additional_scenario = self.addctrlbtn.GetToggle()
+        cw.cwpy.setting.show_additional_scenario = self.addctrltoggle
 
     def OnEscape(self, event):
         btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_CANCEL)
@@ -1280,7 +1282,7 @@ class ScenarioSelect(select.Select):
             dc = select.Select.draw(self, update)
 
         # 背景
-        if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrlbtn.GetToggle()):
+        if cw.cwpy.setting.show_paperandtree or (self.addctrlbtn and not self.addctrltoggle):
             yp = 0
         else:
             yp = 1
@@ -1290,7 +1292,7 @@ class ScenarioSelect(select.Select):
         dc.SetBrush(wx.Brush(colour))
         dc.DrawRectangle(0, 0, csize[0], csize[1])
         bmp = cw.wins((self._get_bg(), cw.SIZE_BILL))
-        bmpw = bmp.GetSize()[0]
+        bmpw, bmph = bmp.GetSize()
         dc.DrawBitmap(bmp, 0, yp, False)
 
         # リストが空だったら描画終了
@@ -1465,13 +1467,12 @@ class ScenarioSelect(select.Select):
             self._enable_btn2(header, dc=dc)
 
         # 上部バーが非表示の時はページ数を表示
-        if self.addctrlbtn and not self.addctrlbtn.GetToggle():
+        if self.addctrlbtn and not self.addctrltoggle:
             dc.SetFont(cw.cwpy.rsrc.get_wxfont("dlgtitle", pixelsize=cw.wins(15)))
             page = self.pagelabel.GetLabelText()
             w, h = dc.GetTextExtent(page)
-            btnw, btnh = self.addctrlbtn.GetSize()
-            x = bmpw-btnw-cw.wins(5)-w
-            y = (btnh-h)//2
+            x = bmpw-cw.wins(5)-w
+            y = bmph-cw.wins(5)
             cw.util.draw_witharound(dc, page, x, y, 0)
 
         if update:

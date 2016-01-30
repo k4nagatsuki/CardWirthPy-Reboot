@@ -1227,20 +1227,21 @@ class Resource(object):
         fonts.set("screenshot", self.create_font, "screenshot", *self.setting().fonttypes["screenshot"])
         return fonts
 
-    def create_wxbutton(self, parent, cid, size, name=None, bmp=None):
+    def create_wxbutton(self, parent, cid, size, name=None, bmp=None, flat=False):
+        style = wx.BORDER_NONE if flat else 0
         if name:
-            button = wx.Button(parent, cid, name, size=size)
+            button = wx.Button(parent, cid, name, size=size, style=style)
             button.SetMinSize(size)
             button.SetFont(self.get_wxfont("button"))
         elif bmp:
-            button = wx.BitmapButton(parent, cid, bmp)
+            button = wx.BitmapButton(parent, cid, bmp, style=style)
             button.SetMinSize(size)
             bmp = cw.imageretouch.to_disabledimage(bmp)
             button.SetBitmapDisabled(bmp)
 
         return button
 
-    def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None):
+    def create_wxbutton_dbg(self, parent, cid, size, name=None, bmp=None, flat=False):
         if name:
             button = wx.Button(parent, cid, name, size=size)
             button.SetMinSize(size)
