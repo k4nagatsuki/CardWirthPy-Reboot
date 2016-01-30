@@ -44,7 +44,8 @@ class CardControl(wx.Dialog):
 
         # 追加的コントロールの表示切替
         if self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKET", "CARDPOCKETB", "INFOVIEW"):
-            self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.panel, -1, None, size=cw.wins((24, 30)))
+            self.addctrlbtn = wx.lib.buttons.ThemedGenBitmapToggleButton(self.panel, -1, cw.cwpy.rsrc.dialogs["SHOW_CONTROLS"],
+                                                                         size=cw.wins((24, 30)))
             self.addctrlbtn.SetToggle(cw.cwpy.setting.show_additional_card)
         else:
             self.addctrlbtn = None
@@ -887,7 +888,7 @@ class CardControl(wx.Dialog):
                 if not cw.cwpy.setting.show_additional_card:
                     s = str(self.index+1)
                     w = dc.GetTextExtent(s)[0]
-                    dc.DrawText(s, sx-sw, sy)
+                    dc.DrawText(s, sx-w, sy)
 
         dc.SelectObject(wx.NullBitmap)
         dc = wx.PaintDC(self.toppanel)
