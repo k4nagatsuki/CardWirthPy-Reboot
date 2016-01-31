@@ -111,8 +111,12 @@ class EffectMotion(base.CWBinaryBase):
         elif tabtype == 5:
             f.write_dword(int(data.get("value")))
             f.write_dword(int(data.get("duration")))
-        # 技能, 消滅, カード
-        elif tabtype in (2, 6, 7):
+        # 技能
+        elif tabtype == 2:
+            if not data.get("damagetype", "Max") in ("", "Max"):
+                f.check_wsnversion("1")
+        # 消滅, カード
+        elif tabtype in (6, 7):
             pass
         # 召喚(BeastCardインスタンスを生成)
         elif tabtype == 8:
