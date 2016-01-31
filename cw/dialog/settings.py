@@ -380,13 +380,16 @@ class SettingsPanel(wx.Panel):
         if selpane == 0:
             self.pane_gene.cb_show_debuglogdialog.SetValue(cw.cwpy.setting.show_debuglogdialog_init)
             self.pane_gene.cb_nolevelup.SetValue(cw.cwpy.setting.no_levelup_in_debugmode_init)
-            self.pane_gene.cb_storeskinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
             if cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_SINGLE:
                 self.pane_gene.ch_messagelog_type.SetSelection(0)
             elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_LIST:
                 self.pane_gene.ch_messagelog_type.SetSelection(1)
             elif cw.cwpy.setting.messagelog_type_init == cw.setting.LOG_COMPRESS:
                 self.pane_gene.ch_messagelog_type.SetSelection(2)
+            if cw.cwpy.setting.startupscene_init == cw.setting.OPEN_TITLE:
+                self.pane_gene.ch_startupscene.SetSelection(0)
+            elif cw.cwpy.setting.startupscene_init == cw.setting.OPEN_LAST_BASE:
+                self.pane_gene.ch_startupscene.SetSelection(1)
             self.pane_gene.sc_backlogmax.SetValue(cw.cwpy.setting.backlogmax_init)
             self.pane_gene.expand.ch_expanddrawing.SetSelection(0)
             if cw.cwpy.setting.expandmode_init == "FullScreen":
@@ -404,7 +407,6 @@ class SettingsPanel(wx.Panel):
             self.pane_gene.cb_overwritepartyrecord.Enable(self.pane_gene.cb_autosavepartyrecord.GetValue())
             self.pane_gene.tx_ssinfoformat.SetValue(cw.cwpy.setting.ssinfoformat_init)
             self.pane_gene.ch_ssinfocolor.Select(1 if cw.cwpy.setting.ssinfofontcolor_init[:3] == (255, 255, 255) else 0)
-            self.pane_gene.cb_showexperiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
         elif selpane == 1:
             self.pane_draw.cb_smoothing_card_up.SetValue(cw.cwpy.setting.smoothing_card_up_init)
             self.pane_draw.cb_smoothing_card_down.SetValue(cw.cwpy.setting.smoothing_card_down_init)
@@ -505,7 +507,10 @@ class SettingsPanel(wx.Panel):
 
             self.pane_ui.cb_show_advancedsettings.SetValue(cw.cwpy.setting.show_advancedsettings_init)
             self.pane_ui.cb_show_addctrlbtn.SetValue(cw.cwpy.setting.show_addctrlbtn_init)
+            self.pane_ui.cb_show_experiencebar.SetValue(cw.cwpy.setting.show_experiencebar_init)
             self.pane_ui.cb_cautionbeforesaving.SetValue(cw.cwpy.setting.caution_beforesaving_init)
+
+            self.pane_ui.cb_store_skinoneachbase.SetValue(cw.cwpy.setting.store_skinoneachbase_init)
             self.pane_ui.cb_showbackpackcard.SetValue(cw.cwpy.setting.show_backpackcard_init)
             self.pane_ui.cb_showbackpackcardatend.SetValue(cw.cwpy.setting.show_backpackcardatend_init)
             self.pane_ui.cb_can_clicksidesofcardcontrol.SetValue(cw.cwpy.setting.can_clicksidesofcardcontrol_init)
@@ -622,10 +627,6 @@ class SettingsPanel(wx.Panel):
         setting.show_debuglogdialog = value
         value = self.pane_gene.cb_nolevelup.GetValue()
         setting.no_levelup_in_debugmode = value
-        value = self.pane_gene.cb_showexperiencebar.GetValue()
-        setting.show_experiencebar = value
-        value = self.pane_gene.cb_storeskinoneachbase.GetValue()
-        setting.store_skinoneachbase = value
         value = self.pane_gene.sc_initmoneyamount.GetValue()
         setting.initmoneyamount = value
         value = self.pane_gene.cb_initmoneyisinitialcash.GetValue()
@@ -651,6 +652,12 @@ class SettingsPanel(wx.Panel):
         elif value == 2:
             value = cw.setting.LOG_COMPRESS
         setting.messagelog_type = value
+        value = self.pane_gene.ch_startupscene.GetSelection()
+        if value == 0:
+            value = cw.setting.OPEN_TITLE
+        elif value == 1:
+            value = cw.setting.OPEN_LAST_BASE
+        setting.startupscene = value
         value = self.pane_gene.sc_backlogmax.GetValue()
         if value <> setting.backlogmax:
             if update:
@@ -898,8 +905,12 @@ class SettingsPanel(wx.Panel):
         setting.show_advancedsettings = value
         value = self.pane_ui.cb_show_addctrlbtn.GetValue()
         setting.show_addctrlbtn = value
+        value = self.pane_ui.cb_show_experiencebar.GetValue()
+        setting.show_experiencebar = value
         value = self.pane_ui.cb_cautionbeforesaving.GetValue()
         setting.caution_beforesaving = value
+        value = self.pane_ui.cb_store_skinoneachbase.GetValue()
+        setting.store_skinoneachbase = value
         value = self.pane_ui.cb_showbackpackcard.GetValue()
         setting.show_backpackcard = value
         value = self.pane_ui.cb_showbackpackcardatend.GetValue()
@@ -1328,12 +1339,9 @@ class GeneralSettingPanel(wx.Panel):
             self, -1, u"シナリオの終了時にデバッグ情報を表示する")
         self.cb_nolevelup = wx.CheckBox(
             self, -1, u"デバッグ中はレベル上昇を抑止する")
-        self.cb_showexperiencebar = wx.CheckBox(
-            self, -1, u"次のレベルアップまでの割合を表示する")
 
-        # 基本的なオプション
-        self.cb_storeskinoneachbase = wx.CheckBox(
-            self, -1, u"拠点ごとにスキンを記憶する")
+        self.st_startupscene = wx.StaticText(self, -1, u"起動時の動作:")
+        self.ch_startupscene = wx.Choice(self, -1, choices=[u"タイトル画面を開く", u"最後に選択した拠点を開く"])
 
         self.box_messagelog = wx.StaticBox(self, -1, u"メッセージログ(F5キーで表示)")
         self.st_messagelog_type = wx.StaticText(self, -1, u"表示形式:")
@@ -1384,14 +1392,16 @@ class GeneralSettingPanel(wx.Panel):
     def load(self, setting):
         self.cb_show_debuglogdialog.SetValue(setting.show_debuglogdialog)
         self.cb_nolevelup.SetValue(setting.no_levelup_in_debugmode)
-        self.cb_showexperiencebar.SetValue(setting.show_experiencebar)
-        self.cb_storeskinoneachbase.SetValue(setting.store_skinoneachbase)
         if setting.messagelog_type == cw.setting.LOG_SINGLE:
             self.ch_messagelog_type.SetSelection(0) # 単一表示
         elif setting.messagelog_type == cw.setting.LOG_COMPRESS:
             self.ch_messagelog_type.SetSelection(2) # 圧縮表示
         else:
             self.ch_messagelog_type.SetSelection(1) # 並べて表示(デフォルト)
+        if setting.startupscene == cw.setting.OPEN_LAST_BASE:
+            self.ch_startupscene.SetSelection(1) # 最後に選択した拠点を開く
+        else:
+            self.ch_startupscene.SetSelection(0) # タイトル画面を開く
         self.sc_backlogmax.SetValue(setting.backlogmax)
         self.sc_initmoneyamount.SetValue(setting.initmoneyamount)
         self.cb_initmoneyisinitialcash.SetValue(setting.initmoneyisinitialcash)
@@ -1426,8 +1436,12 @@ class GeneralSettingPanel(wx.Panel):
         bsizer_gene.Add(self.cb_debug, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_show_debuglogdialog, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_nolevelup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_showexperiencebar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
-        bsizer_gene.Add(self.cb_storeskinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+
+        bsizer_startup = wx.BoxSizer(wx.HORIZONTAL)
+        bsizer_startup.Add(self.st_startupscene, 0, wx.ALIGN_CENTER, 0)
+        bsizer_startup.Add(self.ch_startupscene, 0, wx.LEFT|wx.ALIGN_CENTER, 3)
+        bsizer_gene.Add(bsizer_startup, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+
         bsizer_gene.SetMinSize((SETTINGS_WIDTH, -1))
 
         bsizer_log = wx.StaticBoxSizer(self.box_messagelog, wx.HORIZONTAL)
@@ -2242,6 +2256,9 @@ class UISettingPanel(wx.ScrolledWindow):
 
         # インタフェースオプション
         self.box_gene = wx.StaticBox(self, -1, u"操作")
+        # 基本的なオプション
+        self.cb_store_skinoneachbase = wx.CheckBox(
+            self, -1, u"拠点ごとにスキンを記憶する")
         self.cb_showbackpackcard = wx.CheckBox(
             self, -1, u"荷物袋のカードを一時的に取り出して使えるようにする")
         self.cb_showbackpackcardatend = wx.CheckBox(
@@ -2284,6 +2301,8 @@ class UISettingPanel(wx.ScrolledWindow):
             self, -1, u"最初から詳細モードで設定を行う")
         self.cb_show_addctrlbtn = wx.CheckBox(
             self, -1, u"絞り込み等の表示切替ボタンを表示する(非表示時はCtrl+Fで切替可能)")
+        self.cb_show_experiencebar = wx.CheckBox(
+            self, -1, u"キャラクター情報に次のレベルアップまでの割合を表示する")
         self.cb_cautionbeforesaving = wx.CheckBox(
             self, -1, u"保存せずに終了しようとしたら警告する")
         self.cb_confirmbeforesaving = wx.CheckBox(
@@ -2312,6 +2331,7 @@ class UISettingPanel(wx.ScrolledWindow):
         self.cb_show_cardkind.SetValue(setting.show_cardkind)
         self.cb_show_premiumicon.SetValue(setting.show_premiumicon)
 
+        self.cb_store_skinoneachbase.SetValue(setting.store_skinoneachbase)
         self.cb_showbackpackcard.SetValue(setting.show_backpackcard)
         self.cb_showbackpackcardatend.SetValue(setting.show_backpackcardatend)
         self.cb_can_clicksidesofcardcontrol.SetValue(setting.can_clicksidesofcardcontrol)
@@ -2330,6 +2350,7 @@ class UISettingPanel(wx.ScrolledWindow):
 
         self.cb_show_advancedsettings.SetValue(setting.show_advancedsettings)
         self.cb_show_addctrlbtn.SetValue(setting.show_addctrlbtn)
+        self.cb_show_experiencebar.SetValue(setting.show_experiencebar)
         self.cb_cautionbeforesaving.SetValue(setting.caution_beforesaving)
         self.cb_confirmbeforesaving.SetValue(setting.confirm_beforesaving)
         self.cb_showsavedmessage.SetValue(setting.show_savedmessage)
@@ -2372,6 +2393,7 @@ class UISettingPanel(wx.ScrolledWindow):
         bsizer_draw.Add(self.cb_show_premiumicon, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_draw.SetMinSize((SETTINGS_WIDTH, -1))
 
+        bsizer_gene.Add(self.cb_store_skinoneachbase, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showbackpackcard, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_showbackpackcardatend, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_gene.Add(self.cb_can_clicksidesofcardcontrol, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
@@ -2391,6 +2413,7 @@ class UISettingPanel(wx.ScrolledWindow):
 
         bsizer_dlg.Add(self.cb_show_advancedsettings, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_show_addctrlbtn, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
+        bsizer_dlg.Add(self.cb_show_experiencebar, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_cautionbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_confirmbeforesaving, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
         bsizer_dlg.Add(self.cb_showsavedmessage, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 3)
