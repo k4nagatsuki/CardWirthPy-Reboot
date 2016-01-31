@@ -2105,7 +2105,7 @@ class Character(object):
         self.set_enhance_avo(0, 0)
         self.set_enhance_res(0, 0)
         self.set_enhance_def(0, 0)
-        self.set_skillpower(True)
+        self.set_skillpower()
         self.set_beast(vanish=True)
 
         # 行動を再選択する
@@ -2392,7 +2392,7 @@ class Character(object):
         self.data.edit(path, str(self.enhance_def))
         self.data.edit(path, str(self.enhance_def_dur), "duration")
 
-    def set_skillpower(self, recovery=True):
+    def set_skillpower(self, value=999):
         """
         精神力(スキルの使用回数)を操作する。
         recoveryがTrueだったら、最大値まで回復。
@@ -2401,17 +2401,14 @@ class Character(object):
         if cw.cwpy.ydata:
             cw.cwpy.ydata.changed()
         for header in self.get_pocketcards(cw.POCKET_SKILL):
-            if recovery:
-                header.set_uselimit(999)
-            else:
-                header.set_uselimit(-999)
+            header.set_uselimit(value)
 
-        if recovery:
+        if 0 < value:
             if cw.cwpy.is_battlestatus():
                 self.deck.get_skillpower(self)
-        else:
+        elif value < 0:
             if cw.cwpy.is_battlestatus():
-                self.deck.lose_skillpower(self)
+                self.deck.lose_skillpower(self, -value)
 
     def set_beast(self, element=None, vanish=False):
         """召喚獣を召喚する。付帯召喚設定は強制的にクリアされる。

@@ -437,12 +437,25 @@ class EffectMotion(object):
     def is_effectcontent(self):
         return not bool(self.cardheader)
 
+    def calc_skillpowervalue(self):
+        # 固定値(Wsn.1)
+        value = self.value
+        if self.damagetype == "Fixed":
+            return value
+
+        # それ以外は最大値処理
+        return 999
+
     def calc_effectvalue(self, target, physical=False):
         """
         効果値から実数値を計算して返す。
         効果値が0の場合は実数値も0を返す。
         """
         value = self.value
+
+        # 固定値(Wsn.1)
+        if self.damagetype == "Fixed":
+            return value
 
         # ダメージタイプが"Max"の場合、最大HPを実数値として返す
         if self.damagetype == "Max":
@@ -585,12 +598,13 @@ class EffectMotion(object):
             value = int(value / 2.0 + 0.5)
 
         # 防御修正
-        # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
-        if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-            value = self.calc_defensedvalue(value, target)
-        else:
-            if self.damagetype <> "Max":
+        if self.damagetype <> "Fixed":
+            # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
+            if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                 value = self.calc_defensedvalue(value, target)
+            else:
+                if self.damagetype <> "Max":
+                    value = self.calc_defensedvalue(value, target)
 
         target.set_life(-value)
 
@@ -611,12 +625,13 @@ class EffectMotion(object):
             value = int(value / 2.0 + 0.5)
 
         # 防御修正
-        # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
-        if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
-            value = self.calc_defensedvalue(value, target)
-        else:
-            if self.damagetype <> "Max":
+        if self.damagetype <> "Fixed":
+            # 互換動作: 1.20以前は最大値ダメージも防御修正による影響を受ける
+            if cw.cwpy.sct.lessthan("1.20", cw.cwpy.sdata.get_versionhint(cw.HINT_CARD)):
                 value = self.calc_defensedvalue(value, target)
+            else:
+                if self.damagetype <> "Max":
+                    value = self.calc_defensedvalue(value, target)
 
         target.set_life(-value)
 
@@ -697,7 +712,8 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        target.set_skillpower(True)
+        value = self.calc_skillpowervalue()
+        target.set_skillpower(value)
         return True
 
     def loseskillpower_motion(self, target, success_res):
@@ -706,7 +722,8 @@ class EffectMotion(object):
         """
         if success_res:
             return False
-        target.set_skillpower(False)
+        value = self.calc_skillpowervalue()
+        target.set_skillpower(-value)
         return True
 
     #-----------------------------------------------------------------------

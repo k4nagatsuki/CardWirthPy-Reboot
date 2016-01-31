@@ -161,20 +161,29 @@ class Deck(object):
 
         self._update_skillpower(ccard)
 
-    def lose_skillpower(self, ccard):
+    def lose_skillpower(self, ccard, losevalue):
         # 現在handにある分は除去しなくてよい
         talon = []
+        skilltable = {}
+
+        def remove_skill(header, seq):
+            if header.type == "SkillCard":
+                orig = header.ref_original()
+                removecount = skilltable.get(orig, 0)
+                if removecount < losevalue:
+                    skilltable[orig] = removecount + 1
+                    return
+            seq.append(header)
+
         for header in self.talon:
-            if header.type <> "SkillCard":
-                talon.append(header)
+            remove_skill(header, talon)
         self.talon = talon
         self.shuffle()
         if self._throwaway:
             # 手札喪失が予約されている場合に限りhandからも除去
             hand = []
             for header in self.hand:
-                if header.type <> "SkillCard":
-                    hand.append(header)
+                remove_skill(header, hand)
             self.hand = hand
 
         self._update_skillpower(ccard)
