@@ -275,7 +275,7 @@ class CharaInfo(object):
             self.physical = pcard.physical
             self.mental = pcard.mental
             self._calc_params()
-            levelmax = pcard.get_couponvalue(u"＠レベル上限")
+            levelmax = pcard.get_levelmax()
             self.recalc_maxlife = pcard.maxlife == cw.character.calc_maxlife(pcard.physical["vit"], pcard.physical["min"], pcard.level)
             self.recalc_parameter = \
                 pcard.physical["agl"] == self.agl and\
@@ -460,7 +460,7 @@ class CharaInfo(object):
                      self.talent <> pcard.get_talent() or\
                      self.makings <> pcard.get_makings() or\
                      self.type <> self.get_paramtype(pcard) or\
-                     self.levelmax <> pcard.get_couponvalue(u"＠レベル上限")
+                     self.levelmax <> pcard.get_levelmax()
         updateetc  = self.name <> pcard.name or\
                      self.imgpaths <> self.imgpaths_base or\
                      self.level <> pcard.level
@@ -491,6 +491,7 @@ class CharaInfo(object):
             etccoupons = [] # システム称号の後にある称号
             parentcoupons = []
             throughted_parents = False
+            setlevelmax = False
             for e in pcard.data.getfind("Property/Coupons"):
                 name = e.text
                 if name in syscoupons or name.startswith(u"＠Ｒ"):
@@ -500,6 +501,7 @@ class CharaInfo(object):
 
                 if self.recalc_parameter and name == u"＠レベル上限":
                     value = self.levelmax
+                    setlevelmax = True
 
                 if not throughted_parents:
                     if name.startswith(father_m[0]) and name.endswith(father_m[1]):
@@ -512,6 +514,9 @@ class CharaInfo(object):
                         throughted_parents = True
 
                 etccoupons.append((name, value))
+
+            if not setlevelmax:
+                etccoupons.append((u"＠レベル上限", self.levelmax))
 
             desc_bef = pcard.get_description()
             desc_bef_d = cw.dialog.create.create_description(pcard.get_talent(), pcard.get_makings())

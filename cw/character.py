@@ -1880,14 +1880,9 @@ class Character(object):
         coupons = self._get_specialcoupons()
         level = coupons[u"＠レベル原点"]
 
-        if u"＠レベル上限" in coupons:
-            limit = coupons[u"＠レベル上限"]
-        elif u"＠本来の上限" in coupons:
-            limit = coupons[u"＠本来の上限"]
+        limit = self._get_levelmax(coupons)
+        if not u"＠レベル上限" in coupons:
             self._set_coupon(u"＠レベル上限", limit)
-        else:
-            limit = 10
-            self._set_coupon(u"＠レベル上限", 10)
 
         # 解の公式で現在の経験点で到達できるレベルを算出
         cnt = max(1, self._get_couponsvalue())
@@ -1895,6 +1890,21 @@ class Character(object):
         olevel = min(limit, olevel)
 
         return olevel - level
+
+    @synclock(_couponlock)
+    def get_levelmax(self):
+        coupons = self._get_specialcoupons()
+        return self._get_levelmax(coupons)
+
+    def _get_levelmax(self, coupons):
+        if u"＠レベル上限" in coupons:
+            limit = coupons[u"＠レベル上限"]
+        elif u"＠本来の上限" in coupons:
+            limit = coupons[u"＠本来の上限"]
+            self._set_coupon(u"＠レベル上限", limit)
+        else:
+            limit = 10
+        return limit
 
     @synclock(_couponlock)
     def set_level(self, value, regulate=False, debugedit=False, backpack_party=None, revert_cardpocket=True):
