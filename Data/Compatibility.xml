@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Compatibility>
+  <Scenario md5="9f565acdf0704a28618cc46c72b8fbf1">1.20</Scenario><!-- 双子と魔水晶４(双子と魔水晶4) -->
+  <Scenario md5="09df2994249071139b72081ea4b31469">1.20</Scenario><!-- 双子と魔水晶３(双子と魔水晶3) -->
+  <Scenario md5="ff6c19a471136f2cce7b8141a4d916a0">1.20</Scenario><!-- 双子と魔水晶２（Ｒ）(双子と魔水晶2(R)) -->
   <Scenario md5="72af4359ce73ca864b11b52566a46b12" enableVanishMemberCancellation="True" /><!-- 金を得る簡単な方法 -->
   <Scenario md5="1e6cc5e76b837f1160fad0634b2d63db" enableVanishMemberCancellation="True" /><!-- 絶対に動いてはいけない#Y -->
   <Scenario md5="46b80c563c44ce487fbfb91ff4be0ab0">1.28</Scenario><!-- 大海魔/Area6.wid -->
