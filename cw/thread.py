@@ -2697,7 +2697,7 @@ class CWPy(_Singleton, threading.Thread):
                     return
 
             # NPCの状態を回復
-            cw.cwpy.sdata.fullrecovery_fcards()
+            self.sdata.fullrecovery_fcards()
 
             if areachange:
                 # 戦闘前のエリアに戻る
@@ -2705,6 +2705,7 @@ class CWPy(_Singleton, threading.Thread):
 
             if eventkeynum:
                 # 勝利イベント開始
+                self.event.clear_selectedmember()
                 battleevents.start(keynum=eventkeynum)
                 self.winevent_areaid = None
 
