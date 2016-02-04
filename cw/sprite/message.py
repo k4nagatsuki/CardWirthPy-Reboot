@@ -10,8 +10,8 @@ import base
 
 
 class MessageWindow(base.CWPySprite):
-    def __init__(self, text, names, imgpaths=[], talker=None,
-                 pos_noscale=None, size_noscale=None, talkerimage=[],
+    def __init__(self, text, names, imgpaths=[][:], talker=None,
+                 pos_noscale=None, size_noscale=None, talkerimage=[][:],
                  nametable={}.copy(), namesubtable={}.copy(), flagtable={}.copy(), steptable={}.copy(),
                  backlog=False, result=None, versionhint="", specialchars=None, textimg=None,
                  trim_top_noscale=0):

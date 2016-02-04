@@ -175,6 +175,8 @@ class DebugLogDialog(wx.Dialog):
                 self.plain_text.append(s)
 
             for name, got_coupons, lost_coupons in debuglog.player:
+                got_coupons = filter(lambda a: not a[0].startswith(u"＠"), got_coupons)
+                lost_coupons = filter(lambda a: not a[0].startswith(u"＠"), lost_coupons)
                 if got_coupons or lost_coupons:
                     s = u"%s の称号が以下のように変更されています。" % (name)
                     self.text.WriteText(s)
