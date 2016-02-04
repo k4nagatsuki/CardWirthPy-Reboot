@@ -35,6 +35,7 @@ class MessageWindow(base.CWPySprite):
         self.result = result
         # data
         self.names = names
+        self.names_log = []
         self.imgpaths = imgpaths
         self.text = text
 
@@ -247,6 +248,7 @@ class MessageWindow(base.CWPySprite):
             sbar = SelectionBar(name, pos, backlog=self.backlog, selected=selected)
             self.selections.append(sbar)
             sbar.update()
+            self.names_log.append(name)
 
     def create_charimgs(self, pos_noscale=None):
         if pos_noscale is None:
@@ -714,6 +716,7 @@ class BacklogData:
             self.type = 0
         self.text = base.text
         self.names = base.names
+        self.names_log = base.names_log
         self.imgpaths = base.imgpaths
         self.talker_image = []
         for info in self.imgpaths:
@@ -774,11 +777,11 @@ class BacklogData:
                 if len(self.names) == 1 and self.names[0][1] == cw.cwpy.msgs["ok"]:
                     names = []
                 else:
-                    names = [self.names[self.result]]
+                    names = [self.names_log[self.result]]
             else:
                 size_noscale = self.rect_noscale.size
                 trim_top = 0
-                names = self.names
+                names = self.names_log
             base = MessageWindow(self.text, names, self.imgpaths, None,
                                  self.rect_noscale.topleft, size_noscale,
                                  self.talker_image,
@@ -787,9 +790,9 @@ class BacklogData:
                                  self.textimg, trim_top_noscale=trim_top)
         else:
             if cw.cwpy.setting.messagelog_type == cw.setting.LOG_COMPRESS:
-                names = [self.names[self.result]]
+                names = [self.names_log[self.result]]
             else:
-                names = self.names
+                names = self.names_log
             base = SelectWindow(names, self.text, self.rect_noscale.topleft, self.rect_noscale.size,
                                 True, self.result,
                                 self.textimg)
@@ -959,9 +962,40 @@ def rpl_specialstr(s):
     name_table = _create_nametable(False, None)
     return _rpl_specialstr(False, s, name_table, _get_stepvalue, _get_flagvalue, encodedtext=False)
 
+class _NameGetter(object):
+    def __init__(self, func):
+        self.func = func
+        self.names = []
+        self.count = 0
+
+    def reset(self):
+        self.count = 0
+
+    def get_name(self):
+        if self.count < len(self.names):
+            name = self.names[self.count]
+        else:
+            name = self.func()
+            self.names.append(name)
+        self.count += 1
+        return name
+
+def _reset_nametable(nametable):
+    for name in nametable.itervalues():
+        if isinstance(name, _NameGetter):
+            name.reset()
+
+def _get_namefromtable(nc, nametable):
+    name = nametable.get(u"#" + nc, "")
+    if isinstance(name, _NameGetter):
+        name = name.get_name()
+    return name
+
 def _create_nametable(full, talker):
-    random = cw.cwpy.event.get_targetmember("Random")
-    random = random.name if random else ""
+    def get_random():
+        random = cw.cwpy.event.get_targetmember("Random")
+        random = random.name if random else ""
+        return random
     selected = cw.cwpy.event.get_targetmember("Selected")\
                if cw.cwpy.event.has_selectedmember() else u""
     selected = selected.name if selected else ""
@@ -976,7 +1010,7 @@ def _create_nametable(full, talker):
 
     name_table = {
         "#m" : selected,   # 選択中のキャラ名(#i=#m というわけではない)
-        "#r" : random,     # ランダム選択キャラ名
+        "#r" : _NameGetter(get_random),     # ランダム選択キャラ名
         "#u" : unselected, # 非選択中キャラ名
         "#y" : yado,       # 宿の名前
         "#t" : party       # パーティの名前
@@ -1010,6 +1044,7 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
     """
     特殊文字列(#, $)を置換した文字列を返す。
     """
+    _reset_nametable(name_table)
     buf = []
     skip = 0
     if encodedtext:
@@ -1043,13 +1078,13 @@ def _rpl_specialstr(full, s, name_table, get_step, get_flag, encodedtext=True):
                 continue
             if full:
                 if nc in ('m', 'r', 'u', 'c', 'i', 't', 'y'):
-                    buf.append(name_table.get("#" + nc, ""))
+                    buf.append(_get_namefromtable(nc, name_table))
                     skip = 1
                 else:
                     buf.append(c)
             else:
                 if nc in ('m', 'r', 'u', 't', 'y'):
-                    buf.append(name_table.get("#" + nc, ""))
+                    buf.append(_get_namefromtable(nc, name_table))
                     skip = 1
                 else:
                     buf.append(c)
