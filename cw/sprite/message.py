@@ -497,6 +497,7 @@ class SelectWindow(MessageWindow):
         self.result = result
         # data
         self.names = names
+        self.names_log = []
         self.imgpaths = []
         self.text = cw.cwpy.msgs["select_message"] if not text else text
         self.talker = None
