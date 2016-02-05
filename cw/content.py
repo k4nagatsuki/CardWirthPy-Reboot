@@ -1609,6 +1609,7 @@ def call_package(resid, call):
     if call:
         event.nowrunningcontents.append((packevent, event.cur_content, versionhint_base))
         cw.cwpy.event.append_event(packevent)
+        packevent.parent = cw.cwpy.event.get_event()
     else:
         cw.cwpy.event.replace_event(packevent, (cw.HINT_AREA, versionhint_base))
         event = cw.cwpy.event.get_event()

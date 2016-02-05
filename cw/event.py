@@ -416,15 +416,18 @@ class EventInterface(object):
         event: contentが属するイベント。
                現在イベントが実行中であれば無視される。
         """
-        if self.get_event():
-            if not event is None and not self.get_event() is event:
+        if self.get_nowrunningevent():
+            if not event is None and not self.get_nowrunningevent() is event:
                 return
-            self.get_event().force_nextcontent = content
+            event = self.get_nowrunningevent()
+            while event.parent:
+                event = event.parent
+            event.force_nextcontent = content
             mwin = cw.cwpy.get_messagewindow()
             if mwin:
                 mwin.result = 0
             else:
-                self.get_event().skip_action = True
+                event.skip_action = True
                 self.refresh_activeitem()
         else:
             event.force_nextcontent = content
@@ -573,6 +576,7 @@ class EffectBreakError(EventError):
 
 class Event(object):
     def __init__(self, event):
+        self.parent = None
         self.base = None
         self.inusecard = None
         # 次の子コンテンツインデックス。Contentの戻り値で設定される。
