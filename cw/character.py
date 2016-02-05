@@ -2664,7 +2664,9 @@ def calc_maxlife(vit, minval, level):
     """能力値から体力の最大値を計算する。"""
     vit = max(1, vit)
     minval = max(1, minval)
-    return int((int(vit) // 2 + 4) * (level + 1) + int(minval) // 2)
+    return int((float(vit) / 2.0 + 4) * (level + 1) + float(minval) / 2.0)
+assert calc_maxlife(8, 5, 10) == 90
+assert calc_maxlife(9, 5, 10) == 96
 
 class Enemy(Character):
     def is_dead(self):

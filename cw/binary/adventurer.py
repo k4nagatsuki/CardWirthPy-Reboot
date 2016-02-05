@@ -84,7 +84,7 @@ class Adventurer(base.CWBinaryBase):
             # 体力を計算
             vit = max(1, self.vit)
             minval = max(1, self.min)
-            self.life = int((vit // 2 + 4) * (self.level + 1) + minval // 2)
+            self.life = cw.character.calc_maxlife(vit, minval, self.level)
             self.maxlife = self.life
 
             # クーポン

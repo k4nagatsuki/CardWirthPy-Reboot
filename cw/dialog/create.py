@@ -366,6 +366,7 @@ class AdventurerData(object):
                 self.level = f.level
                 for coupon in f.coupons:
                     self.set_coupon(coupon[0], coupon[1])
+                break
 
     def set_attributes(self, attrs):
         for attr in cw.cwpy.setting.makings:
