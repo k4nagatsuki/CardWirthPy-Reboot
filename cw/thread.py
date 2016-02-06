@@ -1578,6 +1578,8 @@ class CWPy(_Singleton, threading.Thread):
 
     def set_title(self, init=True, ttype=("Default", "Default")):
         """タイトル画面へ遷移。"""
+        del self.pre_dialogs[:]
+        del self.pre_areaids[:]
         self.set_status("Title")
         self._init_attrs()
         self.update_titlebar()
@@ -1726,6 +1728,8 @@ class CWPy(_Singleton, threading.Thread):
     def set_gameover(self):
         """ゲームオーバー画面へ遷移。"""
         self.set_status("GameOver")
+        del self.pre_dialogs[:]
+        del self.pre_areaids[:]
         self._gameover = False
         self._forcegameover = False
         self.battle = None
@@ -1996,6 +2000,8 @@ class CWPy(_Singleton, threading.Thread):
         # イベントを中止
         self.event._stoped = True
         self.event.breakwait = True
+        del self.pre_dialogs[:]
+        del self.pre_areaids[:]
 
         def func5():
             def func():
@@ -2060,6 +2066,9 @@ class CWPy(_Singleton, threading.Thread):
             else:
                 cw.cwpy.play_sound("error")
                 return False
+
+        del self.pre_dialogs[:]
+        del self.pre_areaids[:]
 
         optscenario = cw.OPTIONS.scenario
         cw.OPTIONS.scenario = ""
