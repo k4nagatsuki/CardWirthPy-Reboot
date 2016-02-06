@@ -231,6 +231,7 @@ class CWPy(_Singleton, threading.Thread):
             self.frame.panel.SetSize(size)
             if sys.platform <> "win32":
                 if self.frame.IsFullScreen():
+                    dsize = self.frame.get_displaysize()
                     self.frame.SetMaxSize(dsize)
                     self.frame.SetMinSize(dsize)
                 else:
