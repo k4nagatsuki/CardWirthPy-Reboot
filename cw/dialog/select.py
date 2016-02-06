@@ -2672,7 +2672,7 @@ class Album(PlayerSelect):
         pass
 
 def change_combo(combo, event):
-    if combo and combo.GetRect().Contains(event.GetPosition()):
+    if combo and combo.IsShown() and combo.GetRect().Contains(event.GetPosition()):
         index = combo.GetSelection()
         count = combo.GetCount()
         if event.GetWheelRotation() > 0:
