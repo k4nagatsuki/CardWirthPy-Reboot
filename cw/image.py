@@ -1093,7 +1093,7 @@ def fix_cwnext16bitbitmap(data):
     _biSizeImage = s[12]
     _biXPixPerMeter = s[13]
     _biYPixPerMeter = s[14]
-    _biClrUsed = s[15]
+    biClrUsed = s[15]
     _biClrImporant = s[16]
     lineSize = ((biWidth * biBitCount + 31) / 32) * 4
     height = -biHeight if biHeight < 0 else biHeight
@@ -1114,6 +1114,10 @@ def fix_cwnext16bitbitmap(data):
         if biCompression == 3:
             # ビットフィールド情報がある場合
             bfOffBits += 4 * 3
+        if biBitCount in (1, 4, 8):
+            if biClrUsed == 0:
+                biClrUsed = biBitCount * biBitCount
+            bfOffBits += biClrUsed * 4
         b = struct.pack("<I", bfOffBits)
         data = data[0:10] + b + data[14:]
         data = cw.image.patch_rle4bitmap(data)
