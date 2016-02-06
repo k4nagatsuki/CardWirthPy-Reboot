@@ -3378,12 +3378,8 @@ class CWPy(_Singleton, threading.Thread):
             self.ydata.environment.edit("Property/NowSelectingParty", "")
             self.ydata.set_money(p_money)
 
-            order = cw.util.new_order(self.ydata.standbys)
-            for path in p_members:
-                header = self.ydata.create_advheader(path)
-                header.order = order
-                order += 1
-                self.ydata.standbys.append(header)
+            for path in reversed(p_members):
+                self.ydata.add_standbys(path, sort=False)
             self.ydata.sort_standbys()
 
             if breakuparea:
