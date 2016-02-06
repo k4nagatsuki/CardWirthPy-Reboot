@@ -91,8 +91,10 @@ class PartyEditor(wx.Dialog):
         money = self.panel.value
 
         def func(self, party, suspend_levelup):
+            update = False
             if name <> party.name:
                 party.set_name(name)
+                update = True
 
             if suspend_levelup <> party.suspend_levelup:
                 party.suspend_levelup(suspend_levelup)
@@ -102,8 +104,12 @@ class PartyEditor(wx.Dialog):
                 ymoney = party.money - money
                 cw.cwpy.ydata.set_money(ymoney, blink=True)
                 party.set_money(pmoney, blink=True)
+                update = True
+
+            if update:
                 party.write()
                 cw.cwpy.draw(True)
+
             def func(self):
                 if self:
                     btnevent = wx.PyCommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
