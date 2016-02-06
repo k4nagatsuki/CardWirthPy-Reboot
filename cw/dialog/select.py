@@ -1480,6 +1480,9 @@ class PartySelect(MultiViewSelect):
         cw.cwpy.setting.show_multipleparties = multi
 
     def OnClickInfoBtn(self, event):
+        if not self.list:
+            return
+        cw.cwpy.play_sound("click")
         header = self.list[self.index]
         party = cw.data.Party(header, True)
 
@@ -1496,6 +1499,8 @@ class PartySelect(MultiViewSelect):
             self.draw(True)
 
     def OnClickEditBtn(self, event):
+        if not self.list:
+            return
         partyheader = self.list[self.index]
         def redrawfunc():
             def func():
@@ -1507,6 +1512,7 @@ class PartySelect(MultiViewSelect):
                 cw.cwpy.frame.exec_func(self.draw, True)
             cw.cwpy.exec_func(func)
 
+        cw.cwpy.play_sound("click")
         dlg = cw.dialog.charainfo.StandbyPartyCharaInfo(self.Parent, partyheader, redrawfunc)
         cw.cwpy.frame.move_dlg(dlg)
         dlg.ShowModal()
