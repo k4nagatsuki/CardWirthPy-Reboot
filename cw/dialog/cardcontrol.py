@@ -2090,7 +2090,7 @@ class CardHolder(CardControl):
         self._fulllist = clist
         if not self.callname in ("STOREHOUSE", "BACKPACK", "CARDPOCKETB", "INFOVIEW"):
             return self._fulllist
-        if self.narrow.IsShown():
+        if cw.cwpy.setting.show_additional_card:
             narrow = self.narrow.GetValue().lower()
         else:
             narrow = ""
