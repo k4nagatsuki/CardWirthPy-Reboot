@@ -91,18 +91,24 @@ class ScrollBar(base.CWPySprite):
             return self.lazypos_noscale
 
     def set_params(self, scrpos_noscale, scrsize_noscale):
+        minsize = cw.s(4)
         hwidth = self.width-cw.s(8)
         self.scrsize_noscale = max(cw.SIZE_AREA[1], scrsize_noscale)
         self.scrpos_noscale = min(self.scrsize_noscale-cw.SIZE_AREA[1], max(0, scrpos_noscale))
         if not self.visible:
             return
+
         l = float(cw.SIZE_AREA[1]) / self.scrsize_noscale
-        scrpos = int(round(cw.s(self.scrpos_noscale) * l))
-        scrsize = int(round(min(cw.s(self.scrsize_noscale), self.rect.height) * l))
-        if scrsize < cw.s(4):
-            scrsize = cw.s(4)
-            l = cw.s(self.scrsize_noscale) / float(scrsize)
-            scrpos = int(round(cw.s(self.scrpos_noscale) * l))
+        scrpos = cw.s(self.scrpos_noscale) * l
+        scrsize = min(cw.s(self.scrsize_noscale), self.rect.height) * l
+        if scrsize < minsize:
+            posper = scrpos / float(self.rect.height-scrsize)
+            scrsize = minsize
+            sizen = cw.s(cw.SIZE_AREA[1]) - scrsize
+            scrpos = sizen * posper
+
+        scrpos = int(round(scrpos))
+        scrsize = int(round(scrsize))
 
         self.image.fill((0, 0, 0, 128), rect=pygame.Rect(hwidth, 0, self.width-hwidth, self.rect.height))
         if 0 < scrsize:
