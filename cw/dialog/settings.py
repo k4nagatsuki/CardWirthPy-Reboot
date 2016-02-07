@@ -1184,6 +1184,7 @@ class ExpandPanel(wx.Panel):
         self.options = options
 
         # 拡大表示モード
+        self._expand_enable = True
         self.st_expandscr = wx.StaticText(self, -1, u"描画倍率:")
         self.st_expandwin = wx.StaticText(self, -1, u"表示倍率:")
 
@@ -1192,7 +1193,6 @@ class ExpandPanel(wx.Panel):
         self.sl_expand = wx.Slider(
             self, -1, 10, 10, 11, size=(120, -1),
             style=wx.SL_HORIZONTAL|wx.SL_AUTOTICKS)
-        self.sl_expand.SetMax(10)
         self.st_expand = wx.StaticText(self, -1)
         dc = wx.ClientDC(self.st_expand)
         s = u"9倍 (9999x9999)_"
@@ -1242,8 +1242,15 @@ class ExpandPanel(wx.Panel):
             val *= 2
             if nmax < val*10:
                 break
-        self.sl_expand.SetMax(nmax)
+        if nmax <= 10:
+            self.sl_expand.SetMax(11)
+            self._expand_enable = False
+            n = 10
+        else:
+            self.sl_expand.SetMax(nmax)
+            self._expand_enable = True
         self.sl_expand.SetValue(n)
+        self.sl_expand.Enable(self._expand_enable)
 
         if self.ch_expanddrawing.GetSelection() == -1:
             self.ch_expanddrawing.Select(0)
@@ -1255,7 +1262,7 @@ class ExpandPanel(wx.Panel):
             self.sl_expand.Disable()
             self.st_expand.SetLabel(u"フルスクリーン")
         else:
-            self.sl_expand.Enable()
+            self.sl_expand.Enable(self._expand_enable)
             n = self.sl_expand.GetValue()
             x = cw.SIZE_GAME[0] * n / 10
             y = cw.SIZE_GAME[1] * n / 10

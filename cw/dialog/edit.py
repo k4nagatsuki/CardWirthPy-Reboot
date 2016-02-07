@@ -512,9 +512,18 @@ class SliderWithButton(wx.Panel):
         bmp = cw.cwpy.rsrc.buttons["RMOVE"]
         self.rightbtn = cw.cwpy.rsrc.create_wxbutton(self, -1, cw.wins((20, 40)), bmp=bmp)
 
-        self.set_min(minvalue)
-        self.set_max(maxvalue)
-        self.set_value(value)
+        if maxvalue <= minvalue:
+            self.is_enabled = False
+            self.slider.SetRange(minvalue, minvalue+1)
+            self.slider.SetValue(minvalue)
+            self.slider.Disable()
+            self.leftbtn.Disable()
+            self.rightbtn.Disable()
+        else:
+            self.is_enabled = True
+            self.slider.SetRange(minvalue, maxvalue)
+            self.set_max(maxvalue)
+            self.set_value(value)
 
         self._timer = wx.Timer(self)
 
@@ -522,17 +531,28 @@ class SliderWithButton(wx.Panel):
         self._bind()
 
     def set_value(self, value):
+        if not self.is_enabled:
+            return
         self.slider.SetValue(value)
+        self._enable()
 
     def set_max(self, value):
         maxvalue = value
         minvalue = self.slider.GetMin()
+        self.is_enabled = minvalue < maxvalue
+        if not self.is_enabled:
+            self.slider.SetRange(minvalue, minvalue+1)
+            self.slider.SetValue(minvalue)
+            self._enable()
+            return
         n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
         self.slider.SetTickFreq(n, 1)
         self.slider.SetMax(value)
         self._enable()
 
     def set_min(self, value):
+        if not self.is_enabled:
+            return
         maxvalue = self.slider.GetMax()
         minvalue = value
         n = (maxvalue - minvalue) / 20.0 if 20 < (maxvalue - minvalue) else 1
@@ -541,11 +561,9 @@ class SliderWithButton(wx.Panel):
         self._enable()
 
     def _enable(self):
-        maxvalue = self.slider.GetMax()
-        minvalue = self.slider.GetMin()
-        self.slider.Enable(minvalue < maxvalue)
-        self.leftbtn.Enable(minvalue < maxvalue)
-        self.rightbtn.Enable(minvalue < maxvalue)
+        self.slider.Enable(self.is_enabled)
+        self.leftbtn.Enable(self.is_enabled and self.slider.GetMin() < self.slider.GetValue())
+        self.rightbtn.Enable(self.is_enabled and self.slider.GetValue() < self.slider.GetMax())
 
     def _bind(self):
         self.Bind(wx.EVT_BUTTON, self.OnLeftBtn, self.leftbtn)
@@ -628,6 +646,7 @@ class SliderWithButton(wx.Panel):
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_SLIDER_UPDATED, self.slider.GetId())
             event.SetInt(value-1)
             self.slider.ProcessEvent(event)
+            self._enable()
 
     def _on_rightbtn(self):
         value = self.slider.GetValue()
@@ -636,6 +655,7 @@ class SliderWithButton(wx.Panel):
             event = wx.PyCommandEvent(wx.wxEVT_COMMAND_SLIDER_UPDATED, self.slider.GetId())
             event.SetInt(value+1)
             self.slider.ProcessEvent(event)
+            self._enable()
 
 class NumberEditor(wx.Panel):
     def __init__(self, parent, value, minvalue, maxvalue):
@@ -665,6 +685,7 @@ class NumberEditor(wx.Panel):
     def set_value(self, value):
         self.slider.set_value(value)
         self.spinctrl.SetValue(value)
+        self._enable()
 
     def set_max(self, value):
         self.slider.set_max(value)
@@ -677,9 +698,8 @@ class NumberEditor(wx.Panel):
         self._enable()
 
     def _enable(self):
-        maxvalue = self.slider.slider.GetMax()
-        minvalue = self.slider.slider.GetMin()
-        self.spinctrl.Enable(minvalue < maxvalue)
+        self.spinctrl.Enable(self.slider.is_enabled)
+        self.slider._enable()
 
     def _bind(self):
         self.slider.slider.Bind(wx.EVT_SLIDER, self.OnSlider)
@@ -702,9 +722,11 @@ class NumberEditor(wx.Panel):
 
     def OnSlider(self, evt):
         self.spinctrl.SetValue(self.slider.slider.GetValue())
+        self._enable()
 
     def OnSpinCtrl(self, evt):
         self.slider.slider.SetValue(self.spinctrl.GetValue())
+        self._enable()
 
 class ComboEditDialog(wx.Dialog):
 
