@@ -189,18 +189,21 @@ class MoneyEditPanel(wx.Panel):
         self.spinctrl.SetValue(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
+        self.slider._enable()
 
     def OnSpinCtrl(self, event):
         value = self.spinctrl.GetValue()
         self.slider.set_value(value)
         self.spinctrl2.SetValue(self.spinctrl2.GetMax() + self.spinctrl2.GetMin() - value)
         self.value = value
+        self.slider._enable()
 
     def OnSpinCtrl2(self, event):
         value = self.spinctrl.GetMax() + self.spinctrl.GetMin() - self.spinctrl2.GetValue()
         self.slider.set_value(value)
         self.spinctrl.SetValue(value)
         self.value = value
+        self.slider._enable()
 
     def _do_layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
