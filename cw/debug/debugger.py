@@ -613,16 +613,19 @@ class Debugger(wx.Frame):
         if cw.cwpy.is_playingscenario() and not cw.cwpy.is_runningevent():
             def func():
                 cw.cwpy.play_sound("click")
-                cw.cwpy.sdata.reload()
-                if 0 <= cw.cwpy.areaid and not cw.cwpy.selectedheader:
-                    # キャンプ等
-                    cw.cwpy.change_area(cw.cwpy.areaid, False, True)
+                try:
+                    cw.cwpy.sdata.reload()
+                    if 0 <= cw.cwpy.areaid and not cw.cwpy.selectedheader:
+                        # キャンプ等
+                        cw.cwpy.change_area(cw.cwpy.areaid, False, True)
 
-                if cw.cwpy.battle:
-                    # バトル中
-                    cw.cwpy.battle.ready()
-                    cw.cwpy.battle.round -= 1
-                cw.cwpy.play_sound("signal")
+                    if cw.cwpy.battle:
+                        # バトル中
+                        cw.cwpy.battle.ready()
+                        cw.cwpy.battle.round -= 1
+                    cw.cwpy.play_sound("signal")
+                except cw.event.EffectBreakError:
+                    pass
             cw.cwpy.exec_func(func)
 
     def OnRedisplayTool(self, event):

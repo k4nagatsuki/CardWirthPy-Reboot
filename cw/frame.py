@@ -449,8 +449,9 @@ class Frame(wx.Frame):
                 cw.cwpy.setting.window_position = self.GetPosition()
 
     def OnCLOSE(self, event):
-        while cw.cwpy.is_processing:
+        while cw.cwpy.is_processing and not cw.cwpy.is_decompressing:
             pass
+
         if cw.cwpy.setting.caution_beforesaving and cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
             if cw.cwpy.ydata and cw.cwpy.ydata.is_changed():
                 s = cw.cwpy.msgs["confirm_quit_changed"]
@@ -793,23 +794,31 @@ class Frame(wx.Frame):
         self.move_dlg(dlg)
 
         if dlg.ShowModal() == wx.ID_OK:
-            cw.cwpy.sdata.in_f9 = True
-            if cw.cwpy.pre_dialogs:
-                cw.cwpy.pre_dialogs.pop()
+            def func():
+                if cw.cwpy.is_decompressing:
+                    if cw.cwpy.is_playingscenario():
+                        # リロード中
+                        cw.cwpy.exec_func(func)
+                    raise cw.event.EffectBreakError()
 
-            if cw.cwpy.is_showingmessage():
-                mwin = cw.cwpy.get_messagewindow()
-                mwin.result = cw.event.EffectBreakError()
-                cw.cwpy.exec_func(cw.cwpy.sdata.f9)
-            else:
-                def stop():
-                    if cw.cwpy.is_runningevent() and cw.cwpy.event.get_event():
-                        # イベント中断
-                        cw.cwpy.event.get_event().exit_func = cw.cwpy.sdata.f9
-                        raise cw.event.EffectBreakError()
-                    else:
-                        cw.cwpy.exec_func(cw.cwpy.sdata.f9)
-                cw.cwpy.exec_func(stop)
+                cw.cwpy.sdata.in_f9 = True
+                if cw.cwpy.pre_dialogs:
+                    cw.cwpy.pre_dialogs.pop()
+
+                if cw.cwpy.is_showingmessage():
+                    mwin = cw.cwpy.get_messagewindow()
+                    mwin.result = cw.event.EffectBreakError()
+                    cw.cwpy.exec_func(cw.cwpy.sdata.f9)
+                else:
+                    def stop():
+                        if cw.cwpy.is_runningevent() and cw.cwpy.event.get_event():
+                            # イベント中断
+                            cw.cwpy.event.get_event().exit_func = cw.cwpy.sdata.f9
+                            raise cw.event.EffectBreakError()
+                        else:
+                            cw.cwpy.exec_func(cw.cwpy.sdata.f9)
+                    cw.cwpy.exec_func(stop)
+            cw.cwpy.exec_func(func)
 
         self.kill_dlg(dlg)
 

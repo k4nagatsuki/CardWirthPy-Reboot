@@ -576,6 +576,7 @@ class ScenarioData(SystemData):
         self._progress = False
         self._arcname = os.path.basename(self.fpath)
         self._format = u""
+        self._cancel_decompress = False
         def startup(filenum):
             def func():
                 self._filenum = filenum
@@ -587,6 +588,8 @@ class ScenarioData(SystemData):
                 cw.cwpy.statusbar.change()
             cw.cwpy.exec_func(func)
         def progress(cur):
+            if not cw.cwpy.is_runningstatus() or self._cancel_decompress:
+                return True # cancel
             def func():
                 if not cw.cwpy.expanding:
                     return
@@ -598,6 +601,7 @@ class ScenarioData(SystemData):
             if not self._progress or cur == cw.cwpy.expanding_max:
                 self._progress = True
                 cw.cwpy.exec_func(func)
+            return False
 
         self._error = None
         def run_decompress():
@@ -609,18 +613,30 @@ class ScenarioData(SystemData):
                 cw.util.print_ex(file=sys.stderr)
                 self._error = e
 
-        thr = threading.Thread(target=run_decompress)
-        thr.start()
-        while thr.is_alive():
+        cw.cwpy.is_decompressing = True
+
+        try:
+            thr = threading.Thread(target=run_decompress)
+            thr.start()
+            while thr.is_alive():
+                cw.cwpy.eventhandler.run()
+                cw.cwpy.tick_clock()
+                cw.cwpy.input()
             cw.cwpy.eventhandler.run()
-            cw.cwpy.tick_clock()
-            cw.cwpy.input(noinput=True)
-        cw.cwpy.eventhandler.run()
-        cw.cwpy.expanding = u""
-        cw.cwpy.expanding_max = 100
-        cw.cwpy.expanding_min = 0
-        cw.cwpy.expanding_cur = 0
-        cw.cwpy.statusbar.change(False)
+        except cw.event.EffectBreakError, ex:
+            self._cancel_decompress = True
+            thr.join()
+            raise ex
+        finally:
+            cw.cwpy.is_decompressing = False
+            if not cw.cwpy.is_runningstatus():
+                raise cw.event.EffectBreakError()
+            cw.cwpy.expanding = u""
+            cw.cwpy.expanding_max = 100
+            cw.cwpy.expanding_min = 0
+            cw.cwpy.expanding_cur = 0
+            cw.cwpy.statusbar.change(False)
+
         if self._error:
             # 展開エラー
             raise self._error

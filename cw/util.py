@@ -1785,7 +1785,7 @@ def decompress_cab(path, dstdir, dname="", startup=None, progress=None, overwrit
                     r = p.poll()
                     while r is None:
                         if self.cancel:
-                            p.terminate()
+                            p.kill()
                         time.sleep(0.001)
                         r = p.poll()
                     if r == 0:

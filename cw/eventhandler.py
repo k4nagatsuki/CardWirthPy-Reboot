@@ -145,7 +145,10 @@ class EventHandler(object):
         return index
 
     def can_input(self):
-        return not (cw.cwpy.is_showingdlg() or pygame.event.peek(pygame.locals.USEREVENT))
+        return cw.cwpy.is_decompressing or not (cw.cwpy.is_showingdlg() or pygame.event.peek(pygame.locals.USEREVENT))
+
+    def is_processing(self):
+        return cw.cwpy.is_processing and not cw.cwpy.is_decompressing
 
     def dirkey_event(self, x=0, y=0, pushing=False, sidechange=False):
         """
@@ -153,7 +156,7 @@ class EventHandler(object):
         """
         if cw.cwpy.is_showingdlg():
             return
-        if cw.cwpy.is_runningevent() or cw.cwpy.is_processing or\
+        if cw.cwpy.is_runningevent() or self.is_processing() or\
                 cw.cwpy.is_lockmenucards(None):
             return
 
@@ -246,7 +249,7 @@ class EventHandler(object):
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event)) or\
-                cw.cwpy.is_processing:
+                self.is_processing():
             return
 
         if cw.cwpy.selection:
@@ -271,7 +274,7 @@ class EventHandler(object):
         if (cw.cwpy.is_runningevent() and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event)) or\
-                cw.cwpy.is_processing:
+                self.is_processing():
             return
 
         if cw.cwpy.selection:
@@ -437,7 +440,7 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
-        if not cw.cwpy.is_playingscenario() or cw.cwpy.is_runningevent() or cw.cwpy.is_processing:
+        if not cw.cwpy.is_playingscenario() or cw.cwpy.is_runningevent() or self.is_processing():
             return
 
         if not cw.cwpy.is_battlestatus() and cw.cwpy.sdata.has_infocards():
@@ -470,7 +473,14 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
-        if cw.cwpy.is_playingscenario() and not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
+
+        if cw.cwpy.is_decompressing:
+            # アーカイブの展開をキャンセルする場合
+            cw.cwpy.has_inputevent = True
+            cw.cwpy.play_sound("signal")
+            cw.cwpy.call_modaldlg("F9")
+
+        elif cw.cwpy.is_playingscenario() and not cw.cwpy.is_showingdlg() and not pygame.event.peek(pygame.locals.USEREVENT):
             fname = os.path.basename(cw.cwpy.ydata.party.data.fpath)
             path = cw.util.join_paths(cw.tempdir, u"ScenarioLog/Party", fname)
             if os.path.isfile(path):
@@ -484,7 +494,7 @@ class EventHandler(object):
         """
         if not self.can_input():
             return
-        if (cw.cwpy.is_runningevent() or cw.cwpy.is_processing) and\
+        if (cw.cwpy.is_runningevent() or self.is_processing()) and\
                 not (isinstance(cw.cwpy.selection, cw.sprite.statusbar.StatusBarButton) and\
                      cw.cwpy.selection.selectable_on_event):
             return

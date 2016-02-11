@@ -58,6 +58,7 @@ class CWPy(_Singleton, threading.Thread):
         self.update_titlebar()
         self.expand_mode = setting.expandmode
         self.is_processing = False
+        self.is_decompressing = False
 
         # pygame初期化
         fullscreen = self.setting.is_expanded and self.setting.expandmode == "FullScreen"
@@ -597,7 +598,8 @@ class CWPy(_Singleton, threading.Thread):
             self.play_sound("page")
             self.frame.exec_func(self.frame.debugger.Close)
 
-        cw.data.redraw_cards(debug)
+        if not self.is_decompressing:
+            cw.data.redraw_cards(debug)
         self.clear_selection()
 
     def update_infocard(self):
@@ -1636,11 +1638,12 @@ class CWPy(_Singleton, threading.Thread):
             self.update_skin(self.ydata.skindirname, changearea=False)
 
         if header and not isinstance(self.sdata, cw.data.ScenarioData):
-            def load_failure():
+            def load_failure(showerror):
                 # 読込失敗(帰還)
                 self.is_processing = False
-                s = u"シナリオの読み込みに失敗しました。"
-                self.call_modaldlg("ERROR", text=s)
+                if showerror:
+                    s = u"シナリオの読み込みに失敗しました。"
+                    self.call_modaldlg("ERROR", text=s)
                 if isinstance(self.sdata, cw.data.ScenarioData):
                     self.sdata.end()
                 self.set_yado()
@@ -1668,7 +1671,7 @@ class CWPy(_Singleton, threading.Thread):
                         if not self.sdata.startid in self.sdata.areas:
                             if resume:
                                 # 再開時に読込失敗
-                                load_failure()
+                                load_failure(True)
                                 return
                             # 開始エリアが存在しない(帰還)
                             s = u"シナリオに開始エリアが設定されていません。"
@@ -1710,12 +1713,19 @@ class CWPy(_Singleton, threading.Thread):
                     except:
                         # 読込失敗(帰還)
                         cw.util.print_ex()
-                        self.exec_func(load_failure)
+                        self.exec_func(load_failure, True)
                 self.exec_func(func, loaded, musicpaths, areaid)
+            except cw.event.EffectBreakError:
+                # 手動で中止
+                if not self.is_runningstatus():
+                    return
+                self.exec_func(load_failure, False)
             except:
+                if not self.is_runningstatus():
+                    return
                 # 読込失敗(帰還)
                 cw.util.print_ex()
-                self.exec_func(load_failure)
+                self.exec_func(load_failure, True)
         else:
             self.statusbar.change(False)
             self.is_processing = False
@@ -2024,6 +2034,9 @@ class CWPy(_Singleton, threading.Thread):
                 self.sdata.end()
 
             self.exec_func(func4)
+
+            if self.is_decompressing:
+                raise cw.event.EffectBreakError()
 
         def func2():
             # バトルを強制終了
@@ -4140,6 +4153,9 @@ class CWPy(_Singleton, threading.Thread):
 
         return self._running
 
+    def is_runningstatus(self):
+        return self._running
+
     def is_playingscenario(self):
         return bool(isinstance(self.sdata, cw.data.ScenarioData)\
                     and self.sdata.is_playing and self.ydata and self.ydata.party)
@@ -4148,7 +4164,8 @@ class CWPy(_Singleton, threading.Thread):
         return self.event.get_event() or\
             self.event.in_cardevent or\
             pygame.event.peek(USEREVENT) or\
-            (self.is_battlestatus() and not (self.battle and self.battle.is_ready()))
+            (self.is_battlestatus() and not (self.battle and self.battle.is_ready())) or\
+            self.is_decompressing
 
     def is_showingdlg(self):
         return 0 < self._showingdlg
