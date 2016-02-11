@@ -4,6 +4,7 @@
 import itertools
 
 import os
+import sys
 import wx
 import wx.combo
 import wx.lib.buttons
@@ -376,9 +377,14 @@ class CardControl(wx.Dialog):
             self.rightbtn2.SetPosition((x, y))
             self.rightbtn2.SetSize(cw.wins((20, 24)))
             x -= cw.wins(100)
-            self.combo.SetSize(cw.wins((100, 24)))
+            self.combo.SetSize((cw.wins(100), cw.wins(24)))
+            if sys.platform == "win32":
+                import win32api
+                CB_SETITEMHEIGHT = 0x153
+                win32api.SendMessage(self.combo.Handle, CB_SETITEMHEIGHT, -1, cw.wins(24))
             yc = y + (cw.wins(24)-self.combo.GetSize()[1]) / 2
             self.combo.SetPosition((x, yc))
+
             x -= cw.wins(20)
             self.leftbtn2.SetPosition((x, y))
             self.leftbtn2.SetSize(cw.wins((20, 24)))
@@ -773,10 +779,10 @@ class CardControl(wx.Dialog):
         # ライン
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DHIGHLIGHT)
         dc.SetPen(wx.Pen(colour, cw.wins(1), wx.SOLID))
-        dc.DrawLine(cw.wins(0), cw.wins(24), cw.wins(520), cw.wins(24))
+        dc.DrawLine(cw.wins(0), cw.wins(25), cw.wins(520), cw.wins(25))
         colour = wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DSHADOW)
         dc.SetPen(wx.Pen(colour, 1, wx.SOLID))
-        dc.DrawLine(cw.wins(0), cw.wins(25), cw.wins(520), cw.wins(25))
+        dc.DrawLine(cw.wins(0), cw.wins(26), cw.wins(520), cw.wins(26))
         # モード見出し
         dc.SetTextForeground(wx.LIGHT_GREY)
         dc.SetFont(cw.cwpy.rsrc.get_wxfont("paneltitle", pixelsize=cw.wins(16)))
