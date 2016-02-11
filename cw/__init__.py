@@ -57,7 +57,7 @@ else:
     MBCS = "ms932"
 
 # コール系イベントの再期限界回数
-LIMIT_RECURSE = 1000000000
+LIMIT_RECURSE = 10000
 
 # サイズ
 SIZE_SCR = (640, 480)
