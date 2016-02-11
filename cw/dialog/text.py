@@ -102,7 +102,7 @@ class Text(wx.Dialog):
         try:
             self.textctrl.SetValue(value)
         except:
-            self.textctrl.SetValue(cw.util.decode_zipname(value))
+            self.textctrl.SetValue(cw.util.decode_text(value))
         self.textctrl.ShowPosition(0)
 
     def OnCombobox(self, event):

@@ -1707,7 +1707,37 @@ def decode_zipname(name):
                     try:
                         name = name.decode("utf-8")
                     except UnicodeDecodeError:
-                        name = name
+                        try:
+                            name = name.decode("utf-16")
+                        except UnicodeDecodeError:
+                            try:
+                                name = name.decode("utf-32")
+                            except UnicodeDecodeError:
+                                name = name
+
+    return name
+
+def decode_text(name):
+    if not isinstance(name, unicode):
+        try:
+            name = name.decode("utf_8_sig")
+        except UnicodeDecodeError:
+            try:
+                name = name.decode("utf-8")
+            except UnicodeDecodeError:
+                try:
+                    name = name.decode("utf-16")
+                except UnicodeDecodeError:
+                    try:
+                        name = name.decode("utf-32")
+                    except UnicodeDecodeError:
+                        try:
+                            name = name.decode(cw.MBCS)
+                        except UnicodeDecodeError:
+                            try:
+                                name = name.decode("euc-jp")
+                            except UnicodeDecodeError:
+                                name = name
 
     return name
 

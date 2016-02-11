@@ -1156,7 +1156,7 @@ def _read_names(fpath):
         if os.path.isfile(fpath):
             with open(fpath, "rb") as f:
                 t = f.read()
-                t = cw.util.decode_zipname(t)
+                t = cw.util.decode_text(t)
                 f.close()
             lines = t.splitlines()
             for line in lines:
